@@ -1,296 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: + git-mips-git-rejects.patch added to -mm tree
-Date: Mon, 17 Mar 2008 13:54:35 -0700
-Message-ID: <200803172054.m2HKsZZh030506@imap1.linux-foundation.org>
+Subject: - smackfs-do-not-trust-count-in-inodes-writes.patch removed from -mm tree
+Date: Mon, 17 Mar 2008 13:57:18 -0700
+Message-ID: <200803172057.m2HKvI8Y030611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39185 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35301 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752451AbYCQUzO (ORCPT
+	by vger.kernel.org with ESMTP id S1756840AbYCQU5v (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 16:55:14 -0400
+	Mon, 17 Mar 2008 16:57:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ralf@linux-mips.org
+To: darwish.07@gmail.com, casey@schaufler-ca.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mips-git-rejects
-has been added to the -mm tree.  Its filename is
-     git-mips-git-rejects.patch
+     smackfs: do not trust `count' in inodes write()s
+has been removed from the -mm tree.  Its filename was
+     smackfs-do-not-trust-count-in-inodes-writes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-mips-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: smackfs: do not trust `count' in inodes write()s
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Smackfs write() implementation does not put a higher bound on the number of
+bytes to copy from user-space.  This may lead to a DOS attack if a malicious
+`count' field is given.
+
+Assure that given `count' is exactly the length needed for a /smack/load rule.
+ In case of /smack/cipso where the length is relative, assure that `count'
+does not exceed the size needed for a buffer representing maximum possible
+number of CIPSO 2.2 categories.
+
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Acked-by: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/traps.c |    6 +-----
- arch/mips/mm/c-r4k.c     |    6 +-----
- arch/mips/mm/uasm.c      |    6 +-----
- arch/mips/mm/uasm.h      |   26 ++++++++------------------
- 4 files changed, 11 insertions(+), 33 deletions(-)
+ security/smack/smack.h   |    8 --------
+ security/smack/smackfs.c |   31 ++++++++++++++++++++-----------
+ 2 files changed, 20 insertions(+), 19 deletions(-)
 
-diff -puN arch/mips/kernel/traps.c~git-mips-git-rejects arch/mips/kernel/traps.c
---- a/arch/mips/kernel/traps.c~git-mips-git-rejects
-+++ a/arch/mips/kernel/traps.c
-@@ -1306,9 +1306,6 @@ int cp0_compare_irq;
- int cp0_perfcount_irq;
- EXPORT_SYMBOL_GPL(cp0_perfcount_irq);
+diff -puN security/smack/smack.h~smackfs-do-not-trust-count-in-inodes-writes security/smack/smack.h
+--- a/security/smack/smack.h~smackfs-do-not-trust-count-in-inodes-writes
++++ a/security/smack/smack.h
+@@ -26,14 +26,6 @@
+ #define SMK_MAXLEN	23
+ #define SMK_LABELLEN	(SMK_MAXLEN+1)
  
--<<<<<<< HEAD:arch/mips/kernel/traps.c
--void __cpuinit per_cpu_trap_init(void)
--=======
- static int __initdata noulri;
+-/*
+- * How many kinds of access are there?
+- * Here's your answer.
+- */
+-#define SMK_ACCESSDASH	'-'
+-#define SMK_ACCESSLOW	"rwxa"
+-#define SMK_ACCESSKINDS	(sizeof(SMK_ACCESSLOW) - 1)
+-
+ struct superblock_smack {
+ 	char		*smk_root;
+ 	char		*smk_floor;
+diff -puN security/smack/smackfs.c~smackfs-do-not-trust-count-in-inodes-writes security/smack/smackfs.c
+--- a/security/smack/smackfs.c~smackfs-do-not-trust-count-in-inodes-writes
++++ a/security/smack/smackfs.c
+@@ -81,10 +81,23 @@ static struct semaphore smack_write_sem;
+ /*
+  * Values for parsing cipso rules
+  * SMK_DIGITLEN: Length of a digit field in a rule.
+- * SMK_CIPSOMEN: Minimum possible cipso rule length.
++ * SMK_CIPSOMIN: Minimum possible cipso rule length.
++ * SMK_CIPSOMAX: Maximum possible cipso rule length.
+  */
+ #define SMK_DIGITLEN 4
+-#define SMK_CIPSOMIN (SMK_MAXLEN + 2 * SMK_DIGITLEN)
++#define SMK_CIPSOMIN (SMK_LABELLEN + 2 * SMK_DIGITLEN)
++#define SMK_CIPSOMAX (SMK_CIPSOMIN + SMACK_CIPSO_MAXCATNUM * SMK_DIGITLEN)
++
++/*
++ * Values for parsing MAC rules
++ * SMK_ACCESS: Maximum possible combination of access permissions
++ * SMK_ACCESSLEN: Maximum length for a rule access field
++ * SMK_LOADLEN: Smack rule length
++ */
++#define SMK_ACCESS    "rwxa"
++#define SMK_ACCESSLEN (sizeof(SMK_ACCESS) - 1)
++#define SMK_LOADLEN   (SMK_LABELLEN + SMK_LABELLEN + SMK_ACCESSLEN)
++
  
- static int __init ulri_disable(char *s)
-@@ -1320,8 +1317,7 @@ static int __init ulri_disable(char *s)
- }
- __setup("noulri", ulri_disable);
- 
--void __init per_cpu_trap_init(void)
-->>>>>>> FETCH_HEAD:arch/mips/kernel/traps.c
-+void __cpuinit per_cpu_trap_init(void)
+ /*
+  * Seq_file read operations for /smack/load
+@@ -229,14 +242,10 @@ static void smk_set_access(struct smack_
+  * The format is exactly:
+  *     char subject[SMK_LABELLEN]
+  *     char object[SMK_LABELLEN]
+- *     char access[SMK_ACCESSKINDS]
++ *     char access[SMK_ACCESSLEN]
+  *
+- *     Anything following is commentary and ignored.
+- *
+- * writes must be SMK_LABELLEN+SMK_LABELLEN+4 bytes.
++ * writes must be SMK_LABELLEN+SMK_LABELLEN+SMK_ACCESSLEN bytes.
+  */
+-#define MINIMUM_LOAD (SMK_LABELLEN + SMK_LABELLEN + SMK_ACCESSKINDS)
+-
+ static ssize_t smk_write_load(struct file *file, const char __user *buf,
+ 			      size_t count, loff_t *ppos)
  {
- 	unsigned int cpu = smp_processor_id();
- 	unsigned int status_set = ST0_CU0;
-diff -puN arch/mips/mm/c-r4k.c~git-mips-git-rejects arch/mips/mm/c-r4k.c
---- a/arch/mips/mm/c-r4k.c~git-mips-git-rejects
-+++ a/arch/mips/mm/c-r4k.c
-@@ -1207,9 +1207,6 @@ void au1x00_fixup_config_od(void)
- 	}
- }
+@@ -253,7 +262,7 @@ static ssize_t smk_write_load(struct fil
+ 		return -EPERM;
+ 	if (*ppos != 0)
+ 		return -EINVAL;
+-	if (count < MINIMUM_LOAD)
++	if (count != SMK_LOADLEN)
+ 		return -EINVAL;
  
--<<<<<<< HEAD:arch/mips/mm/c-r4k.c
--static void __cpuinit coherency_setup(void)
--=======
- static int __initdata cca = -1;
- unsigned long _page_cachable_default;
- EXPORT_SYMBOL_GPL(_page_cachable_default);
-@@ -1223,8 +1220,7 @@ static int __init cca_setup(char *str)
+ 	data = kzalloc(count, GFP_KERNEL);
+@@ -513,7 +522,7 @@ static ssize_t smk_write_cipso(struct fi
+ 		return -EPERM;
+ 	if (*ppos != 0)
+ 		return -EINVAL;
+-	if (count <= SMK_CIPSOMIN)
++	if (count < SMK_CIPSOMIN || count > SMK_CIPSOMAX)
+ 		return -EINVAL;
  
- __setup("cca=", cca_setup);
+ 	data = kzalloc(count + 1, GFP_KERNEL);
+@@ -547,7 +556,7 @@ static ssize_t smk_write_cipso(struct fi
+ 	if (ret != 1 || catlen > SMACK_CIPSO_MAXCATNUM)
+ 		goto out;
  
--static void __init coherency_setup(void)
-->>>>>>> FETCH_HEAD:arch/mips/mm/c-r4k.c
-+static void __cpuinit coherency_setup(void)
- {
- 	if (cca < 0 || cca > 7)
- 		cca = read_c0_config() & CONF_CM_CMASK;
-diff -puN arch/mips/mm/uasm.c~git-mips-git-rejects arch/mips/mm/uasm.c
---- a/arch/mips/mm/uasm.c~git-mips-git-rejects
-+++ a/arch/mips/mm/uasm.c
-@@ -558,10 +558,7 @@ uasm_il_beqzl(u32 **p, struct uasm_reloc
- 	uasm_i_beqzl(p, reg, 0);
- }
+-	if (count <= (SMK_CIPSOMIN + catlen * SMK_DIGITLEN))
++	if (count != (SMK_CIPSOMIN + catlen * SMK_DIGITLEN))
+ 		goto out;
  
--<<<<<<< HEAD:arch/mips/mm/uasm.c
- void __cpuinit
--=======
--void __init
- uasm_il_bne(u32 **p, struct uasm_reloc **r, unsigned int reg1,
- 	    unsigned int reg2, int lid)
- {
-@@ -569,8 +566,7 @@ uasm_il_bne(u32 **p, struct uasm_reloc *
- 	uasm_i_bne(p, reg1, reg2, 0);
- }
- 
--void __init
-->>>>>>> FETCH_HEAD:arch/mips/mm/uasm.c
-+void __cpuinit
- uasm_il_bnez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid)
- {
- 	uasm_r_mips_pc16(r, *p, lid);
-diff -puN arch/mips/mm/uasm.h~git-mips-git-rejects arch/mips/mm/uasm.h
---- a/arch/mips/mm/uasm.h~git-mips-git-rejects
-+++ a/arch/mips/mm/uasm.h
-@@ -175,29 +175,19 @@ void uasm_copy_handler(struct uasm_reloc
- int uasm_insn_has_bdelay(struct uasm_reloc *rel, u32 *addr);
- 
- /* Convenience functions for labeled branches. */
--<<<<<<< HEAD:arch/mips/mm/uasm.h
--void uasm_il_bltz(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
--void uasm_il_b(u32 **p, struct uasm_reloc **r, int lid);
--void uasm_il_beqz(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
--void uasm_il_beqzl(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
--void uasm_il_bnez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
--void uasm_il_bgezl(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
--void uasm_il_bgez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
--=======
--void __init
-+void __cpuinit
- uasm_il_bltz(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
--void __init uasm_il_b(u32 **p, struct uasm_reloc **r, int lid);
--void __init
-+void __cpuinit uasm_il_b(u32 **p, struct uasm_reloc **r, int lid);
-+void __cpuinit
- uasm_il_beqz(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
--void __init
-+void __cpuinit
- uasm_il_beqzl(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
--void __init
-+void __cpuinit
- uasm_il_bne(u32 **p, struct uasm_reloc **r, unsigned int reg1,
- 	    unsigned int reg2, int lid);
--void __init
-+void __cpuinit
- uasm_il_bnez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
--void __init
-+void __cpuinit
- uasm_il_bgezl(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
--void __init
-+void __cpuinit
- uasm_il_bgez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
-->>>>>>> FETCH_HEAD:arch/mips/mm/uasm.h
+ 	memset(mapcatset, 0, sizeof(mapcatset));
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-pm-make-wakeup-flags-available-whenever-config_pm-is-set-checkpatch-fixes.patch
-git-drm.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-git-input.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
 git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-git-mips-git-rejects.patch
-git-net.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
-git-sh.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-watchdog.patch
-git-semaphore-git-rejects.patch
-x86-fix-aperture-vs-suspend-problem-checkpatch-fixes.patch
-revert-pcie-utilize-pcie-transaction-pending-bit.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
+git-security-testing.patch
+smack-do-not-dereference-null-ipc-object.patch
 lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
 lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
 selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
 audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
 
