@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces.patch added to -mm tree
-Date: Mon, 17 Mar 2008 21:30:02 -0700
-Message-ID: <200803180430.m2I4U2vB014249@imap1.linux-foundation.org>
+Subject: + bsd_acct-plain-current-real_parent-access-is-not-always-safe.patch added to -mm tree
+Date: Mon, 17 Mar 2008 21:29:59 -0700
+Message-ID: <200803180429.m2I4Txqq014154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48756 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38989 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751496AbYCREa4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751788AbYCREa6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Mar 2008 00:30:56 -0400
+	Tue, 18 Mar 2008 00:30:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, oleg@tv-sign.ru, paulmck@us.ibm.com
 
 
 The patch titled
-     bsd_acct: using task_struct->tgid is not right in pid-namespaces
+     bsd_acct: plain current->real_parent access is not always safe
 has been added to the -mm tree.  Its filename is
-     bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces.patch
+     bsd_acct-plain-current-real_parent-access-is-not-always-safe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bsd_acct: using task_struct->tgid is not right in pid-namespaces
+Subject: bsd_acct: plain current->real_parent access is not always safe
 From: Pavel Emelyanov <xemul@openvz.org>
 
-In case we're accounting from a sub-namespace, the tgids reported will not
-refer to the right namespace.
+This is minor, but dereferencing even current real_parent is not safe on debug
+kernels, since the memory, this points to, can be unmapped - RCU protection is
+required.
 
-Save the pid_namespace we're accounting in on the acct_glbs and use it in
-do_acct_process.
-
-Two less :) places using the task_struct.tgid member.
+Besides, the tgid field is deprecated and is to be replaced with task_tgid_xxx
+call (the 2nd patch), so RCU will be required anyway.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -51,109 +50,23 @@ Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ kernel/acct.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN kernel/acct.c~bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces kernel/acct.c
---- a/kernel/acct.c~bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces
+diff -puN kernel/acct.c~bsd_acct-plain-current-real_parent-access-is-not-always-safe kernel/acct.c
+--- a/kernel/acct.c~bsd_acct-plain-current-real_parent-access-is-not-always-safe
 +++ a/kernel/acct.c
-@@ -58,6 +58,7 @@
- #include <asm/uaccess.h>
- #include <asm/div64.h>
- #include <linux/blkdev.h> /* sector_div */
-+#include <linux/pid_namespace.h>
- 
- /*
-  * These constants control the amount of freespace that suspend and
-@@ -74,7 +75,7 @@ int acct_parm[3] = {4, 2, 30};
- /*
-  * External references and all of the globals.
-  */
--static void do_acct_process(struct file *);
-+static void do_acct_process(struct pid_namespace *ns, struct file *);
- 
- /*
-  * This structure is used so that all the data protected by lock
-@@ -86,6 +87,7 @@ struct acct_glbs {
- 	volatile int		active;
- 	volatile int		needcheck;
- 	struct file		*file;
-+	struct pid_namespace	*ns;
- 	struct timer_list	timer;
- };
- 
-@@ -175,9 +177,11 @@ out:
- static void acct_file_reopen(struct file *file)
- {
- 	struct file *old_acct = NULL;
-+	struct pid_namespace *old_ns = NULL;
- 
- 	if (acct_globals.file) {
- 		old_acct = acct_globals.file;
-+		old_ns = acct_globals.ns;
- 		del_timer(&acct_globals.timer);
- 		acct_globals.active = 0;
- 		acct_globals.needcheck = 0;
-@@ -185,6 +189,7 @@ static void acct_file_reopen(struct file
- 	}
- 	if (file) {
- 		acct_globals.file = file;
-+		acct_globals.ns = get_pid_ns(task_active_pid_ns(current));
- 		acct_globals.needcheck = 0;
- 		acct_globals.active = 1;
- 		/* It's been deleted if it was used before so this is safe */
-@@ -196,8 +201,9 @@ static void acct_file_reopen(struct file
- 	if (old_acct) {
- 		mnt_unpin(old_acct->f_path.mnt);
- 		spin_unlock(&acct_globals.lock);
--		do_acct_process(old_acct);
-+		do_acct_process(old_ns, old_acct);
- 		filp_close(old_acct, NULL);
-+		put_pid_ns(old_ns);
- 		spin_lock(&acct_globals.lock);
- 	}
- }
-@@ -419,7 +425,7 @@ static u32 encode_float(u64 value)
- /*
-  *  do_acct_process does all actual work. Caller holds the reference to file.
-  */
--static void do_acct_process(struct file *file)
-+static void do_acct_process(struct pid_namespace *ns, struct file *file)
- {
- 	struct pacct_struct *pacct = &current->signal->pacct;
- 	acct_t ac;
-@@ -481,9 +487,9 @@ static void do_acct_process(struct file 
- 	ac.ac_gid16 = current->gid;
+@@ -482,7 +482,9 @@ static void do_acct_process(struct file 
  #endif
  #if ACCT_VERSION==3
--	ac.ac_pid = current->tgid;
-+	ac.ac_pid = task_tgid_nr_ns(current, ns);
- 	rcu_read_lock();
--	ac.ac_ppid = rcu_dereference(current->real_parent)->tgid;
-+	ac.ac_ppid = task_tgid_nr_ns(rcu_dereference(current->real_parent), ns);
- 	rcu_read_unlock();
+ 	ac.ac_pid = current->tgid;
+-	ac.ac_ppid = current->real_parent->tgid;
++	rcu_read_lock();
++	ac.ac_ppid = rcu_dereference(current->real_parent)->tgid;
++	rcu_read_unlock();
  #endif
  
-@@ -580,6 +586,7 @@ void acct_collect(long exitcode, int gro
- void acct_process(void)
- {
- 	struct file *file = NULL;
-+	struct pid_namespace *ns;
- 
- 	/*
- 	 * accelerate the common fastpath:
-@@ -594,8 +601,10 @@ void acct_process(void)
- 		return;
- 	}
- 	get_file(file);
-+	ns = get_pid_ns(acct_globals.ns);
- 	spin_unlock(&acct_globals.lock);
- 
--	do_acct_process(file);
-+	do_acct_process(ns, file);
- 	fput(file);
-+	put_pid_ns(ns);
- }
+ 	spin_lock_irq(&current->sighand->siglock);
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
