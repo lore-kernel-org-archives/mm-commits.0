@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-allow-not-updating-bdi-stats-in-end_page_writeback.patch added to -mm tree
-Date: Mon, 17 Mar 2008 22:08:52 -0700
-Message-ID: <200803180508.m2I58q65015473@imap1.linux-foundation.org>
+Subject: + fuse-update-file-size-on-short-read.patch added to -mm tree
+Date: Mon, 17 Mar 2008 22:09:03 -0700
+Message-ID: <200803180509.m2I5937i015500@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58646 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54152 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753877AbYCRFJ0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753803AbYCRFJj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Mar 2008 01:09:26 -0400
+	Tue, 18 Mar 2008 01:09:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     mm: allow not updating BDI stats in end_page_writeback()
+     fuse: update file size on short read
 has been added to the -mm tree.  Its filename is
-     mm-allow-not-updating-bdi-stats-in-end_page_writeback.patch
+     fuse-update-file-size-on-short-read.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,105 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: allow not updating BDI stats in end_page_writeback()
+Subject: fuse: update file size on short read
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Fuse's writepage will need to clear page writeback separately from updating
-the per BDI counters.
+If the READ request returned a short count, then either
 
-This patch renames end_page_writeback() to __end_page_writeback() and adds a
-boolean parameter to indicate if the per BDI stats need to be updated.
+  - cached size is incorrect
+  - filesystem is buggy, as short reads are only allowed on EOF
 
-Regular callers get an inline end_page_writeback() without the boolean
-parameter.
+So assume that the size is wrong and refresh it, so that cached read() doesn't
+zero fill the missing chunk.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    2 +-
- include/linux/pagemap.h    |    7 ++++++-
- mm/filemap.c               |    7 ++++---
- mm/page-writeback.c        |    4 ++--
- 4 files changed, 13 insertions(+), 7 deletions(-)
+ fs/fuse/file.c |   42 ++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 38 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/page-flags.h~mm-allow-not-updating-bdi-stats-in-end_page_writeback include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-allow-not-updating-bdi-stats-in-end_page_writeback
-+++ a/include/linux/page-flags.h
-@@ -300,7 +300,7 @@ struct page;	/* forward declaration */
- 
- extern void cancel_dirty_page(struct page *page, unsigned int account_size);
- 
--int test_clear_page_writeback(struct page *page);
-+int test_clear_page_writeback(struct page *page, bool bdi_stats);
- int test_set_page_writeback(struct page *page);
- 
- static inline void set_page_writeback(struct page *page)
-diff -puN include/linux/pagemap.h~mm-allow-not-updating-bdi-stats-in-end_page_writeback include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-allow-not-updating-bdi-stats-in-end_page_writeback
-+++ a/include/linux/pagemap.h
-@@ -223,7 +223,12 @@ static inline void wait_on_page_writebac
- 		wait_on_page_bit(page, PG_writeback);
+diff -puN fs/fuse/file.c~fuse-update-file-size-on-short-read fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-update-file-size-on-short-read
++++ a/fs/fuse/file.c
+@@ -398,11 +398,26 @@ static size_t fuse_send_read(struct fuse
+ 	return req->out.args[0].size;
  }
  
--extern void end_page_writeback(struct page *page);
-+extern void __end_page_writeback(struct page *page, bool bdi_stats);
-+
-+static inline void end_page_writeback(struct page *page)
++static void fuse_read_update_size(struct inode *inode, loff_t size)
 +{
-+	__end_page_writeback(page, true);
++	struct fuse_conn *fc = get_fuse_conn(inode);
++	struct fuse_inode *fi = get_fuse_inode(inode);
++
++	spin_lock(&fc->lock);
++	fi->attr_version = ++fc->attr_version;
++	if (size < inode->i_size)
++		i_size_write(inode, size);
++	spin_unlock(&fc->lock);
 +}
- 
- /*
-  * Fault a userspace page into pagetables.  Return non-zero on a fault.
-diff -puN mm/filemap.c~mm-allow-not-updating-bdi-stats-in-end_page_writeback mm/filemap.c
---- a/mm/filemap.c~mm-allow-not-updating-bdi-stats-in-end_page_writeback
-+++ a/mm/filemap.c
-@@ -573,19 +573,20 @@ EXPORT_SYMBOL(unlock_page);
- /**
-  * end_page_writeback - end writeback against a page
-  * @page: the page
-+ * @bdi_stats: update the per-bdi writeback counter
-  */
--void end_page_writeback(struct page *page)
-+void __end_page_writeback(struct page *page, bool bdi_stats)
++
+ static int fuse_readpage(struct file *file, struct page *page)
  {
- 	if (TestClearPageReclaim(page))
- 		rotate_reclaimable_page(page);
+ 	struct inode *inode = page->mapping->host;
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+ 	struct fuse_req *req;
++	size_t num_read;
++	loff_t pos = page_offset(page);
++	size_t count = PAGE_CACHE_SIZE;
+ 	int err;
  
--	if (!test_clear_page_writeback(page))
-+	if (!test_clear_page_writeback(page, bdi_stats))
- 		BUG();
- 
- 	smp_mb__after_clear_bit();
- 	wake_up_page(page, PG_writeback);
- }
--EXPORT_SYMBOL(end_page_writeback);
-+EXPORT_SYMBOL(__end_page_writeback);
- 
- /**
-  * __lock_page - get a lock on the page, assuming we need to sleep to get it
-diff -puN mm/page-writeback.c~mm-allow-not-updating-bdi-stats-in-end_page_writeback mm/page-writeback.c
---- a/mm/page-writeback.c~mm-allow-not-updating-bdi-stats-in-end_page_writeback
-+++ a/mm/page-writeback.c
-@@ -1242,7 +1242,7 @@ int clear_page_dirty_for_io(struct page 
- }
- EXPORT_SYMBOL(clear_page_dirty_for_io);
- 
--int test_clear_page_writeback(struct page *page)
-+int test_clear_page_writeback(struct page *page, bool bdi_stats)
+ 	err = -EIO;
+@@ -424,12 +439,20 @@ static int fuse_readpage(struct file *fi
+ 	req->out.page_zeroing = 1;
+ 	req->num_pages = 1;
+ 	req->pages[0] = page;
+-	fuse_send_read(req, file, inode, page_offset(page), PAGE_CACHE_SIZE,
+-		       NULL);
++	num_read = fuse_send_read(req, file, inode, pos, count, NULL);
+ 	err = req->out.h.error;
+ 	fuse_put_request(fc, req);
+-	if (!err)
++
++	if (!err) {
++		/*
++		 * Short read means EOF.  If file size is larger, truncate it
++		 */
++		if (num_read < count)
++			fuse_read_update_size(inode, pos + num_read);
++
+ 		SetPageUptodate(page);
++	}
++
+ 	fuse_invalidate_attr(inode); /* atime changed */
+  out:
+ 	unlock_page(page);
+@@ -439,8 +462,19 @@ static int fuse_readpage(struct file *fi
+ static void fuse_readpages_end(struct fuse_conn *fc, struct fuse_req *req)
  {
- 	struct address_space *mapping = page_mapping(page);
- 	int ret;
-@@ -1257,7 +1257,7 @@ int test_clear_page_writeback(struct pag
- 			radix_tree_tag_clear(&mapping->page_tree,
- 						page_index(page),
- 						PAGECACHE_TAG_WRITEBACK);
--			if (bdi_cap_writeback_dirty(bdi)) {
-+			if (bdi_stats && bdi_cap_writeback_dirty(bdi)) {
- 				__dec_bdi_stat(bdi, BDI_WRITEBACK);
- 				__bdi_writeout_inc(bdi);
- 			}
+ 	int i;
++	size_t count = req->misc.read_in.size;
++	size_t num_read = req->out.args[0].size;
++	struct inode *inode = req->pages[0]->mapping->host;
+ 
+-	fuse_invalidate_attr(req->pages[0]->mapping->host); /* atime changed */
++	/*
++	 * Short read means EOF.  If file size is larger, truncate it
++	 */
++	if (!req->out.h.error && num_read < count) {
++		loff_t pos = page_offset(req->pages[0]) + num_read;
++		fuse_read_update_size(inode, pos);
++	}
++
++	fuse_invalidate_attr(inode); /* atime changed */
+ 
+ 	for (i = 0; i < req->num_pages; i++) {
+ 		struct page *page = req->pages[i];
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
