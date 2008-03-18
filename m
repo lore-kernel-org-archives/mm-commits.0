@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-clean-up-setting-i_size-in-write.patch added to -mm tree
-Date: Mon, 17 Mar 2008 22:08:58 -0700
-Message-ID: <200803180508.m2I58wVA015479@imap1.linux-foundation.org>
+Subject: + kprobes-add-unregister_kprobes-for-batch-registration-fix.patch added to -mm tree
+Date: Mon, 17 Mar 2008 22:13:27 -0700
+Message-ID: <200803180513.m2I5DRil015664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39990 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33160 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753291AbYCRFJd (ORCPT
+	by vger.kernel.org with ESMTP id S1752645AbYCRFOZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Mar 2008 01:09:33 -0400
+	Tue, 18 Mar 2008 01:14:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz
+Cc: mhiramat@redhat.com
 
 
 The patch titled
-     fuse: clean up setting i_size in write
+     list.h: rename list_singleton to list_is_singular
 has been added to the -mm tree.  Its filename is
-     fuse-clean-up-setting-i_size-in-write.patch
+     kprobes-add-unregister_kprobes-for-batch-registration-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,109 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fuse: clean up setting i_size in write
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: list.h: rename list_singleton to list_is_singular
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-Extract common code for setting i_size in write functions into a common
-helper.
+Rename list_singleton to list_is_singular.
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c |   28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
+ kernel/kprobes.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/fuse/file.c~fuse-clean-up-setting-i_size-in-write fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-clean-up-setting-i_size-in-write
-+++ a/fs/fuse/file.c
-@@ -610,13 +610,24 @@ static int fuse_write_begin(struct file 
- 	return 0;
- }
+diff -puN kernel/kprobes.c~kprobes-add-unregister_kprobes-for-batch-registration-fix kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-add-unregister_kprobes-for-batch-registration-fix
++++ a/kernel/kprobes.c
+@@ -628,7 +628,7 @@ static int __kprobes __unregister_kprobe
+ valid_p:
+ 	if (old_p == p ||
+ 	    (old_p->pre_handler == aggr_pre_handler &&
+-	     list_singleton(&old_p->list))) {
++	     list_is_singular(&old_p->list))) {
+ 		/*
+ 		 * Only probe on the hash list. Disarm only if kprobes are
+ 		 * enabled - otherwise, the breakpoint would already have
+@@ -664,7 +664,7 @@ static void __kprobes __unregister_kprob
+ 			module_put(mod);
+ 	}
  
-+static void fuse_write_update_size(struct inode *inode, loff_t pos)
-+{
-+	struct fuse_conn *fc = get_fuse_conn(inode);
-+	struct fuse_inode *fi = get_fuse_inode(inode);
-+
-+	spin_lock(&fc->lock);
-+	fi->attr_version = ++fc->attr_version;
-+	if (pos > inode->i_size)
-+		i_size_write(inode, pos);
-+	spin_unlock(&fc->lock);
-+}
-+
- static int fuse_buffered_write(struct file *file, struct inode *inode,
- 			       loff_t pos, unsigned count, struct page *page)
- {
- 	int err;
- 	size_t nres;
- 	struct fuse_conn *fc = get_fuse_conn(inode);
--	struct fuse_inode *fi = get_fuse_inode(inode);
- 	unsigned offset = pos & (PAGE_CACHE_SIZE - 1);
- 	struct fuse_req *req;
- 
-@@ -643,12 +654,7 @@ static int fuse_buffered_write(struct fi
- 		err = -EIO;
- 	if (!err) {
- 		pos += nres;
--		spin_lock(&fc->lock);
--		fi->attr_version = ++fc->attr_version;
--		if (pos > inode->i_size)
--			i_size_write(inode, pos);
--		spin_unlock(&fc->lock);
--
-+		fuse_write_update_size(inode, pos);
- 		if (count == PAGE_CACHE_SIZE)
- 			SetPageUptodate(page);
- 	}
-@@ -766,12 +772,8 @@ static ssize_t fuse_direct_io(struct fil
- 	}
- 	fuse_put_request(fc, req);
- 	if (res > 0) {
--		if (write) {
--			spin_lock(&fc->lock);
--			if (pos > inode->i_size)
--				i_size_write(inode, pos);
--			spin_unlock(&fc->lock);
--		}
-+		if (write)
-+			fuse_write_update_size(inode, pos);
- 		*ppos = pos;
- 	}
- 	fuse_invalidate_attr(inode);
+-	if (list_empty(&p->list) || list_singleton(&p->list)) {
++	if (list_empty(&p->list) || list_is_singular(&p->list)) {
+ 		if (!list_empty(&p->list)) {
+ 			/* "p" is the last child of an aggr_kprobe */
+ 			old_p = list_entry(p->list.next, struct kprobe, list);
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
-mm-rotate_reclaimable_page-cleanup.patch
-vfs-create-proc-pid-mountinfo.patch
-vfs-mountinfo-mm-fix.patch
-vfs-pnode-cleanup.patch
-vfs-mountinfo-stable-peer-group-id.patch
-vfs-mountinfo-show-dominating-group-id.patch
-vfs-optimization-to-proc-pid-mountinfo-patch.patch
-vfs-mountinfo-only-show-mounts-under-tasks-root.patch
-vfs-remove-lives_below_in_same_fs.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
-mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
-mm-bdi-move-statistics-to-debugfs.patch
-mm-bdi-export-bdi_writeout_inc.patch
-mm-add-nr_writeback_temp-counter.patch
-mm-allow-not-updating-bdi-stats-in-end_page_writeback.patch
-fuse-support-writable-mmap.patch
-fuse-clean-up-setting-i_size-in-write.patch
-fuse-implement-perform_write.patch
-fuse-update-file-size-on-short-read.patch
+kprobes-kprobe-booster-for-ia64.patch
+kprobes-kprobe-booster-for-ia64-fix.patch
+listh-add-list_singleton.patch
+listh-add-list_singleton-fix.patch
+kprobes-add-unregister_kprobes-for-batch-registration.patch
+kprobes-add-unregister_kprobes-for-batch-registration-fix.patch
+kprobes-add-unregister_kretprobes-for-batch-registration.patch
+kprobes-add-unregister_jprobes-for-batch-registration.patch
+kprobes-update-document-about-batch-registration.patch
 
