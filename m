@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-alsa-tiwai-sound-drivers-pcsp-pcspc-build-fix.patch added to -mm tree
-Date: Mon, 17 Mar 2008 20:50:36 -0700
-Message-ID: <200803180350.m2I3oat1012820@imap1.linux-foundation.org>
+Subject: + procfs-task-exe-symlink-fix-3.patch added to -mm tree
+Date: Mon, 17 Mar 2008 20:53:23 -0700
+Message-ID: <200803180353.m2I3rN5F012862@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47753 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752791AbYCRDvA (ORCPT
+	by vger.kernel.org with ESMTP id S1752204AbYCRDxw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 23:51:00 -0400
+	Mon, 17 Mar 2008 23:53:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl, perex@perex.cz, tiwai@suse.de
+Cc: yamamoto@valinux.co.jp, matthltc@us.ibm.com
 
 
 The patch titled
-     git-alsa-tiwai: sound/drivers/pcsp/pcsp.c build fix
+     a fix for procfs-task-exe-symlink.patch
 has been added to the -mm tree.  Its filename is
-     git-alsa-tiwai-sound-drivers-pcsp-pcspc-build-fix.patch
+     procfs-task-exe-symlink-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-alsa-tiwai: sound/drivers/pcsp/pcsp.c build fix
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: a fix for procfs-task-exe-symlink.patch
+From: yamamoto@valinux.co.jp (YAMAMOTO Takashi)
 
-sound/drivers/pcsp/pcsp.c: In function 'snd_pcsp_create':
-sound/drivers/pcsp/pcsp.c:54: error: 'loops_per_jiffy' undeclared (first use in this function)
-sound/drivers/pcsp/pcsp.c:54: error: (Each undeclared identifier is reported only once
-sound/drivers/pcsp/pcsp.c:54: error: for each function it appears in.)
+It seems that procfs-task-exe-symlink.patch broke the case of dup_mmap
+failure.  ie.  mm->exe_file is copied by memcpy from oldmm and then be fput'ed
+by mmput/set_mm_exe_file.
 
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Acked-by: Matt Helsley <matthltc@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/drivers/pcsp/pcsp.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/fork.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN sound/drivers/pcsp/pcsp.c~git-alsa-tiwai-sound-drivers-pcsp-pcspc-build-fix sound/drivers/pcsp/pcsp.c
---- a/sound/drivers/pcsp/pcsp.c~git-alsa-tiwai-sound-drivers-pcsp-pcspc-build-fix
-+++ a/sound/drivers/pcsp/pcsp.c
-@@ -12,6 +12,7 @@
- #include <sound/initval.h>
- #include <sound/pcm.h>
- #include <linux/input.h>
-+#include <linux/delay.h>
- #include <asm/bitops.h>
- #include "pcsp_input.h"
- #include "pcsp.h"
+diff -puN kernel/fork.c~procfs-task-exe-symlink-fix-3 kernel/fork.c
+--- a/kernel/fork.c~procfs-task-exe-symlink-fix-3
++++ a/kernel/fork.c
+@@ -523,11 +523,12 @@ static struct mm_struct *dup_mm(struct t
+ 	if (init_new_context(tsk, mm))
+ 		goto fail_nocontext;
+ 
++	dup_mm_exe_file(oldmm, mm);
++
+ 	err = dup_mmap(mm, oldmm);
+ 	if (err)
+ 		goto free_pt;
+ 
+-	dup_mm_exe_file(oldmm, mm);
+ 	mm->hiwater_rss = get_mm_rss(mm);
+ 	mm->hiwater_vm = mm->total_vm;
+ 
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from yamamoto@valinux.co.jp are
 
-git-alsa-tiwai-sound-drivers-pcsp-pcspc-build-fix.patch
-reiser4.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
+memory-controller-make-memory-resource-control-aware-of-boot-options.patch
+memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
+procfs-task-exe-symlink-fix-3.patch
 
