@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-task-exe-symlink-fix-3.patch added to -mm tree
-Date: Mon, 17 Mar 2008 20:53:23 -0700
-Message-ID: <200803180353.m2I3rN5F012862@imap1.linux-foundation.org>
+Subject: + rcu-fix-misplaced-mb-in-rcu_enter-exit_nohz.patch added to -mm tree
+Date: Mon, 17 Mar 2008 20:57:34 -0700
+Message-ID: <200803180357.m2I3vYSP013010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45651 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48219 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752204AbYCRDxw (ORCPT
+	by vger.kernel.org with ESMTP id S1752237AbYCRD6r (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 23:53:52 -0400
+	Mon, 17 Mar 2008 23:58:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yamamoto@valinux.co.jp, matthltc@us.ibm.com
+Cc: paulmck@linux.vnet.ibm.com, nickpiggin@yahoo.com.au, oleg@tv-sign.ru, srostedt@redhat.com
 
 
 The patch titled
-     a fix for procfs-task-exe-symlink.patch
+     rcu: fix misplaced mb() in rcu_enter/exit_nohz()
 has been added to the -mm tree.  Its filename is
-     procfs-task-exe-symlink-fix-3.patch
+     rcu-fix-misplaced-mb-in-rcu_enter-exit_nohz.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: a fix for procfs-task-exe-symlink.patch
-From: yamamoto@valinux.co.jp (YAMAMOTO Takashi)
+Subject: rcu: fix misplaced mb() in rcu_enter/exit_nohz()
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-It seems that procfs-task-exe-symlink.patch broke the case of dup_mmap
-failure.  ie.  mm->exe_file is copied by memcpy from oldmm and then be fput'ed
-by mmput/set_mm_exe_file.
+In the process of writing up the mechanical proof of correctness for the
+dynticks/preemptable-RCU interface, I noticed misplaced memory barriers in
+rcu_enter_nohz() and rcu_exit_nohz().
 
-Signed-off-by: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Acked-by: Matt Helsley <matthltc@us.ibm.com>
+This patch puts them in the right place and adds a comment.  The key thing to
+keep in mind is that rcu_enter_nohz() is -exiting- the mode that can legally
+execute RCU read-side critical sections.
+
+The memory barrier must be between any potential RCU read-side critical
+sections and the increment of the per-CPU dynticks_progress_counter, and thus
+must come -before- this increment.  And vice versa for rcu_exit_nohz().
+
+The locking in the scheduler is probably saving us for the moment.
+
+Also, switch to smp_mb() - we don't need a barrier for uniprocessor kernels.
+
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Acked-by: Steven Rostedt <srostedt@redhat.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/rcupreempt.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/fork.c~procfs-task-exe-symlink-fix-3 kernel/fork.c
---- a/kernel/fork.c~procfs-task-exe-symlink-fix-3
-+++ a/kernel/fork.c
-@@ -523,11 +523,12 @@ static struct mm_struct *dup_mm(struct t
- 	if (init_new_context(tsk, mm))
- 		goto fail_nocontext;
+diff -puN include/linux/rcupreempt.h~rcu-fix-misplaced-mb-in-rcu_enter-exit_nohz include/linux/rcupreempt.h
+--- a/include/linux/rcupreempt.h~rcu-fix-misplaced-mb-in-rcu_enter-exit_nohz
++++ a/include/linux/rcupreempt.h
+@@ -87,15 +87,15 @@ DECLARE_PER_CPU(long, dynticks_progress_
  
-+	dup_mm_exe_file(oldmm, mm);
-+
- 	err = dup_mmap(mm, oldmm);
- 	if (err)
- 		goto free_pt;
+ static inline void rcu_enter_nohz(void)
+ {
++	smp_mb(); /* CPUs seeing ++ must see prior RCU read-side crit sects */
+ 	__get_cpu_var(dynticks_progress_counter)++;
+ 	WARN_ON(__get_cpu_var(dynticks_progress_counter) & 0x1);
+-	mb();
+ }
  
--	dup_mm_exe_file(oldmm, mm);
- 	mm->hiwater_rss = get_mm_rss(mm);
- 	mm->hiwater_vm = mm->total_vm;
+ static inline void rcu_exit_nohz(void)
+ {
+-	mb();
+ 	__get_cpu_var(dynticks_progress_counter)++;
++	smp_mb(); /* CPUs seeing ++ must see later RCU read-side crit sects */
+ 	WARN_ON(!(__get_cpu_var(dynticks_progress_counter) & 0x1));
+ }
  
 _
 
-Patches currently in -mm which might be from yamamoto@valinux.co.jp are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
-memory-controller-make-memory-resource-control-aware-of-boot-options.patch
-memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
-procfs-task-exe-symlink-fix-3.patch
+rcu-fix-misplaced-mb-in-rcu_enter-exit_nohz.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+add-rcu_assign_index-if-ever-needed.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+rcu-split-listh-and-move-rcu-protected-lists-into-rculisth.patch
+isolate-ratelimit-from-printkc-for-other-use.patch
+add-warn_on_secs-macro.patch
+add-warn_on_secs-macro-simplification.patch
+add-warn_on_secs-macro-simplification-fix.patch
+use-warn_on_secs-in-rcupreempth.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
 
