@@ -1,74 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: + uvesafb-dont-treat-valid-modes-returned-by-fb_find_mode-as-errors.patch added to -mm tree
-Date: Tue, 18 Mar 2008 13:19:31 -0700
-Message-ID: <200803182019.m2IKJVTD014486@imap1.linux-foundation.org>
+Subject: - devres-implement-pcim_iomap_regions_request_all.patch removed from -mm tree
+Date: Tue, 18 Mar 2008 16:42:42 -0700
+Message-ID: <200803182352.m2INqQE6022284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755450AbYCSTnA (ORCPT
+	by vger.kernel.org with ESMTP id S1757819AbYCSTlg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:43:00 -0400
+	Wed, 19 Mar 2008 15:41:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: spock@gentoo.org, adaplas@pol.net
+To: htejun@gmail.com, alan@lxorguk.ukuu.org.uk, gregkh@suse.de, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uvesafb: don't treat valid modes returned byfb_find_mode() as errors
-has been added to the -mm tree.  Its filename is
-     uvesafb-dont-treat-valid-modes-returned-by-fb_find_mode-as-errors.patch
+     devres: implement pcim_iomap_regions_request_all()
+has been removed from the -mm tree.  Its filename was
+     devres-implement-pcim_iomap_regions_request_all.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uvesafb: don't treat valid modes returned byfb_find_mode() as errors
-From: Michal Januszewski <spock@gentoo.org>
+Subject: devres: implement pcim_iomap_regions_request_all()
+From: Tejun Heo <htejun@gmail.com>
 
-Don't treat valid modes returned by fb_find_mode() (best-fit modes, default
-modes or the first valid mode) as errors.
+Some drivers need to reserve all PCI BARs to prevent other drivers misusing
+unoccupied BARs.  pcim_iomap_regions_request_all() requests all BARs and iomap
+specified BARs.
 
-Currently, when fb_find_mode() finds a valid mode belonging to one of the
-above-mentioned classes, uvesafb will ignore it and will try to set a 640x480
-video mode.  The expected behaviour (introduced by this patch) would be to use
-the valid mode returned by fb_find_mode() instead.
-
-Signed-off-by: Michal Januszewski <spock@gentoo.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Tejun Heo <htejun@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/uvesafb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/devres.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN drivers/video/uvesafb.c~uvesafb-dont-treat-valid-modes-returned-by-fb_find_mode-as-errors drivers/video/uvesafb.c
---- a/drivers/video/uvesafb.c~uvesafb-dont-treat-valid-modes-returned-by-fb_find_mode-as-errors
-+++ a/drivers/video/uvesafb.c
-@@ -885,7 +885,7 @@ static int __devinit uvesafb_vbe_init_mo
- 	}
+diff -puN lib/devres.c~devres-implement-pcim_iomap_regions_request_all lib/devres.c
+--- a/lib/devres.c~devres-implement-pcim_iomap_regions_request_all
++++ a/lib/devres.c
+@@ -298,6 +298,31 @@ int pcim_iomap_regions(struct pci_dev *p
+ EXPORT_SYMBOL(pcim_iomap_regions);
  
- 	/* fb_find_mode() failed */
--	if (i == 0 || i >= 3) {
-+	if (i == 0) {
- 		info->var.xres = 640;
- 		info->var.yres = 480;
- 		mode = (struct fb_videomode *)
+ /**
++ * pcim_iomap_regions_request_all - Request all BARs and iomap specified ones
++ * @pdev: PCI device to map IO resources for
++ * @mask: Mask of BARs to iomap
++ * @name: Name used when requesting regions
++ *
++ * Request all PCI BARs and iomap regions specified by @mask.
++ */
++int pcim_iomap_regions_request_all(struct pci_dev *pdev, u16 mask,
++				   const char *name)
++{
++	int request_mask = ((1 << 6) - 1) & ~mask;
++	int rc;
++
++	rc = pci_request_selected_regions(pdev, request_mask, name);
++	if (rc)
++		return rc;
++
++	rc = pcim_iomap_regions(pdev, mask, name);
++	if (rc)
++		pci_release_selected_regions(pdev, request_mask);
++	return rc;
++}
++EXPORT_SYMBOL(pcim_iomap_regions_request_all);
++
++/**
+  * pcim_iounmap_regions - Unmap and release PCI BARs
+  * @pdev: PCI device to map IO resources for
+  * @mask: Mask of BARs to unmap and release
 _
 
-Patches currently in -mm which might be from spock@gentoo.org are
+Patches currently in -mm which might be from htejun@gmail.com are
 
-fbdev-make-the-best-fit-section-of-fb_find_mode-return-the-closest-matching-mode.patch
-uvesafb-dont-treat-valid-modes-returned-by-fb_find_mode-as-errors.patch
+origin.patch
+devres-implement-pcim_iomap_regions_request_all.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+ata-remove-fit-macro.patch
 
