@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 17 Mar 2008 21:22:53 -0700
-Message-ID: <200803180422.m2I4Mr8U013937@imap1.linux-foundation.org>
+Subject: + fs-binfmt_aoutc-use-printk_ratelimit.patch added to -mm tree
+Date: Mon, 17 Mar 2008 21:22:58 -0700
+Message-ID: <200803180422.m2I4Mwfr013945@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38574 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52369 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750713AbYCREXE (ORCPT
+	by vger.kernel.org with ESMTP id S1751197AbYCREXL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Mar 2008 00:23:04 -0400
+	Tue, 18 Mar 2008 00:23:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, caglar@pardus.org.tr, jeff@garzik.org
+Cc: caglar@pardus.org.tr, geert@linux-m68k.org
 
 
 The patch titled
-     drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes
+     fs/binfmt_aout.c: use printk_ratelimit()
 has been added to the -mm tree.  Its filename is
-     drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+     fs-binfmt_aoutc-use-printk_ratelimit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,298 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/binfmt_aout.c: use printk_ratelimit()
+From: S.Caglar Onur <caglar@pardus.org.tr>
 
-ERROR: space required before the open parenthesis '('
-#33: FILE: drivers/net/tokenring/3c359.c:412:
-+		if(time_after(jiffies, t + 40 * HZ)) {
+Use printk_ratelimit() instead of jiffies based arithmetic, suggested by Geert
+Uytterhoeven
 
-ERROR: space required before the open parenthesis '('
-#42: FILE: drivers/net/tokenring/3c359.c:523:
-+		if(time_after(jiffies, t + 15 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#51: FILE: drivers/net/tokenring/3c359.c:794:
-+		if(time_after(jiffies, t + 40 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#60: FILE: drivers/net/tokenring/3c359.c:1007:
-+		if(time_after(jiffies, t + 40 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#69: FILE: drivers/net/tokenring/3c359.c:1274:
-+		if(time_after(jiffies, t + 10 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#78: FILE: drivers/net/tokenring/3c359.c:1283:
-+		if(time_after(jiffies, t + 10 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#87: FILE: drivers/net/tokenring/3c359.c:1292:
-+		if(time_after(jiffies, t + 10 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#96: FILE: drivers/net/tokenring/3c359.c:1309:
-+		if(time_after(jiffies, t + 10 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#105: FILE: drivers/net/tokenring/3c359.c:1338:
-+		if(time_after(jiffies, t + 10 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#114: FILE: drivers/net/tokenring/3c359.c:1347:
-+		if(time_after(jiffies, t + 10 * HZ)) {
-
-total: 10 errors, 0 warnings, 87 lines checked
-
-./patches/drivers-net-tokenring-3c359c-use-time_-macros.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: S.Caglar Onur <caglar@pardus.org.tr>
+Signed-off-by: S.Caglar Onur <caglar@pardus.org.tr>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tokenring/3c359.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ fs/binfmt_aout.c |   12 +++---------
+ 1 file changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/tokenring/3c359.c~drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes drivers/net/tokenring/3c359.c
---- a/drivers/net/tokenring/3c359.c~drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes
-+++ a/drivers/net/tokenring/3c359.c
-@@ -409,7 +409,7 @@ static int xl_hw_reset(struct net_device
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
- 		schedule();		
--		if(time_after(jiffies, t + 40 * HZ)) {
-+		if (time_after(jiffies, t + 40 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL  card not responding to global reset.\n", dev->name);
- 			return -ENODEV;
+diff -puN fs/binfmt_aout.c~fs-binfmt_aoutc-use-printk_ratelimit fs/binfmt_aout.c
+--- a/fs/binfmt_aout.c~fs-binfmt_aoutc-use-printk_ratelimit
++++ a/fs/binfmt_aout.c
+@@ -372,21 +372,17 @@ static int load_aout_binary(struct linux
+ 			 
+ 		flush_icache_range(text_addr, text_addr+ex.a_text+ex.a_data);
+ 	} else {
+-		static unsigned long error_time, error_time2;
+ 		if ((ex.a_text & 0xfff || ex.a_data & 0xfff) &&
+-		    (N_MAGIC(ex) != NMAGIC) && (jiffies-error_time2) > 5*HZ)
++		    (N_MAGIC(ex) != NMAGIC) && printk_ratelimit())
+ 		{
+ 			printk(KERN_NOTICE "executable not page aligned\n");
+-			error_time2 = jiffies;
  		}
-@@ -520,7 +520,7 @@ static int xl_hw_reset(struct net_device
- 	t=jiffies;
- 	while ( !(readw(xl_mmio + MMIO_INTSTATUS_AUTO) & INTSTAT_SRB) ) { 
- 		schedule();		
--		if(time_after(jiffies, t + 15 * HZ)) {
-+		if (time_after(jiffies, t + 15 * HZ)) {
- 			printk(KERN_ERR "3COM 3C359 Velocity XL  card not responding.\n");
- 			return -ENODEV; 
- 		}
-@@ -791,7 +791,7 @@ static int xl_open_hw(struct net_device 
- 	t=jiffies;
- 	while (! (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_SRB)) { 
- 		schedule();		
--		if(time_after(jiffies, t + 40 * HZ)) {
-+		if (time_after(jiffies, t + 40 * HZ)) {
- 			printk(KERN_ERR "3COM 3C359 Velocity XL  card not responding.\n");
- 			break ; 
- 		}
-@@ -1004,7 +1004,7 @@ static void xl_reset(struct net_device *
  
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
--		if(time_after(jiffies, t + 40 * HZ)) {
-+		if (time_after(jiffies, t + 40 * HZ)) {
- 			printk(KERN_ERR "3COM 3C359 Velocity XL  card not responding.\n");
- 			break ; 
+-		if ((fd_offset & ~PAGE_MASK) != 0 &&
+-		    (jiffies-error_time) > 5*HZ)
++		if ((fd_offset & ~PAGE_MASK) != 0 && printk_ratelimit())
+ 		{
+ 			printk(KERN_WARNING 
+ 			       "fd_offset is not page aligned. Please convert program: %s\n",
+ 			       bprm->file->f_path.dentry->d_name.name);
+-			error_time = jiffies;
  		}
-@@ -1271,7 +1271,7 @@ static int xl_close(struct net_device *d
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
- 		schedule();		
--		if(time_after(jiffies, t + 10 * HZ)) {
-+		if (time_after(jiffies, t + 10 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-DNSTALL not responding.\n", dev->name);
- 			break ; 
+ 
+ 		if (!bprm->file->f_op->mmap||((fd_offset & ~PAGE_MASK) != 0)) {
+@@ -495,15 +491,13 @@ static int load_aout_library(struct file
+ 	start_addr =  ex.a_entry & 0xfffff000;
+ 
+ 	if ((N_TXTOFF(ex) & ~PAGE_MASK) != 0) {
+-		static unsigned long error_time;
+ 		loff_t pos = N_TXTOFF(ex);
+ 
+-		if ((jiffies-error_time) > 5*HZ)
++		if (printk_ratelimit())
+ 		{
+ 			printk(KERN_WARNING 
+ 			       "N_TXTOFF is not page aligned. Please convert library: %s\n",
+ 			       file->f_path.dentry->d_name.name);
+-			error_time = jiffies;
  		}
-@@ -1280,7 +1280,7 @@ static int xl_close(struct net_device *d
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
- 		schedule();		
--		if(time_after(jiffies, t + 10 * HZ)) {
-+		if (time_after(jiffies, t + 10 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-DNDISABLE not responding.\n", dev->name);
- 			break ;
- 		}
-@@ -1289,7 +1289,7 @@ static int xl_close(struct net_device *d
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
- 		schedule();		
--		if(time_after(jiffies, t + 10 * HZ)) {
-+		if (time_after(jiffies, t + 10 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-UPSTALL not responding.\n", dev->name);
- 			break ; 
- 		}
-@@ -1306,7 +1306,7 @@ static int xl_close(struct net_device *d
- 	t=jiffies;
- 	while (!(readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_SRB)) { 
- 		schedule();		
--		if(time_after(jiffies, t + 10 * HZ)) {
-+		if (time_after(jiffies, t + 10 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-CLOSENIC not responding.\n", dev->name);
- 			break ; 
- 		}
-@@ -1335,7 +1335,7 @@ static int xl_close(struct net_device *d
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
- 		schedule();		
--		if(time_after(jiffies, t + 10 * HZ)) {
-+		if (time_after(jiffies, t + 10 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-UPRESET not responding.\n", dev->name);
- 			break ; 
- 		}
-@@ -1344,7 +1344,7 @@ static int xl_close(struct net_device *d
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
- 		schedule();		
--		if(time_after(jiffies, t + 10 * HZ)) {
-+		if (time_after(jiffies, t + 10 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-DNRESET not responding.\n", dev->name);
- 			break ; 
- 		}
+ 		down_write(&current->mm->mmap_sem);
+ 		do_brk(start_addr, ex.a_text + ex.a_data + ex.a_bss);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from caglar@pardus.org.tr are
 
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
-git-drm.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-git-input.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-git-mips-git-rejects.patch
-git-net.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
-git-sh.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-watchdog.patch
-git-semaphore-git-rejects.patch
-x86-fix-aperture-vs-suspend-problem.patch
-revert-pcie-utilize-pcie-transaction-pending-bit.patch
-netpoll-zap_completion_queue-adjust-skb-users-counter.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
+arch-alpha-kernel-trapsc-use-time_-macros.patch
+arch-ia64-kernel-use-time_-macros.patch
 arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
 arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+arch-powerpc-platforms-iseries-pcic-use-time_-macros.patch
+drivers-net-arcnet-arcnetc-use-time_-macros.patch
 drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros.patch
 drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+drivers-net-wireless-atmelc-use-time_-macros.patch
+fs-binfmt_aoutc-use-printk_ratelimit.patch
+fix-indentation.patch
 
