@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-dont-use-pt_dtrace.patch added to -mm tree
-Date: Mon, 17 Mar 2008 20:58:53 -0700
-Message-ID: <200803180358.m2I3wrWO013033@imap1.linux-foundation.org>
+Subject: + cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing.patch added to -mm tree
+Date: Mon, 17 Mar 2008 21:04:25 -0700
+Message-ID: <200803180404.m2I44Pxb013247@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52958 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51560 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752727AbYCRD7f (ORCPT
+	by vger.kernel.org with ESMTP id S1750736AbYCREFQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 23:59:35 -0400
+	Tue, 18 Mar 2008 00:05:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, benh@kernel.crashing.org, paulus@samba.org
+Cc: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, rientjes@google.com, skumar@linux.vnet.ibm.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     powerpc: don't use PT_DTRACE
+     cgroup: fix boot option parsing
 has been added to the -mm tree.  Its filename is
-     powerpc-dont-use-pt_dtrace.patch
+     cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,103 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: don't use PT_DTRACE
-From: Roland McGrath <roland@redhat.com>
+Subject: cgroup: fix boot option parsing
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-The PT_DTRACE flag is meaningless and obsolete.  Don't touch it.
+When boot with 'cgroup_disable=cpuacct', it turns out subsystem 'cpu' is
+disabled.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+When Balbir posted the patch to add cgroup boot option support, Paul M noticed
+this problem, but the patch was accepted without fixing it.
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Paul Menage <menage@google.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
+Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/process.c   |    5 -----
- arch/powerpc/kernel/sys_ppc32.c |    5 -----
- 2 files changed, 10 deletions(-)
+ kernel/cgroup.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN arch/powerpc/kernel/process.c~powerpc-dont-use-pt_dtrace arch/powerpc/kernel/process.c
---- a/arch/powerpc/kernel/process.c~powerpc-dont-use-pt_dtrace
-+++ a/arch/powerpc/kernel/process.c
-@@ -862,11 +862,6 @@ int sys_execve(unsigned long a0, unsigne
- 	flush_spe_to_thread(current);
- 	error = do_execve(filename, (char __user * __user *) a1,
- 			  (char __user * __user *) a2, regs);
--	if (error == 0) {
--		task_lock(current);
--		current->ptrace &= ~PT_DTRACE;
--		task_unlock(current);
--	}
- 	putname(filename);
- out:
- 	return error;
-diff -puN arch/powerpc/kernel/sys_ppc32.c~powerpc-dont-use-pt_dtrace arch/powerpc/kernel/sys_ppc32.c
---- a/arch/powerpc/kernel/sys_ppc32.c~powerpc-dont-use-pt_dtrace
-+++ a/arch/powerpc/kernel/sys_ppc32.c
-@@ -368,11 +368,6 @@ long compat_sys_execve(unsigned long a0,
+diff -puN kernel/cgroup.c~cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing
++++ a/kernel/cgroup.c
+@@ -3065,25 +3065,22 @@ static void cgroup_release_agent(struct 
+ static int __init cgroup_disable(char *str)
+ {
+ 	int i;
++	char *token;
++
++	while ((token = strsep(&str, ",")) != NULL) {
++		if (!*token)
++			continue;
  
- 	error = compat_do_execve(filename, compat_ptr(a1), compat_ptr(a2), regs);
+-	while (*str) {
+ 		for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
+ 			struct cgroup_subsys *ss = subsys[i];
  
--	if (error == 0) {
--		task_lock(current);
--		current->ptrace &= ~PT_DTRACE;
--		task_unlock(current);
--	}
- 	putname(filename);
- 
- out:
+-			if (!strncmp(str, ss->name, strlen(ss->name))) {
++			if (!strcmp(token, ss->name)) {
+ 				ss->disabled = 1;
+ 				printk(KERN_INFO "Disabling %s control group"
+ 					" subsystem\n", ss->name);
+ 				break;
+ 			}
+ 		}
+-		/*
+-		 * Find the next option if any
+-		 */
+-		while (*str && (*str != ','))
+-			str++;
+-		if (*str == ',')
+-			str++;
+ 	}
+ 	return 1;
+ }
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-powerpc-dont-use-pt_dtrace.patch
-powerpc-user_regset-ptrace_setregs-regression-fix.patch
-add-rusage_thread.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing.patch
+cgroup-annotate-cgroup_init_subsys-with-__init.patch
+cgroup-switch-to-proc_create.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
 
