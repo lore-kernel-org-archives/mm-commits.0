@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-scsi-rc-fixes-fixup.patch added to -mm tree
-Date: Tue, 18 Mar 2008 16:12:43 -0700
-Message-ID: <200803182312.m2INChGi020899@imap1.linux-foundation.org>
+Subject: + keys-make-the-keyring-quotas-controllable-through-proc-sys-hack.patch added to -mm tree
+Date: Tue, 18 Mar 2008 16:56:49 -0700
+Message-ID: <200803190006.m2J06Xj8022792@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754985AbYCSTlj (ORCPT
+	by vger.kernel.org with ESMTP id S1757715AbYCSTlY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:41:39 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2INDv9A031439
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2008 16:13:59 -0700
+	Wed, 19 Mar 2008 15:41:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, arunsr@cse.iitk.ac.in, dhowells@redhat.com, dwalsh@redhat.com, kwc@citi.umich.edu
 
 
 The patch titled
-     git-scsi-rc-fixes-fixup
+     keys-make-the-keyring-quotas-controllable-through-proc-sys-hack
 has been added to the -mm tree.  Its filename is
-     git-scsi-rc-fixes-fixup.patch
+     keys-make-the-keyring-quotas-controllable-through-proc-sys-hack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,26 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-scsi-rc-fixes-fixup
+Subject: keys-make-the-keyring-quotas-controllable-through-proc-sys-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
+make it compile.
+
+Cc: <arunsr@cse.iitk.ac.in>
+Cc: <dwalsh@redhat.com>
+Cc: <kwc@citi.umich.edu>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_sysfs.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/sysctl.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/scsi/scsi_sysfs.c~git-scsi-rc-fixes-fixup drivers/scsi/scsi_sysfs.c
---- a/drivers/scsi/scsi_sysfs.c~git-scsi-rc-fixes-fixup
-+++ a/drivers/scsi/scsi_sysfs.c
-@@ -878,7 +878,6 @@ void __scsi_remove_device(struct scsi_de
- 	if (scsi_device_set_state(sdev, SDEV_CANCEL) != 0)
- 		return;
- 
--	bsg_unregister_queue(sdev->request_queue);
- 	device_unregister(&sdev->sdev_dev);
- 	transport_remove_device(dev);
- 	device_del(dev);
+diff -puN kernel/sysctl.c~keys-make-the-keyring-quotas-controllable-through-proc-sys-hack kernel/sysctl.c
+--- a/kernel/sysctl.c~keys-make-the-keyring-quotas-controllable-through-proc-sys-hack
++++ a/kernel/sysctl.c
+@@ -811,6 +811,7 @@ static struct ctl_table kern_table[] = {
+ 		.strategy	= &sysctl_string,
+ 	},
+ #ifdef CONFIG_KEYS
++#if 0
+ 	{
+ 		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "keys",
+@@ -818,6 +819,7 @@ static struct ctl_table kern_table[] = {
+ 		.child		= key_sysctls,
+ 	},
+ #endif
++#endif
+ /*
+  * NOTE: do not add new entries to this table unless you have read
+  * Documentation/sysctl/ctl_unnumbered.txt
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +85,10 @@ cifs-suppress-warning.patch
 revert-gregkh-driver-video-add-the-go7007-driver.patch
 revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
 git-drm.patch
+git-drm-git-rejects.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
 git-dvb.patch
+git-dvb-drivers-media-video-bt8xx-bttv-cardsc-fix-warnings.patch
 drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
 git-hwmon.patch
 git-gfs2-nmw.patch
@@ -90,6 +103,7 @@ git-leds.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-net.patch
+git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
 drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
@@ -163,6 +177,7 @@ rtc-x1205-new-style-conversion-checkpatch-fixes.patch
 gpiochip_reserve-fix.patch
 fb-add-support-for-foreign-endianness-force-it-on.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
 pnp-use-dev_printk-for-quirk-messages-fix.patch
 fat_valid_media-remove-pointless-test.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
@@ -178,6 +193,7 @@ sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
 keys-add-keyctl-function-to-get-a-security-label-fix.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys-hack.patch
 procfs-task-exe-symlink-fix.patch
 edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
 make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
