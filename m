@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-check_kill_permission-check-session-under-tasklist_lock.patch added to -mm tree
-Date: Tue, 18 Mar 2008 13:56:00 -0700
-Message-ID: <200803182056.m2IKu0jH015846@imap1.linux-foundation.org>
+Subject: + ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch added to -mm tree
+Date: Tue, 18 Mar 2008 13:56:44 -0700
+Message-ID: <200803182056.m2IKuiS8015867@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757985AbYCSTmu (ORCPT
+	by vger.kernel.org with ESMTP id S1755395AbYCSTmq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:42:50 -0400
+	Wed, 19 Mar 2008 15:42:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, a-tsuji@bk.jp.nec.com, roland@redhat.com, serue@us.ibm.com
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     signals: check_kill_permission: check session under tasklist_lock
+     ptrace: ptrace_attach: use send_sig_info() instead force_sig_specific()
 has been added to the -mm tree.  Its filename is
-     signals-check_kill_permission-check-session-under-tasklist_lock.patch
+     ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,89 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: check_kill_permission: check session under tasklist_lock
+Subject: ptrace: ptrace_attach: use send_sig_info() instead force_sig_specific()
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This wasn't documented, but as Atsushi Tsuji pointed out
-check_kill_permission() needs tasklist_lock for task_session_nr().  I missed
-this fact when removed tasklist from the callers.
+Nobody can block/ignore SIGSTOP, no need to use force_sig_specific() in
+ptrace_attach.  Use the "regular" send_sig_info().
 
-Change check_kill_permission() to take tasklist_lock for the SIGCONT case. 
-Re-order security checks so that we take tasklist_lock only if/when it is
-actually needed.  This is a minimal fix for now, tasklist will be removed
-later.
-
-Also change the code to use task_session() instead of task_session_nr().
-
-Also, remove the SIGCONT check from cap_task_kill(), it is bogus (and the
-whole function is bogus.  Serge, Eric, why it is still alive?).
+With this patch stracing of /sbin/init doesn't clear its SIGNAL_UNKILLABLE,
+but not that this makes ptracing of init safe.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Atsushi Tsuji <a-tsuji@bk.jp.nec.com>
 Cc: Roland McGrath <roland@redhat.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c      |   24 +++++++++++++++++++-----
- security/commoncap.c |    4 ----
- 2 files changed, 19 insertions(+), 9 deletions(-)
+ kernel/ptrace.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/signal.c~signals-check_kill_permission-check-session-under-tasklist_lock kernel/signal.c
---- a/kernel/signal.c~signals-check_kill_permission-check-session-under-tasklist_lock
-+++ a/kernel/signal.c
-@@ -533,6 +533,7 @@ static int rm_from_queue(unsigned long m
- static int check_kill_permission(int sig, struct siginfo *info,
- 				 struct task_struct *t)
- {
-+	struct pid *sid;
- 	int error;
+diff -puN kernel/ptrace.c~ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific kernel/ptrace.c
+--- a/kernel/ptrace.c~ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific
++++ a/kernel/ptrace.c
+@@ -208,8 +208,7 @@ repeat:
  
- 	if (!valid_signal(sig))
-@@ -545,11 +546,24 @@ static int check_kill_permission(int sig
- 	if (error)
- 		return error;
+ 	__ptrace_link(task, current);
  
--	if (((sig != SIGCONT) || (task_session_nr(current) != task_session_nr(t)))
--	    && (current->euid ^ t->suid) && (current->euid ^ t->uid)
--	    && (current->uid ^ t->suid) && (current->uid ^ t->uid)
--	    && !capable(CAP_KILL))
--		return -EPERM;
-+	if ((current->euid ^ t->suid) && (current->euid ^ t->uid) &&
-+	    (current->uid  ^ t->suid) && (current->uid  ^ t->uid) &&
-+	    !capable(CAP_KILL)) {
-+		switch (sig) {
-+		case SIGCONT:
-+			read_lock(&tasklist_lock);
-+			sid = task_session(t);
-+			read_unlock(&tasklist_lock);
-+			/*
-+			 * We don't return the error if sid == NULL. The
-+			 * task was unhashed, the caller must notice this.
-+			 */
-+			if (!sid || sid == task_session(current))
-+				break;
-+		default:
-+			return -EPERM;
-+		}
-+	}
- 
- 	return security_task_kill(t, info, sig, 0);
- }
-diff -puN security/commoncap.c~signals-check_kill_permission-check-session-under-tasklist_lock security/commoncap.c
---- a/security/commoncap.c~signals-check_kill_permission-check-session-under-tasklist_lock
-+++ a/security/commoncap.c
-@@ -549,10 +549,6 @@ int cap_task_kill(struct task_struct *p,
- 	if (p->uid == current->uid)
- 		return 0;
- 
--	/* sigcont is permitted within same session */
--	if (sig == SIGCONT && (task_session_nr(current) == task_session_nr(p)))
--		return 0;
+-	force_sig_specific(SIGSTOP, task);
 -
- 	if (secid)
- 		/*
- 		 * Signal sent as a particular user.
++	send_sig_info(SIGSTOP, SEND_SIG_FORCED, task);
+ bad:
+ 	write_unlock_irqrestore(&tasklist_lock, flags);
+ 	task_unlock(task);
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
@@ -172,6 +119,7 @@ reparent_thread-use-same_thread_group.patch
 document-de_thread-with-exit_notify-connection.patch
 ptrace-introduce-ptrace_reparented-helper.patch
 ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
+ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
 workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
 workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
 cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
