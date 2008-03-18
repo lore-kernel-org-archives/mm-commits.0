@@ -1,153 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: + clocksource-keep-track-of-original-clocksource-frequency.patch added to -mm tree
-Date: Tue, 18 Mar 2008 15:44:41 -0700
-Message-ID: <200803182244.m2IMifcV019944@imap1.linux-foundation.org>
+Subject: - mips-alchemy-crapectomy-after-removal-of-pm_send_all-calls.patch removed from -mm tree
+Date: Tue, 18 Mar 2008 16:23:03 -0700
+Message-ID: <200803182323.m2INN35K021274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757892AbYCSTmB (ORCPT
+	by vger.kernel.org with ESMTP id S1757792AbYCSTlt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:42:01 -0400
+	Wed, 19 Mar 2008 15:41:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: johnstul@us.ibm.com, tglx@linutronix.de, zippel@linux-m68k.org
+To: ralf@linux-mips.org, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clocksource: keep track of original clocksource frequency
-has been added to the -mm tree.  Its filename is
-     clocksource-keep-track-of-original-clocksource-frequency.patch
+     MIPS Alchemy: crapectomy after removal of pm_send_all calls
+has been removed from the -mm tree.  Its filename was
+     mips-alchemy-crapectomy-after-removal-of-pm_send_all-calls.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource: keep track of original clocksource frequency
-From: john stultz <johnstul@us.ibm.com>
+Subject: MIPS Alchemy: crapectomy after removal of pm_send_all calls
+From: Ralf Baechle <ralf@linux-mips.org>
 
-The clocksource frequency is represented by
-clocksource->mult/2^(clocksource->shift).  Currently, when NTP makes
-adjustments to the clock frequency, they are made directly to the mult value.
-
-This has the drawback that once changed, we cannot know what the orignal mult
-value was, or how much adjustment has been applied.
-
-This property causes problems in calculating proper ntp intervals when
-switching back and forth between clocksources.
-
-This patch separates the current mult value into a mult and mult_orig pair. 
-The mult_orig value stays constant, while the ntp clocksource adjustments are
-done only to the mult value.
-
-This allows for correct ntp interval calculation and additionally lays the
-groundwork for a new notion of time, what I'm calling the monotonic-raw time,
-which is introduced in a following patch.
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Ralf Baechle <ralf@linux-mips.org>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clocksource.h |   11 +++++++----
- kernel/time/clocksource.c   |    3 +++
- kernel/time/jiffies.c       |    1 +
- 3 files changed, 11 insertions(+), 4 deletions(-)
+ arch/mips/au1000/common/power.c |   20 --------------------
+ 1 file changed, 20 deletions(-)
 
-diff -puN include/linux/clocksource.h~clocksource-keep-track-of-original-clocksource-frequency include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-keep-track-of-original-clocksource-frequency
-+++ a/include/linux/clocksource.h
-@@ -45,7 +45,8 @@ struct clocksource;
-  * @read:		returns a cycle value
-  * @mask:		bitmask for two's complement
-  *			subtraction of non 64 bit counters
-- * @mult:		cycle to nanosecond multiplier
-+ * @mult:		cycle to nanosecond multiplier (adjusted by NTP)
-+ * @mult_orig:		cycle to nanosecond multiplier (unadjusted by NTP)
-  * @shift:		cycle to nanosecond divisor (power of two)
-  * @flags:		flags describing special properties
-  * @vread:		vsyscall based read
-@@ -63,6 +64,7 @@ struct clocksource {
- 	cycle_t (*read)(void);
- 	cycle_t mask;
- 	u32 mult;
-+	s32 mult_orig;
- 	u32 shift;
- 	unsigned long flags;
- 	cycle_t (*vread)(void);
-@@ -201,16 +203,17 @@ static inline void clocksource_calculate
- {
- 	u64 tmp;
- 
--	/* XXX - All of this could use a whole lot of optimization */
-+	/* Do the ns -> cycle conversion first, using original mult */
- 	tmp = length_nsec;
- 	tmp <<= c->shift;
--	tmp += c->mult/2;
--	do_div(tmp, c->mult);
-+	tmp += c->mult_orig/2;
-+	do_div(tmp, c->mult_orig);
- 
- 	c->cycle_interval = (cycle_t)tmp;
- 	if (c->cycle_interval == 0)
- 		c->cycle_interval = 1;
- 
-+	/* Go back from cycles -> shifted ns, this time use ntp adjused mult */
- 	c->xtime_interval = (u64)c->cycle_interval * c->mult;
+diff -puN arch/mips/au1000/common/power.c~mips-alchemy-crapectomy-after-removal-of-pm_send_all-calls arch/mips/au1000/common/power.c
+--- a/arch/mips/au1000/common/power.c~mips-alchemy-crapectomy-after-removal-of-pm_send_all-calls
++++ a/arch/mips/au1000/common/power.c
+@@ -283,18 +283,6 @@ static int pm_do_sleep(ctl_table * ctl, 
+ 	return 0;
  }
  
-diff -puN kernel/time/clocksource.c~clocksource-keep-track-of-original-clocksource-frequency kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~clocksource-keep-track-of-original-clocksource-frequency
-+++ a/kernel/time/clocksource.c
-@@ -315,6 +315,9 @@ int clocksource_register(struct clocksou
- 	unsigned long flags;
- 	int ret;
+-static int pm_do_suspend(ctl_table * ctl, int write, struct file *file,
+-			 void __user *buffer, size_t * len, loff_t *ppos)
+-{
+-	if (!write) {
+-		*len = 0;
+-	} else {
+-		suspend_mode = 1;
+-	}
+-	return 0;
+-}
+-
+-
+ static int pm_do_freq(ctl_table * ctl, int write, struct file *file,
+ 		      void __user *buffer, size_t * len, loff_t *ppos)
+ {
+@@ -408,14 +396,6 @@ static int pm_do_freq(ctl_table * ctl, i
  
-+	/* save mult_orig on registration */
-+	c->mult_orig = c->mult;
-+
- 	spin_lock_irqsave(&clocksource_lock, flags);
- 	ret = clocksource_enqueue(c);
- 	if (!ret)
-diff -puN kernel/time/jiffies.c~clocksource-keep-track-of-original-clocksource-frequency kernel/time/jiffies.c
---- a/kernel/time/jiffies.c~clocksource-keep-track-of-original-clocksource-frequency
-+++ a/kernel/time/jiffies.c
-@@ -61,6 +61,7 @@ struct clocksource clocksource_jiffies =
- 	.read		= jiffies_read,
- 	.mask		= 0xffffffff, /*32bits*/
- 	.mult		= NSEC_PER_JIFFY << JIFFIES_SHIFT, /* details above */
-+	.mult_orig	= NSEC_PER_JIFFY << JIFFIES_SHIFT,
- 	.shift		= JIFFIES_SHIFT,
- };
- 
+ static struct ctl_table pm_table[] = {
+ 	{
+-		.ctl_name 	= CTL_UNNUMBERED,
+-		.procname	= "suspend",
+-		.data		= NULL,
+-		.maxlen		= 0,
+-		.mode		= 0600,
+-		.proc_handler	= &pm_do_suspend
+-	},
+-	{
+ 		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "sleep",
+ 		.data		= NULL,
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from ralf@linux-mips.org are
 
-proper-extern-for-late_time_init.patch
-introduce-explicit-signed-unsigned-64bit-divide.patch
-convert-a-few-do_div-user.patch
+git-acpi.patch
+git-mips.patch
+mips-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+mips-replace-remaining-__function__-occurences.patch
+git-net.patch
+alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex.patch
+mm-try-both-endianess-when-checking-for-endianess.patch
+serial-add-vr41xx_siu_early_setup-for-serial-console.patch
+elf-use-elf_core_eflags-for-kcore-elf-header-flags.patch
+asm-futexh-should-include-linux-uaccessh.patch
+rename-div64_64-to-div64_u64.patch
 remove-div_long_long_rem.patch
-ntp-cleanup-ntpc.patch
-ntp-ntp4-user-space-bits-update.patch
-ntp-increase-time_freq-resolution.patch
-ntp-increase-time_offset-resolution.patch
-ntp-support-for-tai.patch
-ntp-rename-tick_length_shift-to-ntp_scale_shift.patch
-ntp-remove-current_tick_length.patch
-ntp-handle-leap-second-via-timer.patch
-clocksource-keep-track-of-original-clocksource-frequency.patch
-clocksource-introduce-clock_monotonic_raw.patch
+introduce-a-generic-__fls-implementation.patch
+implement-__fls-on-all-64-bit-archs.patch
+use-__fls-for-fls64-on-64-bit-archs.patch
 
