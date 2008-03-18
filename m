@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-rotate_reclaimable_page-cleanup.patch added to -mm tree
-Date: Mon, 17 Mar 2008 21:52:03 -0700
-Message-ID: <200803180452.m2I4q3PA014908@imap1.linux-foundation.org>
+Subject: + mm-bdi-export-bdi_writeout_inc.patch added to -mm tree
+Date: Mon, 17 Mar 2008 22:08:48 -0700
+Message-ID: <200803180508.m2I58mbb015464@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49720 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45052 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751124AbYCREwi (ORCPT
+	by vger.kernel.org with ESMTP id S1753624AbYCRFJS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Mar 2008 00:52:38 -0400
+	Tue, 18 Mar 2008 01:09:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     mm: rotate_reclaimable_page() cleanup
+     mm: bdi: export bdi_writeout_inc()
 has been added to the -mm tree.  Its filename is
-     mm-rotate_reclaimable_page-cleanup.patch
+     mm-bdi-export-bdi_writeout_inc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: rotate_reclaimable_page() cleanup
+Subject: mm: bdi: export bdi_writeout_inc()
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Clean up messy conditional calling of test_clear_page_writeback() from both
-rotate_reclaimable_page() and end_page_writeback().
-
-The only user of rotate_reclaimable_page() is end_page_writeback() so this is
-OK.
+Fuse needs this for writable mmap support.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    2 +-
- mm/filemap.c         |   10 ++++++----
- mm/swap.c            |   37 ++++++++++++-------------------------
- 3 files changed, 19 insertions(+), 30 deletions(-)
+ include/linux/backing-dev.h |    2 ++
+ mm/page-writeback.c         |   10 ++++++++++
+ 2 files changed, 12 insertions(+)
 
-diff -puN include/linux/swap.h~mm-rotate_reclaimable_page-cleanup include/linux/swap.h
---- a/include/linux/swap.h~mm-rotate_reclaimable_page-cleanup
-+++ a/include/linux/swap.h
-@@ -177,7 +177,7 @@ extern void activate_page(struct page *)
- extern void mark_page_accessed(struct page *);
- extern void lru_add_drain(void);
- extern int lru_add_drain_all(void);
--extern int rotate_reclaimable_page(struct page *page);
-+extern void rotate_reclaimable_page(struct page *page);
- extern void swap_setup(void);
- 
- /* linux/mm/vmscan.c */
-diff -puN mm/filemap.c~mm-rotate_reclaimable_page-cleanup mm/filemap.c
---- a/mm/filemap.c~mm-rotate_reclaimable_page-cleanup
-+++ a/mm/filemap.c
-@@ -576,10 +576,12 @@ EXPORT_SYMBOL(unlock_page);
-  */
- void end_page_writeback(struct page *page)
- {
--	if (!TestClearPageReclaim(page) || rotate_reclaimable_page(page)) {
--		if (!test_clear_page_writeback(page))
--			BUG();
--	}
-+	if (TestClearPageReclaim(page))
-+		rotate_reclaimable_page(page);
-+
-+	if (!test_clear_page_writeback(page))
-+		BUG();
-+
- 	smp_mb__after_clear_bit();
- 	wake_up_page(page, PG_writeback);
- }
-diff -puN mm/swap.c~mm-rotate_reclaimable_page-cleanup mm/swap.c
---- a/mm/swap.c~mm-rotate_reclaimable_page-cleanup
-+++ a/mm/swap.c
-@@ -132,34 +132,21 @@ static void pagevec_move_tail(struct pag
-  * Writeback is about to end against a page which has been marked for immediate
-  * reclaim.  If it still appears to be reclaimable, move it to the tail of the
-  * inactive list.
-- *
-- * Returns zero if it cleared PG_writeback.
-  */
--int rotate_reclaimable_page(struct page *page)
-+void  rotate_reclaimable_page(struct page *page)
- {
--	struct pagevec *pvec;
--	unsigned long flags;
--
--	if (PageLocked(page))
--		return 1;
--	if (PageDirty(page))
--		return 1;
--	if (PageActive(page))
--		return 1;
--	if (!PageLRU(page))
--		return 1;
--
--	page_cache_get(page);
--	local_irq_save(flags);
--	pvec = &__get_cpu_var(lru_rotate_pvecs);
--	if (!pagevec_add(pvec, page))
--		pagevec_move_tail(pvec);
--	local_irq_restore(flags);
--
--	if (!test_clear_page_writeback(page))
--		BUG();
-+	if (!PageLocked(page) && !PageDirty(page) && !PageActive(page) &&
-+	    PageLRU(page)) {
-+		struct pagevec *pvec;
-+		unsigned long flags;
- 
--	return 0;
-+		page_cache_get(page);
-+		local_irq_save(flags);
-+		pvec = &__get_cpu_var(lru_rotate_pvecs);
-+		if (!pagevec_add(pvec, page))
-+			pagevec_move_tail(pvec);
-+		local_irq_restore(flags);
-+	}
+diff -puN include/linux/backing-dev.h~mm-bdi-export-bdi_writeout_inc include/linux/backing-dev.h
+--- a/include/linux/backing-dev.h~mm-bdi-export-bdi_writeout_inc
++++ a/include/linux/backing-dev.h
+@@ -134,6 +134,8 @@ static inline s64 bdi_stat_sum(struct ba
+ 	return sum;
  }
  
++extern void bdi_writeout_inc(struct backing_dev_info *bdi);
++
  /*
+  * maximal error of a stat counter.
+  */
+diff -puN mm/page-writeback.c~mm-bdi-export-bdi_writeout_inc mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-bdi-export-bdi_writeout_inc
++++ a/mm/page-writeback.c
+@@ -168,6 +168,16 @@ static inline void __bdi_writeout_inc(st
+ 			      bdi->max_prop_frac);
+ }
+ 
++void bdi_writeout_inc(struct backing_dev_info *bdi)
++{
++	unsigned long flags;
++
++	local_irq_save(flags);
++	__bdi_writeout_inc(bdi);
++	local_irq_restore(flags);
++}
++EXPORT_SYMBOL(bdi_writeout_inc);
++
+ static inline void task_dirty_inc(struct task_struct *tsk)
+ {
+ 	prop_inc_single(&vm_dirties, &tsk->dirties);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
