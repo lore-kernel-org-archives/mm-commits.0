@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rcu-fix-misplaced-mb-in-rcu_enter-exit_nohz.patch added to -mm tree
-Date: Mon, 17 Mar 2008 20:57:34 -0700
-Message-ID: <200803180357.m2I3vYSP013010@imap1.linux-foundation.org>
+Subject: + powerpc-dont-use-pt_dtrace.patch added to -mm tree
+Date: Mon, 17 Mar 2008 20:58:53 -0700
+Message-ID: <200803180358.m2I3wrWO013033@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48219 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52958 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752237AbYCRD6r (ORCPT
+	by vger.kernel.org with ESMTP id S1752727AbYCRD7f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 23:58:47 -0400
+	Mon, 17 Mar 2008 23:59:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulmck@linux.vnet.ibm.com, nickpiggin@yahoo.com.au, oleg@tv-sign.ru, srostedt@redhat.com
+Cc: roland@redhat.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     rcu: fix misplaced mb() in rcu_enter/exit_nohz()
+     powerpc: don't use PT_DTRACE
 has been added to the -mm tree.  Its filename is
-     rcu-fix-misplaced-mb-in-rcu_enter-exit_nohz.patch
+     powerpc-dont-use-pt_dtrace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu: fix misplaced mb() in rcu_enter/exit_nohz()
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: powerpc: don't use PT_DTRACE
+From: Roland McGrath <roland@redhat.com>
 
-In the process of writing up the mechanical proof of correctness for the
-dynticks/preemptable-RCU interface, I noticed misplaced memory barriers in
-rcu_enter_nohz() and rcu_exit_nohz().
+The PT_DTRACE flag is meaningless and obsolete.  Don't touch it.
 
-This patch puts them in the right place and adds a comment.  The key thing to
-keep in mind is that rcu_enter_nohz() is -exiting- the mode that can legally
-execute RCU read-side critical sections.
-
-The memory barrier must be between any potential RCU read-side critical
-sections and the increment of the per-CPU dynticks_progress_counter, and thus
-must come -before- this increment.  And vice versa for rcu_exit_nohz().
-
-The locking in the scheduler is probably saving us for the moment.
-
-Also, switch to smp_mb() - we don't need a barrier for uniprocessor kernels.
-
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Acked-by: Steven Rostedt <srostedt@redhat.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rcupreempt.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/powerpc/kernel/process.c   |    5 -----
+ arch/powerpc/kernel/sys_ppc32.c |    5 -----
+ 2 files changed, 10 deletions(-)
 
-diff -puN include/linux/rcupreempt.h~rcu-fix-misplaced-mb-in-rcu_enter-exit_nohz include/linux/rcupreempt.h
---- a/include/linux/rcupreempt.h~rcu-fix-misplaced-mb-in-rcu_enter-exit_nohz
-+++ a/include/linux/rcupreempt.h
-@@ -87,15 +87,15 @@ DECLARE_PER_CPU(long, dynticks_progress_
+diff -puN arch/powerpc/kernel/process.c~powerpc-dont-use-pt_dtrace arch/powerpc/kernel/process.c
+--- a/arch/powerpc/kernel/process.c~powerpc-dont-use-pt_dtrace
++++ a/arch/powerpc/kernel/process.c
+@@ -862,11 +862,6 @@ int sys_execve(unsigned long a0, unsigne
+ 	flush_spe_to_thread(current);
+ 	error = do_execve(filename, (char __user * __user *) a1,
+ 			  (char __user * __user *) a2, regs);
+-	if (error == 0) {
+-		task_lock(current);
+-		current->ptrace &= ~PT_DTRACE;
+-		task_unlock(current);
+-	}
+ 	putname(filename);
+ out:
+ 	return error;
+diff -puN arch/powerpc/kernel/sys_ppc32.c~powerpc-dont-use-pt_dtrace arch/powerpc/kernel/sys_ppc32.c
+--- a/arch/powerpc/kernel/sys_ppc32.c~powerpc-dont-use-pt_dtrace
++++ a/arch/powerpc/kernel/sys_ppc32.c
+@@ -368,11 +368,6 @@ long compat_sys_execve(unsigned long a0,
  
- static inline void rcu_enter_nohz(void)
- {
-+	smp_mb(); /* CPUs seeing ++ must see prior RCU read-side crit sects */
- 	__get_cpu_var(dynticks_progress_counter)++;
- 	WARN_ON(__get_cpu_var(dynticks_progress_counter) & 0x1);
--	mb();
- }
+ 	error = compat_do_execve(filename, compat_ptr(a1), compat_ptr(a2), regs);
  
- static inline void rcu_exit_nohz(void)
- {
--	mb();
- 	__get_cpu_var(dynticks_progress_counter)++;
-+	smp_mb(); /* CPUs seeing ++ must see later RCU read-side crit sects */
- 	WARN_ON(!(__get_cpu_var(dynticks_progress_counter) & 0x1));
- }
+-	if (error == 0) {
+-		task_lock(current);
+-		current->ptrace &= ~PT_DTRACE;
+-		task_unlock(current);
+-	}
+ 	putname(filename);
  
+ out:
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
-rcu-fix-misplaced-mb-in-rcu_enter-exit_nohz.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-add-rcu_assign_index-if-ever-needed.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-rcu-split-listh-and-move-rcu-protected-lists-into-rculisth.patch
-isolate-ratelimit-from-printkc-for-other-use.patch
-add-warn_on_secs-macro.patch
-add-warn_on_secs-macro-simplification.patch
-add-warn_on_secs-macro-simplification-fix.patch
-use-warn_on_secs-in-rcupreempth.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+powerpc-dont-use-pt_dtrace.patch
+powerpc-user_regset-ptrace_setregs-regression-fix.patch
+add-rusage_thread.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
 lock_task_sighand-add-rcu-lock-unlock.patch
 k_getrusage-dont-take-rcu_read_lock.patch
 do_task_stat-dont-take-rcu_read_lock.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
+kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
+handle_stop_signal-unify-partial-full-stop-handling.patch
+handle_stop_signal-use-the-cached-p-signal-value.patch
+get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
+signals-send_sigqueue-dont-take-rcu-lock.patch
+signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
+signals-__group_complete_signal-cache-the-value-of-p-signal.patch
+signals-send_group_sigqueue-dont-take-tasklist_lock.patch
+signals-move-handle_stop_signal-into-send_signal.patch
+signals-do_tkill-dont-use-tasklist_lock.patch
+signals-do_tkill-dont-use-tasklist_lock-comment.patch
+signals-send_sig_info-dont-take-tasklist_lock.patch
+signals-microoptimize-the-usage-of-curr_target.patch
+signals-move-the-definition-of-__group_complete_signal-up.patch
+signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+signals-join-send_sigqueue-with-send_group_sigqueue.patch
+signals-handle_stop_signal-dont-worry-about-sigkill.patch
+signals-cleanup-the-usage-of-print_fatal_signal.patch
+signals-fold-sig_ignored-into-handle_stop_signal.patch
+signals-document-cld_continued-notification-mechanics.patch
+signals-send_signal-be-paranoid-about-signalfd_notify.patch
+ptrace-introduce-task_detached-helper.patch
+reparent_thread-use-same_thread_group.patch
+document-de_thread-with-exit_notify-connection.patch
+ptrace-introduce-ptrace_reparented-helper.patch
+ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
