@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xilinx-hwicap-refactor-status-handling-code.patch added to -mm tree
-Date: Tue, 18 Mar 2008 13:25:19 -0700
-Message-ID: <200803182025.m2IKPKRp014710@imap1.linux-foundation.org>
+Subject: + git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch added to -mm tree
+Date: Tue, 18 Mar 2008 16:45:09 -0700
+Message-ID: <200803182354.m2INsrd8022389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758052AbYCSTnH (ORCPT
+	by vger.kernel.org with ESMTP id S1757698AbYCSTlW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:43:07 -0400
+	Wed, 19 Mar 2008 15:41:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stephen.neuendorffer@xilinx.com, grant.likely@secretlab.ca, jwboyer@linux.vnet.ibm.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, linville@tuxdriver.com
 
 
 The patch titled
-     xilinx: hwicap: refactor status handling code
+     git-net: drivers/net/wireless/rt2x00/rt2x00dev.c: remove dead code, fix warning
 has been added to the -mm tree.  Its filename is
-     xilinx-hwicap-refactor-status-handling-code.patch
+     git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,229 +34,179 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xilinx: hwicap: refactor status handling code
-From: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
+Subject: git-net: drivers/net/wireless/rt2x00/rt2x00dev.c: remove dead code, fix warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Both the buffer-based and fifo-based icap cores have a status register. 
-Previously, this was only used internally to check whether transactions have
-completed.  However, the status can be useful to the main driver as well. 
-This patch exposes these status functions to the main driver along with some
-masks for the differnet bits.
+drivers/net/wireless/rt2x00/rt2x00dev.c: In function 'rt2x00lib_initialize':
+drivers/net/wireless/rt2x00/rt2x00dev.c:1148: warning: label 'exit_unitialize' defined but not used
 
-Signed-off-by: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
-Cc: Josh Boyer <jwboyer@linux.vnet.ibm.com>
-Acked-by: Grant Likely <grant.likely@secretlab.ca>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/xilinx_hwicap/buffer_icap.c   |   22 +++----------
- drivers/char/xilinx_hwicap/buffer_icap.h   |    5 +--
- drivers/char/xilinx_hwicap/fifo_icap.c     |   31 ++++++++++++++-----
- drivers/char/xilinx_hwicap/fifo_icap.h     |    1 
- drivers/char/xilinx_hwicap/xilinx_hwicap.c |    2 +
- drivers/char/xilinx_hwicap/xilinx_hwicap.h |   24 ++++++++++++++
- 6 files changed, 58 insertions(+), 27 deletions(-)
+ drivers/net/wireless/rt2x00/rt2x00dev.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/char/xilinx_hwicap/buffer_icap.c~xilinx-hwicap-refactor-status-handling-code drivers/char/xilinx_hwicap/buffer_icap.c
---- a/drivers/char/xilinx_hwicap/buffer_icap.c~xilinx-hwicap-refactor-status-handling-code
-+++ a/drivers/char/xilinx_hwicap/buffer_icap.c
-@@ -74,7 +74,7 @@
+diff -puN drivers/net/wireless/rt2x00/rt2x00dev.c~git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning drivers/net/wireless/rt2x00/rt2x00dev.c
+--- a/drivers/net/wireless/rt2x00/rt2x00dev.c~git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning
++++ a/drivers/net/wireless/rt2x00/rt2x00dev.c
+@@ -1145,9 +1145,6 @@ static int rt2x00lib_initialize(struct r
  
- /**
-  * buffer_icap_get_status - Get the contents of the status register.
-- * @base_address: is the base address of the device
-+ * @drvdata: a pointer to the drvdata.
-  *
-  * The status register contains the ICAP status and the done bit.
-  *
-@@ -88,9 +88,9 @@
-  * D1 - Always 1
-  * D0 - Done bit
-  **/
--static inline u32 buffer_icap_get_status(void __iomem *base_address)
-+u32 buffer_icap_get_status(struct hwicap_drvdata *drvdata)
- {
--	return in_be32(base_address + XHI_STATUS_REG_OFFSET);
-+	return in_be32(drvdata->base_address + XHI_STATUS_REG_OFFSET);
- }
+ 	return 0;
  
- /**
-@@ -117,20 +117,8 @@ static inline u32 buffer_icap_get_bram(v
-  **/
- static inline bool buffer_icap_busy(void __iomem *base_address)
- {
--	return (buffer_icap_get_status(base_address) & 1) == XHI_NOT_FINISHED;
--}
+-exit_unitialize:
+-	rt2x00lib_uninitialize(rt2x00dev);
 -
--/**
-- * buffer_icap_busy - Return true if the icap device is not busy
-- * @base_address: is the base address of the device
-- *
-- * The queries the low order bit of the status register, which
-- * indicates whether the current configuration or readback operation
-- * has completed.
-- **/
--static inline bool buffer_icap_done(void __iomem *base_address)
--{
--	return (buffer_icap_get_status(base_address) & 1) == XHI_FINISHED;
-+	u32 status = in_be32(base_address + XHI_STATUS_REG_OFFSET);
-+	return (status & 1) == XHI_NOT_FINISHED;
- }
+ exit:
+ 	rt2x00lib_free_ring_entries(rt2x00dev);
  
- /**
-diff -puN drivers/char/xilinx_hwicap/buffer_icap.h~xilinx-hwicap-refactor-status-handling-code drivers/char/xilinx_hwicap/buffer_icap.h
---- a/drivers/char/xilinx_hwicap/buffer_icap.h~xilinx-hwicap-refactor-status-handling-code
-+++ a/drivers/char/xilinx_hwicap/buffer_icap.h
-@@ -44,8 +44,6 @@
- #include <asm/io.h>
- #include "xilinx_hwicap.h"
- 
--void buffer_icap_reset(struct hwicap_drvdata *drvdata);
--
- /* Loads a partial bitstream from system memory. */
- int buffer_icap_set_configuration(struct hwicap_drvdata *drvdata, u32 *data,
- 			     u32 Size);
-@@ -54,4 +52,7 @@ int buffer_icap_set_configuration(struct
- int buffer_icap_get_configuration(struct hwicap_drvdata *drvdata, u32 *data,
- 			     u32 Size);
- 
-+u32 buffer_icap_get_status(struct hwicap_drvdata *drvdata);
-+void buffer_icap_reset(struct hwicap_drvdata *drvdata);
-+
- #endif
-diff -puN drivers/char/xilinx_hwicap/fifo_icap.c~xilinx-hwicap-refactor-status-handling-code drivers/char/xilinx_hwicap/fifo_icap.c
---- a/drivers/char/xilinx_hwicap/fifo_icap.c~xilinx-hwicap-refactor-status-handling-code
-+++ a/drivers/char/xilinx_hwicap/fifo_icap.c
-@@ -78,13 +78,6 @@
- #define XHI_CR_READ_MASK 0x00000002 /* Read from ICAP to FIFO */
- #define XHI_CR_WRITE_MASK 0x00000001 /* Write from FIFO to ICAP */
- 
--/* Status Register (SR) */
--#define XHI_SR_CFGERR_N_MASK 0x00000100 /* Config Error Mask */
--#define XHI_SR_DALIGN_MASK 0x00000080 /* Data Alignment Mask */
--#define XHI_SR_RIP_MASK 0x00000040 /* Read back Mask */
--#define XHI_SR_IN_ABORT_N_MASK 0x00000020 /* Select Map Abort Mask */
--#define XHI_SR_DONE_MASK 0x00000001 /* Done bit Mask  */
--
- 
- #define XHI_WFO_MAX_VACANCY 1024 /* Max Write FIFO Vacancy, in words */
- #define XHI_RFO_MAX_OCCUPANCY 256 /* Max Read FIFO Occupancy, in words */
-@@ -152,13 +145,35 @@ static inline void fifo_icap_start_readb
- }
- 
- /**
-+ * fifo_icap_get_status - Get the contents of the status register.
-+ * @drvdata: a pointer to the drvdata.
-+ *
-+ * The status register contains the ICAP status and the done bit.
-+ *
-+ * D8 - cfgerr
-+ * D7 - dalign
-+ * D6 - rip
-+ * D5 - in_abort_l
-+ * D4 - Always 1
-+ * D3 - Always 1
-+ * D2 - Always 1
-+ * D1 - Always 1
-+ * D0 - Done bit
-+ **/
-+u32 fifo_icap_get_status(struct hwicap_drvdata *drvdata)
-+{
-+	u32 status = in_be32(drvdata->base_address + XHI_SR_OFFSET);
-+	dev_dbg(drvdata->dev, "Getting status = %x\n", status);
-+	return status;
-+}
-+
-+/**
-  * fifo_icap_busy - Return true if the ICAP is still processing a transaction.
-  * @drvdata: a pointer to the drvdata.
-  **/
- static inline u32 fifo_icap_busy(struct hwicap_drvdata *drvdata)
- {
- 	u32 status = in_be32(drvdata->base_address + XHI_SR_OFFSET);
--	dev_dbg(drvdata->dev, "Getting status = %x\n", status);
- 	return (status & XHI_SR_DONE_MASK) ? 0 : 1;
- }
- 
-diff -puN drivers/char/xilinx_hwicap/fifo_icap.h~xilinx-hwicap-refactor-status-handling-code drivers/char/xilinx_hwicap/fifo_icap.h
---- a/drivers/char/xilinx_hwicap/fifo_icap.h~xilinx-hwicap-refactor-status-handling-code
-+++ a/drivers/char/xilinx_hwicap/fifo_icap.h
-@@ -56,6 +56,7 @@ int fifo_icap_set_configuration(
- 		u32 *FrameBuffer,
- 		u32 NumWords);
- 
-+u32 fifo_icap_get_status(struct hwicap_drvdata *drvdata);
- void fifo_icap_reset(struct hwicap_drvdata *drvdata);
- void fifo_icap_flush_fifo(struct hwicap_drvdata *drvdata);
- 
-diff -puN drivers/char/xilinx_hwicap/xilinx_hwicap.c~xilinx-hwicap-refactor-status-handling-code drivers/char/xilinx_hwicap/xilinx_hwicap.c
---- a/drivers/char/xilinx_hwicap/xilinx_hwicap.c~xilinx-hwicap-refactor-status-handling-code
-+++ a/drivers/char/xilinx_hwicap/xilinx_hwicap.c
-@@ -664,12 +664,14 @@ static int __devinit hwicap_setup(struct
- static struct hwicap_driver_config buffer_icap_config = {
- 	.get_configuration = buffer_icap_get_configuration,
- 	.set_configuration = buffer_icap_set_configuration,
-+	.get_status = buffer_icap_get_status,
- 	.reset = buffer_icap_reset,
- };
- 
- static struct hwicap_driver_config fifo_icap_config = {
- 	.get_configuration = fifo_icap_get_configuration,
- 	.set_configuration = fifo_icap_set_configuration,
-+	.get_status = fifo_icap_get_status,
- 	.reset = fifo_icap_reset,
- };
- 
-diff -puN drivers/char/xilinx_hwicap/xilinx_hwicap.h~xilinx-hwicap-refactor-status-handling-code drivers/char/xilinx_hwicap/xilinx_hwicap.h
---- a/drivers/char/xilinx_hwicap/xilinx_hwicap.h~xilinx-hwicap-refactor-status-handling-code
-+++ a/drivers/char/xilinx_hwicap/xilinx_hwicap.h
-@@ -65,10 +65,27 @@ struct hwicap_drvdata {
- };
- 
- struct hwicap_driver_config {
-+	/* Read configuration data given by size into the data buffer.
-+	   Return 0 if successful. */
- 	int (*get_configuration)(struct hwicap_drvdata *drvdata, u32 *data,
- 			u32 size);
-+	/* Write configuration data given by size from the data buffer.
-+	   Return 0 if successful. */
- 	int (*set_configuration)(struct hwicap_drvdata *drvdata, u32 *data,
- 			u32 size);
-+	/* Get the status register, bit pattern given by:
-+	 * D8 - 0 = configuration error
-+	 * D7 - 1 = alignment found
-+	 * D6 - 1 = readback in progress
-+	 * D5 - 0 = abort in progress
-+	 * D4 - Always 1
-+	 * D3 - Always 1
-+	 * D2 - Always 1
-+	 * D1 - Always 1
-+	 * D0 - 1 = operation completed
-+	 */
-+	u32 (*get_status)(struct hwicap_drvdata *drvdata);
-+	/* Reset the hw */
- 	void (*reset)(struct hwicap_drvdata *drvdata);
- };
- 
-@@ -163,6 +180,13 @@ struct config_registers {
- /* Constant to use for CRC check when CRC has been disabled */
- #define XHI_DISABLED_AUTO_CRC       0x0000DEFCUL
- 
-+/* Meanings of the bits returned by get_status */
-+#define XHI_SR_CFGERR_N_MASK 0x00000100 /* Config Error Mask */
-+#define XHI_SR_DALIGN_MASK 0x00000080 /* Data Alignment Mask */
-+#define XHI_SR_RIP_MASK 0x00000040 /* Read back Mask */
-+#define XHI_SR_IN_ABORT_N_MASK 0x00000020 /* Select Map Abort Mask */
-+#define XHI_SR_DONE_MASK 0x00000001 /* Done bit Mask  */
-+
- /**
-  * hwicap_type_1_read - Generates a Type 1 read packet header.
-  * @reg: is the address of the register to be read back.
 _
 
-Patches currently in -mm which might be from stephen.neuendorffer@xilinx.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-xilinx-hwicap-refactor-status-handling-code.patch
-xilinx-hwicap-verify-sync-before-reading-idcode.patch
-xilinx-hwicap-use-fixed-device-major.patch
+origin.patch
+zisofs-fix-readpage-outside-i_size-fix.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+git-kgdb-light.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
+git-drm.patch
+git-drm-git-rejects.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-net.patch
+git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
+git-sh.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+git-scsi-rc-fixes-fixup.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-watchdog.patch
+git-semaphore-git-rejects.patch
+x86-fix-aperture-vs-suspend-problem.patch
+revert-pcie-utilize-pcie-transaction-pending-bit.patch
+revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
+netpoll-zap_completion_queue-adjust-skb-users-counter.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
