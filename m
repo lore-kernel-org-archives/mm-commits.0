@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing.patch added to -mm tree
-Date: Mon, 17 Mar 2008 21:04:25 -0700
-Message-ID: <200803180404.m2I44Pxb013247@imap1.linux-foundation.org>
+Subject: + x86-handle_vm86_trap-cleanup.patch added to -mm tree
+Date: Mon, 17 Mar 2008 21:06:44 -0700
+Message-ID: <200803180406.m2I46iFU013355@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51560 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33958 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750736AbYCREFQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753291AbYCREI1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Mar 2008 00:05:16 -0400
+	Tue, 18 Mar 2008 00:08:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, rientjes@google.com, skumar@linux.vnet.ibm.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: roland@redhat.com, mingo@elte.hu, oleg@tv-sign.ru, tglx@linutronix.de
 
 
 The patch titled
-     cgroup: fix boot option parsing
+     x86: handle_vm86_trap() cleanup
 has been added to the -mm tree.  Its filename is
-     cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing.patch
+     x86-handle_vm86_trap-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,83 +34,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: fix boot option parsing
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: x86: handle_vm86_trap() cleanup
+From: Roland McGrath <roland@redhat.com>
 
-When boot with 'cgroup_disable=cpuacct', it turns out subsystem 'cpu' is
-disabled.
+Use force_sig in handle_vm86_trap like other machine traps do.
 
-When Balbir posted the patch to add cgroup boot option support, Paul M noticed
-this problem, but the patch was accepted without fixing it.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ arch/x86/kernel/vm86_32.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing
-+++ a/kernel/cgroup.c
-@@ -3065,25 +3065,22 @@ static void cgroup_release_agent(struct 
- static int __init cgroup_disable(char *str)
- {
- 	int i;
-+	char *token;
-+
-+	while ((token = strsep(&str, ",")) != NULL) {
-+		if (!*token)
-+			continue;
- 
--	while (*str) {
- 		for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
- 			struct cgroup_subsys *ss = subsys[i];
- 
--			if (!strncmp(str, ss->name, strlen(ss->name))) {
-+			if (!strcmp(token, ss->name)) {
- 				ss->disabled = 1;
- 				printk(KERN_INFO "Disabling %s control group"
- 					" subsystem\n", ss->name);
- 				break;
- 			}
- 		}
--		/*
--		 * Find the next option if any
--		 */
--		while (*str && (*str != ','))
--			str++;
--		if (*str == ',')
--			str++;
+diff -puN arch/x86/kernel/vm86_32.c~x86-handle_vm86_trap-cleanup arch/x86/kernel/vm86_32.c
+--- a/arch/x86/kernel/vm86_32.c~x86-handle_vm86_trap-cleanup
++++ a/arch/x86/kernel/vm86_32.c
+@@ -557,16 +557,9 @@ int handle_vm86_trap(struct kernel_vm86_
  	}
- 	return 1;
+ 	if (trapno != 1)
+ 		return 1; /* we let this handle by the calling routine */
+-	if (current->ptrace & PT_PTRACED) {
+-		unsigned long flags;
+-		spin_lock_irqsave(&current->sighand->siglock, flags);
+-		sigdelset(&current->blocked, SIGTRAP);
+-		recalc_sigpending();
+-		spin_unlock_irqrestore(&current->sighand->siglock, flags);
+-	}
+-	send_sig(SIGTRAP, current, 1);
+ 	current->thread.trap_no = trapno;
+ 	current->thread.error_code = error_code;
++	force_sig(SIGTRAP, current);
+ 	return 0;
  }
+ 
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing.patch
-cgroup-annotate-cgroup_init_subsys-with-__init.patch
-cgroup-switch-to-proc_create.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+x86-handle_vm86_trap-cleanup.patch
+powerpc-dont-use-pt_dtrace.patch
+powerpc-user_regset-ptrace_setregs-regression-fix.patch
+add-rusage_thread.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
+kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
+handle_stop_signal-unify-partial-full-stop-handling.patch
+handle_stop_signal-use-the-cached-p-signal-value.patch
+get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
+signals-send_sigqueue-dont-take-rcu-lock.patch
+signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
+signals-__group_complete_signal-cache-the-value-of-p-signal.patch
+signals-send_group_sigqueue-dont-take-tasklist_lock.patch
+signals-move-handle_stop_signal-into-send_signal.patch
+signals-do_tkill-dont-use-tasklist_lock.patch
+signals-do_tkill-dont-use-tasklist_lock-comment.patch
+signals-send_sig_info-dont-take-tasklist_lock.patch
+signals-microoptimize-the-usage-of-curr_target.patch
+signals-move-the-definition-of-__group_complete_signal-up.patch
+signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+signals-join-send_sigqueue-with-send_group_sigqueue.patch
+signals-handle_stop_signal-dont-worry-about-sigkill.patch
+signals-cleanup-the-usage-of-print_fatal_signal.patch
+signals-fold-sig_ignored-into-handle_stop_signal.patch
+signals-document-cld_continued-notification-mechanics.patch
+signals-send_signal-be-paranoid-about-signalfd_notify.patch
+ptrace-introduce-task_detached-helper.patch
+reparent_thread-use-same_thread_group.patch
+document-de_thread-with-exit_notify-connection.patch
+ptrace-introduce-ptrace_reparented-helper.patch
+ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
