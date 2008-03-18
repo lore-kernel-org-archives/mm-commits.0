@@ -1,99 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: + git-drm-git-rejects.patch added to -mm tree
-Date: Tue, 18 Mar 2008 16:16:54 -0700
-Message-ID: <200803182316.m2INGs8j021039@imap1.linux-foundation.org>
+Subject: - git-mips-git-rejects.patch removed from -mm tree
+Date: Tue, 18 Mar 2008 16:11:18 -0700
+Message-ID: <200803182311.m2INBIYC020860@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752137AbYCSTlw (ORCPT
+	by vger.kernel.org with ESMTP id S1757864AbYCSTl4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:41:52 -0400
+	Wed, 19 Mar 2008 15:41:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie
+To: akpm@linux-foundation.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-drm-git-rejects
-has been added to the -mm tree.  Its filename is
-     git-drm-git-rejects.patch
+     git-mips-git-rejects
+has been removed from the -mm tree.  Its filename was
+     git-mips-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-drm-git-rejects
+Subject: git-mips-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/ati_pcigart.c |   15 ---------------
- drivers/char/drm/drm_fops.c    |    7 +------
- 2 files changed, 1 insertion(+), 21 deletions(-)
+ arch/mips/kernel/traps.c |    6 +-----
+ arch/mips/mm/c-r4k.c     |    6 +-----
+ arch/mips/mm/uasm.c      |    6 +-----
+ arch/mips/mm/uasm.h      |   26 ++++++++------------------
+ 4 files changed, 11 insertions(+), 33 deletions(-)
 
-diff -puN drivers/char/drm/ati_pcigart.c~git-drm-git-rejects drivers/char/drm/ati_pcigart.c
---- a/drivers/char/drm/ati_pcigart.c~git-drm-git-rejects
-+++ a/drivers/char/drm/ati_pcigart.c
-@@ -38,26 +38,11 @@
- static int drm_ati_alloc_pcigart_table(struct drm_device *dev,
- 				       struct drm_ati_pcigart_info *gart_info)
- {
--<<<<<<< HEAD:drivers/char/drm/ati_pcigart.c
- 	gart_info->table_handle = drm_pci_alloc(dev, gart_info->table_size,
- 						PAGE_SIZE,
- 						gart_info->table_mask);
- 	if (gart_info->table_handle == NULL)
- 		return -ENOMEM;
--=======
--	unsigned long address;
--	struct page *page;
--	int i;
--
--	DRM_DEBUG("%d order\n", order);
--
--	address = __get_free_pages(GFP_KERNEL | __GFP_COMP,
--				   order);
--	if (address == 0UL)
--		return NULL;
--
--	page = virt_to_page(address);
-->>>>>>> FETCH_HEAD:drivers/char/drm/ati_pcigart.c
+diff -puN arch/mips/kernel/traps.c~git-mips-git-rejects arch/mips/kernel/traps.c
+--- a/arch/mips/kernel/traps.c~git-mips-git-rejects
++++ a/arch/mips/kernel/traps.c
+@@ -1306,9 +1306,6 @@ int cp0_compare_irq;
+ int cp0_perfcount_irq;
+ EXPORT_SYMBOL_GPL(cp0_perfcount_irq);
  
- 	return 0;
+-<<<<<<< HEAD:arch/mips/kernel/traps.c
+-void __cpuinit per_cpu_trap_init(void)
+-=======
+ static int __initdata noulri;
+ 
+ static int __init ulri_disable(char *s)
+@@ -1320,8 +1317,7 @@ static int __init ulri_disable(char *s)
  }
-diff -puN drivers/char/drm/drm_fops.c~git-drm-git-rejects drivers/char/drm/drm_fops.c
---- a/drivers/char/drm/drm_fops.c~git-drm-git-rejects
-+++ a/drivers/char/drm/drm_fops.c
-@@ -405,14 +405,9 @@ int drm_release(struct inode *inode, str
- 			 * Wait for a while.
- 			 */
+ __setup("noulri", ulri_disable);
  
--<<<<<<< HEAD:drivers/char/drm/drm_fops.c
--			do{
-+			do {
- 				spin_lock_irqsave(&dev->lock.spinlock,
- 						  irqflags);
+-void __init per_cpu_trap_init(void)
+->>>>>>> FETCH_HEAD:arch/mips/kernel/traps.c
++void __cpuinit per_cpu_trap_init(void)
+ {
+ 	unsigned int cpu = smp_processor_id();
+ 	unsigned int status_set = ST0_CU0;
+diff -puN arch/mips/mm/c-r4k.c~git-mips-git-rejects arch/mips/mm/c-r4k.c
+--- a/arch/mips/mm/c-r4k.c~git-mips-git-rejects
++++ a/arch/mips/mm/c-r4k.c
+@@ -1207,9 +1207,6 @@ void au1x00_fixup_config_od(void)
+ 	}
+ }
+ 
+-<<<<<<< HEAD:arch/mips/mm/c-r4k.c
+-static void __cpuinit coherency_setup(void)
 -=======
--			do {
--				spin_lock(&dev->lock.spinlock);
-->>>>>>> FETCH_HEAD:drivers/char/drm/drm_fops.c
- 				locked = dev->lock.idle_has_lock;
- 				spin_unlock_irqrestore(&dev->lock.spinlock,
- 						       irqflags);
+ static int __initdata cca = -1;
+ unsigned long _page_cachable_default;
+ EXPORT_SYMBOL_GPL(_page_cachable_default);
+@@ -1223,8 +1220,7 @@ static int __init cca_setup(char *str)
+ 
+ __setup("cca=", cca_setup);
+ 
+-static void __init coherency_setup(void)
+->>>>>>> FETCH_HEAD:arch/mips/mm/c-r4k.c
++static void __cpuinit coherency_setup(void)
+ {
+ 	if (cca < 0 || cca > 7)
+ 		cca = read_c0_config() & CONF_CM_CMASK;
+diff -puN arch/mips/mm/uasm.c~git-mips-git-rejects arch/mips/mm/uasm.c
+--- a/arch/mips/mm/uasm.c~git-mips-git-rejects
++++ a/arch/mips/mm/uasm.c
+@@ -558,10 +558,7 @@ uasm_il_beqzl(u32 **p, struct uasm_reloc
+ 	uasm_i_beqzl(p, reg, 0);
+ }
+ 
+-<<<<<<< HEAD:arch/mips/mm/uasm.c
+ void __cpuinit
+-=======
+-void __init
+ uasm_il_bne(u32 **p, struct uasm_reloc **r, unsigned int reg1,
+ 	    unsigned int reg2, int lid)
+ {
+@@ -569,8 +566,7 @@ uasm_il_bne(u32 **p, struct uasm_reloc *
+ 	uasm_i_bne(p, reg1, reg2, 0);
+ }
+ 
+-void __init
+->>>>>>> FETCH_HEAD:arch/mips/mm/uasm.c
++void __cpuinit
+ uasm_il_bnez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid)
+ {
+ 	uasm_r_mips_pc16(r, *p, lid);
+diff -puN arch/mips/mm/uasm.h~git-mips-git-rejects arch/mips/mm/uasm.h
+--- a/arch/mips/mm/uasm.h~git-mips-git-rejects
++++ a/arch/mips/mm/uasm.h
+@@ -175,29 +175,19 @@ void uasm_copy_handler(struct uasm_reloc
+ int uasm_insn_has_bdelay(struct uasm_reloc *rel, u32 *addr);
+ 
+ /* Convenience functions for labeled branches. */
+-<<<<<<< HEAD:arch/mips/mm/uasm.h
+-void uasm_il_bltz(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void uasm_il_b(u32 **p, struct uasm_reloc **r, int lid);
+-void uasm_il_beqz(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void uasm_il_beqzl(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void uasm_il_bnez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void uasm_il_bgezl(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void uasm_il_bgez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-=======
+-void __init
++void __cpuinit
+ uasm_il_bltz(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void __init uasm_il_b(u32 **p, struct uasm_reloc **r, int lid);
+-void __init
++void __cpuinit uasm_il_b(u32 **p, struct uasm_reloc **r, int lid);
++void __cpuinit
+ uasm_il_beqz(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void __init
++void __cpuinit
+ uasm_il_beqzl(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void __init
++void __cpuinit
+ uasm_il_bne(u32 **p, struct uasm_reloc **r, unsigned int reg1,
+ 	    unsigned int reg2, int lid);
+-void __init
++void __cpuinit
+ uasm_il_bnez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void __init
++void __cpuinit
+ uasm_il_bgezl(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+-void __init
++void __cpuinit
+ uasm_il_bgez(u32 **p, struct uasm_reloc **r, unsigned int reg, int lid);
+->>>>>>> FETCH_HEAD:arch/mips/mm/uasm.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +165,6 @@ cifs-suppress-warning.patch
 revert-gregkh-driver-video-add-the-go7007-driver.patch
 revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
 git-drm.patch
-git-drm-git-rejects.patch
 git-dvb.patch
 drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
 git-hwmon.patch
@@ -126,6 +179,7 @@ git-kvm.patch
 git-leds.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-mips-git-rejects.patch
 git-net.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
@@ -142,7 +196,6 @@ revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.pa
 git-sh.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-git-scsi-rc-fixes-fixup.patch
 scsi-aic94xx-cleanups.patch
 scsi-fix-section-mismatch-in-aic94xx-fix.patch
 scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
