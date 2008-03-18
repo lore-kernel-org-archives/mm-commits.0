@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch added to -mm tree
-Date: Tue, 18 Mar 2008 13:56:44 -0700
-Message-ID: <200803182056.m2IKuiS8015867@imap1.linux-foundation.org>
+Subject: + mm-document-missing-fields-for-proc-meminfo.patch added to -mm tree
+Date: Tue, 18 Mar 2008 14:02:07 -0700
+Message-ID: <200803182102.m2IL28kZ016112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755395AbYCSTmq (ORCPT
+	by vger.kernel.org with ESMTP id S1757985AbYCSTmo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:42:46 -0400
+	Wed, 19 Mar 2008 15:42:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: mszeredi@suse.cz, a.p.zijlstra@chello.nl
 
 
 The patch titled
-     ptrace: ptrace_attach: use send_sig_info() instead force_sig_specific()
+     mm: document missing fields for /proc/meminfo
 has been added to the -mm tree.  Its filename is
-     ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
+     mm-document-missing-fields-for-proc-meminfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,103 +34,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: ptrace_attach: use send_sig_info() instead force_sig_specific()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: mm: document missing fields for /proc/meminfo
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Nobody can block/ignore SIGSTOP, no need to use force_sig_specific() in
-ptrace_attach.  Use the "regular" send_sig_info().
 
-With this patch stracing of /sbin/init doesn't clear its SIGNAL_UNKILLABLE,
-but not that this makes ptracing of init safe.
+A few fields in /proc/meminfo were not documented.  Fix.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+---
+ 1 file changed, 17 insertions(+), 4 deletions(-)
+
+Index: linux/Documentation/filesystems/proc.txt
+===================================================================
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ Documentation/filesystems/proc.txt |   21 +++++++++++++++++----
+ 1 file changed, 17 insertions(+), 4 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific
-+++ a/kernel/ptrace.c
-@@ -208,8 +208,7 @@ repeat:
- 
- 	__ptrace_link(task, current);
- 
--	force_sig_specific(SIGSTOP, task);
--
-+	send_sig_info(SIGSTOP, SEND_SIG_FORCED, task);
- bad:
- 	write_unlock_irqrestore(&tasklist_lock, flags);
- 	task_unlock(task);
+diff -puN Documentation/filesystems/proc.txt~mm-document-missing-fields-for-proc-meminfo Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-document-missing-fields-for-proc-meminfo
++++ a/Documentation/filesystems/proc.txt
+@@ -463,11 +463,17 @@ SwapTotal:           0 kB
+ SwapFree:            0 kB
+ Dirty:             968 kB
+ Writeback:           0 kB
++AnonPages:      861800 kB
+ Mapped:         280372 kB
+-Slab:           684068 kB
++Slab:           284364 kB
++SReclaimable:   159856 kB
++SUnreclaim:     124508 kB
++PageTables:      24448 kB
++NFS_Unstable:        0 kB
++Bounce:              0 kB
++WritebackTmp:        0 kB
+ CommitLimit:   7669796 kB
+ Committed_AS:   100056 kB
+-PageTables:      24448 kB
+ VmallocTotal:   112216 kB
+ VmallocUsed:       428 kB
+ VmallocChunk:   111088 kB
+@@ -503,8 +509,17 @@ VmallocChunk:   111088 kB
+               on the disk
+        Dirty: Memory which is waiting to get written back to the disk
+    Writeback: Memory which is actively being written back to the disk
++   AnonPages: Non-file backed pages mapped into userspace page tables
+       Mapped: files which have been mmaped, such as libraries
+         Slab: in-kernel data structures cache
++SReclaimable: Part of Slab, that might be reclaimed, such as caches
++  SUnreclaim: Part of Slab, that cannot be reclaimed on memory pressure
++  PageTables: amount of memory dedicated to the lowest level of page
++              tables.
++NFS_Unstable: NFS pages sent to the server, but not yet committed to stable
++	      storage
++      Bounce: Memory used for block device "bounce buffers"
++WritebackTmp: Memory used by FUSE for temporary writeback buffers
+  CommitLimit: Based on the overcommit ratio ('vm.overcommit_ratio'),
+               this is the total amount of  memory currently available to
+               be allocated on the system. This limit is only adhered to
+@@ -531,8 +546,6 @@ Committed_AS: The amount of memory prese
+               above) will not be permitted. This is useful if one needs
+               to guarantee that processes will not fail due to lack of
+               memory once that memory has been successfully allocated.
+-  PageTables: amount of memory dedicated to the lowest level of page
+-              tables.
+ VmallocTotal: total size of vmalloc memory area
+  VmallocUsed: amount of vmalloc area which is used
+ VmallocChunk: largest contigious block of vmalloc area which is free
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-rcu-fix-misplaced-mb-in-rcu_enter-exit_nohz.patch
-x86-handle_vm86_trap-cleanup.patch
-git-hrt.patch
-bsd_acct-plain-current-real_parent-access-is-not-always-safe.patch
-bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+mm-rotate_reclaimable_page-cleanup.patch
+vfs-create-proc-pid-mountinfo.patch
+vfs-mountinfo-mm-fix.patch
+vfs-pnode-cleanup.patch
+vfs-mountinfo-stable-peer-group-id.patch
+vfs-mountinfo-show-dominating-group-id.patch
+vfs-optimization-to-proc-pid-mountinfo-patch.patch
+vfs-mountinfo-only-show-mounts-under-tasks-root.patch
+vfs-remove-lives_below_in_same_fs.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
+mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
+mm-bdi-move-statistics-to-debugfs.patch
+mm-bdi-add-separate-writeback-accounting-capability.patch
+mm-bdi-export-bdi_writeout_inc.patch
+mm-bdi-export-bdi_writeout_inc-fix.patch
+mm-add-nr_writeback_temp-counter.patch
+mm-document-missing-fields-for-proc-meminfo.patch
+fuse-support-writable-mmap.patch
+fuse-support-writable-mmap-fix.patch
+fuse-clean-up-setting-i_size-in-write.patch
+fuse-implement-perform_write.patch
+fuse-update-file-size-on-short-read.patch
 
