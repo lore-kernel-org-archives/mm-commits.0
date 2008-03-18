@@ -1,218 +1,417 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-drivers-media-video-bt8xx-bttv-cardsc-fix-warnings.patch added to -mm tree
-Date: Tue, 18 Mar 2008 16:46:37 -0700
-Message-ID: <200803182356.m2INuLeX022435@imap1.linux-foundation.org>
+Subject: - pm-remove-legacy-pm.patch removed from -mm tree
+Date: Tue, 18 Mar 2008 16:23:00 -0700
+Message-ID: <200803182323.m2INN0eg021265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757746AbYCSTl0 (ORCPT
+	by vger.kernel.org with ESMTP id S1757858AbYCSTl5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:41:26 -0400
+	Wed, 19 Mar 2008 15:41:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+To: pavel@suse.cz, dhowells@redhat.com, lenb@kernel.org, mingo@elte.hu, ralf@linux-mips.org, rjw@sisk.pl, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb: drivers/media/video/bt8xx/bttv-cards.c: fix warnings
-has been added to the -mm tree.  Its filename is
-     git-dvb-drivers-media-video-bt8xx-bttv-cardsc-fix-warnings.patch
+     PM: Remove legacy PM
+has been removed from the -mm tree.  Its filename was
+     pm-remove-legacy-pm.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-dvb: drivers/media/video/bt8xx/bttv-cards.c: fix warnings
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: PM: Remove legacy PM
+From: Pavel Machek <pavel@suse.cz>
 
-drivers/media/video/bt8xx/bttv-cards.c:3030:38: warning: "/*" within comment
-drivers/media/video/bt8xx/bttv-cards.c:3032:20: warning: "/*" within comment
+AFAICT pm_send_all is a nop when noone uses pm_register...
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Hmm.. can we just force CONFIG_PM_LEGACY=n, and see what happens?
+
+Or maybe this is better idea? It may break build somewhere, but it
+should be easy to fix... (it builds here, i386 and x86-64).
+
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/bt8xx/bttv-cards.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ arch/frv/kernel/pm.c            |    8 -
+ arch/mips/au1000/common/power.c |   17 --
+ arch/x86/kernel/apm_32.c        |   15 --
+ kernel/power/Kconfig            |   10 -
+ kernel/power/Makefile           |    1 
+ kernel/power/pm.c               |  205 ------------------------------
+ 6 files changed, 2 insertions(+), 254 deletions(-)
 
-diff -puN drivers/media/video/bt8xx/bttv-cards.c~git-dvb-drivers-media-video-bt8xx-bttv-cardsc-fix-warnings drivers/media/video/bt8xx/bttv-cards.c
---- a/drivers/media/video/bt8xx/bttv-cards.c~git-dvb-drivers-media-video-bt8xx-bttv-cardsc-fix-warnings
-+++ a/drivers/media/video/bt8xx/bttv-cards.c
-@@ -3027,9 +3027,13 @@ struct tvcard bttv_tvcards[] = {
- 		.gpiomask       = 0x008007,
- 		.muxsel         = { 2, 3, 1, 1 },
- 		.gpiomux        = { 0, 1, 2, 2 }, /* CONTVFMi */
--		/*gpiomux        = { 0, 1, 2, 3 }, /* MagicTV */
-+#if 0
-+		.gpiomux        = { 0, 1, 2, 3 }, /* MagicTV */
-+#endif
- 		.gpiomute 	= 3, /* CONTVFMi */
--		/*gpiomute 	= 4, /* MagicTV */
-+#if 0
-+		.gpiomute 	= 4, /* MagicTV */
-+#endif
- 		.needs_tvaudio  = 0,
- 		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* TCL MK3 */
- 		.tuner_addr     = ADDR_UNSET,
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-zisofs-fix-readpage-outside-i_size-fix.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-git-kgdb-light.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
-git-drm.patch
-git-drm-git-rejects.patch
-git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
-git-dvb.patch
-git-dvb-drivers-media-video-bt8xx-bttv-cardsc-fix-warnings.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-git-net.patch
-git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
-drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
-git-sh.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-git-scsi-rc-fixes-fixup.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-watchdog.patch
-git-semaphore-git-rejects.patch
-x86-fix-aperture-vs-suspend-problem.patch
-revert-pcie-utilize-pcie-transaction-pending-bit.patch
-revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
-netpoll-zap_completion_queue-adjust-skb-users-counter.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-keys-make-the-keyring-quotas-controllable-through-proc-sys-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-w1-build-fix.patch
-
+diff -puN arch/frv/kernel/pm.c~pm-remove-legacy-pm arch/frv/kernel/pm.c
+--- a/arch/frv/kernel/pm.c~pm-remove-legacy-pm
++++ a/arch/frv/kernel/pm.c
+@@ -163,14 +163,11 @@ static int sysctl_pm_do_suspend(ctl_tabl
+ 	if ((mode != 1) && (mode != 5))
+ 		return -EINVAL;
+ 
+-	retval = pm_send_all(PM_SUSPEND, (void *)3);
+-
+ 	if (retval == 0) {
+ 		if (mode == 5)
+ 		    retval = pm_do_bus_sleep();
+ 		else
+ 		    retval = pm_do_suspend();
+-		pm_send_all(PM_RESUME, (void *)0);
+ 	}
+ 
+ 	return retval;
+@@ -183,9 +180,6 @@ static int try_set_cmode(int new_cmode)
+ 	if (!(clock_cmodes_permitted & (1<<new_cmode)))
+ 		return -EINVAL;
+ 
+-	/* tell all the drivers we're suspending */
+-	pm_send_all(PM_SUSPEND, (void *)3);
+-
+ 	/* now change cmode */
+ 	local_irq_disable();
+ 	frv_dma_pause_all();
+@@ -201,8 +195,6 @@ static int try_set_cmode(int new_cmode)
+ 	frv_dma_resume_all();
+ 	local_irq_enable();
+ 
+-	/* tell all the drivers we're resuming */
+-	pm_send_all(PM_RESUME, (void *)0);
+ 	return 0;
+ }
+ 
+diff -puN arch/mips/au1000/common/power.c~pm-remove-legacy-pm arch/mips/au1000/common/power.c
+--- a/arch/mips/au1000/common/power.c~pm-remove-legacy-pm
++++ a/arch/mips/au1000/common/power.c
+@@ -258,7 +258,6 @@ int au_sleep(void)
+ static int pm_do_sleep(ctl_table * ctl, int write, struct file *file,
+ 		       void __user *buffer, size_t * len, loff_t *ppos)
+ {
+-	int retval = 0;
+ #ifdef SLEEP_TEST_TIMEOUT
+ #define TMPBUFLEN2 16
+ 	char buf[TMPBUFLEN2], *p;
+@@ -278,33 +277,21 @@ static int pm_do_sleep(ctl_table * ctl, 
+ 		p = buf;
+ 		sleep_ticks = simple_strtoul(p, &p, 0);
+ #endif
+-		retval = pm_send_all(PM_SUSPEND, (void *) 2);
+-
+-		if (retval)
+-			return retval;
+ 
+ 		au_sleep();
+-		retval = pm_send_all(PM_RESUME, (void *) 0);
+ 	}
+-	return retval;
++	return 0;
+ }
+ 
+ static int pm_do_suspend(ctl_table * ctl, int write, struct file *file,
+ 			 void __user *buffer, size_t * len, loff_t *ppos)
+ {
+-	int retval = 0;
+-
+ 	if (!write) {
+ 		*len = 0;
+ 	} else {
+-		retval = pm_send_all(PM_SUSPEND, (void *) 2);
+-		if (retval)
+-			return retval;
+ 		suspend_mode = 1;
+-
+-		retval = pm_send_all(PM_RESUME, (void *) 0);
+ 	}
+-	return retval;
++	return 0;
+ }
+ 
+ 
+diff -puN arch/x86/kernel/apm_32.c~pm-remove-legacy-pm arch/x86/kernel/apm_32.c
+--- a/arch/x86/kernel/apm_32.c~pm-remove-legacy-pm
++++ a/arch/x86/kernel/apm_32.c
+@@ -1189,19 +1189,6 @@ static int suspend(int vetoable)
+ 	int err;
+ 	struct apm_user	*as;
+ 
+-	if (pm_send_all(PM_SUSPEND, (void *)3)) {
+-		/* Vetoed */
+-		if (vetoable) {
+-			if (apm_info.connection_version > 0x100)
+-				set_system_power_state(APM_STATE_REJECT);
+-			err = -EBUSY;
+-			ignore_sys_suspend = 0;
+-			printk(KERN_WARNING "apm: suspend was vetoed.\n");
+-			goto out;
+-		}
+-		printk(KERN_CRIT "apm: suspend was vetoed, but suspending anyway.\n");
+-	}
+-
+ 	device_suspend(PMSG_SUSPEND);
+ 	local_irq_disable();
+ 	device_power_down(PMSG_SUSPEND);
+@@ -1224,7 +1211,6 @@ static int suspend(int vetoable)
+ 	device_power_up();
+ 	local_irq_enable();
+ 	device_resume();
+-	pm_send_all(PM_RESUME, (void *)0);
+ 	queue_event(APM_NORMAL_RESUME, NULL);
+  out:
+ 	spin_lock(&user_list_lock);
+@@ -1337,7 +1323,6 @@ static void check_events(void)
+ 			if ((event != APM_NORMAL_RESUME)
+ 			    || (ignore_normal_resume == 0)) {
+ 				device_resume();
+-				pm_send_all(PM_RESUME, (void *)0);
+ 				queue_event(event, NULL);
+ 			}
+ 			ignore_normal_resume = 0;
+diff -puN kernel/power/Kconfig~pm-remove-legacy-pm kernel/power/Kconfig
+--- a/kernel/power/Kconfig~pm-remove-legacy-pm
++++ a/kernel/power/Kconfig
+@@ -19,16 +19,6 @@ config PM
+ 	  will issue the hlt instruction if nothing is to be done, thereby
+ 	  sending the processor to sleep and saving power.
+ 
+-config PM_LEGACY
+-	bool "Legacy Power Management API (DEPRECATED)"
+-	depends on PM
+-	default n
+-	---help---
+-	   Support for pm_register() and friends.  This old API is obsoleted
+-	   by the driver model.
+-
+-	   If unsure, say N.
+-
+ config PM_DEBUG
+ 	bool "Power Management Debug Support"
+ 	depends on PM
+diff -puN kernel/power/Makefile~pm-remove-legacy-pm kernel/power/Makefile
+--- a/kernel/power/Makefile~pm-remove-legacy-pm
++++ a/kernel/power/Makefile
+@@ -4,7 +4,6 @@ EXTRA_CFLAGS	+=	-DDEBUG
+ endif
+ 
+ obj-y				:= main.o
+-obj-$(CONFIG_PM_LEGACY)		+= pm.o
+ obj-$(CONFIG_PM_SLEEP)		+= process.o console.o
+ obj-$(CONFIG_HIBERNATION)	+= swsusp.o disk.o snapshot.o swap.o user.o
+ 
+diff -puN kernel/power/pm.c~pm-remove-legacy-pm /dev/null
+--- a/kernel/power/pm.c
++++ /dev/null
+@@ -1,205 +0,0 @@
+-/*
+- *  pm.c - Power management interface
+- *
+- *  Copyright (C) 2000 Andrew Henroid
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation; either version 2 of the License, or
+- *  (at your option) any later version.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+- */
+-#include <linux/init.h>
+-#include <linux/module.h>
+-#include <linux/spinlock.h>
+-#include <linux/mm.h>
+-#include <linux/slab.h>
+-#include <linux/pm.h>
+-#include <linux/pm_legacy.h>
+-#include <linux/interrupt.h>
+-#include <linux/mutex.h>
+-
+-/*
+- *	Locking notes:
+- *		pm_devs_lock can be a semaphore providing pm ops are not called
+- *	from an interrupt handler (already a bad idea so no change here). Each
+- *	change must be protected so that an unlink of an entry doesn't clash
+- *	with a pm send - which is permitted to sleep in the current architecture
+- *
+- *	Module unloads clashing with pm events now work out safely, the module 
+- *	unload path will block until the event has been sent. It may well block
+- *	until a resume but that will be fine.
+- */
+- 
+-static DEFINE_MUTEX(pm_devs_lock);
+-static LIST_HEAD(pm_devs);
+-
+-/**
+- *	pm_register - register a device with power management
+- *	@type: device type 
+- *	@id: device ID
+- *	@callback: callback function
+- *
+- *	Add a device to the list of devices that wish to be notified about
+- *	power management events. A &pm_dev structure is returned on success,
+- *	on failure the return is %NULL.
+- *
+- *      The callback function will be called in process context and
+- *      it may sleep.
+- */
+- 
+-struct pm_dev *pm_register(pm_dev_t type,
+-			   unsigned long id,
+-			   pm_callback callback)
+-{
+-	struct pm_dev *dev = kzalloc(sizeof(struct pm_dev), GFP_KERNEL);
+-	if (dev) {
+-		dev->type = type;
+-		dev->id = id;
+-		dev->callback = callback;
+-
+-		mutex_lock(&pm_devs_lock);
+-		list_add(&dev->entry, &pm_devs);
+-		mutex_unlock(&pm_devs_lock);
+-	}
+-	return dev;
+-}
+-
+-/**
+- *	pm_send - send request to a single device
+- *	@dev: device to send to
+- *	@rqst: power management request
+- *	@data: data for the callback
+- *
+- *	Issue a power management request to a given device. The 
+- *	%PM_SUSPEND and %PM_RESUME events are handled specially. The
+- *	data field must hold the intended next state. No call is made
+- *	if the state matches.
+- *
+- *	BUGS: what stops two power management requests occurring in parallel
+- *	and conflicting.
+- *
+- *	WARNING: Calling pm_send directly is not generally recommended, in
+- *	particular there is no locking against the pm_dev going away. The
+- *	caller must maintain all needed locking or have 'inside knowledge'
+- *	on the safety. Also remember that this function is not locked against
+- *	pm_unregister. This means that you must handle SMP races on callback
+- *	execution and unload yourself.
+- */
+- 
+-static int pm_send(struct pm_dev *dev, pm_request_t rqst, void *data)
+-{
+-	int status = 0;
+-	unsigned long prev_state, next_state;
+-
+-	if (in_interrupt())
+-		BUG();
+-
+-	switch (rqst) {
+-	case PM_SUSPEND:
+-	case PM_RESUME:
+-		prev_state = dev->state;
+-		next_state = (unsigned long) data;
+-		if (prev_state != next_state) {
+-			if (dev->callback)
+-				status = (*dev->callback)(dev, rqst, data);
+-			if (!status) {
+-				dev->state = next_state;
+-				dev->prev_state = prev_state;
+-			}
+-		}
+-		else {
+-			dev->prev_state = prev_state;
+-		}
+-		break;
+-	default:
+-		if (dev->callback)
+-			status = (*dev->callback)(dev, rqst, data);
+-		break;
+-	}
+-	return status;
+-}
+-
+-/*
+- * Undo incomplete request
+- */
+-static void pm_undo_all(struct pm_dev *last)
+-{
+-	struct list_head *entry = last->entry.prev;
+-	while (entry != &pm_devs) {
+-		struct pm_dev *dev = list_entry(entry, struct pm_dev, entry);
+-		if (dev->state != dev->prev_state) {
+-			/* previous state was zero (running) resume or
+-			 * previous state was non-zero (suspended) suspend
+-			 */
+-			pm_request_t undo = (dev->prev_state
+-					     ? PM_SUSPEND:PM_RESUME);
+-			pm_send(dev, undo, (void*) dev->prev_state);
+-		}
+-		entry = entry->prev;
+-	}
+-}
+-
+-/**
+- *	pm_send_all - send request to all managed devices
+- *	@rqst: power management request
+- *	@data: data for the callback
+- *
+- *	Issue a power management request to a all devices. The 
+- *	%PM_SUSPEND events are handled specially. Any device is 
+- *	permitted to fail a suspend by returning a non zero (error)
+- *	value from its callback function. If any device vetoes a 
+- *	suspend request then all other devices that have suspended 
+- *	during the processing of this request are restored to their
+- *	previous state.
+- *
+- *	WARNING:  This function takes the pm_devs_lock. The lock is not dropped until
+- *	the callbacks have completed. This prevents races against pm locking
+- *	functions, races against module unload pm_unregister code. It does
+- *	mean however that you must not issue pm_ functions within the callback
+- *	or you will deadlock and users will hate you.
+- *
+- *	Zero is returned on success. If a suspend fails then the status
+- *	from the device that vetoes the suspend is returned.
+- *
+- *	BUGS: what stops two power management requests occurring in parallel
+- *	and conflicting.
+- */
+- 
+-int pm_send_all(pm_request_t rqst, void *data)
+-{
+-	struct list_head *entry;
+-	
+-	mutex_lock(&pm_devs_lock);
+-	entry = pm_devs.next;
+-	while (entry != &pm_devs) {
+-		struct pm_dev *dev = list_entry(entry, struct pm_dev, entry);
+-		if (dev->callback) {
+-			int status = pm_send(dev, rqst, data);
+-			if (status) {
+-				/* return devices to previous state on
+-				 * failed suspend request
+-				 */
+-				if (rqst == PM_SUSPEND)
+-					pm_undo_all(dev);
+-				mutex_unlock(&pm_devs_lock);
+-				return status;
+-			}
+-		}
+-		entry = entry->next;
+-	}
+-	mutex_unlock(&pm_devs_lock);
+-	return 0;
+-}
+-
+-EXPORT_SYMBOL(pm_register);
+-EXPORT_SYMBOL(pm_send_all);
