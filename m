@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 17 Mar 2008 21:19:30 -0700
-Message-ID: <200803180419.m2I4JU0E013766@imap1.linux-foundation.org>
+Subject: + arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 17 Mar 2008 21:20:01 -0700
+Message-ID: <200803180420.m2I4K1jO013799@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35530 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39200 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751904AbYCREUZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752495AbYCREU2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 18 Mar 2008 00:20:25 -0400
+	Tue, 18 Mar 2008 00:20:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, caglar@pardus.org.tr, tony.luck@intel.com
+Cc: akpm@linux-foundation.org, caglar@pardus.org.tr, kyle@mcmartin.ca
 
 
 The patch titled
-     arch-ia64-kernel-use-time_-macros-checkpatch-fixes
+     arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+     arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch-ia64-kernel-use-time_-macros-checkpatch-fixes
+Subject: arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
 WARNING: line over 80 characters
-#47: FILE: arch/ia64/kernel/mca.c:297:
-+	if (mlogbuf_timestamp && time_before(jiffies, mlogbuf_timestamp + 30 * HZ)) {
+#27: FILE: arch/parisc/kernel/unaligned.c:463:
++		if (unaligned_count > 5 && time_after(jiffies, last_time + 5 * HZ)) {
 
-total: 0 errors, 1 warnings, 38 lines checked
+total: 0 errors, 1 warnings, 8 lines checked
 
-./patches/arch-ia64-kernel-use-time_-macros.patch has style problems, please review.  If any of these errors
+./patches/arch-parisc-kernel-unalignedc-use-time_-macros.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
 Cc: S.Caglar Onur <caglar@pardus.org.tr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/mca.c |    3 ++-
+ arch/parisc/kernel/unaligned.c |    3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/mca.c~arch-ia64-kernel-use-time_-macros-checkpatch-fixes arch/ia64/kernel/mca.c
---- a/arch/ia64/kernel/mca.c~arch-ia64-kernel-use-time_-macros-checkpatch-fixes
-+++ a/arch/ia64/kernel/mca.c
-@@ -294,7 +294,8 @@ static void ia64_mlogbuf_dump_from_init(
- 	if (mlogbuf_finished)
- 		return;
+diff -puN arch/parisc/kernel/unaligned.c~arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes arch/parisc/kernel/unaligned.c
+--- a/arch/parisc/kernel/unaligned.c~arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes
++++ a/arch/parisc/kernel/unaligned.c
+@@ -460,7 +460,8 @@ void handle_unaligned(struct pt_regs *re
+ 			goto force_sigbus;
+ 		}
  
--	if (mlogbuf_timestamp && time_before(jiffies, mlogbuf_timestamp + 30 * HZ)) {
-+	if (mlogbuf_timestamp &&
-+			time_before(jiffies, mlogbuf_timestamp + 30 * HZ)) {
- 		printk(KERN_ERR "INIT: mlogbuf_dump is interrupted by INIT "
- 			" and the system seems to be messed up.\n");
- 		ia64_mlogbuf_finish(0);
+-		if (unaligned_count > 5 && time_after(jiffies, last_time + 5 * HZ)) {
++		if (unaligned_count > 5 &&
++				time_after(jiffies, last_time + 5 * HZ)) {
+ 			unaligned_count = 0;
+ 			last_time = jiffies;
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -209,4 +209,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
 arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
 
