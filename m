@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + xilinx-hwicap-use-fixed-device-major.patch added to -mm tree
-Date: Tue, 18 Mar 2008 13:25:24 -0700
-Message-ID: <200803182025.m2IKPOOB014716@imap1.linux-foundation.org>
+Subject: + xilinx-hwicap-verify-sync-before-reading-idcode.patch added to -mm tree
+Date: Tue, 18 Mar 2008 13:25:22 -0700
+Message-ID: <200803182025.m2IKPN0b014713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755464AbYCSTnG (ORCPT
+	by vger.kernel.org with ESMTP id S1758014AbYCSTmw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:43:06 -0400
+	Wed, 19 Mar 2008 15:42:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: stephen.neuendorffer@xilinx.com, grant.likely@secretlab.ca, jwboyer@linux.vn
 
 
 The patch titled
-     xilinx: hwicap: use fixed device major
+     xilinx: hwicap: verify sync before reading idcode
 has been added to the -mm tree.  Its filename is
-     xilinx-hwicap-use-fixed-device-major.patch
+     xilinx-hwicap-verify-sync-before-reading-idcode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xilinx: hwicap: use fixed device major
+Subject: xilinx: hwicap: verify sync before reading idcode
 From: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
 
-Major 259 has been assigned by lanana.  Use it.  Also, publish /dev/icap[0-k]
-as the device entries, and register platform devices named 'icap' to be
-consistent.
+It appears that in some cases, the sync word might not be recognized by the
+hardware correctly.  If this happens, then attempting to read from the port
+results in an unrecoverable error because of the design of the FPGA core. 
+This patch updates the code to check the status of the device before reading
+the IDCODE, in order to avoid entering this unrecoverable state.  This patch
+also adds additional NOOP commands into the sychronization sequence, which
+appears to be necessary to avoid the condition on some hardware.
 
 Signed-off-by: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
 Cc: Josh Boyer <jwboyer@linux.vnet.ibm.com>
@@ -47,109 +51,39 @@ Acked-by: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/xilinx_hwicap/xilinx_hwicap.c |   43 ++++++-------------
- 1 file changed, 14 insertions(+), 29 deletions(-)
+ drivers/char/xilinx_hwicap/xilinx_hwicap.c |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
-diff -puN drivers/char/xilinx_hwicap/xilinx_hwicap.c~xilinx-hwicap-use-fixed-device-major drivers/char/xilinx_hwicap/xilinx_hwicap.c
---- a/drivers/char/xilinx_hwicap/xilinx_hwicap.c~xilinx-hwicap-use-fixed-device-major
+diff -puN drivers/char/xilinx_hwicap/xilinx_hwicap.c~xilinx-hwicap-verify-sync-before-reading-idcode drivers/char/xilinx_hwicap/xilinx_hwicap.c
+--- a/drivers/char/xilinx_hwicap/xilinx_hwicap.c~xilinx-hwicap-verify-sync-before-reading-idcode
 +++ a/drivers/char/xilinx_hwicap/xilinx_hwicap.c
-@@ -36,7 +36,7 @@
-  *****************************************************************************/
- 
- /*
-- * This is the code behind /dev/xilinx_icap -- it allows a user-space
-+ * This is the code behind /dev/icap* -- it allows a user-space
-  * application to use the Xilinx ICAP subsystem.
-  *
-  * The following operations are possible:
-@@ -67,7 +67,7 @@
-  * user-space application code that uses this device.  The simplest
-  * way to use this interface is simply:
-  *
-- * cp foo.bit /dev/xilinx_icap
-+ * cp foo.bit /dev/icap0
-  *
-  * Note that unless foo.bit is an appropriately constructed partial
-  * bitstream, this has a high likelyhood of overwriting the design
-@@ -105,18 +105,14 @@
- #include "buffer_icap.h"
- #include "fifo_icap.h"
- 
--#define DRIVER_NAME "xilinx_icap"
-+#define DRIVER_NAME "icap"
- 
- #define HWICAP_REGS   (0x10000)
- 
--/* dynamically allocate device number */
--static int xhwicap_major;
--static int xhwicap_minor;
-+#define XHWICAP_MAJOR 259
-+#define XHWICAP_MINOR 0
- #define HWICAP_DEVICES 1
- 
--module_param(xhwicap_major, int, S_IRUGO);
--module_param(xhwicap_minor, int, S_IRUGO);
--
- /* An array, which is set to true when the device is registered. */
- static bool probed_devices[HWICAP_DEVICES];
- static struct mutex icap_sem;
-@@ -605,7 +601,7 @@ static int __devinit hwicap_setup(struct
- 	probed_devices[id] = 1;
- 	mutex_unlock(&icap_sem);
- 
--	devt = MKDEV(xhwicap_major, xhwicap_minor + id);
-+	devt = MKDEV(XHWICAP_MAJOR, XHWICAP_MINOR + id);
- 
- 	drvdata = kzalloc(sizeof(struct hwicap_drvdata), GFP_KERNEL);
- 	if (!drvdata) {
-@@ -710,7 +706,7 @@ static int __devexit hwicap_remove(struc
- 	dev_set_drvdata(dev, NULL);
- 
- 	mutex_lock(&icap_sem);
--	probed_devices[MINOR(dev->devt)-xhwicap_minor] = 0;
-+	probed_devices[MINOR(dev->devt)-XHWICAP_MINOR] = 0;
- 	mutex_unlock(&icap_sem);
- 	return 0;		/* success */
- }
-@@ -850,23 +846,12 @@ static int __init hwicap_module_init(voi
- 	icap_class = class_create(THIS_MODULE, "xilinx_config");
- 	mutex_init(&icap_sem);
- 
--	if (xhwicap_major) {
--		devt = MKDEV(xhwicap_major, xhwicap_minor);
--		retval = register_chrdev_region(
--				devt,
--				HWICAP_DEVICES,
--				DRIVER_NAME);
--		if (retval < 0)
--			return retval;
--	} else {
--		retval = alloc_chrdev_region(&devt,
--				xhwicap_minor,
--				HWICAP_DEVICES,
--				DRIVER_NAME);
--		if (retval < 0)
--			return retval;
--		xhwicap_major = MAJOR(devt);
--	}
-+	devt = MKDEV(XHWICAP_MAJOR, XHWICAP_MINOR);
-+	retval = register_chrdev_region(devt,
-+					HWICAP_DEVICES,
-+					DRIVER_NAME);
-+	if (retval < 0)
-+		return retval;
- 
- 	retval = platform_driver_register(&hwicap_platform_driver);
- 
-@@ -891,7 +876,7 @@ static int __init hwicap_module_init(voi
- 
- static void __exit hwicap_module_cleanup(void)
- {
--	dev_t devt = MKDEV(xhwicap_major, xhwicap_minor);
-+	dev_t devt = MKDEV(XHWICAP_MAJOR, XHWICAP_MINOR);
- 
- 	class_destroy(icap_class);
- 
+@@ -250,8 +250,26 @@ static int hwicap_get_configuration_regi
+ 	 * Create the data to be written to the ICAP.
+ 	 */
+ 	buffer[index++] = XHI_DUMMY_PACKET;
++	buffer[index++] = XHI_NOOP_PACKET;
+ 	buffer[index++] = XHI_SYNC_PACKET;
+ 	buffer[index++] = XHI_NOOP_PACKET;
++	buffer[index++] = XHI_NOOP_PACKET;
++
++	/*
++	 * Write the data to the FIFO and initiate the transfer of data present
++	 * in the FIFO to the ICAP device.
++	 */
++	status = drvdata->config->set_configuration(drvdata,
++						    &buffer[0], index);
++	if (status)
++		return status;
++
++	/* If the syncword was not found, then we need to start over. */
++	status = drvdata->config->get_status(drvdata);
++	if ((status & XHI_SR_DALIGN_MASK) != XHI_SR_DALIGN_MASK)
++		return -EIO;
++
++	index = 0;
+ 	buffer[index++] = hwicap_type_1_read(reg) | 1;
+ 	buffer[index++] = XHI_NOOP_PACKET;
+ 	buffer[index++] = XHI_NOOP_PACKET;
 _
 
 Patches currently in -mm which might be from stephen.neuendorffer@xilinx.com are
