@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + i810fb-fix-console-switch-regression.patch added to -mm tree
-Date: Mon, 17 Mar 2008 20:47:25 -0700
-Message-ID: <200803180347.m2I3lPFT012684@imap1.linux-foundation.org>
+Date: Mon, 17 Mar 2008 20:48:43 -0700
+Message-ID: <200803180348.m2I3midu012701@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56779 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53518 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751806AbYCRDsV (ORCPT
+	by vger.kernel.org with ESMTP id S1754630AbYCRDtV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 17 Mar 2008 23:48:21 -0400
+	Mon, 17 Mar 2008 23:49:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: stefan.bauer@cs.tu-chemnitz.de, adaplas@pol.net, geert@linux-m68k.org, hmh@hmh.eng.br
+Cc: stefan.bauer@cs.tu-chemnitz.de, adaplas@pol.net, geert@linux-m68k.org, hmh@hmh.eng.br, rjw@sisk.pl
 
 
 The patch titled
@@ -53,6 +53,7 @@ Signed-off-by: Stefan Bauer <stefan.bauer@cs.tu-chemnitz.de>
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Antonino Daplas <adaplas@pol.net>
 Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
