@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmallocinfo-add-caller-information.patch added to -mm tree
-Date: Wed, 19 Mar 2008 15:05:35 -0700
-Message-ID: <200803192205.m2JM5ZCL006273@imap1.linux-foundation.org>
+Subject: + vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 19 Mar 2008 15:05:32 -0700
+Message-ID: <200803192205.m2JM5W2f006270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52521 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60559 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S939509AbYCSWGQ (ORCPT
+	by vger.kernel.org with ESMTP id S939269AbYCSWGM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 18:06:16 -0400
+	Wed, 19 Mar 2008 18:06:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au
+Cc: akpm@linux-foundation.org, clameter@sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     vmallocinfo: add caller information
+     vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     vmallocinfo-add-caller-information.patch
+     vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,380 +34,212 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmallocinfo: add caller information
-From: Christoph Lameter <clameter@sgi.com>
+Subject: vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add caller information so that /proc/vmallocinfo shows where the allocation
-request for a slice of vmalloc memory originated.
+ERROR: need space after that ',' (ctx:VxV)
+#42: FILE: fs/proc/proc_misc.c:884:
++	proc_create("vmallocinfo",S_IWUSR|S_IRUGO, NULL,
+ 	                         ^
 
-Results in output like this:
+total: 1 errors, 0 warnings, 117 lines checked
 
-0xffffc20000000000-0xffffc20000801000 8392704 alloc_large_system_hash+0x127/0x246 pages=2048 vmalloc vpages
-0xffffc20000801000-0xffffc20000806000   20480 alloc_large_system_hash+0x127/0x246 pages=4 vmalloc
-0xffffc20000806000-0xffffc20000c07000 4198400 alloc_large_system_hash+0x127/0x246 pages=1024 vmalloc vpages
-0xffffc20000c07000-0xffffc20000c0a000   12288 alloc_large_system_hash+0x127/0x246 pages=2 vmalloc
-0xffffc20000c0a000-0xffffc20000c0c000    8192 acpi_os_map_memory+0x13/0x1c phys=cff68000 ioremap
-0xffffc20000c0c000-0xffffc20000c0f000   12288 acpi_os_map_memory+0x13/0x1c phys=cff64000 ioremap
-0xffffc20000c10000-0xffffc20000c15000   20480 acpi_os_map_memory+0x13/0x1c phys=cff65000 ioremap
-0xffffc20000c16000-0xffffc20000c18000    8192 acpi_os_map_memory+0x13/0x1c phys=cff69000 ioremap
-0xffffc20000c18000-0xffffc20000c1a000    8192 acpi_os_map_memory+0x13/0x1c phys=fed1f000 ioremap
-0xffffc20000c1a000-0xffffc20000c1c000    8192 acpi_os_map_memory+0x13/0x1c phys=cff68000 ioremap
-0xffffc20000c1c000-0xffffc20000c1e000    8192 acpi_os_map_memory+0x13/0x1c phys=cff68000 ioremap
-0xffffc20000c1e000-0xffffc20000c20000    8192 acpi_os_map_memory+0x13/0x1c phys=cff68000 ioremap
-0xffffc20000c20000-0xffffc20000c22000    8192 acpi_os_map_memory+0x13/0x1c phys=cff68000 ioremap
-0xffffc20000c22000-0xffffc20000c24000    8192 acpi_os_map_memory+0x13/0x1c phys=cff68000 ioremap
-0xffffc20000c24000-0xffffc20000c26000    8192 acpi_os_map_memory+0x13/0x1c phys=e0081000 ioremap
-0xffffc20000c26000-0xffffc20000c28000    8192 acpi_os_map_memory+0x13/0x1c phys=e0080000 ioremap
-0xffffc20000c28000-0xffffc20000c2d000   20480 alloc_large_system_hash+0x127/0x246 pages=4 vmalloc
-0xffffc20000c2d000-0xffffc20000c31000   16384 tcp_init+0xd5/0x31c pages=3 vmalloc
-0xffffc20000c31000-0xffffc20000c34000   12288 alloc_large_system_hash+0x127/0x246 pages=2 vmalloc
-0xffffc20000c34000-0xffffc20000c36000    8192 init_vdso_vars+0xde/0x1f1
-0xffffc20000c36000-0xffffc20000c38000    8192 pci_iomap+0x8a/0xb4 phys=d8e00000 ioremap
-0xffffc20000c38000-0xffffc20000c3a000    8192 usb_hcd_pci_probe+0x139/0x295 [usbcore] phys=d8e00000 ioremap
-0xffffc20000c3a000-0xffffc20000c3e000   16384 sys_swapon+0x509/0xa15 pages=3 vmalloc
-0xffffc20000c40000-0xffffc20000c61000  135168 e1000_probe+0x1c4/0xa32 phys=d8a20000 ioremap
-0xffffc20000c61000-0xffffc20000c6a000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
-0xffffc20000c6a000-0xffffc20000c73000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
-0xffffc20000c73000-0xffffc20000c7c000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
-0xffffc20000c7c000-0xffffc20000c7f000   12288 e1000e_setup_tx_resources+0x29/0xbe pages=2 vmalloc
-0xffffc20000c80000-0xffffc20001481000 8392704 pci_mmcfg_arch_init+0x90/0x118 phys=e0000000 ioremap
-0xffffc20001481000-0xffffc20001682000 2101248 alloc_large_system_hash+0x127/0x246 pages=512 vmalloc
-0xffffc20001682000-0xffffc20001e83000 8392704 alloc_large_system_hash+0x127/0x246 pages=2048 vmalloc vpages
-0xffffc20001e83000-0xffffc20002204000 3674112 alloc_large_system_hash+0x127/0x246 pages=896 vmalloc vpages
-0xffffc20002204000-0xffffc2000220d000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
-0xffffc2000220d000-0xffffc20002216000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
-0xffffc20002216000-0xffffc2000221f000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
-0xffffc2000221f000-0xffffc20002228000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
-0xffffc20002228000-0xffffc20002231000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
-0xffffc20002231000-0xffffc20002234000   12288 e1000e_setup_rx_resources+0x35/0x122 pages=2 vmalloc
-0xffffc20002240000-0xffffc20002261000  135168 e1000_probe+0x1c4/0xa32 phys=d8a60000 ioremap
-0xffffc20002261000-0xffffc2000270c000 4894720 sys_swapon+0x509/0xa15 pages=1194 vmalloc vpages
-0xffffffffa0000000-0xffffffffa0022000  139264 module_alloc+0x4f/0x55 pages=33 vmalloc
-0xffffffffa0022000-0xffffffffa0029000   28672 module_alloc+0x4f/0x55 pages=6 vmalloc
-0xffffffffa002b000-0xffffffffa0034000   36864 module_alloc+0x4f/0x55 pages=8 vmalloc
-0xffffffffa0034000-0xffffffffa003d000   36864 module_alloc+0x4f/0x55 pages=8 vmalloc
-0xffffffffa003d000-0xffffffffa0049000   49152 module_alloc+0x4f/0x55 pages=11 vmalloc
-0xffffffffa0049000-0xffffffffa0050000   28672 module_alloc+0x4f/0x55 pages=6 vmalloc
+./patches/vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Please run checkpatch prior to sending patches
+
+Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/ioremap.c   |   12 ++++---
- include/linux/vmalloc.h |    3 +
- mm/vmalloc.c            |   61 ++++++++++++++++++++++++++++----------
- 3 files changed, 55 insertions(+), 21 deletions(-)
+ fs/proc/proc_misc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/ioremap.c~vmallocinfo-add-caller-information arch/x86/mm/ioremap.c
---- a/arch/x86/mm/ioremap.c~vmallocinfo-add-caller-information
-+++ a/arch/x86/mm/ioremap.c
-@@ -118,8 +118,8 @@ static int ioremap_change_attr(unsigned 
-  * have to convert them into an offset in a page-aligned mapping, but the
-  * caller shouldn't need to know that small detail.
-  */
--static void __iomem *__ioremap(unsigned long phys_addr, unsigned long size,
--			       enum ioremap_mode mode)
-+static void __iomem *__ioremap_caller(unsigned long phys_addr,
-+	unsigned long size, enum ioremap_mode mode, void *caller)
- {
- 	unsigned long pfn, offset, last_addr, vaddr;
- 	struct vm_struct *area;
-@@ -176,7 +176,7 @@ static void __iomem *__ioremap(unsigned 
- 	/*
- 	 * Ok, go for it..
- 	 */
--	area = get_vm_area(size, VM_IOREMAP);
-+	area = get_vm_area_caller(size, VM_IOREMAP, caller);
- 	if (!area)
- 		return NULL;
- 	area->phys_addr = phys_addr;
-@@ -217,13 +217,15 @@ static void __iomem *__ioremap(unsigned 
-  */
- void __iomem *ioremap_nocache(unsigned long phys_addr, unsigned long size)
- {
--	return __ioremap(phys_addr, size, IOR_MODE_UNCACHED);
-+	return __ioremap_caller(phys_addr, size, IOR_MODE_UNCACHED,
-+						__builtin_return_address(0));
- }
- EXPORT_SYMBOL(ioremap_nocache);
- 
- void __iomem *ioremap_cache(unsigned long phys_addr, unsigned long size)
- {
--	return __ioremap(phys_addr, size, IOR_MODE_CACHED);
-+	return __ioremap_caller(phys_addr, size, IOR_MODE_CACHED,
-+						__builtin_return_address(0));
- }
- EXPORT_SYMBOL(ioremap_cache);
- 
-diff -puN include/linux/vmalloc.h~vmallocinfo-add-caller-information include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~vmallocinfo-add-caller-information
-+++ a/include/linux/vmalloc.h
-@@ -31,6 +31,7 @@ struct vm_struct {
- 	struct page		**pages;
- 	unsigned int		nr_pages;
- 	unsigned long		phys_addr;
-+	void			*caller;
- };
- 
- /*
-@@ -66,6 +67,8 @@ static inline size_t get_vm_area_size(co
- }
- 
- extern struct vm_struct *get_vm_area(unsigned long size, unsigned long flags);
-+extern struct vm_struct *get_vm_area_caller(unsigned long size,
-+					unsigned long flags, void *caller);
- extern struct vm_struct *__get_vm_area(unsigned long size, unsigned long flags,
- 					unsigned long start, unsigned long end);
- extern struct vm_struct *get_vm_area_node(unsigned long size,
-diff -puN mm/vmalloc.c~vmallocinfo-add-caller-information mm/vmalloc.c
---- a/mm/vmalloc.c~vmallocinfo-add-caller-information
-+++ a/mm/vmalloc.c
-@@ -16,6 +16,7 @@
- #include <linux/interrupt.h>
- #include <linux/seq_file.h>
- #include <linux/vmalloc.h>
-+#include <linux/kallsyms.h>
- 
- #include <asm/uaccess.h>
- #include <asm/tlbflush.h>
-@@ -25,7 +26,7 @@ DEFINE_RWLOCK(vmlist_lock);
- struct vm_struct *vmlist;
- 
- static void *__vmalloc_node(unsigned long size, gfp_t gfp_mask, pgprot_t prot,
--			    int node);
-+			    int node, void *caller);
- 
- static void vunmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end)
- {
-@@ -206,7 +207,7 @@ EXPORT_SYMBOL(vmalloc_to_pfn);
- 
- static struct vm_struct *__get_vm_area_node(unsigned long size, unsigned long flags,
- 					    unsigned long start, unsigned long end,
--					    int node, gfp_t gfp_mask)
-+					    int node, gfp_t gfp_mask, void *caller)
- {
- 	struct vm_struct **p, *tmp, *area;
- 	unsigned long align = 1;
-@@ -269,6 +270,7 @@ found:
- 	area->pages = NULL;
- 	area->nr_pages = 0;
- 	area->phys_addr = 0;
-+	area->caller = caller;
- 	write_unlock(&vmlist_lock);
- 
- 	return area;
-@@ -284,7 +286,8 @@ out:
- struct vm_struct *__get_vm_area(unsigned long size, unsigned long flags,
- 				unsigned long start, unsigned long end)
- {
--	return __get_vm_area_node(size, flags, start, end, -1, GFP_KERNEL);
-+	return __get_vm_area_node(size, flags, start, end, -1, GFP_KERNEL,
-+						__builtin_return_address(0));
- }
- EXPORT_SYMBOL_GPL(__get_vm_area);
- 
-@@ -299,14 +302,22 @@ EXPORT_SYMBOL_GPL(__get_vm_area);
-  */
- struct vm_struct *get_vm_area(unsigned long size, unsigned long flags)
- {
--	return __get_vm_area(size, flags, VMALLOC_START, VMALLOC_END);
-+	return __get_vm_area_node(size, flags, VMALLOC_START, VMALLOC_END,
-+				-1, GFP_KERNEL, __builtin_return_address(0));
-+}
-+
-+struct vm_struct *get_vm_area_caller(unsigned long size, unsigned long flags,
-+				void *caller)
-+{
-+	return __get_vm_area_node(size, flags, VMALLOC_START, VMALLOC_END,
-+						-1, GFP_KERNEL, caller);
- }
- 
- struct vm_struct *get_vm_area_node(unsigned long size, unsigned long flags,
- 				   int node, gfp_t gfp_mask)
- {
- 	return __get_vm_area_node(size, flags, VMALLOC_START, VMALLOC_END, node,
--				  gfp_mask);
-+				  gfp_mask, __builtin_return_address(0));
- }
- 
- /* Caller must hold vmlist_lock */
-@@ -455,9 +466,11 @@ void *vmap(struct page **pages, unsigned
- 	if (count > num_physpages)
- 		return NULL;
- 
--	area = get_vm_area((count << PAGE_SHIFT), flags);
-+	area = get_vm_area_caller((count << PAGE_SHIFT), flags,
-+					__builtin_return_address(0));
- 	if (!area)
- 		return NULL;
-+
- 	if (map_vm_area(area, prot, &pages)) {
- 		vunmap(area->addr);
- 		return NULL;
-@@ -468,7 +481,7 @@ void *vmap(struct page **pages, unsigned
- EXPORT_SYMBOL(vmap);
- 
- static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
--				 pgprot_t prot, int node)
-+				 pgprot_t prot, int node, void *caller)
- {
- 	struct page **pages;
- 	unsigned int nr_pages, array_size, i;
-@@ -480,7 +493,7 @@ static void *__vmalloc_area_node(struct 
- 	/* Please note that the recursion is strictly bounded. */
- 	if (array_size > PAGE_SIZE) {
- 		pages = __vmalloc_node(array_size, gfp_mask | __GFP_ZERO,
--					PAGE_KERNEL, node);
-+				PAGE_KERNEL, node, caller);
- 		area->flags |= VM_VPAGES;
- 	} else {
- 		pages = kmalloc_node(array_size,
-@@ -488,6 +501,7 @@ static void *__vmalloc_area_node(struct 
- 				node);
- 	}
- 	area->pages = pages;
-+	area->caller = caller;
- 	if (!area->pages) {
- 		remove_vm_area(area->addr);
- 		kfree(area);
-@@ -521,7 +535,8 @@ fail:
- 
- void *__vmalloc_area(struct vm_struct *area, gfp_t gfp_mask, pgprot_t prot)
- {
--	return __vmalloc_area_node(area, gfp_mask, prot, -1);
-+	return __vmalloc_area_node(area, gfp_mask, prot, -1,
-+					__builtin_return_address(0));
- }
- 
- /**
-@@ -536,7 +551,7 @@ void *__vmalloc_area(struct vm_struct *a
-  *	kernel virtual space, using a pagetable protection of @prot.
-  */
- static void *__vmalloc_node(unsigned long size, gfp_t gfp_mask, pgprot_t prot,
--			    int node)
-+						int node, void *caller)
- {
- 	struct vm_struct *area;
- 
-@@ -544,16 +559,19 @@ static void *__vmalloc_node(unsigned lon
- 	if (!size || (size >> PAGE_SHIFT) > num_physpages)
- 		return NULL;
- 
--	area = get_vm_area_node(size, VM_ALLOC, node, gfp_mask);
-+	area = __get_vm_area_node(size, VM_ALLOC, VMALLOC_START, VMALLOC_END,
-+						node, gfp_mask, caller);
-+
- 	if (!area)
- 		return NULL;
- 
--	return __vmalloc_area_node(area, gfp_mask, prot, node);
-+	return __vmalloc_area_node(area, gfp_mask, prot, node, caller);
- }
- 
- void *__vmalloc(unsigned long size, gfp_t gfp_mask, pgprot_t prot)
- {
--	return __vmalloc_node(size, gfp_mask, prot, -1);
-+	return __vmalloc_node(size, gfp_mask, prot, -1,
-+				__builtin_return_address(0));
- }
- EXPORT_SYMBOL(__vmalloc);
- 
-@@ -568,7 +586,8 @@ EXPORT_SYMBOL(__vmalloc);
-  */
- void *vmalloc(unsigned long size)
- {
--	return __vmalloc(size, GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL);
-+	return __vmalloc_node(size, GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL,
-+					-1, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(vmalloc);
- 
-@@ -608,7 +627,8 @@ EXPORT_SYMBOL(vmalloc_user);
-  */
- void *vmalloc_node(unsigned long size, int node)
- {
--	return __vmalloc_node(size, GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL, node);
-+	return __vmalloc_node(size, GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL,
-+					node, __builtin_return_address(0));
- }
- EXPORT_SYMBOL(vmalloc_node);
- 
-@@ -843,7 +863,8 @@ struct vm_struct *alloc_vm_area(size_t s
- {
- 	struct vm_struct *area;
- 
--	area = get_vm_area(size, VM_IOREMAP);
-+	area = get_vm_area_caller(size, VM_IOREMAP,
-+				__builtin_return_address(0));
- 	if (area == NULL)
- 		return NULL;
- 
-@@ -914,6 +935,14 @@ static int s_show(struct seq_file *m, vo
- 	seq_printf(m, "0x%p-0x%p %7ld",
- 		v->addr, v->addr + v->size, v->size);
- 
-+	if (v->caller) {
-+		char buff[2 * KSYM_NAME_LEN];
-+
-+		seq_putc(m, ' ');
-+		sprint_symbol(buff, (unsigned long)v->caller);
-+		seq_puts(m, buff);
-+	}
-+
- 	if (v->nr_pages)
- 		seq_printf(m, " pages=%d", v->nr_pages);
- 
+diff -puN fs/proc/proc_misc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes
++++ a/fs/proc/proc_misc.c
+@@ -881,7 +881,7 @@ void __init proc_misc_init(void)
+ 	create_seq_entry("slab_allocators", 0 ,&proc_slabstats_operations);
+ #endif
+ #endif
+-	proc_create("vmallocinfo",S_IWUSR|S_IRUGO, NULL,
++	proc_create("vmallocinfo", S_IWUSR|S_IRUGO, NULL,
+ 						&proc_vmalloc_operations);
+ 	create_seq_entry("buddyinfo",S_IRUGO, &fragmentation_file_operations);
+ 	create_seq_entry("pagetypeinfo", S_IRUGO, &pagetypeinfo_file_ops);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-fix-boundary-checking-in-free_bootmem_core.patch
-mm-fix-boundary-checking-in-free_bootmem_core-fix.patch
-x86_64-free_bootmem-should-take-phy.patch
+origin.patch
+zisofs-fix-readpage-outside-i_size-fix.patch
+memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
+memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
+drivers-md-raid5c-fix-printk-warnings.patch
+fs-ufs-ballocc-fix-sparc64-printk-warning.patch
+revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi-fixup.patch
+git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
+sound-pci-pcxhr-pcxhr_corec-fix-printk-warning.patch
+sound-pci-pcxhr-pcxhrc-fix-warnings.patch
+sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes.patch
+cifs-suppress-warning.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
+git-drm.patch
+git-drm-git-rejects.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+git-dvb.patch
+git-dvb-drivers-media-video-bt8xx-bttv-cardsc-fix-warnings.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+kvm-warning-fix.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-net.patch
+git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+tg3-fix-warning-on-sparc32.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
+git-sh.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+git-scsi-rc-fixes-fixup.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
 git-unionfs.patch
-git-slub.patch
-x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
-remove-set_migrateflags.patch
-mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
-mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
-mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
-mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
-mm-move-cache_line_size-to-linux-cacheh.patch
-mempolicy-convert-mpol-constants-to-enum.patch
-mempolicy-support-optional-mode-flags.patch
-mempolicy-support-optional-mode-flags-fix.patch
-mempolicy-add-mpol_f_static_nodes-flag.patch
-mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
-mempolicy-add-mpol_f_relative_nodes-flag.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-move-rebind-functions.patch
-mempolicy-create-mempolicy_operations-structure.patch
-mempolicy-create-mempolicy_operations-structure-fix.patch
-mempolicy-small-header-file-cleanup.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-mempolicy-fix-parsing-of-tmpfs-mpol-mount-option.patch
-mm-make-mem_map-allocation-continuous.patch
-mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
-mm-allocate-section_map-for-sparse_init.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-semaphore-git-rejects.patch
+x86-fix-aperture-vs-suspend-problem.patch
+revert-pcie-utilize-pcie-transaction-pending-bit.patch
+netpoll-zap_completion_queue-adjust-skb-users-counter.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
 mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
 vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmallocinfo-add-caller-information.patch
 vmallocinfo-add-caller-information-checkpatch-fixes.patch
-mm-add-nr_writeback_temp-counter.patch
-remove-div_long_long_rem.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
 reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+w1-build-fix.patch
 
