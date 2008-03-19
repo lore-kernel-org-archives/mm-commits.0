@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch added to -mm tree
-Date: Tue, 18 Mar 2008 21:48:58 -0700
-Message-ID: <200803190458.m2J4wgb1032249@imap1.linux-foundation.org>
+Subject: + a.patch added to -mm tree
+Date: Tue, 18 Mar 2008 21:57:03 -0700
+Message-ID: <200803190506.m2J56lxi032554@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:35783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752663AbYCSTY2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752825AbYCSTYi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:24:28 -0400
+	Wed, 19 Mar 2008 15:24:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, oakad@yahoo.com
+Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
 
 
 The patch titled
-     memstick: drivers/memstick/host/jmb38x_ms.c needs dma-mapping.h
+     alsa: sound/pci/aw2/aw2-alsa.c needs dma-mapping.h
 has been added to the -mm tree.  Its filename is
-     memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
+     a.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: drivers/memstick/host/jmb38x_ms.c needs dma-mapping.h
+Subject: alsa: sound/pci/aw2/aw2-alsa.c needs dma-mapping.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
 sparc32:
 
-drivers/memstick/host/jmb38x_ms.c: In function 'jmb38x_ms_probe':
-drivers/memstick/host/jmb38x_ms.c:818: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
-drivers/memstick/host/jmb38x_ms.c:818: error: (Each undeclared identifier is reported only once
-drivers/memstick/host/jmb38x_ms.c:818: error: for each function it appears in.)
+sound/pci/aw2/aw2-alsa.c: In function 'snd_aw2_create':
+sound/pci/aw2/aw2-alsa.c:282: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
+sound/pci/aw2/aw2-alsa.c:282: error: (Each undeclared identifier is reported only once
+sound/pci/aw2/aw2-alsa.c:282: error: for each function it appears in.)
 
-Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/jmb38x_ms.c |    1 +
+ sound/pci/aw2/aw2-alsa.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh drivers/memstick/host/jmb38x_ms.c
---- a/drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh
-+++ a/drivers/memstick/host/jmb38x_ms.c
-@@ -12,6 +12,7 @@
- #include <linux/spinlock.h>
- #include <linux/interrupt.h>
+diff -puN sound/pci/aw2/aw2-alsa.c~a sound/pci/aw2/aw2-alsa.c
+--- a/sound/pci/aw2/aw2-alsa.c~a
++++ a/sound/pci/aw2/aw2-alsa.c
+@@ -22,6 +22,7 @@
+  *****************************************************************************/
+ #include <linux/init.h>
  #include <linux/pci.h>
 +#include <linux/dma-mapping.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
  #include <linux/delay.h>
- #include <linux/highmem.h>
- #include <linux/memstick.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 zisofs-fix-readpage-outside-i_size-fix.patch
+memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
+memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
 revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
@@ -188,6 +191,7 @@ ext4-is-broken.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
 ipmi-run-to-completion-fixes-checkpatch-fixes.patch
 ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
 elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
@@ -220,5 +224,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
+a.patch
 
