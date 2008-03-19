@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-early_pfn_to_nid-a-c-function.patch added to -mm tree
-Date: Tue, 18 Mar 2008 22:51:13 -0700
-Message-ID: <200803190600.m2J60v3s001860@imap1.linux-foundation.org>
+Subject: + sound-pci-pcxhr-pcxhrc-fix-warnings.patch added to -mm tree
+Date: Tue, 18 Mar 2008 22:26:22 -0700
+Message-ID: <200803190536.m2J5a6uT001020@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:35783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752533AbYCSTYZ (ORCPT
+	by vger.kernel.org with ESMTP id S1752596AbYCSTY1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:24:25 -0400
+	Wed, 19 Mar 2008 15:24:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, apw@shadowen.org, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
+Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
 
 
 The patch titled
-     mm: make early_pfn_to_nid() a C function
+     sound/pci/pcxhr/pcxhr.c: fix warnings
 has been added to the -mm tree.  Its filename is
-     mm-make-early_pfn_to_nid-a-c-function.patch
+     sound-pci-pcxhr-pcxhrc-fix-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make early_pfn_to_nid() a C function
+Subject: sound/pci/pcxhr/pcxhr.c: fix warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this (sparc64)
+sparc64:
 
-mm/sparse-vmemmap.c: In function `vmemmap_verify':
-mm/sparse-vmemmap.c:64: warning: unused variable `pfn'
+sound/pci/pcxhr/pcxhr.c: In function `pcxhr_update_r_buffer':
+sound/pci/pcxhr/pcxhr.c:459: warning: cast to pointer from integer of different size
+sound/pci/pcxhr/pcxhr.c: In function `pcxhr_trigger_tasklet':
+sound/pci/pcxhr/pcxhr.c:628: warning: long int format, different type arg (arg 4)
 
-by switching to a C function which touches its arg.
-
-(reason 3,555 why macros are bad)
-
-Also, the `nid' arg was misnamed.
-
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Andi Kleen <ak@suse.de>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ sound/pci/pcxhr/pcxhr.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-make-early_pfn_to_nid-a-c-function include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-make-early_pfn_to_nid-a-c-function
-+++ a/include/linux/mmzone.h
-@@ -861,7 +861,10 @@ static inline struct zoneref *next_zones
+diff -puN sound/pci/pcxhr/pcxhr.c~sound-pci-pcxhr-pcxhrc-fix-warnings sound/pci/pcxhr/pcxhr.c
+--- a/sound/pci/pcxhr/pcxhr.c~sound-pci-pcxhr-pcxhrc-fix-warnings
++++ a/sound/pci/pcxhr/pcxhr.c
+@@ -458,7 +458,7 @@ static int pcxhr_update_r_buffer(struct 
  
- #if !defined(CONFIG_HAVE_ARCH_EARLY_PFN_TO_NID) && \
- 	!defined(CONFIG_ARCH_POPULATES_NODE_MAP)
--#define early_pfn_to_nid(nid)  (0UL)
-+static inline unsigned long early_pfn_to_nid(unsigned long pfn)
-+{
-+	return 0;
-+}
+ 	snd_printdd("pcxhr_update_r_buffer(pcm%c%d) : addr(%p) bytes(%zx) subs(%d)\n",
+ 		    is_capture ? 'c' : 'p',
+-		    chip->chip_idx, (void*)subs->runtime->dma_addr,
++		    chip->chip_idx, (void*)(long)subs->runtime->dma_addr,
+ 		    subs->runtime->dma_bytes, subs->number);
+ 
+ 	pcxhr_init_rmh(&rmh, CMD_UPDATE_R_BUFFERS);
+@@ -626,7 +626,7 @@ static void pcxhr_trigger_tasklet(unsign
+ #ifdef CONFIG_SND_DEBUG_DETECT
+ 	do_gettimeofday(&my_tv2);
+ 	snd_printdd("***TRIGGER TASKLET*** TIME = %ld (err = %x)\n",
+-		    my_tv2.tv_usec - my_tv1.tv_usec, err);
++		    (long)(my_tv2.tv_usec - my_tv1.tv_usec), err);
  #endif
+ }
  
- #ifdef CONFIG_FLATMEM
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,7 +81,6 @@ origin.patch
 zisofs-fix-readpage-outside-i_size-fix.patch
 memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
 memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
-drivers-md-raid5c-fix-printk-warnings.patch
 revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
@@ -95,8 +93,6 @@ acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
 alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
 sound-pci-pcxhr-pcxhr_corec-fix-printk-warning.patch
-sound-pci-pcxhr-pcxhrc-fix-warnings.patch
-sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes.patch
 cifs-suppress-warning.patch
 revert-gregkh-driver-video-add-the-go7007-driver.patch
 revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
@@ -124,7 +120,6 @@ git-net.patch
 git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
 drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
 tg3-fix-warning-on-sparc32.patch
@@ -242,5 +237,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
+sound-pci-pcxhr-pcxhrc-fix-warnings.patch
 
