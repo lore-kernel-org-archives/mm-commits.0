@@ -1,74 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: + sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 18 Mar 2008 22:26:57 -0700
-Message-ID: <200803190536.m2J5afIa001028@imap1.linux-foundation.org>
+Subject: - pm-convert-wakeup-flag-accessors-to-inline-functions-fix.patch removed from -mm tree
+Date: Wed, 19 Mar 2008 11:46:58 -0700
+Message-ID: <200803191846.m2JIkwtx028648@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35783 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40479 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752584AbYCSTY0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756064AbYCSTeE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:24:26 -0400
+	Wed, 19 Mar 2008 15:34:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
+To: akpm@linux-foundation.org, greg@kroah.com, lenb@kernel.org, rjw@sisk.pl, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes.patch
+     pm-convert-wakeup-flag-accessors-to-inline-functions fix
+has been removed from the -mm tree.  Its filename was
+     pm-convert-wakeup-flag-accessors-to-inline-functions-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes
+Subject: pm-convert-wakeup-flag-accessors-to-inline-functions fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "(foo*)" should be "(foo *)"
-#26: FILE: sound/pci/pcxhr/pcxhr.c:461:
-+		    chip->chip_idx, (void*)(long)subs->runtime->dma_addr,
+ia64 allmodconfig:
 
-total: 1 errors, 0 warnings, 16 lines checked
+In file included from include/linux/device.h:381,
+                 from include/linux/rtc.h:110,
+                 from include/linux/efi.h:19,
+                 from include/asm/sal.h:40,
+                 from include/asm-ia64/mca.h:20,
+                 from arch/ia64/kernel/asm-offsets.c:17:
+include/linux/pm_wakeup.h: In function `device_init_wakeup':
+include/linux/pm_wakeup.h:35: error: structure has no member named `should_wakeup'
+include/linux/pm_wakeup.h: In function `device_set_wakeup_enable':
+include/linux/pm_wakeup.h:45: error: structure has no member named `should_wakeup'
+include/linux/pm_wakeup.h: In function `device_may_wakeup':
+include/linux/pm_wakeup.h:50: error: structure has no member named `should_wakeup'
 
-./patches/sound-pci-pcxhr-pcxhrc-fix-warnings.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/pcxhr/pcxhr.c |    2 +-
+ include/linux/pm_wakeup.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN sound/pci/pcxhr/pcxhr.c~sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes sound/pci/pcxhr/pcxhr.c
---- a/sound/pci/pcxhr/pcxhr.c~sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes
-+++ a/sound/pci/pcxhr/pcxhr.c
-@@ -458,7 +458,7 @@ static int pcxhr_update_r_buffer(struct 
+diff -puN include/linux/pm_wakeup.h~pm-convert-wakeup-flag-accessors-to-inline-functions-fix include/linux/pm_wakeup.h
+--- a/include/linux/pm_wakeup.h~pm-convert-wakeup-flag-accessors-to-inline-functions-fix
++++ a/include/linux/pm_wakeup.h
+@@ -25,7 +25,7 @@
+ # error "please don't include this file directly"
+ #endif
  
- 	snd_printdd("pcxhr_update_r_buffer(pcm%c%d) : addr(%p) bytes(%zx) subs(%d)\n",
- 		    is_capture ? 'c' : 'p',
--		    chip->chip_idx, (void*)(long)subs->runtime->dma_addr,
-+		    chip->chip_idx, (void *)(long)subs->runtime->dma_addr,
- 		    subs->runtime->dma_bytes, subs->number);
+-#ifdef CONFIG_PM
++#ifdef CONFIG_PM_SLEEP
  
- 	pcxhr_init_rmh(&rmh, CMD_UPDATE_R_BUFFERS);
+ /* changes to device_may_wakeup take effect on the next pm state change.
+  * by default, devices should wakeup if they can.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +72,8 @@ origin.patch
 zisofs-fix-readpage-outside-i_size-fix.patch
 memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
 memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
+drivers-md-raid5c-fix-printk-warnings.patch
+fs-ufs-ballocc-fix-sparc64-printk-warning.patch
 revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
@@ -118,6 +115,7 @@ git-net.patch
 git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
 drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
 tg3-fix-warning-on-sparc32.patch
@@ -145,6 +143,7 @@ git-unionfs.patch
 fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
 git-v9fs.patch
 git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
 git-semaphore-git-rejects.patch
 x86-fix-aperture-vs-suspend-problem.patch
 revert-pcie-utilize-pcie-transaction-pending-bit.patch
@@ -152,6 +151,7 @@ netpoll-zap_completion_queue-adjust-skb-users-counter.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 capabilities-implement-per-process-securebits-warning-fix.patch
