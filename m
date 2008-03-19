@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ufs-ballocc-fix-sparc64-printk-warning.patch added to -mm tree
-Date: Tue, 18 Mar 2008 22:56:17 -0700
-Message-ID: <200803190606.m2J661Z7002029@imap1.linux-foundation.org>
+Subject: + idr-create-idr_layer_cache-at-boot-time-fix-fix.patch added to -mm tree
+Date: Tue, 18 Mar 2008 19:07:54 -0700
+Message-ID: <200803190217.m2J2HcJv027078@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41356 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754858AbYCSTjg (ORCPT
+	by vger.kernel.org with ESMTP id S1756926AbYCSThw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:39:36 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2J67HWW022090
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 18 Mar 2008 23:07:18 -0700
+	Wed, 19 Mar 2008 15:37:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, akinobu.mita@gmail.com
 
 
 The patch titled
-     fs/ufs/balloc.c: fix sparc64 printk warning
+     idr-create-idr_layer_cache-at-boot-time-fix-fix
 has been added to the -mm tree.  Its filename is
-     fs-ufs-ballocc-fix-sparc64-printk-warning.patch
+     idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,48 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ufs/balloc.c: fix sparc64 printk warning
+Subject: idr-create-idr_layer_cache-at-boot-time-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ufs/balloc.c: In function `ufs_change_blocknr':
-fs/ufs/balloc.c:317: warning: long long unsigned int format, long unsigned int arg (arg 2)
-fs/ufs/balloc.c:317: warning: long long unsigned int format, long unsigned int arg (arg 3)
+alpha:
 
-sector_t is u64 and we don't know what type the architecture uses to implement
-u64.
+In file included from include/linux/ipc_namespace.h:5,
+                 from ipc/namespace.c:8:
+include/linux/idr.h:118: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'idr_init_cache'
 
-
-
+Cc: Akinobu Mita <akinobu.mita@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/balloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ idr.c               |    0 
+ include/linux/idr.h |    1 +
+ 2 files changed, 1 insertion(+)
 
-diff -puN fs/ufs/balloc.c~fs-ufs-ballocc-fix-sparc64-printk-warning fs/ufs/balloc.c
---- a/fs/ufs/balloc.c~fs-ufs-ballocc-fix-sparc64-printk-warning
-+++ a/fs/ufs/balloc.c
-@@ -315,8 +315,8 @@ static void ufs_change_blocknr(struct in
- 			}
+diff -puN include/linux/idr.h~idr-create-idr_layer_cache-at-boot-time-fix-fix include/linux/idr.h
+--- a/include/linux/idr.h~idr-create-idr_layer_cache-at-boot-time-fix-fix
++++ a/include/linux/idr.h
+@@ -14,6 +14,7 @@
  
- 			UFSD(" change from %llu to %llu, pos %u\n",
--			     (unsigned long long)pos + oldb,
--			     (unsigned long long)pos + newb, pos);
-+			     (unsigned long long)(pos + oldb),
-+			     (unsigned long long)(pos + newb), pos);
+ #include <linux/types.h>
+ #include <linux/bitops.h>
++#include <linux/init.h>
  
- 			bh->b_blocknr = newb + pos;
- 			unmap_underlying_metadata(bh->b_bdev,
+ #if BITS_PER_LONG == 32
+ # define IDR_BITS 5
+diff -puN init/main.c~idr-create-idr_layer_cache-at-boot-time-fix-fix init/main.c
+diff -puN lib/idr.c~idr-create-idr_layer_cache-at-boot-time-fix-fix lib/idr.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 zisofs-fix-readpage-outside-i_size-fix.patch
-memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
-memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
-drivers-md-raid5c-fix-printk-warnings.patch
-revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
 arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
@@ -89,14 +79,9 @@ git-acpi-fixup.patch
 git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
-alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
-sound-pci-pcxhr-pcxhr_corec-fix-printk-warning.patch
-sound-pci-pcxhr-pcxhrc-fix-warnings.patch
-sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes.patch
 cifs-suppress-warning.patch
 revert-gregkh-driver-video-add-the-go7007-driver.patch
 revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
-pm-convert-wakeup-flag-accessors-to-inline-functions-fix.patch
 git-drm.patch
 git-drm-git-rejects.patch
 git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
@@ -120,10 +105,8 @@ git-net.patch
 git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
 drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-tg3-fix-warning-on-sparc32.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 git-nfsd.patch
@@ -151,11 +134,11 @@ git-watchdog.patch
 git-semaphore-git-rejects.patch
 x86-fix-aperture-vs-suspend-problem.patch
 revert-pcie-utilize-pcie-transaction-pending-bit.patch
+revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 netpoll-zap_completion_queue-adjust-skb-users-counter.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 capabilities-implement-per-process-securebits-warning-fix.patch
@@ -163,8 +146,6 @@ lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
 lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
 selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
 audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
 make-dev-kmem-a-config-option-fix.patch
 misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
@@ -206,7 +187,6 @@ ext4-is-broken.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
 ipmi-run-to-completion-fixes-checkpatch-fixes.patch
 ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
 elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
@@ -222,7 +202,6 @@ hfs-fix-warning-with-64k-page_size.patch
 hfsplus-fix-warning-with-64k-page_size.patch
 alloc_uid-cleanup.patch
 add-macros-similar-to-min-max-min_t-max_t.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
 idr-create-idr_layer_cache-at-boot-time-fix.patch
 idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
 reiser4.patch
@@ -239,5 +218,4 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-fs-ufs-ballocc-fix-sparc64-printk-warning.patch
 
