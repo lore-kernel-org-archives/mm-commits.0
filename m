@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ufs-ballocc-fix-sparc64-printk-warning.patch added to -mm tree
-Date: Tue, 18 Mar 2008 22:56:57 -0700
-Message-ID: <200803190606.m2J66gSL002032@imap1.linux-foundation.org>
+Subject: + pm-convert-wakeup-flag-accessors-to-inline-functions-fix.patch added to -mm tree
+Date: Tue, 18 Mar 2008 20:05:49 -0700
+Message-ID: <200803190315.m2J3FXnK029022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41356 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755035AbYCSTjh (ORCPT
+	by vger.kernel.org with ESMTP id S1756899AbYCSThp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:39:37 -0400
+	Wed, 19 Mar 2008 15:37:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dushistov@mail.ru
+Cc: akpm@linux-foundation.org, greg@kroah.com, lenb@kernel.org, rjw@sisk.pl, stern@rowland.harvard.edu
 
 
 The patch titled
-     fs/ufs/balloc.c: fix sparc64 printk warning
+     pm-convert-wakeup-flag-accessors-to-inline-functions fix
 has been added to the -mm tree.  Its filename is
-     fs-ufs-ballocc-fix-sparc64-printk-warning.patch
+     pm-convert-wakeup-flag-accessors-to-inline-functions-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ufs/balloc.c: fix sparc64 printk warning
+Subject: pm-convert-wakeup-flag-accessors-to-inline-functions fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ufs/balloc.c: In function `ufs_change_blocknr':
-fs/ufs/balloc.c:317: warning: long long unsigned int format, long unsigned int arg (arg 2)
-fs/ufs/balloc.c:317: warning: long long unsigned int format, long unsigned int arg (arg 3)
+ia64 allmodconfig:
 
-sector_t is u64 and we don't know what type the architecture uses to implement
-u64.
+In file included from include/linux/device.h:381,
+                 from include/linux/rtc.h:110,
+                 from include/linux/efi.h:19,
+                 from include/asm/sal.h:40,
+                 from include/asm-ia64/mca.h:20,
+                 from arch/ia64/kernel/asm-offsets.c:17:
+include/linux/pm_wakeup.h: In function `device_init_wakeup':
+include/linux/pm_wakeup.h:35: error: structure has no member named `should_wakeup'
+include/linux/pm_wakeup.h: In function `device_set_wakeup_enable':
+include/linux/pm_wakeup.h:45: error: structure has no member named `should_wakeup'
+include/linux/pm_wakeup.h: In function `device_may_wakeup':
+include/linux/pm_wakeup.h:50: error: structure has no member named `should_wakeup'
 
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/balloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/pm_wakeup.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ufs/balloc.c~fs-ufs-ballocc-fix-sparc64-printk-warning fs/ufs/balloc.c
---- a/fs/ufs/balloc.c~fs-ufs-ballocc-fix-sparc64-printk-warning
-+++ a/fs/ufs/balloc.c
-@@ -315,8 +315,8 @@ static void ufs_change_blocknr(struct in
- 			}
+diff -puN include/linux/pm_wakeup.h~pm-convert-wakeup-flag-accessors-to-inline-functions-fix include/linux/pm_wakeup.h
+--- a/include/linux/pm_wakeup.h~pm-convert-wakeup-flag-accessors-to-inline-functions-fix
++++ a/include/linux/pm_wakeup.h
+@@ -25,7 +25,7 @@
+ # error "please don't include this file directly"
+ #endif
  
- 			UFSD(" change from %llu to %llu, pos %u\n",
--			     (unsigned long long)pos + oldb,
--			     (unsigned long long)pos + newb, pos);
-+			     (unsigned long long)(pos + oldb),
-+			     (unsigned long long)(pos + newb), pos);
+-#ifdef CONFIG_PM
++#ifdef CONFIG_PM_SLEEP
  
- 			bh->b_blocknr = newb + pos;
- 			unmap_underlying_metadata(bh->b_bdev,
+ /* changes to device_may_wakeup take effect on the next pm state change.
+  * by default, devices should wakeup if they can.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 zisofs-fix-readpage-outside-i_size-fix.patch
-memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
-memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
-drivers-md-raid5c-fix-printk-warnings.patch
-fs-ufs-ballocc-fix-sparc64-printk-warning.patch
-revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
 arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
@@ -85,10 +89,6 @@ git-acpi-fixup.patch
 git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
-alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
-sound-pci-pcxhr-pcxhr_corec-fix-printk-warning.patch
-sound-pci-pcxhr-pcxhrc-fix-warnings.patch
-sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes.patch
 cifs-suppress-warning.patch
 revert-gregkh-driver-video-add-the-go7007-driver.patch
 revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
@@ -116,10 +116,8 @@ git-net.patch
 git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
 drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-tg3-fix-warning-on-sparc32.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 git-nfsd.patch
@@ -147,11 +145,11 @@ git-watchdog.patch
 git-semaphore-git-rejects.patch
 x86-fix-aperture-vs-suspend-problem.patch
 revert-pcie-utilize-pcie-transaction-pending-bit.patch
+revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 netpoll-zap_completion_queue-adjust-skb-users-counter.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 capabilities-implement-per-process-securebits-warning-fix.patch
@@ -202,7 +200,6 @@ ext4-is-broken.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
 ipmi-run-to-completion-fixes-checkpatch-fixes.patch
 ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
 elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
@@ -218,7 +215,6 @@ hfs-fix-warning-with-64k-page_size.patch
 hfsplus-fix-warning-with-64k-page_size.patch
 alloc_uid-cleanup.patch
 add-macros-similar-to-min-max-min_t-max_t.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
 idr-create-idr_layer_cache-at-boot-time-fix.patch
 idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
 reiser4.patch
