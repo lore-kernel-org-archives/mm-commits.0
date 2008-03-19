@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + a.patch added to -mm tree
-Date: Tue, 18 Mar 2008 21:57:03 -0700
-Message-ID: <200803190506.m2J56lxi032554@imap1.linux-foundation.org>
+Subject: + tg3-fix-warning-on-sparc32.patch added to -mm tree
+Date: Tue, 18 Mar 2008 22:11:48 -0700
+Message-ID: <200803190521.m2J5LWWp000565@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:35783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752825AbYCSTYi (ORCPT
+	by vger.kernel.org with ESMTP id S1752513AbYCSTY2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:24:38 -0400
+	Wed, 19 Mar 2008 15:24:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     alsa: sound/pci/aw2/aw2-alsa.c needs dma-mapping.h
+     tg3: fix warning on sparc32
 has been added to the -mm tree.  Its filename is
-     a.patch
+     tg3-fix-warning-on-sparc32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alsa: sound/pci/aw2/aw2-alsa.c needs dma-mapping.h
+Subject: tg3: fix warning on sparc32
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sparc32:
+drivers/net/tg3.c:11781: warning: 'tg3_get_default_macaddr_sparc' defined but not used
 
-sound/pci/aw2/aw2-alsa.c: In function 'snd_aw2_create':
-sound/pci/aw2/aw2-alsa.c:282: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
-sound/pci/aw2/aw2-alsa.c:282: error: (Each undeclared identifier is reported only once
-sound/pci/aw2/aw2-alsa.c:282: error: for each function it appears in.)
+This looks wrong.
 
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+tg3.c is rather large.
+
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/aw2/aw2-alsa.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/tg3.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN sound/pci/aw2/aw2-alsa.c~a sound/pci/aw2/aw2-alsa.c
---- a/sound/pci/aw2/aw2-alsa.c~a
-+++ a/sound/pci/aw2/aw2-alsa.c
-@@ -22,6 +22,7 @@
-  *****************************************************************************/
- #include <linux/init.h>
- #include <linux/pci.h>
-+#include <linux/dma-mapping.h>
- #include <linux/slab.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
+diff -puN drivers/net/tg3.c~tg3-fix-warning-on-sparc32 drivers/net/tg3.c
+--- a/drivers/net/tg3.c~tg3-fix-warning-on-sparc32
++++ a/drivers/net/tg3.c
+@@ -11766,6 +11766,7 @@ static int __devinit tg3_get_macaddr_spa
+ 	return -ENODEV;
+ }
+ 
++#ifdef CONFIG_SPARC64
+ static int __devinit tg3_get_default_macaddr_sparc(struct tg3 *tp)
+ {
+ 	struct net_device *dev = tp->dev;
+@@ -11775,6 +11776,7 @@ static int __devinit tg3_get_default_mac
+ 	return 0;
+ }
+ #endif
++#endif
+ 
+ static int __devinit tg3_get_device_address(struct tg3 *tp)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,6 +87,7 @@ git-acpi-fixup.patch
 git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
+alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
 cifs-suppress-warning.patch
 revert-gregkh-driver-video-add-the-go7007-driver.patch
 revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
@@ -224,5 +231,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-a.patch
+tg3-fix-warning-on-sparc32.patch
 
