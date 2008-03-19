@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sound-pci-pcxhr-pcxhrc-fix-warnings.patch added to -mm tree
-Date: Tue, 18 Mar 2008 22:26:22 -0700
-Message-ID: <200803190536.m2J5a6uT001020@imap1.linux-foundation.org>
+Subject: + memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch added to -mm tree
+Date: Tue, 18 Mar 2008 21:51:07 -0700
+Message-ID: <200803190500.m2J50psV032381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:35783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752596AbYCSTY1 (ORCPT
+	by vger.kernel.org with ESMTP id S1752735AbYCSTYb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:24:27 -0400
+	Wed, 19 Mar 2008 15:24:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
+Cc: akpm@linux-foundation.org, oakad@yahoo.com
 
 
 The patch titled
-     sound/pci/pcxhr/pcxhr.c: fix warnings
+     memstick: drivers/memstick/host/jmb38x_ms.c: suppress uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     sound-pci-pcxhr-pcxhrc-fix-warnings.patch
+     memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sound/pci/pcxhr/pcxhr.c: fix warnings
+Subject: memstick: drivers/memstick/host/jmb38x_ms.c: suppress uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sparc64:
+drivers/memstick/host/jmb38x_ms.c: In function 'jmb38x_ms_transfer_data':
+drivers/memstick/host/jmb38x_ms.c:294: warning: 'p_off' may be used uninitialized in this function
 
-sound/pci/pcxhr/pcxhr.c: In function `pcxhr_update_r_buffer':
-sound/pci/pcxhr/pcxhr.c:459: warning: cast to pointer from integer of different size
-sound/pci/pcxhr/pcxhr.c: In function `pcxhr_trigger_tasklet':
-sound/pci/pcxhr/pcxhr.c:628: warning: long int format, different type arg (arg 4)
-
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/pcxhr/pcxhr.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/memstick/host/jmb38x_ms.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN sound/pci/pcxhr/pcxhr.c~sound-pci-pcxhr-pcxhrc-fix-warnings sound/pci/pcxhr/pcxhr.c
---- a/sound/pci/pcxhr/pcxhr.c~sound-pci-pcxhr-pcxhrc-fix-warnings
-+++ a/sound/pci/pcxhr/pcxhr.c
-@@ -458,7 +458,7 @@ static int pcxhr_update_r_buffer(struct 
+diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning drivers/memstick/host/jmb38x_ms.c
+--- a/drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning
++++ a/drivers/memstick/host/jmb38x_ms.c
+@@ -291,7 +291,7 @@ static int jmb38x_ms_transfer_data(struc
+ {
+ 	unsigned int length;
+ 	unsigned int off;
+-	unsigned int t_size, p_off, p_cnt;
++	unsigned int t_size, p_cnt;
+ 	unsigned char *buf;
+ 	struct page *pg;
+ 	unsigned long flags = 0;
+@@ -305,6 +305,8 @@ static int jmb38x_ms_transfer_data(struc
+ 	}
  
- 	snd_printdd("pcxhr_update_r_buffer(pcm%c%d) : addr(%p) bytes(%zx) subs(%d)\n",
- 		    is_capture ? 'c' : 'p',
--		    chip->chip_idx, (void*)subs->runtime->dma_addr,
-+		    chip->chip_idx, (void*)(long)subs->runtime->dma_addr,
- 		    subs->runtime->dma_bytes, subs->number);
- 
- 	pcxhr_init_rmh(&rmh, CMD_UPDATE_R_BUFFERS);
-@@ -626,7 +626,7 @@ static void pcxhr_trigger_tasklet(unsign
- #ifdef CONFIG_SND_DEBUG_DETECT
- 	do_gettimeofday(&my_tv2);
- 	snd_printdd("***TRIGGER TASKLET*** TIME = %ld (err = %x)\n",
--		    my_tv2.tv_usec - my_tv1.tv_usec, err);
-+		    (long)(my_tv2.tv_usec - my_tv1.tv_usec), err);
- #endif
- }
- 
+ 	while (length) {
++		unsigned int uninitialized_var(p_off);
++
+ 		if (host->req->long_data) {
+ 			pg = nth_page(sg_page(&host->req->sg),
+ 				      off >> PAGE_SHIFT);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 zisofs-fix-readpage-outside-i_size-fix.patch
-memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
-memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
 revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
@@ -91,8 +84,6 @@ git-acpi-fixup.patch
 git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
-alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
-sound-pci-pcxhr-pcxhr_corec-fix-printk-warning.patch
 cifs-suppress-warning.patch
 revert-gregkh-driver-video-add-the-go7007-driver.patch
 revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
@@ -122,7 +113,6 @@ drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
 drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
 drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-tg3-fix-warning-on-sparc32.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 git-nfsd.patch
@@ -204,7 +194,6 @@ ext4-is-broken.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
 ipmi-run-to-completion-fixes-checkpatch-fixes.patch
 ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
 elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
@@ -237,5 +226,6 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-sound-pci-pcxhr-pcxhrc-fix-warnings.patch
+memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
+memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
 
