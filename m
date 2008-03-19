@@ -1,107 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: - keys-document-making-the-keyring-quotas-controllable-through-proc-sys.patch removed from -mm tree
-Date: Wed, 19 Mar 2008 13:56:39 -0700
-Message-ID: <200803192056.m2JKudsp002145@imap1.linux-foundation.org>
+Subject: + file-capabilities-remove-cap_task_kill-git.patch added to -mm tree
+Date: Wed, 19 Mar 2008 14:07:42 -0700
+Message-ID: <200803192107.m2JL7gpV002861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46213 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965214AbYCSVCV (ORCPT
+	by vger.kernel.org with ESMTP id S936254AbYCSVIp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 17:02:21 -0400
+	Wed, 19 Mar 2008 17:08:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: serue@us.ibm.com, lcapitulino@mandriva.com.br, morgan@kernel.org, serge@hallyn.com, stable@kernel.org
 
 
 The patch titled
-     keys: document making the keyring quotas controllable through /proc/sys
-has been removed from the -mm tree.  Its filename was
-     keys-document-making-the-keyring-quotas-controllable-through-proc-sys.patch
+     file capabilities: remove cap_task_kill()
+has been added to the -mm tree.  Its filename is
+     file-capabilities-remove-cap_task_kill-git.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: keys: document making the keyring quotas controllable through /proc/sys
-From: David Howells <dhowells@redhat.com>
+Subject: file capabilities: remove cap_task_kill()
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-Alter the key management documentation to include information on keyring quota
-controls as added in a previous patch.
+The original justification for cap_task_kill() was as follows:
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+	check_kill_permission() does appropriate uid equivalence checks.
+	However with file capabilities it becomes possible for an
+	unprivileged user to execute a file with file capabilities
+	resulting in a more privileged task with the same uid.
+
+However now that cap_task_kill() always returns 0 (permission granted) when
+p->uid==current->uid, the whole hook is worthless, and only likely to create
+more subtle problems in the corner cases where it might still be called but
+return -EPERM.  Those cases are basically when uids are different but
+euid/suid is equivalent as per the check in check_kill_permission().
+
+One example of a still-broken application is 'at' for non-root users.
+
+This patch removes cap_task_kill().
+
+Signed-off-by: Serge Hallyn <serge@hallyn.com>
+Acked-by: Andrew G. Morgan <morgan@kernel.org>
+Tested-by: Luiz Fernando N. Capitulino <lcapitulino@mandriva.com.br>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/keys.txt |   24 +++++++++++++++++++++++-
- 1 file changed, 23 insertions(+), 1 deletion(-)
+ include/linux/security.h |    3 --
+ security/capability.c    |    1 
+ security/commoncap.c     |   40 -------------------------------------
+ 3 files changed, 1 insertion(+), 43 deletions(-)
 
-diff -puN Documentation/keys.txt~keys-document-making-the-keyring-quotas-controllable-through-proc-sys Documentation/keys.txt
---- a/Documentation/keys.txt~keys-document-making-the-keyring-quotas-controllable-through-proc-sys
-+++ a/Documentation/keys.txt
-@@ -170,7 +170,8 @@ The key service provides a number of fea
-      amount of description and payload space that can be consumed.
+diff -puN include/linux/security.h~file-capabilities-remove-cap_task_kill-git include/linux/security.h
+--- a/include/linux/security.h~file-capabilities-remove-cap_task_kill-git
++++ a/include/linux/security.h
+@@ -57,7 +57,6 @@ extern int cap_inode_need_killpriv(struc
+ extern int cap_inode_killpriv(struct dentry *dentry);
+ extern int cap_task_post_setuid (uid_t old_ruid, uid_t old_euid, uid_t old_suid, int flags);
+ extern void cap_task_reparent_to_init (struct task_struct *p);
+-extern int cap_task_kill(struct task_struct *p, struct siginfo *info, int sig, u32 secid);
+ extern int cap_task_setscheduler (struct task_struct *p, int policy, struct sched_param *lp);
+ extern int cap_task_setioprio (struct task_struct *p, int ioprio);
+ extern int cap_task_setnice (struct task_struct *p, int nice);
+@@ -2187,7 +2186,7 @@ static inline int security_task_kill (st
+ 				      struct siginfo *info, int sig,
+ 				      u32 secid)
+ {
+-	return cap_task_kill(p, info, sig, secid);
++	return 0;
+ }
  
-      The user can view information on this and other statistics through procfs
--     files.
-+     files.  The root user may also alter the quota limits through sysctl files
-+     (see the section "New procfs files").
+ static inline int security_task_wait (struct task_struct *p)
+diff -puN security/capability.c~file-capabilities-remove-cap_task_kill-git security/capability.c
+--- a/security/capability.c~file-capabilities-remove-cap_task_kill-git
++++ a/security/capability.c
+@@ -40,7 +40,6 @@ static struct security_operations capabi
+ 	.inode_need_killpriv =		cap_inode_need_killpriv,
+ 	.inode_killpriv =		cap_inode_killpriv,
  
-      Process-specific and thread-specific keyrings are not counted towards a
-      user's quota.
-@@ -329,6 +330,27 @@ about the status of the key service:
- 	<bytes>/<max>		Key size quota
+-	.task_kill =			cap_task_kill,
+ 	.task_setscheduler =		cap_task_setscheduler,
+ 	.task_setioprio =		cap_task_setioprio,
+ 	.task_setnice =			cap_task_setnice,
+diff -puN security/commoncap.c~file-capabilities-remove-cap_task_kill-git security/commoncap.c
+--- a/security/commoncap.c~file-capabilities-remove-cap_task_kill-git
++++ a/security/commoncap.c
+@@ -540,41 +540,6 @@ int cap_task_setnice (struct task_struct
+ 	return cap_safe_nice(p);
+ }
  
+-int cap_task_kill(struct task_struct *p, struct siginfo *info,
+-				int sig, u32 secid)
+-{
+-	if (info != SEND_SIG_NOINFO && (is_si_special(info) || SI_FROMKERNEL(info)))
+-		return 0;
+-
+-	/*
+-	 * Running a setuid root program raises your capabilities.
+-	 * Killing your own setuid root processes was previously
+-	 * allowed.
+-	 * We must preserve legacy signal behavior in this case.
+-	 */
+-	if (p->uid == current->uid)
+-		return 0;
+-
+-	/* sigcont is permitted within same session */
+-	if (sig == SIGCONT && (task_session_nr(current) == task_session_nr(p)))
+-		return 0;
+-
+-	if (secid)
+-		/*
+-		 * Signal sent as a particular user.
+-		 * Capabilities are ignored.  May be wrong, but it's the
+-		 * only thing we can do at the moment.
+-		 * Used only by usb drivers?
+-		 */
+-		return 0;
+-	if (cap_issubset(p->cap_permitted, current->cap_permitted))
+-		return 0;
+-	if (capable(CAP_KILL))
+-		return 0;
+-
+-	return -EPERM;
+-}
+-
+ /*
+  * called from kernel/sys.c for prctl(PR_CABSET_DROP)
+  * done without task_capability_lock() because it introduces
+@@ -605,11 +570,6 @@ int cap_task_setnice (struct task_struct
+ {
+ 	return 0;
+ }
+-int cap_task_kill(struct task_struct *p, struct siginfo *info,
+-				int sig, u32 secid)
+-{
+-	return 0;
+-}
+ #endif
  
-+Four new sysctl files have been added also for the purpose of controlling the
-+quota limits on keys:
-+
-+ (*) /proc/sys/kernel/keys/root_maxkeys
-+     /proc/sys/kernel/keys/root_maxbytes
-+
-+     These files hold the maximum number of keys that root may have and the
-+     maximum total number of bytes of data that root may have stored in those
-+     keys.
-+
-+ (*) /proc/sys/kernel/keys/maxkeys
-+     /proc/sys/kernel/keys/maxbytes
-+
-+     These files hold the maximum number of keys that each non-root user may
-+     have and the maximum total number of bytes of data that each of those
-+     users may have stored in their keys.
-+
-+Root may alter these by writing each new limit as a decimal number string to
-+the appropriate file.
-+
-+
- ===============================
- USERSPACE SYSTEM CALL INTERFACE
- ===============================
+ void cap_task_reparent_to_init (struct task_struct *p)
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-romfs-fix-up-an-error-in-iget-removal.patch
+file-capabilities-remove-cap_task_kill-git.patch
 git-unionfs.patch
-remove-the-macro-get_personality.patch
-keys-increase-the-payload-size-when-instantiating-a-key.patch
-keys-check-starting-keyring-as-part-of-search.patch
-keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
-keys-add-keyctl-function-to-get-a-security-label.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-keys-switch-to-proc_create.patch
-keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
-keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
-keys-make-the-keyring-quotas-controllable-through-proc-sys.patch
-keys-make-the-keyring-quotas-controllable-through-proc-sys-fix.patch
-keys-explicitly-include-required-slabh-header-file.patch
-keys-document-making-the-keyring-quotas-controllable-through-proc-sys.patch
-keys-make-key_serial-a-function-if-config_keys=y.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-alloc_uid-cleanup.patch
-rename-div64_64-to-div64_u64.patch
-mutex-subsystem-synchro-test-module.patch
+capabilities-implement-per-process-securebits.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+capabilities-implement-per-process-securebits-fix.patch
+root_plug-use-cap_task_prctl.patch
+smack-use-cap_task_prctl.patch
+r-o-bind-mounts-stub-functions.patch
+r-o-bind-mounts-elevate-write-count-for-vfs_rmdir.patch
+cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-check_kill_permission-check-session-under-tasklist_lock.patch
+ipc-semaphores-code-factorisation.patch
+ipc-shared-memory-introduce-shmctl_down.patch
+ipc-message-queues-introduce-msgctl_down.patch
+ipc-semaphores-move-the-rwmutex-handling-inside-semctl_down.patch
+ipc-semaphores-remove-one-unused-parameter-from-semctl_down.patch
+ipc-get-rid-of-the-use-_setbuf-structure.patch
+ipc-introduce-ipc_update_perm.patch
+ipc-consolidate-all-xxxctl_down-functions.patch
+reiser4-replace-uid==0-check-with-capability.patch
 
