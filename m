@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + drivers-md-raid5c-fix-printk-warnings.patch added to -mm tree
-Date: Tue, 18 Mar 2008 22:58:54 -0700
-Message-ID: <200803190608.m2J68d4L002068@imap1.linux-foundation.org>
+Date: Tue, 18 Mar 2008 22:34:31 -0700
+Message-ID: <200803190544.m2J5iFdl001278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:35783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752416AbYCSTYV (ORCPT
+	by vger.kernel.org with ESMTP id S1752511AbYCSTYX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:24:21 -0400
+	Wed, 19 Mar 2008 15:24:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -44,8 +44,8 @@ drivers/md/raid5.c:1147: warning: long long unsigned int format, long unsigned i
 drivers/md/raid5.c:1164: warning: long long unsigned int format, long unsigned int arg (arg 3)
 drivers/md/raid5.c:1170: warning: long long unsigned int format, long unsigned int arg (arg 3)
 
-sector_t is u64, and we don't know what type the architecture uses to
-implement u64 (on some it is unsigned long).
+the warnings are wrong, afacit.  But perhaps the compiler will generate
+incorrect code if we don't give it some help?
 
 Cc: Neil Brown <neilb@suse.de>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
@@ -91,8 +91,6 @@ origin.patch
 zisofs-fix-readpage-outside-i_size-fix.patch
 memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
 memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
-drivers-md-raid5c-fix-printk-warnings.patch
-fs-ufs-ballocc-fix-sparc64-printk-warning.patch
 revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
@@ -169,7 +167,6 @@ netpoll-zap_completion_queue-adjust-skb-users-counter.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 capabilities-implement-per-process-securebits-warning-fix.patch
@@ -253,4 +250,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
+drivers-md-raid5c-fix-printk-warnings.patch
 
