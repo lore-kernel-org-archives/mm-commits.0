@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch added to -mm tree
-Date: Tue, 18 Mar 2008 22:29:18 -0700
-Message-ID: <200803190539.m2J5d2UV001085@imap1.linux-foundation.org>
+Subject: + sound-pci-pcxhr-pcxhr_corec-fix-printk-warning.patch added to -mm tree
+Date: Tue, 18 Mar 2008 22:24:35 -0700
+Message-ID: <200803190534.m2J5YJLX000910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:35783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752458AbYCSTYW (ORCPT
+	by vger.kernel.org with ESMTP id S1752416AbYCSTYX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:24:22 -0400
+	Wed, 19 Mar 2008 15:24:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, fubar@us.ibm.com
+Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
 
 
 The patch titled
-     drivers/net/bonding/bond_sysfs.c: suppress uninitialized var warning
+     sound/pci/pcxhr/pcxhr_core.c: fix printk warning
 has been added to the -mm tree.  Its filename is
-     drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+     sound-pci-pcxhr-pcxhr_corec-fix-printk-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/bonding/bond_sysfs.c: suppress uninitialized var warning
+Subject: sound/pci/pcxhr/pcxhr_core.c: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/bonding/bond_sysfs.c: In function `bonding_store_slaves':
-drivers/net/bonding/bond_sysfs.c:250: warning: 'original_mtu' might be used uninitialized in this function
+sound/pci/pcxhr/pcxhr_core.c: In function `pcxhr_set_pipe_state':
+sound/pci/pcxhr/pcxhr_core.c:899: warning: long int format, different type arg (arg 4)
 
-Cc: Jay Vosburgh <fubar@us.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+suseconds_t is int on sparc64.
+
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/bonding/bond_sysfs.c |    2 +-
+ sound/pci/pcxhr/pcxhr_core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/bonding/bond_sysfs.c~drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning drivers/net/bonding/bond_sysfs.c
---- a/drivers/net/bonding/bond_sysfs.c~drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning
-+++ a/drivers/net/bonding/bond_sysfs.c
-@@ -247,7 +247,7 @@ static ssize_t bonding_store_slaves(stru
- 	char command[IFNAMSIZ + 1] = { 0, };
- 	char *ifname;
- 	int i, res, found, ret = count;
--	u32 original_mtu;
-+	u32 uninitialized_var(original_mtu);
- 	struct slave *slave;
- 	struct net_device *dev = NULL;
- 	struct bonding *bond = to_bond(d);
+diff -puN sound/pci/pcxhr/pcxhr_core.c~sound-pci-pcxhr-pcxhr_corec-fix-printk-warning sound/pci/pcxhr/pcxhr_core.c
+--- a/sound/pci/pcxhr/pcxhr_core.c~sound-pci-pcxhr-pcxhr_corec-fix-printk-warning
++++ a/sound/pci/pcxhr/pcxhr_core.c
+@@ -897,7 +897,7 @@ int pcxhr_set_pipe_state(struct pcxhr_mg
+ #ifdef CONFIG_SND_DEBUG_DETECT
+ 	do_gettimeofday(&my_tv2);
+ 	snd_printdd("***SET PIPE STATE*** TIME = %ld (err = %x)\n",
+-		    my_tv2.tv_usec - my_tv1.tv_usec, err);
++		    (long)(my_tv2.tv_usec - my_tv1.tv_usec), err);
+ #endif
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,9 +81,6 @@ git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
 alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
-sound-pci-pcxhr-pcxhr_corec-fix-printk-warning.patch
-sound-pci-pcxhr-pcxhrc-fix-warnings.patch
-sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes.patch
 cifs-suppress-warning.patch
 revert-gregkh-driver-video-add-the-go7007-driver.patch
 revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
@@ -226,5 +225,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+sound-pci-pcxhr-pcxhr_corec-fix-printk-warning.patch
 
