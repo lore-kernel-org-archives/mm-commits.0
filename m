@@ -1,183 +1,229 @@
 From: akpm@linux-foundation.org
-Subject: - audit-netlink-socket-can-be-auto-bound-to-pid-other-than-current-pid.patch removed from -mm tree
-Date: Wed, 19 Mar 2008 02:39:21 -0700
-Message-ID: <200803190939.m2J9dL7c008758@imap1.linux-foundation.org>
+Subject: + keys-make-the-keyring-quotas-controllable-through-proc-sys-hack.patch added to -mm tree
+Date: Tue, 18 Mar 2008 17:03:26 -0700
+Message-ID: <200803190013.m2J0DB1i023033@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41356 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757222AbYCSTjg (ORCPT
+	by vger.kernel.org with ESMTP id S1757754AbYCSTl1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:39:36 -0400
+	Wed, 19 Mar 2008 15:41:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, amy.griffis@hp.com, dwmw2@infradead.org, eparis@parisplace.org, sgrubb@redhat.com, tgraf@suug.ch, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, arunsr@cse.iitk.ac.in, dhowells@redhat.com, dwalsh@redhat.com, kwc@citi.umich.edu
 
 
 The patch titled
-     audit: netlink socket can be auto-bound to pid other than current->pid
-has been removed from the -mm tree.  Its filename was
-     audit-netlink-socket-can-be-auto-bound-to-pid-other-than-current-pid.patch
+     keys-make-the-keyring-quotas-controllable-through-proc-sys-hack
+has been added to the -mm tree.  Its filename is
+     keys-make-the-keyring-quotas-controllable-through-proc-sys-hack.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: audit: netlink socket can be auto-bound to pid other than current->pid
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: keys-make-the-keyring-quotas-controllable-through-proc-sys-hack
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This patch is based on the one from Thomas.
+make it compile.
 
-The kauditd_thread() calls the netlink_unicast() and passes the audit_pid to
-it.  The audit_pid, in turn, is received from the user space and the tool
-(I've checked the audit v1.6.9) uses getpid() to pass one in the kernel. 
-Besides, this tool doesn't bind the netlink socket to this id, but simply
-creates it allowing the kernel to auto-bind one.
-
-That's the preamble.
-
-The problem is that netlink_autobind() _does_not_ guarantees that the socket
-will be auto-bound to the current pid.  Instead it uses the current pid as a
-hint to start looking for a free id.  So, in case of conflict, the audit
-messages can be sent to a wrong socket.  This can happen (it's unlikely, but
-can be) in case some task opens more than one netlink sockets and then the
-audit one starts - in this case the audit's pid can be busy and its socket
-will be bound to another id.
-
-The proposal is to introduce an audit_nlk_pid in audit subsys, that will point
-to the netlink socket to send packets to.  It will most often be equal to
-audit_pid.  The socket id can be got from the skb's netlink CB right in the
-audit_receive_msg.
-
-Later, if the audit tools will bind the socket themselves, the kernel will
-have to provide a way to setup the audit_nlk_pid as well.
-
-A good side effect of this patch is that audit_pid can later be converted to
-struct pid, as it is not longer safe to use pid_t-s in the presence of pid
-namespaces.  But audit code still uses the tgid from task_struct in the
-audit_signal_info and in the audit_filter_syscall.
-
-Signed-off-by: Thomas Graf <tgraf@suug.ch>
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Eric Paris <eparis@parisplace.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Steve Grubb <sgrubb@redhat.com>
-Cc: Amy Griffis <amy.griffis@hp.com>
+Cc: <arunsr@cse.iitk.ac.in>
+Cc: <dwalsh@redhat.com>
+Cc: <kwc@citi.umich.edu>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ kernel/sysctl.c        |    2 ++
+ security/keys/Makefile |    1 -
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/audit.c~audit-netlink-socket-can-be-auto-bound-to-pid-other-than-current-pid kernel/audit.c
---- a/kernel/audit.c~audit-netlink-socket-can-be-auto-bound-to-pid-other-than-current-pid
-+++ a/kernel/audit.c
-@@ -78,8 +78,10 @@ static int	audit_default;
- /* If auditing cannot proceed, audit_failure selects what happens. */
- static int	audit_failure = AUDIT_FAIL_PRINTK;
+diff -puN kernel/sysctl.c~keys-make-the-keyring-quotas-controllable-through-proc-sys-hack kernel/sysctl.c
+--- a/kernel/sysctl.c~keys-make-the-keyring-quotas-controllable-through-proc-sys-hack
++++ a/kernel/sysctl.c
+@@ -811,6 +811,7 @@ static struct ctl_table kern_table[] = {
+ 		.strategy	= &sysctl_string,
+ 	},
+ #ifdef CONFIG_KEYS
++#if 0
+ 	{
+ 		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "keys",
+@@ -818,6 +819,7 @@ static struct ctl_table kern_table[] = {
+ 		.child		= key_sysctls,
+ 	},
+ #endif
++#endif
+ /*
+  * NOTE: do not add new entries to this table unless you have read
+  * Documentation/sysctl/ctl_unnumbered.txt
+diff -puN security/keys/Makefile~keys-make-the-keyring-quotas-controllable-through-proc-sys-hack security/keys/Makefile
+--- a/security/keys/Makefile~keys-make-the-keyring-quotas-controllable-through-proc-sys-hack
++++ a/security/keys/Makefile
+@@ -14,4 +14,3 @@ obj-y := \
  
--/* If audit records are to be written to the netlink socket, audit_pid
-+/* If audit records are to be written to the netlink socket, audit_nlk_pid
-  * contains the (non-zero) pid. */
-+static int	audit_nlk_pid;
-+
- int		audit_pid;
- 
- /* If audit_rate_limit is non-zero, limit the rate of sending audit records
-@@ -349,13 +351,13 @@ static int kauditd_thread(void *dummy)
- 		skb = skb_dequeue(&audit_skb_queue);
- 		wake_up(&audit_backlog_wait);
- 		if (skb) {
--			if (audit_pid) {
--				int err = netlink_unicast(audit_sock, skb, audit_pid, 0);
-+			if (audit_nlk_pid) {
-+				int err = netlink_unicast(audit_sock, skb, audit_nlk_pid, 0);
- 				if (err < 0) {
- 					BUG_ON(err != -ECONNREFUSED); /* Shoudn't happen */
--					printk(KERN_ERR "audit: *NO* daemon at audit_pid=%d\n", audit_pid);
-+					printk(KERN_ERR "audit: *NO* daemon at audit_nlk_pid=%d\n", audit_nlk_pid);
- 					audit_log_lost("auditd dissapeared\n");
--					audit_pid = 0;
-+					audit_nlk_pid = 0;
- 				}
- 			} else {
- 				if (printk_ratelimit())
-@@ -626,6 +628,7 @@ static int audit_receive_msg(struct sk_b
- 							sid, 1);
- 
- 			audit_pid = new_pid;
-+			audit_nlk_pid = NETLINK_CB(skb).pid;
- 		}
- 		if (status_get->mask & AUDIT_STATUS_RATE_LIMIT)
- 			err = audit_set_rate_limit(status_get->rate_limit,
-@@ -1354,7 +1357,7 @@ void audit_log_end(struct audit_buffer *
- 		audit_log_lost("rate limit exceeded");
- 	} else {
- 		struct nlmsghdr *nlh = nlmsg_hdr(ab->skb);
--		if (audit_pid) {
-+		if (audit_nlk_pid) {
- 			nlh->nlmsg_len = ab->skb->len - NLMSG_SPACE(0);
- 			skb_queue_tail(&audit_skb_queue, ab->skb);
- 			ab->skb = NULL;
+ obj-$(CONFIG_KEYS_COMPAT) += compat.o
+ obj-$(CONFIG_PROC_FS) += proc.o
+-obj-$(CONFIG_SYSCTL) += sysctl.o
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcgroup-fix-check-for-thread-being-a-group-leader-in-memcgroup.patch
+origin.patch
+zisofs-fix-readpage-outside-i_size-fix.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
 git-kgdb-light.patch
-use-find_task_by_vpid-in-audit-code.patch
-audit-netlink-socket-can-be-auto-bound-to-pid-other-than-current-pid.patch
-ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces.patch
-git-udf.patch
-bsd_acct-plain-current-real_parent-access-is-not-always-safe.patch
-bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
-binfmt_miscc-avoid-potential-kernel-stack-overflow.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
+git-drm.patch
+git-drm-git-rejects.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+git-dvb.patch
+git-dvb-drivers-media-video-bt8xx-bttv-cardsc-fix-warnings.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-net.patch
+git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
+git-sh.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+git-scsi-rc-fixes-fixup.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-watchdog.patch
+git-semaphore-git-rejects.patch
+x86-fix-aperture-vs-suspend-problem.patch
+revert-pcie-utilize-pcie-transaction-pending-bit.patch
+revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
+netpoll-zap_completion_queue-adjust-skb-users-counter.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing.patch
-cgroups-add-the-trigger-callback-to-struct-cftype.patch
-memory-controller-make-memory-resource-control-aware-of-boot-options.patch
-memcgroup-add-the-max_usage-member-on-the-res_counter.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
 add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
-memcgroup-use-triggers-in-force_empty-and-max_usage-files.patch
-memcgroup-implement-failcounter-reset.patch
 memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
-sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
-sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-deprecate-find_task_by_pid-warning-fix.patch
-pidns-make-pid-level-and-pid_ns-level-unsigned.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys-hack.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
 reiser4.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+w1-build-fix.patch
 
