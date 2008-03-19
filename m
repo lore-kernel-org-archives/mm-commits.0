@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 19 Mar 2008 15:05:32 -0700
-Message-ID: <200803192205.m2JM5W2f006270@imap1.linux-foundation.org>
+Subject: + vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch added to -mm tree
+Date: Wed, 19 Mar 2008 15:05:30 -0700
+Message-ID: <200803192205.m2JM5V3s006265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60559 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47199 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S939269AbYCSWGM (ORCPT
+	by vger.kernel.org with ESMTP id S1761742AbYCSWGN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 18:06:12 -0400
+	Wed, 19 Mar 2008 18:06:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au
+Cc: clameter@sgi.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes
+     vmalloc: show vmalloced areas via /proc/vmallocinfo
 has been added to the -mm tree.  Its filename is
-     vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+     vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,212 +34,203 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vmalloc: show vmalloced areas via /proc/vmallocinfo
+From: Christoph Lameter <clameter@sgi.com>
 
-ERROR: need space after that ',' (ctx:VxV)
-#42: FILE: fs/proc/proc_misc.c:884:
-+	proc_create("vmallocinfo",S_IWUSR|S_IRUGO, NULL,
- 	                         ^
+Implement a new proc file that allows the display of the currently allocated
+vmalloc memory.
 
-total: 1 errors, 0 warnings, 117 lines checked
-
-./patches/vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/proc_misc.c     |   14 +++++++
+ include/linux/vmalloc.h |    2 +
+ mm/vmalloc.c            |   76 +++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 91 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/proc_misc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes
+diff -puN fs/proc/proc_misc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo
 +++ a/fs/proc/proc_misc.c
-@@ -881,7 +881,7 @@ void __init proc_misc_init(void)
+@@ -456,6 +456,18 @@ static const struct file_operations proc
+ #endif
+ #endif
+ 
++static int vmalloc_open(struct inode *inode, struct file *file)
++{
++	return seq_open(file, &vmalloc_op);
++}
++
++static const struct file_operations proc_vmalloc_operations = {
++	.open		= vmalloc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= seq_release,
++};
++
+ static int show_stat(struct seq_file *p, void *v)
+ {
+ 	int i;
+@@ -869,6 +881,8 @@ void __init proc_misc_init(void)
  	create_seq_entry("slab_allocators", 0 ,&proc_slabstats_operations);
  #endif
  #endif
--	proc_create("vmallocinfo",S_IWUSR|S_IRUGO, NULL,
-+	proc_create("vmallocinfo", S_IWUSR|S_IRUGO, NULL,
- 						&proc_vmalloc_operations);
++	proc_create("vmallocinfo",S_IWUSR|S_IRUGO, NULL,
++						&proc_vmalloc_operations);
  	create_seq_entry("buddyinfo",S_IRUGO, &fragmentation_file_operations);
  	create_seq_entry("pagetypeinfo", S_IRUGO, &pagetypeinfo_file_ops);
+ 	create_seq_entry("vmstat",S_IRUGO, &proc_vmstat_file_operations);
+diff -puN include/linux/vmalloc.h~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo
++++ a/include/linux/vmalloc.h
+@@ -87,4 +87,6 @@ extern void free_vm_area(struct vm_struc
+ extern rwlock_t vmlist_lock;
+ extern struct vm_struct *vmlist;
+ 
++extern const struct seq_operations vmalloc_op;
++
+ #endif /* _LINUX_VMALLOC_H */
+diff -puN mm/vmalloc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo
++++ a/mm/vmalloc.c
+@@ -14,7 +14,7 @@
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/interrupt.h>
+-
++#include <linux/seq_file.h>
+ #include <linux/vmalloc.h>
+ 
+ #include <asm/uaccess.h>
+@@ -873,3 +873,77 @@ void free_vm_area(struct vm_struct *area
+ 	kfree(area);
+ }
+ EXPORT_SYMBOL_GPL(free_vm_area);
++
++
++#ifdef CONFIG_PROC_FS
++static void *s_start(struct seq_file *m, loff_t *pos)
++{
++	loff_t n = *pos;
++	struct vm_struct *v;
++
++	read_lock(&vmlist_lock);
++	v = vmlist;
++	while (n > 0 && v) {
++		n--;
++		v = v->next;
++	}
++	if (!n)
++		return v;
++
++	return NULL;
++
++}
++
++static void *s_next(struct seq_file *m, void *p, loff_t *pos)
++{
++	struct vm_struct *v = p;
++
++	++*pos;
++	return v->next;
++}
++
++static void s_stop(struct seq_file *m, void *p)
++{
++	read_unlock(&vmlist_lock);
++}
++
++static int s_show(struct seq_file *m, void *p)
++{
++	struct vm_struct *v = p;
++
++	seq_printf(m, "0x%p-0x%p %7ld",
++		v->addr, v->addr + v->size, v->size);
++
++	if (v->nr_pages)
++		seq_printf(m, " pages=%d", v->nr_pages);
++
++	if (v->phys_addr)
++		seq_printf(m, " phys=%lx", v->phys_addr);
++
++	if (v->flags & VM_IOREMAP)
++		seq_printf(m, " ioremap");
++
++	if (v->flags & VM_ALLOC)
++		seq_printf(m, " vmalloc");
++
++	if (v->flags & VM_MAP)
++		seq_printf(m, " vmap");
++
++	if (v->flags & VM_USERMAP)
++		seq_printf(m, " user");
++
++	if (v->flags & VM_VPAGES)
++		seq_printf(m, " vpages");
++
++	seq_putc(m, '\n');
++	return 0;
++}
++
++const struct seq_operations vmalloc_op = {
++	.start = s_start,
++	.next = s_next,
++	.stop = s_stop,
++	.show = s_show,
++};
++#endif
++
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-origin.patch
-zisofs-fix-readpage-outside-i_size-fix.patch
-memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
-memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
-drivers-md-raid5c-fix-printk-warnings.patch
-fs-ufs-ballocc-fix-sparc64-printk-warning.patch
-revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-git-kgdb-light.patch
-git-acpi-fixup.patch
-git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
-sound-pci-pcxhr-pcxhr_corec-fix-printk-warning.patch
-sound-pci-pcxhr-pcxhrc-fix-warnings.patch
-sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes.patch
-cifs-suppress-warning.patch
-revert-gregkh-driver-video-add-the-go7007-driver.patch
-revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
-git-drm.patch
-git-drm-git-rejects.patch
-git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
-git-dvb.patch
-git-dvb-drivers-media-video-bt8xx-bttv-cardsc-fix-warnings.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-kvm-warning-fix.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-git-net.patch
-git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
-drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-tg3-fix-warning-on-sparc32.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
-git-sh.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-git-scsi-rc-fixes-fixup.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
+mm-fix-boundary-checking-in-free_bootmem_core.patch
+mm-fix-boundary-checking-in-free_bootmem_core-fix.patch
+x86_64-free_bootmem-should-take-phy.patch
 git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-watchdog.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-semaphore-git-rejects.patch
-x86-fix-aperture-vs-suspend-problem.patch
-revert-pcie-utilize-pcie-transaction-pending-bit.patch
-netpoll-zap_completion_queue-adjust-skb-users-counter.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+git-slub.patch
+x86-cast-cmpxchg-and-cmpxchg_local-result-for-386-and-486.patch
+remove-set_migrateflags.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mm-move-cache_line_size-to-linux-cacheh.patch
+mempolicy-convert-mpol-constants-to-enum.patch
+mempolicy-support-optional-mode-flags.patch
+mempolicy-support-optional-mode-flags-fix.patch
+mempolicy-add-mpol_f_static_nodes-flag.patch
+mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
+mempolicy-add-mpol_f_relative_nodes-flag.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-move-rebind-functions.patch
+mempolicy-create-mempolicy_operations-structure.patch
+mempolicy-create-mempolicy_operations-structure-fix.patch
+mempolicy-small-header-file-cleanup.patch
+mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
+mempolicy-fix-parsing-of-tmpfs-mpol-mount-option.patch
+mm-make-mem_map-allocation-continuous.patch
+mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
+mm-allocate-section_map-for-sparse_init.patch
 mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
 vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmallocinfo-add-caller-information.patch
 vmallocinfo-add-caller-information-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+mm-add-nr_writeback_temp-counter.patch
+remove-div_long_long_rem.patch
 reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
 page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-w1-build-fix.patch
 
