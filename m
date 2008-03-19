@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + x86_64-ia32-ptrace-vs-enosys.patch added to -mm tree
-Date: Wed, 19 Mar 2008 15:18:51 -0700
-Message-ID: <200803192218.m2JMIqWR006918@imap1.linux-foundation.org>
+Subject: + x86_64-ia32-ptrace-vs-enosys-sysenter-syscall.patch added to -mm tree
+Date: Wed, 19 Mar 2008 15:18:55 -0700
+Message-ID: <200803192218.m2JMIt3W006924@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36451 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935345AbYCSWUY (ORCPT
+	by vger.kernel.org with ESMTP id S1762264AbYCSWWx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 18:20:24 -0400
+	Wed, 19 Mar 2008 18:22:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: roland@redhat.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86_64 ia32 ptrace vs -ENOSYS
+     ptrace vs -ENOSYS sysenter/syscall
 has been added to the -mm tree.  Its filename is
-     x86_64-ia32-ptrace-vs-enosys.patch
+     x86_64-ia32-ptrace-vs-enosys-sysenter-syscall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,16 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86_64 ia32 ptrace vs -ENOSYS
+Subject: ptrace vs -ENOSYS sysenter/syscall
 From: Roland McGrath <roland@redhat.com>
 
-When we're stopped at syscall entry tracing, ptrace can change the %eax value
-from -ENOSYS to something else.  If no system call is actually made because
-the syscall number (now in orig_eax) is bad, then the %eax value set by ptrace
-should be returned to the user.  But, instead it gets reset to -ENOSYS again. 
-This is a regression from the native 32-bit kernel.
-
-This change fixes it by leaving the return value alone after entry tracing.
+The previous "x86_64 ia32 ptrace vs -ENOSYS" fix only covered the int $0x80
+system call entries.  This does the same fix for the sysenter and syscall
+instruction paths.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -52,30 +48,45 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/ia32/ia32entry.S |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/ia32/ia32entry.S |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/ia32/ia32entry.S~x86_64-ia32-ptrace-vs-enosys arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~x86_64-ia32-ptrace-vs-enosys
+diff -puN arch/x86/ia32/ia32entry.S~x86_64-ia32-ptrace-vs-enosys-sysenter-syscall arch/x86/ia32/ia32entry.S
+--- a/arch/x86/ia32/ia32entry.S~x86_64-ia32-ptrace-vs-enosys-sysenter-syscall
 +++ a/arch/x86/ia32/ia32entry.S
-@@ -325,7 +325,7 @@ ENTRY(ia32_syscall)
- 	jnz ia32_tracesys
- ia32_do_syscall:	
- 	cmpl $(IA32_NR_syscalls-1),%eax
--	ja  ia32_badsys
-+	ja  int_ret_from_sys_call	/* ia32_tracesys has set RAX(%rsp) */
- 	IA32_ARG_FIXUP
- 	call *ia32_sys_call_table(,%rax,8) # xxx: rip relative
- ia32_sysret:
-@@ -335,7 +335,7 @@ ia32_sysret:
- ia32_tracesys:			 
+@@ -162,12 +162,14 @@ sysenter_tracesys:
  	SAVE_REST
  	CLEAR_RREGS
+ 	movq	%r9,R9(%rsp)
+-	movq	$-ENOSYS,RAX(%rsp)	/* really needed? */
++	movq	$-ENOSYS,RAX(%rsp)/* ptrace can change this for a bad syscall */
+ 	movq	%rsp,%rdi        /* &pt_regs -> arg1 */
+ 	call	syscall_trace_enter
+ 	LOAD_ARGS32 ARGOFFSET  /* reload args from stack in case ptrace changed it */
+ 	RESTORE_REST
+ 	xchgl	%ebp,%r9d
++	cmpl	$(IA32_NR_syscalls-1),%eax
++	ja	int_ret_from_sys_call /* sysenter_tracesys has set RAX(%rsp) */
+ 	jmp	sysenter_do_call
+ 	CFI_ENDPROC
+ ENDPROC(ia32_sysenter_target)
+@@ -261,13 +263,15 @@ cstar_tracesys:	
+ 	SAVE_REST
+ 	CLEAR_RREGS
+ 	movq %r9,R9(%rsp)
 -	movq $-ENOSYS,RAX(%rsp)	/* really needed? */
 +	movq $-ENOSYS,RAX(%rsp)	/* ptrace can change this for a bad syscall */
  	movq %rsp,%rdi        /* &pt_regs -> arg1 */
  	call syscall_trace_enter
  	LOAD_ARGS32 ARGOFFSET  /* reload args from stack in case ptrace changed it */
+ 	RESTORE_REST
+ 	xchgl %ebp,%r9d
+ 	movl RSP-ARGOFFSET(%rsp), %r8d
++	cmpl $(IA32_NR_syscalls-1),%eax
++	ja int_ret_from_sys_call /* cstar_tracesys has set RAX(%rsp) */
+ 	jmp cstar_do_call
+ END(ia32_cstar_target)
+ 				
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
