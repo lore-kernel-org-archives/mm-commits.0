@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch added to -mm tree
-Date: Tue, 18 Mar 2008 18:59:48 -0700
-Message-ID: <200803190209.m2J29WW4026805@imap1.linux-foundation.org>
+Subject: + fs-ufs-ballocc-fix-sparc64-printk-warning.patch added to -mm tree
+Date: Tue, 18 Mar 2008 22:56:57 -0700
+Message-ID: <200803190606.m2J66gSL002032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756919AbYCSThv (ORCPT
+	by vger.kernel.org with ESMTP id S1755035AbYCSTjh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:37:51 -0400
+	Wed, 19 Mar 2008 15:39:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, lenb@kernel.org
+Cc: akpm@linux-foundation.org, dushistov@mail.ru
 
 
 The patch titled
-     git-acpi: arch/x86/kernel/apm_32.c: fix warning
+     fs/ufs/balloc.c: fix sparc64 printk warning
 has been added to the -mm tree.  Its filename is
-     git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
+     fs-ufs-ballocc-fix-sparc64-printk-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-acpi: arch/x86/kernel/apm_32.c: fix warning
+Subject: fs/ufs/balloc.c: fix sparc64 printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/apm_32.c:1215: warning: label 'out' defined but not used
+fs/ufs/balloc.c: In function `ufs_change_blocknr':
+fs/ufs/balloc.c:317: warning: long long unsigned int format, long unsigned int arg (arg 2)
+fs/ufs/balloc.c:317: warning: long long unsigned int format, long unsigned int arg (arg 3)
 
-Cc: Len Brown <lenb@kernel.org>
+sector_t is u64 and we don't know what type the architecture uses to implement
+u64.
+
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/apm_32.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ufs/balloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/apm_32.c~git-acpi-arch-x86-kernel-apm_32c-fix-warning arch/x86/kernel/apm_32.c
---- a/arch/x86/kernel/apm_32.c~git-acpi-arch-x86-kernel-apm_32c-fix-warning
-+++ a/arch/x86/kernel/apm_32.c
-@@ -1212,7 +1212,6 @@ static int suspend(int vetoable)
- 	local_irq_enable();
- 	device_resume();
- 	queue_event(APM_NORMAL_RESUME, NULL);
-- out:
- 	spin_lock(&user_list_lock);
- 	for (as = user_list; as != NULL; as = as->next) {
- 		as->suspend_wait = 0;
+diff -puN fs/ufs/balloc.c~fs-ufs-ballocc-fix-sparc64-printk-warning fs/ufs/balloc.c
+--- a/fs/ufs/balloc.c~fs-ufs-ballocc-fix-sparc64-printk-warning
++++ a/fs/ufs/balloc.c
+@@ -315,8 +315,8 @@ static void ufs_change_blocknr(struct in
+ 			}
+ 
+ 			UFSD(" change from %llu to %llu, pos %u\n",
+-			     (unsigned long long)pos + oldb,
+-			     (unsigned long long)pos + newb, pos);
++			     (unsigned long long)(pos + oldb),
++			     (unsigned long long)(pos + newb), pos);
+ 
+ 			bh->b_blocknr = newb + pos;
+ 			unmap_underlying_metadata(bh->b_bdev,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 zisofs-fix-readpage-outside-i_size-fix.patch
+memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
+memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
+drivers-md-raid5c-fix-printk-warnings.patch
+fs-ufs-ballocc-fix-sparc64-printk-warning.patch
+revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
 arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
 i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
 git-kgdb-light.patch
 git-acpi-fixup.patch
+git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
+alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
+sound-pci-pcxhr-pcxhr_corec-fix-printk-warning.patch
+sound-pci-pcxhr-pcxhrc-fix-warnings.patch
+sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes.patch
 cifs-suppress-warning.patch
 revert-gregkh-driver-video-add-the-go7007-driver.patch
 revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
+pm-convert-wakeup-flag-accessors-to-inline-functions-fix.patch
 git-drm.patch
 git-drm-git-rejects.patch
 git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
@@ -97,8 +116,10 @@ git-net.patch
 git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
 drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+tg3-fix-warning-on-sparc32.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 git-nfsd.patch
@@ -126,11 +147,11 @@ git-watchdog.patch
 git-semaphore-git-rejects.patch
 x86-fix-aperture-vs-suspend-problem.patch
 revert-pcie-utilize-pcie-transaction-pending-bit.patch
-revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 netpoll-zap_completion_queue-adjust-skb-users-counter.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 capabilities-implement-per-process-securebits-warning-fix.patch
@@ -138,6 +159,8 @@ lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
 lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
 selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
 audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
 make-dev-kmem-a-config-option-fix.patch
 misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
@@ -179,6 +202,7 @@ ext4-is-broken.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
 ipmi-run-to-completion-fixes-checkpatch-fixes.patch
 ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
 elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
@@ -194,7 +218,9 @@ hfs-fix-warning-with-64k-page_size.patch
 hfsplus-fix-warning-with-64k-page_size.patch
 alloc_uid-cleanup.patch
 add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
 idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
@@ -209,5 +235,4 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 
