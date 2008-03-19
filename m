@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tg3-fix-warning-on-sparc32.patch added to -mm tree
-Date: Tue, 18 Mar 2008 22:11:48 -0700
-Message-ID: <200803190521.m2J5LWWp000565@imap1.linux-foundation.org>
+Subject: + sxc-fix-printk-warnings-on-sparc32.patch added to -mm tree
+Date: Tue, 18 Mar 2008 21:54:41 -0700
+Message-ID: <200803190504.m2J54P9W032441@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:35783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752513AbYCSTY2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752805AbYCSTYh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:24:28 -0400
+	Wed, 19 Mar 2008 15:24:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     tg3: fix warning on sparc32
+     sx.c: fix printk warnings on sparc32
 has been added to the -mm tree.  Its filename is
-     tg3-fix-warning-on-sparc32.patch
+     sxc-fix-printk-warnings-on-sparc32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tg3: fix warning on sparc32
+Subject: sx.c: fix printk warnings on sparc32
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/tg3.c:11781: warning: 'tg3_get_default_macaddr_sparc' defined but not used
+drivers/char/sx.c: In function 'sx_set_real_termios':
+drivers/char/sx.c:973: warning: format '%u' expects type 'unsigned int', but argument 2 has type 'long unsigned int'
+drivers/char/sx.c:999: warning: format '%x' expects type 'unsigned int', but argument 2 has type 'tcflag_t'
+drivers/char/sx.c:1012: warning: format '%x' expects type 'unsigned int', but argument 2 has type 'tcflag_t'
 
-This looks wrong.
+sparc32 seems to use weird types for its tty things.
 
-tg3.c is rather large.
-
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tg3.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/char/sx.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/tg3.c~tg3-fix-warning-on-sparc32 drivers/net/tg3.c
---- a/drivers/net/tg3.c~tg3-fix-warning-on-sparc32
-+++ a/drivers/net/tg3.c
-@@ -11766,6 +11766,7 @@ static int __devinit tg3_get_macaddr_spa
- 	return -ENODEV;
- }
+diff -puN drivers/char/sx.c~sxc-fix-printk-warnings-on-sparc32 drivers/char/sx.c
+--- a/drivers/char/sx.c~sxc-fix-printk-warnings-on-sparc32
++++ a/drivers/char/sx.c
+@@ -970,7 +970,8 @@ static int sx_set_real_termios(void *ptr
+ 		sx_write_channel_byte(port, hi_mask, 0x1f);
+ 		break;
+ 	default:
+-		printk(KERN_INFO "sx: Invalid wordsize: %u\n", CFLAG & CSIZE);
++		printk(KERN_INFO "sx: Invalid wordsize: %u\n",
++			(unsigned int)CFLAG & CSIZE);
+ 		break;
+ 	}
  
-+#ifdef CONFIG_SPARC64
- static int __devinit tg3_get_default_macaddr_sparc(struct tg3 *tp)
- {
- 	struct net_device *dev = tp->dev;
-@@ -11775,6 +11776,7 @@ static int __devinit tg3_get_default_mac
+@@ -997,7 +998,8 @@ static int sx_set_real_termios(void *ptr
+ 		set_bit(TTY_HW_COOK_IN, &port->gs.tty->flags);
+ 	}
+ 	sx_dprintk(SX_DEBUG_TERMIOS, "iflags: %x(%d) ",
+-			port->gs.tty->termios->c_iflag, I_OTHER(port->gs.tty));
++			(unsigned int)port->gs.tty->termios->c_iflag,
++			I_OTHER(port->gs.tty));
+ 
+ /* Tell line discipline whether we will do output cooking.
+  * If OPOST is set and no other output flags are set then we can do output
+@@ -1010,7 +1012,8 @@ static int sx_set_real_termios(void *ptr
+ 		clear_bit(TTY_HW_COOK_OUT, &port->gs.tty->flags);
+ 	}
+ 	sx_dprintk(SX_DEBUG_TERMIOS, "oflags: %x(%d)\n",
+-			port->gs.tty->termios->c_oflag, O_OTHER(port->gs.tty));
++			(unsigned int)port->gs.tty->termios->c_oflag,
++			O_OTHER(port->gs.tty));
+ 	/* port->c_dcd = sx_get_CD (port); */
+ 	func_exit();
  	return 0;
- }
- #endif
-+#endif
- 
- static int __devinit tg3_get_device_address(struct tg3 *tp)
- {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 zisofs-fix-readpage-outside-i_size-fix.patch
-memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
-memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
 revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
@@ -87,7 +100,6 @@ git-acpi-fixup.patch
 git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
-alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
 cifs-suppress-warning.patch
 revert-gregkh-driver-video-add-the-go7007-driver.patch
 revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
@@ -198,7 +210,6 @@ ext4-is-broken.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
 ipmi-run-to-completion-fixes-checkpatch-fixes.patch
 ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
 elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
@@ -231,5 +242,7 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-tg3-fix-warning-on-sparc32.patch
+memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
+memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
+sxc-fix-printk-warnings-on-sparc32.patch
 
