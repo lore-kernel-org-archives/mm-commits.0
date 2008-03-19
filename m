@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch added to -mm tree
-Date: Tue, 18 Mar 2008 18:54:45 -0700
-Message-ID: <200803190204.m2J24TVI026639@imap1.linux-foundation.org>
+Subject: + kvm-warning-fix.patch added to -mm tree
+Date: Tue, 18 Mar 2008 18:42:35 -0700
+Message-ID: <200803190152.m2J1qJQx026279@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756887AbYCSTh4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756950AbYCSThz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:37:56 -0400
+	Wed, 19 Mar 2008 15:37:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, avi@qumranet.com
 
 
 The patch titled
-     i386: arch/x86/math-emu/reg_ld_str.c: fix warning
+     kvm warning fix
 has been added to the -mm tree.  Its filename is
-     i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+     kvm-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i386: arch/x86/math-emu/reg_ld_str.c: fix warning
+Subject: kvm warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/math-emu/reg_ld_str.c: In function 'FPU_store_double':
-arch/x86/math-emu/reg_ld_str.c:380: warning: 'l[0]' may be used uninitialized in this function
-arch/x86/math-emu/reg_ld_str.c:380: warning: 'l[1]' may be used uninitialized in this function
+arch/x86/kvm/mmu.c: In function 'kvm_pv_mmu_op':
+arch/x86/kvm/mmu.c:2119: warning: comparison of distinct pointer types lacks a cast
 
-I can't actually spot the bug here.  There's one obvious place, but fixing
-that didn't shut the warning up.
-
-Probably a -mm-only patch until someone works out what's going on.
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Avi Kivity <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/math-emu/reg_ld_str.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ arch/x86/kvm/mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/math-emu/reg_ld_str.c~i386-arch-x86-math-emu-reg_ld_strc-fix-warning arch/x86/math-emu/reg_ld_str.c
---- a/arch/x86/math-emu/reg_ld_str.c~i386-arch-x86-math-emu-reg_ld_strc-fix-warning
-+++ a/arch/x86/math-emu/reg_ld_str.c
-@@ -383,15 +383,15 @@ int FPU_store_double(FPU_REG *st0_ptr, u
- 	int exp;
- 	FPU_REG tmp;
+diff -puN arch/x86/kvm/mmu.c~kvm-warning-fix arch/x86/kvm/mmu.c
+--- a/arch/x86/kvm/mmu.c~kvm-warning-fix
++++ a/arch/x86/kvm/mmu.c
+@@ -2116,7 +2116,7 @@ int kvm_pv_mmu_op(struct kvm_vcpu *vcpu,
+ 	down_read(&current->mm->mmap_sem);
  
-+	l[0] = 0;
-+	l[1] = 0;
- 	if (st0_tag == TAG_Valid) {
- 		reg_copy(st0_ptr, &tmp);
- 		exp = exponent(&tmp);
+ 	buffer.ptr = buffer.buf;
+-	buffer.len = min(bytes, sizeof buffer.buf);
++	buffer.len = min_t(unsigned long, bytes, sizeof buffer.buf);
+ 	buffer.processed = 0;
  
- 		if (exp < DOUBLE_Emin) {	/* It may be a denormal */
- 			addexponent(&tmp, -DOUBLE_Emin + 52);	/* largest exp to be 51 */
--
--		      denormal_arg:
--
-+denormal_arg:
- 			if ((precision_loss = FPU_round_to_int(&tmp, st0_tag))) {
- #ifdef PECULIAR_486
- 				/* Did it round to a non-denormal ? */
-@@ -477,8 +477,7 @@ int FPU_store_double(FPU_REG *st0_ptr, u
- 
- 				/* This is a special case: see sec 16.2.5.1 of the 80486 book */
- 				/* Overflow to infinity */
--				l[0] = 0x00000000;	/* Set to */
--				l[1] = 0x7ff00000;	/* + INF */
-+				l[1] = 0x7ff00000;	/* Set to + INF */
- 			} else {
- 				if (precision_loss) {
- 					if (increment)
-@@ -492,8 +491,6 @@ int FPU_store_double(FPU_REG *st0_ptr, u
- 		}
- 	} else if (st0_tag == TAG_Zero) {
- 		/* Number is zero */
--		l[0] = 0;
--		l[1] = 0;
- 	} else if (st0_tag == TAG_Special) {
- 		st0_tag = FPU_Special(st0_ptr);
- 		if (st0_tag == TW_Denormal) {
-@@ -508,7 +505,6 @@ int FPU_store_double(FPU_REG *st0_ptr, u
- 			reg_copy(st0_ptr, &tmp);
- 			goto denormal_arg;
- 		} else if (st0_tag == TW_Infinity) {
--			l[0] = 0;
- 			l[1] = 0x7ff00000;
- 		} else if (st0_tag == TW_NaN) {
- 			/* Is it really a NaN ? */
-@@ -532,7 +528,6 @@ int FPU_store_double(FPU_REG *st0_ptr, u
- 				EXCEPTION(EX_Invalid);
- 				if (!(control_word & CW_Invalid))
- 					return 0;
--				l[0] = 0;
- 				l[1] = 0xfff80000;
- 			}
- 		}
+ 	r = kvm_read_guest(vcpu->kvm, addr, buffer.buf, buffer.len);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -121,7 +68,6 @@ zisofs-fix-readpage-outside-i_size-fix.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
 arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
 git-kgdb-light.patch
 git-acpi-fixup.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
@@ -144,7 +90,6 @@ git-infiniband.patch
 git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
 maple-add-driver-for-sega-dreamcast-controller.patch
 git-kvm.patch
-kvm-warning-fix.patch
 git-leds.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
@@ -263,6 +208,5 @@ getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 w1-build-fix.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+kvm-warning-fix.patch
 
