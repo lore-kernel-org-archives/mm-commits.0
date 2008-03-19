@@ -1,142 +1,240 @@
 From: akpm@linux-foundation.org
-Subject: + mm-document-missing-fields-for-proc-meminfo.patch added to -mm tree
-Date: Tue, 18 Mar 2008 14:02:07 -0700
-Message-ID: <200803182102.m2IL28kZ016112@imap1.linux-foundation.org>
+Subject: - keys-make-the-keyring-quotas-controllable-through-proc-sys-hack.patch removed from -mm tree
+Date: Wed, 19 Mar 2008 13:55:58 -0700
+Message-ID: <200803192055.m2JKtwBE002126@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757985AbYCSTmo (ORCPT
+	by vger.kernel.org with ESMTP id S1763151AbYCSU5d (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:42:44 -0400
+	Wed, 19 Mar 2008 16:57:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, a.p.zijlstra@chello.nl
+To: akpm@linux-foundation.org, arunsr@cse.iitk.ac.in, dhowells@redhat.com, dwalsh@redhat.com, kwc@citi.umich.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: document missing fields for /proc/meminfo
-has been added to the -mm tree.  Its filename is
-     mm-document-missing-fields-for-proc-meminfo.patch
+     keys-make-the-keyring-quotas-controllable-through-proc-sys-hack
+has been removed from the -mm tree.  Its filename was
+     keys-make-the-keyring-quotas-controllable-through-proc-sys-hack.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: document missing fields for /proc/meminfo
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: keys-make-the-keyring-quotas-controllable-through-proc-sys-hack
+From: Andrew Morton <akpm@linux-foundation.org>
 
+make it compile.
 
-A few fields in /proc/meminfo were not documented.  Fix.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
----
- 1 file changed, 17 insertions(+), 4 deletions(-)
-
-Index: linux/Documentation/filesystems/proc.txt
-===================================================================
+Cc: <arunsr@cse.iitk.ac.in>
+Cc: <dwalsh@redhat.com>
+Cc: <kwc@citi.umich.edu>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   21 +++++++++++++++++----
- 1 file changed, 17 insertions(+), 4 deletions(-)
+ kernel/sysctl.c        |    2 ++
+ security/keys/Makefile |    1 -
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-document-missing-fields-for-proc-meminfo Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-document-missing-fields-for-proc-meminfo
-+++ a/Documentation/filesystems/proc.txt
-@@ -463,11 +463,17 @@ SwapTotal:           0 kB
- SwapFree:            0 kB
- Dirty:             968 kB
- Writeback:           0 kB
-+AnonPages:      861800 kB
- Mapped:         280372 kB
--Slab:           684068 kB
-+Slab:           284364 kB
-+SReclaimable:   159856 kB
-+SUnreclaim:     124508 kB
-+PageTables:      24448 kB
-+NFS_Unstable:        0 kB
-+Bounce:              0 kB
-+WritebackTmp:        0 kB
- CommitLimit:   7669796 kB
- Committed_AS:   100056 kB
--PageTables:      24448 kB
- VmallocTotal:   112216 kB
- VmallocUsed:       428 kB
- VmallocChunk:   111088 kB
-@@ -503,8 +509,17 @@ VmallocChunk:   111088 kB
-               on the disk
-        Dirty: Memory which is waiting to get written back to the disk
-    Writeback: Memory which is actively being written back to the disk
-+   AnonPages: Non-file backed pages mapped into userspace page tables
-       Mapped: files which have been mmaped, such as libraries
-         Slab: in-kernel data structures cache
-+SReclaimable: Part of Slab, that might be reclaimed, such as caches
-+  SUnreclaim: Part of Slab, that cannot be reclaimed on memory pressure
-+  PageTables: amount of memory dedicated to the lowest level of page
-+              tables.
-+NFS_Unstable: NFS pages sent to the server, but not yet committed to stable
-+	      storage
-+      Bounce: Memory used for block device "bounce buffers"
-+WritebackTmp: Memory used by FUSE for temporary writeback buffers
-  CommitLimit: Based on the overcommit ratio ('vm.overcommit_ratio'),
-               this is the total amount of  memory currently available to
-               be allocated on the system. This limit is only adhered to
-@@ -531,8 +546,6 @@ Committed_AS: The amount of memory prese
-               above) will not be permitted. This is useful if one needs
-               to guarantee that processes will not fail due to lack of
-               memory once that memory has been successfully allocated.
--  PageTables: amount of memory dedicated to the lowest level of page
--              tables.
- VmallocTotal: total size of vmalloc memory area
-  VmallocUsed: amount of vmalloc area which is used
- VmallocChunk: largest contigious block of vmalloc area which is free
+diff -puN kernel/sysctl.c~keys-make-the-keyring-quotas-controllable-through-proc-sys-hack kernel/sysctl.c
+--- a/kernel/sysctl.c~keys-make-the-keyring-quotas-controllable-through-proc-sys-hack
++++ a/kernel/sysctl.c
+@@ -811,6 +811,7 @@ static struct ctl_table kern_table[] = {
+ 		.strategy	= &sysctl_string,
+ 	},
+ #ifdef CONFIG_KEYS
++#if 0
+ 	{
+ 		.ctl_name	= CTL_UNNUMBERED,
+ 		.procname	= "keys",
+@@ -818,6 +819,7 @@ static struct ctl_table kern_table[] = {
+ 		.child		= key_sysctls,
+ 	},
+ #endif
++#endif
+ /*
+  * NOTE: do not add new entries to this table unless you have read
+  * Documentation/sysctl/ctl_unnumbered.txt
+diff -puN security/keys/Makefile~keys-make-the-keyring-quotas-controllable-through-proc-sys-hack security/keys/Makefile
+--- a/security/keys/Makefile~keys-make-the-keyring-quotas-controllable-through-proc-sys-hack
++++ a/security/keys/Makefile
+@@ -14,4 +14,3 @@ obj-y := \
+ 
+ obj-$(CONFIG_KEYS_COMPAT) += compat.o
+ obj-$(CONFIG_PROC_FS) += proc.o
+-obj-$(CONFIG_SYSCTL) += sysctl.o
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-rotate_reclaimable_page-cleanup.patch
-vfs-create-proc-pid-mountinfo.patch
-vfs-mountinfo-mm-fix.patch
-vfs-pnode-cleanup.patch
-vfs-mountinfo-stable-peer-group-id.patch
-vfs-mountinfo-show-dominating-group-id.patch
-vfs-optimization-to-proc-pid-mountinfo-patch.patch
-vfs-mountinfo-only-show-mounts-under-tasks-root.patch
-vfs-remove-lives_below_in_same_fs.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
+origin.patch
+zisofs-fix-readpage-outside-i_size-fix.patch
+memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
+memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
+drivers-md-raid5c-fix-printk-warnings.patch
+fs-ufs-ballocc-fix-sparc64-printk-warning.patch
+revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi-fixup.patch
+git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
+sound-pci-pcxhr-pcxhr_corec-fix-printk-warning.patch
+sound-pci-pcxhr-pcxhrc-fix-warnings.patch
+sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes.patch
+cifs-suppress-warning.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
+git-drm.patch
+git-drm-git-rejects.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+git-dvb.patch
+git-dvb-drivers-media-video-bt8xx-bttv-cardsc-fix-warnings.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+kvm-warning-fix.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-net.patch
+git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+tg3-fix-warning-on-sparc32.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
+git-sh.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+git-scsi-rc-fixes-fixup.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-semaphore-git-rejects.patch
+x86-fix-aperture-vs-suspend-problem.patch
+revert-pcie-utilize-pcie-transaction-pending-bit.patch
+netpoll-zap_completion_queue-adjust-skb-users-counter.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys-hack.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
-mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
-mm-bdi-move-statistics-to-debugfs.patch
-mm-bdi-add-separate-writeback-accounting-capability.patch
-mm-bdi-export-bdi_writeout_inc.patch
-mm-bdi-export-bdi_writeout_inc-fix.patch
-mm-add-nr_writeback_temp-counter.patch
-mm-document-missing-fields-for-proc-meminfo.patch
-fuse-support-writable-mmap.patch
-fuse-support-writable-mmap-fix.patch
-fuse-clean-up-setting-i_size-in-write.patch
-fuse-implement-perform_write.patch
-fuse-update-file-size-on-short-read.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+w1-build-fix.patch
 
