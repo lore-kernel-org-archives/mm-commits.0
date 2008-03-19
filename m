@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-alpha-kernel-trapsc-use-time_-macros-fix.patch added to -mm tree
-Date: Tue, 18 Mar 2008 19:09:54 -0700
-Message-ID: <200803190219.m2J2Jc8j027113@imap1.linux-foundation.org>
+Subject: + git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch added to -mm tree
+Date: Tue, 18 Mar 2008 18:59:48 -0700
+Message-ID: <200803190209.m2J29WW4026805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756911AbYCSThu (ORCPT
+	by vger.kernel.org with ESMTP id S1756919AbYCSThv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:37:50 -0400
+	Wed, 19 Mar 2008 15:37:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, caglar@pardus.org.tr, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: akpm@linux-foundation.org, lenb@kernel.org
 
 
 The patch titled
-     arch-alpha-kernel-trapsc-use-time_-macros-fix
+     git-acpi: arch/x86/kernel/apm_32.c: fix warning
 has been added to the -mm tree.  Its filename is
-     arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+     git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch-alpha-kernel-trapsc-use-time_-macros-fix
+Subject: git-acpi: arch/x86/kernel/apm_32.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/alpha/kernel/traps.c: In function 'do_entUnaUser':
-arch/alpha/kernel/traps.c:785: warning: comparison of distinct pointer types lacks a cast
+arch/x86/kernel/apm_32.c:1215: warning: label 'out' defined but not used
 
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: S.Caglar Onur <caglar@pardus.org.tr>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/traps.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/apm_32.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/alpha/kernel/traps.c~arch-alpha-kernel-trapsc-use-time_-macros-fix arch/alpha/kernel/traps.c
---- a/arch/alpha/kernel/traps.c~arch-alpha-kernel-trapsc-use-time_-macros-fix
-+++ a/arch/alpha/kernel/traps.c
-@@ -771,7 +771,7 @@ do_entUnaUser(void __user * va, unsigned
- 	      unsigned long reg, struct pt_regs *regs)
- {
- 	static int cnt = 0;
--	static long last_time = 0;
-+	static unsigned long last_time;
- 
- 	unsigned long tmp1, tmp2, tmp3, tmp4;
- 	unsigned long fake_reg, *reg_addr = &fake_reg;
+diff -puN arch/x86/kernel/apm_32.c~git-acpi-arch-x86-kernel-apm_32c-fix-warning arch/x86/kernel/apm_32.c
+--- a/arch/x86/kernel/apm_32.c~git-acpi-arch-x86-kernel-apm_32c-fix-warning
++++ a/arch/x86/kernel/apm_32.c
+@@ -1212,7 +1212,6 @@ static int suspend(int vetoable)
+ 	local_irq_enable();
+ 	device_resume();
+ 	queue_event(APM_NORMAL_RESUME, NULL);
+- out:
+ 	spin_lock(&user_list_lock);
+ 	for (as = user_list; as != NULL; as = as->next) {
+ 		as->suspend_wait = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,7 +69,6 @@ arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
 i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
 git-kgdb-light.patch
 git-acpi-fixup.patch
-git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
 cifs-suppress-warning.patch
@@ -143,7 +138,6 @@ lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
 lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
 selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
 audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
 make-dev-kmem-a-config-option-fix.patch
 misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
@@ -201,7 +195,6 @@ hfsplus-fix-warning-with-64k-page_size.patch
 alloc_uid-cleanup.patch
 add-macros-similar-to-min-max-min_t-max_t.patch
 idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
@@ -216,4 +209,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
+git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 
