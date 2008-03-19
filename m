@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-warning-fix.patch added to -mm tree
-Date: Tue, 18 Mar 2008 18:42:35 -0700
-Message-ID: <200803190152.m2J1qJQx026279@imap1.linux-foundation.org>
+Subject: + arch-alpha-kernel-trapsc-use-time_-macros-fix.patch added to -mm tree
+Date: Tue, 18 Mar 2008 19:09:54 -0700
+Message-ID: <200803190219.m2J2Jc8j027113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756950AbYCSThz (ORCPT
+	by vger.kernel.org with ESMTP id S1756911AbYCSThu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:37:55 -0400
+	Wed, 19 Mar 2008 15:37:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com
+Cc: akpm@linux-foundation.org, caglar@pardus.org.tr, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     kvm warning fix
+     arch-alpha-kernel-trapsc-use-time_-macros-fix
 has been added to the -mm tree.  Its filename is
-     kvm-warning-fix.patch
+     arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm warning fix
+Subject: arch-alpha-kernel-trapsc-use-time_-macros-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kvm/mmu.c: In function 'kvm_pv_mmu_op':
-arch/x86/kvm/mmu.c:2119: warning: comparison of distinct pointer types lacks a cast
+arch/alpha/kernel/traps.c: In function 'do_entUnaUser':
+arch/alpha/kernel/traps.c:785: warning: comparison of distinct pointer types lacks a cast
 
-Cc: Avi Kivity <avi@qumranet.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: S.Caglar Onur <caglar@pardus.org.tr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu.c |    2 +-
+ arch/alpha/kernel/traps.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kvm/mmu.c~kvm-warning-fix arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~kvm-warning-fix
-+++ a/arch/x86/kvm/mmu.c
-@@ -2116,7 +2116,7 @@ int kvm_pv_mmu_op(struct kvm_vcpu *vcpu,
- 	down_read(&current->mm->mmap_sem);
+diff -puN arch/alpha/kernel/traps.c~arch-alpha-kernel-trapsc-use-time_-macros-fix arch/alpha/kernel/traps.c
+--- a/arch/alpha/kernel/traps.c~arch-alpha-kernel-trapsc-use-time_-macros-fix
++++ a/arch/alpha/kernel/traps.c
+@@ -771,7 +771,7 @@ do_entUnaUser(void __user * va, unsigned
+ 	      unsigned long reg, struct pt_regs *regs)
+ {
+ 	static int cnt = 0;
+-	static long last_time = 0;
++	static unsigned long last_time;
  
- 	buffer.ptr = buffer.buf;
--	buffer.len = min(bytes, sizeof buffer.buf);
-+	buffer.len = min_t(unsigned long, bytes, sizeof buffer.buf);
- 	buffer.processed = 0;
- 
- 	r = kvm_read_guest(vcpu->kvm, addr, buffer.buf, buffer.len);
+ 	unsigned long tmp1, tmp2, tmp3, tmp4;
+ 	unsigned long fake_reg, *reg_addr = &fake_reg;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,8 +70,10 @@ zisofs-fix-readpage-outside-i_size-fix.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
 arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
 git-kgdb-light.patch
 git-acpi-fixup.patch
+git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
 cifs-suppress-warning.patch
@@ -90,6 +94,7 @@ git-infiniband.patch
 git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
 maple-add-driver-for-sega-dreamcast-controller.patch
 git-kvm.patch
+kvm-warning-fix.patch
 git-leds.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
@@ -138,6 +143,7 @@ lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
 lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
 selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
 audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
 make-dev-kmem-a-config-option-fix.patch
 misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
@@ -195,6 +201,7 @@ hfsplus-fix-warning-with-64k-page_size.patch
 alloc_uid-cleanup.patch
 add-macros-similar-to-min-max-min_t-max_t.patch
 idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
@@ -207,6 +214,6 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-kvm-warning-fix.patch
 
