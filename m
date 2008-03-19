@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-md-raid5c-fix-printk-warnings.patch added to -mm tree
-Date: Tue, 18 Mar 2008 22:34:31 -0700
-Message-ID: <200803190544.m2J5iFdl001278@imap1.linux-foundation.org>
+Subject: + drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch added to -mm tree
+Date: Tue, 18 Mar 2008 22:29:18 -0700
+Message-ID: <200803190539.m2J5d2UV001085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:35783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752511AbYCSTYX (ORCPT
+	by vger.kernel.org with ESMTP id S1752458AbYCSTYW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:24:23 -0400
+	Wed, 19 Mar 2008 15:24:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, bfields@fieldses.org, neilb@suse.de
+Cc: akpm@linux-foundation.org, davem@davemloft.net, fubar@us.ibm.com
 
 
 The patch titled
-     drivers/md/raid5.c: fix printk warnings
+     drivers/net/bonding/bond_sysfs.c: suppress uninitialized var warning
 has been added to the -mm tree.  Its filename is
-     drivers-md-raid5c-fix-printk-warnings.patch
+     drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/md/raid5.c: fix printk warnings
+Subject: drivers/net/bonding/bond_sysfs.c: suppress uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-gcc-3.4.5 on sparc64:
+drivers/net/bonding/bond_sysfs.c: In function `bonding_store_slaves':
+drivers/net/bonding/bond_sysfs.c:250: warning: 'original_mtu' might be used uninitialized in this function
 
-drivers/md/raid5.c: In function `raid5_end_read_request':
-drivers/md/raid5.c:1147: warning: long long unsigned int format, long unsigned int arg (arg 4)
-drivers/md/raid5.c:1164: warning: long long unsigned int format, long unsigned int arg (arg 3)
-drivers/md/raid5.c:1170: warning: long long unsigned int format, long unsigned int arg (arg 3)
-
-the warnings are wrong, afacit.  But perhaps the compiler will generate
-incorrect code if we don't give it some help?
-
-Cc: Neil Brown <neilb@suse.de>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Jay Vosburgh <fubar@us.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid5.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/bonding/bond_sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/md/raid5.c~drivers-md-raid5c-fix-printk-warnings drivers/md/raid5.c
---- a/drivers/md/raid5.c~drivers-md-raid5c-fix-printk-warnings
-+++ a/drivers/md/raid5.c
-@@ -1143,7 +1143,7 @@ static void raid5_end_read_request(struc
- 			rdev = conf->disks[i].rdev;
- 			printk(KERN_INFO "raid5:%s: read error corrected (%lu sectors at %llu on %s)\n",
- 			       mdname(conf->mddev), STRIPE_SECTORS,
--			       (unsigned long long)sh->sector + rdev->data_offset,
-+			       (unsigned long long)(sh->sector + rdev->data_offset),
- 			       bdevname(rdev->bdev, b));
- 			clear_bit(R5_ReadError, &sh->dev[i].flags);
- 			clear_bit(R5_ReWrite, &sh->dev[i].flags);
-@@ -1160,13 +1160,13 @@ static void raid5_end_read_request(struc
- 		if (conf->mddev->degraded)
- 			printk(KERN_WARNING "raid5:%s: read error not correctable (sector %llu on %s).\n",
- 			       mdname(conf->mddev),
--			       (unsigned long long)sh->sector + rdev->data_offset,
-+			       (unsigned long long)(sh->sector + rdev->data_offset),
- 			       bdn);
- 		else if (test_bit(R5_ReWrite, &sh->dev[i].flags))
- 			/* Oh, no!!! */
- 			printk(KERN_WARNING "raid5:%s: read error NOT corrected!! (sector %llu on %s).\n",
- 			       mdname(conf->mddev),
--			       (unsigned long long)sh->sector + rdev->data_offset,
-+			       (unsigned long long)(sh->sector + rdev->data_offset),
- 			       bdn);
- 		else if (atomic_read(&rdev->read_errors)
- 			 > conf->max_nr_stripes)
+diff -puN drivers/net/bonding/bond_sysfs.c~drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning drivers/net/bonding/bond_sysfs.c
+--- a/drivers/net/bonding/bond_sysfs.c~drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning
++++ a/drivers/net/bonding/bond_sysfs.c
+@@ -247,7 +247,7 @@ static ssize_t bonding_store_slaves(stru
+ 	char command[IFNAMSIZ + 1] = { 0, };
+ 	char *ifname;
+ 	int i, res, found, ret = count;
+-	u32 original_mtu;
++	u32 uninitialized_var(original_mtu);
+ 	struct slave *slave;
+ 	struct net_device *dev = NULL;
+ 	struct bonding *bond = to_bond(d);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -132,7 +109,6 @@ git-net.patch
 git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
 drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
 tg3-fix-warning-on-sparc32.patch
@@ -250,5 +226,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-drivers-md-raid5c-fix-printk-warnings.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 
