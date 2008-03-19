@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sxc-fix-printk-warnings-on-sparc32.patch added to -mm tree
-Date: Tue, 18 Mar 2008 21:54:41 -0700
-Message-ID: <200803190504.m2J54P9W032441@imap1.linux-foundation.org>
+Subject: + alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch added to -mm tree
+Date: Tue, 18 Mar 2008 21:57:14 -0700
+Message-ID: <200803190506.m2J56wHZ032568@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:35783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752805AbYCSTYh (ORCPT
+	by vger.kernel.org with ESMTP id S1752818AbYCSTYj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:24:37 -0400
+	Wed, 19 Mar 2008 15:24:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
+Cc: akpm@linux-foundation.org, perex@perex.cz, tiwai@suse.de
 
 
 The patch titled
-     sx.c: fix printk warnings on sparc32
+     alsa: sound/pci/aw2/aw2-alsa.c needs dma-mapping.h
 has been added to the -mm tree.  Its filename is
-     sxc-fix-printk-warnings-on-sparc32.patch
+     alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sx.c: fix printk warnings on sparc32
+Subject: alsa: sound/pci/aw2/aw2-alsa.c needs dma-mapping.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/char/sx.c: In function 'sx_set_real_termios':
-drivers/char/sx.c:973: warning: format '%u' expects type 'unsigned int', but argument 2 has type 'long unsigned int'
-drivers/char/sx.c:999: warning: format '%x' expects type 'unsigned int', but argument 2 has type 'tcflag_t'
-drivers/char/sx.c:1012: warning: format '%x' expects type 'unsigned int', but argument 2 has type 'tcflag_t'
+sparc32:
 
-sparc32 seems to use weird types for its tty things.
+sound/pci/aw2/aw2-alsa.c: In function 'snd_aw2_create':
+sound/pci/aw2/aw2-alsa.c:282: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
+sound/pci/aw2/aw2-alsa.c:282: error: (Each undeclared identifier is reported only once
+sound/pci/aw2/aw2-alsa.c:282: error: for each function it appears in.)
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sx.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ sound/pci/aw2/aw2-alsa.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/sx.c~sxc-fix-printk-warnings-on-sparc32 drivers/char/sx.c
---- a/drivers/char/sx.c~sxc-fix-printk-warnings-on-sparc32
-+++ a/drivers/char/sx.c
-@@ -970,7 +970,8 @@ static int sx_set_real_termios(void *ptr
- 		sx_write_channel_byte(port, hi_mask, 0x1f);
- 		break;
- 	default:
--		printk(KERN_INFO "sx: Invalid wordsize: %u\n", CFLAG & CSIZE);
-+		printk(KERN_INFO "sx: Invalid wordsize: %u\n",
-+			(unsigned int)CFLAG & CSIZE);
- 		break;
- 	}
- 
-@@ -997,7 +998,8 @@ static int sx_set_real_termios(void *ptr
- 		set_bit(TTY_HW_COOK_IN, &port->gs.tty->flags);
- 	}
- 	sx_dprintk(SX_DEBUG_TERMIOS, "iflags: %x(%d) ",
--			port->gs.tty->termios->c_iflag, I_OTHER(port->gs.tty));
-+			(unsigned int)port->gs.tty->termios->c_iflag,
-+			I_OTHER(port->gs.tty));
- 
- /* Tell line discipline whether we will do output cooking.
-  * If OPOST is set and no other output flags are set then we can do output
-@@ -1010,7 +1012,8 @@ static int sx_set_real_termios(void *ptr
- 		clear_bit(TTY_HW_COOK_OUT, &port->gs.tty->flags);
- 	}
- 	sx_dprintk(SX_DEBUG_TERMIOS, "oflags: %x(%d)\n",
--			port->gs.tty->termios->c_oflag, O_OTHER(port->gs.tty));
-+			(unsigned int)port->gs.tty->termios->c_oflag,
-+			O_OTHER(port->gs.tty));
- 	/* port->c_dcd = sx_get_CD (port); */
- 	func_exit();
- 	return 0;
+diff -puN sound/pci/aw2/aw2-alsa.c~alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh sound/pci/aw2/aw2-alsa.c
+--- a/sound/pci/aw2/aw2-alsa.c~alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh
++++ a/sound/pci/aw2/aw2-alsa.c
+@@ -22,6 +22,7 @@
+  *****************************************************************************/
+ #include <linux/init.h>
+ #include <linux/pci.h>
++#include <linux/dma-mapping.h>
+ #include <linux/slab.h>
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 zisofs-fix-readpage-outside-i_size-fix.patch
+memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
+memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
 revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
@@ -210,6 +191,7 @@ ext4-is-broken.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
 ipmi-run-to-completion-fixes-checkpatch-fixes.patch
 ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
 elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
@@ -242,7 +224,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
-memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
-sxc-fix-printk-warnings-on-sparc32.patch
+alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
 
