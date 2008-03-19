@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch added to -mm tree
-Date: Tue, 18 Mar 2008 21:51:07 -0700
-Message-ID: <200803190500.m2J50psV032381@imap1.linux-foundation.org>
+Subject: + memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch added to -mm tree
+Date: Tue, 18 Mar 2008 21:48:58 -0700
+Message-ID: <200803190458.m2J4wgb1032249@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:35783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752735AbYCSTYb (ORCPT
+	by vger.kernel.org with ESMTP id S1752663AbYCSTY2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:24:31 -0400
+	Wed, 19 Mar 2008 15:24:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, oakad@yahoo.com
 
 
 The patch titled
-     memstick: drivers/memstick/host/jmb38x_ms.c: suppress uninitialized var warning
+     memstick: drivers/memstick/host/jmb38x_ms.c needs dma-mapping.h
 has been added to the -mm tree.  Its filename is
-     memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
+     memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: drivers/memstick/host/jmb38x_ms.c: suppress uninitialized var warning
+Subject: memstick: drivers/memstick/host/jmb38x_ms.c needs dma-mapping.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/memstick/host/jmb38x_ms.c: In function 'jmb38x_ms_transfer_data':
-drivers/memstick/host/jmb38x_ms.c:294: warning: 'p_off' may be used uninitialized in this function
+sparc32:
+
+drivers/memstick/host/jmb38x_ms.c: In function 'jmb38x_ms_probe':
+drivers/memstick/host/jmb38x_ms.c:818: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
+drivers/memstick/host/jmb38x_ms.c:818: error: (Each undeclared identifier is reported only once
+drivers/memstick/host/jmb38x_ms.c:818: error: for each function it appears in.)
 
 Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/jmb38x_ms.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/memstick/host/jmb38x_ms.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning drivers/memstick/host/jmb38x_ms.c
---- a/drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning
+diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh drivers/memstick/host/jmb38x_ms.c
+--- a/drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh
 +++ a/drivers/memstick/host/jmb38x_ms.c
-@@ -291,7 +291,7 @@ static int jmb38x_ms_transfer_data(struc
- {
- 	unsigned int length;
- 	unsigned int off;
--	unsigned int t_size, p_off, p_cnt;
-+	unsigned int t_size, p_cnt;
- 	unsigned char *buf;
- 	struct page *pg;
- 	unsigned long flags = 0;
-@@ -305,6 +305,8 @@ static int jmb38x_ms_transfer_data(struc
- 	}
- 
- 	while (length) {
-+		unsigned int uninitialized_var(p_off);
-+
- 		if (host->req->long_data) {
- 			pg = nth_page(sg_page(&host->req->sg),
- 				      off >> PAGE_SHIFT);
+@@ -12,6 +12,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/interrupt.h>
+ #include <linux/pci.h>
++#include <linux/dma-mapping.h>
+ #include <linux/delay.h>
+ #include <linux/highmem.h>
+ #include <linux/memstick.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -227,5 +221,4 @@ undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
 memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
-memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
 
