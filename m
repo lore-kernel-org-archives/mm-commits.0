@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-add-vr41xx-siu-setup-for-serial-console.patch added to -mm tree
-Date: Wed, 19 Mar 2008 15:13:04 -0700
-Message-ID: <200803192213.m2JMD4SN006640@imap1.linux-foundation.org>
+Subject: + x86_64-ptrace-vs-enosys.patch added to -mm tree
+Date: Wed, 19 Mar 2008 15:18:53 -0700
+Message-ID: <200803192218.m2JMIsnn006921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52920 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35286 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760120AbYCSWNo (ORCPT
+	by vger.kernel.org with ESMTP id S1764304AbYCSWUa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 18:13:44 -0400
+	Wed, 19 Mar 2008 18:20:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yoichi_yuasa@tripeaks.co.jp, ralf@linux-mips.org
+Cc: roland@redhat.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     serial: add VR41xx SIU setup for serial console
+     x86_64 ptrace vs -ENOSYS
 has been added to the -mm tree.  Its filename is
-     serial-add-vr41xx-siu-setup-for-serial-console.patch
+     x86_64-ptrace-vs-enosys.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,144 +34,112 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: add VR41xx SIU setup for serial console
-From: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
+Subject: x86_64 ptrace vs -ENOSYS
+From: Roland McGrath <roland@redhat.com>
 
-Add VR41xx SIU setup for serial console.
+When we're stopped at syscall entry tracing, ptrace can change the %rax value
+from -ENOSYS to something else.  If no system call is actually made because
+the syscall number (now in orig_rax) is bad, then we now always reset %rax to
+-ENOSYS again.
 
-Signed-off-by: Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+This changes it to leave the return value alone after entry tracing.  That
+way, the %rax value set by ptrace is there to be seen in user mode (or in
+syscall exit tracing).  This is consistent with what the 32-bit kernel does.
+
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/vr41xx/common/init.c   |    4 ++-
- arch/mips/vr41xx/common/siu.c    |   36 ++++++++++++++++++++++++++++-
- include/asm-mips/vr41xx/siu.h    |    8 +++++-
- include/asm-mips/vr41xx/vr41xx.h |    8 +++++-
- 4 files changed, 52 insertions(+), 4 deletions(-)
+ arch/x86/kernel/entry_64.S |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN arch/mips/vr41xx/common/init.c~serial-add-vr41xx-siu-setup-for-serial-console arch/mips/vr41xx/common/init.c
---- a/arch/mips/vr41xx/common/init.c~serial-add-vr41xx-siu-setup-for-serial-console
-+++ a/arch/mips/vr41xx/common/init.c
-@@ -1,7 +1,7 @@
- /*
-  *  init.c, Common initialization routines for NEC VR4100 series.
-  *
-- *  Copyright (C) 2003-2005  Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-+ *  Copyright (C) 2003-2008  Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-  *
-  *  This program is free software; you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
-@@ -53,6 +53,8 @@ void __init plat_time_init(void)
- void __init plat_mem_setup(void)
- {
- 	iomem_resource_init();
-+
-+	vr41xx_siu_setup();
- }
- 
- void __init prom_init(void)
-diff -puN arch/mips/vr41xx/common/siu.c~serial-add-vr41xx-siu-setup-for-serial-console arch/mips/vr41xx/common/siu.c
---- a/arch/mips/vr41xx/common/siu.c~serial-add-vr41xx-siu-setup-for-serial-console
-+++ a/arch/mips/vr41xx/common/siu.c
-@@ -1,7 +1,7 @@
- /*
-  *  NEC VR4100 series SIU platform device.
-  *
-- *  Copyright (C) 2007  Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-+ *  Copyright (C) 2007-2008  Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-  *
-  *  This program is free software; you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
-@@ -118,3 +118,37 @@ err_free_device:
- 	return retval;
- }
- device_initcall(vr41xx_siu_add);
-+
-+void __init vr41xx_siu_setup(void)
-+{
-+	struct uart_port port;
-+	struct resource *res;
-+	unsigned int *type;
-+	int i;
-+
-+	switch (current_cpu_type()) {
-+	case CPU_VR4111:
-+	case CPU_VR4121:
-+		type = siu_type1_ports;
-+		res = siu_type1_resource;
-+		break;
-+	case CPU_VR4122:
-+	case CPU_VR4131:
-+	case CPU_VR4133:
-+		type = siu_type2_ports;
-+		res = siu_type2_resource;
-+		break;
-+	default:
-+		return;
-+	}
-+
-+	for (i = 0; i < SIU_PORTS_MAX; i++) {
-+		port.line = i;
-+		port.type = type[i];
-+		if (port.type == PORT_UNKNOWN)
-+			break;
-+		port.mapbase = res[i].start;
-+		port.membase = (unsigned char __iomem *)KSEG1ADDR(res[i].start);
-+		vr41xx_siu_early_setup(&port);
-+	}
-+}
-diff -puN include/asm-mips/vr41xx/siu.h~serial-add-vr41xx-siu-setup-for-serial-console include/asm-mips/vr41xx/siu.h
---- a/include/asm-mips/vr41xx/siu.h~serial-add-vr41xx-siu-setup-for-serial-console
-+++ a/include/asm-mips/vr41xx/siu.h
-@@ -1,7 +1,7 @@
- /*
-  *  Include file for NEC VR4100 series Serial Interface Unit.
-  *
-- *  Copyright (C) 2005  Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-+ *  Copyright (C) 2005-2008  Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-  *
-  *  This program is free software; you can redistribute it and/or modify
-  *  it under the terms of the GNU General Public License as published by
-@@ -49,4 +49,10 @@ typedef enum {
- 
- extern void vr41xx_select_irda_module(irda_module_t module, irda_speed_t speed);
- 
-+#ifdef CONFIG_SERIAL_VR41XX_CONSOLE
-+extern void vr41xx_siu_early_setup(struct uart_port *port);
-+#else
-+static inline void vr41xx_siu_early_setup(struct uart_port *port) {}
-+#endif
-+
- #endif /* __NEC_VR41XX_SIU_H */
-diff -puN include/asm-mips/vr41xx/vr41xx.h~serial-add-vr41xx-siu-setup-for-serial-console include/asm-mips/vr41xx/vr41xx.h
---- a/include/asm-mips/vr41xx/vr41xx.h~serial-add-vr41xx-siu-setup-for-serial-console
-+++ a/include/asm-mips/vr41xx/vr41xx.h
-@@ -7,7 +7,7 @@
-  * Copyright (C) 2001, 2002 Paul Mundt
-  * Copyright (C) 2002 MontaVista Software, Inc.
-  * Copyright (C) 2002 TimeSys Corp.
-- * Copyright (C) 2003-2005 Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-+ * Copyright (C) 2003-2008 Yoichi Yuasa <yoichi_yuasa@tripeaks.co.jp>
-  *
-  * This program is free software; you can redistribute it and/or modify it
-  * under the terms of the GNU General Public License as published by the
-@@ -143,4 +143,10 @@ extern void vr41xx_disable_csiint(uint16
- extern void vr41xx_enable_bcuint(void);
- extern void vr41xx_disable_bcuint(void);
- 
-+#ifdef CONFIG_SERIAL_VR41XX_CONSOLE
-+extern void vr41xx_siu_setup(void);
-+#else
-+static inline void vr41xx_siu_setup(void) {}
-+#endif
-+
- #endif /* __NEC_VR41XX_H */
+diff -puN arch/x86/kernel/entry_64.S~x86_64-ptrace-vs-enosys arch/x86/kernel/entry_64.S
+--- a/arch/x86/kernel/entry_64.S~x86_64-ptrace-vs-enosys
++++ a/arch/x86/kernel/entry_64.S
+@@ -319,19 +319,17 @@ badsys:
+ 	/* Do syscall tracing */
+ tracesys:			 
+ 	SAVE_REST
+-	movq $-ENOSYS,RAX(%rsp)
++	movq $-ENOSYS,RAX(%rsp) /* ptrace can change this for a bad syscall */
+ 	FIXUP_TOP_OF_STACK %rdi
+ 	movq %rsp,%rdi
+ 	call syscall_trace_enter
+ 	LOAD_ARGS ARGOFFSET  /* reload args from stack in case ptrace changed it */
+ 	RESTORE_REST
+ 	cmpq $__NR_syscall_max,%rax
+-	movq $-ENOSYS,%rcx
+-	cmova %rcx,%rax
+-	ja  1f
++	ja   int_ret_from_sys_call	/* RAX(%rsp) set to -ENOSYS above */
+ 	movq %r10,%rcx	/* fixup for C */
+ 	call *sys_call_table(,%rax,8)
+-1:	movq %rax,RAX-ARGOFFSET(%rsp)
++	movq %rax,RAX-ARGOFFSET(%rsp)
+ 	/* Use IRET because user could have changed frame */
+ 		
+ /* 
 _
 
-Patches currently in -mm which might be from yoichi_yuasa@tripeaks.co.jp are
+Patches currently in -mm which might be from roland@redhat.com are
 
-origin.patch
-serial-add-vr41xx_siu_early_setup-for-serial-console.patch
-serial-add-vr41xx-siu-setup-for-serial-console.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+x86-handle_vm86_trap-cleanup.patch
+x86_64-ia32-ptrace-vs-enosys.patch
+x86_64-ptrace-vs-enosys.patch
+x86_64-ia32-ptrace-vs-enosys-sysenter-syscall.patch
+powerpc-dont-use-pt_dtrace.patch
+powerpc-user_regset-ptrace_setregs-regression-fix.patch
+add-rusage_thread.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
+kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
+handle_stop_signal-unify-partial-full-stop-handling.patch
+handle_stop_signal-use-the-cached-p-signal-value.patch
+get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
+signals-send_sigqueue-dont-take-rcu-lock.patch
+signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
+signals-__group_complete_signal-cache-the-value-of-p-signal.patch
+signals-send_group_sigqueue-dont-take-tasklist_lock.patch
+signals-move-handle_stop_signal-into-send_signal.patch
+signals-do_tkill-dont-use-tasklist_lock.patch
+signals-do_tkill-dont-use-tasklist_lock-comment.patch
+signals-send_sig_info-dont-take-tasklist_lock.patch
+signals-microoptimize-the-usage-of-curr_target.patch
+signals-move-the-definition-of-__group_complete_signal-up.patch
+signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+signals-join-send_sigqueue-with-send_group_sigqueue.patch
+signals-handle_stop_signal-dont-worry-about-sigkill.patch
+signals-cleanup-the-usage-of-print_fatal_signal.patch
+signals-fold-sig_ignored-into-handle_stop_signal.patch
+signals-document-cld_continued-notification-mechanics.patch
+signals-send_signal-be-paranoid-about-signalfd_notify.patch
+signals-check_kill_permission-check-session-under-tasklist_lock.patch
+ptrace-introduce-task_detached-helper.patch
+reparent_thread-use-same_thread_group.patch
+document-de_thread-with-exit_notify-connection.patch
+ptrace-introduce-ptrace_reparented-helper.patch
+ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
+ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
