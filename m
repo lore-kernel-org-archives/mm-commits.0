@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-suppress-uninitialized-var-warnings.patch added to -mm tree
-Date: Tue, 18 Mar 2008 23:04:43 -0700
-Message-ID: <200803190614.m2J6ERYq002245@imap1.linux-foundation.org>
+Subject: + drivers-md-raid5c-fix-printk-warnings.patch added to -mm tree
+Date: Tue, 18 Mar 2008 22:58:54 -0700
+Message-ID: <200803190608.m2J68d4L002068@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:35783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752192AbYCSTYT (ORCPT
+	by vger.kernel.org with ESMTP id S1752416AbYCSTYV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:24:19 -0400
+	Wed, 19 Mar 2008 15:24:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dgc@sgi.com, lachlan@sgi.com, tes@sgi.com
+Cc: akpm@linux-foundation.org, bfields@fieldses.org, neilb@suse.de
 
 
 The patch titled
-     xfs: suppress uninitialized var warnings
+     drivers/md/raid5.c: fix printk warnings
 has been added to the -mm tree.  Its filename is
-     xfs-suppress-uninitialized-var-warnings.patch
+     drivers-md-raid5c-fix-printk-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xfs: suppress uninitialized var warnings
+Subject: drivers/md/raid5.c: fix printk warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/xfs/xfs_rtalloc.cfs/xfs/xfs_rtalloc.c: In function `xfs_growfs_rt':
-fs/xfs/xfs_rtalloc.c:1859: warning: 'cancelflags' might be used uninitialized in this function
-fs/xfs/xfs_rtalloc.c:1875: warning: 'tp' might be used uninitialized in this function
+gcc-3.4.5 on sparc64:
 
-Cc: Timothy Shimmin <tes@sgi.com>
-Cc: David Chinner <dgc@sgi.com>
-Cc: Lachlan McIlroy <lachlan@sgi.com>
+drivers/md/raid5.c: In function `raid5_end_read_request':
+drivers/md/raid5.c:1147: warning: long long unsigned int format, long unsigned int arg (arg 4)
+drivers/md/raid5.c:1164: warning: long long unsigned int format, long unsigned int arg (arg 3)
+drivers/md/raid5.c:1170: warning: long long unsigned int format, long unsigned int arg (arg 3)
+
+sector_t is u64, and we don't know what type the architecture uses to
+implement u64 (on some it is unsigned long).
+
+Cc: Neil Brown <neilb@suse.de>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_rtalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/md/raid5.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/xfs/xfs_rtalloc.c~xfs-suppress-uninitialized-var-warnings fs/xfs/xfs_rtalloc.c
---- a/fs/xfs/xfs_rtalloc.c~xfs-suppress-uninitialized-var-warnings
-+++ a/fs/xfs/xfs_rtalloc.c
-@@ -1856,7 +1856,7 @@ xfs_growfs_rt(
- {
- 	xfs_rtblock_t	bmbno;		/* bitmap block number */
- 	xfs_buf_t	*bp;		/* temporary buffer */
--	int		cancelflags;	/* flags for xfs_trans_cancel */
-+	int		uninitialized_var(cancelflags);	/* flags for xfs_trans_cancel */
- 	int		error;		/* error return value */
- 	xfs_inode_t	*ip;		/* bitmap inode, used as lock */
- 	xfs_mount_t	*nmp;		/* new (fake) mount structure */
-@@ -1872,7 +1872,7 @@ xfs_growfs_rt(
- 	xfs_extlen_t	rsumblocks;	/* current number of rt summary blks */
- 	xfs_sb_t	*sbp;		/* old superblock */
- 	xfs_fsblock_t	sumbno;		/* summary block number */
--	xfs_trans_t	*tp;		/* transaction pointer */
-+	xfs_trans_t	*uninitialized_var(tp);	 /* transaction pointer */
- 
- 	sbp = &mp->m_sb;
- 	/*
+diff -puN drivers/md/raid5.c~drivers-md-raid5c-fix-printk-warnings drivers/md/raid5.c
+--- a/drivers/md/raid5.c~drivers-md-raid5c-fix-printk-warnings
++++ a/drivers/md/raid5.c
+@@ -1143,7 +1143,7 @@ static void raid5_end_read_request(struc
+ 			rdev = conf->disks[i].rdev;
+ 			printk(KERN_INFO "raid5:%s: read error corrected (%lu sectors at %llu on %s)\n",
+ 			       mdname(conf->mddev), STRIPE_SECTORS,
+-			       (unsigned long long)sh->sector + rdev->data_offset,
++			       (unsigned long long)(sh->sector + rdev->data_offset),
+ 			       bdevname(rdev->bdev, b));
+ 			clear_bit(R5_ReadError, &sh->dev[i].flags);
+ 			clear_bit(R5_ReWrite, &sh->dev[i].flags);
+@@ -1160,13 +1160,13 @@ static void raid5_end_read_request(struc
+ 		if (conf->mddev->degraded)
+ 			printk(KERN_WARNING "raid5:%s: read error not correctable (sector %llu on %s).\n",
+ 			       mdname(conf->mddev),
+-			       (unsigned long long)sh->sector + rdev->data_offset,
++			       (unsigned long long)(sh->sector + rdev->data_offset),
+ 			       bdn);
+ 		else if (test_bit(R5_ReWrite, &sh->dev[i].flags))
+ 			/* Oh, no!!! */
+ 			printk(KERN_WARNING "raid5:%s: read error NOT corrected!! (sector %llu on %s).\n",
+ 			       mdname(conf->mddev),
+-			       (unsigned long long)sh->sector + rdev->data_offset,
++			       (unsigned long long)(sh->sector + rdev->data_offset),
+ 			       bdn);
+ 		else if (atomic_read(&rdev->read_errors)
+ 			 > conf->max_nr_stripes)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -150,7 +162,6 @@ git-unionfs.patch
 fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
 git-v9fs.patch
 git-watchdog.patch
-xfs-suppress-uninitialized-var-warnings.patch
 git-semaphore-git-rejects.patch
 x86-fix-aperture-vs-suspend-problem.patch
 revert-pcie-utilize-pcie-transaction-pending-bit.patch
