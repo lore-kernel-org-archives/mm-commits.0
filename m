@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch added to -mm tree
-Date: Tue, 18 Mar 2008 18:46:06 -0700
-Message-ID: <200803190155.m2J1tomb026413@imap1.linux-foundation.org>
+Subject: + arch-alpha-kernel-trapsc-use-time_-macros-fix.patch added to -mm tree
+Date: Tue, 18 Mar 2008 19:09:32 -0700
+Message-ID: <200803190219.m2J2JGYj027110@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from smtp1.linux-foundation.org ([140.211.169.13]:43244 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756899AbYCSTh7 (ORCPT
+	by vger.kernel.org with ESMTP id S1756945AbYCSThz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 19 Mar 2008 15:37:59 -0400
+	Wed, 19 Mar 2008 15:37:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, caglar@pardus.org.tr, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     i386: arch/x86/math-emu/fpu_entry.c warning fix
+     arch-alpha-kernel-trapsc-use-time_-macros-fix
 has been added to the -mm tree.  Its filename is
-     i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+     arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i386: arch/x86/math-emu/fpu_entry.c warning fix
+Subject: arch-alpha-kernel-trapsc-use-time_-macros-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/math-emu/fpu_entry.c: In function 'math_emulate':
-arch/x86/math-emu/fpu_entry.c:555: warning: 'entry_sel_off.empty' is used uninitialized in this function
+arch/alpha/kernel/traps.c: In function 'do_entUnaUser':
+arch/alpha/kernel/traps.c:785: warning: comparison of distinct pointer types lacks a cast
 
-Presumably it's harmless, but I'll sleep better at night knowing that we
-initialised it.
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: S.Caglar Onur <caglar@pardus.org.tr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/math-emu/fpu_entry.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/alpha/kernel/traps.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/math-emu/fpu_entry.c~i386-arch-x86-math-emu-fpu_entryc-warning-fix arch/x86/math-emu/fpu_entry.c
---- a/arch/x86/math-emu/fpu_entry.c~i386-arch-x86-math-emu-fpu_entryc-warning-fix
-+++ a/arch/x86/math-emu/fpu_entry.c
-@@ -276,6 +276,7 @@ asmlinkage void math_emulate(long arg)
- 	entry_sel_off.offset = FPU_ORIG_EIP;
- 	entry_sel_off.selector = FPU_CS;
- 	entry_sel_off.opcode = (byte1 << 8) | FPU_modrm;
-+	entry_sel_off.empty = 0;
+diff -puN arch/alpha/kernel/traps.c~arch-alpha-kernel-trapsc-use-time_-macros-fix arch/alpha/kernel/traps.c
+--- a/arch/alpha/kernel/traps.c~arch-alpha-kernel-trapsc-use-time_-macros-fix
++++ a/arch/alpha/kernel/traps.c
+@@ -771,7 +771,7 @@ do_entUnaUser(void __user * va, unsigned
+ 	      unsigned long reg, struct pt_regs *regs)
+ {
+ 	static int cnt = 0;
+-	static long last_time = 0;
++	static unsigned long last_time = 0;
  
- 	FPU_rm = FPU_modrm & 7;
- 
+ 	unsigned long tmp1, tmp2, tmp3, tmp4;
+ 	unsigned long fake_reg, *reg_addr = &fake_reg;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,8 +70,10 @@ zisofs-fix-readpage-outside-i_size-fix.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
 arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
 git-kgdb-light.patch
 git-acpi-fixup.patch
+git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
 cifs-suppress-warning.patch
@@ -143,6 +143,7 @@ lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
 lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
 selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
 audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
 make-dev-kmem-a-config-option-fix.patch
 misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
@@ -200,6 +201,7 @@ hfsplus-fix-warning-with-64k-page_size.patch
 alloc_uid-cleanup.patch
 add-macros-similar-to-min-max-min_t-max_t.patch
 idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
@@ -212,6 +214,6 @@ shrink_slab-handle-bad-shrinkers.patch
 getblk-handle-2tb-devices.patch
 getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
 
