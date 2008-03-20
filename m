@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pageflags-introduce-macros-to-generate-page-flag-functions.patch added to -mm tree
-Date: Thu, 20 Mar 2008 13:28:28 -0700
-Message-ID: <200803202028.m2KKSSB6022656@imap1.linux-foundation.org>
+Subject: + pageflags-eliminate-pg_xxx-aliases.patch added to -mm tree
+Date: Thu, 20 Mar 2008 13:28:42 -0700
+Message-ID: <200803202028.m2KKShcp022671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46031 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45763 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760256AbYCTU3u (ORCPT
+	by vger.kernel.org with ESMTP id S1756008AbYCTUaJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 16:29:50 -0400
+	Thu, 20 Mar 2008 16:30:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com, apw@shadowen.org, jeremy@goop.org, kamezawa.hiroyu@jp.fuji
 
 
 The patch titled
-     pageflags: introduce macros to generate page flag functions
+     pageflags: eliminate PG_xxx aliases
 has been added to the -mm tree.  Its filename is
-     pageflags-introduce-macros-to-generate-page-flag-functions.patch
+     pageflags-eliminate-pg_xxx-aliases.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pageflags: introduce macros to generate page flag functions
+Subject: pageflags: eliminate PG_xxx aliases
 From: Christoph Lameter <clameter@sgi.com>
 
-Introduce a set of macros that generate functions to handle page flags.
-
-A page flag function group typically starts with either
-
-	SETPAGEFLAG(<part of function name>,<part of PG_ flagname>)
-
-to create a set of page flag operations that are atomic. Or
-
-	__SETPAGEFLAG(<part of function name>,<part of PG_ flagname)
-
-to create a set of page flag operations that are not atomic.
-
-Then additional operations can be added using the following macros
-
-TESTSCFLAG		Create additional atomic test-and-set and
-			test-and-clear functions
-
-TESTSETFLAG		Create additional test and set function
-TESTCLEARFLAG		Create additional test and clear function
-SETPAGEFLAG		Create additional atomic set function
-CLEARPAGEFLAG		Create additional atomic clear function
-__TESTPAGEFLAG		Create additional non atomic set function
-__SETPAGEFLAG		Create additional non atomic clear function
+Remove aliases of PG_xxx.  We can easily drop those now and alias by
+specifying the PG_xxx flag in the macro that generates the functions.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
@@ -71,60 +50,71 @@ Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   41 +++++++++++++++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
+ include/linux/page-flags.h |   12 ++++--------
+ mm/page_alloc.c            |    2 +-
+ 2 files changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/page-flags.h~pageflags-introduce-macros-to-generate-page-flag-functions include/linux/page-flags.h
---- a/include/linux/page-flags.h~pageflags-introduce-macros-to-generate-page-flag-functions
+diff -puN include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases include/linux/page-flags.h
+--- a/include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases
 +++ a/include/linux/page-flags.h
-@@ -109,6 +109,47 @@ enum pageflags {
- #ifndef __GENERATING_BOUNDS_H
+@@ -79,8 +79,6 @@ enum pageflags {
+ 	PG_active,
+ 	PG_slab,
+ 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
+-	PG_checked = PG_owner_priv_1, /* Used by some filesystems */
+-	PG_pinned = PG_owner_priv_1, /* Xen pinned pagetable */
+ 	PG_arch_1,
+ 	PG_reserved,
+ 	PG_private,		/* If pagecache, has fs-private data */
+@@ -89,8 +87,6 @@ enum pageflags {
+ 	PG_swapcache,		/* Swap page: swp_entry_t in private */
+ 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
+ 	PG_reclaim,		/* To be reclaimed asap */
+-	/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
+-	PG_readahead = PG_reclaim, /* Reminder to do async read-ahead */
+ 	PG_buddy,		/* Page is free, on buddy lists */
  
+ #if (BITS_PER_LONG > 32)
+@@ -158,8 +154,8 @@ PAGEFLAG(Dirty, dirty) TESTSCFLAG(Dirty,
+ PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, lru)
+ PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
+ __PAGEFLAG(Slab, slab)
+-PAGEFLAG(Checked, checked)		/* Used by some filesystems */
+-PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen pagetable */
++PAGEFLAG(Checked, owner_priv_1)		/* Used by some filesystems */
++PAGEFLAG(Pinned, owner_priv_1) TESTSCFLAG(Pinned, owner_priv_1) /* Xen */
+ PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
+ PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
+ 	__SETPAGEFLAG(Private, private)
+@@ -174,14 +170,14 @@ PAGEFLAG(MappedToDisk, mappedtodisk)
+ 
+ /* PG_readahead is only used for file reads; PG_reclaim is only for writes */
+ PAGEFLAG(Reclaim, reclaim) TESTCLEARFLAG(Reclaim, reclaim)
+-PAGEFLAG(Readahead, readahead)		/* Reminder to do async read-ahead */
++PAGEFLAG(Readahead, reclaim)		/* Reminder to do async read-ahead */
+ 
+ #ifdef CONFIG_HIGHMEM
  /*
-+ * Macros to create function definitions for page flags
-+ */
-+#define TESTPAGEFLAG(uname, lname)					\
-+static inline int Page##uname(struct page *page) 			\
-+			{ return test_bit(PG_##lname, &page->flags); }
-+
-+#define SETPAGEFLAG(uname, lname)					\
-+static inline void SetPage##uname(struct page *page)			\
-+			{ set_bit(PG_##lname, &page->flags); }
-+
-+#define CLEARPAGEFLAG(uname, lname)					\
-+static inline void ClearPage##uname(struct page *page)			\
-+			{ clear_bit(PG_##lname, &page->flags); }
-+
-+#define __SETPAGEFLAG(uname, lname)					\
-+static inline void __SetPage##uname(struct page *page)			\
-+			{ __set_bit(PG_##lname, &page->flags); }
-+
-+#define __CLEARPAGEFLAG(uname, lname)					\
-+static inline void __ClearPage##uname(struct page *page)		\
-+			{ __clear_bit(PG_##lname, &page->flags); }
-+
-+#define TESTSETFLAG(uname, lname)					\
-+static inline int TestSetPage##uname(struct page *page)			\
-+		{ return test_and_set_bit(PG_##lname, &page->flags); }
-+
-+#define TESTCLEARFLAG(uname, lname)					\
-+static inline int TestClearPage##uname(struct page *page)		\
-+		{ return test_and_clear_bit(PG_##lname, &page->flags); }
-+
-+
-+#define PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
-+	SETPAGEFLAG(uname, lname) CLEARPAGEFLAG(uname, lname)
-+
-+#define __PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
-+	__SETPAGEFLAG(uname, lname)  __CLEARPAGEFLAG(uname, lname)
-+
-+#define TESTSCFLAG(uname, lname)					\
-+	TESTSETFLAG(uname, lname) TESTCLEARFLAG(uname, lname)
-+
-+/*
-  * Manipulation of page state flags
+  * Must use a macro here due to header dependency issues. page_zone() is not
+  * available at this point.
   */
- #define PageLocked(page)		\
+-#define PageHighMem(__p) is_highmem(page_zone(page))
++#define PageHighMem(__p) is_highmem(page_zone(__p))
+ #else
+ static inline int PageHighMem(struct page *page)
+ {
+diff -puN mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases mm/page_alloc.c
+--- a/mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases
++++ a/mm/page_alloc.c
+@@ -632,7 +632,7 @@ static int prep_new_page(struct page *pa
+ 	if (PageReserved(page))
+ 		return 1;
+ 
+-	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_readahead |
++	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_reclaim |
+ 			1 << PG_referenced | 1 << PG_arch_1 |
+ 			1 << PG_owner_priv_1 | 1 << PG_mappedtodisk);
+ 	set_page_private(page, 0);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
