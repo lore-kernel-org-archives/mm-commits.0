@@ -1,64 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - tg3-fix-warning-on-sparc32.patch removed from -mm tree
-Date: Thu, 20 Mar 2008 16:39:54 -0700
-Message-ID: <200803202339.m2KNdtXh029804@imap1.linux-foundation.org>
+Subject: + fbdev-driver-for-freescale-8610-and-5121-diu-fix.patch added to -mm tree
+Date: Thu, 20 Mar 2008 16:50:15 -0700
+Message-ID: <200803202350.m2KNoFO9030198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59759 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754878AbYCTXkF (ORCPT
+	by vger.kernel.org with ESMTP id S1754861AbYCTXu1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 19:40:05 -0400
+	Thu, 20 Mar 2008 19:50:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, adaplas@pol.net, benh@kernel.crashing.org, galak@gate.crashing.org, krzysztof.h1@wp.pl, paulus@samba.org, timur@freescale.com, yorksun@freescale.com
 
 
 The patch titled
-     tg3: fix warning on sparc32
-has been removed from the -mm tree.  Its filename was
-     tg3-fix-warning-on-sparc32.patch
+     fbdev-driver-for-freescale-8610-and-5121-diu-fix
+has been added to the -mm tree.  Its filename is
+     fbdev-driver-for-freescale-8610-and-5121-diu-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tg3: fix warning on sparc32
+Subject: fbdev-driver-for-freescale-8610-and-5121-diu-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/tg3.c:11781: warning: 'tg3_get_default_macaddr_sparc' defined but not used
-
-This looks wrong.
-
-tg3.c is rather large.
-
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Kumar Gala <galak@gate.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Timur Tabi <timur@freescale.com>
+Cc: York Sun <yorksun@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tg3.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/fsl-diu-fb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/tg3.c~tg3-fix-warning-on-sparc32 drivers/net/tg3.c
---- a/drivers/net/tg3.c~tg3-fix-warning-on-sparc32
-+++ a/drivers/net/tg3.c
-@@ -11766,6 +11766,7 @@ static int __devinit tg3_get_macaddr_spa
- 	return -ENODEV;
- }
+diff -puN drivers/video/fsl-diu-fb.c~fbdev-driver-for-freescale-8610-and-5121-diu-fix drivers/video/fsl-diu-fb.c
+--- a/drivers/video/fsl-diu-fb.c~fbdev-driver-for-freescale-8610-and-5121-diu-fix
++++ a/drivers/video/fsl-diu-fb.c
+@@ -274,7 +274,7 @@ static struct mfb_info mfb_template[] = 
  
-+#ifdef CONFIG_SPARC64
- static int __devinit tg3_get_default_macaddr_sparc(struct tg3 *tp)
- {
- 	struct net_device *dev = tp->dev;
-@@ -11775,6 +11776,7 @@ static int __devinit tg3_get_default_mac
- 	return 0;
- }
- #endif
-+#endif
+ static struct diu_hw dr = {
+ 	.mode = MFB_MODE1,
+-	.reg_lock = __SPIN_LOCK_UNLOCKED(old_style_spin_init),
++	.reg_lock = __SPIN_LOCK_UNLOCKED(dr.reg_lock),
+ };
  
- static int __devinit tg3_get_device_address(struct tg3 *tp)
- {
+ static struct diu_pool pool;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +114,6 @@ wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
 drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-tg3-fix-warning-on-sparc32.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 git-nfsd.patch
