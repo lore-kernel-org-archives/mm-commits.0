@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-add-bit-rotation-helpers-for-16-and-8-bit.patch added to -mm tree
-Date: Thu, 20 Mar 2008 13:37:34 -0700
-Message-ID: <200803202037.m2KKbYOn023201@imap1.linux-foundation.org>
+Subject: + mac80211-tkipc-remove-unused-function-make-function-static.patch added to -mm tree
+Date: Thu, 20 Mar 2008 13:37:48 -0700
+Message-ID: <200803202037.m2KKbmov023211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40573 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59818 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754199AbYCTUkX (ORCPT
+	by vger.kernel.org with ESMTP id S1757599AbYCTUkh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 16:40:23 -0400
+	Thu, 20 Mar 2008 16:40:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jbenc@suse.cz, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, randy.dunlap@oracle.com
+Cc: harvey.harrison@gmail.com, jbenc@suse.cz, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com
 
 
 The patch titled
-     kernel: add bit rotation helpers for 16 and 8 bit
+     mac80211: tkip.c remove unused function, make function static
 has been added to the -mm tree.  Its filename is
-     kernel-add-bit-rotation-helpers-for-16-and-8-bit.patch
+     mac80211-tkipc-remove-unused-function-make-function-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel: add bit rotation helpers for 16 and 8 bit
+Subject: mac80211: tkip.c remove unused function, make function static
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Will replace open-coded variants elsewhere.  Done in the same
-style as the 32-bit versions.
+make static void ieee80211_tkip_gen_rc4key static
+remove the unused ieee80211_tkip_gen_phase1key
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: John W. Linville <linville@tuxdriver.com>
 Cc: Joe Perches <joe@perches.com>
@@ -49,59 +48,44 @@ Cc: Jiri Benc <jbenc@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |   40 +++++++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ net/mac80211/tkip.c |   10 +---------
+ net/mac80211/tkip.h |    4 ----
+ 2 files changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN include/linux/bitops.h~kernel-add-bit-rotation-helpers-for-16-and-8-bit include/linux/bitops.h
---- a/include/linux/bitops.h~kernel-add-bit-rotation-helpers-for-16-and-8-bit
-+++ a/include/linux/bitops.h
-@@ -65,6 +65,46 @@ static inline __u32 ror32(__u32 word, un
- 	return (word >> shift) | (word << (32 - shift));
+diff -puN net/mac80211/tkip.c~mac80211-tkipc-remove-unused-function-make-function-static net/mac80211/tkip.c
+--- a/net/mac80211/tkip.c~mac80211-tkipc-remove-unused-function-make-function-static
++++ a/net/mac80211/tkip.c
+@@ -184,15 +184,7 @@ u8 * ieee80211_tkip_add_iv(u8 *pos, stru
+ 	return pos;
  }
  
-+/**
-+ * rol16 - rotate a 16-bit value left
-+ * @word: value to rotate
-+ * @shift: bits to roll
-+ */
-+static inline __u16 rol16(__u16 word, unsigned int shift)
-+{
-+	return (word << shift) | (word >> (16 - shift));
-+}
-+
-+/**
-+ * ror16 - rotate a 16-bit value right
-+ * @word: value to rotate
-+ * @shift: bits to roll
-+ */
-+static inline __u16 ror16(__u16 word, unsigned int shift)
-+{
-+	return (word >> shift) | (word << (16 - shift));
-+}
-+
-+/**
-+ * rol8 - rotate an 8-bit value left
-+ * @word: value to rotate
-+ * @shift: bits to roll
-+ */
-+static inline __u8 rol8(__u8 word, unsigned int shift)
-+{
-+	return (word << shift) | (word >> (8 - shift));
-+}
-+
-+/**
-+ * ror8 - rotate an 8-bit value right
-+ * @word: value to rotate
-+ * @shift: bits to roll
-+ */
-+static inline __u8 ror8(__u8 word, unsigned int shift)
-+{
-+	return (word >> shift) | (word << (8 - shift));
-+}
-+
- static inline unsigned fls_long(unsigned long l)
+-
+-void ieee80211_tkip_gen_phase1key(struct ieee80211_key *key, u8 *ta,
+-				  u16 *phase1key)
+-{
+-	tkip_mixing_phase1(ta, &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
+-			   key->u.tkip.iv32, phase1key);
+-}
+-
+-void ieee80211_tkip_gen_rc4key(struct ieee80211_key *key, u8 *ta,
++static void ieee80211_tkip_gen_rc4key(struct ieee80211_key *key, u8 *ta,
+ 			       u8 *rc4key)
  {
- 	if (sizeof(l) == 4)
+ 	/* Calculate per-packet key */
+diff -puN net/mac80211/tkip.h~mac80211-tkipc-remove-unused-function-make-function-static net/mac80211/tkip.h
+--- a/net/mac80211/tkip.h~mac80211-tkipc-remove-unused-function-make-function-static
++++ a/net/mac80211/tkip.h
+@@ -15,10 +15,6 @@
+ 
+ u8 * ieee80211_tkip_add_iv(u8 *pos, struct ieee80211_key *key,
+ 			   u8 iv0, u8 iv1, u8 iv2);
+-void ieee80211_tkip_gen_phase1key(struct ieee80211_key *key, u8 *ta,
+-				  u16 *phase1key);
+-void ieee80211_tkip_gen_rc4key(struct ieee80211_key *key, u8 *ta,
+-			       u8 *rc4key);
+ void ieee80211_tkip_encrypt_data(struct crypto_blkcipher *tfm,
+ 				 struct ieee80211_key *key,
+ 				 u8 *pos, size_t payload_len, u8 *ta);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
