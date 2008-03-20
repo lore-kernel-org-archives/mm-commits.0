@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-add-diu-platform-code-for-mpc8610hpcd.patch added to -mm tree
-Date: Thu, 20 Mar 2008 15:33:21 -0700
-Message-ID: <200803202233.m2KMXLM8027408@imap1.linux-foundation.org>
+Subject: + scsi-add-iscsi-ibft-support-fix.patch added to -mm tree
+Date: Thu, 20 Mar 2008 15:44:38 -0700
+Message-ID: <200803202244.m2KMicR3027824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38552 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44879 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758229AbYCTWeC (ORCPT
+	by vger.kernel.org with ESMTP id S1752766AbYCTWpq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 18:34:02 -0400
+	Thu, 20 Mar 2008 18:45:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yorksun@freescale.com, adaplas@pol.net, benh@kernel.crashing.org, galak@gate.crashing.org, krzysztof.h1@wp.pl, paulus@samba.org, timur@freescale.com
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, greg@kroah.com, konradr@linux.vnet.ibm.com, michaelc@cs.wisc.edu, pjones@redhat.com, randy.dunlap@oracle.com
 
 
 The patch titled
-     fbdev: add DIU platform code for MPC8610HPCD
+     scsi-add-iscsi-ibft-support-fix
 has been added to the -mm tree.  Its filename is
-     fbdev-add-diu-platform-code-for-mpc8610hpcd.patch
+     scsi-add-iscsi-ibft-support-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,328 +34,202 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: add DIU platform code for MPC8610HPCD
-From: York Sun <yorksun@freescale.com>
+Subject: scsi-add-iscsi-ibft-support-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add platform code to support Freescale DIU.  The platform code includes
-framebuffer memory allocation, pixel format, monitor port, etc.
-
-Signed-off-by: York Sun <yorksun@freescale.com>
-Cc: Timur Tabi <timur@freescale.com>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Greg KH <greg@kroah.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
+Cc: Mike Christie <michaelc@cs.wisc.edu>
+Cc: Peter Jones <pjones@redhat.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/86xx/mpc8610_hpcd.c |  182 ++++++++++++++++++-
- arch/powerpc/sysdev/fsl_soc.c              |   41 ++++
- arch/powerpc/sysdev/fsl_soc.h              |   22 ++
- 3 files changed, 243 insertions(+), 2 deletions(-)
+ drivers/firmware/iscsi_ibft.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/powerpc/platforms/86xx/mpc8610_hpcd.c~fbdev-add-diu-platform-code-for-mpc8610hpcd arch/powerpc/platforms/86xx/mpc8610_hpcd.c
---- a/arch/powerpc/platforms/86xx/mpc8610_hpcd.c~fbdev-add-diu-platform-code-for-mpc8610hpcd
-+++ a/arch/powerpc/platforms/86xx/mpc8610_hpcd.c
-@@ -3,6 +3,7 @@
-  *
-  * Initial author: Xianghua Xiao <x.xiao@freescale.com>
-  * Recode: Jason Jin <jason.jin@freescale.com>
-+ *         York Sun <yorksun@freescale.com>
-  *
-  * Rewrite the interrupt routing. remove the 8259PIC support,
-  * All the integrated device in ULI use sideband interrupt.
-@@ -38,6 +39,8 @@
- #include <sysdev/fsl_pci.h>
- #include <sysdev/fsl_soc.h>
+diff -puN drivers/firmware/iscsi_ibft.c~scsi-add-iscsi-ibft-support-fix drivers/firmware/iscsi_ibft.c
+--- a/drivers/firmware/iscsi_ibft.c~scsi-add-iscsi-ibft-support-fix
++++ a/drivers/firmware/iscsi_ibft.c
+@@ -65,6 +65,7 @@
  
-+static unsigned char *pixis_bdcfg0, *pixis_arch;
-+
- static struct of_device_id __initdata mpc8610_ids[] = {
- 	{ .compatible = "fsl,mpc8610-immr", },
- 	{}
-@@ -161,12 +164,160 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_A
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AL, 0x5288, final_uli5288);
- #endif /* CONFIG_PCI */
  
-+#if defined(CONFIG_FB_FSL_DIU) || defined(CONFIG_FB_FSL_DIU_MODULE)
-+
-+static u32 get_busfreq(void)
-+{
-+	struct device_node *node;
-+
-+	u32 fs_busfreq = 0;
-+	node = of_find_node_by_type(NULL, "cpu");
-+	if (node) {
-+		unsigned int size;
-+		const unsigned int *prop =
-+			of_get_property(node, "bus-frequency", &size);
-+		if (prop)
-+			fs_busfreq = *prop;
-+		of_node_put(node);
-+	};
-+	return fs_busfreq;
-+}
-+
-+unsigned int mpc8610hpcd_get_pixel_format
-+	(unsigned int bits_per_pixel, int monitor_port)
-+{
-+	static const unsigned long pixelformat[][3] = {
-+		{0x88882317, 0x88083218, 0x65052119},
-+		{0x88883316, 0x88082219, 0x65053118},
-+	};
-+	unsigned int pix_fmt, arch_monitor;
-+
-+	arch_monitor = ((*pixis_arch == 0x01) && (monitor_port == 0))? 0 : 1;
-+		/* DVI port for board version 0x01 */
-+
-+	if (bits_per_pixel == 32)
-+		pix_fmt = pixelformat[arch_monitor][0];
-+	else if (bits_per_pixel == 24)
-+		pix_fmt = pixelformat[arch_monitor][1];
-+	else if (bits_per_pixel == 16)
-+		pix_fmt = pixelformat[arch_monitor][2];
-+	else
-+		pix_fmt = pixelformat[1][0];
-+
-+	return pix_fmt;
-+}
-+
-+void mpc8610hpcd_set_gamma_table(int monitor_port, char *gamma_table_base)
-+{
-+	int i;
-+	if (monitor_port == 2) {		/* dual link LVDS */
-+		for (i = 0; i < 256*3; i++)
-+			gamma_table_base[i] = (gamma_table_base[i] << 2) |
-+					 ((gamma_table_base[i] >> 6) & 0x03);
-+	}
-+}
-+
-+void mpc8610hpcd_set_monitor_port(int monitor_port)
-+{
-+	static const u8 bdcfg[] = {0xBD, 0xB5, 0xA5};
-+	if (monitor_port < 3)
-+		*pixis_bdcfg0 = bdcfg[monitor_port];
-+}
-+
-+void mpc8610hpcd_set_pixel_clock(unsigned int pixclock)
-+{
-+	u32 __iomem *clkdvdr;
-+	u32 temp;
-+	/* variables for pixel clock calcs */
-+	ulong  bestval, bestfreq, speed_ccb, minpixclock, maxpixclock;
-+	ulong pixval;
-+	long err;
-+	int i;
-+
-+	clkdvdr = ioremap(get_immrbase() + 0xe0800, sizeof(u32));
-+	if (!clkdvdr) {
-+		printk(KERN_ERR "Err: can't map clock divider register!\n");
-+		return;
-+	}
-+
-+	/* Pixel Clock configuration */
-+	pr_debug("DIU: Bus Frequency = %d\n", get_busfreq());
-+	speed_ccb = get_busfreq();
-+
-+	/* Calculate the pixel clock with the smallest error */
-+	/* calculate the following in steps to avoid overflow */
-+	pr_debug("DIU pixclock in ps - %d\n", pixclock);
-+	temp = 1000000000/pixclock;
-+	temp *= 1000;
-+	pixclock = temp;
-+	pr_debug("DIU pixclock freq - %u\n", pixclock);
-+
-+	temp = pixclock * 5 / 100;
-+	pr_debug("deviation = %d\n", temp);
-+	minpixclock = pixclock - temp;
-+	maxpixclock = pixclock + temp;
-+	pr_debug("DIU minpixclock - %lu\n", minpixclock);
-+	pr_debug("DIU maxpixclock - %lu\n", maxpixclock);
-+	pixval = speed_ccb/pixclock;
-+	pr_debug("DIU pixval = %lu\n", pixval);
-+
-+	err = 100000000;
-+	bestval = pixval;
-+	pr_debug("DIU bestval = %lu\n", bestval);
-+
-+	bestfreq = 0;
-+	for (i = -1; i <= 1; i++) {
-+		temp = speed_ccb / ((pixval+i) + 1);
-+		pr_debug("DIU test pixval i= %d, pixval=%lu, temp freq. = %u\n",
-+							i, pixval, temp);
-+		if ((temp < minpixclock) || (temp > maxpixclock))
-+			pr_debug("DIU exceeds monitor range (%lu to %lu)\n",
-+				minpixclock, maxpixclock);
-+		else if (abs(temp - pixclock) < err) {
-+		  pr_debug("Entered the else if block %d\n", i);
-+			err = abs(temp - pixclock);
-+			bestval = pixval+i;
-+			bestfreq = temp;
-+		}
-+	}
-+
-+	pr_debug("DIU chose = %lx\n", bestval);
-+	pr_debug("DIU error = %ld\n NomPixClk ", err);
-+	pr_debug("DIU: Best Freq = %lx\n", bestfreq);
-+	/* Modify PXCLK in GUTS CLKDVDR */
-+	pr_debug("DIU: Current value of CLKDVDR = 0x%08x\n", (*clkdvdr));
-+	temp = (*clkdvdr) & 0x2000FFFF;
-+	*clkdvdr = temp;		/* turn off clock */
-+	*clkdvdr = temp | 0x80000000 | (((bestval) & 0x1F) << 16);
-+	pr_debug("DIU: Modified value of CLKDVDR = 0x%08x\n", (*clkdvdr));
-+	iounmap(clkdvdr);
-+}
-+
-+ssize_t mpc8610hpcd_show_monitor_port(int monitor_port, char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE,
-+			"%c0 - DVI\n"
-+			"%c1 - Single link LVDS\n"
-+			"%c2 - Dual link LVDS\n",
-+			monitor_port == 0 ? '*' : ' ',
-+			monitor_port == 1 ? '*' : ' ',
-+			monitor_port == 2 ? '*' : ' ');
-+}
-+
-+int mpc8610hpcd_set_sysfs_monitor_port(int val)
-+{
-+	return val < 3 ? val : 0;
-+}
-+
-+#endif
-+
-+int __init preallocate_diu_videomemory(void);
- static void __init
- mpc86xx_hpcd_setup_arch(void)
- {
--#ifdef CONFIG_PCI
-+	struct resource r;
- 	struct device_node *np;
--#endif
-+
- 	if (ppc_md.progress)
- 		ppc_md.progress("mpc86xx_hpcd_setup_arch()", 0);
- 
-@@ -183,6 +334,33 @@ mpc86xx_hpcd_setup_arch(void)
- 		}
-         }
- #endif
-+#if defined(CONFIG_FB_FSL_DIU) || defined(CONFIG_FB_FSL_DIU_MODULE)
-+	preallocate_diu_videomemory();
-+	diu_ops.get_pixel_format	= mpc8610hpcd_get_pixel_format;
-+	diu_ops.set_gamma_table		= mpc8610hpcd_set_gamma_table;
-+	diu_ops.set_monitor_port	= mpc8610hpcd_set_monitor_port;
-+	diu_ops.set_pixel_clock		= mpc8610hpcd_set_pixel_clock;
-+	diu_ops.show_monitor_port	= mpc8610hpcd_show_monitor_port;
-+	diu_ops.set_sysfs_monitor_port	= mpc8610hpcd_set_sysfs_monitor_port;
-+#endif
-+
-+	np = of_find_compatible_node(NULL, NULL, "fsl,fpga-pixis");
-+	if (np) {
-+		of_address_to_resource(np, 0, &r);
-+		of_node_put(np);
-+		pixis_bdcfg0 = ioremap(r.start + 0x00000008, sizeof(u8));
-+		if (!pixis_bdcfg0) {
-+			printk(KERN_ERR "Err: can't map FPGA cfg register!\n");
-+			return;
-+		}
-+		pixis_arch = ioremap(r.start + 0x00000001, sizeof(u8));
-+		if (!pixis_arch) {
-+			printk(KERN_ERR "Err: can't map FPGA arch register!\n");
-+			return;
-+		}
-+	} else
-+		printk(KERN_ERR "Err: "
-+				"can't find device node 'fsl,fpga-pixis'\n");
- 
- 	printk("MPC86xx HPCD board from Freescale Semiconductor\n");
- }
-diff -puN arch/powerpc/sysdev/fsl_soc.c~fbdev-add-diu-platform-code-for-mpc8610hpcd arch/powerpc/sysdev/fsl_soc.c
---- a/arch/powerpc/sysdev/fsl_soc.c~fbdev-add-diu-platform-code-for-mpc8610hpcd
-+++ a/arch/powerpc/sysdev/fsl_soc.c
-@@ -1438,3 +1438,44 @@ void fsl_rstcr_restart(char *cmd)
- 	while (1) ;
- }
- #endif
-+
-+#if defined(CONFIG_FB_FSL_DIU) || defined(CONFIG_FB_FSL_DIU_MODULE)
-+struct platform_diu_data_ops diu_ops = {
-+	.diu_size = 1280 * 1024 * 4,	/* default one 1280x1024 buffer */
-+};
-+EXPORT_SYMBOL(diu_ops);
-+
-+int __init preallocate_diu_videomemory(void)
-+{
-+	pr_debug("diu_size=%lu\n", diu_ops.diu_size);
-+
-+	diu_ops.diu_mem = __alloc_bootmem(diu_ops.diu_size, 8, 0);
-+	if (!diu_ops.diu_mem) {
-+		printk(KERN_ERR "fsl-diu: cannot allocate %lu bytes\n",
-+			diu_ops.diu_size);
-+		return -ENOMEM;
-+	}
-+
-+	printk(KERN_INFO "%s: diu_mem=%p\n", __func__, diu_ops.diu_mem);
-+
-+	rh_init(&diu_ops.diu_rh_info, 4096, ARRAY_SIZE(diu_ops.diu_rh_block),
-+		diu_ops.diu_rh_block);
-+	return rh_attach_region(&diu_ops.diu_rh_info,
-+				(unsigned long) diu_ops.diu_mem,
-+				diu_ops.diu_size);
-+}
-+
-+static int __init early_parse_diufb(char *p)
-+{
-+	if (!p)
-+		return 1;
-+
-+	diu_ops.diu_size = _ALIGN_UP(memparse(p, &p), 8);
-+
-+	printk(KERN_INFO "%s: diu_size=%lu\n", __func__, diu_ops.diu_size);
-+
-+	return 0;
-+}
-+early_param("diufb", early_parse_diufb);
-+
-+#endif
-diff -puN arch/powerpc/sysdev/fsl_soc.h~fbdev-add-diu-platform-code-for-mpc8610hpcd arch/powerpc/sysdev/fsl_soc.h
---- a/arch/powerpc/sysdev/fsl_soc.h~fbdev-add-diu-platform-code-for-mpc8610hpcd
-+++ a/arch/powerpc/sysdev/fsl_soc.h
-@@ -16,5 +16,27 @@ extern int fsl_spi_init(struct spi_board
- 			void (*deactivate_cs)(u8 cs, u8 polarity));
- 
- extern void fsl_rstcr_restart(char *cmd);
-+
-+#if defined(CONFIG_FB_FSL_DIU) || defined(CONFIG_FB_FSL_DIU_MODULE)
-+#include <linux/bootmem.h>
-+#include <asm/rheap.h>
-+struct platform_diu_data_ops {
-+	rh_block_t diu_rh_block[16];
-+	rh_info_t diu_rh_info;
-+	unsigned long diu_size;
-+	void *diu_mem;
-+
-+	unsigned int (*get_pixel_format) (unsigned int bits_per_pixel,
-+		int monitor_port);
-+	void (*set_gamma_table) (int monitor_port, char *gamma_table_base);
-+	void (*set_monitor_port) (int monitor_port);
-+	void (*set_pixel_clock) (unsigned int pixclock);
-+	ssize_t (*show_monitor_port) (int monitor_port, char *buf);
-+	int (*set_sysfs_monitor_port) (int val);
-+};
-+
-+extern struct platform_diu_data_ops diu_ops;
-+#endif
-+
- #endif
- #endif
+ #include <linux/blkdev.h>
++#include <linux/capability.h>
+ #include <linux/ctype.h>
+ #include <linux/device.h>
+ #include <linux/err.h>
 _
 
-Patches currently in -mm which might be from yorksun@freescale.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fbdev-driver-for-freescale-8610-and-5121-diu.patch
+origin.patch
+memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
+memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
+drivers-md-raid5c-fix-printk-warnings.patch
+fs-ufs-ballocc-fix-sparc64-printk-warning.patch
+revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+arch-x86-kernel-ptracec-fix-defined-but-unused-warnings.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi-fixup.patch
+git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+alsa-sound-pci-aw2-aw2-alsac-needs-dma-mappingh.patch
+sound-pci-pcxhr-pcxhr_corec-fix-printk-warning.patch
+sound-pci-pcxhr-pcxhrc-fix-warnings.patch
+sound-pci-pcxhr-pcxhrc-fix-warnings-checkpatch-fixes.patch
+cifs-suppress-warning.patch
+revert-gregkh-driver-video-add-the-go7007-driver.patch
+revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
+git-drm.patch
+git-drm-git-rejects.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+git-dvb.patch
+git-dvb-drivers-media-video-bt8xx-bttv-cardsc-fix-warnings.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+kvm-warning-fix.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-net.patch
+git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+tg3-fix-warning-on-sparc32.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
+git-sh.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+git-scsi-rc-fixes-fixup.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+scsi-add-iscsi-ibft-support-fix.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-semaphore-git-rejects.patch
+x86-fix-aperture-vs-suspend-problem.patch
+revert-pcie-utilize-pcie-transaction-pending-bit.patch
+netpoll-zap_completion_queue-adjust-skb-users-counter.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
 fbdev-driver-for-freescale-8610-and-5121-diu-fix.patch
-fbdev-add-diu-platform-code-for-mpc8610hpcd.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+w1-build-fix.patch
 
