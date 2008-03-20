@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + loop-modify-loop-device-to-be-able-to-manage-partitions-of-the-disk-image.patch added to -mm tree
-Date: Thu, 20 Mar 2008 14:51:53 -0700
-Message-ID: <200803202151.m2KLpr7A025908@imap1.linux-foundation.org>
+Subject: + net-ehea-port_lock-semaphore-to-mutex.patch added to -mm tree
+Date: Thu, 20 Mar 2008 14:49:20 -0700
+Message-ID: <200803202149.m2KLnKmI025781@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44878 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59489 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757434AbYCTVxK (ORCPT
+	by vger.kernel.org with ESMTP id S1757435AbYCTVxU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 17:53:10 -0400
+	Thu, 20 Mar 2008 17:53:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Laurent.Vivier@bull.net, Andries.Brouwer@cwi.nl, jens.axboe@oracle.com, viro@zeniv.linux.org.uk
+Cc: dwalker@mvista.com, jeff@garzik.org, raisch@de.ibm.com, themann@de.ibm.com, tklein@de.ibm.com
 
 
 The patch titled
-     loop: modify loop device to be able to manage partitions of the disk image
+     netdev: ehea: port_lock semaphore to mutex
 has been added to the -mm tree.  Its filename is
-     loop-modify-loop-device-to-be-able-to-manage-partitions-of-the-disk-image.patch
+     net-ehea-port_lock-semaphore-to-mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,170 +34,157 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: loop: modify loop device to be able to manage partitions of the disk image
-From: Laurent Vivier <Laurent.Vivier@bull.net>
+Subject: netdev: ehea: port_lock semaphore to mutex
+From: Daniel Walker <dwalker@mvista.com>
 
-This patch allows to use loop device with partitioned disk image.
+Convert the port_lock to a mutex.  There is also some additional cleanup.  The
+line length inside the ehea_rereg_mrs was getting long so I made some
+adjustments to shorten them.
 
-Original behavior of loop is not modified.
-
-A new parameter is introduced to define how many partition we want to be able
-to manage per loop device.  This parameter is "max_part".
-
-For instance, to manage 63 partitions / loop device, we will do:
-# modprobe loop max_part=63
-# ls -l /dev/loop?*
-brw-rw---- 1 root disk 7,   0 2008-03-05 14:55 /dev/loop0
-brw-rw---- 1 root disk 7,  64 2008-03-05 14:55 /dev/loop1
-brw-rw---- 1 root disk 7, 128 2008-03-05 14:55 /dev/loop2
-brw-rw---- 1 root disk 7, 192 2008-03-05 14:55 /dev/loop3
-brw-rw---- 1 root disk 7, 256 2008-03-05 14:55 /dev/loop4
-brw-rw---- 1 root disk 7, 320 2008-03-05 14:55 /dev/loop5
-brw-rw---- 1 root disk 7, 384 2008-03-05 14:55 /dev/loop6
-brw-rw---- 1 root disk 7, 448 2008-03-05 14:55 /dev/loop7
-
-And to attach a raw partitionned disk image, the original losetup is used:
-
-# losetup -f etch.img
-# ls -l /dev/loop?*
-brw-rw---- 1 root disk 7,   0 2008-03-05 14:55 /dev/loop0
-brw-rw---- 1 root disk 7,   1 2008-03-05 14:57 /dev/loop0p1
-brw-rw---- 1 root disk 7,   2 2008-03-05 14:57 /dev/loop0p2
-brw-rw---- 1 root disk 7,   5 2008-03-05 14:57 /dev/loop0p5
-brw-rw---- 1 root disk 7,  64 2008-03-05 14:55 /dev/loop1
-brw-rw---- 1 root disk 7, 128 2008-03-05 14:55 /dev/loop2
-brw-rw---- 1 root disk 7, 192 2008-03-05 14:55 /dev/loop3
-brw-rw---- 1 root disk 7, 256 2008-03-05 14:55 /dev/loop4
-brw-rw---- 1 root disk 7, 320 2008-03-05 14:55 /dev/loop5
-brw-rw---- 1 root disk 7, 384 2008-03-05 14:55 /dev/loop6
-brw-rw---- 1 root disk 7, 448 2008-03-05 14:55 /dev/loop7
-# mount /dev/loop0p1 /mnt
-# ls /mnt
-bench  cdrom  home        lib         mnt   root     srv  usr
-bin    dev    initrd      lost+found  opt   sbin     sys  var
-boot   etc    initrd.img  media       proc  selinux  tmp  vmlinuz
-# umount /mnt
-# losetup -d /dev/loop0
-
-Of course, the same behavior can be done using kpartx on a loop device, but
-modifying loop avoids to stack several layers of block device (loop + device
-mapper), this is a very light modification (40% of modifications are to manage
-the new parameter).
-
-Signed-off-by: Laurent Vivier <Laurent.Vivier@bull.net>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Andries Brouwer <Andries.Brouwer@cwi.nl>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Christoph Raisch <raisch@de.ibm.com>
+Cc: Jan-Bernd Themann <themann@de.ibm.com>
+Cc: Thomas Klein <tklein@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/loop.c |   26 +++++++++++++++++++++-----
- 1 file changed, 21 insertions(+), 5 deletions(-)
+ drivers/net/ehea/ehea.h      |    2 -
+ drivers/net/ehea/ehea_main.c |   43 ++++++++++++++++-----------------
+ 2 files changed, 23 insertions(+), 22 deletions(-)
 
-diff -puN drivers/block/loop.c~loop-modify-loop-device-to-be-able-to-manage-partitions-of-the-disk-image drivers/block/loop.c
---- a/drivers/block/loop.c~loop-modify-loop-device-to-be-able-to-manage-partitions-of-the-disk-image
-+++ a/drivers/block/loop.c
-@@ -82,6 +82,9 @@
- static LIST_HEAD(loop_devices);
- static DEFINE_MUTEX(loop_devices_mutex);
+diff -puN drivers/net/ehea/ehea.h~net-ehea-port_lock-semaphore-to-mutex drivers/net/ehea/ehea.h
+--- a/drivers/net/ehea/ehea.h~net-ehea-port_lock-semaphore-to-mutex
++++ a/drivers/net/ehea/ehea.h
+@@ -452,7 +452,7 @@ struct ehea_port {
+ 	struct vlan_group *vgrp;
+ 	struct ehea_eq *qp_eq;
+ 	struct work_struct reset_task;
+-	struct semaphore port_lock;
++	struct mutex port_lock;
+ 	char int_aff_name[EHEA_IRQ_NAME_SIZE];
+ 	int allmulti;			 /* Indicates IFF_ALLMULTI state */
+ 	int promisc;		 	 /* Indicates IFF_PROMISC state */
+diff -puN drivers/net/ehea/ehea_main.c~net-ehea-port_lock-semaphore-to-mutex drivers/net/ehea/ehea_main.c
+--- a/drivers/net/ehea/ehea_main.c~net-ehea-port_lock-semaphore-to-mutex
++++ a/drivers/net/ehea/ehea_main.c
+@@ -2543,7 +2543,7 @@ static int ehea_open(struct net_device *
+ 	int ret;
+ 	struct ehea_port *port = netdev_priv(dev);
  
-+static int max_part;
-+static int part_shift;
-+
- /*
-  * Transfer functions
-  */
-@@ -692,6 +695,8 @@ static int loop_change_fd(struct loop_de
- 		goto out_putf;
+-	down(&port->port_lock);
++	mutex_lock(&port->port_lock);
  
- 	fput(old_file);
-+	if (max_part > 0)
-+		ioctl_by_bdev(bdev, BLKRRPART, 0);
- 	return 0;
- 
-  out_putf:
-@@ -819,6 +824,8 @@ static int loop_set_fd(struct loop_devic
+ 	if (netif_msg_ifup(port))
+ 		ehea_info("enabling port %s", dev->name);
+@@ -2554,7 +2554,7 @@ static int ehea_open(struct net_device *
+ 		netif_start_queue(dev);
  	}
- 	lo->lo_state = Lo_bound;
- 	wake_up_process(lo->lo_thread);
-+	if (max_part > 0)
-+		ioctl_by_bdev(bdev, BLKRRPART, 0);
- 	return 0;
  
- out_clr:
-@@ -919,6 +926,8 @@ static int loop_clr_fd(struct loop_devic
- 	fput(filp);
- 	/* This is safe: open() is still holding a reference. */
- 	module_put(THIS_MODULE);
-+	if (max_part > 0)
-+		ioctl_by_bdev(bdev, BLKRRPART, 0);
- 	return 0;
+-	up(&port->port_lock);
++	mutex_unlock(&port->port_lock);
+ 
+ 	return ret;
+ }
+@@ -2600,11 +2600,11 @@ static int ehea_stop(struct net_device *
+ 		ehea_info("disabling port %s", dev->name);
+ 
+ 	flush_scheduled_work();
+-	down(&port->port_lock);
++	mutex_lock(&port->port_lock);
+ 	netif_stop_queue(dev);
+ 	port_napi_disable(port);
+ 	ret = ehea_down(dev);
+-	up(&port->port_lock);
++	mutex_unlock(&port->port_lock);
+ 	return ret;
  }
  
-@@ -1360,6 +1369,8 @@ static struct block_device_operations lo
- static int max_loop;
- module_param(max_loop, int, 0);
- MODULE_PARM_DESC(max_loop, "Maximum number of loop devices");
-+module_param(max_part, int, 0);
-+MODULE_PARM_DESC(max_part, "Maximum number of partitions per loop device");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS_BLOCKDEV_MAJOR(LOOP_MAJOR);
+@@ -2802,7 +2802,7 @@ static void ehea_reset_port(struct work_
+ 	struct net_device *dev = port->netdev;
  
-@@ -1412,7 +1423,7 @@ static struct loop_device *loop_alloc(in
- 	if (!lo->lo_queue)
- 		goto out_free_dev;
+ 	port->resets++;
+-	down(&port->port_lock);
++	mutex_lock(&port->port_lock);
+ 	netif_stop_queue(dev);
  
--	disk = lo->lo_disk = alloc_disk(1);
-+	disk = lo->lo_disk = alloc_disk(1 << part_shift);
- 	if (!disk)
- 		goto out_free_queue;
+ 	port_napi_disable(port);
+@@ -2822,7 +2822,7 @@ static void ehea_reset_port(struct work_
  
-@@ -1422,7 +1433,7 @@ static struct loop_device *loop_alloc(in
- 	init_waitqueue_head(&lo->lo_event);
- 	spin_lock_init(&lo->lo_lock);
- 	disk->major		= LOOP_MAJOR;
--	disk->first_minor	= i;
-+	disk->first_minor	= i << part_shift;
- 	disk->fops		= &lo_fops;
- 	disk->private_data	= lo;
- 	disk->queue		= lo->lo_queue;
-@@ -1502,7 +1513,12 @@ static int __init loop_init(void)
- 	 *     themselves and have kernel automatically instantiate actual
- 	 *     device on-demand.
- 	 */
--	if (max_loop > 1UL << MINORBITS)
+ 	netif_wake_queue(dev);
+ out:
+-	up(&port->port_lock);
++	mutex_unlock(&port->port_lock);
+ 	return;
+ }
+ 
+@@ -2840,20 +2840,21 @@ static void ehea_rereg_mrs(struct work_s
+ 			for (i = 0; i < EHEA_MAX_PORTS; i++) {
+ 				struct ehea_port *port = adapter->port[i];
+ 
+-				if (port) {
+-					struct net_device *dev = port->netdev;
++				if (!port)
++					continue;
+ 
+-					if (dev->flags & IFF_UP) {
+-						down(&port->port_lock);
+-						netif_stop_queue(dev);
+-						ret = ehea_stop_qps(dev);
+-						if (ret) {
+-							up(&port->port_lock);
+-							goto out;
+-						}
+-						port_napi_disable(port);
+-						up(&port->port_lock);
++				struct net_device *dev = port->netdev;
 +
-+	part_shift = 0;
-+	if (max_part > 0)
-+		part_shift = fls(max_part);
-+
-+	if (max_loop > 1UL << (MINORBITS - part_shift))
- 		return -EINVAL;
++				if (dev->flags & IFF_UP) {
++					mutex_lock(&port->port_lock);
++					netif_stop_queue(dev);
++					ret = ehea_stop_qps(dev);
++					if (ret) {
++						mutex_unlock(&port->port_lock);
++						goto out;
+ 					}
++					port_napi_disable(port);
++					mutex_unlock(&port->port_lock);
+ 				}
+ 			}
  
- 	if (max_loop) {
-@@ -1510,7 +1526,7 @@ static int __init loop_init(void)
- 		range = max_loop;
- 	} else {
- 		nr = 8;
--		range = 1UL << MINORBITS;
-+		range = 1UL << (MINORBITS - part_shift);
- 	}
+@@ -2893,12 +2894,12 @@ static void ehea_rereg_mrs(struct work_s
+ 					struct net_device *dev = port->netdev;
  
- 	if (register_blkdev(LOOP_MAJOR, "loop"))
-@@ -1549,7 +1565,7 @@ static void __exit loop_exit(void)
- 	unsigned long range;
- 	struct loop_device *lo, *next;
+ 					if (dev->flags & IFF_UP) {
+-						down(&port->port_lock);
++						mutex_lock(&port->port_lock);
+ 						port_napi_enable(port);
+ 						ret = ehea_restart_qps(dev);
+ 						if (!ret)
+ 							netif_wake_queue(dev);
+-						up(&port->port_lock);
++						mutex_unlock(&port->port_lock);
+ 					}
+ 				}
+ 			}
+@@ -3064,7 +3065,7 @@ struct ehea_port *ehea_setup_single_port
  
--	range = max_loop ? max_loop :  1UL << MINORBITS;
-+	range = max_loop ? max_loop :  1UL << (MINORBITS - part_shift);
+ 	port = netdev_priv(dev);
  
- 	list_for_each_entry_safe(lo, next, &loop_devices, lo_list)
- 		loop_del_one(lo);
+-	sema_init(&port->port_lock, 1);
++	mutex_init(&port->port_lock);
+ 	port->state = EHEA_PORT_DOWN;
+ 	port->sig_comp_iv = sq_entries / 10;
+ 
 _
 
-Patches currently in -mm which might be from Laurent.Vivier@bull.net are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-git-kvm.patch
-nbd-allow-nbd-to-be-used-locally.patch
-loop-modify-loop-device-to-be-able-to-manage-partitions-of-the-disk-image.patch
+net-ehea-semaphore-to-mutex.patch
+net-ehea-ehea_fw_handles-semaphore-to-mutex.patch
+net-ehea-locking-order-correction.patch
+net-ehea-bcmc_regs-semaphore-to-mutex.patch
+net-ehea-port_lock-semaphore-to-mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
 
