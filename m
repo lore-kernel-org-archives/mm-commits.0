@@ -1,43 +1,34 @@
 From: akpm@linux-foundation.org
-Subject: + mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch added to -mm tree
-Date: Thu, 20 Mar 2008 13:38:06 -0700
-Message-ID: <200803202038.m2KKc6AP023235@imap1.linux-foundation.org>
+Subject: - mac80211-tkipc-remove-unused-function-make-function-static.patch removed from -mm tree
+Date: Thu, 20 Mar 2008 14:42:04 -0700
+Message-ID: <200803202142.m2KLg52S025562@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37502 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757981AbYCTUlG (ORCPT
+	by vger.kernel.org with ESMTP id S1757281AbYCTVoU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 16:41:06 -0400
+	Thu, 20 Mar 2008 17:44:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jbenc@suse.cz, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com
+To: harvey.harrison@gmail.com, jbenc@suse.cz, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mac80211: tkip.c eliminate the Hi16, Lo16 functions
-has been added to the -mm tree.  Its filename is
-     mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
+     mac80211: tkip.c remove unused function, make function static
+has been removed from the -mm tree.  Its filename was
+     mac80211-tkipc-remove-unused-function-make-function-static.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: tkip.c eliminate the Hi16, Lo16 functions
+Subject: mac80211: tkip.c remove unused function, make function static
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Opencode them at their one callsite.
+make static void ieee80211_tkip_gen_rc4key static
+remove the unused ieee80211_tkip_gen_phase1key
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Johannes Berg <johannes@sipsolutions.net>
@@ -47,42 +38,44 @@ Cc: Jiri Benc <jbenc@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/tkip.c |   16 ++--------------
- 1 file changed, 2 insertions(+), 14 deletions(-)
+ net/mac80211/tkip.c |   10 +---------
+ net/mac80211/tkip.h |    4 ----
+ 2 files changed, 1 insertion(+), 13 deletions(-)
 
-diff -puN net/mac80211/tkip.c~mac80211-tkipc-eliminate-the-hi16-lo16-functions net/mac80211/tkip.c
---- a/net/mac80211/tkip.c~mac80211-tkipc-eliminate-the-hi16-lo16-functions
+diff -puN net/mac80211/tkip.c~mac80211-tkipc-remove-unused-function-make-function-static net/mac80211/tkip.c
+--- a/net/mac80211/tkip.c~mac80211-tkipc-remove-unused-function-make-function-static
 +++ a/net/mac80211/tkip.c
-@@ -80,18 +80,6 @@ static inline u8 Lo8(u16 v)
- 	return v & 0xff;
+@@ -184,15 +184,7 @@ u8 * ieee80211_tkip_add_iv(u8 *pos, stru
+ 	return pos;
  }
  
 -
--static inline u16 Hi16(u32 v)
+-void ieee80211_tkip_gen_phase1key(struct ieee80211_key *key, u8 *ta,
+-				  u16 *phase1key)
 -{
--	return v >> 16;
+-	tkip_mixing_phase1(ta, &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
+-			   key->u.tkip.iv32, phase1key);
 -}
 -
--
--static inline u16 Lo16(u32 v)
--{
--	return v & 0xffff;
--}
--
- static inline u16 tkip_S(u16 val)
+-void ieee80211_tkip_gen_rc4key(struct ieee80211_key *key, u8 *ta,
++static void ieee80211_tkip_gen_rc4key(struct ieee80211_key *key, u8 *ta,
+ 			       u8 *rc4key)
  {
- 	return tkip_sbox[val & 0xff] ^ swab16(tkip_sbox[val >> 8]);
-@@ -108,8 +96,8 @@ static void tkip_mixing_phase1(const u8 
- {
- 	int i, j;
+ 	/* Calculate per-packet key */
+diff -puN net/mac80211/tkip.h~mac80211-tkipc-remove-unused-function-make-function-static net/mac80211/tkip.h
+--- a/net/mac80211/tkip.h~mac80211-tkipc-remove-unused-function-make-function-static
++++ a/net/mac80211/tkip.h
+@@ -15,10 +15,6 @@
  
--	p1k[0] = Lo16(tsc_IV32);
--	p1k[1] = Hi16(tsc_IV32);
-+	p1k[0] = tsc_IV32 & 0xFFFF;
-+	p1k[1] = tsc_IV32 >> 16;
- 	p1k[2] = Mk16(ta[1], ta[0]);
- 	p1k[3] = Mk16(ta[3], ta[2]);
- 	p1k[4] = Mk16(ta[5], ta[4]);
+ u8 * ieee80211_tkip_add_iv(u8 *pos, struct ieee80211_key *key,
+ 			   u8 iv0, u8 iv1, u8 iv2);
+-void ieee80211_tkip_gen_phase1key(struct ieee80211_key *key, u8 *ta,
+-				  u16 *phase1key);
+-void ieee80211_tkip_gen_rc4key(struct ieee80211_key *key, u8 *ta,
+-			       u8 *rc4key);
+ void ieee80211_tkip_encrypt_data(struct crypto_blkcipher *tfm,
+ 				 struct ieee80211_key *key,
+ 				 u8 *pos, size_t payload_len, u8 *ta);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
