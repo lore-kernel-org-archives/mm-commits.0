@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch added to -mm tree
-Date: Thu, 20 Mar 2008 13:28:10 -0700
-Message-ID: <200803202028.m2KKSBNk022639@imap1.linux-foundation.org>
+Subject: + pageflags-introduce-macros-to-generate-page-flag-functions.patch added to -mm tree
+Date: Thu, 20 Mar 2008 13:28:28 -0700
+Message-ID: <200803202028.m2KKSSB6022656@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48219 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46031 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760237AbYCTU3k (ORCPT
+	by vger.kernel.org with ESMTP id S1760256AbYCTU3u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 16:29:40 -0400
+	Thu, 20 Mar 2008 16:29:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, apw@shadowen.org, jeremy@goop.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, sam@ravnborg.org
+Cc: clameter@sgi.com, apw@shadowen.org, jeremy@goop.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com
 
 
 The patch titled
-     kbuild: create a way to create preprocessor constants from C expressions
+     pageflags: introduce macros to generate page flag functions
 has been added to the -mm tree.  Its filename is
-     kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
+     pageflags-introduce-macros-to-generate-page-flag-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: create a way to create preprocessor constants from C expressions
+Subject: pageflags: introduce macros to generate page flag functions
 From: Christoph Lameter <clameter@sgi.com>
 
-The use of enums create constants that are not available to the preprocessor
-when building the kernel (f.e.  MAX_NR_ZONES).
+Introduce a set of macros that generate functions to handle page flags.
 
-Arch code already has a way to export constants calculated to the preprocessor
-through the asm-offsets.c file.  Generate something similar for the core
-kernel through kbuild.
+A page flag function group typically starts with either
 
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+	SETPAGEFLAG(<part of function name>,<part of PG_ flagname>)
+
+to create a set of page flag operations that are atomic. Or
+
+	__SETPAGEFLAG(<part of function name>,<part of PG_ flagname)
+
+to create a set of page flag operations that are not atomic.
+
+Then additional operations can be added using the following macros
+
+TESTSCFLAG		Create additional atomic test-and-set and
+			test-and-clear functions
+
+TESTSETFLAG		Create additional test and set function
+TESTCLEARFLAG		Create additional test and clear function
+SETPAGEFLAG		Create additional atomic set function
+CLEARPAGEFLAG		Create additional atomic clear function
+__TESTPAGEFLAG		Create additional non atomic set function
+__SETPAGEFLAG		Create additional non atomic clear function
+
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -55,124 +71,60 @@ Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Kbuild          |   56 +++++++++++++++++++++++++++++++++++++++-------
- kernel/bounds.c |   19 +++++++++++++++
- 2 files changed, 67 insertions(+), 8 deletions(-)
+ include/linux/page-flags.h |   41 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
 
-diff -puN Kbuild~kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions Kbuild
---- a/Kbuild~kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions
-+++ a/Kbuild
-@@ -1,19 +1,54 @@
- #
- # Kbuild for top-level directory of the kernel
- # This file takes care of the following:
--# 1) Generate asm-offsets.h
--# 2) Check for missing system calls
-+# 1) Generate bounds.h
-+# 2) Generate asm-offsets.h (may need bounds.h)
-+# 3) Check for missing system calls
+diff -puN include/linux/page-flags.h~pageflags-introduce-macros-to-generate-page-flag-functions include/linux/page-flags.h
+--- a/include/linux/page-flags.h~pageflags-introduce-macros-to-generate-page-flag-functions
++++ a/include/linux/page-flags.h
+@@ -109,6 +109,47 @@ enum pageflags {
+ #ifndef __GENERATING_BOUNDS_H
  
- #####
--# 1) Generate asm-offsets.h
-+# 1) Generate bounds.h
-+
-+bounds-file := include/linux/bounds.h
-+
-+always  := $(bounds-file)
-+targets := $(bounds-file) kernel/bounds.s
-+
-+quiet_cmd_bounds = GEN     $@
-+define cmd_bounds
-+	(set -e; \
-+	 echo "#ifndef __LINUX_BOUNDS_H__"; \
-+	 echo "#define __LINUX_BOUNDS_H__"; \
-+	 echo "/*"; \
-+	 echo " * DO NOT MODIFY."; \
-+	 echo " *"; \
-+	 echo " * This file was generated by Kbuild"; \
-+	 echo " *"; \
-+	 echo " */"; \
-+	 echo ""; \
-+	 sed -ne $(sed-y) $<; \
-+	 echo ""; \
-+	 echo "#endif" ) > $@
-+endef
-+
-+# We use internal kbuild rules to avoid the "is up to date" message from make
-+kernel/bounds.s: kernel/bounds.c FORCE
-+	$(Q)mkdir -p $(dir $@)
-+	$(call if_changed_dep,cc_s_c)
-+
-+$(obj)/$(bounds-file): kernel/bounds.s Kbuild
-+	$(Q)mkdir -p $(dir $@)
-+	$(call cmd,bounds)
-+
-+#####
-+# 2) Generate asm-offsets.h
- #
- 
- offsets-file := include/asm-$(SRCARCH)/asm-offsets.h
- 
--always  := $(offsets-file)
--targets := $(offsets-file)
-+always  += $(offsets-file)
-+targets += $(offsets-file)
- targets += arch/$(SRCARCH)/kernel/asm-offsets.s
--clean-files := $(addprefix $(objtree)/,$(targets))
-+
- 
- # Default sed regexp - multiline due to syntax constraints
- define sed-y
-@@ -40,7 +75,8 @@ define cmd_offsets
- endef
- 
- # We use internal kbuild rules to avoid the "is up to date" message from make
--arch/$(SRCARCH)/kernel/asm-offsets.s: arch/$(SRCARCH)/kernel/asm-offsets.c FORCE
-+arch/$(SRCARCH)/kernel/asm-offsets.s: arch/$(SRCARCH)/kernel/asm-offsets.c \
-+                                      $(obj)/$(bounds-file) FORCE
- 	$(Q)mkdir -p $(dir $@)
- 	$(call if_changed_dep,cc_s_c)
- 
-@@ -49,7 +85,7 @@ $(obj)/$(offsets-file): arch/$(SRCARCH)/
- 	$(call cmd,offsets)
- 
- #####
--# 2) Check for missing system calls
-+# 3) Check for missing system calls
- #
- 
- quiet_cmd_syscalls = CALL    $<
-@@ -58,3 +94,7 @@ quiet_cmd_syscalls = CALL    $<
- PHONY += missing-syscalls
- missing-syscalls: scripts/checksyscalls.sh FORCE
- 	$(call cmd,syscalls)
-+
-+# Delete all targets during make clean
-+clean-files := $(addprefix $(objtree)/,$(targets))
-+
-diff -puN /dev/null kernel/bounds.c
---- /dev/null
-+++ a/kernel/bounds.c
-@@ -0,0 +1,19 @@
-+/*
-+ * Generate definitions needed by the preprocessor.
-+ * This code generates raw asm output which is post-processed
-+ * to extract and format the required data.
+ /*
++ * Macros to create function definitions for page flags
 + */
++#define TESTPAGEFLAG(uname, lname)					\
++static inline int Page##uname(struct page *page) 			\
++			{ return test_bit(PG_##lname, &page->flags); }
 +
-+#define __GENERATING_BOUNDS_H
-+/* Include headers that define the enum constants of interest */
++#define SETPAGEFLAG(uname, lname)					\
++static inline void SetPage##uname(struct page *page)			\
++			{ set_bit(PG_##lname, &page->flags); }
 +
-+#define DEFINE(sym, val) \
-+        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
++#define CLEARPAGEFLAG(uname, lname)					\
++static inline void ClearPage##uname(struct page *page)			\
++			{ clear_bit(PG_##lname, &page->flags); }
 +
-+#define BLANK() asm volatile("\n->" : : )
++#define __SETPAGEFLAG(uname, lname)					\
++static inline void __SetPage##uname(struct page *page)			\
++			{ __set_bit(PG_##lname, &page->flags); }
 +
-+void foo(void)
-+{
-+	/* The enum constants to put into include/linux/bounds.h */
-+	/* End of constants */
-+}
++#define __CLEARPAGEFLAG(uname, lname)					\
++static inline void __ClearPage##uname(struct page *page)		\
++			{ __clear_bit(PG_##lname, &page->flags); }
++
++#define TESTSETFLAG(uname, lname)					\
++static inline int TestSetPage##uname(struct page *page)			\
++		{ return test_and_set_bit(PG_##lname, &page->flags); }
++
++#define TESTCLEARFLAG(uname, lname)					\
++static inline int TestClearPage##uname(struct page *page)		\
++		{ return test_and_clear_bit(PG_##lname, &page->flags); }
++
++
++#define PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
++	SETPAGEFLAG(uname, lname) CLEARPAGEFLAG(uname, lname)
++
++#define __PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
++	__SETPAGEFLAG(uname, lname)  __CLEARPAGEFLAG(uname, lname)
++
++#define TESTSCFLAG(uname, lname)					\
++	TESTSETFLAG(uname, lname) TESTCLEARFLAG(uname, lname)
++
++/*
+  * Manipulation of page state flags
+  */
+ #define PageLocked(page)		\
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
