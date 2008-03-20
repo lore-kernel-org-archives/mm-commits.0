@@ -1,65 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-add-iscsi-ibft-support-fix.patch added to -mm tree
-Date: Thu, 20 Mar 2008 15:44:38 -0700
-Message-ID: <200803202244.m2KMicR3027824@imap1.linux-foundation.org>
+Subject: - tg3-fix-warning-on-sparc32.patch removed from -mm tree
+Date: Thu, 20 Mar 2008 16:39:54 -0700
+Message-ID: <200803202339.m2KNdtXh029804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44879 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59759 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752766AbYCTWpq (ORCPT
+	by vger.kernel.org with ESMTP id S1754878AbYCTXkF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 18:45:46 -0400
+	Thu, 20 Mar 2008 19:40:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, greg@kroah.com, konradr@linux.vnet.ibm.com, michaelc@cs.wisc.edu, pjones@redhat.com, randy.dunlap@oracle.com
+To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi-add-iscsi-ibft-support-fix
-has been added to the -mm tree.  Its filename is
-     scsi-add-iscsi-ibft-support-fix.patch
+     tg3: fix warning on sparc32
+has been removed from the -mm tree.  Its filename was
+     tg3-fix-warning-on-sparc32.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi-add-iscsi-ibft-support-fix
+Subject: tg3: fix warning on sparc32
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Greg KH <greg@kroah.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
-Cc: Mike Christie <michaelc@cs.wisc.edu>
-Cc: Peter Jones <pjones@redhat.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+drivers/net/tg3.c:11781: warning: 'tg3_get_default_macaddr_sparc' defined but not used
+
+This looks wrong.
+
+tg3.c is rather large.
+
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/iscsi_ibft.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/tg3.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/firmware/iscsi_ibft.c~scsi-add-iscsi-ibft-support-fix drivers/firmware/iscsi_ibft.c
---- a/drivers/firmware/iscsi_ibft.c~scsi-add-iscsi-ibft-support-fix
-+++ a/drivers/firmware/iscsi_ibft.c
-@@ -65,6 +65,7 @@
+diff -puN drivers/net/tg3.c~tg3-fix-warning-on-sparc32 drivers/net/tg3.c
+--- a/drivers/net/tg3.c~tg3-fix-warning-on-sparc32
++++ a/drivers/net/tg3.c
+@@ -11766,6 +11766,7 @@ static int __devinit tg3_get_macaddr_spa
+ 	return -ENODEV;
+ }
  
++#ifdef CONFIG_SPARC64
+ static int __devinit tg3_get_default_macaddr_sparc(struct tg3 *tp)
+ {
+ 	struct net_device *dev = tp->dev;
+@@ -11775,6 +11776,7 @@ static int __devinit tg3_get_default_mac
+ 	return 0;
+ }
+ #endif
++#endif
  
- #include <linux/blkdev.h>
-+#include <linux/capability.h>
- #include <linux/ctype.h>
- #include <linux/device.h>
- #include <linux/err.h>
+ static int __devinit tg3_get_device_address(struct tg3 *tp)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
