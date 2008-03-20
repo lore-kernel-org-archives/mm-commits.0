@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + get-rid-of-__zone_count.patch added to -mm tree
-Date: Thu, 20 Mar 2008 13:28:47 -0700
-Message-ID: <200803202028.m2KKSmd7022676@imap1.linux-foundation.org>
+Subject: + pageflags-convert-to-the-use-of-new-macros.patch added to -mm tree
+Date: Thu, 20 Mar 2008 13:28:33 -0700
+Message-ID: <200803202028.m2KKSXFp022660@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36421 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51086 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760311AbYCTUa1 (ORCPT
+	by vger.kernel.org with ESMTP id S1759934AbYCTUhJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 16:30:27 -0400
+	Thu, 20 Mar 2008 16:37:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: clameter@sgi.com, apw@shadowen.org, jeremy@goop.org, kamezawa.hiroyu@jp.fuji
 
 
 The patch titled
-     mm: get rid of __ZONE_COUNT
+     pageflags: convert to the use of new macros
 has been added to the -mm tree.  Its filename is
-     get-rid-of-__zone_count.patch
+     pageflags-convert-to-the-use-of-new-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: get rid of __ZONE_COUNT
+Subject: pageflags: convert to the use of new macros
 From: Christoph Lameter <clameter@sgi.com>
 
-It was used to compensate because MAX_NR_ZONES was not available to the
-#ifdefs.  Export MAX_NR_ZONES via the new mechanism and get rid of
-__ZONE_COUNT.
+Replace explicit definitions of page flags through the use of macros. 
+Significantly reduces the size of the definitions and removes a lot of
+opportunity for errors.  Additonal page flags can typically be generated with
+a single line.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
@@ -51,109 +52,242 @@ Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   28 +++++++++++-----------------
- kernel/bounds.c        |    2 ++
- 2 files changed, 13 insertions(+), 17 deletions(-)
+ include/linux/page-flags.h |  195 ++++++++++++-----------------------
+ 1 file changed, 68 insertions(+), 127 deletions(-)
 
-diff -puN include/linux/mmzone.h~get-rid-of-__zone_count include/linux/mmzone.h
---- a/include/linux/mmzone.h~get-rid-of-__zone_count
-+++ a/include/linux/mmzone.h
-@@ -3,6 +3,7 @@
+diff -puN include/linux/page-flags.h~pageflags-convert-to-the-use-of-new-macros include/linux/page-flags.h
+--- a/include/linux/page-flags.h~pageflags-convert-to-the-use-of-new-macros
++++ a/include/linux/page-flags.h
+@@ -149,28 +149,58 @@ static inline int TestClearPage##uname(s
+ #define TESTSCFLAG(uname, lname)					\
+ 	TESTSETFLAG(uname, lname) TESTCLEARFLAG(uname, lname)
  
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
-+#ifndef __GENERATING_BOUNDS_H
- 
- #include <linux/spinlock.h>
- #include <linux/list.h>
-@@ -15,6 +16,7 @@
- #include <linux/seqlock.h>
- #include <linux/nodemask.h>
- #include <linux/pageblock-flags.h>
-+#include <linux/bounds.h>
- #include <asm/atomic.h>
- #include <asm/page.h>
- 
-@@ -129,6 +131,8 @@ struct per_cpu_pageset {
- #define zone_pcp(__z, __cpu) (&(__z)->pageset[(__cpu)])
- #endif
- 
-+#endif /* !__GENERATING_BOUNDS.H */
++struct page;	/* forward declaration */
 +
- enum zone_type {
- #ifdef CONFIG_ZONE_DMA
- 	/*
-@@ -177,9 +181,11 @@ enum zone_type {
- 	ZONE_HIGHMEM,
- #endif
- 	ZONE_MOVABLE,
--	MAX_NR_ZONES
-+	__MAX_NR_ZONES
- };
- 
-+#ifndef __GENERATING_BOUNDS_H
++PAGEFLAG(Locked, locked) TESTSCFLAG(Locked, locked)
++PAGEFLAG(Error, error)
++PAGEFLAG(Referenced, referenced) TESTCLEARFLAG(Referenced, referenced)
++PAGEFLAG(Dirty, dirty) TESTSCFLAG(Dirty, dirty) __CLEARPAGEFLAG(Dirty, dirty)
++PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, lru)
++PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
++__PAGEFLAG(Slab, slab)
++PAGEFLAG(Checked, checked)		/* Used by some filesystems */
++PAGEFLAG(Pinned, pinned)		/* Xen pinned pagetable */
++PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
++PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
++	__SETPAGEFLAG(Private, private)
 +
++/*
++ * Only test-and-set exist for PG_writeback.  The unconditional operators are
++ * risky: they bypass page accounting.
++ */
++TESTPAGEFLAG(Writeback, writeback) TESTSCFLAG(Writeback, writeback)
++__PAGEFLAG(Buddy, buddy)
++PAGEFLAG(MappedToDisk, mappedtodisk)
++
++/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
++PAGEFLAG(Reclaim, reclaim) TESTCLEARFLAG(Reclaim, reclaim)
++PAGEFLAG(Readahead, readahead)		/* Reminder to do async read-ahead */
++
++#ifdef CONFIG_HIGHMEM
  /*
-  * When a memory allocation must conform to specific limitations (such
-  * as being suitable for DMA) the caller will pass in hints to the
-@@ -188,28 +194,15 @@ enum zone_type {
-  * match the requested limits. See gfp_zone() in include/linux/gfp.h
+- * Manipulation of page state flags
++ * Must use a macro here due to header dependency issues. page_zone() is not
++ * available at this point.
   */
+-#define PageLocked(page)		\
+-		test_bit(PG_locked, &(page)->flags)
+-#define SetPageLocked(page)		\
+-		set_bit(PG_locked, &(page)->flags)
+-#define TestSetPageLocked(page)		\
+-		test_and_set_bit(PG_locked, &(page)->flags)
+-#define ClearPageLocked(page)		\
+-		clear_bit(PG_locked, &(page)->flags)
+-#define TestClearPageLocked(page)	\
+-		test_and_clear_bit(PG_locked, &(page)->flags)
+-
+-#define PageError(page)		test_bit(PG_error, &(page)->flags)
+-#define SetPageError(page)	set_bit(PG_error, &(page)->flags)
+-#define ClearPageError(page)	clear_bit(PG_error, &(page)->flags)
+-
+-#define PageReferenced(page)	test_bit(PG_referenced, &(page)->flags)
+-#define SetPageReferenced(page)	set_bit(PG_referenced, &(page)->flags)
+-#define ClearPageReferenced(page)	clear_bit(PG_referenced, &(page)->flags)
+-#define TestClearPageReferenced(page) test_and_clear_bit(PG_referenced, &(page)->flags)
++#define PageHighMem(__p) is_highmem(page_zone(page))
++#else
++static inline int PageHighMem(struct page *page)
++{
++	return 0;
++}
++#endif
++
++#ifdef CONFIG_SWAP
++PAGEFLAG(SwapCache, swapcache)
++#else
++static inline int PageSwapCache(struct page *page)
++{
++	return 0;
++}
++#endif
++
++#if (BITS_PER_LONG > 32)
++PAGEFLAG(Uncached, uncached)
++#endif
+ 
+ static inline int PageUptodate(struct page *page)
+ {
+@@ -218,97 +248,37 @@ static inline void SetPageUptodate(struc
+ #endif
+ }
+ 
+-#define ClearPageUptodate(page)	clear_bit(PG_uptodate, &(page)->flags)
++CLEARPAGEFLAG(Uptodate, uptodate)
+ 
+-#define PageDirty(page)		test_bit(PG_dirty, &(page)->flags)
+-#define SetPageDirty(page)	set_bit(PG_dirty, &(page)->flags)
+-#define TestSetPageDirty(page)	test_and_set_bit(PG_dirty, &(page)->flags)
+-#define ClearPageDirty(page)	clear_bit(PG_dirty, &(page)->flags)
+-#define __ClearPageDirty(page)	__clear_bit(PG_dirty, &(page)->flags)
+-#define TestClearPageDirty(page) test_and_clear_bit(PG_dirty, &(page)->flags)
+-
+-#define PageLRU(page)		test_bit(PG_lru, &(page)->flags)
+-#define SetPageLRU(page)	set_bit(PG_lru, &(page)->flags)
+-#define ClearPageLRU(page)	clear_bit(PG_lru, &(page)->flags)
+-#define __ClearPageLRU(page)	__clear_bit(PG_lru, &(page)->flags)
+-
+-#define PageActive(page)	test_bit(PG_active, &(page)->flags)
+-#define SetPageActive(page)	set_bit(PG_active, &(page)->flags)
+-#define ClearPageActive(page)	clear_bit(PG_active, &(page)->flags)
+-#define __ClearPageActive(page)	__clear_bit(PG_active, &(page)->flags)
+-
+-#define PageSlab(page)		test_bit(PG_slab, &(page)->flags)
+-#define __SetPageSlab(page)	__set_bit(PG_slab, &(page)->flags)
+-#define __ClearPageSlab(page)	__clear_bit(PG_slab, &(page)->flags)
++extern void cancel_dirty_page(struct page *page, unsigned int account_size);
+ 
+-#ifdef CONFIG_HIGHMEM
+-#define PageHighMem(page)	is_highmem(page_zone(page))
+-#else
+-#define PageHighMem(page)	0 /* needed to optimize away at compile time */
+-#endif
++int test_clear_page_writeback(struct page *page);
++int test_set_page_writeback(struct page *page);
+ 
+-#define PageChecked(page)	test_bit(PG_checked, &(page)->flags)
+-#define SetPageChecked(page)	set_bit(PG_checked, &(page)->flags)
+-#define ClearPageChecked(page)	clear_bit(PG_checked, &(page)->flags)
+-
+-#define PagePinned(page)	test_bit(PG_pinned, &(page)->flags)
+-#define SetPagePinned(page)	set_bit(PG_pinned, &(page)->flags)
+-#define ClearPagePinned(page)	clear_bit(PG_pinned, &(page)->flags)
+-
+-#define PageReserved(page)	test_bit(PG_reserved, &(page)->flags)
+-#define SetPageReserved(page)	set_bit(PG_reserved, &(page)->flags)
+-#define ClearPageReserved(page)	clear_bit(PG_reserved, &(page)->flags)
+-#define __ClearPageReserved(page)	__clear_bit(PG_reserved, &(page)->flags)
+-
+-#define SetPagePrivate(page)	set_bit(PG_private, &(page)->flags)
+-#define ClearPagePrivate(page)	clear_bit(PG_private, &(page)->flags)
+-#define PagePrivate(page)	test_bit(PG_private, &(page)->flags)
+-#define __SetPagePrivate(page)  __set_bit(PG_private, &(page)->flags)
+-#define __ClearPagePrivate(page) __clear_bit(PG_private, &(page)->flags)
++static inline void set_page_writeback(struct page *page)
++{
++	test_set_page_writeback(page);
++}
  
 -/*
-- * Count the active zones.  Note that the use of defined(X) outside
-- * #if and family is not necessarily defined so ensure we cannot use
-- * it later.  Use __ZONE_COUNT to work out how many shift bits we need.
+- * Only test-and-set exist for PG_writeback.  The unconditional operators are
+- * risky: they bypass page accounting.
 - */
--#define __ZONE_COUNT (			\
--	  defined(CONFIG_ZONE_DMA)	\
--	+ defined(CONFIG_ZONE_DMA32)	\
--	+ 1				\
--	+ defined(CONFIG_HIGHMEM)	\
--	+ 1				\
--)
--#if __ZONE_COUNT < 2
-+#if MAX_NR_ZONES < 2
- #define ZONES_SHIFT 0
--#elif __ZONE_COUNT <= 2
-+#elif MAX_NR_ZONES <= 2
- #define ZONES_SHIFT 1
--#elif __ZONE_COUNT <= 4
-+#elif MAX_NR_ZONES <= 4
- #define ZONES_SHIFT 2
- #else
- #error ZONES_SHIFT -- too many zones configured adjust calculation
- #endif
--#undef __ZONE_COUNT
+-#define PageWriteback(page)	test_bit(PG_writeback, &(page)->flags)
+-#define TestSetPageWriteback(page) test_and_set_bit(PG_writeback,	\
+-							&(page)->flags)
+-#define TestClearPageWriteback(page) test_and_clear_bit(PG_writeback,	\
+-							&(page)->flags)
+-
+-#define PageBuddy(page)		test_bit(PG_buddy, &(page)->flags)
+-#define __SetPageBuddy(page)	__set_bit(PG_buddy, &(page)->flags)
+-#define __ClearPageBuddy(page)	__clear_bit(PG_buddy, &(page)->flags)
+-
+-#define PageMappedToDisk(page)	test_bit(PG_mappedtodisk, &(page)->flags)
+-#define SetPageMappedToDisk(page) set_bit(PG_mappedtodisk, &(page)->flags)
+-#define ClearPageMappedToDisk(page) clear_bit(PG_mappedtodisk, &(page)->flags)
+-
+-#define PageReadahead(page)	test_bit(PG_readahead, &(page)->flags)
+-#define SetPageReadahead(page)	set_bit(PG_readahead, &(page)->flags)
+-#define ClearPageReadahead(page) clear_bit(PG_readahead, &(page)->flags)
+-
+-#define PageReclaim(page)	test_bit(PG_reclaim, &(page)->flags)
+-#define SetPageReclaim(page)	set_bit(PG_reclaim, &(page)->flags)
+-#define ClearPageReclaim(page)	clear_bit(PG_reclaim, &(page)->flags)
+-#define TestClearPageReclaim(page) test_and_clear_bit(PG_reclaim, &(page)->flags)
+-
+-#define PageCompound(page)	test_bit(PG_compound, &(page)->flags)
+-#define __SetPageCompound(page)	__set_bit(PG_compound, &(page)->flags)
+-#define __ClearPageCompound(page) __clear_bit(PG_compound, &(page)->flags)
++TESTPAGEFLAG(Compound, compound)
++__PAGEFLAG(Head, compound)
  
- struct zone {
- 	/* Fields commonly accessed by the page allocator */
-@@ -1027,6 +1020,7 @@ unsigned long __init node_memmap_size_by
- #define pfn_valid_within(pfn) (1)
- #endif
+ /*
+  * PG_reclaim is used in combination with PG_compound to mark the
+- * head and tail of a compound page
++ * head and tail of a compound page. This saves one page flag
++ * but makes it impossible to use compound pages for the page cache.
++ * The PG_reclaim bit would have to be used for reclaim or readahead
++ * if compound pages enter the page cache.
+  *
+  * PG_compound & PG_reclaim	=> Tail page
+  * PG_compound & ~PG_reclaim	=> Head page
+  */
+-
+ #define PG_head_tail_mask ((1L << PG_compound) | (1L << PG_reclaim))
  
-+#endif /* !__GENERATING_BOUNDS.H */
- #endif /* !__ASSEMBLY__ */
- #endif /* __KERNEL__ */
- #endif /* _LINUX_MMZONE_H */
-diff -puN kernel/bounds.c~get-rid-of-__zone_count kernel/bounds.c
---- a/kernel/bounds.c~get-rid-of-__zone_count
-+++ a/kernel/bounds.c
-@@ -7,6 +7,7 @@
- #define __GENERATING_BOUNDS_H
- /* Include headers that define the enum constants of interest */
- #include <linux/page-flags.h>
-+#include <linux/mmzone.h>
+-#define PageTail(page)	(((page)->flags & PG_head_tail_mask)	\
+-				== PG_head_tail_mask)
++static inline int PageTail(struct page *page)
++{
++	return ((page->flags & PG_head_tail_mask) == PG_head_tail_mask);
++}
  
- #define DEFINE(sym, val) \
-         asm volatile("\n->" #sym " %0 " #val : : "i" (val))
-@@ -17,5 +18,6 @@ void foo(void)
+ static inline void __SetPageTail(struct page *page)
  {
- 	/* The enum constants to put into include/linux/bounds.h */
- 	DEFINE(NR_PAGEFLAGS, __NR_PAGEFLAGS);
-+	DEFINE(MAX_NR_ZONES, __MAX_NR_ZONES);
- 	/* End of constants */
+@@ -320,34 +290,5 @@ static inline void __ClearPageTail(struc
+ 	page->flags &= ~PG_head_tail_mask;
  }
+ 
+-#define PageHead(page)	(((page)->flags & PG_head_tail_mask)	\
+-				== (1L << PG_compound))
+-#define __SetPageHead(page)	__SetPageCompound(page)
+-#define __ClearPageHead(page)	__ClearPageCompound(page)
+-
+-#ifdef CONFIG_SWAP
+-#define PageSwapCache(page)	test_bit(PG_swapcache, &(page)->flags)
+-#define SetPageSwapCache(page)	set_bit(PG_swapcache, &(page)->flags)
+-#define ClearPageSwapCache(page) clear_bit(PG_swapcache, &(page)->flags)
+-#else
+-#define PageSwapCache(page)	0
+-#endif
+-
+-#define PageUncached(page)	test_bit(PG_uncached, &(page)->flags)
+-#define SetPageUncached(page)	set_bit(PG_uncached, &(page)->flags)
+-#define ClearPageUncached(page)	clear_bit(PG_uncached, &(page)->flags)
+-
+-struct page;	/* forward declaration */
+-
+-extern void cancel_dirty_page(struct page *page, unsigned int account_size);
+-
+-int test_clear_page_writeback(struct page *page);
+-int test_set_page_writeback(struct page *page);
+-
+-static inline void set_page_writeback(struct page *page)
+-{
+-	test_set_page_writeback(page);
+-}
+-
+ #endif /* !__GENERATING_BOUNDS_H */
+ #endif	/* PAGE_FLAGS_H */
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
