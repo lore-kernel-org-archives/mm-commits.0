@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + file-capabilities-remove-cap_task_kill.patch added to -mm tree
-Date: Thu, 20 Mar 2008 12:08:12 -0700
-Message-ID: <200803201908.m2KJ8Cc6019539@imap1.linux-foundation.org>
+Subject: + pps-userland-header-file-for-pps-api.patch added to -mm tree
+Date: Thu, 20 Mar 2008 13:03:22 -0700
+Message-ID: <200803202003.m2KK3Maf021531@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753652AbYCTTIe (ORCPT
+	by vger.kernel.org with ESMTP id S1752563AbYCTUD6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 15:08:34 -0400
+	Thu, 20 Mar 2008 16:03:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serge@hallyn.com, morgan@kernel.org
+Cc: giometti@linux.it
 
 
 The patch titled
-     file capabilities: remove cap_task_kill()
+     PPS: userland header file for PPS API
 has been added to the -mm tree.  Its filename is
-     file-capabilities-remove-cap_task_kill.patch
+     pps-userland-header-file-for-pps-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,131 +34,229 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: file capabilities: remove cap_task_kill()
-From: Serge Hallyn <serge@hallyn.com>
+Subject: PPS: userland header file for PPS API
+From: Rodolfo Giometti <giometti@linux.it>
 
-The original justification for cap_task_kill() was as follows:
+This patch adds into the PPS's documentation directory a possible
+implementation of the PPS API (RFC 2783) by using the LinuxPPS's char devices.
 
-	check_kill_permission() does appropriate uid equivalence checks.
-	However with file capabilities it becomes possible for an
-	unprivileged user to execute a file with file capabilities
-	resulting in a more privileged task with the same uid.
+This file is not just an example but it can be used into real systems.  :)
 
-However now that cap_task_kill() always returns 0 (permission granted) when
-p->uid==current->uid, the whole hook is worthless, and only likely to
-create more subtle problems in the corner cases where it might still be
-called but return -EPERM.  Those cases are basically when uids are
-different but euid/suid is equivalent as per the check in
-check_kill_permission().
-
-One example of a still-broken application is 'at' for non-root users.
-
-This patch removes cap_task_kill().
-
-Signed-off-by: Serge Hallyn <serge@hallyn.com>
-Acked-by: Andrew G. Morgan <morgan@kernel.org>
+Signed-off-by: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/security.h   |    3 --
- security/capability.c      |    1 
- security/commoncap.c       |   40 -----------------------------------
- security/smack/smack_lsm.c |    5 ----
- 4 files changed, 1 insertion(+), 48 deletions(-)
+ Documentation/pps/timepps.h |  195 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 195 insertions(+)
 
-diff -puN include/linux/security.h~file-capabilities-remove-cap_task_kill include/linux/security.h
---- a/include/linux/security.h~file-capabilities-remove-cap_task_kill
-+++ a/include/linux/security.h
-@@ -57,7 +57,6 @@ extern int cap_inode_need_killpriv(struc
- extern int cap_inode_killpriv(struct dentry *dentry);
- extern int cap_task_post_setuid (uid_t old_ruid, uid_t old_euid, uid_t old_suid, int flags);
- extern void cap_task_reparent_to_init (struct task_struct *p);
--extern int cap_task_kill(struct task_struct *p, struct siginfo *info, int sig, u32 secid);
- extern int cap_task_setscheduler (struct task_struct *p, int policy, struct sched_param *lp);
- extern int cap_task_setioprio (struct task_struct *p, int ioprio);
- extern int cap_task_setnice (struct task_struct *p, int nice);
-@@ -2187,7 +2186,7 @@ static inline int security_task_kill (st
- 				      struct siginfo *info, int sig,
- 				      u32 secid)
- {
--	return cap_task_kill(p, info, sig, secid);
+diff -puN /dev/null Documentation/pps/timepps.h
+--- /dev/null
++++ a/Documentation/pps/timepps.h
+@@ -0,0 +1,195 @@
++/*
++ * timepps.h -- PPS API main header
++ *
++ * Copyright (C) 2005-2007   Rodolfo Giometti <giometti@linux.it>
++ *
++ *   This program is free software; you can redistribute it and/or modify
++ *   it under the terms of the GNU General Public License as published by
++ *   the Free Software Foundation; either version 2 of the License, or
++ *   (at your option) any later version.
++ *
++ *   This program is distributed in the hope that it will be useful,
++ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *   GNU General Public License for more details.
++ *
++ *   You should have received a copy of the GNU General Public License
++ *   along with this program; if not, write to the Free Software
++ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef _SYS_TIMEPPS_H_
++#define _SYS_TIMEPPS_H_
++
++#include <sys/syscall.h>
++#include <unistd.h>
++#include <errno.h>
++#include <linux/pps.h>
++
++#define LINUXPPS	1		/* signal we are using LinuxPPS */
++
++/*
++ * New data structures
++ */
++
++struct ntp_fp {
++	unsigned int integral;
++	unsigned int fractional;
++};
++
++union pps_timeu {
++	struct timespec tspec;
++	struct ntp_fp ntpfp;
++	unsigned long longpad[3];
++};
++
++struct pps_info {
++	unsigned long assert_sequence;	/* seq. num. of assert event */
++	unsigned long clear_sequence;	/* seq. num. of clear event */
++	union pps_timeu assert_tu;	/* time of assert event */
++	union pps_timeu clear_tu;	/* time of clear event */
++	int current_mode;		/* current mode bits */
++};
++
++struct pps_params {
++	int api_version;		/* API version # */
++	int mode;			/* mode bits */
++	union pps_timeu assert_off_tu;	/* offset compensation for assert */
++	union pps_timeu clear_off_tu;	/* offset compensation for clear */
++};
++
++typedef int pps_handle_t;		/* represents a PPS source */
++typedef unsigned long pps_seq_t;	/* sequence number */
++typedef struct ntp_fp ntp_fp_t;		/* NTP-compatible time stamp */
++typedef union pps_timeu pps_timeu_t;	/* generic data type for time stamps */
++typedef struct pps_info pps_info_t;
++typedef struct pps_params pps_params_t;
++
++#define assert_timestamp        assert_tu.tspec
++#define clear_timestamp         clear_tu.tspec
++
++#define assert_timestamp_ntpfp  assert_tu.ntpfp
++#define clear_timestamp_ntpfp   clear_tu.ntpfp
++
++#define assert_offset		assert_off_tu.tspec
++#define clear_offset		clear_off_tu.tspec
++
++#define assert_offset_ntpfp     assert_off_tu.ntpfp
++#define clear_offset_ntpfp      clear_off_tu.ntpfp
++
++/*
++ * The PPS API
++ */
++
++static __inline int time_pps_create(int source, pps_handle_t *handle)
++{
++	int ret;
++
++	if (!handle) {
++		errno = EINVAL;
++		return -1;
++	}
++
++	/* First we check if current device is a PPS valid PPS one...
++	 */
++	ret = ioctl(source, PPS_CHECK);
++	if (ret) {
++		errno = EOPNOTSUPP;
++		return -1;
++	}
++
++	/* ... then since in LinuxPPS there are no differences between a
++	 * "PPS source" and a "PPS handle", we simply return the same value.
++	 */
++	*handle = source;
++
 +	return 0;
- }
- 
- static inline int security_task_wait (struct task_struct *p)
-diff -puN security/capability.c~file-capabilities-remove-cap_task_kill security/capability.c
---- a/security/capability.c~file-capabilities-remove-cap_task_kill
-+++ a/security/capability.c
-@@ -40,7 +40,6 @@ static struct security_operations capabi
- 	.inode_need_killpriv =		cap_inode_need_killpriv,
- 	.inode_killpriv =		cap_inode_killpriv,
- 
--	.task_kill =			cap_task_kill,
- 	.task_setscheduler =		cap_task_setscheduler,
- 	.task_setioprio =		cap_task_setioprio,
- 	.task_setnice =			cap_task_setnice,
-diff -puN security/commoncap.c~file-capabilities-remove-cap_task_kill security/commoncap.c
---- a/security/commoncap.c~file-capabilities-remove-cap_task_kill
-+++ a/security/commoncap.c
-@@ -540,41 +540,6 @@ int cap_task_setnice (struct task_struct
- 	return cap_safe_nice(p);
- }
- 
--int cap_task_kill(struct task_struct *p, struct siginfo *info,
--				int sig, u32 secid)
--{
--	if (info != SEND_SIG_NOINFO && (is_si_special(info) || SI_FROMKERNEL(info)))
--		return 0;
--
--	/*
--	 * Running a setuid root program raises your capabilities.
--	 * Killing your own setuid root processes was previously
--	 * allowed.
--	 * We must preserve legacy signal behavior in this case.
--	 */
--	if (p->uid == current->uid)
--		return 0;
--
--	/* sigcont is permitted within same session */
--	if (sig == SIGCONT && (task_session_nr(current) == task_session_nr(p)))
--		return 0;
--
--	if (secid)
--		/*
--		 * Signal sent as a particular user.
--		 * Capabilities are ignored.  May be wrong, but it's the
--		 * only thing we can do at the moment.
--		 * Used only by usb drivers?
--		 */
--		return 0;
--	if (cap_issubset(p->cap_permitted, current->cap_permitted))
--		return 0;
--	if (capable(CAP_KILL))
--		return 0;
--
--	return -EPERM;
--}
--
- /*
-  * called from kernel/sys.c for prctl(PR_CABSET_DROP)
-  * done without task_capability_lock() because it introduces
-@@ -605,11 +570,6 @@ int cap_task_setnice (struct task_struct
- {
- 	return 0;
- }
--int cap_task_kill(struct task_struct *p, struct siginfo *info,
--				int sig, u32 secid)
--{
--	return 0;
--}
- #endif
- 
- void cap_task_reparent_to_init (struct task_struct *p)
-diff -puN security/smack/smack_lsm.c~file-capabilities-remove-cap_task_kill security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~file-capabilities-remove-cap_task_kill
-+++ a/security/smack/smack_lsm.c
-@@ -1117,11 +1117,6 @@ static int smack_task_movememory(struct 
- static int smack_task_kill(struct task_struct *p, struct siginfo *info,
- 			   int sig, u32 secid)
- {
--	int rc;
++}
++
++static __inline int time_pps_destroy(pps_handle_t handle)
++{
++	return close(handle);
++}
++
++static __inline int time_pps_getparams(pps_handle_t handle,
++					pps_params_t *ppsparams)
++{
++	int ret;
++	struct pps_kparams __ppsparams;
++
++	ret = ioctl(handle, PPS_GETPARAMS, &__ppsparams);
++
++	ppsparams->api_version = __ppsparams.api_version;
++	ppsparams->mode = __ppsparams.mode;
++	ppsparams->assert_off_tu.tspec.tv_sec = __ppsparams.assert_off_tu.sec;
++	ppsparams->assert_off_tu.tspec.tv_nsec = __ppsparams.assert_off_tu.nsec;
++	ppsparams->clear_off_tu.tspec.tv_sec = __ppsparams.clear_off_tu.sec;
++	ppsparams->clear_off_tu.tspec.tv_nsec = __ppsparams.clear_off_tu.nsec;
++
++	return ret;
++}
++
++static __inline int time_pps_setparams(pps_handle_t handle,
++					const pps_params_t *ppsparams)
++{
++	struct pps_kparams __ppsparams;
++
++	__ppsparams.api_version = ppsparams->api_version;
++	__ppsparams.mode = ppsparams->mode;
++	__ppsparams.assert_off_tu.sec = ppsparams->assert_off_tu.tspec.tv_sec;
++	__ppsparams.assert_off_tu.nsec = ppsparams->assert_off_tu.tspec.tv_nsec;
++	__ppsparams.clear_off_tu.sec = ppsparams->clear_off_tu.tspec.tv_sec;
++	__ppsparams.clear_off_tu.nsec = ppsparams->clear_off_tu.tspec.tv_nsec;
++
++	return ioctl(handle, PPS_SETPARAMS, &__ppsparams);
++}
++
++/* Get capabilities for handle */
++static __inline int time_pps_getcap(pps_handle_t handle, int *mode)
++{
++	return ioctl(handle, PPS_GETCAP, mode);
++}
++
++static __inline int time_pps_fetch(pps_handle_t handle, const int tsformat,
++					pps_info_t *ppsinfobuf,
++					const struct timespec *timeout)
++{
++	struct pps_fdata __fdata;
++	int ret;
++
++	/* Sanity checks */
++	if (tsformat != PPS_TSFMT_TSPEC) {
++		errno = EINVAL;
++		return -1;
++	}
++
++	if (timeout) {
++		__fdata.timeout.sec = timeout->tv_sec;
++		__fdata.timeout.nsec = timeout->tv_nsec;
++		__fdata.timeout.flags = ~PPS_TIME_INVALID;
++	} else
++		__fdata.timeout.flags = PPS_TIME_INVALID;
++
++	ret = ioctl(handle, PPS_FETCH, &__fdata);
++
++	ppsinfobuf->assert_sequence = __fdata.info.assert_sequence;
++	ppsinfobuf->clear_sequence = __fdata.info.clear_sequence;
++	ppsinfobuf->assert_tu.tspec.tv_sec = __fdata.info.assert_tu.sec;
++	ppsinfobuf->assert_tu.tspec.tv_nsec = __fdata.info.assert_tu.nsec;
++	ppsinfobuf->clear_tu.tspec.tv_sec = __fdata.info.clear_tu.sec;
++	ppsinfobuf->clear_tu.tspec.tv_nsec = __fdata.info.clear_tu.nsec;
++	ppsinfobuf->current_mode = __fdata.info.current_mode;
++
++	return ret;
++}
++
++static __inline int time_pps_kcbind(pps_handle_t handle,
++					const int kernel_consumer,
++					const int edge, const int tsformat)
++{
++	/* LinuxPPS doesn't implement kernel consumer feature */
++	errno = EOPNOTSUPP;
++	return -1;
++}
++
++#endif				/* _SYS_TIMEPPS_H_ */
+_
+
+Patches currently in -mm which might be from giometti@linux.it are
+
+linuxpps-core-support.patch
+pps-userland-header-file-for-pps-api.patch
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
+pps-serial-clients-support.patch
+pps-example-program-to-enable-pps-support-on-serial-ports.patch
+pps-parallel-port-clients-support.patch
+
