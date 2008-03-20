@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-parameterstxt-document-memmap-option-better.patch added to -mm tree
-Date: Thu, 20 Mar 2008 14:56:32 -0700
-Message-ID: <200803202156.m2KLuWPJ026095@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-quirksc-hpet-clock-enable-on-nvidia-nforce-430.patch added to -mm tree
+Date: Thu, 20 Mar 2008 14:58:05 -0700
+Message-ID: <200803202158.m2KLw6T0026126@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53127 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43847 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757490AbYCTV4l (ORCPT
+	by vger.kernel.org with ESMTP id S1757014AbYCTV6e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 17:56:41 -0400
+	Thu, 20 Mar 2008 17:58:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pavel@ucw.cz, dl9pf@gmx.de, pavel@suse.cz
+Cc: zbiggy@o2.pl, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     kernel-parameters.txt: document memmap option better
+     arch/x86/kernel/quirks.c: hpet clock enable on nVidia nForce 430
 has been added to the -mm tree.  Its filename is
-     kernel-parameterstxt-document-memmap-option-better.patch
+     arch-x86-kernel-quirksc-hpet-clock-enable-on-nvidia-nforce-430.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel-parameters.txt: document memmap option better
-From: Pavel Machek <pavel@ucw.cz>
+Subject: arch/x86/kernel/quirks.c: hpet clock enable on nVidia nForce 430
+From: Zbigniew Luszpinski <zbiggy@o2.pl>
 
-Provide example for memmap exclude option (it is slightly strange and
-non-trivial) and provide nice small HOWTO for people with bad memory.
+Allow hpet=force on nVidia nForce 430 southbridge.
 
-Signed-off-by: Jan-Simon Moeller <dl9pf@gmx.de>
-Signed-off-by: Pavel Machek <pavel@suse.cz>
+This patch was tested by me on my old Asus A8N-VM CSM (where bios does not
+support hpet and does not advertise it via acpi entry).  My nForce430 version:
+
+lspci -nn | grep LPC
+00:0a.0 ISA bridge [0601]: nVidia Corporation MCP51 LPC Bridge [10de:0260]
+(rev a2)
+
+Kernel 2.6.24.3 after patching and using hpet=force reports this:
+dmesg | grep -i hpet
+Kernel command line: root=/dev/sda8 ro vga=773 video=vesafb:mtrr:4,ywrap
+vt.default_utf8=0 hpet=force
+Force enabled HPET at base address 0xfed00000
+hpet clockevent registered
+Time: hpet clocksource has been installed.
+
+grep -i hpet /proc/timer_list
+Clock Event Device: hpet
+ set_next_event: hpet_legacy_next_event
+ set_mode:       hpet_legacy_set_mode
+
+grep Clock /proc/timer_list (before patching)
+Clock Event Device: pit
+Clock Event Device: lapic
+
+grep Clock /proc/timer_list (after patching)
+Clock Event Device: hpet
+Clock Event Device: lapic
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/x86/kernel/quirks.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN Documentation/kernel-parameters.txt~kernel-parameterstxt-document-memmap-option-better Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~kernel-parameterstxt-document-memmap-option-better
-+++ a/Documentation/kernel-parameters.txt
-@@ -1141,6 +1141,10 @@ and is between 256 and 4096 characters. 
- 	memmap=nn[KMG]$ss[KMG]
- 			[KNL,ACPI] Mark specific memory as reserved.
- 			Region of memory to be used, from ss to ss+nn.
-+			Example: Exclude memory from 0x18690000-0x1869ffff
-+			         memmap=64K$0x18690000
-+			         or
-+			         memmap=0x10000$0x18690000
+diff -puN arch/x86/kernel/quirks.c~arch-x86-kernel-quirksc-hpet-clock-enable-on-nvidia-nforce-430 arch/x86/kernel/quirks.c
+--- a/arch/x86/kernel/quirks.c~arch-x86-kernel-quirksc-hpet-clock-enable-on-nvidia-nforce-430
++++ a/arch/x86/kernel/quirks.c
+@@ -363,6 +363,8 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_N
+ 			nvidia_force_enable_hpet);
  
- 	meye.*=		[HW] Set MotionEye Camera parameters
- 			See Documentation/video4linux/meye.txt.
+ /* LPC bridges */
++DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NVIDIA, 0x0260,
++			nvidia_force_enable_hpet);
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NVIDIA, 0x0360,
+ 			nvidia_force_enable_hpet);
+ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NVIDIA, 0x0361,
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from zbiggy@o2.pl are
 
-git-x86.patch
-git-acpi.patch
-git-hrt.patch
-x86-fix-aperture-vs-suspend-problem.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-kernel-parameterstxt-document-memmap-option-better.patch
+arch-x86-kernel-quirksc-hpet-clock-enable-on-nvidia-nforce-430.patch
 
