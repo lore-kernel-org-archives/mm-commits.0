@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-quirksc-hpet-clock-enable-on-nvidia-nforce-430.patch added to -mm tree
-Date: Thu, 20 Mar 2008 14:58:05 -0700
-Message-ID: <200803202158.m2KLw6T0026126@imap1.linux-foundation.org>
+Subject: + likely_prof-changed-to-use-proc_create.patch added to -mm tree
+Date: Thu, 20 Mar 2008 14:59:49 -0700
+Message-ID: <200803202159.m2KLxnKU026150@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43847 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57141 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757014AbYCTV6e (ORCPT
+	by vger.kernel.org with ESMTP id S1757219AbYCTWAp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 17:58:34 -0400
+	Thu, 20 Mar 2008 18:00:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zbiggy@o2.pl, ak@suse.de, mingo@elte.hu, tglx@linutronix.de
+Cc: dwalker@mvista.com, adobriyan@gmail.com
 
 
 The patch titled
-     arch/x86/kernel/quirks.c: hpet clock enable on nVidia nForce 430
+     likely_prof changed to use proc_create
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-quirksc-hpet-clock-enable-on-nvidia-nforce-430.patch
+     likely_prof-changed-to-use-proc_create.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/quirks.c: hpet clock enable on nVidia nForce 430
-From: Zbigniew Luszpinski <zbiggy@o2.pl>
+Subject: likely_prof changed to use proc_create
+From: Daniel Walker <dwalker@mvista.com>
 
-Allow hpet=force on nVidia nForce 430 southbridge.
+Convert likely profiling to use proc_create instead of create_proc_entry.
 
-This patch was tested by me on my old Asus A8N-VM CSM (where bios does not
-support hpet and does not advertise it via acpi entry).  My nForce430 version:
-
-lspci -nn | grep LPC
-00:0a.0 ISA bridge [0601]: nVidia Corporation MCP51 LPC Bridge [10de:0260]
-(rev a2)
-
-Kernel 2.6.24.3 after patching and using hpet=force reports this:
-dmesg | grep -i hpet
-Kernel command line: root=/dev/sda8 ro vga=773 video=vesafb:mtrr:4,ywrap
-vt.default_utf8=0 hpet=force
-Force enabled HPET at base address 0xfed00000
-hpet clockevent registered
-Time: hpet clocksource has been installed.
-
-grep -i hpet /proc/timer_list
-Clock Event Device: hpet
- set_next_event: hpet_legacy_next_event
- set_mode:       hpet_legacy_set_mode
-
-grep Clock /proc/timer_list (before patching)
-Clock Event Device: pit
-Clock Event Device: lapic
-
-grep Clock /proc/timer_list (after patching)
-Clock Event Device: hpet
-Clock Event Device: lapic
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/quirks.c |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/likely_prof.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/quirks.c~arch-x86-kernel-quirksc-hpet-clock-enable-on-nvidia-nforce-430 arch/x86/kernel/quirks.c
---- a/arch/x86/kernel/quirks.c~arch-x86-kernel-quirksc-hpet-clock-enable-on-nvidia-nforce-430
-+++ a/arch/x86/kernel/quirks.c
-@@ -363,6 +363,8 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_N
- 			nvidia_force_enable_hpet);
+diff -puN lib/likely_prof.c~likely_prof-changed-to-use-proc_create lib/likely_prof.c
+--- a/lib/likely_prof.c~likely_prof-changed-to-use-proc_create
++++ a/lib/likely_prof.c
+@@ -136,10 +136,11 @@ static struct file_operations proc_likel
  
- /* LPC bridges */
-+DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NVIDIA, 0x0260,
-+			nvidia_force_enable_hpet);
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NVIDIA, 0x0360,
- 			nvidia_force_enable_hpet);
- DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_NVIDIA, 0x0361,
+ static int __init init_likely(void)
+ {
+-	struct proc_dir_entry *entry;
+-	entry = create_proc_entry("likely_prof", 0, &proc_root);
+-	if (entry)
+-		entry->proc_fops = &proc_likely_operations;
++	struct proc_dir_entry *entry =
++		proc_create("likely_prof", 0, &proc_root,
++				&proc_likely_operations);
++	if (!entry)
++		return 1;
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from zbiggy@o2.pl are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-arch-x86-kernel-quirksc-hpet-clock-enable-on-nvidia-nforce-430.patch
+net-ehea-semaphore-to-mutex.patch
+net-ehea-ehea_fw_handles-semaphore-to-mutex.patch
+net-ehea-locking-order-correction.patch
+net-ehea-bcmc_regs-semaphore-to-mutex.patch
+net-ehea-port_lock-semaphore-to-mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+likely_prof-changed-to-use-proc_create.patch
 
