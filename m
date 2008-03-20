@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ehea-fix-ipv6-support.patch added to -mm tree
-Date: Thu, 20 Mar 2008 14:55:54 -0700
-Message-ID: <200803202155.m2KLtsEm026011@imap1.linux-foundation.org>
+Subject: + kernel-parameterstxt-document-memmap-option-better.patch added to -mm tree
+Date: Thu, 20 Mar 2008 14:56:32 -0700
+Message-ID: <200803202156.m2KLuWPJ026095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60274 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757440AbYCTV4G (ORCPT
+	by vger.kernel.org with ESMTP id S1757490AbYCTV4l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 17:56:06 -0400
+	Thu, 20 Mar 2008 17:56:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: osstklei@de.ibm.com, davem@davemloft.net, hering2@de.ibm.com, jeff@garzik.org, raisch@de.ibm.com, stefan.roscher@de.ibm.com, themann@de.ibm.com, tklein@de.ibm.com
+Cc: pavel@ucw.cz, dl9pf@gmx.de, pavel@suse.cz
 
 
 The patch titled
-     ehea: fix IPv6 support
+     kernel-parameters.txt: document memmap option better
 has been added to the -mm tree.  Its filename is
-     ehea-fix-ipv6-support.patch
+     kernel-parameterstxt-document-memmap-option-better.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ehea: fix IPv6 support
-From: Thomas Klein <osstklei@de.ibm.com>
+Subject: kernel-parameters.txt: document memmap option better
+From: Pavel Machek <pavel@ucw.cz>
 
-Indicate that EHEA calculates IPv4 checksums only
+Provide example for memmap exclude option (it is slightly strange and
+non-trivial) and provide nice small HOWTO for people with bad memory.
 
-Signed-off-by: Thomas Klein <tklein@de.ibm.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Christoph Raisch <raisch@de.ibm.com>
-Cc: "Jan-Bernd Themann" <themann@de.ibm.com>
-Cc: Stefan Roscher <stefan.roscher@de.ibm.com>
-Cc: Hannes Hering <hering2@de.ibm.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Jan-Simon Moeller <dl9pf@gmx.de>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea.h      |    2 +-
- drivers/net/ehea/ehea_main.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ Documentation/kernel-parameters.txt |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/net/ehea/ehea.h~ehea-fix-ipv6-support drivers/net/ehea/ehea.h
---- a/drivers/net/ehea/ehea.h~ehea-fix-ipv6-support
-+++ a/drivers/net/ehea/ehea.h
-@@ -40,7 +40,7 @@
- #include <asm/io.h>
+diff -puN Documentation/kernel-parameters.txt~kernel-parameterstxt-document-memmap-option-better Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~kernel-parameterstxt-document-memmap-option-better
++++ a/Documentation/kernel-parameters.txt
+@@ -1141,6 +1141,10 @@ and is between 256 and 4096 characters. 
+ 	memmap=nn[KMG]$ss[KMG]
+ 			[KNL,ACPI] Mark specific memory as reserved.
+ 			Region of memory to be used, from ss to ss+nn.
++			Example: Exclude memory from 0x18690000-0x1869ffff
++			         memmap=64K$0x18690000
++			         or
++			         memmap=0x10000$0x18690000
  
- #define DRV_NAME	"ehea"
--#define DRV_VERSION	"EHEA_0087"
-+#define DRV_VERSION	"EHEA_0089"
- 
- /* eHEA capability flags */
- #define DLPAR_PORT_ADD_REM 1
-diff -puN drivers/net/ehea/ehea_main.c~ehea-fix-ipv6-support drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~ehea-fix-ipv6-support
-+++ a/drivers/net/ehea/ehea_main.c
-@@ -3110,7 +3110,7 @@ struct ehea_port *ehea_setup_single_port
- 	dev->vlan_rx_add_vid = ehea_vlan_rx_add_vid;
- 	dev->vlan_rx_kill_vid = ehea_vlan_rx_kill_vid;
- 	dev->features = NETIF_F_SG | NETIF_F_FRAGLIST | NETIF_F_TSO
--		      | NETIF_F_HIGHDMA | NETIF_F_HW_CSUM | NETIF_F_HW_VLAN_TX
-+		      | NETIF_F_HIGHDMA | NETIF_F_IP_CSUM | NETIF_F_HW_VLAN_TX
- 		      | NETIF_F_HW_VLAN_RX | NETIF_F_HW_VLAN_FILTER
- 		      | NETIF_F_LLTX;
- 	dev->tx_timeout = &ehea_tx_watchdog;
+ 	meye.*=		[HW] Set MotionEye Camera parameters
+ 			See Documentation/video4linux/meye.txt.
 _
 
-Patches currently in -mm which might be from osstklei@de.ibm.com are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
-ehea-fix-ipv6-support.patch
+git-x86.patch
+git-acpi.patch
+git-hrt.patch
+x86-fix-aperture-vs-suspend-problem.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+kernel-parameterstxt-document-memmap-option-better.patch
 
