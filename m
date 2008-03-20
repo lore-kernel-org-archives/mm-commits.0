@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + signals-document-cld_continued-notification-mechanics-more.patch added to -mm tree
-Date: Thu, 20 Mar 2008 15:04:23 -0700
-Message-ID: <200803202204.m2KM4N3a026325@imap1.linux-foundation.org>
+Subject: + signals-fold-sig_ignored-into-handle_stop_signal-comment.patch added to -mm tree
+Date: Thu, 20 Mar 2008 15:04:19 -0700
+Message-ID: <200803202204.m2KM4JvM026322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56949 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56034 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752406AbYCTWFR (ORCPT
+	by vger.kernel.org with ESMTP id S1757424AbYCTWFc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 20 Mar 2008 18:05:17 -0400
+	Thu, 20 Mar 2008 18:05:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     signals-document-cld_continued-notification-mechanics-more
+     signals-fold-sig_ignored-into-handle_stop_signal-comment
 has been added to the -mm tree.  Its filename is
-     signals-document-cld_continued-notification-mechanics-more.patch
+     signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals-document-cld_continued-notification-mechanics-more
+Subject: signals-fold-sig_ignored-into-handle_stop_signal-comment
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-comments update for signals-document-cld_continued-notification-mechanics.patch
+comments update for signals-fold-sig_ignored-into-handle_stop_signal.patch
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ kernel/signal.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN kernel/signal.c~signals-document-cld_continued-notification-mechanics-more kernel/signal.c
---- a/kernel/signal.c~signals-document-cld_continued-notification-mechanics-more
+diff -puN kernel/signal.c~signals-fold-sig_ignored-into-handle_stop_signal-comment kernel/signal.c
+--- a/kernel/signal.c~signals-fold-sig_ignored-into-handle_stop_signal-comment
 +++ a/kernel/signal.c
-@@ -1660,7 +1660,11 @@ relock:
- 	try_to_freeze();
+@@ -558,11 +558,14 @@ static int check_kill_permission(int sig
+ static void do_notify_parent_cldstop(struct task_struct *tsk, int why);
  
- 	spin_lock_irq(&sighand->siglock);
--	/* see prepare_signal(SIGCONT) */
-+	/*
-+	 * Every stopped thread goes here after wakeup. Check to see if
-+	 * we should notify the parent, prepare_signal(SIGCONT) encodes
-+	 * the CLD_ si_code into SIGNAL_CLD_MASK bits.
-+	 */
- 	if (unlikely(signal->flags & SIGNAL_CLD_MASK)) {
- 		int why = (signal->flags & SIGNAL_STOP_CONTINUED)
- 				? CLD_CONTINUED : CLD_STOPPED;
+ /*
+- * Handle magic process-wide effects of stop/continue signals.
+- * Unlike the signal actions, these happen immediately at signal-generation
++ * Handle magic process-wide effects of stop/continue signals. Unlike
++ * the signal actions, these happen immediately at signal-generation
+  * time regardless of blocking, ignoring, or handling.  This does the
+  * actual continuing for SIGCONT, but not the actual stopping for stop
+- * signals.  The process stop is done as a signal action for SIG_DFL.
++ * signals. The process stop is done as a signal action for SIG_DFL.
++ *
++ * Returns true if the signal should be actually delivered, otherwise
++ * it should be dropped.
+  */
+ static int prepare_signal(int sig, struct task_struct *p)
+ {
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
