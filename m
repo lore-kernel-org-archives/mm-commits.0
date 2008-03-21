@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pids-introduce-change_pid-helper.patch added to -mm tree
-Date: Fri, 21 Mar 2008 15:12:23 -0700
-Message-ID: <200803212212.m2LMCOwt012934@imap1.linux-foundation.org>
+Subject: + pids-__set_special_pids-use-change_pid-helper.patch added to -mm tree
+Date: Fri, 21 Mar 2008 15:12:27 -0700
+Message-ID: <200803212212.m2LMCRHk012940@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56728 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38422 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752008AbYCUWNf (ORCPT
+	by vger.kernel.org with ESMTP id S1752406AbYCUWNj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 18:13:35 -0400
+	Fri, 21 Mar 2008 18:13:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, ebiederm@xmission.com, roland@redhat.com, xemul@openvz.org
 
 
 The patch titled
-     pids: introduce change_pid() helper
+     pids: __set_special_pids: use change_pid() helper
 has been added to the -mm tree.  Its filename is
-     pids-introduce-change_pid-helper.patch
+     pids-__set_special_pids-use-change_pid-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pids: introduce change_pid() helper
+Subject: pids: __set_special_pids: use change_pid() helper
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Based on Eric W. Biederman's idea.
+Use change_pid() instead of detach_pid() + attach_pid() in
+__set_special_pids().
 
-Without tasklist_lock held task_session()/task_pgrp() can return NULL if the
-caller races with setprgp()/setsid() which does detach_pid() + attach_pid(). 
-This can happen even if task == current.
-
-Intoduce the new helper, change_pid(), which should be used instead.  This way
-the caller always sees the special pid != NULL, either old or new.
-
-Also change the prototype of attach_pid(), it always returns 0 and nobody
-check the returned value.
+This way task_session() is not NULL in between.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc:  "Eric W. Biederman" <ebiederm@xmission.com>
@@ -56,81 +49,28 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h |    6 ++++--
- kernel/pid.c        |   21 ++++++++++++++++-----
- 2 files changed, 20 insertions(+), 7 deletions(-)
+ kernel/exit.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/pid.h~pids-introduce-change_pid-helper include/linux/pid.h
---- a/include/linux/pid.h~pids-introduce-change_pid-helper
-+++ a/include/linux/pid.h
-@@ -89,9 +89,11 @@ extern struct pid *get_task_pid(struct t
-  * attach_pid() and detach_pid() must be called with the tasklist_lock
-  * write-held.
-  */
--extern int attach_pid(struct task_struct *task, enum pid_type type,
--		      struct pid *pid);
-+extern void attach_pid(struct task_struct *task, enum pid_type type,
-+			struct pid *pid);
- extern void detach_pid(struct task_struct *task, enum pid_type);
-+extern void change_pid(struct task_struct *task, enum pid_type,
-+			struct pid *pid);
- extern void transfer_pid(struct task_struct *old, struct task_struct *new,
- 			 enum pid_type);
+diff -puN kernel/exit.c~pids-__set_special_pids-use-change_pid-helper kernel/exit.c
+--- a/kernel/exit.c~pids-__set_special_pids-use-change_pid-helper
++++ a/kernel/exit.c
+@@ -334,13 +334,11 @@ void __set_special_pids(struct pid *pid)
+ 	pid_t nr = pid_nr(pid);
  
-diff -puN kernel/pid.c~pids-introduce-change_pid-helper kernel/pid.c
---- a/kernel/pid.c~pids-introduce-change_pid-helper
-+++ a/kernel/pid.c
-@@ -318,7 +318,7 @@ EXPORT_SYMBOL_GPL(find_pid);
- /*
-  * attach_pid() must be called with the tasklist_lock write-held.
-  */
--int attach_pid(struct task_struct *task, enum pid_type type,
-+void attach_pid(struct task_struct *task, enum pid_type type,
- 		struct pid *pid)
- {
- 	struct pid_link *link;
-@@ -326,11 +326,10 @@ int attach_pid(struct task_struct *task,
- 	link = &task->pids[type];
- 	link->pid = pid;
- 	hlist_add_head_rcu(&link->node, &pid->tasks[type]);
--
--	return 0;
+ 	if (task_session(curr) != pid) {
+-		detach_pid(curr, PIDTYPE_SID);
+-		attach_pid(curr, PIDTYPE_SID, pid);
++		change_pid(curr, PIDTYPE_SID, pid);
+ 		set_task_session(curr, nr);
+ 	}
+ 	if (task_pgrp(curr) != pid) {
+-		detach_pid(curr, PIDTYPE_PGID);
+-		attach_pid(curr, PIDTYPE_PGID, pid);
++		change_pid(curr, PIDTYPE_PGID, pid);
+ 		set_task_pgrp(curr, nr);
+ 	}
  }
- 
--void detach_pid(struct task_struct *task, enum pid_type type)
-+static void __change_pid(struct task_struct *task, enum pid_type type,
-+			struct pid *new)
- {
- 	struct pid_link *link;
- 	struct pid *pid;
-@@ -340,7 +339,7 @@ void detach_pid(struct task_struct *task
- 	pid = link->pid;
- 
- 	hlist_del_rcu(&link->node);
--	link->pid = NULL;
-+	link->pid = new;
- 
- 	for (tmp = PIDTYPE_MAX; --tmp >= 0; )
- 		if (!hlist_empty(&pid->tasks[tmp]))
-@@ -349,6 +348,18 @@ void detach_pid(struct task_struct *task
- 	free_pid(pid);
- }
- 
-+void detach_pid(struct task_struct *task, enum pid_type type)
-+{
-+	__change_pid(task, type, NULL);
-+}
-+
-+void change_pid(struct task_struct *task, enum pid_type type,
-+		struct pid *pid)
-+{
-+	__change_pid(task, type, pid);
-+	attach_pid(task, type, pid);
-+}
-+
- /* transfer_pid is an optimization of attach_pid(new), detach_pid(old) */
- void transfer_pid(struct task_struct *old, struct task_struct *new,
- 			   enum pid_type type)
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
