@@ -1,66 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-swap-dput-and-mntput.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:29:43 -0700
-Message-ID: <200803212029.m2LKThMk008895@imap1.linux-foundation.org>
+Subject: - ibmpex-update-kconfig-to-list-more-supported-models.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:29:19 -0700
+Message-ID: <200803212029.m2LKTJgB008856@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37005 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56211 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759010AbYCUUaT (ORCPT
+	by vger.kernel.org with ESMTP id S1759010AbYCUU37 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:30:19 -0400
+	Fri, 21 Mar 2008 16:29:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhalcrow@us.ibm.com, rajouri.jammu@gmail.com, sandeen@redhat.com, mm-commits@vger.kernel.org
+To: djwong@us.ibm.com, mhoffman@lightlink.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eCryptfs: Swap dput() and mntput()
+     ibmpex: update Kconfig to list more supported models
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-swap-dput-and-mntput.patch
+     ibmpex-update-kconfig-to-list-more-supported-models.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eCryptfs: Swap dput() and mntput()
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: ibmpex: update Kconfig to list more supported models
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-ecryptfs_d_release() is doing a mntput before doing the dput.  This patch
-moves the dput before the mntput.
+Enhanced the list of supported machines.
 
-Thanks to Rajouri Jammu for reporting this.
-
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Rajouri Jammu <rajouri.jammu@gmail.com>
-Cc: Eric Sandeen <sandeen@redhat.com>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Mark M. Hoffman <mhoffman@lightlink.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/dentry.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/hwmon/Kconfig |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/ecryptfs/dentry.c~ecryptfs-swap-dput-and-mntput fs/ecryptfs/dentry.c
---- a/fs/ecryptfs/dentry.c~ecryptfs-swap-dput-and-mntput
-+++ a/fs/ecryptfs/dentry.c
-@@ -80,8 +80,8 @@ static void ecryptfs_d_release(struct de
- {
- 	if (ecryptfs_dentry_to_private(dentry)) {
- 		if (ecryptfs_dentry_to_lower(dentry)) {
--			mntput(ecryptfs_dentry_to_lower_mnt(dentry));
- 			dput(ecryptfs_dentry_to_lower(dentry));
-+			mntput(ecryptfs_dentry_to_lower_mnt(dentry));
- 		}
- 		kmem_cache_free(ecryptfs_dentry_info_cache,
- 				ecryptfs_dentry_to_private(dentry));
+diff -puN drivers/hwmon/Kconfig~ibmpex-update-kconfig-to-list-more-supported-models drivers/hwmon/Kconfig
+--- a/drivers/hwmon/Kconfig~ibmpex-update-kconfig-to-list-more-supported-models
++++ a/drivers/hwmon/Kconfig
+@@ -337,8 +337,9 @@ config SENSORS_IBMPEX
+ 	help
+ 	  If you say yes here you get support for the temperature and
+ 	  power sensors in various IBM System X servers that support
+-	  PowerExecutive.  So far this includes the x3550, x3650, x3655,
+-	  x3755, and certain HS20 blades.
++	  PowerExecutive.  So far this includes the x3350, x3550, x3650,
++	  x3655, and x3755; the x3800, x3850, and x3950 models that have
++	  PCI Express; and some of the HS2x, LS2x, and QS2x blades.
+ 
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ibmpex.
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
 origin.patch
-git-unionfs.patch
-remove-ecryptfs_header_cache_0.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-remove-duplicated-unlikely-in-is_err.patch
+git-hwmon.patch
+adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
+git-scsi-misc.patch
+mptbase-reset-ioc-initiator-during-pci-resume.patch
+scsi-aic94xx-cleanups.patch
 
