@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + edac-new-support-for-intel-3100-chipset.patch added to -mm tree
-Date: Fri, 21 Mar 2008 14:35:57 -0700
-Message-ID: <200803212135.m2LLZv1R011573@imap1.linux-foundation.org>
+Subject: + edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 21 Mar 2008 14:36:42 -0700
+Message-ID: <200803212136.m2LLag0P011592@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38069 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758053AbYCUVhV (ORCPT
+	by vger.kernel.org with ESMTP id S1758224AbYCUVhW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 17:37:21 -0400
+	Fri, 21 Mar 2008 17:37:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akonovalov@ru.mvista.com, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, ptyser@xes-inc.com
 
 
 The patch titled
-     edac: new support for Intel 3100 chipset
+     edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     edac-new-support-for-intel-3100-chipset.patch
+     edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,334 +34,192 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: new support for Intel 3100 chipset
-From: Andrei Konovalov <akonovalov@ru.mvista.com>
+Subject: edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add Intel 3100 chipset support to e752x EDAC driver.
+ERROR: use tabs not spaces
+#91: FILE: drivers/edac/e752x_edac.c:1326:
++                " 1=enable system bus parity checking, default=auto-detect");$
+
+total: 1 errors, 0 warnings, 61 lines checked
+
+./patches/edac-add-e752x-parameter-for-sysbus_parity-selection.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Signed-off-by: Andrei Konovalov <akonovalov@ru.mvista.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Peter Tyser <ptyser@xes-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/Kconfig      |    2 
- drivers/edac/e752x_edac.c |  165 +++++++++++++++++++++++++++++++++---
- 2 files changed, 154 insertions(+), 13 deletions(-)
+ drivers/edac/e752x_edac.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/edac/Kconfig~edac-new-support-for-intel-3100-chipset drivers/edac/Kconfig
---- a/drivers/edac/Kconfig~edac-new-support-for-intel-3100-chipset
-+++ a/drivers/edac/Kconfig
-@@ -67,7 +67,7 @@ config EDAC_E7XXX
- 	  E7205, E7500, E7501 and E7505 server chipsets.
- 
- config EDAC_E752X
--	tristate "Intel e752x (e7520, e7525, e7320)"
-+	tristate "Intel e752x (e7520, e7525, e7320) and 3100"
- 	depends on EDAC_MM_EDAC && PCI && X86 && HOTPLUG
- 	help
- 	  Support for error detection and correction on the Intel
-diff -puN drivers/edac/e752x_edac.c~edac-new-support-for-intel-3100-chipset drivers/edac/e752x_edac.c
---- a/drivers/edac/e752x_edac.c~edac-new-support-for-intel-3100-chipset
+diff -puN drivers/edac/e752x_edac.c~edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes drivers/edac/e752x_edac.c
+--- a/drivers/edac/e752x_edac.c~edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes
 +++ a/drivers/edac/e752x_edac.c
-@@ -62,6 +62,14 @@ static struct edac_pci_ctl_info *e752x_p
- #define PCI_DEVICE_ID_INTEL_7320_1_ERR	0x3593
- #endif				/* PCI_DEVICE_ID_INTEL_7320_1_ERR */
+@@ -1323,4 +1323,4 @@ MODULE_PARM_DESC(edac_op_state, "EDAC Er
  
-+#ifndef PCI_DEVICE_ID_INTEL_3100_0
-+#define PCI_DEVICE_ID_INTEL_3100_0	0x35B0
-+#endif				/* PCI_DEVICE_ID_INTEL_3100_0 */
-+
-+#ifndef PCI_DEVICE_ID_INTEL_3100_1_ERR
-+#define PCI_DEVICE_ID_INTEL_3100_1_ERR	0x35B1
-+#endif				/* PCI_DEVICE_ID_INTEL_3100_1_ERR */
-+
- #define E752X_NR_CSROWS		8	/* number of csrows */
- 
- /* E752X register addresses - device 0 function 0 */
-@@ -152,6 +160,12 @@ static struct edac_pci_ctl_info *e752x_p
- 					/*     error syndrome register (16b) */
- #define E752X_DEVPRES1		0xF4	/* Device Present 1 register (8b) */
- 
-+/* 3100 IMCH specific register addresses - device 0 function 1 */
-+#define I3100_NSI_FERR		0x48	/* NSI first error reg (32b) */
-+#define I3100_NSI_NERR		0x4C	/* NSI next error reg (32b) */
-+#define I3100_NSI_SMICMD	0x54	/* NSI SMI command register (32b) */
-+#define I3100_NSI_EMASK		0x90	/* NSI error mask register (32b) */
-+
- /* ICH5R register addresses - device 30 function 0 */
- #define ICH5R_PCI_STAT		0x06	/* PCI status register (16b) */
- #define ICH5R_PCI_2ND_STAT	0x1E	/* PCI status secondary reg (16b) */
-@@ -160,7 +174,8 @@ static struct edac_pci_ctl_info *e752x_p
- enum e752x_chips {
- 	E7520 = 0,
- 	E7525 = 1,
--	E7320 = 2
-+	E7320 = 2,
-+	I3100 = 3
- };
- 
- struct e752x_pvt {
-@@ -185,8 +200,10 @@ struct e752x_dev_info {
- struct e752x_error_info {
- 	u32 ferr_global;
- 	u32 nerr_global;
--	u8 hi_ferr;
--	u8 hi_nerr;
-+	u32 nsi_ferr;	/* 3100 only */
-+	u32 nsi_nerr;	/* 3100 only */
-+	u8 hi_ferr;	/* all but 3100 */
-+	u8 hi_nerr;	/* all but 3100 */
- 	u16 sysbus_ferr;
- 	u16 sysbus_nerr;
- 	u8 buf_ferr;
-@@ -215,6 +232,10 @@ static const struct e752x_dev_info e752x
- 		.err_dev = PCI_DEVICE_ID_INTEL_7320_1_ERR,
- 		.ctl_dev = PCI_DEVICE_ID_INTEL_7320_0,
- 		.ctl_name = "E7320"},
-+	[I3100] = {
-+		.err_dev = PCI_DEVICE_ID_INTEL_3100_1_ERR,
-+		.ctl_dev = PCI_DEVICE_ID_INTEL_3100_0,
-+		.ctl_name = "3100"},
- };
- 
- static unsigned long ctl_page_to_phys(struct mem_ctl_info *mci,
-@@ -402,7 +423,7 @@ static inline void process_threshold_ce(
- static char *global_message[11] = {
- 	"PCI Express C1", "PCI Express C", "PCI Express B1",
- 	"PCI Express B", "PCI Express A1", "PCI Express A",
--	"DMA Controler", "HUB Interface", "System Bus",
-+	"DMA Controler", "HUB or NS Interface", "System Bus",
- 	"DRAM Controler", "Internal Buffer"
- };
- 
-@@ -455,6 +476,63 @@ static inline void hub_error(int fatal, 
- 		do_hub_error(fatal, errors);
- }
- 
-+#define NSI_FATAL_MASK		0x0c080081
-+#define NSI_NON_FATAL_MASK	0x23a0ba64
-+#define NSI_ERR_MASK		(NSI_FATAL_MASK | NSI_NON_FATAL_MASK)
-+
-+static char *nsi_message[30] = {
-+	"NSI Link Down",	/* NSI_FERR/NSI_NERR bit 0, fatal error */
-+	"",						/* reserved */
-+	"NSI Parity Error",				/* bit 2, non-fatal */
-+	"",						/* reserved */
-+	"",						/* reserved */
-+	"Correctable Error Message",			/* bit 5, non-fatal */
-+	"Non-Fatal Error Message",			/* bit 6, non-fatal */
-+	"Fatal Error Message",				/* bit 7, fatal */
-+	"",						/* reserved */
-+	"Receiver Error",				/* bit 9, non-fatal */
-+	"",						/* reserved */
-+	"Bad TLP",					/* bit 11, non-fatal */
-+	"Bad DLLP",					/* bit 12, non-fatal */
-+	"REPLAY_NUM Rollover",				/* bit 13, non-fatal */
-+	"",						/* reserved */
-+	"Replay Timer Timeout",				/* bit 15, non-fatal */
-+	"",						/* reserved */
-+	"",						/* reserved */
-+	"",						/* reserved */
-+	"Data Link Protocol Error",			/* bit 19, fatal */
-+	"",						/* reserved */
-+	"Poisoned TLP",					/* bit 21, non-fatal */
-+	"",						/* reserved */
-+	"Completion Timeout",				/* bit 23, non-fatal */
-+	"Completer Abort",				/* bit 24, non-fatal */
-+	"Unexpected Completion",			/* bit 25, non-fatal */
-+	"Receiver Overflow",				/* bit 26, fatal */
-+	"Malformed TLP",				/* bit 27, fatal */
-+	"",						/* reserved */
-+	"Unsupported Request"				/* bit 29, non-fatal */
-+};
-+
-+static void do_nsi_error(int fatal, u32 errors)
-+{
-+	int i;
-+
-+	for (i = 0; i < 30; i++) {
-+		if (errors & (1 << i))
-+			printk(KERN_WARNING "%sError %s\n",
-+			       fatal_message[fatal], nsi_message[i]);
-+	}
-+}
-+
-+static inline void nsi_error(int fatal, u32 errors, int *error_found,
-+		int handle_error)
-+{
-+	*error_found = 1;
-+
-+	if (handle_error)
-+		do_nsi_error(fatal, errors);
-+}
-+
- static char *membuf_message[4] = {
- 	"Internal PMWB to DRAM parity",
- 	"Internal PMWB to System Bus Parity",
-@@ -546,6 +624,31 @@ static void e752x_check_hub_interface(st
- 	}
- }
- 
-+static void e752x_check_ns_interface(struct e752x_error_info *info,
-+				int *error_found, int handle_error)
-+{
-+	u32 stat32;
-+
-+	stat32 = info->nsi_ferr;
-+	if (stat32 & NSI_ERR_MASK) { /* Error, so process */
-+		if (stat32 & NSI_FATAL_MASK)	/* check for fatal errors */
-+			nsi_error(1, stat32 & NSI_FATAL_MASK, error_found,
-+				  handle_error);
-+		if (stat32 & NSI_NON_FATAL_MASK) /* check for non-fatal ones */
-+			nsi_error(0, stat32 & NSI_NON_FATAL_MASK, error_found,
-+				  handle_error);
-+	}
-+	stat32 = info->nsi_nerr;
-+	if (stat32 & NSI_ERR_MASK) {
-+		if (stat32 & NSI_FATAL_MASK)
-+			nsi_error(1, stat32 & NSI_FATAL_MASK, error_found,
-+				  handle_error);
-+		if (stat32 & NSI_NON_FATAL_MASK)
-+			nsi_error(0, stat32 & NSI_NON_FATAL_MASK, error_found,
-+				  handle_error);
-+	}
-+}
-+
- static void e752x_check_sysbus(struct e752x_error_info *info,
- 			int *error_found, int handle_error)
- {
-@@ -653,7 +756,15 @@ static void e752x_get_error_info(struct 
- 	pci_read_config_dword(dev, E752X_FERR_GLOBAL, &info->ferr_global);
- 
- 	if (info->ferr_global) {
--		pci_read_config_byte(dev, E752X_HI_FERR, &info->hi_ferr);
-+		if (pvt->dev_info->err_dev == PCI_DEVICE_ID_INTEL_3100_1_ERR) {
-+			pci_read_config_dword(dev, I3100_NSI_FERR,
-+					     &info->nsi_ferr);
-+			info->hi_ferr = 0;
-+		} else {
-+			pci_read_config_byte(dev, E752X_HI_FERR,
-+					     &info->hi_ferr);
-+			info->nsi_ferr = 0;
-+		}
- 		pci_read_config_word(dev, E752X_SYSBUS_FERR,
- 				&info->sysbus_ferr);
- 		pci_read_config_byte(dev, E752X_BUF_FERR, &info->buf_ferr);
-@@ -669,10 +780,15 @@ static void e752x_get_error_info(struct 
- 		pci_read_config_dword(dev, E752X_DRAM_RETR_ADD,
- 				&info->dram_retr_add);
- 
-+		/* ignore the reserved bits just in case */
- 		if (info->hi_ferr & 0x7f)
- 			pci_write_config_byte(dev, E752X_HI_FERR,
- 					info->hi_ferr);
- 
-+		if (info->nsi_ferr & NSI_ERR_MASK)
-+			pci_write_config_dword(dev, I3100_NSI_FERR,
-+					info->nsi_ferr);
-+
- 		if (info->sysbus_ferr)
- 			pci_write_config_word(dev, E752X_SYSBUS_FERR,
- 					info->sysbus_ferr);
-@@ -692,7 +808,15 @@ static void e752x_get_error_info(struct 
- 	pci_read_config_dword(dev, E752X_NERR_GLOBAL, &info->nerr_global);
- 
- 	if (info->nerr_global) {
--		pci_read_config_byte(dev, E752X_HI_NERR, &info->hi_nerr);
-+		if (pvt->dev_info->err_dev == PCI_DEVICE_ID_INTEL_3100_1_ERR) {
-+			pci_read_config_dword(dev, I3100_NSI_NERR,
-+					     &info->nsi_nerr);
-+			info->hi_nerr = 0;
-+		} else {
-+			pci_read_config_byte(dev, E752X_HI_NERR,
-+					     &info->hi_nerr);
-+			info->nsi_nerr = 0;
-+		}
- 		pci_read_config_word(dev, E752X_SYSBUS_NERR,
- 				&info->sysbus_nerr);
- 		pci_read_config_byte(dev, E752X_BUF_NERR, &info->buf_nerr);
-@@ -706,6 +830,10 @@ static void e752x_get_error_info(struct 
- 			pci_write_config_byte(dev, E752X_HI_NERR,
- 					info->hi_nerr);
- 
-+		if (info->nsi_nerr & NSI_ERR_MASK)
-+			pci_write_config_dword(dev, I3100_NSI_NERR,
-+					info->nsi_nerr);
-+
- 		if (info->sysbus_nerr)
- 			pci_write_config_word(dev, E752X_SYSBUS_NERR,
- 					info->sysbus_nerr);
-@@ -750,6 +878,7 @@ static int e752x_process_error_info(stru
- 		global_error(0, stat32, &error_found, handle_errors);
- 
- 	e752x_check_hub_interface(info, &error_found, handle_errors);
-+	e752x_check_ns_interface(info, &error_found, handle_errors);
- 	e752x_check_sysbus(info, &error_found, handle_errors);
- 	e752x_check_membuf(info, &error_found, handle_errors);
- 	e752x_check_dram(mci, info, &error_found, handle_errors);
-@@ -926,8 +1055,13 @@ static void e752x_init_error_reporting_r
- 
- 	dev = pvt->dev_d0f1;
- 	/* Turn off error disable & SMI in case the BIOS turned it on */
--	pci_write_config_byte(dev, E752X_HI_ERRMASK, 0x00);
--	pci_write_config_byte(dev, E752X_HI_SMICMD, 0x00);
-+	if (pvt->dev_info->err_dev == PCI_DEVICE_ID_INTEL_3100_1_ERR) {
-+		pci_write_config_dword(dev, I3100_NSI_EMASK, 0);
-+		pci_write_config_dword(dev, I3100_NSI_SMICMD, 0);
-+	} else {
-+		pci_write_config_byte(dev, E752X_HI_ERRMASK, 0x00);
-+		pci_write_config_byte(dev, E752X_HI_SMICMD, 0x00);
-+	}
- 	pci_write_config_word(dev, E752X_SYSBUS_ERRMASK, 0x00);
- 	pci_write_config_word(dev, E752X_SYSBUS_SMICMD, 0x00);
- 	pci_write_config_byte(dev, E752X_BUF_ERRMASK, 0x00);
-@@ -985,8 +1119,9 @@ static int e752x_probe1(struct pci_dev *
- 
- 	debugf3("%s(): init mci\n", __func__);
- 	mci->mtype_cap = MEM_FLAG_RDDR;
--	mci->edac_ctl_cap = EDAC_FLAG_NONE | EDAC_FLAG_SECDED |
--		EDAC_FLAG_S4ECD4ED;
-+	/* 3100 IMCH supports SECDEC only */
-+	mci->edac_ctl_cap = (dev_idx == I3100) ? EDAC_FLAG_SECDED :
-+		(EDAC_FLAG_NONE | EDAC_FLAG_SECDED | EDAC_FLAG_S4ECD4ED);
- 	/* FIXME - what if different memory types are in different csrows? */
- 	mci->mod_name = EDAC_MOD_STR;
- 	mci->mod_ver = E752X_REVISION;
-@@ -1018,7 +1153,10 @@ static int e752x_probe1(struct pci_dev *
- 	e752x_init_csrows(mci, pdev, ddrcsr);
- 	e752x_init_mem_map_table(pdev, pvt);
- 
--	mci->edac_cap |= EDAC_FLAG_NONE;
-+	if (dev_idx == I3100)
-+		mci->edac_cap = EDAC_FLAG_SECDED; /* the only mode supported */
-+	else
-+		mci->edac_cap |= EDAC_FLAG_NONE;
- 	debugf3("%s(): tolm, remapbase, remaplimit\n", __func__);
- 
- 	/* load the top of low memory, remap base, and remap limit vars */
-@@ -1110,6 +1248,9 @@ static const struct pci_device_id e752x_
- 	 PCI_VEND_DEV(INTEL, 7320_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
- 	 E7320},
- 	{
-+	 PCI_VEND_DEV(INTEL, 3100_0), PCI_ANY_ID, PCI_ANY_ID, 0, 0,
-+	 I3100},
-+	{
- 	 0,
- 	 }			/* 0 terminated list. */
- };
-@@ -1143,7 +1284,7 @@ module_exit(e752x_exit);
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Linux Networx (http://lnxi.com) Tom Zimmerman\n");
--MODULE_DESCRIPTION("MC support for Intel e752x memory controllers");
-+MODULE_DESCRIPTION("MC support for Intel e752x/3100 memory controllers");
- 
- module_param(force_function_unhide, int, 0444);
- MODULE_PARM_DESC(force_function_unhide, "if BIOS sets Dev0:Fun1 up as hidden:"
+ module_param(sysbus_parity, int, 0444);
+ MODULE_PARM_DESC(sysbus_parity, "0=disable system bus parity checking,"
+-                " 1=enable system bus parity checking, default=auto-detect");
++		" 1=enable system bus parity checking, default=auto-detect");
 _
 
-Patches currently in -mm which might be from akonovalov@ru.mvista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-edac-new-support-for-intel-3100-chipset.patch
+origin.patch
+mtd-memory-corruption-in-block2mtdc.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi-fixup.patch
+git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+git-drm.patch
+git-drm-git-rejects.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-async-tx.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+git-sh.patch
+git-sh-git-rejects.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+scsi-add-iscsi-ibft-support-fix.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+fbdev-driver-for-freescale-8610-and-5121-diu-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+w1-build-fix.patch
 
