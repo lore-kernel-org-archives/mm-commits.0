@@ -1,54 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - kvm-warning-fix.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:30:50 -0700
-Message-ID: <200803212030.m2LKUoWI009022@imap1.linux-foundation.org>
+Subject: - revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:31:03 -0700
+Message-ID: <200803212031.m2LKV328009043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60575 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43099 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761128AbYCUUbV (ORCPT
+	by vger.kernel.org with ESMTP id S1761200AbYCUUbX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:31:21 -0400
+	Fri, 21 Mar 2008 16:31:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avi@qumranet.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, guichaz@yahoo.fr, just.for.lkml@googlemail.com, mingo@elte.hu, pbadari@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kvm warning fix
+     revert "sched: make sure jiffies is up to date before calling __update_rq_clock()"
 has been removed from the -mm tree.  Its filename was
-     kvm-warning-fix.patch
+     revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kvm warning fix
+Subject: revert "sched: make sure jiffies is up to date before calling __update_rq_clock()"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kvm/mmu.c: In function 'kvm_pv_mmu_op':
-arch/x86/kvm/mmu.c:2119: warning: comparison of distinct pointer types lacks a cast
+Revert
 
-Cc: Avi Kivity <avi@qumranet.com>
+commit 60befbc1c0b6d141c9c26e61ddd303aedd1e7396
+Author: Guillaume Chazarain <guichaz@yahoo.fr>
+Date:   Mon Mar 10 08:16:41 2008 +0100
+
+    sched: make sure jiffies is up to date before calling __update_rq_clock()
+    
+    Now that __update_rq_clock() uses jiffies to detect clock overflows,
+    make sure jiffies are up to date before touch_softlockup_watchdog().
+    
+    Removed a touch_softlockup_watchdog() call becoming redundant with the
+    added tick_nohz_update_jiffies().
+    
+    Signed-off-by: Guillaume Chazarain <guichaz@yahoo.fr>
+    Signed-off-by: Ingo Molnar <mingo@elte.hu>
+
+Due to bustage reported by Badari (and possibly Torsten?)
+
+Cc: Guillaume Chazarain <guichaz@yahoo.fr>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Badari Pulavarty <pbadari@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Torsten Kaiser <just.for.lkml@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/sched.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/kvm/mmu.c~kvm-warning-fix arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~kvm-warning-fix
-+++ a/arch/x86/kvm/mmu.c
-@@ -2116,7 +2116,7 @@ int kvm_pv_mmu_op(struct kvm_vcpu *vcpu,
- 	down_read(&current->mm->mmap_sem);
+diff -puN kernel/sched.c~revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock kernel/sched.c
+--- a/kernel/sched.c~revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock
++++ a/kernel/sched.c
+@@ -66,7 +66,6 @@
+ #include <linux/unistd.h>
+ #include <linux/pagemap.h>
+ #include <linux/hrtimer.h>
+-#include <linux/tick.h>
  
- 	buffer.ptr = buffer.buf;
--	buffer.len = min(bytes, sizeof buffer.buf);
-+	buffer.len = min_t(unsigned long, bytes, sizeof buffer.buf);
- 	buffer.processed = 0;
+ #include <asm/tlb.h>
+ #include <asm/irq_regs.h>
+@@ -914,7 +913,7 @@ void sched_clock_idle_wakeup_event(u64 d
+ 	rq->prev_clock_raw = now;
+ 	rq->clock += delta_ns;
+ 	spin_unlock(&rq->lock);
+-	tick_nohz_update_jiffies();
++	touch_softlockup_watchdog();
+ }
+ EXPORT_SYMBOL_GPL(sched_clock_idle_wakeup_event);
  
- 	r = kvm_read_guest(vcpu->kvm, addr, buffer.buf, buffer.len);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
