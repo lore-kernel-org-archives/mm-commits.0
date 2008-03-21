@@ -1,138 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-user_regset-ptrace_setregs-regression-fix.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:31:44 -0700
-Message-ID: <200803212031.m2LKViUB009094@imap1.linux-foundation.org>
+Subject: - x86-visws-fix-printk-format-warnings.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:31:23 -0700
+Message-ID: <200803212031.m2LKVN7D009067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38797 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757441AbYCUUc2 (ORCPT
+	by vger.kernel.org with ESMTP id S1757955AbYCUUcj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:32:28 -0400
+	Fri, 21 Mar 2008 16:32:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, anton@samba.org, benh@kernel.crashing.org, paulus@samba.org, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: user_regset PTRACE_SETREGS regression fix
+     x86/visws: fix printk format warnings
 has been removed from the -mm tree.  Its filename was
-     powerpc-user_regset-ptrace_setregs-regression-fix.patch
+     x86-visws-fix-printk-format-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: user_regset PTRACE_SETREGS regression fix
-From: Roland McGrath <roland@redhat.com>
+Subject: x86/visws: fix printk format warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The PTRACE_SETREGS request was only recently added on powerpc, and gdb does
-not use it.  So it slipped through without getting all the testing it should
-have had.
+Fix visws printk format warnings:
 
-The user_regset changes had a simple bug in storing to all of the 32-bit
-general registers block on 64-bit kernels.  This bug only comes up with
-PTRACE_SETREGS, not PPC_PTRACE_SETREGS.  It causes a BUG_ON to hit, so this
-fix needs to go in ASAP.
+/local/linsrc/linux-2.6.24-git15/arch/x86/mach-visws/traps.c:50: warning: format '%#lx' expects type 'long unsigned int', but argument 2 has type 'u32'
+/local/linsrc/linux-2.6.24-git15/arch/x86/mach-visws/traps.c:50: warning: format '%#lx' expects type 'long unsigned int', but argument 3 has type 'u32'
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/ptrace.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ arch/x86/mach-visws/traps.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/kernel/ptrace.c~powerpc-user_regset-ptrace_setregs-regression-fix arch/powerpc/kernel/ptrace.c
---- a/arch/powerpc/kernel/ptrace.c~powerpc-user_regset-ptrace_setregs-regression-fix
-+++ a/arch/powerpc/kernel/ptrace.c
-@@ -530,15 +530,21 @@ static int gpr32_set(struct task_struct 
- 		--count;
- 	}
+diff -puN arch/x86/mach-visws/traps.c~x86-visws-fix-printk-format-warnings arch/x86/mach-visws/traps.c
+--- a/arch/x86/mach-visws/traps.c~x86-visws-fix-printk-format-warnings
++++ a/arch/x86/mach-visws/traps.c
+@@ -46,8 +46,9 @@ static __init void cobalt_init(void)
+ 	 */
+ 	set_fixmap(FIX_APIC_BASE, APIC_DEFAULT_PHYS_BASE);
+ 	setup_local_APIC();
+-	printk(KERN_INFO "Local APIC Version %#lx, ID %#lx\n",
+-		apic_read(APIC_LVR), apic_read(APIC_ID));
++	printk(KERN_INFO "Local APIC Version %#x, ID %#x\n",
++		(unsigned int)apic_read(APIC_LVR),
++		(unsigned int)apic_read(APIC_ID));
  
--	if (kbuf)
-+	if (kbuf) {
- 		for (; count > 0 && pos <= PT_MAX_PUT_REG; --count)
- 			regs[pos++] = *k++;
--	else
-+		for (; count > 0 && pos < PT_TRAP; --count, ++pos)
-+			++k;
-+	} else {
- 		for (; count > 0 && pos <= PT_MAX_PUT_REG; --count) {
- 			if (__get_user(reg, u++))
- 				return -EFAULT;
- 			regs[pos++] = reg;
- 		}
-+		for (; count > 0 && pos < PT_TRAP; --count, ++pos)
-+			if (__get_user(reg, u++))
-+				return -EFAULT;
-+	}
- 
- 	if (count > 0 && pos == PT_TRAP) {
- 		if (kbuf)
+ 	set_fixmap(FIX_CO_CPU, CO_CPU_PHYS);
+ 	set_fixmap(FIX_CO_APIC, CO_APIC_PHYS);
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 git-x86.patch
-x86-handle_vm86_trap-cleanup.patch
-x86_64-ia32-ptrace-vs-enosys.patch
-x86_64-ptrace-vs-enosys.patch
-x86_64-ia32-ptrace-vs-enosys-sysenter-syscall.patch
-powerpc-dont-use-pt_dtrace.patch
-add-rusage_thread.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-document-cld_continued-notification-mechanics-more.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+rapidio-fix-docbook-references.patch
+pm-remove-legacy-pm-fix.patch
+git-kvm.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+scsi-add-iscsi-ibft-support-fix.patch
+git-unionfs.patch
+wireless-rt2x00-fix-driver-menu-indenting.patch
+x86-dont-allow-kvm_clock-without-have_kvm.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
+let-log_buf_shift-default-to-17.patch
+sysrq-add-show-backtrace-on-all-cpus-function.patch
+isolate-ratelimit-from-printkc-for-other-use-update.patch
+documentation-move-spidev_fdx-example-to-its-own-source-file.patch
+add-a-document-describing-the-resource-counter-abstraction-v2.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+jbd2-fix-kernel-doc-notation.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+kernel-add-bit-rotation-helpers-for-16-and-8-bit.patch
+profile-likely-unlikely-macros.patch
 
