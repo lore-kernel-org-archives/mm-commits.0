@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sh_keysc-fixdouble-free.patch added to -mm tree
-Date: Fri, 21 Mar 2008 15:46:11 -0700
-Message-ID: <200803212246.m2LMkBFq014332@imap1.linux-foundation.org>
+Subject: + cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism.patch added to -mm tree
+Date: Fri, 21 Mar 2008 15:41:28 -0700
+Message-ID: <200803212241.m2LMfSli014032@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47709 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37652 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762716AbYCUWqU (ORCPT
+	by vger.kernel.org with ESMTP id S1762921AbYCUWrE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 18:46:20 -0400
+	Fri, 21 Mar 2008 18:47:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: magnus.damm@gmail.com, damm@igel.co.jp, dtor@mail.ru, lethal@linux-sh.org
+Cc: djwong@us.ibm.com, davej@codemonkey.org.uk
 
 
 The patch titled
-     sh_keys.c: fixdouble free
+     cpufreq: expose cpufreq coordination requirements regardless of coordination mechanism
 has been added to the -mm tree.  Its filename is
-     sh_keysc-fixdouble-free.patch
+     cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh_keys.c: fixdouble free
-From: Magnus Damm <magnus.damm@gmail.com>
+Subject: cpufreq: expose cpufreq coordination requirements regardless of coordination mechanism
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-Avoid double free situation from happening by removing input_free_device()
-after input_unregister_device().  Suggested by Dmitry Torokhov.
+Currently, affected_cpus shows which CPUs need to have their frequency
+coordinated in software.  When hardware coordination is in use, the contents
+of this file appear the same as when no coordination is required.  This can
+lead to some confusion among user-space programs, for example, that do not
+know that extra coordination is required to force a CPU core to a particular
+speed to control power consumption.
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+To fix this, create a "related_cpus" attribute that always displays the
+coordination map regardless of whatever coordination strategy the cpufreq
+driver uses (sw or hw).  If the cpufreq driver does not provide a value, fall
+back to policy->cpus.
+
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/keyboard/sh_keysc.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    1 
+ drivers/cpufreq/cpufreq.c                  |   29 +++++++++++++++----
+ include/linux/cpufreq.h                    |    3 +
+ 3 files changed, 27 insertions(+), 6 deletions(-)
 
-diff -puN drivers/input/keyboard/sh_keysc.c~sh_keysc-fixdouble-free drivers/input/keyboard/sh_keysc.c
---- a/drivers/input/keyboard/sh_keysc.c~sh_keysc-fixdouble-free
-+++ a/drivers/input/keyboard/sh_keysc.c
-@@ -238,7 +238,6 @@ static int __devexit sh_keysc_remove(str
+diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+--- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism
++++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
+@@ -591,6 +591,7 @@ static int acpi_cpufreq_cpu_init(struct 
+ 	    policy->shared_type == CPUFREQ_SHARED_TYPE_ANY) {
+ 		policy->cpus = perf->shared_cpu_map;
+ 	}
++	policy->related_cpus = perf->shared_cpu_map;
  
- 	input_unregister_device(priv->input);
- 	free_irq(platform_get_irq(pdev, 0), pdev);
--	input_free_device(priv->input);
- 	iounmap(priv->iomem_base);
+ #ifdef CONFIG_SMP
+ 	dmi_check_system(sw_any_bug_dmi_table);
+diff -puN drivers/cpufreq/cpufreq.c~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism drivers/cpufreq/cpufreq.c
+--- a/drivers/cpufreq/cpufreq.c~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism
++++ a/drivers/cpufreq/cpufreq.c
+@@ -583,15 +583,13 @@ out:
+ 	i += sprintf(&buf[i], "\n");
+ 	return i;
+ }
+-/**
+- * show_affected_cpus - show the CPUs affected by each transition
+- */
+-static ssize_t show_affected_cpus(struct cpufreq_policy *policy, char *buf)
++
++static ssize_t show_cpus(cpumask_t mask, char *buf)
+ {
+ 	ssize_t i = 0;
+ 	unsigned int cpu;
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	for_each_cpu_mask(cpu, policy->cpus) {
++	for_each_cpu_mask(cpu, mask) {
+ 		if (i)
+ 			i += scnprintf(&buf[i], (PAGE_SIZE - i - 2), " ");
+ 		i += scnprintf(&buf[i], (PAGE_SIZE - i - 2), "%u", cpu);
+@@ -602,6 +600,25 @@ static ssize_t show_affected_cpus(struct
+ 	return i;
+ }
+ 
++/**
++ * show_related_cpus - show the CPUs affected by each transition even if
++ * hw coordination is in use
++ */
++static ssize_t show_related_cpus(struct cpufreq_policy *policy, char *buf)
++{
++	if (cpus_empty(policy->related_cpus))
++		return show_cpus(policy->cpus, buf);
++	return show_cpus(policy->related_cpus, buf);
++}
++
++/**
++ * show_affected_cpus - show the CPUs affected by each transition
++ */
++static ssize_t show_affected_cpus(struct cpufreq_policy *policy, char *buf)
++{
++	return show_cpus(policy->cpus, buf);
++}
++
+ static ssize_t store_scaling_setspeed(struct cpufreq_policy *policy,
+ 					const char *buf, size_t count)
+ {
+@@ -646,6 +663,7 @@ define_one_ro(cpuinfo_max_freq);
+ define_one_ro(scaling_available_governors);
+ define_one_ro(scaling_driver);
+ define_one_ro(scaling_cur_freq);
++define_one_ro(related_cpus);
+ define_one_ro(affected_cpus);
+ define_one_rw(scaling_min_freq);
+ define_one_rw(scaling_max_freq);
+@@ -658,6 +676,7 @@ static struct attribute *default_attrs[]
+ 	&scaling_min_freq.attr,
+ 	&scaling_max_freq.attr,
+ 	&affected_cpus.attr,
++	&related_cpus.attr,
+ 	&scaling_governor.attr,
+ 	&scaling_driver.attr,
+ 	&scaling_available_governors.attr,
+diff -puN include/linux/cpufreq.h~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism include/linux/cpufreq.h
+--- a/include/linux/cpufreq.h~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism
++++ a/include/linux/cpufreq.h
+@@ -83,7 +83,8 @@ struct cpufreq_real_policy {
+ };
+ 
+ struct cpufreq_policy {
+-	cpumask_t		cpus;	/* affected CPUs */
++	cpumask_t		cpus;	/* CPUs requiring sw coordination */
++	cpumask_t		related_cpus; /* CPUs with any coordination */
+ 	unsigned int		shared_type; /* ANY or ALL affected CPUs
+ 						should set cpufreq */
+ 	unsigned int		cpu;    /* cpu nr of registered CPU */
 _
 
-Patches currently in -mm which might be from magnus.damm@gmail.com are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
-smc91x-pass-along-private-data-v2.patch
-smc91x-introduce-platform-data-flags-v2.patch
-smc91x-add-insw-outsw-to-default-config-v2.patch
-smc91x-make-superh-use-default-config-v2.patch
-git-sh.patch
-sh_keysc-fixdouble-free.patch
-sm501-add-uart-support.patch
+origin.patch
+cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism.patch
+git-hwmon.patch
+adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
+git-scsi-misc.patch
+mptbase-reset-ioc-initiator-during-pci-resume.patch
+scsi-aic94xx-cleanups.patch
 
