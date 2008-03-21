@@ -1,171 +1,212 @@
 From: akpm@linux-foundation.org
-Subject: - memstick-add-support-for-8-bit-parallel-mode.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:30:05 -0700
-Message-ID: <200803212030.m2LKU5YF008954@imap1.linux-foundation.org>
+Subject: - fs-ufs-ballocc-fix-sparc64-printk-warning.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:30:00 -0700
+Message-ID: <200803212030.m2LKU0Ju008918@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53057 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760583AbYCUUaH (ORCPT
+	by vger.kernel.org with ESMTP id S1759893AbYCUUaH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 21 Mar 2008 16:30:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oakad@yahoo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dushistov@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memstick: add support for 8-bit parallel mode
+     fs/ufs/balloc.c: fix sparc64 printk warning
 has been removed from the -mm tree.  Its filename was
-     memstick-add-support-for-8-bit-parallel-mode.patch
+     fs-ufs-ballocc-fix-sparc64-printk-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: add support for 8-bit parallel mode
-From: Alex Dubov <oakad@yahoo.com>
+Subject: fs/ufs/balloc.c: fix sparc64 printk warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Newer MemoryStick (HG) cards and hosts support 8-bit parallel mode of
-operation in addition to original 4-bit and 1-bit modes.
+fs/ufs/balloc.c: In function `ufs_change_blocknr':
+fs/ufs/balloc.c:317: warning: long long unsigned int format, long unsigned int arg (arg 2)
+fs/ufs/balloc.c:317: warning: long long unsigned int format, long unsigned int arg (arg 3)
 
-Signed-off-by: Alex Dubov <oakad@yahoo.com>
+sector_t is u64 and we don't know what type the architecture uses to implement
+u64.
+
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/core/mspro_block.c |   81 +++++++++++++++++---------
- 1 file changed, 55 insertions(+), 26 deletions(-)
+ fs/ufs/balloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/memstick/core/mspro_block.c~memstick-add-support-for-8-bit-parallel-mode drivers/memstick/core/mspro_block.c
---- a/drivers/memstick/core/mspro_block.c~memstick-add-support-for-8-bit-parallel-mode
-+++ a/drivers/memstick/core/mspro_block.c
-@@ -816,12 +816,13 @@ static int mspro_block_wait_for_ced(stru
- 	return card->current_mrq.error;
- }
+diff -puN fs/ufs/balloc.c~fs-ufs-ballocc-fix-sparc64-printk-warning fs/ufs/balloc.c
+--- a/fs/ufs/balloc.c~fs-ufs-ballocc-fix-sparc64-printk-warning
++++ a/fs/ufs/balloc.c
+@@ -315,8 +315,8 @@ static void ufs_change_blocknr(struct in
+ 			}
  
--static int mspro_block_switch_to_parallel(struct memstick_dev *card)
-+static int mspro_block_set_interface(struct memstick_dev *card,
-+				     unsigned char sys_reg)
- {
- 	struct memstick_host *host = card->host;
- 	struct mspro_block_data *msb = memstick_get_drvdata(card);
- 	struct mspro_param_register param = {
--		.system = MEMSTICK_SYS_PAR4,
-+		.system = sys_reg,
- 		.data_count = 0,
- 		.data_address = 0,
- 		.tpc_param = 0
-@@ -833,41 +834,70 @@ static int mspro_block_switch_to_paralle
- 			  sizeof(param));
- 	memstick_new_req(host);
- 	wait_for_completion(&card->mrq_complete);
--	if (card->current_mrq.error)
--		return card->current_mrq.error;
-+	return card->current_mrq.error;
-+}
-+
-+static int mspro_block_switch_interface(struct memstick_dev *card)
-+{
-+	struct memstick_host *host = card->host;
-+	struct mspro_block_data *msb = memstick_get_drvdata(card);
-+	int rc = 0;
-+
-+	if (msb->caps & MEMSTICK_CAP_PAR4)
-+		rc = mspro_block_set_interface(card, MEMSTICK_SYS_PAR4);
-+	else
-+		return 0;
-+
-+	if (rc) {
-+		printk(KERN_WARNING
-+		       "%s: could not switch to 4-bit mode, error %d\n",
-+		       card->dev.bus_id, rc);
-+		return 0;
-+	}
+ 			UFSD(" change from %llu to %llu, pos %u\n",
+-			     (unsigned long long)pos + oldb,
+-			     (unsigned long long)pos + newb, pos);
++			     (unsigned long long)(pos + oldb),
++			     (unsigned long long)(pos + newb), pos);
  
- 	msb->system = MEMSTICK_SYS_PAR4;
- 	host->set_param(host, MEMSTICK_INTERFACE, MEMSTICK_PAR4);
-+	printk(KERN_INFO "%s: switching to 4-bit parallel mode\n",
-+	       card->dev.bus_id);
-+
-+	if (msb->caps & MEMSTICK_CAP_PAR8) {
-+		rc = mspro_block_set_interface(card, MEMSTICK_SYS_PAR8);
-+
-+		if (!rc) {
-+			msb->system = MEMSTICK_SYS_PAR8;
-+			host->set_param(host, MEMSTICK_INTERFACE,
-+					MEMSTICK_PAR8);
-+			printk(KERN_INFO
-+			       "%s: switching to 8-bit parallel mode\n",
-+			       card->dev.bus_id);
-+		} else
-+			printk(KERN_WARNING
-+			       "%s: could not switch to 8-bit mode, error %d\n",
-+			       card->dev.bus_id, rc);
-+	}
- 
- 	card->next_request = h_mspro_block_req_init;
- 	msb->mrq_handler = h_mspro_block_default;
- 	memstick_init_req(&card->current_mrq, MS_TPC_GET_INT, NULL, 1);
- 	memstick_new_req(card->host);
- 	wait_for_completion(&card->mrq_complete);
-+	rc = card->current_mrq.error;
- 
--	if (card->current_mrq.error) {
-+	if (rc) {
-+		printk(KERN_WARNING
-+		       "%s: interface error, trying to fall back to serial\n",
-+		       card->dev.bus_id);
- 		msb->system = MEMSTICK_SYS_SERIAL;
- 		host->set_param(host, MEMSTICK_POWER, MEMSTICK_POWER_OFF);
--		msleep(1000);
-+		msleep(10);
- 		host->set_param(host, MEMSTICK_POWER, MEMSTICK_POWER_ON);
- 		host->set_param(host, MEMSTICK_INTERFACE, MEMSTICK_SERIAL);
- 
--		if (memstick_set_rw_addr(card))
--			return card->current_mrq.error;
--
--		param.system = msb->system;
--
--		card->next_request = h_mspro_block_req_init;
--		msb->mrq_handler = h_mspro_block_default;
--		memstick_init_req(&card->current_mrq, MS_TPC_WRITE_REG, &param,
--				  sizeof(param));
--		memstick_new_req(host);
--		wait_for_completion(&card->mrq_complete);
--
--		return -EFAULT;
-+		rc = memstick_set_rw_addr(card);
-+		if (!rc)
-+			rc = mspro_block_set_interface(card, msb->system);
- 	}
--
--	return 0;
-+	return rc;
- }
- 
- /* Memory allocated for attributes by this function should be freed by
-@@ -1053,12 +1083,11 @@ static int mspro_block_init_card(struct 
- 		return -EIO;
- 
- 	msb->caps = host->caps;
--	if (msb->caps & MEMSTICK_CAP_PAR4) {
--		if (mspro_block_switch_to_parallel(card))
--			printk(KERN_WARNING "%s: could not switch to "
--			       "parallel interface\n", card->dev.bus_id);
--	}
-+	rc = mspro_block_switch_interface(card);
-+	if (rc)
-+		return rc;
- 
-+	msleep(200);
- 	rc = mspro_block_wait_for_ced(card);
- 	if (rc)
- 		return rc;
+ 			bh->b_blocknr = newb + pos;
+ 			unmap_underlying_metadata(bh->b_bdev,
 _
 
-Patches currently in -mm which might be from oakad@yahoo.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+mtd-memory-corruption-in-block2mtdc.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi-fixup.patch
+git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+git-drm.patch
+git-drm-git-rejects.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-async-tx.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+git-sh.patch
+git-sh-git-rejects.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+scsi-add-iscsi-ibft-support-fix.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+fbdev-driver-for-freescale-8610-and-5121-diu-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+w1-build-fix.patch
 
