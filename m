@@ -1,174 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:16:17 -0700
-Message-ID: <200803212016.m2LKGHCX008274@imap1.linux-foundation.org>
+Subject: + git-sh-git-rejects.patch added to -mm tree
+Date: Fri, 21 Mar 2008 13:24:17 -0700
+Message-ID: <200803212024.m2LKOHNV008612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55040 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41256 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755437AbYCUURK (ORCPT
+	by vger.kernel.org with ESMTP id S1759709AbYCUUYT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:17:10 -0400
+	Fri, 21 Mar 2008 16:24:19 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2LKOHMr022210
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 21 Mar 2008 13:24:18 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, lenb@kernel.org, rjw@sisk.pl, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     revert gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set
-has been removed from the -mm tree.  Its filename was
-     revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
+     git-sh-git-rejects
+has been added to the -mm tree.  Its filename is
+     git-sh-git-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set
+Subject: git-sh-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Greg has the old version (I think).
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Len Brown <lenb@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/power/main.c  |    2 +
- drivers/base/power/sysfs.c |    2 -
- include/linux/pm.h         |   64 +++++++++++++++--------------------
- 3 files changed, 30 insertions(+), 38 deletions(-)
+ arch/sh/Kconfig |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/base/power/main.c~revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set drivers/base/power/main.c
---- a/drivers/base/power/main.c~revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set
-+++ a/drivers/base/power/main.c
-@@ -57,6 +57,8 @@ static DEFINE_MUTEX(dpm_list_mtx);
- /* 'true' if all devices have been suspended, protected by dpm_list_mtx */
- static bool all_sleeping;
+diff -puN arch/sh/Kconfig~git-sh-git-rejects arch/sh/Kconfig
+--- a/arch/sh/Kconfig~git-sh-git-rejects
++++ a/arch/sh/Kconfig
+@@ -595,10 +595,7 @@ config SH_TIMER_IRQ
+ 	default "86" if CPU_SUBTYPE_SH7619
+ 	default "140" if CPU_SUBTYPE_SH7206
+ 	default "142" if CPU_SUBTYPE_SH7203
+-<<<<<<< HEAD:arch/sh/Kconfig
+-=======
+ 	default "238" if CPU_SUBTYPE_MXG
+->>>>>>> FETCH_HEAD:arch/sh/Kconfig
+ 	default "16"
  
-+int (*platform_enable_wakeup)(struct device *dev, int is_on);
-+
- /**
-  *	device_pm_add - add a device to the list of active devices
-  *	@dev:	Device to be added to the list
-diff -puN drivers/base/power/sysfs.c~revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set drivers/base/power/sysfs.c
---- a/drivers/base/power/sysfs.c~revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set
-+++ a/drivers/base/power/sysfs.c
-@@ -6,8 +6,6 @@
- #include <linux/string.h>
- #include "power.h"
- 
--int (*platform_enable_wakeup)(struct device *dev, int is_on);
--
- 
- /*
-  *	wakeup - Report/change current wakeup option for device
-diff -puN include/linux/pm.h~revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set include/linux/pm.h
---- a/include/linux/pm.h~revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set
-+++ a/include/linux/pm.h
-@@ -183,9 +183,9 @@ typedef struct pm_message {
- struct dev_pm_info {
- 	pm_message_t		power_state;
- 	unsigned		can_wakeup:1;
--	unsigned		should_wakeup:1;
- 	bool			sleeping:1;	/* Owned by the PM core */
- #ifdef	CONFIG_PM_SLEEP
-+	unsigned		should_wakeup:1;
- 	struct list_head	entry;
- #endif
- };
-@@ -198,6 +198,11 @@ extern void device_resume(void);
- extern int device_suspend(pm_message_t state);
- extern int device_prepare_suspend(pm_message_t state);
- 
-+#define device_set_wakeup_enable(dev,val) \
-+	((dev)->power.should_wakeup = !!(val))
-+#define device_may_wakeup(dev) \
-+	(device_can_wakeup(dev) && (dev)->power.should_wakeup)
-+
- extern void __suspend_report_result(const char *function, void *fn, int ret);
- 
- #define suspend_report_result(fn, ret)					\
-@@ -205,35 +210,6 @@ extern void __suspend_report_result(cons
- 		__suspend_report_result(__FUNCTION__, fn, ret);		\
- 	} while (0)
- 
--#else /* !CONFIG_PM_SLEEP */
--
--static inline int device_suspend(pm_message_t state)
--{
--	return 0;
--}
--
--#define suspend_report_result(fn, ret) 		do {} while (0)
--
--#endif /* !CONFIG_PM_SLEEP */
--
--#ifdef CONFIG_PM
--
--/* changes to device_may_wakeup take effect on the next pm state change.
-- * by default, devices should wakeup if they can.
-- */
--#define device_can_wakeup(dev) \
--	((dev)->power.can_wakeup)
--#define device_init_wakeup(dev,val) \
--	do { \
--		device_can_wakeup(dev) = !!(val); \
--		device_set_wakeup_enable(dev,val); \
--	} while(0)
--
--#define device_set_wakeup_enable(dev,val) \
--	((dev)->power.should_wakeup = !!(val))
--#define device_may_wakeup(dev) \
--	(device_can_wakeup(dev) && (dev)->power.should_wakeup)
--
- /*
-  * Platform hook to activate device wakeup capability, if that's not already
-  * handled by enable_irq_wake() etc.
-@@ -248,19 +224,35 @@ static inline int call_platform_enable_w
- 	return 0;
- }
- 
--#else /* !CONFIG_PM */
-+#else /* !CONFIG_PM_SLEEP */
-+
-+static inline int device_suspend(pm_message_t state)
-+{
-+	return 0;
-+}
-+
-+#define device_set_wakeup_enable(dev,val)	do{}while(0)
-+#define device_may_wakeup(dev)			(0)
- 
--#define device_can_wakeup(dev)			0
--#define device_init_wakeup(dev,val)		do {} while (0)
--#define device_set_wakeup_enable(dev,val)	do {} while (0)
--#define device_may_wakeup(dev)			0
-+#define suspend_report_result(fn, ret) do { } while (0)
- 
- static inline int call_platform_enable_wakeup(struct device *dev, int is_on)
- {
- 	return 0;
- }
- 
--#endif /* !CONFIG_PM */
-+#endif /* !CONFIG_PM_SLEEP */
-+
-+/* changes to device_may_wakeup take effect on the next pm state change.
-+ * by default, devices should wakeup if they can.
-+ */
-+#define device_can_wakeup(dev) \
-+	((dev)->power.can_wakeup)
-+#define device_init_wakeup(dev,val) \
-+	do { \
-+		device_can_wakeup(dev) = !!(val); \
-+		device_set_wakeup_enable(dev,val); \
-+	} while(0)
- 
- /*
-  * Global Power Management flags
+ config SH_PCLK_FREQ
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -184,12 +76,10 @@ git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
 cifs-suppress-warning.patch
-revert-gregkh-driver-pm-make-wakeup-flags-available-whenever-config_pm-is-set.patch
 git-drm.patch
 git-drm-git-rejects.patch
 git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
 git-dvb.patch
-git-dvb-drivers-media-video-bt8xx-bttv-cardsc-fix-warnings.patch
 drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
 git-hwmon.patch
 git-gfs2-nmw.patch
@@ -200,12 +90,10 @@ git-infiniband.patch
 git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
 maple-add-driver-for-sega-dreamcast-controller.patch
 git-kvm.patch
-kvm-warning-fix.patch
 git-leds.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-async-tx.patch
-git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
@@ -218,11 +106,10 @@ git-ocfs2.patch
 arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
 git-selinux.patch
-revert-sched-make-sure-jiffies-is-up-to-date-before-calling-__update_rq_clock.patch
 git-sh.patch
+git-sh-git-rejects.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-git-scsi-rc-fixes-fixup.patch
 scsi-aic94xx-cleanups.patch
 scsi-fix-section-mismatch-in-aic94xx-fix.patch
 scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
