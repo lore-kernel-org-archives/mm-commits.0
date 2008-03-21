@@ -1,144 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - x86-convert-mtrr-genericc-to-kernel-doc.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:30:28 -0700
-Message-ID: <200803212030.m2LKUSCA008985@imap1.linux-foundation.org>
+Subject: - dvb-logical-bitwise-confusion-in-se401_init.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:30:48 -0700
+Message-ID: <200803212030.m2LKUmb2009019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51761 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757634AbYCUUbk (ORCPT
+	by vger.kernel.org with ESMTP id S1757634AbYCUUbb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:31:40 -0400
+	Fri, 21 Mar 2008 16:31:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: 12o3l@tiscali.nl, mchehab@infradead.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: convert mtrr/generic.c to kernel-doc
+     dvb: logical-bitwise & confusion in se401_init()
 has been removed from the -mm tree.  Its filename was
-     x86-convert-mtrr-genericc-to-kernel-doc.patch
+     dvb-logical-bitwise-confusion-in-se401_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: convert mtrr/generic.c to kernel-doc
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: dvb: logical-bitwise & confusion in se401_init()
+From: Roel Kluin <12o3l@tiscali.nl>
 
-Convert function comment blocks to kernel-doc notation.
+logical-bitwise & confusion
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/mtrr/generic.c |   42 ++++++++++++++-------------
- 1 file changed, 23 insertions(+), 19 deletions(-)
+ drivers/media/video/se401.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/cpu/mtrr/generic.c~x86-convert-mtrr-genericc-to-kernel-doc arch/x86/kernel/cpu/mtrr/generic.c
---- a/arch/x86/kernel/cpu/mtrr/generic.c~x86-convert-mtrr-genericc-to-kernel-doc
-+++ a/arch/x86/kernel/cpu/mtrr/generic.c
-@@ -176,12 +176,13 @@ static inline void k8_enable_fixed_iorrs
- }
+diff -puN drivers/media/video/se401.c~dvb-logical-bitwise-confusion-in-se401_init drivers/media/video/se401.c
+--- a/drivers/media/video/se401.c~dvb-logical-bitwise-confusion-in-se401_init
++++ a/drivers/media/video/se401.c
+@@ -1279,7 +1279,7 @@ static int se401_init(struct usb_se401 *
+ 	rc=se401_sndctrl(0, se401, SE401_REQ_GET_HEIGHT, 0, cp, sizeof(cp));
+ 	se401->cheight=cp[0]+cp[1]*256;
  
- /**
-- * Checks and updates an fixed-range MTRR if it differs from the value it
-- * should have. If K8 extentions are wanted, update the K8 SYSCFG MSR also.
-- * see AMD publication no. 24593, chapter 7.8.1, page 233 for more information
-- * \param msr MSR address of the MTTR which should be checked and updated
-- * \param changed pointer which indicates whether the MTRR needed to be changed
-- * \param msrwords pointer to the MSR values which the MSR should have
-+ * set_fixed_range - checks & updates a fixed-range MTRR if it differs from the value it should have
-+ * @msr: MSR address of the MTTR which should be checked and updated
-+ * @changed: pointer which indicates whether the MTRR needed to be changed
-+ * @msrwords: pointer to the MSR values which the MSR should have
-+ *
-+ * If K8 extentions are wanted, update the K8 SYSCFG MSR also.
-+ * See AMD publication no. 24593, chapter 7.8.1, page 233 for more information.
-  */
- static void set_fixed_range(int msr, bool *changed, unsigned int *msrwords)
- {
-@@ -199,12 +200,15 @@ static void set_fixed_range(int msr, boo
+-	if (!cp[2] && SE401_FORMAT_BAYER) {
++	if (!(cp[2] & SE401_FORMAT_BAYER)) {
+ 		err("Bayer format not supported!");
+ 		return 1;
  	}
- }
- 
-+/**
-+ * generic_get_free_region - Get a free MTRR.
-+ * @base: The starting (base) address of the region.
-+ * @size: The size (in bytes) of the region.
-+ * @replace_reg: mtrr index to be replaced; set to invalid value if none.
-+ *
-+ * Returns: The index of the region on success, else negative on error.
-+ */
- int generic_get_free_region(unsigned long base, unsigned long size, int replace_reg)
--/*  [SUMMARY] Get a free MTRR.
--    <base> The starting (base) address of the region.
--    <size> The size (in bytes) of the region.
--    [RETURNS] The index of the region on success, else -1 on error.
--*/
- {
- 	int i, max;
- 	mtrr_type ltype;
-@@ -249,8 +253,8 @@ static void generic_get_mtrr(unsigned in
- }
- 
- /**
-- * Checks and updates the fixed-range MTRRs if they differ from the saved set
-- * \param frs pointer to fixed-range MTRR values, saved by get_fixed_ranges()
-+ * set_fixed_ranges - checks & updates the fixed-range MTRRs if they differ from the saved set
-+ * @frs: pointer to fixed-range MTRR values, saved by get_fixed_ranges()
-  */
- static int set_fixed_ranges(mtrr_type * frs)
- {
-@@ -294,13 +298,13 @@ static bool set_mtrr_var_ranges(unsigned
- 
- static u32 deftype_lo, deftype_hi;
- 
-+/**
-+ * set_mtrr_state - Set the MTRR state for this CPU.
-+ *
-+ * NOTE: The CPU must already be in a safe state for MTRR changes.
-+ * RETURNS: 0 if no changes made, else a mask indicating what was changed.
-+ */
- static unsigned long set_mtrr_state(void)
--/*  [SUMMARY] Set the MTRR state for this CPU.
--    <state> The MTRR state information to read.
--    <ctxt> Some relevant CPU context.
--    [NOTE] The CPU must already be in a safe state for MTRR changes.
--    [RETURNS] 0 if no changes made, else a mask indication what was changed.
--*/
- {
- 	unsigned int i;
- 	unsigned long change_mask = 0;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
 origin.patch
-git-x86.patch
-rapidio-fix-docbook-references.patch
-pm-remove-legacy-pm-fix.patch
-git-kvm.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-scsi-add-iscsi-ibft-support-fix.patch
-git-unionfs.patch
-wireless-rt2x00-fix-driver-menu-indenting.patch
-x86-dont-allow-kvm_clock-without-have_kvm.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-let-log_buf_shift-default-to-17.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-jbd2-fix-kernel-doc-notation.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-kernel-add-bit-rotation-helpers-for-16-and-8-bit.patch
-profile-likely-unlikely-macros.patch
+git-dvb.patch
+adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
+block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn.patch
+free-when-fb-cant-be-registered-in-video-aty-atyfb_basec.patch
+drivers-video-aty-aty128fbc-fix-incorrect-usage-of-strncat-in-aty128_init.patch
+drivers-video-imsttfbc-add-missing-curly-brackets.patch
 
