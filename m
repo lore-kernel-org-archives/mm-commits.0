@@ -1,74 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-memory-corruption-in-block2mtdc.patch added to -mm tree
-Date: Thu, 20 Mar 2008 21:53:04 -0700
-Message-ID: <200803210453.m2L4r4Fh008201@imap1.linux-foundation.org>
+Subject: - mm-fix-boundary-checking-in-free_bootmem_core-fix.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 12:42:11 -0700
+Message-ID: <200803211942.m2LJgEsX006938@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51422 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40448 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753242AbYCUExm (ORCPT
+	by vger.kernel.org with ESMTP id S1752252AbYCUTmq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 00:53:42 -0400
+	Fri, 21 Mar 2008 15:42:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: inguin@gmx.de, akpm@linux-foundation.org, dwmw2@infradead.org, joern@lazybastard.org, stable@kernel.org
+To: yhlu.kernel@gmail.com, ak@suse.de, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: memory corruption in block2mtd.c
-has been added to the -mm tree.  Its filename is
-     mtd-memory-corruption-in-block2mtdc.patch
+     mm: make free_bootmem to loop bdata_list
+has been removed from the -mm tree.  Its filename was
+     mm-fix-boundary-checking-in-free_bootmem_core-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into mm-fix-boundary-checking-in-free_bootmem_core.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: memory corruption in block2mtd.c
-From: Ingo van Lil <inguin@gmx.de>
+Subject: mm: make free_bootmem to loop bdata_list
+From: "Yinghai Lu" <yhlu.kernel@gmail.com>
 
-The block2mtd driver (drivers/mtd/devices/block2mtd.c) will kfree an on-stack
-pointer when handling an invalid argument line (e.g. 
-block2mtd=/dev/loop0,xxx).
+make the free_bootmem_core could handle out of range case. we could use
+bdata_list to make sure the range can be freed for sure.
 
-The kfree was added some time ago when "name" was dynamically allocated.
+so next time, we don't need to loop online nodes and could use
+free_bootmem directly.
 
-Signed-off-by: Ingo van Lil <inguin@gmx.de>
-Acked-by: Joern Engel <joern@lazybastard.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: <stable@kernel.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/devices/block2mtd.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/bootmem.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mtd/devices/block2mtd.c~mtd-memory-corruption-in-block2mtdc drivers/mtd/devices/block2mtd.c
---- a/drivers/mtd/devices/block2mtd.c~mtd-memory-corruption-in-block2mtdc
-+++ a/drivers/mtd/devices/block2mtd.c
-@@ -408,7 +408,6 @@ static int block2mtd_setup2(const char *
- 	if (token[1]) {
- 		ret = parse_num(&erase_size, token[1]);
- 		if (ret) {
--			kfree(name);
- 			parse_err("illegal erase size");
- 		}
- 	}
+diff -puN mm/bootmem.c~mm-fix-boundary-checking-in-free_bootmem_core-fix mm/bootmem.c
+--- a/mm/bootmem.c~mm-fix-boundary-checking-in-free_bootmem_core-fix
++++ a/mm/bootmem.c
+@@ -432,7 +432,9 @@ int __init reserve_bootmem(unsigned long
+ 
+ void __init free_bootmem(unsigned long addr, unsigned long size)
+ {
+-	free_bootmem_core(NODE_DATA(0)->bdata, addr, size);
++	bootmem_data_t *bdata;
++	list_for_each_entry(bdata, &bdata_list, list)
++		free_bootmem_core(bdata, addr, size);
+ }
+ 
+ unsigned long __init free_all_bootmem(void)
 _
 
-Patches currently in -mm which might be from inguin@gmx.de are
+Patches currently in -mm which might be from yhlu.kernel@gmail.com are
 
-mtd-memory-corruption-in-block2mtdc.patch
-usb-gadget-dummy_hcdc-fix-nested-switch-statements.patch
+mm-fix-boundary-checking-in-free_bootmem_core.patch
+mm-fix-boundary-checking-in-free_bootmem_core-fix.patch
+git-x86.patch
+x86_64-free_bootmem-should-take-phy.patch
+x86_64-do-not-reserve-ramdisk-two-times.patch
+mm-make-mem_map-allocation-continuous.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
+mm-allocate-section_map-for-sparse_init.patch
 
