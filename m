@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + markers-update-preempt_disable-call_rcu-rcu_barrier-comments.patch added to -mm tree
-Date: Fri, 21 Mar 2008 14:41:08 -0700
-Message-ID: <200803212141.m2LLf90u011786@imap1.linux-foundation.org>
+Subject: + net-yellowfin-parenthesis-fix.patch added to -mm tree
+Date: Fri, 21 Mar 2008 14:44:38 -0700
+Message-ID: <200803212144.m2LLicHB011911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55063 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46856 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755404AbYCUVnE (ORCPT
+	by vger.kernel.org with ESMTP id S1754842AbYCUVov (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 17:43:04 -0400
+	Fri, 21 Mar 2008 17:44:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, adrian.bunk@movial.fi, dipankar@in.ibm.com, dsmith@redhat.com, hch@infradead.org, mmlnx@us.ibm.com, paulmck@us.ibm.com, rostedt@goodmis.org
+Cc: m.kozlowski@tuxland.pl
 
 
 The patch titled
-     markers: update preempt_disable. call_rcu, rcu_barrier comments
+     net: yellowfin parenthesis fix
 has been added to the -mm tree.  Its filename is
-     markers-update-preempt_disable-call_rcu-rcu_barrier-comments.patch
+     net-yellowfin-parenthesis-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markers: update preempt_disable. call_rcu, rcu_barrier comments
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: net: yellowfin parenthesis fix
+From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 
-Add comments requested by Andrew.
+The code is under unused #ifdef NO_TXSTATS branch but its better to have it
+fixed.
 
-Updated comments about synchronize_sched().  Since we use call_rcu and
-rcu_barrier now, these comments were out of sync with the code.
-
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Mike Mason <mmlnx@us.ibm.com>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
-Cc: David Smith <dsmith@redhat.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Adrian Bunk <adrian.bunk@movial.fi>
+Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/marker.c |   19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ drivers/net/yellowfin.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/marker.c~markers-update-preempt_disable-call_rcu-rcu_barrier-comments kernel/marker.c
---- a/kernel/marker.c~markers-update-preempt_disable-call_rcu-rcu_barrier-comments
-+++ a/kernel/marker.c
-@@ -104,9 +104,9 @@ void marker_probe_cb(const struct marker
- 	char ptype;
- 
- 	/*
--	 * disabling preemption to make sure the teardown of the callbacks can
--	 * be done correctly when they are in modules and they insure RCU read
--	 * coherency.
-+	 * preempt_disable does two things : disabling preemption to make sure
-+	 * the teardown of the callbacks can be done correctly when they are in
-+	 * modules and they insure RCU read coherency.
- 	 */
- 	preempt_disable();
- 	ptype = ACCESS_ONCE(mdata->ptype);
-@@ -551,9 +551,9 @@ static int set_marker(struct marker_entr
- 
- /*
-  * Disable a marker and its probe callback.
-- * Note: only after a synchronize_sched() issued after setting elem->call to the
-- * empty function insures that the original callback is not used anymore. This
-- * insured by preemption disabling around the call site.
-+ * Note: only waiting an RCU period after setting elem->call to the empty
-+ * function insures that the original callback is not used anymore. This insured
-+ * by preempt_disable around the call site.
-  */
- static void disable_marker(struct marker *elem)
- {
-@@ -565,8 +565,8 @@ static void disable_marker(struct marker
- 	elem->ptype = 0;	/* single probe */
- 	/*
- 	 * Leave the private data and id there, because removal is racy and
--	 * should be done only after a synchronize_sched(). These are never used
--	 * until the next initialization anyway.
-+	 * should be done only after an RCU period. These are never used until
-+	 * the next initialization anyway.
- 	 */
- }
- 
-@@ -601,9 +601,6 @@ void marker_update_probe_range(struct ma
- 
- /*
-  * Update probes, removing the faulty probes.
-- * Issues a synchronize_sched() when no reference to the module passed
-- * as parameter is found in the probes so the probe module can be
-- * safely unloaded from now on.
-  *
-  * Internal callback only changed before the first probe is connected to it.
-  * Single probe private data can only be changed on 0 -> 1 and 2 -> 1
+diff -puN drivers/net/yellowfin.c~net-yellowfin-parenthesis-fix drivers/net/yellowfin.c
+--- a/drivers/net/yellowfin.c~net-yellowfin-parenthesis-fix
++++ a/drivers/net/yellowfin.c
+@@ -770,14 +770,14 @@ static void yellowfin_init_ring(struct n
+ 		/* Branch on Tx error. */
+ 		yp->tx_ring[j].dbdma_cmd = cpu_to_le32(CMD_STOP);
+ 		yp->tx_ring[j].branch_addr = cpu_to_le32(yp->tx_ring_dma +
+-			(j+1)*sizeof(struct yellowfin_desc);
++			(j+1)*sizeof(struct yellowfin_desc));
+ 		j++;
+ 		if (yp->flags & FullTxStatus) {
+ 			yp->tx_ring[j].dbdma_cmd =
+ 				cpu_to_le32(CMD_TXSTATUS | sizeof(*yp->tx_status));
+ 			yp->tx_ring[j].request_cnt = sizeof(*yp->tx_status);
+ 			yp->tx_ring[j].addr = cpu_to_le32(yp->tx_status_dma +
+-				i*sizeof(struct tx_status_words);
++				i*sizeof(struct tx_status_words));
+ 		} else {
+ 			/* Symbios chips write only tx_errs word. */
+ 			yp->tx_ring[j].dbdma_cmd =
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
 
-origin.patch
-markers-update-preempt_disable-call_rcu-rcu_barrier-comments.patch
-markers-remove-access_once.patch
-make-marker_debug-static.patch
+git-alsa-tiwai.patch
+net-yellowfin-parenthesis-fix.patch
+reiser4.patch
 
