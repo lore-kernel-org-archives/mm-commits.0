@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + forcedeth-fix-locking-bug-with-netconsole.patch added to -mm tree
-Date: Fri, 21 Mar 2008 15:57:58 -0700
-Message-ID: <200803212257.m2LMvxQ4014991@imap1.linux-foundation.org>
+Subject: + signals-check_kill_permission-remove-tasklist_lock.patch added to -mm tree
+Date: Fri, 21 Mar 2008 16:00:01 -0700
+Message-ID: <200803212300.m2LN01jB015157@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60985 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56698 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763910AbYCUW63 (ORCPT
+	by vger.kernel.org with ESMTP id S932212AbYCUXAx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 18:58:29 -0400
+	Fri, 21 Mar 2008 19:00:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, aabdulla@nvidia.com, jeff@garzik.org
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     forcedeth: fix locking bug with netconsole
+     signals: check_kill_permission: remove tasklist_lock
 has been added to the -mm tree.  Its filename is
-     forcedeth-fix-locking-bug-with-netconsole.patch
+     signals-check_kill_permission-remove-tasklist_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,226 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: forcedeth: fix locking bug with netconsole
-From: Ingo Molnar <mingo@elte.hu>
+Subject: signals: check_kill_permission: remove tasklist_lock
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-While using netconsole on forcedeth, lockdep noticed the following locking
-bug:
+Now that task_session() can't return a false NULL, check_kill_permission()
+doesn't need tasklist_lock.
 
-=================================
-[ INFO: inconsistent lock state ]
-2.6.24-rc6 #6
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
----------------------------------
-inconsistent {softirq-on-W} -> {in-softirq-W} usage.
-udevd/719 [HC0[0]:SC1[1]:HE1:SE0] takes:
- (_xmit_ETHER){-+..}, at: [<c043062e>] dev_watchdog+0x1c/0xb9
-{softirq-on-W} state was registered at:
-  [<c0147f67>] mark_held_locks+0x4e/0x66
-  [<c014810e>] trace_hardirqs_on+0xfe/0x136
-  [<c048ae63>] _spin_unlock_irq+0x22/0x42
-  [<c02ec617>] nv_start_xmit_optimized+0x347/0x37a
-  [<c042c80d>] netpoll_send_skb+0xa4/0x147
-  [<c042d4a6>] netpoll_send_udp+0x238/0x242
-  [<c02f44f6>] write_msg+0x6d/0x9b
-  [<c012c129>] __call_console_drivers+0x4e/0x5a
-  [<c012c18c>] _call_console_drivers+0x57/0x5b
-  [<c012c2dd>] release_console_sem+0x11c/0x1b9
-  [<c012caeb>] register_console+0x1eb/0x1f3
-  [<c06ae673>] init_netconsole+0x119/0x15f
-  [<c069149b>] kernel_init+0x147/0x294
-  [<c01058cb>] kernel_thread_helper+0x7/0x10
-  [<ffffffff>] 0xffffffff
-irq event stamp: 950
-hardirqs last  enabled at (950): [<c048ae63>] _spin_unlock_irq+0x22/0x42
-hardirqs last disabled at (949): [<c048aaf7>] _spin_lock_irq+0xc/0x38
-softirqs last  enabled at (0): [<c012a29c>] copy_process+0x375/0x126d
-softirqs last disabled at (947): [<c0106d43>] do_softirq+0x61/0xc6
-
-other info that might help us debug this:
-no locks held by udevd/719.
-
-stack backtrace:
-Pid: 719, comm: udevd Not tainted 2.6.24-rc6 #6
- [<c0105c46>] show_trace_log_lvl+0x12/0x25
- [<c01063ec>] show_trace+0xd/0x10
- [<c010670c>] dump_stack+0x57/0x5f
- [<c0147505>] print_usage_bug+0x10a/0x117
- [<c0147c38>] mark_lock+0x121/0x402
- [<c01488b6>] __lock_acquire+0x3d1/0xb64
- [<c0149405>] lock_acquire+0x4e/0x6a
- [<c048a99b>] _spin_lock+0x23/0x32
- [<c043062e>] dev_watchdog+0x1c/0xb9
- [<c0133e4a>] run_timer_softirq+0x133/0x193
- [<c0130907>] __do_softirq+0x78/0xed
- [<c0106d43>] do_softirq+0x61/0xc6
- =======================
-eth1: link down
-
-The fix is to disable/restore irqs instead of disable/enable.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: Ayaz Abdulla <aabdulla@nvidia.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/forcedeth.c |   18 ++++++++++--------
- net/core/netpoll.c      |    3 +++
- 2 files changed, 13 insertions(+), 8 deletions(-)
+ kernel/signal.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/net/forcedeth.c~forcedeth-fix-locking-bug-with-netconsole drivers/net/forcedeth.c
---- a/drivers/net/forcedeth.c~forcedeth-fix-locking-bug-with-netconsole
-+++ a/drivers/net/forcedeth.c
-@@ -1854,6 +1854,7 @@ static int nv_start_xmit(struct sk_buff 
- 	struct ring_desc* start_tx;
- 	struct ring_desc* prev_tx;
- 	struct nv_skb_map* prev_tx_ctx;
-+	unsigned long flags;
- 
- 	/* add fragments to entries count */
- 	for (i = 0; i < fragments; i++) {
-@@ -1863,10 +1864,10 @@ static int nv_start_xmit(struct sk_buff 
- 
- 	empty_slots = nv_get_empty_tx_slots(np);
- 	if (unlikely(empty_slots <= entries)) {
--		spin_lock_irq(&np->lock);
-+		spin_lock_irqsave(&np->lock, flags);
- 		netif_stop_queue(dev);
- 		np->tx_stop = 1;
--		spin_unlock_irq(&np->lock);
-+		spin_unlock_irqrestore(&np->lock, flags);
- 		return NETDEV_TX_BUSY;
- 	}
- 
-@@ -1929,13 +1930,13 @@ static int nv_start_xmit(struct sk_buff 
- 		tx_flags_extra = skb->ip_summed == CHECKSUM_PARTIAL ?
- 			 NV_TX2_CHECKSUM_L3 | NV_TX2_CHECKSUM_L4 : 0;
- 
--	spin_lock_irq(&np->lock);
-+	spin_lock_irqsave(&np->lock, flags);
- 
- 	/* set tx flags */
- 	start_tx->flaglen |= cpu_to_le32(tx_flags | tx_flags_extra);
- 	np->put_tx.orig = put_tx;
- 
--	spin_unlock_irq(&np->lock);
-+	spin_unlock_irqrestore(&np->lock, flags);
- 
- 	dprintk(KERN_DEBUG "%s: nv_start_xmit: entries %d queued for transmission. tx_flags_extra: %x\n",
- 		dev->name, entries, tx_flags_extra);
-@@ -1971,6 +1972,7 @@ static int nv_start_xmit_optimized(struc
- 	struct ring_desc_ex* prev_tx;
- 	struct nv_skb_map* prev_tx_ctx;
- 	struct nv_skb_map* start_tx_ctx;
-+	unsigned long flags;
- 
- 	/* add fragments to entries count */
- 	for (i = 0; i < fragments; i++) {
-@@ -1980,10 +1982,10 @@ static int nv_start_xmit_optimized(struc
- 
- 	empty_slots = nv_get_empty_tx_slots(np);
- 	if (unlikely(empty_slots <= entries)) {
--		spin_lock_irq(&np->lock);
-+		spin_lock_irqsave(&np->lock, flags);
- 		netif_stop_queue(dev);
- 		np->tx_stop = 1;
--		spin_unlock_irq(&np->lock);
-+		spin_unlock_irqrestore(&np->lock, flags);
- 		return NETDEV_TX_BUSY;
- 	}
- 
-@@ -2059,7 +2061,7 @@ static int nv_start_xmit_optimized(struc
- 			start_tx->txvlan = 0;
- 	}
- 
--	spin_lock_irq(&np->lock);
-+	spin_lock_irqsave(&np->lock, flags);
- 
- 	if (np->tx_limit) {
- 		/* Limit the number of outstanding tx. Setup all fragments, but
-@@ -2085,7 +2087,7 @@ static int nv_start_xmit_optimized(struc
- 	start_tx->flaglen |= cpu_to_le32(tx_flags | tx_flags_extra);
- 	np->put_tx.ex = put_tx;
- 
--	spin_unlock_irq(&np->lock);
-+	spin_unlock_irqrestore(&np->lock, flags);
- 
- 	dprintk(KERN_DEBUG "%s: nv_start_xmit_optimized: entries %d queued for transmission. tx_flags_extra: %x\n",
- 		dev->name, entries, tx_flags_extra);
-diff -puN net/core/netpoll.c~forcedeth-fix-locking-bug-with-netconsole net/core/netpoll.c
---- a/net/core/netpoll.c~forcedeth-fix-locking-bug-with-netconsole
-+++ a/net/core/netpoll.c
-@@ -284,6 +284,7 @@ static void netpoll_send_skb(struct netp
- 		/* try until next clock tick */
- 		for (tries = jiffies_to_usecs(1)/USEC_PER_POLL;
- 		     tries > 0; --tries) {
-+			WARN_ON_ONCE(!irqs_disabled());
- 			if (netif_tx_trylock(dev)) {
- 				if (!netif_queue_stopped(dev) &&
- 				    !netif_subqueue_stopped(dev, skb))
-@@ -297,8 +298,10 @@ static void netpoll_send_skb(struct netp
- 
- 			/* tickle device maybe there is some cleanup */
- 			netpoll_poll(np);
-+			WARN_ON_ONCE(!irqs_disabled());
- 
- 			udelay(USEC_PER_POLL);
-+			WARN_ON_ONCE(!irqs_disabled());
- 		}
- 		local_irq_restore(flags);
- 	}
+diff -puN kernel/signal.c~signals-check_kill_permission-remove-tasklist_lock kernel/signal.c
+--- a/kernel/signal.c~signals-check_kill_permission-remove-tasklist_lock
++++ a/kernel/signal.c
+@@ -551,9 +551,7 @@ static int check_kill_permission(int sig
+ 	    !capable(CAP_KILL)) {
+ 		switch (sig) {
+ 		case SIGCONT:
+-			read_lock(&tasklist_lock);
+ 			sid = task_session(t);
+-			read_unlock(&tasklist_lock);
+ 			/*
+ 			 * We don't return the error if sid == NULL. The
+ 			 * task was unhashed, the caller must notice this.
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-pnp-increase-the-number-of-memory-resources-from-12-to-24.patch
-mm-fix-boundary-checking-in-free_bootmem_core.patch
-git-x86.patch
-add-the-dff-desktop-form-factor-dell-optiplex-745-to-the-reboot-errata-list.patch
-x86-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-x86_64-do-not-reserve-ramdisk-two-times.patch
 x86-handle_vm86_trap-cleanup.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-x86_64-ia32-ptrace-vs-enosys.patch
-x86_64-ptrace-vs-enosys.patch
-x86_64-ia32-ptrace-vs-enosys-sysenter-syscall.patch
-git-kgdb-light.patch
-git-acpi-fixup.patch
 git-hrt.patch
-git-kvm.patch
-forcedeth-fix-locking-bug-with-netconsole.patch
-git-sched.patch
-execute-tasklets-in-the-same-order-they-were-queued.patch
-git-sched-schedc-needs-tickh.patch
-git-semaphore.patch
-git-semaphore-git-rejects.patch
-x86-dont-allow-kvm_clock-without-have_kvm.patch
-mm-make-mem_map-allocation-continuous.patch
-mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
-mm-allocate-section_map-for-sparse_init.patch
-taint-kernel-after-warn_oncondition.patch
-add-rusage_thread.patch
-proper-__do_softirq-prototype.patch
-proper-extern-for-late_time_init.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-update-checkpatchpl-to-version-016.patch
+bsd_acct-plain-current-real_parent-access-is-not-always-safe.patch
+bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
 kthread-call-wake_up_process-without-the-lock-being-held.patch
-x86-configurable-dmi-scanning-code.patch
-cgroups-_s64-files-add-cgroups-read_s64-write_s64-file-methods.patch
-cgroups-_s64-files-use-read_s64-write_s64-in-cfs-cgroup-for-rt_runtime-file.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
+kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
+handle_stop_signal-unify-partial-full-stop-handling.patch
+handle_stop_signal-use-the-cached-p-signal-value.patch
+get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
+signals-send_sigqueue-dont-take-rcu-lock.patch
+signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
+signals-__group_complete_signal-cache-the-value-of-p-signal.patch
+signals-send_group_sigqueue-dont-take-tasklist_lock.patch
+signals-move-handle_stop_signal-into-send_signal.patch
+signals-do_tkill-dont-use-tasklist_lock.patch
+signals-do_tkill-dont-use-tasklist_lock-comment.patch
+signals-send_sig_info-dont-take-tasklist_lock.patch
+signals-microoptimize-the-usage-of-curr_target.patch
+signals-move-the-definition-of-__group_complete_signal-up.patch
+signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+signals-join-send_sigqueue-with-send_group_sigqueue.patch
+signals-handle_stop_signal-dont-worry-about-sigkill.patch
+signals-cleanup-the-usage-of-print_fatal_signal.patch
+signals-fold-sig_ignored-into-handle_stop_signal.patch
+signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
+signals-document-cld_continued-notification-mechanics.patch
+signals-document-cld_continued-notification-mechanics-more.patch
+signals-send_signal-be-paranoid-about-signalfd_notify.patch
+signals-check_kill_permission-check-session-under-tasklist_lock.patch
+signals-check_kill_permission-remove-tasklist_lock.patch
+ptrace-introduce-task_detached-helper.patch
+reparent_thread-use-same_thread_group.patch
+document-de_thread-with-exit_notify-connection.patch
+ptrace-introduce-ptrace_reparented-helper.patch
+ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
+ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
 simplify-cpu_hotplug_begin-put_online_cpus.patch
-asm-futexh-should-include-linux-uaccessh.patch
-rename-div64_64-to-div64_u64.patch
-remove-div_long_long_rem.patch
-introduce-a-generic-__fls-implementation.patch
-implement-__fls-on-all-64-bit-archs.patch
-use-__fls-for-fls64-on-64-bit-archs.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+redo-locking-of-tty-pgrp.patch
+resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
+tty_io-fix-remaining-pid-struct-locking.patch
+tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
+pids-introduce-change_pid-helper.patch
+pids-sys_setpgid-use-change_pid-helper.patch
+pids-__set_special_pids-use-change_pid-helper.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
