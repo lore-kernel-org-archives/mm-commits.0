@@ -1,81 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - mm-oom_kill-fix-kernel-doc.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:29:01 -0700
-Message-ID: <200803212029.m2LKT1ZB008760@imap1.linux-foundation.org>
+Subject: - mm-highmem-kernel-doc-additions.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:29:03 -0700
+Message-ID: <200803212029.m2LKT3Qr008835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60669 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756225AbYCUU3M (ORCPT
+	by vger.kernel.org with ESMTP id S1756356AbYCUU3O (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:29:12 -0400
+	Fri, 21 Mar 2008 16:29:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm/oom_kill: fix kernel-doc
+     mm: highmem kernel-doc additions
 has been removed from the -mm tree.  Its filename was
-     mm-oom_kill-fix-kernel-doc.patch
+     mm-highmem-kernel-doc-additions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/oom_kill: fix kernel-doc
+Subject: mm: highmem kernel-doc additions
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix kernel-doc notation in oom_kill.c.
+Add kernel-doc comments to highmem.c.
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/highmem.c |   30 ++++++++++++++++++++++++++----
+ 1 file changed, 26 insertions(+), 4 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom_kill-fix-kernel-doc mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_kill-fix-kernel-doc
-+++ a/mm/oom_kill.c
-@@ -37,6 +37,7 @@ static DEFINE_SPINLOCK(zone_scan_mutex);
-  * badness - calculate a numeric value for how bad this task has been
-  * @p: task struct of which task we should calculate
-  * @uptime: current uptime in seconds
-+ * @mem: target memory controller
-  *
-  * The formula used is relatively simple and documented inline in the
-  * function. The main rationale is that we want to select a good task
-@@ -264,6 +265,9 @@ static struct task_struct *select_bad_pr
+diff -puN mm/highmem.c~mm-highmem-kernel-doc-additions mm/highmem.c
+--- a/mm/highmem.c~mm-highmem-kernel-doc-additions
++++ a/mm/highmem.c
+@@ -104,8 +104,9 @@ static void flush_all_zero_pkmaps(void)
+ 	flush_tlb_kernel_range(PKMAP_ADDR(0), PKMAP_ADDR(LAST_PKMAP));
  }
  
- /**
-+ * dump_tasks - dump current memory state of all system tasks
-+ * @mem: target memory controller
+-/* Flush all unused kmap mappings in order to remove stray
+-   mappings. */
++/**
++ * kmap_flush_unused - flush all unused kmap mappings in order to remove stray mappings
++ */
+ void kmap_flush_unused(void)
+ {
+ 	spin_lock(&kmap_lock);
+@@ -163,6 +164,14 @@ start:
+ 	return vaddr;
+ }
+ 
++/**
++ * kmap_high - map a highmem page into memory
++ * @page: &struct page to map
 + *
-  * Dumps the current memory state of all system tasks, excluding kernel threads.
-  * State information includes task's pid, uid, tgid, vm size, rss, cpu, oom_adj
-  * score, and name.
-@@ -298,7 +302,7 @@ static void dump_tasks(const struct mem_
- 	} while_each_thread(g, p);
++ * Returns the page's virtual memory address.
++ *
++ * We cannot call this from interrupts, as it may block.
++ */
+ void *kmap_high(struct page *page)
+ {
+ 	unsigned long vaddr;
+@@ -170,8 +179,6 @@ void *kmap_high(struct page *page)
+ 	/*
+ 	 * For highmem pages, we can't trust "virtual" until
+ 	 * after we have the lock.
+-	 *
+-	 * We cannot call this from interrupts, as it may block
+ 	 */
+ 	spin_lock(&kmap_lock);
+ 	vaddr = (unsigned long)page_address(page);
+@@ -185,6 +192,10 @@ void *kmap_high(struct page *page)
+ 
+ EXPORT_SYMBOL(kmap_high);
+ 
++/**
++ * kunmap_high - map a highmem page into memory
++ * @page: &struct page to unmap
++ */
+ void kunmap_high(struct page *page)
+ {
+ 	unsigned long vaddr;
+@@ -259,6 +270,12 @@ static struct page_address_slot *page_sl
+ 	return &page_address_htable[hash_ptr(page, PA_HASH_ORDER)];
  }
  
--/**
-+/*
-  * Send SIGKILL to the selected  process irrespective of  CAP_SYS_RAW_IO
-  * flag though it's unlikely that  we select a process with CAP_SYS_RAW_IO
-  * set.
-@@ -504,6 +508,9 @@ void clear_zonelist_oom(struct zonelist 
++/**
++ * page_address - get the mapped virtual address of a page
++ * @page: &struct page to get the virtual address of
++ *
++ * Returns the page's virtual address.
++ */
+ void *page_address(struct page *page)
+ {
+ 	unsigned long flags;
+@@ -288,6 +305,11 @@ done:
  
- /**
-  * out_of_memory - kill the "best" process when we run out of memory
-+ * @zonelist: zonelist pointer
-+ * @gfp_mask: memory allocation flags
-+ * @order: amount of memory being requested as a power of 2
-  *
-  * If we run out of memory, we have the choice between either
-  * killing a random task (bad), letting the system crash (worse)
+ EXPORT_SYMBOL(page_address);
+ 
++/**
++ * set_page_address - set a page's virtual address
++ * @page: &struct page to set
++ * @virtual: virtual address to use
++ */
+ void set_page_address(struct page *page, void *virtual)
+ {
+ 	unsigned long flags;
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
