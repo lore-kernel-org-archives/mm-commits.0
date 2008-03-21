@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isapnp-fix-limits-of-logical-device-register-set.patch added to -mm tree
-Date: Fri, 21 Mar 2008 16:02:53 -0700
-Message-ID: <200803212302.m2LN2rtZ015232@imap1.linux-foundation.org>
+Subject: + hw_random-doc-updates.patch added to -mm tree
+Date: Fri, 21 Mar 2008 16:04:53 -0700
+Message-ID: <200803212304.m2LN4rub015363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52361 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52398 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763590AbYCUXDT (ORCPT
+	by vger.kernel.org with ESMTP id S1763724AbYCUXFD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 19:03:19 -0400
+	Fri, 21 Mar 2008 19:05:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, ambx1@neo.rr.com, lenb@kernel.org, perex@perex.cz, stable@kernel.org
+Cc: dbrownell@users.sourceforge.net
 
 
 The patch titled
-     isapnp: fix limits of logical device register set
+     hw_random doc updates
 has been added to the -mm tree.  Its filename is
-     isapnp-fix-limits-of-logical-device-register-set.patch
+     hw_random-doc-updates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,141 +34,161 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isapnp: fix limits of logical device register set
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: hw_random doc updates
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-Without this patch, we can read and write off the end of the ISAPNP hardware
-register set with unknown consequences.  This was also broken in 2.6.24, and I
-haven't heard any reports, but if 2.6.25 ends up being more widely-used,
-ISAPNP users might start tripping over it.
+Update documentation for the hw_random support to be current:
 
+ - Documentation/hw_random.txt has been updated to reflect the
+   current code:  it's a framework now, a "core" with a small
+   sysfs interface, that hardware-specific drivers plug in to.
+   Text specific to Intel hardware is now at the end.
 
-PNP_MAX_MEM and PNP_MAX_PORT are mainly used to size tables of PNP device
-resources.  In 2.6.24, we increased their values to accomodate ACPI devices
-that have many resources:
+ - Kconfig now references the Documentation/hw_random.txt file
+   and better explains what this really does.
 
-                 2.6.23    2.6.24
-                 ------    ------
-  PNP_MAX_MEM       4         12
-  PNP_MAX_PORT      8         40
+Both chunks of documentation now higlight the fact that the kernel entropy
+pool is maintained by "rngd", and this driver has nothing directly to do with
+that important task.
 
-However, ISAPNP also used these constants as the size of parts of the logical
-device register set.  This register set is fixed by hardware, so increasing
-the constants meant that we were reading and writing unintended parts of the
-register set.
-
-This patch changes ISAPNP to use the correct register set sizes (the
-same values we used prior to 2.6.24).
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: <stable@kernel.org>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/isapnp/core.c |   25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ Documentation/hw_random.txt    |   59 +++++++++++++++++++++----------
+ drivers/char/hw_random/Kconfig |    9 ++++
+ 2 files changed, 48 insertions(+), 20 deletions(-)
 
-diff -puN drivers/pnp/isapnp/core.c~isapnp-fix-limits-of-logical-device-register-set drivers/pnp/isapnp/core.c
---- a/drivers/pnp/isapnp/core.c~isapnp-fix-limits-of-logical-device-register-set
-+++ a/drivers/pnp/isapnp/core.c
-@@ -88,6 +88,15 @@ MODULE_LICENSE("GPL");
- #define _LTAG_MEM32RANGE	0x85
- #define _LTAG_FIXEDMEM32RANGE	0x86
+diff -puN Documentation/hw_random.txt~hw_random-doc-updates Documentation/hw_random.txt
+--- a/Documentation/hw_random.txt~hw_random-doc-updates
++++ a/Documentation/hw_random.txt
+@@ -1,33 +1,26 @@
+-	Hardware driver for Intel/AMD/VIA Random Number Generators (RNG)
+-	Copyright 2000,2001 Jeff Garzik <jgarzik@pobox.com>
+-	Copyright 2000,2001 Philipp Rumpf <prumpf@mandrakesoft.com>
+-
+ Introduction:
  
-+/*
-+ * Sizes of ISAPNP logical device configuration register sets.
-+ * See PNP-ISA-v1.0a.pdf, Appendix A.
-+ */
-+#define ISAPNP_MAX_MEM		4
-+#define ISAPNP_MAX_PORT		8
-+#define ISAPNP_MAX_IRQ		2
-+#define ISAPNP_MAX_DMA		2
+-	The hw_random device driver is software that makes use of a
++	The hw_random framework is software that makes use of a
+ 	special hardware feature on your CPU or motherboard,
+-	a Random Number Generator (RNG).
++	a Random Number Generator (RNG).  The software has two parts:
++	a core providing the /dev/hw_random character device and its
++	sysfs support, plus a hardware-specific driver that plugs
++	into that core.
+ 
+-	In order to make effective use of this device driver, you
++	To make the most effective use of these mechanisms, you
+ 	should download the support software as well.  Download the
+ 	latest version of the "rng-tools" package from the
+ 	hw_random driver's official Web site:
+ 
+ 		http://sourceforge.net/projects/gkernel/
+ 
+-About the Intel RNG hardware, from the firmware hub datasheet:
+-
+-	The Firmware Hub integrates a Random Number Generator (RNG)
+-	using thermal noise generated from inherently random quantum
+-	mechanical properties of silicon. When not generating new random
+-	bits the RNG circuitry will enter a low power state. Intel will
+-	provide a binary software driver to give third party software
+-	access to our RNG for use as a security feature. At this time,
+-	the RNG is only to be used with a system in an OS-present state.
++	Those tools use /dev/hw_random to fill the kernel entropy pool,
++	which is used internally and exported by the /dev/urandom and
++	/dev/random special files.
+ 
+ Theory of operation:
+ 
+-	Character driver.  Using the standard open()
++	CHARACTER DEVICE.  Using the standard open()
+ 	and read() system calls, you can read random data from
+ 	the hardware RNG device.  This data is NOT CHECKED by any
+ 	fitness tests, and could potentially be bogus (if the
+@@ -36,9 +29,37 @@ Theory of operation:
+ 	a security-conscious person would run fitness tests on the
+ 	data before assuming it is truly random.
+ 
+-	/dev/hwrandom is char device major 10, minor 183.
++	The rng-tools package uses such tests in "rngd", and lets you
++	run them by hand with a "rngtest" utility.
 +
- static unsigned char isapnp_checksum_value;
- static DEFINE_MUTEX(isapnp_cfg_mutex);
- static int isapnp_csn_count;
-@@ -945,14 +954,14 @@ static int isapnp_read_resources(struct 
++	/dev/hw_random is char device major 10, minor 183.
++
++	CLASS DEVICE.  There is a /sys/class/misc/hw_random node with
++	two unique attributes, "rng_available" and "rng_current".  The
++	"rng_available" attribute lists the hardware-specific drivers
++	available, while "rng_current" lists the one which is currently
++	connected to /dev/hw_random.  If your system has more than one
++	RNG available, you may change the one used by writing a name from
++	the list in "rng_available" into "rng_current".
++
++==========================================================================
++
++	Hardware driver for Intel/AMD/VIA Random Number Generators (RNG)
++	Copyright 2000,2001 Jeff Garzik <jgarzik@pobox.com>
++	Copyright 2000,2001 Philipp Rumpf <prumpf@mandrakesoft.com>
++
++
++About the Intel RNG hardware, from the firmware hub datasheet:
++
++	The Firmware Hub integrates a Random Number Generator (RNG)
++	using thermal noise generated from inherently random quantum
++	mechanical properties of silicon. When not generating new random
++	bits the RNG circuitry will enter a low power state. Intel will
++	provide a binary software driver to give third party software
++	access to our RNG for use as a security feature. At this time,
++	the RNG is only to be used with a system in an OS-present state.
  
- 	dev->active = isapnp_read_byte(ISAPNP_CFG_ACTIVATE);
- 	if (dev->active) {
--		for (tmp = 0; tmp < PNP_MAX_PORT; tmp++) {
-+		for (tmp = 0; tmp < ISAPNP_MAX_PORT; tmp++) {
- 			ret = isapnp_read_word(ISAPNP_CFG_PORT + (tmp << 1));
- 			if (!ret)
- 				continue;
- 			res->port_resource[tmp].start = ret;
- 			res->port_resource[tmp].flags = IORESOURCE_IO;
- 		}
--		for (tmp = 0; tmp < PNP_MAX_MEM; tmp++) {
-+		for (tmp = 0; tmp < ISAPNP_MAX_MEM; tmp++) {
- 			ret =
- 			    isapnp_read_word(ISAPNP_CFG_MEM + (tmp << 3)) << 8;
- 			if (!ret)
-@@ -960,7 +969,7 @@ static int isapnp_read_resources(struct 
- 			res->mem_resource[tmp].start = ret;
- 			res->mem_resource[tmp].flags = IORESOURCE_MEM;
- 		}
--		for (tmp = 0; tmp < PNP_MAX_IRQ; tmp++) {
-+		for (tmp = 0; tmp < ISAPNP_MAX_IRQ; tmp++) {
- 			ret =
- 			    (isapnp_read_word(ISAPNP_CFG_IRQ + (tmp << 1)) >>
- 			     8);
-@@ -970,7 +979,7 @@ static int isapnp_read_resources(struct 
- 			    res->irq_resource[tmp].end = ret;
- 			res->irq_resource[tmp].flags = IORESOURCE_IRQ;
- 		}
--		for (tmp = 0; tmp < PNP_MAX_DMA; tmp++) {
-+		for (tmp = 0; tmp < ISAPNP_MAX_DMA; tmp++) {
- 			ret = isapnp_read_byte(ISAPNP_CFG_DMA + tmp);
- 			if (ret == 4)
- 				continue;
-@@ -1002,14 +1011,14 @@ static int isapnp_set_resources(struct p
- 	isapnp_cfg_begin(dev->card->number, dev->number);
- 	dev->active = 1;
- 	for (tmp = 0;
--	     tmp < PNP_MAX_PORT
-+	     tmp < ISAPNP_MAX_PORT
- 	     && (res->port_resource[tmp].
- 		 flags & (IORESOURCE_IO | IORESOURCE_UNSET)) == IORESOURCE_IO;
- 	     tmp++)
- 		isapnp_write_word(ISAPNP_CFG_PORT + (tmp << 1),
- 				  res->port_resource[tmp].start);
- 	for (tmp = 0;
--	     tmp < PNP_MAX_IRQ
-+	     tmp < ISAPNP_MAX_IRQ
- 	     && (res->irq_resource[tmp].
- 		 flags & (IORESOURCE_IRQ | IORESOURCE_UNSET)) == IORESOURCE_IRQ;
- 	     tmp++) {
-@@ -1019,14 +1028,14 @@ static int isapnp_set_resources(struct p
- 		isapnp_write_byte(ISAPNP_CFG_IRQ + (tmp << 1), irq);
- 	}
- 	for (tmp = 0;
--	     tmp < PNP_MAX_DMA
-+	     tmp < ISAPNP_MAX_DMA
- 	     && (res->dma_resource[tmp].
- 		 flags & (IORESOURCE_DMA | IORESOURCE_UNSET)) == IORESOURCE_DMA;
- 	     tmp++)
- 		isapnp_write_byte(ISAPNP_CFG_DMA + tmp,
- 				  res->dma_resource[tmp].start);
- 	for (tmp = 0;
--	     tmp < PNP_MAX_MEM
-+	     tmp < ISAPNP_MAX_MEM
- 	     && (res->mem_resource[tmp].
- 		 flags & (IORESOURCE_MEM | IORESOURCE_UNSET)) == IORESOURCE_MEM;
- 	     tmp++)
+-Driver notes:
++Intel RNG Driver notes:
+ 
+ 	* FIXME: support poll(2)
+ 
+diff -puN drivers/char/hw_random/Kconfig~hw_random-doc-updates drivers/char/hw_random/Kconfig
+--- a/drivers/char/hw_random/Kconfig~hw_random-doc-updates
++++ a/drivers/char/hw_random/Kconfig
+@@ -9,7 +9,14 @@ config HW_RANDOM
+ 	  Hardware Random Number Generator Core infrastructure.
+ 
+ 	  To compile this driver as a module, choose M here: the
+-	  module will be called rng-core.
++	  module will be called rng-core.  This provides a device
++	  that's usually called /dev/hw_random, and which exposes one
++	  of possibly several hardware random number generators.
++
++	  These hardware random number generators do not feed directly
++	  into the kernel's random number generator.  That is usually
++	  handled by the "rngd" daemon.  Documentation/hw_random.txt
++	  has more information.
+ 
+ 	  If unsure, say Y.
+ 
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
-pnp-increase-the-number-of-memory-resources-from-12-to-24.patch
-isapnp-fix-limits-of-logical-device-register-set.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-simplify-initcall_debug-output.patch
-pnp-skip-dev-protocol-null-checks.patch
-pnp-simplify-quirk-debug-output.patch
-pnp-use-dev_printk-for-quirk-messages.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
+origin.patch
+hw_random-doc-updates.patch
+git-acpi.patch
+git-avr32.patch
+git-leds.patch
+drivers-net-usb-pegasusc-remove-in_atomic-check.patch
+spi-use-menuconfig-for-config_spi.patch
+spi-pxa2xx_spi-sparse-fixes.patch
+documentation-move-spidev_fdx-example-to-its-own-source-file.patch
+spi-replace-remaining-__function__-occurrences.patch
+rtc-avoid-legacy-drivers-with-generic-framework.patch
+rtc-avoid-legacy-drivers-with-generic-framework-update.patch
+kerneldoc-for-linux-clkh.patch
+kerneldoc-for-linux-clkh-fix.patch
+gpiolib-better-rmmod-infrastructure.patch
+gpiolib-i2c-spi-drivers-handle-rmmod-better.patch
+gpio-define-gpio_is_valid.patch
+gpiolib-dynamic-gpio-number-allocation.patch
+gpiochip_reserve.patch
+gpiochip_reserve-fix.patch
+atmel_lcdfb-suspend-resume-support.patch
+atmel_lcdfb-wiring-bgr-to-rgb-color-mode.patch
 
