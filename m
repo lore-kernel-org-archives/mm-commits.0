@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + markers-remove-access_once.patch added to -mm tree
-Date: Fri, 21 Mar 2008 14:41:11 -0700
-Message-ID: <200803212141.m2LLfBHQ011789@imap1.linux-foundation.org>
+Subject: + markers-update-preempt_disable-call_rcu-rcu_barrier-comments.patch added to -mm tree
+Date: Fri, 21 Mar 2008 14:41:08 -0700
+Message-ID: <200803212141.m2LLf90u011786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49110 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55063 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754995AbYCUVmV (ORCPT
+	by vger.kernel.org with ESMTP id S1755404AbYCUVnE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 17:42:21 -0400
+	Fri, 21 Mar 2008 17:43:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mathieu.desnoyers@polymtl.ca, adrian.bunk@movial.fi, dipankar@in.ibm.com, ds
 
 
 The patch titled
-     markers: remove ACCESS_ONCE
+     markers: update preempt_disable. call_rcu, rcu_barrier comments
 has been added to the -mm tree.  Its filename is
-     markers-remove-access_once.patch
+     markers-update-preempt_disable-call_rcu-rcu_barrier-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markers: remove ACCESS_ONCE
+Subject: markers: update preempt_disable. call_rcu, rcu_barrier comments
 From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 
-As Paul pointed out, the ACCESS_ONCE are not needed because we already have
-the explicit surrounding memory barriers.
+Add comments requested by Andrew.
+
+Updated comments about synchronize_sched().  Since we use call_rcu and
+rcu_barrier now, these comments were out of sync with the code.
 
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Cc: Christoph Hellwig <hch@infradead.org>
@@ -51,62 +53,59 @@ Cc: Adrian Bunk <adrian.bunk@movial.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/marker.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ kernel/marker.c |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN kernel/marker.c~markers-remove-access_once kernel/marker.c
---- a/kernel/marker.c~markers-remove-access_once
+diff -puN kernel/marker.c~markers-update-preempt_disable-call_rcu-rcu_barrier-comments kernel/marker.c
+--- a/kernel/marker.c~markers-update-preempt_disable-call_rcu-rcu_barrier-comments
 +++ a/kernel/marker.c
-@@ -109,13 +109,13 @@ void marker_probe_cb(const struct marker
- 	 * modules and they insure RCU read coherency.
- 	 */
- 	preempt_disable();
--	ptype = ACCESS_ONCE(mdata->ptype);
-+	ptype = mdata->ptype;
- 	if (likely(!ptype)) {
- 		marker_probe_func *func;
- 		/* Must read the ptype before ptr. They are not data dependant,
- 		 * so we put an explicit smp_rmb() here. */
- 		smp_rmb();
--		func = ACCESS_ONCE(mdata->single.func);
-+		func = mdata->single.func;
- 		/* Must read the ptr before private data. They are not data
- 		 * dependant, so we put an explicit smp_rmb() here. */
- 		smp_rmb();
-@@ -133,7 +133,7 @@ void marker_probe_cb(const struct marker
- 		 * in the fast path, so put the explicit barrier here.
- 		 */
- 		smp_read_barrier_depends();
--		multi = ACCESS_ONCE(mdata->multi);
-+		multi = mdata->multi;
- 		for (i = 0; multi[i].func; i++) {
- 			va_start(args, fmt);
- 			multi[i].func(multi[i].probe_private, call_private, fmt,
-@@ -161,13 +161,13 @@ void marker_probe_cb_noarg(const struct 
+@@ -104,9 +104,9 @@ void marker_probe_cb(const struct marker
  	char ptype;
  
+ 	/*
+-	 * disabling preemption to make sure the teardown of the callbacks can
+-	 * be done correctly when they are in modules and they insure RCU read
+-	 * coherency.
++	 * preempt_disable does two things : disabling preemption to make sure
++	 * the teardown of the callbacks can be done correctly when they are in
++	 * modules and they insure RCU read coherency.
+ 	 */
  	preempt_disable();
--	ptype = ACCESS_ONCE(mdata->ptype);
-+	ptype = mdata->ptype;
- 	if (likely(!ptype)) {
- 		marker_probe_func *func;
- 		/* Must read the ptype before ptr. They are not data dependant,
- 		 * so we put an explicit smp_rmb() here. */
- 		smp_rmb();
--		func = ACCESS_ONCE(mdata->single.func);
-+		func = mdata->single.func;
- 		/* Must read the ptr before private data. They are not data
- 		 * dependant, so we put an explicit smp_rmb() here. */
- 		smp_rmb();
-@@ -183,7 +183,7 @@ void marker_probe_cb_noarg(const struct 
- 		 * in the fast path, so put the explicit barrier here.
- 		 */
- 		smp_read_barrier_depends();
--		multi = ACCESS_ONCE(mdata->multi);
-+		multi = mdata->multi;
- 		for (i = 0; multi[i].func; i++)
- 			multi[i].func(multi[i].probe_private, call_private, fmt,
- 				&args);
+ 	ptype = ACCESS_ONCE(mdata->ptype);
+@@ -551,9 +551,9 @@ static int set_marker(struct marker_entr
+ 
+ /*
+  * Disable a marker and its probe callback.
+- * Note: only after a synchronize_sched() issued after setting elem->call to the
+- * empty function insures that the original callback is not used anymore. This
+- * insured by preemption disabling around the call site.
++ * Note: only waiting an RCU period after setting elem->call to the empty
++ * function insures that the original callback is not used anymore. This insured
++ * by preempt_disable around the call site.
+  */
+ static void disable_marker(struct marker *elem)
+ {
+@@ -565,8 +565,8 @@ static void disable_marker(struct marker
+ 	elem->ptype = 0;	/* single probe */
+ 	/*
+ 	 * Leave the private data and id there, because removal is racy and
+-	 * should be done only after a synchronize_sched(). These are never used
+-	 * until the next initialization anyway.
++	 * should be done only after an RCU period. These are never used until
++	 * the next initialization anyway.
+ 	 */
+ }
+ 
+@@ -601,9 +601,6 @@ void marker_update_probe_range(struct ma
+ 
+ /*
+  * Update probes, removing the faulty probes.
+- * Issues a synchronize_sched() when no reference to the module passed
+- * as parameter is found in the probes so the probe module can be
+- * safely unloaded from now on.
+  *
+  * Internal callback only changed before the first probe is connected to it.
+  * Single probe private data can only be changed on 0 -> 1 and 2 -> 1
 _
 
 Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
