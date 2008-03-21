@@ -1,71 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: - i810fb-fix-console-switch-regression.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:29:37 -0700
-Message-ID: <200803212029.m2LKTbka008889@imap1.linux-foundation.org>
+Subject: - ext3-fix-wrong-gfp-type-under-transaction.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:29:23 -0700
+Message-ID: <200803212029.m2LKTNXx008862__35206.0307203375$1206131481$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36201 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759014AbYCUU37 (ORCPT
+	by vger.kernel.org with ESMTP id S1757251AbYCUUaB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:29:59 -0400
+	Fri, 21 Mar 2008 16:30:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stefan.bauer@cs.tu-chemnitz.de, adaplas@pol.net, geert@linux-m68k.org, hmh@hmh.eng.br, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: jbacik@redhat.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i810fb: fix console switch regression
+     ext3: fix wrong gfp type under transaction
 has been removed from the -mm tree.  Its filename was
-     i810fb-fix-console-switch-regression.patch
+     ext3-fix-wrong-gfp-type-under-transaction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i810fb: fix console switch regression
-From: Stefan Bauer <stefan.bauer@cs.tu-chemnitz.de>
+Subject: ext3: fix wrong gfp type under transaction
+From: Josef Bacik <jbacik@redhat.com>
 
-Since 4c7ffe0b9f7f40bd818fe3af51342f64c483908e ("fbdev: prevent drivers that
-have hardware cursors from calling software cursor code") every call of
-i810fb_cursor fails with -ENXIO because of a incorrect "!".
+There are several places where we make allocations with GFP_KERNEL while under
+a transaction, which could lead to an assertion panic or lockup if under
+memory pressure.  This patch switches these problem areas to use GFP_NOFS to
+keep these problems from happening.
 
-This hasn't struck until eaa0ff15c30dc9799eb4d12660edb73aeb6d32c5 ("fix ! 
-versus & precedence in various places") surrounded the expression with braces,
-so that the intended behavior was inverted.  That caused 'pixel waste' - the
-same line of multi-colored pixels repeated over the whole screen - during
-console switch.
-
-This switches back to the original pre-4c7ffe0 behavior.
-
-Signed-off-by: Stefan Bauer <stefan.bauer@cs.tu-chemnitz.de>
-Tested-by: Stefan Bauer <stefan.bauer@cs.tu-chemnitz.de>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Antonino Daplas <adaplas@pol.net>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Josef Bacik <jbacik@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/i810/i810_main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext3/acl.c    |    8 ++++----
+ fs/ext3/resize.c |    4 ++--
+ fs/ext3/xattr.c  |    4 ++--
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/i810/i810_main.c~i810fb-fix-console-switch-regression drivers/video/i810/i810_main.c
---- a/drivers/video/i810/i810_main.c~i810fb-fix-console-switch-regression
-+++ a/drivers/video/i810/i810_main.c
-@@ -1476,7 +1476,7 @@ static int i810fb_cursor(struct fb_info 
- 	struct i810fb_par *par = info->par;
- 	u8 __iomem *mmio = par->mmio_start_virtual;
+diff -puN fs/ext3/acl.c~ext3-fix-wrong-gfp-type-under-transaction fs/ext3/acl.c
+--- a/fs/ext3/acl.c~ext3-fix-wrong-gfp-type-under-transaction
++++ a/fs/ext3/acl.c
+@@ -37,7 +37,7 @@ ext3_acl_from_disk(const void *value, si
+ 		return ERR_PTR(-EINVAL);
+ 	if (count == 0)
+ 		return NULL;
+-	acl = posix_acl_alloc(count, GFP_KERNEL);
++	acl = posix_acl_alloc(count, GFP_NOFS);
+ 	if (!acl)
+ 		return ERR_PTR(-ENOMEM);
+ 	for (n=0; n < count; n++) {
+@@ -91,7 +91,7 @@ ext3_acl_to_disk(const struct posix_acl 
  
--	if (!(par->dev_flags & LOCKUP))
-+	if (par->dev_flags & LOCKUP)
- 		return -ENXIO;
+ 	*size = ext3_acl_size(acl->a_count);
+ 	ext_acl = kmalloc(sizeof(ext3_acl_header) + acl->a_count *
+-			sizeof(ext3_acl_entry), GFP_KERNEL);
++			sizeof(ext3_acl_entry), GFP_NOFS);
+ 	if (!ext_acl)
+ 		return ERR_PTR(-ENOMEM);
+ 	ext_acl->a_version = cpu_to_le32(EXT3_ACL_VERSION);
+@@ -187,7 +187,7 @@ ext3_get_acl(struct inode *inode, int ty
+ 	}
+ 	retval = ext3_xattr_get(inode, name_index, "", NULL, 0);
+ 	if (retval > 0) {
+-		value = kmalloc(retval, GFP_KERNEL);
++		value = kmalloc(retval, GFP_NOFS);
+ 		if (!value)
+ 			return ERR_PTR(-ENOMEM);
+ 		retval = ext3_xattr_get(inode, name_index, "", value, retval);
+@@ -335,7 +335,7 @@ ext3_init_acl(handle_t *handle, struct i
+ 			if (error)
+ 				goto cleanup;
+ 		}
+-		clone = posix_acl_clone(acl, GFP_KERNEL);
++		clone = posix_acl_clone(acl, GFP_NOFS);
+ 		error = -ENOMEM;
+ 		if (!clone)
+ 			goto cleanup;
+diff -puN fs/ext3/resize.c~ext3-fix-wrong-gfp-type-under-transaction fs/ext3/resize.c
+--- a/fs/ext3/resize.c~ext3-fix-wrong-gfp-type-under-transaction
++++ a/fs/ext3/resize.c
+@@ -485,7 +485,7 @@ static int add_new_gdb(handle_t *handle,
+ 		goto exit_dindj;
  
- 	if (cursor->image.width > 64 || cursor->image.height > 64)
+ 	n_group_desc = kmalloc((gdb_num + 1) * sizeof(struct buffer_head *),
+-			GFP_KERNEL);
++			GFP_NOFS);
+ 	if (!n_group_desc) {
+ 		err = -ENOMEM;
+ 		ext3_warning (sb, __FUNCTION__,
+@@ -568,7 +568,7 @@ static int reserve_backup_gdb(handle_t *
+ 	int res, i;
+ 	int err;
+ 
+-	primary = kmalloc(reserved_gdb * sizeof(*primary), GFP_KERNEL);
++	primary = kmalloc(reserved_gdb * sizeof(*primary), GFP_NOFS);
+ 	if (!primary)
+ 		return -ENOMEM;
+ 
+diff -puN fs/ext3/xattr.c~ext3-fix-wrong-gfp-type-under-transaction fs/ext3/xattr.c
+--- a/fs/ext3/xattr.c~ext3-fix-wrong-gfp-type-under-transaction
++++ a/fs/ext3/xattr.c
+@@ -728,7 +728,7 @@ ext3_xattr_block_set(handle_t *handle, s
+ 				ce = NULL;
+ 			}
+ 			ea_bdebug(bs->bh, "cloning");
+-			s->base = kmalloc(bs->bh->b_size, GFP_KERNEL);
++			s->base = kmalloc(bs->bh->b_size, GFP_NOFS);
+ 			error = -ENOMEM;
+ 			if (s->base == NULL)
+ 				goto cleanup;
+@@ -740,7 +740,7 @@ ext3_xattr_block_set(handle_t *handle, s
+ 		}
+ 	} else {
+ 		/* Allocate a buffer where we construct the new block. */
+-		s->base = kzalloc(sb->s_blocksize, GFP_KERNEL);
++		s->base = kzalloc(sb->s_blocksize, GFP_NOFS);
+ 		/* assert(header == s->base) */
+ 		error = -ENOMEM;
+ 		if (s->base == NULL)
 _
 
-Patches currently in -mm which might be from stefan.bauer@cs.tu-chemnitz.de are
+Patches currently in -mm which might be from jbacik@redhat.com are
 
 origin.patch
+jbd-fix-the-way-the-b_modified-flag-is-cleared.patch
+jbd-fix-possible-journal-overflow-issues.patch
+ext4-fix-wrong-gfp-type-under-transaction.patch
 
