@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-fix-data-leak-in-nobh_write_end.patch added to -mm tree
-Date: Fri, 21 Mar 2008 15:00:52 -0700
-Message-ID: <200803212200.m2LM0rsw012556@imap1.linux-foundation.org>
+Subject: + bluetooth-replace-deprecated-rw_lock_unlocked-macros.patch added to -mm tree
+Date: Fri, 21 Mar 2008 15:02:42 -0700
+Message-ID: <200803212202.m2LM2gUr012595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59859 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751397AbYCUWB5 (ORCPT
+	by vger.kernel.org with ESMTP id S1750751AbYCUWGx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 18:01:57 -0400
+	Fri, 21 Mar 2008 18:06:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmonakhov@openvz.org, nickpiggin@yahoo.com.au, stable@kernel.org
+Cc: rpjday@crashcourse.ca, hidave.darkstar@gmail.com, marcel@holtmann.org
 
 
 The patch titled
-     vfs: fix data leak in nobh_write_end()
+     bluetooth: replace deprecated RW_LOCK_UNLOCKED macros
 has been added to the -mm tree.  Its filename is
-     vfs-fix-data-leak-in-nobh_write_end.patch
+     bluetooth-replace-deprecated-rw_lock_unlocked-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: fix data leak in nobh_write_end()
-From: Dmitri Monakhov <dmonakhov@openvz.org>
+Subject: bluetooth: replace deprecated RW_LOCK_UNLOCKED macros
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Current nobh_write_end() implementation ignore partial writes(copied < len)
-case if page was fully mapped and simply mark page as Uptodate, which is
-totally wrong because area [pos+copied, pos+len) wasn't updated explicitly in
-previous write_begin call.  It simply contains garbage from pagecache and
-result in data leakage.
+The older RW_LOCK_UNLOCKED macros defeat lockdep state tracing so replace them
+with the newer __RW_LOCK_UNLOCKED macros.
 
-#TEST_CASE_BEGIN:
-~~~~~~~~~~~~~~~~
-In fact issue triggered by classical testcase
-	open("/mnt/test", O_RDWR|O_CREAT|O_TRUNC, 0666) = 3
-	ftruncate(3, 409600)                    = 0
-	writev(3, [{"a", 1}, {NULL, 4095}], 2)  = 1
-##TESTCASE_SOURCE:
-~~~~~~~~~~~~~~~~~
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <sys/uio.h>
-#include <sys/mman.h>
-#include <errno.h>
-int main(int argc, char **argv)
-{
-	int fd,  ret;
-	void* p;
-	struct iovec iov[2];
-	fd = open(argv[1], O_RDWR|O_CREAT|O_TRUNC, 0666);
-	ftruncate(fd, 409600);
-	iov[0].iov_base="a";
-	iov[0].iov_len=1;
-	iov[1].iov_base=NULL;
-	iov[1].iov_len=4096;
-	ret = writev(fd, iov, sizeof(iov)/sizeof(struct iovec));
-	printf("writev  = %d, err = %d\n", ret, errno);
-	return 0;
-}
-##TESTCASE RESULT:
-~~~~~~~~~~~~~~~~~~
-[root@ts63 ~]# mount | grep mnt2
-/dev/mapper/test on /mnt2 type ext2 (rw,nobh)
-[root@ts63 ~]#  /tmp/writev /mnt2/test
-writev  = 1, err = 0
-[root@ts63 ~]# hexdump -C /mnt2/test
-
-00000000  61 65 62 6f 6f 74 00 00  f0 b9 b4 59 3a 00 00 00  |aeboot.....Y:...|
-00000010  20 00 00 00 00 00 00 00  21 00 00 00 00 00 00 00  | .......!.......|
-00000020  df df df df df df df df  df df df df df df df df  |................|
-00000030  3a 00 00 00 2a 00 00 00  21 00 00 00 00 00 00 00  |:...*...!.......|
-00000040  60 c0 8c 00 00 00 00 00  40 4a 8d 00 00 00 00 00  |`.......@J......|
-00000050  00 00 00 00 00 00 00 00  41 00 00 00 00 00 00 00  |........A.......|
-00000060  74 69 6d 65 20 64 64 20  69 66 3d 2f 64 65 76 2f  |time dd if=/dev/|
-00000070  6c 6f 6f 70 30 20 20 6f  66 3d 2f 64 65 76 2f 6e  |loop0  of=/dev/n|
-skip..
-00000f50  00 00 00 00 00 00 00 00  31 00 00 00 00 00 00 00  |........1.......|
-00000f60  6d 6b 66 73 2e 65 78 74  33 20 2f 64 65 76 2f 76  |mkfs.ext3 /dev/v|
-00000f70  7a 76 67 2f 74 65 73 74  20 2d 62 34 30 39 36 00  |zvg/test -b4096.|
-00000f80  a0 fe 8c 00 00 00 00 00  21 00 00 00 00 00 00 00  |........!.......|
-00000f90  23 31 32 30 35 39 35 30  34 30 34 00 3a 00 00 00  |#1205950404.:...|
-00000fa0  20 00 8d 00 00 00 00 00  21 00 00 00 00 00 00 00  | .......!.......|
-00000fb0  d0 cf 8c 00 00 00 00 00  10 d0 8c 00 00 00 00 00  |................|
-00000fc0  00 00 00 00 00 00 00 00  41 00 00 00 00 00 00 00  |........A.......|
-00000fd0  6d 6f 75 6e 74 20 2f 64  65 76 2f 76 7a 76 67 2f  |mount /dev/vzvg/|
-00000fe0  74 65 73 74 20 20 2f 76  7a 20 2d 6f 20 64 61 74  |test  /vz -o dat|
-00000ff0  61 3d 77 72 69 74 65 62  61 63 6b 00 00 00 00 00  |a=writeback.....|
-00001000  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
-
-As you can see file's page contains garbage from pagecache instead of zeros.
-#TEST_CASE_END
-
-Attached patch:
-- Add sanity check BUG_ON in order to prevent incorrect usage by caller,
-  This is function invariant because page can has buffers and in no zero
-  *fadata pointer at the same time.
-- Always attach buffers to page is it is partial write case.
-- Always switch back to generic_write_end if page has buffers.
-  This is reasonable because if page already has buffer then generic_write_begin
-  was called previously.
-
-Signed-off-by: Dmitri Monakhov <dmonakhov@openvz.org>
-Needs-ack-from: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: <stable@kernel.org>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Acked-by: Marcel Holtmann <marcel@holtmann.org>
+Cc: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ net/bluetooth/hci_sock.c    |    2 +-
+ net/bluetooth/l2cap.c       |    2 +-
+ net/bluetooth/rfcomm/sock.c |    2 +-
+ net/bluetooth/sco.c         |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/buffer.c~vfs-fix-data-leak-in-nobh_write_end fs/buffer.c
---- a/fs/buffer.c~vfs-fix-data-leak-in-nobh_write_end
-+++ a/fs/buffer.c
-@@ -2564,14 +2564,13 @@ int nobh_write_end(struct file *file, st
- 	struct inode *inode = page->mapping->host;
- 	struct buffer_head *head = fsdata;
- 	struct buffer_head *bh;
-+	BUG_ON(fsdata != NULL && page_has_buffers(page));
+diff -puN net/bluetooth/hci_sock.c~bluetooth-replace-deprecated-rw_lock_unlocked-macros net/bluetooth/hci_sock.c
+--- a/net/bluetooth/hci_sock.c~bluetooth-replace-deprecated-rw_lock_unlocked-macros
++++ a/net/bluetooth/hci_sock.c
+@@ -84,7 +84,7 @@ static struct hci_sec_filter hci_sec_fil
+ };
  
--	if (!PageMappedToDisk(page)) {
--		if (unlikely(copied < len) && !page_has_buffers(page))
--			attach_nobh_buffers(page, head);
--		if (page_has_buffers(page))
--			return generic_write_end(file, mapping, pos, len,
--						copied, page, fsdata);
--	}
-+	if (unlikely(copied < len) && !page_has_buffers(page))
-+		attach_nobh_buffers(page, head);
-+	if (page_has_buffers(page))
-+		return generic_write_end(file, mapping, pos, len,
-+					copied, page, fsdata);
+ static struct bt_sock_list hci_sk_list = {
+-	.lock = RW_LOCK_UNLOCKED
++	.lock = __RW_LOCK_UNLOCKED(hci_sk_list.lock)
+ };
  
- 	SetPageUptodate(page);
- 	set_page_dirty(page);
+ /* Send frame to RAW socket */
+diff -puN net/bluetooth/l2cap.c~bluetooth-replace-deprecated-rw_lock_unlocked-macros net/bluetooth/l2cap.c
+--- a/net/bluetooth/l2cap.c~bluetooth-replace-deprecated-rw_lock_unlocked-macros
++++ a/net/bluetooth/l2cap.c
+@@ -62,7 +62,7 @@ static u32 l2cap_feat_mask = 0x0000;
+ static const struct proto_ops l2cap_sock_ops;
+ 
+ static struct bt_sock_list l2cap_sk_list = {
+-	.lock = RW_LOCK_UNLOCKED
++	.lock = __RW_LOCK_UNLOCKED(l2cap_sk_list.lock)
+ };
+ 
+ static void __l2cap_sock_close(struct sock *sk, int reason);
+diff -puN net/bluetooth/rfcomm/sock.c~bluetooth-replace-deprecated-rw_lock_unlocked-macros net/bluetooth/rfcomm/sock.c
+--- a/net/bluetooth/rfcomm/sock.c~bluetooth-replace-deprecated-rw_lock_unlocked-macros
++++ a/net/bluetooth/rfcomm/sock.c
+@@ -60,7 +60,7 @@
+ static const struct proto_ops rfcomm_sock_ops;
+ 
+ static struct bt_sock_list rfcomm_sk_list = {
+-	.lock = RW_LOCK_UNLOCKED
++	.lock = __RW_LOCK_UNLOCKED(rfcomm_sk_list.lock)
+ };
+ 
+ static void rfcomm_sock_close(struct sock *sk);
+diff -puN net/bluetooth/sco.c~bluetooth-replace-deprecated-rw_lock_unlocked-macros net/bluetooth/sco.c
+--- a/net/bluetooth/sco.c~bluetooth-replace-deprecated-rw_lock_unlocked-macros
++++ a/net/bluetooth/sco.c
+@@ -58,7 +58,7 @@
+ static const struct proto_ops sco_sock_ops;
+ 
+ static struct bt_sock_list sco_sk_list = {
+-	.lock = RW_LOCK_UNLOCKED
++	.lock = __RW_LOCK_UNLOCKED(sco_sk_list.lock)
+ };
+ 
+ static void __sco_chan_add(struct sco_conn *conn, struct sock *sk, struct sock *parent);
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
-vfs-fix-data-leak-in-nobh_write_end.patch
+origin.patch
+bluetooth-replace-deprecated-rw_lock_unlocked-macros.patch
+git-nfsd.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
+kernel-explicitly-include-required-header-files-under-kernel.patch
+remove-superfluous-include-of-stringh-from-percpuh.patch
+isdn-fix-obvious-cut-and-paste-error-in-st5481_usbc.patch
+keys-explicitly-include-required-slabh-header-file.patch
+generalize-asm-generic-ioctlh-to-allow-overriding-values.patch
 
