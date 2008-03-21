@@ -1,56 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:30:55 -0700
-Message-ID: <200803212030.m2LKUtVg009029@imap1.linux-foundation.org>
+Subject: - revert-pcie-utilize-pcie-transaction-pending-bit.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:31:41 -0700
+Message-ID: <200803212031.m2LKVfix009091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40660 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760239AbYCUUb6 (ORCPT
+	by vger.kernel.org with ESMTP id S1761335AbYCUUb6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 21 Mar 2008 16:31:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, gregkh@suse.de, kernel@nn7.de, rjw@sisk.pl, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net: drivers/net/wireless/rt2x00/rt2x00dev.c: remove dead code, fix warning
+     revert "pcie: utilize pcie transaction pending bit"
 has been removed from the -mm tree.  Its filename was
-     git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning.patch
+     revert-pcie-utilize-pcie-transaction-pending-bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net: drivers/net/wireless/rt2x00/rt2x00dev.c: remove dead code, fix warning
+Subject: revert "pcie: utilize pcie transaction pending bit"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/wireless/rt2x00/rt2x00dev.c: In function 'rt2x00lib_initialize':
-drivers/net/wireless/rt2x00/rt2x00dev.c:1148: warning: label 'exit_unitialize' defined but not used
+Revert
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+commit 4348a2dc49f9baecd34a9b0904245488c6189398
+Author: Shaohua Li <shaohua.li@intel.com>
+Date:   Wed Oct 24 10:45:08 2007 +0800
+
+    pcie: utilize pcie transaction pending bit
+    
+    PCIE has a mechanism to wait for Non-Posted request to complete. I think
+    pci_disable_device is a good place to do this.
+    
+    Signed-off-by: Shaohua Li <shaohua.li@intel.com>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+Due to the regression reported at
+http://bugzilla.kernel.org/show_bug.cgi?id=10065
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: Soeren Sonnenburg <kernel@nn7.de>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/rt2x00/rt2x00dev.c |    3 ---
- 1 file changed, 3 deletions(-)
+ drivers/pci/pci.c   |   21 ---------------------
+ include/linux/pci.h |    4 ----
+ 2 files changed, 25 deletions(-)
 
-diff -puN drivers/net/wireless/rt2x00/rt2x00dev.c~git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning drivers/net/wireless/rt2x00/rt2x00dev.c
---- a/drivers/net/wireless/rt2x00/rt2x00dev.c~git-net-drivers-net-wireless-rt2x00-rt2x00devc-remove-dead-code-fix-warning
-+++ a/drivers/net/wireless/rt2x00/rt2x00dev.c
-@@ -1145,9 +1145,6 @@ static int rt2x00lib_initialize(struct r
+diff -puN drivers/pci/pci.c~revert-pcie-utilize-pcie-transaction-pending-bit drivers/pci/pci.c
+--- a/drivers/pci/pci.c~revert-pcie-utilize-pcie-transaction-pending-bit
++++ a/drivers/pci/pci.c
+@@ -315,24 +315,6 @@ int pci_find_ht_capability(struct pci_de
+ }
+ EXPORT_SYMBOL_GPL(pci_find_ht_capability);
  
- 	return 0;
- 
--exit_unitialize:
--	rt2x00lib_uninitialize(rt2x00dev);
+-void pcie_wait_pending_transaction(struct pci_dev *dev)
+-{
+-	int pos;
+-	u16 reg16;
 -
- exit:
- 	rt2x00lib_free_ring_entries(rt2x00dev);
+-	pos = pci_find_capability(dev, PCI_CAP_ID_EXP);
+-	if (!pos)
+-		return;
+-	while (1) {
+-		pci_read_config_word(dev, pos + PCI_EXP_DEVSTA, &reg16);
+-		if (!(reg16 & PCI_EXP_DEVSTA_TRPND))
+-			break;
+-		cpu_relax();
+-	}
+-
+-}
+-EXPORT_SYMBOL_GPL(pcie_wait_pending_transaction);
+-
+ /**
+  * pci_find_parent_resource - return resource region of parent bus of given region
+  * @dev: PCI device structure contains resources to be searched
+@@ -940,9 +922,6 @@ pci_disable_device(struct pci_dev *dev)
+ 	if (atomic_sub_return(1, &dev->enable_cnt) != 0)
+ 		return;
  
+-	/* Wait for all transactions are finished before disabling the device */
+-	pcie_wait_pending_transaction(dev);
+-
+ 	pci_read_config_word(dev, PCI_COMMAND, &pci_command);
+ 	if (pci_command & PCI_COMMAND_MASTER) {
+ 		pci_command &= ~PCI_COMMAND_MASTER;
+diff -puN include/linux/pci.h~revert-pcie-utilize-pcie-transaction-pending-bit include/linux/pci.h
+--- a/include/linux/pci.h~revert-pcie-utilize-pcie-transaction-pending-bit
++++ a/include/linux/pci.h
+@@ -519,7 +519,6 @@ int pci_find_next_capability(struct pci_
+ int pci_find_ext_capability(struct pci_dev *dev, int cap);
+ int pci_find_ht_capability(struct pci_dev *dev, int ht_cap);
+ int pci_find_next_ht_capability(struct pci_dev *dev, int pos, int ht_cap);
+-void pcie_wait_pending_transaction(struct pci_dev *dev);
+ struct pci_bus *pci_find_next_bus(const struct pci_bus *from);
+ 
+ struct pci_dev *pci_get_device(unsigned int vendor, unsigned int device,
+@@ -878,9 +877,6 @@ static inline int pci_find_ext_capabilit
+ 	return 0;
+ }
+ 
+-static inline void pcie_wait_pending_transaction(struct pci_dev *dev)
+-{ }
+-
+ /* Power management related routines */
+ static inline int pci_save_state(struct pci_dev *dev)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
