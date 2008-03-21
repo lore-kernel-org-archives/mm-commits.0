@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-check_kill_permission-remove-tasklist_lock.patch added to -mm tree
-Date: Fri, 21 Mar 2008 16:00:01 -0700
-Message-ID: <200803212300.m2LN01jB015157@imap1.linux-foundation.org>
+Subject: + drivers-net-usb-pegasusc-remove-in_atomic-check.patch added to -mm tree
+Date: Fri, 21 Mar 2008 16:00:58 -0700
+Message-ID: <200803212300.m2LN0w7w015178@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56698 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42948 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932212AbYCUXAx (ORCPT
+	by vger.kernel.org with ESMTP id S1764829AbYCUXBW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 19:00:53 -0400
+	Fri, 21 Mar 2008 19:01:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, greg@kroah.com, jeff@garzik.org
 
 
 The patch titled
-     signals: check_kill_permission: remove tasklist_lock
+     drivers/net/usb/pegasus.c: remove in_atomic() check
 has been added to the -mm tree.  Its filename is
-     signals-check_kill_permission-remove-tasklist_lock.patch
+     drivers-net-usb-pegasusc-remove-in_atomic-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,107 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: check_kill_permission: remove tasklist_lock
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: drivers/net/usb/pegasus.c: remove in_atomic() check
+From: David Brownell <david-b@pacbell.net>
 
-Now that task_session() can't return a false NULL, check_kill_permission()
-doesn't need tasklist_lock.
+Remove superfluous in-atomic() check; ethtool MII ops are called from task
+context.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/net/usb/pegasus.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN kernel/signal.c~signals-check_kill_permission-remove-tasklist_lock kernel/signal.c
---- a/kernel/signal.c~signals-check_kill_permission-remove-tasklist_lock
-+++ a/kernel/signal.c
-@@ -551,9 +551,7 @@ static int check_kill_permission(int sig
- 	    !capable(CAP_KILL)) {
- 		switch (sig) {
- 		case SIGCONT:
--			read_lock(&tasklist_lock);
- 			sid = task_session(t);
--			read_unlock(&tasklist_lock);
- 			/*
- 			 * We don't return the error if sid == NULL. The
- 			 * task was unhashed, the caller must notice this.
+diff -puN drivers/net/usb/pegasus.c~drivers-net-usb-pegasusc-remove-in_atomic-check drivers/net/usb/pegasus.c
+--- a/drivers/net/usb/pegasus.c~drivers-net-usb-pegasusc-remove-in_atomic-check
++++ a/drivers/net/usb/pegasus.c
+@@ -1128,12 +1128,8 @@ pegasus_get_settings(struct net_device *
+ {
+ 	pegasus_t *pegasus;
+ 
+-	if (in_atomic())
+-		return 0;
+-
+ 	pegasus = netdev_priv(dev);
+ 	mii_ethtool_gset(&pegasus->mii, ecmd);
+-
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-x86-handle_vm86_trap-cleanup.patch
-git-hrt.patch
-bsd_acct-plain-current-real_parent-access-is-not-always-safe.patch
-bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-document-cld_continued-notification-mechanics-more.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-signals-check_kill_permission-remove-tasklist_lock.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+git-acpi.patch
+git-avr32.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc-update.patch
+usb-net-asix-does-not-really-need-10-100mbit.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+usb-gadget-dummy_hcdc-fix-nested-switch-statements.patch
+drivers-net-usb-pegasusc-remove-in_atomic-check.patch
+spi-pxa2xx_spi-sparse-fixes.patch
+rtc-avoid-legacy-drivers-with-generic-framework.patch
+rtc-avoid-legacy-drivers-with-generic-framework-update.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+rtc-silence-section-mismatch-warning-in-rtc-test.patch
+make-ds1511_rtc_readset_time-static.patch
+kerneldoc-for-linux-clkh.patch
+kerneldoc-for-linux-clkh-fix.patch
+rtc-replace-remaining-__function__-occurrences.patch
+remove-duplicated-unlikely-in-is_err.patch
 
