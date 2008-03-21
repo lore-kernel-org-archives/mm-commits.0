@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism.patch added to -mm tree
-Date: Fri, 21 Mar 2008 15:41:28 -0700
-Message-ID: <200803212241.m2LMfSli014032@imap1.linux-foundation.org>
+Subject: + input-touchscreen-driver-for-the-superh-migor-board.patch added to -mm tree
+Date: Fri, 21 Mar 2008 15:55:36 -0700
+Message-ID: <200803212255.m2LMtaZx014915@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37652 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56008 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762921AbYCUWrE (ORCPT
+	by vger.kernel.org with ESMTP id S1763625AbYCUWzp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 18:47:04 -0400
+	Fri, 21 Mar 2008 18:55:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: djwong@us.ibm.com, davej@codemonkey.org.uk
+Cc: magnus.damm@gmail.com, damm@igel.co.jp, dtor@mail.ru, lethal@linux-sh.org
 
 
 The patch titled
-     cpufreq: expose cpufreq coordination requirements regardless of coordination mechanism
+     input: touchscreen driver for the SuperH MigoR board
 has been added to the -mm tree.  Its filename is
-     cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism.patch
+     input-touchscreen-driver-for-the-superh-migor-board.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,128 +34,270 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: expose cpufreq coordination requirements regardless of coordination mechanism
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: input: touchscreen driver for the SuperH MigoR board
+From: Magnus Damm <magnus.damm@gmail.com>
 
-Currently, affected_cpus shows which CPUs need to have their frequency
-coordinated in software.  When hardware coordination is in use, the contents
-of this file appear the same as when no coordination is required.  This can
-lead to some confusion among user-space programs, for example, that do not
-know that extra coordination is required to force a CPU core to a particular
-speed to control power consumption.
+Add a touch screen driver for the MigoR board.  The chip we interface to is
+unfortunately a custom designed microcontroller speaking some undocumented
+protocol over i2c.
 
-To fix this, create a "related_cpus" attribute that always displays the
-coordination map regardless of whatever coordination strategy the cpufreq
-driver uses (sw or hw).  If the cpufreq driver does not provide a value, fall
-back to policy->cpus.
+The board specific code is expected to register this device as an i2c chip
+using struct i2c_board_info [] and i2c_register_board_info().
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    1 
- drivers/cpufreq/cpufreq.c                  |   29 +++++++++++++++----
- include/linux/cpufreq.h                    |    3 +
- 3 files changed, 27 insertions(+), 6 deletions(-)
+ drivers/input/touchscreen/Kconfig    |   12 +
+ drivers/input/touchscreen/Makefile   |    1 
+ drivers/input/touchscreen/migor_ts.c |  196 +++++++++++++++++++++++++
+ 3 files changed, 209 insertions(+)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism
-+++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -591,6 +591,7 @@ static int acpi_cpufreq_cpu_init(struct 
- 	    policy->shared_type == CPUFREQ_SHARED_TYPE_ANY) {
- 		policy->cpus = perf->shared_cpu_map;
- 	}
-+	policy->related_cpus = perf->shared_cpu_map;
+diff -puN drivers/input/touchscreen/Kconfig~input-touchscreen-driver-for-the-superh-migor-board drivers/input/touchscreen/Kconfig
+--- a/drivers/input/touchscreen/Kconfig~input-touchscreen-driver-for-the-superh-migor-board
++++ a/drivers/input/touchscreen/Kconfig
+@@ -147,6 +147,18 @@ config TOUCHSCREEN_HP7XX
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called jornada720_ts.
  
- #ifdef CONFIG_SMP
- 	dmi_check_system(sw_any_bug_dmi_table);
-diff -puN drivers/cpufreq/cpufreq.c~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -583,15 +583,13 @@ out:
- 	i += sprintf(&buf[i], "\n");
- 	return i;
- }
--/**
-- * show_affected_cpus - show the CPUs affected by each transition
-- */
--static ssize_t show_affected_cpus(struct cpufreq_policy *policy, char *buf)
++config TOUCHSCREEN_MIGOR
++	tristate "Renesas MIGO-R touchscreen"
++	depends on SH_MIGOR
++	default n
++	help
++	  Say Y here to enable MIGO-R touchscreen support.
 +
-+static ssize_t show_cpus(cpumask_t mask, char *buf)
- {
- 	ssize_t i = 0;
- 	unsigned int cpu;
- 
--	for_each_cpu_mask(cpu, policy->cpus) {
-+	for_each_cpu_mask(cpu, mask) {
- 		if (i)
- 			i += scnprintf(&buf[i], (PAGE_SIZE - i - 2), " ");
- 		i += scnprintf(&buf[i], (PAGE_SIZE - i - 2), "%u", cpu);
-@@ -602,6 +600,25 @@ static ssize_t show_affected_cpus(struct
- 	return i;
- }
- 
-+/**
-+ * show_related_cpus - show the CPUs affected by each transition even if
-+ * hw coordination is in use
++	  If unsure, say N.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called migor_ts.
++
+ config TOUCHSCREEN_PENMOUNT
+ 	tristate "Penmount serial touchscreen"
+ 	select SERIO
+diff -puN drivers/input/touchscreen/Makefile~input-touchscreen-driver-for-the-superh-migor-board drivers/input/touchscreen/Makefile
+--- a/drivers/input/touchscreen/Makefile~input-touchscreen-driver-for-the-superh-migor-board
++++ a/drivers/input/touchscreen/Makefile
+@@ -14,6 +14,7 @@ obj-$(CONFIG_TOUCHSCREEN_GUNZE)		+= gunz
+ obj-$(CONFIG_TOUCHSCREEN_ELO)		+= elo.o
+ obj-$(CONFIG_TOUCHSCREEN_FUJITSU)	+= fujitsu_ts.o
+ obj-$(CONFIG_TOUCHSCREEN_MTOUCH)	+= mtouch.o
++obj-$(CONFIG_TOUCHSCREEN_MIGOR)		+= migor_ts.o
+ obj-$(CONFIG_TOUCHSCREEN_MK712)		+= mk712.o
+ obj-$(CONFIG_TOUCHSCREEN_HP600)		+= hp680_ts_input.o
+ obj-$(CONFIG_TOUCHSCREEN_HP7XX)		+= jornada720_ts.o
+diff -puN /dev/null drivers/input/touchscreen/migor_ts.c
+--- /dev/null
++++ a/drivers/input/touchscreen/migor_ts.c
+@@ -0,0 +1,196 @@
++/*
++ * Touch Screen driver for Renesas MIGO-R Platform
++ *
++ * Copyright (c) 2008 Magnus Damm
++ * Copyright (c) 2007 Ujjwal Pande <ujjwal@kenati.com>,
++ *  Kenati Technologies Pvt Ltd.
++ *
++ * This file is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU  General Public
++ * License as published by the Free Software Foundation; either
++ * version 2 of the License, or (at your option) any later version.
++ *
++ * This file is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ *  General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public
++ * License along with this library; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 + */
-+static ssize_t show_related_cpus(struct cpufreq_policy *policy, char *buf)
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/input.h>
++#include <linux/interrupt.h>
++#include <asm/io.h>
++#include <linux/i2c.h>
++#include <linux/timer.h>
++
++#define EVENT_PENDOWN 1
++#define EVENT_REPEAT  2
++#define EVENT_PENUP   3
++
++struct migor_ts_priv {
++	struct i2c_client *client;
++	struct input_dev *input;
++	struct delayed_work work;
++	int irq;
++};
++
++static const u_int8_t migor_ts_ena_seq[17] = { 0x33, 0x22, 0x11,
++					       0x01, 0x06, 0x07, };
++static const u_int8_t migor_ts_dis_seq[17] = { };
++
++static void migor_ts_poscheck(struct work_struct *work)
 +{
-+	if (cpus_empty(policy->related_cpus))
-+		return show_cpus(policy->cpus, buf);
-+	return show_cpus(policy->related_cpus, buf);
++	struct migor_ts_priv *priv = container_of(work,
++						  struct migor_ts_priv,
++						  work.work);
++	unsigned short xpos, ypos;
++	unsigned char event;
++	u_int8_t buf[16];
++
++	memset(buf, 0, sizeof(buf));
++
++	/* Set Index 0 */
++	buf[0] = 0;
++	if (i2c_master_send(priv->client, buf, 1) != 1) {
++		dev_err(&priv->client->dev, "Unable to write i2c index\n");
++		goto out;
++	}
++
++	/* Now do Page Read */
++	if (i2c_master_recv(priv->client, buf, sizeof(buf)) != sizeof(buf)) {
++		dev_err(&priv->client->dev, "Unable to read i2c page\n");
++		goto out;
++	}
++
++	ypos = ((buf[9] & 0x03) << 8 | buf[8]);
++	xpos = ((buf[11] & 0x03) << 8 | buf[10]);
++	event = buf[12];
++
++	if ((event == EVENT_PENDOWN) || (event == EVENT_REPEAT)) {
++		input_report_key(priv->input, BTN_TOUCH, 1);
++		input_report_abs(priv->input, ABS_X, ypos); /*X-Y swap*/
++		input_report_abs(priv->input, ABS_Y, xpos);
++		input_report_abs(priv->input, ABS_PRESSURE, 120);
++		input_sync(priv->input);
++	} else if (event == EVENT_PENUP) {
++		input_report_abs(priv->input, ABS_PRESSURE, 0);
++		input_sync(priv->input);
++	}
++ out:
++	enable_irq(priv->irq);
 +}
 +
-+/**
-+ * show_affected_cpus - show the CPUs affected by each transition
-+ */
-+static ssize_t show_affected_cpus(struct cpufreq_policy *policy, char *buf)
++static irqreturn_t migor_ts_isr(int irq, void *dev_id)
 +{
-+	return show_cpus(policy->cpus, buf);
++	struct migor_ts_priv *priv = dev_id;
++
++	disable_irq_nosync(irq);
++	schedule_delayed_work(&priv->work, HZ / 20);
++	return IRQ_HANDLED;
 +}
 +
- static ssize_t store_scaling_setspeed(struct cpufreq_policy *policy,
- 					const char *buf, size_t count)
- {
-@@ -646,6 +663,7 @@ define_one_ro(cpuinfo_max_freq);
- define_one_ro(scaling_available_governors);
- define_one_ro(scaling_driver);
- define_one_ro(scaling_cur_freq);
-+define_one_ro(related_cpus);
- define_one_ro(affected_cpus);
- define_one_rw(scaling_min_freq);
- define_one_rw(scaling_max_freq);
-@@ -658,6 +676,7 @@ static struct attribute *default_attrs[]
- 	&scaling_min_freq.attr,
- 	&scaling_max_freq.attr,
- 	&affected_cpus.attr,
-+	&related_cpus.attr,
- 	&scaling_governor.attr,
- 	&scaling_driver.attr,
- 	&scaling_available_governors.attr,
-diff -puN include/linux/cpufreq.h~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism include/linux/cpufreq.h
---- a/include/linux/cpufreq.h~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism
-+++ a/include/linux/cpufreq.h
-@@ -83,7 +83,8 @@ struct cpufreq_real_policy {
- };
- 
- struct cpufreq_policy {
--	cpumask_t		cpus;	/* affected CPUs */
-+	cpumask_t		cpus;	/* CPUs requiring sw coordination */
-+	cpumask_t		related_cpus; /* CPUs with any coordination */
- 	unsigned int		shared_type; /* ANY or ALL affected CPUs
- 						should set cpufreq */
- 	unsigned int		cpu;    /* cpu nr of registered CPU */
++static int migor_ts_probe(struct i2c_client *client)
++{
++	struct migor_ts_priv *priv;
++	int res = 0;
++
++	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
++	if (priv == NULL) {
++		dev_err(&client->dev, "failed to allocate driver data\n");
++		res = -ENOMEM;
++		goto err0;
++	}
++
++	dev_set_drvdata(&client->dev, priv);
++	priv->client = client;
++	INIT_DELAYED_WORK(&priv->work, migor_ts_poscheck);
++	priv->irq = client->irq;
++
++	priv->input = input_allocate_device();
++	if (!priv->input) {
++		dev_err(&client->dev, "Failed to allocate input device.\n");
++		res = -ENOMEM;
++		goto err1;
++	}
++
++	priv->input->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
++	priv->input->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
++
++	input_set_abs_params(priv->input, ABS_X, 95, 955, 0, 0);
++	input_set_abs_params(priv->input, ABS_Y, 85, 935, 0, 0);
++	input_set_abs_params(priv->input, ABS_PRESSURE, 0, 0, 0, 0);
++
++	priv->input->name = client->driver_name;
++	priv->input->phys = "input/event0";
++	priv->input->id.bustype = BUS_ISA;
++
++	res = input_register_device(priv->input);
++	if (res) {
++		input_free_device(priv->input);
++		goto err1;
++	}
++
++	if (request_irq(priv->irq, migor_ts_isr, IRQF_TRIGGER_LOW,
++			client->driver_name, priv)) {
++		dev_err(&client->dev, "Unable to request touchscreen IRQ.\n");
++		res = -EBUSY;
++		goto err2;
++	}
++
++	/* enable controller */
++	if (i2c_master_send(client, migor_ts_ena_seq, sizeof(migor_ts_ena_seq))
++	    == sizeof(migor_ts_ena_seq))
++		return 0;
++
++	dev_err(&client->dev, "Unable to enable touchscreen.\n");
++
++	free_irq(priv->irq, priv);
++ err2:
++	input_unregister_device(priv->input);
++ err1:
++	kfree(priv);
++ err0:
++	return res;
++}
++
++static int migor_ts_remove(struct i2c_client *client)
++{
++	struct migor_ts_priv *priv = dev_get_drvdata(&client->dev);
++
++	/* disable controller */
++	i2c_master_send(client, migor_ts_dis_seq, sizeof(migor_ts_dis_seq));
++
++	free_irq(priv->irq, priv);
++	input_unregister_device(priv->input);
++	kfree(priv);
++	return 0;
++}
++
++static struct i2c_driver migor_ts_driver = {
++	.driver = {
++		.name = "migor_ts",
++	},
++	.probe = migor_ts_probe,
++	.remove = migor_ts_remove,
++};
++
++static int __init migor_ts_init(void)
++{
++	return i2c_add_driver(&migor_ts_driver);
++}
++
++static void __exit migor_ts_exit(void)
++{
++	i2c_del_driver(&migor_ts_driver);
++}
++
++MODULE_DESCRIPTION("MigoR Touchscreen driver");
++MODULE_AUTHOR("Magnus Damm <damm@opensource.se>");
++MODULE_LICENSE("GPL");
++
++module_init(migor_ts_init);
++module_exit(migor_ts_exit);
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from magnus.damm@gmail.com are
 
-origin.patch
-cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism.patch
-git-hwmon.patch
-adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
-git-scsi-misc.patch
-mptbase-reset-ioc-initiator-during-pci-resume.patch
-scsi-aic94xx-cleanups.patch
+input-touchscreen-driver-for-the-superh-migor-board.patch
+smc91x-pass-along-private-data-v2.patch
+smc91x-introduce-platform-data-flags-v2.patch
+smc91x-add-insw-outsw-to-default-config-v2.patch
+smc91x-make-superh-use-default-config-v2.patch
+git-sh.patch
+sh_keysc-fixdouble-free.patch
+sm501-add-uart-support.patch
 
