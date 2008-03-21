@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + jffs2-check-if-partition-is-marked-ro-on-mount.patch added to -mm tree
-Date: Fri, 21 Mar 2008 14:12:33 -0700
-Message-ID: <200803212112.m2LLCXZH010702@imap1.linux-foundation.org>
+Subject: + edac-add-e752x-parameter-for-sysbus_parity-selection.patch added to -mm tree
+Date: Fri, 21 Mar 2008 14:36:03 -0700
+Message-ID: <200803212136.m2LLa4eg011586@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57172 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55013 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762004AbYCUVNP (ORCPT
+	by vger.kernel.org with ESMTP id S1762168AbYCUVgm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 17:13:15 -0400
+	Fri, 21 Mar 2008 17:36:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bigeasy@tglx.de, bigeasy@linutronix.de, dwmw2@infradead.org
+Cc: ptyser@xes-inc.com, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com
 
 
 The patch titled
-     jffs2: check if partition is marked RO on mount
+     edac: add e752x parameter for sysbus_parity selection
 has been added to the -mm tree.  Its filename is
-     jffs2-check-if-partition-is-marked-ro-on-mount.patch
+     edac-add-e752x-parameter-for-sysbus_parity-selection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,101 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jffs2: check if partition is marked RO on mount
-From: Sebastian Siewior <bigeasy@tglx.de>
+Subject: edac: add e752x parameter for sysbus_parity selection
+From: Peter Tyser <ptyser@xes-inc.com>
 
-and if it is, don't tell userspace that write is possible.
+Add a module parameter "sysbus_parity" to allow forcing system bus parity
+error checking on or off.  Also add support to automatically disable system
+bus parity errors for processors which do not support it.
 
-Signed-off-by: Sebastian Siewior <bigeasy@linutronix.de>
-Cc: David Woodhouse <dwmw2@infradead.org>
+If the sysbus_parity parameter is specified, sysbus parity detection will be
+forced on or off.  If it is not specified, the driver will attempt to look at
+the CPU identifier string and determine if the CPU supports system bus parity.
+ A blacklist was used instead of a whitelist so that system bus parity would
+be enabled by default and to minimize the chances of breaking things for those
+people already using the driver which for some reason have a processor that
+does not have a valid CPU identifier string.
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Peter Tyser <ptyser@xes-inc.com>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/super.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/edac/e752x_edac.c |   40 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 39 insertions(+), 1 deletion(-)
 
-diff -puN fs/jffs2/super.c~jffs2-check-if-partition-is-marked-ro-on-mount fs/jffs2/super.c
---- a/fs/jffs2/super.c~jffs2-check-if-partition-is-marked-ro-on-mount
-+++ a/fs/jffs2/super.c
-@@ -108,6 +108,9 @@ static int jffs2_fill_super(struct super
- #ifdef CONFIG_JFFS2_FS_POSIX_ACL
- 	sb->s_flags |= MS_POSIXACL;
- #endif
-+	if (!(c->mtd->flags & MTD_WRITEABLE))
-+		sb->s_flags |= MS_RDONLY;
-+
- 	return jffs2_do_fill_super(sb, data, silent);
+diff -puN drivers/edac/e752x_edac.c~edac-add-e752x-parameter-for-sysbus_parity-selection drivers/edac/e752x_edac.c
+--- a/drivers/edac/e752x_edac.c~edac-add-e752x-parameter-for-sysbus_parity-selection
++++ a/drivers/edac/e752x_edac.c
+@@ -29,6 +29,7 @@
+ #define EDAC_MOD_STR	"e752x_edac"
+ 
+ static int force_function_unhide;
++static int sysbus_parity = -1;
+ 
+ static struct edac_pci_ctl_info *e752x_pci;
+ 
+@@ -1049,6 +1050,37 @@ fail:
+ 	return 1;
  }
  
++/* Setup system bus parity mask register.
++ * Sysbus parity supported on:
++ *   e7320/e7520/e7525 + Xeon
++ *   i3100 + Xeon/Celeron
++ * Sysbus parity not supported on:
++ *   i3100 + Pentium M/Celeron M/Core Duo/Core2 Duo
++ */
++static void e752x_init_sysbus_parity_mask(struct e752x_pvt *pvt)
++{
++	char *cpu_id = cpu_data(0).x86_model_id;
++	struct pci_dev *dev = pvt->dev_d0f1;
++	int enable = 1;
++
++	/* Allow module paramter override, else see if CPU supports parity */
++	if (sysbus_parity != -1) {
++		enable = sysbus_parity;
++	} else if (cpu_id[0] &&
++		   ((strstr(cpu_id, "Pentium") && strstr(cpu_id, " M ")) ||
++		    (strstr(cpu_id, "Celeron") && strstr(cpu_id, " M ")) ||
++		    (strstr(cpu_id, "Core") && strstr(cpu_id, "Duo")))) {
++		e752x_printk(KERN_INFO, "System Bus Parity not "
++			     "supported by CPU, disabling\n");
++		enable = 0;
++	}
++
++	if (enable)
++		pci_write_config_word(dev, E752X_SYSBUS_ERRMASK, 0x0000);
++	else
++		pci_write_config_word(dev, E752X_SYSBUS_ERRMASK, 0x0309);
++}
++
+ static void e752x_init_error_reporting_regs(struct e752x_pvt *pvt)
+ {
+ 	struct pci_dev *dev;
+@@ -1062,7 +1094,9 @@ static void e752x_init_error_reporting_r
+ 		pci_write_config_byte(dev, E752X_HI_ERRMASK, 0x00);
+ 		pci_write_config_byte(dev, E752X_HI_SMICMD, 0x00);
+ 	}
+-	pci_write_config_word(dev, E752X_SYSBUS_ERRMASK, 0x00);
++
++	e752x_init_sysbus_parity_mask(pvt);
++
+ 	pci_write_config_word(dev, E752X_SYSBUS_SMICMD, 0x00);
+ 	pci_write_config_byte(dev, E752X_BUF_ERRMASK, 0x00);
+ 	pci_write_config_byte(dev, E752X_BUF_SMICMD, 0x00);
+@@ -1286,3 +1320,7 @@ MODULE_PARM_DESC(force_function_unhide, 
+ 
+ module_param(edac_op_state, int, 0444);
+ MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");
++
++module_param(sysbus_parity, int, 0444);
++MODULE_PARM_DESC(sysbus_parity, "0=disable system bus parity checking,"
++                " 1=enable system bus parity checking, default=auto-detect");
 _
 
-Patches currently in -mm which might be from bigeasy@tglx.de are
+Patches currently in -mm which might be from ptyser@xes-inc.com are
 
-jffs2-check-if-partition-is-marked-ro-on-remount.patch
-jffs2-check-if-partition-is-marked-ro-on-mount.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection.patch
 
