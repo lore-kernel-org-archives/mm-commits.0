@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + fsldma-remove-config_fsl_dma_selftest-keep-fsl_dma_self_test-running-always.patch added to -mm tree
-Date: Fri, 21 Mar 2008 14:53:30 -0700
-Message-ID: <200803212153.m2LLrUZN012186@imap1.linux-foundation.org>
+Subject: + basic-braille-screen-reader-support-makefile-fix.patch added to -mm tree
+Date: Fri, 21 Mar 2008 14:52:34 -0700
+Message-ID: <200803212152.m2LLqZUt012175@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58519 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39551 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754165AbYCUVyF (ORCPT
+	by vger.kernel.org with ESMTP id S1756146AbYCUVyd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 17:54:05 -0400
+	Fri, 21 Mar 2008 17:54:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wei.zhang@freescale.com
+Cc: samuel.thibault@ens-lyon.org, randy.dunlap@oracle.com
 
 
 The patch titled
-     fsldma: remove CONFIG_FSL_DMA_SELFTEST, keep fsl_dma_self_test() running always
+     Basic braille screen reader support makefile fix
 has been added to the -mm tree.  Its filename is
-     fsldma-remove-config_fsl_dma_selftest-keep-fsl_dma_self_test-running-always.patch
+     basic-braille-screen-reader-support-makefile-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,125 +29,77 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fsldma: remove CONFIG_FSL_DMA_SELFTEST, keep fsl_dma_self_test() running always
-From: Zhang Wei <wei.zhang@freescale.com>
+Subject: Basic braille screen reader support makefile fix
+=46rom: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
-Always enabling the fsl_dma_self_test() to ensure the DMA controller should
-works well after the driver probed.
+Randy Dunlap, le Wed 19 Mar 2008 11:57:26 -0700, a =E9crit :
+> when O=3Ddir is used in make:
+>
+>   CC      drivers/accessibility/braille/braille_console.o
+> Assembler messages:
+> Fatal error: can't create drivers/accessibility/braille/braille_conso=
+le.o: No such file or directory
+>   CC      crypto/aes_generic.o
+> make[3]: *** [drivers/accessibility/braille/braille_console.o] Error =
+2
+> make[2]: *** [drivers/accessibility] Error 2
+> make[1]: *** [drivers] Error 2
 
-Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
+Oh, right, the patch below should fix it
+
+Properly recurse Makefiles into accessibility and accessibility/braille=
+/
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/Kconfig  |    8 --------
- drivers/dma/fsldma.c |   13 +++----------
- 2 files changed, 3 insertions(+), 18 deletions(-)
+ drivers/accessibility/Makefile         |    2 +-
+ drivers/accessibility/braille/Makefile |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/dma/Kconfig~fsldma-remove-config_fsl_dma_selftest-keep-fsl_dma_self_test-running-always drivers/dma/Kconfig
---- a/drivers/dma/Kconfig~fsldma-remove-config_fsl_dma_selftest-keep-fsl_dma_self_test-running-always
-+++ a/drivers/dma/Kconfig
-@@ -46,14 +46,6 @@ config FSL_DMA
- 	  MPC8560/40, MPC8555, MPC8548 and MPC8641 processors.
- 	  The MPC8349, MPC8360 is also supported.
- 
--config FSL_DMA_SELFTEST
--	bool "Enable the self test for each DMA channel"
--	depends on FSL_DMA
--	default y
--	---help---
--	  Enable the self test for each DMA channel. A self test will be
--	  performed after the channel probed to ensure the DMA works well.
--
- config DMA_ENGINE
- 	bool
- 
-diff -puN drivers/dma/fsldma.c~fsldma-remove-config_fsl_dma_selftest-keep-fsl_dma_self_test-running-always drivers/dma/fsldma.c
---- a/drivers/dma/fsldma.c~fsldma-remove-config_fsl_dma_selftest-keep-fsl_dma_self_test-running-always
-+++ a/drivers/dma/fsldma.c
-@@ -772,15 +772,13 @@ static void dma_do_tasklet(unsigned long
- 	fsl_chan_ld_cleanup(fsl_chan);
- }
- 
--#ifdef FSL_DMA_CALLBACKTEST
--static void fsl_dma_callback_test(struct fsl_dma_chan *fsl_chan)
-+static void fsl_dma_callback_test(void *param)
- {
-+	struct fsl_dma_chan *fsl_chan = param;
- 	if (fsl_chan)
--		dev_info(fsl_chan->dev, "selftest: callback is ok!\n");
-+		dev_dbg(fsl_chan->dev, "selftest: callback is ok!\n");
- }
--#endif
- 
--#ifdef CONFIG_FSL_DMA_SELFTEST
- static int fsl_dma_self_test(struct fsl_dma_chan *fsl_chan)
- {
- 	struct dma_chan *chan;
-@@ -871,13 +869,11 @@ static int fsl_dma_self_test(struct fsl_
- 	cookie = fsl_dma_tx_submit(tx3);
- 	cookie = fsl_dma_tx_submit(tx2);
- 
--#ifdef FSL_DMA_CALLBACKTEST
- 	if (dma_has_cap(DMA_INTERRUPT, ((struct fsl_dma_device *)
- 	    dev_get_drvdata(fsl_chan->dev->parent))->common.cap_mask)) {
- 		tx3->callback = fsl_dma_callback_test;
- 		tx3->callback_param = fsl_chan;
- 	}
--#endif
- 	fsl_dma_memcpy_issue_pending(chan);
- 	msleep(2);
- 
-@@ -902,7 +898,6 @@ out:
- 	kfree(src);
- 	return err;
- }
--#endif
- 
- static int __devinit of_fsl_dma_chan_probe(struct of_device *dev,
- 			const struct of_device_id *match)
-@@ -993,11 +988,9 @@ static int __devinit of_fsl_dma_chan_pro
- 		}
- 	}
- 
--#ifdef CONFIG_FSL_DMA_SELFTEST
- 	err = fsl_dma_self_test(new_fsl_chan);
- 	if (err)
- 		goto err;
--#endif
- 
- 	dev_info(&dev->dev, "#%d (%s), irq %d\n", new_fsl_chan->id,
- 				match->compatible, new_fsl_chan->irq);
+diff -puN drivers/accessibility/Makefile~basic-braille-screen-reader-su=
+pport-makefile-fix drivers/accessibility/Makefile
+--- a/drivers/accessibility/Makefile~basic-braille-screen-reader-suppor=
+t-makefile-fix
++++ a/drivers/accessibility/Makefile
+@@ -1 +1 @@
+-obj-$(CONFIG_A11Y_BRAILLE_CONSOLE)		+=3D braille/braille_console.o
++obj-y				+=3D braille/
+diff -puN /dev/null drivers/accessibility/braille/Makefile
+--- /dev/null
++++ a/drivers/accessibility/braille/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_A11Y_BRAILLE_CONSOLE)		+=3D braille_console.o
 _
 
-Patches currently in -mm which might be from wei.zhang@freescale.com are
+Patches currently in -mm which might be from samuel.thibault@ens-lyon.o=
+rg are
 
 origin.patch
-rapidio-change-rio-function-mpc85xx_-to-fsl_.patch
-rapidio-add-rapidio-option-to-kernel-configuration.patch
-rapidio-move-include-asm-ppc-rioh-to-include-asm-powerpc-rioh.patch
-rapidio-add-rapidio-multi-mport-support.patch
-rapidio-add-of-tree-support-to-rapidio-controller-driver.patch
-rapidio-change-the-kernel-configurated-rapidio-system-size-to-auto-probing.patch
-rapidio-add-rapidio-node-into-mpc8641hpcn-dts-file.patch
-rapidio-add-rapidio-node-probing-into-mpc86xx_hpcn-board-id-table.patch
-rapidio-add-serial-rapidio-controller-support-which-includes-mpc8548-mpc8641.patch
-rapidio-add-rapidio-connection-info-print-out-and-re-training-for-break-connection.patch
-rapidio-add-memory-mapping-driver-to-rapidio.patch
-rapidio-add-rapidio-space-allocation-bitmap-arithmetic.patch
-rapidio-add-fsl-rapidio-controller-memory-ops-functions.patch
-rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources.patch
-rapidio-add-rapidio-proc-fs-for-memory-mapping-debugging.patch
-rapidio-change-rapidio-doorbell-source-and-target-id-field-to-16-bit.patch
-rapidio-add-the-memory-mapping-support-in-rionet-driver.patch
-rapidio-fix-docbook-references.patch
-git-async-tx.patch
-fsldma-remove-config_fsl_dma_selftest-keep-fsl_dma_self_test-running-always.patch
+input-put-ledstate-in-the-keyboard-notifier.patch
+vt-notifier-extension-for-accessibility.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+basic-braille-screen-reader-support.patch
+basic-braille-screen-reader-support-fixes.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+basic-braille-screen-reader-support-doc.patch
+basic-braille-screen-reader-support-makefile-fix.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
