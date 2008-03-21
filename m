@@ -1,53 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - git-scsi-rc-fixes-fixup.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:31:09 -0700
-Message-ID: <200803212031.m2LKV9CA009050@imap1.linux-foundation.org>
+Subject: - revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:30:09 -0700
+Message-ID: <200803212030.m2LKU9S2008960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39705 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760438AbYCUUbL (ORCPT
+	by vger.kernel.org with ESMTP id S1758341AbYCUUak (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:31:11 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2LKV9VH022926
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 21 Mar 2008 13:31:10 -0700
+	Fri, 21 Mar 2008 16:30:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, hancockr@shaw.ca, mingo@elte.hu, nix.or.die@googlemail.com, rjw@sisk.pl, tglx@linutronix.de, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-scsi-rc-fixes-fixup
+     revert "clocksource: make clocksource watchdog cycle through online CPUs"
 has been removed from the -mm tree.  Its filename was
-     git-scsi-rc-fixes-fixup.patch
+     revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-scsi-rc-fixes-fixup
+Subject: revert "clocksource: make clocksource watchdog cycle through online CPUs"
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Revert
+
+commit 1ada5cba6a0318f90e45b38557e7b5206a9cba38
+Author: Andi Kleen <ak@suse.de>
+Date:   Wed Jan 30 13:30:02 2008 +0100
+
+    clocksource: make clocksource watchdog cycle through online CPUs
+    
+    This way it checks if the clocks are synchronized between CPUs too.
+    This might be able to detect slowly drifting TSCs which only
+    go wrong over longer time.
+    
+    Signed-off-by: Andi Kleen <ak@suse.de>
+    Signed-off-by: Ingo Molnar <mingo@elte.hu>
+    Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+
+Due to the regression reported by Gabriel C at
+http://lkml.org/lkml/2008/2/24/281
+
+Cc: Andi Kleen <ak@suse.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Robert Hancock <hancockr@shaw.ca>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Gabriel C <nix.or.die@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_sysfs.c |    1 -
- 1 file changed, 1 deletion(-)
+ kernel/time/clocksource.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN drivers/scsi/scsi_sysfs.c~git-scsi-rc-fixes-fixup drivers/scsi/scsi_sysfs.c
---- a/drivers/scsi/scsi_sysfs.c~git-scsi-rc-fixes-fixup
-+++ a/drivers/scsi/scsi_sysfs.c
-@@ -878,7 +878,6 @@ void __scsi_remove_device(struct scsi_de
- 	if (scsi_device_set_state(sdev, SDEV_CANCEL) != 0)
- 		return;
+diff -puN kernel/time/clocksource.c~revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~revert-clocksource-make-clocksource-watchdog-cycle-through-online-cpus
++++ a/kernel/time/clocksource.c
+@@ -141,13 +141,8 @@ static void clocksource_watchdog(unsigne
+ 	}
  
--	bsg_unregister_queue(sdev->request_queue);
- 	device_unregister(&sdev->sdev_dev);
- 	transport_remove_device(dev);
- 	device_del(dev);
+ 	if (!list_empty(&watchdog_list)) {
+-		/* Cycle through CPUs to check if the CPUs stay synchronized to
+-		 * each other. */
+-		int next_cpu = next_cpu(raw_smp_processor_id(), cpu_online_map);
+-		if (next_cpu >= NR_CPUS)
+-			next_cpu = first_cpu(cpu_online_map);
+-		watchdog_timer.expires += WATCHDOG_INTERVAL;
+-		add_timer_on(&watchdog_timer, next_cpu);
++		__mod_timer(&watchdog_timer,
++			    watchdog_timer.expires + WATCHDOG_INTERVAL);
+ 	}
+ 	spin_unlock(&watchdog_lock);
+ }
+@@ -169,7 +164,7 @@ static void clocksource_check_watchdog(s
+ 		if (!started && watchdog) {
+ 			watchdog_last = watchdog->read();
+ 			watchdog_timer.expires = jiffies + WATCHDOG_INTERVAL;
+-			add_timer_on(&watchdog_timer, first_cpu(cpu_online_map));
++			add_timer(&watchdog_timer);
+ 		}
+ 	} else {
+ 		if (cs->flags & CLOCK_SOURCE_IS_CONTINUOUS)
+@@ -190,8 +185,7 @@ static void clocksource_check_watchdog(s
+ 				watchdog_last = watchdog->read();
+ 				watchdog_timer.expires =
+ 					jiffies + WATCHDOG_INTERVAL;
+-				add_timer_on(&watchdog_timer,
+-						first_cpu(cpu_online_map));
++				add_timer(&watchdog_timer);
+ 			}
+ 		}
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
