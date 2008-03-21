@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pids-__set_special_pids-use-change_pid-helper.patch added to -mm tree
-Date: Fri, 21 Mar 2008 15:12:27 -0700
-Message-ID: <200803212212.m2LMCRHk012940@imap1.linux-foundation.org>
+Subject: + pids-sys_setpgid-use-change_pid-helper.patch added to -mm tree
+Date: Fri, 21 Mar 2008 15:12:25 -0700
+Message-ID: <200803212212.m2LMCPKB012937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38422 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58498 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752406AbYCUWNj (ORCPT
+	by vger.kernel.org with ESMTP id S1752265AbYCUWNh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 18:13:39 -0400
+	Fri, 21 Mar 2008 18:13:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, ebiederm@xmission.com, roland@redhat.com, xemul@openvz.org
 
 
 The patch titled
-     pids: __set_special_pids: use change_pid() helper
+     pids: sys_setpgid: use change_pid() helper
 has been added to the -mm tree.  Its filename is
-     pids-__set_special_pids-use-change_pid-helper.patch
+     pids-sys_setpgid-use-change_pid-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pids: __set_special_pids: use change_pid() helper
+Subject: pids: sys_setpgid: use change_pid() helper
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Use change_pid() instead of detach_pid() + attach_pid() in
-__set_special_pids().
+Use change_pid() instead of detach_pid() + attach_pid() in sys_setpgid().
 
-This way task_session() is not NULL in between.
+This way task_pgrp() is not NULL in between.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc:  "Eric W. Biederman" <ebiederm@xmission.com>
@@ -49,28 +48,22 @@ Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/sys.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/exit.c~pids-__set_special_pids-use-change_pid-helper kernel/exit.c
---- a/kernel/exit.c~pids-__set_special_pids-use-change_pid-helper
-+++ a/kernel/exit.c
-@@ -334,13 +334,11 @@ void __set_special_pids(struct pid *pid)
- 	pid_t nr = pid_nr(pid);
+diff -puN kernel/sys.c~pids-sys_setpgid-use-change_pid-helper kernel/sys.c
+--- a/kernel/sys.c~pids-sys_setpgid-use-change_pid-helper
++++ a/kernel/sys.c
+@@ -972,8 +972,7 @@ asmlinkage long sys_setpgid(pid_t pid, p
+ 		goto out;
  
- 	if (task_session(curr) != pid) {
--		detach_pid(curr, PIDTYPE_SID);
--		attach_pid(curr, PIDTYPE_SID, pid);
-+		change_pid(curr, PIDTYPE_SID, pid);
- 		set_task_session(curr, nr);
+ 	if (task_pgrp(p) != pgrp) {
+-		detach_pid(p, PIDTYPE_PGID);
+-		attach_pid(p, PIDTYPE_PGID, pgrp);
++		change_pid(p, PIDTYPE_PGID, pgrp);
+ 		set_task_pgrp(p, pid_nr(pgrp));
  	}
- 	if (task_pgrp(curr) != pid) {
--		detach_pid(curr, PIDTYPE_PGID);
--		attach_pid(curr, PIDTYPE_PGID, pid);
-+		change_pid(curr, PIDTYPE_PGID, pid);
- 		set_task_pgrp(curr, nr);
- 	}
- }
+ 
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
