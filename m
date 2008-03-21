@@ -1,221 +1,236 @@
 From: akpm@linux-foundation.org
-Subject: + git-sh-git-rejects.patch added to -mm tree
-Date: Fri, 21 Mar 2008 13:24:17 -0700
-Message-ID: <200803212024.m2LKOHNV008612@imap1.linux-foundation.org>
+Subject: - mm-fix-various-kernel-doc-comments.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:28:57 -0700
+Message-ID: <200803212028.m2LKSvuF008754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41256 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759709AbYCUUYT (ORCPT
+	by vger.kernel.org with ESMTP id S1754646AbYCUU3I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:24:19 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2LKOHMr022210
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 21 Mar 2008 13:24:18 -0700
+	Fri, 21 Mar 2008 16:29:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-sh-git-rejects
-has been added to the -mm tree.  Its filename is
-     git-sh-git-rejects.patch
+     mm: fix various kernel-doc comments
+has been removed from the -mm tree.  Its filename was
+     mm-fix-various-kernel-doc-comments.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-sh-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm: fix various kernel-doc comments
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
+Fix various kernel-doc notation in mm/:
+
+filemap.c: add function short description; convert 2 to kernel-doc
+fremap.c: change parameter 'prot' to @prot
+pagewalk.c: change "-" in function parameters to ":"
+slab.c: fix short description of kmem_ptr_validate()
+swap.c: fix description & parameters of put_pages_list()
+swap_state.c: fix function parameters
+vmalloc.c: change "@returns" to "Returns:" since that is not a parameter
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/Kconfig |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/filemap.c    |   20 +++++++++++++++++---
+ mm/fremap.c     |    2 +-
+ mm/pagewalk.c   |   10 +++++-----
+ mm/slab.c       |    5 ++---
+ mm/swap.c       |    5 ++---
+ mm/swap_state.c |    2 ++
+ mm/vmalloc.c    |    6 ++++--
+ 7 files changed, 33 insertions(+), 17 deletions(-)
 
-diff -puN arch/sh/Kconfig~git-sh-git-rejects arch/sh/Kconfig
---- a/arch/sh/Kconfig~git-sh-git-rejects
-+++ a/arch/sh/Kconfig
-@@ -595,10 +595,7 @@ config SH_TIMER_IRQ
- 	default "86" if CPU_SUBTYPE_SH7619
- 	default "140" if CPU_SUBTYPE_SH7206
- 	default "142" if CPU_SUBTYPE_SH7203
--<<<<<<< HEAD:arch/sh/Kconfig
--=======
- 	default "238" if CPU_SUBTYPE_MXG
-->>>>>>> FETCH_HEAD:arch/sh/Kconfig
- 	default "16"
+diff -puN mm/filemap.c~mm-fix-various-kernel-doc-comments mm/filemap.c
+--- a/mm/filemap.c~mm-fix-various-kernel-doc-comments
++++ a/mm/filemap.c
+@@ -343,7 +343,7 @@ int sync_page_range(struct inode *inode,
+ EXPORT_SYMBOL(sync_page_range);
  
- config SH_PCLK_FREQ
+ /**
+- * sync_page_range_nolock
++ * sync_page_range_nolock - write & wait on all pages in the passed range without locking
+  * @inode:	target inode
+  * @mapping:	target address_space
+  * @pos:	beginning offset in pages to write
+@@ -611,7 +611,10 @@ int __lock_page_killable(struct page *pa
+ 					sync_page_killable, TASK_KILLABLE);
+ }
+ 
+-/*
++/**
++ * __lock_page_nosync - get a lock on the page, without calling sync_page()
++ * @page: the page to lock
++ *
+  * Variant of lock_page that does not require the caller to hold a reference
+  * on the page's mapping.
+  */
+@@ -1538,9 +1541,20 @@ repeat:
+ 	return page;
+ }
+ 
+-/*
++/**
++ * read_cache_page_async - read into page cache, fill it if needed
++ * @mapping:	the page's address_space
++ * @index:	the page index
++ * @filler:	function to perform the read
++ * @data:	destination for read data
++ *
+  * Same as read_cache_page, but don't wait for page to become unlocked
+  * after submitting it to the filler.
++ *
++ * Read into the page cache. If a page already exists, and PageUptodate() is
++ * not set, try to fill the page but don't wait for it to become unlocked.
++ *
++ * If the page does not get brought uptodate, return -EIO.
+  */
+ struct page *read_cache_page_async(struct address_space *mapping,
+ 				pgoff_t index,
+diff -puN mm/fremap.c~mm-fix-various-kernel-doc-comments mm/fremap.c
+--- a/mm/fremap.c~mm-fix-various-kernel-doc-comments
++++ a/mm/fremap.c
+@@ -113,7 +113,7 @@ static int populate_range(struct mm_stru
+  * mmap()/mremap() it does not create any new vmas. The new mappings are
+  * also safe across swapout.
+  *
+- * NOTE: the 'prot' parameter right now is ignored (but must be zero),
++ * NOTE: the @prot parameter right now is ignored (but must be zero),
+  * and the vma's default protection is used. Arbitrary protections
+  * might be implemented in the future.
+  */
+diff -puN mm/pagewalk.c~mm-fix-various-kernel-doc-comments mm/pagewalk.c
+--- a/mm/pagewalk.c~mm-fix-various-kernel-doc-comments
++++ a/mm/pagewalk.c
+@@ -77,11 +77,11 @@ static int walk_pud_range(pgd_t *pgd, un
+ 
+ /**
+  * walk_page_range - walk a memory map's page tables with a callback
+- * @mm - memory map to walk
+- * @addr - starting address
+- * @end - ending address
+- * @walk - set of callbacks to invoke for each level of the tree
+- * @private - private data passed to the callback function
++ * @mm: memory map to walk
++ * @addr: starting address
++ * @end: ending address
++ * @walk: set of callbacks to invoke for each level of the tree
++ * @private: private data passed to the callback function
+  *
+  * Recursively walk the page table for the memory area in a VMA,
+  * calling supplied callbacks. Callbacks are called in-order (first
+diff -puN mm/slab.c~mm-fix-various-kernel-doc-comments mm/slab.c
+--- a/mm/slab.c~mm-fix-various-kernel-doc-comments
++++ a/mm/slab.c
+@@ -3624,12 +3624,11 @@ void *kmem_cache_alloc(struct kmem_cache
+ EXPORT_SYMBOL(kmem_cache_alloc);
+ 
+ /**
+- * kmem_ptr_validate - check if an untrusted pointer might
+- *	be a slab entry.
++ * kmem_ptr_validate - check if an untrusted pointer might be a slab entry.
+  * @cachep: the cache we're checking against
+  * @ptr: pointer to validate
+  *
+- * This verifies that the untrusted pointer looks sane:
++ * This verifies that the untrusted pointer looks sane;
+  * it is _not_ a guarantee that the pointer is actually
+  * part of the slab cache in question, but it at least
+  * validates that the pointer can be dereferenced and
+diff -puN mm/swap.c~mm-fix-various-kernel-doc-comments mm/swap.c
+--- a/mm/swap.c~mm-fix-various-kernel-doc-comments
++++ a/mm/swap.c
+@@ -78,12 +78,11 @@ void put_page(struct page *page)
+ EXPORT_SYMBOL(put_page);
+ 
+ /**
+- * put_pages_list(): release a list of pages
++ * put_pages_list() - release a list of pages
++ * @pages: list of pages threaded on page->lru
+  *
+  * Release a list of pages which are strung together on page.lru.  Currently
+  * used by read_cache_pages() and related error recovery code.
+- *
+- * @pages: list of pages threaded on page->lru
+  */
+ void put_pages_list(struct list_head *pages)
+ {
+diff -puN mm/swap_state.c~mm-fix-various-kernel-doc-comments mm/swap_state.c
+--- a/mm/swap_state.c~mm-fix-various-kernel-doc-comments
++++ a/mm/swap_state.c
+@@ -115,6 +115,7 @@ void __delete_from_swap_cache(struct pag
+ /**
+  * add_to_swap - allocate swap space for a page
+  * @page: page we want to move to swap
++ * @gfp_mask: memory allocation flags
+  *
+  * Allocate swap space for the page and add the page to the
+  * swap cache.  Caller needs to hold the page lock. 
+@@ -315,6 +316,7 @@ struct page *read_swap_cache_async(swp_e
+ /**
+  * swapin_readahead - swap in pages in hope we need them soon
+  * @entry: swap entry of this memory
++ * @gfp_mask: memory allocation flags
+  * @vma: user vma this address belongs to
+  * @addr: target address for mempolicy
+  *
+diff -puN mm/vmalloc.c~mm-fix-various-kernel-doc-comments mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-fix-various-kernel-doc-comments
++++ a/mm/vmalloc.c
+@@ -757,7 +757,8 @@ finished:
+  *	@vma:		vma to cover (map full range of vma)
+  *	@addr:		vmalloc memory
+  *	@pgoff:		number of pages into addr before first page to map
+- *	@returns:	0 for success, -Exxx on failure
++ *
++ *	Returns:	0 for success, -Exxx on failure
+  *
+  *	This function checks that addr is a valid vmalloc'ed area, and
+  *	that it is big enough to cover the vma. Will return failure if
+@@ -829,7 +830,8 @@ static int f(pte_t *pte, pgtable_t table
+ /**
+  *	alloc_vm_area - allocate a range of kernel address space
+  *	@size:		size of the area
+- *	@returns:	NULL on failure, vm_struct on success
++ *
++ *	Returns:	NULL on failure, vm_struct on success
+  *
+  *	This function reserves a range of kernel address space, and
+  *	allocates pagetables to map that range.  No actual mappings
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-mtd-memory-corruption-in-block2mtdc.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-git-kgdb-light.patch
-git-acpi-fixup.patch
-git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-git-drm.patch
-git-drm-git-rejects.patch
-git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
+rapidio-fix-docbook-references.patch
+pm-remove-legacy-pm-fix.patch
 git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-git-async-tx.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
-drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-git-sh-git-rejects.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 scsi-add-iscsi-ibft-support-fix.patch
-git-block-git-rejects.patch
 git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-watchdog.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-git-semaphore-git-rejects.patch
-x86-fix-aperture-vs-suspend-problem.patch
-revert-pcie-utilize-pcie-transaction-pending-bit.patch
-netpoll-zap_completion_queue-adjust-skb-users-counter.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-fbdev-driver-for-freescale-8610-and-5121-diu-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+wireless-rt2x00-fix-driver-menu-indenting.patch
+x86-dont-allow-kvm_clock-without-have_kvm.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
+let-log_buf_shift-default-to-17.patch
+sysrq-add-show-backtrace-on-all-cpus-function.patch
+isolate-ratelimit-from-printkc-for-other-use-update.patch
+documentation-move-spidev_fdx-example-to-its-own-source-file.patch
+add-a-document-describing-the-resource-counter-abstraction-v2.patch
 add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
+jbd2-fix-kernel-doc-notation.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+kernel-add-bit-rotation-helpers-for-16-and-8-bit.patch
 profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-w1-build-fix.patch
 
