@@ -1,68 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - fix-permissions-of-proc-net.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:31:35 -0700
-Message-ID: <200803212031.m2LKVZe2009082@imap1.linux-foundation.org>
+Subject: - netpoll-zap_completion_queue-adjust-skb-users-counter.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:31:50 -0700
+Message-ID: <200803212031.m2LKVoGN009105@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41141 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760910AbYCUUcK (ORCPT
+	by vger.kernel.org with ESMTP id S1761322AbYCUUbw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:32:10 -0400
+	Fri, 21 Mar 2008 16:31:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: maan@systemlinux.org, davem@davemloft.net, xemul@openvz.org, mm-commits@vger.kernel.org
+To: jarkao2@gmail.com, akpm@linux-foundation.org, davem@davemloft.net, shemminger@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix permissions of /proc/net
+     netpoll: zap_completion_queue: adjust skb->users counter
 has been removed from the -mm tree.  Its filename was
-     fix-permissions-of-proc-net.patch
+     netpoll-zap_completion_queue-adjust-skb-users-counter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix permissions of /proc/net
-From: Andre Noll <maan@systemlinux.org>
+Subject: netpoll: zap_completion_queue: adjust skb->users counter
+From: Jarek Poplawski <jarkao2@gmail.com>
 
-commit e9720ac ([NET]: Make /proc/net a symlink on /proc/self/net (v3))
-broke ganglia and probably other applications that read /proc/net/dev.
+zap_completion_queue() retrieves skbs from completion_queue where they have
+zero skb->users counter.  Before dev_kfree_skb_any() it should be non-zero
+yet, so it's increased now.
 
-This is due to the change of permissions of /proc/net that was
-introduced in that commit.
-
-Before: dr-xr-xr-x 5 root root 0 Mar 19 11:30 /proc/net
-After: dr-xr--r-- 5 root root 0 Mar 19 11:29 /proc/self/net
-
-This patch restores the permissions to the old value which makes ganglia
-happy again.
-
-Signed-off-by: Andre Noll <maan@systemlinux.org>
-Acked-by: Pavel Emelyanov <xemul@openvz.org>
+Reported-and-tested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Jarek Poplawski <jarkao2@gmail.com>
+Cc: Stephen Hemminger <shemminger@osdl.org>
 Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/core/netpoll.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/proc/base.c~fix-permissions-of-proc-net fs/proc/base.c
---- a/fs/proc/base.c~fix-permissions-of-proc-net
-+++ a/fs/proc/base.c
-@@ -2290,7 +2290,7 @@ static const struct pid_entry tgid_base_
- 	DIR("fd",         S_IRUSR|S_IXUSR, fd),
- 	DIR("fdinfo",     S_IRUSR|S_IXUSR, fdinfo),
- #ifdef CONFIG_NET
--	DIR("net",        S_IRUGO|S_IXUSR, net),
-+	DIR("net",        S_IRUGO|S_IXUGO, net),
- #endif
- 	REG("environ",    S_IRUSR, environ),
- 	INF("auxv",       S_IRUSR, pid_auxv),
+diff -puN net/core/netpoll.c~netpoll-zap_completion_queue-adjust-skb-users-counter net/core/netpoll.c
+--- a/net/core/netpoll.c~netpoll-zap_completion_queue-adjust-skb-users-counter
++++ a/net/core/netpoll.c
+@@ -215,10 +215,12 @@ static void zap_completion_queue(void)
+ 		while (clist != NULL) {
+ 			struct sk_buff *skb = clist;
+ 			clist = clist->next;
+-			if (skb->destructor)
++			if (skb->destructor) {
++				atomic_inc(&skb->users);
+ 				dev_kfree_skb_any(skb); /* put this one back */
+-			else
++			} else {
+ 				__kfree_skb(skb);
++			}
+ 		}
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from maan@systemlinux.org are
+Patches currently in -mm which might be from jarkao2@gmail.com are
 
 origin.patch
 
