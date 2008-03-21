@@ -1,80 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - netfilter-ipt_recent-sanity-check-hit-count.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:30:58 -0700
-Message-ID: <200803212030.m2LKUwmD009034@imap1.linux-foundation.org>
+Subject: - kernel-schedc-remove-double-unlikely.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:31:06 -0700
+Message-ID: <200803212031.m2LKV6is009046@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52517 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60129 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761188AbYCUUbN (ORCPT
+	by vger.kernel.org with ESMTP id S1758737AbYCUUbb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:31:13 -0400
+	Fri, 21 Mar 2008 16:31:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel@hozac.com, kaber@trash.net, skennedy@vcn.com, mm-commits@vger.kernel.org
+To: 12o3l@tiscali.nl, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     netfilter: ipt_recent: sanity check hit count
+     kernel/sched.c: remove double unlikely
 has been removed from the -mm tree.  Its filename was
-     netfilter-ipt_recent-sanity-check-hit-count.patch
+     kernel-schedc-remove-double-unlikely.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: netfilter: ipt_recent: sanity check hit count
-From: "Daniel Hokka Zakrisson" <daniel@hozac.com>
+Subject: kernel/sched.c: remove double unlikely
+From: Roel Kluin <12o3l@tiscali.nl>
 
-If a rule using ipt_recent is created with a hit count greater than
-ip_pkt_list_tot, the rule will never match as it cannot keep track of enough
-timestamps.  This patch makes ipt_recent refuse to create such rules.
+Combine two unlikely's
 
-With ip_pkt_list_tot's default value of 20, the following can be used
-to reproduce the problem.
-
-nc -u -l 0.0.0.0 1234 &
-for i in `seq 1 100`; do echo $i | nc -w 1 -u 127.0.0.1 1234; done
-
-This limits it to 20 packets:
-iptables -A OUTPUT -p udp --dport 1234 -m recent --set --name test \
-         --rsource
-iptables -A OUTPUT -p udp --dport 1234 -m recent --update --seconds \
-         60 --hitcount 20 --name test --rsource -j DROP
-
-While this is unlimited:
-iptables -A OUTPUT -p udp --dport 1234 -m recent --set --name test \
-         --rsource
-iptables -A OUTPUT -p udp --dport 1234 -m recent --update --seconds \
-         60 --hitcount 21 --name test --rsource -j DROP
-
-With the patch the second rule-set will throw an EINVAL.
-
-Signed-off-by: Daniel Hokka Zakrisson <daniel@hozac.com>
-Reported-by: Sean Kennedy <skennedy@vcn.com>
-Cc: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/netfilter/ipt_recent.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/sched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/ipv4/netfilter/ipt_recent.c~netfilter-ipt_recent-sanity-check-hit-count net/ipv4/netfilter/ipt_recent.c
---- a/net/ipv4/netfilter/ipt_recent.c~netfilter-ipt_recent-sanity-check-hit-count
-+++ a/net/ipv4/netfilter/ipt_recent.c
-@@ -252,6 +252,8 @@ recent_mt_check(const char *tablename, c
- 	if ((info->check_set & (IPT_RECENT_SET | IPT_RECENT_REMOVE)) &&
- 	    (info->seconds || info->hit_count))
- 		return false;
-+	if (info->hit_count > ip_pkt_list_tot)
-+		return false;
- 	if (info->name[0] == '\0' ||
- 	    strnlen(info->name, IPT_RECENT_NAME_LEN) == IPT_RECENT_NAME_LEN)
- 		return false;
+diff -puN kernel/sched.c~kernel-schedc-remove-double-unlikely kernel/sched.c
+--- a/kernel/sched.c~kernel-schedc-remove-double-unlikely
++++ a/kernel/sched.c
+@@ -3959,7 +3959,7 @@ need_resched_nonpreemptible:
+ 
+ 	if (prev->state && !(preempt_count() & PREEMPT_ACTIVE)) {
+ 		if (unlikely((prev->state & TASK_INTERRUPTIBLE) &&
+-				unlikely(signal_pending(prev)))) {
++				signal_pending(prev))) {
+ 			prev->state = TASK_RUNNING;
+ 		} else {
+ 			deactivate_task(rq, prev, 1);
 _
 
-Patches currently in -mm which might be from daniel@hozac.com are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
 origin.patch
+git-dvb.patch
+adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
+block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn.patch
+free-when-fb-cant-be-registered-in-video-aty-atyfb_basec.patch
+drivers-video-aty-aty128fbc-fix-incorrect-usage-of-strncat-in-aty128_init.patch
+drivers-video-imsttfbc-add-missing-curly-brackets.patch
 
