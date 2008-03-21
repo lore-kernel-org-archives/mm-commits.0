@@ -1,100 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-fix-jbd-kernel-doc-notation.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:29:09 -0700
-Message-ID: <200803212029.m2LKT97m008844@imap1.linux-foundation.org>
+Subject: - smack-do-not-dereference-null-ipc-object.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:29:27 -0700
+Message-ID: <200803212029.m2LKTRKQ008872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52766 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60529 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757631AbYCUU3T (ORCPT
+	by vger.kernel.org with ESMTP id S1755737AbYCUU3c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:29:19 -0400
+	Fri, 21 Mar 2008 16:29:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, casey@schaufler-ca.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: fix jbd kernel-doc notation
+     smack: do not dereference NULL ipc object
 has been removed from the -mm tree.  Its filename was
-     jbd-fix-jbd-kernel-doc-notation.patch
+     smack-do-not-dereference-null-ipc-object.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: fix jbd kernel-doc notation
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: smack: do not dereference NULL ipc object
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-Fix kernel-doc notation in jbd.
+In the SYSV ipc msgctl(),semctl(),shmctl() family, if the user passed *_INFO
+as the desired operation, no specific object is meant to be controlled and
+only system-wide information is returned.  This leads to a NULL IPC object in
+the LSM hooks if the _INFO flag is given.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Avoid dereferencing this NULL pointer in Smack ipc *ctl() methods.
+
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Acked-by: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/journal.c     |    5 +++--
- fs/jbd/transaction.c |    3 ++-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ security/smack/smack_lsm.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN fs/jbd/journal.c~jbd-fix-jbd-kernel-doc-notation fs/jbd/journal.c
---- a/fs/jbd/journal.c~jbd-fix-jbd-kernel-doc-notation
-+++ a/fs/jbd/journal.c
-@@ -697,13 +697,14 @@ fail:
+diff -puN security/smack/smack_lsm.c~smack-do-not-dereference-null-ipc-object security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~smack-do-not-dereference-null-ipc-object
++++ a/security/smack/smack_lsm.c
+@@ -1508,7 +1508,7 @@ static int smack_shm_associate(struct sh
   */
+ static int smack_shm_shmctl(struct shmid_kernel *shp, int cmd)
+ {
+-	char *ssp = smack_of_shm(shp);
++	char *ssp;
+ 	int may;
  
- /**
-- *  journal_t * journal_init_dev() - creates an initialises a journal structure
-+ *  journal_t * journal_init_dev() - creates and initialises a journal structure
-  *  @bdev: Block device on which to create the journal
-  *  @fs_dev: Device which hold journalled filesystem for this journal.
-  *  @start: Block nr Start of journal.
-  *  @len:  Length of the journal in blocks.
-  *  @blocksize: blocksize of journalling device
-- *  @returns: a newly created journal_t *
-+ *
-+ *  Returns: a newly created journal_t *
-  *
-  *  journal_init_dev creates a journal which maps a fixed contiguous
-  *  range of blocks on an arbitrary block device.
-diff -puN fs/jbd/transaction.c~jbd-fix-jbd-kernel-doc-notation fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~jbd-fix-jbd-kernel-doc-notation
-+++ a/fs/jbd/transaction.c
-@@ -1426,7 +1426,8 @@ int journal_stop(handle_t *handle)
- 	return err;
+ 	switch (cmd) {
+@@ -1532,6 +1532,7 @@ static int smack_shm_shmctl(struct shmid
+ 		return -EINVAL;
+ 	}
+ 
++	ssp = smack_of_shm(shp);
+ 	return smk_curacc(ssp, may);
  }
  
--/**int journal_force_commit() - force any uncommitted transactions
-+/**
-+ * int journal_force_commit() - force any uncommitted transactions
-  * @journal: journal to force
-  *
-  * For synchronous operations: force any uncommitted transactions
+@@ -1616,7 +1617,7 @@ static int smack_sem_associate(struct se
+  */
+ static int smack_sem_semctl(struct sem_array *sma, int cmd)
+ {
+-	char *ssp = smack_of_sem(sma);
++	char *ssp;
+ 	int may;
+ 
+ 	switch (cmd) {
+@@ -1645,6 +1646,7 @@ static int smack_sem_semctl(struct sem_a
+ 		return -EINVAL;
+ 	}
+ 
++	ssp = smack_of_sem(sma);
+ 	return smk_curacc(ssp, may);
+ }
+ 
+@@ -1730,7 +1732,7 @@ static int smack_msg_queue_associate(str
+  */
+ static int smack_msg_queue_msgctl(struct msg_queue *msq, int cmd)
+ {
+-	char *msp = smack_of_msq(msq);
++	char *msp;
+ 	int may;
+ 
+ 	switch (cmd) {
+@@ -1752,6 +1754,7 @@ static int smack_msg_queue_msgctl(struct
+ 		return -EINVAL;
+ 	}
+ 
++	msp = smack_of_msq(msq);
+ 	return smk_curacc(msp, may);
+ }
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
 origin.patch
-git-x86.patch
-rapidio-fix-docbook-references.patch
-pm-remove-legacy-pm-fix.patch
 git-kvm.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-scsi-add-iscsi-ibft-support-fix.patch
-git-unionfs.patch
-wireless-rt2x00-fix-driver-menu-indenting.patch
-x86-dont-allow-kvm_clock-without-have_kvm.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-let-log_buf_shift-default-to-17.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-jbd2-fix-kernel-doc-notation.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-kernel-add-bit-rotation-helpers-for-16-and-8-bit.patch
-profile-likely-unlikely-macros.patch
+git-security-testing.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
 
