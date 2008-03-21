@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-removed-one-unneeded-shost-active_mode-assignment.patch added to -mm tree
-Date: Fri, 21 Mar 2008 14:11:15 -0700
-Message-ID: <200803212111.m2LLBFhQ010663@imap1.linux-foundation.org>
+Subject: + jffs2-check-if-partition-is-marked-ro-on-remount.patch added to -mm tree
+Date: Fri, 21 Mar 2008 14:12:31 -0700
+Message-ID: <200803212112.m2LLCVn3010699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755698AbYCUVLs (ORCPT
+	by vger.kernel.org with ESMTP id S1761995AbYCUVNP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 17:11:48 -0400
+	Fri, 21 Mar 2008 17:13:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: crquan@gmail.com
+Cc: bigeasy@tglx.de, bigeasy@linutronix.de, dwmw2@infradead.org
 
 
 The patch titled
-     scsi: removed one unneeded shost->active_mode assignment
+     jffs2: check if partition is marked RO on remount
 has been added to the -mm tree.  Its filename is
-     scsi-removed-one-unneeded-shost-active_mode-assignment.patch
+     jffs2-check-if-partition-is-marked-ro-on-remount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: removed one unneeded shost->active_mode assignment
-From: Denis Cheng <crquan@gmail.com>
+Subject: jffs2: check if partition is marked RO on remount
+From: Sebastian Siewior <bigeasy@tglx.de>
 
-In the following if/else statement, shost->active_mode will always be set, so
-this assignment is unneeded.
+and if it is, don't tell userspace that write is possible.
 
-Signed-off-by: Denis Cheng <crquan@gmail.com>
+Signed-off-by: Sebastian Siewior <bigeasy@linutronix.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hosts.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/jffs2/fs.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/scsi/hosts.c~scsi-removed-one-unneeded-shost-active_mode-assignment drivers/scsi/hosts.c
---- a/drivers/scsi/hosts.c~scsi-removed-one-unneeded-shost-active_mode-assignment
-+++ a/drivers/scsi/hosts.c
-@@ -341,7 +341,6 @@ struct Scsi_Host *scsi_host_alloc(struct
- 	shost->unchecked_isa_dma = sht->unchecked_isa_dma;
- 	shost->use_clustering = sht->use_clustering;
- 	shost->ordered_tag = sht->ordered_tag;
--	shost->active_mode = sht->supported_mode;
+diff -puN fs/jffs2/fs.c~jffs2-check-if-partition-is-marked-ro-on-remount fs/jffs2/fs.c
+--- a/fs/jffs2/fs.c~jffs2-check-if-partition-is-marked-ro-on-remount
++++ a/fs/jffs2/fs.c
+@@ -382,6 +382,9 @@ int jffs2_remount_fs (struct super_block
+ 	if (c->flags & JFFS2_SB_FLAG_RO && !(sb->s_flags & MS_RDONLY))
+ 		return -EROFS;
  
- 	if (sht->supported_mode == MODE_UNKNOWN)
- 		/* means we didn't set it ... default to INITIATOR */
++	if (!(c->mtd->flags & MTD_WRITEABLE))
++		return -EROFS;
++
+ 	/* We stop if it was running, then restart if it needs to.
+ 	   This also catches the case where it was stopped and this
+ 	   is just a remount to restart it.
 _
 
-Patches currently in -mm which might be from crquan@gmail.com are
+Patches currently in -mm which might be from bigeasy@tglx.de are
 
-git-gfs2-nmw.patch
-3w-raid-drivers-memset-not-needed-in-probe.patch
-scsi-removed-one-unneeded-shost-active_mode-assignment.patch
-ipmi-remove-unused-target-and-action-in-makefile.patch
+jffs2-check-if-partition-is-marked-ro-on-remount.patch
+jffs2-check-if-partition-is-marked-ro-on-mount.patch
 
