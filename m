@@ -1,67 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-correctly-unescape-journal-data-blocks.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:29:32 -0700
-Message-ID: <200803212029.m2LKTW5H008881__29275.3211725087$1206131457$gmane$org@imap1.linux-foundation.org>
+Subject: - memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:29:54 -0700
+Message-ID: <200803212029.m2LKTsai008907@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43197 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44080 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757285AbYCUU3x (ORCPT
+	by vger.kernel.org with ESMTP id S1758164AbYCUU34 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:29:53 -0400
+	Fri, 21 Mar 2008 16:29:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: duaneg@dghda.com, jack@suse.cz, linux-ext4@vger.kernel.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, oakad@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: correctly unescape journal data blocks
+     memstick: drivers/memstick/host/jmb38x_ms.c needs dma-mapping.h
 has been removed from the -mm tree.  Its filename was
-     jbd-correctly-unescape-journal-data-blocks.patch
+     memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: correctly unescape journal data blocks
-From: "Duane Griffin" <duaneg@dghda.com>
+Subject: memstick: drivers/memstick/host/jmb38x_ms.c needs dma-mapping.h
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a long-standing typo (predating git) that will cause data corruption if a
-journal data block needs unescaping.  At the moment the wrong buffer head's
-data is being unescaped.
+sparc32:
 
-To test this case mount a filesystem with data=journal, start creating and
-deleting a bunch of files containing only JFS_MAGIC_NUMBER (0xc03b3998), then
-pull the plug on the device.  Without this patch the files will contain zeros
-instead of the correct data after recovery.
+drivers/memstick/host/jmb38x_ms.c: In function 'jmb38x_ms_probe':
+drivers/memstick/host/jmb38x_ms.c:818: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
+drivers/memstick/host/jmb38x_ms.c:818: error: (Each undeclared identifier is reported only once
+drivers/memstick/host/jmb38x_ms.c:818: error: for each function it appears in.)
 
-Signed-off-by: Duane Griffin <duaneg@dghda.com>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: <linux-ext4@vger.kernel.org>
-Cc: <stable@kernel.org>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/recovery.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/memstick/host/jmb38x_ms.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/jbd/recovery.c~jbd-correctly-unescape-journal-data-blocks fs/jbd/recovery.c
---- a/fs/jbd/recovery.c~jbd-correctly-unescape-journal-data-blocks
-+++ a/fs/jbd/recovery.c
-@@ -478,7 +478,7 @@ static int do_one_pass(journal_t *journa
- 					memcpy(nbh->b_data, obh->b_data,
- 							journal->j_blocksize);
- 					if (flags & JFS_FLAG_ESCAPE) {
--						*((__be32 *)bh->b_data) =
-+						*((__be32 *)nbh->b_data) =
- 						cpu_to_be32(JFS_MAGIC_NUMBER);
- 					}
- 
+diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh drivers/memstick/host/jmb38x_ms.c
+--- a/drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh
++++ a/drivers/memstick/host/jmb38x_ms.c
+@@ -12,6 +12,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/interrupt.h>
+ #include <linux/pci.h>
++#include <linux/dma-mapping.h>
+ #include <linux/delay.h>
+ #include <linux/highmem.h>
+ #include <linux/memstick.h>
 _
 
-Patches currently in -mm which might be from duaneg@dghda.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-jbd2-only-create-debugfs-and-stats-entries-if-cache-initialisation-is-successful.patch
+mtd-memory-corruption-in-block2mtdc.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi-fixup.patch
+git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+git-drm.patch
+git-drm-git-rejects.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-async-tx.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+git-sh.patch
+git-sh-git-rejects.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+scsi-add-iscsi-ibft-support-fix.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+fbdev-driver-for-freescale-8610-and-5121-diu-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+w1-build-fix.patch
 
