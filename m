@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch added to -mm tree
-Date: Fri, 21 Mar 2008 15:12:20 -0700
-Message-ID: <200803212212.m2LMCLL4012931@imap1.linux-foundation.org>
+Subject: + vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix.patch added to -mm tree
+Date: Fri, 21 Mar 2008 15:15:07 -0700
+Message-ID: <200803212215.m2LMF7OU013072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56717 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57307 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752116AbYCUWNp (ORCPT
+	by vger.kernel.org with ESMTP id S1752613AbYCUWPm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 18:13:45 -0400
+	Fri, 21 Mar 2008 18:15:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, ebiederm@xmission.com, roland@redhat.com, xemul@openvz.org
+Cc: clameter@sgi.com, arjan@infradead.org
 
 
 The patch titled
-     pids: de_thread: don't clear session/pgrp pids for the old leader
+     vmallocinfo: only allow root to read /proc/vmallocinfo
 has been added to the -mm tree.  Its filename is
-     pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
+     vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,124 +34,90 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pids: de_thread: don't clear session/pgrp pids for the old leader
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: vmallocinfo: only allow root to read /proc/vmallocinfo
+From: Christoph Lameter <clameter@sgi.com>
 
-Based on Eric W. Biederman's idea.
+Change permissions for /proc/vmallocinfo to only allow read
+for root.
 
-Unless task == current, without tasklist_lock held task_session()/task_pgrp()
-can return NULL if the caller races with de_thread() which switches the group
-leader.
-
-Change transfer_pid() to not clear old->pids[type].pid for the old leader. 
-This means that its .pid can point to "nowhere", but this is already true for
-sub-threads, and the old leader is not group_leader() any longer.  IOW, with
-or without this change we can't trust task's special pids unless it is the
-group leader.
-
-With this change the following code
-
-	rcu_read_lock();
-	task = find_task_by_xxx();
-	do_something(task_pgrp(task), task_session(task));
-	rcu_read_unlock();
-
-can't race with exec and hit the NULL pid.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc:  "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/proc/proc_misc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/pid.c~pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader kernel/pid.c
---- a/kernel/pid.c~pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader
-+++ a/kernel/pid.c
-@@ -355,7 +355,6 @@ void transfer_pid(struct task_struct *ol
- {
- 	new->pids[type].pid = old->pids[type].pid;
- 	hlist_replace_rcu(&old->pids[type].node, &new->pids[type].node);
--	old->pids[type].pid = NULL;
- }
- 
- struct task_struct *pid_task(struct pid *pid, enum pid_type type)
+diff -puN fs/proc/proc_misc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix
++++ a/fs/proc/proc_misc.c
+@@ -881,8 +881,7 @@ void __init proc_misc_init(void)
+ 	create_seq_entry("slab_allocators", 0 ,&proc_slabstats_operations);
+ #endif
+ #endif
+-	proc_create("vmallocinfo", S_IWUSR|S_IRUGO, NULL,
+-						&proc_vmalloc_operations);
++	proc_create("vmallocinfo", S_IRUSR, NULL, &proc_vmalloc_operations);
+ 	create_seq_entry("buddyinfo",S_IRUGO, &fragmentation_file_operations);
+ 	create_seq_entry("pagetypeinfo", S_IRUGO, &pagetypeinfo_file_ops);
+ 	create_seq_entry("vmstat",S_IRUGO, &proc_vmstat_file_operations);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-x86-handle_vm86_trap-cleanup.patch
-git-hrt.patch
-bsd_acct-plain-current-real_parent-access-is-not-always-safe.patch
-bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-document-cld_continued-notification-mechanics-more.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+mm-fix-boundary-checking-in-free_bootmem_core.patch
+git-unionfs.patch
+git-slub.patch
+remove-set_migrateflags.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mm-move-cache_line_size-to-linux-cacheh.patch
+mempolicy-convert-mpol-constants-to-enum.patch
+mempolicy-support-optional-mode-flags.patch
+mempolicy-support-optional-mode-flags-fix.patch
+mempolicy-add-mpol_f_static_nodes-flag.patch
+mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
+mempolicy-add-mpol_f_relative_nodes-flag.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-move-rebind-functions.patch
+mempolicy-create-mempolicy_operations-structure.patch
+mempolicy-create-mempolicy_operations-structure-fix.patch
+mempolicy-small-header-file-cleanup.patch
+mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
+mempolicy-fix-parsing-of-tmpfs-mpol-mount-option.patch
+mm-make-mem_map-allocation-continuous.patch
+mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
+mm-allocate-section_map-for-sparse_init.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix.patch
+vmallocinfo-add-caller-information.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+sparsemem-vmemmap-does-not-need-section-bits.patch
+kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
+pageflags-use-an-enum-for-the-flags.patch
+pageflags-get-rid-of-flags_reserved.patch
+pageflags-introduce-macros-to-generate-page-flag-functions.patch
+pageflags-convert-to-the-use-of-new-macros.patch
+pageflags-use-proper-page-flag-functions-in-xen.patch
+pageflags-eliminate-pg_xxx-aliases.patch
+get-rid-of-__zone_count.patch
+mm-remove-unused-max_nodes_shift.patch
+mm-add-nr_writeback_temp-counter.patch
+remove-div_long_long_rem.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
 
