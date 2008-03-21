@@ -1,95 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-at91sam9-fixes.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:30:12 -0700
-Message-ID: <200803212030.m2LKUCeU008965@imap1.linux-foundation.org>
+Subject: - pm-make-wakeup-flags-available-whenever-config_pm-is-set-ver-2.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:30:43 -0700
+Message-ID: <200803212030.m2LKUhI0009007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36642 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55491 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755724AbYCUUag (ORCPT
+	by vger.kernel.org with ESMTP id S1760904AbYCUUat (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:30:36 -0400
+	Fri, 21 Mar 2008 16:30:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, a.zummo@towertech.it, dbrownell@users.sourceforge.net, justin.waters@timesys.com, mm-commits@vger.kernel.org
+To: stern@rowland.harvard.edu, greg@kroah.com, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-at91sam9 fixes
+     PM: Make wakeup flags available whenever CONFIG_PM is set (ver 2)
 has been removed from the -mm tree.  Its filename was
-     rtc-at91sam9-fixes.patch
+     pm-make-wakeup-flags-available-whenever-config_pm-is-set-ver-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-at91sam9 fixes
-From: David Brownell <david-b@pacbell.net>
+Subject: PM: Make wakeup flags available whenever CONFIG_PM is set (ver 2)
+From: Alan Stern <stern@rowland.harvard.edu>
 
-Updates to the at91sam9 rtt-as-rtc driver:
+The various wakeup flags and their accessor macros in struct dev_pm_info
+should be available whenever CONFIG_PM is enabled, not just when
+CONFIG_PM_SLEEP is on.  Otherwise remote wakeup won't always be configurable
+for runtime power management.  This patch (as1056b) fixes the oversight.
 
- - Bugfix:  IRQ enable bits need shifting before masking with status
- - Platform code to initialize wakeup bits didn't get merged; cope
-
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Justin Waters <justin.waters@timesys.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+[rjw: rebased]
+Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at91sam9.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/base/power/main.c  |    2 -
+ drivers/base/power/sysfs.c |    2 +
+ include/linux/pm.h         |   36 ++++++++++++++++++++---------------
+ 3 files changed, 23 insertions(+), 17 deletions(-)
 
-diff -puN drivers/rtc/rtc-at91sam9.c~rtc-at91sam9-fixes drivers/rtc/rtc-at91sam9.c
---- a/drivers/rtc/rtc-at91sam9.c~rtc-at91sam9-fixes
-+++ a/drivers/rtc/rtc-at91sam9.c
-@@ -274,7 +274,7 @@ static irqreturn_t at91_rtc_interrupt(in
- 	 * SR clears it, so we must only read it in this irq handler!
- 	 */
- 	mr = rtt_readl(rtc, MR) & (AT91_RTT_ALMIEN | AT91_RTT_RTTINCIEN);
--	sr = rtt_readl(rtc, SR) & mr;
-+	sr = rtt_readl(rtc, SR) & (mr >> 16);
- 	if (!sr)
- 		return IRQ_NONE;
+diff -puN drivers/base/power/main.c~pm-make-wakeup-flags-available-whenever-config_pm-is-set-ver-2 drivers/base/power/main.c
+--- a/drivers/base/power/main.c~pm-make-wakeup-flags-available-whenever-config_pm-is-set-ver-2
++++ a/drivers/base/power/main.c
+@@ -57,8 +57,6 @@ static DEFINE_MUTEX(dpm_list_mtx);
+ /* 'true' if all devices have been suspended, protected by dpm_list_mtx */
+ static bool all_sleeping;
  
-@@ -321,6 +321,10 @@ static int __init at91_rtc_probe(struct 
- 	if (!rtc)
- 		return -ENOMEM;
+-int (*platform_enable_wakeup)(struct device *dev, int is_on);
+-
+ /**
+  *	device_pm_add - add a device to the list of active devices
+  *	@dev:	Device to be added to the list
+diff -puN drivers/base/power/sysfs.c~pm-make-wakeup-flags-available-whenever-config_pm-is-set-ver-2 drivers/base/power/sysfs.c
+--- a/drivers/base/power/sysfs.c~pm-make-wakeup-flags-available-whenever-config_pm-is-set-ver-2
++++ a/drivers/base/power/sysfs.c
+@@ -6,6 +6,8 @@
+ #include <linux/string.h>
+ #include "power.h"
  
-+	/* platform setup code should have handled this; sigh */
-+	if (!device_can_wakeup(&pdev->dev))
-+		device_init_wakeup(&pdev->dev, 1);
++int (*platform_enable_wakeup)(struct device *dev, int is_on);
 +
- 	platform_set_drvdata(pdev, rtc);
- 	rtc->rtt = (void __force __iomem *) (AT91_VA_BASE_SYS - AT91_BASE_SYS);
- 	rtc->rtt += r->start;
-_
-
-Patches currently in -mm which might be from david-b@pacbell.net are
-
-origin.patch
-git-acpi.patch
-git-avr32.patch
-input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
-input-add-debouncing-for-generic-gpio-input-device-gpio_keyc-update.patch
-usb-net-asix-does-not-really-need-10-100mbit.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-usb-gadget-dummy_hcdc-fix-nested-switch-statements.patch
-spi-pxa2xx_spi-sparse-fixes.patch
-rtc-avoid-legacy-drivers-with-generic-framework.patch
-rtc-avoid-legacy-drivers-with-generic-framework-update.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
-make-ds1511_rtc_readset_time-static.patch
-kerneldoc-for-linux-clkh.patch
-kerneldoc-for-linux-clkh-fix.patch
-rtc-replace-remaining-__function__-occurrences.patch
-remove-duplicated-unlikely-in-is_err.patch
-
+ 
+ /*
+  *	wakeup - Report/change current wakeup option for device
+diff -puN include/linux/pm.h~pm-make-wakeup-flags-available-whenever-config_pm-is-set-ver-2 include/linux/pm.h
+--- a/include/linux/pm.h~pm-make-wakeup-flags-available-whenever-config_pm-is-set-ver-2
++++ a/include/linux/pm.h
+@@ -183,9 +183,9 @@ typedef struct pm_message {
+ struct dev_pm_info {
+ 	pm_message_t		power_state;
+ 	unsigned		can_wakeup:1;
++	unsigned		should_wakeup:1;
+ 	bool			sleeping:1;	/* Owned by the PM core */
+ #ifdef	CONFIG_PM_SLEEP
+-	unsigned		should_wakeup:1;
+ 	struct list_head	entry;
+ #endif
+ };
+@@ -198,11 +198,6 @@ extern void device_resume(void);
+ extern int device_suspend(pm_message_t state);
+ extern int device_prepare_suspend(pm_message_t state);
+ 
+-#define device_set_wakeup_enable(dev,val) \
+-	((dev)->power.should_wakeup = !!(val))
+-#define device_may_wakeup(dev) \
+-	(device_can_wakeup(dev) && (dev)->power.should_wakeup)
+-
+ extern void __suspend_report_result(const char *function, void *fn, int ret);
+ 
+ #define suspend_report_result(fn, ret)					\
+@@ -210,6 +205,24 @@ extern void __suspend_report_result(cons
+ 		__suspend_report_result(__FUNCTION__, fn, ret);		\
+ 	} while (0)
+ 
++#else /* !CONFIG_PM_SLEEP */
++
++static inline int device_suspend(pm_message_t state)
++{
++	return 0;
++}
++
++#define suspend_report_result(fn, ret) do { } while (0)
++
++#endif /* !CONFIG_PM_SLEEP */
++
++#ifdef CONFIG_PM
++
++#define device_set_wakeup_enable(dev,val) \
++	((dev)->power.should_wakeup = !!(val))
++#define device_may_wakeup(dev) \
++	(device_can_wakeup(dev) && (dev)->power.should_wakeup)
++
+ /*
+  * Platform hook to activate device wakeup capability, if that's not already
+  * handled by enable_irq_wake() etc.
+@@ -224,24 +237,17 @@ static inline int call_platform_enable_w
+ 	return 0;
+ }
+ 
+-#else /* !CONFIG_PM_SLEEP */
+-
+-static inline int device_suspend(pm_message_t state)
+-{
+-	return 0;
+-}
++#else /* !CONFIG_PM */
+ 
+ #define device_set_wakeup_enable(dev,val)	do{}while(0)
+ #define device_may_wakeup(dev)			(0)
+ 
+-#define suspend_report_result(fn, ret) do { } while (0)
