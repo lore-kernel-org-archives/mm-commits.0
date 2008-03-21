@@ -1,57 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:29:54 -0700
-Message-ID: <200803212029.m2LKTsai008907@imap1.linux-foundation.org>
+Subject: - memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:29:56 -0700
+Message-ID: <200803212029.m2LKTuDW008910@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44080 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758164AbYCUU34 (ORCPT
+	by vger.kernel.org with ESMTP id S1758992AbYCUU36 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:29:56 -0400
+	Fri, 21 Mar 2008 16:29:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, oakad@yahoo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memstick: drivers/memstick/host/jmb38x_ms.c needs dma-mapping.h
+     memstick: drivers/memstick/host/jmb38x_ms.c: suppress uninitialized var warning
 has been removed from the -mm tree.  Its filename was
-     memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh.patch
+     memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: drivers/memstick/host/jmb38x_ms.c needs dma-mapping.h
+Subject: memstick: drivers/memstick/host/jmb38x_ms.c: suppress uninitialized var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sparc32:
-
-drivers/memstick/host/jmb38x_ms.c: In function 'jmb38x_ms_probe':
-drivers/memstick/host/jmb38x_ms.c:818: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
-drivers/memstick/host/jmb38x_ms.c:818: error: (Each undeclared identifier is reported only once
-drivers/memstick/host/jmb38x_ms.c:818: error: for each function it appears in.)
+drivers/memstick/host/jmb38x_ms.c: In function 'jmb38x_ms_transfer_data':
+drivers/memstick/host/jmb38x_ms.c:294: warning: 'p_off' may be used uninitialized in this function
 
 Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/jmb38x_ms.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/memstick/host/jmb38x_ms.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh drivers/memstick/host/jmb38x_ms.c
---- a/drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-needs-dma-mappingh
+diff -puN drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning drivers/memstick/host/jmb38x_ms.c
+--- a/drivers/memstick/host/jmb38x_ms.c~memstick-drivers-memstick-host-jmb38x_msc-suppress-uninitialized-var-warning
 +++ a/drivers/memstick/host/jmb38x_ms.c
-@@ -12,6 +12,7 @@
- #include <linux/spinlock.h>
- #include <linux/interrupt.h>
- #include <linux/pci.h>
-+#include <linux/dma-mapping.h>
- #include <linux/delay.h>
- #include <linux/highmem.h>
- #include <linux/memstick.h>
+@@ -274,7 +274,7 @@ static int jmb38x_ms_transfer_data(struc
+ {
+ 	unsigned int length;
+ 	unsigned int off;
+-	unsigned int t_size, p_off, p_cnt;
++	unsigned int t_size, p_cnt;
+ 	unsigned char *buf;
+ 	struct page *pg;
+ 	unsigned long flags = 0;
+@@ -288,6 +288,8 @@ static int jmb38x_ms_transfer_data(struc
+ 	}
+ 
+ 	while (length) {
++		unsigned int uninitialized_var(p_off);
++
+ 		if (host->req->long_data) {
+ 			pg = nth_page(sg_page(&host->req->sg),
+ 				      off >> PAGE_SHIFT);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
