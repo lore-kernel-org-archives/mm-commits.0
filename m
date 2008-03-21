@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-yellowfin-parenthesis-fix.patch added to -mm tree
-Date: Fri, 21 Mar 2008 14:44:38 -0700
-Message-ID: <200803212144.m2LLicHB011911@imap1.linux-foundation.org>
+Subject: + dma-mapping-document-dma_map_attrs-interfaces.patch added to -mm tree
+Date: Fri, 21 Mar 2008 14:50:38 -0700
+Message-ID: <200803212150.m2LLoc4W012142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46856 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754842AbYCUVov (ORCPT
+	by vger.kernel.org with ESMTP id S1756256AbYCUVw1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 17:44:51 -0400
+	Fri, 21 Mar 2008 17:52:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: m.kozlowski@tuxland.pl
+Cc: akepner@sgi.com, James.Bottomley@HansenPartnership.com, benh@kernel.crashing.org, davem@davemloft.net, grundler@parisc-linux.org, jbarnes@virtuousgeek.org, jes@sgi.com, michael@ellerman.id.au, randy.dunlap@oracle.com, rdreier@cisco.com, tony.luck@intel.com
 
 
 The patch titled
-     net: yellowfin parenthesis fix
+     dma-mapping: document dma_*map*_attrs() interfaces
 has been added to the -mm tree.  Its filename is
-     net-yellowfin-parenthesis-fix.patch
+     dma-mapping-document-dma_map_attrs-interfaces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,136 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net: yellowfin parenthesis fix
-From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Subject: dma-mapping: document dma_*map*_attrs() interfaces
+From: Arthur Kepner <akepner@sgi.com>
 
-The code is under unused #ifdef NO_TXSTATS branch but its better to have it
-fixed.
-
-Signed-off-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+Signed-off-by: Arthur Kepner <akepner@sgi.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Jes Sorensen <jes@sgi.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Roland Dreier <rdreier@cisco.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Michael Ellerman <michael@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/yellowfin.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/DMA-API.txt        |   65 +++++++++++++++++++++++++++++
+ Documentation/DMA-attributes.txt |   24 ++++++++++
+ 2 files changed, 89 insertions(+)
 
-diff -puN drivers/net/yellowfin.c~net-yellowfin-parenthesis-fix drivers/net/yellowfin.c
---- a/drivers/net/yellowfin.c~net-yellowfin-parenthesis-fix
-+++ a/drivers/net/yellowfin.c
-@@ -770,14 +770,14 @@ static void yellowfin_init_ring(struct n
- 		/* Branch on Tx error. */
- 		yp->tx_ring[j].dbdma_cmd = cpu_to_le32(CMD_STOP);
- 		yp->tx_ring[j].branch_addr = cpu_to_le32(yp->tx_ring_dma +
--			(j+1)*sizeof(struct yellowfin_desc);
-+			(j+1)*sizeof(struct yellowfin_desc));
- 		j++;
- 		if (yp->flags & FullTxStatus) {
- 			yp->tx_ring[j].dbdma_cmd =
- 				cpu_to_le32(CMD_TXSTATUS | sizeof(*yp->tx_status));
- 			yp->tx_ring[j].request_cnt = sizeof(*yp->tx_status);
- 			yp->tx_ring[j].addr = cpu_to_le32(yp->tx_status_dma +
--				i*sizeof(struct tx_status_words);
-+				i*sizeof(struct tx_status_words));
- 		} else {
- 			/* Symbios chips write only tx_errs word. */
- 			yp->tx_ring[j].dbdma_cmd =
+diff -puN Documentation/DMA-API.txt~dma-mapping-document-dma_map_attrs-interfaces Documentation/DMA-API.txt
+--- a/Documentation/DMA-API.txt~dma-mapping-document-dma_map_attrs-interfaces
++++ a/Documentation/DMA-API.txt
+@@ -395,6 +395,71 @@ Notes:  You must do this:
+ 
+ See also dma_map_single().
+ 
++dma_addr_t
++dma_map_single_attrs(struct device *dev, void *cpu_addr, size_t size,
++		     enum dma_data_direction dir,
++		     struct dma_attrs *attrs)
++
++void
++dma_unmap_single_attrs(struct device *dev, dma_addr_t dma_addr,
++		       size_t size, enum dma_data_direction dir,
++		       struct dma_attrs *attrs)
++
++int
++dma_map_sg_attrs(struct device *dev, struct scatterlist *sgl,
++		 int nents, enum dma_data_direction dir,
++		 struct dma_attrs *attrs)
++
++void
++dma_unmap_sg_attrs(struct device *dev, struct scatterlist *sgl,
++		   int nents, enum dma_data_direction dir,
++		   struct dma_attrs *attrs)
++
++The four functions above are just like the counterpart functions
++without the _attrs suffixes, except that they pass an optional
++struct dma_attrs*.
++
++struct dma_attrs encapsulates a set of "dma attributes". For the
++definition of struct dma_attrs see linux/dma-attrs.h.
++
++The interpretation of dma attributes is architecture-specific, and
++each attribute should be documented in Documentation/DMA-attributes.txt.
++
++If struct dma_attrs* is NULL, the semantics of each of these
++functions is identical to those of the corresponding function
++without the _attrs suffix. As a result dma_map_single_attrs()
++can generally replace dma_map_single(), etc.
++
++As an example of the use of the *_attrs functions, here's how
++you could pass an attribute DMA_ATTR_FOO when mapping memory
++for DMA:
++
++#include <linux/dma-attrs.h>
++/* DMA_ATTR_FOO should be defined in linux/dma-attrs.h and
++ * documented in Documentation/DMA-attributes.txt */
++...
++
++	DECLARE_DMA_ATTRS(attrs);
++	dma_set_attr(&attrs, DMA_ATTR_FOO);
++	....
++	n = dma_map_sg_attrs(dev, sg, nents, DMA_TO_DEVICE, &attr);
++	....
++
++Architectures that care about DMA_ATTR_FOO would check for its
++presence in their implementations of the mapping and unmapping
++routines, e.g.:
++
++void whizco_dma_map_sg_attrs(struct device *dev, dma_addr_t dma_addr,
++			     size_t size, enum dma_data_direction dir,
++			     struct dma_attrs *attrs)
++{
++	....
++	int foo =  dma_get_attr(attrs, DMA_ATTR_FOO);
++	....
++	if (foo)
++		/* twizzle the frobnozzle */
++	....
++
+ 
+ Part II - Advanced dma_ usage
+ -----------------------------
+diff -puN Documentation/DMA-attributes.txt~dma-mapping-document-dma_map_attrs-interfaces Documentation/DMA-attributes.txt
+--- a/Documentation/DMA-attributes.txt~dma-mapping-document-dma_map_attrs-interfaces
++++ a/Documentation/DMA-attributes.txt
+@@ -0,0 +1,24 @@
++			DMA attributes
++			==============
++
++This document describes the semantics of the DMA attributes that are
++defined in linux/dma-attrs.h.
++
++DMA_ATTR_WRITE_BARRIER
++----------------------
++
++DMA_ATTR_WRITE_BARRIER is a (write) barrier attribute for DMA.  DMA
++to a memory region with the DMA_ATTR_WRITE_BARRIER attribute forces
++all pending DMA writes to complete, and thus provides a mechanism to
++strictly order DMA from a device across all intervening busses and
++bridges.  This barrier is not specific to a particular type of
++interconnect, it applies to the system as a whole, and so its
++implementation must account for the idiosyncracies of the system all
++the way from the DMA device to memory.
++
++As an example of a situation where DMA_ATTR_WRITE_BARRIER would be
++useful, suppose that a device does a DMA write to indicate that data is
++ready and available in memory.  The DMA of the "completion indication"
++could race with data DMA.  Mapping the memory used for completion
++indications with DMA_ATTR_WRITE_BARRIER would prevent the race.
++
 _
 
-Patches currently in -mm which might be from m.kozlowski@tuxland.pl are
+Patches currently in -mm which might be from akepner@sgi.com are
 
-git-alsa-tiwai.patch
-net-yellowfin-parenthesis-fix.patch
-reiser4.patch
+dma-mapping-add-dma_map_attrs-interfaces.patch
+dma-mapping-document-dma_map_attrs-interfaces.patch
+dma-mapping-ia64-update-ia64-machvecs-swiotlbc.patch
+dma-mapping-ib-expand-ib_umem_get-prototype.patch
 
