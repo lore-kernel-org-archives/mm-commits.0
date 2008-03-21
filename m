@@ -1,82 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - ibmpex-correct-power-use-multipliers-for-qs2x-blade.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:29:16 -0700
-Message-ID: <200803212029.m2LKTGPv008853@imap1.linux-foundation.org>
+Subject: + scsi-removed-one-unneeded-shost-active_mode-assignment.patch added to -mm tree
+Date: Fri, 21 Mar 2008 14:11:15 -0700
+Message-ID: <200803212111.m2LLBFhQ010663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755225AbYCUUew (ORCPT
+	by vger.kernel.org with ESMTP id S1755698AbYCUVLs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:34:52 -0400
+	Fri, 21 Mar 2008 17:11:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djwong@us.ibm.com, mhoffman@lightlink.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: crquan@gmail.com
 
 
 The patch titled
-     ibmpex: correct power use multipliers for QS2x blade
-has been removed from the -mm tree.  Its filename was
-     ibmpex-correct-power-use-multipliers-for-qs2x-blade.patch
+     scsi: removed one unneeded shost->active_mode assignment
+has been added to the -mm tree.  Its filename is
+     scsi-removed-one-unneeded-shost-active_mode-assignment.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ibmpex: correct power use multipliers for QS2x blade
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: scsi: removed one unneeded shost->active_mode assignment
+From: Denis Cheng <crquan@gmail.com>
 
-The QS2x blades ships with v2.54 of the firmware, which use the same
-multiplier for all power meters.
+In the following if/else statement, shost->active_mode will always be set, so
+this assignment is unneeded.
 
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Cc: Mark M. Hoffman <mhoffman@lightlink.com>
+Signed-off-by: Denis Cheng <crquan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/ibmpex.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ drivers/scsi/hosts.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/hwmon/ibmpex.c~ibmpex-correct-power-use-multipliers-for-qs2x-blade drivers/hwmon/ibmpex.c
---- a/drivers/hwmon/ibmpex.c~ibmpex-correct-power-use-multipliers-for-qs2x-blade
-+++ a/drivers/hwmon/ibmpex.c
-@@ -327,10 +327,14 @@ static int is_temp_sensor(const char *se
- 	return 0;
- }
+diff -puN drivers/scsi/hosts.c~scsi-removed-one-unneeded-shost-active_mode-assignment drivers/scsi/hosts.c
+--- a/drivers/scsi/hosts.c~scsi-removed-one-unneeded-shost-active_mode-assignment
++++ a/drivers/scsi/hosts.c
+@@ -341,7 +341,6 @@ struct Scsi_Host *scsi_host_alloc(struct
+ 	shost->unchecked_isa_dma = sht->unchecked_isa_dma;
+ 	shost->use_clustering = sht->use_clustering;
+ 	shost->ordered_tag = sht->ordered_tag;
+-	shost->active_mode = sht->supported_mode;
  
--static int power_sensor_multiplier(const char *sensor_id, int len)
-+static int power_sensor_multiplier(struct ibmpex_bmc_data *data,
-+				   const char *sensor_id, int len)
- {
- 	int i;
- 
-+	if (data->sensor_major == 2)
-+		return 1000000;
-+
- 	for (i = PEX_SENSOR_TYPE_LEN; i < len - 1; i++)
- 		if (!memcmp(&sensor_id[i], watt_sensor_sig, PEX_MULT_LEN))
- 			return 1000000;
-@@ -398,8 +402,9 @@ static int ibmpex_find_sensors(struct ib
- 			num_power++;
- 			sensor_counter = num_power;
- 			data->sensors[i].multiplier =
--				power_sensor_multiplier(data->rx_msg_data,
--						     data->rx_msg_len);
-+				power_sensor_multiplier(data,
-+							data->rx_msg_data,
-+							data->rx_msg_len);
- 		} else if (is_temp_sensor(data->rx_msg_data,
- 					  data->rx_msg_len)) {
- 			sensor_type = TEMP_SENSOR;
+ 	if (sht->supported_mode == MODE_UNKNOWN)
+ 		/* means we didn't set it ... default to INITIATOR */
 _
 
-Patches currently in -mm which might be from djwong@us.ibm.com are
+Patches currently in -mm which might be from crquan@gmail.com are
 
-origin.patch
-git-hwmon.patch
-adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
-git-scsi-misc.patch
-mptbase-reset-ioc-initiator-during-pci-resume.patch
-scsi-aic94xx-cleanups.patch
+git-gfs2-nmw.patch
+3w-raid-drivers-memset-not-needed-in-probe.patch
+scsi-removed-one-unneeded-shost-active_mode-assignment.patch
+ipmi-remove-unused-target-and-action-in-makefile.patch
 
