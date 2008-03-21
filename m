@@ -1,85 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - x86-fix-clearcopy_user_page-declarations-in-pageh.patch removed from -mm tree
-Date: Fri, 21 Mar 2008 13:31:20 -0700
-Message-ID: <200803212031.m2LKVKv3009064@imap1.linux-foundation.org>
+Subject: - x86-fix-aperture-vs-suspend-problem.patch removed from -mm tree
+Date: Fri, 21 Mar 2008 13:31:30 -0700
+Message-ID: <200803212031.m2LKVUxW009076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47274 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53507 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761313AbYCUUbw (ORCPT
+	by vger.kernel.org with ESMTP id S1761340AbYCUUcC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 16:31:52 -0400
+	Fri, 21 Mar 2008 16:32:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chuck.lever@oracle.com, jeremy.fitzhardinge@citrix.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: pavel@ucw.cz, mingo@elte.hu, pavel@suse.cz, rjw@sisk.pl, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: fix {clear,copy}_user_page() declarations in page.h
+     x86: fix aperture vs. suspend problem
 has been removed from the -mm tree.  Its filename was
-     x86-fix-clearcopy_user_page-declarations-in-pageh.patch
+     x86-fix-aperture-vs-suspend-problem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix {clear,copy}_user_page() declarations in page.h
-From: Chuck Lever <chuck.lever@oracle.com>
+Subject: x86: fix aperture vs. suspend problem
+From: Pavel Machek <pavel@ucw.cz>
 
-Clean up: eliminate some compiler noise on x86 when building with strict
-warnings enabled, introduced by commit 345b904c.
+aperture_64.c takes a piece of memory and makes it into an iommu window.  But
+such window may not be saved by swsusp -- that leads to oops during suspend.
 
-In file included from include2/asm/thread_info_64.h:12,
-                 from include2/asm/thread_info.h:4,
-                 from
-/home/cel/src/linux/nfs-2.6/include/linux/thread_info.h:35,
-                 from
-/home/cel/src/linux/nfs-2.6/include/linux/preempt.h:9,
-                 from
-/home/cel/src/linux/nfs-2.6/include/linux/spinlock.h:49,
-                 from /home/cel/src/linux/nfs-2.6/include/linux/mmzone.h:7,
-                 from /home/cel/src/linux/nfs-2.6/include/linux/gfp.h:4,
-                 from /home/cel/src/linux/nfs-2.6/include/linux/slab.h:14,
-                 from /home/cel/src/linux/nfs-2.6/fs/nfsd/nfs4acl.c:40:
-include2/asm/page.h:55: warning: `inline' is not at beginning of
-declaration
-include2/asm/page.h:61: warning: `inline' is not at beginning of
-declaration
-
-Signed-off-by: Chuck Lever <chuck.lever@oracle.com>
-Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Pavel Machek <pavel@suse.cz>
+Acked-by: "Rafael J. Wysocki" <rjw@sisk.pl>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/page.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/aperture_64.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/asm-x86/page.h~x86-fix-clearcopy_user_page-declarations-in-pageh include/asm-x86/page.h
---- a/include/asm-x86/page.h~x86-fix-clearcopy_user_page-declarations-in-pageh
-+++ a/include/asm-x86/page.h
-@@ -52,13 +52,13 @@ extern int page_is_ram(unsigned long pag
+diff -puN arch/x86/kernel/aperture_64.c~x86-fix-aperture-vs-suspend-problem arch/x86/kernel/aperture_64.c
+--- a/arch/x86/kernel/aperture_64.c~x86-fix-aperture-vs-suspend-problem
++++ a/arch/x86/kernel/aperture_64.c
+@@ -18,6 +18,7 @@
+ #include <linux/pci.h>
+ #include <linux/bitops.h>
+ #include <linux/ioport.h>
++#include <linux/suspend.h>
+ #include <asm/e820.h>
+ #include <asm/io.h>
+ #include <asm/gart.h>
+@@ -76,6 +77,8 @@ static u32 __init allocate_aperture(void
+ 	printk(KERN_INFO "Mapping aperture over %d KB of RAM @ %lx\n",
+ 			aper_size >> 10, __pa(p));
+ 	insert_aperture_resource((u32)__pa(p), aper_size);
++	register_nosave_region((u32)__pa(p) >> PAGE_SHIFT,
++				(u32)__pa(p+aper_size) >> PAGE_SHIFT);
  
- struct page;
- 
--static void inline clear_user_page(void *page, unsigned long vaddr,
-+static inline void clear_user_page(void *page, unsigned long vaddr,
- 				struct page *pg)
- {
- 	clear_page(page);
+ 	return (u32)__pa(p);
  }
- 
--static void inline copy_user_page(void *to, void *from, unsigned long vaddr,
-+static inline void copy_user_page(void *to, void *from, unsigned long vaddr,
- 				struct page *topage)
- {
- 	copy_page(to, from);
 _
 
-Patches currently in -mm which might be from chuck.lever@oracle.com are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
 origin.patch
-git-nfsd.patch
+kernel-parameterstxt-document-memmap-option-better.patch
+git-x86.patch
+git-acpi.patch
+git-hrt.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
 
