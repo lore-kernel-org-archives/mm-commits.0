@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-pid-pagemap-change-pagemap-output-format-to-allow-for-future-reporting-of-huge-pages.patch added to -mm tree
-Date: Fri, 21 Mar 2008 16:56:33 -0700
-Message-ID: <200803212356.m2LNuXQR017326@imap1.linux-foundation.org>
+Subject: + cpufreq-document-the-currently-undocumented-parts-of-the-sysfs-interface.patch added to -mm tree
+Date: Fri, 21 Mar 2008 17:00:46 -0700
+Message-ID: <200803220000.m2M00kl0017503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51095 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50603 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752171AbYCUX5X (ORCPT
+	by vger.kernel.org with ESMTP id S1752782AbYCVABp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 21 Mar 2008 19:57:23 -0400
+	Fri, 21 Mar 2008 20:01:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hans.rosenfeld@amd.com, mpm@selenic.com
+Cc: djwong@us.ibm.com, davej@codemonkey.org.uk, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     /proc/pid/pagemap: change pagemap output format to allow for future reporting of huge pages
+     cpufreq: document the currently undocumented parts of the sysfs interface
 has been added to the -mm tree.  Its filename is
-     proc-pid-pagemap-change-pagemap-output-format-to-allow-for-future-reporting-of-huge-pages.patch
+     cpufreq-document-the-currently-undocumented-parts-of-the-sysfs-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,106 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: /proc/pid/pagemap: change pagemap output format to allow for future reporting of huge pages
-From: Hans Rosenfeld <hans.rosenfeld@amd.com>
+Subject: cpufreq: document the currently undocumented parts of the sysfs interface
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-Change pagemap output format to allow for future reporting of huge pages.
+There is a description of some of the sysfs files.  However, there are some
+that are not mentioned in the documentation, so add them to the user's guide.
 
-(Format comment and minor cleanups: mpm@selenic.com)
-
-Signed-off-by: Hans Rosenfeld <hans.rosenfeld@amd.com>
-Signed-off-by: Matt Mackall <mpm@selenic.com>
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   50 +++++++++++++++++++++++++++++--------------
- 1 file changed, 34 insertions(+), 16 deletions(-)
+ Documentation/cpu-freq/user-guide.txt |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~proc-pid-pagemap-change-pagemap-output-format-to-allow-for-future-reporting-of-huge-pages fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~proc-pid-pagemap-change-pagemap-output-format-to-allow-for-future-reporting-of-huge-pages
-+++ a/fs/proc/task_mmu.c
-@@ -527,13 +527,21 @@ struct pagemapread {
- 	char __user *out, *end;
- };
- 
--#define PM_ENTRY_BYTES sizeof(u64)
--#define PM_RESERVED_BITS    3
--#define PM_RESERVED_OFFSET  (64 - PM_RESERVED_BITS)
--#define PM_RESERVED_MASK    (((1LL<<PM_RESERVED_BITS)-1) << PM_RESERVED_OFFSET)
--#define PM_SPECIAL(nr)      (((nr) << PM_RESERVED_OFFSET) & PM_RESERVED_MASK)
--#define PM_NOT_PRESENT      PM_SPECIAL(1LL)
--#define PM_SWAP             PM_SPECIAL(2LL)
-+#define PM_ENTRY_BYTES      sizeof(u64)
-+#define PM_STATUS_BITS      3
-+#define PM_STATUS_OFFSET    (64 - PM_STATUS_BITS)
-+#define PM_STATUS_MASK      (((1LL << PM_STATUS_BITS) - 1) << PM_STATUS_OFFSET)
-+#define PM_STATUS(nr)       (((nr) << PM_STATUS_OFFSET) & PM_STATUS_MASK)
-+#define PM_PSHIFT_BITS      6
-+#define PM_PSHIFT_OFFSET    (PM_STATUS_OFFSET - PM_PSHIFT_BITS)
-+#define PM_PSHIFT_MASK      (((1LL << PM_PSHIFT_BITS) - 1) << PM_PSHIFT_OFFSET)
-+#define PM_PSHIFT(x)        (((u64) (x) << PM_PSHIFT_OFFSET) & PM_PSHIFT_MASK)
-+#define PM_PFRAME_MASK      ((1LL << PM_PSHIFT_OFFSET) - 1)
-+#define PM_PFRAME(x)        ((x) & PM_PFRAME_MASK)
+diff -puN Documentation/cpu-freq/user-guide.txt~cpufreq-document-the-currently-undocumented-parts-of-the-sysfs-interface Documentation/cpu-freq/user-guide.txt
+--- a/Documentation/cpu-freq/user-guide.txt~cpufreq-document-the-currently-undocumented-parts-of-the-sysfs-interface
++++ a/Documentation/cpu-freq/user-guide.txt
+@@ -154,6 +154,11 @@ scaling_governor,		and by "echoing" the 
+ 				that some governors won't load - they only
+ 				work on some specific architectures or
+ 				processors.
 +
-+#define PM_PRESENT          PM_STATUS(4LL)
-+#define PM_SWAP             PM_STATUS(2LL)
-+#define PM_NOT_PRESENT      PM_PSHIFT(PAGE_SHIFT)
- #define PM_END_OF_BUFFER    1
++cpuinfo_cur_freq :		Current speed of the CPU, in KHz.
++
++scaling_available_frequencies : List of available frequencies, in KHz.
++
+ scaling_min_freq and
+ scaling_max_freq		show the current "policy limits" (in
+ 				kHz). By echoing new values into these
+@@ -162,6 +167,15 @@ scaling_max_freq		show the current "poli
+ 				first set scaling_max_freq, then
+ 				scaling_min_freq.
  
- static int add_to_pagemap(unsigned long addr, u64 pfn,
-@@ -574,7 +582,7 @@ static int pagemap_pte_hole(unsigned lon
- u64 swap_pte_to_pagemap_entry(pte_t pte)
- {
- 	swp_entry_t e = pte_to_swp_entry(pte);
--	return PM_SWAP | swp_type(e) | (swp_offset(e) << MAX_SWAPFILES_SHIFT);
-+	return swp_type(e) | (swp_offset(e) << MAX_SWAPFILES_SHIFT);
- }
++affected_cpus :			List of CPUs that require software coordination
++				of frequency.
++
++related_cpus :			List of CPUs that need some sort of frequency
++				coordination, whether software or hardware.
++
++scaling_driver :		Hardware driver for cpufreq.
++
++scaling_cur_freq :		Current frequency of the CPU, in KHz.
  
- static int pagemap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
-@@ -588,9 +596,11 @@ static int pagemap_pte_range(pmd_t *pmd,
- 		u64 pfn = PM_NOT_PRESENT;
- 		pte = pte_offset_map(pmd, addr);
- 		if (is_swap_pte(*pte))
--			pfn = swap_pte_to_pagemap_entry(*pte);
-+			pfn = PM_PFRAME(swap_pte_to_pagemap_entry(*pte))
-+				| PM_PSHIFT(PAGE_SHIFT) | PM_SWAP;
- 		else if (pte_present(*pte))
--			pfn = pte_pfn(*pte);
-+			pfn = PM_PFRAME(pte_pfn(*pte))
-+				| PM_PSHIFT(PAGE_SHIFT) | PM_PRESENT;
- 		/* unmap so we're not in atomic when we copy to userspace */
- 		pte_unmap(pte);
- 		err = add_to_pagemap(addr, pfn, pm);
-@@ -611,12 +621,20 @@ static struct mm_walk pagemap_walk = {
- /*
-  * /proc/pid/pagemap - an array mapping virtual pages to pfns
-  *
-- * For each page in the address space, this file contains one 64-bit
-- * entry representing the corresponding physical page frame number
-- * (PFN) if the page is present. If there is a swap entry for the
-- * physical page, then an encoding of the swap file number and the
-- * page's offset into the swap file are returned. If no page is
-- * present at all, PM_NOT_PRESENT is returned. This allows determining
-+ * For each page in the address space, this file contains one 64-bit entry
-+ * consisting of the following:
-+ *
-+ * Bits 0-55  page frame number (PFN) if present
-+ * Bits 0-4   swap type if swapped
-+ * Bits 5-55  swap offset if swapped
-+ * Bits 55-60 page shift (page size = 1<<page shift)
-+ * Bit  61    reserved for future use
-+ * Bit  62    page swapped
-+ * Bit  63    page present
-+ *
-+ * If the page is not present but in swap, then the PFN contains an
-+ * encoding of the swap file number and the page's offset into the
-+ * swap. Unmapped pages return a null PFN. This allows determining
-  * precisely which pages are mapped (or in swap) and comparing mapped
-  * pages between processes.
-  *
+ If you have selected the "userspace" governor which allows you to
+ set the CPU operating frequency to a specific value, you can read out
 _
 
-Patches currently in -mm which might be from hans.rosenfeld@amd.com are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
-proc-pid-pagemap-change-pagemap-output-format-to-allow-for-future-reporting-of-huge-pages.patch
+origin.patch
+cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism.patch
+cpufreq-document-the-currently-undocumented-parts-of-the-sysfs-interface.patch
+git-hwmon.patch
+adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
+git-scsi-misc.patch
+mptbase-reset-ioc-initiator-during-pci-resume.patch
+scsi-aic94xx-cleanups.patch
 
