@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
 Subject: + bonding-fix-sysfs-attribute-handling.patch added to -mm tree
-Date: Sat, 22 Mar 2008 17:26:05 -0700
-Message-ID: <200803230026.m2N0Q55t000697@imap1.linux-foundation.org>
+Date: Sat, 22 Mar 2008 18:35:44 -0700
+Message-ID: <200803230135.m2N1ZihU002894@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40144 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35497 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753325AbYCWA0Z (ORCPT
+	by vger.kernel.org with ESMTP id S1752965AbYCWBgI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 22 Mar 2008 20:26:25 -0400
+	Sat, 22 Mar 2008 21:36:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lpechacek@suse.cz, davem@davemloft.net, fubar@us.ibm.com
+Cc: lpechacek@suse.cz, davem@davemloft.net, fubar@us.ibm.com, stable@kernel.org
 
 
 The patch titled
@@ -42,8 +42,9 @@ module removal results in an oops.  The fix is to release sysfs attributes for
 the interfaces upon module unload.
 
 Signed-off-by: Libor Pechacek <lpechacek@suse.cz>
-Cc: Jay Vosburgh <fubar@us.ibm.com
+Acked-by: Jay Vosburgh <fubar@us.ibm.com>
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
