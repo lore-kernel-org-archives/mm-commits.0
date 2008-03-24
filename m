@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + afs-use-the-shorter-list_head-for-brevity.patch added to -mm tree
-Date: Mon, 24 Mar 2008 15:30:12 -0700
-Message-ID: <200803242230.m2OMUChq028635@imap1.linux-foundation.org>
+Subject: + netdev-cassini-use-shorter-list_splice_init-macro-for-brevity.patch added to -mm tree
+Date: Mon, 24 Mar 2008 15:31:06 -0700
+Message-ID: <200803242231.m2OMV6Cv028654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33194 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753228AbYCXWbf (ORCPT
+	by vger.kernel.org with ESMTP id S1753552AbYCXWbk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 18:31:35 -0400
+	Mon, 24 Mar 2008 18:31:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca, dhowells@redhat.com
+Cc: rpjday@crashcourse.ca
 
 
 The patch titled
-     afs: use the shorter LIST_HEAD for brevity
+     netdev: cassini: use shorter list_splice_init() macro for brevity
 has been added to the -mm tree.  Its filename is
-     afs-use-the-shorter-list_head-for-brevity.patch
+     netdev-cassini-use-shorter-list_splice_init-macro-for-brevity.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: afs: use the shorter LIST_HEAD for brevity
+Subject: netdev: cassini: use shorter list_splice_init() macro for brevity
 From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
 Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/cell.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/cassini.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN fs/afs/cell.c~afs-use-the-shorter-list_head-for-brevity fs/afs/cell.c
---- a/fs/afs/cell.c~afs-use-the-shorter-list_head-for-brevity
-+++ a/fs/afs/cell.c
-@@ -20,7 +20,7 @@
- DECLARE_RWSEM(afs_proc_cells_sem);
- LIST_HEAD(afs_proc_cells);
+diff -puN drivers/net/cassini.c~netdev-cassini-use-shorter-list_splice_init-macro-for-brevity drivers/net/cassini.c
+--- a/drivers/net/cassini.c~netdev-cassini-use-shorter-list_splice_init-macro-for-brevity
++++ a/drivers/net/cassini.c
+@@ -532,8 +532,7 @@ static void cas_spare_free(struct cas *c
+ 	/* free spare buffers */
+ 	INIT_LIST_HEAD(&list);
+ 	spin_lock(&cp->rx_spare_lock);
+-	list_splice(&cp->rx_spare_list, &list);
+-	INIT_LIST_HEAD(&cp->rx_spare_list);
++	list_splice_init(&cp->rx_spare_list, &list);
+ 	spin_unlock(&cp->rx_spare_lock);
+ 	list_for_each_safe(elem, tmp, &list) {
+ 		cas_page_free(cp, list_entry(elem, cas_page_t, list));
+@@ -546,13 +545,11 @@ static void cas_spare_free(struct cas *c
+ 	 * lock than used everywhere else to manipulate this list.
+ 	 */
+ 	spin_lock(&cp->rx_inuse_lock);
+-	list_splice(&cp->rx_inuse_list, &list);
+-	INIT_LIST_HEAD(&cp->rx_inuse_list);
++	list_splice_init(&cp->rx_inuse_list, &list);
+ 	spin_unlock(&cp->rx_inuse_lock);
+ #else
+ 	spin_lock(&cp->rx_spare_lock);
+-	list_splice(&cp->rx_inuse_list, &list);
+-	INIT_LIST_HEAD(&cp->rx_inuse_list);
++	list_splice_init(&cp->rx_inuse_list, &list);
+ 	spin_unlock(&cp->rx_spare_lock);
+ #endif
+ 	list_for_each_safe(elem, tmp, &list) {
+@@ -573,8 +570,7 @@ static void cas_spare_recover(struct cas
+ 	/* make a local copy of the list */
+ 	INIT_LIST_HEAD(&list);
+ 	spin_lock(&cp->rx_inuse_lock);
+-	list_splice(&cp->rx_inuse_list, &list);
+-	INIT_LIST_HEAD(&cp->rx_inuse_list);
++	list_splice_init(&cp->rx_inuse_list, &list);
+ 	spin_unlock(&cp->rx_inuse_lock);
  
--static struct list_head afs_cells = LIST_HEAD_INIT(afs_cells);
-+static LIST_HEAD(afs_cells);
- static DEFINE_RWLOCK(afs_cells_lock);
- static DECLARE_RWSEM(afs_cells_sem); /* add/remove serialisation */
- static DECLARE_WAIT_QUEUE_HEAD(afs_cells_freeable_wq);
+ 	list_for_each_safe(elem, tmp, &list) {
 _
 
 Patches currently in -mm which might be from rpjday@crashcourse.ca are
@@ -78,4 +104,5 @@ keys-explicitly-include-required-slabh-header-file.patch
 generalize-asm-generic-ioctlh-to-allow-overriding-values.patch
 edac-use-the-shorter-list_head-for-brevity.patch
 afs-use-the-shorter-list_head-for-brevity.patch
+netdev-cassini-use-shorter-list_splice_init-macro-for-brevity.patch
 
