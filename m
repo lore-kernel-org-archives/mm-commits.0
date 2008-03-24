@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch added to -mm tree
-Date: Mon, 24 Mar 2008 15:53:27 -0700
-Message-ID: <200803242253.m2OMrR45029489@imap1.linux-foundation.org>
+Subject: + pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch added to -mm tree
+Date: Mon, 24 Mar 2008 16:05:05 -0700
+Message-ID: <200803242305.m2ON55GX029957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35490 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35974 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753336AbYCXWyO (ORCPT
+	by vger.kernel.org with ESMTP id S1752825AbYCXXGU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 18:54:14 -0400
+	Mon, 24 Mar 2008 19:06:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org, a.zummo@towertech.it, david-b@pacbell.net
+Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     rtc: rtc-rs5c732: add support for Ricoh R2025S/D RTC
+     pids: sys_getsid: fix unsafe *pid usage, fix possible 0 instead of -ESRCH
 has been added to the -mm tree.  Its filename is
-     rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
+     pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,142 +34,150 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc-rs5c732: add support for Ricoh R2025S/D RTC
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: pids: sys_getsid: fix unsafe *pid usage, fix possible 0 instead of -ESRCH
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This adds support for the Ricoh R2025S/D series of I2C RTCs, produced
-by Ricoh Japan and described at:
+1. sys_getsid() needs rcu_read_lock() to derive the session _nr, even if
+   the task is current, otherwise we can race with another thread which
+   does sys_setsid().
 
-	http://www.ricoh.co.jp/LSI/product_rtc/2wire/r2025x/
+2. The task can exit between find_task_by_vpid() and task_session_vnr(),
+   in that unlikely case sys_getsid() returns 0 instead of -ESRCH.
 
-This series has very minor deviations from the rest of the RS5C chips, most of
-which have to do with the oscillator, which was abstracted away in an earlier
-patch.
-
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-rs5c372.c |   28 ++++++++++++++++++++++------
- 1 file changed, 22 insertions(+), 6 deletions(-)
+ kernel/sys.c |   33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
-diff -puN drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc drivers/rtc/rtc-rs5c372.c
---- a/drivers/rtc/rtc-rs5c372.c~rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc
-+++ a/drivers/rtc/rtc-rs5c372.c
-@@ -1,5 +1,5 @@
- /*
-- * An I2C driver for Ricoh RS5C372 and RV5C38[67] RTCs
-+ * An I2C driver for Ricoh RS5C372, R2025S/D and RV5C38[67] RTCs
-  *
-  * Copyright (C) 2005 Pavel Mironchik <pmironchik@optifacio.net>
-  * Copyright (C) 2006 Tower Technologies
-@@ -52,7 +52,8 @@
- #	define RS5C_CTRL1_CT4		(4 << 0)	/* 1 Hz level irq */
- #define RS5C_REG_CTRL2		15
- #	define RS5C372_CTRL2_24		(1 << 5)
--#	define RS5C_CTRL2_XSTP		(1 << 4)
-+#	define R2025_CTRL2_XST		(1 << 5)
-+#	define RS5C_CTRL2_XSTP		(1 << 4)	/* only if !R2025S/D */
- #	define RS5C_CTRL2_CTFG		(1 << 2)
- #	define RS5C_CTRL2_AAFG		(1 << 1)	/* or WAFG */
- #	define RS5C_CTRL2_BAFG		(1 << 0)	/* or DAFG */
-@@ -64,6 +65,7 @@
+diff -puN kernel/sys.c~pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch kernel/sys.c
+--- a/kernel/sys.c~pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch
++++ a/kernel/sys.c
+@@ -1016,23 +1016,30 @@ asmlinkage long sys_getpgrp(void)
  
- enum rtc_type {
- 	rtc_undef = 0,
-+	rtc_r2025sd,
- 	rtc_rs5c372a,
- 	rtc_rs5c372b,
- 	rtc_rv5c386,
-@@ -522,9 +524,15 @@ static int rs5c_oscillator_setup(struct 
- 	unsigned char buf[2];
- 	int addr, i, ret = 0;
+ asmlinkage long sys_getsid(pid_t pid)
+ {
++	struct task_struct *p;
++	struct pid *sid;
++	int retval;
++
++	rcu_read_lock();
+ 	if (!pid)
+-		return task_session_vnr(current);
++		sid = task_session(current);
+ 	else {
+-		int retval;
+-		struct task_struct *p;
+-
+-		rcu_read_lock();
+-		p = find_task_by_vpid(pid);
+ 		retval = -ESRCH;
+-		if (p) {
+-			retval = security_task_getsid(p);
+-			if (!retval)
+-				retval = task_session_vnr(p);
+-		}
+-		rcu_read_unlock();
+-		return retval;
++		p = find_task_by_vpid(pid);
++		if (!p)
++			goto out;
++		sid = task_session(p);
++		if (!sid)
++			goto out;
++
++		retval = security_task_getsid(p);
++		if (retval)
++			goto out;
+ 	}
++	retval = pid_vnr(sid);
++out:
++	rcu_read_unlock();
++	return retval;
+ }
  
--	if (!(rs5c372->regs[RS5C_REG_CTRL2] & RS5C_CTRL2_XSTP))
--		return ret;
--	rs5c372->regs[RS5C_REG_CTRL2] &= ~RS5C_CTRL2_XSTP;
-+	if (rs5c372->type == rtc_r2025sd) {
-+		if (!(rs5c372->regs[RS5C_REG_CTRL2] & R2025_CTRL2_XST))
-+			return ret;
-+		rs5c372->regs[RS5C_REG_CTRL2] &= ~R2025_CTRL2_XST;
-+	} else {
-+		if (!(rs5c372->regs[RS5C_REG_CTRL2] & RS5C_CTRL2_XSTP))
-+			return ret;
-+		rs5c372->regs[RS5C_REG_CTRL2] &= ~RS5C_CTRL2_XSTP;
-+	}
- 
- 	addr   = RS5C_ADDR(RS5C_REG_CTRL1);
- 	buf[0] = rs5c372->regs[RS5C_REG_CTRL1];
-@@ -537,6 +545,7 @@ static int rs5c_oscillator_setup(struct 
- 		buf[1] |= RS5C372_CTRL2_24;
- 		rs5c372->time24 = 1;
- 		break;
-+	case rtc_r2025sd:
- 	case rtc_rv5c386:
- 	case rtc_rv5c387a:
- 		buf[0] |= RV5C387_CTRL1_24;
-@@ -601,7 +610,9 @@ static int rs5c372_probe(struct i2c_clie
- 	if (err < 0)
- 		goto exit_kfree;
- 
--	if (strcmp(client->name, "rs5c372a") == 0)
-+	if (strcmp(client->name, "r2025sd") == 0)
-+		rs5c372->type = rtc_r2025sd;
-+	else if (strcmp(client->name, "rs5c372a") == 0)
- 		rs5c372->type = rtc_rs5c372a;
- 	else if (strcmp(client->name, "rs5c372b") == 0)
- 		rs5c372->type = rtc_rs5c372b;
-@@ -624,6 +635,7 @@ static int rs5c372_probe(struct i2c_clie
- 		if (rs5c372->regs[RS5C_REG_CTRL2] & RS5C372_CTRL2_24)
- 			rs5c372->time24 = 1;
- 		break;
-+	case rtc_r2025sd:
- 	case rtc_rv5c386:
- 	case rtc_rv5c387a:
- 		if (rs5c372->regs[RS5C_REG_CTRL1] & RV5C387_CTRL1_24)
-@@ -639,6 +651,9 @@ static int rs5c372_probe(struct i2c_clie
- 
- 	/* if the oscillator lost power and no other software (like
- 	 * the bootloader) set it up, do it here.
-+	 *
-+	 * The R2025S/D does this a little differently than the other
-+	 * parts, so we special case that..
- 	 */
- 	err = rs5c_oscillator_setup(rs5c372);
- 	if (unlikely(err < 0)) {
-@@ -651,6 +666,7 @@ static int rs5c372_probe(struct i2c_clie
- 
- 	dev_info(&client->dev, "%s found, %s, driver version " DRV_VERSION "\n",
- 			({ char *s; switch (rs5c372->type) {
-+			case rtc_r2025sd:	s = "r2025sd"; break;
- 			case rtc_rs5c372a:	s = "rs5c372a"; break;
- 			case rtc_rs5c372b:	s = "rs5c372b"; break;
- 			case rtc_rv5c386:	s = "rv5c386"; break;
+ asmlinkage long sys_setsid(void)
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-maple-allow-removal-and-reinsertion-of-keyboard-driver-module.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-input-touchscreen-driver-for-the-superh-migor-board.patch
-smc91x-pass-along-private-data-v2.patch
-smc91x-introduce-platform-data-flags-v2.patch
-smc91x-add-insw-outsw-to-default-config-v2.patch
-smc91x-make-superh-use-default-config-v2.patch
-git-s390.patch
-git-sh.patch
-smc91x-fix-build-breakage-from-the-smc_get_mac_addr-api-upgrade.patch
-taint-kernel-after-warn_oncondition.patch
-sm501-add-uart-support.patch
-rtc-rtc-rs5c372-fix-up-null-name-in-transfer-error-path.patch
-rtc-rtc-rs5c372-smbus-conversion-support.patch
-rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
-asm-futexh-should-include-linux-uaccessh.patch
-remove-duplicated-unlikely-in-is_err.patch
-introduce-a-generic-__fls-implementation.patch
-implement-__fls-on-all-64-bit-archs.patch
-use-__fls-for-fls64-on-64-bit-archs.patch
+bsd_acct-plain-current-real_parent-access-is-not-always-safe.patch
+bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces.patch
+x86-handle_vm86_trap-cleanup.patch
+git-hrt.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
+kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
+handle_stop_signal-unify-partial-full-stop-handling.patch
+handle_stop_signal-use-the-cached-p-signal-value.patch
+get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
+signals-send_sigqueue-dont-take-rcu-lock.patch
+signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
+signals-__group_complete_signal-cache-the-value-of-p-signal.patch
+signals-send_group_sigqueue-dont-take-tasklist_lock.patch
+signals-move-handle_stop_signal-into-send_signal.patch
+signals-do_tkill-dont-use-tasklist_lock.patch
+signals-do_tkill-dont-use-tasklist_lock-comment.patch
+signals-send_sig_info-dont-take-tasklist_lock.patch
+signals-microoptimize-the-usage-of-curr_target.patch
+signals-move-the-definition-of-__group_complete_signal-up.patch
+signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+signals-join-send_sigqueue-with-send_group_sigqueue.patch
+signals-handle_stop_signal-dont-worry-about-sigkill.patch
+signals-cleanup-the-usage-of-print_fatal_signal.patch
+signals-fold-sig_ignored-into-handle_stop_signal.patch
+signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
+signals-document-cld_continued-notification-mechanics.patch
+signals-document-cld_continued-notification-mechanics-more.patch
+signals-send_signal-be-paranoid-about-signalfd_notify.patch
+signals-check_kill_permission-check-session-under-tasklist_lock.patch
+signals-check_kill_permission-remove-tasklist_lock.patch
+signals-fix-sbin-init-protection-from-unwanted-signals.patch
+signals-de_thread-simplify-the-child_reaper-switching.patch
+signals-allow-the-kernel-to-actually-kill-sbin-init.patch
+ptrace-introduce-task_detached-helper.patch
+reparent_thread-use-same_thread_group.patch
+document-de_thread-with-exit_notify-connection.patch
+ptrace-introduce-ptrace_reparented-helper.patch
+ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
+ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
+simplify-cpu_hotplug_begin-put_online_cpus.patch
+redo-locking-of-tty-pgrp.patch
+resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
+tty_io-fix-remaining-pid-struct-locking.patch
+tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
+pids-introduce-change_pid-helper.patch
+pids-sys_setpgid-use-change_pid-helper.patch
+pids-__set_special_pids-use-change_pid-helper.patch
+pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
+pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
