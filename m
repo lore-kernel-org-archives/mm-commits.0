@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pm-remove-destroy_suspended_device.patch added to -mm tree
-Date: Mon, 24 Mar 2008 15:39:08 -0700
-Message-ID: <200803242239.m2OMd8jZ028985@imap1.linux-foundation.org>
+Subject: + pm-remove-destroy_suspended_device-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 24 Mar 2008 15:39:53 -0700
+Message-ID: <200803242239.m2OMdrpX029000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49497 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752135AbYCXWkJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753164AbYCXWkV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 18:40:09 -0400
+	Mon, 24 Mar 2008 18:40:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rjw@sisk.pl, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, mb@bu3sch.de, pavel@ucw.cz, stern@rowland.harvard.edu
+Cc: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, mb@bu3sch.de, pavel@ucw.cz, rjw@sisk.pl, stern@rowland.harvard.edu
 
 
 The patch titled
-     pm: remove destroy_suspended_device()
+     pm-remove-destroy_suspended_device-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     pm-remove-destroy_suspended_device.patch
+     pm-remove-destroy_suspended_device-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,452 +34,213 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: remove destroy_suspended_device()
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: pm-remove-destroy_suspended_device-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-After 2.6.24 there was a plan to make the PM core acquire all device
-semaphores during a suspend/hibernation to protect itself from concurrent
-operations involving device objects.  That proved to be too heavy-handed and
-we found a better way to achieve the goal, but before it happened, we had
-introduced the functions device_pm_schedule_removal() and
-destroy_suspended_device() to allow drivers to "safely" destroy a suspended
-device and we had adapted some drivers to use them.  Now that these functions
-are no longer necessary, it seems reasonable to remove them and modify their
-users to use the normal device unregistration instead.
+WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
+#263: FILE: drivers/char/misc.c:262:
++EXPORT_SYMBOL(misc_deregister);
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Cc: Greg KH <greg@kroah.com>
+total: 0 errors, 1 warnings, 335 lines checked
+
+./patches/pm-remove-destroy_suspended_device.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Cc: Len Brown <lenb@kernel.org>
 Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpuid.c         |    4 ---
- arch/x86/kernel/msr.c           |    4 ---
- drivers/base/core.c             |   29 ---------------------
- drivers/base/power/main.c       |   40 ------------------------------
- drivers/char/hw_random/core.c   |   10 +++----
- drivers/char/misc.c             |   13 +++------
- drivers/leds/led-class.c        |   11 ++------
- drivers/net/wireless/b43/leds.c |    5 ---
- drivers/net/wireless/b43/main.c |    8 +++---
- include/linux/device.h          |   14 ----------
- include/linux/hw_random.h       |   10 -------
- include/linux/leds.h            |   10 -------
- include/linux/miscdevice.h      |   10 -------
- 13 files changed, 22 insertions(+), 146 deletions(-)
+ drivers/char/misc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/cpuid.c~pm-remove-destroy_suspended_device arch/x86/kernel/cpuid.c
---- a/arch/x86/kernel/cpuid.c~pm-remove-destroy_suspended_device
-+++ a/arch/x86/kernel/cpuid.c
-@@ -154,12 +154,10 @@ static int __cpuinit cpuid_class_cpu_cal
- 		err = cpuid_device_create(cpu);
- 		break;
- 	case CPU_UP_CANCELED:
-+	case CPU_UP_CANCELED_FROZEN:
- 	case CPU_DEAD:
- 		cpuid_device_destroy(cpu);
- 		break;
--	case CPU_UP_CANCELED_FROZEN:
--		destroy_suspended_device(cpuid_class, MKDEV(CPUID_MAJOR, cpu));
--		break;
- 	}
- 	return err ? NOTIFY_BAD : NOTIFY_OK;
- }
-diff -puN arch/x86/kernel/msr.c~pm-remove-destroy_suspended_device arch/x86/kernel/msr.c
---- a/arch/x86/kernel/msr.c~pm-remove-destroy_suspended_device
-+++ a/arch/x86/kernel/msr.c
-@@ -162,12 +162,10 @@ static int __cpuinit msr_class_cpu_callb
- 		err = msr_device_create(cpu);
- 		break;
- 	case CPU_UP_CANCELED:
-+	case CPU_UP_CANCELED_FROZEN:
- 	case CPU_DEAD:
- 		msr_device_destroy(cpu);
- 		break;
--	case CPU_UP_CANCELED_FROZEN:
--		destroy_suspended_device(msr_class, MKDEV(MSR_MAJOR, cpu));
--		break;
- 	}
- 	return err ? NOTIFY_BAD : NOTIFY_OK;
- }
-diff -puN drivers/base/core.c~pm-remove-destroy_suspended_device drivers/base/core.c
---- a/drivers/base/core.c~pm-remove-destroy_suspended_device
-+++ a/drivers/base/core.c
-@@ -1164,35 +1164,6 @@ void device_destroy(struct class *class,
- }
- EXPORT_SYMBOL_GPL(device_destroy);
- 
--#ifdef CONFIG_PM_SLEEP
--/**
-- * destroy_suspended_device - asks the PM core to remove a suspended device
-- * @class: pointer to the struct class that this device was registered with
-- * @devt: the dev_t of the device that was previously registered
-- *
-- * This call notifies the PM core of the necessity to unregister a suspended
-- * device created with a call to device_create() (devices cannot be
-- * unregistered directly while suspended, since the PM core holds their
-- * semaphores at that time).
-- *
-- * It can only be called within the scope of a system sleep transition.  In
-- * practice this means it has to be directly or indirectly invoked either by
-- * a suspend or resume method, or by the PM core (e.g. via
-- * disable_nonboot_cpus() or enable_nonboot_cpus()).
-- */
--void destroy_suspended_device(struct class *class, dev_t devt)
--{
--	struct device *dev;
--
--	dev = class_find_device(class, &devt, __match_devt);
--	if (dev) {
--		device_pm_schedule_removal(dev);
--		put_device(dev);
--	}
--}
--EXPORT_SYMBOL_GPL(destroy_suspended_device);
--#endif /* CONFIG_PM_SLEEP */
--
- /**
-  * device_rename - renames a device
-  * @dev: the pointer to the struct device to be renamed
-diff -puN drivers/base/power/main.c~pm-remove-destroy_suspended_device drivers/base/power/main.c
---- a/drivers/base/power/main.c~pm-remove-destroy_suspended_device
-+++ a/drivers/base/power/main.c
-@@ -50,7 +50,6 @@
- LIST_HEAD(dpm_active);
- static LIST_HEAD(dpm_off);
- static LIST_HEAD(dpm_off_irq);
--static LIST_HEAD(dpm_destroy);
- 
- static DEFINE_MUTEX(dpm_list_mtx);
- 
-@@ -104,24 +103,6 @@ void device_pm_remove(struct device *dev
- 	mutex_unlock(&dpm_list_mtx);
- }
- 
--/**
-- *	device_pm_schedule_removal - schedule the removal of a suspended device
-- *	@dev:	Device to destroy
-- *
-- *	Moves the device to the dpm_destroy list for further processing by
-- *	unregister_dropped_devices().
-- */
--void device_pm_schedule_removal(struct device *dev)
--{
--	pr_debug("PM: Preparing for removal: %s:%s\n",
--		dev->bus ? dev->bus->name : "No Bus",
--		kobject_name(&dev->kobj));
--	mutex_lock(&dpm_list_mtx);
--	list_move_tail(&dev->power.entry, &dpm_destroy);
--	mutex_unlock(&dpm_list_mtx);
--}
--EXPORT_SYMBOL_GPL(device_pm_schedule_removal);
--
- /*------------------------- Resume routines -------------------------*/
- 
- /**
-@@ -246,26 +227,6 @@ static void dpm_resume(void)
- }
- 
- /**
-- *	unregister_dropped_devices - Unregister devices scheduled for removal
-- *
-- *	Unregister all devices on the dpm_destroy list.
-- */
--static void unregister_dropped_devices(void)
--{
--	mutex_lock(&dpm_list_mtx);
--	while (!list_empty(&dpm_destroy)) {
--		struct list_head *entry = dpm_destroy.next;
--		struct device *dev = to_device(entry);
--
--		mutex_unlock(&dpm_list_mtx);
--		/* This also removes the device from the list */
--		device_unregister(dev);
--		mutex_lock(&dpm_list_mtx);
--	}
--	mutex_unlock(&dpm_list_mtx);
--}
--
--/**
-  *	device_resume - Restore state of each device in system.
-  *
-  *	Resume all the devices, unlock them all, and allow new
-@@ -275,7 +236,6 @@ void device_resume(void)
- {
- 	might_sleep();
- 	dpm_resume();
--	unregister_dropped_devices();
- }
- EXPORT_SYMBOL_GPL(device_resume);
- 
-diff -puN drivers/char/hw_random/core.c~pm-remove-destroy_suspended_device drivers/char/hw_random/core.c
---- a/drivers/char/hw_random/core.c~pm-remove-destroy_suspended_device
-+++ a/drivers/char/hw_random/core.c
-@@ -234,11 +234,11 @@ static DEVICE_ATTR(rng_available, S_IRUG
- 		   NULL);
- 
- 
--static void unregister_miscdev(bool suspended)
-+static void unregister_miscdev(void)
- {
- 	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_available);
- 	device_remove_file(rng_miscdev.this_device, &dev_attr_rng_current);
--	__misc_deregister(&rng_miscdev, suspended);
-+	misc_deregister(&rng_miscdev);
- }
- 
- static int register_miscdev(void)
-@@ -313,7 +313,7 @@ out:
- }
- EXPORT_SYMBOL_GPL(hwrng_register);
- 
--void __hwrng_unregister(struct hwrng *rng, bool suspended)
-+void hwrng_unregister(struct hwrng *rng)
- {
- 	int err;
- 
-@@ -332,11 +332,11 @@ void __hwrng_unregister(struct hwrng *rn
- 		}
- 	}
- 	if (list_empty(&rng_list))
--		unregister_miscdev(suspended);
-+		unregister_miscdev();
- 
- 	mutex_unlock(&rng_mutex);
- }
--EXPORT_SYMBOL_GPL(__hwrng_unregister);
-+EXPORT_SYMBOL_GPL(hwrng_unregister);
- 
- 
- MODULE_DESCRIPTION("H/W Random Number Generator (RNG) driver");
-diff -puN drivers/char/misc.c~pm-remove-destroy_suspended_device drivers/char/misc.c
---- a/drivers/char/misc.c~pm-remove-destroy_suspended_device
+diff -puN drivers/char/misc.c~pm-remove-destroy_suspended_device-checkpatch-fixes drivers/char/misc.c
+--- a/drivers/char/misc.c~pm-remove-destroy_suspended_device-checkpatch-fixes
 +++ a/drivers/char/misc.c
-@@ -232,9 +232,8 @@ int misc_register(struct miscdevice * mi
+@@ -230,6 +230,7 @@ int misc_register(struct miscdevice * mi
+ 	mutex_unlock(&misc_mtx);
+ 	return err;
  }
++EXPORT_SYMBOL(misc_register);
  
  /**
-- *	__misc_deregister - unregister a miscellaneous device
-+ *	misc_deregister - unregister a miscellaneous device
-  *	@misc: device to unregister
-- *	@suspended: to be set if the function is used during suspend/resume
-  *
-  *	Unregister a miscellaneous device that was previously
-  *	successfully registered with misc_register(). Success
-@@ -242,7 +241,7 @@ int misc_register(struct miscdevice * mi
-  *	indicates an error.
-  */
- 
--int __misc_deregister(struct miscdevice *misc, bool suspended)
-+int misc_deregister(struct miscdevice *misc)
- {
- 	int i = misc->minor;
- 
-@@ -251,11 +250,7 @@ int __misc_deregister(struct miscdevice 
- 
- 	mutex_lock(&misc_mtx);
- 	list_del(&misc->list);
--	if (suspended)
--		destroy_suspended_device(misc_class,
--					MKDEV(MISC_MAJOR, misc->minor));
--	else
--		device_destroy(misc_class, MKDEV(MISC_MAJOR, misc->minor));
-+	device_destroy(misc_class, MKDEV(MISC_MAJOR, misc->minor));
- 	if (i < DYNAMIC_MINORS && i>0) {
- 		misc_minors[i>>3] &= ~(1 << (misc->minor & 7));
- 	}
-@@ -264,7 +259,7 @@ int __misc_deregister(struct miscdevice 
+  *	misc_deregister - unregister a miscellaneous device
+@@ -257,8 +258,6 @@ int misc_deregister(struct miscdevice *m
+ 	mutex_unlock(&misc_mtx);
+ 	return 0;
  }
- 
- EXPORT_SYMBOL(misc_register);
--EXPORT_SYMBOL(__misc_deregister);
-+EXPORT_SYMBOL(misc_deregister);
+-
+-EXPORT_SYMBOL(misc_register);
+ EXPORT_SYMBOL(misc_deregister);
  
  static int __init misc_init(void)
- {
-diff -puN drivers/leds/led-class.c~pm-remove-destroy_suspended_device drivers/leds/led-class.c
---- a/drivers/leds/led-class.c~pm-remove-destroy_suspended_device
-+++ a/drivers/leds/led-class.c
-@@ -139,12 +139,10 @@ EXPORT_SYMBOL_GPL(led_classdev_register)
- /**
-  * __led_classdev_unregister - unregisters a object of led_properties class.
-  * @led_cdev: the led device to unregister
-- * @suspended: indicates whether system-wide suspend or resume is in progress
-  *
-  * Unregisters a previously registered via led_classdev_register object.
-  */
--void __led_classdev_unregister(struct led_classdev *led_cdev,
--				      bool suspended)
-+void led_classdev_unregister(struct led_classdev *led_cdev)
- {
- 	device_remove_file(led_cdev->dev, &dev_attr_brightness);
- #ifdef CONFIG_LEDS_TRIGGERS
-@@ -155,16 +153,13 @@ void __led_classdev_unregister(struct le
- 	up_write(&led_cdev->trigger_lock);
- #endif
- 
--	if (suspended)
--		device_pm_schedule_removal(led_cdev->dev);
--	else
--		device_unregister(led_cdev->dev);
-+	device_unregister(led_cdev->dev);
- 
- 	down_write(&leds_list_lock);
- 	list_del(&led_cdev->node);
- 	up_write(&leds_list_lock);
- }
--EXPORT_SYMBOL_GPL(__led_classdev_unregister);
-+EXPORT_SYMBOL_GPL(led_classdev_unregister);
- 
- static int __init leds_init(void)
- {
-diff -puN drivers/net/wireless/b43/leds.c~pm-remove-destroy_suspended_device drivers/net/wireless/b43/leds.c
---- a/drivers/net/wireless/b43/leds.c~pm-remove-destroy_suspended_device
-+++ a/drivers/net/wireless/b43/leds.c
-@@ -116,10 +116,7 @@ static void b43_unregister_led(struct b4
- {
- 	if (!led->dev)
- 		return;
--	if (led->dev->suspend_in_progress)
--		led_classdev_unregister_suspended(&led->led_dev);
--	else
--		led_classdev_unregister(&led->led_dev);
-+	led_classdev_unregister(&led->led_dev);
- 	b43_led_turn_off(led->dev, led->index, led->activelow);
- 	led->dev = NULL;
- }
-diff -puN drivers/net/wireless/b43/main.c~pm-remove-destroy_suspended_device drivers/net/wireless/b43/main.c
---- a/drivers/net/wireless/b43/main.c~pm-remove-destroy_suspended_device
-+++ a/drivers/net/wireless/b43/main.c
-@@ -2557,10 +2557,10 @@ static int b43_rng_read(struct hwrng *rn
- 	return (sizeof(u16));
- }
- 
--static void b43_rng_exit(struct b43_wl *wl, bool suspended)
-+static void b43_rng_exit(struct b43_wl *wl)
- {
- 	if (wl->rng_initialized)
--		__hwrng_unregister(&wl->rng, suspended);
-+		hwrng_unregister(&wl->rng);
- }
- 
- static int b43_rng_init(struct b43_wl *wl)
-@@ -3422,7 +3422,7 @@ static void b43_wireless_core_exit(struc
- 
- 	if (!dev->suspend_in_progress) {
- 		b43_leds_exit(dev);
--		b43_rng_exit(dev->wl, false);
-+		b43_rng_exit(dev->wl);
- 	}
- 	b43_dma_free(dev);
- 	b43_chip_exit(dev);
-@@ -4175,7 +4175,7 @@ static int b43_resume(struct ssb_device 
- 		err = b43_wireless_core_start(wldev);
- 		if (err) {
- 			b43_leds_exit(wldev);
--			b43_rng_exit(wldev->wl, true);
-+			b43_rng_exit(wldev->wl);
- 			b43_wireless_core_exit(wldev);
- 			b43err(wl, "Resume failed at core start\n");
- 			goto out;
-diff -puN include/linux/device.h~pm-remove-destroy_suspended_device include/linux/device.h
---- a/include/linux/device.h~pm-remove-destroy_suspended_device
-+++ a/include/linux/device.h
-@@ -448,20 +448,6 @@ extern struct device *device_create(stru
- 				    dev_t devt, const char *fmt, ...)
- 				    __attribute__((format(printf, 4, 5)));
- extern void device_destroy(struct class *cls, dev_t devt);
--#ifdef CONFIG_PM_SLEEP
--extern void destroy_suspended_device(struct class *cls, dev_t devt);
--extern void device_pm_schedule_removal(struct device *);
--#else /* !CONFIG_PM_SLEEP */
--static inline void destroy_suspended_device(struct class *cls, dev_t devt)
--{
--	device_destroy(cls, devt);
--}
--
--static inline void device_pm_schedule_removal(struct device *dev)
--{
--	device_unregister(dev);
--}
--#endif /* !CONFIG_PM_SLEEP */
- 
- /*
-  * Platform "fixup" functions - allow the platform to have their say
-diff -puN include/linux/hw_random.h~pm-remove-destroy_suspended_device include/linux/hw_random.h
---- a/include/linux/hw_random.h~pm-remove-destroy_suspended_device
-+++ a/include/linux/hw_random.h
-@@ -44,15 +44,7 @@ struct hwrng {
- /** Register a new Hardware Random Number Generator driver. */
- extern int hwrng_register(struct hwrng *rng);
- /** Unregister a Hardware Random Number Generator driver. */
--extern void __hwrng_unregister(struct hwrng *rng, bool suspended);
--static inline void hwrng_unregister(struct hwrng *rng)
--{
--	__hwrng_unregister(rng, false);
--}
--static inline void hwrng_unregister_suspended(struct hwrng *rng)
--{
--	__hwrng_unregister(rng, true);
--}
-+extern void hwrng_unregister(struct hwrng *rng);
- 
- #endif /* __KERNEL__ */
- #endif /* LINUX_HWRANDOM_H_ */
-diff -puN include/linux/leds.h~pm-remove-destroy_suspended_device include/linux/leds.h
---- a/include/linux/leds.h~pm-remove-destroy_suspended_device
-+++ a/include/linux/leds.h
-@@ -59,15 +59,7 @@ struct led_classdev {
- 
- extern int led_classdev_register(struct device *parent,
- 				 struct led_classdev *led_cdev);
--extern void __led_classdev_unregister(struct led_classdev *led_cdev, bool sus);
--static inline void led_classdev_unregister(struct led_classdev *lcd)
--{
--	__led_classdev_unregister(lcd, false);
--}
--static inline void led_classdev_unregister_suspended(struct led_classdev *lcd)
--{
--	__led_classdev_unregister(lcd, true);
--}
-+extern void led_classdev_unregister(struct led_classdev *lcd);
- extern void led_classdev_suspend(struct led_classdev *led_cdev);
- extern void led_classdev_resume(struct led_classdev *led_cdev);
- 
-diff -puN include/linux/miscdevice.h~pm-remove-destroy_suspended_device include/linux/miscdevice.h
---- a/include/linux/miscdevice.h~pm-remove-destroy_suspended_device
-+++ a/include/linux/miscdevice.h
-@@ -43,15 +43,7 @@ struct miscdevice  {
- };
- 
- extern int misc_register(struct miscdevice * misc);
--extern int __misc_deregister(struct miscdevice *misc, bool suspended);
--static inline int misc_deregister(struct miscdevice *misc)
--{
--	return __misc_deregister(misc, false);
--}
--static inline int misc_deregister_suspended(struct miscdevice *misc)
--{
--	return __misc_deregister(misc, true);
--}
-+extern int misc_deregister(struct miscdevice *misc);
- 
- #define MODULE_ALIAS_MISCDEV(minor)				\
- 	MODULE_ALIAS("char-major-" __stringify(MISC_MAJOR)	\
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-git-acpi.patch
-pm-remove-legacy-pm-fix.patch
-power-replace-remaining-__function__-occurrences.patch
-pm-remove-destroy_suspended_device.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+mtd-memory-corruption-in-block2mtdc.patch
+revert-kswapd-should-only-wait-on-io-if-there-is-io.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi-fixup.patch
+git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+pm-remove-destroy_suspended_device-checkpatch-fixes.patch
+git-drm.patch
+git-drm-git-rejects.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+sata_promise-fix-hardreset-hotplug-quirk-checkpatch-fixes.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-async-tx.patch
+git-net.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+git-sh.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+scsi-add-iscsi-ibft-support-fix.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
 pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+fbdev-driver-for-freescale-8610-and-5121-diu-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
 shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+w1-build-fix.patch
 
