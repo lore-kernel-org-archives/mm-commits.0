@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - net-ipv6-ndiscc-remove-unused-variable.patch removed from -mm tree
-Date: Mon, 24 Mar 2008 12:24:52 -0700
-Message-ID: <200803241924.m2OJOq5C021454@imap1.linux-foundation.org>
+Subject: - net-9p-trans_fdc-remove-unused-variable.patch removed from -mm tree
+Date: Mon, 24 Mar 2008 12:24:58 -0700
+Message-ID: <200803241924.m2OJOwE7021480@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39063 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759636AbYCXTZK (ORCPT
+	by vger.kernel.org with ESMTP id S1759400AbYCXTZM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 15:25:10 -0400
+	Mon, 24 Mar 2008 15:25:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, davem@davemloft.net, pekkas@netcore.fi, mm-commits@vger.kernel.org
+To: julia@diku.dk, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/ipv6/ndisc.c: remove unused variable
+     net/9p/trans_fd.c: remove unused variable
 has been removed from the -mm tree.  Its filename was
-     net-ipv6-ndiscc-remove-unused-variable.patch
+     net-9p-trans_fdc-remove-unused-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/ipv6/ndisc.c: remove unused variable
+Subject: net/9p/trans_fd.c: remove unused variable
 From: Julia Lawall <julia@diku.dk>
 
-The variable hlen is initialized but never used otherwise.
+The variable cb is initialized but never used otherwise.
 
 The semantic patch that makes this change is as follows:
 (http://www.emn.fr/x-info/coccinelle/)
@@ -50,33 +50,34 @@ extern T i;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Pekka Savola <pekkas@netcore.fi>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv6/ndisc.c |    2 --
+ net/9p/trans_fd.c |    2 --
  1 file changed, 2 deletions(-)
 
-diff -puN net/ipv6/ndisc.c~net-ipv6-ndiscc-remove-unused-variable net/ipv6/ndisc.c
---- a/net/ipv6/ndisc.c~net-ipv6-ndiscc-remove-unused-variable
-+++ a/net/ipv6/ndisc.c
-@@ -1420,7 +1420,6 @@ void ndisc_send_redirect(struct sk_buff 
- 	u8 *opt;
- 	int rd_len;
- 	int err;
--	int hlen;
- 	u8 ha_buf[MAX_ADDR_LEN], *ha = NULL;
+diff -puN net/9p/trans_fd.c~net-9p-trans_fdc-remove-unused-variable net/9p/trans_fd.c
+--- a/net/9p/trans_fd.c~net-9p-trans_fdc-remove-unused-variable
++++ a/net/9p/trans_fd.c
+@@ -954,7 +954,6 @@ static void p9_mux_free_request(struct p
  
- 	dev = skb->dev;
-@@ -1491,7 +1490,6 @@ void ndisc_send_redirect(struct sk_buff 
- 		return;
- 	}
+ static void p9_mux_flush_cb(struct p9_req *freq, void *a)
+ {
+-	p9_conn_req_callback cb;
+ 	int tag;
+ 	struct p9_conn *m;
+ 	struct p9_req *req, *rreq, *rptr;
+@@ -965,7 +964,6 @@ static void p9_mux_flush_cb(struct p9_re
+ 		freq->tcall->params.tflush.oldtag);
  
--	hlen = 0;
- 
- 	skb_reserve(buff, LL_RESERVED_SPACE(dev));
- 	ip6_nd_hdr(sk, buff, dev, &saddr_buf, &ipv6_hdr(skb)->saddr,
+ 	spin_lock(&m->lock);
+-	cb = NULL;
+ 	tag = freq->tcall->params.tflush.oldtag;
+ 	req = NULL;
+ 	list_for_each_entry_safe(rreq, rptr, &m->req_list, req_list) {
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
