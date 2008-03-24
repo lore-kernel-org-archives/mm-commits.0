@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-nand-fix-possible-ooops-in-rfc_from4.patch added to -mm tree
-Date: Mon, 24 Mar 2008 15:36:22 -0700
-Message-ID: <200803242236.m2OMaNQL028869@imap1.linux-foundation.org>
+Subject: + mtd-nand-add-out-label-in-rfc_from4.patch added to -mm tree
+Date: Mon, 24 Mar 2008 15:36:17 -0700
+Message-ID: <200803242236.m2OMaHm4028866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753611AbYCXWhG (ORCPT
+	by vger.kernel.org with ESMTP id S1753607AbYCXWhG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 24 Mar 2008 18:37:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bigeasy@tglx.de, bigeasy@linutronix.de, dwmw2@infradead.org, joern@wohnheim.
 
 
 The patch titled
-     mtd: nand: fix possible Ooops in rfc_from4
+     mtd: nand: add out label in rfc_from4
 has been added to the -mm tree.  Its filename is
-     mtd-nand-fix-possible-ooops-in-rfc_from4.patch
+     mtd-nand-add-out-label-in-rfc_from4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,17 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: nand: fix possible Ooops in rfc_from4
+Subject: mtd: nand: add out label in rfc_from4
 From: Sebastian Siewior <bigeasy@tglx.de>
 
-I found this while I was looking how the rs_lib is working.  The rs_decoder is
-initialized _after_ the nand core code read the BBT table and _after_ the
-partition table has been added.  The driver has a private BBT description
-which is in located in flash data so we Ooops if there is a bit flip _or_ if a
-bit flips while reading the partition table.
-
-This patch moves the initialization of the rs_lib before the first possible
-access by nand core.
+This has been forgotten in commit f5bbdacc419 and nobody compiled the driver.
 
 Signed-off-by: Sebastian Siewior <bigeasy@linutronix.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -53,99 +46,13 @@ Cc: Joern Engel <joern@wh.fh-wedel.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/rtc_from4.c |   50 +++++++++++++++++++--------------
- 1 file changed, 29 insertions(+), 21 deletions(-)
+ drivers/mtd/nand/rtc_from4.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/nand/rtc_from4.c~mtd-nand-fix-possible-ooops-in-rfc_from4 drivers/mtd/nand/rtc_from4.c
---- a/drivers/mtd/nand/rtc_from4.c~mtd-nand-fix-possible-ooops-in-rfc_from4
+diff -puN drivers/mtd/nand/rtc_from4.c~mtd-nand-add-out-label-in-rfc_from4 drivers/mtd/nand/rtc_from4.c
+--- a/drivers/mtd/nand/rtc_from4.c~mtd-nand-add-out-label-in-rfc_from4
 +++ a/drivers/mtd/nand/rtc_from4.c
-@@ -478,6 +478,7 @@ static int __init rtc_from4_init(void)
- 	struct nand_chip *this;
- 	unsigned short bcr1, bcr2, wcr2;
- 	int i;
-+	int ret;
- 
- 	/* Allocate memory for MTD device structure and private data */
- 	rtc_from4_mtd = kmalloc(sizeof(struct mtd_info) + sizeof(struct nand_chip), GFP_KERNEL);
-@@ -537,6 +538,22 @@ static int __init rtc_from4_init(void)
- 	this->ecc.hwctl = rtc_from4_enable_hwecc;
- 	this->ecc.calculate = rtc_from4_calculate_ecc;
- 	this->ecc.correct = rtc_from4_correct_data;
-+
-+	/* We could create the decoder on demand, if memory is a concern.
-+	 * This way we have it handy, if an error happens
-+	 *
-+	 * Symbolsize is 10 (bits)
-+	 * Primitve polynomial is x^10+x^3+1
-+	 * first consecutive root is 0
-+	 * primitve element to generate roots = 1
-+	 * generator polinomial degree = 6
-+	 */
-+	rs_decoder = init_rs(10, 0x409, 0, 1, 6);
-+	if (!rs_decoder) {
-+		printk(KERN_ERR "Could not create a RS decoder\n");
-+		ret = -ENOMEM;
-+		goto err_1;
-+	}
- #else
- 	printk(KERN_INFO "rtc_from4_init: using software ECC detection.\n");
- 
-@@ -549,8 +566,8 @@ static int __init rtc_from4_init(void)
- 
- 	/* Scan to find existence of the device */
- 	if (nand_scan(rtc_from4_mtd, RTC_FROM4_MAX_CHIPS)) {
--		kfree(rtc_from4_mtd);
--		return -ENXIO;
-+		ret = -ENXIO;
-+		goto err_2;
+@@ -460,7 +460,7 @@ static int rtc_from4_errstat(struct mtd_
+ 			er_stat |= 1 << 1;
+ 		kfree(buf);
  	}
- 
- 	/* Perform 'device recovery' for each chip in case there was a power loss. */
-@@ -566,28 +583,19 @@ static int __init rtc_from4_init(void)
- #endif
- 
- 	/* Register the partitions */
--	add_mtd_partitions(rtc_from4_mtd, partition_info, NUM_PARTITIONS);
-+	ret = add_mtd_partitions(rtc_from4_mtd, partition_info, NUM_PARTITIONS);
-+	if (ret)
-+		goto err_3;
- 
--#ifdef RTC_FROM4_HWECC
--	/* We could create the decoder on demand, if memory is a concern.
--	 * This way we have it handy, if an error happens
--	 *
--	 * Symbolsize is 10 (bits)
--	 * Primitve polynomial is x^10+x^3+1
--	 * first consecutive root is 0
--	 * primitve element to generate roots = 1
--	 * generator polinomial degree = 6
--	 */
--	rs_decoder = init_rs(10, 0x409, 0, 1, 6);
--	if (!rs_decoder) {
--		printk(KERN_ERR "Could not create a RS decoder\n");
--		nand_release(rtc_from4_mtd);
--		kfree(rtc_from4_mtd);
--		return -ENOMEM;
--	}
--#endif
- 	/* Return happy */
- 	return 0;
-+err_3:
-+	nand_release(rtc_from4_mtd);
-+err_2:
-+	free_rs(rs_decoder);
-+err_1:
-+	kfree(rtc_from4_mtd);
-+	return ret;
- }
- 
- module_init(rtc_from4_init);
-_
-
-Patches currently in -mm which might be from bigeasy@tglx.de are
-
-jffs2-check-if-partition-is-marked-ro-on-remount.patch
-jffs2-check-if-partition-is-marked-ro-on-mount.patch
-mtd-nand-add-out-label-in-rfc_from4.patch
-mtd-nand-fix-possible-ooops-in-rfc_from4.patch
-
