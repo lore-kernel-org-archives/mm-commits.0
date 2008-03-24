@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + debugobjects-add-documentation.patch added to -mm tree
-Date: Mon, 24 Mar 2008 13:13:28 -0700
-Message-ID: <200803242013.m2OKDSDe023409@imap1.linux-foundation.org>
+Subject: + infrastructure-to-debug-dynamic-objects.patch added to -mm tree
+Date: Mon, 24 Mar 2008 13:13:24 -0700
+Message-ID: <200803242013.m2OKDPqa023405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51206 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36541 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751596AbYCXUOH (ORCPT
+	by vger.kernel.org with ESMTP id S1751610AbYCXUON (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 16:14:07 -0400
+	Mon, 24 Mar 2008 16:14:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: tglx@linutronix.de, greg@kroah.com, kay.sievers@vrfy.org, mingo@elte.hu, ran
 
 
 The patch titled
-     debugobjects: add documentation
+     infrastructure to debug (dynamic) objects
 has been added to the -mm tree.  Its filename is
-     debugobjects-add-documentation.patch
+     infrastructure-to-debug-dynamic-objects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,431 +34,1280 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: debugobjects: add documentation
+Subject: infrastructure to debug (dynamic) objects
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Add a DocBook for debugobjects.
+We can see an ever repeating problem pattern with objects of any kind in the
+kernel:
+
+1) freeing of active objects
+2) reinitialization of active objects
+
+Both problems can be hard to debug because the crash happens at a point where
+we have no chance to decode the root cause anymore.  One problem spot are
+kernel timers, where the detection of the problem often happens in interrupt
+context and usually causes the machine to panic.
+
+While working on a timer related bug report I had to hack specialized code
+into the timer subsystem to get a reasonable hint for the root cause.  This
+debug hack was fine for temporary use, but far from a mergeable solution due
+to the intrusiveness into the timer code.
+
+The code further lacked the ability to detect and report the root cause
+instantly and keep the system operational.
+
+Keeping the system operational is important to get hold of the debug
+information without special debugging aids like serial consoles and special
+knowledge of the bug reporter.
+
+The problems described above are not restricted to timers, but timers tend to
+expose it usually in a full system crash.  Other objects are less explosive,
+but the symptoms caused by such mistakes can be even harder to debug.
+
+Instead of creating specialized debugging code for the timer subsystem a
+generic infrastructure is created which allows developers to verify their code
+and provides an easy to enable debug facility for users in case of trouble.
+
+The debugobjects core code keeps track of operations on static and dynamic
+objects by inserting them into a hashed list and sanity checking them on
+object operations and provides additional checks whenever kernel memory is
+freed.
+
+The tracked object operations are:
+- initializing an object
+- adding an object to a subsystem list
+- deleting an object from a subsystem list
+
+Each operation is sanity checked before the operation is executed and the
+subsystem specific code can provide a fixup function which allows to prevent
+the damage of the operation.  When the sanity check triggers a warning message
+and a stack trace is printed.
+
+The list of operations can be extended if the need arises.  For now it's
+limited to the requirements of the first user (timers).
+
+The core code enqueues the objects into hash buckets.  The hash index is
+generated from the address of the object to simplify the lookup for the check
+on kfree/vfree.  Each bucket has it's own spinlock to avoid contention on a
+global lock.
+
+The debug code can be compiled in without being active.  The runtime overhead
+is minimal and could be optimized by asm alternatives.  A kernel command line
+option enables the debugging code.
+
+Thanks to Ingo Molnar for review, suggestions and cleanup patches.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Greg KH <greg@kroah.com>
 Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/Makefile          |    3 
- Documentation/DocBook/debugobjects.tmpl |  391 ++++++++++++++++++++++
- 2 files changed, 393 insertions(+), 1 deletion(-)
+ Documentation/kernel-parameters.txt |    2 
+ include/linux/debugobjects.h        |   90 ++
+ init/main.c                         |    3 
+ lib/Kconfig.debug                   |   23 
+ lib/Makefile                        |    1 
+ lib/debugobjects.c                  |  890 ++++++++++++++++++++++++++
+ mm/page_alloc.c                     |   10 
+ mm/slab.c                           |   10 
+ mm/slub.c                           |    3 
+ mm/vmalloc.c                        |    2 
+ 10 files changed, 1030 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/DocBook/Makefile~debugobjects-add-documentation Documentation/DocBook/Makefile
---- a/Documentation/DocBook/Makefile~debugobjects-add-documentation
-+++ a/Documentation/DocBook/Makefile
-@@ -11,7 +11,8 @@ DOCBOOKS := wanbook.xml z8530book.xml mc
- 	    procfs-guide.xml writing_usb_driver.xml networking.xml \
- 	    kernel-api.xml filesystems.xml lsm.xml usb.xml \
- 	    gadget.xml libata.xml mtdnand.xml librs.xml rapidio.xml \
--	    genericirq.xml s390-drivers.xml uio-howto.xml scsi.xml
-+	    genericirq.xml s390-drivers.xml uio-howto.xml scsi.xml \
-+	    debugobjects.xml
+diff -puN Documentation/kernel-parameters.txt~infrastructure-to-debug-dynamic-objects Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~infrastructure-to-debug-dynamic-objects
++++ a/Documentation/kernel-parameters.txt
+@@ -566,6 +566,8 @@ and is between 256 and 4096 characters. 
+ 			1 will print _a lot_ more information - normally
+ 			only useful to kernel developers.
  
- ###
- # The build process is as follows (targets):
-diff -puN /dev/null Documentation/DocBook/debugobjects.tmpl
++	debug_objects	[KNL] Enable object debugging
++
+ 	decnet.addr=	[HW,NET]
+ 			Format: <area>[,<node>]
+ 			See also Documentation/networking/decnet.txt.
+diff -puN /dev/null include/linux/debugobjects.h
 --- /dev/null
-+++ a/Documentation/DocBook/debugobjects.tmpl
-@@ -0,0 +1,391 @@
-+<?xml version="1.0" encoding="UTF-8"?>
-+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
-+	"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" []>
++++ a/include/linux/debugobjects.h
+@@ -0,0 +1,90 @@
++#ifndef _LINUX_DEBUGOBJECTS_H
++#define _LINUX_DEBUGOBJECTS_H
 +
-+<book id="debug-objects-guide">
-+ <bookinfo>
-+  <title>Debug objects life time</title>
++#include <linux/list.h>
++#include <linux/spinlock.h>
 +
-+  <authorgroup>
-+   <author>
-+    <firstname>Thomas</firstname>
-+    <surname>Gleixner</surname>
-+    <affiliation>
-+     <address>
-+      <email>tglx@linutronix.de</email>
-+     </address>
-+    </affiliation>
-+   </author>
-+  </authorgroup>
++enum debug_obj_state {
++	ODEBUG_STATE_NONE,
++	ODEBUG_STATE_INIT,
++	ODEBUG_STATE_INACTIVE,
++	ODEBUG_STATE_ACTIVE,
++	ODEBUG_STATE_DESTROYED,
++	ODEBUG_STATE_NOTAVAILABLE,
++	ODEBUG_STATE_MAX,
++};
 +
-+  <copyright>
-+   <year>2008</year>
-+   <holder>Thomas Gleixner</holder>
-+  </copyright>
++struct debug_obj_descr;
 +
-+  <legalnotice>
-+   <para>
-+     This documentation is free software; you can redistribute
-+     it and/or modify it under the terms of the GNU General Public
-+     License version 2 as published by the Free Software Foundation.
-+   </para>
++/**
++ * struct debug_obj - representaion of an tracked object
++ * @node:	hlist node to link the object into the tracker list
++ * @state:	tracked object state
++ * @object:	pointer to the real object
++ * @descr:	pointer to an object type specific debug description structure
++ */
++struct debug_obj {
++	struct hlist_node	node;
++	enum debug_obj_state	state;
++	void			*object;
++	struct debug_obj_descr	*descr;
++};
 +
-+   <para>
-+     This program is distributed in the hope that it will be
-+     useful, but WITHOUT ANY WARRANTY; without even the implied
-+     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-+     See the GNU General Public License for more details.
-+   </para>
++/**
++ * struct debug_obj_descr - object type specific debug description structure
++ * @name:		name of the object typee
++ * @fixup_init:		fixup function, which is called when the init check
++ *			fails
++ * @fixup_activate:	fixup function, which is called when the activate check
++ *			fails
++ * @fixup_destroy:	fixup function, which is called when the destroy check
++ *			fails
++ * @fixup_free:		fixup function, which is called when the free check
++ *			fails
++ */
++struct debug_obj_descr {
++	const char		*name;
 +
-+   <para>
-+     You should have received a copy of the GNU General Public
-+     License along with this program; if not, write to the Free
-+     Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-+     MA 02111-1307 USA
-+   </para>
++	int (*fixup_init)	(void *addr, enum debug_obj_state state);
++	int (*fixup_activate)	(void *addr, enum debug_obj_state state);
++	int (*fixup_destroy)	(void *addr, enum debug_obj_state state);
++	int (*fixup_free)	(void *addr, enum debug_obj_state state);
++};
 +
-+   <para>
-+     For more details see the file COPYING in the source
-+     distribution of Linux.
-+   </para>
-+  </legalnotice>
-+ </bookinfo>
++#ifdef CONFIG_DEBUG_OBJECTS
++extern void debug_object_init      (void *addr, struct debug_obj_descr *descr);
++extern void
++debug_object_init_on_stack(void *addr, struct debug_obj_descr *descr);
++extern void debug_object_activate  (void *addr, struct debug_obj_descr *descr);
++extern void debug_object_deactivate(void *addr, struct debug_obj_descr *descr);
++extern void debug_object_destroy   (void *addr, struct debug_obj_descr *descr);
++extern void debug_object_free      (void *addr, struct debug_obj_descr *descr);
 +
-+<toc></toc>
++extern void debug_objects_early_init(void);
++extern void debug_objects_mem_init(void);
++#else
++static inline void
++debug_object_init      (void *addr, struct debug_obj_descr *descr) { }
++static inline void
++debug_object_init_on_stack(void *addr, struct debug_obj_descr *descr) { }
++static inline void
++debug_object_activate  (void *addr, struct debug_obj_descr *descr) { }
++static inline void
++debug_object_deactivate(void *addr, struct debug_obj_descr *descr) { }
++static inline void
++debug_object_destroy   (void *addr, struct debug_obj_descr *descr) { }
++static inline void
++debug_object_free      (void *addr, struct debug_obj_descr *descr) { }
 +
-+  <chapter id="intro">
-+    <title>Introduction</title>
-+    <para>
-+      debugobjects is a generic infrastructure to track the life time
-+      of kernel objects and validate the operations on those.
-+    </para>
-+    <para>
-+      debugobjects is useful to check for the following error patterns:
-+	<itemizedlist>
-+	  <listitem><para>Activation of uninitialized objects</para></listitem>
-+	  <listitem><para>Initialization of active objects</para></listitem>
-+	  <listitem><para>Usage of freed/destroyed objects</para></listitem>
-+	</itemizedlist>
-+    </para>
-+    <para>
-+      debugobjects is not changing the data structure of the real
-+      object so it can be compiled in with a minimal runtime impact
-+      and enabled on demand with a kernel command line option.
-+    </para>
-+  </chapter>
++static inline void debug_objects_early_init(void) { }
++static inline void debug_objects_mem_init(void) { }
++#endif
 +
-+  <chapter id="howto">
-+    <title>Howto use debugobjects</title>
-+    <para>
-+      A kernel subsystem needs to provide a data structure which
-+      describes the object type and add calls into the debug code at
-+      appropriate places. The data structure to describe the object
-+      type needs at minimum the name of the object type. Optional
-+      functions can and should be provided to fixup detected problems
-+      so the kernel can continue to work and the debug information can
-+      be retrieved from a live system instead of hard core debugging
-+      with serial consoles and stack trace transcripts from the
-+      monitor.
-+    </para>
-+    <para>
-+      The debug calls provided by debugobjects are:
-+      <itemizedlist>
-+	<listitem><para>debug_object_init</para></listitem>
-+	<listitem><para>debug_object_init_on_stack</para></listitem>
-+	<listitem><para>debug_object_activate</para></listitem>
-+	<listitem><para>debug_object_deactivate</para></listitem>
-+	<listitem><para>debug_object_destroy</para></listitem>
-+	<listitem><para>debug_object_free</para></listitem>
-+      </itemizedlist>
-+      Each of these functions takes the address of the real object and
-+      a pointer to the object type specific debug description
-+      structure.
-+    </para>
-+    <para>
-+      Each detected error is reported in the statistics and a limited
-+      number of errors are printk'ed including a full stack trace.
-+    </para>
-+    <para>
-+      The statistics are available via debugfs/debug_objects/stats.
-+      They provide information about the number of warnings and the
-+      number of successful fixups along with information about the
-+      usage of the internal tracking objects and the state of the
-+      internal tracking objects pool.
-+    </para>
-+  </chapter>
-+  <chapter id="debugfunctions">
-+    <title>Debug functions</title>
-+    <sect1 id="prototypes">
-+      <title>Debug object function reference</title>
-+!Elib/debugobjects.c
-+    </sect1>
-+    <sect1 id="debug_object_init">
-+      <title>debug_object_init</title>
-+      <para>
-+	This function is called whenever the initialization function
-+	of a real object is called.
-+      </para>
-+      <para>
-+	When the real object is already tracked by debugobjects it is
-+	checked, whether the object can be initialized.  Initializing
-+	is not allowed for active and destroyed objects. When
-+	debugobjects detects an error, then it calls the fixup_init
-+	function of the object type description structure if provided
-+	by the caller. The fixup function can correct the problem
-+	before the real initialization of the object happens. E.g. it
-+	can deactivate an active object in order to prevent damage to
-+	the subsystem.
-+      </para>
-+      <para>
-+	When the real object is not yet tracked by debugobjects,
-+	debugobjects allocates a tracker object for the real object
-+	and sets the tracker object state to ODEBUG_STATE_INIT. It
-+	verifies that the object is not on the callers stack. If it is
-+	on the callers stack then a limited number of warnings
-+	including a full stack trace is printk'ed. The calling code
-+	must use debug_object_init_on_stack() and remove the object
-+	before leaving the function which allocated it. See next
-+	section.
-+      </para>
-+    </sect1>
++#ifdef CONFIG_DEBUG_OBJECTS_FREE
++extern void debug_check_no_obj_freed(const void *address, unsigned long size);
++#else
++static inline void
++debug_check_no_obj_freed(const void *address, unsigned long size) { }
++#endif
 +
-+    <sect1 id="debug_object_init_on_stack">
-+      <title>debug_object_init_on_stack</title>
-+      <para>
-+	This function is called whenever the initialization function
-+	of a real object which resides on the stack is called.
-+      </para>
-+      <para>
-+	When the real object is already tracked by debugobjects it is
-+	checked, whether the object can be initialized. Initializing
-+	is not allowed for active and destroyed objects. When
-+	debugobjects detects an error, then it calls the fixup_init
-+	function of the object type description structure if provided
-+	by the caller. The fixup function can correct the problem
-+	before the real initialization of the object happens. E.g. it
-+	can deactivate an active object in order to prevent damage to
-+	the subsystem.
-+      </para>
-+      <para>
-+	When the real object is not yet tracked by debugobjects
-+	debugobjects allocates a tracker object for the real object
-+	and sets the tracker object state to ODEBUG_STATE_INIT. It
-+	verifies that the object is on the callers stack.
-+      </para>
-+      <para>
-+	An object which is on the stack must be removed from the
-+	tracker by calling debug_object_free() before the function
-+	which allocates the object returns. Otherwise we keep track of
-+	stale objects.
-+      </para>
-+    </sect1>
++#endif
+diff -puN init/main.c~infrastructure-to-debug-dynamic-objects init/main.c
+--- a/init/main.c~infrastructure-to-debug-dynamic-objects
++++ a/init/main.c
+@@ -52,6 +52,7 @@
+ #include <linux/unwind.h>
+ #include <linux/buffer_head.h>
+ #include <linux/debug_locks.h>
++#include <linux/debugobjects.h>
+ #include <linux/lockdep.h>
+ #include <linux/pid_namespace.h>
+ #include <linux/device.h>
+@@ -518,6 +519,7 @@ asmlinkage void __init start_kernel(void
+ 	 */
+ 	unwind_init();
+ 	lockdep_init();
++	debug_objects_early_init();
+ 	cgroup_init_early();
+ 
+ 	local_irq_disable();
+@@ -611,6 +613,7 @@ asmlinkage void __init start_kernel(void
+ 	enable_debug_pagealloc();
+ 	cpu_hotplug_init();
+ 	kmem_cache_init();
++	debug_objects_mem_init();
+ 	idr_init_cache();
+ 	setup_per_cpu_pageset();
+ 	numa_policy_init();
+diff -puN lib/Kconfig.debug~infrastructure-to-debug-dynamic-objects lib/Kconfig.debug
+--- a/lib/Kconfig.debug~infrastructure-to-debug-dynamic-objects
++++ a/lib/Kconfig.debug
+@@ -183,6 +183,29 @@ config TIMER_STATS
+ 	  (it defaults to deactivated on bootup and will only be activated
+ 	  if some application like powertop activates it explicitly).
+ 
++config DEBUG_OBJECTS
++	bool "Debug object operations"
++	depends on DEBUG_KERNEL
++	help
++	  If you say Y here, additional code will be inserted into the
++	  kernel to track the life time of various objects and validate
++	  the operations on those objects.
 +
-+    <sect1 id="debug_object_activate">
-+      <title>debug_object_activate</title>
-+      <para>
-+	This function is called whenever the activation function of a
-+	real object is called.
-+      </para>
-+      <para>
-+	When the real object is already tracked by debugobjects it is
-+	checked, whether the object can be activated.  Activating is
-+	not allowed for active and destroyed objects. When
-+	debugobjects detects an error, then it calls the
-+	fixup_activate function of the object type description
-+	structure if provided by the caller. The fixup function can
-+	correct the problem before the real activation of the object
-+	happens. E.g. it can deactivate an active object in order to
-+	prevent damage to the subsystem.
-+      </para>
-+      <para>
-+	When the real object is not yet tracked by debugobjects then
-+	the fixup_activate function is called if available. This is
-+	necessary to allow the legitimate activation of statically
-+	allocated and initialized objects. The fixup function checks
-+	whether the object is valid and calls the debug_objects_init()
-+	function to initialize the tracking of this object.
-+      </para>
-+      <para>
-+	When the activation is legitimate, then the state of the
-+	associated tracker object is set to ODEBUG_STATE_ACTIVE.
-+      </para>
-+    </sect1>
++config DEBUG_OBJECTS_SELFTEST
++	bool "Debug objects selftest"
++	depends on DEBUG_OBJECTS
++	help
++	  This enables the selftest of the object debug code.
 +
-+    <sect1 id="debug_object_deactivate">
-+      <title>debug_object_deactivate</title>
-+      <para>
-+	This function is called whenever the deactivation function of
-+	a real object is called.
-+      </para>
-+      <para>
-+	When the real object is tracked by debugobjects it is checked,
-+	whether the object can be deactivated. Deactivating is not
-+	allowed for untracked or destroyed objects.
-+      </para>
-+      <para>
-+	When the deactivation is legitimate, then the state of the
-+	associated tracker object is set to ODEBUG_STATE_INACTIVE.
-+      </para>
-+    </sect1>
++config DEBUG_OBJECTS_FREE
++	bool "Debug objects in freed memory"
++	depends on DEBUG_OBJECTS
++	help
++	  This enables checks whether a k/v free operation frees an area
++	  which contains an object which has not been deactivated
++	  properly. This can make kmalloc/kfree-intensive workloads
++	  much slower.
 +
-+    <sect1 id="debug_object_destroy">
-+      <title>debug_object_destroy</title>
-+      <para>
-+	This function is called to mark an object destroyed. This is
-+	useful to prevent the usage of invalid objects, which are
-+	still available in memory: either statically allocated objects
-+	or objects which are freed later.
-+      </para>
-+      <para>
-+	When the real object is tracked by debugobjects it is checked,
-+	whether the object can be destroyed. Destruction is not
-+	allowed for active and destroyed objects. When debugobjects
-+	detects an error, then it calls the fixup_destroy function of
-+	the object type description structure if provided by the
-+	caller. The fixup function can correct the problem before the
-+	real destruction of the object happens. E.g. it can deactivate
-+	an active object in order to prevent damage to the subsystem.
-+      </para>
-+      <para>
-+	When the destruction is legitimate, then the state of the
-+	associated tracker object is set to ODEBUG_STATE_DESTROYED.
-+      </para>
-+    </sect1>
+ config DEBUG_SLAB
+ 	bool "Debug slab memory allocations"
+ 	depends on DEBUG_KERNEL && SLAB
+diff -puN lib/Makefile~infrastructure-to-debug-dynamic-objects lib/Makefile
+--- a/lib/Makefile~infrastructure-to-debug-dynamic-objects
++++ a/lib/Makefile
+@@ -35,6 +35,7 @@ obj-$(CONFIG_LOCK_KERNEL) += kernel_lock
+ obj-$(CONFIG_PLIST) += plist.o
+ obj-$(CONFIG_DEBUG_PREEMPT) += smp_processor_id.o
+ obj-$(CONFIG_DEBUG_LIST) += list_debug.o
++obj-$(CONFIG_DEBUG_OBJECTS) += debugobjects.o
+ 
+ ifneq ($(CONFIG_HAVE_DEC_LOCK),y)
+   lib-y += dec_and_lock.o
+diff -puN /dev/null lib/debugobjects.c
+--- /dev/null
++++ a/lib/debugobjects.c
+@@ -0,0 +1,890 @@
++/*
++ * Generic infrastructure for lifetime debugging of objects.
++ *
++ * Started by Thomas Gleixner
++ *
++ * Copyright (C) 2008, Thomas Gleixner <tglx@linutronix.de>
++ *
++ * For licencing details see kernel-base/COPYING
++ */
++#include <linux/debugobjects.h>
++#include <linux/interrupt.h>
++#include <linux/seq_file.h>
++#include <linux/debugfs.h>
++#include <linux/hash.h>
 +
-+    <sect1 id="debug_object_free">
-+      <title>debug_object_free</title>
-+      <para>
-+	This function is called before an object is freed.
-+      </para>
-+      <para>
-+	When the real object is tracked by debugobjects it is checked,
-+	whether the object can be freed. Free is not allowed for
-+	active objects. When debugobjects detects an error, then it
-+	calls the fixup_free function of the object type description
-+	structure if provided by the caller. The fixup function can
-+	correct the problem before the real free of the object
-+	happens. E.g. it can deactivate an active object in order to
-+	prevent damage to the subsystem.
-+      </para>
-+      <para>
-+	Note that debug_object_free removes the object from the
-+	tracker. Later usage of the object is detected by the other
-+	debug checks.
-+      </para>
-+    </sect1>
-+  </chapter>
-+  <chapter id="fixupfunctions">
-+    <title>Fixup functions</title>
-+    <sect1 id="debug_obj_descr">
-+      <title>Debug object type description structure</title>
-+!Iinclude/linux/debugobjects.h
-+    </sect1>
-+    <sect1 id="fixup_init">
-+      <title>fixup_init</title>
-+      <para>
-+	This function is called from the debug code whenever a problem
-+	in debug_object_init is detected. The function takes the
-+	address of the object and the state which is currently
-+	recorded in the tracker.
-+      </para>
-+      <para>
-+	Called from debug_object_init when the object state is:
-+	<itemizedlist>
-+	  <listitem><para>ODEBUG_STATE_ACTIVE</para></listitem>
-+	</itemizedlist>
-+      </para>
-+      <para>
-+	The function returns 1 when the fixup was successful,
-+	otherwise 0. The return value is used to update the
-+	statistics.
-+      </para>
-+      <para>
-+	Note, that the function needs to call the debug_object_init()
-+	function again, after the damage has been repaired in order to
-+	keep the state consistent.
-+      </para>
-+    </sect1>
++#define ODEBUG_HASH_BITS	14
++#define ODEBUG_HASH_SIZE	(1 << ODEBUG_HASH_BITS)
 +
-+    <sect1 id="fixup_activate">
-+      <title>fixup_activate</title>
-+      <para>
-+	This function is called from the debug code whenever a problem
-+	in debug_object_activate is detected.
-+      </para>
-+      <para>
-+	Called from debug_object_activate when the object state is:
-+	<itemizedlist>
-+	  <listitem><para>ODEBUG_STATE_NOTAVAILABLE</para></listitem>
-+	  <listitem><para>ODEBUG_STATE_ACTIVE</para></listitem>
-+	</itemizedlist>
-+      </para>
-+      <para>
-+	The function returns 1 when the fixup was successful,
-+	otherwise 0. The return value is used to update the
-+	statistics.
-+      </para>
-+      <para>
-+	Note that the function needs to call the debug_object_activate()
-+	function again after the damage has been repaired in order to
-+	keep the state consistent.
-+      </para>
-+      <para>
-+	The activation of statically initialized objects is a special
-+	case. When debug_object_activate() has no tracked object for
-+	this object address then fixup_activate() is called with
-+	object state ODEBUG_STATE_NOTAVAILABLE. The fixup function
-+	needs to check whether this is a legitimate case of a
-+	statically initialized object or not. In case it is it calls
-+	debug_object_init() and debug_object_activate() to make the
-+	object known to the tracker and marked active. In this case
-+	the function should return 0 because this is not a real fixup.
-+      </para>
-+    </sect1>
++#define ODEBUG_POOL_SIZE	512
++#define ODEBUG_POOL_MIN_LEVEL	256
 +
-+    <sect1 id="fixup_destroy">
-+      <title>fixup_destroy</title>
-+      <para>
-+	This function is called from the debug code whenever a problem
-+	in debug_object_destroy is detected.
-+      </para>
-+      <para>
-+	Called from debug_object_destroy when the object state is:
-+	<itemizedlist>
-+	  <listitem><para>ODEBUG_STATE_ACTIVE</para></listitem>
-+	</itemizedlist>
-+      </para>
-+      <para>
-+	The function returns 1 when the fixup was successful,
-+	otherwise 0. The return value is used to update the
-+	statistics.
-+      </para>
-+    </sect1>
-+    <sect1 id="fixup_free">
-+      <title>fixup_free</title>
-+      <para>
-+	This function is called from the debug code whenever a problem
-+	in debug_object_free is detected. Further it can be called
-+	from the debug checks in kfree/vfree, when an active object is
-+	detected from the debug_check_no_obj_freed() sanity checks.
-+      </para>
-+      <para>
-+	Called from debug_object_free() or debug_check_no_obj_freed()
-+	when the object state is:
-+	<itemizedlist>
-+	  <listitem><para>ODEBUG_STATE_ACTIVE</para></listitem>
-+	</itemizedlist>
-+      </para>
-+      <para>
-+	The function returns 1 when the fixup was successful,
-+	otherwise 0. The return value is used to update the
-+	statistics.
-+      </para>
-+    </sect1>
-+  </chapter>
-+  <chapter id="bugs">
-+    <title>Known Bugs And Assumptions</title>
-+    <para>
-+	None (knock on wood).
-+    </para>
-+  </chapter>
-+</book>
++#define ODEBUG_CHUNK_SHIFT	PAGE_SHIFT
++#define ODEBUG_CHUNK_SIZE	(1 << ODEBUG_CHUNK_SHIFT)
++#define ODEBUG_CHUNK_MASK	(~(ODEBUG_CHUNK_SIZE - 1))
++
++struct debug_bucket {
++	struct hlist_head	list;
++	spinlock_t		lock;
++};
++
++static struct debug_bucket	obj_hash[ODEBUG_HASH_SIZE];
++
++static struct debug_obj		obj_static_pool[ODEBUG_POOL_SIZE];
++
++static DEFINE_SPINLOCK(pool_lock);
++
++static HLIST_HEAD(obj_pool);
++
++static int			obj_pool_min_free = ODEBUG_POOL_SIZE;
++static int			obj_pool_free = ODEBUG_POOL_SIZE;
++static int			obj_pool_used;
++static int			obj_pool_max_used;
++static struct kmem_cache	*obj_cache;
++
++static int			debug_objects_maxchain __read_mostly;
++static int			debug_objects_fixups __read_mostly;
++static int			debug_objects_warnings __read_mostly;
++static int			debug_objects_enabled __read_mostly;
++static struct debug_obj_descr	*descr_test  __read_mostly;
++
++static int __init enable_object_debug(char *str)
++{
++	debug_objects_enabled = 1;
++	return 0;
++}
++early_param("debug_objects", enable_object_debug);
++
++static const char *obj_states[ODEBUG_STATE_MAX] = {
++	[ODEBUG_STATE_NONE]		= "none",
++	[ODEBUG_STATE_INIT]		= "initialized",
++	[ODEBUG_STATE_INACTIVE]		= "inactive",
++	[ODEBUG_STATE_ACTIVE]		= "active",
++	[ODEBUG_STATE_DESTROYED]	= "destroyed",
++	[ODEBUG_STATE_NOTAVAILABLE]	= "not available",
++};
++
++static int fill_pool(void)
++{
++	gfp_t gfp = GFP_ATOMIC | __GFP_NORETRY | __GFP_NOWARN;
++	struct debug_obj *new;
++
++	if (likely(obj_pool_free >= ODEBUG_POOL_MIN_LEVEL))
++		return obj_pool_free;
++
++	if (unlikely(!obj_cache))
++		return obj_pool_free;
++
++	while (obj_pool_free < ODEBUG_POOL_MIN_LEVEL) {
++
++		new = kmem_cache_zalloc(obj_cache, gfp);
++		if (!new)
++			return obj_pool_free;
++
++		spin_lock(&pool_lock);
++		hlist_add_head(&new->node, &obj_pool);
++		obj_pool_free++;
++		spin_unlock(&pool_lock);
++	}
++	return obj_pool_free;
++}
++
++/*
++ * Lookup an object in the hash bucket.
++ */
++static struct debug_obj *lookup_object(void *addr, struct debug_bucket *b)
++{
++	struct hlist_node *node;
++	struct debug_obj *obj;
++	int cnt = 0;
++
++	hlist_for_each_entry(obj, node, &b->list, node) {
++		cnt++;
++		if (obj->object == addr)
++			return obj;
++	}
++	if (cnt > debug_objects_maxchain)
++		debug_objects_maxchain = cnt;
++
++	return NULL;
++}
++
++/*
++ * Allocate a new object. If the pool is empty and no refill possible,
++ * switch off the debugger.
++ */
++static struct debug_obj *
++alloc_object(void *addr, struct debug_bucket *b, struct debug_obj_descr *descr)
++{
++	struct debug_obj *obj = NULL;
++	int retry = 0;
++
++repeat:
++	spin_lock(&pool_lock);
++	if (obj_pool.first) {
++		obj	    = hlist_entry(obj_pool.first, typeof(*obj), node);
++
++		obj->object = addr;
++		obj->descr  = descr;
++		obj->state  = ODEBUG_STATE_NONE;
++		hlist_del(&obj->node);
++
++		hlist_add_head(&obj->node, &b->list);
++
++		obj_pool_used++;
++		if (obj_pool_used > obj_pool_max_used)
++			obj_pool_max_used = obj_pool_used;
++
++		obj_pool_free--;
++		if (obj_pool_free < obj_pool_min_free)
++			obj_pool_min_free = obj_pool_free;
++	}
++	spin_unlock(&pool_lock);
++
++	if (fill_pool() && !obj && !retry++)
++		goto repeat;
++
++	return obj;
++}
++
++/*
++ * Put the object back into the pool or give it back to kmem_cache:
++ */
++static void free_object(struct debug_obj *obj)
++{
++	unsigned long idx = (unsigned long)(obj - obj_static_pool);
++
++	if (obj_pool_free < ODEBUG_POOL_SIZE || idx < ODEBUG_POOL_SIZE) {
++		spin_lock(&pool_lock);
++		hlist_add_head(&obj->node, &obj_pool);
++		obj_pool_free++;
++		obj_pool_used--;
++		spin_unlock(&pool_lock);
++	} else {
++		spin_lock(&pool_lock);
++		obj_pool_used--;
++		spin_unlock(&pool_lock);
++		kmem_cache_free(obj_cache, obj);
++	}
++}
++
++/*
++ * We run out of memory. That means we probably have tons of objects
++ * allocated.
++ */
++static void debug_objects_oom(void)
++{
++	struct debug_bucket *db = obj_hash;
++	struct hlist_node *node, *tmp;
++	struct debug_obj *obj;
++	unsigned long flags;
++	int i;
++
++	printk(KERN_WARNING "ODEBUG: Out of memory. ODEBUG disabled\n");
++
++	for (i = 0; i < ODEBUG_HASH_SIZE; i++, db++) {
++		spin_lock_irqsave(&db->lock, flags);
++		hlist_for_each_entry_safe(obj, node, tmp, &db->list, node) {
++			hlist_del(&obj->node);
++			free_object(obj);
++		}
++		spin_unlock_irqrestore(&db->lock, flags);
++	}
++}
++
++/*
++ * We use the pfn of the address for the hash. That way we can check
++ * for freed objects simply by checking the affected bucket.
++ */
++static struct debug_bucket *get_bucket(unsigned long addr)
++{
++	unsigned long hash;
++
++	hash = hash_long((addr >> ODEBUG_CHUNK_SHIFT), ODEBUG_HASH_BITS);
++	return &obj_hash[hash];
++}
++
++static void debug_print_object(struct debug_obj *obj, char *msg)
++{
++	static int limit;
++
++	if (limit < 5 && obj->descr != descr_test) {
++		limit++;
++		printk(KERN_ERR "ODEBUG: %s %s object type: %s\n", msg,
++		       obj_states[obj->state], obj->descr->name);
++		WARN_ON(1);
++	}
++	debug_objects_warnings++;
++}
++
++/*
++ * Try to repair the damage, so we have a better chance to get useful
++ * debug output.
++ */
++static void
++debug_object_fixup(int (*fixup)(void *addr, enum debug_obj_state state),
++		   void * addr, enum debug_obj_state state)
++{
++	if (fixup)
++		debug_objects_fixups += fixup(addr, state);
++}
++
++static void debug_object_is_on_stack(void *addr, int onstack)
++{
++	void *stack = current->stack;
++	int is_on_stack;
++	static int limit;
++
++	if (limit > 4)
++		return;
++
++	is_on_stack = (addr >= stack && addr < (stack + THREAD_SIZE));
++
++	if (is_on_stack == onstack)
++		return;
++
++	limit++;
++	if (is_on_stack)
++		printk(KERN_WARNING
++		       "ODEBUG: object is on stack, but not annotated\n");
++	else
++		printk(KERN_WARNING
++		       "ODEBUG: object is not on stack, but annotated\n");
++	WARN_ON(1);
++}
++
++static void
++__debug_object_init(void *addr, struct debug_obj_descr *descr, int onstack)
++{
++	enum debug_obj_state state;
++	struct debug_bucket *db;
++	struct debug_obj *obj;
++	unsigned long flags;
++
++	db = get_bucket((unsigned long) addr);
++
++	spin_lock_irqsave(&db->lock, flags);
++
++	obj = lookup_object(addr, db);
++	if (!obj) {
++		obj = alloc_object(addr, db, descr);
++		if (!obj) {
++			debug_objects_enabled = 0;
++			spin_unlock_irqrestore(&db->lock, flags);
++			debug_objects_oom();
++			return;
++		}
++		debug_object_is_on_stack(addr, onstack);
++	}
++
++	switch (obj->state) {
++	case ODEBUG_STATE_NONE:
++	case ODEBUG_STATE_INIT:
++	case ODEBUG_STATE_INACTIVE:
++		obj->state = ODEBUG_STATE_INIT;
++		break;
++
++	case ODEBUG_STATE_ACTIVE:
++		debug_print_object(obj, "init");
++		state = obj->state;
++		spin_unlock_irqrestore(&db->lock, flags);
++		debug_object_fixup(descr->fixup_init, addr, state);
++		return;
++
++	case ODEBUG_STATE_DESTROYED:
++		debug_print_object(obj, "init");
++		break;
++	default:
++		break;
++	}
++
++	spin_unlock_irqrestore(&db->lock, flags);
++}
++
++/**
++ * debug_object_init - debug checks when an object is initialized
++ * @addr:	address of the object
++ * @descr:	pointer to an object specific debug description structure
++ */
++void debug_object_init(void *addr, struct debug_obj_descr *descr)
++{
++	if (!debug_objects_enabled)
++		return;
++
++	__debug_object_init(addr, descr, 0);
++}
++
++/**
++ * debug_object_init_on_stack - debug checks when an object on stack is
++ *				initialized
++ * @addr:	address of the object
++ * @descr:	pointer to an object specific debug description structure
++ */
++void debug_object_init_on_stack(void *addr, struct debug_obj_descr *descr)
++{
++	if (!debug_objects_enabled)
++		return;
++
++	__debug_object_init(addr, descr, 1);
++}
++
++/**
++ * debug_object_activate - debug checks when an object is activated
++ * @addr:	address of the object
++ * @descr:	pointer to an object specific debug description structure
++ */
++void debug_object_activate(void *addr, struct debug_obj_descr *descr)
++{
++	enum debug_obj_state state;
++	struct debug_bucket *db;
++	struct debug_obj *obj;
++	unsigned long flags;
++
++	if (!debug_objects_enabled)
++		return;
++
++	db = get_bucket((unsigned long) addr);
++
++	spin_lock_irqsave(&db->lock, flags);
++
++	obj = lookup_object(addr, db);
++	if (obj) {
++		switch (obj->state) {
++		case ODEBUG_STATE_INIT:
++		case ODEBUG_STATE_INACTIVE:
++			obj->state = ODEBUG_STATE_ACTIVE;
++			break;
++
++		case ODEBUG_STATE_ACTIVE:
++			debug_print_object(obj, "activate");
++			state = obj->state;
++			spin_unlock_irqrestore(&db->lock, flags);
++			debug_object_fixup(descr->fixup_activate, addr, state);
++			return;
++
++		case ODEBUG_STATE_DESTROYED:
++			debug_print_object(obj, "activate");
++			break;
++		default:
++			break;
++		}
++		spin_unlock_irqrestore(&db->lock, flags);
++		return;
++	}
++
++	spin_unlock_irqrestore(&db->lock, flags);
++	/*
++	 * This happens when a static object is activated. We
++	 * let the type specific code decide whether this is
++	 * true or not.
++	 */
++	debug_object_fixup(descr->fixup_activate, addr,
++			   ODEBUG_STATE_NOTAVAILABLE);
++}
++
++/**
++ * debug_object_deactivate - debug checks when an object is deactivated
++ * @addr:	address of the object
++ * @descr:	pointer to an object specific debug description structure
++ */
++void debug_object_deactivate(void *addr, struct debug_obj_descr *descr)
++{
++	struct debug_bucket *db;
++	struct debug_obj *obj;
++	unsigned long flags;
++
++	if (!debug_objects_enabled)
++		return;
++
++	db = get_bucket((unsigned long) addr);
++
++	spin_lock_irqsave(&db->lock, flags);
++
++	obj = lookup_object(addr, db);
++	if (obj) {
++		switch (obj->state) {
++		case ODEBUG_STATE_INIT:
++		case ODEBUG_STATE_INACTIVE:
++		case ODEBUG_STATE_ACTIVE:
++			obj->state = ODEBUG_STATE_INACTIVE;
++			break;
++
++		case ODEBUG_STATE_DESTROYED:
++			debug_print_object(obj, "deactivate");
++			break;
++		default:
++			break;
++		}
++	} else {
++		struct debug_obj o = { .object = addr,
++				       .state = ODEBUG_STATE_NOTAVAILABLE,
++				       .descr = descr };
++
++		debug_print_object(&o, "deactivate");
++	}
++
++	spin_unlock_irqrestore(&db->lock, flags);
++}
++
++/**
++ * debug_object_destroy - debug checks when an object is destroyed
++ * @addr:	address of the object
++ * @descr:	pointer to an object specific debug description structure
++ */
++void debug_object_destroy(void *addr, struct debug_obj_descr *descr)
++{
++	enum debug_obj_state state;
++	struct debug_bucket *db;
++	struct debug_obj *obj;
++	unsigned long flags;
++
++	if (!debug_objects_enabled)
++		return;
++
++	db = get_bucket((unsigned long) addr);
++
++	spin_lock_irqsave(&db->lock, flags);
++
++	obj = lookup_object(addr, db);
++	if (!obj)
++		goto out_unlock;
++
++	switch (obj->state) {
++	case ODEBUG_STATE_NONE:
++	case ODEBUG_STATE_INIT:
++	case ODEBUG_STATE_INACTIVE:
++		obj->state = ODEBUG_STATE_DESTROYED;
++		break;
++	case ODEBUG_STATE_ACTIVE:
++		debug_print_object(obj, "destroy");
++		state = obj->state;
++		spin_unlock_irqrestore(&db->lock, flags);
++		debug_object_fixup(descr->fixup_destroy, addr, state);
++		return;
++
++	case ODEBUG_STATE_DESTROYED:
++		debug_print_object(obj, "destroy");
++		break;
++	default:
++		break;
++	}
++out_unlock:
++	spin_unlock_irqrestore(&db->lock, flags);
++}
++
++/**
++ * debug_object_free - debug checks when an object is freed
++ * @addr:	address of the object
++ * @descr:	pointer to an object specific debug description structure
++ */
++void debug_object_free(void *addr, struct debug_obj_descr *descr)
++{
++	enum debug_obj_state state;
++	struct debug_bucket *db;
++	struct debug_obj *obj;
++	unsigned long flags;
++
++	if (!debug_objects_enabled)
++		return;
++
++	db = get_bucket((unsigned long) addr);
++
++	spin_lock_irqsave(&db->lock, flags);
++
++	obj = lookup_object(addr, db);
++	if (!obj)
++		goto out_unlock;
++
++	switch (obj->state) {
++	case ODEBUG_STATE_ACTIVE:
++		debug_print_object(obj, "free");
++		state = obj->state;
++		spin_unlock_irqrestore(&db->lock, flags);
++		debug_object_fixup(descr->fixup_free, addr, state);
++		return;
++	default:
++		hlist_del(&obj->node);
++		free_object(obj);
++		break;
++	}
++out_unlock:
++	spin_unlock_irqrestore(&db->lock, flags);
++}
++
++#ifdef CONFIG_DEBUG_OBJECTS_FREE
++static void __debug_check_no_obj_freed(const void *address, unsigned long size)
++{
++	unsigned long flags, oaddr, saddr, eaddr, paddr, chunks;
++	struct hlist_node *node, *tmp;
++	struct debug_obj_descr *descr;
++	enum debug_obj_state state;
++	struct debug_bucket *db;
++	struct debug_obj *obj;
++	int cnt;
++
++	saddr = (unsigned long) address;
++	eaddr = saddr + size;
++	paddr = saddr & ODEBUG_CHUNK_MASK;
++	chunks = ((eaddr - paddr) + (ODEBUG_CHUNK_SIZE - 1));
++	chunks >>= ODEBUG_CHUNK_SHIFT;
++
++	for (;chunks > 0; chunks--, paddr += ODEBUG_CHUNK_SIZE) {
++		db = get_bucket(paddr);
++
++repeat:
++		cnt = 0;
++		spin_lock_irqsave(&db->lock, flags);
++		hlist_for_each_entry_safe(obj, node, tmp, &db->list, node) {
++			cnt++;
++			oaddr = (unsigned long) obj->object;
++			if (oaddr < saddr || oaddr >= eaddr)
++				continue;
++
++			switch (obj->state) {
++			case ODEBUG_STATE_ACTIVE:
++				debug_print_object(obj, "free");
++				descr = obj->descr;
++				state = obj->state;
++				spin_unlock_irqrestore(&db->lock, flags);
++				debug_object_fixup(descr->fixup_free,
++						   (void *) oaddr, state);
++				goto repeat;
++			default:
++				hlist_del(&obj->node);
++				free_object(obj);
++				break;
++			}
++		}
++		spin_unlock_irqrestore(&db->lock, flags);
++		if (cnt > debug_objects_maxchain)
++			debug_objects_maxchain = cnt;
++	}
++}
++
++void debug_check_no_obj_freed(const void *address, unsigned long size)
++{
++	if (debug_objects_enabled)
++		__debug_check_no_obj_freed(address, size);
++}
++#endif
++
++#ifdef CONFIG_DEBUG_FS
++
++static int debug_stats_show(struct seq_file *m, void *v)
++{
++	seq_printf(m, "max_chain     :%d\n", debug_objects_maxchain);
++	seq_printf(m, "warnings      :%d\n", debug_objects_warnings);
++	seq_printf(m, "fixups        :%d\n", debug_objects_fixups);
++	seq_printf(m, "pool_free     :%d\n", obj_pool_free);
++	seq_printf(m, "pool_min_free :%d\n", obj_pool_min_free);
++	seq_printf(m, "pool_used     :%d\n", obj_pool_used);
++	seq_printf(m, "pool_max_used :%d\n", obj_pool_max_used);
++	return 0;
++}
++
++static int debug_stats_open(struct inode *inode, struct file *filp)
++{
++	return single_open(filp, debug_stats_show, NULL);
++}
++
++static const struct file_operations debug_stats_fops = {
++	.open		= debug_stats_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
++static int __init debug_objects_init_debugfs(void)
++{
++	struct dentry *dbgdir, *dbgstats;
++
++	if (!debug_objects_enabled)
++		return 0;
++
++	dbgdir = debugfs_create_dir("debug_objects", NULL);
++	if (!dbgdir)
++		return -ENOMEM;
++
++	dbgstats = debugfs_create_file("stats", 0444, dbgdir, NULL,
++				       &debug_stats_fops);
++	if (!dbgstats)
++		goto err;
++
++	return 0;
++
++err:
++	debugfs_remove(dbgdir);
++
++	return -ENOMEM;
++}
++__initcall(debug_objects_init_debugfs);
++
++#else
++static inline void debug_objects_init_debugfs(void) { }
++#endif
++
++#ifdef CONFIG_DEBUG_OBJECTS_SELFTEST
++
++/* Random data structure for the self test */
++struct self_test {
++	unsigned long	dummy1[6];
++	int		static_init;
++	unsigned long	dummy2[3];
++};
++
++static __initdata struct debug_obj_descr descr_type_test;
++
++/*
++ * fixup_init is called when:
++ * - an active object is initialized
++ */
++static int __init fixup_init(void *addr, enum debug_obj_state state)
++{
++	struct self_test *obj = addr;
++
++	switch (state) {
++	case ODEBUG_STATE_ACTIVE:
++		debug_object_deactivate(obj, &descr_type_test);
++		debug_object_init(obj, &descr_type_test);
++		return 1;
++	default:
++		return 0;
++	}
++}
++
++/*
++ * fixup_activate is called when:
++ * - an active object is activated
++ * - an unknown object is activated (might be a statically initialized object)
++ */
++static int __init fixup_activate(void *addr, enum debug_obj_state state)
++{
++	struct self_test *obj = addr;
++
++	switch (state) {
++	case ODEBUG_STATE_NOTAVAILABLE:
++		if (obj->static_init == 1) {
++			debug_object_init(obj, &descr_type_test);
++			debug_object_activate(obj, &descr_type_test);
++			/*
++			 * Real code should return 0 here ! This is
++			 * not a fixup of some bad behaviour. We
++			 * merily call the debug_init function to keep
++			 * track of the object.
++			 */
++			return 1;
++		} else {
++			/* Real code needs to emit a warning here */
++		}
++		return 0;
++
++	case ODEBUG_STATE_ACTIVE:
++		debug_object_deactivate(obj, &descr_type_test);
++		debug_object_activate(obj, &descr_type_test);
++		return 1;
++
++	default:
++		return 0;
++	}
++}
++
++/*
++ * fixup_destroy is called when:
++ * - an active object is destroyed
++ */
++static int __init fixup_destroy(void *addr, enum debug_obj_state state)
++{
++	struct self_test *obj = addr;
++
++	switch (state) {
++	case ODEBUG_STATE_ACTIVE:
++		debug_object_deactivate(obj, &descr_type_test);
++		debug_object_destroy(obj, &descr_type_test);
++		return 1;
++	default:
++		return 0;
++	}
++}
++
++/*
++ * fixup_free is called when:
++ * - an active object is freed
++ */
++static int __init fixup_free(void *addr, enum debug_obj_state state)
++{
++	struct self_test *obj = addr;
++
++	switch (state) {
++	case ODEBUG_STATE_ACTIVE:
++		debug_object_deactivate(obj, &descr_type_test);
++		debug_object_free(obj, &descr_type_test);
++		return 1;
++	default:
++		return 0;
++	}
++}
++
++static int
++check_results(void *addr, enum debug_obj_state state, int fixups, int warnings)
++{
++	struct debug_bucket *db;
++	struct debug_obj *obj;
++	unsigned long flags;
++	int res = -EINVAL;
++
++	db = get_bucket((unsigned long) addr);
++
++	spin_lock_irqsave(&db->lock, flags);
++
++	obj = lookup_object(addr, db);
++	if (!obj && state != ODEBUG_STATE_NONE) {
++		printk(KERN_ERR "ODEBUG: selftest object not found\n");
++		WARN_ON(1);
++		goto out;
++	}
++	if (obj && obj->state != state) {
++		printk(KERN_ERR "ODEBUG: selftest wrong state: %d != %d\n",
++		       obj->state, state);
++		WARN_ON(1);
++		goto out;
++	}
++	if (fixups != debug_objects_fixups) {
++		printk(KERN_ERR "ODEBUG: selftest fixups failed %d != %d\n",
++		       fixups, debug_objects_fixups);
++		WARN_ON(1);
++		goto out;
++	}
++	if (warnings != debug_objects_warnings) {
++		printk(KERN_ERR "ODEBUG: selftest warnings failed %d != %d\n",
++		       warnings, debug_objects_warnings);
++		WARN_ON(1);
++		goto out;
++	}
++	res = 0;
++out:
++	spin_unlock_irqrestore(&db->lock, flags);
++	if (res)
++		debug_objects_enabled = 0;
++	return res;
++}
++
++static __initdata struct debug_obj_descr descr_type_test = {
++	.name			= "selftest",
++	.fixup_init		= fixup_init,
++	.fixup_activate		= fixup_activate,
++	.fixup_destroy		= fixup_destroy,
++	.fixup_free		= fixup_free,
++};
++
++static __initdata struct self_test obj = { .static_init = 0 };
++
++static void __init debug_objects_selftest(void)
++{
++	int fixups, oldfixups, warnings, oldwarnings;
++	unsigned long flags;
++
++	local_irq_save(flags);
++
++	fixups = oldfixups = debug_objects_fixups;
++	warnings = oldwarnings = debug_objects_warnings;
++	descr_test = &descr_type_test;
++
++	debug_object_init(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_INIT, fixups, warnings))
++		goto out;
++	debug_object_activate(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_ACTIVE, fixups, warnings))
++		goto out;
++	debug_object_activate(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_ACTIVE, ++fixups, ++warnings))
++		goto out;
++	debug_object_deactivate(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_INACTIVE, fixups, warnings))
++		goto out;
++	debug_object_destroy(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_DESTROYED, fixups, warnings))
++		goto out;
++	debug_object_init(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_DESTROYED, fixups, ++warnings))
++		goto out;
++	debug_object_activate(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_DESTROYED, fixups, ++warnings))
++		goto out;
++	debug_object_deactivate(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_DESTROYED, fixups, ++warnings))
++		goto out;
++	debug_object_free(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_NONE, fixups, warnings))
++		goto out;
++
++	obj.static_init = 1;
++	debug_object_activate(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_ACTIVE, ++fixups, warnings))
++		goto out;
++	debug_object_init(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_INIT, ++fixups, ++warnings))
++		goto out;
++	debug_object_free(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_NONE, fixups, warnings))
++		goto out;
++
++#ifdef CONFIG_DEBUG_OBJECTS_FREE
++	debug_object_init(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_INIT, fixups, warnings))
++		goto out;
++	debug_object_activate(&obj, &descr_type_test);
++	if (check_results(&obj, ODEBUG_STATE_ACTIVE, fixups, warnings))
++		goto out;
++	__debug_check_no_obj_freed(&obj, sizeof(obj));
++	if (check_results(&obj, ODEBUG_STATE_NONE, ++fixups, ++warnings))
++		goto out;
++#endif
++	printk(KERN_INFO "ODEBUG: selftest passed\n");
++
++out:
++	debug_objects_fixups = oldfixups;
++	debug_objects_warnings = oldwarnings;
++	descr_test = NULL;
++
++	local_irq_restore(flags);
++}
++#else
++static inline void debug_objects_selftest(void) { }
++#endif
++
++/*
++ * Called during early boot to initialize the hash buckets and link
++ * the static object pool objects into the poll list. After this call
++ * the object tracker is fully operational.
++ */
++void __init debug_objects_early_init(void)
++{
++	int i;
++
++	for (i = 0; i < ODEBUG_HASH_SIZE; i++)
++		spin_lock_init(&obj_hash[i].lock);
++
++	for (i = 0; i < ODEBUG_POOL_SIZE; i++)
++		hlist_add_head(&obj_static_pool[i].node, &obj_pool);
++}
++
++/*
++ * Called after the kmem_caches are functional to setup a dedicated
++ * cache pool, which has the SLAB_DEBUG_OBJECTS flag set. This flag
++ * prevents that the debug code is called on kmem_cache_free() for the
++ * debug tracker objects to avoid recursive calls.
++ */
++void __init debug_objects_mem_init(void)
++{
++	if (!debug_objects_enabled)
++		return;
++
++	obj_cache = kmem_cache_create("debug_objects_cache",
++				      sizeof (struct debug_obj), 0,
++				      SLAB_DEBUG_OBJECTS, NULL);
++
++	if (!obj_cache)
++		debug_objects_enabled = 0;
++	else
++		debug_objects_selftest();
++}
+diff -puN mm/page_alloc.c~infrastructure-to-debug-dynamic-objects mm/page_alloc.c
+--- a/mm/page_alloc.c~infrastructure-to-debug-dynamic-objects
++++ a/mm/page_alloc.c
+@@ -45,6 +45,7 @@
+ #include <linux/fault-inject.h>
+ #include <linux/page-isolation.h>
+ #include <linux/memcontrol.h>
++#include <linux/debugobjects.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/div64.h>
+@@ -532,8 +533,11 @@ static void __free_pages_ok(struct page 
+ 	if (reserved)
+ 		return;
+ 
+-	if (!PageHighMem(page))
++	if (!PageHighMem(page)) {
+ 		debug_check_no_locks_freed(page_address(page),PAGE_SIZE<<order);
++		debug_check_no_obj_freed(page_address(page),
++					   PAGE_SIZE << order);
++	}
+ 	arch_free_page(page, order);
+ 	kernel_map_pages(page, 1 << order, 0);
+ 
+@@ -995,8 +999,10 @@ static void free_hot_cold_page(struct pa
+ 	if (free_pages_check(page))
+ 		return;
+ 
+-	if (!PageHighMem(page))
++	if (!PageHighMem(page)) {
+ 		debug_check_no_locks_freed(page_address(page), PAGE_SIZE);
++		debug_check_no_obj_freed(page_address(page), PAGE_SIZE);
++	}
+ 	arch_free_page(page, 0);
+ 	kernel_map_pages(page, 1, 0);
+ 
+diff -puN mm/slab.c~infrastructure-to-debug-dynamic-objects mm/slab.c
+--- a/mm/slab.c~infrastructure-to-debug-dynamic-objects
++++ a/mm/slab.c
+@@ -110,6 +110,7 @@
+ #include	<linux/fault-inject.h>
+ #include	<linux/rtmutex.h>
+ #include	<linux/reciprocal_div.h>
++#include	<linux/debugobjects.h>
+ 
+ #include	<asm/cacheflush.h>
+ #include	<asm/tlbflush.h>
+@@ -174,12 +175,14 @@
+ 			 SLAB_CACHE_DMA | \
+ 			 SLAB_STORE_USER | \
+ 			 SLAB_RECLAIM_ACCOUNT | SLAB_PANIC | \
+-			 SLAB_DESTROY_BY_RCU | SLAB_MEM_SPREAD)
++			 SLAB_DESTROY_BY_RCU | SLAB_MEM_SPREAD | \
++			 SLAB_DEBUG_OBJECTS)
+ #else
+ # define CREATE_MASK	(SLAB_HWCACHE_ALIGN | \
+ 			 SLAB_CACHE_DMA | \
+ 			 SLAB_RECLAIM_ACCOUNT | SLAB_PANIC | \
+-			 SLAB_DESTROY_BY_RCU | SLAB_MEM_SPREAD)
++			 SLAB_DESTROY_BY_RCU | SLAB_MEM_SPREAD | \
++			 SLAB_DEBUG_OBJECTS)
+ #endif
+ 
+ /*
+@@ -3761,6 +3764,8 @@ void kmem_cache_free(struct kmem_cache *
+ 
+ 	local_irq_save(flags);
+ 	debug_check_no_locks_freed(objp, obj_size(cachep));
++	if (!(cachep->flags & SLAB_DEBUG_OBJECTS))
++		debug_check_no_obj_freed(objp, obj_size(cachep));
+ 	__cache_free(cachep, objp);
+ 	local_irq_restore(flags);
+ }
+@@ -3786,6 +3791,7 @@ void kfree(const void *objp)
+ 	kfree_debugcheck(objp);
+ 	c = virt_to_cache(objp);
+ 	debug_check_no_locks_freed(objp, obj_size(c));
++	debug_check_no_obj_freed(objp, obj_size(c));
+ 	__cache_free(c, (void *)objp);
+ 	local_irq_restore(flags);
+ }
+diff -puN mm/slub.c~infrastructure-to-debug-dynamic-objects mm/slub.c
+--- a/mm/slub.c~infrastructure-to-debug-dynamic-objects
++++ a/mm/slub.c
+@@ -19,6 +19,7 @@
+ #include <linux/cpuset.h>
+ #include <linux/mempolicy.h>
+ #include <linux/ctype.h>
++#include <linux/debugobjects.h>
+ #include <linux/kallsyms.h>
+ #include <linux/memory.h>
+ #include <linux/math64.h>
+@@ -1696,6 +1697,8 @@ static __always_inline void slab_free(st
+ 	local_irq_save(flags);
+ 	c = get_cpu_slab(s, smp_processor_id());
+ 	debug_check_no_locks_freed(object, c->objsize);
++	if (!(s->flags & SLAB_DEBUG_OBJECTS))
++		debug_check_no_obj_freed(object, s->objsize);
+ 	if (likely(page == c->page && c->node >= 0)) {
+ 		object[c->offset] = c->freelist;
+ 		c->freelist = object;
+diff -puN mm/vmalloc.c~infrastructure-to-debug-dynamic-objects mm/vmalloc.c
+--- a/mm/vmalloc.c~infrastructure-to-debug-dynamic-objects
++++ a/mm/vmalloc.c
+@@ -15,6 +15,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/interrupt.h>
+ #include <linux/seq_file.h>
++#include <linux/debugobjects.h>
+ #include <linux/vmalloc.h>
+ #include <linux/kallsyms.h>
+ 
+@@ -394,6 +395,7 @@ static void __vunmap(const void *addr, i
+ 	}
+ 
+ 	debug_check_no_locks_freed(addr, area->size);
++	debug_check_no_obj_freed(addr, area->size);
+ 
+ 	if (deallocate_pages) {
+ 		int i;
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
