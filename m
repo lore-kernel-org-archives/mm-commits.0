@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + signals-allow-the-kernel-to-actually-kill-sbin-init.patch added to -mm tree
-Date: Mon, 24 Mar 2008 15:24:16 -0700
-Message-ID: <200803242224.m2OMOHen028422@imap1.linux-foundation.org>
+Subject: + signals-fix-sbin-init-protection-from-unwanted-signals.patch added to -mm tree
+Date: Mon, 24 Mar 2008 15:24:12 -0700
+Message-ID: <200803242224.m2OMOCKf028412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60286 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57146 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753490AbYCXWZ1 (ORCPT
+	by vger.kernel.org with ESMTP id S1753514AbYCXWZf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 18:25:27 -0400
+	Mon, 24 Mar 2008 18:25:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+Cc: oleg@tv-sign.ru, ebiederm@xmission.com, roland@redhat.com
 
 
 The patch titled
-     signals: allow the kernel to actually kill /sbin/init
+     signals: fix /sbin/init protection from unwanted signals
 has been added to the -mm tree.  Its filename is
-     signals-allow-the-kernel-to-actually-kill-sbin-init.patch
+     signals-fix-sbin-init-protection-from-unwanted-signals.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: allow the kernel to actually kill /sbin/init
+Subject: signals: fix /sbin/init protection from unwanted signals
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Currently the buggy /sbin/init hangs if SIGSEGV/etc happens.  The kernel sends
-the signal, init dequeues it and ignores, returns from the exception, repeats
-the faulting instruction, and so on forever.
+The global init has a lot of long standing problems with the unhandled fatal
+signals.
 
-Imho, such a behaviour is not good.  I think that the explicit loud death of
-the buggy /sbin/init is better than the silent hang.
+	- The "is_global_init(current)" check in get_signal_to_deliver()
+	  protects only the main thread. Sub-thread can dequee the fatal
+	  signal and shutdown the whole thread group except the main thread.
+	  If it dequeues SIGSTOP /sbin/init will be stopped, this is not
+	  right too. Note that we can't use is_global_init(->group_leader),
+	  this breaks exec and this can't solve other problems we have.
 
-Change force_sig_info() to clear SIGNAL_UNKILLABLE when the task should be
-really killed.
+	- Even if afterwards ignored, the fatal signals sets SIGNAL_GROUP_EXIT
+	  on delivery. This breaks exec, has other bad implications, and this
+	  is just wrong.
+
+Introduce the new SIGNAL_UNKILLABLE flag to fix these problems.  It also helps
+to solve some other problems addressed by the subsequent patches.
+
+Currently we use this flag for the global init only, but it could also be used
+by kthreads and (perhaps) by the sub-namespace inits.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/sched.h |    2 ++
+ init/main.c           |    2 ++
+ kernel/signal.c       |    9 ++++++---
+ 3 files changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN kernel/signal.c~signals-allow-the-kernel-to-actually-kill-sbin-init kernel/signal.c
---- a/kernel/signal.c~signals-allow-the-kernel-to-actually-kill-sbin-init
-+++ a/kernel/signal.c
-@@ -892,7 +892,8 @@ specific_send_sig_info(int sig, struct s
-  * since we do not want to have a signal handler that was blocked
-  * be invoked when user space had explicitly blocked it.
-  *
-- * We don't want to have recursive SIGSEGV's etc, for example.
-+ * We don't want to have recursive SIGSEGV's etc, for example,
-+ * that is why we also clear SIGNAL_UNKILLABLE.
-  */
- int
- force_sig_info(int sig, struct siginfo *info, struct task_struct *t)
-@@ -912,6 +913,8 @@ force_sig_info(int sig, struct siginfo *
- 			recalc_sigpending_and_wake(t);
- 		}
- 	}
-+	if (action->sa.sa_handler == SIG_DFL)
-+		t->signal->flags &= ~SIGNAL_UNKILLABLE;
- 	ret = specific_send_sig_info(sig, info, t);
- 	spin_unlock_irqrestore(&t->sighand->siglock, flags);
+diff -puN include/linux/sched.h~signals-fix-sbin-init-protection-from-unwanted-signals include/linux/sched.h
+--- a/include/linux/sched.h~signals-fix-sbin-init-protection-from-unwanted-signals
++++ a/include/linux/sched.h
+@@ -561,6 +561,8 @@ struct signal_struct {
+ #define SIGNAL_CLD_CONTINUED	0x00000020
+ #define SIGNAL_CLD_MASK		(SIGNAL_CLD_STOPPED|SIGNAL_CLD_CONTINUED)
  
++#define SIGNAL_UNKILLABLE	0x00000040 /* for init: ignore fatal signals */
++
+ /* If true, all threads except ->group_exit_task have pending SIGKILL */
+ static inline int signal_group_exit(const struct signal_struct *sig)
+ {
+diff -puN init/main.c~signals-fix-sbin-init-protection-from-unwanted-signals init/main.c
+--- a/init/main.c~signals-fix-sbin-init-protection-from-unwanted-signals
++++ a/init/main.c
+@@ -781,6 +781,8 @@ static int noinline init_post(void)
+ 	(void) sys_dup(0);
+ 	(void) sys_dup(0);
+ 
++	current->signal->flags |= SIGNAL_UNKILLABLE;
++
+ 	if (ramdisk_execute_command) {
+ 		run_init_process(ramdisk_execute_command);
+ 		printk(KERN_WARNING "Failed to execute %s\n",
+diff -puN kernel/signal.c~signals-fix-sbin-init-protection-from-unwanted-signals kernel/signal.c
+--- a/kernel/signal.c~signals-fix-sbin-init-protection-from-unwanted-signals
++++ a/kernel/signal.c
+@@ -728,7 +728,8 @@ static void complete_signal(int sig, str
+ 	 * Found a killable thread.  If the signal will be fatal,
+ 	 * then start taking the whole group down immediately.
+ 	 */
+-	if (sig_fatal(p, sig) && !(signal->flags & SIGNAL_GROUP_EXIT) &&
++	if (sig_fatal(p, sig) &&
++	    !(signal->flags & (SIGNAL_UNKILLABLE | SIGNAL_GROUP_EXIT)) &&
+ 	    !sigismember(&t->real_blocked, sig) &&
+ 	    (sig == SIGKILL || !(t->ptrace & PT_PTRACED))) {
+ 		/*
+@@ -1615,7 +1616,8 @@ static int do_signal_stop(int signr)
+ 	} else {
+ 		struct task_struct *t;
+ 
+-		if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED) ||
++		if (unlikely((sig->flags & (SIGNAL_STOP_DEQUEUED | SIGNAL_UNKILLABLE))
++					 != SIGNAL_STOP_DEQUEUED) ||
+ 		    unlikely(signal_group_exit(sig)))
+ 			return 0;
+ 		/*
+@@ -1748,7 +1750,8 @@ relock:
+ 		/*
+ 		 * Global init gets no signals it doesn't want.
+ 		 */
+-		if (is_global_init(current))
++		if (unlikely(signal->flags & SIGNAL_UNKILLABLE) &&
++		    !signal_group_exit(signal))
+ 			continue;
+ 
+ 		if (sig_kernel_stop(signr)) {
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
