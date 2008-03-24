@@ -1,164 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: + revert-kswapd-should-only-wait-on-io-if-there-is-io.patch added to -mm tree
-Date: Sat, 22 Mar 2008 22:41:47 -0700
-Message-ID: <200803230541.m2N5fllb010616@imap1.linux-foundation.org>
+Subject: - git-sh-git-rejects.patch removed from -mm tree
+Date: Mon, 24 Mar 2008 12:21:53 -0700
+Message-ID: <200803241921.m2OJLrIA021332@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50620 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36599 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751795AbYCWFma (ORCPT
+	by vger.kernel.org with ESMTP id S1758262AbYCXTV6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 23 Mar 2008 01:42:30 -0400
+	Mon, 24 Mar 2008 15:21:58 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2OJLur6023297
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 24 Mar 2008 12:21:57 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, crmafra2@gmail.com, riel@redhat.com, torvalds@linux-foundation.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "kswapd should only wait on IO if there is IO"
-has been added to the -mm tree.  Its filename is
-     revert-kswapd-should-only-wait-on-io-if-there-is-io.patch
+     git-sh-git-rejects
+has been removed from the -mm tree.  Its filename was
+     git-sh-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "kswapd should only wait on IO if there is IO"
+Subject: git-sh-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert
-
-commit f1a9ee758de7de1e040de849fdef46e6802ea117
-Author: Rik van Riel <riel@redhat.com>
-Date:   Thu Feb 7 00:14:08 2008 -0800
-
-    kswapd should only wait on IO if there is IO
-    
-    The current kswapd (and try_to_free_pages) code has an oddity where the
-    code will wait on IO, even if there is no IO in flight.  This problem is
-    notable especially when the system scans through many unfreeable pages,
-    causing unnecessary stalls in the VM.
-    
-    Additionally, tasks without __GFP_FS or __GFP_IO in the direct reclaim path
-    will sleep if a significant number of pages are encountered that should be
-    written out.  This gives kswapd a chance to write out those pages, while
-    the direct reclaim task sleeps.
-    
-    Signed-off-by: Rik van Riel <riel@redhat.com>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-
-Because of large latencies and interactivity problems reported by Carlos,
-here: http://lkml.org/lkml/2008/3/22/211
-
-Cc: Rik van Riel <riel@redhat.com>
-Cc: "Carlos R.  Mafra" <crmafra2@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   27 +++++----------------------
- 1 file changed, 5 insertions(+), 22 deletions(-)
+ arch/sh/Kconfig |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/vmscan.c~revert-kswapd-should-only-wait-on-io-if-there-is-io mm/vmscan.c
---- a/mm/vmscan.c~revert-kswapd-should-only-wait-on-io-if-there-is-io
-+++ a/mm/vmscan.c
-@@ -70,13 +70,6 @@ struct scan_control {
+diff -puN arch/sh/Kconfig~git-sh-git-rejects arch/sh/Kconfig
+--- a/arch/sh/Kconfig~git-sh-git-rejects
++++ a/arch/sh/Kconfig
+@@ -595,10 +595,7 @@ config SH_TIMER_IRQ
+ 	default "86" if CPU_SUBTYPE_SH7619
+ 	default "140" if CPU_SUBTYPE_SH7206
+ 	default "142" if CPU_SUBTYPE_SH7203
+-<<<<<<< HEAD:arch/sh/Kconfig
+-=======
+ 	default "238" if CPU_SUBTYPE_MXG
+->>>>>>> FETCH_HEAD:arch/sh/Kconfig
+ 	default "16"
  
- 	int order;
- 
--	/*
--	 * Pages that have (or should have) IO pending.  If we run into
--	 * a lot of these, we're better off waiting a little for IO to
--	 * finish rather than scanning more pages in the VM.
--	 */
--	int nr_io_pages;
--
- 	/* Which cgroup do we reclaim from */
- 	struct mem_cgroup *mem_cgroup;
- 
-@@ -512,10 +505,8 @@ static unsigned long shrink_page_list(st
- 			 */
- 			if (sync_writeback == PAGEOUT_IO_SYNC && may_enter_fs)
- 				wait_on_page_writeback(page);
--			else {
--				sc->nr_io_pages++;
-+			else
- 				goto keep_locked;
--			}
- 		}
- 
- 		referenced = page_referenced(page, 1, sc->mem_cgroup);
-@@ -554,10 +545,8 @@ static unsigned long shrink_page_list(st
- 		if (PageDirty(page)) {
- 			if (sc->order <= PAGE_ALLOC_COSTLY_ORDER && referenced)
- 				goto keep_locked;
--			if (!may_enter_fs) {
--				sc->nr_io_pages++;
-+			if (!may_enter_fs)
- 				goto keep_locked;
--			}
- 			if (!sc->may_writepage)
- 				goto keep_locked;
- 
-@@ -568,10 +557,8 @@ static unsigned long shrink_page_list(st
- 			case PAGE_ACTIVATE:
- 				goto activate_locked;
- 			case PAGE_SUCCESS:
--				if (PageWriteback(page) || PageDirty(page)) {
--					sc->nr_io_pages++;
-+				if (PageWriteback(page) || PageDirty(page))
- 					goto keep;
--				}
- 				/*
- 				 * A synchronous write - probably a ramdisk.  Go
- 				 * ahead and try to reclaim the page.
-@@ -1344,7 +1331,6 @@ static unsigned long do_try_to_free_page
- 
- 	for (priority = DEF_PRIORITY; priority >= 0; priority--) {
- 		sc->nr_scanned = 0;
--		sc->nr_io_pages = 0;
- 		if (!priority)
- 			disable_swap_token();
- 		nr_reclaimed += shrink_zones(priority, zones, sc);
-@@ -1379,8 +1365,7 @@ static unsigned long do_try_to_free_page
- 		}
- 
- 		/* Take a nap, wait for some writeback to complete */
--		if (sc->nr_scanned && priority < DEF_PRIORITY - 2 &&
--				sc->nr_io_pages > sc->swap_cluster_max)
-+		if (sc->nr_scanned && priority < DEF_PRIORITY - 2)
- 			congestion_wait(WRITE, HZ/10);
- 	}
- 	/* top priority shrink_caches still had more to do? don't OOM, then */
-@@ -1514,7 +1499,6 @@ loop_again:
- 		if (!priority)
- 			disable_swap_token();
- 
--		sc.nr_io_pages = 0;
- 		all_zones_ok = 1;
- 
- 		/*
-@@ -1607,8 +1591,7 @@ loop_again:
- 		 * OK, kswapd is getting into trouble.  Take a nap, then take
- 		 * another pass across the zones.
- 		 */
--		if (total_scanned && priority < DEF_PRIORITY - 2 &&
--					sc.nr_io_pages > sc.swap_cluster_max)
-+		if (total_scanned && priority < DEF_PRIORITY - 2)
- 			congestion_wait(WRITE, HZ/10);
- 
- 		/*
+ config SH_PCLK_FREQ
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -193,6 +85,7 @@ git-leds.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-async-tx.patch
+git-net.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
