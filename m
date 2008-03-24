@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-reserve_bootmem-can-crossed-the-nodes.patch added to -mm tree
-Date: Mon, 24 Mar 2008 12:49:05 -0700
-Message-ID: <200803241949.m2OJn6mS022413@imap1.linux-foundation.org>
+Subject: + slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch added to -mm tree
+Date: Mon, 24 Mar 2008 13:13:20 -0700
+Message-ID: <200803242013.m2OKDKQN023402@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43954 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43226 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751266AbYCXTuD (ORCPT
+	by vger.kernel.org with ESMTP id S1751162AbYCXUOC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 15:50:03 -0400
+	Mon, 24 Mar 2008 16:14:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yhlu.kernel.send@gmail.com, ak@suse.de, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mingo@elte.hu, y-goto@jp.fujitsu.com, yhlu.kernel@gmail.com
+Cc: tglx@linutronix.de, clameter@sgi.com, mingo@elte.hu, penberg@cs.helsinki.fi
 
 
 The patch titled
-     mm: make reserve_bootmem can crossed the nodes
+     slab: add a flag to prevent debug_free checks on a kmem_cache
 has been added to the -mm tree.  Its filename is
-     mm-make-reserve_bootmem-can-crossed-the-nodes.patch
+     slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,161 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make reserve_bootmem can crossed the nodes
-From: Yinghai Lu <yhlu.kernel.send@gmail.com>
+Subject: slab: add a flag to prevent debug_free checks on a kmem_cache
+From: Thomas Gleixner <tglx@linutronix.de>
 
-Split reserve_bootmem_core to two function, one check conflicts, and one set
-bits.
+This is a preperatory patch for the debugobjects infrastructure.  The flag
+prevents debug_free checks on kmem_caches.  This is necessary to avoid
+resursive calls into a debug mechanism which uses a kmem_cache itself.
 
-And make reserve_bootmem to loop bdata_list to cross the nodes.
-
-User could be crashkernel and ramdisk..., in case the range crosses the nodes
-
-Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Ingo Molnar <mingo@elte.hu>
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   85 ++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 63 insertions(+), 22 deletions(-)
+ include/linux/slab.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/bootmem.c~mm-make-reserve_bootmem-can-crossed-the-nodes mm/bootmem.c
---- a/mm/bootmem.c~mm-make-reserve_bootmem-can-crossed-the-nodes
-+++ a/mm/bootmem.c
-@@ -111,44 +111,71 @@ static unsigned long __init init_bootmem
-  * might be used for boot-time allocations - or it might get added
-  * to the free page pool later on.
-  */
--static int __init reserve_bootmem_core(bootmem_data_t *bdata,
-+static int __init can_reserve_bootmem_core(bootmem_data_t *bdata,
- 			unsigned long addr, unsigned long size, int flags)
- {
- 	unsigned long sidx, eidx;
- 	unsigned long i;
--	int ret;
-+
-+	BUG_ON(!size);
-+
-+	/* out of range, don't hold other */
-+	if (addr + size < bdata->node_boot_start ||
-+		PFN_DOWN(addr) > bdata->node_low_pfn)
-+		return 0;
+diff -puN include/linux/slab.h~slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache include/linux/slab.h
+--- a/include/linux/slab.h~slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache
++++ a/include/linux/slab.h
+@@ -29,6 +29,13 @@
+ #define SLAB_MEM_SPREAD		0x00100000UL	/* Spread some memory over cpuset */
+ #define SLAB_TRACE		0x00200000UL	/* Trace allocations and frees */
  
- 	/*
--	 * round up, partially reserved pages are considered
--	 * fully reserved.
-+	 * Round up to index to the range.
- 	 */
-+	if (addr > bdata->node_boot_start)
-+		sidx= PFN_DOWN(addr - bdata->node_boot_start);
-+	else
-+		sidx = 0;
++/* Flag to prevent checks on free */
++#ifdef CONFIG_DEBUG_OBJECTS
++# define SLAB_DEBUG_OBJECTS	0x00400000UL
++#else
++# define SLAB_DEBUG_OBJECTS	0x00000000UL
++#endif
 +
-+	eidx = PFN_UP(addr + size - bdata->node_boot_start);
-+	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
-+		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
-+
-+	for (i = sidx; i < eidx; i++)
-+		if (test_bit(i, bdata->node_bootmem_map)) {
-+			if (flags & BOOTMEM_EXCLUSIVE)
-+				return -EBUSY;
-+		}
-+
-+	return 0;
-+
-+}
-+static void __init reserve_bootmem_core(bootmem_data_t *bdata,
-+			unsigned long addr, unsigned long size, int flags)
-+{
-+	unsigned long sidx, eidx;
-+	unsigned long i;
-+
- 	BUG_ON(!size);
--	BUG_ON(PFN_DOWN(addr) >= bdata->node_low_pfn);
--	BUG_ON(PFN_UP(addr + size) > bdata->node_low_pfn);
--	BUG_ON(addr < bdata->node_boot_start);
- 
--	sidx = PFN_DOWN(addr - bdata->node_boot_start);
-+	/* out of range */
-+	if (addr + size < bdata->node_boot_start ||
-+		PFN_DOWN(addr) > bdata->node_low_pfn)
-+		return;
-+
-+	/*
-+	 * Round up to index to the range.
-+	 */
-+	if (addr > bdata->node_boot_start)
-+		sidx= PFN_DOWN(addr - bdata->node_boot_start);
-+	else
-+		sidx = 0;
-+
- 	eidx = PFN_UP(addr + size - bdata->node_boot_start);
-+	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
-+		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
- 
- 	for (i = sidx; i < eidx; i++)
- 		if (test_and_set_bit(i, bdata->node_bootmem_map)) {
- #ifdef CONFIG_DEBUG_BOOTMEM
- 			printk("hm, page %08lx reserved twice.\n", i*PAGE_SIZE);
- #endif
--			if (flags & BOOTMEM_EXCLUSIVE) {
--				ret = -EBUSY;
--				goto err;
--			}
- 		}
--
--	return 0;
--
--err:
--	/* unreserve memory we accidentally reserved */
--	for (i--; i >= sidx; i--)
--		clear_bit(i, bdata->node_bootmem_map);
--
--	return ret;
- }
- 
- static void __init free_bootmem_core(bootmem_data_t *bdata, unsigned long addr,
-@@ -415,6 +442,11 @@ unsigned long __init init_bootmem_node(p
- void __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
- 				 unsigned long size, int flags)
- {
-+	int ret;
-+
-+	ret = can_reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
-+	if (ret < 0)
-+		return;
- 	reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
- }
- 
-@@ -440,7 +472,16 @@ unsigned long __init init_bootmem(unsign
- int __init reserve_bootmem(unsigned long addr, unsigned long size,
- 			    int flags)
- {
--	return reserve_bootmem_core(NODE_DATA(0)->bdata, addr, size, flags);
-+	int ret;
-+	bootmem_data_t *bdata;
-+	list_for_each_entry(bdata, &bdata_list, list) {
-+		ret = can_reserve_bootmem_core(bdata, addr, size, flags);
-+		if (ret < 0)
-+			return ret;
-+	}
-+	list_for_each_entry(bdata, &bdata_list, list)
-+		reserve_bootmem_core(bdata, addr, size, flags);
-+	return 0;
- }
- #endif /* !CONFIG_HAVE_ARCH_BOOTMEM_NODE */
- 
+ /* The following flags affect the page allocator grouping pages by mobility */
+ #define SLAB_RECLAIM_ACCOUNT	0x00020000UL		/* Objects are reclaimable */
+ #define SLAB_TEMPORARY		SLAB_RECLAIM_ACCOUNT	/* Objects are short-lived */
 _
 
-Patches currently in -mm which might be from yhlu.kernel.send@gmail.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 origin.patch
-mm-allocate-section_map-for-sparse_init-update.patch
-mm-offset-align-in-alloc_bootmem.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes.patch
+git-x86.patch
+add-the-dff-desktop-form-factor-dell-optiplex-745-to-the-reboot-errata-list.patch
+x86-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+x86_64-do-not-reserve-ramdisk-two-times.patch
+x86-handle_vm86_trap-cleanup.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+x86_64-ia32-ptrace-vs-enosys.patch
+x86_64-ptrace-vs-enosys.patch
+x86_64-ia32-ptrace-vs-enosys-sysenter-syscall.patch
+git-kgdb-light.patch
+git-acpi-fixup.patch
+git-hrt.patch
+provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+fix-typo-in-tick-broadcastc.patch
+git-kvm.patch
+mtd-nor-add-support-for-the-st-m29w400db-flash-chip.patch
+git-s390.patch
+execute-tasklets-in-the-same-order-they-were-queued.patch
+git-sched-schedc-needs-tickh.patch
+git-semaphore-git-rejects.patch
+x86-dont-allow-kvm_clock-without-have_kvm.patch
+mm-move-cache_line_size-to-linux-cacheh.patch
+proper-extern-for-late_time_init.patch
+x86-configurable-dmi-scanning-code.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+asm-futexh-should-include-linux-uaccessh.patch
+introduce-explicit-signed-unsigned-64bit-divide.patch
+convert-a-few-do_div-user.patch
+rename-div64_64-to-div64_u64-mm.patch
+remove-div_long_long_rem.patch
+ntp-cleanup-ntpc.patch
+ntp-ntp4-user-space-bits-update.patch
+ntp-increase-time_freq-resolution.patch
+ntp-increase-time_offset-resolution.patch
+ntp-support-for-tai.patch
+ntp-rename-tick_length_shift-to-ntp_scale_shift.patch
+ntp-remove-current_tick_length.patch
+ntp-handle-leap-second-via-timer.patch
+clocksource-keep-track-of-original-clocksource-frequency.patch
+introduce-a-generic-__fls-implementation.patch
+implement-__fls-on-all-64-bit-archs.patch
+use-__fls-for-fls64-on-64-bit-archs.patch
+slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 
