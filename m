@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + debugobjects-add-timer-specific-object-debugging-code.patch added to -mm tree
-Date: Mon, 24 Mar 2008 13:13:30 -0700
-Message-ID: <200803242013.m2OKDU2o023412@imap1.linux-foundation.org>
+Subject: + debugobjects-add-documentation.patch added to -mm tree
+Date: Mon, 24 Mar 2008 13:13:28 -0700
+Message-ID: <200803242013.m2OKDSDe023409@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751432AbYCXUOE (ORCPT
+	by vger.kernel.org with ESMTP id S1751596AbYCXUOH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 16:14:04 -0400
+	Mon, 24 Mar 2008 16:14:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: tglx@linutronix.de, greg@kroah.com, kay.sievers@vrfy.org, mingo@elte.hu, ran
 
 
 The patch titled
-     debugobjects: add timer specific object debugging code
+     debugobjects: add documentation
 has been added to the -mm tree.  Its filename is
-     debugobjects-add-timer-specific-object-debugging-code.patch
+     debugobjects-add-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: debugobjects: add timer specific object debugging code
+Subject: debugobjects: add documentation
 From: Thomas Gleixner <tglx@linutronix.de>
 
-Add calls to the generic object debugging infrastructure and provide fixup
-functions which allow to keep the system alive when recoverable problems have
-been detected by the object debugging core code.
+Add a DocBook for debugobjects.
 
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Acked-by: Ingo Molnar <mingo@elte.hu>
@@ -49,354 +47,418 @@ Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/ieee1284.c |    4 
- fs/aio.c                   |    5 -
- include/linux/poison.h     |    7 +
- include/linux/timer.h      |   23 +++++
- kernel/timer.c             |  153 +++++++++++++++++++++++++++++++++--
- lib/Kconfig.debug          |    8 +
- 6 files changed, 187 insertions(+), 13 deletions(-)
+ Documentation/DocBook/Makefile          |    3 
+ Documentation/DocBook/debugobjects.tmpl |  391 ++++++++++++++++++++++
+ 2 files changed, 393 insertions(+), 1 deletion(-)
 
-diff -puN drivers/parport/ieee1284.c~debugobjects-add-timer-specific-object-debugging-code drivers/parport/ieee1284.c
---- a/drivers/parport/ieee1284.c~debugobjects-add-timer-specific-object-debugging-code
-+++ a/drivers/parport/ieee1284.c
-@@ -76,7 +76,7 @@ int parport_wait_event (struct parport *
- 		   semaphore. */
- 		return 1;
+diff -puN Documentation/DocBook/Makefile~debugobjects-add-documentation Documentation/DocBook/Makefile
+--- a/Documentation/DocBook/Makefile~debugobjects-add-documentation
++++ a/Documentation/DocBook/Makefile
+@@ -11,7 +11,8 @@ DOCBOOKS := wanbook.xml z8530book.xml mc
+ 	    procfs-guide.xml writing_usb_driver.xml networking.xml \
+ 	    kernel-api.xml filesystems.xml lsm.xml usb.xml \
+ 	    gadget.xml libata.xml mtdnand.xml librs.xml rapidio.xml \
+-	    genericirq.xml s390-drivers.xml uio-howto.xml scsi.xml
++	    genericirq.xml s390-drivers.xml uio-howto.xml scsi.xml \
++	    debugobjects.xml
  
--	init_timer (&timer);
-+	init_timer_on_stack(&timer);
- 	timer.expires = jiffies + timeout;
- 	timer.function = timeout_waiting_on_port;
- 	port_from_cookie[port->number % PARPORT_MAX] = port;
-@@ -88,6 +88,8 @@ int parport_wait_event (struct parport *
- 		/* Timed out. */
- 		ret = 1;
- 
-+	destroy_timer_on_stack(&timer);
+ ###
+ # The build process is as follows (targets):
+diff -puN /dev/null Documentation/DocBook/debugobjects.tmpl
+--- /dev/null
++++ a/Documentation/DocBook/debugobjects.tmpl
+@@ -0,0 +1,391 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
++	"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" []>
 +
- 	return ret;
- }
- 
-diff -puN fs/aio.c~debugobjects-add-timer-specific-object-debugging-code fs/aio.c
---- a/fs/aio.c~debugobjects-add-timer-specific-object-debugging-code
-+++ a/fs/aio.c
-@@ -1080,9 +1080,7 @@ static void timeout_func(unsigned long d
- 
- static inline void init_timeout(struct aio_timeout *to)
- {
--	init_timer(&to->timer);
--	to->timer.data = (unsigned long)to;
--	to->timer.function = timeout_func;
-+	setup_timer_on_stack(&to->timer, timeout_func, (unsigned long) to);
- 	to->timed_out = 0;
- 	to->p = current;
- }
-@@ -1212,6 +1210,7 @@ retry:
- 	if (timeout)
- 		clear_timeout(&to);
- out:
-+	destroy_timer_on_stack(&to.timer);
- 	return i ? i : ret;
- }
- 
-diff -puN include/linux/poison.h~debugobjects-add-timer-specific-object-debugging-code include/linux/poison.h
---- a/include/linux/poison.h~debugobjects-add-timer-specific-object-debugging-code
-+++ a/include/linux/poison.h
-@@ -10,6 +10,13 @@
- #define LIST_POISON1  ((void *) 0x00100100)
- #define LIST_POISON2  ((void *) 0x00200200)
- 
-+/********** include/linux/timer.h **********/
-+/*
-+ * Magic number "tsta" to indicate a static timer initializer
-+ * for the object debugging code.
-+ */
-+#define TIMER_ENTRY_STATIC	((void *) 0x74737461)
++<book id="debug-objects-guide">
++ <bookinfo>
++  <title>Debug objects life time</title>
 +
- /********** mm/slab.c **********/
- /*
-  * Magic nums for obj red zoning.
-diff -puN include/linux/timer.h~debugobjects-add-timer-specific-object-debugging-code include/linux/timer.h
---- a/include/linux/timer.h~debugobjects-add-timer-specific-object-debugging-code
-+++ a/include/linux/timer.h
-@@ -4,6 +4,7 @@
- #include <linux/list.h>
- #include <linux/ktime.h>
- #include <linux/stddef.h>
-+#include <linux/debugobjects.h>
- 
- struct tvec_base;
- 
-@@ -25,6 +26,7 @@ struct timer_list {
- extern struct tvec_base boot_tvec_bases;
- 
- #define TIMER_INITIALIZER(_function, _expires, _data) {		\
-+		.entry = { .prev = TIMER_ENTRY_STATIC },	\
- 		.function = (_function),			\
- 		.expires = (_expires),				\
- 		.data = (_data),				\
-@@ -38,6 +40,17 @@ extern struct tvec_base boot_tvec_bases;
- void init_timer(struct timer_list *timer);
- void init_timer_deferrable(struct timer_list *timer);
- 
-+#ifdef CONFIG_DEBUG_OBJECTS_TIMERS
-+extern void init_timer_on_stack(struct timer_list *timer);
-+extern void destroy_timer_on_stack(struct timer_list *timer);
-+#else
-+static inline void destroy_timer_on_stack(struct timer_list *timer) { }
-+static inline void init_timer_on_stack(struct timer_list *timer)
-+{
-+	init_timer(timer);
-+}
-+#endif
++  <authorgroup>
++   <author>
++    <firstname>Thomas</firstname>
++    <surname>Gleixner</surname>
++    <affiliation>
++     <address>
++      <email>tglx@linutronix.de</email>
++     </address>
++    </affiliation>
++   </author>
++  </authorgroup>
 +
- static inline void setup_timer(struct timer_list * timer,
- 				void (*function)(unsigned long),
- 				unsigned long data)
-@@ -47,6 +60,15 @@ static inline void setup_timer(struct ti
- 	init_timer(timer);
- }
- 
-+static inline void setup_timer_on_stack(struct timer_list *timer,
-+					void (*function)(unsigned long),
-+					unsigned long data)
-+{
-+	timer->function = function;
-+	timer->data = data;
-+	init_timer_on_stack(timer);
-+}
++  <copyright>
++   <year>2008</year>
++   <holder>Thomas Gleixner</holder>
++  </copyright>
 +
- /**
-  * timer_pending - is a timer pending?
-  * @timer: the timer in question
-@@ -164,5 +186,4 @@ unsigned long __round_jiffies_relative(u
- unsigned long round_jiffies(unsigned long j);
- unsigned long round_jiffies_relative(unsigned long j);
- 
--
- #endif
-diff -puN kernel/timer.c~debugobjects-add-timer-specific-object-debugging-code kernel/timer.c
---- a/kernel/timer.c~debugobjects-add-timer-specific-object-debugging-code
-+++ a/kernel/timer.c
-@@ -320,14 +320,130 @@ static void timer_stats_account_timer(st
- static void timer_stats_account_timer(struct timer_list *timer) {}
- #endif
- 
--/**
-- * init_timer - initialize a timer.
-- * @timer: the timer to be initialized
-- *
-- * init_timer() must be done to a timer prior calling *any* of the
-- * other timer functions.
-+#ifdef CONFIG_DEBUG_OBJECTS_TIMERS
++  <legalnotice>
++   <para>
++     This documentation is free software; you can redistribute
++     it and/or modify it under the terms of the GNU General Public
++     License version 2 as published by the Free Software Foundation.
++   </para>
 +
-+static struct debug_obj_descr timer_debug_descr;
++   <para>
++     This program is distributed in the hope that it will be
++     useful, but WITHOUT ANY WARRANTY; without even the implied
++     warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
++     See the GNU General Public License for more details.
++   </para>
 +
-+/*
-+ * fixup_init is called when:
-+ * - an active object is initialized
-  */
--void init_timer(struct timer_list *timer)
-+static int timer_fixup_init(void *addr, enum debug_obj_state state)
-+{
-+	struct timer_list *timer = addr;
++   <para>
++     You should have received a copy of the GNU General Public
++     License along with this program; if not, write to the Free
++     Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
++     MA 02111-1307 USA
++   </para>
 +
-+	switch (state) {
-+	case ODEBUG_STATE_ACTIVE:
-+		del_timer_sync(timer);
-+		debug_object_init(timer, &timer_debug_descr);
-+		return 1;
-+	default:
-+		return 0;
-+	}
-+}
++   <para>
++     For more details see the file COPYING in the source
++     distribution of Linux.
++   </para>
++  </legalnotice>
++ </bookinfo>
 +
-+/*
-+ * fixup_activate is called when:
-+ * - an active object is activated
-+ * - an unknown object is activated (might be a statically initialized object)
-+ */
-+static int timer_fixup_activate(void *addr, enum debug_obj_state state)
-+{
-+	struct timer_list *timer = addr;
++<toc></toc>
 +
-+	switch (state) {
++  <chapter id="intro">
++    <title>Introduction</title>
++    <para>
++      debugobjects is a generic infrastructure to track the life time
++      of kernel objects and validate the operations on those.
++    </para>
++    <para>
++      debugobjects is useful to check for the following error patterns:
++	<itemizedlist>
++	  <listitem><para>Activation of uninitialized objects</para></listitem>
++	  <listitem><para>Initialization of active objects</para></listitem>
++	  <listitem><para>Usage of freed/destroyed objects</para></listitem>
++	</itemizedlist>
++    </para>
++    <para>
++      debugobjects is not changing the data structure of the real
++      object so it can be compiled in with a minimal runtime impact
++      and enabled on demand with a kernel command line option.
++    </para>
++  </chapter>
 +
-+	case ODEBUG_STATE_NOTAVAILABLE:
-+		/*
-+		 * This is not really a fixup. The timer was
-+		 * statically initialized. We just make sure that it
-+		 * is tracked in the object tracker.
-+		 */
-+		if (timer->entry.next == NULL &&
-+		    timer->entry.prev == TIMER_ENTRY_STATIC) {
-+			debug_object_init(timer, &timer_debug_descr);
-+			debug_object_activate(timer, &timer_debug_descr);
-+			return 0;
-+		} else {
-+			WARN_ON_ONCE(1);
-+		}
-+		return 0;
++  <chapter id="howto">
++    <title>Howto use debugobjects</title>
++    <para>
++      A kernel subsystem needs to provide a data structure which
++      describes the object type and add calls into the debug code at
++      appropriate places. The data structure to describe the object
++      type needs at minimum the name of the object type. Optional
++      functions can and should be provided to fixup detected problems
++      so the kernel can continue to work and the debug information can
++      be retrieved from a live system instead of hard core debugging
++      with serial consoles and stack trace transcripts from the
++      monitor.
++    </para>
++    <para>
++      The debug calls provided by debugobjects are:
++      <itemizedlist>
++	<listitem><para>debug_object_init</para></listitem>
++	<listitem><para>debug_object_init_on_stack</para></listitem>
++	<listitem><para>debug_object_activate</para></listitem>
++	<listitem><para>debug_object_deactivate</para></listitem>
++	<listitem><para>debug_object_destroy</para></listitem>
++	<listitem><para>debug_object_free</para></listitem>
++      </itemizedlist>
++      Each of these functions takes the address of the real object and
++      a pointer to the object type specific debug description
++      structure.
++    </para>
++    <para>
++      Each detected error is reported in the statistics and a limited
++      number of errors are printk'ed including a full stack trace.
++    </para>
++    <para>
++      The statistics are available via debugfs/debug_objects/stats.
++      They provide information about the number of warnings and the
++      number of successful fixups along with information about the
++      usage of the internal tracking objects and the state of the
++      internal tracking objects pool.
++    </para>
++  </chapter>
++  <chapter id="debugfunctions">
++    <title>Debug functions</title>
++    <sect1 id="prototypes">
++      <title>Debug object function reference</title>
++!Elib/debugobjects.c
++    </sect1>
++    <sect1 id="debug_object_init">
++      <title>debug_object_init</title>
++      <para>
++	This function is called whenever the initialization function
++	of a real object is called.
++      </para>
++      <para>
++	When the real object is already tracked by debugobjects it is
++	checked, whether the object can be initialized.  Initializing
++	is not allowed for active and destroyed objects. When
++	debugobjects detects an error, then it calls the fixup_init
++	function of the object type description structure if provided
++	by the caller. The fixup function can correct the problem
++	before the real initialization of the object happens. E.g. it
++	can deactivate an active object in order to prevent damage to
++	the subsystem.
++      </para>
++      <para>
++	When the real object is not yet tracked by debugobjects,
++	debugobjects allocates a tracker object for the real object
++	and sets the tracker object state to ODEBUG_STATE_INIT. It
++	verifies that the object is not on the callers stack. If it is
++	on the callers stack then a limited number of warnings
++	including a full stack trace is printk'ed. The calling code
++	must use debug_object_init_on_stack() and remove the object
++	before leaving the function which allocated it. See next
++	section.
++      </para>
++    </sect1>
 +
-+	case ODEBUG_STATE_ACTIVE:
-+		WARN_ON(1);
++    <sect1 id="debug_object_init_on_stack">
++      <title>debug_object_init_on_stack</title>
++      <para>
++	This function is called whenever the initialization function
++	of a real object which resides on the stack is called.
++      </para>
++      <para>
++	When the real object is already tracked by debugobjects it is
++	checked, whether the object can be initialized. Initializing
++	is not allowed for active and destroyed objects. When
++	debugobjects detects an error, then it calls the fixup_init
++	function of the object type description structure if provided
++	by the caller. The fixup function can correct the problem
++	before the real initialization of the object happens. E.g. it
++	can deactivate an active object in order to prevent damage to
++	the subsystem.
++      </para>
++      <para>
++	When the real object is not yet tracked by debugobjects
++	debugobjects allocates a tracker object for the real object
++	and sets the tracker object state to ODEBUG_STATE_INIT. It
++	verifies that the object is on the callers stack.
++      </para>
++      <para>
++	An object which is on the stack must be removed from the
++	tracker by calling debug_object_free() before the function
++	which allocates the object returns. Otherwise we keep track of
++	stale objects.
++      </para>
++    </sect1>
 +
-+	default:
-+		return 0;
-+	}
-+}
++    <sect1 id="debug_object_activate">
++      <title>debug_object_activate</title>
++      <para>
++	This function is called whenever the activation function of a
++	real object is called.
++      </para>
++      <para>
++	When the real object is already tracked by debugobjects it is
++	checked, whether the object can be activated.  Activating is
++	not allowed for active and destroyed objects. When
++	debugobjects detects an error, then it calls the
++	fixup_activate function of the object type description
++	structure if provided by the caller. The fixup function can
++	correct the problem before the real activation of the object
++	happens. E.g. it can deactivate an active object in order to
++	prevent damage to the subsystem.
++      </para>
++      <para>
++	When the real object is not yet tracked by debugobjects then
++	the fixup_activate function is called if available. This is
++	necessary to allow the legitimate activation of statically
++	allocated and initialized objects. The fixup function checks
++	whether the object is valid and calls the debug_objects_init()
++	function to initialize the tracking of this object.
++      </para>
++      <para>
++	When the activation is legitimate, then the state of the
++	associated tracker object is set to ODEBUG_STATE_ACTIVE.
++      </para>
++    </sect1>
 +
-+/*
-+ * fixup_free is called when:
-+ * - an active object is freed
-+ */
-+static int timer_fixup_free(void *addr, enum debug_obj_state state)
-+{
-+	struct timer_list *timer = addr;
++    <sect1 id="debug_object_deactivate">
++      <title>debug_object_deactivate</title>
++      <para>
++	This function is called whenever the deactivation function of
++	a real object is called.
++      </para>
++      <para>
++	When the real object is tracked by debugobjects it is checked,
++	whether the object can be deactivated. Deactivating is not
++	allowed for untracked or destroyed objects.
++      </para>
++      <para>
++	When the deactivation is legitimate, then the state of the
++	associated tracker object is set to ODEBUG_STATE_INACTIVE.
++      </para>
++    </sect1>
 +
-+	switch (state) {
-+	case ODEBUG_STATE_ACTIVE:
-+		del_timer_sync(timer);
-+		debug_object_free(timer, &timer_debug_descr);
-+		return 1;
-+	default:
-+		return 0;
-+	}
-+}
++    <sect1 id="debug_object_destroy">
++      <title>debug_object_destroy</title>
++      <para>
++	This function is called to mark an object destroyed. This is
++	useful to prevent the usage of invalid objects, which are
++	still available in memory: either statically allocated objects
++	or objects which are freed later.
++      </para>
++      <para>
++	When the real object is tracked by debugobjects it is checked,
++	whether the object can be destroyed. Destruction is not
++	allowed for active and destroyed objects. When debugobjects
++	detects an error, then it calls the fixup_destroy function of
++	the object type description structure if provided by the
++	caller. The fixup function can correct the problem before the
++	real destruction of the object happens. E.g. it can deactivate
++	an active object in order to prevent damage to the subsystem.
++      </para>
++      <para>
++	When the destruction is legitimate, then the state of the
++	associated tracker object is set to ODEBUG_STATE_DESTROYED.
++      </para>
++    </sect1>
 +
-+static struct debug_obj_descr timer_debug_descr = {
-+	.name		= "timer_list",
-+	.fixup_init	= timer_fixup_init,
-+	.fixup_activate	= timer_fixup_activate,
-+	.fixup_free	= timer_fixup_free,
-+};
++    <sect1 id="debug_object_free">
++      <title>debug_object_free</title>
++      <para>
++	This function is called before an object is freed.
++      </para>
++      <para>
++	When the real object is tracked by debugobjects it is checked,
++	whether the object can be freed. Free is not allowed for
++	active objects. When debugobjects detects an error, then it
++	calls the fixup_free function of the object type description
++	structure if provided by the caller. The fixup function can
++	correct the problem before the real free of the object
++	happens. E.g. it can deactivate an active object in order to
++	prevent damage to the subsystem.
++      </para>
++      <para>
++	Note that debug_object_free removes the object from the
++	tracker. Later usage of the object is detected by the other
++	debug checks.
++      </para>
++    </sect1>
++  </chapter>
++  <chapter id="fixupfunctions">
++    <title>Fixup functions</title>
++    <sect1 id="debug_obj_descr">
++      <title>Debug object type description structure</title>
++!Iinclude/linux/debugobjects.h
++    </sect1>
++    <sect1 id="fixup_init">
++      <title>fixup_init</title>
++      <para>
++	This function is called from the debug code whenever a problem
++	in debug_object_init is detected. The function takes the
++	address of the object and the state which is currently
++	recorded in the tracker.
++      </para>
++      <para>
++	Called from debug_object_init when the object state is:
++	<itemizedlist>
++	  <listitem><para>ODEBUG_STATE_ACTIVE</para></listitem>
++	</itemizedlist>
++      </para>
++      <para>
++	The function returns 1 when the fixup was successful,
++	otherwise 0. The return value is used to update the
++	statistics.
++      </para>
++      <para>
++	Note, that the function needs to call the debug_object_init()
++	function again, after the damage has been repaired in order to
++	keep the state consistent.
++      </para>
++    </sect1>
 +
-+static inline void debug_timer_init(struct timer_list *timer)
-+{
-+	debug_object_init(timer, &timer_debug_descr);
-+}
++    <sect1 id="fixup_activate">
++      <title>fixup_activate</title>
++      <para>
++	This function is called from the debug code whenever a problem
++	in debug_object_activate is detected.
++      </para>
++      <para>
++	Called from debug_object_activate when the object state is:
++	<itemizedlist>
++	  <listitem><para>ODEBUG_STATE_NOTAVAILABLE</para></listitem>
++	  <listitem><para>ODEBUG_STATE_ACTIVE</para></listitem>
++	</itemizedlist>
++      </para>
++      <para>
++	The function returns 1 when the fixup was successful,
++	otherwise 0. The return value is used to update the
++	statistics.
++      </para>
++      <para>
++	Note that the function needs to call the debug_object_activate()
++	function again after the damage has been repaired in order to
++	keep the state consistent.
++      </para>
++      <para>
++	The activation of statically initialized objects is a special
++	case. When debug_object_activate() has no tracked object for
++	this object address then fixup_activate() is called with
++	object state ODEBUG_STATE_NOTAVAILABLE. The fixup function
++	needs to check whether this is a legitimate case of a
++	statically initialized object or not. In case it is it calls
++	debug_object_init() and debug_object_activate() to make the
++	object known to the tracker and marked active. In this case
++	the function should return 0 because this is not a real fixup.
++      </para>
++    </sect1>
 +
-+static inline void debug_timer_activate(struct timer_list *timer)
-+{
-+	debug_object_activate(timer, &timer_debug_descr);
-+}
-+
-+static inline void debug_timer_deactivate(struct timer_list *timer)
-+{
-+	debug_object_deactivate(timer, &timer_debug_descr);
-+}
-+
-+static inline void debug_timer_free(struct timer_list *timer)
-+{
-+	debug_object_free(timer, &timer_debug_descr);
-+}
-+
-+static void __init_timer(struct timer_list *timer);
-+
-+void init_timer_on_stack(struct timer_list *timer)
-+{
-+	debug_object_init_on_stack(timer, &timer_debug_descr);
-+	__init_timer(timer);
-+}
-+EXPORT_SYMBOL_GPL(init_timer_on_stack);
-+
-+void destroy_timer_on_stack(struct timer_list *timer)
-+{
-+	debug_object_free(timer, &timer_debug_descr);
-+}
-+EXPORT_SYMBOL_GPL(destroy_timer_on_stack);
-+
-+#else
-+static inline void debug_timer_init(struct timer_list *timer) { }
-+static inline void debug_timer_activate(struct timer_list *timer) { }
-+static inline void debug_timer_deactivate(struct timer_list *timer) { }
-+#endif
-+
-+static void __init_timer(struct timer_list *timer)
- {
- 	timer->entry.next = NULL;
- 	timer->base = __raw_get_cpu_var(tvec_bases);
-@@ -337,6 +453,19 @@ void init_timer(struct timer_list *timer
- 	memset(timer->start_comm, 0, TASK_COMM_LEN);
- #endif
- }
-+
-+/**
-+ * init_timer - initialize a timer.
-+ * @timer: the timer to be initialized
-+ *
-+ * init_timer() must be done to a timer prior calling *any* of the
-+ * other timer functions.
-+ */
-+void init_timer(struct timer_list *timer)
-+{
-+	debug_timer_init(timer);
-+	__init_timer(timer);
-+}
- EXPORT_SYMBOL(init_timer);
- 
- void init_timer_deferrable(struct timer_list *timer)
-@@ -351,6 +480,8 @@ static inline void detach_timer(struct t
- {
- 	struct list_head *entry = &timer->entry;
- 
-+	debug_timer_deactivate(timer);
-+
- 	__list_del(entry->prev, entry->next);
- 	if (clear_pending)
- 		entry->next = NULL;
-@@ -405,6 +536,8 @@ int __mod_timer(struct timer_list *timer
- 		ret = 1;
- 	}
- 
-+	debug_timer_activate(timer);
-+
- 	new_base = __get_cpu_var(tvec_bases);
- 
- 	if (base != new_base) {
-@@ -450,6 +583,7 @@ void add_timer_on(struct timer_list *tim
- 	BUG_ON(timer_pending(timer) || !timer->function);
- 	spin_lock_irqsave(&base->lock, flags);
- 	timer_set_base(timer, base);
-+	debug_timer_activate(timer);
- 	internal_add_timer(base, timer);
- 	spin_unlock_irqrestore(&base->lock, flags);
- }
-@@ -1078,11 +1212,14 @@ signed long __sched schedule_timeout(sig
- 
- 	expire = timeout + jiffies;
- 
--	setup_timer(&timer, process_timeout, (unsigned long)current);
-+	setup_timer_on_stack(&timer, process_timeout, (unsigned long)current);
- 	__mod_timer(&timer, expire);
- 	schedule();
- 	del_singleshot_timer_sync(&timer);
- 
-+	/* Remove the timer from the object tracker */
-+	destroy_timer_on_stack(&timer);
-+
- 	timeout = expire - jiffies;
- 
-  out:
-diff -puN lib/Kconfig.debug~debugobjects-add-timer-specific-object-debugging-code lib/Kconfig.debug
---- a/lib/Kconfig.debug~debugobjects-add-timer-specific-object-debugging-code
-+++ a/lib/Kconfig.debug
-@@ -206,6 +206,14 @@ config DEBUG_OBJECTS_FREE
- 	  properly. This can make kmalloc/kfree-intensive workloads
- 	  much slower.
- 
-+config DEBUG_OBJECTS_TIMERS
-+	bool "Debug timer objects"
-+	depends on DEBUG_OBJECTS
-+	help
-+	  If you say Y here, additional code will be inserted into the
-+	  timer routines to track the life time of timer objects and
-+	  validate the timer operations.
-+
- config DEBUG_SLAB
- 	bool "Debug slab memory allocations"
- 	depends on DEBUG_KERNEL && SLAB
++    <sect1 id="fixup_destroy">
++      <title>fixup_destroy</title>
++      <para>
++	This function is called from the debug code whenever a problem
++	in debug_object_destroy is detected.
++      </para>
++      <para>
++	Called from debug_object_destroy when the object state is:
++	<itemizedlist>
++	  <listitem><para>ODEBUG_STATE_ACTIVE</para></listitem>
++	</itemizedlist>
++      </para>
++      <para>
++	The function returns 1 when the fixup was successful,
++	otherwise 0. The return value is used to update the
++	statistics.
++      </para>
++    </sect1>
++    <sect1 id="fixup_free">
++      <title>fixup_free</title>
++      <para>
++	This function is called from the debug code whenever a problem
++	in debug_object_free is detected. Further it can be called
++	from the debug checks in kfree/vfree, when an active object is
++	detected from the debug_check_no_obj_freed() sanity checks.
++      </para>
++      <para>
++	Called from debug_object_free() or debug_check_no_obj_freed()
++	when the object state is:
++	<itemizedlist>
++	  <listitem><para>ODEBUG_STATE_ACTIVE</para></listitem>
++	</itemizedlist>
++      </para>
++      <para>
++	The function returns 1 when the fixup was successful,
++	otherwise 0. The return value is used to update the
++	statistics.
++      </para>
++    </sect1>
++  </chapter>
++  <chapter id="bugs">
++    <title>Known Bugs And Assumptions</title>
++    <para>
++	None (knock on wood).
++    </para>
++  </chapter>
++</book>
 _
 
 Patches currently in -mm which might be from tglx@linutronix.de are
