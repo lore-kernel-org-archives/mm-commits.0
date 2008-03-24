@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-hotplug-fix-leaks-in-ibm-hot-plug-controller-driver-ibmphp_init_devno.patch added to -mm tree
-Date: Mon, 24 Mar 2008 14:41:51 -0700
-Message-ID: <200803242141.m2OLfp7E026562@imap1.linux-foundation.org>
+Subject: + bttv-add-a-radio-compat_ioctl-file-operation.patch added to -mm tree
+Date: Mon, 24 Mar 2008 14:43:58 -0700
+Message-ID: <200803242144.m2OLhwC1026673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45305 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752838AbYCXVm0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752657AbYCXVp7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 17:42:26 -0400
+	Mon, 24 Mar 2008 17:45:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jesper.juhl@gmail.com, gregkh@suse.de, kristen.c.accardi@intel.com
+Cc: robfitz@273k.net, bonganilinux@mweb.co.za, hverkuil@xs4all.nl, mchehab@infradead.org, mkrufky@linuxtv.org, nshmyrev@yandex.ru, xyzzy@speakeasy.org
 
 
 The patch titled
-     pci-hotplug: fix leaks in IBM Hot Plug Controller Driver - ibmphp_init_devno()
+     bttv: add a radio compat_ioctl file operation
 has been added to the -mm tree.  Its filename is
-     pci-hotplug-fix-leaks-in-ibm-hot-plug-controller-driver-ibmphp_init_devno.patch
+     bttv-add-a-radio-compat_ioctl-file-operation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-hotplug: fix leaks in IBM Hot Plug Controller Driver - ibmphp_init_devno()
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: bttv: add a radio compat_ioctl file operation
+From: Robert Fitzsimons <robfitz@273k.net>
 
-In drivers/pci/hotplug/ibmphp_core.c::ibmphp_init_devno() we allocate space
-dynamically for a PCI irq routing table by calling
-pcibios_get_irq_routing_table(), but we never free the allocated space.
-
-This patch frees the allocated space at the function exit points.
-
-Spotted by the Coverity checker. Compile tested only.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Signed-off-by: Robert Fitzsimons <robfitz@273k.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Nickolay V. Shmyrev <nshmyrev@yandex.ru>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Bongani Hlope <bonganilinux@mweb.co.za>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/ibmphp_core.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/media/video/bt8xx/bttv-driver.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/pci/hotplug/ibmphp_core.c~pci-hotplug-fix-leaks-in-ibm-hot-plug-controller-driver-ibmphp_init_devno drivers/pci/hotplug/ibmphp_core.c
---- a/drivers/pci/hotplug/ibmphp_core.c~pci-hotplug-fix-leaks-in-ibm-hot-plug-controller-driver-ibmphp_init_devno
-+++ a/drivers/pci/hotplug/ibmphp_core.c
-@@ -148,8 +148,10 @@ int ibmphp_init_devno(struct slot **cur_
- 	len = (rtable->size - sizeof(struct irq_routing_table)) /
- 			sizeof(struct irq_info);
- 
--	if (!len)
-+	if (!len) {
-+		kfree(rtable);
- 		return -1;
-+	}
- 	for (loop = 0; loop < len; loop++) {
- 		if ((*cur_slot)->number == rtable->slots[loop].slot) {
- 		if ((*cur_slot)->bus == rtable->slots[loop].bus) {
-@@ -187,11 +189,13 @@ int ibmphp_init_devno(struct slot **cur_
- 				debug("rtable->slots[loop].irq[3].link = %x\n",
- 					rtable->slots[loop].irq[3].link);
- 				debug("end of init_devno\n");
-+				kfree(rtable);
- 				return 0;
- 			}
- 		}
- 	}
- 
-+	kfree(rtable);
- 	return -1;
- }
- 
+diff -puN drivers/media/video/bt8xx/bttv-driver.c~bttv-add-a-radio-compat_ioctl-file-operation drivers/media/video/bt8xx/bttv-driver.c
+--- a/drivers/media/video/bt8xx/bttv-driver.c~bttv-add-a-radio-compat_ioctl-file-operation
++++ a/drivers/media/video/bt8xx/bttv-driver.c
+@@ -3613,6 +3613,7 @@ static const struct file_operations radi
+ 	.release  = radio_release,
+ 	.compat_ioctl	= v4l_compat_ioctl32,
+ 	.ioctl	  = video_ioctl2,
++	.compat_ioctl	= v4l_compat_ioctl32,
+ 	.llseek	  = no_llseek,
+ 	.poll     = radio_poll,
+ };
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from robfitz@273k.net are
 
-usb-mem-leak-fixes-for-amd-5536-udc-high-full-speed-usb-device-controller-driver.patch
-fix-small-mem-leak-in-driver_add_kobj.patch
-pci-hotplug-fix-leaks-in-ibm-hot-plug-controller-driver-ibmphp_init_devno.patch
+git-dvb.patch
+bttv-add-a-radio-compat_ioctl-file-operation.patch
 
