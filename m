@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch added to -mm tree
-Date: Mon, 24 Mar 2008 16:05:05 -0700
-Message-ID: <200803242305.m2ON55GX029957@imap1.linux-foundation.org>
+Subject: + pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch added to -mm tree
+Date: Mon, 24 Mar 2008 16:05:07 -0700
+Message-ID: <200803242305.m2ON57j0029960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35974 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752825AbYCXXGU (ORCPT
+	by vger.kernel.org with ESMTP id S1753162AbYCXXG3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 19:06:20 -0400
+	Mon, 24 Mar 2008 19:06:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: oleg@tv-sign.ru, roland@redhat.com
 
 
 The patch titled
-     pids: sys_getsid: fix unsafe *pid usage, fix possible 0 instead of -ESRCH
+     pids: sys_getpgid: fix unsafe *pid usage, s/tasklist/rcu/
 has been added to the -mm tree.  Its filename is
-     pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
+     pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pids: sys_getsid: fix unsafe *pid usage, fix possible 0 instead of -ESRCH
+Subject: pids: sys_getpgid: fix unsafe *pid usage, s/tasklist/rcu/
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-1. sys_getsid() needs rcu_read_lock() to derive the session _nr, even if
+1. sys_getpgid() needs rcu_read_lock() to derive the pgrp _nr, even if
    the task is current, otherwise we can race with another thread which
-   does sys_setsid().
+   does sys_setpgid().
 
-2. The task can exit between find_task_by_vpid() and task_session_vnr(),
-   in that unlikely case sys_getsid() returns 0 instead of -ESRCH.
+2. Use rcu_read_lock() instead of tasklist_lock when pid != 0, make sure
+   that we don't use the NULL pid if the task exits right after successful
+   find_task_by_vpid().
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   33 ++++++++++++++++++++-------------
- 1 file changed, 20 insertions(+), 13 deletions(-)
+ kernel/sys.c |   36 +++++++++++++++++++++---------------
+ 1 file changed, 21 insertions(+), 15 deletions(-)
 
-diff -puN kernel/sys.c~pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch kernel/sys.c
---- a/kernel/sys.c~pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch
+diff -puN kernel/sys.c~pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu kernel/sys.c
+--- a/kernel/sys.c~pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu
 +++ a/kernel/sys.c
-@@ -1016,23 +1016,30 @@ asmlinkage long sys_getpgrp(void)
+@@ -985,31 +985,37 @@ out:
  
- asmlinkage long sys_getsid(pid_t pid)
+ asmlinkage long sys_getpgid(pid_t pid)
  {
 +	struct task_struct *p;
-+	struct pid *sid;
++	struct pid *grp;
 +	int retval;
 +
 +	rcu_read_lock();
  	if (!pid)
--		return task_session_vnr(current);
-+		sid = task_session(current);
+-		return task_pgrp_vnr(current);
++		grp = task_pgrp(current);
  	else {
 -		int retval;
 -		struct task_struct *p;
 -
--		rcu_read_lock();
+-		read_lock(&tasklist_lock);
 -		p = find_task_by_vpid(pid);
  		retval = -ESRCH;
 -		if (p) {
--			retval = security_task_getsid(p);
+-			retval = security_task_getpgid(p);
 -			if (!retval)
--				retval = task_session_vnr(p);
+-				retval = task_pgrp_vnr(p);
 -		}
--		rcu_read_unlock();
+-		read_unlock(&tasklist_lock);
 -		return retval;
 +		p = find_task_by_vpid(pid);
 +		if (!p)
 +			goto out;
-+		sid = task_session(p);
-+		if (!sid)
++		grp = task_pgrp(p);
++		if (!grp)
 +			goto out;
 +
-+		retval = security_task_getsid(p);
++		retval = security_task_getpgid(p);
 +		if (retval)
 +			goto out;
  	}
-+	retval = pid_vnr(sid);
++	retval = pid_vnr(grp);
 +out:
 +	rcu_read_unlock();
 +	return retval;
  }
  
- asmlinkage long sys_setsid(void)
+ #ifdef __ARCH_WANT_SYS_GETPGRP
+ 
+ asmlinkage long sys_getpgrp(void)
+ {
+-	/* SMP - assuming writes are word atomic this is fine */
+-	return task_pgrp_vnr(current);
++	return sys_getpgid(0);
+ }
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
