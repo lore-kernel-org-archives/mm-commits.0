@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mm-allocate-section_map-for-sparse_init-update.patch added to -mm tree
-Date: Mon, 24 Mar 2008 12:47:43 -0700
-Message-ID: <200803241947.m2OJlhsC022305@imap1.linux-foundation.org>
+Subject: + mm-offset-align-in-alloc_bootmem.patch added to -mm tree
+Date: Mon, 24 Mar 2008 12:48:22 -0700
+Message-ID: <200803241948.m2OJmMFv022380@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56416 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54711 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750781AbYCXTsY (ORCPT
+	by vger.kernel.org with ESMTP id S1750781AbYCXTsw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 15:48:24 -0400
+	Mon, 24 Mar 2008 15:48:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: yhlu.kernel.send@gmail.com, ak@suse.de, clameter@sgi.com, kamezawa.hiroyu@jp
 
 
 The patch titled
-     mm: allocate section_map for sparse_init (update)
+     mm: offset align in alloc_bootmem
 has been added to the -mm tree.  Its filename is
-     mm-allocate-section_map-for-sparse_init-update.patch
+     mm-offset-align-in-alloc_bootmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: allocate section_map for sparse_init (update)
+Subject: mm: offset align in alloc_bootmem
 From: Yinghai Lu <yhlu.kernel.send@gmail.com>
 
-allocate section_map in bootmem instead of using __initdata.
+Need offset alignment when node_boot_start's alignment is less than align
+required
+
+Use local node_boot_start to match align.  so don't add extra opteration in
+search loop.
 
 Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
 Cc: Andi Kleen <ak@suse.de>
@@ -49,28 +53,173 @@ Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/bootmem.c |   60 +++++++++++++++++++++++++++----------------------
+ 1 file changed, 34 insertions(+), 26 deletions(-)
 
-diff -puN mm/sparse.c~mm-allocate-section_map-for-sparse_init-update mm/sparse.c
---- a/mm/sparse.c~mm-allocate-section_map-for-sparse_init-update
-+++ a/mm/sparse.c
-@@ -335,8 +335,7 @@ void __init sparse_init(void)
- 								usemap);
+diff -puN mm/bootmem.c~mm-offset-align-in-alloc_bootmem mm/bootmem.c
+--- a/mm/bootmem.c~mm-offset-align-in-alloc_bootmem
++++ a/mm/bootmem.c
+@@ -206,9 +206,11 @@ void * __init
+ __alloc_bootmem_core(struct bootmem_data *bdata, unsigned long size,
+ 	      unsigned long align, unsigned long goal, unsigned long limit)
+ {
+-	unsigned long offset, remaining_size, areasize, preferred;
++	unsigned long areasize, preferred;
+ 	unsigned long i, start = 0, incr, eidx, end_pfn;
+ 	void *ret;
++	unsigned long node_boot_start;
++	void *node_bootmem_map;
+ 
+ 	if (!size) {
+ 		printk("__alloc_bootmem_core(): zero-sized request\n");
+@@ -216,23 +218,29 @@ __alloc_bootmem_core(struct bootmem_data
+ 	}
+ 	BUG_ON(align & (align-1));
+ 
+-	if (limit && bdata->node_boot_start >= limit)
+-		return NULL;
+-
+ 	/* on nodes without memory - bootmem_map is NULL */
+ 	if (!bdata->node_bootmem_map)
+ 		return NULL;
+ 
++	/* bdata->node_boot_start is supposed to be (12+6)bits alignment on x86_64 ? */
++	node_boot_start = bdata->node_boot_start;
++	node_bootmem_map = bdata->node_bootmem_map;
++	if (align) {
++		node_boot_start = ALIGN(bdata->node_boot_start, align);
++		if (node_boot_start > bdata->node_boot_start)
++			node_bootmem_map = (unsigned long *)bdata->node_bootmem_map +
++			    PFN_DOWN(node_boot_start - bdata->node_boot_start)/BITS_PER_LONG;
++	}
++
++	if (limit && node_boot_start >= limit)
++		return NULL;
++
+ 	end_pfn = bdata->node_low_pfn;
+ 	limit = PFN_DOWN(limit);
+ 	if (limit && end_pfn > limit)
+ 		end_pfn = limit;
+ 
+-	eidx = end_pfn - PFN_DOWN(bdata->node_boot_start);
+-	offset = 0;
+-	if (align && (bdata->node_boot_start & (align - 1UL)) != 0)
+-		offset = align - (bdata->node_boot_start & (align - 1UL));
+-	offset = PFN_DOWN(offset);
++	eidx = end_pfn - PFN_DOWN(node_boot_start);
+ 
+ 	/*
+ 	 * We try to allocate bootmem pages above 'goal'
+@@ -240,15 +248,16 @@ __alloc_bootmem_core(struct bootmem_data
+ 	 */
+ 	preferred = 0;
+ 	if (goal && PFN_DOWN(goal) < end_pfn) {
+-		if (goal > bdata->node_boot_start)
+-			preferred = goal - bdata->node_boot_start;
++		if (goal > node_boot_start)
++			preferred = goal - node_boot_start;
+ 
+-		if (bdata->last_success >= preferred)
++		if (bdata->last_success > node_boot_start &&
++			bdata->last_success - node_boot_start >= preferred)
+ 			if (!limit || (limit && limit > bdata->last_success))
+-				preferred = bdata->last_success;
++				preferred = bdata->last_success - node_boot_start;
  	}
  
--	for_each_online_node(node)
--		free_bootmem_node(NODE_DATA(node), __pa(section_map), size);
-+	free_bootmem(__pa(section_map), size);
- }
+-	preferred = PFN_DOWN(ALIGN(preferred, align)) + offset;
++	preferred = PFN_DOWN(ALIGN(preferred, align));
+ 	areasize = (size + PAGE_SIZE-1) / PAGE_SIZE;
+ 	incr = align >> PAGE_SHIFT ? : 1;
  
- #ifdef CONFIG_MEMORY_HOTPLUG
+@@ -256,18 +265,18 @@ restart_scan:
+ 	for (i = preferred; i < eidx;) {
+ 		unsigned long j;
+ 
+-		i = find_next_zero_bit(bdata->node_bootmem_map, eidx, i);
++		i = find_next_zero_bit(node_bootmem_map, eidx, i);
+ 		i = ALIGN(i, incr);
+ 		if (i >= eidx)
+ 			break;
+-		if (test_bit(i, bdata->node_bootmem_map)) {
++		if (test_bit(i, node_bootmem_map)) {
+ 			i += incr;
+ 			continue;
+ 		}
+ 		for (j = i + 1; j < i + areasize; ++j) {
+ 			if (j >= eidx)
+ 				goto fail_block;
+-			if (test_bit(j, bdata->node_bootmem_map))
++			if (test_bit(j, node_bootmem_map))
+ 				goto fail_block;
+ 		}
+ 		start = i;
+@@ -278,14 +287,14 @@ restart_scan:
+ 			i += incr;
+ 	}
+ 
+-	if (preferred > offset) {
+-		preferred = offset;
++	if (preferred > 0) {
++		preferred = 0;
+ 		goto restart_scan;
+ 	}
+ 	return NULL;
+ 
+ found:
+-	bdata->last_success = PFN_PHYS(start);
++	bdata->last_success = PFN_PHYS(start) + node_boot_start;
+ 	BUG_ON(start >= eidx);
+ 
+ 	/*
+@@ -295,6 +304,7 @@ found:
+ 	 */
+ 	if (align < PAGE_SIZE &&
+ 	    bdata->last_offset && bdata->last_pos+1 == start) {
++		unsigned long offset, remaining_size;
+ 		offset = ALIGN(bdata->last_offset, align);
+ 		BUG_ON(offset > PAGE_SIZE);
+ 		remaining_size = PAGE_SIZE - offset;
+@@ -303,14 +313,12 @@ found:
+ 			/* last_pos unchanged */
+ 			bdata->last_offset = offset + size;
+ 			ret = phys_to_virt(bdata->last_pos * PAGE_SIZE +
+-					   offset +
+-					   bdata->node_boot_start);
++					   offset + node_boot_start);
+ 		} else {
+ 			remaining_size = size - remaining_size;
+ 			areasize = (remaining_size + PAGE_SIZE-1) / PAGE_SIZE;
+ 			ret = phys_to_virt(bdata->last_pos * PAGE_SIZE +
+-					   offset +
+-					   bdata->node_boot_start);
++					   offset + node_boot_start);
+ 			bdata->last_pos = start + areasize - 1;
+ 			bdata->last_offset = remaining_size;
+ 		}
+@@ -318,14 +326,14 @@ found:
+ 	} else {
+ 		bdata->last_pos = start + areasize - 1;
+ 		bdata->last_offset = size & ~PAGE_MASK;
+-		ret = phys_to_virt(start * PAGE_SIZE + bdata->node_boot_start);
++		ret = phys_to_virt(start * PAGE_SIZE + node_boot_start);
+ 	}
+ 
+ 	/*
+ 	 * Reserve the area now:
+ 	 */
+ 	for (i = start; i < start + areasize; i++)
+-		if (unlikely(test_and_set_bit(i, bdata->node_bootmem_map)))
++		if (unlikely(test_and_set_bit(i, node_bootmem_map)))
+ 			BUG();
+ 	memset(ret, 0, size);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from yhlu.kernel.send@gmail.com are
 
 origin.patch
 mm-allocate-section_map-for-sparse_init-update.patch
-mm-offset-align-in-alloc_bootmem-v3.patch
+mm-offset-align-in-alloc_bootmem.patch
 mm-make-reserve_bootmem-can-crossed-the-nodes-v2.patch
 
