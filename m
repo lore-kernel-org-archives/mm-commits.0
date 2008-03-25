@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ocfs2-aopsc-test-for-is_err-rather-than-0.patch added to -mm tree
-Date: Tue, 25 Mar 2008 15:47:14 -0700
-Message-ID: <200803252247.m2PMlESO017459@imap1.linux-foundation.org>
+Subject: + drivers-misc-elide-a-non-zero-test-on-a-result-that-is-never-0.patch added to -mm tree
+Date: Tue, 25 Mar 2008 15:48:16 -0700
+Message-ID: <200803252248.m2PMmGAo017479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45233 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753447AbYCYWsI (ORCPT
+	by vger.kernel.org with ESMTP id S1753972AbYCYWsq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 18:48:08 -0400
+	Tue, 25 Mar 2008 18:48:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, kurt.hackel@oracle.com, mark@fasheh.com
+Cc: julia@diku.dk, len.brown@intel.com, rui.zhang@intel.com, sujith.thomas@intel.com
 
 
 The patch titled
-     fs/ocfs2/aops.c: test for IS_ERR rather than 0
+     drivers/misc: elide a non-zero test on a result that is never 0
 has been added to the -mm tree.  Its filename is
-     fs-ocfs2-aopsc-test-for-is_err-rather-than-0.patch
+     drivers-misc-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ocfs2/aops.c: test for IS_ERR rather than 0
+Subject: drivers/misc: elide a non-zero test on a result that is never 0
 From: Julia Lawall <julia@diku.dk>
 
-The function ocfs2_start_trans always returns either a valid pointer or a
-value made with ERR_PTR, so its result should be tested with IS_ERR, not
-with a test for 0.
+The function thermal_cooling_device_register always returns either a valid
+pointer or a value made with ERR_PTR, so a test for non-zero on the result
+will always succeed.
 
 The problem was found using the following semantic match.
 (http://www.emn.fr/x-info/coccinelle/)
@@ -51,7 +51,7 @@ statement S,S1;
 position p;
 @@
 
-E = ocfs2_start_trans(...)
+E = thermal_cooling_device_register(...)
 ... when != E = E1
 if@p (E) S else S1
 
@@ -76,40 +76,49 @@ position a.p;
 //</smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Kurt Hackel <kurt.hackel@oracle.com>
+Cc: Thomas Sujith <sujith.thomas@intel.com>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/misc/intel_menlow.c |   24 +++++++++++-------------
+ 1 file changed, 11 insertions(+), 13 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~fs-ocfs2-aopsc-test-for-is_err-rather-than-0 fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~fs-ocfs2-aopsc-test-for-is_err-rather-than-0
-+++ a/fs/ocfs2/aops.c
-@@ -467,11 +467,11 @@ handle_t *ocfs2_start_walk_page_trans(st
- 							 unsigned to)
- {
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
--	handle_t *handle = NULL;
-+	handle_t *handle;
- 	int ret = 0;
+diff -puN drivers/misc/intel_menlow.c~drivers-misc-elide-a-non-zero-test-on-a-result-that-is-never-0 drivers/misc/intel_menlow.c
+--- a/drivers/misc/intel_menlow.c~drivers-misc-elide-a-non-zero-test-on-a-result-that-is-never-0
++++ a/drivers/misc/intel_menlow.c
+@@ -175,19 +175,17 @@ static int intel_menlow_memory_add(struc
+ 		goto end;
+ 	}
  
- 	handle = ocfs2_start_trans(osb, OCFS2_INODE_UPDATE_CREDITS);
--	if (!handle) {
-+	if (IS_ERR(handle)) {
- 		ret = -ENOMEM;
- 		mlog_errno(ret);
- 		goto out;
-@@ -487,7 +487,7 @@ handle_t *ocfs2_start_walk_page_trans(st
+-	if (cdev) {
+-		acpi_driver_data(device) = cdev;
+-		result = sysfs_create_link(&device->dev.kobj,
+-					&cdev->device.kobj, "thermal_cooling");
+-		if (result)
+-			goto unregister;
+-
+-		result = sysfs_create_link(&cdev->device.kobj,
+-					&device->dev.kobj, "device");
+-		if (result) {
+-			sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
+-			goto unregister;
+-		}
++	acpi_driver_data(device) = cdev;
++	result = sysfs_create_link(&device->dev.kobj,
++				&cdev->device.kobj, "thermal_cooling");
++	if (result)
++		goto unregister;
++
++	result = sysfs_create_link(&cdev->device.kobj,
++				&device->dev.kobj, "device");
++	if (result) {
++		sysfs_remove_link(&device->dev.kobj, "thermal_cooling");
++		goto unregister;
  	}
- out:
- 	if (ret) {
--		if (handle)
-+		if (!IS_ERR(handle))
- 			ocfs2_commit_trans(osb, handle);
- 		handle = ERR_PTR(ret);
- 	}
+ 
+  end:
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
