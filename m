@@ -1,134 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - mm-fix-boundary-checking-in-free_bootmem_core.patch removed from -mm tree
-Date: Tue, 25 Mar 2008 15:29:31 -0700
-Message-ID: <200803252229.m2PMTVxl016817@imap1.linux-foundation.org>
+Subject: - smackfs-remove-redundant-lock-fix-openo_rdwr.patch removed from -mm tree
+Date: Tue, 25 Mar 2008 15:29:40 -0700
+Message-ID: <200803252229.m2PMTeDh016826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60757 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47487 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759403AbYCYWaW (ORCPT
+	by vger.kernel.org with ESMTP id S1756637AbYCYWaS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 18:30:22 -0400
+	Tue, 25 Mar 2008 18:30:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yhlu.kernel@gmail.com, ak@suse.de, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: darwish.07@gmail.com, casey@schaufler-ca.com, corbet@lwn.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: fix boundary checking in free_bootmem_core
+     smackfs: remove redundant lock, fix open(,O_RDWR)
 has been removed from the -mm tree.  Its filename was
-     mm-fix-boundary-checking-in-free_bootmem_core.patch
+     smackfs-remove-redundant-lock-fix-openo_rdwr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix boundary checking in free_bootmem_core
-From: "Yinghai Lu" <yhlu.kernel@gmail.com>
+Subject: smackfs: remove redundant lock, fix open(,O_RDWR)
+From: "Ahmed S. Darwish" <darwish.07@gmail.com>
 
-With numa enabled, some callers could have a range o fmemory on one node but
-try to free that on other node.  This can cause some pages to be freed
-wrongly.
+Older smackfs was parsing MAC rules by characters, thus a need of locking
+write sessions on open() was needed.  This lock is no longer useful now since
+each rule is handled by a single write() call.
 
-For example: when we try to allocate 128g boot ram early for gart/swiotlb, and
-free that range later so gart/swiotlb can get some range afterwards.
+This is also a bugfix since seq_open() was not called if an open() O_RDWR flag
+was given, leading to a seq_read() without an initialized seq_file, thus an
+Oops.
 
-With this patch, we don't need to care which node holds the range, just loop
-to call free_bootmem_node for all online nodes.
-
-This patch makes free_bootmem_core() more robust by trimming the sidx and eidx
-according the ram range that the node has.
-
-And make the free_bootmem_core handle this out of range case.  We could use
-bdata_list to make sure the range can be freed for sure.  So next time, we
-don't need to loop online nodes and could use free_bootmem directly.
-
-Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Tested-by: Ingo Molnar <mingo@elte.hu>
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Ahmed S. Darwish <darwish.07@gmail.com>
+Reported-by: Jonathan Corbet <corbet@lwn.net>
+Acked-by: Casey Schaufler <casey@schaufler-ca.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   25 +++++++++++++++++++------
- 1 file changed, 19 insertions(+), 6 deletions(-)
+ security/smack/smackfs.c |   35 ++---------------------------------
+ 1 file changed, 2 insertions(+), 33 deletions(-)
 
-diff -puN mm/bootmem.c~mm-fix-boundary-checking-in-free_bootmem_core mm/bootmem.c
---- a/mm/bootmem.c~mm-fix-boundary-checking-in-free_bootmem_core
-+++ a/mm/bootmem.c
-@@ -125,6 +125,7 @@ static int __init reserve_bootmem_core(b
- 	BUG_ON(!size);
- 	BUG_ON(PFN_DOWN(addr) >= bdata->node_low_pfn);
- 	BUG_ON(PFN_UP(addr + size) > bdata->node_low_pfn);
-+	BUG_ON(addr < bdata->node_boot_start);
+diff -puN security/smack/smackfs.c~smackfs-remove-redundant-lock-fix-openo_rdwr security/smack/smackfs.c
+--- a/security/smack/smackfs.c~smackfs-remove-redundant-lock-fix-openo_rdwr
++++ a/security/smack/smackfs.c
+@@ -74,11 +74,6 @@ struct smk_list_entry *smack_list;
+ #define	SEQ_READ_FINISHED	1
  
- 	sidx = PFN_DOWN(addr - bdata->node_boot_start);
- 	eidx = PFN_UP(addr + size - bdata->node_boot_start);
-@@ -156,21 +157,31 @@ static void __init free_bootmem_core(boo
- 	unsigned long sidx, eidx;
- 	unsigned long i;
- 
-+	BUG_ON(!size);
-+
-+	/* out range */
-+	if (addr + size < bdata->node_boot_start ||
-+		PFN_DOWN(addr) > bdata->node_low_pfn)
-+		return;
- 	/*
- 	 * round down end of usable mem, partially free pages are
- 	 * considered reserved.
- 	 */
--	BUG_ON(!size);
--	BUG_ON(PFN_DOWN(addr + size) > bdata->node_low_pfn);
- 
--	if (addr < bdata->last_success)
-+	if (addr >= bdata->node_boot_start && addr < bdata->last_success)
- 		bdata->last_success = addr;
- 
- 	/*
--	 * Round up the beginning of the address.
-+	 * Round up to index to the range.
- 	 */
--	sidx = PFN_UP(addr) - PFN_DOWN(bdata->node_boot_start);
-+	if (PFN_UP(addr) > PFN_DOWN(bdata->node_boot_start))
-+		sidx = PFN_UP(addr) - PFN_DOWN(bdata->node_boot_start);
-+	else
-+		sidx = 0;
-+
- 	eidx = PFN_DOWN(addr + size - bdata->node_boot_start);
-+	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
-+		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
- 
- 	for (i = sidx; i < eidx; i++) {
- 		if (unlikely(!test_and_clear_bit(i, bdata->node_bootmem_map)))
-@@ -421,7 +432,9 @@ int __init reserve_bootmem(unsigned long
- 
- void __init free_bootmem(unsigned long addr, unsigned long size)
+ /*
+- * Disable concurrent writing open() operations
+- */
+-static struct semaphore smack_write_sem;
+-
+-/*
+  * Values for parsing cipso rules
+  * SMK_DIGITLEN: Length of a digit field in a rule.
+  * SMK_CIPSOMIN: Minimum possible cipso rule length.
+@@ -168,32 +163,7 @@ static struct seq_operations load_seq_op
+  */
+ static int smk_open_load(struct inode *inode, struct file *file)
  {
--	free_bootmem_core(NODE_DATA(0)->bdata, addr, size);
-+	bootmem_data_t *bdata;
-+	list_for_each_entry(bdata, &bdata_list, list)
-+		free_bootmem_core(bdata, addr, size);
+-	if ((file->f_flags & O_ACCMODE) == O_RDONLY)
+-		return seq_open(file, &load_seq_ops);
+-
+-	if (down_interruptible(&smack_write_sem))
+-		return -ERESTARTSYS;
+-
+-	return 0;
+-}
+-
+-/**
+- * smk_release_load - release() for /smack/load
+- * @inode: inode structure representing file
+- * @file: "load" file pointer
+- *
+- * For a reading session, use the seq_file release
+- * implementation.
+- * Otherwise, we are at the end of a writing session so
+- * clean everything up.
+- */
+-static int smk_release_load(struct inode *inode, struct file *file)
+-{
+-	if ((file->f_flags & O_ACCMODE) == O_RDONLY)
+-		return seq_release(inode, file);
+-
+-	up(&smack_write_sem);
+-	return 0;
++	return seq_open(file, &load_seq_ops);
  }
  
- unsigned long __init free_all_bootmem(void)
+ /**
+@@ -341,7 +311,7 @@ static const struct file_operations smk_
+ 	.read		= seq_read,
+ 	.llseek         = seq_lseek,
+ 	.write		= smk_write_load,
+-	.release        = smk_release_load,
++	.release        = seq_release,
+ };
+ 
+ /**
+@@ -1011,7 +981,6 @@ static int __init init_smk_fs(void)
+ 		}
+ 	}
+ 
+-	sema_init(&smack_write_sem, 1);
+ 	smk_cipso_doi();
+ 	smk_unlbl_ambient(NULL);
+ 
 _
 
-Patches currently in -mm which might be from yhlu.kernel@gmail.com are
+Patches currently in -mm which might be from darwish.07@gmail.com are
 
 origin.patch
-git-x86.patch
-x86_64-do-not-reserve-ramdisk-two-times.patch
-mm-make-mem_map-allocation-continuous.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
-mm-allocate-section_map-for-sparse_init.patch
-mm-allocate-section_map-for-sparse_init-update.patch
-mm-offset-align-in-alloc_bootmem.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+git-kvm.patch
+git-security-testing.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
 
