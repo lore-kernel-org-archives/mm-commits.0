@@ -1,244 +1,250 @@
 From: akpm@linux-foundation.org
-Subject: - sata_promise-fix-hardreset-hotplug-quirk-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 25 Mar 2008 15:20:49 -0700
-Message-ID: <200803252220.m2PMKnNe016502@imap1.linux-foundation.org>
+Subject: - sata_promise-fix-hardreset-hotplug-quirk.patch removed from -mm tree
+Date: Tue, 25 Mar 2008 15:20:42 -0700
+Message-ID: <200803252220.m2PMKggW016493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35514 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754863AbYCYWU7 (ORCPT
+	by vger.kernel.org with ESMTP id S1755049AbYCYWU7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 25 Mar 2008 18:20:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, htejun@gmail.com, jeff@garzik.org, mikpe@it.uu.se, mm-commits@vger.kernel.org
+To: mikpe@it.uu.se, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sata_promise-fix-hardreset-hotplug-quirk-checkpatch-fixes
+     sata_promise: fix hardreset hotplug quirk
 has been removed from the -mm tree.  Its filename was
-     sata_promise-fix-hardreset-hotplug-quirk-checkpatch-fixes.patch
+     sata_promise-fix-hardreset-hotplug-quirk.patch
 
 This patch was dropped because Jeff merged other stuff and wrecked it
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sata_promise-fix-hardreset-hotplug-quirk-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sata_promise: fix hardreset hotplug quirk
+From: Mikael Pettersson <mikpe@it.uu.se>
 
-ERROR: space required before the open parenthesis '('
-#109: FILE: drivers/ata/sata_promise.c:660:
-+	for(i = 0; i < nr_ports && host->ports[i] != ap; ++i)
+There is an undocumented hardware quirk in Promise's SATA controllers, where a
+SATA COMRESET causes the controller to signal hotplug events.  These
+unexpected interrupts confuse libata's error handler and cause a sequence of
+failed reset attempts until EH finally gives up.
 
-WARNING: line over 80 characters
-#117: FILE: drivers/ata/sata_promise.c:668:
-+	return (ap->flags & PDC_FLAG_GEN_II) ? PDC2_SATA_PLUG_CSR : PDC_SATA_PLUG_CSR;
+This has not been a common problem so far, but the pending libata
+hardreset-by-default changes makes it a critical issue.
 
-ERROR: trailing whitespace
-#118: FILE: drivers/ata/sata_promise.c:669:
-+}^I$
+The solution is to disable hotplug events before a reset, and to reenable them
+afterwards.  (Promise's driver uses the same solution.)
 
-total: 2 errors, 1 warnings, 178 lines checked
+This patch adds SATA-specific versions of ->freeze() and ->thaw() that also
+disable and enable hotplug events.  PATA ports continue to use the old
+versions of ->freeze() and ->thaw().
 
-./patches/sata_promise-fix-hardreset-hotplug-quirk.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Although SATA hotplug status and control is per-port, it resides in a single
+register shared by all ports.  Therefore accesses to it must be serialised:
+the controller's host->lock is used for that.  The interrupt handler is also
+adjusted so its hotplug register accesses are inside the region protected by
+host->lock.
 
-Please run checkpatch prior to sending patches
+Tested on various chips (SATA300TX4, SATA300TX2plus, SATAII150TX4, FastTrack
+TX4000) with various combinations of SATA and PATA disks, with and without the
+pending hardreset-by-default changes.
 
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Mikael Pettersson <mikpe@it.uu.se>
+Signed-off-by: Mikael Pettersson <mikpe@it.uu.se>
 Cc: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_promise.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/ata/sata_promise.c |  115 ++++++++++++++++++++++++++++-------
+ 1 file changed, 94 insertions(+), 21 deletions(-)
 
-diff -puN drivers/ata/sata_promise.c~sata_promise-fix-hardreset-hotplug-quirk-checkpatch-fixes drivers/ata/sata_promise.c
---- a/drivers/ata/sata_promise.c~sata_promise-fix-hardreset-hotplug-quirk-checkpatch-fixes
+diff -puN drivers/ata/sata_promise.c~sata_promise-fix-hardreset-hotplug-quirk drivers/ata/sata_promise.c
+--- a/drivers/ata/sata_promise.c~sata_promise-fix-hardreset-hotplug-quirk
 +++ a/drivers/ata/sata_promise.c
-@@ -657,7 +657,7 @@ static unsigned int pdc_sata_ata_port_to
- 	unsigned int nr_ports = pdc_sata_nr_ports(ap);
- 	unsigned int i;
+@@ -46,7 +46,7 @@
+ #include "sata_promise.h"
  
--	for(i = 0; i < nr_ports && host->ports[i] != ap; ++i)
-+	for (i = 0; i < nr_ports && host->ports[i] != ap; ++i)
- 		;
- 	BUG_ON(i >= nr_ports);
- 	return pdc_port_no_to_ata_no(i, pdc_is_sataii_tx4(ap->flags));
-@@ -665,8 +665,9 @@ static unsigned int pdc_sata_ata_port_to
+ #define DRV_NAME	"sata_promise"
+-#define DRV_VERSION	"2.11"
++#define DRV_VERSION	"2.12"
  
- static unsigned int pdc_sata_hotplug_offset(const struct ata_port *ap)
- {
--	return (ap->flags & PDC_FLAG_GEN_II) ? PDC2_SATA_PLUG_CSR : PDC_SATA_PLUG_CSR;
--}	
-+	return (ap->flags & PDC_FLAG_GEN_II) ?
-+			PDC2_SATA_PLUG_CSR : PDC_SATA_PLUG_CSR;
+ enum {
+ 	PDC_MAX_PORTS		= 4,
+@@ -145,7 +145,9 @@ static int pdc_old_sata_check_atapi_dma(
+ static void pdc_irq_clear(struct ata_port *ap);
+ static unsigned int pdc_qc_issue_prot(struct ata_queued_cmd *qc);
+ static void pdc_freeze(struct ata_port *ap);
++static void pdc_sata_freeze(struct ata_port *ap);
+ static void pdc_thaw(struct ata_port *ap);
++static void pdc_sata_thaw(struct ata_port *ap);
+ static void pdc_pata_error_handler(struct ata_port *ap);
+ static void pdc_sata_error_handler(struct ata_port *ap);
+ static void pdc_post_internal_cmd(struct ata_queued_cmd *qc);
+@@ -180,8 +182,8 @@ static const struct ata_port_operations 
+ 
+ 	.qc_prep		= pdc_qc_prep,
+ 	.qc_issue		= pdc_qc_issue_prot,
+-	.freeze			= pdc_freeze,
+-	.thaw			= pdc_thaw,
++	.freeze			= pdc_sata_freeze,
++	.thaw			= pdc_sata_thaw,
+ 	.error_handler		= pdc_sata_error_handler,
+ 	.post_internal_cmd	= pdc_post_internal_cmd,
+ 	.cable_detect		= pdc_sata_cable_detect,
+@@ -205,8 +207,8 @@ static const struct ata_port_operations 
+ 
+ 	.qc_prep		= pdc_qc_prep,
+ 	.qc_issue		= pdc_qc_issue_prot,
+-	.freeze			= pdc_freeze,
+-	.thaw			= pdc_thaw,
++	.freeze			= pdc_sata_freeze,
++	.thaw			= pdc_sata_thaw,
+ 	.error_handler		= pdc_sata_error_handler,
+ 	.post_internal_cmd	= pdc_post_internal_cmd,
+ 	.cable_detect		= pdc_sata_cable_detect,
+@@ -631,6 +633,78 @@ static void pdc_qc_prep(struct ata_queue
+ 	}
+ }
+ 
++static int pdc_is_sataii_tx4(unsigned long flags)
++{
++	const unsigned long mask = PDC_FLAG_GEN_II | PDC_FLAG_4_PORTS;
++	return (flags & mask) == mask;
 +}
- 
- static void pdc_sata_disable_hotplug(const struct ata_port *ap)
++
++static unsigned int pdc_port_no_to_ata_no(unsigned int port_no,
++					  int is_sataii_tx4)
++{
++	static const unsigned char sataii_tx4_port_remap[4] = { 3, 1, 0, 2};
++	return is_sataii_tx4 ? sataii_tx4_port_remap[port_no] : port_no;
++}
++
++static unsigned int pdc_sata_nr_ports(const struct ata_port *ap)
++{
++	return (ap->flags & PDC_FLAG_4_PORTS) ? 4 : 2;
++}
++
++static unsigned int pdc_sata_ata_port_to_ata_no(const struct ata_port *ap)
++{
++	const struct ata_host *host = ap->host;
++	unsigned int nr_ports = pdc_sata_nr_ports(ap);
++	unsigned int i;
++
++	for(i = 0; i < nr_ports && host->ports[i] != ap; ++i)
++		;
++	BUG_ON(i >= nr_ports);
++	return pdc_port_no_to_ata_no(i, pdc_is_sataii_tx4(ap->flags));
++}
++
++static unsigned int pdc_sata_hotplug_offset(const struct ata_port *ap)
++{
++	return (ap->flags & PDC_FLAG_GEN_II) ? PDC2_SATA_PLUG_CSR : PDC_SATA_PLUG_CSR;
++}	
++
++static void pdc_sata_disable_hotplug(const struct ata_port *ap)
++{
++	struct ata_host *host = ap->host;
++	void __iomem *host_mmio = host->iomap[PDC_MMIO_BAR];
++	unsigned int hotplug_offset = pdc_sata_hotplug_offset(ap);
++	unsigned int ata_no = pdc_sata_ata_port_to_ata_no(ap);
++	u32 hotplug_status;
++
++	spin_lock(&host->lock);
++
++	hotplug_status = readl(host_mmio + hotplug_offset);
++	hotplug_status |= 0x11 << (ata_no + 16);
++	writel(hotplug_status, host_mmio + hotplug_offset);
++	readl(host_mmio + hotplug_offset); /* flush */
++
++	spin_unlock(&host->lock);
++}
++
++static void pdc_sata_enable_hotplug(const struct ata_port *ap)
++{
++	struct ata_host *host = ap->host;
++	void __iomem *host_mmio = host->iomap[PDC_MMIO_BAR];
++	unsigned int hotplug_offset = pdc_sata_hotplug_offset(ap);
++	unsigned int ata_no = pdc_sata_ata_port_to_ata_no(ap);
++	u32 hotplug_status;
++
++	spin_lock(&host->lock);
++
++	hotplug_status = readl(host_mmio + hotplug_offset);
++	hotplug_status |= 0x11 << ata_no;
++	hotplug_status &= ~(0x11 << (ata_no + 16));
++	writel(hotplug_status, host_mmio + hotplug_offset);
++	readl(host_mmio + hotplug_offset); /* flush */
++
++	spin_unlock(&host->lock);
++}
++
+ static void pdc_freeze(struct ata_port *ap)
  {
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
-x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-git-kgdb-light.patch
-git-acpi-fixup.patch
-git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-pm-remove-destroy_suspended_device-checkpatch-fixes.patch
-git-drm.patch
-git-drm-git-rejects.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-sata_promise-fix-hardreset-hotplug-quirk-checkpatch-fixes.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-git-net.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
-drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-scsi-add-iscsi-ibft-support-fix.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-watchdog.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-fbdev-driver-for-freescale-8610-and-5121-diu-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-w1-build-fix.patch
-
+ 	void __iomem *mmio = ap->ioaddr.cmd_addr;
+@@ -643,6 +717,12 @@ static void pdc_freeze(struct ata_port *
+ 	readl(mmio + PDC_CTLSTAT); /* flush */
+ }
+ 
++static void pdc_sata_freeze(struct ata_port *ap)
++{
++	pdc_sata_disable_hotplug(ap);
++	pdc_freeze(ap);
++}
++
+ static void pdc_thaw(struct ata_port *ap)
+ {
+ 	void __iomem *mmio = ap->ioaddr.cmd_addr;
+@@ -658,6 +738,12 @@ static void pdc_thaw(struct ata_port *ap
+ 	readl(mmio + PDC_CTLSTAT); /* flush */
+ }
+ 
++static void pdc_sata_thaw(struct ata_port *ap)
++{
++	pdc_thaw(ap);
++	pdc_sata_enable_hotplug(ap);
++}
++
+ static void pdc_common_error_handler(struct ata_port *ap, ata_reset_fn_t hardreset)
+ {
+ 	if (!(ap->pflags & ATA_PFLAG_FROZEN))
+@@ -765,19 +851,6 @@ static void pdc_irq_clear(struct ata_por
+ 	readl(mmio + PDC_INT_SEQMASK);
+ }
+ 
+-static int pdc_is_sataii_tx4(unsigned long flags)
+-{
+-	const unsigned long mask = PDC_FLAG_GEN_II | PDC_FLAG_4_PORTS;
+-	return (flags & mask) == mask;
+-}
+-
+-static unsigned int pdc_port_no_to_ata_no(unsigned int port_no,
+-					  int is_sataii_tx4)
+-{
+-	static const unsigned char sataii_tx4_port_remap[4] = { 3, 1, 0, 2};
+-	return is_sataii_tx4 ? sataii_tx4_port_remap[port_no] : port_no;
+-}
+-
+ static irqreturn_t pdc_interrupt(int irq, void *dev_instance)
+ {
+ 	struct ata_host *host = dev_instance;
+@@ -799,6 +872,8 @@ static irqreturn_t pdc_interrupt(int irq
+ 
+ 	mmio_base = host->iomap[PDC_MMIO_BAR];
+ 
++	spin_lock(&host->lock);
++
+ 	/* read and clear hotplug flags for all ports */
+ 	if (host->ports[0]->flags & PDC_FLAG_GEN_II)
+ 		hotplug_offset = PDC2_SATA_PLUG_CSR;
+@@ -814,11 +889,9 @@ static irqreturn_t pdc_interrupt(int irq
+ 
+ 	if (mask == 0xffffffff && hotplug_status == 0) {
+ 		VPRINTK("QUICK EXIT 2\n");
+-		return IRQ_NONE;
++		goto done_irq;
+ 	}
+ 
+-	spin_lock(&host->lock);
