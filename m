@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + afs-prevent-double-cell-registration.patch added to -mm tree
-Date: Tue, 25 Mar 2008 13:00:07 -0700
-Message-ID: <200803252000.m2PK07lc010789@imap1.linux-foundation.org>
+Subject: + afs-add-a-maintainers-record-for-afs.patch added to -mm tree
+Date: Tue, 25 Mar 2008 13:00:05 -0700
+Message-ID: <200803252000.m2PK05NK010786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41611 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753624AbYCYUBU (ORCPT
+	by vger.kernel.org with ESMTP id S1751878AbYCYUBR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 16:01:20 -0400
+	Tue, 25 Mar 2008 16:01:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com, svens@stackframe.org
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     afs: prevent double cell registration
+     afs: add a MAINTAINERS record for AFS
 has been added to the -mm tree.  Its filename is
-     afs-prevent-double-cell-registration.patch
+     afs-add-a-maintainers-record-for-afs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: afs: prevent double cell registration
+Subject: afs: add a MAINTAINERS record for AFS
 From: David Howells <dhowells@redhat.com>
 
-kafs doesn't check if the cell already exists - so if you do an echo "add
-newcell.org 1.2.3.4" >/proc/fs/afs/cells it will try to create this cell
-again.  kobject will also complain about a double registration.  To prevent
-such problems, return -EEXIST in that case.
+Add a MAINTAINERS record for AFS.
 
-Signed-off-by: Sven Schnelle <svens@stackframe.org>
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/cell.c |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ MAINTAINERS |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/afs/cell.c~afs-prevent-double-cell-registration fs/afs/cell.c
---- a/fs/afs/cell.c~afs-prevent-double-cell-registration
-+++ a/fs/afs/cell.c
-@@ -127,14 +127,20 @@ struct afs_cell *afs_cell_create(const c
+diff -puN MAINTAINERS~afs-add-a-maintainers-record-for-afs MAINTAINERS
+--- a/MAINTAINERS~afs-add-a-maintainers-record-for-afs
++++ a/MAINTAINERS
+@@ -163,6 +163,12 @@ M:	A2232@gmx.net
+ L:	linux-m68k@lists.linux-m68k.org
+ S:	Maintained
  
- 	_enter("%s,%s", name, vllist);
- 
-+	down_write(&afs_cells_sem);
-+	read_lock(&afs_cells_lock);
-+	list_for_each_entry(cell, &afs_cells, link) {
-+		if (strcasecmp(cell->name, name) == 0)
-+			goto duplicate_name;
-+	}
-+	read_unlock(&afs_cells_lock);
++AFS FILESYSTEM & AF_RXRPC SOCKET DOMAIN
++P:	David Howells
++M:	dhowells@redhat.com
++L:	linux-afs@lists.infradead.org
++S:	Supported
 +
- 	cell = afs_cell_alloc(name, vllist);
- 	if (IS_ERR(cell)) {
- 		_leave(" = %ld", PTR_ERR(cell));
- 		return cell;
- 	}
- 
--	down_write(&afs_cells_sem);
--
- 	/* add a proc directory for this cell */
- 	ret = afs_proc_cell_setup(cell);
- 	if (ret < 0)
-@@ -167,6 +173,11 @@ error:
- 	kfree(cell);
- 	_leave(" = %d", ret);
- 	return ERR_PTR(ret);
-+
-+duplicate_name:
-+	read_unlock(&afs_cells_lock);
-+	up_write(&afs_cells_sem);
-+	return ERR_PTR(-EEXIST);
- }
- 
- /*
+ AIO
+ P:	Benjamin LaHaise
+ M:	bcrl@kvack.org
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
