@@ -1,97 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - wdev-ath5k-typecheck-on-nondebug.patch removed from -mm tree
-Date: Mon, 24 Mar 2008 17:19:53 -0700
-Message-ID: <200803250019.m2P0Jr82032720@imap1.linux-foundation.org>
+Subject: - make-b43_mac_enablesuspend-static.patch removed from -mm tree
+Date: Mon, 24 Mar 2008 17:19:29 -0700
+Message-ID: <200803250019.m2P0JTsx032689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60999 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35027 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753876AbYCYAUZ (ORCPT
+	by vger.kernel.org with ESMTP id S1753917AbYCYAUV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 20:20:25 -0400
+	Mon, 24 Mar 2008 20:20:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mcgrof@gmail.com, mickflemm@gmail.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, mb@bu3sch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     WDEV: ath5k, typecheck on nonDEBUG
+     make b43_mac_{enable,suspend}() static
 has been removed from the -mm tree.  Its filename was
-     wdev-ath5k-typecheck-on-nondebug.patch
+     make-b43_mac_enablesuspend-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: WDEV: ath5k, typecheck on nonDEBUG
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: make b43_mac_{enable,suspend}() static
+From: Adrian Bunk <bunk@kernel.org>
 
-At least type check the ATH5K_TRACE paramter on !ATH5K_DEBUG configs.
+b43_mac_{enable,suspend}() can now become static.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
-Acked-by: Nick Kossifidis <mickflemm@gmail.com>
-Acked-by: Luis R. Rodriguez <mcgrof@gmail.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Michael Buesch <mb@bu3sch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath5k/debug.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/net/wireless/b43/main.c |    4 ++--
+ drivers/net/wireless/b43/main.h |    3 ---
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/wireless/ath5k/debug.h~wdev-ath5k-typecheck-on-nondebug drivers/net/wireless/ath5k/debug.h
---- a/drivers/net/wireless/ath5k/debug.h~wdev-ath5k-typecheck-on-nondebug
-+++ a/drivers/net/wireless/ath5k/debug.h
-@@ -171,7 +171,9 @@ ath5k_debug_printtxbuf(struct ath5k_soft
+diff -puN drivers/net/wireless/b43/main.c~make-b43_mac_enablesuspend-static drivers/net/wireless/b43/main.c
+--- a/drivers/net/wireless/b43/main.c~make-b43_mac_enablesuspend-static
++++ a/drivers/net/wireless/b43/main.c
+@@ -2045,7 +2045,7 @@ static void b43_gpio_cleanup(struct b43_
+ }
  
- #else /* no debugging */
+ /* http://bcm-specs.sipsolutions.net/EnableMac */
+-void b43_mac_enable(struct b43_wldev *dev)
++static void b43_mac_enable(struct b43_wldev *dev)
+ {
+ 	dev->mac_suspended--;
+ 	B43_WARN_ON(dev->mac_suspended < 0);
+@@ -2069,7 +2069,7 @@ void b43_mac_enable(struct b43_wldev *de
+ }
  
--#define ATH5K_TRACE(_sc) /* empty */
-+#include <linux/compiler.h>
-+
-+#define ATH5K_TRACE(_sc) typecheck(struct ath5k_softc *, (_sc))
+ /* http://bcm-specs.sipsolutions.net/SuspendMAC */
+-void b43_mac_suspend(struct b43_wldev *dev)
++static void b43_mac_suspend(struct b43_wldev *dev)
+ {
+ 	int i;
+ 	u32 tmp;
+diff -puN drivers/net/wireless/b43/main.h~make-b43_mac_enablesuspend-static drivers/net/wireless/b43/main.h
+--- a/drivers/net/wireless/b43/main.h~make-b43_mac_enablesuspend-static
++++ a/drivers/net/wireless/b43/main.h
+@@ -102,9 +102,6 @@ void b43_dummy_transmission(struct b43_w
  
- static inline void __attribute__ ((format (printf, 3, 4)))
- ATH5K_DBG(struct ath5k_softc *sc, unsigned int m, const char *fmt, ...) {}
+ void b43_wireless_core_reset(struct b43_wldev *dev, u32 flags);
+ 
+-void b43_mac_suspend(struct b43_wldev *dev);
+-void b43_mac_enable(struct b43_wldev *dev);
+-
+ void b43_controller_restart(struct b43_wldev *dev, const char *reason);
+ 
+ #define B43_PS_ENABLED	(1 << 0)	/* Force enable hardware power saving */
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-git-drm.patch
-input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
-input-add-debouncing-for-generic-gpio-input-device-gpio_keyc-update.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-dlm.patch
+mtdoopsc-make-struct-oops_cxt-static-again.patch
+make-mtd-nand-cs553x_nandcpart_probes-static.patch
+git-udf.patch
 git-net.patch
-capabilities-implement-per-process-securebits-fix.patch
-misc-phantom-add-compat-ioctl.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-misc-phantom-fix-poll.patch
-misc-phantom-consistent-whitespace.patch
-mxser-prepare-for-bkl-pushdown.patch
-tty-bkl-pushdown-fix.patch
-tty-bkl-pushdown-fix1.patch
-char-moxa-remove-static-isa-support.patch
-char-moxa-cleanup-module-param-passed-isa-init.patch
-char-moxa-pci-io-space-fixup.patch
-char-moxa-fix-tiocg-ssoftcar-param.patch
-char-moxa-add-firmware-loading.patch
-char-moxa-merge-c2xx-and-c320-firmware-loading.patch
-char-moxa-remove-port-port.patch
-char-moxa-remove-unused-port-entries.patch
-char-moxa-centralize-board-readiness.patch
-char-moxa-timer-cleanup.patch
-char-moxa-ioctl-cleanup.patch
-char-moxa-merge-2-poll-functions.patch
-char-moxa-cleanup-rx-tx.patch
-char-moxa-serialise-timer.patch
-char-moxa-rework-open-close.patch
-char-moxa-little-cleanup.patch
-char-moxa-remove-useless-tty-functions.patch
-char-moxa-introduce-moxa_is_320-macro.patch
-char-moxa-notify-about-board-readiness.patch
-char-moxa-update-credits.patch
-char-moxa-add-firmware-loading-fix.patch
-char-espc-fix-possible-double-unlock.patch
-mxser-convert-large-macros-to-functions.patch
+git-nfsd.patch
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
+git-selinux.patch
+pci_alloc_child_bus-mustnt-be-__devinit.patch
+pci_scan_device-mustnt-be-__devinit.patch
+pci_bus_size_cardbus-mustnt-be-__devinit.patch
+pci_setup_bridge-mustnt-be-__devinit.patch
+scsi-aic94xx-cleanups.patch
+if-0-ses_match_host.patch
+git-watchdog.patch
+make-swap_pte_to_pagemap_entry-static.patch
+fs-ramfs-extern-cleanup.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+ipwireless-remove-dead-code.patch
+proper-__do_softirq-prototype.patch
+proper-extern-for-late_time_init.patch
+remove-ecryptfs_header_cache_0.patch
+make-ds1511_rtc_readset_time-static.patch
+pnp-skip-dev-protocol-null-checks.patch
+make-ext3_xattr_list-static.patch
+make-cgroup_enable_task_cg_lists-static.patch
+cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh.patch
+kernel-cpusetc-make-3-functions-static.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+make-marker_debug-static.patch
 reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
 
