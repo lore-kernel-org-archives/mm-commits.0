@@ -1,149 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: - kbuild-soften-modpost-checks-when-doing-cross-builds.patch removed from -mm tree
-Date: Tue, 25 Mar 2008 15:29:52 -0700
-Message-ID: <200803252229.m2PMTqUQ016842@imap1.linux-foundation.org>
+Subject: - bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces.patch removed from -mm tree
+Date: Tue, 25 Mar 2008 15:29:50 -0700
+Message-ID: <200803252229.m2PMTous016839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58531 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37572 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753524AbYCYWja (ORCPT
+	by vger.kernel.org with ESMTP id S1753618AbYCYWjf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 18:39:30 -0400
+	Tue, 25 Mar 2008 18:39:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sam@uranus.ravnborg.org, gordonfarquharson@gmail.com, mb@bu3sch.de, sam@ravnborg.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: xemul@openvz.org, oleg@tv-sign.ru, paulmck@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kbuild: soften modpost checks when doing cross builds
+     bsd_acct: using task_struct->tgid is not right in pid-namespaces
 has been removed from the -mm tree.  Its filename was
-     kbuild-soften-modpost-checks-when-doing-cross-builds.patch
+     bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kbuild: soften modpost checks when doing cross builds
-From: Sam Ravnborg <sam@uranus.ravnborg.org>
+Subject: bsd_acct: using task_struct->tgid is not right in pid-namespaces
+From: Pavel Emelyanov <xemul@openvz.org>
 
-The module alias support in the kernel have a consistency check where it is
-checked that the size of a structure in the kernel and on the build host are
-the same.  For cross builds this check does not make sense so detect when we
-do cross builds and silently skip the check in these situations.  This fixes a
-build bug for a wireless driver when cross building for arm.
+In case we're accounting from a sub-namespace, the tgids reported will not
+refer to the right namespace.
 
-Acked-by: Michael Buesch <mb@bu3sch.de>
-Tested-by: Gordon Farquharson <gordonfarquharson@gmail.com>
-Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
-Cc: <stable@kernel.org>
+Save the pid_namespace we're accounting in on the acct_glbs and use it in
+do_acct_process.
+
+Two less :) places using the task_struct.tgid member.
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile                 |    2 +-
- scripts/Makefile.modpost |    6 +++++-
- scripts/mod/file2alias.c |    4 ++++
- scripts/mod/modpost.c    |    5 ++++-
- scripts/mod/modpost.h    |    1 +
- 5 files changed, 15 insertions(+), 3 deletions(-)
+ kernel/acct.c |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-diff -puN Makefile~kbuild-soften-modpost-checks-when-doing-cross-builds Makefile
---- a/Makefile~kbuild-soften-modpost-checks-when-doing-cross-builds
-+++ a/Makefile
-@@ -189,7 +189,7 @@ SUBARCH := $(shell uname -m | sed -e s/i
- # Alternatively CROSS_COMPILE can be set in the environment.
- # Default value for CROSS_COMPILE is not to prefix executables
- # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
--
-+export KBUILD_BUILDHOST := $(SUBARCH)
- ARCH		?= $(SUBARCH)
- CROSS_COMPILE	?=
+diff -puN kernel/acct.c~bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces kernel/acct.c
+--- a/kernel/acct.c~bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces
++++ a/kernel/acct.c
+@@ -58,6 +58,7 @@
+ #include <asm/uaccess.h>
+ #include <asm/div64.h>
+ #include <linux/blkdev.h> /* sector_div */
++#include <linux/pid_namespace.h>
  
-diff -puN scripts/Makefile.modpost~kbuild-soften-modpost-checks-when-doing-cross-builds scripts/Makefile.modpost
---- a/scripts/Makefile.modpost~kbuild-soften-modpost-checks-when-doing-cross-builds
-+++ a/scripts/Makefile.modpost
-@@ -58,6 +58,9 @@ modules   := $(patsubst %.o,%.ko, $(wild
- # Stop after building .o files if NOFINAL is set. Makes compile tests quicker
- _modpost: $(if $(KBUILD_MODPOST_NOFINAL), $(modules:.ko:.o),$(modules))
+ /*
+  * These constants control the amount of freespace that suspend and
+@@ -74,7 +75,7 @@ int acct_parm[3] = {4, 2, 30};
+ /*
+  * External references and all of the globals.
+  */
+-static void do_acct_process(struct file *);
++static void do_acct_process(struct pid_namespace *ns, struct file *);
  
-+ifneq ($(KBUILD_BUILDHOST),$(ARCH))
-+        cross_build := 1
-+endif
- 
- # Step 2), invoke modpost
- #  Includes step 3,4
-@@ -70,7 +73,8 @@ modpost = scripts/mod/modpost           
-  $(if $(CONFIG_DEBUG_SECTION_MISMATCH),,-S)      \
-  $(if $(CONFIG_MARKERS),-K $(kernelmarkersfile)) \
-  $(if $(CONFIG_MARKERS),-M $(markersfile))	 \
-- $(if $(KBUILD_EXTMOD)$(KBUILD_MODPOST_WARN),-w)
-+ $(if $(KBUILD_EXTMOD)$(KBUILD_MODPOST_WARN),-w) \
-+ $(if $(cross_build),-c)
- 
- quiet_cmd_modpost = MODPOST $(words $(filter-out vmlinux FORCE, $^)) modules
-       cmd_modpost = $(modpost) -s
-diff -puN scripts/mod/file2alias.c~kbuild-soften-modpost-checks-when-doing-cross-builds scripts/mod/file2alias.c
---- a/scripts/mod/file2alias.c~kbuild-soften-modpost-checks-when-doing-cross-builds
-+++ a/scripts/mod/file2alias.c
-@@ -51,11 +51,13 @@ do {                                    
-                 sprintf(str + strlen(str), "*");                \
- } while(0)
- 
-+unsigned int cross_build = 0;
- /**
-  * Check that sizeof(device_id type) are consistent with size of section
-  * in .o file. If in-consistent then userspace and kernel does not agree
-  * on actual size which is a bug.
-  * Also verify that the final entry in the table is all zeros.
-+ * Ignore both checks if build host differ from target host and size differs.
-  **/
- static void device_id_check(const char *modname, const char *device_id,
- 			    unsigned long size, unsigned long id_size,
-@@ -64,6 +66,8 @@ static void device_id_check(const char *
- 	int i;
- 
- 	if (size % id_size || size < id_size) {
-+		if (cross_build != 0)
-+			return;
- 		fatal("%s: sizeof(struct %s_device_id)=%lu is not a modulo "
- 		      "of the size of section __mod_%s_device_table=%lu.\n"
- 		      "Fix definition of struct %s_device_id "
-diff -puN scripts/mod/modpost.c~kbuild-soften-modpost-checks-when-doing-cross-builds scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~kbuild-soften-modpost-checks-when-doing-cross-builds
-+++ a/scripts/mod/modpost.c
-@@ -2026,7 +2026,7 @@ int main(int argc, char **argv)
- 	int opt;
- 	int err;
- 
--	while ((opt = getopt(argc, argv, "i:I:msSo:awM:K:")) != -1) {
-+	while ((opt = getopt(argc, argv, "i:I:cmsSo:awM:K:")) != -1) {
- 		switch (opt) {
- 		case 'i':
- 			kernel_read = optarg;
-@@ -2035,6 +2035,9 @@ int main(int argc, char **argv)
- 			module_read = optarg;
- 			external_module = 1;
- 			break;
-+		case 'c':
-+			cross_build = 1;
-+			break;
- 		case 'm':
- 			modversions = 1;
- 			break;
-diff -puN scripts/mod/modpost.h~kbuild-soften-modpost-checks-when-doing-cross-builds scripts/mod/modpost.h
---- a/scripts/mod/modpost.h~kbuild-soften-modpost-checks-when-doing-cross-builds
-+++ a/scripts/mod/modpost.h
-@@ -135,6 +135,7 @@ struct elf_info {
+ /*
+  * This structure is used so that all the data protected by lock
+@@ -86,6 +87,7 @@ struct acct_glbs {
+ 	volatile int		active;
+ 	volatile int		needcheck;
+ 	struct file		*file;
++	struct pid_namespace	*ns;
+ 	struct timer_list	timer;
  };
  
- /* file2alias.c */
-+extern unsigned int cross_build;
- void handle_moddevtable(struct module *mod, struct elf_info *info,
- 			Elf_Sym *sym, const char *symname);
- void add_moddevtable(struct buffer *buf, struct module *mod);
+@@ -175,9 +177,11 @@ out:
+ static void acct_file_reopen(struct file *file)
+ {
+ 	struct file *old_acct = NULL;
++	struct pid_namespace *old_ns = NULL;
+ 
+ 	if (acct_globals.file) {
+ 		old_acct = acct_globals.file;
++		old_ns = acct_globals.ns;
+ 		del_timer(&acct_globals.timer);
+ 		acct_globals.active = 0;
+ 		acct_globals.needcheck = 0;
+@@ -185,6 +189,7 @@ static void acct_file_reopen(struct file
+ 	}
+ 	if (file) {
+ 		acct_globals.file = file;
++		acct_globals.ns = get_pid_ns(task_active_pid_ns(current));
+ 		acct_globals.needcheck = 0;
+ 		acct_globals.active = 1;
+ 		/* It's been deleted if it was used before so this is safe */
+@@ -196,8 +201,9 @@ static void acct_file_reopen(struct file
+ 	if (old_acct) {
+ 		mnt_unpin(old_acct->f_path.mnt);
+ 		spin_unlock(&acct_globals.lock);
+-		do_acct_process(old_acct);
++		do_acct_process(old_ns, old_acct);
+ 		filp_close(old_acct, NULL);
++		put_pid_ns(old_ns);
+ 		spin_lock(&acct_globals.lock);
+ 	}
+ }
+@@ -419,7 +425,7 @@ static u32 encode_float(u64 value)
+ /*
+  *  do_acct_process does all actual work. Caller holds the reference to file.
+  */
+-static void do_acct_process(struct file *file)
++static void do_acct_process(struct pid_namespace *ns, struct file *file)
+ {
+ 	struct pacct_struct *pacct = &current->signal->pacct;
+ 	acct_t ac;
+@@ -481,9 +487,9 @@ static void do_acct_process(struct file 
+ 	ac.ac_gid16 = current->gid;
+ #endif
+ #if ACCT_VERSION==3
+-	ac.ac_pid = current->tgid;
++	ac.ac_pid = task_tgid_nr_ns(current, ns);
+ 	rcu_read_lock();
+-	ac.ac_ppid = rcu_dereference(current->real_parent)->tgid;
++	ac.ac_ppid = task_tgid_nr_ns(rcu_dereference(current->real_parent), ns);
+ 	rcu_read_unlock();
+ #endif
+ 
+@@ -580,6 +586,7 @@ void acct_collect(long exitcode, int gro
+ void acct_process(void)
+ {
+ 	struct file *file = NULL;
++	struct pid_namespace *ns;
+ 
+ 	/*
+ 	 * accelerate the common fastpath:
+@@ -594,8 +601,10 @@ void acct_process(void)
+ 		return;
+ 	}
+ 	get_file(file);
++	ns = get_pid_ns(acct_globals.ns);
+ 	spin_unlock(&acct_globals.lock);
+ 
+-	do_acct_process(file);
++	do_acct_process(ns, file);
+ 	fput(file);
++	put_pid_ns(ns);
+ }
 _
 
-Patches currently in -mm which might be from sam@uranus.ravnborg.org are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
+git-kgdb-light.patch
+use-find_task_by_vpid-in-audit-code.patch
+ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces.patch
+git-infiniband.patch
+git-udf.patch
+git-net.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
+binfmt_miscc-avoid-potential-kernel-stack-overflow.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
+cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing.patch
+cgroups-add-the-trigger-callback-to-struct-cftype.patch
+memory-controller-make-memory-resource-control-aware-of-boot-options.patch
+memcgroup-add-the-max_usage-member-on-the-res_counter.patch
+add-a-document-describing-the-resource-counter-abstraction-v2.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
+memcgroup-use-triggers-in-force_empty-and-max_usage-files.patch
+memcgroup-implement-failcounter-reset.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
+sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
+sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+use-find_task_by_vpid-in-taskstats.patch
+deprecate-find_task_by_pid.patch
+deprecate-find_task_by_pid-warning-fix.patch
+pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
+pids-introduce-change_pid-helper.patch
+pids-sys_setpgid-use-change_pid-helper.patch
+pids-__set_special_pids-use-change_pid-helper.patch
+pidns-make-pid-level-and-pid_ns-level-unsigned.patch
+reiser4.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
