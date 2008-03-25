@@ -1,209 +1,312 @@
 From: akpm@linux-foundation.org
-Subject: - bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces.patch removed from -mm tree
-Date: Tue, 25 Mar 2008 15:29:50 -0700
-Message-ID: <200803252229.m2PMTous016839@imap1.linux-foundation.org>
+Subject: - revert-kswapd-should-only-wait-on-io-if-there-is-io.patch removed from -mm tree
+Date: Tue, 25 Mar 2008 15:29:45 -0700
+Message-ID: <200803252229.m2PMTj1M016832@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37572 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50829 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753618AbYCYWjf (ORCPT
+	by vger.kernel.org with ESMTP id S1753599AbYCYWjo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 18:39:35 -0400
+	Tue, 25 Mar 2008 18:39:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, oleg@tv-sign.ru, paulmck@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, crmafra2@gmail.com, riel@redhat.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bsd_acct: using task_struct->tgid is not right in pid-namespaces
+     revert "kswapd should only wait on IO if there is IO"
 has been removed from the -mm tree.  Its filename was
-     bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces.patch
+     revert-kswapd-should-only-wait-on-io-if-there-is-io.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bsd_acct: using task_struct->tgid is not right in pid-namespaces
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: revert "kswapd should only wait on IO if there is IO"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-In case we're accounting from a sub-namespace, the tgids reported will not
-refer to the right namespace.
+Revert
 
-Save the pid_namespace we're accounting in on the acct_glbs and use it in
-do_acct_process.
+commit f1a9ee758de7de1e040de849fdef46e6802ea117
+Author: Rik van Riel <riel@redhat.com>
+Date:   Thu Feb 7 00:14:08 2008 -0800
 
-Two less :) places using the task_struct.tgid member.
+    kswapd should only wait on IO if there is IO
+    
+    The current kswapd (and try_to_free_pages) code has an oddity where the
+    code will wait on IO, even if there is no IO in flight.  This problem is
+    notable especially when the system scans through many unfreeable pages,
+    causing unnecessary stalls in the VM.
+    
+    Additionally, tasks without __GFP_FS or __GFP_IO in the direct reclaim path
+    will sleep if a significant number of pages are encountered that should be
+    written out.  This gives kswapd a chance to write out those pages, while
+    the direct reclaim task sleeps.
+    
+    Signed-off-by: Rik van Riel <riel@redhat.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Because of large latencies and interactivity problems reported by Carlos,
+here: http://lkml.org/lkml/2008/3/22/211
+
+Cc: Rik van Riel <riel@redhat.com>
+Cc: "Carlos R.  Mafra" <crmafra2@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ mm/vmscan.c |   27 +++++----------------------
+ 1 file changed, 5 insertions(+), 22 deletions(-)
 
-diff -puN kernel/acct.c~bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces kernel/acct.c
---- a/kernel/acct.c~bsd_acct-using-task_struct-tgid-is-not-right-in-pid-namespaces
-+++ a/kernel/acct.c
-@@ -58,6 +58,7 @@
- #include <asm/uaccess.h>
- #include <asm/div64.h>
- #include <linux/blkdev.h> /* sector_div */
-+#include <linux/pid_namespace.h>
+diff -puN mm/vmscan.c~revert-kswapd-should-only-wait-on-io-if-there-is-io mm/vmscan.c
+--- a/mm/vmscan.c~revert-kswapd-should-only-wait-on-io-if-there-is-io
++++ a/mm/vmscan.c
+@@ -70,13 +70,6 @@ struct scan_control {
  
- /*
-  * These constants control the amount of freespace that suspend and
-@@ -74,7 +75,7 @@ int acct_parm[3] = {4, 2, 30};
- /*
-  * External references and all of the globals.
-  */
--static void do_acct_process(struct file *);
-+static void do_acct_process(struct pid_namespace *ns, struct file *);
+ 	int order;
  
- /*
-  * This structure is used so that all the data protected by lock
-@@ -86,6 +87,7 @@ struct acct_glbs {
- 	volatile int		active;
- 	volatile int		needcheck;
- 	struct file		*file;
-+	struct pid_namespace	*ns;
- 	struct timer_list	timer;
- };
+-	/*
+-	 * Pages that have (or should have) IO pending.  If we run into
+-	 * a lot of these, we're better off waiting a little for IO to
+-	 * finish rather than scanning more pages in the VM.
+-	 */
+-	int nr_io_pages;
+-
+ 	/* Which cgroup do we reclaim from */
+ 	struct mem_cgroup *mem_cgroup;
  
-@@ -175,9 +177,11 @@ out:
- static void acct_file_reopen(struct file *file)
- {
- 	struct file *old_acct = NULL;
-+	struct pid_namespace *old_ns = NULL;
+@@ -512,10 +505,8 @@ static unsigned long shrink_page_list(st
+ 			 */
+ 			if (sync_writeback == PAGEOUT_IO_SYNC && may_enter_fs)
+ 				wait_on_page_writeback(page);
+-			else {
+-				sc->nr_io_pages++;
++			else
+ 				goto keep_locked;
+-			}
+ 		}
  
- 	if (acct_globals.file) {
- 		old_acct = acct_globals.file;
-+		old_ns = acct_globals.ns;
- 		del_timer(&acct_globals.timer);
- 		acct_globals.active = 0;
- 		acct_globals.needcheck = 0;
-@@ -185,6 +189,7 @@ static void acct_file_reopen(struct file
+ 		referenced = page_referenced(page, 1, sc->mem_cgroup);
+@@ -554,10 +545,8 @@ static unsigned long shrink_page_list(st
+ 		if (PageDirty(page)) {
+ 			if (sc->order <= PAGE_ALLOC_COSTLY_ORDER && referenced)
+ 				goto keep_locked;
+-			if (!may_enter_fs) {
+-				sc->nr_io_pages++;
++			if (!may_enter_fs)
+ 				goto keep_locked;
+-			}
+ 			if (!sc->may_writepage)
+ 				goto keep_locked;
+ 
+@@ -568,10 +557,8 @@ static unsigned long shrink_page_list(st
+ 			case PAGE_ACTIVATE:
+ 				goto activate_locked;
+ 			case PAGE_SUCCESS:
+-				if (PageWriteback(page) || PageDirty(page)) {
+-					sc->nr_io_pages++;
++				if (PageWriteback(page) || PageDirty(page))
+ 					goto keep;
+-				}
+ 				/*
+ 				 * A synchronous write - probably a ramdisk.  Go
+ 				 * ahead and try to reclaim the page.
+@@ -1344,7 +1331,6 @@ static unsigned long do_try_to_free_page
+ 
+ 	for (priority = DEF_PRIORITY; priority >= 0; priority--) {
+ 		sc->nr_scanned = 0;
+-		sc->nr_io_pages = 0;
+ 		if (!priority)
+ 			disable_swap_token();
+ 		nr_reclaimed += shrink_zones(priority, zones, sc);
+@@ -1379,8 +1365,7 @@ static unsigned long do_try_to_free_page
+ 		}
+ 
+ 		/* Take a nap, wait for some writeback to complete */
+-		if (sc->nr_scanned && priority < DEF_PRIORITY - 2 &&
+-				sc->nr_io_pages > sc->swap_cluster_max)
++		if (sc->nr_scanned && priority < DEF_PRIORITY - 2)
+ 			congestion_wait(WRITE, HZ/10);
  	}
- 	if (file) {
- 		acct_globals.file = file;
-+		acct_globals.ns = get_pid_ns(task_active_pid_ns(current));
- 		acct_globals.needcheck = 0;
- 		acct_globals.active = 1;
- 		/* It's been deleted if it was used before so this is safe */
-@@ -196,8 +201,9 @@ static void acct_file_reopen(struct file
- 	if (old_acct) {
- 		mnt_unpin(old_acct->f_path.mnt);
- 		spin_unlock(&acct_globals.lock);
--		do_acct_process(old_acct);
-+		do_acct_process(old_ns, old_acct);
- 		filp_close(old_acct, NULL);
-+		put_pid_ns(old_ns);
- 		spin_lock(&acct_globals.lock);
- 	}
- }
-@@ -419,7 +425,7 @@ static u32 encode_float(u64 value)
- /*
-  *  do_acct_process does all actual work. Caller holds the reference to file.
-  */
--static void do_acct_process(struct file *file)
-+static void do_acct_process(struct pid_namespace *ns, struct file *file)
- {
- 	struct pacct_struct *pacct = &current->signal->pacct;
- 	acct_t ac;
-@@ -481,9 +487,9 @@ static void do_acct_process(struct file 
- 	ac.ac_gid16 = current->gid;
- #endif
- #if ACCT_VERSION==3
--	ac.ac_pid = current->tgid;
-+	ac.ac_pid = task_tgid_nr_ns(current, ns);
- 	rcu_read_lock();
--	ac.ac_ppid = rcu_dereference(current->real_parent)->tgid;
-+	ac.ac_ppid = task_tgid_nr_ns(rcu_dereference(current->real_parent), ns);
- 	rcu_read_unlock();
- #endif
+ 	/* top priority shrink_caches still had more to do? don't OOM, then */
+@@ -1514,7 +1499,6 @@ loop_again:
+ 		if (!priority)
+ 			disable_swap_token();
  
-@@ -580,6 +586,7 @@ void acct_collect(long exitcode, int gro
- void acct_process(void)
- {
- 	struct file *file = NULL;
-+	struct pid_namespace *ns;
+-		sc.nr_io_pages = 0;
+ 		all_zones_ok = 1;
  
- 	/*
- 	 * accelerate the common fastpath:
-@@ -594,8 +601,10 @@ void acct_process(void)
- 		return;
- 	}
- 	get_file(file);
-+	ns = get_pid_ns(acct_globals.ns);
- 	spin_unlock(&acct_globals.lock);
+ 		/*
+@@ -1607,8 +1591,7 @@ loop_again:
+ 		 * OK, kswapd is getting into trouble.  Take a nap, then take
+ 		 * another pass across the zones.
+ 		 */
+-		if (total_scanned && priority < DEF_PRIORITY - 2 &&
+-					sc.nr_io_pages > sc.swap_cluster_max)
++		if (total_scanned && priority < DEF_PRIORITY - 2)
+ 			congestion_wait(WRITE, HZ/10);
  
--	do_acct_process(file);
-+	do_acct_process(ns, file);
- 	fput(file);
-+	put_pid_ns(ns);
- }
+ 		/*
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
 git-kgdb-light.patch
-use-find_task_by_vpid-in-audit-code.patch
-ia64-fix-getpid-and-set_tid_address-fast-system-calls-for-pid-namespaces.patch
+git-acpi-fixup.patch
+git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+pm-remove-destroy_suspended_device-checkpatch-fixes.patch
+git-drm.patch
+git-drm-git-rejects.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
 git-infiniband.patch
-git-udf.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-net.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
-binfmt_miscc-avoid-potential-kernel-stack-overflow.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+git-sh.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+scsi-add-iscsi-ibft-support-fix.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
+r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
+r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+fbdev-driver-for-freescale-8610-and-5121-diu-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing.patch
-cgroups-add-the-trigger-callback-to-struct-cftype.patch
-memory-controller-make-memory-resource-control-aware-of-boot-options.patch
-memcgroup-add-the-max_usage-member-on-the-res_counter.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
 add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
-memcgroup-use-triggers-in-force_empty-and-max_usage-files.patch
-memcgroup-implement-failcounter-reset.patch
 memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
-sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
-sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-deprecate-find_task_by_pid-warning-fix.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-pidns-make-pid-level-and-pid_ns-level-unsigned.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
 reiser4.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+w1-build-fix.patch
 
