@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-fix-medion-_prt-quirk-use-isa_-not-isa.patch added to -mm tree
-Date: Tue, 25 Mar 2008 12:47:15 -0700
-Message-ID: <200803251947.m2PJlFqm010260@imap1.linux-foundation.org>
+Subject: + afs-prevent-double-cell-registration.patch added to -mm tree
+Date: Tue, 25 Mar 2008 13:00:07 -0700
+Message-ID: <200803252000.m2PK07lc010789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50793 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752323AbYCYTsQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753624AbYCYUBU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 15:48:16 -0400
+	Tue, 25 Mar 2008 16:01:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, johann-nikolaus.andreae@nacs.de, lenb@kernel.org
+Cc: dhowells@redhat.com, svens@stackframe.org
 
 
 The patch titled
-     ACPI: fix Medion _PRT quirk (use "ISA_", not "ISA")
+     afs: prevent double cell registration
 has been added to the -mm tree.  Its filename is
-     acpi-fix-medion-_prt-quirk-use-isa_-not-isa.patch
+     afs-prevent-double-cell-registration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,86 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ACPI: fix Medion _PRT quirk (use "ISA_", not "ISA")
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: afs: prevent double cell registration
+From: David Howells <dhowells@redhat.com>
 
-This fixes the builtin RTL8139 NIC on the Medion MD9580-F laptop.  The BIOS
-reports the interrupt routing incorrectly.  I recently added a quirk to work
-around this, and this patch fixes a typo in the quirk.
+kafs doesn't check if the cell already exists - so if you do an echo "add
+newcell.org 1.2.3.4" >/proc/fs/afs/cells it will try to create this cell
+again.  kobject will also complain about a double registration.  To prevent
+such problems, return -EEXIST in that case.
 
-We pad every ACPI pathname component to four characters, so ".ISA." will never
-match anything.  We need ".ISA_." instead.
-
-Thank you Johann-Nikolaus Andreae for patiently testing this patch.
-
-See http://bugzilla.kernel.org/show_bug.cgi?id=4773
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Johann-Nikolaus Andreae <johann-nikolaus.andreae@nacs.de>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Sven Schnelle <svens@stackframe.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/pci_irq.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/afs/cell.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/pci_irq.c~acpi-fix-medion-_prt-quirk-use-isa_-not-isa drivers/acpi/pci_irq.c
---- a/drivers/acpi/pci_irq.c~acpi-fix-medion-_prt-quirk-use-isa_-not-isa
-+++ a/drivers/acpi/pci_irq.c
-@@ -131,8 +131,8 @@ struct prt_quirk {
-  */
- static struct prt_quirk prt_quirks[] = {
- 	{ medion_md9580, 0, 0, 9, 'A',
--		"\\_SB_.PCI0.ISA.LNKA",
--		"\\_SB_.PCI0.ISA.LNKB"},
-+		"\\_SB_.PCI0.ISA_.LNKA",
-+		"\\_SB_.PCI0.ISA_.LNKB"},
- 	{ dell_optiplex, 0, 0, 0xd, 'A',
- 		"\\_SB_.LNKB",
- 		"\\_SB_.LNKA"},
+diff -puN fs/afs/cell.c~afs-prevent-double-cell-registration fs/afs/cell.c
+--- a/fs/afs/cell.c~afs-prevent-double-cell-registration
++++ a/fs/afs/cell.c
+@@ -127,14 +127,20 @@ struct afs_cell *afs_cell_create(const c
+ 
+ 	_enter("%s,%s", name, vllist);
+ 
++	down_write(&afs_cells_sem);
++	read_lock(&afs_cells_lock);
++	list_for_each_entry(cell, &afs_cells, link) {
++		if (strcasecmp(cell->name, name) == 0)
++			goto duplicate_name;
++	}
++	read_unlock(&afs_cells_lock);
++
+ 	cell = afs_cell_alloc(name, vllist);
+ 	if (IS_ERR(cell)) {
+ 		_leave(" = %ld", PTR_ERR(cell));
+ 		return cell;
+ 	}
+ 
+-	down_write(&afs_cells_sem);
+-
+ 	/* add a proc directory for this cell */
+ 	ret = afs_proc_cell_setup(cell);
+ 	if (ret < 0)
+@@ -167,6 +173,11 @@ error:
+ 	kfree(cell);
+ 	_leave(" = %d", ret);
+ 	return ERR_PTR(ret);
++
++duplicate_name:
++	read_unlock(&afs_cells_lock);
++	up_write(&afs_cells_sem);
++	return ERR_PTR(-EEXIST);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-simplify-initcall_debug-output.patch
-pnp-skip-dev-protocol-null-checks.patch
-pnp-simplify-quirk-debug-output.patch
-pnp-use-dev_printk-for-quirk-messages.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-acpi-fix-medion-_prt-quirk-use-isa_-not-isa.patch
+afs-add-a-maintainers-record-for-afs.patch
+afs-prevent-double-cell-registration.patch
+git-unionfs.patch
+remove-the-macro-get_personality.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+keys-switch-to-proc_create.patch
+keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
+keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys-fix.patch
+keys-explicitly-include-required-slabh-header-file.patch
+keys-make-key_serial-a-function-if-config_keys=y.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+alloc_uid-cleanup.patch
+rename-div64_64-to-div64_u64.patch
+afs-use-the-shorter-list_head-for-brevity.patch
+mutex-subsystem-synchro-test-module.patch
 
