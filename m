@@ -1,112 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - convert-stats_sem-in-a-mutex.patch removed from -mm tree
-Date: Mon, 24 Mar 2008 17:19:39 -0700
-Message-ID: <200803250019.m2P0JdR2032702@imap1.linux-foundation.org>
+Subject: - drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and.patch removed from -mm tree
+Date: Mon, 24 Mar 2008 17:19:57 -0700
+Message-ID: <200803250019.m2P0Jvqh032746@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54664 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753995AbYCYAVR (ORCPT
+	by vger.kernel.org with ESMTP id S1753954AbYCYAV0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 20:21:17 -0400
+	Mon, 24 Mar 2008 20:21:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias@kaehlcke.net, flamingice@sourmilk.net, linville@tuxdriver.com, mcgrof@winlab.rutgers.edu, mm-commits@vger.kernel.org
+To: julia@diku.dk, guy.cohen@intel.com, linville@tuxdriver.com, reinette.chatre@intel.com, tomas.winkler@intel.com, yi.zhu@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     prism54: convert stats_sem in a mutex
+     drivers/net/wireless/iwlwifi/iwl-4965.c: correct use of ! and &
 has been removed from the -mm tree.  Its filename was
-     convert-stats_sem-in-a-mutex.patch
+     drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: prism54: convert stats_sem in a mutex
-From: Matthias Kaehlcke <matthias@kaehlcke.net>
+Subject: drivers/net/wireless/iwlwifi/iwl-4965.c: correct use of ! and &
+From: Julia Lawall <julia@diku.dk>
 
-The semaphore stats_sem is used as mutex, convert it to the mutex API
+In commit e6bafba5b4765a5a252f1b8d31cbf6d2459da337, a bug was fixed that
+involved converting !x & y to !(x & y).  The code below shows the same
+pattern, and thus should perhaps be fixed in the same way.
 
-Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
-Cc: Michael Wu <flamingice@sourmilk.net>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+This is not tested and clearly changes the semantics, so it is only
+something to consider.
+
+The semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@@ expression E1,E2; @@
+(
+  !E1 & !E2
+|
+- !E1 & E2
++ !(E1 & E2)
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Tomas Winkler <tomas.winkler@intel.com>
+Cc: Guy Cohen <guy.cohen@intel.com>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Reinette Chatre <reinette.chatre@intel.com>
+Cc: Zhu Yi <yi.zhu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/prism54/isl_ioctl.c  |    8 ++++----
- drivers/net/wireless/prism54/islpci_dev.c |    2 +-
- drivers/net/wireless/prism54/islpci_dev.h |    2 +-
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/net/wireless/iwlwifi/iwl-4965.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wireless/prism54/isl_ioctl.c~convert-stats_sem-in-a-mutex drivers/net/wireless/prism54/isl_ioctl.c
---- a/drivers/net/wireless/prism54/isl_ioctl.c~convert-stats_sem-in-a-mutex
-+++ a/drivers/net/wireless/prism54/isl_ioctl.c
-@@ -165,7 +165,7 @@ prism54_update_stats(struct work_struct 
- 	struct obj_bss bss, *bss2;
- 	union oid_res_t r;
+diff -puN drivers/net/wireless/iwlwifi/iwl-4965.c~drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and drivers/net/wireless/iwlwifi/iwl-4965.c
+--- a/drivers/net/wireless/iwlwifi/iwl-4965.c~drivers-net-wireless-iwlwifi-iwl-4965c-correct-use-of-and
++++ a/drivers/net/wireless/iwlwifi/iwl-4965.c
+@@ -4589,7 +4589,7 @@ static u8 iwl4965_is_fat_tx_allowed(stru
  
--	down(&priv->stats_sem);
-+	mutex_lock(&priv->stats_lock);
+ 	if (sta_ht_inf) {
+ 		if ((!sta_ht_inf->ht_supported) ||
+-		   (!sta_ht_inf->cap & IEEE80211_HT_CAP_SUP_WIDTH))
++		   (!(sta_ht_inf->cap & IEEE80211_HT_CAP_SUP_WIDTH)))
+ 			return 0;
+ 	}
  
- /* Noise floor.
-  * I'm not sure if the unit is dBm.
-@@ -207,7 +207,7 @@ prism54_update_stats(struct work_struct 
- 	mgt_get_request(priv, DOT11_OID_MPDUTXFAILED, 0, NULL, &r);
- 	priv->local_iwstatistics.discard.retries = r.u;
- 
--	up(&priv->stats_sem);
-+	mutex_unlock(&priv->stats_lock);
- 
- 	return;
- }
-@@ -218,12 +218,12 @@ prism54_get_wireless_stats(struct net_de
- 	islpci_private *priv = netdev_priv(ndev);
- 
- 	/* If the stats are being updated return old data */
--	if (down_trylock(&priv->stats_sem) == 0) {
-+	if (mutex_trylock(&priv->stats_lock) == 0) {
- 		memcpy(&priv->iwstatistics, &priv->local_iwstatistics,
- 		       sizeof (struct iw_statistics));
- 		/* They won't be marked updated for the next time */
- 		priv->local_iwstatistics.qual.updated = 0;
--		up(&priv->stats_sem);
-+		mutex_unlock(&priv->stats_lock);
- 	} else
- 		priv->iwstatistics.qual.updated = 0;
- 
-diff -puN drivers/net/wireless/prism54/islpci_dev.c~convert-stats_sem-in-a-mutex drivers/net/wireless/prism54/islpci_dev.c
---- a/drivers/net/wireless/prism54/islpci_dev.c~convert-stats_sem-in-a-mutex
-+++ a/drivers/net/wireless/prism54/islpci_dev.c
-@@ -864,7 +864,7 @@ islpci_setup(struct pci_dev *pdev)
- 	mutex_init(&priv->mgmt_lock);
- 	priv->mgmt_received = NULL;
- 	init_waitqueue_head(&priv->mgmt_wqueue);
--	sema_init(&priv->stats_sem, 1);
-+	mutex_init(&priv->stats_lock);
- 	spin_lock_init(&priv->slock);
- 
- 	/* init state machine with off#1 state */
-diff -puN drivers/net/wireless/prism54/islpci_dev.h~convert-stats_sem-in-a-mutex drivers/net/wireless/prism54/islpci_dev.h
---- a/drivers/net/wireless/prism54/islpci_dev.h~convert-stats_sem-in-a-mutex
-+++ a/drivers/net/wireless/prism54/islpci_dev.h
-@@ -88,7 +88,7 @@ typedef struct {
- 
- 	/* Take care of the wireless stats */
- 	struct work_struct stats_work;
--	struct semaphore stats_sem;
-+	struct mutex stats_lock;
- 	/* remember when we last updated the stats */
- 	unsigned long stats_timestamp;
- 	/* The first is accessed under semaphore locking.
 _
 
-Patches currently in -mm which might be from matthias@kaehlcke.net are
+Patches currently in -mm which might be from julia@diku.dk are
 
-git-net.patch
-alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex.patch
-git-scsi-misc.patch
-fs-inodec-use-hlist_for_each_entry.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+origin.patch
+git-alsa-tiwai.patch
+git-powerpc.patch
+drivers-block-viodasdc-use-field_sizeof.patch
+git-udf.patch
+drivers-net-ixgb-ixgb_mainc-remove-unused-variable.patch
+git-ocfs2.patch
+fs-affs-filec-use-bug_on.patch
+fbdev-use-div_round_up-or-roundup.patch
+fs-ext2-use-bug_on.patch
+fs-ext3-use-bug_on.patch
+fs-ext4-use-bug_on.patch
 
