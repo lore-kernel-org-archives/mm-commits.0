@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + allow-use-of-the-powersave-governor-as-the-default-one.patch added to -mm tree
-Date: Tue, 25 Mar 2008 14:05:50 -0700
-Message-ID: <200803252105.m2PL5oX1013241@imap1.linux-foundation.org>
+Subject: + kbuild-soften-modpost-checks-when-doing-cross-builds.patch added to -mm tree
+Date: Tue, 25 Mar 2008 14:06:45 -0700
+Message-ID: <200803252106.m2PL6j00013268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47668 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752315AbYCYVGC (ORCPT
+	by vger.kernel.org with ESMTP id S1752867AbYCYVHN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 17:06:02 -0400
+	Tue, 25 Mar 2008 17:07:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alessandro.guido@gmail.com, davej@codemonkey.org.uk
+Cc: sam@uranus.ravnborg.org, gordonfarquharson@gmail.com, mb@bu3sch.de, sam@ravnborg.org, stable@kernel.org
 
 
 The patch titled
-     cpufreq: allow use of the powersave governor as the default one
+     kbuild: soften modpost checks when doing cross builds
 has been added to the -mm tree.  Its filename is
-     allow-use-of-the-powersave-governor-as-the-default-one.patch
+     kbuild-soften-modpost-checks-when-doing-cross-builds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,86 +34,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: allow use of the powersave governor as the default one
-From: Alessandro Guido <alessandro.guido@gmail.com>
+Subject: kbuild: soften modpost checks when doing cross builds
+From: Sam Ravnborg <sam@uranus.ravnborg.org>
 
-Allow use of the powersave cpufreq governor as the default one for EMBEDDED
-configs.
+The module alias support in the kernel have a consistency check where it is
+checked that the size of a structure in the kernel and on the build host are
+the same.  For cross builds this check does not make sense so detect when we
+do cross builds and silently skip the check in these situations.  This fixes a
+build bug for a wireless driver when cross building for arm.
 
-Signed-off-by: Alessandro Guido <alessandro.guido@gmail.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Acked-by: Michael Buesch <mb@bu3sch.de>
+Tested-by: Gordon Farquharson <gordonfarquharson@gmail.com>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/Kconfig             |    9 +++++++++
- drivers/cpufreq/cpufreq_powersave.c |    8 ++++++--
- include/linux/cpufreq.h             |    3 +++
- 3 files changed, 18 insertions(+), 2 deletions(-)
+ Makefile                 |    2 +-
+ scripts/Makefile.modpost |    6 +++++-
+ scripts/mod/file2alias.c |    4 ++++
+ scripts/mod/modpost.c    |    5 ++++-
+ scripts/mod/modpost.h    |    1 +
+ 5 files changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN drivers/cpufreq/Kconfig~allow-use-of-the-powersave-governor-as-the-default-one drivers/cpufreq/Kconfig
---- a/drivers/cpufreq/Kconfig~allow-use-of-the-powersave-governor-as-the-default-one
-+++ a/drivers/cpufreq/Kconfig
-@@ -69,6 +69,15 @@ config CPU_FREQ_DEFAULT_GOV_PERFORMANCE
- 	  the frequency statically to the highest frequency supported by
- 	  the CPU.
- 
-+config CPU_FREQ_DEFAULT_GOV_POWERSAVE
-+	bool "powersave"
-+	depends on EMBEDDED
-+	select CPU_FREQ_GOV_POWERSAVE
-+	help
-+	  Use the CPUFreq governor 'powersave' as default. This sets
-+	  the frequency statically to the lowest frequency supported by
-+	  the CPU.
-+
- config CPU_FREQ_DEFAULT_GOV_USERSPACE
- 	bool "userspace"
- 	select CPU_FREQ_GOV_USERSPACE
-diff -puN drivers/cpufreq/cpufreq_powersave.c~allow-use-of-the-powersave-governor-as-the-default-one drivers/cpufreq/cpufreq_powersave.c
---- a/drivers/cpufreq/cpufreq_powersave.c~allow-use-of-the-powersave-governor-as-the-default-one
-+++ a/drivers/cpufreq/cpufreq_powersave.c
-@@ -35,12 +35,12 @@ static int cpufreq_governor_powersave(st
- 	return 0;
- }
- 
--static struct cpufreq_governor cpufreq_gov_powersave = {
-+struct cpufreq_governor cpufreq_gov_powersave = {
- 	.name		= "powersave",
- 	.governor	= cpufreq_governor_powersave,
- 	.owner		= THIS_MODULE,
- };
+diff -puN Makefile~kbuild-soften-modpost-checks-when-doing-cross-builds Makefile
+--- a/Makefile~kbuild-soften-modpost-checks-when-doing-cross-builds
++++ a/Makefile
+@@ -189,7 +189,7 @@ SUBARCH := $(shell uname -m | sed -e s/i
+ # Alternatively CROSS_COMPILE can be set in the environment.
+ # Default value for CROSS_COMPILE is not to prefix executables
+ # Note: Some architectures assign CROSS_COMPILE in their arch/*/Makefile
 -
-+EXPORT_SYMBOL(cpufreq_gov_powersave);
++export KBUILD_BUILDHOST := $(SUBARCH)
+ ARCH		?= $(SUBARCH)
+ CROSS_COMPILE	?=
  
- static int __init cpufreq_gov_powersave_init(void)
- {
-@@ -58,5 +58,9 @@ MODULE_AUTHOR("Dominik Brodowski <linux@
- MODULE_DESCRIPTION("CPUfreq policy governor 'powersave'");
- MODULE_LICENSE("GPL");
+diff -puN scripts/Makefile.modpost~kbuild-soften-modpost-checks-when-doing-cross-builds scripts/Makefile.modpost
+--- a/scripts/Makefile.modpost~kbuild-soften-modpost-checks-when-doing-cross-builds
++++ a/scripts/Makefile.modpost
+@@ -58,6 +58,9 @@ modules   := $(patsubst %.o,%.ko, $(wild
+ # Stop after building .o files if NOFINAL is set. Makes compile tests quicker
+ _modpost: $(if $(KBUILD_MODPOST_NOFINAL), $(modules:.ko:.o),$(modules))
  
-+#ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE
-+fs_initcall(cpufreq_gov_powersave_init);
-+#else
- module_init(cpufreq_gov_powersave_init);
-+#endif
- module_exit(cpufreq_gov_powersave_exit);
-diff -puN include/linux/cpufreq.h~allow-use-of-the-powersave-governor-as-the-default-one include/linux/cpufreq.h
---- a/include/linux/cpufreq.h~allow-use-of-the-powersave-governor-as-the-default-one
-+++ a/include/linux/cpufreq.h
-@@ -308,6 +308,9 @@ extern struct cpufreq_governor cpufreq_g
- #endif
- #ifdef CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE
- #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_performance)
-+#elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_POWERSAVE)
-+extern struct cpufreq_governor cpufreq_gov_powersave;
-+#define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_powersave)
- #elif defined(CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE)
- extern struct cpufreq_governor cpufreq_gov_userspace;
- #define CPUFREQ_DEFAULT_GOVERNOR	(&cpufreq_gov_userspace)
++ifneq ($(KBUILD_BUILDHOST),$(ARCH))
++        cross_build := 1
++endif
+ 
+ # Step 2), invoke modpost
+ #  Includes step 3,4
+@@ -70,7 +73,8 @@ modpost = scripts/mod/modpost           
+  $(if $(CONFIG_DEBUG_SECTION_MISMATCH),,-S)      \
+  $(if $(CONFIG_MARKERS),-K $(kernelmarkersfile)) \
+  $(if $(CONFIG_MARKERS),-M $(markersfile))	 \
+- $(if $(KBUILD_EXTMOD)$(KBUILD_MODPOST_WARN),-w)
++ $(if $(KBUILD_EXTMOD)$(KBUILD_MODPOST_WARN),-w) \
++ $(if $(cross_build),-c)
+ 
+ quiet_cmd_modpost = MODPOST $(words $(filter-out vmlinux FORCE, $^)) modules
+       cmd_modpost = $(modpost) -s
+diff -puN scripts/mod/file2alias.c~kbuild-soften-modpost-checks-when-doing-cross-builds scripts/mod/file2alias.c
+--- a/scripts/mod/file2alias.c~kbuild-soften-modpost-checks-when-doing-cross-builds
++++ a/scripts/mod/file2alias.c
+@@ -51,11 +51,13 @@ do {                                    
+                 sprintf(str + strlen(str), "*");                \
+ } while(0)
+ 
++unsigned int cross_build = 0;
+ /**
+  * Check that sizeof(device_id type) are consistent with size of section
+  * in .o file. If in-consistent then userspace and kernel does not agree
+  * on actual size which is a bug.
+  * Also verify that the final entry in the table is all zeros.
++ * Ignore both checks if build host differ from target host and size differs.
+  **/
+ static void device_id_check(const char *modname, const char *device_id,
+ 			    unsigned long size, unsigned long id_size,
+@@ -64,6 +66,8 @@ static void device_id_check(const char *
+ 	int i;
+ 
+ 	if (size % id_size || size < id_size) {
++		if (cross_build != 0)
++			return;
+ 		fatal("%s: sizeof(struct %s_device_id)=%lu is not a modulo "
+ 		      "of the size of section __mod_%s_device_table=%lu.\n"
+ 		      "Fix definition of struct %s_device_id "
+diff -puN scripts/mod/modpost.c~kbuild-soften-modpost-checks-when-doing-cross-builds scripts/mod/modpost.c
+--- a/scripts/mod/modpost.c~kbuild-soften-modpost-checks-when-doing-cross-builds
++++ a/scripts/mod/modpost.c
+@@ -2026,7 +2026,7 @@ int main(int argc, char **argv)
+ 	int opt;
+ 	int err;
+ 
+-	while ((opt = getopt(argc, argv, "i:I:msSo:awM:K:")) != -1) {
++	while ((opt = getopt(argc, argv, "i:I:cmsSo:awM:K:")) != -1) {
+ 		switch (opt) {
+ 		case 'i':
+ 			kernel_read = optarg;
+@@ -2035,6 +2035,9 @@ int main(int argc, char **argv)
+ 			module_read = optarg;
+ 			external_module = 1;
+ 			break;
++		case 'c':
++			cross_build = 1;
++			break;
+ 		case 'm':
+ 			modversions = 1;
+ 			break;
+diff -puN scripts/mod/modpost.h~kbuild-soften-modpost-checks-when-doing-cross-builds scripts/mod/modpost.h
+--- a/scripts/mod/modpost.h~kbuild-soften-modpost-checks-when-doing-cross-builds
++++ a/scripts/mod/modpost.h
+@@ -135,6 +135,7 @@ struct elf_info {
+ };
+ 
+ /* file2alias.c */
++extern unsigned int cross_build;
+ void handle_moddevtable(struct module *mod, struct elf_info *info,
+ 			Elf_Sym *sym, const char *symname);
+ void add_moddevtable(struct buffer *buf, struct module *mod);
 _
 
-Patches currently in -mm which might be from alessandro.guido@gmail.com are
+Patches currently in -mm which might be from sam@uranus.ravnborg.org are
 
-spi-use-menuconfig-for-config_spi.patch
-allow-use-of-the-powersave-governor-as-the-default-one.patch
+kbuild-soften-modpost-checks-when-doing-cross-builds.patch
 
