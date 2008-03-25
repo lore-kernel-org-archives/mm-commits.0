@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + audit-ailence-two-kerneldoc-warnings-in-kernel-auditc.patch added to -mm tree
-Date: Tue, 25 Mar 2008 15:49:23 -0700
-Message-ID: <200803252249.m2PMnNBq017573@imap1.linux-foundation.org>
+Subject: + pci-hotplug-export-kobject_rename-for-pci_hotplug_core.patch added to -mm tree
+Date: Tue, 25 Mar 2008 15:55:49 -0700
+Message-ID: <200803252255.m2PMtnTH017793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54011 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41691 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754068AbYCYWur (ORCPT
+	by vger.kernel.org with ESMTP id S1753423AbYCYW41 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 18:50:47 -0400
+	Tue, 25 Mar 2008 18:56:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: davej@codemonkey.org.uk, randy.dunlap@oracle.com, viro@zeniv.linux.org.uk
+Cc: kaneshige.kenji@jp.fujitsu.com, achiang@hp.com, greg@kroah.com, kristen.c.accardi@intel.com, lenb@kernel.org
 
 
 The patch titled
-     audit: silence two kerneldoc warnings in kernel/audit.c
+     pci hotplug: export kobject_rename for pci_hotplug_core
 has been added to the -mm tree.  Its filename is
-     audit-ailence-two-kerneldoc-warnings-in-kernel-auditc.patch
+     pci-hotplug-export-kobject_rename-for-pci_hotplug_core.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,45 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: audit: silence two kerneldoc warnings in kernel/audit.c
-From: Dave Jones <davej@codemonkey.org.uk>
+Subject: pci hotplug: export kobject_rename for pci_hotplug_core
+From: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 
-Silence two kerneldoc warnings.
+Export kobject_rename() to fix the following link error.  This happens when
+pci_hotplug_core driver is compiled as a kernel module.
 
-Warning(kernel/audit.c:1276): No description found for parameter 'string'
-Warning(kernel/audit.c:1276): No description found for parameter 'len'
+ERROR: "kobject_rename" [drivers/pci/hotplug/pci_hotplug.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
+make: *** Waiting for unfinished jobs....
 
-[also fix a typo for bonus points]
-
-Signed-off-by: Dave Jones <davej@codemonkey.org.uk>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Acked-by: Alex Chiang <achiang@hp.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/kobject.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/audit.c~audit-ailence-two-kerneldoc-warnings-in-kernel-auditc kernel/audit.c
---- a/kernel/audit.c~audit-ailence-two-kerneldoc-warnings-in-kernel-auditc
-+++ a/kernel/audit.c
-@@ -1265,8 +1265,8 @@ static void audit_log_n_string(struct au
+diff -puN lib/kobject.c~pci-hotplug-export-kobject_rename-for-pci_hotplug_core lib/kobject.c
+--- a/lib/kobject.c~pci-hotplug-export-kobject_rename-for-pci_hotplug_core
++++ a/lib/kobject.c
+@@ -508,6 +508,7 @@ out:
+ 
+ 	return error;
+ }
++EXPORT_SYMBOL_GPL(kobject_rename);
  
  /**
-  * audit_string_contains_control - does a string need to be logged in hex
-- * @string - string to be checked
-- * @len - max length of the string to check
-+ * @string: string to be checked
-+ * @len: max length of the string to check
-  */
- int audit_string_contains_control(const char *string, size_t len)
- {
-@@ -1281,7 +1281,7 @@ int audit_string_contains_control(const 
- /**
-  * audit_log_n_untrustedstring - log a string that may contain random characters
-  * @ab: audit_buffer
-- * @len: lenth of string (not including trailing null)
-+ * @len: length of string (not including trailing null)
-  * @string: string to be logged
-  *
-  * This code will escape a string that is passed to it if the string
+  * kobject_move - move object to another parent
 _
 
-Patches currently in -mm which might be from davej@codemonkey.org.uk are
+Patches currently in -mm which might be from kaneshige.kenji@jp.fujitsu.com are
 
-audit-ailence-two-kerneldoc-warnings-in-kernel-auditc.patch
-git-cpufreq.patch
-cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism.patch
-cpufreq-document-the-currently-undocumented-parts-of-the-sysfs-interface.patch
-allow-use-of-the-powersave-governor-as-the-default-one.patch
+pci-hotplug-construct-one-fakephp-slot-per-pci-slot.patch
+pci-hotplug-export-kobject_rename-for-pci_hotplug_core.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
 
