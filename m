@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-hotplug-acpi-pci-slot-detection-driver.patch added to -mm tree
-Date: Tue, 25 Mar 2008 15:55:54 -0700
-Message-ID: <200803252255.m2PMttqY017799@imap1.linux-foundation.org>
+Subject: + i2c-renesas-highlander-fpga-smbus-support.patch added to -mm tree
+Date: Tue, 25 Mar 2008 15:57:08 -0700
+Message-ID: <200803252257.m2PMv8Bt017825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55659 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54113 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754040AbYCYW4g (ORCPT
+	by vger.kernel.org with ESMTP id S1754377AbYCYW5M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 18:56:36 -0400
+	Tue, 25 Mar 2008 18:57:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org
+Cc: lethal@linux-sh.org
 
 
 The patch titled
-     pci hotplug: ACPI PCI slot detection driver
+     i2c: Renesas Highlander FPGA SMBus support
 has been added to the -mm tree.  Its filename is
-     pci-hotplug-acpi-pci-slot-detection-driver.patch
+     i2c-renesas-highlander-fpga-smbus-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,500 +34,585 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci hotplug: ACPI PCI slot detection driver
-From: Alex Chiang <achiang@hp.com>
+Subject: i2c: Renesas Highlander FPGA SMBus support
+From: Paul Mundt <lethal@linux-sh.org>
 
-Detect all physical PCI slots as described by ACPI, and create entries in
-/sys/bus/pci/slots/.
+This adds support for the SMBus adapter found in the various FPGAs on the
+Renesas Highlander platforms.  Particularly the R0P7780LC0011RL and
+R0P7785LC0011RL FPGAs.
 
-Not all physical slots are hotpluggable, and the acpiphp module does not
-detect them.  Now we know the physical PCI geography of our system, without
-caring about hotplug.
+Functionality is fairly restricted, in that only byte and block data transfers
+are supported.  Normal/fast mode and IRQ/polling are also supported. 
+Primarily used for various RTCs and thermal sensors.
 
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Acked-by: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/Kconfig                   |    9 
- drivers/acpi/Makefile                  |    1 
- drivers/acpi/pci_slot.c                |  370 +++++++++++++++++++++++
- drivers/pci/hotplug/pci_hotplug_core.c |   16 
- drivers/pci/hotplug/pciehp_core.c      |    2 
- drivers/pci/hotplug/sgi_hotplug.c      |    2 
- 6 files changed, 398 insertions(+), 2 deletions(-)
+ drivers/i2c/busses/Kconfig          |   12 
+ drivers/i2c/busses/Makefile         |    1 
+ drivers/i2c/busses/i2c-highlander.c |  500 ++++++++++++++++++++++++++
+ 3 files changed, 513 insertions(+)
 
-diff -puN drivers/acpi/Kconfig~pci-hotplug-acpi-pci-slot-detection-driver drivers/acpi/Kconfig
---- a/drivers/acpi/Kconfig~pci-hotplug-acpi-pci-slot-detection-driver
-+++ a/drivers/acpi/Kconfig
-@@ -335,6 +335,15 @@ config ACPI_EC
- 	  the battery and thermal drivers.  If you are compiling for a 
- 	  mobile system, say Y.
+diff -puN drivers/i2c/busses/Kconfig~i2c-renesas-highlander-fpga-smbus-support drivers/i2c/busses/Kconfig
+--- a/drivers/i2c/busses/Kconfig~i2c-renesas-highlander-fpga-smbus-support
++++ a/drivers/i2c/busses/Kconfig
+@@ -146,6 +146,18 @@ config I2C_GPIO
+ 	  This is a very simple bitbanging I2C driver utilizing the
+ 	  arch-neutral GPIO API to control the SCL and SDA lines.
  
-+config ACPI_PCI_SLOT
-+	tristate "PCI slot detection driver"
-+	default n
++config I2C_HIGHLANDER
++	tristate "Highlander FPGA SMBus interface"
++	depends on SH_HIGHLANDER
 +	help
-+	  This driver will attempt to discover all PCI slots in your system,
-+	  and creates entries in /sys/bus/pci/slots/. This feature can
-+	  help you correlate PCI bus addresses with the physical geography
-+	  of your slots. If you are unsure, say N.
++	  If you say yes to this option, support will be included for
++	  the SMBus interface located in the FPGA on various Highlander
++	  boards, particularly the R0P7780LC0011RL and R0P7785LC0011RL
++	  FPGAs. This is wholly unrelated to the SoC I2C.
 +
- config ACPI_POWER
- 	bool
- 	default y
-diff -puN drivers/acpi/Makefile~pci-hotplug-acpi-pci-slot-detection-driver drivers/acpi/Makefile
---- a/drivers/acpi/Makefile~pci-hotplug-acpi-pci-slot-detection-driver
-+++ a/drivers/acpi/Makefile
-@@ -48,6 +48,7 @@ obj-$(CONFIG_ACPI_DOCK)		+= dock.o
- obj-$(CONFIG_ACPI_BAY)		+= bay.o
- obj-$(CONFIG_ACPI_VIDEO)	+= video.o
- obj-y				+= pci_root.o pci_link.o pci_irq.o pci_bind.o
-+obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
- obj-$(CONFIG_ACPI_POWER)	+= power.o
- obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-$(CONFIG_ACPI_CONTAINER)	+= container.o
-diff -puN /dev/null drivers/acpi/pci_slot.c
++	  This driver can also be built as a module.  If so, the module
++	  will be called i2c-highlander.
++
+ config I2C_HYDRA
+ 	tristate "CHRP Apple Hydra Mac I/O I2C interface"
+ 	depends on PCI && PPC_CHRP && EXPERIMENTAL
+diff -puN drivers/i2c/busses/Makefile~i2c-renesas-highlander-fpga-smbus-support drivers/i2c/busses/Makefile
+--- a/drivers/i2c/busses/Makefile~i2c-renesas-highlander-fpga-smbus-support
++++ a/drivers/i2c/busses/Makefile
+@@ -14,6 +14,7 @@ obj-$(CONFIG_I2C_BLACKFIN_TWI)	+= i2c-bf
+ obj-$(CONFIG_I2C_DAVINCI)	+= i2c-davinci.o
+ obj-$(CONFIG_I2C_ELEKTOR)	+= i2c-elektor.o
+ obj-$(CONFIG_I2C_GPIO)		+= i2c-gpio.o
++obj-$(CONFIG_I2C_HIGHLANDER)	+= i2c-highlander.o
+ obj-$(CONFIG_I2C_HYDRA)		+= i2c-hydra.o
+ obj-$(CONFIG_I2C_I801)		+= i2c-i801.o
+ obj-$(CONFIG_I2C_I810)		+= i2c-i810.o
+diff -puN /dev/null drivers/i2c/busses/i2c-highlander.c
 --- /dev/null
-+++ a/drivers/acpi/pci_slot.c
-@@ -0,0 +1,370 @@
++++ a/drivers/i2c/busses/i2c-highlander.c
+@@ -0,0 +1,500 @@
 +/*
-+ *  pci_slot.c - ACPI PCI Slot Driver
++ * Renesas Solutions Highlander FPGA I2C/SMBus support.
 + *
-+ *  The code here is heavily leveraged from the acpiphp module.
-+ *  Thanks to Matthew Wilcox <matthew@wil.cx> for much guidance.
-+ *  Thanks to Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com> for code
-+ *  review and fixes.
++ * Supported devices: R0P7780LC0011RL, R0P7785LC0011RL
 + *
-+ *  Copyright (C) 2007 Alex Chiang <achiang@hp.com>
-+ *  Copyright (C) 2007 Hewlett-Packard Development Company, L.P.
++ * Copyright (C) 2008  Paul Mundt
++ * Copyright (C) 2008  Renesas Solutions Corp.
++ * Copyright (C) 2008  Atom Create Engineering Co., Ltd.
 + *
-+ *  This program is free software; you can redistribute it and/or modify it
-+ *  under the terms and conditions of the GNU General Public License,
-+ *  version 2, as published by the Free Software Foundation.
-+ *
-+ *  This program is distributed in the hope that it will be useful, but
-+ *  WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License along
-+ *  with this program; if not, write to the Free Software Foundation, Inc.,
-+ *  51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
++ * This file is subject to the terms and conditions of the GNU General
++ * Public License version 2. See the file "COPYING" in the main directory
++ * of this archive for more details.
 + */
-+
-+#include <linux/kernel.h>
 +#include <linux/module.h>
 +#include <linux/init.h>
-+#include <linux/types.h>
-+#include <linux/pci.h>
-+#include <linux/acpi.h>
-+#include <acpi/acpi_bus.h>
-+#include <acpi/acpi_drivers.h>
++#include <linux/interrupt.h>
++#include <linux/i2c.h>
++#include <linux/platform_device.h>
++#include <linux/completion.h>
++#include <linux/io.h>
++#include <linux/delay.h>
 +
-+static int debug;
-+static int check_sta_before_sun;
++#define SMCR		0x00
++#define SMCR_START	(1 << 0)
++#define SMCR_IRIC	(1 << 1)
++#define SMCR_BBSY	(1 << 2)
++#define SMCR_ACKE	(1 << 3)
++#define SMCR_RST	(1 << 4)
++#define SMCR_IEIC	(1 << 6)
 +
-+#define DRIVER_VERSION 	"0.1"
-+#define DRIVER_AUTHOR	"Alex Chiang <achiang@hp.com>"
-+#define DRIVER_DESC	"ACPI PCI Slot Detection Driver"
-+MODULE_AUTHOR(DRIVER_AUTHOR);
-+MODULE_DESCRIPTION(DRIVER_DESC);
-+MODULE_LICENSE("GPL");
-+MODULE_PARM_DESC(debug, "Debugging mode enabled or not");
-+module_param(debug, bool, 0644);
++#define SMSMADR		0x02
 +
-+#define _COMPONENT		ACPI_PCI_COMPONENT
-+ACPI_MODULE_NAME("pci_slot");
++#define SMMR		0x04
++#define SMMR_MODE0	(1 << 0)
++#define SMMR_MODE1	(1 << 1)
++#define SMMR_CAP	(1 << 3)
++#define SMMR_TMMD	(1 << 4)
++#define SMMR_SP		(1 << 7)
 +
-+#define MY_NAME "pci_slot"
-+#define err(format, arg...) printk(KERN_ERR "%s: " format , MY_NAME , ## arg)
-+#define info(format, arg...) printk(KERN_INFO "%s: " format , MY_NAME , ## arg)
-+#define dbg(format, arg...)					\
-+	do {							\
-+		if (debug)					\
-+			printk(KERN_DEBUG "%s: " format,	\
-+				MY_NAME , ## arg);		\
-+	} while (0)
++#define SMSADR		0x06
++#define SMTRDR		0x46
 +
-+struct acpi_pci_slot {
-+	acpi_handle root_handle;	/* handle of the root bridge */
-+	struct pci_slot *pci_slot;	/* corresponding pci_slot */
-+	struct list_head list;		/* node in the list of slots */
++struct highlander_i2c_dev {
++	struct device		*dev;
++	void __iomem		*base;
++	struct i2c_adapter	adapter;
++	struct completion	cmd_complete;
++	int			irq;
++	u8			*buf;
++	size_t			buf_len;
 +};
 +
-+static int acpi_pci_slot_add(acpi_handle handle);
-+static void acpi_pci_slot_remove(acpi_handle handle);
++static int iic_force_poll, iic_force_normal, iic_timeout = 1000;
 +
-+static LIST_HEAD(slot_list);
-+static DEFINE_MUTEX(slot_list_lock);
-+static struct acpi_pci_driver acpi_pci_slot_driver = {
-+	.add = acpi_pci_slot_add,
-+	.remove = acpi_pci_slot_remove,
-+};
-+
-+static int
-+check_slot(acpi_handle handle, int *device, unsigned long *sun)
++static inline void highlander_i2c_irq_enable(struct highlander_i2c_dev *dev)
 +{
-+	int retval = 0;
-+	unsigned long adr, sta;
-+	acpi_status status;
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
++	iowrite16(ioread16(dev->base + SMCR) | SMCR_IEIC, dev->base + SMCR);
++}
 +
-+	acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer);
-+	dbg("Checking slot on path: %s\n", (char *)buffer.pointer);
++static inline void highlander_i2c_irq_disable(struct highlander_i2c_dev *dev)
++{
++	iowrite16(ioread16(dev->base + SMCR) & ~SMCR_IEIC, dev->base + SMCR);
++}
 +
-+	if (check_sta_before_sun) {
-+		/* If SxFy doesn't have _STA, we just assume it's there */
-+		status = acpi_evaluate_integer(handle, "_STA", NULL, &sta);
-+		if (ACPI_SUCCESS(status) && !(sta & ACPI_STA_DEVICE_PRESENT)) {
-+			retval = -1;
-+			goto out;
++static inline void highlander_i2c_start(struct highlander_i2c_dev *dev)
++{
++	iowrite16(ioread16(dev->base + SMCR) | SMCR_START, dev->base + SMCR);
++}
++
++static inline void highlander_i2c_done(struct highlander_i2c_dev *dev)
++{
++	iowrite16(ioread16(dev->base + SMCR) | SMCR_IRIC, dev->base + SMCR);
++}
++
++static inline void highlander_i2c_setup(struct highlander_i2c_dev *dev)
++{
++	u16 smmr;
++
++	smmr = ioread16(dev->base + SMMR);
++	smmr |= SMMR_TMMD;
++
++	if (iic_force_normal)
++		smmr &= ~SMMR_SP;
++	else
++		smmr |= SMMR_SP;
++
++	iowrite16(smmr, dev->base + SMMR);
++}
++
++static void smbus_write_data(u8 *src, u16 *dst, int len)
++{
++	int i, j;
++
++	if (len == 1)
++		*dst = *src << 8;
++	else {
++		j = 0;
++		for (i = 0; i < len; i += 2) {
++			*(dst + j) = *(src + i) << 8 | *(src + i + 1);
++			j++;
 +		}
 +	}
-+
-+	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
-+	if (ACPI_FAILURE(status)) {
-+		dbg("_ADR returned %d on %s\n", status, (char *)buffer.pointer);
-+		retval = -1;
-+		goto out;
-+	}
-+
-+	*device = (adr >> 16) & 0xffff;
-+
-+	/* No _SUN == not a slot == bail */
-+	status = acpi_evaluate_integer(handle, "_SUN", NULL, sun);
-+	if (ACPI_FAILURE(status)) {
-+		dbg("_SUN returned %d on %s\n", status, (char *)buffer.pointer);
-+		retval = -1;
-+		goto out;
-+	}
-+
-+out:
-+	kfree(buffer.pointer);
-+	return retval;
 +}
 +
-+struct callback_args {
-+	acpi_walk_callback	user_function;	/* only for walk_p2p_bridge */
-+	struct pci_bus		*pci_bus;
-+	acpi_handle		root_handle;
-+};
-+
-+/*
-+ * register_slot
-+ *
-+ * Called once for each SxFy object in the namespace. Don't worry about
-+ * calling pci_create_slot multiple times for the same pci_bus:device,
-+ * since each subsequent call simply bumps the refcount on the pci_slot.
-+ *
-+ * The number of calls to pci_destroy_slot from unregister_slot is
-+ * symmetrical.
-+ */
-+static acpi_status
-+register_slot(acpi_handle handle, u32 lvl, void *context, void **rv)
++static void smbus_read_data(u16 *src, u8 *dst, int len)
 +{
-+	int device;
-+	unsigned long sun;
-+	char name[KOBJ_NAME_LEN];
-+	struct acpi_pci_slot *slot;
-+	struct pci_slot *pci_slot;
-+	struct callback_args *parent_context = context;
-+	struct pci_bus *pci_bus = parent_context->pci_bus;
++	int i, j;
 +
-+	if (check_slot(handle, &device, &sun))
-+		return AE_OK;
-+
-+	slot = kmalloc(sizeof(*slot), GFP_KERNEL);
-+	if (!slot) {
-+		err("%s: cannot allocate memory\n", __func__);
-+		return AE_OK;
-+	}
-+
-+	snprintf(name, sizeof(name), "%u", (u32)sun);
-+	pci_slot = pci_create_slot(pci_bus, device, name);
-+	if (IS_ERR(pci_slot)) {
-+		err("pci_create_slot returned %ld\n", PTR_ERR(pci_slot));
-+		kfree(slot);
-+	}
-+
-+	slot->root_handle = parent_context->root_handle;
-+	slot->pci_slot = pci_slot;
-+	INIT_LIST_HEAD(&slot->list);
-+	mutex_lock(&slot_list_lock);
-+	list_add(&slot->list, &slot_list);
-+	mutex_unlock(&slot_list_lock);
-+
-+	dbg("pci_slot: %#lx, pci_bus: %x, device: %d, name: %s\n",
-+		(uint64_t)pci_slot, pci_bus->number, device, name);
-+
-+	return AE_OK;
-+}
-+
-+/*
-+ * walk_p2p_bridge - discover and walk p2p bridges
-+ * @handle: points to an acpi_pci_root
-+ * @context: p2p_bridge_context pointer
-+ *
-+ * Note that when we call ourselves recursively, we pass a different
-+ * value of pci_bus in the child_context.
-+ */
-+static acpi_status
-+walk_p2p_bridge(acpi_handle handle, u32 lvl, void *context, void **rv)
-+{
-+	int device, function;
-+	unsigned long adr;
-+	acpi_status status;
-+	acpi_handle dummy_handle;
-+	acpi_walk_callback user_function;
-+
-+	struct pci_dev *dev;
-+	struct pci_bus *pci_bus;
-+	struct callback_args child_context;
-+	struct callback_args *parent_context = context;
-+
-+	pci_bus = parent_context->pci_bus;
-+	user_function = parent_context->user_function;
-+
-+	status = acpi_get_handle(handle, "_ADR", &dummy_handle);
-+	if (ACPI_FAILURE(status))
-+		return AE_OK;
-+
-+	status = acpi_evaluate_integer(handle, "_ADR", NULL, &adr);
-+	if (ACPI_FAILURE(status))
-+		return AE_OK;
-+
-+	device = (adr >> 16) & 0xffff;
-+	function = adr & 0xffff;
-+
-+	dev = pci_get_slot(pci_bus, PCI_DEVFN(device, function));
-+	if (!dev || !dev->subordinate)
-+		goto out;
-+
-+	child_context.pci_bus = dev->subordinate;
-+	child_context.user_function = user_function;
-+	child_context.root_handle = parent_context->root_handle;
-+
-+	dbg("p2p bridge walk, pci_bus = %x\n", dev->subordinate->number);
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-+				     user_function, &child_context, NULL);
-+	if (ACPI_FAILURE(status))
-+		goto out;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-+				     walk_p2p_bridge, &child_context, NULL);
-+out:
-+	pci_dev_put(dev);
-+	return AE_OK;
-+}
-+
-+#define ACPI_STA_FUNCTIONING            (0x00000008)
-+
-+/*
-+ * walk_root_bridge - generic root bridge walker
-+ * @handle: points to an acpi_pci_root
-+ * @user_function: user callback for slot objects
-+ *
-+ * Call user_function for all objects underneath this root bridge.
-+ * Walk p2p bridges underneath us and call user_function on those too.
-+ */
-+static int
-+walk_root_bridge(acpi_handle handle, acpi_walk_callback user_function)
-+{
-+	int seg, bus;
-+	unsigned long tmp;
-+	acpi_status status;
-+	acpi_handle dummy_handle;
-+	struct pci_bus *pci_bus;
-+	struct callback_args context;
-+
-+	/* If the bridge doesn't have _STA, we assume it is always there */
-+	status = acpi_get_handle(handle, "_STA", &dummy_handle);
-+	if (ACPI_SUCCESS(status)) {
-+		status = acpi_evaluate_integer(handle, "_STA", NULL, &tmp);
-+		if (ACPI_FAILURE(status)) {
-+			info("%s: _STA evaluation failure\n", __func__);
-+			return 0;
-+		}
-+		if ((tmp & ACPI_STA_FUNCTIONING) == 0)
-+			/* don't register this object */
-+			return 0;
-+	}
-+
-+	status = acpi_evaluate_integer(handle, "_SEG", NULL, &tmp);
-+	seg = ACPI_SUCCESS(status) ? tmp : 0;
-+
-+	status = acpi_evaluate_integer(handle, "_BBN", NULL, &tmp);
-+	bus = ACPI_SUCCESS(status) ? tmp : 0;
-+
-+	pci_bus = pci_find_bus(seg, bus);
-+	if (!pci_bus)
-+		return 0;
-+
-+	context.pci_bus = pci_bus;
-+	context.user_function = user_function;
-+	context.root_handle = handle;
-+
-+	dbg("root bridge walk, pci_bus = %x\n", pci_bus->number);
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-+				     user_function, &context, NULL);
-+	if (ACPI_FAILURE(status))
-+		return status;
-+
-+	status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, (u32)1,
-+				     walk_p2p_bridge, &context, NULL);
-+	if (ACPI_FAILURE(status))
-+		err("%s: walk_p2p_bridge failure - %d\n", __func__, status);
-+
-+	return status;
-+}
-+
-+/*
-+ * acpi_pci_slot_add
-+ * @handle: points to an acpi_pci_root
-+ */
-+static int
-+acpi_pci_slot_add(acpi_handle handle)
-+{
-+	acpi_status status;
-+
-+	status = walk_root_bridge(handle, register_slot);
-+	if (ACPI_FAILURE(status))
-+		err("%s: register_slot failure - %d\n", __func__, status);
-+
-+	return status;
-+}
-+
-+/*
-+ * acpi_pci_slot_remove
-+ * @handle: points to an acpi_pci_root
-+ */
-+static void
-+acpi_pci_slot_remove(acpi_handle handle)
-+{
-+	struct acpi_pci_slot *slot, *tmp;
-+
-+	mutex_lock(&slot_list_lock);
-+	list_for_each_entry_safe(slot, tmp, &slot_list, list) {
-+		if (slot->root_handle == handle) {
-+			list_del(&slot->list);
-+			pci_destroy_slot(slot->pci_slot);
-+			kfree(slot);
++	if (len == 1)
++		*dst = *src >> 8;
++	else {
++		j = 0;
++		for (i = 0; i < len; i += 2) {
++			*(dst + i) = *(src + j) >> 8;
++			*(dst + i + 1) = *(src + j) & 0x00ff;
++			j++;
 +		}
 +	}
-+	mutex_unlock(&slot_list_lock);
 +}
 +
-+#ifdef CONFIG_DMI
-+static int do_sta_before_sun(const struct dmi_system_id *d)
++static void highlander_i2c_command(struct highlander_i2c_dev *dev, u8 command, int len)
 +{
-+	info("%s detected: will evaluate _STA before calling _SUN\n", d->ident);
-+	check_sta_before_sun = 1;
++	u16 cmd[32];
++	int i, j;
++
++	j = 0;
++	if (len == 1)
++		cmd[j++] = (command << 8);
++	else
++		for (i = 0; i < len; i += 2)
++			cmd[j++] = (command << 8) | command;
++
++	for (i = 0; i < j; i++) {
++		iowrite16(cmd[i], dev->base + SMSADR + (i * sizeof(u16)));
++		dev_dbg(dev->dev, "command data[%x] 0x%04x\n", i, cmd[i]);
++	}
++}
++
++static int highlander_i2c_wait_for_bbsy(struct highlander_i2c_dev *dev)
++{
++	unsigned long timeout;
++
++	timeout = jiffies + msecs_to_jiffies(iic_timeout);
++	while (ioread16(dev->base + SMCR) & SMCR_BBSY) {
++		if (time_after(jiffies, timeout)) {
++			dev_warn(dev->dev, "timeout waiting for bus ready\n");
++			return -ETIMEDOUT;
++		}
++
++		msleep(1);
++	}
++
 +	return 0;
 +}
 +
-+static struct dmi_system_id acpi_pci_slot_dmi_table[] __initdata = {
++static int highlander_i2c_reset(struct highlander_i2c_dev *dev)
++{
++	iowrite16(ioread16(dev->base + SMCR) | SMCR_RST, dev->base + SMCR);
++	return highlander_i2c_wait_for_bbsy(dev);
++}
++
++static int highlander_i2c_wait_for_ack(struct highlander_i2c_dev *dev)
++{
++	u16 tmp = ioread16(dev->base + SMCR);
++
++	if ((tmp & (SMCR_IRIC | SMCR_ACKE)) == SMCR_ACKE) {
++		dev_warn(dev->dev, "ack abnormality\n");
++		return highlander_i2c_reset(dev);
++	}
++
++	return 0;
++}
++
++static irqreturn_t highlander_i2c_irq(int irq, void *dev_id)
++{
++	struct highlander_i2c_dev *dev = dev_id;
++
++	highlander_i2c_done(dev);
++	complete(&dev->cmd_complete);
++
++	return IRQ_HANDLED;
++}
++
++static void highlander_i2c_poll(struct highlander_i2c_dev *dev)
++{
++	unsigned long timeout;
++	u16 smcr;
++
++	timeout = jiffies + msecs_to_jiffies(iic_timeout);
++	for (;;) {
++		smcr = ioread16(dev->base + SMCR);
++
++		/*
++		 * Don't bother checking ACKE here, this and the reset
++		 * are handled in highlander_i2c_wait_xfer_done() when
++		 * waiting for the ACK.
++		 */
++
++		if (smcr & SMCR_IRIC)
++			return;
++		if (time_after(jiffies, timeout))
++			break;
++
++		cpu_relax();
++		cond_resched();
++	}
++
++	dev_err(dev->dev, "polling timed out\n");
++}
++
++static inline int highlander_i2c_wait_xfer_done(struct highlander_i2c_dev *dev)
++{
++	if (dev->irq)
++		wait_for_completion_interruptible_timeout(&dev->cmd_complete,
++					  msecs_to_jiffies(iic_timeout));
++	else
++		/* busy looping, the IRQ of champions */
++		highlander_i2c_poll(dev);
++
++	return highlander_i2c_wait_for_ack(dev);
++}
++
++static int highlander_i2c_read(struct highlander_i2c_dev *dev,
++			       u8 *buf, unsigned int len)
++{
++	int i, cnt;
++	u16 data[16];
++
++	if (highlander_i2c_wait_for_bbsy(dev)) {
++		dev_warn(dev->dev, "timed out\n");
++		return -EAGAIN;
++	}
++
++	highlander_i2c_start(dev);
++
++	if (highlander_i2c_wait_xfer_done(dev)) {
++		dev_err(dev->dev, "Arbitration loss\n");
++		return -EIO;
++	}
++
++	cnt = (len + 1) >> 1;
++	for (i = 0; i < cnt; i++) {
++		data[i] = ioread16(dev->base + SMTRDR + (i * sizeof(u16)));
++		dev_dbg(dev->dev, "read data[%x] 0x%04x\n", i, data[i]);
++	}
++
++	smbus_read_data(data, buf, len);
++
 +	/*
-+	 * Fujitsu Primequest machines will return 1023 to indicate an
-+	 * error if the _SUN method is evaluated on SxFy objects that
-+	 * are not present (as indicated by _STA), so for those machines,
-+	 * we want to check _STA before evaluating _SUN.
++	 * The R0P7780LC0011RL FPGA on the SH7780-based Highlanders
++	 * needs a significant delay in the read path. SH7785 Highlanders
++	 * don't have this issue, so restrict it entirely to those.
 +	 */
-+	{
-+	 .callback = do_sta_before_sun,
-+	 .ident = "Fujitsu PRIMEQUEST",
-+	 .matches = {
-+		DMI_MATCH(DMI_BIOS_VENDOR, "FUJITSU LIMITED"),
-+		DMI_MATCH(DMI_BIOS_VERSION, "PRIMEQUEST"),
-+		},
++	if (mach_is_r7780rp() || mach_is_r7780mp())
++		mdelay(1000);
++
++	return 0;
++}
++
++static int highlander_i2c_write(struct highlander_i2c_dev *dev,
++				u8 *buf, unsigned int len)
++{
++	int i, cnt;
++	u16 data[16];
++
++	smbus_write_data(buf, data, len);
++
++	cnt = (len + 1) >> 1;
++	for (i = 0; i < cnt; i++) {
++		iowrite16(data[i], dev->base + SMTRDR + (i * sizeof(u16)));
++		dev_dbg(dev->dev, "write data[%x] 0x%04x\n", i, data[i]);
++	}
++
++	if (highlander_i2c_wait_for_bbsy(dev)) {
++		dev_warn(dev->dev, "timed out\n");
++		return -EAGAIN;
++	}
++
++	highlander_i2c_start(dev);
++
++	return highlander_i2c_wait_xfer_done(dev);
++}
++
++static int highlander_i2c_smbus_xfer(struct i2c_adapter *adap, u16 addr,
++				  unsigned short flags, char read_write,
++				  u8 command, int size,
++				  union i2c_smbus_data *data)
++{
++	struct highlander_i2c_dev *dev = i2c_get_adapdata(adap);
++	int read = read_write & I2C_SMBUS_READ;
++	u16 tmp;
++
++	init_completion(&dev->cmd_complete);
++
++	dev_dbg(dev->dev, "addr %04x, command %02x, read_write %d, size %d\n",
++		addr, command, read_write, size);
++
++	/* Defaults */
++	dev->buf = NULL;
++	dev->buf_len = 0;
++
++	/*
++	 * Set up the buffer and transfer size
++	 */
++	switch (size) {
++	case I2C_SMBUS_BYTE_DATA:
++		if (data)
++			dev->buf = &data->byte;
++		dev->buf_len = 1;
++		break;
++	case I2C_SMBUS_BLOCK_DATA:
++	case I2C_SMBUS_I2C_BLOCK_DATA:
++		dev->buf = &data->block[1];
++		dev->buf_len = data->block[0];
++		break;
++	default:
++		dev_err(dev->dev, "bogus command %d\n", size);
++		return -EINVAL;
++	}
++
++	/*
++	 * Encode the mode setting
++	 */
++	tmp = ioread16(dev->base + SMMR);
++	tmp &= ~(SMMR_MODE0 | SMMR_MODE1);
++
++	switch (dev->buf_len) {
++	case 1:
++		/* default */
++		break;
++	case 8:
++		tmp |= SMMR_MODE0;
++		break;
++	case 16:
++		tmp |= SMMR_MODE1;
++		break;
++	case 32:
++		tmp |= (SMMR_MODE0 | SMMR_MODE1);
++		break;
++	default:
++		dev_err(dev->dev, "bogus xfer size %d\n", dev->buf_len);
++		return -EINVAL;
++	}
++
++	iowrite16(tmp, dev->base + SMMR);
++
++	/* Ensure we're in a sane state */
++	highlander_i2c_done(dev);
++
++	/* Set slave address */
++	iowrite16(((addr & 0x7f) << 1) | read, dev->base + SMSMADR);
++
++	highlander_i2c_command(dev, command, dev->buf_len);
++
++	if (read)
++		return highlander_i2c_read(dev, dev->buf, dev->buf_len);
++	else
++		return highlander_i2c_write(dev, dev->buf, dev->buf_len);
++}
++
++static u32 highlander_i2c_func(struct i2c_adapter *adapter)
++{
++	return I2C_FUNC_SMBUS_BYTE_DATA | I2C_FUNC_SMBUS_BLOCK_DATA;
++}
++
++static const struct i2c_algorithm highlander_i2c_algo = {
++	.smbus_xfer	= highlander_i2c_smbus_xfer,
++	.functionality	= highlander_i2c_func,
++};
++
++static int highlander_i2c_probe(struct platform_device *pdev)
++{
++	struct highlander_i2c_dev *dev;
++	struct i2c_adapter *adap;
++	struct resource *res;
++	int ret;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (unlikely(!res)) {
++		dev_err(&pdev->dev, "no mem resource\n");
++		return -ENODEV;
++	}
++
++	dev = kzalloc(sizeof(struct highlander_i2c_dev), GFP_KERNEL);
++	if (unlikely(!dev))
++		return -ENOMEM;
++
++	dev->base = ioremap_nocache(res->start, res->end - res ->start + 1);
++	if (unlikely(!dev->base)) {
++		ret = -ENXIO;
++		goto err;
++	}
++
++	dev->dev = &pdev->dev;
++	platform_set_drvdata(pdev, dev);
++
++	dev->irq = platform_get_irq(pdev, 0);
++	if (dev->irq && !iic_force_poll) {
++		ret = request_irq(dev->irq, highlander_i2c_irq, IRQF_DISABLED,
++				  pdev->name, dev);
++		if (unlikely(ret))
++			goto err_unmap;
++
++		highlander_i2c_irq_enable(dev);
++	} else {
++		dev_notice(&pdev->dev, "no IRQ, using polling mode\n");
++		highlander_i2c_irq_disable(dev);
++	}
++
++	highlander_i2c_setup(dev);
++
++	adap = &dev->adapter;
++	i2c_set_adapdata(adap, dev);
++	adap->owner = THIS_MODULE;
++	adap->class = I2C_CLASS_HWMON;
++	strncpy(adap->name, "HL FPGA I2C adapter", sizeof(adap->name));
++	adap->algo = &highlander_i2c_algo;
++	adap->dev.parent = &pdev->dev;
++
++	adap->nr = pdev->id;
++	ret = i2c_add_numbered_adapter(adap);
++	if (unlikely(ret)) {
++		dev_err(&pdev->dev, "failure adding adapter\n");
++		goto err_free_irq;
++	}
++
++	/*
++	 * Reset the adapter
++	 */
++	ret = highlander_i2c_reset(dev);
++	if (unlikely(ret)) {
++		dev_err(&pdev->dev, "controller didn't come up\n");
++		goto err_free_irq;
++	}
++
++	return 0;
++
++err_free_irq:
++	free_irq(dev->irq, dev);
++err_unmap:
++	iounmap(dev->base);
++err:
++	kfree(dev);
++
++	platform_set_drvdata(pdev, NULL);
++
++	return ret;
++}
++
++static int highlander_i2c_remove(struct platform_device *pdev)
++{
++	struct highlander_i2c_dev *dev = platform_get_drvdata(pdev);
++
++	i2c_del_adapter(&dev->adapter);
++
++	if (dev->irq)
++		free_irq(dev->irq, dev);
++
++	iounmap(dev->base);
++	kfree(dev);
++
++	platform_set_drvdata(pdev, NULL);
++
++	return 0;
++}
++
++static struct platform_driver highlander_i2c_driver = {
++	.driver		= {
++		.name	= "i2c-highlander",
++		.owner	= THIS_MODULE,
 +	},
-+	{}
++
++	.probe		= highlander_i2c_probe,
++	.remove		= highlander_i2c_remove,
 +};
-+#endif /* CONFIG_DMI */
 +
-+static int __init
-+acpi_pci_slot_init(void)
++static int __init highlander_i2c_init(void)
 +{
-+	dmi_check_system(acpi_pci_slot_dmi_table);
-+	acpi_pci_register_driver(&acpi_pci_slot_driver);
-+	return 0;
++	return platform_driver_register(&highlander_i2c_driver);
 +}
 +
-+static void __exit
-+acpi_pci_slot_exit(void)
++static void __exit highlander_i2c_exit(void)
 +{
-+	acpi_pci_unregister_driver(&acpi_pci_slot_driver);
++	platform_driver_unregister(&highlander_i2c_driver);
 +}
 +
-+module_init(acpi_pci_slot_init);
-+module_exit(acpi_pci_slot_exit);
-diff -puN drivers/pci/hotplug/pci_hotplug_core.c~pci-hotplug-acpi-pci-slot-detection-driver drivers/pci/hotplug/pci_hotplug_core.c
---- a/drivers/pci/hotplug/pci_hotplug_core.c~pci-hotplug-acpi-pci-slot-detection-driver
-+++ a/drivers/pci/hotplug/pci_hotplug_core.c
-@@ -566,6 +566,11 @@ int pci_hp_register(struct hotplug_slot 
- 		return -EINVAL;
- 	}
- 
-+	/*
-+	 * No problems if we call this interface from both ACPI_PCI_SLOT
-+	 * driver and call it here again. If we've already created the
-+	 * pci_slot, the interface will simply bump the refcount.
-+	 */
- 	pci_slot = pci_create_slot(bus, slot_nr, slot->name);
- 	if (IS_ERR(pci_slot))
- 		return PTR_ERR(pci_slot);
-@@ -579,6 +584,17 @@ int pci_hp_register(struct hotplug_slot 
- 	slot->pci_slot = pci_slot;
- 	pci_slot->hotplug = slot;
- 
-+	/*
-+	 * Allow pcihp drivers to override the ACPI_PCI_SLOT name.
-+	 */
-+	if (strcmp(kobject_name(&pci_slot->kobj), slot->name)) {
-+		result = kobject_rename(&pci_slot->kobj, slot->name);
-+		if (result) {
-+			pci_destroy_slot(pci_slot);
-+			return result;
-+		}
-+	}
++module_init(highlander_i2c_init);
++module_exit(highlander_i2c_exit);
 +
- 	spin_lock(&pci_hotplug_slot_list_lock);
- 	list_add(&slot->slot_list, &pci_hotplug_slot_list);
- 	spin_unlock(&pci_hotplug_slot_list_lock);
-diff -puN drivers/pci/hotplug/pciehp_core.c~pci-hotplug-acpi-pci-slot-detection-driver drivers/pci/hotplug/pciehp_core.c
---- a/drivers/pci/hotplug/pciehp_core.c~pci-hotplug-acpi-pci-slot-detection-driver
-+++ a/drivers/pci/hotplug/pciehp_core.c
-@@ -249,7 +249,7 @@ static int init_slots(struct controller 
- 		if (retval == -EBUSY)
- 			goto error_info;
- 		if (retval) {
--			err ("pci_hp_register failed with error %d\n", retval);
-+			err("pci_hp_register failed with error %d\n", retval);
- 			goto error_info;
- 		}
- 		/* create additional sysfs entries */
-diff -puN drivers/pci/hotplug/sgi_hotplug.c~pci-hotplug-acpi-pci-slot-detection-driver drivers/pci/hotplug/sgi_hotplug.c
---- a/drivers/pci/hotplug/sgi_hotplug.c~pci-hotplug-acpi-pci-slot-detection-driver
-+++ a/drivers/pci/hotplug/sgi_hotplug.c
-@@ -668,7 +668,7 @@ static int sn_hotplug_slot_register(stru
- 
- register_err:
- 	dev_dbg(&pci_bus->self->dev, "bus failed to register with err = %d\n",
--	        rc);
-+		rc);
- 
- alloc_err:
- 	if (rc == -ENOMEM)
++MODULE_AUTHOR("Paul Mundt");
++MODULE_DESCRIPTION("Renesas Highlander FPGA I2C/SMBus adapter");
++MODULE_LICENSE("GPL v2");
++
++module_param(iic_force_poll, bool, 0);
++module_param(iic_force_normal, bool, 0);
++module_param(iic_timeout, int, 0);
++
++MODULE_PARM_DESC(iic_force_poll, "Force polling mode");
++MODULE_PARM_DESC(iic_force_normal, "Force normal mode (100 kHz), default is fast mode (400 kHz)");
++MODULE_PARM_DESC(iic_timeout, "Force timeout value in msecs (default 1000 ms)");
 _
 
-Patches currently in -mm which might be from achiang@hp.com are
+Patches currently in -mm which might be from lethal@linux-sh.org are
 
 origin.patch
-pci-hotplug-construct-one-fakephp-slot-per-pci-slot.patch
-pci-hotplug-export-kobject_rename-for-pci_hotplug_core.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+i2c-i2c-ibm_iic-fast-mode-parm-desc-fixup.patch
+maple-allow-removal-and-reinsertion-of-keyboard-driver-module.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+input-touchscreen-driver-for-the-superh-migor-board.patch
+smc91x-add-insw-outsw-to-default-config-v2.patch
+git-s390.patch
+git-sh.patch
+smc91x-fix-build-breakage-from-the-smc_get_mac_addr-api-upgrade.patch
+taint-kernel-after-warn_oncondition.patch
+sm501-add-uart-support.patch
+rtc-rtc-rs5c372-fix-up-null-name-in-transfer-error-path.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
+asm-futexh-should-include-linux-uaccessh.patch
+remove-duplicated-unlikely-in-is_err.patch
+introduce-a-generic-__fls-implementation.patch
+implement-__fls-on-all-64-bit-archs.patch
+use-__fls-for-fls64-on-64-bit-archs.patch
 
