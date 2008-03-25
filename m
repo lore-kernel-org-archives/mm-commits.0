@@ -1,73 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: + in_atomic-document-why-it-is-unsuitable-for-general-use.patch added to -mm tree
-Date: Mon, 24 Mar 2008 16:35:48 -0700
-Message-ID: <200803242335.m2ONZmvw031071@imap1.linux-foundation.org>
+Subject: - cosa-srp-convert-channel_datarsem-to-mutex.patch removed from -mm tree
+Date: Mon, 24 Mar 2008 17:19:05 -0700
+Message-ID: <200803250019.m2P0J5j5032656@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51390 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752482AbYCXXgX (ORCPT
+	by vger.kernel.org with ESMTP id S1752135AbYCYATs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 19:36:23 -0400
+	Mon, 24 Mar 2008 20:19:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: corbet@lwn.net
+To: matthias@kaehlcke.net, khc@pm.waw.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     in_atomic(): document why it is unsuitable for general use
-has been added to the -mm tree.  Its filename is
-     in_atomic-document-why-it-is-unsuitable-for-general-use.patch
+     COSA/SRP: convert channel_data.rsem to mutex
+has been removed from the -mm tree.  Its filename was
+     cosa-srp-convert-channel_datarsem-to-mutex.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: in_atomic(): document why it is unsuitable for general use
-From: Jonathan Corbet <corbet@lwn.net>
+Subject: COSA/SRP: convert channel_data.rsem to mutex
+From: Matthias Kaehlcke <matthias@kaehlcke.net>
 
-Discourage people from inappropriately using in_atomic()
+COSA/SRP driver: The semaphore channel_data.rsem is used as a mutex,
+convert it to the mutex API
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hardirq.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/net/wan/cosa.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/hardirq.h~in_atomic-document-why-it-is-unsuitable-for-general-use include/linux/hardirq.h
---- a/include/linux/hardirq.h~in_atomic-document-why-it-is-unsuitable-for-general-use
-+++ a/include/linux/hardirq.h
-@@ -72,6 +72,13 @@
- #define in_softirq()		(softirq_count())
- #define in_interrupt()		(irq_count())
+diff -puN drivers/net/wan/cosa.c~cosa-srp-convert-channel_datarsem-to-mutex drivers/net/wan/cosa.c
+--- a/drivers/net/wan/cosa.c~cosa-srp-convert-channel_datarsem-to-mutex
++++ a/drivers/net/wan/cosa.c
+@@ -90,6 +90,7 @@
+ #include <linux/ioport.h>
+ #include <linux/netdevice.h>
+ #include <linux/spinlock.h>
++#include <linux/mutex.h>
+ #include <linux/device.h>
  
-+/*
-+ * Are we running in atomic context?  WARNING: this macro cannot
-+ * always detect atomic context; in particular, it cannot know about
-+ * held spinlocks in non-preemptible kernels.  Thus it should not be
-+ * used in the general case to determine whether sleeping is possible.
-+ * Do not use in_atomic() in driver code.
-+ */
- #define in_atomic()		((preempt_count() & ~PREEMPT_ACTIVE) != 0)
+ #undef COSA_SLOW_IO	/* for testing purposes only */
+@@ -127,7 +128,8 @@ struct channel_data {
+ 	int (*tx_done)(struct channel_data *channel, int size);
  
- #ifdef CONFIG_PREEMPT
+ 	/* Character device parts */
+-	struct semaphore rsem, wsem;
++	struct mutex rlock;
++	struct semaphore wsem;
+ 	char *rxdata;
+ 	int rxsize;
+ 	wait_queue_head_t txwaitq, rxwaitq;
+@@ -807,7 +809,7 @@ static struct net_device_stats *cosa_net
+ 
+ static void chardev_channel_init(struct channel_data *chan)
+ {
+-	init_MUTEX(&chan->rsem);
++	mutex_init(&chan->rlock);
+ 	init_MUTEX(&chan->wsem);
+ }
+ 
+@@ -825,12 +827,12 @@ static ssize_t cosa_read(struct file *fi
+ 			cosa->name, cosa->firmware_status);
+ 		return -EPERM;
+ 	}
+-	if (down_interruptible(&chan->rsem))
++	if (mutex_lock_interruptible(&chan->rlock))
+ 		return -ERESTARTSYS;
+ 	
+ 	if ((chan->rxdata = kmalloc(COSA_MTU, GFP_DMA|GFP_KERNEL)) == NULL) {
+ 		printk(KERN_INFO "%s: cosa_read() - OOM\n", cosa->name);
+-		up(&chan->rsem);
++		mutex_unlock(&chan->rlock);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -848,7 +850,7 @@ static ssize_t cosa_read(struct file *fi
+ 			remove_wait_queue(&chan->rxwaitq, &wait);
+ 			current->state = TASK_RUNNING;
+ 			spin_unlock_irqrestore(&cosa->lock, flags);
+-			up(&chan->rsem);
++			mutex_unlock(&chan->rlock);
+ 			return -ERESTARTSYS;
+ 		}
+ 	}
+@@ -857,7 +859,7 @@ static ssize_t cosa_read(struct file *fi
+ 	kbuf = chan->rxdata;
+ 	count = chan->rxsize;
+ 	spin_unlock_irqrestore(&cosa->lock, flags);
+-	up(&chan->rsem);
++	mutex_unlock(&chan->rlock);
+ 
+ 	if (copy_to_user(buf, kbuf, count)) {
+ 		kfree(kbuf);
 _
 
-Patches currently in -mm which might be from corbet@lwn.net are
+Patches currently in -mm which might be from matthias@kaehlcke.net are
 
-smackfs-remove-redundant-lock-fix-openo_rdwr.patch
-documentation-patch-tags-one-more-time.patch
-in_atomic-document-why-it-is-unsuitable-for-general-use.patch
+git-net.patch
+alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex.patch
+git-scsi-misc.patch
+fs-inodec-use-hlist_for_each_entry.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
 
