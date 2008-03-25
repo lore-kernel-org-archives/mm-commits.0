@@ -1,64 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - net-af_packet-remove-unused-variable.patch removed from -mm tree
-Date: Mon, 24 Mar 2008 17:19:08 -0700
-Message-ID: <200803250019.m2P0J8jX032659@imap1.linux-foundation.org>
+Subject: - drivers-net-arcnet-com20020c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch removed from -mm tree
+Date: Mon, 24 Mar 2008 17:19:21 -0700
+Message-ID: <200803250019.m2P0JL22032677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60195 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753164AbYCYATt (ORCPT
+	by vger.kernel.org with ESMTP id S1752135AbYCYAT6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 20:19:49 -0400
+	Mon, 24 Mar 2008 20:19:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: olsajiri@gmail.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: jkschind@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: af_packet: remove unused variable
+     drivers/net/arcnet/com20020.c: replace init_module&cleanup_module with module_init&module_exit
 has been removed from the -mm tree.  Its filename was
-     net-af_packet-remove-unused-variable.patch
+     drivers-net-arcnet-com20020c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net: af_packet: remove unused variable
-From: Jiri Olsa <olsajiri@gmail.com>
+Subject: drivers/net/arcnet/com20020.c: replace init_module&cleanup_module with module_init&module_exit
+From: Jon Schindler <jkschind@gmail.com>
 
-Signed-off-by: Jiri Olsa <olsajiri@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+Replaced init_module and cleanup_module with static functions and
+module_init/module_exit.
+
+Signed-off-by: Jon Schindler <jkschind@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/packet/af_packet.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/net/arcnet/com20020.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN net/packet/af_packet.c~net-af_packet-remove-unused-variable net/packet/af_packet.c
---- a/net/packet/af_packet.c~net-af_packet-remove-unused-variable
-+++ a/net/packet/af_packet.c
-@@ -1658,7 +1658,7 @@ static int packet_set_ring(struct sock *
- 	int err = 0;
+diff -puN drivers/net/arcnet/com20020.c~drivers-net-arcnet-com20020c-replace-init_modulecleanup_module-with-module_initmodule_exit drivers/net/arcnet/com20020.c
+--- a/drivers/net/arcnet/com20020.c~drivers-net-arcnet-com20020c-replace-init_modulecleanup_module-with-module_initmodule_exit
++++ a/drivers/net/arcnet/com20020.c
+@@ -348,14 +348,15 @@ MODULE_LICENSE("GPL");
  
- 	if (req->tp_block_nr) {
--		int i, l;
-+		int i;
+ #ifdef MODULE
  
- 		/* Sanity tests and some calculations */
+-int init_module(void)
++static int __init com20020_module_init(void)
+ {
+ 	BUGLVL(D_NORMAL) printk(VERSION);
+ 	return 0;
+ }
  
-@@ -1687,7 +1687,6 @@ static int packet_set_ring(struct sock *
- 		if (unlikely(!pg_vec))
- 			goto out;
- 
--		l = 0;
- 		for (i = 0; i < req->tp_block_nr; i++) {
- 			char *ptr = pg_vec[i];
- 			struct tpacket_hdr *header;
-_
-
-Patches currently in -mm which might be from olsajiri@gmail.com are
-
-git-net.patch
-fs-remove-unused-fops-from-struct-char_device_struct.patch
-
+-void cleanup_module(void)
++static void __exit com20020_module_exit(void)
+ {
+ }
