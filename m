@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-lindent-support-gnu-indent-v2210.patch added to -mm tree
-Date: Tue, 25 Mar 2008 15:49:49 -0700
-Message-ID: <200803252249.m2PMnn8O017576@imap1.linux-foundation.org>
+Subject: + audit-ailence-two-kerneldoc-warnings-in-kernel-auditc.patch added to -mm tree
+Date: Tue, 25 Mar 2008 15:49:23 -0700
+Message-ID: <200803252249.m2PMnNBq017573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40592 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54011 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757250AbYCYWut (ORCPT
+	by vger.kernel.org with ESMTP id S1754068AbYCYWur (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 18:50:49 -0400
+	Tue, 25 Mar 2008 18:50:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com
+Cc: davej@codemonkey.org.uk, randy.dunlap@oracle.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     scripts/Lindent: support gnu indent v2.2.10
+     audit: silence two kerneldoc warnings in kernel/audit.c
 has been added to the -mm tree.  Its filename is
-     scripts-lindent-support-gnu-indent-v2210.patch
+     audit-ailence-two-kerneldoc-warnings-in-kernel-auditc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scripts/Lindent: support gnu indent v2.2.10
-From: Joe Perches <joe@perches.com>
+Subject: audit: silence two kerneldoc warnings in kernel/audit.c
+From: Dave Jones <davej@codemonkey.org.uk>
 
-The new version of indent supports positioning labels in column 1
-using "-il0"
+Silence two kerneldoc warnings.
 
-http://www.nabble.com/Release-2.2.10-of-GNU-Indent-td15990700.html
+Warning(kernel/audit.c:1276): No description found for parameter 'string'
+Warning(kernel/audit.c:1276): No description found for parameter 'len'
 
-Add "-il0" if indent version >= 2.2.10
+[also fix a typo for bonus points]
 
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Dave Jones <davej@codemonkey.org.uk>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/Lindent |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ kernel/audit.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN scripts/Lindent~scripts-lindent-support-gnu-indent-v2210 scripts/Lindent
---- a/scripts/Lindent~scripts-lindent-support-gnu-indent-v2210
-+++ a/scripts/Lindent
-@@ -1,2 +1,18 @@
- #!/bin/sh
--indent -npro -kr -i8 -ts8 -sob -l80 -ss -ncs -cp1 "$@"
-+PARAM="-npro -kr -i8 -ts8 -sob -l80 -ss -ncs -cp1"
-+RES=`indent --version`
-+V1=`echo $RES | cut -d' ' -f3 | cut -d'.' -f1`
-+V2=`echo $RES | cut -d' ' -f3 | cut -d'.' -f2`
-+V3=`echo $RES | cut -d' ' -f3 | cut -d'.' -f3`
-+if [ $V1 -gt 2 ]; then
-+  PARAM="$PARAM -il0"
-+elif [ $V1 -eq 2 ]; then
-+  if [ $V2 -gt 2 ]; then
-+    PARAM="$PARAM -il0";
-+  elif [ $V2 -eq 2 ]; then
-+    if [ $V3 -ge 10 ]; then
-+      PARAM="$PARAM -il0"
-+    fi
-+  fi
-+fi
-+indent $PARAM "$@"
+diff -puN kernel/audit.c~audit-ailence-two-kerneldoc-warnings-in-kernel-auditc kernel/audit.c
+--- a/kernel/audit.c~audit-ailence-two-kerneldoc-warnings-in-kernel-auditc
++++ a/kernel/audit.c
+@@ -1265,8 +1265,8 @@ static void audit_log_n_string(struct au
+ 
+ /**
+  * audit_string_contains_control - does a string need to be logged in hex
+- * @string - string to be checked
+- * @len - max length of the string to check
++ * @string: string to be checked
++ * @len: max length of the string to check
+  */
+ int audit_string_contains_control(const char *string, size_t len)
+ {
+@@ -1281,7 +1281,7 @@ int audit_string_contains_control(const 
+ /**
+  * audit_log_n_untrustedstring - log a string that may contain random characters
+  * @ab: audit_buffer
+- * @len: lenth of string (not including trailing null)
++ * @len: length of string (not including trailing null)
+  * @string: string to be logged
+  *
+  * This code will escape a string that is passed to it if the string
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from davej@codemonkey.org.uk are
 
-git-kvm.patch
-git-net.patch
-git-unionfs.patch
-synclink-drivers-bool-conversion.patch
-kernel-add-bit-rotation-helpers-for-16-and-8-bit.patch
-mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
-mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
-mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
-mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
-scripts-lindent-support-gnu-indent-v2210.patch
+audit-ailence-two-kerneldoc-warnings-in-kernel-auditc.patch
+git-cpufreq.patch
+cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism.patch
+cpufreq-document-the-currently-undocumented-parts-of-the-sysfs-interface.patch
+allow-use-of-the-powersave-governor-as-the-default-one.patch
 
