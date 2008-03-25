@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0.patch added to -mm tree
-Date: Tue, 25 Mar 2008 15:44:17 -0700
-Message-ID: <200803252244.m2PMiHgd017400@imap1.linux-foundation.org>
+Subject: + fs-gfs2-test-for-is_err-rather-than-0.patch added to -mm tree
+Date: Tue, 25 Mar 2008 15:45:04 -0700
+Message-ID: <200803252245.m2PMj5pR017432@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45778 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55396 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753771AbYCYWpI (ORCPT
+	by vger.kernel.org with ESMTP id S1753960AbYCYWqD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 18:45:08 -0400
+	Tue, 25 Mar 2008 18:46:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, lenb@kernel.org
+Cc: julia@diku.dk, swhiteho@redhat.com
 
 
 The patch titled
-     drivers/acpi: elide a non-zero test on a result that is never 0
+     fs/gfs2: test for IS_ERR rather than 0
 has been added to the -mm tree.  Its filename is
-     drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
+     fs-gfs2-test-for-is_err-rather-than-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/acpi: elide a non-zero test on a result that is never 0
+Subject: fs/gfs2: test for IS_ERR rather than 0
 From: Julia Lawall <julia@diku.dk>
 
-The function thermal_cooling_device_register always returns either a valid
-pointer or a value made with ERR_PTR, so a test for non-zero on the result
-will always succeed.
+The function gfs2_inode_lookup always returns either a valid pointer or a
+value made with ERR_PTR, so its result should be tested with IS_ERR, not
+with a test for 0.
 
 The problem was found using the following semantic match.
 (http://www.emn.fr/x-info/coccinelle/)
@@ -51,7 +51,7 @@ statement S,S1;
 position p;
 @@
 
-E = thermal_cooling_device_register(...)
+E = gfs2_inode_lookup(...)
 ... when != E = E1
 if@p (E) S else S1
 
@@ -76,137 +76,25 @@ position a.p;
 //</smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/fan.c            |   34 +++++++++++++++-----------------
- drivers/acpi/processor_core.c |   30 +++++++++++++---------------
- drivers/acpi/video.c          |   28 ++++++++++++--------------
- 3 files changed, 43 insertions(+), 49 deletions(-)
+ fs/gfs2/ops_export.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/acpi/fan.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0 drivers/acpi/fan.c
---- a/drivers/acpi/fan.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0
-+++ a/drivers/acpi/fan.c
-@@ -260,24 +260,22 @@ static int acpi_fan_add(struct acpi_devi
- 		result = PTR_ERR(cdev);
- 		goto end;
- 	}
--	if (cdev) {
--		printk(KERN_INFO PREFIX
--			"%s is registered as cooling_device%d\n",
--			device->dev.bus_id, cdev->id);
--
--		acpi_driver_data(device) = cdev;
--		result = sysfs_create_link(&device->dev.kobj,
--					   &cdev->device.kobj,
--					   "thermal_cooling");
--		if (result)
--			return result;
--
--		result = sysfs_create_link(&cdev->device.kobj,
--					   &device->dev.kobj,
--					   "device");
--		if (result)
--			return result;
--	}
-+	printk(KERN_INFO PREFIX
-+		"%s is registered as cooling_device%d\n",
-+		device->dev.bus_id, cdev->id);
-+
-+	acpi_driver_data(device) = cdev;
-+	result = sysfs_create_link(&device->dev.kobj,
-+				   &cdev->device.kobj,
-+				   "thermal_cooling");
-+	if (result)
-+		return result;
-+
-+	result = sysfs_create_link(&cdev->device.kobj,
-+				   &device->dev.kobj,
-+				   "device");
-+	if (result)
-+		return result;
- 
- 	result = acpi_fan_add_fs(device);
- 	if (result)
-diff -puN drivers/acpi/processor_core.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0 drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0
-+++ a/drivers/acpi/processor_core.c
-@@ -674,22 +674,20 @@ static int __cpuinit acpi_processor_star
- 		result = PTR_ERR(pr->cdev);
- 		goto end;
- 	}
--	if (pr->cdev) {
--		printk(KERN_INFO PREFIX
--			"%s is registered as cooling_device%d\n",
--			device->dev.bus_id, pr->cdev->id);
--
--		result = sysfs_create_link(&device->dev.kobj,
--					   &pr->cdev->device.kobj,
--					   "thermal_cooling");
--		if (result)
--			return result;
--		result = sysfs_create_link(&pr->cdev->device.kobj,
--					   &device->dev.kobj,
--					   "device");
--		if (result)
--			return result;
--	}
-+	printk(KERN_INFO PREFIX
-+		"%s is registered as cooling_device%d\n",
-+		device->dev.bus_id, pr->cdev->id);
-+
-+	result = sysfs_create_link(&device->dev.kobj,
-+				   &pr->cdev->device.kobj,
-+				   "thermal_cooling");
-+	if (result)
-+		return result;
-+	result = sysfs_create_link(&pr->cdev->device.kobj,
-+				   &device->dev.kobj,
-+				   "device");
-+	if (result)
-+		return result;
- 
- 	if (pr->flags.throttling) {
- 		printk(KERN_INFO PREFIX "%s [%s] (supports",
-diff -puN drivers/acpi/video.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0 drivers/acpi/video.c
---- a/drivers/acpi/video.c~drivers-acpi-elide-a-non-zero-test-on-a-result-that-is-never-0
-+++ a/drivers/acpi/video.c
-@@ -734,21 +734,19 @@ static void acpi_video_device_find_cap(s
- 		if (IS_ERR(device->cdev))
- 			return;
- 
--		if (device->cdev) {
--			printk(KERN_INFO PREFIX
--				"%s is registered as cooling_device%d\n",
--				device->dev->dev.bus_id, device->cdev->id);
--			result = sysfs_create_link(&device->dev->dev.kobj,
--					  &device->cdev->device.kobj,
--					  "thermal_cooling");
--			if (result)
--				printk(KERN_ERR PREFIX "Create sysfs link\n");
--			result = sysfs_create_link(&device->cdev->device.kobj,
--					  &device->dev->dev.kobj,
--					  "device");
--                        if (result)
--				printk(KERN_ERR PREFIX "Create sysfs link\n");
--		}
-+		printk(KERN_INFO PREFIX
-+			"%s is registered as cooling_device%d\n",
-+			device->dev->dev.bus_id, device->cdev->id);
-+		result = sysfs_create_link(&device->dev->dev.kobj,
-+				  &device->cdev->device.kobj,
-+				  "thermal_cooling");
-+		if (result)
-+			printk(KERN_ERR PREFIX "Create sysfs link\n");
-+		result = sysfs_create_link(&device->cdev->device.kobj,
-+				  &device->dev->dev.kobj,
-+				  "device");
-+		if (result)
-+			printk(KERN_ERR PREFIX "Create sysfs link\n");
- 	}
- 	if (device->cap._DCS && device->cap._DSS){
- 		static int count = 0;
+diff -puN fs/gfs2/ops_export.c~fs-gfs2-test-for-is_err-rather-than-0 fs/gfs2/ops_export.c
+--- a/fs/gfs2/ops_export.c~fs-gfs2-test-for-is_err-rather-than-0
++++ a/fs/gfs2/ops_export.c
+@@ -204,8 +204,6 @@ static struct dentry *gfs2_get_dentry(st
+ 	inode = gfs2_inode_lookup(sb, DT_UNKNOWN,
+ 					inum->no_addr,
+ 					0, 0);
+-	if (!inode)
+-		goto fail;
+ 	if (IS_ERR(inode)) {
+ 		error = PTR_ERR(inode);
+ 		goto fail;
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
