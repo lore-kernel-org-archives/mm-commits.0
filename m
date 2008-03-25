@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch added to -mm tree
-Date: Tue, 25 Mar 2008 10:59:58 -0700
-Message-ID: <200803251759.m2PHxwRo006144@imap1.linux-foundation.org>
+Subject: + gxfb-add-power-management-functionality-fix.patch added to -mm tree
+Date: Tue, 25 Mar 2008 12:42:49 -0700
+Message-ID: <200803251942.m2PJgnNp010099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59267 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45834 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757347AbYCYSBJ (ORCPT
+	by vger.kernel.org with ESMTP id S1750760AbYCYTn7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 14:01:09 -0400
+	Tue, 25 Mar 2008 15:43:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, clameter@sgi.com, davem@davemloft.net, mingo@elte.hu, pstaszewski@artcom.pl
+Cc: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd.com
 
 
 The patch titled
-     x86 kmap_atomic debugging: only run debug_kmap_atomic_prot() for highmem pages
+     gxfb: two suspend/resume fixes
 has been added to the -mm tree.  Its filename is
-     x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
+     gxfb-add-power-management-functionality-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,208 +34,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86 kmap_atomic debugging: only run debug_kmap_atomic_prot() for highmem pages
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gxfb: two suspend/resume fixes
+From: Andres Salomon <dilinger@queued.net>
 
-I believe http://bugzilla.kernel.org/show_bug.cgi?id=10318 is a false
-positive.  There's no way in which networking will be using highmem pages
-here, so it won't be taking the KM_USER0 kmap slot, so there's no point in
-performing these checks.
+Two suspend/resume fixes:
+  - we weren't saving/restoring the palette correctly; I wasn't setting
+    PAL_ADDRESS correctly.
+  - the original GP restore code had an off-by-one bug that I happily
+    reproduced in this code.  This fixes that, which fixes the RASTER_MODE
+    register not getting set.
 
-Cc: Pawel Staszewski <pstaszewski@artcom.pl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: "David S. Miller" <davem@davemloft.net>
+And drop an unnecessary comment.
+
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/highmem_32.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/geode/suspend_gx.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/mm/highmem_32.c~x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages arch/x86/mm/highmem_32.c
---- a/arch/x86/mm/highmem_32.c~x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages
-+++ a/arch/x86/mm/highmem_32.c
-@@ -73,15 +73,15 @@ void *kmap_atomic_prot(struct page *page
- {
- 	enum fixed_addresses idx;
- 	unsigned long vaddr;
--	/* even !CONFIG_PREEMPT needs this, for in_atomic in do_page_fault */
--
--	debug_kmap_atomic_prot(type);
+diff -puN drivers/video/geode/suspend_gx.c~gxfb-add-power-management-functionality-fix drivers/video/geode/suspend_gx.c
+--- a/drivers/video/geode/suspend_gx.c~gxfb-add-power-management-functionality-fix
++++ a/drivers/video/geode/suspend_gx.c
+@@ -39,7 +39,7 @@ static void gx_save_regs(struct gxfb_par
+ 	memcpy(par->fp, par->vid_regs + VP_FP_START, sizeof(par->fp));
  
-+	/* even !CONFIG_PREEMPT needs this, for in_atomic in do_page_fault */
- 	pagefault_disable();
+ 	/* save the palette */
+-	write_gp(par, DC_PAL_ADDRESS, 0);
++	write_dc(par, DC_PAL_ADDRESS, 0);
+ 	for (i = 0; i < ARRAY_SIZE(par->pal); i++)
+ 		par->pal[i] = read_dc(par, DC_PAL_DATA);
+ }
+@@ -73,10 +73,10 @@ static void gx_restore_gfx_proc(struct g
  
- 	if (!PageHighMem(page))
- 		return page_address(page);
+ 	for (i = 0; i < ARRAY_SIZE(par->gp); i++) {
+ 		switch (i) {
+-		case GP_RASTER_MODE:
+ 		case GP_VECTOR_MODE:
+ 		case GP_BLT_MODE:
+ 		case GP_BLT_STATUS:
++		case GP_HST_SRC:
+ 			/* don't restore these registers */
+ 			break;
+ 		default:
+@@ -130,7 +130,7 @@ static void gx_restore_display_ctlr(stru
+ 	}
  
-+	debug_kmap_atomic_prot(type);
-+
- 	idx = type + KM_TYPE_NR*smp_processor_id();
- 	vaddr = __fix_to_virt(FIX_KMAP_BEGIN + idx);
- 	BUG_ON(!pte_none(*(kmap_pte-idx)));
+ 	/* restore the palette */
+-	write_gp(par, DC_PAL_ADDRESS, 0);
++	write_dc(par, DC_PAL_ADDRESS, 0);
+ 	for (i = 0; i < ARRAY_SIZE(par->pal); i++)
+ 		write_dc(par, DC_PAL_DATA, par->pal[i]);
+ }
+@@ -163,7 +163,7 @@ static void gx_restore_video_proc(struct
+ 		case VP_RSVD_3:
+ 		case VP_CRC32:
+ 		case VP_AWT:
+-		case VP_VTM:    /* this is r/w, shouldn't we restore?  -dil */
++		case VP_VTM:
+ 			/* don't restore these registers */
+ 			break;
+ 		default:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-origin.patch
-mtd-memory-corruption-in-block2mtdc.patch
-revert-kswapd-should-only-wait-on-io-if-there-is-io.patch
-git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-git-kgdb-light.patch
-git-acpi-fixup.patch
-git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-pm-remove-destroy_suspended_device-checkpatch-fixes.patch
-git-drm.patch
-git-drm-git-rejects.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-sata_promise-fix-hardreset-hotplug-quirk-checkpatch-fixes.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-git-async-tx.patch
-git-net.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
-drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-scsi-add-iscsi-ibft-support-fix.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-watchdog.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
-r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers-fix.patch
-r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
-r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
-r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+x86-geode-msr-cleanup.patch
+gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
+gxfb-replace-fbsize-config-option-with-a-module-parameter.patch
+gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
+gxfb-clean-up-register-definitions.patch
+gxfb-move-msr-bit-fields-into-gxfbh.patch
+gxfb-stop-sharing-code-with-gx1fb.patch
+gxfb-add-power-management-functionality.patch
+gxfb-add-power-management-functionality-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
 pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-fbdev-driver-for-freescale-8610-and-5121-diu-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-w1-build-fix.patch
-x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
 
