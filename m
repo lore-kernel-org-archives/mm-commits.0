@@ -1,126 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - make-b43_mac_enablesuspend-static.patch removed from -mm tree
-Date: Mon, 24 Mar 2008 17:19:29 -0700
-Message-ID: <200803250019.m2P0JTsx032689@imap1.linux-foundation.org>
+Subject: - convert-acl-sem-in-a-mutex.patch removed from -mm tree
+Date: Mon, 24 Mar 2008 17:19:36 -0700
+Message-ID: <200803250019.m2P0Jao6032698@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35027 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753917AbYCYAUV (ORCPT
+	by vger.kernel.org with ESMTP id S1753865AbYCYAVM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 24 Mar 2008 20:20:21 -0400
+	Mon, 24 Mar 2008 20:21:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mb@bu3sch.de, mm-commits@vger.kernel.org
+To: matthias@kaehlcke.net, flamingice@sourmilk.net, linville@tuxdriver.com, mcgrof@winlab.rutgers.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make b43_mac_{enable,suspend}() static
+     prism54: convert acl->sem in a mutex
 has been removed from the -mm tree.  Its filename was
-     make-b43_mac_enablesuspend-static.patch
+     convert-acl-sem-in-a-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make b43_mac_{enable,suspend}() static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: prism54: convert acl->sem in a mutex
+From: Matthias Kaehlcke <matthias@kaehlcke.net>
 
-b43_mac_{enable,suspend}() can now become static.
+The semaphore acl->sem is used as mutex, convert it to the mutex API
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Michael Buesch <mb@bu3sch.de>
+Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
+Cc: Michael Wu <flamingice@sourmilk.net>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/b43/main.c |    4 ++--
- drivers/net/wireless/b43/main.h |    3 ---
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ drivers/net/wireless/prism54/isl_ioctl.c  |   28 ++++++++++----------
+ drivers/net/wireless/prism54/islpci_dev.h |    2 -
+ 2 files changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN drivers/net/wireless/b43/main.c~make-b43_mac_enablesuspend-static drivers/net/wireless/b43/main.c
---- a/drivers/net/wireless/b43/main.c~make-b43_mac_enablesuspend-static
-+++ a/drivers/net/wireless/b43/main.c
-@@ -2045,7 +2045,7 @@ static void b43_gpio_cleanup(struct b43_
+diff -puN drivers/net/wireless/prism54/isl_ioctl.c~convert-acl-sem-in-a-mutex drivers/net/wireless/prism54/isl_ioctl.c
+--- a/drivers/net/wireless/prism54/isl_ioctl.c~convert-acl-sem-in-a-mutex
++++ a/drivers/net/wireless/prism54/isl_ioctl.c
+@@ -1780,7 +1780,7 @@ prism54_set_raw(struct net_device *ndev,
+ void
+ prism54_acl_init(struct islpci_acl *acl)
+ {
+-	sema_init(&acl->sem, 1);
++	mutex_init(&acl->lock);
+ 	INIT_LIST_HEAD(&acl->mac_list);
+ 	acl->size = 0;
+ 	acl->policy = MAC_POLICY_OPEN;
+@@ -1792,10 +1792,10 @@ prism54_clear_mac(struct islpci_acl *acl
+ 	struct list_head *ptr, *next;
+ 	struct mac_entry *entry;
+ 
+-	down(&acl->sem);
++	mutex_lock(&acl->lock);
+ 
+ 	if (acl->size == 0) {
+-		up(&acl->sem);
++		mutex_unlock(&acl->lock);
+ 		return;
+ 	}
+ 
+@@ -1806,7 +1806,7 @@ prism54_clear_mac(struct islpci_acl *acl
+ 		kfree(entry);
+ 	}
+ 	acl->size = 0;
+-	up(&acl->sem);
++	mutex_unlock(&acl->lock);
  }
  
- /* http://bcm-specs.sipsolutions.net/EnableMac */
--void b43_mac_enable(struct b43_wldev *dev)
-+static void b43_mac_enable(struct b43_wldev *dev)
- {
- 	dev->mac_suspended--;
- 	B43_WARN_ON(dev->mac_suspended < 0);
-@@ -2069,7 +2069,7 @@ void b43_mac_enable(struct b43_wldev *de
+ void
+@@ -1833,13 +1833,13 @@ prism54_add_mac(struct net_device *ndev,
+ 
+ 	memcpy(entry->addr, addr->sa_data, ETH_ALEN);
+ 
+-	if (down_interruptible(&acl->sem)) {
++	if (mutex_lock_interruptible(&acl->lock)) {
+ 		kfree(entry);
+ 		return -ERESTARTSYS;
+ 	}
+ 	list_add_tail(&entry->_list, &acl->mac_list);
+ 	acl->size++;
+-	up(&acl->sem);
++	mutex_unlock(&acl->lock);
+ 
+ 	return 0;
+ }
+@@ -1856,18 +1856,18 @@ prism54_del_mac(struct net_device *ndev,
+ 	if (addr->sa_family != ARPHRD_ETHER)
+ 		return -EOPNOTSUPP;
+ 
+-	if (down_interruptible(&acl->sem))
++	if (mutex_lock_interruptible(&acl->lock))
+ 		return -ERESTARTSYS;
+ 	list_for_each_entry(entry, &acl->mac_list, _list) {
+ 		if (memcmp(entry->addr, addr->sa_data, ETH_ALEN) == 0) {
+ 			list_del(&entry->_list);
+ 			acl->size--;
+ 			kfree(entry);
+-			up(&acl->sem);
++			mutex_unlock(&acl->lock);
+ 			return 0;
+ 		}
+ 	}
+-	up(&acl->sem);
++	mutex_unlock(&acl->lock);
+ 	return -EINVAL;
  }
  
- /* http://bcm-specs.sipsolutions.net/SuspendMAC */
--void b43_mac_suspend(struct b43_wldev *dev)
-+static void b43_mac_suspend(struct b43_wldev *dev)
- {
- 	int i;
- 	u32 tmp;
-diff -puN drivers/net/wireless/b43/main.h~make-b43_mac_enablesuspend-static drivers/net/wireless/b43/main.h
---- a/drivers/net/wireless/b43/main.h~make-b43_mac_enablesuspend-static
-+++ a/drivers/net/wireless/b43/main.h
-@@ -102,9 +102,6 @@ void b43_dummy_transmission(struct b43_w
+@@ -1882,7 +1882,7 @@ prism54_get_mac(struct net_device *ndev,
  
- void b43_wireless_core_reset(struct b43_wldev *dev, u32 flags);
+ 	dwrq->length = 0;
  
--void b43_mac_suspend(struct b43_wldev *dev);
--void b43_mac_enable(struct b43_wldev *dev);
--
- void b43_controller_restart(struct b43_wldev *dev, const char *reason);
+-	if (down_interruptible(&acl->sem))
++	if (mutex_lock_interruptible(&acl->lock))
+ 		return -ERESTARTSYS;
  
- #define B43_PS_ENABLED	(1 << 0)	/* Force enable hardware power saving */
+ 	list_for_each_entry(entry, &acl->mac_list, _list) {
+@@ -1891,7 +1891,7 @@ prism54_get_mac(struct net_device *ndev,
+ 		dwrq->length++;
+ 		dst++;
+ 	}
+-	up(&acl->sem);
++	mutex_unlock(&acl->lock);
+ 	return 0;
+ }
+ 
+@@ -1955,11 +1955,11 @@ prism54_mac_accept(struct islpci_acl *ac
+ 	struct mac_entry *entry;
+ 	int res = 0;
+ 
+-	if (down_interruptible(&acl->sem))
++	if (mutex_lock_interruptible(&acl->lock))
+ 		return -ERESTARTSYS;
+ 
+ 	if (acl->policy == MAC_POLICY_OPEN) {
+-		up(&acl->sem);
++		mutex_unlock(&acl->lock);
+ 		return 1;
+ 	}
+ 
+@@ -1970,7 +1970,7 @@ prism54_mac_accept(struct islpci_acl *ac
+ 		}
+ 	}
+ 	res = (acl->policy == MAC_POLICY_ACCEPT) ? !res : res;
+-	up(&acl->sem);
++	mutex_unlock(&acl->lock);
+ 
+ 	return res;
+ }
+diff -puN drivers/net/wireless/prism54/islpci_dev.h~convert-acl-sem-in-a-mutex drivers/net/wireless/prism54/islpci_dev.h
+--- a/drivers/net/wireless/prism54/islpci_dev.h~convert-acl-sem-in-a-mutex
++++ a/drivers/net/wireless/prism54/islpci_dev.h
+@@ -55,7 +55,7 @@ struct islpci_acl {
+    enum { MAC_POLICY_OPEN=0, MAC_POLICY_ACCEPT=1, MAC_POLICY_REJECT=2 } policy;
+    struct list_head mac_list;  /* a list of mac_entry */
+    int size;   /* size of queue */
+-   struct semaphore sem;   /* accessed in ioctls and trap_work */
++   struct mutex lock;   /* accessed in ioctls and trap_work */
+ };
+ 
+ struct islpci_membuf {
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from matthias@kaehlcke.net are
 
-origin.patch
-git-dvb.patch
-git-gfs2-nmw.patch
-git-dlm.patch
-mtdoopsc-make-struct-oops_cxt-static-again.patch
-make-mtd-nand-cs553x_nandcpart_probes-static.patch
-git-udf.patch
 git-net.patch
-git-nfsd.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-selinux.patch
-pci_alloc_child_bus-mustnt-be-__devinit.patch
-pci_scan_device-mustnt-be-__devinit.patch
-pci_bus_size_cardbus-mustnt-be-__devinit.patch
-pci_setup_bridge-mustnt-be-__devinit.patch
-scsi-aic94xx-cleanups.patch
-if-0-ses_match_host.patch
-git-watchdog.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-ipwireless-remove-dead-code.patch
-proper-__do_softirq-prototype.patch
-proper-extern-for-late_time_init.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-pnp-skip-dev-protocol-null-checks.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh.patch
-kernel-cpusetc-make-3-functions-static.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
-reiser4.patch
+alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex.patch
+git-scsi-misc.patch
+fs-inodec-use-hlist_for_each_entry.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
 
