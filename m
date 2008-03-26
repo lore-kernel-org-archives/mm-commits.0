@@ -1,137 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc32-asm-offsets-ptrace-cruft.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:39:51 -0700
-Message-ID: <200803261839.m2QIdpAu028569@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:40:56 -0700
+Message-ID: <200803261840.m2QIeu71028717@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59994 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46923 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757371AbYCZSkf (ORCPT
+	by vger.kernel.org with ESMTP id S1757901AbYCZSlQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 14:40:35 -0400
+	Wed, 26 Mar 2008 14:41:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@infradead.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc32: asm-offsets ptrace cruft
+     r/o bind mounts: elevate count for xfs timestamp updates
 has been removed from the -mm tree.  Its filename was
-     powerpc32-asm-offsets-ptrace-cruft.patch
+     r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc32: asm-offsets ptrace cruft
-From: Roland McGrath <roland@redhat.com>
+Subject: r/o bind mounts: elevate count for xfs timestamp updates
+From: Dave Hansen <haveblue@us.ibm.com>
 
-These items in asm-offsets.c are not used anywhere.  Remove them.
+Elevate the write count during the xfs m/ctime updates.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
+XFS has to do it's own timestamp updates due to an unfortunate VFS design
+limitation, so it will have to track writers by itself aswell.
+
+[hch: split out from the touch_atime patch as it's not related to it at all]
+
+Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
+Signed-off-by: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/asm-offsets.c |    4 ----
- 1 file changed, 4 deletions(-)
+ fs/xfs/linux-2.6/xfs_iops.c |    7 -------
+ fs/xfs/linux-2.6/xfs_lrw.c  |    9 ++++++++-
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN arch/powerpc/kernel/asm-offsets.c~powerpc32-asm-offsets-ptrace-cruft arch/powerpc/kernel/asm-offsets.c
---- a/arch/powerpc/kernel/asm-offsets.c~powerpc32-asm-offsets-ptrace-cruft
-+++ a/arch/powerpc/kernel/asm-offsets.c
-@@ -26,8 +26,6 @@
- #ifdef CONFIG_PPC64
- #include <linux/time.h>
- #include <linux/hardirq.h>
--#else
--#include <linux/ptrace.h>
- #endif
+diff -puN fs/xfs/linux-2.6/xfs_iops.c~r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates fs/xfs/linux-2.6/xfs_iops.c
+--- a/fs/xfs/linux-2.6/xfs_iops.c~r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates
++++ a/fs/xfs/linux-2.6/xfs_iops.c
+@@ -155,13 +155,6 @@ xfs_ichgtime_fast(
+ 	 */
+ 	ASSERT((flags & XFS_ICHGTIME_ACC) == 0);
  
- #include <asm/io.h>
-@@ -60,7 +58,6 @@ int main(void)
- 	DEFINE(AUDITCONTEXT, offsetof(struct task_struct, audit_context));
- #else
- 	DEFINE(THREAD_INFO, offsetof(struct task_struct, stack));
--	DEFINE(PTRACE, offsetof(struct task_struct, ptrace));
- #endif /* CONFIG_PPC64 */
+-	/*
+-	 * We're not supposed to change timestamps in readonly-mounted
+-	 * filesystems.  Throw it away if anyone asks us.
+-	 */
+-	if (unlikely(IS_RDONLY(inode)))
+-		return;
+-
+ 	if (flags & XFS_ICHGTIME_MOD) {
+ 		tvp = &inode->i_mtime;
+ 		ip->i_d.di_mtime.t_sec = (__int32_t)tvp->tv_sec;
+diff -puN fs/xfs/linux-2.6/xfs_lrw.c~r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates fs/xfs/linux-2.6/xfs_lrw.c
+--- a/fs/xfs/linux-2.6/xfs_lrw.c~r-o-bind-mounts-elevate-count-for-xfs-timestamp-updates
++++ a/fs/xfs/linux-2.6/xfs_lrw.c
+@@ -51,6 +51,7 @@
+ #include "xfs_vnodeops.h"
  
- 	DEFINE(KSP, offsetof(struct thread_struct, ksp));
-@@ -80,7 +77,6 @@ int main(void)
- 	DEFINE(PGDIR, offsetof(struct thread_struct, pgdir));
- #if defined(CONFIG_4xx) || defined(CONFIG_BOOKE)
- 	DEFINE(THREAD_DBCR0, offsetof(struct thread_struct, dbcr0));
--	DEFINE(PT_PTRACED, PT_PTRACED);
- #endif
- #ifdef CONFIG_SPE
- 	DEFINE(THREAD_EVR0, offsetof(struct thread_struct, evr[0]));
+ #include <linux/capability.h>
++#include <linux/mount.h>
+ #include <linux/writeback.h>
+ 
+ 
+@@ -670,10 +671,16 @@ start:
+ 	if (new_size > xip->i_size)
+ 		xip->i_new_size = new_size;
+ 
+-	if (likely(!(ioflags & IO_INVIS))) {
++	/*
++	 * We're not supposed to change timestamps in readonly-mounted
++	 * filesystems.  Throw it away if anyone asks us.
++	 */
++	if (likely(!(ioflags & IO_INVIS) &&
++		   !mnt_want_write(file->f_vfsmnt))) {
+ 		file_update_time(file);
+ 		xfs_ichgtime_fast(xip, inode,
+ 				  XFS_ICHGTIME_MOD | XFS_ICHGTIME_CHG);
++		mnt_drop_write(file->f_vfsmnt);
+ 	}
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
-git-x86.patch
-x86-handle_vm86_trap-cleanup.patch
-x86_64-ia32-ptrace-vs-enosys.patch
-x86_64-ptrace-vs-enosys.patch
-x86_64-ia32-ptrace-vs-enosys-sysenter-syscall.patch
-git-powerpc.patch
-add-rusage_thread.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-document-cld_continued-notification-mechanics-more.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-signals-check_kill_permission-remove-tasklist_lock.patch
-signals-fix-sbin-init-protection-from-unwanted-signals.patch
-signals-de_thread-simplify-the-child_reaper-switching.patch
-signals-allow-the-kernel-to-actually-kill-sbin-init.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
-pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+git-vfs.patch
+hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages.patch
+mm-make-mem_map-allocation-continuous.patch
+vfs-create-proc-pid-mountinfo.patch
+vfs-mountinfo-mm-fix.patch
+vfs-pnode-cleanup.patch
+vfs-mountinfo-stable-peer-group-id.patch
+vfs-mountinfo-show-dominating-group-id.patch
+vfs-optimization-to-proc-pid-mountinfo-patch.patch
+vfs-mountinfo-only-show-mounts-under-tasks-root.patch
+kprobes-prevent-probing-of-preempt_schedule.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
 
