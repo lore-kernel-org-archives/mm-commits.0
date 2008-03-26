@@ -1,181 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-for-chmod-chown-callers.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:40:52 -0700
-Message-ID: <200803261840.m2QIeqFT028710@imap1.linux-foundation.org>
+Subject: + mmc-use-shorter-equivalent-set_current_state.patch added to -mm tree
+Date: Wed, 26 Mar 2008 12:47:24 -0700
+Message-ID: <200803261947.m2QJlOld031406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34704 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51098 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756012AbYCZSql (ORCPT
+	by vger.kernel.org with ESMTP id S1753405AbYCZTra (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 14:46:41 -0400
+	Wed, 26 Mar 2008 15:47:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: rpjday@crashcourse.ca
 
 
 The patch titled
-     r/o bind mounts: elevate write count for chmod/chown callers
-has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-for-chmod-chown-callers.patch
+     mmc: use shorter, equivalent set_current_state()
+has been added to the -mm tree.  Its filename is
+     mmc-use-shorter-equivalent-set_current_state.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count for chmod/chown callers
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: mmc: use shorter, equivalent set_current_state()
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-chown/chmod,etc...  don't call permission in the same way that the normal
-"open for write" calls do.  They still write to the filesystem, so bump the
-write count during these operations.
-
-Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |   39 ++++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
+ drivers/mmc/core/sdio_irq.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/open.c~r-o-bind-mounts-elevate-write-count-for-chmod-chown-callers fs/open.c
---- a/fs/open.c~r-o-bind-mounts-elevate-write-count-for-chmod-chown-callers
-+++ a/fs/open.c
-@@ -567,12 +567,12 @@ asmlinkage long sys_fchmod(unsigned int 
+diff -puN drivers/mmc/core/sdio_irq.c~mmc-use-shorter-equivalent-set_current_state drivers/mmc/core/sdio_irq.c
+--- a/drivers/mmc/core/sdio_irq.c~mmc-use-shorter-equivalent-set_current_state
++++ a/drivers/mmc/core/sdio_irq.c
+@@ -128,12 +128,12 @@ static int sdio_irq_thread(void *_host)
+ 			}
+ 		}
  
- 	audit_inode(NULL, dentry);
+-		set_task_state(current, TASK_INTERRUPTIBLE);
++		set_current_state(TASK_INTERRUPTIBLE);
+ 		if (host->caps & MMC_CAP_SDIO_IRQ)
+ 			host->ops->enable_sdio_irq(host, 1);
+ 		if (!kthread_should_stop())
+ 			schedule_timeout(period);
+-		set_task_state(current, TASK_RUNNING);
++		set_current_state(TASK_RUNNING);
+ 	} while (!kthread_should_stop());
  
--	err = -EROFS;
--	if (IS_RDONLY(inode))
-+	err = mnt_want_write(file->f_vfsmnt);
-+	if (err)
- 		goto out_putf;
- 	err = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
--		goto out_putf;
-+		goto out_drop_write;
- 	mutex_lock(&inode->i_mutex);
- 	if (mode == (mode_t) -1)
- 		mode = inode->i_mode;
-@@ -581,6 +581,8 @@ asmlinkage long sys_fchmod(unsigned int 
- 	err = notify_change(dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
- 
-+out_drop_write:
-+	mnt_drop_write(file->f_vfsmnt);
- out_putf:
- 	fput(file);
- out:
-@@ -600,13 +602,13 @@ asmlinkage long sys_fchmodat(int dfd, co
- 		goto out;
- 	inode = nd.path.dentry->d_inode;
- 
--	error = -EROFS;
--	if (IS_RDONLY(inode))
-+	error = mnt_want_write(nd.path.mnt);
-+	if (error)
- 		goto dput_and_out;
- 
- 	error = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
--		goto dput_and_out;
-+		goto out_drop_write;
- 
- 	mutex_lock(&inode->i_mutex);
- 	if (mode == (mode_t) -1)
-@@ -616,6 +618,8 @@ asmlinkage long sys_fchmodat(int dfd, co
- 	error = notify_change(nd.path.dentry, &newattrs);
- 	mutex_unlock(&inode->i_mutex);
- 
-+out_drop_write:
-+	mnt_drop_write(nd.path.mnt);
- dput_and_out:
- 	path_put(&nd.path);
- out:
-@@ -638,9 +642,6 @@ static int chown_common(struct dentry * 
- 		printk(KERN_ERR "chown_common: NULL inode\n");
- 		goto out;
- 	}
--	error = -EROFS;
--	if (IS_RDONLY(inode))
--		goto out;
- 	error = -EPERM;
- 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
- 		goto out;
-@@ -671,7 +672,12 @@ asmlinkage long sys_chown(const char __u
- 	error = user_path_walk(filename, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.path.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.path.dentry, user, group);
-+	mnt_drop_write(nd.path.mnt);
-+out_release:
- 	path_put(&nd.path);
- out:
- 	return error;
-@@ -691,7 +697,12 @@ asmlinkage long sys_fchownat(int dfd, co
- 	error = __user_walk_fd(dfd, filename, follow, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.path.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.path.dentry, user, group);
-+	mnt_drop_write(nd.path.mnt);
-+out_release:
- 	path_put(&nd.path);
- out:
- 	return error;
-@@ -705,7 +716,12 @@ asmlinkage long sys_lchown(const char __
- 	error = user_path_walk_link(filename, &nd);
- 	if (error)
- 		goto out;
-+	error = mnt_want_write(nd.path.mnt);
-+	if (error)
-+		goto out_release;
- 	error = chown_common(nd.path.dentry, user, group);
-+	mnt_drop_write(nd.path.mnt);
-+out_release:
- 	path_put(&nd.path);
- out:
- 	return error;
-@@ -722,9 +738,14 @@ asmlinkage long sys_fchown(unsigned int 
- 	if (!file)
- 		goto out;
- 
-+	error = mnt_want_write(file->f_vfsmnt);
-+	if (error)
-+		goto out_fput;
- 	dentry = file->f_path.dentry;
- 	audit_inode(NULL, dentry);
- 	error = chown_common(dentry, user, group);
-+	mnt_drop_write(file->f_vfsmnt);
-+out_fput:
- 	fput(file);
- out:
- 	return error;
+ 	if (host->caps & MMC_CAP_SDIO_IRQ)
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
-git-vfs.patch
-hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages.patch
-mm-make-mem_map-allocation-continuous.patch
-vfs-create-proc-pid-mountinfo.patch
-vfs-mountinfo-mm-fix.patch
-vfs-pnode-cleanup.patch
-vfs-mountinfo-stable-peer-group-id.patch
-vfs-mountinfo-show-dominating-group-id.patch
-vfs-optimization-to-proc-pid-mountinfo-patch.patch
-vfs-mountinfo-only-show-mounts-under-tasks-root.patch
-kprobes-prevent-probing-of-preempt_schedule.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
+git-powerpc.patch
+git-ieee1394.patch
+infiniband-use-shorter-list_splice_init-for-brevity.patch
+mmc-use-shorter-equivalent-set_current_state.patch
+git-net.patch
+lapb-use-the-shorter-list_head-form-for-brevity.patch
+bluetooth-replace-deprecated-rw_lock_unlocked-macros.patch
+git-nfsd.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
+kernel-explicitly-include-required-header-files-under-kernel.patch
+remove-superfluous-include-of-stringh-from-percpuh.patch
+kbuild-remove-duplicate-conflicting-entry-for-oomh.patch
+kbuild-move-files-that-dont-check-__kernel__.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+isdn-fix-obvious-cut-and-paste-error-in-st5481_usbc.patch
+keys-explicitly-include-required-slabh-header-file.patch
+generalize-asm-generic-ioctlh-to-allow-overriding-values.patch
+edac-use-the-shorter-list_head-for-brevity.patch
+afs-use-the-shorter-list_head-for-brevity.patch
 
