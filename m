@@ -1,133 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-stub-functions.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:40:14 -0700
-Message-ID: <200803261840.m2QIeEgo028643@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-create-helper-to-drop-file-write-access.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:40:16 -0700
+Message-ID: <200803261840.m2QIeGaa028647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35219 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37562 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760770AbYCZSkn (ORCPT
+	by vger.kernel.org with ESMTP id S1760930AbYCZSkt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 14:40:43 -0400
+	Wed, 26 Mar 2008 14:40:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@infradead.org, serue@us.ibm.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, bfields@fieldses.org, ezk@cs.sunysb.edu, hch@lst.de, trond.myklebust@fys.uio.no, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: stub functions
+     r/o bind mounts: create helper to drop file write access
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-stub-functions.patch
+     r-o-bind-mounts-create-helper-to-drop-file-write-access.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r/o bind mounts: stub functions
+Subject: r/o bind mounts: create helper to drop file write access
 From: Dave Hansen <haveblue@us.ibm.com>
 
-This patch adds two function mnt_want_write() and mnt_drop_write().  These are
-used like a lock pair around and fs operations that might cause a write to the
-filesystem.
+If someone decides to demote a file from r/w to just r/o, they can use this
+same code as __fput().
 
-Before these can become useful, we must first cover each place in the VFS
-where writes are performed with a want/drop pair.  When that is complete, we
-can actually introduce code that will safely check the counts before allowing
-r/w<->r/o transitions to occur.
+NFS does just that, and will use this in the next patch.
 
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
-Signed-off-by: Christoph Hellwig <hch@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J Bruce Fields" <bfields@fieldses.org>
+Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c        |   54 ++++++++++++++++++++++++++++++++++++++++
- include/linux/mount.h |    3 ++
- 2 files changed, 57 insertions(+)
+ fs/file_table.c      |   19 ++++++++++++++++++-
+ fs/nfsd/nfs4state.c  |    3 ++-
+ include/linux/file.h |    1 +
+ 3 files changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN fs/namespace.c~r-o-bind-mounts-stub-functions fs/namespace.c
---- a/fs/namespace.c~r-o-bind-mounts-stub-functions
-+++ a/fs/namespace.c
-@@ -80,6 +80,60 @@ struct vfsmount *alloc_vfsmnt(const char
- 	return mnt;
- }
+diff -puN fs/file_table.c~r-o-bind-mounts-create-helper-to-drop-file-write-access fs/file_table.c
+--- a/fs/file_table.c~r-o-bind-mounts-create-helper-to-drop-file-write-access
++++ a/fs/file_table.c
+@@ -211,6 +211,23 @@ void fput(struct file *file)
  
-+/*
-+ * Most r/o checks on a fs are for operations that take
-+ * discrete amounts of time, like a write() or unlink().
-+ * We must keep track of when those operations start
-+ * (for permission checks) and when they end, so that
-+ * we can determine when writes are able to occur to
-+ * a filesystem.
-+ */
+ EXPORT_SYMBOL(fput);
+ 
 +/**
-+ * mnt_want_write - get write access to a mount
-+ * @mnt: the mount on which to take a write
++ * drop_file_write_access - give up ability to write to a file
++ * @file: the file to which we will stop writing
 + *
-+ * This tells the low-level filesystem that a write is
-+ * about to be performed to it, and makes sure that
-+ * writes are allowed before returning success.  When
-+ * the write operation is finished, mnt_drop_write()
-+ * must be called.  This is effectively a refcount.
++ * This is a central place which will give up the ability
++ * to write to @file, along with access to write through
++ * its vfsmount.
 + */
-+int mnt_want_write(struct vfsmount *mnt)
++void drop_file_write_access(struct file *file)
 +{
-+	if (__mnt_is_readonly(mnt))
-+		return -EROFS;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(mnt_want_write);
++	struct dentry *dentry = file->f_path.dentry;
++	struct inode *inode = dentry->d_inode;
 +
-+/**
-+ * mnt_drop_write - give up write access to a mount
-+ * @mnt: the mount on which to give up write access
-+ *
-+ * Tells the low-level filesystem that we are done
-+ * performing writes to it.  Must be matched with
-+ * mnt_want_write() call above.
-+ */
-+void mnt_drop_write(struct vfsmount *mnt)
-+{
++	put_write_access(inode);
 +}
-+EXPORT_SYMBOL_GPL(mnt_drop_write);
++EXPORT_SYMBOL_GPL(drop_file_write_access);
 +
-+/*
-+ * __mnt_is_readonly: check whether a mount is read-only
-+ * @mnt: the mount to check for its write status
-+ *
-+ * This shouldn't be used directly ouside of the VFS.
-+ * It does not guarantee that the filesystem will stay
-+ * r/w, just that it is right *now*.  This can not and
-+ * should not be used in place of IS_RDONLY(inode).
-+ */
-+int __mnt_is_readonly(struct vfsmount *mnt)
-+{
-+	return (mnt->mnt_sb->s_flags & MS_RDONLY);
-+}
-+EXPORT_SYMBOL_GPL(__mnt_is_readonly);
-+
- int simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
+ /* __fput is called from task context when aio completion releases the last
+  * last use of a struct file *.  Do not use otherwise.
+  */
+@@ -237,7 +254,7 @@ void __fput(struct file *file)
+ 		cdev_put(inode->i_cdev);
+ 	fops_put(file->f_op);
+ 	if (file->f_mode & FMODE_WRITE)
+-		put_write_access(inode);
++		drop_file_write_access(file);
+ 	put_pid(file->f_owner.pid);
+ 	file_kill(file);
+ 	file->f_path.dentry = NULL;
+diff -puN fs/nfsd/nfs4state.c~r-o-bind-mounts-create-helper-to-drop-file-write-access fs/nfsd/nfs4state.c
+--- a/fs/nfsd/nfs4state.c~r-o-bind-mounts-create-helper-to-drop-file-write-access
++++ a/fs/nfsd/nfs4state.c
+@@ -41,6 +41,7 @@
+ #include <linux/sunrpc/svc.h>
+ #include <linux/nfsd/nfsd.h>
+ #include <linux/nfsd/cache.h>
++#include <linux/file.h>
+ #include <linux/mount.h>
+ #include <linux/workqueue.h>
+ #include <linux/smp_lock.h>
+@@ -1239,7 +1240,7 @@ static inline void
+ nfs4_file_downgrade(struct file *filp, unsigned int share_access)
  {
- 	mnt->mnt_sb = sb;
-diff -puN include/linux/mount.h~r-o-bind-mounts-stub-functions include/linux/mount.h
---- a/include/linux/mount.h~r-o-bind-mounts-stub-functions
-+++ a/include/linux/mount.h
-@@ -70,9 +70,12 @@ static inline struct vfsmount *mntget(st
- 	return mnt;
+ 	if (share_access & NFS4_SHARE_ACCESS_WRITE) {
+-		put_write_access(filp->f_path.dentry->d_inode);
++		drop_file_write_access(filp);
+ 		filp->f_mode = (filp->f_mode | FMODE_READ) & ~FMODE_WRITE;
+ 	}
  }
+diff -puN include/linux/file.h~r-o-bind-mounts-create-helper-to-drop-file-write-access include/linux/file.h
+--- a/include/linux/file.h~r-o-bind-mounts-create-helper-to-drop-file-write-access
++++ a/include/linux/file.h
+@@ -61,6 +61,7 @@ extern struct kmem_cache *filp_cachep;
  
-+extern int mnt_want_write(struct vfsmount *mnt);
-+extern void mnt_drop_write(struct vfsmount *mnt);
- extern void mntput_no_expire(struct vfsmount *mnt);
- extern void mnt_pin(struct vfsmount *mnt);
- extern void mnt_unpin(struct vfsmount *mnt);
-+extern int __mnt_is_readonly(struct vfsmount *mnt);
+ extern void __fput(struct file *);
+ extern void fput(struct file *);
++extern void drop_file_write_access(struct file *file);
  
- static inline void mntput(struct vfsmount *mnt)
- {
+ struct file_operations;
+ struct vfsmount;
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
