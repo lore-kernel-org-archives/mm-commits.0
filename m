@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:41:02 -0700
-Message-ID: <200803261841.m2QIf2lW028802@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:41:08 -0700
+Message-ID: <200803261841.m2QIf8pr028822@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37391 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758461AbYCZSlq (ORCPT
+	by vger.kernel.org with ESMTP id S1758311AbYCZSla (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 14:41:46 -0400
+	Wed, 26 Mar 2008 14:41:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@infradead.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix
+     r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix.patch
+     r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix
+Subject: r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
@@ -33,21 +33,26 @@ Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/dir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nfsd/vfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/nfs/dir.c~r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix fs/nfs/dir.c
---- a/fs/nfs/dir.c~r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix
-+++ a/fs/nfs/dir.c
-@@ -967,7 +967,7 @@ static int is_atomic_open(struct inode *
- 	if (nd->flags & LOOKUP_DIRECTORY)
- 		return 0;
- 	/* Are we trying to write to a read only partition? */
--	if (__mnt_is_readonly(nd->mnt) &&
-+	if (__mnt_is_readonly(nd->path.mnt) &&
- 	    (nd->intent.open.flags & (O_CREAT|O_TRUNC|FMODE_WRITE)))
- 		return 0;
- 	return 1;
+diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create-fix
++++ a/fs/nfsd/vfs.c
+@@ -1264,11 +1264,11 @@ nfsd_create(struct svc_rqst *rqstp, stru
+ 	case S_IFBLK:
+ 	case S_IFIFO:
+ 	case S_IFSOCK:
+-		host_err = mnt_want_write(fhp->fh_export->ex_mnt);
++		host_err = mnt_want_write(fhp->fh_export->ex_path.mnt);
+ 		if (host_err)
+ 			break;
+ 		host_err = vfs_mknod(dirp, dchild, iap->ia_mode, rdev);
+-		mnt_drop_write(fhp->fh_export->ex_mnt);
++		mnt_drop_write(fhp->fh_export->ex_path.mnt);
+ 		break;
+ 	default:
+ 	        printk("nfsd: bad file type %o in nfsd_create\n", type);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
