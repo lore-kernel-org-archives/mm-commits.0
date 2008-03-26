@@ -1,219 +1,316 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:40:50 -0700
-Message-ID: <200803261840.m2QIeooi028705@imap1.linux-foundation.org>
+Subject: - merge-open_namei-and-do_filp_open.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:40:12 -0700
+Message-ID: <200803261840.m2QIeCXI028640@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56442 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37032 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757872AbYCZSlD (ORCPT
+	by vger.kernel.org with ESMTP id S1757872AbYCZSlI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 14:41:03 -0400
+	Wed, 26 Mar 2008 14:41:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix
+     merge open_namei() and do_filp_open()
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
+     merge-open_namei-and-do_filp_open.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: merge open_namei() and do_filp_open()
+From: Dave Hansen <haveblue@us.ibm.com>
 
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Hansen <haveblue@us.ibm.com>
+open_namei() will, in the future, need to take mount write counts over its
+creation and truncation (via may_open()) operations.  It needs to keep these
+write counts until any potential filp that is created gets __fput()'d.
+
+This gets complicated in the error handling and becomes very murky as to how
+far open_namei() actually got, and whether or not that mount write count was
+taken.  That makes it a bad interface.
+
+All that the current do_filp_open() really does is allocate the nameidata on
+the stack, then call open_namei().
+
+So, this merges those two functions and moves filp_open() over to namei.c so
+it can be close to its buddy: do_filp_open().  It also gets a kerneldoc
+comment in the process.
+
+Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/vfs.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/namei.c         |  100 ++++++++++++++++++++++++-------------------
+ fs/open.c          |   19 --------
+ include/linux/fs.h |    3 -
+ 3 files changed, 59 insertions(+), 63 deletions(-)
 
-diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix
-+++ a/fs/nfsd/vfs.c
-@@ -1686,9 +1686,9 @@ nfsd_rename(struct svc_rqst *rqstp, stru
+diff -puN fs/namei.c~merge-open_namei-and-do_filp_open fs/namei.c
+--- a/fs/namei.c~merge-open_namei-and-do_filp_open
++++ a/fs/namei.c
+@@ -1725,17 +1725,13 @@ static inline int open_to_namei_flags(in
+ }
+ 
+ /*
+- *	open_namei()
+- *
+- * namei for open - this is in fact almost the whole open-routine.
+- *
+  * Note that the low bits of "flag" aren't the same as in the open
+  * system call.  See open_to_namei_flags().
+- * SMP-safe
+  */
+-int open_namei(int dfd, const char *pathname, int open_flag,
+-		int mode, struct nameidata *nd)
++struct file *do_filp_open(int dfd, const char *pathname,
++		int open_flag, int mode)
+ {
++	struct nameidata nd;
+ 	int acc_mode, error;
+ 	struct path path;
+ 	struct dentry *dir;
+@@ -1758,18 +1754,19 @@ int open_namei(int dfd, const char *path
+ 	 */
+ 	if (!(flag & O_CREAT)) {
+ 		error = path_lookup_open(dfd, pathname, lookup_flags(flag),
+-					 nd, flag);
++					 &nd, flag);
+ 		if (error)
+-			return error;
++			return ERR_PTR(error);
+ 		goto ok;
  	}
  
- 	host_err = -EXDEV;
--	if (ffhp->fh_export->ex_mnt != tfhp->fh_export->ex_mnt)
-+	if (ffhp->fh_export->ex_path.mnt != tfhp->fh_export->ex_path.mnt)
- 		goto out_dput_new;
--	host_err = mnt_want_write(ffhp->fh_export->ex_mnt);
-+	host_err = mnt_want_write(ffhp->fh_export->ex_path.mnt);
- 	if (host_err)
- 		goto out_dput_new;
+ 	/*
+ 	 * Create - we need to know the parent.
+ 	 */
+-	error = path_lookup_create(dfd,pathname,LOOKUP_PARENT,nd,flag,mode);
++	error = path_lookup_create(dfd, pathname, LOOKUP_PARENT,
++				   &nd, flag, mode);
+ 	if (error)
+-		return error;
++		return ERR_PTR(error);
  
-@@ -1699,7 +1699,7 @@ nfsd_rename(struct svc_rqst *rqstp, stru
- 			host_err = nfsd_sync_dir(fdentry);
+ 	/*
+ 	 * We have the parent and last component. First of all, check
+@@ -1777,14 +1774,14 @@ int open_namei(int dfd, const char *path
+ 	 * will not do.
+ 	 */
+ 	error = -EISDIR;
+-	if (nd->last_type != LAST_NORM || nd->last.name[nd->last.len])
++	if (nd.last_type != LAST_NORM || nd.last.name[nd.last.len])
+ 		goto exit;
+ 
+-	dir = nd->path.dentry;
+-	nd->flags &= ~LOOKUP_PARENT;
++	dir = nd.path.dentry;
++	nd.flags &= ~LOOKUP_PARENT;
+ 	mutex_lock(&dir->d_inode->i_mutex);
+-	path.dentry = lookup_hash(nd);
+-	path.mnt = nd->path.mnt;
++	path.dentry = lookup_hash(&nd);
++	path.mnt = nd.path.mnt;
+ 
+ do_last:
+ 	error = PTR_ERR(path.dentry);
+@@ -1793,18 +1790,18 @@ do_last:
+ 		goto exit;
  	}
  
--	mnt_drop_write(ffhp->fh_export->ex_mnt);
-+	mnt_drop_write(ffhp->fh_export->ex_path.mnt);
+-	if (IS_ERR(nd->intent.open.file)) {
++	if (IS_ERR(nd.intent.open.file)) {
+ 		mutex_unlock(&dir->d_inode->i_mutex);
+-		error = PTR_ERR(nd->intent.open.file);
++		error = PTR_ERR(nd.intent.open.file);
+ 		goto exit_dput;
+ 	}
  
-  out_dput_new:
- 	dput(ndentry);
+ 	/* Negative dentry, just create the file */
+ 	if (!path.dentry->d_inode) {
+-		error = __open_namei_create(nd, &path, flag, mode);
++		error = __open_namei_create(&nd, &path, flag, mode);
+ 		if (error)
+ 			goto exit;
+-		return 0;
++		return nameidata_to_filp(&nd, open_flag);
+ 	}
+ 
+ 	/*
+@@ -1829,23 +1826,23 @@ do_last:
+ 	if (path.dentry->d_inode->i_op && path.dentry->d_inode->i_op->follow_link)
+ 		goto do_link;
+ 
+-	path_to_nameidata(&path, nd);
++	path_to_nameidata(&path, &nd);
+ 	error = -EISDIR;
+ 	if (path.dentry->d_inode && S_ISDIR(path.dentry->d_inode->i_mode))
+ 		goto exit;
+ ok:
+-	error = may_open(nd, acc_mode, flag);
++	error = may_open(&nd, acc_mode, flag);
+ 	if (error)
+ 		goto exit;
+-	return 0;
++	return nameidata_to_filp(&nd, open_flag);
+ 
+ exit_dput:
+-	path_put_conditional(&path, nd);
++	path_put_conditional(&path, &nd);
+ exit:
+-	if (!IS_ERR(nd->intent.open.file))
+-		release_open_intent(nd);
+-	path_put(&nd->path);
+-	return error;
++	if (!IS_ERR(nd.intent.open.file))
++		release_open_intent(&nd);
++	path_put(&nd.path);
++	return ERR_PTR(error);
+ 
+ do_link:
+ 	error = -ELOOP;
+@@ -1861,43 +1858,60 @@ do_link:
+ 	 * stored in nd->last.name and we will have to putname() it when we
+ 	 * are done. Procfs-like symlinks just set LAST_BIND.
+ 	 */
+-	nd->flags |= LOOKUP_PARENT;
+-	error = security_inode_follow_link(path.dentry, nd);
++	nd.flags |= LOOKUP_PARENT;
++	error = security_inode_follow_link(path.dentry, &nd);
+ 	if (error)
+ 		goto exit_dput;
+-	error = __do_follow_link(&path, nd);
++	error = __do_follow_link(&path, &nd);
+ 	if (error) {
+ 		/* Does someone understand code flow here? Or it is only
+ 		 * me so stupid? Anathema to whoever designed this non-sense
+ 		 * with "intent.open".
+ 		 */
+-		release_open_intent(nd);
+-		return error;
++		release_open_intent(&nd);
++		return ERR_PTR(error);
+ 	}
+-	nd->flags &= ~LOOKUP_PARENT;
+-	if (nd->last_type == LAST_BIND)
++	nd.flags &= ~LOOKUP_PARENT;
++	if (nd.last_type == LAST_BIND)
+ 		goto ok;
+ 	error = -EISDIR;
+-	if (nd->last_type != LAST_NORM)
++	if (nd.last_type != LAST_NORM)
+ 		goto exit;
+-	if (nd->last.name[nd->last.len]) {
+-		__putname(nd->last.name);
++	if (nd.last.name[nd.last.len]) {
++		__putname(nd.last.name);
+ 		goto exit;
+ 	}
+ 	error = -ELOOP;
+ 	if (count++==32) {
+-		__putname(nd->last.name);
++		__putname(nd.last.name);
+ 		goto exit;
+ 	}
+-	dir = nd->path.dentry;
++	dir = nd.path.dentry;
+ 	mutex_lock(&dir->d_inode->i_mutex);
+-	path.dentry = lookup_hash(nd);
+-	path.mnt = nd->path.mnt;
+-	__putname(nd->last.name);
++	path.dentry = lookup_hash(&nd);
++	path.mnt = nd.path.mnt;
++	__putname(nd.last.name);
+ 	goto do_last;
+ }
+ 
+ /**
++ * filp_open - open file and return file pointer
++ *
++ * @filename:	path to open
++ * @flags:	open flags as per the open(2) second argument
++ * @mode:	mode for the new file if O_CREAT is set, else ignored
++ *
++ * This is the helper to open a file from kernelspace if you really
++ * have to.  But in generally you should not do this, so please move
++ * along, nothing to see here..
++ */
++struct file *filp_open(const char *filename, int flags, int mode)
++{
++	return do_filp_open(AT_FDCWD, filename, flags, mode);
++}
++EXPORT_SYMBOL(filp_open);
++
++/**
+  * lookup_create - lookup a dentry, creating it if it doesn't exist
+  * @nd: nameidata info
+  * @is_dir: directory flag
+diff -puN fs/open.c~merge-open_namei-and-do_filp_open fs/open.c
+--- a/fs/open.c~merge-open_namei-and-do_filp_open
++++ a/fs/open.c
+@@ -796,25 +796,6 @@ cleanup_file:
+ 	return ERR_PTR(error);
+ }
+ 
+-static struct file *do_filp_open(int dfd, const char *filename, int flags,
+-				 int mode)
+-{
+-	int error;
+-	struct nameidata nd;
+-
+-	error = open_namei(dfd, filename, flags, mode, &nd);
+-	if (!error)
+-		return nameidata_to_filp(&nd, flags);
+-
+-	return ERR_PTR(error);
+-}
+-
+-struct file *filp_open(const char *filename, int flags, int mode)
+-{
+-	return do_filp_open(AT_FDCWD, filename, flags, mode);
+-}
+-EXPORT_SYMBOL(filp_open);
+-
+ /**
+  * lookup_instantiate_filp - instantiates the open intent filp
+  * @nd: pointer to nameidata
+diff -puN include/linux/fs.h~merge-open_namei-and-do_filp_open include/linux/fs.h
+--- a/include/linux/fs.h~merge-open_namei-and-do_filp_open
++++ a/include/linux/fs.h
+@@ -1734,7 +1734,8 @@ extern struct file *create_read_pipe(str
+ extern struct file *create_write_pipe(void);
+ extern void free_write_pipe(struct file *);
+ 
+-extern int open_namei(int dfd, const char *, int, int, struct nameidata *);
++extern struct file *do_filp_open(int dfd, const char *pathname,
++		int open_flag, int mode);
+ extern int may_open(struct nameidata *, int, int);
+ 
+ extern int kernel_read(struct file *, unsigned long, char *, unsigned long);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
-git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
-x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
-net-9p-trans_fdc-p9_trans_fd_init-module_init-functions-should-return-0-on-success.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-pm-remove-destroy_suspended_device-checkpatch-fixes.patch
-git-drm.patch
-git-drm-git-rejects.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-git-net.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
-drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-scsi-add-iscsi-ibft-support-fix.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
 git-vfs.patch
-git-watchdog.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages.patch
+mm-make-mem_map-allocation-continuous.patch
+vfs-create-proc-pid-mountinfo.patch
+vfs-mountinfo-mm-fix.patch
+vfs-pnode-cleanup.patch
+vfs-mountinfo-stable-peer-group-id.patch
+vfs-mountinfo-show-dominating-group-id.patch
+vfs-optimization-to-proc-pid-mountinfo-patch.patch
+vfs-mountinfo-only-show-mounts-under-tasks-root.patch
+kprobes-prevent-probing-of-preempt_schedule.patch
 kprobes-prevent-probing-of-preempt_schedule-fix.patch
 kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-fbdev-driver-for-freescale-8610-and-5121-diu-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
 reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-w1-build-fix.patch
 
