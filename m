@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-mountinfo-show-dominating-group-id.patch added to -mm tree
-Date: Wed, 26 Mar 2008 15:04:47 -0700
-Message-ID: <200803262204.m2QM4l8B004234@imap1.linux-foundation.org>
+Subject: + vfs-mountinfo-add-mount-id.patch added to -mm tree
+Date: Wed, 26 Mar 2008 15:04:39 -0700
+Message-ID: <200803262204.m2QM4d9B004222@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55169 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45467 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755448AbYCZWFG (ORCPT
+	by vger.kernel.org with ESMTP id S1761639AbYCZWEx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 18:05:06 -0400
+	Wed, 26 Mar 2008 18:04:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mszeredi@suse.cz, hch@lst.de, linuxram@us.ibm.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: mountinfo: show dominating group id
+     vfs: mountinfo: add mount ID
 has been added to the -mm tree.  Its filename is
-     vfs-mountinfo-show-dominating-group-id.patch
+     vfs-mountinfo-add-mount-id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: mountinfo: show dominating group id
+Subject: vfs: mountinfo: add mount ID
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Show peer group ID of nearest dominating group that has intersection with the
-mount's namespace.
+Add a unique ID to each vfsmount using the IDR infrastructure.  The
+identifiers are reused after the vfsmount is freed.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -47,113 +47,90 @@ Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    6 +++
- fs/namespace.c                     |    9 ++++-
- fs/pnode.c                         |   45 +++++++++++++++++++++++++++
- fs/pnode.h                         |    1 
- 4 files changed, 59 insertions(+), 2 deletions(-)
+ fs/namespace.c        |   34 ++++++++++++++++++++++++++++++++++
+ include/linux/mount.h |    1 +
+ 2 files changed, 35 insertions(+)
 
-diff -puN Documentation/filesystems/proc.txt~vfs-mountinfo-show-dominating-group-id Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~vfs-mountinfo-show-dominating-group-id
-+++ a/Documentation/filesystems/proc.txt
-@@ -2375,8 +2375,14 @@ possible optional fields are:
- 
- shared:X  mount is shared in peer group X
- master:X  mount is slave to peer group X
-+propagate_from:X  mount is slave and receives propagation from peer group X (*)
- unbindable  mount is unbindable
- 
-+(*) X is the closest dominant peer group under the process's root.  If
-+X is the immediate master of the mount, or if there's no dominant peer
-+group under the same root, then only the "master:X" field is present
-+and not the "propagate_from:X" field.
-+
- For more information on mount propagation see:
- 
-   Documentation/filesystems/sharedsubtree.txt
-diff -puN fs/namespace.c~vfs-mountinfo-show-dominating-group-id fs/namespace.c
---- a/fs/namespace.c~vfs-mountinfo-show-dominating-group-id
+diff -puN fs/namespace.c~vfs-mountinfo-add-mount-id fs/namespace.c
+--- a/fs/namespace.c~vfs-mountinfo-add-mount-id
 +++ a/fs/namespace.c
-@@ -861,8 +861,13 @@ static int show_mountinfo(struct seq_fil
- 	/* Tagged fields ("foo:X" or "bar") */
- 	if (IS_MNT_SHARED(mnt))
- 		seq_printf(m, " shared:%i", mnt->mnt_group_id);
--	if (IS_MNT_SLAVE(mnt))
--		seq_printf(m, " master:%i", mnt->mnt_master->mnt_group_id);
-+	if (IS_MNT_SLAVE(mnt)) {
-+		int master = mnt->mnt_master->mnt_group_id;
-+		int dominator = get_dominator_id_same_root(mnt, &p->root);
-+		seq_printf(m, " master:%i", master);
-+		if (dominator && dominator != master)
-+			seq_printf(m, " propagate_from:%i", dominator);
-+	}
- 	if (IS_MNT_UNBINDABLE(mnt))
- 		seq_puts(m, " unbindable");
+@@ -27,6 +27,7 @@
+ #include <linux/mount.h>
+ #include <linux/ramfs.h>
+ #include <linux/log2.h>
++#include <linux/idr.h>
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
+ #include "pnode.h"
+@@ -39,6 +40,7 @@
+ __cacheline_aligned_in_smp DEFINE_SPINLOCK(vfsmount_lock);
  
-diff -puN fs/pnode.c~vfs-mountinfo-show-dominating-group-id fs/pnode.c
---- a/fs/pnode.c~vfs-mountinfo-show-dominating-group-id
-+++ a/fs/pnode.c
-@@ -28,6 +28,51 @@ static inline struct vfsmount *next_slav
- 	return list_entry(p->mnt_slave.next, struct vfsmount, mnt_slave);
+ static int event;
++static DEFINE_IDA(mnt_id_ida);
+ 
+ static struct list_head *mount_hashtable __read_mostly;
+ static struct kmem_cache *mnt_cache __read_mostly;
+@@ -58,10 +60,41 @@ static inline unsigned long hash(struct 
+ 
+ #define MNT_WRITER_UNDERFLOW_LIMIT -(1<<16)
+ 
++static int mnt_alloc_id(struct vfsmount *mnt)
++{
++	int res;
++
++ retry:
++	spin_lock(&vfsmount_lock);
++	res = ida_get_new(&mnt_id_ida, &mnt->mnt_id);
++	spin_unlock(&vfsmount_lock);
++	if (res == -EAGAIN) {
++		if (ida_pre_get(&mnt_id_ida, GFP_KERNEL))
++			goto retry;
++		res = -ENOMEM;
++	}
++	return res;
++}
++
++static void mnt_free_id(struct vfsmount *mnt)
++{
++	spin_lock(&vfsmount_lock);
++	ida_remove(&mnt_id_ida, mnt->mnt_id);
++	spin_unlock(&vfsmount_lock);
++}
++
+ struct vfsmount *alloc_vfsmnt(const char *name)
+ {
+ 	struct vfsmount *mnt = kmem_cache_zalloc(mnt_cache, GFP_KERNEL);
+ 	if (mnt) {
++		int err;
++
++		err = mnt_alloc_id(mnt);
++		if (err) {
++			kmem_cache_free(mnt_cache, mnt);
++			return NULL;
++		}
++
+ 		atomic_set(&mnt->mnt_count, 1);
+ 		INIT_LIST_HEAD(&mnt->mnt_hash);
+ 		INIT_LIST_HEAD(&mnt->mnt_child);
+@@ -353,6 +386,7 @@ EXPORT_SYMBOL(simple_set_mnt);
+ void free_vfsmnt(struct vfsmount *mnt)
+ {
+ 	kfree(mnt->mnt_devname);
++	mnt_free_id(mnt);
+ 	kmem_cache_free(mnt_cache, mnt);
  }
  
-+/*
-+ * Return true if path is reachable from root
-+ *
-+ * Caller must hold vfsmount_lock
-+ */
-+static bool is_path_reachable(struct vfsmount *mnt, struct dentry *dentry,
-+			 const struct path *root)
-+{
-+	while (mnt != root->mnt && mnt->mnt_parent != mnt) {
-+		dentry = mnt->mnt_mountpoint;
-+		mnt = mnt->mnt_parent;
-+	}
-+	return mnt == root->mnt && is_subdir(dentry, root->dentry);
-+}
-+
-+static struct vfsmount *get_peer_under_root(struct vfsmount *mnt,
-+					    struct mnt_namespace *ns,
-+					    const struct path *root)
-+{
-+	struct vfsmount *m = mnt;
-+
-+	do {
-+		/* Check the namespace first for optimization */
-+		if (m->mnt_ns == ns && is_path_reachable(m, m->mnt_root, root))
-+			return m;
-+
-+		m = next_peer(m);
-+	} while (m != mnt);
-+
-+	return NULL;
-+}
-+
-+int get_dominator_id_same_root(struct vfsmount *mnt, const struct path *root)
-+{
-+	struct vfsmount *m;
-+
-+	for (m = mnt->mnt_master; m != NULL; m = m->mnt_master) {
-+		struct vfsmount *d = get_peer_under_root(m, mnt->mnt_ns, root);
-+		if (d)
-+			return d->mnt_group_id;
-+	}
-+
-+	return 0;
-+}
-+
- static int do_make_slave(struct vfsmount *mnt)
- {
- 	struct vfsmount *peer_mnt = mnt, *master = mnt->mnt_master;
-diff -puN fs/pnode.h~vfs-mountinfo-show-dominating-group-id fs/pnode.h
---- a/fs/pnode.h~vfs-mountinfo-show-dominating-group-id
-+++ a/fs/pnode.h
-@@ -36,4 +36,5 @@ int propagate_mnt(struct vfsmount *, str
- int propagate_umount(struct list_head *);
- int propagate_mount_busy(struct vfsmount *, int);
- void mnt_release_group_id(struct vfsmount *);
-+int get_dominator_id_same_root(struct vfsmount *mnt, const struct path *root);
- #endif /* _LINUX_PNODE_H */
+diff -puN include/linux/mount.h~vfs-mountinfo-add-mount-id include/linux/mount.h
+--- a/include/linux/mount.h~vfs-mountinfo-add-mount-id
++++ a/include/linux/mount.h
+@@ -56,6 +56,7 @@ struct vfsmount {
+ 	struct list_head mnt_slave;	/* slave list entry */
+ 	struct vfsmount *mnt_master;	/* slave is on master->mnt_slave_list */
+ 	struct mnt_namespace *mnt_ns;	/* containing namespace */
++	int mnt_id;			/* mount identifier */
+ 	/*
+ 	 * We put mnt_count & mnt_expiry_mark at the end of struct vfsmount
+ 	 * to let these frequently modified fields in a separate cache line
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
