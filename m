@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:40:24 -0700
-Message-ID: <200803261840.m2QIeOv8028661@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:40:50 -0700
+Message-ID: <200803261840.m2QIeooi028705@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52761 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758213AbYCZSkq (ORCPT
+	by vger.kernel.org with ESMTP id S1757872AbYCZSlD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 14:40:46 -0400
+	Wed, 26 Mar 2008 14:41:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix
+     r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix.patch
+     r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix
+Subject: r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
@@ -33,26 +33,33 @@ Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4recover.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/nfsd/vfs.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix fs/nfsd/nfs4recover.c
---- a/fs/nfsd/nfs4recover.c~r-o-bind-mounts-elevate-write-count-for-callers-of-vfs_mkdir-fix
-+++ a/fs/nfsd/nfs4recover.c
-@@ -155,11 +155,11 @@ nfsd4_create_clid_dir(struct nfs4_client
- 		dprintk("NFSD: nfsd4_create_clid_dir: DIRECTORY EXISTS\n");
- 		goto out_put;
+diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~r-o-bind-mounts-get-write-access-for-vfs_rename-callers-fix
++++ a/fs/nfsd/vfs.c
+@@ -1686,9 +1686,9 @@ nfsd_rename(struct svc_rqst *rqstp, stru
  	}
--	status = mnt_want_write(rec_dir.mnt);
-+	status = mnt_want_write(rec_dir.path.mnt);
- 	if (status)
- 		goto out_put;
- 	status = vfs_mkdir(rec_dir.path.dentry->d_inode, dentry, S_IRWXU);
--	mnt_drop_write(rec_dir.mnt);
-+	mnt_drop_write(rec_dir.path.mnt);
- out_put:
- 	dput(dentry);
- out_unlock:
+ 
+ 	host_err = -EXDEV;
+-	if (ffhp->fh_export->ex_mnt != tfhp->fh_export->ex_mnt)
++	if (ffhp->fh_export->ex_path.mnt != tfhp->fh_export->ex_path.mnt)
+ 		goto out_dput_new;
+-	host_err = mnt_want_write(ffhp->fh_export->ex_mnt);
++	host_err = mnt_want_write(ffhp->fh_export->ex_path.mnt);
+ 	if (host_err)
+ 		goto out_dput_new;
+ 
+@@ -1699,7 +1699,7 @@ nfsd_rename(struct svc_rqst *rqstp, stru
+ 			host_err = nfsd_sync_dir(fdentry);
+ 	}
+ 
+-	mnt_drop_write(ffhp->fh_export->ex_mnt);
++	mnt_drop_write(ffhp->fh_export->ex_path.mnt);
+ 
+  out_dput_new:
+ 	dput(ndentry);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
