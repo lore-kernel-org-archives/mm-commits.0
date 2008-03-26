@@ -1,75 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-fix-medion-_prt-quirk-use-isa_-not-isa.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:39:58 -0700
-Message-ID: <200803261839.m2QIdwcb028598@imap1.linux-foundation.org>
+Subject: - check-for-null-vfsmount-in-dentry_open.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:40:05 -0700
+Message-ID: <200803261840.m2QIe5x1028631@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48636 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52756 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761399AbYCZSkc (ORCPT
+	by vger.kernel.org with ESMTP id S1760603AbYCZSkl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 14:40:32 -0400
+	Wed, 26 Mar 2008 14:40:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, johann-nikolaus.andreae@nacs.de, lenb@kernel.org, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ACPI: fix Medion _PRT quirk (use "ISA_", not "ISA")
+     check for null vfsmount in dentry_open()
 has been removed from the -mm tree.  Its filename was
-     acpi-fix-medion-_prt-quirk-use-isa_-not-isa.patch
+     check-for-null-vfsmount-in-dentry_open.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ACPI: fix Medion _PRT quirk (use "ISA_", not "ISA")
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: check for null vfsmount in dentry_open()
+From: Dave Hansen <haveblue@us.ibm.com>
 
-This fixes the builtin RTL8139 NIC on the Medion MD9580-F laptop.  The BIOS
-reports the interrupt routing incorrectly.  I recently added a quirk to work
-around this, and this patch fixes a typo in the quirk.
+Make sure no-one calls dentry_open with a NULL vfsmount argument and crap out
+with a stacktrace otherwise.  A NULL file->f_vfsmnt has always been
+problematic, but with the per-mount r/o tracking we can't accept anymore at
+all.
 
-We pad every ACPI pathname component to four characters, so ".ISA." will never
-match anything.  We need ".ISA_." instead.
-
-Thank you Johann-Nikolaus Andreae for patiently testing this patch.
-
-See http://bugzilla.kernel.org/show_bug.cgi?id=4773
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Johann-Nikolaus Andreae <johann-nikolaus.andreae@nacs.de>
-Cc: Len Brown <lenb@kernel.org>
+Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/pci_irq.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/open.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN drivers/acpi/pci_irq.c~acpi-fix-medion-_prt-quirk-use-isa_-not-isa drivers/acpi/pci_irq.c
---- a/drivers/acpi/pci_irq.c~acpi-fix-medion-_prt-quirk-use-isa_-not-isa
-+++ a/drivers/acpi/pci_irq.c
-@@ -131,8 +131,8 @@ struct prt_quirk {
-  */
- static struct prt_quirk prt_quirks[] = {
- 	{ medion_md9580, 0, 0, 9, 'A',
--		"\\_SB_.PCI0.ISA.LNKA",
--		"\\_SB_.PCI0.ISA.LNKB"},
-+		"\\_SB_.PCI0.ISA_.LNKA",
-+		"\\_SB_.PCI0.ISA_.LNKB"},
- 	{ dell_optiplex, 0, 0, 0xd, 'A',
- 		"\\_SB_.LNKB",
- 		"\\_SB_.LNKA"},
+diff -puN fs/open.c~check-for-null-vfsmount-in-dentry_open fs/open.c
+--- a/fs/open.c~check-for-null-vfsmount-in-dentry_open
++++ a/fs/open.c
+@@ -903,6 +903,18 @@ struct file *dentry_open(struct dentry *
+ 	int error;
+ 	struct file *f;
+ 
++	/*
++	 * We must always pass in a valid mount pointer.   Historically
++	 * callers got away with not passing it, but we must enforce this at
++	 * the earliest possible point now to avoid strange problems deep in the
++	 * filesystem stack.
++	 */
++	if (!mnt) {
++		printk(KERN_WARNING "%s called with NULL vfsmount\n", __func__);
++		dump_stack();
++		return ERR_PTR(-EINVAL);
++	}
++
+ 	error = -ENFILE;
+ 	f = get_empty_filp();
+ 	if (f == NULL) {
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from haveblue@us.ibm.com are
 
-git-acpi.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-simplify-initcall_debug-output.patch
-pnp-skip-dev-protocol-null-checks.patch
-pnp-simplify-quirk-debug-output.patch
-pnp-use-dev_printk-for-quirk-messages.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
+git-vfs.patch
+hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages.patch
+mm-make-mem_map-allocation-continuous.patch
+vfs-create-proc-pid-mountinfo.patch
+vfs-mountinfo-mm-fix.patch
+vfs-pnode-cleanup.patch
+vfs-mountinfo-stable-peer-group-id.patch
+vfs-mountinfo-show-dominating-group-id.patch
+vfs-optimization-to-proc-pid-mountinfo-patch.patch
+vfs-mountinfo-only-show-mounts-under-tasks-root.patch
+kprobes-prevent-probing-of-preempt_schedule.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
 
