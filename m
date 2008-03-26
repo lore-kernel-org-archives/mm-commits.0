@@ -1,83 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - arch-powerpc-platforms-iseries-pcic-use-time_-macros.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:39:48 -0700
-Message-ID: <200803261839.m2QIdmjO028566@imap1.linux-foundation.org>
+Subject: - qla3xxx-convert-byte-order-of-constant-instead-of-variable.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:39:53 -0700
+Message-ID: <200803261839.m2QIdrI9028572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46122 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58573 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758571AbYCZSkO (ORCPT
+	by vger.kernel.org with ESMTP id S1755035AbYCZSj4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 14:40:14 -0400
+	Wed, 26 Mar 2008 14:39:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: caglar@pardus.org.tr, benh@kernel.crashing.org, paulus@samba.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, ron.mercer@qlogic.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/powerpc/platforms/iseries/pci.c: use time_* macros
+     qla3xxx: convert byte order of constant instead of variable
 has been removed from the -mm tree.  Its filename was
-     arch-powerpc-platforms-iseries-pcic-use-time_-macros.patch
+     qla3xxx-convert-byte-order-of-constant-instead-of-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/powerpc/platforms/iseries/pci.c: use time_* macros
-From: S.Caglar Onur <caglar@pardus.org.tr>
+Subject: qla3xxx: convert byte order of constant instead of variable
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-The functions time_before, time_before_eq, time_after, and time_after_eq are
-more robust for comparing jiffies against other values.
+Convert byte order of constant instead of variable which can be done at
+compile time (vs run time)
 
-So use the time_after() macro, defined in linux/jiffies.h, which deals with
-wrapping correctly.
-
-Signed-off-by: S.Caglar Onur <caglar@pardus.org.tr>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Acked-by: Ron Mercer <ron.mercer@qlogic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/iseries/pci.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/qla3xxx.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/platforms/iseries/pci.c~arch-powerpc-platforms-iseries-pcic-use-time_-macros arch/powerpc/platforms/iseries/pci.c
---- a/arch/powerpc/platforms/iseries/pci.c~arch-powerpc-platforms-iseries-pcic-use-time_-macros
-+++ a/arch/powerpc/platforms/iseries/pci.c
-@@ -23,6 +23,7 @@
+diff -puN drivers/net/qla3xxx.c~qla3xxx-convert-byte-order-of-constant-instead-of-variable drivers/net/qla3xxx.c
+--- a/drivers/net/qla3xxx.c~qla3xxx-convert-byte-order-of-constant-instead-of-variable
++++ a/drivers/net/qla3xxx.c
+@@ -2472,8 +2472,7 @@ static int ql_send_map(struct ql3_adapte
  
- #undef DEBUG
- 
-+#include <linux/jiffies.h>
- #include <linux/kernel.h>
- #include <linux/list.h>
- #include <linux/string.h>
-@@ -586,7 +587,7 @@ static inline struct device_node *xlate_
- 		static unsigned long last_jiffies;
- 		static int num_printed;
- 
--		if ((jiffies - last_jiffies) > 60 * HZ) {
-+		if (time_after(jiffies, last_jiffies + 60 * HZ)) {
- 			last_jiffies = jiffies;
- 			num_printed = 0;
+ 	if (seg_cnt == 1) {
+ 		/* Terminate the last segment. */
+-		oal_entry->len =
+-		    cpu_to_le32(le32_to_cpu(oal_entry->len) | OAL_LAST_ENTRY);
++		oal_entry->len |= cpu_to_le32(OAL_LAST_ENTRY);
+ 	} else {
+ 		oal = tx_cb->oal;
+ 		for (completed_segs=0; completed_segs<frag_cnt; completed_segs++,seg++) {
+@@ -2530,8 +2529,7 @@ static int ql_send_map(struct ql3_adapte
+ 					  frag->size);
  		}
+ 		/* Terminate the last segment. */
+-		oal_entry->len =
+-		    cpu_to_le32(le32_to_cpu(oal_entry->len) | OAL_LAST_ENTRY);
++		oal_entry->len |= cpu_to_le32(OAL_LAST_ENTRY);
+ 	}
+ 
+ 	return NETDEV_TX_OK;
 _
 
-Patches currently in -mm which might be from caglar@pardus.org.tr are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
-git-powerpc.patch
-arch-ia64-kernel-use-time_-macros.patch
-arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-ieee1394.patch
+git-jfs.patch
+git-udf.patch
 git-net.patch
-drivers-net-arcnet-arcnetc-use-time_-macros.patch
-drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
-drivers-net-tokenring-3c359c-use-time_-macros.patch
-drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
-fix-indentation.patch
-arch-alpha-kernel-trapsc-use-time_-macros.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-fs-binfmt_aoutc-use-printk_ratelimit.patch
+ntfs-le_add_cpu-conversion.patch
+git-sched.patch
+scsi-le_add_cpu-conversion.patch
+git-cryptodev.patch
+ext2-le_add_cpu-conversion.patch
+ext2-convert-byte-order-of-constant-instead-of-variable.patch
+ext3-convert-byte-order-of-constant-instead-of-variable.patch
+ufs-e_add_cpu-conversion.patch
+ufs-remove-unused-fs64_add-and-fs64_sub.patch
+reiserfs-le_add_cpu-conversion.patch
+affs-be_add_cpu-conversion.patch
+hfs-hfsplus-be_add_cpu-conversion.patch
+quota-le_add_cpu-conversion.patch
+sysv-e_add_cpu-conversion.patch
 
