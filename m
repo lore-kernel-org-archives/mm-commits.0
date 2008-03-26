@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-mountinfo-add-mount-peer-group-id.patch added to -mm tree
-Date: Wed, 26 Mar 2008 15:04:41 -0700
-Message-ID: <200803262204.m2QM4ftV004225@imap1.linux-foundation.org>
+Subject: + vfs-mountinfo-add-dentry_path.patch added to -mm tree
+Date: Wed, 26 Mar 2008 15:04:35 -0700
+Message-ID: <200803262204.m2QM4ZN8004214@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33435 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33389 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758866AbYCZWE7 (ORCPT
+	by vger.kernel.org with ESMTP id S1761663AbYCZWEz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 18:04:59 -0400
+	Wed, 26 Mar 2008 18:04:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, hch@lst.de, linuxram@us.ibm.com, viro@zeniv.linux.org.uk
+Cc: linuxram@us.ibm.com, hch@lst.de, mszeredi@suse.cz, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     vfs: mountinfo: add mount peer group ID
+     vfs: mountinfo: add dentry_path()
 has been added to the -mm tree.  Its filename is
-     vfs-mountinfo-add-mount-peer-group-id.patch
+     vfs-mountinfo-add-dentry_path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,273 +34,299 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: mountinfo: add mount peer group ID
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: vfs: mountinfo: add dentry_path()
+From: Ram Pai <linuxram@us.ibm.com>
 
-Add a unique ID to each peer group using the IDR infrastructure.  The
-identifiers are reused after the peer group dissolves.
+Add the following functions:
 
-The IDR structures are protected by holding namepspace_sem for write while
-allocating or deallocating ID's.
+  dentry_path()
+  seq_dentry()
 
-ID's are allocated when a previously unshared vfsmount becomes the first
-member of a peer group.  When a new member is added to an existing group, the
-ID is copied from one of the old members.
+These are similar to d_path() and seq_path().  But instead of calculating the
+path within a mount namespace, they calculate the path from the root of the
+filesystem to a given dentry, ignoring mounts completely.
 
-ID's are freed when the last member of a peer group is unshared.
-
-Setting the MNT_SHARED flag on members of a subtree is done as a separate
-step, after all the ID's have been allocated.  This way an allocation failure
-can be cleaned up easilty, without affecting the propagation state.
-
-Based on design sketch by Al Viro.
-
+[mszeredi@suse.cz: split big patch into managable chunks]
+Signed-off-by: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c        |  100 ++++++++++++++++++++++++++++++++++++++--
- fs/pnode.c            |   11 ++--
- fs/pnode.h            |    1 
- include/linux/mount.h |    1 
- 4 files changed, 106 insertions(+), 7 deletions(-)
+ fs/dcache.c              |   88 +++++++++++++++++++++++++++----------
+ fs/seq_file.c            |   65 ++++++++++++++++++++-------
+ include/linux/dcache.h   |    1 
+ include/linux/seq_file.h |    2 
+ 4 files changed, 117 insertions(+), 39 deletions(-)
 
-diff -puN fs/namespace.c~vfs-mountinfo-add-mount-peer-group-id fs/namespace.c
---- a/fs/namespace.c~vfs-mountinfo-add-mount-peer-group-id
-+++ a/fs/namespace.c
-@@ -41,6 +41,7 @@ __cacheline_aligned_in_smp DEFINE_SPINLO
- 
- static int event;
- static DEFINE_IDA(mnt_id_ida);
-+static DEFINE_IDA(mnt_group_ida);
- 
- static struct list_head *mount_hashtable __read_mostly;
- static struct kmem_cache *mnt_cache __read_mostly;
-@@ -83,6 +84,35 @@ static void mnt_free_id(struct vfsmount 
- 	spin_unlock(&vfsmount_lock);
+diff -puN fs/dcache.c~vfs-mountinfo-add-dentry_path fs/dcache.c
+--- a/fs/dcache.c~vfs-mountinfo-add-dentry_path
++++ a/fs/dcache.c
+@@ -1746,6 +1746,17 @@ shouldnt_be_hashed:
+ 	goto shouldnt_be_hashed;
  }
  
-+/*
-+ * Allocate a new peer group ID
-+ *
-+ * mnt_group_ida is protected by namespace_sem
-+ */
-+static int mnt_alloc_group_id(struct vfsmount *mnt)
++static int prepend(char **buffer, int *buflen, const char *str,
++			  int namelen)
 +{
-+	int res;
-+
-+	WARN_ON(mnt->mnt_group_id != 0);
-+ retry:
-+	res = ida_get_new_above(&mnt_group_ida, 1, &mnt->mnt_group_id);
-+	if (res == -EAGAIN) {
-+		if (ida_pre_get(&mnt_group_ida, GFP_KERNEL))
-+			goto retry;
-+		res = -ENOMEM;
-+	}
-+	return res;
-+}
-+
-+/*
-+ * Release a peer group ID
-+ */
-+void mnt_release_group_id(struct vfsmount *mnt)
-+{
-+	ida_remove(&mnt_group_ida, mnt->mnt_group_id);
-+	mnt->mnt_group_id = 0;
-+}
-+
- struct vfsmount *alloc_vfsmnt(const char *name)
- {
- 	struct vfsmount *mnt = kmem_cache_zalloc(mnt_cache, GFP_KERNEL);
-@@ -533,6 +563,17 @@ static struct vfsmount *clone_mnt(struct
- 	struct vfsmount *mnt = alloc_vfsmnt(old->mnt_devname);
- 
- 	if (mnt) {
-+		if (flag & (CL_SLAVE | CL_PRIVATE))
-+			mnt->mnt_group_id = 0; /* not a peer of original */
-+		else
-+			mnt->mnt_group_id = old->mnt_group_id;
-+
-+		if ((flag & CL_MAKE_SHARED) && !mnt->mnt_group_id) {
-+			int err = mnt_alloc_group_id(mnt);
-+			if (err)
-+				goto out_free;
-+		}
-+
- 		mnt->mnt_flags = old->mnt_flags;
- 		atomic_inc(&sb->s_active);
- 		mnt->mnt_sb = sb;
-@@ -562,6 +603,10 @@ static struct vfsmount *clone_mnt(struct
- 		}
- 	}
- 	return mnt;
-+
-+ out_free:
-+	free_vfsmnt(mnt);
-+	return NULL;
- }
- 
- static inline void __mntput(struct vfsmount *mnt)
-@@ -1142,6 +1187,33 @@ void drop_collected_mounts(struct vfsmou
- 	release_mounts(&umount_list);
- }
- 
-+static void cleanup_group_ids(struct vfsmount *mnt, struct vfsmount *end)
-+{
-+	struct vfsmount *p;
-+
-+	for (p = mnt; p != end; p = next_mnt(p, mnt)) {
-+		if (list_empty(&p->mnt_share) && !IS_MNT_SHARED(p))
-+			mnt_release_group_id(p);
-+	}
-+}
-+
-+static int invent_group_ids(struct vfsmount *mnt, bool recurse)
-+{
-+	struct vfsmount *p;
-+
-+	for (p = mnt; p; p = recurse ? next_mnt(p, mnt) : NULL) {
-+		if (list_empty(&p->mnt_share) && !IS_MNT_SHARED(p)) {
-+			int err = mnt_alloc_group_id(p);
-+			if (err) {
-+				cleanup_group_ids(mnt, p);
-+				return err;
-+			}
-+		}
-+	}
-+
++	*buflen -= namelen;
++	if (*buflen < 0)
++		return -ENAMETOOLONG;
++	*buffer -= namelen;
++	memcpy(*buffer, str, namelen);
 +	return 0;
 +}
 +
+ /**
+  * d_path - return the path of a dentry
+  * @dentry: dentry to report
+@@ -1767,17 +1778,11 @@ static char *__d_path(struct dentry *den
+ {
+ 	char * end = buffer+buflen;
+ 	char * retval;
+-	int namelen;
+ 
+-	*--end = '\0';
+-	buflen--;
+-	if (!IS_ROOT(dentry) && d_unhashed(dentry)) {
+-		buflen -= 10;
+-		end -= 10;
+-		if (buflen < 0)
++	prepend(&end, &buflen, "\0", 1);
++	if (!IS_ROOT(dentry) && d_unhashed(dentry) &&
++		(prepend(&end, &buflen, " (deleted)", 10) != 0))
+ 			goto Elong;
+-		memcpy(end, " (deleted)", 10);
+-	}
+ 
+ 	if (buflen < 1)
+ 		goto Elong;
+@@ -1804,13 +1809,10 @@ static char *__d_path(struct dentry *den
+ 		}
+ 		parent = dentry->d_parent;
+ 		prefetch(parent);
+-		namelen = dentry->d_name.len;
+-		buflen -= namelen + 1;
+-		if (buflen < 0)
++		if ((prepend(&end, &buflen, dentry->d_name.name,
++				dentry->d_name.len) != 0) ||
++		    (prepend(&end, &buflen, "/", 1) != 0))
+ 			goto Elong;
+-		end -= namelen;
+-		memcpy(end, dentry->d_name.name, namelen);
+-		*--end = '/';
+ 		retval = end;
+ 		dentry = parent;
+ 	}
+@@ -1818,12 +1820,10 @@ static char *__d_path(struct dentry *den
+ 	return retval;
+ 
+ global_root:
+-	namelen = dentry->d_name.len;
+-	buflen -= namelen;
+-	if (buflen < 0)
++	retval += 1;	/* hit the slash */
++	if (prepend(&retval, &buflen, dentry->d_name.name,
++		    dentry->d_name.len) != 0)
+ 		goto Elong;
+-	retval -= namelen-1;	/* hit the slash */
+-	memcpy(retval, dentry->d_name.name, namelen);
+ 	return retval;
+ Elong:
+ 	return ERR_PTR(-ENAMETOOLONG);
+@@ -1859,7 +1859,7 @@ char *d_path(struct path *path, char *bu
+ 
+ 	read_lock(&current->fs->lock);
+ 	root = current->fs->root;
+-	path_get(&current->fs->root);
++	path_get(&root);
+ 	read_unlock(&current->fs->lock);
+ 	spin_lock(&dcache_lock);
+ 	res = __d_path(path->dentry, path->mnt, &root, buf, buflen);
+@@ -1890,6 +1890,48 @@ char *dynamic_dname(struct dentry *dentr
+ }
+ 
  /*
-  *  @source_mnt : mount tree to be attached
-  *  @nd         : place the mount tree @source_mnt is attached
-@@ -1212,9 +1284,16 @@ static int attach_recursive_mnt(struct v
- 	struct vfsmount *dest_mnt = path->mnt;
- 	struct dentry *dest_dentry = path->dentry;
- 	struct vfsmount *child, *p;
-+	int err;
- 
--	if (propagate_mnt(dest_mnt, dest_dentry, source_mnt, &tree_list))
--		return -EINVAL;
-+	if (IS_MNT_SHARED(dest_mnt)) {
-+		err = invent_group_ids(source_mnt, true);
-+		if (err)
-+			goto out;
++ * Write full pathname from the root of the filesystem into the buffer.
++ */
++char *dentry_path(struct dentry *dentry, char *buf, int buflen)
++{
++	char *end = buf + buflen;
++	char *retval;
++
++	spin_lock(&dcache_lock);
++	prepend(&end, &buflen, "\0", 1);
++	if (!IS_ROOT(dentry) && d_unhashed(dentry) &&
++		(prepend(&end, &buflen, "//deleted", 9) != 0))
++			goto Elong;
++	if (buflen < 1)
++		goto Elong;
++	/* Get '/' right */
++	retval = end-1;
++	*retval = '/';
++
++	for (;;) {
++		struct dentry *parent;
++		if (IS_ROOT(dentry))
++			break;
++
++		parent = dentry->d_parent;
++		prefetch(parent);
++
++		if ((prepend(&end, &buflen, dentry->d_name.name,
++				dentry->d_name.len) != 0) ||
++		    (prepend(&end, &buflen, "/", 1) != 0))
++			goto Elong;
++
++		retval = end;
++		dentry = parent;
 +	}
-+	err = propagate_mnt(dest_mnt, dest_dentry, source_mnt, &tree_list);
-+	if (err)
-+		goto out_cleanup_ids;
- 
- 	if (IS_MNT_SHARED(dest_mnt)) {
- 		for (p = source_mnt; p; p = next_mnt(p, source_mnt))
-@@ -1237,6 +1316,12 @@ static int attach_recursive_mnt(struct v
- 	}
- 	spin_unlock(&vfsmount_lock);
- 	return 0;
++	spin_unlock(&dcache_lock);
++	return retval;
++Elong:
++	spin_unlock(&dcache_lock);
++	return ERR_PTR(-ENAMETOOLONG);
++}
 +
-+ out_cleanup_ids:
-+	if (IS_MNT_SHARED(dest_mnt))
-+		cleanup_group_ids(source_mnt, NULL);
-+ out:
-+	return err;
++/*
+  * NOTE! The user-level library version returns a
+  * character pointer. The kernel system call just
+  * returns the length of the buffer filled (which
+@@ -1918,9 +1960,9 @@ asmlinkage long sys_getcwd(char __user *
+ 
+ 	read_lock(&current->fs->lock);
+ 	pwd = current->fs->pwd;
+-	path_get(&current->fs->pwd);
++	path_get(&pwd);
+ 	root = current->fs->root;
+-	path_get(&current->fs->root);
++	path_get(&root);
+ 	read_unlock(&current->fs->lock);
+ 
+ 	error = -ENOENT;
+diff -puN fs/seq_file.c~vfs-mountinfo-add-dentry_path fs/seq_file.c
+--- a/fs/seq_file.c~vfs-mountinfo-add-dentry_path
++++ a/fs/seq_file.c
+@@ -342,28 +342,40 @@ int seq_printf(struct seq_file *m, const
  }
+ EXPORT_SYMBOL(seq_printf);
  
- static int graft_tree(struct vfsmount *mnt, struct path *path)
-@@ -1277,6 +1362,7 @@ static noinline int do_change_type(struc
- 	struct vfsmount *m, *mnt = nd->path.mnt;
- 	int recurse = flag & MS_REC;
- 	int type = flag & ~MS_REC;
-+	int err = 0;
- 
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
-@@ -1285,12 +1371,20 @@ static noinline int do_change_type(struc
- 		return -EINVAL;
- 
- 	down_write(&namespace_sem);
-+	if (type == MS_SHARED) {
-+		err = invent_group_ids(mnt, recurse);
-+		if (err)
-+			goto out_unlock;
++static char *mangle_path(char *s, char *p, char *esc)
++{
++	while (s <= p) {
++		char c = *p++;
++		if (!c) {
++			return s;
++		} else if (!strchr(esc, c)) {
++			*s++ = c;
++		} else if (s + 4 > p) {
++			break;
++		} else {
++			*s++ = '\\';
++			*s++ = '0' + ((c & 0300) >> 6);
++			*s++ = '0' + ((c & 070) >> 3);
++			*s++ = '0' + (c & 07);
++		}
 +	}
++	return NULL;
++}
 +
- 	spin_lock(&vfsmount_lock);
- 	for (m = mnt; m; m = (recurse ? next_mnt(m, mnt) : NULL))
- 		change_mnt_propagation(m, type);
- 	spin_unlock(&vfsmount_lock);
-+
-+ out_unlock:
- 	up_write(&namespace_sem);
--	return 0;
-+	return err;
- }
- 
- /*
-diff -puN fs/pnode.c~vfs-mountinfo-add-mount-peer-group-id fs/pnode.c
---- a/fs/pnode.c~vfs-mountinfo-add-mount-peer-group-id
-+++ a/fs/pnode.c
-@@ -46,7 +46,11 @@ static int do_make_slave(struct vfsmount
- 		if (peer_mnt == mnt)
- 			peer_mnt = NULL;
++/*
++ * return the absolute path of 'dentry' residing in mount 'mnt'.
++ */
+ int seq_path(struct seq_file *m, struct path *path, char *esc)
+ {
+ 	if (m->count < m->size) {
+ 		char *s = m->buf + m->count;
+ 		char *p = d_path(path, s, m->size - m->count);
+ 		if (!IS_ERR(p)) {
+-			while (s <= p) {
+-				char c = *p++;
+-				if (!c) {
+-					p = m->buf + m->count;
+-					m->count = s - m->buf;
+-					return s - p;
+-				} else if (!strchr(esc, c)) {
+-					*s++ = c;
+-				} else if (s + 4 > p) {
+-					break;
+-				} else {
+-					*s++ = '\\';
+-					*s++ = '0' + ((c & 0300) >> 6);
+-					*s++ = '0' + ((c & 070) >> 3);
+-					*s++ = '0' + (c & 07);
+-				}
++			s = mangle_path(s, p, esc);
++			if (s) {
++				p = m->buf + m->count;
++				m->count = s - m->buf;
++				return s - p;
+ 			}
+ 		}
  	}
-+	if (IS_MNT_SHARED(mnt) && list_empty(&mnt->mnt_share))
-+		mnt_release_group_id(mnt);
-+
- 	list_del_init(&mnt->mnt_share);
-+	mnt->mnt_group_id = 0;
- 
- 	if (peer_mnt)
- 		master = peer_mnt;
-@@ -58,9 +62,9 @@ static int do_make_slave(struct vfsmount
- 		list_splice(&mnt->mnt_slave_list, master->mnt_slave_list.prev);
- 		INIT_LIST_HEAD(&mnt->mnt_slave_list);
- 	} else {
--		struct list_head *p = &mnt->mnt_slave_list;
--		while (!list_empty(p)) {
--                        slave_mnt = list_first_entry(p,
-+		struct list_head *slaves = &mnt->mnt_slave_list;
-+		while (!list_empty(slaves)) {
-+                        slave_mnt = list_first_entry(slaves,
- 					struct vfsmount, mnt_slave);
- 			list_del_init(&slave_mnt->mnt_slave);
- 			slave_mnt->mnt_master = NULL;
-@@ -68,7 +72,6 @@ static int do_make_slave(struct vfsmount
- 	}
- 	mnt->mnt_master = master;
- 	CLEAR_MNT_SHARED(mnt);
--	INIT_LIST_HEAD(&mnt->mnt_slave_list);
- 	return 0;
+@@ -372,6 +384,27 @@ int seq_path(struct seq_file *m, struct 
  }
+ EXPORT_SYMBOL(seq_path);
  
-diff -puN fs/pnode.h~vfs-mountinfo-add-mount-peer-group-id fs/pnode.h
---- a/fs/pnode.h~vfs-mountinfo-add-mount-peer-group-id
-+++ a/fs/pnode.h
-@@ -35,4 +35,5 @@ int propagate_mnt(struct vfsmount *, str
- 		struct list_head *);
- int propagate_umount(struct list_head *);
- int propagate_mount_busy(struct vfsmount *, int);
-+void mnt_release_group_id(struct vfsmount *);
- #endif /* _LINUX_PNODE_H */
-diff -puN include/linux/mount.h~vfs-mountinfo-add-mount-peer-group-id include/linux/mount.h
---- a/include/linux/mount.h~vfs-mountinfo-add-mount-peer-group-id
-+++ a/include/linux/mount.h
-@@ -57,6 +57,7 @@ struct vfsmount {
- 	struct vfsmount *mnt_master;	/* slave is on master->mnt_slave_list */
- 	struct mnt_namespace *mnt_ns;	/* containing namespace */
- 	int mnt_id;			/* mount identifier */
-+	int mnt_group_id;		/* peer group identifier */
- 	/*
- 	 * We put mnt_count & mnt_expiry_mark at the end of struct vfsmount
- 	 * to let these frequently modified fields in a separate cache line
++/*
++ * returns the path of the 'dentry' from the root of its filesystem.
++ */
++int seq_dentry(struct seq_file *m, struct dentry *dentry, char *esc)
++{
++	if (m->count < m->size) {
++		char *s = m->buf + m->count;
++		char *p = dentry_path(dentry, s, m->size - m->count);
++		if (!IS_ERR(p)) {
++			s = mangle_path(s, p, esc);
++			if (s) {
++				p = m->buf + m->count;
++				m->count = s - m->buf;
++				return s - p;
++			}
++		}
++	}
++	m->count = m->size;
++	return -1;
++}
++
+ static void *single_start(struct seq_file *p, loff_t *pos)
+ {
+ 	return NULL + (*pos == 0);
+diff -puN include/linux/dcache.h~vfs-mountinfo-add-dentry_path include/linux/dcache.h
+--- a/include/linux/dcache.h~vfs-mountinfo-add-dentry_path
++++ a/include/linux/dcache.h
+@@ -302,6 +302,7 @@ extern int d_validate(struct dentry *, s
+ extern char *dynamic_dname(struct dentry *, char *, int, const char *, ...);
+ 
+ extern char *d_path(struct path *, char *, int);
++extern char *dentry_path(struct dentry *, char *, int);
+ 
+ /* Allocation counts.. */
+ 
+diff -puN include/linux/seq_file.h~vfs-mountinfo-add-dentry_path include/linux/seq_file.h
+--- a/include/linux/seq_file.h~vfs-mountinfo-add-dentry_path
++++ a/include/linux/seq_file.h
+@@ -11,6 +11,7 @@ struct seq_operations;
+ struct file;
+ struct path;
+ struct inode;
++struct dentry;
+ 
+ struct seq_file {
+ 	char *buf;
+@@ -43,6 +44,7 @@ int seq_printf(struct seq_file *, const 
+ 	__attribute__ ((format (printf,2,3)));
+ 
+ int seq_path(struct seq_file *, struct path *, char *);
++int seq_dentry(struct seq_file *, struct dentry *, char *);
+ 
+ int single_open(struct file *, int (*)(struct seq_file *, void *), void *);
+ int single_release(struct inode *, struct file *);
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from linuxram@us.ibm.com are
 
-mm-rotate_reclaimable_page-cleanup.patch
 vfs-mountinfo-add-dentry_path.patch
 vfs-mountinfo-add-seq_file_root.patch
 vfs-mountinfo-add-mount-id.patch
@@ -309,29 +335,4 @@ vfs-mountinfo-allow-using-process-root.patch
 vfs-mountinfo-add-proc-pid-mountinfo.patch
 vfs-mountinfo-show-dominating-group-id.patch
 vfs-mountinfo-mm-fix.patch
-vfs-remove-lives_below_in_same_fs.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
-mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
-mm-bdi-move-statistics-to-debugfs.patch
-mm-bdi-add-separate-writeback-accounting-capability.patch
-mm-bdi-export-bdi_writeout_inc.patch
-mm-bdi-export-bdi_writeout_inc-fix.patch
-mm-add-nr_writeback_temp-counter.patch
-mm-document-missing-fields-for-proc-meminfo.patch
-fuse-support-writable-mmap.patch
-fuse-support-writable-mmap-fix.patch
-fuse-clean-up-setting-i_size-in-write.patch
-fuse-implement-perform_write.patch
-fuse-update-file-size-on-short-read.patch
 
