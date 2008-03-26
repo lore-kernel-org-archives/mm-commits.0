@@ -1,98 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 00:12:59 -0700
-Message-ID: <200803260712.m2Q7Cx2Z002740@imap1.linux-foundation.org>
+Subject: - drivers-ide-idec-replace-init_modulecleanup_module-with-module_initmodule_exit.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:24:35 -0700
+Message-ID: <200803261824.m2QIOZaJ027999@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56187 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60380 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751281AbYCZHN6 (ORCPT
+	by vger.kernel.org with ESMTP id S1761503AbYCZSYh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 03:13:58 -0400
+	Wed, 26 Mar 2008 14:24:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: suresh.b.siddha@intel.com, arjan@linux.intel.com, bug-track@fisher-privat.net, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: jkschind@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: revert to the UC- behavior for ioremap()/ioremap_nocache()
+     drivers/ide/ide.c: replace init_module&cleanup_module with module_init&module_exit
 has been removed from the -mm tree.  Its filename was
-     x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache.patch
+     drivers-ide-idec-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
 
-This patch was dropped because it didn't help
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: revert to the UC- behavior for ioremap()/ioremap_nocache()
-From: Suresh Siddha <suresh.b.siddha@intel.com>
+Subject: drivers/ide/ide.c: replace init_module&cleanup_module with module_init&module_exit
+From: Jon Schindler <jkschind@gmail.com>
 
-fb drivers are using ioremap()/ioremap_nocache(), followed by mtrr_add with WC
-attribute.  Recent changes in page attribute code made both
-ioremap()/ioremap_nocache() mappings as UC (instead of previous UC-).  This
-breaks the graphics performance, as the effective memory type is UC instead of
-expected WC.
+Replace init_module and cleanup_module with static functions and
+module_init/module_exit.
 
-The correct way to fix this is to add ioremap_wc() (which uses UC- in the
-absence of PAT kernel support and WC with PAT) and change all the fb drivers
-to use this new ioremap_wc() API.
-
-We can take this correct and longer route for post 2.6.25. For now,
-revert back to the UC- behavior for ioremap/ioremap_nocache.
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10328
-
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Alexey Fisher <bug-track@fisher-privat.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Jon Schindler <jkschind@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/ioremap.c     |    6 +++++-
- include/asm-x86/pgtable.h |    2 ++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/ide/ide.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/mm/ioremap.c~x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache arch/x86/mm/ioremap.c
---- a/arch/x86/mm/ioremap.c~x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache
-+++ a/arch/x86/mm/ioremap.c
-@@ -137,7 +137,11 @@ static void __iomem *__ioremap(resource_
- 	switch (mode) {
- 	case IOR_MODE_UNCACHED:
- 	default:
--		prot = PAGE_KERNEL_NOCACHE;
-+		/*
-+		 * FIXME: we will use UC MINUS for now, as video fb drivers
-+		 * depend on it. Upcoming ioremap_wc() will fix this behavior.
-+		 */
-+		prot = PAGE_KERNEL_UC_MINUS;
- 		break;
- 	case IOR_MODE_CACHED:
- 		prot = PAGE_KERNEL;
-diff -puN include/asm-x86/pgtable.h~x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache include/asm-x86/pgtable.h
---- a/include/asm-x86/pgtable.h~x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache
-+++ a/include/asm-x86/pgtable.h
-@@ -85,6 +85,7 @@ extern pteval_t __PAGE_KERNEL, __PAGE_KE
- #define __PAGE_KERNEL_RX		(__PAGE_KERNEL_EXEC & ~_PAGE_RW)
- #define __PAGE_KERNEL_EXEC_NOCACHE	(__PAGE_KERNEL_EXEC | _PAGE_PCD | _PAGE_PWT)
- #define __PAGE_KERNEL_NOCACHE		(__PAGE_KERNEL | _PAGE_PCD | _PAGE_PWT)
-+#define __PAGE_KERNEL_UC_MINUS		(__PAGE_KERNEL | _PAGE_PCD)
- #define __PAGE_KERNEL_VSYSCALL		(__PAGE_KERNEL_RX | _PAGE_USER)
- #define __PAGE_KERNEL_VSYSCALL_NOCACHE	(__PAGE_KERNEL_VSYSCALL | _PAGE_PCD | _PAGE_PWT)
- #define __PAGE_KERNEL_LARGE		(__PAGE_KERNEL | _PAGE_PSE)
-@@ -101,6 +102,7 @@ extern pteval_t __PAGE_KERNEL, __PAGE_KE
- #define PAGE_KERNEL_EXEC		MAKE_GLOBAL(__PAGE_KERNEL_EXEC)
- #define PAGE_KERNEL_RX			MAKE_GLOBAL(__PAGE_KERNEL_RX)
- #define PAGE_KERNEL_NOCACHE		MAKE_GLOBAL(__PAGE_KERNEL_NOCACHE)
-+#define PAGE_KERNEL_UC_MINUS		MAKE_GLOBAL(__PAGE_KERNEL_UC_MINUS)
- #define PAGE_KERNEL_EXEC_NOCACHE	MAKE_GLOBAL(__PAGE_KERNEL_EXEC_NOCACHE)
- #define PAGE_KERNEL_LARGE		MAKE_GLOBAL(__PAGE_KERNEL_LARGE)
- #define PAGE_KERNEL_LARGE_EXEC		MAKE_GLOBAL(__PAGE_KERNEL_LARGE_EXEC)
+diff -puN drivers/ide/ide.c~drivers-ide-idec-replace-init_modulecleanup_module-with-module_initmodule_exit drivers/ide/ide.c
+--- a/drivers/ide/ide.c~drivers-ide-idec-replace-init_modulecleanup_module-with-module_initmodule_exit
++++ a/drivers/ide/ide.c
+@@ -1194,7 +1194,7 @@ static char *options = NULL;
+ module_param(options, charp, 0);
+ MODULE_LICENSE("GPL");
+ 
+-static void __init parse_options (char *line)
++static void __init parse_options(char *line)
+ {
+ 	char *next = line;
+ 
+@@ -1208,13 +1208,14 @@ static void __init parse_options (char *
+ 	}
+ }
+ 
+-int __init init_module (void)
++static int __init ide_module_init(void)
+ {
+ 	parse_options(options);
+ 	return ide_init();
+ }
++module_init(ide_module_init);
+ 
+-void __exit cleanup_module (void)
++static void __exit ide_module_exit(void)
+ {
+ 	int index;
+ 
+@@ -1227,6 +1228,7 @@ void __exit cleanup_module (void)
+ 
+ 	bus_unregister(&ide_bus_type);
+ }
++module_exit(ide_module_exit);
+ 
+ #else /* !MODULE */
+ 
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from jkschind@gmail.com are
 
-x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache.patch
+drivers-ide-idec-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+git-net.patch
+drivers-net-3c501c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-3c505c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-3c507c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-3c515c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-3c523c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-3c527c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-net-82596c-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-block-floppyc-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
+drivers-char-ip2-ip2mainc-replace-init_modulecleanup_module-with-module_initmodule_exit.patch
 
