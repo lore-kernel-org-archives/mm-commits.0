@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache.patch added to -mm tree
-Date: Tue, 25 Mar 2008 18:58:20 -0700
-Message-ID: <200803260158.m2Q1wKvY024677@imap1.linux-foundation.org>
+Subject: + pata_sil680-only-enable-mmio-on-cell-blades.patch added to -mm tree
+Date: Tue, 25 Mar 2008 23:35:02 -0700
+Message-ID: <200803260635.m2Q6Z2CG001418@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58305 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42875 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753320AbYCZB7R (ORCPT
+	by vger.kernel.org with ESMTP id S1750886AbYCZGft (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 21:59:17 -0400
+	Wed, 26 Mar 2008 02:35:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: suresh.b.siddha@intel.com, arjan@linux.intel.com, bug-track@fisher-privat.net, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com
+Cc: benh@ozlabs.org, alan@redhat.com, benh@kernel.crashing.org
 
 
 The patch titled
-     x86: revert to the UC- behavior for ioremap()/ioremap_nocache()
+     pata_sil680: only enable MMIO on Cell blades
 has been added to the -mm tree.  Its filename is
-     x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache.patch
+     pata_sil680-only-enable-mmio-on-cell-blades.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: revert to the UC- behavior for ioremap()/ioremap_nocache()
-From: Suresh Siddha <suresh.b.siddha@intel.com>
+Subject: pata_sil680: only enable MMIO on Cell blades
+From: Benjamin Herrenschmidt <benh@ozlabs.org>
 
-fb drivers are using ioremap()/ioremap_nocache(), followed by mtrr_add with WC
-attribute.  Recent changes in page attribute code made both
-ioremap()/ioremap_nocache() mappings as UC (instead of previous UC-).  This
-breaks the graphics performance, as the effective memory type is UC instead of
-expected WC.
+There have been reported regressions of the SIL 680 driver when using MMIO, so
+this makes it only try MMIO on Cell blades where it's known to be necessary
+(the host bridge doesn't do PIO on these).
 
-The correct way to fix this is to add ioremap_wc() (which uses UC- in the
-absence of PAT kernel support and WC with PAT) and change all the fb drivers
-to use this new ioremap_wc() API.
+We'll try to find the root problem with MMIO separately.
 
-We can take this correct and longer route for post 2.6.25. For now,
-revert back to the UC- behavior for ioremap/ioremap_nocache.
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10328
-
-Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
-Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Alexey Fisher <bug-track@fisher-privat.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/ioremap.c     |    6 +++++-
- include/asm-x86/pgtable.h |    2 ++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/ata/pata_sil680.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/ioremap.c~x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache arch/x86/mm/ioremap.c
---- a/arch/x86/mm/ioremap.c~x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache
-+++ a/arch/x86/mm/ioremap.c
-@@ -137,7 +137,11 @@ static void __iomem *__ioremap(resource_
- 	switch (mode) {
- 	case IOR_MODE_UNCACHED:
- 	default:
--		prot = PAGE_KERNEL_NOCACHE;
-+		/*
-+		 * FIXME: we will use UC MINUS for now, as video fb drivers
-+		 * depend on it. Upcoming ioremap_wc() will fix this behavior.
-+		 */
-+		prot = PAGE_KERNEL_UC_MINUS;
- 		break;
- 	case IOR_MODE_CACHED:
- 		prot = PAGE_KERNEL;
-diff -puN include/asm-x86/pgtable.h~x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache include/asm-x86/pgtable.h
---- a/include/asm-x86/pgtable.h~x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache
-+++ a/include/asm-x86/pgtable.h
-@@ -85,6 +85,7 @@ extern pteval_t __PAGE_KERNEL, __PAGE_KE
- #define __PAGE_KERNEL_RX		(__PAGE_KERNEL_EXEC & ~_PAGE_RW)
- #define __PAGE_KERNEL_EXEC_NOCACHE	(__PAGE_KERNEL_EXEC | _PAGE_PCD | _PAGE_PWT)
- #define __PAGE_KERNEL_NOCACHE		(__PAGE_KERNEL | _PAGE_PCD | _PAGE_PWT)
-+#define __PAGE_KERNEL_UC_MINUS		(__PAGE_KERNEL | _PAGE_PCD)
- #define __PAGE_KERNEL_VSYSCALL		(__PAGE_KERNEL_RX | _PAGE_USER)
- #define __PAGE_KERNEL_VSYSCALL_NOCACHE	(__PAGE_KERNEL_VSYSCALL | _PAGE_PCD | _PAGE_PWT)
- #define __PAGE_KERNEL_LARGE		(__PAGE_KERNEL | _PAGE_PSE)
-@@ -101,6 +102,7 @@ extern pteval_t __PAGE_KERNEL, __PAGE_KE
- #define PAGE_KERNEL_EXEC		MAKE_GLOBAL(__PAGE_KERNEL_EXEC)
- #define PAGE_KERNEL_RX			MAKE_GLOBAL(__PAGE_KERNEL_RX)
- #define PAGE_KERNEL_NOCACHE		MAKE_GLOBAL(__PAGE_KERNEL_NOCACHE)
-+#define PAGE_KERNEL_UC_MINUS		MAKE_GLOBAL(__PAGE_KERNEL_UC_MINUS)
- #define PAGE_KERNEL_EXEC_NOCACHE	MAKE_GLOBAL(__PAGE_KERNEL_EXEC_NOCACHE)
- #define PAGE_KERNEL_LARGE		MAKE_GLOBAL(__PAGE_KERNEL_LARGE)
- #define PAGE_KERNEL_LARGE_EXEC		MAKE_GLOBAL(__PAGE_KERNEL_LARGE_EXEC)
+diff -puN drivers/ata/pata_sil680.c~pata_sil680-only-enable-mmio-on-cell-blades drivers/ata/pata_sil680.c
+--- a/drivers/ata/pata_sil680.c~pata_sil680-only-enable-mmio-on-cell-blades
++++ a/drivers/ata/pata_sil680.c
+@@ -229,7 +229,11 @@ static u8 sil680_init_chip(struct pci_de
+ 	dev_dbg(&pdev->dev, "sil680: BA5_EN = %d clock = %02X\n",
+ 		tmpbyte & 1, tmpbyte & 0x30);
+ 
+-	*try_mmio = (tmpbyte & 1) || pci_resource_start(pdev, 5);
++	*try_mmio = 0;
++#ifdef CONFIG_PPC
++	if (machine_is(cell))
++		*try_mmio = (tmpbyte & 1) || pci_resource_start(pdev, 5);
++#endif
+ 
+ 	switch(tmpbyte & 0x30) {
+ 		case 0x00:
 _
 
-Patches currently in -mm which might be from suresh.b.siddha@intel.com are
+Patches currently in -mm which might be from benh@ozlabs.org are
 
-x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache.patch
+pata_sil680-only-enable-mmio-on-cell-blades.patch
 
