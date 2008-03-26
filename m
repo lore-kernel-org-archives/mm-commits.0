@@ -1,74 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-dont-use-pt_dtrace.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:39:45 -0700
-Message-ID: <200803261839.m2QIdjOi028563@imap1.linux-foundation.org>
+Subject: - powerpc32-asm-offsets-ptrace-cruft.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:39:51 -0700
+Message-ID: <200803261839.m2QIdpAu028569@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59994 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761405AbYCZSkg (ORCPT
+	by vger.kernel.org with ESMTP id S1757371AbYCZSkf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 14:40:36 -0400
+	Wed, 26 Mar 2008 14:40:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: don't use PT_DTRACE
+     powerpc32: asm-offsets ptrace cruft
 has been removed from the -mm tree.  Its filename was
-     powerpc-dont-use-pt_dtrace.patch
+     powerpc32-asm-offsets-ptrace-cruft.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: don't use PT_DTRACE
+Subject: powerpc32: asm-offsets ptrace cruft
 From: Roland McGrath <roland@redhat.com>
 
-The PT_DTRACE flag is meaningless and obsolete.  Don't touch it.
+These items in asm-offsets.c are not used anywhere.  Remove them.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/process.c   |    5 -----
- arch/powerpc/kernel/sys_ppc32.c |    5 -----
- 2 files changed, 10 deletions(-)
+ arch/powerpc/kernel/asm-offsets.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN arch/powerpc/kernel/process.c~powerpc-dont-use-pt_dtrace arch/powerpc/kernel/process.c
---- a/arch/powerpc/kernel/process.c~powerpc-dont-use-pt_dtrace
-+++ a/arch/powerpc/kernel/process.c
-@@ -868,11 +868,6 @@ int sys_execve(unsigned long a0, unsigne
- 	flush_spe_to_thread(current);
- 	error = do_execve(filename, (char __user * __user *) a1,
- 			  (char __user * __user *) a2, regs);
--	if (error == 0) {
--		task_lock(current);
--		current->ptrace &= ~PT_DTRACE;
--		task_unlock(current);
--	}
- 	putname(filename);
- out:
- 	return error;
-diff -puN arch/powerpc/kernel/sys_ppc32.c~powerpc-dont-use-pt_dtrace arch/powerpc/kernel/sys_ppc32.c
---- a/arch/powerpc/kernel/sys_ppc32.c~powerpc-dont-use-pt_dtrace
-+++ a/arch/powerpc/kernel/sys_ppc32.c
-@@ -368,11 +368,6 @@ long compat_sys_execve(unsigned long a0,
+diff -puN arch/powerpc/kernel/asm-offsets.c~powerpc32-asm-offsets-ptrace-cruft arch/powerpc/kernel/asm-offsets.c
+--- a/arch/powerpc/kernel/asm-offsets.c~powerpc32-asm-offsets-ptrace-cruft
++++ a/arch/powerpc/kernel/asm-offsets.c
+@@ -26,8 +26,6 @@
+ #ifdef CONFIG_PPC64
+ #include <linux/time.h>
+ #include <linux/hardirq.h>
+-#else
+-#include <linux/ptrace.h>
+ #endif
  
- 	error = compat_do_execve(filename, compat_ptr(a1), compat_ptr(a2), regs);
+ #include <asm/io.h>
+@@ -60,7 +58,6 @@ int main(void)
+ 	DEFINE(AUDITCONTEXT, offsetof(struct task_struct, audit_context));
+ #else
+ 	DEFINE(THREAD_INFO, offsetof(struct task_struct, stack));
+-	DEFINE(PTRACE, offsetof(struct task_struct, ptrace));
+ #endif /* CONFIG_PPC64 */
  
--	if (error == 0) {
--		task_lock(current);
--		current->ptrace &= ~PT_DTRACE;
--		task_unlock(current);
--	}
- 	putname(filename);
- 
- out:
+ 	DEFINE(KSP, offsetof(struct thread_struct, ksp));
+@@ -80,7 +77,6 @@ int main(void)
+ 	DEFINE(PGDIR, offsetof(struct thread_struct, pgdir));
+ #if defined(CONFIG_4xx) || defined(CONFIG_BOOKE)
+ 	DEFINE(THREAD_DBCR0, offsetof(struct thread_struct, dbcr0));
+-	DEFINE(PT_PTRACED, PT_PTRACED);
+ #endif
+ #ifdef CONFIG_SPE
+ 	DEFINE(THREAD_EVR0, offsetof(struct thread_struct, evr[0]));
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
