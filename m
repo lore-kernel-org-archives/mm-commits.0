@@ -1,882 +1,747 @@
 From: akpm@linux-foundation.org
-Subject: - hppfs-pass-vfsmount-to-dentry_open.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:40:03 -0700
-Message-ID: <200803261840.m2QIe37w028628@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-elevate-write-count-for-ioctls.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:40:43 -0700
+Message-ID: <200803261840.m2QIehJ2028691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56184 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58876 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759357AbYCZSp7 (ORCPT
+	by vger.kernel.org with ESMTP id S1759386AbYCZSqS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 14:45:59 -0400
+	Wed, 26 Mar 2008 14:46:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@lst.de, jdike@linux.intel.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hppfs pass vfsmount to dentry_open()
+     r/o bind mounts: elevate write count for ioctls()
 has been removed from the -mm tree.  Its filename was
-     hppfs-pass-vfsmount-to-dentry_open.patch
+     r-o-bind-mounts-elevate-write-count-for-ioctls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hppfs pass vfsmount to dentry_open()
+Subject: r/o bind mounts: elevate write count for ioctls()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Here's patch for hppfs that uses vfs_kern_mount to make sure it always has a
-procfs instance and passed the vfsmount on through the inode private data. 
-Also fixes a procfs file_system_type leak for every attempted hppfs mount.
-
-[ jdike - gave this file a style workover, plus deleted hppfs_dentry_ops ]
+Some ioctl()s can cause writes to the filesystem.  Take these, and make them
+use mnt_want/drop_write() instead.
 
 Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hppfs/hppfs_kern.c |  364 ++++++++++++++++++++--------------------
- 1 file changed, 188 insertions(+), 176 deletions(-)
+ fs/ext2/ioctl.c              |   49 ++++++++++-----
+ fs/ext3/ioctl.c              |  103 +++++++++++++++++++++------------
+ fs/fat/file.c                |   12 ++-
+ fs/hfsplus/ioctl.c           |   40 ++++++++----
+ fs/jfs/ioctl.c               |   35 +++++++----
+ fs/ocfs2/ioctl.c             |   11 +--
+ fs/reiserfs/ioctl.c          |   65 +++++++++++++-------
+ fs/xfs/linux-2.6/xfs_ioctl.c |   15 +++-
+ 8 files changed, 213 insertions(+), 117 deletions(-)
 
-diff -puN fs/hppfs/hppfs_kern.c~hppfs-pass-vfsmount-to-dentry_open fs/hppfs/hppfs_kern.c
---- a/fs/hppfs/hppfs_kern.c~hppfs-pass-vfsmount-to-dentry_open
-+++ a/fs/hppfs/hppfs_kern.c
-@@ -1,23 +1,25 @@
- /*
-- * Copyright (C) 2002 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
--#include <linux/fs.h>
-+#include <linux/ctype.h>
-+#include <linux/dcache.h>
- #include <linux/file.h>
--#include <linux/module.h>
-+#include <linux/fs.h>
- #include <linux/init.h>
--#include <linux/slab.h>
--#include <linux/list.h>
- #include <linux/kernel.h>
--#include <linux/ctype.h>
--#include <linux/dcache.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
+diff -puN fs/ext2/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls fs/ext2/ioctl.c
+--- a/fs/ext2/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls
++++ a/fs/ext2/ioctl.c
+@@ -12,6 +12,7 @@
+ #include <linux/time.h>
+ #include <linux/sched.h>
+ #include <linux/compat.h>
 +#include <linux/mount.h>
-+#include <linux/slab.h>
- #include <linux/statfs.h>
-+#include <linux/types.h>
+ #include <linux/smp_lock.h>
+ #include <asm/current.h>
  #include <asm/uaccess.h>
--#include <asm/fcntl.h>
- #include "os.h"
+@@ -23,6 +24,7 @@ long ext2_ioctl(struct file *filp, unsig
+ 	struct ext2_inode_info *ei = EXT2_I(inode);
+ 	unsigned int flags;
+ 	unsigned short rsv_window_size;
++	int ret;
  
--static int init_inode(struct inode *inode, struct dentry *dentry);
-+static int init_inode(struct inode *inode, struct dentry *dentry,
-+		      struct vfsmount *mnt);
+ 	ext2_debug ("cmd = %u, arg = %lu\n", cmd, arg);
  
- struct hppfs_data {
- 	struct list_head list;
-@@ -33,6 +35,7 @@ struct hppfs_private {
+@@ -34,14 +36,19 @@ long ext2_ioctl(struct file *filp, unsig
+ 	case EXT2_IOC_SETFLAGS: {
+ 		unsigned int oldflags;
  
- struct hppfs_inode_info {
-         struct dentry *proc_dentry;
-+	struct vfsmount *proc_mnt;
- 	struct inode vfs_inode;
- };
- 
-@@ -51,14 +54,14 @@ static int is_pid(struct dentry *dentry)
- 	int i;
- 
- 	sb = dentry->d_sb;
--	if((sb->s_op != &hppfs_sbops) || (dentry->d_parent != sb->s_root))
--		return(0);
-+	if ((sb->s_op != &hppfs_sbops) || (dentry->d_parent != sb->s_root))
-+		return 0;
- 
--	for(i = 0; i < dentry->d_name.len; i++){
--		if(!isdigit(dentry->d_name.name[i]))
--			return(0);
-+	for (i = 0; i < dentry->d_name.len; i++) {
-+		if (!isdigit(dentry->d_name.name[i]))
-+			return 0;
- 	}
--	return(1);
-+	return 1;
- }
- 
- static char *dentry_name(struct dentry *dentry, int extra)
-@@ -70,8 +73,8 @@ static char *dentry_name(struct dentry *
- 
- 	len = 0;
- 	parent = dentry;
--	while(parent->d_parent != parent){
--		if(is_pid(parent))
-+	while (parent->d_parent != parent) {
-+		if (is_pid(parent))
- 			len += strlen("pid") + 1;
- 		else len += parent->d_name.len + 1;
- 		parent = parent->d_parent;
-@@ -80,12 +83,13 @@ static char *dentry_name(struct dentry *
- 	root = "proc";
- 	len += strlen(root);
- 	name = kmalloc(len + extra + 1, GFP_KERNEL);
--	if(name == NULL) return(NULL);
-+	if (name == NULL)
-+		return NULL;
- 
- 	name[len] = '\0';
- 	parent = dentry;
--	while(parent->d_parent != parent){
--		if(is_pid(parent)){
-+	while (parent->d_parent != parent) {
-+		if (is_pid(parent)) {
- 			seg_name = "pid";
- 			seg_len = strlen("pid");
- 		}
-@@ -100,27 +104,25 @@ static char *dentry_name(struct dentry *
- 		parent = parent->d_parent;
- 	}
- 	strncpy(name, root, strlen(root));
--	return(name);
-+	return name;
- }
- 
--struct dentry_operations hppfs_dentry_ops = {
--};
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
 -
- static int file_removed(struct dentry *dentry, const char *file)
- {
- 	char *host_file;
- 	int extra, fd;
+-		if (!is_owner_or_cap(inode))
+-			return -EACCES;
++		ret = mnt_want_write(filp->f_vfsmnt);
++		if (ret)
++			return ret;
++
++		if (!is_owner_or_cap(inode)) {
++			ret = -EACCES;
++			goto setflags_out;
++		}
  
- 	extra = 0;
--	if(file != NULL) extra += strlen(file) + 1;
-+	if (file != NULL)
-+		extra += strlen(file) + 1;
+-		if (get_user(flags, (int __user *) arg))
+-			return -EFAULT;
++		if (get_user(flags, (int __user *) arg)) {
++			ret = -EFAULT;
++			goto setflags_out;
++		}
  
- 	host_file = dentry_name(dentry, extra + strlen("/remove"));
--	if(host_file == NULL){
--		printk("file_removed : allocation failed\n");
--		return(-ENOMEM);
-+	if (host_file == NULL) {
-+		printk(KERN_ERR "file_removed : allocation failed\n");
-+		return -ENOMEM;
- 	}
- 
--	if(file != NULL){
-+	if (file != NULL) {
- 		strcat(host_file, "/");
- 		strcat(host_file, file);
- 	}
-@@ -128,18 +130,18 @@ static int file_removed(struct dentry *d
- 
- 	fd = os_open_file(host_file, of_read(OPENFLAGS()), 0);
- 	kfree(host_file);
--	if(fd > 0){
-+	if (fd > 0) {
- 		os_close_file(fd);
--		return(1);
-+		return 1;
- 	}
--	return(0);
-+	return 0;
- }
- 
- static void hppfs_read_inode(struct inode *ino)
- {
- 	struct inode *proc_ino;
- 
--	if(HPPFS_I(ino)->proc_dentry == NULL)
-+	if (HPPFS_I(ino)->proc_dentry == NULL)
- 		return;
- 
- 	proc_ino = HPPFS_I(ino)->proc_dentry->d_inode;
-@@ -177,32 +179,32 @@ static struct dentry *hppfs_lookup(struc
- 	int err, deleted;
- 
- 	deleted = file_removed(dentry, NULL);
--	if(deleted < 0)
--		return(ERR_PTR(deleted));
--	else if(deleted)
--		return(ERR_PTR(-ENOENT));
-+	if (deleted < 0)
-+		return ERR_PTR(deleted);
-+	else if (deleted)
-+		return ERR_PTR(-ENOENT);
- 
- 	err = -ENOMEM;
- 	parent = HPPFS_I(ino)->proc_dentry;
- 	mutex_lock(&parent->d_inode->i_mutex);
- 	proc_dentry = d_lookup(parent, &dentry->d_name);
--	if(proc_dentry == NULL){
-+	if (proc_dentry == NULL) {
- 		proc_dentry = d_alloc(parent, &dentry->d_name);
--		if(proc_dentry == NULL){
-+		if (proc_dentry == NULL) {
- 			mutex_unlock(&parent->d_inode->i_mutex);
- 			goto out;
+ 		if (!S_ISDIR(inode->i_mode))
+ 			flags &= ~EXT2_DIRSYNC_FL;
+@@ -50,7 +57,8 @@ long ext2_ioctl(struct file *filp, unsig
+ 		/* Is it quota file? Do not allow user to mess with it */
+ 		if (IS_NOQUOTA(inode)) {
+ 			mutex_unlock(&inode->i_mutex);
+-			return -EPERM;
++			ret = -EPERM;
++			goto setflags_out;
  		}
- 		new = (*parent->d_inode->i_op->lookup)(parent->d_inode,
- 						       proc_dentry, NULL);
--		if(new){
-+		if (new) {
- 			dput(proc_dentry);
- 			proc_dentry = new;
+ 		oldflags = ei->i_flags;
+ 
+@@ -63,7 +71,8 @@ long ext2_ioctl(struct file *filp, unsig
+ 		if ((flags ^ oldflags) & (EXT2_APPEND_FL | EXT2_IMMUTABLE_FL)) {
+ 			if (!capable(CAP_LINUX_IMMUTABLE)) {
+ 				mutex_unlock(&inode->i_mutex);
+-				return -EPERM;
++				ret = -EPERM;
++				goto setflags_out;
+ 			}
  		}
+ 
+@@ -75,20 +84,26 @@ long ext2_ioctl(struct file *filp, unsig
+ 		ext2_set_inode_flags(inode);
+ 		inode->i_ctime = CURRENT_TIME_SEC;
+ 		mark_inode_dirty(inode);
+-		return 0;
++setflags_out:
++		mnt_drop_write(filp->f_vfsmnt);
++		return ret;
  	}
- 	mutex_unlock(&parent->d_inode->i_mutex);
+ 	case EXT2_IOC_GETVERSION:
+ 		return put_user(inode->i_generation, (int __user *) arg);
+ 	case EXT2_IOC_SETVERSION:
+ 		if (!is_owner_or_cap(inode))
+ 			return -EPERM;
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
+-		if (get_user(inode->i_generation, (int __user *) arg))
+-			return -EFAULT;	
+-		inode->i_ctime = CURRENT_TIME_SEC;
+-		mark_inode_dirty(inode);
+-		return 0;
++		ret = mnt_want_write(filp->f_vfsmnt);
++		if (ret)
++			return ret;
++		if (get_user(inode->i_generation, (int __user *) arg)) {
++			ret = -EFAULT;
++		} else {
++			inode->i_ctime = CURRENT_TIME_SEC;
++			mark_inode_dirty(inode);
++		}
++		mnt_drop_write(filp->f_vfsmnt);
++		return ret;
+ 	case EXT2_IOC_GETRSVSZ:
+ 		if (test_opt(inode->i_sb, RESERVATION)
+ 			&& S_ISREG(inode->i_mode)
+diff -puN fs/ext3/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls fs/ext3/ioctl.c
+--- a/fs/ext3/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls
++++ a/fs/ext3/ioctl.c
+@@ -12,6 +12,7 @@
+ #include <linux/capability.h>
+ #include <linux/ext3_fs.h>
+ #include <linux/ext3_jbd.h>
++#include <linux/mount.h>
+ #include <linux/time.h>
+ #include <linux/compat.h>
+ #include <linux/smp_lock.h>
+@@ -38,14 +39,19 @@ int ext3_ioctl (struct inode * inode, st
+ 		unsigned int oldflags;
+ 		unsigned int jflag;
  
--	if(IS_ERR(proc_dentry))
--		return(proc_dentry);
-+	if (IS_ERR(proc_dentry))
-+		return proc_dentry;
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
++		err = mnt_want_write(filp->f_vfsmnt);
++		if (err)
++			return err;
  
- 	inode = hppfs_iget(ino->i_sb);
- 	if (IS_ERR(inode)) {
-@@ -210,22 +212,21 @@ static struct dentry *hppfs_lookup(struc
- 		goto out_dput;
+-		if (!is_owner_or_cap(inode))
+-			return -EACCES;
++		if (!is_owner_or_cap(inode)) {
++			err = -EACCES;
++			goto flags_out;
++		}
+ 
+-		if (get_user(flags, (int __user *) arg))
+-			return -EFAULT;
++		if (get_user(flags, (int __user *) arg)) {
++			err = -EFAULT;
++			goto flags_out;
++		}
+ 
+ 		if (!S_ISDIR(inode->i_mode))
+ 			flags &= ~EXT3_DIRSYNC_FL;
+@@ -54,7 +60,8 @@ int ext3_ioctl (struct inode * inode, st
+ 		/* Is it quota file? Do not allow user to mess with it */
+ 		if (IS_NOQUOTA(inode)) {
+ 			mutex_unlock(&inode->i_mutex);
+-			return -EPERM;
++			err = -EPERM;
++			goto flags_out;
+ 		}
+ 		oldflags = ei->i_flags;
+ 
+@@ -70,7 +77,8 @@ int ext3_ioctl (struct inode * inode, st
+ 		if ((flags ^ oldflags) & (EXT3_APPEND_FL | EXT3_IMMUTABLE_FL)) {
+ 			if (!capable(CAP_LINUX_IMMUTABLE)) {
+ 				mutex_unlock(&inode->i_mutex);
+-				return -EPERM;
++				err = -EPERM;
++				goto flags_out;
+ 			}
+ 		}
+ 
+@@ -81,7 +89,8 @@ int ext3_ioctl (struct inode * inode, st
+ 		if ((jflag ^ oldflags) & (EXT3_JOURNAL_DATA_FL)) {
+ 			if (!capable(CAP_SYS_RESOURCE)) {
+ 				mutex_unlock(&inode->i_mutex);
+-				return -EPERM;
++				err = -EPERM;
++				goto flags_out;
+ 			}
+ 		}
+ 
+@@ -89,7 +98,8 @@ int ext3_ioctl (struct inode * inode, st
+ 		handle = ext3_journal_start(inode, 1);
+ 		if (IS_ERR(handle)) {
+ 			mutex_unlock(&inode->i_mutex);
+-			return PTR_ERR(handle);
++			err = PTR_ERR(handle);
++			goto flags_out;
+ 		}
+ 		if (IS_SYNC(inode))
+ 			handle->h_sync = 1;
+@@ -115,6 +125,8 @@ flags_err:
+ 		if ((jflag ^ oldflags) & (EXT3_JOURNAL_DATA_FL))
+ 			err = ext3_change_inode_journal_flag(inode, jflag);
+ 		mutex_unlock(&inode->i_mutex);
++flags_out:
++		mnt_drop_write(filp->f_vfsmnt);
+ 		return err;
+ 	}
+ 	case EXT3_IOC_GETVERSION:
+@@ -129,14 +141,18 @@ flags_err:
+ 
+ 		if (!is_owner_or_cap(inode))
+ 			return -EPERM;
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
+-		if (get_user(generation, (int __user *) arg))
+-			return -EFAULT;
+-
++		err = mnt_want_write(filp->f_vfsmnt);
++		if (err)
++			return err;
++		if (get_user(generation, (int __user *) arg)) {
++			err = -EFAULT;
++			goto setversion_out;
++		}
+ 		handle = ext3_journal_start(inode, 1);
+-		if (IS_ERR(handle))
+-			return PTR_ERR(handle);
++		if (IS_ERR(handle)) {
++			err = PTR_ERR(handle);
++			goto setversion_out;
++		}
+ 		err = ext3_reserve_inode_write(handle, inode, &iloc);
+ 		if (err == 0) {
+ 			inode->i_ctime = CURRENT_TIME_SEC;
+@@ -144,6 +160,8 @@ flags_err:
+ 			err = ext3_mark_iloc_dirty(handle, inode, &iloc);
+ 		}
+ 		ext3_journal_stop(handle);
++setversion_out:
++		mnt_drop_write(filp->f_vfsmnt);
+ 		return err;
+ 	}
+ #ifdef CONFIG_JBD_DEBUG
+@@ -179,18 +197,24 @@ flags_err:
+ 		}
+ 		return -ENOTTY;
+ 	case EXT3_IOC_SETRSVSZ: {
++		int err;
+ 
+ 		if (!test_opt(inode->i_sb, RESERVATION) ||!S_ISREG(inode->i_mode))
+ 			return -ENOTTY;
+ 
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
++		err = mnt_want_write(filp->f_vfsmnt);
++		if (err)
++			return err;
+ 
+-		if (!is_owner_or_cap(inode))
+-			return -EACCES;
++		if (!is_owner_or_cap(inode)) {
++			err = -EACCES;
++			goto setrsvsz_out;
++		}
+ 
+-		if (get_user(rsv_window_size, (int __user *)arg))
+-			return -EFAULT;
++		if (get_user(rsv_window_size, (int __user *)arg)) {
++			err = -EFAULT;
++			goto setrsvsz_out;
++		}
+ 
+ 		if (rsv_window_size > EXT3_MAX_RESERVE_BLOCKS)
+ 			rsv_window_size = EXT3_MAX_RESERVE_BLOCKS;
+@@ -208,7 +232,9 @@ flags_err:
+ 			rsv->rsv_goal_size = rsv_window_size;
+ 		}
+ 		mutex_unlock(&ei->truncate_mutex);
+-		return 0;
++setrsvsz_out:
++		mnt_drop_write(filp->f_vfsmnt);
++		return err;
+ 	}
+ 	case EXT3_IOC_GROUP_EXTEND: {
+ 		ext3_fsblk_t n_blocks_count;
+@@ -218,17 +244,20 @@ flags_err:
+ 		if (!capable(CAP_SYS_RESOURCE))
+ 			return -EPERM;
+ 
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
+-
+-		if (get_user(n_blocks_count, (__u32 __user *)arg))
+-			return -EFAULT;
++		err = mnt_want_write(filp->f_vfsmnt);
++		if (err)
++			return err;
+ 
++		if (get_user(n_blocks_count, (__u32 __user *)arg)) {
++			err = -EFAULT;
++			goto group_extend_out;
++		}
+ 		err = ext3_group_extend(sb, EXT3_SB(sb)->s_es, n_blocks_count);
+ 		journal_lock_updates(EXT3_SB(sb)->s_journal);
+ 		journal_flush(EXT3_SB(sb)->s_journal);
+ 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
+-
++group_extend_out:
++		mnt_drop_write(filp->f_vfsmnt);
+ 		return err;
+ 	}
+ 	case EXT3_IOC_GROUP_ADD: {
+@@ -239,18 +268,22 @@ flags_err:
+ 		if (!capable(CAP_SYS_RESOURCE))
+ 			return -EPERM;
+ 
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
++		err = mnt_want_write(filp->f_vfsmnt);
++		if (err)
++			return err;
+ 
+ 		if (copy_from_user(&input, (struct ext3_new_group_input __user *)arg,
+-				sizeof(input)))
+-			return -EFAULT;
++				sizeof(input))) {
++			err = -EFAULT;
++			goto group_add_out;
++		}
+ 
+ 		err = ext3_group_add(sb, &input);
+ 		journal_lock_updates(EXT3_SB(sb)->s_journal);
+ 		journal_flush(EXT3_SB(sb)->s_journal);
+ 		journal_unlock_updates(EXT3_SB(sb)->s_journal);
+-
++group_add_out:
++		mnt_drop_write(filp->f_vfsmnt);
+ 		return err;
  	}
  
--	err = init_inode(inode, proc_dentry);
--	if(err)
-+	err = init_inode(inode, proc_dentry, HPPFS_I(ino)->proc_mnt);
-+	if (err)
- 		goto out_put;
+diff -puN fs/fat/file.c~r-o-bind-mounts-elevate-write-count-for-ioctls fs/fat/file.c
+--- a/fs/fat/file.c~r-o-bind-mounts-elevate-write-count-for-ioctls
++++ a/fs/fat/file.c
+@@ -8,6 +8,7 @@
  
- 	hppfs_read_inode(inode);
+ #include <linux/capability.h>
+ #include <linux/module.h>
++#include <linux/mount.h>
+ #include <linux/time.h>
+ #include <linux/msdos_fs.h>
+ #include <linux/smp_lock.h>
+@@ -46,10 +47,9 @@ int fat_generic_ioctl(struct inode *inod
  
-  	d_add(dentry, inode);
--	dentry->d_op = &hppfs_dentry_ops;
--	return(NULL);
-+	return NULL;
+ 		mutex_lock(&inode->i_mutex);
  
-  out_put:
- 	iput(inode);
-  out_dput:
- 	dput(proc_dentry);
-  out:
--	return(ERR_PTR(err));
-+	return ERR_PTR(err);
- }
- 
- static const struct inode_operations hppfs_file_iops = {
-@@ -239,15 +240,16 @@ static ssize_t read_proc(struct file *fi
- 
- 	read = file->f_path.dentry->d_inode->i_fop->read;
- 
--	if(!is_user)
-+	if (!is_user)
- 		set_fs(KERNEL_DS);
- 
- 	n = (*read)(file, buf, count, &file->f_pos);
- 
--	if(!is_user)
-+	if (!is_user)
- 		set_fs(USER_DS);
- 
--	if(ppos) *ppos = file->f_pos;
-+	if (ppos)
-+		*ppos = file->f_pos;
- 	return n;
- }
- 
-@@ -259,24 +261,23 @@ static ssize_t hppfs_read_file(int fd, c
- 
- 	n = -ENOMEM;
- 	new_buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
--	if(new_buf == NULL){
--		printk("hppfs_read_file : kmalloc failed\n");
-+	if (new_buf == NULL) {
-+		printk(KERN_ERR "hppfs_read_file : kmalloc failed\n");
- 		goto out;
- 	}
- 	n = 0;
--	while(count > 0){
-+	while (count > 0) {
- 		cur = min_t(ssize_t, count, PAGE_SIZE);
- 		err = os_read_file(fd, new_buf, cur);
--		if(err < 0){
--			printk("hppfs_read : read failed, errno = %d\n",
--			       err);
-+		if (err < 0) {
-+			printk(KERN_ERR "hppfs_read : read failed, "
-+			       "errno = %d\n", err);
- 			n = err;
- 			goto out_free;
+-		if (IS_RDONLY(inode)) {
+-			err = -EROFS;
+-			goto up;
 -		}
--		else if(err == 0)
-+		} else if (err == 0)
- 			break;
++		err = mnt_want_write(filp->f_vfsmnt);
++		if (err)
++			goto up_no_drop_write;
  
--		if(copy_to_user(buf, new_buf, err)){
-+		if (copy_to_user(buf, new_buf, err)) {
- 			n = -EFAULT;
- 			goto out_free;
+ 		/*
+ 		 * ATTR_VOLUME and ATTR_DIR cannot be changed; this also
+@@ -105,7 +105,9 @@ int fat_generic_ioctl(struct inode *inod
+ 
+ 		MSDOS_I(inode)->i_attrs = attr & ATTR_UNUSED;
+ 		mark_inode_dirty(inode);
+-	up:
++up:
++		mnt_drop_write(filp->f_vfsmnt);
++up_no_drop_write:
+ 		mutex_unlock(&inode->i_mutex);
+ 		return err;
+ 	}
+diff -puN fs/hfsplus/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls fs/hfsplus/ioctl.c
+--- a/fs/hfsplus/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls
++++ a/fs/hfsplus/ioctl.c
+@@ -14,6 +14,7 @@
+ 
+ #include <linux/capability.h>
+ #include <linux/fs.h>
++#include <linux/mount.h>
+ #include <linux/sched.h>
+ #include <linux/xattr.h>
+ #include <asm/uaccess.h>
+@@ -35,25 +36,32 @@ int hfsplus_ioctl(struct inode *inode, s
+ 			flags |= FS_NODUMP_FL; /* EXT2_NODUMP_FL */
+ 		return put_user(flags, (int __user *)arg);
+ 	case HFSPLUS_IOC_EXT2_SETFLAGS: {
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
+-
+-		if (!is_owner_or_cap(inode))
+-			return -EACCES;
+-
+-		if (get_user(flags, (int __user *)arg))
+-			return -EFAULT;
+-
++		int err = 0;
++		err = mnt_want_write(filp->f_vfsmnt);
++		if (err)
++			return err;
++
++		if (!is_owner_or_cap(inode)) {
++			err = -EACCES;
++			goto setflags_out;
++		}
++		if (get_user(flags, (int __user *)arg)) {
++			err = -EFAULT;
++			goto setflags_out;
++		}
+ 		if (flags & (FS_IMMUTABLE_FL|FS_APPEND_FL) ||
+ 		    HFSPLUS_I(inode).rootflags & (HFSPLUS_FLG_IMMUTABLE|HFSPLUS_FLG_APPEND)) {
+-			if (!capable(CAP_LINUX_IMMUTABLE))
+-				return -EPERM;
++			if (!capable(CAP_LINUX_IMMUTABLE)) {
++				err = -EPERM;
++				goto setflags_out;
++			}
  		}
-@@ -297,35 +298,36 @@ static ssize_t hppfs_read(struct file *f
- 	loff_t off;
- 	int err;
  
--	if(hppfs->contents != NULL){
--		if(*ppos >= hppfs->len) return(0);
-+	if (hppfs->contents != NULL) {
-+		if (*ppos >= hppfs->len)
-+			return 0;
+ 		/* don't silently ignore unsupported ext2 flags */
+-		if (flags & ~(FS_IMMUTABLE_FL|FS_APPEND_FL|FS_NODUMP_FL))
+-			return -EOPNOTSUPP;
+-
++		if (flags & ~(FS_IMMUTABLE_FL|FS_APPEND_FL|FS_NODUMP_FL)) {
++			err = -EOPNOTSUPP;
++			goto setflags_out;
++		}
+ 		if (flags & FS_IMMUTABLE_FL) { /* EXT2_IMMUTABLE_FL */
+ 			inode->i_flags |= S_IMMUTABLE;
+ 			HFSPLUS_I(inode).rootflags |= HFSPLUS_FLG_IMMUTABLE;
+@@ -75,7 +83,9 @@ int hfsplus_ioctl(struct inode *inode, s
  
- 		data = hppfs->contents;
- 		off = *ppos;
--		while(off >= sizeof(data->contents)){
-+		while (off >= sizeof(data->contents)) {
- 			data = list_entry(data->list.next, struct hppfs_data,
- 					  list);
- 			off -= sizeof(data->contents);
+ 		inode->i_ctime = CURRENT_TIME_SEC;
+ 		mark_inode_dirty(inode);
+-		return 0;
++setflags_out:
++		mnt_drop_write(filp->f_vfsmnt);
++		return err;
+ 	}
+ 	default:
+ 		return -ENOTTY;
+diff -puN fs/jfs/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls fs/jfs/ioctl.c
+--- a/fs/jfs/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls
++++ a/fs/jfs/ioctl.c
+@@ -8,6 +8,7 @@
+ #include <linux/fs.h>
+ #include <linux/ctype.h>
+ #include <linux/capability.h>
++#include <linux/mount.h>
+ #include <linux/time.h>
+ #include <linux/sched.h>
+ #include <asm/current.h>
+@@ -65,23 +66,30 @@ long jfs_ioctl(struct file *filp, unsign
+ 		return put_user(flags, (int __user *) arg);
+ 	case JFS_IOC_SETFLAGS: {
+ 		unsigned int oldflags;
++		int err;
+ 
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
+-
+-		if (!is_owner_or_cap(inode))
+-			return -EACCES;
+-
+-		if (get_user(flags, (int __user *) arg))
+-			return -EFAULT;
++		err = mnt_want_write(filp->f_vfsmnt);
++		if (err)
++			return err;
++
++		if (!is_owner_or_cap(inode)) {
++			err = -EACCES;
++			goto setflags_out;
++		}
++		if (get_user(flags, (int __user *) arg)) {
++			err = -EFAULT;
++			goto setflags_out;
++		}
+ 
+ 		flags = jfs_map_ext2(flags, 1);
+ 		if (!S_ISDIR(inode->i_mode))
+ 			flags &= ~JFS_DIRSYNC_FL;
+ 
+ 		/* Is it quota file? Do not allow user to mess with it */
+-		if (IS_NOQUOTA(inode))
+-			return -EPERM;
++		if (IS_NOQUOTA(inode)) {
++			err = -EPERM;
++			goto setflags_out;
++		}
+ 
+ 		/* Lock against other parallel changes of flags */
+ 		mutex_lock(&inode->i_mutex);
+@@ -98,7 +106,8 @@ long jfs_ioctl(struct file *filp, unsign
+ 			(JFS_APPEND_FL | JFS_IMMUTABLE_FL))) {
+ 			if (!capable(CAP_LINUX_IMMUTABLE)) {
+ 				mutex_unlock(&inode->i_mutex);
+-				return -EPERM;
++				err = -EPERM;
++				goto setflags_out;
+ 			}
  		}
  
--		if(off + count > hppfs->len)
-+		if (off + count > hppfs->len)
- 			count = hppfs->len - off;
- 		copy_to_user(buf, &data->contents[off], count);
- 		*ppos += count;
--	}
--	else if(hppfs->host_fd != -1){
-+	} else if (hppfs->host_fd != -1) {
- 		err = os_seek_file(hppfs->host_fd, *ppos);
--		if(err){
--			printk("hppfs_read : seek failed, errno = %d\n", err);
--			return(err);
-+		if (err) {
-+			printk(KERN_ERR "hppfs_read : seek failed, "
-+			       "errno = %d\n", err);
+@@ -110,7 +119,9 @@ long jfs_ioctl(struct file *filp, unsign
+ 		mutex_unlock(&inode->i_mutex);
+ 		inode->i_ctime = CURRENT_TIME_SEC;
+ 		mark_inode_dirty(inode);
+-		return 0;
++setflags_out:
++		mnt_drop_write(filp->f_vfsmnt);
++		return err;
+ 	}
+ 	default:
+ 		return -ENOTTY;
+diff -puN fs/ocfs2/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls fs/ocfs2/ioctl.c
+--- a/fs/ocfs2/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls
++++ a/fs/ocfs2/ioctl.c
+@@ -60,10 +60,6 @@ static int ocfs2_set_inode_attr(struct i
+ 		goto bail;
+ 	}
+ 
+-	status = -EROFS;
+-	if (IS_RDONLY(inode))
+-		goto bail_unlock;
+-
+ 	status = -EACCES;
+ 	if (!is_owner_or_cap(inode))
+ 		goto bail_unlock;
+@@ -134,8 +130,13 @@ long ocfs2_ioctl(struct file *filp, unsi
+ 		if (get_user(flags, (int __user *) arg))
+ 			return -EFAULT;
+ 
+-		return ocfs2_set_inode_attr(inode, flags,
++		status = mnt_want_write(filp->f_vfsmnt);
++		if (status)
++			return status;
++		status = ocfs2_set_inode_attr(inode, flags,
+ 			OCFS2_FL_MODIFIABLE);
++		mnt_drop_write(filp->f_vfsmnt);
++		return status;
+ 	case OCFS2_IOC_RESVSP:
+ 	case OCFS2_IOC_RESVSP64:
+ 	case OCFS2_IOC_UNRESVSP:
+diff -puN fs/reiserfs/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls fs/reiserfs/ioctl.c
+--- a/fs/reiserfs/ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls
++++ a/fs/reiserfs/ioctl.c
+@@ -4,6 +4,7 @@
+ 
+ #include <linux/capability.h>
+ #include <linux/fs.h>
++#include <linux/mount.h>
+ #include <linux/reiserfs_fs.h>
+ #include <linux/time.h>
+ #include <asm/uaccess.h>
+@@ -25,6 +26,7 @@ int reiserfs_ioctl(struct inode *inode, 
+ 		   unsigned long arg)
+ {
+ 	unsigned int flags;
++	int err = 0;
+ 
+ 	switch (cmd) {
+ 	case REISERFS_IOC_UNPACK:
+@@ -48,50 +50,67 @@ int reiserfs_ioctl(struct inode *inode, 
+ 			if (!reiserfs_attrs(inode->i_sb))
+ 				return -ENOTTY;
+ 
+-			if (IS_RDONLY(inode))
+-				return -EROFS;
+-
+-			if (!is_owner_or_cap(inode))
+-				return -EPERM;
+-
+-			if (get_user(flags, (int __user *)arg))
+-				return -EFAULT;
+-
+-			/* Is it quota file? Do not allow user to mess with it. */
+-			if (IS_NOQUOTA(inode))
+-				return -EPERM;
++			err = mnt_want_write(filp->f_vfsmnt);
++			if (err)
++				return err;
++
++			if (!is_owner_or_cap(inode)) {
++				err = -EPERM;
++				goto setflags_out;
++			}
++			if (get_user(flags, (int __user *)arg)) {
++				err = -EFAULT;
++				goto setflags_out;
++			}
++			/*
++			 * Is it quota file? Do not allow user to mess with it
++			 */
++			if (IS_NOQUOTA(inode)) {
++				err = -EPERM;
++				goto setflags_out;
++			}
+ 			if (((flags ^ REISERFS_I(inode)->
+ 			      i_attrs) & (REISERFS_IMMUTABLE_FL |
+ 					  REISERFS_APPEND_FL))
+-			    && !capable(CAP_LINUX_IMMUTABLE))
+-				return -EPERM;
+-
++			    && !capable(CAP_LINUX_IMMUTABLE)) {
++				err = -EPERM;
++				goto setflags_out;
++			}
+ 			if ((flags & REISERFS_NOTAIL_FL) &&
+ 			    S_ISREG(inode->i_mode)) {
+ 				int result;
+ 
+ 				result = reiserfs_unpack(inode, filp);
+-				if (result)
+-					return result;
++				if (result) {
++					err = result;
++					goto setflags_out;
++				}
+ 			}
+ 			sd_attrs_to_i_attrs(flags, inode);
+ 			REISERFS_I(inode)->i_attrs = flags;
+ 			inode->i_ctime = CURRENT_TIME_SEC;
+ 			mark_inode_dirty(inode);
+-			return 0;
++setflags_out:
++			mnt_drop_write(filp->f_vfsmnt);
 +			return err;
  		}
- 		count = hppfs_read_file(hppfs->host_fd, buf, count);
--		if(count > 0)
-+		if (count > 0)
- 			*ppos += count;
+ 	case REISERFS_IOC_GETVERSION:
+ 		return put_user(inode->i_generation, (int __user *)arg);
+ 	case REISERFS_IOC_SETVERSION:
+ 		if (!is_owner_or_cap(inode))
+ 			return -EPERM;
+-		if (IS_RDONLY(inode))
+-			return -EROFS;
+-		if (get_user(inode->i_generation, (int __user *)arg))
+-			return -EFAULT;
++		err = mnt_want_write(filp->f_vfsmnt);
++		if (err)
++			return err;
++		if (get_user(inode->i_generation, (int __user *)arg)) {
++			err = -EFAULT;
++			goto setversion_out;
++		}
+ 		inode->i_ctime = CURRENT_TIME_SEC;
+ 		mark_inode_dirty(inode);
+-		return 0;
++setversion_out:
++		mnt_drop_write(filp->f_vfsmnt);
++		return err;
+ 	default:
+ 		return -ENOTTY;
  	}
- 	else count = read_proc(hppfs->proc_file, buf, count, ppos, 1);
+diff -puN fs/xfs/linux-2.6/xfs_ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls fs/xfs/linux-2.6/xfs_ioctl.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl.c~r-o-bind-mounts-elevate-write-count-for-ioctls
++++ a/fs/xfs/linux-2.6/xfs_ioctl.c
+@@ -535,8 +535,6 @@ xfs_attrmulti_attr_set(
+ 	char			*kbuf;
+ 	int			error = EFAULT;
  
--	return(count);
-+	return count;
- }
- 
- static ssize_t hppfs_write(struct file *file, const char __user *buf, size_t len,
-@@ -342,7 +344,7 @@ static ssize_t hppfs_write(struct file *
- 	err = (*write)(proc_file, buf, len, &proc_file->f_pos);
- 	file->f_pos = proc_file->f_pos;
- 
--	return(err);
-+	return err;
- }
- 
- static int open_host_sock(char *host_file, int *filter_out)
-@@ -354,13 +356,13 @@ static int open_host_sock(char *host_fil
- 	strcpy(end, "/rw");
- 	*filter_out = 1;
- 	fd = os_connect_socket(host_file);
--	if(fd > 0)
--		return(fd);
-+	if (fd > 0)
-+		return fd;
- 
- 	strcpy(end, "/r");
- 	*filter_out = 0;
- 	fd = os_connect_socket(host_file);
--	return(fd);
-+	return fd;
- }
- 
- static void free_contents(struct hppfs_data *head)
-@@ -368,9 +370,10 @@ static void free_contents(struct hppfs_d
- 	struct hppfs_data *data;
- 	struct list_head *ele, *next;
- 
--	if(head == NULL) return;
-+	if (head == NULL)
-+		return;
- 
--	list_for_each_safe(ele, next, &head->list){
-+	list_for_each_safe(ele, next, &head->list) {
- 		data = list_entry(ele, struct hppfs_data, list);
- 		kfree(data);
- 	}
-@@ -387,8 +390,8 @@ static struct hppfs_data *hppfs_get_data
- 
- 	err = -ENOMEM;
- 	data = kmalloc(sizeof(*data), GFP_KERNEL);
--	if(data == NULL){
--		printk("hppfs_get_data : head allocation failed\n");
-+	if (data == NULL) {
-+		printk(KERN_ERR "hppfs_get_data : head allocation failed\n");
- 		goto failed;
- 	}
- 
-@@ -397,36 +400,36 @@ static struct hppfs_data *hppfs_get_data
- 	head = data;
- 	*size_out = 0;
- 
--	if(filter){
--		while((n = read_proc(proc_file, data->contents,
-+	if (filter) {
-+		while ((n = read_proc(proc_file, data->contents,
- 				     sizeof(data->contents), NULL, 0)) > 0)
- 			os_write_file(fd, data->contents, n);
- 		err = os_shutdown_socket(fd, 0, 1);
--		if(err){
--			printk("hppfs_get_data : failed to shut down "
-+		if (err) {
-+			printk(KERN_ERR "hppfs_get_data : failed to shut down "
- 			       "socket\n");
- 			goto failed_free;
- 		}
- 	}
--	while(1){
-+	while (1) {
- 		n = os_read_file(fd, data->contents, sizeof(data->contents));
--		if(n < 0){
-+		if (n < 0) {
- 			err = n;
--			printk("hppfs_get_data : read failed, errno = %d\n",
--			       err);
-+			printk(KERN_ERR "hppfs_get_data : read failed, "
-+			       "errno = %d\n", err);
- 			goto failed_free;
--		}
--		else if(n == 0)
-+		} else if (n == 0)
+-	if (IS_RDONLY(inode))
+-		return -EROFS;
+ 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
+ 		return EPERM;
+ 	if (len > XATTR_SIZE_MAX)
+@@ -562,8 +560,6 @@ xfs_attrmulti_attr_remove(
+ 	char			*name,
+ 	__uint32_t		flags)
+ {
+-	if (IS_RDONLY(inode))
+-		return -EROFS;
+ 	if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
+ 		return EPERM;
+ 	return xfs_attr_remove(XFS_I(inode), name, flags);
+@@ -573,6 +569,7 @@ STATIC int
+ xfs_attrmulti_by_handle(
+ 	xfs_mount_t		*mp,
+ 	void			__user *arg,
++	struct file		*parfilp,
+ 	struct inode		*parinode)
+ {
+ 	int			error;
+@@ -626,13 +623,21 @@ xfs_attrmulti_by_handle(
+ 					&ops[i].am_length, ops[i].am_flags);
  			break;
- 
- 		*size_out += n;
- 
--		if(n < sizeof(data->contents))
-+		if (n < sizeof(data->contents))
+ 		case ATTR_OP_SET:
++			ops[i].am_error = mnt_want_write(parfilp->f_vfsmnt);
++			if (ops[i].am_error)
++				break;
+ 			ops[i].am_error = xfs_attrmulti_attr_set(inode,
+ 					attr_name, ops[i].am_attrvalue,
+ 					ops[i].am_length, ops[i].am_flags);
++			mnt_drop_write(parfilp->f_vfsmnt);
  			break;
+ 		case ATTR_OP_REMOVE:
++			ops[i].am_error = mnt_want_write(parfilp->f_vfsmnt);
++			if (ops[i].am_error)
++				break;
+ 			ops[i].am_error = xfs_attrmulti_attr_remove(inode,
+ 					attr_name, ops[i].am_flags);
++			mnt_drop_write(parfilp->f_vfsmnt);
+ 			break;
+ 		default:
+ 			ops[i].am_error = EINVAL;
+@@ -1131,7 +1136,7 @@ xfs_ioctl(
+ 		return xfs_attrlist_by_handle(mp, arg, inode);
  
- 		new = kmalloc(sizeof(*data), GFP_KERNEL);
--		if(new == 0){
--			printk("hppfs_get_data : data allocation failed\n");
-+		if (new == 0) {
-+			printk(KERN_ERR "hppfs_get_data : data allocation "
-+			       "failed\n");
- 			err = -ENOMEM;
- 			goto failed_free;
- 		}
-@@ -435,12 +438,12 @@ static struct hppfs_data *hppfs_get_data
- 		list_add(&new->list, &data->list);
- 		data = new;
- 	}
--	return(head);
-+	return head;
+ 	case XFS_IOC_ATTRMULTI_BY_HANDLE:
+-		return xfs_attrmulti_by_handle(mp, arg, inode);
++		return xfs_attrmulti_by_handle(mp, arg, filp, inode);
  
-  failed_free:
- 	free_contents(head);
-  failed:
--	return(ERR_PTR(err));
-+	return ERR_PTR(err);
- }
- 
- static struct hppfs_private *hppfs_data(void)
-@@ -448,77 +451,79 @@ static struct hppfs_private *hppfs_data(
- 	struct hppfs_private *data;
- 
- 	data = kmalloc(sizeof(*data), GFP_KERNEL);
--	if(data == NULL)
--		return(data);
-+	if (data == NULL)
-+		return data;
- 
- 	*data = ((struct hppfs_private ) { .host_fd  		= -1,
- 					   .len  		= -1,
- 					   .contents 		= NULL } );
--	return(data);
-+	return data;
- }
- 
- static int file_mode(int fmode)
- {
--	if(fmode == (FMODE_READ | FMODE_WRITE))
--		return(O_RDWR);
--	if(fmode == FMODE_READ)
--		return(O_RDONLY);
--	if(fmode == FMODE_WRITE)
--		return(O_WRONLY);
--	return(0);
-+	if (fmode == (FMODE_READ | FMODE_WRITE))
-+		return O_RDWR;
-+	if (fmode == FMODE_READ)
-+		return O_RDONLY;
-+	if (fmode == FMODE_WRITE)
-+		return O_WRONLY;
-+	return 0;
- }
- 
- static int hppfs_open(struct inode *inode, struct file *file)
- {
- 	struct hppfs_private *data;
- 	struct dentry *proc_dentry;
-+	struct vfsmount *proc_mnt;
- 	char *host_file;
- 	int err, fd, type, filter;
- 
- 	err = -ENOMEM;
- 	data = hppfs_data();
--	if(data == NULL)
-+	if (data == NULL)
- 		goto out;
- 
- 	host_file = dentry_name(file->f_path.dentry, strlen("/rw"));
--	if(host_file == NULL)
-+	if (host_file == NULL)
- 		goto out_free2;
- 
- 	proc_dentry = HPPFS_I(inode)->proc_dentry;
-+	proc_mnt = HPPFS_I(inode)->proc_mnt;
- 
- 	/* XXX This isn't closed anywhere */
--	data->proc_file = dentry_open(dget(proc_dentry), NULL,
-+	data->proc_file = dentry_open(dget(proc_dentry), mntget(proc_mnt),
- 				      file_mode(file->f_mode));
- 	err = PTR_ERR(data->proc_file);
--	if(IS_ERR(data->proc_file))
-+	if (IS_ERR(data->proc_file))
- 		goto out_free1;
- 
- 	type = os_file_type(host_file);
--	if(type == OS_TYPE_FILE){
-+	if (type == OS_TYPE_FILE) {
- 		fd = os_open_file(host_file, of_read(OPENFLAGS()), 0);
--		if(fd >= 0)
-+		if (fd >= 0)
- 			data->host_fd = fd;
--		else printk("hppfs_open : failed to open '%s', errno = %d\n",
--			    host_file, -fd);
-+		else
-+			printk(KERN_ERR "hppfs_open : failed to open '%s', "
-+			       "errno = %d\n", host_file, -fd);
- 
- 		data->contents = NULL;
--	}
--	else if(type == OS_TYPE_DIR){
-+	} else if (type == OS_TYPE_DIR) {
- 		fd = open_host_sock(host_file, &filter);
--		if(fd > 0){
-+		if (fd > 0) {
- 			data->contents = hppfs_get_data(fd, filter,
- 							data->proc_file,
- 							file, &data->len);
--			if(!IS_ERR(data->contents))
-+			if (!IS_ERR(data->contents))
- 				data->host_fd = fd;
--		}
--		else printk("hppfs_open : failed to open a socket in "
--			    "'%s', errno = %d\n", host_file, -fd);
-+		} else
-+			printk(KERN_ERR "hppfs_open : failed to open a socket "
-+			       "in '%s', errno = %d\n", host_file, -fd);
- 	}
- 	kfree(host_file);
- 
- 	file->private_data = data;
--	return(0);
-+	return 0;
- 
-  out_free1:
- 	kfree(host_file);
-@@ -526,34 +531,36 @@ static int hppfs_open(struct inode *inod
- 	free_contents(data->contents);
- 	kfree(data);
-  out:
--	return(err);
-+	return err;
- }
- 
- static int hppfs_dir_open(struct inode *inode, struct file *file)
- {
- 	struct hppfs_private *data;
- 	struct dentry *proc_dentry;
-+	struct vfsmount *proc_mnt;
- 	int err;
- 
- 	err = -ENOMEM;
- 	data = hppfs_data();
--	if(data == NULL)
-+	if (data == NULL)
- 		goto out;
- 
- 	proc_dentry = HPPFS_I(inode)->proc_dentry;
--	data->proc_file = dentry_open(dget(proc_dentry), NULL,
-+	proc_mnt = HPPFS_I(inode)->proc_mnt;
-+	data->proc_file = dentry_open(dget(proc_dentry), mntget(proc_mnt),
- 				      file_mode(file->f_mode));
- 	err = PTR_ERR(data->proc_file);
--	if(IS_ERR(data->proc_file))
-+	if (IS_ERR(data->proc_file))
- 		goto out_free;
- 
- 	file->private_data = data;
--	return(0);
-+	return 0;
- 
-  out_free:
- 	kfree(data);
-  out:
--	return(err);
-+	return err;
- }
- 
- static loff_t hppfs_llseek(struct file *file, loff_t off, int where)
-@@ -564,13 +571,13 @@ static loff_t hppfs_llseek(struct file *
- 	loff_t ret;
- 
- 	llseek = proc_file->f_path.dentry->d_inode->i_fop->llseek;
--	if(llseek != NULL){
-+	if (llseek != NULL) {
- 		ret = (*llseek)(proc_file, off, where);
--		if(ret < 0)
--			return(ret);
-+		if (ret < 0)
-+			return ret;
- 	}
- 
--	return(default_llseek(file, off, where));
-+	return default_llseek(file, off, where);
- }
- 
- static const struct file_operations hppfs_file_fops = {
-@@ -592,11 +599,11 @@ static int hppfs_filldir(void *d, const 
- {
- 	struct hppfs_dirent *dirent = d;
- 
--	if(file_removed(dirent->dentry, name))
--		return(0);
-+	if (file_removed(dirent->dentry, name))
-+		return 0;
- 
--	return((*dirent->filldir)(dirent->vfs_dirent, name, size, offset,
--				  inode, type));
-+	return (*dirent->filldir)(dirent->vfs_dirent, name, size, offset,
-+				  inode, type);
- }
- 
- static int hppfs_readdir(struct file *file, void *ent, filldir_t filldir)
-@@ -607,7 +614,8 @@ static int hppfs_readdir(struct file *fi
- 	struct hppfs_dirent dirent = ((struct hppfs_dirent)
- 		                      { .vfs_dirent  	= ent,
- 					.filldir 	= filldir,
--					.dentry  	= file->f_path.dentry } );
-+					.dentry  	= file->f_path.dentry
-+				      });
- 	int err;
- 
- 	readdir = proc_file->f_path.dentry->d_inode->i_fop->readdir;
-@@ -616,12 +624,12 @@ static int hppfs_readdir(struct file *fi
- 	err = (*readdir)(proc_file, &dirent, hppfs_filldir);
- 	file->f_pos = proc_file->f_pos;
- 
--	return(err);
-+	return err;
- }
- 
- static int hppfs_fsync(struct file *file, struct dentry *dentry, int datasync)
- {
--	return(0);
-+	return 0;
- }
- 
- static const struct file_operations hppfs_dir_fops = {
-@@ -639,7 +647,7 @@ static int hppfs_statfs(struct dentry *d
- 	sf->f_files = 0;
- 	sf->f_ffree = 0;
- 	sf->f_type = HPPFS_SUPER_MAGIC;
--	return(0);
-+	return 0;
- }
- 
- static struct inode *hppfs_alloc_inode(struct super_block *sb)
-@@ -647,12 +655,13 @@ static struct inode *hppfs_alloc_inode(s
- 	struct hppfs_inode_info *hi;
- 
- 	hi = kmalloc(sizeof(*hi), GFP_KERNEL);
--	if(hi == NULL)
--		return(NULL);
-+	if (!hi)
-+		return NULL;
- 
--	*hi = ((struct hppfs_inode_info) { .proc_dentry	= NULL });
-+	hi->proc_dentry = NULL;
-+	hi->proc_mnt = NULL;
- 	inode_init_once(&hi->vfs_inode);
--	return(&hi->vfs_inode);
-+	return &hi->vfs_inode;
- }
- 
- void hppfs_delete_inode(struct inode *ino)
-@@ -665,21 +674,31 @@ static void hppfs_destroy_inode(struct i
- 	kfree(HPPFS_I(inode));
- }
- 
-+static void hppfs_put_super(struct super_block *sb)
-+{
-+	mntput(HPPFS_I(sb->s_root->d_inode)->proc_mnt);
-+}
-+
- static const struct super_operations hppfs_sbops = {
- 	.alloc_inode	= hppfs_alloc_inode,
- 	.destroy_inode	= hppfs_destroy_inode,
- 	.delete_inode	= hppfs_delete_inode,
- 	.statfs		= hppfs_statfs,
-+	.put_super	= hppfs_put_super,
- };
- 
--static int hppfs_readlink(struct dentry *dentry, char __user *buffer, int buflen)
-+static int hppfs_readlink(struct dentry *dentry, char __user *buffer,
-+			  int buflen)
- {
- 	struct file *proc_file;
- 	struct dentry *proc_dentry;
-+	struct vfsmount *proc_mnt;
- 	int ret;
- 
- 	proc_dentry = HPPFS_I(dentry->d_inode)->proc_dentry;
--	proc_file = dentry_open(dget(proc_dentry), NULL, O_RDONLY);
-+	proc_mnt = HPPFS_I(dentry->d_inode)->proc_mnt;
-+
-+	proc_file = dentry_open(dget(proc_dentry), mntget(proc_mnt), O_RDONLY);
- 	if (IS_ERR(proc_file))
- 		return PTR_ERR(proc_file);
- 
-@@ -694,10 +713,13 @@ static void* hppfs_follow_link(struct de
- {
- 	struct file *proc_file;
- 	struct dentry *proc_dentry;
-+	struct vfsmount *proc_mnt;
- 	void *ret;
- 
- 	proc_dentry = HPPFS_I(dentry->d_inode)->proc_dentry;
--	proc_file = dentry_open(dget(proc_dentry), NULL, O_RDONLY);
-+	proc_mnt = HPPFS_I(dentry->d_inode)->proc_mnt;
-+
-+	proc_file = dentry_open(dget(proc_dentry), mntget(proc_mnt), O_RDONLY);
- 	if (IS_ERR(proc_file))
- 		return proc_file;
- 
-@@ -717,44 +739,43 @@ static const struct inode_operations hpp
- 	.follow_link	= hppfs_follow_link,
- };
- 
--static int init_inode(struct inode *inode, struct dentry *dentry)
-+static int init_inode(struct inode *inode, struct dentry *dentry,
-+		struct vfsmount *mnt)
- {
--	if(S_ISDIR(dentry->d_inode->i_mode)){
-+	if (S_ISDIR(dentry->d_inode->i_mode)) {
- 		inode->i_op = &hppfs_dir_iops;
- 		inode->i_fop = &hppfs_dir_fops;
--	}
--	else if(S_ISLNK(dentry->d_inode->i_mode)){
-+	} else if (S_ISLNK(dentry->d_inode->i_mode)) {
- 		inode->i_op = &hppfs_link_iops;
- 		inode->i_fop = &hppfs_file_fops;
--	}
--	else {
-+	} else {
- 		inode->i_op = &hppfs_file_iops;
- 		inode->i_fop = &hppfs_file_fops;
- 	}
- 
- 	HPPFS_I(inode)->proc_dentry = dentry;
-+	HPPFS_I(inode)->proc_mnt = mnt;
- 
--	return(0);
-+	return 0;
- }
- 
- static int hppfs_fill_super(struct super_block *sb, void *d, int silent)
- {
- 	struct inode *root_inode;
- 	struct file_system_type *procfs;
--	struct super_block *proc_sb;
-+	struct vfsmount *proc_mnt;
- 	int err;
- 
- 	err = -ENOENT;
- 	procfs = get_fs_type("proc");
--	if(procfs == NULL)
-+	if (!procfs)
- 		goto out;
- 
--	if(list_empty(&procfs->fs_supers))
-+	proc_mnt = vfs_kern_mount(procfs, 0, procfs->name, NULL);
-+	put_filesystem(procfs);
-+	if (IS_ERR(proc_mnt))
- 		goto out;
- 
--	proc_sb = list_entry(procfs->fs_supers.next, struct super_block,
--			     s_instances);
--
- 	sb->s_blocksize = 1024;
- 	sb->s_blocksize_bits = 10;
- 	sb->s_magic = HPPFS_SUPER_MAGIC;
-@@ -766,21 +787,23 @@ static int hppfs_fill_super(struct super
- 		goto out;
- 	}
- 
--	err = init_inode(root_inode, proc_sb->s_root);
--	if(err)
--		goto out_put;
-+	err = init_inode(root_inode, proc_mnt->mnt_sb->s_root, proc_mnt);
-+	if (err)
-+		goto out_iput;
- 
- 	err = -ENOMEM;
- 	sb->s_root = d_alloc_root(root_inode);
--	if(sb->s_root == NULL)
--		goto out_put;
-+	if (!sb->s_root)
-+		goto out_iput;
- 
- 	hppfs_read_inode(root_inode);
- 
--	return(0);
-+	return 0;
- 
-- out_put:
-+ out_iput:
- 	iput(root_inode);
-+ out_mntput:
-+	mntput(proc_mnt);
-  out:
- 	return(err);
- }
-@@ -802,7 +825,7 @@ static struct file_system_type hppfs_typ
- 
- static int __init init_hppfs(void)
- {
--	return(register_filesystem(&hppfs_type));
-+	return register_filesystem(&hppfs_type);
- }
- 
- static void __exit exit_hppfs(void)
-@@ -813,14 +836,3 @@ static void __exit exit_hppfs(void)
- module_init(init_hppfs)
- module_exit(exit_hppfs)
- MODULE_LICENSE("GPL");
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
+ 	case XFS_IOC_SWAPEXT: {
+ 		error = xfs_swapext((struct xfs_swapext __user *)arg);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
