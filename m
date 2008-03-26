@@ -1,68 +1,133 @@
 From: akpm@linux-foundation.org
-Subject: - check-for-null-vfsmount-in-dentry_open.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:40:05 -0700
-Message-ID: <200803261840.m2QIe5x1028631@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-stub-functions.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:40:14 -0700
+Message-ID: <200803261840.m2QIeEgo028643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52756 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35219 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760603AbYCZSkl (ORCPT
+	by vger.kernel.org with ESMTP id S1760770AbYCZSkn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 14:40:41 -0400
+	Wed, 26 Mar 2008 14:40:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@infradead.org, serue@us.ibm.com, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     check for null vfsmount in dentry_open()
+     r/o bind mounts: stub functions
 has been removed from the -mm tree.  Its filename was
-     check-for-null-vfsmount-in-dentry_open.patch
+     r-o-bind-mounts-stub-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: check for null vfsmount in dentry_open()
+Subject: r/o bind mounts: stub functions
 From: Dave Hansen <haveblue@us.ibm.com>
 
-Make sure no-one calls dentry_open with a NULL vfsmount argument and crap out
-with a stacktrace otherwise.  A NULL file->f_vfsmnt has always been
-problematic, but with the per-mount r/o tracking we can't accept anymore at
-all.
+This patch adds two function mnt_want_write() and mnt_drop_write().  These are
+used like a lock pair around and fs operations that might cause a write to the
+filesystem.
 
+Before these can become useful, we must first cover each place in the VFS
+where writes are performed with a want/drop pair.  When that is complete, we
+can actually introduce code that will safely check the counts before allowing
+r/w<->r/o transitions to occur.
+
+Acked-by: Serge Hallyn <serue@us.ibm.com>
 Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ fs/namespace.c        |   54 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/mount.h |    3 ++
+ 2 files changed, 57 insertions(+)
 
-diff -puN fs/open.c~check-for-null-vfsmount-in-dentry_open fs/open.c
---- a/fs/open.c~check-for-null-vfsmount-in-dentry_open
-+++ a/fs/open.c
-@@ -903,6 +903,18 @@ struct file *dentry_open(struct dentry *
- 	int error;
- 	struct file *f;
+diff -puN fs/namespace.c~r-o-bind-mounts-stub-functions fs/namespace.c
+--- a/fs/namespace.c~r-o-bind-mounts-stub-functions
++++ a/fs/namespace.c
+@@ -80,6 +80,60 @@ struct vfsmount *alloc_vfsmnt(const char
+ 	return mnt;
+ }
  
-+	/*
-+	 * We must always pass in a valid mount pointer.   Historically
-+	 * callers got away with not passing it, but we must enforce this at
-+	 * the earliest possible point now to avoid strange problems deep in the
-+	 * filesystem stack.
-+	 */
-+	if (!mnt) {
-+		printk(KERN_WARNING "%s called with NULL vfsmount\n", __func__);
-+		dump_stack();
-+		return ERR_PTR(-EINVAL);
-+	}
++/*
++ * Most r/o checks on a fs are for operations that take
++ * discrete amounts of time, like a write() or unlink().
++ * We must keep track of when those operations start
++ * (for permission checks) and when they end, so that
++ * we can determine when writes are able to occur to
++ * a filesystem.
++ */
++/**
++ * mnt_want_write - get write access to a mount
++ * @mnt: the mount on which to take a write
++ *
++ * This tells the low-level filesystem that a write is
++ * about to be performed to it, and makes sure that
++ * writes are allowed before returning success.  When
++ * the write operation is finished, mnt_drop_write()
++ * must be called.  This is effectively a refcount.
++ */
++int mnt_want_write(struct vfsmount *mnt)
++{
++	if (__mnt_is_readonly(mnt))
++		return -EROFS;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(mnt_want_write);
 +
- 	error = -ENFILE;
- 	f = get_empty_filp();
- 	if (f == NULL) {
++/**
++ * mnt_drop_write - give up write access to a mount
++ * @mnt: the mount on which to give up write access
++ *
++ * Tells the low-level filesystem that we are done
++ * performing writes to it.  Must be matched with
++ * mnt_want_write() call above.
++ */
++void mnt_drop_write(struct vfsmount *mnt)
++{
++}
++EXPORT_SYMBOL_GPL(mnt_drop_write);
++
++/*
++ * __mnt_is_readonly: check whether a mount is read-only
++ * @mnt: the mount to check for its write status
++ *
++ * This shouldn't be used directly ouside of the VFS.
++ * It does not guarantee that the filesystem will stay
++ * r/w, just that it is right *now*.  This can not and
++ * should not be used in place of IS_RDONLY(inode).
++ */
++int __mnt_is_readonly(struct vfsmount *mnt)
++{
++	return (mnt->mnt_sb->s_flags & MS_RDONLY);
++}
++EXPORT_SYMBOL_GPL(__mnt_is_readonly);
++
+ int simple_set_mnt(struct vfsmount *mnt, struct super_block *sb)
+ {
+ 	mnt->mnt_sb = sb;
+diff -puN include/linux/mount.h~r-o-bind-mounts-stub-functions include/linux/mount.h
+--- a/include/linux/mount.h~r-o-bind-mounts-stub-functions
++++ a/include/linux/mount.h
+@@ -70,9 +70,12 @@ static inline struct vfsmount *mntget(st
+ 	return mnt;
+ }
+ 
++extern int mnt_want_write(struct vfsmount *mnt);
++extern void mnt_drop_write(struct vfsmount *mnt);
+ extern void mntput_no_expire(struct vfsmount *mnt);
+ extern void mnt_pin(struct vfsmount *mnt);
+ extern void mnt_unpin(struct vfsmount *mnt);
++extern int __mnt_is_readonly(struct vfsmount *mnt);
+ 
+ static inline void mntput(struct vfsmount *mnt)
+ {
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
