@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-use-shorter-equivalent-set_current_state.patch added to -mm tree
-Date: Wed, 26 Mar 2008 12:47:24 -0700
-Message-ID: <200803261947.m2QJlOld031406@imap1.linux-foundation.org>
+Subject: + mfd-use-shorter-set_current_state.patch added to -mm tree
+Date: Wed, 26 Mar 2008 12:49:04 -0700
+Message-ID: <200803261949.m2QJn4wJ031436@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51098 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59924 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753405AbYCZTra (ORCPT
+	by vger.kernel.org with ESMTP id S1752484AbYCZTtq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 15:47:30 -0400
+	Wed, 26 Mar 2008 15:49:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca
+Cc: rpjday@crashcourse.ca, dtor@mail.ru, nico@cam.org, rmk+kernel@arm.linux.org.uk
 
 
 The patch titled
-     mmc: use shorter, equivalent set_current_state()
+     mfd: use shorter set_current_state()
 has been added to the -mm tree.  Its filename is
-     mmc-use-shorter-equivalent-set_current_state.patch
+     mfd-use-shorter-set_current_state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: use shorter, equivalent set_current_state()
+Subject: mfd: use shorter set_current_state()
 From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
+Since this routine declares a separate "tsk" pointer for no other reason than
+to call set_task_state(), get rid of it and just invoke set_current_state().
+
 Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Nicolas Pitre <nico@cam.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/sdio_irq.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mfd/ucb1x00-ts.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mmc/core/sdio_irq.c~mmc-use-shorter-equivalent-set_current_state drivers/mmc/core/sdio_irq.c
---- a/drivers/mmc/core/sdio_irq.c~mmc-use-shorter-equivalent-set_current_state
-+++ a/drivers/mmc/core/sdio_irq.c
-@@ -128,12 +128,12 @@ static int sdio_irq_thread(void *_host)
+diff -puN drivers/mfd/ucb1x00-ts.c~mfd-use-shorter-set_current_state drivers/mfd/ucb1x00-ts.c
+--- a/drivers/mfd/ucb1x00-ts.c~mfd-use-shorter-set_current_state
++++ a/drivers/mfd/ucb1x00-ts.c
+@@ -204,8 +204,7 @@ static inline int ucb1x00_ts_pen_down(st
+ static int ucb1x00_thread(void *_ts)
+ {
+ 	struct ucb1x00_ts *ts = _ts;
+-	struct task_struct *tsk = current;
+-	DECLARE_WAITQUEUE(wait, tsk);
++	DECLARE_WAITQUEUE(wait, current);
+ 	int valid = 0;
+ 
+ 	set_freezable();
+@@ -234,7 +233,7 @@ static int ucb1x00_thread(void *_ts)
+ 
+ 
+ 		if (ucb1x00_ts_pen_down(ts)) {
+-			set_task_state(tsk, TASK_INTERRUPTIBLE);
++			set_current_state(TASK_INTERRUPTIBLE);
+ 
+ 			ucb1x00_enable_irq(ts->ucb, UCB_IRQ_TSPX, machine_is_collie() ? UCB_RISING : UCB_FALLING);
+ 			ucb1x00_disable(ts->ucb);
+@@ -262,7 +261,7 @@ static int ucb1x00_thread(void *_ts)
+ 				valid = 1;
  			}
+ 
+-			set_task_state(tsk, TASK_INTERRUPTIBLE);
++			set_current_state(TASK_INTERRUPTIBLE);
+ 			timeout = HZ / 100;
  		}
  
--		set_task_state(current, TASK_INTERRUPTIBLE);
-+		set_current_state(TASK_INTERRUPTIBLE);
- 		if (host->caps & MMC_CAP_SDIO_IRQ)
- 			host->ops->enable_sdio_irq(host, 1);
- 		if (!kthread_should_stop())
- 			schedule_timeout(period);
--		set_task_state(current, TASK_RUNNING);
-+		set_current_state(TASK_RUNNING);
- 	} while (!kthread_should_stop());
- 
- 	if (host->caps & MMC_CAP_SDIO_IRQ)
 _
 
 Patches currently in -mm which might be from rpjday@crashcourse.ca are
@@ -82,6 +101,7 @@ kbuild-remove-duplicate-conflicting-entry-for-oomh.patch
 kbuild-move-files-that-dont-check-__kernel__.patch
 lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
 lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+mfd-use-shorter-set_current_state.patch
 isdn-fix-obvious-cut-and-paste-error-in-st5481_usbc.patch
 keys-explicitly-include-required-slabh-header-file.patch
 generalize-asm-generic-ioctlh-to-allow-overriding-values.patch
