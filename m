@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-i2c-ibm_iic-fast-mode-parm-desc-fixup.patch added to -mm tree
-Date: Tue, 25 Mar 2008 15:57:10 -0700
-Message-ID: <200803252257.m2PMvAKS017828@imap1.linux-foundation.org>
+Subject: + x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache.patch added to -mm tree
+Date: Tue, 25 Mar 2008 18:58:20 -0700
+Message-ID: <200803260158.m2Q1wKvY024677@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58305 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754401AbYCYW5N (ORCPT
+	by vger.kernel.org with ESMTP id S1753320AbYCZB7R (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 25 Mar 2008 18:57:13 -0400
+	Tue, 25 Mar 2008 21:59:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lethal@linux-sh.org
+Cc: suresh.b.siddha@intel.com, arjan@linux.intel.com, bug-track@fisher-privat.net, mingo@elte.hu, tglx@linutronix.de, venkatesh.pallipadi@intel.com
 
 
 The patch titled
-     i2c: i2c-ibm_iic fast mode parm desc fixup
+     x86: revert to the UC- behavior for ioremap()/ioremap_nocache()
 has been added to the -mm tree.  Its filename is
-     i2c-i2c-ibm_iic-fast-mode-parm-desc-fixup.patch
+     x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,54 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c: i2c-ibm_iic fast mode parm desc fixup
-From: Paul Mundt <lethal@linux-sh.org>
+Subject: x86: revert to the UC- behavior for ioremap()/ioremap_nocache()
+From: Suresh Siddha <suresh.b.siddha@intel.com>
 
-Noticed this when grepping for fast mode module params, the i2c-ibm_iic driver
-was using a non-existent variable for MODULE_PARM_DESC.  Fix it up to reflect
-what it's actually supposed to be describing.
+fb drivers are using ioremap()/ioremap_nocache(), followed by mtrr_add with WC
+attribute.  Recent changes in page attribute code made both
+ioremap()/ioremap_nocache() mappings as UC (instead of previous UC-).  This
+breaks the graphics performance, as the effective memory type is UC instead of
+expected WC.
 
-Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+The correct way to fix this is to add ioremap_wc() (which uses UC- in the
+absence of PAT kernel support and WC with PAT) and change all the fb drivers
+to use this new ioremap_wc() API.
+
+We can take this correct and longer route for post 2.6.25. For now,
+revert back to the UC- behavior for ioremap/ioremap_nocache.
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10328
+
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Alexey Fisher <bug-track@fisher-privat.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-ibm_iic.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/ioremap.c     |    6 +++++-
+ include/asm-x86/pgtable.h |    2 ++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/i2c/busses/i2c-ibm_iic.c~i2c-i2c-ibm_iic-fast-mode-parm-desc-fixup drivers/i2c/busses/i2c-ibm_iic.c
---- a/drivers/i2c/busses/i2c-ibm_iic.c~i2c-i2c-ibm_iic-fast-mode-parm-desc-fixup
-+++ a/drivers/i2c/busses/i2c-ibm_iic.c
-@@ -63,7 +63,7 @@ MODULE_PARM_DESC(iic_force_poll, "Force 
- 
- static int iic_force_fast;
- module_param(iic_force_fast, bool, 0);
--MODULE_PARM_DESC(iic_fast_poll, "Force fast mode (400 kHz)");
-+MODULE_PARM_DESC(iic_force_fast, "Force fast mode (400 kHz)");
- 
- #define DBG_LEVEL 0
- 
+diff -puN arch/x86/mm/ioremap.c~x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache arch/x86/mm/ioremap.c
+--- a/arch/x86/mm/ioremap.c~x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache
++++ a/arch/x86/mm/ioremap.c
+@@ -137,7 +137,11 @@ static void __iomem *__ioremap(resource_
+ 	switch (mode) {
+ 	case IOR_MODE_UNCACHED:
+ 	default:
+-		prot = PAGE_KERNEL_NOCACHE;
++		/*
++		 * FIXME: we will use UC MINUS for now, as video fb drivers
++		 * depend on it. Upcoming ioremap_wc() will fix this behavior.
++		 */
++		prot = PAGE_KERNEL_UC_MINUS;
+ 		break;
+ 	case IOR_MODE_CACHED:
+ 		prot = PAGE_KERNEL;
+diff -puN include/asm-x86/pgtable.h~x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache include/asm-x86/pgtable.h
+--- a/include/asm-x86/pgtable.h~x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache
++++ a/include/asm-x86/pgtable.h
+@@ -85,6 +85,7 @@ extern pteval_t __PAGE_KERNEL, __PAGE_KE
+ #define __PAGE_KERNEL_RX		(__PAGE_KERNEL_EXEC & ~_PAGE_RW)
+ #define __PAGE_KERNEL_EXEC_NOCACHE	(__PAGE_KERNEL_EXEC | _PAGE_PCD | _PAGE_PWT)
+ #define __PAGE_KERNEL_NOCACHE		(__PAGE_KERNEL | _PAGE_PCD | _PAGE_PWT)
++#define __PAGE_KERNEL_UC_MINUS		(__PAGE_KERNEL | _PAGE_PCD)
+ #define __PAGE_KERNEL_VSYSCALL		(__PAGE_KERNEL_RX | _PAGE_USER)
+ #define __PAGE_KERNEL_VSYSCALL_NOCACHE	(__PAGE_KERNEL_VSYSCALL | _PAGE_PCD | _PAGE_PWT)
+ #define __PAGE_KERNEL_LARGE		(__PAGE_KERNEL | _PAGE_PSE)
+@@ -101,6 +102,7 @@ extern pteval_t __PAGE_KERNEL, __PAGE_KE
+ #define PAGE_KERNEL_EXEC		MAKE_GLOBAL(__PAGE_KERNEL_EXEC)
+ #define PAGE_KERNEL_RX			MAKE_GLOBAL(__PAGE_KERNEL_RX)
+ #define PAGE_KERNEL_NOCACHE		MAKE_GLOBAL(__PAGE_KERNEL_NOCACHE)
++#define PAGE_KERNEL_UC_MINUS		MAKE_GLOBAL(__PAGE_KERNEL_UC_MINUS)
+ #define PAGE_KERNEL_EXEC_NOCACHE	MAKE_GLOBAL(__PAGE_KERNEL_EXEC_NOCACHE)
+ #define PAGE_KERNEL_LARGE		MAKE_GLOBAL(__PAGE_KERNEL_LARGE)
+ #define PAGE_KERNEL_LARGE_EXEC		MAKE_GLOBAL(__PAGE_KERNEL_LARGE_EXEC)
 _
 
-Patches currently in -mm which might be from lethal@linux-sh.org are
+Patches currently in -mm which might be from suresh.b.siddha@intel.com are
 
-origin.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-i2c-i2c-ibm_iic-fast-mode-parm-desc-fixup.patch
-maple-allow-removal-and-reinsertion-of-keyboard-driver-module.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-input-touchscreen-driver-for-the-superh-migor-board.patch
-smc91x-add-insw-outsw-to-default-config-v2.patch
-git-s390.patch
-git-sh.patch
-smc91x-fix-build-breakage-from-the-smc_get_mac_addr-api-upgrade.patch
-taint-kernel-after-warn_oncondition.patch
-sm501-add-uart-support.patch
-rtc-rtc-rs5c372-fix-up-null-name-in-transfer-error-path.patch
-rtc-rtc-rs5c372-smbus-conversion-support.patch
-rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
-asm-futexh-should-include-linux-uaccessh.patch
-remove-duplicated-unlikely-in-is_err.patch
-introduce-a-generic-__fls-implementation.patch
-implement-__fls-on-all-64-bit-archs.patch
-use-__fls-for-fls64-on-64-bit-archs.patch
+x86-revert-to-the-uc-behavior-for-ioremap-ioremap_nocache.patch
 
