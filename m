@@ -1,129 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:40:28 -0700
-Message-ID: <200803261840.m2QIeStB028667@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-get-callers-of-vfs_mknod-create.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:41:06 -0700
+Message-ID: <200803261841.m2QIf6Hu028815@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55153 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759565AbYCZSqW (ORCPT
+	by vger.kernel.org with ESMTP id S1755025AbYCZSq0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 14:46:22 -0400
+	Wed, 26 Mar 2008 14:46:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@lst.de, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, hch@infradead.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: elevate write count for xattr_permission() callers
+     r/o bind mounts: get callers of vfs_mknod/create()
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers.patch
+     r-o-bind-mounts-get-callers-of-vfs_mknod-create.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r/o bind mounts: elevate write count for xattr_permission() callers
+Subject: r/o bind mounts: get callers of vfs_mknod/create()
 From: Dave Hansen <haveblue@us.ibm.com>
 
-This basically audits the callers of xattr_permission(), which calls
-permission() and can perform writes to the filesystem.
+This takes care of all of the direct callers of vfs_mknod().  Since a few of
+these cases also handle normal file creation as well, this also covers some
+calls to vfs_create().
+
+So that we don't have to make three mnt_want/drop_write() calls inside of the
+switch statement, we move some of its logic outside of the switch and into a
+helper function suggested by Christoph.
+
+This also encapsulates a fix for mknod(S_IFREG) that Miklos found.
 
 Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfs4proc.c |    7 ++++++-
- fs/xattr.c         |   16 ++++++++++++++--
- 2 files changed, 20 insertions(+), 3 deletions(-)
+ fs/namei.c         |   43 ++++++++++++++++++++++++++++++++-----------
+ fs/nfsd/vfs.c      |    4 ++++
+ net/unix/af_unix.c |    4 ++++
+ 3 files changed, 40 insertions(+), 11 deletions(-)
 
-diff -puN fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers fs/nfsd/nfs4proc.c
---- a/fs/nfsd/nfs4proc.c~r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers
-+++ a/fs/nfsd/nfs4proc.c
-@@ -658,14 +658,19 @@ nfsd4_setattr(struct svc_rqst *rqstp, st
- 			return status;
- 		}
- 	}
-+	status = mnt_want_write(cstate->current_fh.fh_export->ex_mnt);
-+	if (status)
-+		return status;
- 	status = nfs_ok;
- 	if (setattr->sa_acl != NULL)
- 		status = nfsd4_set_nfs4_acl(rqstp, &cstate->current_fh,
- 					    setattr->sa_acl);
- 	if (status)
--		return status;
-+		goto out;
- 	status = nfsd_setattr(rqstp, &cstate->current_fh, &setattr->sa_iattr,
- 				0, (time_t)0);
-+out:
-+	mnt_drop_write(cstate->current_fh.fh_export->ex_mnt);
- 	return status;
+diff -puN fs/namei.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create fs/namei.c
+--- a/fs/namei.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create
++++ a/fs/namei.c
+@@ -2039,6 +2039,23 @@ int vfs_mknod(struct inode *dir, struct 
+ 	return error;
  }
  
-diff -puN fs/xattr.c~r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers fs/xattr.c
---- a/fs/xattr.c~r-o-bind-mounts-elevate-write-count-for-xattr_permission-callers
-+++ a/fs/xattr.c
-@@ -11,6 +11,7 @@
- #include <linux/slab.h>
- #include <linux/file.h>
- #include <linux/xattr.h>
-+#include <linux/mount.h>
- #include <linux/namei.h>
- #include <linux/security.h>
- #include <linux/syscalls.h>
-@@ -32,8 +33,6 @@ xattr_permission(struct inode *inode, co
- 	 * filesystem  or on an immutable / append-only inode.
- 	 */
- 	if (mask & MAY_WRITE) {
--		if (IS_RDONLY(inode))
--			return -EROFS;
- 		if (IS_IMMUTABLE(inode) || IS_APPEND(inode))
- 			return -EPERM;
++static int may_mknod(mode_t mode)
++{
++	switch (mode & S_IFMT) {
++	case S_IFREG:
++	case S_IFCHR:
++	case S_IFBLK:
++	case S_IFIFO:
++	case S_IFSOCK:
++	case 0: /* zero mode translates to S_IFREG */
++		return 0;
++	case S_IFDIR:
++		return -EPERM;
++	default:
++		return -EINVAL;
++	}
++}
++
+ asmlinkage long sys_mknodat(int dfd, const char __user *filename, int mode,
+ 				unsigned dev)
+ {
+@@ -2057,12 +2074,19 @@ asmlinkage long sys_mknodat(int dfd, con
+ 	if (error)
+ 		goto out;
+ 	dentry = lookup_create(&nd, 0);
+-	error = PTR_ERR(dentry);
+-
++	if (IS_ERR(dentry)) {
++		error = PTR_ERR(dentry);
++		goto out_unlock;
++	}
+ 	if (!IS_POSIXACL(nd.path.dentry->d_inode))
+ 		mode &= ~current->fs->umask;
+-	if (!IS_ERR(dentry)) {
+-		switch (mode & S_IFMT) {
++	error = may_mknod(mode);
++	if (error)
++		goto out_dput;
++	error = mnt_want_write(nd.path.mnt);
++	if (error)
++		goto out_dput;
++	switch (mode & S_IFMT) {
+ 		case 0: case S_IFREG:
+ 			error = vfs_create(nd.path.dentry->d_inode,dentry,mode,&nd);
+ 			break;
+@@ -2073,14 +2097,11 @@ asmlinkage long sys_mknodat(int dfd, con
+ 		case S_IFIFO: case S_IFSOCK:
+ 			error = vfs_mknod(nd.path.dentry->d_inode,dentry,mode,0);
+ 			break;
+-		case S_IFDIR:
+-			error = -EPERM;
+-			break;
+-		default:
+-			error = -EINVAL;
+-		}
+-		dput(dentry);
  	}
-@@ -262,7 +261,11 @@ sys_setxattr(char __user *path, char __u
- 	error = user_path_walk(path, &nd);
- 	if (error)
- 		return error;
-+	error = mnt_want_write(nd.path.mnt);
-+	if (error)
-+		return error;
- 	error = setxattr(nd.path.dentry, name, value, size, flags);
 +	mnt_drop_write(nd.path.mnt);
++out_dput:
++	dput(dentry);
++out_unlock:
+ 	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
  	path_put(&nd.path);
- 	return error;
- }
-@@ -277,7 +280,11 @@ sys_lsetxattr(char __user *path, char __
- 	error = user_path_walk_link(path, &nd);
- 	if (error)
- 		return error;
-+	error = mnt_want_write(nd.path.mnt);
-+	if (error)
-+		return error;
- 	error = setxattr(nd.path.dentry, name, value, size, flags);
-+	mnt_drop_write(nd.path.mnt);
- 	path_put(&nd.path);
- 	return error;
- }
-@@ -293,9 +300,14 @@ sys_fsetxattr(int fd, char __user *name,
- 	f = fget(fd);
- 	if (!f)
- 		return error;
-+	error = mnt_want_write(f->f_vfsmnt);
-+	if (error)
-+		goto out_fput;
- 	dentry = f->f_path.dentry;
- 	audit_inode(NULL, dentry);
- 	error = setxattr(dentry, name, value, size, flags);
-+	mnt_drop_write(f->f_vfsmnt);
-+out_fput:
- 	fput(f);
- 	return error;
- }
+ out:
+diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create
++++ a/fs/nfsd/vfs.c
+@@ -1264,7 +1264,11 @@ nfsd_create(struct svc_rqst *rqstp, stru
+ 	case S_IFBLK:
+ 	case S_IFIFO:
+ 	case S_IFSOCK:
++		host_err = mnt_want_write(fhp->fh_export->ex_mnt);
++		if (host_err)
++			break;
+ 		host_err = vfs_mknod(dirp, dchild, iap->ia_mode, rdev);
++		mnt_drop_write(fhp->fh_export->ex_mnt);
+ 		break;
+ 	default:
+ 	        printk("nfsd: bad file type %o in nfsd_create\n", type);
+diff -puN net/unix/af_unix.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create net/unix/af_unix.c
+--- a/net/unix/af_unix.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create
++++ a/net/unix/af_unix.c
+@@ -819,7 +819,11 @@ static int unix_bind(struct socket *sock
+ 		 */
+ 		mode = S_IFSOCK |
+ 		       (SOCK_INODE(sock)->i_mode & ~current->fs->umask);
++		err = mnt_want_write(nd.path.mnt);
++		if (err)
++			goto out_mknod_dput;
+ 		err = vfs_mknod(nd.path.dentry->d_inode, dentry, mode, 0);
++		mnt_drop_write(nd.path.mnt);
+ 		if (err)
+ 			goto out_mknod_dput;
+ 		mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
