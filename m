@@ -1,120 +1,207 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-track-numbers-of-writers-to-mounts-fix-for-boot-time-mnt_want_write-bug.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:41:13 -0700
-Message-ID: <200803261841.m2QIfDxj028833@imap1.linux-foundation.org>
+Subject: - r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:41:04 -0700
+Message-ID: <200803261841.m2QIf4dX028810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49315 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52358 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758333AbYCZSla (ORCPT
+	by vger.kernel.org with ESMTP id S1758305AbYCZSla (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 26 Mar 2008 14:41:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@lst.de, penguin-kernel@i-love.sakura.ne.jp, viro@parcelfarce.linux.theplanet.co.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, haveblue@us.ibm.com, hch@infradead.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix for boot-time mnt_want_write() bug
+     r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-track-numbers-of-writers-to-mounts-fix-for-boot-time-mnt_want_write-bug.patch
+     r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix for boot-time mnt_want_write() bug
-From: Dave Hansen <haveblue@us.ibm.com>
+Subject: r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
 
-First of all, this is a hard bug to trigger.  I think it requires page
-alloc (or slab) debugging.  It also requires that a vfsmnt has been
-freed and its memory not been mapped as something else.  It must also
-have had a recent mnt_writer at the time of its __mntput().  The area
-where the vfsmnt was must fault when accessed.
-
-The problem occurs when we unmount and __mntput() a vfsmount.  We go
-find any cpu_writers for that mount and clear the cpu_writer->count to
-zero.  That is supposed to mean that no one will ever go try and
-coalesce the cpu_writer->count int to the mnt->__mnt_writers.  Buuuuuut,
-that isn't quite what happens.  We only check in __clear_mnt_count() for
-a NULL mount:
-
-void __clear_mnt_count(mnt, cpu_writer)
-{
- 	if (!cpu_writer->mnt)
- 		return;
- 	atomic_add(cpu_writer->count, &cpu_writer->mnt->__mnt_writers);
- 	cpu_writer->count = 0;
-}
-
-and we go ahead and dereference the mnt (which may be invalid here).  If
-it *WAS* invalid, the cpu_writer->count is always 0, and we don't
-actually do anything in practice to the invalid memory location except
-access it.  Adding a 0 doesn't _hurt_ anything, even if there is
-something else in the memory.  That's why we didn't notice this before.
-Miklos, you were very right to get nervous about this area in your
-review.
-
-Either one of the hunks in the patch would have fixed Tetsuo's oops.
-But, let's include both for completeness.  They're both operating on hot
-cachelines at the time so it shouldn't really impact anything.
-
-Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: Al Viro <viro@parcelfarce.linux.theplanet.co.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ fs/nfsd/vfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/namespace.c~r-o-bind-mounts-track-numbers-of-writers-to-mounts-fix-for-boot-time-mnt_want_write-bug fs/namespace.c
---- a/fs/namespace.c~r-o-bind-mounts-track-numbers-of-writers-to-mounts-fix-for-boot-time-mnt_want_write-bug
-+++ a/fs/namespace.c
-@@ -149,6 +149,12 @@ static inline void __clear_mnt_count(str
- {
- 	if (!cpu_writer->mnt)
- 		return;
-+	/*
-+	 * This is in case anyone ever leaves an invalid,
-+	 * old ->mnt and a count of 0.
-+	 */
-+	if (!cpu_writer->count)
-+		return;
- 	atomic_add(cpu_writer->count, &cpu_writer->mnt->__mnt_writers);
- 	cpu_writer->count = 0;
- }
-@@ -529,6 +535,12 @@ static inline void __mntput(struct vfsmo
- 		spin_lock(&cpu_writer->lock);
- 		atomic_add(cpu_writer->count, &mnt->__mnt_writers);
- 		cpu_writer->count = 0;
-+		/*
-+		 * Might as well do this so that no one
-+		 * ever sees the pointer and expects
-+		 * it to be valid.
-+		 */
-+		cpu_writer->mnt = NULL;
- 		spin_unlock(&cpu_writer->lock);
- 	}
- 	/*
+diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2 fs/nfsd/vfs.c
+--- a/fs/nfsd/vfs.c~r-o-bind-mounts-check-mnt-instead-of-superblock-directly-fix-2
++++ a/fs/nfsd/vfs.c
+@@ -1886,7 +1886,7 @@ nfsd_permission(struct svc_rqst *rqstp, 
+ 	if (!(acc & MAY_LOCAL_ACCESS))
+ 		if (acc & (MAY_WRITE | MAY_SATTR | MAY_TRUNC)) {
+ 			if (exp_rdonly(rqstp, exp) ||
+-			    __mnt_is_readonly(exp->ex_mnt))
++			    __mnt_is_readonly(exp->ex_path.mnt))
+ 				return nfserr_rofs;
+ 			if (/* (acc & MAY_WRITE) && */ IS_IMMUTABLE(inode))
+ 				return nfserr_perm;
 _
 
-Patches currently in -mm which might be from haveblue@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
+net-9p-trans_fdc-p9_trans_fd_init-module_init-functions-should-return-0-on-success.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi.patch
+git-acpi-fixup.patch
+git-acpi-arch-x86-kernel-apm_32c-fix-warning.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+pm-remove-destroy_suspended_device-checkpatch-fixes.patch
+git-drm.patch
+git-drm-git-rejects.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-net.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+git-sh.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+scsi-add-iscsi-ibft-support-fix.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
 git-vfs.patch
-hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages.patch
-mm-make-mem_map-allocation-continuous.patch
-vfs-create-proc-pid-mountinfo.patch
-vfs-mountinfo-mm-fix.patch
-vfs-pnode-cleanup.patch
-vfs-mountinfo-stable-peer-group-id.patch
-vfs-mountinfo-show-dominating-group-id.patch
-vfs-optimization-to-proc-pid-mountinfo-patch.patch
-vfs-mountinfo-only-show-mounts-under-tasks-root.patch
-kprobes-prevent-probing-of-preempt_schedule.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
 kprobes-prevent-probing-of-preempt_schedule-fix.patch
 kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+fbdev-driver-for-freescale-8610-and-5121-diu-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
 reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+w1-build-fix.patch
 
