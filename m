@@ -1,165 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace-allow-to-ptrace-sbin-init.patch added to -mm tree
-Date: Wed, 26 Mar 2008 14:53:45 -0700
-Message-ID: <200803262153.m2QLrjXC003746@imap1.linux-foundation.org>
+Subject: - vfs-mountinfo-show-dominating-group-id.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 15:00:18 -0700
+Message-ID: <200803262200.m2QM0Ie5004041@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48408 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58212 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755959AbYCZVyw (ORCPT
+	by vger.kernel.org with ESMTP id S1761007AbYCZWAe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 17:54:52 -0400
+	Wed, 26 Mar 2008 18:00:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: oleg@tv-sign.ru, roland@redhat.com
+To: mszeredi@suse.cz, haveblue@us.ibm.com, hch@lst.de, linuxram@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: permit ptracing of /sbin/init
-has been added to the -mm tree.  Its filename is
-     ptrace-allow-to-ptrace-sbin-init.patch
+     vfs: mountinfo show dominating group id
+has been removed from the -mm tree.  Its filename was
+     vfs-mountinfo-show-dominating-group-id.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: permit ptracing of /sbin/init
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: vfs: mountinfo show dominating group id
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Afaics, currently there are no kernel problems with ptracing init, it can't
-lose SIGNAL_UNKILLABLE flag and be killed/stopped by accident.
+Show peer group ID of nearest dominating group that has intersection
+with the mount's namespace.
 
-The ability to strace/debug init can be very useful if you try to figure out
-why it does not work as expected.
+See the the documentation update for details.
 
-However, admin should know what he does, "gdb /sbin/init 1" stops init, it
-can't reap orphaned zombies or take care of /etc/inittab until continued.  It
-is even possible to crash init (and thus the whole system) if you wish,
-ptracer has full control.
-
-See also the long discussion: http://marc.info/?t=120628018600001
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Ram Pai <linuxram@us.ibm.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    8 --------
- 1 file changed, 8 deletions(-)
+ Documentation/filesystems/proc.txt |   11 ++++++---
+ fs/namespace.c                     |   24 +++++++++++++-------
+ fs/pnode.c                         |   32 +++++++++++++++++++++++++++
+ fs/pnode.h                         |    1 
+ 4 files changed, 57 insertions(+), 11 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-allow-to-ptrace-sbin-init kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-allow-to-ptrace-sbin-init
-+++ a/kernel/ptrace.c
-@@ -168,8 +168,6 @@ int ptrace_attach(struct task_struct *ta
- 	audit_ptrace(task);
+diff -puN Documentation/filesystems/proc.txt~vfs-mountinfo-show-dominating-group-id Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~vfs-mountinfo-show-dominating-group-id
++++ a/Documentation/filesystems/proc.txt
+@@ -2367,15 +2367,20 @@ MNTOPTS: per mount options
+ SBOPTS: per super block options
+ PROPAGATION: propagation type
  
- 	retval = -EPERM;
--	if (task->pid <= 1)
--		goto out;
- 	if (same_thread_group(task, current))
- 		goto out;
+-propagation type: <propagation_flag>[:<peergrpid>][,...]
++propagation type: <propagation_flag>[:<peergrpid>[:<domgrpid>]][,...]
+ 	note: 'shared' flag is followed by the id of this mount's peer group
+-	      'slave' flag is followed by the peer group id of its master mount
++	      'slave' flag is followed by the peer group id of its master mount,
++	      	      optionally followed by the id of the closest dominant(*)
++		      peer group in the same namespace, if one exists.
+ 	      'private' flag stands by itself
+ 	      'unbindable' flag stands by itself
  
-@@ -517,12 +515,6 @@ struct task_struct *ptrace_get_task_stru
- {
- 	struct task_struct *child;
++(*) A dominant peer group is an ancestor of this mount in the
++propagation tree, in other words, this mount receives propagation from
++the dominant peer group, but not the other way round.
++
+ For more information see:
  
--	/*
--	 * Tracing init is not allowed.
--	 */
--	if (pid == 1)
--		return ERR_PTR(-EPERM);
+   Documentation/filesystems/sharedsubtree.txt
+ 
 -
- 	read_lock(&tasklist_lock);
- 	child = find_task_by_vpid(pid);
- 	if (child)
+ ------------------------------------------------------------------------------
+diff -puN fs/namespace.c~vfs-mountinfo-show-dominating-group-id fs/namespace.c
+--- a/fs/namespace.c~vfs-mountinfo-show-dominating-group-id
++++ a/fs/namespace.c
+@@ -810,16 +810,24 @@ static int show_mountinfo(struct seq_fil
+ 	show_sb_opts(m, sb);
+ 	if (sb->s_op->show_options)
+ 		err = sb->s_op->show_options(m, mnt);
+-	if (IS_MNT_SHARED(mnt)) {
+-		seq_printf(m, " shared:%i", get_peer_group_id(mnt));
+-		if (IS_MNT_SLAVE(mnt))
+-			seq_printf(m, ",slave:%i", get_master_id(mnt));
+-	} else if (IS_MNT_SLAVE(mnt)) {
+-		seq_printf(m, " slave:%i", get_master_id(mnt));
++	seq_putc(m, ' ');
++	if (IS_MNT_SHARED(mnt) || IS_MNT_SLAVE(mnt)) {
++		if (IS_MNT_SHARED(mnt))
++			seq_printf(m, "shared:%i", get_peer_group_id(mnt));
++		if (IS_MNT_SLAVE(mnt)) {
++			int dominator_id = get_dominator_id_same_ns(mnt);
++
++			if (IS_MNT_SHARED(mnt))
++				seq_putc(m, ',');
++
++			seq_printf(m, "slave:%i", get_master_id(mnt));
++			if (dominator_id != -1)
++				seq_printf(m, ":%i", dominator_id);
++		}
+ 	} else if (IS_MNT_UNBINDABLE(mnt)) {
+-		seq_printf(m, " unbindable");
++		seq_printf(m, "unbindable");
+ 	} else {
+-		seq_printf(m, " private");
++		seq_printf(m, "private");
+ 	}
+ 	seq_putc(m, '\n');
+ 	return err;
+diff -puN fs/pnode.c~vfs-mountinfo-show-dominating-group-id fs/pnode.c
+--- a/fs/pnode.c~vfs-mountinfo-show-dominating-group-id
++++ a/fs/pnode.c
+@@ -88,6 +88,38 @@ int get_master_id(struct vfsmount *mnt)
+ 	return id;
+ }
+ 
++static struct vfsmount *get_peer_in_ns(struct vfsmount *mnt,
++				       struct mnt_namespace *ns)
++{
++	struct vfsmount *m = mnt;
++
++	do {
++		if (m->mnt_ns == ns)
++			return m;
++		m = next_peer(m);
++	} while (m != mnt);
++
++	return NULL;
++}
++
++int get_dominator_id_same_ns(struct vfsmount *mnt)
++{
++	int id = -1;
++	struct vfsmount *m;
++
++	spin_lock(&vfsmount_lock);
++	for (m = mnt->mnt_master; m != NULL; m = m->mnt_master) {
++		struct vfsmount *d = get_peer_in_ns(m, mnt->mnt_ns);
++		if (d) {
++			id = d->mnt_pgid;
++			break;
++		}
++	}
++	spin_unlock(&vfsmount_lock);
++
++	return id;
++}
++
+ static int do_make_slave(struct vfsmount *mnt)
+ {
+ 	struct vfsmount *peer_mnt = mnt, *master = mnt->mnt_master;
+diff -puN fs/pnode.h~vfs-mountinfo-show-dominating-group-id fs/pnode.h
+--- a/fs/pnode.h~vfs-mountinfo-show-dominating-group-id
++++ a/fs/pnode.h
+@@ -33,4 +33,5 @@ int propagate_umount(struct list_head *)
+ int propagate_mount_busy(struct vfsmount *, int);
+ int get_peer_group_id(struct vfsmount *);
+ int get_master_id(struct vfsmount *);
++int get_dominator_id_same_ns(struct vfsmount *);
+ #endif /* _LINUX_PNODE_H */
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-x86-handle_vm86_trap-cleanup.patch
-git-hrt.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-kthread-call-wake_up_process-without-the-lock-being-held.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-document-cld_continued-notification-mechanics-more.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-signals-check_kill_permission-remove-tasklist_lock.patch
-signals-fix-sbin-init-protection-from-unwanted-signals.patch
-signals-de_thread-simplify-the-child_reaper-switching.patch
-signals-allow-the-kernel-to-actually-kill-sbin-init.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
-ptrace-allow-to-ptrace-sbin-init.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
-simplify-cpu_hotplug_begin-put_online_cpus.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
-pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+mm-rotate_reclaimable_page-cleanup.patch
+vfs-mountinfo-mm-fix.patch
+vfs-mountinfo-show-dominating-group-id.patch
+vfs-optimization-to-proc-pid-mountinfo-patch.patch
+vfs-mountinfo-only-show-mounts-under-tasks-root.patch
+vfs-remove-lives_below_in_same_fs.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
+mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
+mm-bdi-move-statistics-to-debugfs.patch
+mm-bdi-add-separate-writeback-accounting-capability.patch
+mm-bdi-export-bdi_writeout_inc.patch
+mm-bdi-export-bdi_writeout_inc-fix.patch
+mm-add-nr_writeback_temp-counter.patch
+mm-document-missing-fields-for-proc-meminfo.patch
+fuse-support-writable-mmap.patch
+fuse-support-writable-mmap-fix.patch
+fuse-clean-up-setting-i_size-in-write.patch
+fuse-implement-perform_write.patch
+fuse-update-file-size-on-short-read.patch
 
