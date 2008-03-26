@@ -1,136 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-mountinfo-add-mount-id.patch added to -mm tree
-Date: Wed, 26 Mar 2008 15:04:39 -0700
-Message-ID: <200803262204.m2QM4d9B004222@imap1.linux-foundation.org>
+Subject: - vfs-mountinfo-mm-fix.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 15:04:57 -0700
+Message-ID: <200803262204.m2QM4v2J004257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45467 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33649 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761639AbYCZWEx (ORCPT
+	by vger.kernel.org with ESMTP id S1756371AbYCZWFL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 18:04:53 -0400
+	Wed, 26 Mar 2008 18:05:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, hch@lst.de, linuxram@us.ibm.com, viro@zeniv.linux.org.uk
+To: mszeredi@suse.cz, haveblue@us.ibm.com, hch@lst.de, linuxram@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: mountinfo: add mount ID
-has been added to the -mm tree.  Its filename is
-     vfs-mountinfo-add-mount-id.patch
+     vfs: mountinfo -mm fix
+has been removed from the -mm tree.  Its filename was
+     vfs-mountinfo-mm-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: mountinfo: add mount ID
+Subject: vfs: mountinfo -mm fix
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a unique ID to each vfsmount using the IDR infrastructure.  The
-identifiers are reused after the vfsmount is freed.
+The read-only flag showing got broken by the ro-bind patches going in
+and out of -mm.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Ram Pai <linuxram@us.ibm.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ram Pai <linuxram@us.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c        |   34 ++++++++++++++++++++++++++++++++++
- include/linux/mount.h |    1 +
- 2 files changed, 35 insertions(+)
+ fs/namespace.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/namespace.c~vfs-mountinfo-add-mount-id fs/namespace.c
---- a/fs/namespace.c~vfs-mountinfo-add-mount-id
+diff -puN fs/namespace.c~vfs-mountinfo-mm-fix fs/namespace.c
+--- a/fs/namespace.c~vfs-mountinfo-mm-fix
 +++ a/fs/namespace.c
-@@ -27,6 +27,7 @@
- #include <linux/mount.h>
- #include <linux/ramfs.h>
- #include <linux/log2.h>
-+#include <linux/idr.h>
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
- #include "pnode.h"
-@@ -39,6 +40,7 @@
- __cacheline_aligned_in_smp DEFINE_SPINLOCK(vfsmount_lock);
- 
- static int event;
-+static DEFINE_IDA(mnt_id_ida);
- 
- static struct list_head *mount_hashtable __read_mostly;
- static struct kmem_cache *mnt_cache __read_mostly;
-@@ -58,10 +60,41 @@ static inline unsigned long hash(struct 
- 
- #define MNT_WRITER_UNDERFLOW_LIMIT -(1<<16)
- 
-+static int mnt_alloc_id(struct vfsmount *mnt)
-+{
-+	int res;
-+
-+ retry:
-+	spin_lock(&vfsmount_lock);
-+	res = ida_get_new(&mnt_id_ida, &mnt->mnt_id);
-+	spin_unlock(&vfsmount_lock);
-+	if (res == -EAGAIN) {
-+		if (ida_pre_get(&mnt_id_ida, GFP_KERNEL))
-+			goto retry;
-+		res = -ENOMEM;
-+	}
-+	return res;
-+}
-+
-+static void mnt_free_id(struct vfsmount *mnt)
-+{
-+	spin_lock(&vfsmount_lock);
-+	ida_remove(&mnt_id_ida, mnt->mnt_id);
-+	spin_unlock(&vfsmount_lock);
-+}
-+
- struct vfsmount *alloc_vfsmnt(const char *name)
- {
- 	struct vfsmount *mnt = kmem_cache_zalloc(mnt_cache, GFP_KERNEL);
- 	if (mnt) {
-+		int err;
-+
-+		err = mnt_alloc_id(mnt);
-+		if (err) {
-+			kmem_cache_free(mnt_cache, mnt);
-+			return NULL;
-+		}
-+
- 		atomic_set(&mnt->mnt_count, 1);
- 		INIT_LIST_HEAD(&mnt->mnt_hash);
- 		INIT_LIST_HEAD(&mnt->mnt_child);
-@@ -353,6 +386,7 @@ EXPORT_SYMBOL(simple_set_mnt);
- void free_vfsmnt(struct vfsmount *mnt)
- {
- 	kfree(mnt->mnt_devname);
-+	mnt_free_id(mnt);
- 	kmem_cache_free(mnt_cache, mnt);
- }
- 
-diff -puN include/linux/mount.h~vfs-mountinfo-add-mount-id include/linux/mount.h
---- a/include/linux/mount.h~vfs-mountinfo-add-mount-id
-+++ a/include/linux/mount.h
-@@ -56,6 +56,7 @@ struct vfsmount {
- 	struct list_head mnt_slave;	/* slave list entry */
- 	struct vfsmount *mnt_master;	/* slave is on master->mnt_slave_list */
- 	struct mnt_namespace *mnt_ns;	/* containing namespace */
-+	int mnt_id;			/* mount identifier */
- 	/*
- 	 * We put mnt_count & mnt_expiry_mark at the end of struct vfsmount
- 	 * to let these frequently modified fields in a separate cache line
+@@ -801,9 +801,9 @@ static int show_mountinfo(struct seq_fil
+ 	seq_dentry(m, mnt->mnt_root, " \t\n\\");
+ 	seq_putc(m, ' ');
+ 	seq_path(m, &mnt_path, " \t\n\\");
++	seq_puts(m, mnt->mnt_flags & MNT_READONLY ? " ro" : " rw");
+ 	show_mnt_opts(m, mnt);
+-	seq_putc(m, ' ');
+-	seq_puts(m, __mnt_is_readonly(mnt) ? " ro" : " rw");
++	seq_puts(m, sb->s_flags & MS_RDONLY ? " ro" : " rw");
+ 	show_sb_opts(m, sb);
+ 	if (sb->s_op->show_options)
+ 		err = sb->s_op->show_options(m, mnt);
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
