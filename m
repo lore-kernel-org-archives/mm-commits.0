@@ -1,153 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - r-o-bind-mounts-get-callers-of-vfs_mknod-create.patch removed from -mm tree
-Date: Wed, 26 Mar 2008 11:41:06 -0700
-Message-ID: <200803261841.m2QIf6Hu028815@imap1.linux-foundation.org>
+Subject: - fix-up-new-filp-allocators.patch removed from -mm tree
+Date: Wed, 26 Mar 2008 11:40:07 -0700
+Message-ID: <200803261840.m2QIe7iI028634@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37241 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57228 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755025AbYCZSq0 (ORCPT
+	by vger.kernel.org with ESMTP id S1759403AbYCZSqV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 26 Mar 2008 14:46:26 -0400
+	Wed, 26 Mar 2008 14:46:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haveblue@us.ibm.com, hch@infradead.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: haveblue@us.ibm.com, bfields@fieldses.org, ezk@cs.sunysb.edu, hch@lst.de, trond.myklebust@fys.uio.no, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     r/o bind mounts: get callers of vfs_mknod/create()
+     fix up new filp allocators
 has been removed from the -mm tree.  Its filename was
-     r-o-bind-mounts-get-callers-of-vfs_mknod-create.patch
+     fix-up-new-filp-allocators.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: r/o bind mounts: get callers of vfs_mknod/create()
+Subject: fix up new filp allocators
 From: Dave Hansen <haveblue@us.ibm.com>
 
-This takes care of all of the direct callers of vfs_mknod().  Since a few of
-these cases also handle normal file creation as well, this also covers some
-calls to vfs_create().
+Some new uses of get_empty_filp() have crept in, and are not properly taking
+mnt_want_write()s.  This fixes them up.
 
-So that we don't have to make three mnt_want/drop_write() calls inside of the
-switch statement, we move some of its logic outside of the switch and into a
-helper function suggested by Christoph.
+We really need to kill get_empty_filp().
 
-This also encapsulates a fix for mknod(S_IFREG) that Miklos found.
-
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J Bruce Fields" <bfields@fieldses.org>
 Acked-by: Al Viro <viro@ZenIV.linux.org.uk>
-Signed-off-by: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Dave Hansen <haveblue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c         |   43 ++++++++++++++++++++++++++++++++-----------
- fs/nfsd/vfs.c      |    4 ++++
- net/unix/af_unix.c |    4 ++++
- 3 files changed, 40 insertions(+), 11 deletions(-)
+ fs/anon_inodes.c |   16 ++++++----------
+ fs/file_table.c  |    6 ++++++
+ fs/pipe.c        |   19 +++++++++----------
+ 3 files changed, 21 insertions(+), 20 deletions(-)
 
-diff -puN fs/namei.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create fs/namei.c
---- a/fs/namei.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create
-+++ a/fs/namei.c
-@@ -2039,6 +2039,23 @@ int vfs_mknod(struct inode *dir, struct 
+diff -puN fs/anon_inodes.c~fix-up-new-filp-allocators fs/anon_inodes.c
+--- a/fs/anon_inodes.c~fix-up-new-filp-allocators
++++ a/fs/anon_inodes.c
+@@ -81,13 +81,10 @@ int anon_inode_getfd(int *pfd, struct in
+ 
+ 	if (IS_ERR(anon_inode_inode))
+ 		return -ENODEV;
+-	file = get_empty_filp();
+-	if (!file)
+-		return -ENFILE;
+ 
+ 	error = get_unused_fd();
+ 	if (error < 0)
+-		goto err_put_filp;
++		return error;
+ 	fd = error;
+ 
+ 	/*
+@@ -114,14 +111,15 @@ int anon_inode_getfd(int *pfd, struct in
+ 	dentry->d_flags &= ~DCACHE_UNHASHED;
+ 	d_instantiate(dentry, anon_inode_inode);
+ 
+-	file->f_path.mnt = mntget(anon_inode_mnt);
+-	file->f_path.dentry = dentry;
++	error = -ENFILE;
++	file = alloc_file(anon_inode_mnt, dentry,
++			  FMODE_READ | FMODE_WRITE, fops);
++	if (!file)
++		goto err_put_unused_fd;
+ 	file->f_mapping = anon_inode_inode->i_mapping;
+ 
+ 	file->f_pos = 0;
+ 	file->f_flags = O_RDWR;
+-	file->f_op = fops;
+-	file->f_mode = FMODE_READ | FMODE_WRITE;
+ 	file->f_version = 0;
+ 	file->private_data = priv;
+ 
+@@ -134,8 +132,6 @@ int anon_inode_getfd(int *pfd, struct in
+ 
+ err_put_unused_fd:
+ 	put_unused_fd(fd);
+-err_put_filp:
+-	put_filp(file);
  	return error;
  }
- 
-+static int may_mknod(mode_t mode)
-+{
-+	switch (mode & S_IFMT) {
-+	case S_IFREG:
-+	case S_IFCHR:
-+	case S_IFBLK:
-+	case S_IFIFO:
-+	case S_IFSOCK:
-+	case 0: /* zero mode translates to S_IFREG */
-+		return 0;
-+	case S_IFDIR:
-+		return -EPERM;
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
- asmlinkage long sys_mknodat(int dfd, const char __user *filename, int mode,
- 				unsigned dev)
+ EXPORT_SYMBOL_GPL(anon_inode_getfd);
+diff -puN fs/file_table.c~fix-up-new-filp-allocators fs/file_table.c
+--- a/fs/file_table.c~fix-up-new-filp-allocators
++++ a/fs/file_table.c
+@@ -83,6 +83,12 @@ int proc_nr_files(ctl_table *table, int 
+ /* Find an unused file structure and return a pointer to it.
+  * Returns NULL, if there are no more free file structures or
+  * we run out of memory.
++ *
++ * Be very careful using this.  You are responsible for
++ * getting write access to any mount that you might assign
++ * to this filp, if it is opened for write.  If this is not
++ * done, you will imbalance int the mount's writer count
++ * and a warning at __fput() time.
+  */
+ struct file *get_empty_filp(void)
  {
-@@ -2057,12 +2074,19 @@ asmlinkage long sys_mknodat(int dfd, con
- 	if (error)
- 		goto out;
- 	dentry = lookup_create(&nd, 0);
--	error = PTR_ERR(dentry);
--
-+	if (IS_ERR(dentry)) {
-+		error = PTR_ERR(dentry);
-+		goto out_unlock;
-+	}
- 	if (!IS_POSIXACL(nd.path.dentry->d_inode))
- 		mode &= ~current->fs->umask;
--	if (!IS_ERR(dentry)) {
--		switch (mode & S_IFMT) {
-+	error = may_mknod(mode);
-+	if (error)
-+		goto out_dput;
-+	error = mnt_want_write(nd.path.mnt);
-+	if (error)
-+		goto out_dput;
-+	switch (mode & S_IFMT) {
- 		case 0: case S_IFREG:
- 			error = vfs_create(nd.path.dentry->d_inode,dentry,mode,&nd);
- 			break;
-@@ -2073,14 +2097,11 @@ asmlinkage long sys_mknodat(int dfd, con
- 		case S_IFIFO: case S_IFSOCK:
- 			error = vfs_mknod(nd.path.dentry->d_inode,dentry,mode,0);
- 			break;
--		case S_IFDIR:
--			error = -EPERM;
--			break;
--		default:
--			error = -EINVAL;
--		}
--		dput(dentry);
- 	}
-+	mnt_drop_write(nd.path.mnt);
-+out_dput:
+diff -puN fs/pipe.c~fix-up-new-filp-allocators fs/pipe.c
+--- a/fs/pipe.c~fix-up-new-filp-allocators
++++ a/fs/pipe.c
+@@ -957,13 +957,10 @@ struct file *create_write_pipe(void)
+ 	struct dentry *dentry;
+ 	struct qstr name = { .name = "" };
+ 
+-	f = get_empty_filp();
+-	if (!f)
+-		return ERR_PTR(-ENFILE);
+ 	err = -ENFILE;
+ 	inode = get_pipe_inode();
+ 	if (!inode)
+-		goto err_file;
++		goto err;
+ 
+ 	err = -ENOMEM;
+ 	dentry = d_alloc(pipe_mnt->mnt_sb->s_root, &name);
+@@ -978,22 +975,24 @@ struct file *create_write_pipe(void)
+ 	 */
+ 	dentry->d_flags &= ~DCACHE_UNHASHED;
+ 	d_instantiate(dentry, inode);
+-	f->f_path.mnt = mntget(pipe_mnt);
+-	f->f_path.dentry = dentry;
++
++	err = -ENFILE;
++	f = alloc_file(pipe_mnt, dentry, FMODE_WRITE, &write_pipe_fops);
++	if (!f)
++		goto err_dentry;
+ 	f->f_mapping = inode->i_mapping;
+ 
+ 	f->f_flags = O_WRONLY;
+-	f->f_op = &write_pipe_fops;
+-	f->f_mode = FMODE_WRITE;
+ 	f->f_version = 0;
+ 
+ 	return f;
+ 
++ err_dentry:
 +	dput(dentry);
-+out_unlock:
- 	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
- 	path_put(&nd.path);
- out:
-diff -puN fs/nfsd/vfs.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create fs/nfsd/vfs.c
---- a/fs/nfsd/vfs.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create
-+++ a/fs/nfsd/vfs.c
-@@ -1264,7 +1264,11 @@ nfsd_create(struct svc_rqst *rqstp, stru
- 	case S_IFBLK:
- 	case S_IFIFO:
- 	case S_IFSOCK:
-+		host_err = mnt_want_write(fhp->fh_export->ex_mnt);
-+		if (host_err)
-+			break;
- 		host_err = vfs_mknod(dirp, dchild, iap->ia_mode, rdev);
-+		mnt_drop_write(fhp->fh_export->ex_mnt);
- 		break;
- 	default:
- 	        printk("nfsd: bad file type %o in nfsd_create\n", type);
-diff -puN net/unix/af_unix.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create net/unix/af_unix.c
---- a/net/unix/af_unix.c~r-o-bind-mounts-get-callers-of-vfs_mknod-create
-+++ a/net/unix/af_unix.c
-@@ -819,7 +819,11 @@ static int unix_bind(struct socket *sock
- 		 */
- 		mode = S_IFSOCK |
- 		       (SOCK_INODE(sock)->i_mode & ~current->fs->umask);
-+		err = mnt_want_write(nd.path.mnt);
-+		if (err)
-+			goto out_mknod_dput;
- 		err = vfs_mknod(nd.path.dentry->d_inode, dentry, mode, 0);
-+		mnt_drop_write(nd.path.mnt);
- 		if (err)
- 			goto out_mknod_dput;
- 		mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
+  err_inode:
+ 	free_pipe_info(inode);
+ 	iput(inode);
+- err_file:
+-	put_filp(f);
++ err:
+ 	return ERR_PTR(err);
+ }
+ 
 _
 
 Patches currently in -mm which might be from haveblue@us.ibm.com are
