@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-implement-device-whitelist-v6.patch added to -mm tree
-Date: Thu, 27 Mar 2008 02:04:13 -0700
-Message-ID: <200803270904.m2R94DCX027050@imap1.linux-foundation.org>
+Subject: + cgroups-implement-device-whitelist-v6-cleanups.patch added to -mm tree
+Date: Thu, 27 Mar 2008 02:04:17 -0700
+Message-ID: <200803270904.m2R94H9U027057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36520 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41866 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753063AbYC0JFE (ORCPT
+	by vger.kernel.org with ESMTP id S1753063AbYC0JEz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 05:05:04 -0400
+	Thu, 27 Mar 2008 05:04:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, balbir@in.ibm.com, daniel@hozac.com, jmorris@namei.org, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, daniel@hozac.com, jmorris@namei.org, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, serue@us.ibm.com
 
 
 The patch titled
-     cgroups: implement device whitelist
+     cgroups-implement-device-whitelist-v6-cleanups
 has been added to the -mm tree.  Its filename is
-     cgroups-implement-device-whitelist-v6.patch
+     cgroups-implement-device-whitelist-v6-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,777 +34,200 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: implement device whitelist
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: cgroups-implement-device-whitelist-v6-cleanups
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Implement a cgroup to track and enforce open and mknod restrictions on device
-files.  A device cgroup associates a device access whitelist with each cgroup.
- A whitelist entry has 4 fields.  'type' is a (all), c (char), or b (block). 
-'all' means it applies to all types and all major and minor numbers.  Major
-and minor are either an integer or * for all.  Access is a composition of r
-(read), w (write), and m (mknod).
-
-The root device cgroup starts with rwm to 'all'.  A child devcg gets a copy of
-the parent.  Admins can then remove devices from the whitelist or add new
-entries.  A child cgroup can never receive a device access which is denied its
-parent.  However when a device access is removed from a parent it will not
-also be removed from the child(ren).
-
-An entry is added using devices.allow, and removed using
-devices.deny.  For instance
-
-	echo 'c 1:3 mr' > /cgroups/1/devices.allow
-
-allows cgroup 1 to read and mknod the device usually known as
-/dev/null.  Doing
-
-	echo a > /cgroups/1/devices.deny
-
-will remove the default 'a *:* mrw' entry.
-
-CAP_SYS_ADMIN is needed to change permissions or move another task to a new
-cgroup.  A cgroup may not be granted more permissions than the cgroup's parent
-has.  Any task can move itself between cgroups.  This won't be sufficient, but
-we can decide the best way to adequately restrict movement later.
-
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Acked-by: James Morris <jmorris@namei.org>
-Looks-good-to: Pavel Emelyanov <xemul@openvz.org>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
 Cc: Daniel Hokka Zakrisson <daniel@hozac.com>
+Cc: James Morris <jmorris@namei.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c                    |    9 
- include/linux/cgroup_subsys.h |    6 
- include/linux/device_cgroup.h |   12 
- init/Kconfig                  |    7 
- security/Makefile             |    1 
- security/device_cgroup.c      |  604 ++++++++++++++++++++++++++++++++
- 6 files changed, 639 insertions(+)
+ security/device_cgroup.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/namei.c~cgroups-implement-device-whitelist-v6 fs/namei.c
---- a/fs/namei.c~cgroups-implement-device-whitelist-v6
-+++ a/fs/namei.c
-@@ -30,6 +30,7 @@
- #include <linux/capability.h>
- #include <linux/file.h>
- #include <linux/fcntl.h>
-+#include <linux/device_cgroup.h>
- #include <asm/namei.h>
- #include <asm/uaccess.h>
+diff -puN security/device_cgroup.c~cgroups-implement-device-whitelist-v6-cleanups security/device_cgroup.c
+--- a/security/device_cgroup.c~cgroups-implement-device-whitelist-v6-cleanups
++++ a/security/device_cgroup.c
+@@ -48,14 +48,12 @@ struct dev_cgroup {
+ 	spinlock_t lock;
+ };
  
-@@ -281,6 +282,10 @@ int permission(struct inode *inode, int 
- 	if (retval)
- 		return retval;
- 
-+	retval = devcgroup_inode_permission(inode, mask);
-+	if (retval)
-+		return retval;
-+
- 	return security_inode_permission(inode, mask, nd);
+-static inline struct dev_cgroup *cgroup_to_devcgroup(
+-		struct cgroup *cgroup)
++static inline struct dev_cgroup *cgroup_to_devcgroup(struct cgroup *cgroup)
+ {
+ 	return container_of(cgroup_subsys_state(cgroup, devices_subsys_id),
+ 			    struct dev_cgroup, css);
  }
  
-@@ -2029,6 +2034,10 @@ int vfs_mknod(struct inode *dir, struct 
- 	if (!dir->i_op || !dir->i_op->mknod)
- 		return -EPERM;
+-
+ struct cgroup_subsys devices_subsys;
  
-+	error = devcgroup_inode_mknod(mode, dev);
-+	if (error)
-+		return error;
-+
- 	error = security_inode_mknod(dir, dentry, mode, dev);
- 	if (error)
- 		return error;
-diff -puN include/linux/cgroup_subsys.h~cgroups-implement-device-whitelist-v6 include/linux/cgroup_subsys.h
---- a/include/linux/cgroup_subsys.h~cgroups-implement-device-whitelist-v6
-+++ a/include/linux/cgroup_subsys.h
-@@ -42,3 +42,9 @@ SUBSYS(mem_cgroup)
- #endif
- 
- /* */
-+
-+#ifdef CONFIG_CGROUP_DEVICE
-+SUBSYS(devices)
-+#endif
-+
-+/* */
-diff -puN /dev/null include/linux/device_cgroup.h
---- /dev/null
-+++ a/include/linux/device_cgroup.h
-@@ -0,0 +1,12 @@
-+#include <linux/module.h>
-+#include <linux/fs.h>
-+
-+#ifdef CONFIG_CGROUP_DEVICE
-+extern int devcgroup_inode_permission(struct inode *inode, int mask);
-+extern int devcgroup_inode_mknod(int mode, dev_t dev);
-+#else
-+static inline int devcgroup_inode_permission(struct inode *inode, int mask)
-+{ return 0; }
-+static inline int devcgroup_inode_mknod(int mode, dev_t dev)
-+{ return 0; }
-+#endif
-diff -puN init/Kconfig~cgroups-implement-device-whitelist-v6 init/Kconfig
---- a/init/Kconfig~cgroups-implement-device-whitelist-v6
-+++ a/init/Kconfig
-@@ -298,6 +298,13 @@ config CGROUP_NS
-           for instance virtual servers and checkpoint/restart
-           jobs.
- 
-+config CGROUP_DEVICE
-+	bool "Device controller for cgroups"
-+	depends on CGROUPS && EXPERIMENTAL
-+	help
-+	  Provides a cgroup implementing whitelists for devices which
-+	  a process in the cgroup can mknod or open.
-+
- config CPUSETS
- 	bool "Cpuset support"
- 	depends on SMP && CGROUPS
-diff -puN security/Makefile~cgroups-implement-device-whitelist-v6 security/Makefile
---- a/security/Makefile~cgroups-implement-device-whitelist-v6
-+++ a/security/Makefile
-@@ -18,3 +18,4 @@ obj-$(CONFIG_SECURITY_SELINUX)		+= selin
- obj-$(CONFIG_SECURITY_SMACK)		+= commoncap.o smack/built-in.o
- obj-$(CONFIG_SECURITY_CAPABILITIES)	+= commoncap.o capability.o
- obj-$(CONFIG_SECURITY_ROOTPLUG)		+= commoncap.o root_plug.o
-+obj-$(CONFIG_CGROUP_DEVICE)		+= device_cgroup.o
-diff -puN /dev/null security/device_cgroup.c
---- /dev/null
-+++ a/security/device_cgroup.c
-@@ -0,0 +1,604 @@
-+/*
-+ * dev_cgroup.c - device cgroup subsystem
-+ *
-+ * Copyright 2007 IBM Corp
-+ */
-+
-+#include <linux/device_cgroup.h>
-+#include <linux/cgroup.h>
-+#include <linux/ctype.h>
-+#include <linux/list.h>
-+#include <asm/uaccess.h>
-+
-+#define ACC_MKNOD 1
-+#define ACC_READ  2
-+#define ACC_WRITE 4
-+#define ACC_MASK (ACC_MKNOD | ACC_READ | ACC_WRITE)
-+
-+#define DEV_BLOCK 1
-+#define DEV_CHAR  2
-+#define DEV_ALL   4  /* this represents all devices */
-+
-+/*
-+ * whitelist locking rules:
-+ * cgroup_lock() cannot be taken under dev_cgroup->lock.
-+ * dev_cgroup->lock can be taken with or without cgroup_lock().
-+ *
-+ * modifications always require cgroup_lock
-+ * modifications to a list which is visible require the
-+ *   dev_cgroup->lock *and* cgroup_lock()
-+ * walking the list requires dev_cgroup->lock or cgroup_lock().
-+ *
-+ * reasoning: dev_whitelist_copy() needs to kmalloc, so needs
-+ *   a mutex, which the cgroup_lock() is.  Since modifying
-+ *   a visible list requires both locks, either lock can be
-+ *   taken for walking the list.
-+ */
-+
-+struct dev_whitelist_item {
-+	u32 major, minor;
-+	short type;
-+	short access;
-+	struct list_head list;
-+};
-+
-+struct dev_cgroup {
-+	struct cgroup_subsys_state css;
-+	struct list_head whitelist;
-+	spinlock_t lock;
-+};
-+
-+static inline struct dev_cgroup *cgroup_to_devcgroup(
-+		struct cgroup *cgroup)
-+{
-+	return container_of(cgroup_subsys_state(cgroup, devices_subsys_id),
-+			    struct dev_cgroup, css);
-+}
-+
-+
-+struct cgroup_subsys devices_subsys;
-+
-+static int devcgroup_can_attach(struct cgroup_subsys *ss,
-+		struct cgroup *new_cgroup, struct task_struct *task)
-+{
-+	if (current != task && !capable(CAP_SYS_ADMIN))
-+			return -EPERM;
-+
-+	return 0;
-+}
-+
-+/*
-+ * called under cgroup_lock()
-+ */
-+static int dev_whitelist_copy(struct list_head *dest, struct list_head *orig)
-+{
-+	struct dev_whitelist_item *wh, *tmp, *new;
-+
-+	list_for_each_entry(wh, orig, list) {
-+		new = kmalloc(sizeof(*wh), GFP_KERNEL);
-+		if (!new)
-+			goto free_and_exit;
-+		new->major = wh->major;
-+		new->minor = wh->minor;
-+		new->type = wh->type;
-+		new->access = wh->access;
-+		list_add_tail(&new->list, dest);
-+	}
-+
-+	return 0;
-+
-+free_and_exit:
-+	list_for_each_entry_safe(wh, tmp, dest, list) {
-+		list_del(&wh->list);
-+		kfree(wh);
-+	}
-+	return -ENOMEM;
-+}
-+
-+/* Stupid prototype - don't bother combining existing entries */
-+/*
-+ * called under cgroup_lock()
-+ * since the list is visible to other tasks, we need the spinlock also
-+ */
-+static int dev_whitelist_add(struct dev_cgroup *dev_cgroup,
-+			struct dev_whitelist_item *wh)
-+{
-+	struct dev_whitelist_item *whcopy;
-+
-+	whcopy = kmalloc(sizeof(*whcopy), GFP_KERNEL);
-+	if (!whcopy)
-+		return -ENOMEM;
-+
-+	memcpy(whcopy, wh, sizeof(*whcopy));
-+	spin_lock(&dev_cgroup->lock);
-+	list_add_tail(&whcopy->list, &dev_cgroup->whitelist);
-+	spin_unlock(&dev_cgroup->lock);
-+	return 0;
-+}
-+
-+/*
-+ * called under cgroup_lock()
-+ * since the list is visible to other tasks, we need the spinlock also
-+ */
-+static void dev_whitelist_rm(struct dev_cgroup *dev_cgroup,
-+			struct dev_whitelist_item *wh)
-+{
-+	struct dev_whitelist_item *walk, *tmp;
-+
-+	spin_lock(&dev_cgroup->lock);
-+	list_for_each_entry_safe(walk, tmp, &dev_cgroup->whitelist, list) {
-+		if (walk->type == DEV_ALL)
-+			goto remove;
-+		if (walk->type != wh->type)
-+			continue;
-+		if (walk->major != ~0 && walk->major != wh->major)
-+			continue;
-+		if (walk->minor != ~0 && walk->minor != wh->minor)
-+			continue;
-+
-+remove:
-+		walk->access &= ~wh->access;
-+		if (!walk->access) {
-+			list_del(&walk->list);
-+			kfree(walk);
-+		}
-+	}
-+	spin_unlock(&dev_cgroup->lock);
-+}
-+
-+/*
-+ * called from kernel/cgroup.c with cgroup_lock() held.
-+ */
-+static struct cgroup_subsys_state *devcgroup_create(struct cgroup_subsys *ss,
-+						struct cgroup *cgroup)
-+{
-+	struct dev_cgroup *dev_cgroup, *parent_dev_cgroup;
-+	struct cgroup *parent_cgroup;
-+	int ret;
-+
-+	dev_cgroup = kzalloc(sizeof(*dev_cgroup), GFP_KERNEL);
-+	if (!dev_cgroup)
-+		return ERR_PTR(-ENOMEM);
-+	INIT_LIST_HEAD(&dev_cgroup->whitelist);
-+	parent_cgroup = cgroup->parent;
-+
-+	if (parent_cgroup == NULL) {
-+		struct dev_whitelist_item *wh;
-+		wh = kmalloc(sizeof(*wh), GFP_KERNEL);
-+		if (!wh) {
-+			kfree(dev_cgroup);
-+			return ERR_PTR(-ENOMEM);
-+		}
-+		wh->minor = wh->major = ~0;
-+		wh->type = DEV_ALL;
-+		wh->access = ACC_MKNOD | ACC_READ | ACC_WRITE;
-+		list_add(&wh->list, &dev_cgroup->whitelist);
-+	} else {
-+		parent_dev_cgroup = cgroup_to_devcgroup(parent_cgroup);
-+		ret = dev_whitelist_copy(&dev_cgroup->whitelist,
-+				&parent_dev_cgroup->whitelist);
-+		if (ret) {
-+			kfree(dev_cgroup);
-+			return ERR_PTR(ret);
-+		}
-+	}
-+
-+	spin_lock_init(&dev_cgroup->lock);
-+	return &dev_cgroup->css;
-+}
-+
-+static void devcgroup_destroy(struct cgroup_subsys *ss,
-+			struct cgroup *cgroup)
-+{
-+	struct dev_cgroup *dev_cgroup;
-+	struct dev_whitelist_item *wh, *tmp;
-+
-+	dev_cgroup = cgroup_to_devcgroup(cgroup);
-+	list_for_each_entry_safe(wh, tmp, &dev_cgroup->whitelist, list) {
-+		list_del(&wh->list);
-+		kfree(wh);
-+	}
-+	kfree(dev_cgroup);
-+}
-+
-+#define DEVCG_ALLOW 1
-+#define DEVCG_DENY 2
-+
-+static void set_access(char *acc, short access)
-+{
-+	int idx = 0;
-+	memset(acc, 0, 4);
-+	if (access & ACC_READ)
-+		acc[idx++] = 'r';
-+	if (access & ACC_WRITE)
-+		acc[idx++] = 'w';
-+	if (access & ACC_MKNOD)
-+		acc[idx++] = 'm';
-+}
-+
-+static char type_to_char(short type)
-+{
-+	if (type == DEV_ALL)
-+		return 'a';
-+	if (type == DEV_CHAR)
-+		return 'c';
-+	if (type == DEV_BLOCK)
-+		return 'b';
-+	return 'X';
-+}
-+
-+static void set_majmin(char *str, int len, unsigned m)
-+{
-+	memset(str, 0, len);
-+	if (m == ~0)
-+		sprintf(str, "*");
-+	else
-+		snprintf(str, len, "%d", m);
-+}
-+
-+static char *print_whitelist(struct dev_cgroup *devcgroup, int *len)
-+{
-+	char *buf, *s, acc[4];
-+	struct dev_whitelist_item *wh;
-+	int ret;
-+	int count = 0;
-+	char maj[10], min[10];
-+
-+	buf = kmalloc(4096, GFP_KERNEL);
-+	if (!buf)
-+		return ERR_PTR(-ENOMEM);
-+	s = buf;
-+	*s = '\0';
-+	*len = 0;
-+
-+	spin_lock(&devcgroup->lock);
-+	list_for_each_entry(wh, &devcgroup->whitelist, list) {
-+		set_access(acc, wh->access);
-+		set_majmin(maj, 10, wh->major);
-+		set_majmin(min, 10, wh->minor);
-+		ret = snprintf(s, 4095-(s-buf), "%c %s:%s %s\n",
-+			type_to_char(wh->type), maj, min, acc);
-+		if (s+ret >= buf+4095) {
-+			kfree(buf);
-+			buf = ERR_PTR(-ENOMEM);
-+			break;
-+		}
-+		s += ret;
-+		*len += ret;
-+		count++;
-+	}
-+	spin_unlock(&devcgroup->lock);
-+
-+	return buf;
-+}
-+
-+static ssize_t devcgroup_access_read(struct cgroup *cgroup,
-+			struct cftype *cft, struct file *file,
-+			char __user *userbuf, size_t nbytes, loff_t *ppos)
-+{
-+	struct dev_cgroup *devcgroup = cgroup_to_devcgroup(cgroup);
-+	int filetype = cft->private;
-+	char *buffer;
-+	int len, retval;
-+
-+	if (filetype != DEVCG_ALLOW)
-+		return -EINVAL;
-+	buffer = print_whitelist(devcgroup, &len);
-+	if (IS_ERR(buffer))
-+		return PTR_ERR(buffer);
-+
-+	retval = simple_read_from_buffer(userbuf, nbytes, ppos, buffer, len);
-+	kfree(buffer);
-+	return retval;
-+}
-+
-+/*
-+ * may_access_whitelist:
-+ * does the access granted to dev_cgroup c contain the access
-+ * requested in whitelist item refwh.
-+ * return 1 if yes, 0 if no.
-+ * call with c->lock held
-+ */
-+static int may_access_whitelist(struct dev_cgroup *c,
-+				       struct dev_whitelist_item *refwh)
-+{
-+	struct dev_whitelist_item *whitem;
-+
-+	list_for_each_entry(whitem, &c->whitelist, list) {
-+		if (whitem->type & DEV_ALL)
-+			return 1;
-+		if ((refwh->type & DEV_BLOCK) && !(whitem->type & DEV_BLOCK))
-+			continue;
-+		if ((refwh->type & DEV_CHAR) && !(whitem->type & DEV_CHAR))
-+			continue;
-+		if (whitem->major != ~0 && whitem->major != refwh->major)
-+			continue;
-+		if (whitem->minor != ~0 && whitem->minor != refwh->minor)
-+			continue;
-+		if (refwh->access & (~(whitem->access | ACC_MASK)))
-+			continue;
-+		return 1;
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * parent_has_perm:
-+ * when adding a new allow rule to a device whitelist, the rule
-+ * must be allowed in the parent device
-+ */
-+static int parent_has_perm(struct cgroup *childcg,
-+				  struct dev_whitelist_item *wh)
-+{
-+	struct cgroup *pcg = childcg->parent;
-+	struct dev_cgroup *parent;
-+	int ret;
-+
-+	if (!pcg)
-+		return 1;
-+	parent = cgroup_to_devcgroup(pcg);
-+	spin_lock(&parent->lock);
-+	ret = may_access_whitelist(parent, wh);
-+	spin_unlock(&parent->lock);
-+	return ret;
-+}
-+
-+/*
-+ * Modify the whitelist using allow/deny rules.
-+ * CAP_SYS_ADMIN is needed for this.  It's at least separate from CAP_MKNOD
-+ * so we can give a container CAP_MKNOD to let it create devices but not
-+ * modify the whitelist.
-+ * It seems likely we'll want to add a CAP_CONTAINER capability to allow
-+ * us to also grant CAP_SYS_ADMIN to containers without giving away the
-+ * device whitelist controls, but for now we'll stick with CAP_SYS_ADMIN
-+ *
-+ * Taking rules away is always allowed (given CAP_SYS_ADMIN).  Granting
-+ * new access is only allowed if you're in the top-level cgroup, or your
-+ * parent cgroup has the access you're asking for.
-+ */
-+static ssize_t devcgroup_access_write(struct cgroup *cgroup, struct cftype *cft,
-+				struct file *file, const char __user *userbuf,
-+				size_t nbytes, loff_t *ppos)
-+{
-+	struct cgroup *cur_cgroup;
-+	struct dev_cgroup *devcgroup, *cur_devcgroup;
-+	int filetype = cft->private;
-+	char *buffer, *b;
-+	int retval = 0, count;
-+	struct dev_whitelist_item wh;
-+
-+	if (!capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	devcgroup = cgroup_to_devcgroup(cgroup);
-+	cur_cgroup = task_cgroup(current, devices_subsys.subsys_id);
-+	cur_devcgroup = cgroup_to_devcgroup(cur_cgroup);
-+
-+	buffer = kmalloc(nbytes+1, GFP_KERNEL);
-+	if (!buffer)
-+		return -ENOMEM;
-+
-+	if (copy_from_user(buffer, userbuf, nbytes)) {
-+		retval = -EFAULT;
-+		goto out1;
-+	}
-+	buffer[nbytes] = 0;	/* nul-terminate */
-+
-+	cgroup_lock();
-+	if (cgroup_is_removed(cgroup)) {
-+		retval = -ENODEV;
-+		goto out2;
-+	}
-+
-+	memset(&wh, 0, sizeof(wh));
-+	b = buffer;
-+
-+	switch (*b) {
-+	case 'a':
-+		wh.type = DEV_ALL;
-+		wh.access = ACC_MASK;
-+		goto handle;
-+	case 'b':
-+		wh.type = DEV_BLOCK;
-+		break;
-+	case 'c':
-+		wh.type = DEV_CHAR;
-+		break;
-+	default:
-+		retval = -EINVAL;
-+		goto out2;
-+	}
-+	b++;
-+	if (!isspace(*b)) {
-+		retval = -EINVAL;
-+		goto out2;
-+	}
-+	b++;
-+	if (*b == '*') {
-+		wh.major = ~0;
-+		b++;
-+	} else if (isdigit(*b)) {
-+		wh.major = 0;
-+		while (isdigit(*b)) {
-+			wh.major = wh.major*10+(*b-'0');
-+			b++;
-+		}
-+	} else {
-+		retval = -EINVAL;
-+		goto out2;
-+	}
-+	if (*b != ':') {
-+		retval = -EINVAL;
-+		goto out2;
-+	}
-+	b++;
-+
-+	/* read minor */
-+	if (*b == '*') {
-+		wh.minor = ~0;
-+		b++;
-+	} else if (isdigit(*b)) {
-+		wh.minor = 0;
-+		while (isdigit(*b)) {
-+			wh.minor = wh.minor*10+(*b-'0');
-+			b++;
-+		}
-+	} else {
-+		retval = -EINVAL;
-+		goto out2;
-+	}
-+	if (!isspace(*b)) {
-+		retval = -EINVAL;
-+		goto out2;
-+	}
-+	for (b++, count = 0; count < 3; count++, b++) {
-+		switch (*b) {
-+		case 'r':
-+			wh.access |= ACC_READ;
-+			break;
-+		case 'w':
-+			wh.access |= ACC_WRITE;
-+			break;
-+		case 'm':
-+			wh.access |= ACC_MKNOD;
-+			break;
-+		case '\n':
-+		case '\0':
-+			count=3;
-+			break;
-+		default:
-+			retval = -EINVAL;
-+			goto out2;
-+		}
-+	}
-+
-+handle:
-+	retval = 0;
-+	switch (filetype) {
-+	case DEVCG_ALLOW:
-+		if (!parent_has_perm(cgroup, &wh))
-+			retval = -EPERM;
-+		else
-+			retval = dev_whitelist_add(devcgroup, &wh);
-+		break;
-+	case DEVCG_DENY:
-+		dev_whitelist_rm(devcgroup, &wh);
-+		break;
-+	default:
-+		retval = -EINVAL;
-+		goto out2;
-+	}
-+
-+	if (retval == 0)
-+		retval = nbytes;
-+
-+out2:
-+	cgroup_unlock();
-+out1:
-+	kfree(buffer);
-+	return retval;
-+}
-+
-+static struct cftype dev_cgroup_files[] = {
-+	{
-+		.name = "allow",
-+		.read = devcgroup_access_read,
-+		.write  = devcgroup_access_write,
-+		.private = DEVCG_ALLOW,
-+	},
-+	{
-+		.name = "deny",
-+		.write = devcgroup_access_write,
-+		.private = DEVCG_DENY,
-+	},
-+};
-+
-+static int devcgroup_populate(struct cgroup_subsys *ss,
-+				struct cgroup *cgroup)
-+{
-+	return cgroup_add_files(cgroup, ss, dev_cgroup_files,
-+					ARRAY_SIZE(dev_cgroup_files));
-+}
-+
-+struct cgroup_subsys devices_subsys = {
-+	.name = "devices",
-+	.can_attach = devcgroup_can_attach,
-+	.create = devcgroup_create,
-+	.destroy  = devcgroup_destroy,
-+	.populate = devcgroup_populate,
-+	.subsys_id = devices_subsys_id,
-+};
-+
-+int devcgroup_inode_permission(struct inode *inode, int mask)
-+{
-+	struct cgroup *cgroup;
-+	struct dev_cgroup *dev_cgroup;
-+	struct dev_whitelist_item *wh;
-+
-+	dev_t device = inode->i_rdev;
-+	if (!device)
-+		return 0;
-+	if (!S_ISBLK(inode->i_mode) && !S_ISCHR(inode->i_mode))
-+		return 0;
-+	cgroup = task_cgroup(current, devices_subsys.subsys_id);
-+	dev_cgroup = cgroup_to_devcgroup(cgroup);
-+	if (!dev_cgroup)
-+		return 0;
-+
-+	spin_lock(&dev_cgroup->lock);
-+	list_for_each_entry(wh, &dev_cgroup->whitelist, list) {
-+		if (wh->type & DEV_ALL)
-+			goto acc_check;
-+		if ((wh->type & DEV_BLOCK) && !S_ISBLK(inode->i_mode))
-+			continue;
-+		if ((wh->type & DEV_CHAR) && !S_ISCHR(inode->i_mode))
-+			continue;
-+		if (wh->major != ~0 && wh->major != imajor(inode))
-+			continue;
-+		if (wh->minor != ~0 && wh->minor != iminor(inode))
-+			continue;
-+acc_check:
-+		if ((mask & MAY_WRITE) && !(wh->access & ACC_WRITE))
-+			continue;
-+		if ((mask & MAY_READ) && !(wh->access & ACC_READ))
-+			continue;
-+		spin_unlock(&dev_cgroup->lock);
-+		return 0;
-+	}
-+	spin_unlock(&dev_cgroup->lock);
-+
-+	return -EPERM;
-+}
-+
-+int devcgroup_inode_mknod(int mode, dev_t dev)
-+{
-+	struct cgroup *cgroup;
-+	struct dev_cgroup *dev_cgroup;
-+	struct dev_whitelist_item *wh;
-+
-+	cgroup = task_cgroup(current, devices_subsys.subsys_id);
-+	dev_cgroup = cgroup_to_devcgroup(cgroup);
-+	if (!dev_cgroup)
-+		return 0;
-+
-+	spin_lock(&dev_cgroup->lock);
-+	list_for_each_entry(wh, &dev_cgroup->whitelist, list) {
-+		if (wh->type & DEV_ALL)
-+			goto acc_check;
-+		if ((wh->type & DEV_BLOCK) && !S_ISBLK(mode))
-+			continue;
-+		if ((wh->type & DEV_CHAR) && !S_ISCHR(mode))
-+			continue;
-+		if (wh->major != ~0 && wh->major != MAJOR(dev))
-+			continue;
-+		if (wh->minor != ~0 && wh->minor != MINOR(dev))
-+			continue;
-+acc_check:
-+		if (!(wh->access & ACC_MKNOD))
-+			continue;
-+		spin_unlock(&dev_cgroup->lock);
-+		return 0;
-+	}
-+	spin_unlock(&dev_cgroup->lock);
-+	return -EPERM;
-+}
+ static int devcgroup_can_attach(struct cgroup_subsys *ss,
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
+net-9p-trans_fdc-p9_trans_fd_init-module_init-functions-should-return-0-on-success.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+pm-remove-destroy_suspended_device-checkpatch-fixes.patch
+git-drm.patch
+git-drm-git-rejects.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-net.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+git-sh.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+scsi-add-iscsi-ibft-support-fix.patch
+git-block-git-rejects.patch
 git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
 git-vfs.patch
-capabilities-implement-per-process-securebits.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 capabilities-implement-per-process-securebits-warning-fix.patch
-capabilities-implement-per-process-securebits-fix.patch
-root_plug-use-cap_task_prctl.patch
-smack-use-cap_task_prctl.patch
-cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh.patch
-cgroups-implement-device-whitelist-v6.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
 cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
 cgroups-implement-device-whitelist-v6-cleanups.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-ipc-semaphores-code-factorisation.patch
-ipc-shared-memory-introduce-shmctl_down.patch
-ipc-message-queues-introduce-msgctl_down.patch
-ipc-semaphores-move-the-rwmutex-handling-inside-semctl_down.patch
-ipc-semaphores-remove-one-unused-parameter-from-semctl_down.patch
-ipc-get-rid-of-the-use-_setbuf-structure.patch
-ipc-introduce-ipc_update_perm.patch
-ipc-consolidate-all-xxxctl_down-functions.patch
-reiser4-replace-uid==0-check-with-capability.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+w1-build-fix.patch
 
