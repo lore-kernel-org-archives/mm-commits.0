@@ -1,61 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-fix-build.patch removed from -mm tree
-Date: Thu, 27 Mar 2008 15:29:52 -0700
-Message-ID: <200803272229.m2RMTqm7025123@imap1.linux-foundation.org>
+Subject: - git-net-fix-build-with-config_net=n.patch removed from -mm tree
+Date: Thu, 27 Mar 2008 15:30:10 -0700
+Message-ID: <200803272230.m2RMUA36025144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40653 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56291 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752475AbYC0WaY (ORCPT
+	by vger.kernel.org with ESMTP id S1751791AbYC0Was (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 18:30:24 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2RMTqt0011640
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 27 Mar 2008 15:29:53 -0700
+	Thu, 27 Mar 2008 18:30:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, yoshfuji@linux-ipv6.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net: fix build
+     git-net: fix build with CONFIG_NET=n
 has been removed from the -mm tree.  Its filename was
-     git-net-fix-build.patch
+     git-net-fix-build-with-config_net=n.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net: fix build
+Subject: git-net: fix build with CONFIG_NET=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
+In file included from include/net/sock.h:49,
+                 from lib/kobject_uevent.c:23:
+include/linux/netdevice.h: In function 'dev_net':
+include/linux/netdevice.h:751: error: 'init_net' undeclared (first use in this function)
+include/linux/netdevice.h:751: error: (Each undeclared identifier is reported only once
+include/linux/netdevice.h:751: error: for each function it appears in.)
+In file included from include/net/dst.h:15,
+                 from include/net/sock.h:58,
+                 from lib/kobject_uevent.c:23:
+include/net/neighbour.h: In function 'neigh_parms_net':
+include/net/neighbour.h:227: error: 'init_net' undeclared (first use in this function)
+include/net/neighbour.h: In function 'pneigh_net':
+include/net/neighbour.h:244: error: 'init_net' undeclared (first use in this function)
+include/net/neighbour.h: At top level:
+include/net/neighbour.h:254: error: field 'p' has incomplete type
+In file included from lib/kobject_uevent.c:23:
+include/net/sock.h: In function 'sock_net':
+include/net/sock.h:1356: error: 'init_net' undeclared (first use in this function)
+
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/seq_file.h |    2 ++
- 1 file changed, 2 insertions(+)
+ lib/kobject_uevent.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/seq_file.h~git-net-fix-build include/linux/seq_file.h
---- a/include/linux/seq_file.h~git-net-fix-build
-+++ a/include/linux/seq_file.h
-@@ -63,6 +63,7 @@ extern struct list_head *seq_list_start_
- extern struct list_head *seq_list_next(void *v, struct list_head *head,
- 		loff_t *ppos);
- 
+diff -puN lib/kobject_uevent.c~git-net-fix-build-with-config_net=n lib/kobject_uevent.c
+--- a/lib/kobject_uevent.c~git-net-fix-build-with-config_net=n
++++ a/lib/kobject_uevent.c
+@@ -20,8 +20,9 @@
+ #include <linux/netlink.h>
+ #include <linux/string.h>
+ #include <linux/kobject.h>
 +#ifdef CONFIG_NET
- struct net;
- struct seq_net_private {
- #ifdef CONFIG_NET_NS
-@@ -81,6 +82,7 @@ static inline struct net *seq_file_net(s
- 	return &init_net;
- #endif
- }
+ #include <net/sock.h>
+-
 +#endif
  
- #endif
- #endif
+ u64 uevent_seqnum;
+ char uevent_helper[UEVENT_HELPER_PATH_LEN] = CONFIG_UEVENT_HELPER_PATH;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,7 +109,6 @@ git-leds.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-net.patch
-git-net-fix-build.patch
 git-net-fix-build-with-config_net=n.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
