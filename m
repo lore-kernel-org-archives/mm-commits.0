@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-maps-physmap-fix-oops-in-suspend-resume-shutdown-ops.patch added to -mm tree
-Date: Thu, 27 Mar 2008 14:29:54 -0700
-Message-ID: <200803272129.m2RLTsbI022876@imap1.linux-foundation.org>
+Subject: + memstick-suppress-uninitialized-var-warning.patch added to -mm tree
+Date: Thu, 27 Mar 2008 14:37:33 -0700
+Message-ID: <200803272147.m2RLlTxk023464@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39233 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37056 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758371AbYC0VbL (ORCPT
+	by vger.kernel.org with ESMTP id S1757389AbYC0VsA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 17:31:11 -0400
+	Thu, 27 Mar 2008 17:48:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cbouatmailru@gmail.com, david-b@pacbell.net, dwmw2@infradead.org
+Cc: akpm@linux-foundation.org, oakad@yahoo.com
 
 
 The patch titled
-     mtd: maps/physmap: fix oops in suspend/resume/shutdown ops
+     memstick: suppress uninitialized-var warning
 has been added to the -mm tree.  Its filename is
-     mtd-maps-physmap-fix-oops-in-suspend-resume-shutdown-ops.patch
+     memstick-suppress-uninitialized-var-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,206 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: maps/physmap: fix oops in suspend/resume/shutdown ops
-From: Anton Vorontsov <cbouatmailru@gmail.com>
+Subject: memstick: suppress uninitialized-var warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-# reboot
-...
-[   42.351266] Flash device refused suspend due to active operation (state 0)
-[   42.358195] Unable to handle kernel NULL pointer dereference at virtual address 00000078
-[   42.360060] pgd = c7d9c000
-[   42.362769] [00000078] *pgd=a7d8d031, *pte=00000000, *ppte=00000000
-[   42.372902] Internal error: Oops: 17 [#1]
-[   42.376911] Modules linked in:
-[   42.379980] CPU: 0    Not tainted  (2.6.25-rc2-10642-ge8f2594-dirty #73)
-[   42.380000] PC is at physmap_flash_shutdown+0x28/0x54
-...
-[   42.380000] Backtrace:
-[   42.380000] [<c0130c1c>] (physmap_flash_shutdown+0x0/0x54) from [<c01207c0>] (platform_drv_shutdown+0x20/0x24)
-[   42.380000]  r5:28121969 r4:c0229e08
-[   42.380000] [<c01207a0>] (platform_drv_shutdown+0x0/0x24) from [<c011cd40>] (device_shutdown+0x60/0x88)
-[   42.380000] [<c011cce0>] (device_shutdown+0x0/0x88) from [<c003e8a4>] (kernel_restart_prepare+0x2c/0x3c)
-[   42.380000]  r4:00000000
-[   42.380000] [<c003e878>] (kernel_restart_prepare+0x0/0x3c) from [<c003ea00>] (kernel_restart+0x14/0x48)
-[   42.380000] [<c003e9ec>] (kernel_restart+0x0/0x48) from [<c003fdc0>] (sys_reboot+0xe8/0x1f8)
-[   42.380000]  r4:01234567
-[   42.380000] [<c003fcd8>] (sys_reboot+0x0/0x1f8) from [<c001aa00>] (ret_fast_syscall+0x0/0x2c)
-[   42.380000]  r7:00000058 r6:00000004 r5:00000001 r4:00000000
-[   42.380000] Code: 0a000009 e7953004 e1a00003 e1a0e00f (e593f078)
-[   42.650051] ---[ end trace 6d6c26a0fc3141de ]---
-Segmentation fault
-INIT: no more processes left in this runlevel
+drivers/memstick/host/tifm_ms.c: In function 'tifm_ms_data_event':
+drivers/memstick/host/tifm_ms.c:185: warning: 'p_off' may be used uninitialized in this function
 
-
-While looping for mtd[i]s, we should stop at the mtd[i] == NULL.
-
-This patch also removes unnecessary "if (info)" checks:
-suspend/resume/shutdown ops are executed only if probe() is succeeded, so info
-is guaranteed to be !NULL.
-
-Signed-off-by: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Alex Dubov <oakad@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/physmap.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ drivers/memstick/host/tifm_ms.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/mtd/maps/physmap.c~mtd-maps-physmap-fix-oops-in-suspend-resume-shutdown-ops drivers/mtd/maps/physmap.c
---- a/drivers/mtd/maps/physmap.c~mtd-maps-physmap-fix-oops-in-suspend-resume-shutdown-ops
-+++ a/drivers/mtd/maps/physmap.c
-@@ -202,9 +202,8 @@ static int physmap_flash_suspend(struct 
- 	int ret = 0;
- 	int i;
+diff -puN drivers/memstick/host/tifm_ms.c~memstick-suppress-uninitialized-var-warning drivers/memstick/host/tifm_ms.c
+--- a/drivers/memstick/host/tifm_ms.c~memstick-suppress-uninitialized-var-warning
++++ a/drivers/memstick/host/tifm_ms.c
+@@ -182,7 +182,7 @@ static unsigned int tifm_ms_transfer_dat
+ 	struct tifm_dev *sock = host->dev;
+ 	unsigned int length;
+ 	unsigned int off;
+-	unsigned int t_size, p_off, p_cnt;
++	unsigned int t_size, p_cnt;
+ 	unsigned char *buf;
+ 	struct page *pg;
+ 	unsigned long flags = 0;
+@@ -198,6 +198,8 @@ static unsigned int tifm_ms_transfer_dat
+ 		host->block_pos);
  
--	if (info)
--		for (i = 0; i < MAX_RESOURCES; i++)
--			ret |= info->mtd[i]->suspend(info->mtd[i]);
-+	for (i = 0; i < MAX_RESOURCES && info->mtd[i]; i++)
-+		ret |= info->mtd[i]->suspend(info->mtd[i]);
- 
- 	return ret;
- }
-@@ -214,9 +213,9 @@ static int physmap_flash_resume(struct p
- 	struct physmap_flash_info *info = platform_get_drvdata(dev);
- 	int i;
- 
--	if (info)
--		for (i = 0; i < MAX_RESOURCES; i++)
--			info->mtd[i]->resume(info->mtd[i]);
-+	for (i = 0; i < MAX_RESOURCES && info->mtd[i]; i++)
-+		info->mtd[i]->resume(info->mtd[i]);
+ 	while (length) {
++		unsigned int uninitialized_var(p_off);
 +
- 	return 0;
- }
- 
-@@ -225,8 +224,8 @@ static void physmap_flash_shutdown(struc
- 	struct physmap_flash_info *info = platform_get_drvdata(dev);
- 	int i;
- 
--	for (i = 0; i < MAX_RESOURCES; i++)
--		if (info && info->mtd[i]->suspend(info->mtd[i]) == 0)
-+	for (i = 0; i < MAX_RESOURCES && info->mtd[i]; i++)
-+		if (info->mtd[i]->suspend(info->mtd[i]) == 0)
- 			info->mtd[i]->resume(info->mtd[i]);
- }
- #else
+ 		if (host->req->long_data) {
+ 			pg = nth_page(sg_page(&host->req->sg),
+ 				      off >> PAGE_SHIFT);
 _
 
-Patches currently in -mm which might be from cbouatmailru@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mtd-maps-physmap-fix-oops-in-suspend-resume-shutdown-ops.patch
+origin.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
+net-9p-trans_fdc-p9_trans_fd_init-module_init-functions-should-return-0-on-success.patch
+blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-to-lkml-review-fix.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+git-x86-fix-printk-warning.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+cifs-suppress-warning.patch
+pm-remove-destroy_suspended_device-checkpatch-fixes.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-kvm-fixup.patch
+git-leds.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-net.patch
+git-net-fix-build.patch
+git-net-fix-build-with-config_net=n.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+git-sh.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+scsi-add-iscsi-ibft-support-fix.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+git-watchdog-fix-build.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+w1-build-fix.patch
+memstick-suppress-uninitialized-var-warning.patch
 
