@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-hotplug-introduce-pci_slot-fix.patch added to -mm tree
-Date: Thu, 27 Mar 2008 13:18:10 -0700
-Message-ID: <200803272028.m2RKS6Wl020528@imap1.linux-foundation.org>
+Subject: + git-net-fix-build-with-config_net=n.patch added to -mm tree
+Date: Thu, 27 Mar 2008 13:27:15 -0700
+Message-ID: <200803272037.m2RKbBM3020873@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58978 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52984 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757897AbYC0U3B (ORCPT
+	by vger.kernel.org with ESMTP id S1754806AbYC0Uhw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 16:29:01 -0400
+	Thu, 27 Mar 2008 16:37:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx
+Cc: akpm@linux-foundation.org, davem@davemloft.net, yoshfuji@linux-ipv6.org
 
 
 The patch titled
-     pci-hotplug-introduce-pci_slot-fix
+     git-net: fix build with CONFIG_NET=n
 has been added to the -mm tree.  Its filename is
-     pci-hotplug-introduce-pci_slot-fix.patch
+     git-net-fix-build-with-config_net=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-hotplug-introduce-pci_slot-fix
+Subject: git-net: fix build with CONFIG_NET=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Please, see Documentation/SubmitChecklist?
+In file included from include/net/sock.h:49,
+                 from lib/kobject_uevent.c:23:
+include/linux/netdevice.h: In function 'dev_net':
+include/linux/netdevice.h:751: error: 'init_net' undeclared (first use in this function)
+include/linux/netdevice.h:751: error: (Each undeclared identifier is reported only once
+include/linux/netdevice.h:751: error: for each function it appears in.)
+In file included from include/net/dst.h:15,
+                 from include/net/sock.h:58,
+                 from lib/kobject_uevent.c:23:
+include/net/neighbour.h: In function 'neigh_parms_net':
+include/net/neighbour.h:227: error: 'init_net' undeclared (first use in this function)
+include/net/neighbour.h: In function 'pneigh_net':
+include/net/neighbour.h:244: error: 'init_net' undeclared (first use in this function)
+include/net/neighbour.h: At top level:
+include/net/neighbour.h:254: error: field 'p' has incomplete type
+In file included from lib/kobject_uevent.c:23:
+include/net/sock.h: In function 'sock_net':
+include/net/sock.h:1356: error: 'init_net' undeclared (first use in this function)
 
-In file included from arch/x86/kernel/quirks.c:4:
-include/linux/pci.h:28: error: field 'list' has incomplete type
-include/linux/pci.h:31: error: field 'kobj' has incomplete type
-
-Cc: Alex Chiang <achiang@hp.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pci.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ lib/kobject_uevent.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/pci.h~pci-hotplug-introduce-pci_slot-fix include/linux/pci.h
---- a/include/linux/pci.h~pci-hotplug-introduce-pci_slot-fix
-+++ a/include/linux/pci.h
-@@ -17,8 +17,9 @@
- #ifndef LINUX_PCI_H
- #define LINUX_PCI_H
+diff -puN lib/kobject_uevent.c~git-net-fix-build-with-config_net=n lib/kobject_uevent.c
+--- a/lib/kobject_uevent.c~git-net-fix-build-with-config_net=n
++++ a/lib/kobject_uevent.c
+@@ -20,8 +20,9 @@
+ #include <linux/netlink.h>
+ #include <linux/string.h>
+ #include <linux/kobject.h>
++#ifdef CONFIG_NET
+ #include <net/sock.h>
+-
++#endif
  
--/* Include the pci register defines */
--#include <linux/pci_regs.h>
-+#include <linux/list.h>
-+#include <linux/kobject.h>
-+#include <linux/pci_regs.h>	/* The pci register defines */
- 
- struct pci_vpd;
- 
+ u64 uevent_seqnum;
+ char uevent_helper[UEVENT_HELPER_PATH_LEN] = CONFIG_UEVENT_HELPER_PATH;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -110,6 +118,7 @@ devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-net.patch
 git-net-fix-build.patch
+git-net-fix-build-with-config_net=n.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
