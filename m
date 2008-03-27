@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-hotplug-acpi-pci-slot-detection-driver-fix.patch added to -mm tree
-Date: Thu, 27 Mar 2008 13:48:46 -0700
-Message-ID: <200803272058.m2RKwg9i021647@imap1.linux-foundation.org>
+Subject: + edac-fix-module-initialization-on-several-modules-fix.patch added to -mm tree
+Date: Thu, 27 Mar 2008 13:51:34 -0700
+Message-ID: <200803272101.m2RL1UxF021793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34755 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36931 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759222AbYC0U7y (ORCPT
+	by vger.kernel.org with ESMTP id S1760096AbYC0VBu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 16:59:54 -0400
+	Thu, 27 Mar 2008 17:01:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, h.mitake@gmail.com
 
 
 The patch titled
-     pci-hotplug-acpi-pci-slot-detection-driver-fix
+     edac-fix-module-initialization-on-several-modules-fix
 has been added to the -mm tree.  Its filename is
-     pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+     edac-fix-module-initialization-on-several-modules-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-hotplug-acpi-pci-slot-detection-driver-fix
+Subject: edac-fix-module-initialization-on-several-modules-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/acpi/pci_slot.c: In function 'register_slot':
-drivers/acpi/pci_slot.c:168: warning: cast from pointer to integer of different size
-drivers/acpi/pci_slot.c:168: warning: format '%#lx' expects type 'long unsigned int', but argument 3 has type 'long long unsigned int'
+drivers/edac/amd76x_edac.c: In function 'amd76x_init':
+drivers/edac/amd76x_edac.c:348: error: implicit declaration of function 'opstate_init'
+drivers/edac/amd76x_edac.c: In function '__check_edac_op_state':
+drivers/edac/amd76x_edac.c:365: error: 'edac_op_state' undeclared (first use in this function)
+drivers/edac/amd76x_edac.c:365: error: (Each undeclared identifier is reported only once
+drivers/edac/amd76x_edac.c:365: error: for each function it appears in.)
+drivers/edac/amd76x_edac.c: At top level:
+drivers/edac/amd76x_edac.c:365: error: 'edac_op_state' undeclared here (not in a function)
 
-Cc: Alex Chiang <achiang@hp.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Hitoshi Mitake <h.mitake@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/pci_slot.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/edac/amd76x_edac.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/acpi/pci_slot.c~pci-hotplug-acpi-pci-slot-detection-driver-fix drivers/acpi/pci_slot.c
---- a/drivers/acpi/pci_slot.c~pci-hotplug-acpi-pci-slot-detection-driver-fix
-+++ a/drivers/acpi/pci_slot.c
-@@ -165,8 +165,8 @@ register_slot(acpi_handle handle, u32 lv
- 	list_add(&slot->list, &slot_list);
- 	mutex_unlock(&slot_list_lock);
+diff -puN drivers/edac/amd76x_edac.c~edac-fix-module-initialization-on-several-modules-fix drivers/edac/amd76x_edac.c
+--- a/drivers/edac/amd76x_edac.c~edac-fix-module-initialization-on-several-modules-fix
++++ a/drivers/edac/amd76x_edac.c
+@@ -17,6 +17,7 @@
+ #include <linux/pci.h>
+ #include <linux/pci_ids.h>
+ #include <linux/slab.h>
++#include <linux/edac.h>
+ #include "edac_core.h"
  
--	dbg("pci_slot: %#lx, pci_bus: %x, device: %d, name: %s\n",
--		(uint64_t)pci_slot, pci_bus->number, device, name);
-+	dbg("pci_slot: %p, pci_bus: %x, device: %d, name: %s\n",
-+		pci_slot, pci_bus->number, device, name);
- 
- 	return AE_OK;
- }
+ #define AMD76X_REVISION	" Ver: 2.0.2 "  __DATE__
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -218,6 +218,7 @@ add-macros-similar-to-min-max-min_t-max_t.patch
 clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
 idr-create-idr_layer_cache-at-boot-time-fix.patch
 idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-fix-module-initialization-on-several-modules-fix.patch
 edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
 dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
 reiser4.patch
