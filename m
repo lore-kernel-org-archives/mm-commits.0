@@ -1,112 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - x86-dont-allow-kvm_clock-without-have_kvm.patch removed from -mm tree
-Date: Thu, 27 Mar 2008 01:19:06 -0700
-Message-ID: <200803270819.m2R8J6o3025378@imap1.linux-foundation.org>
+Subject: + vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb.patch added to -mm tree
+Date: Thu, 27 Mar 2008 01:27:56 -0700
+Message-ID: <200803270827.m2R8Ruag025665@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45682 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53326 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754676AbYC0IT4 (ORCPT
+	by vger.kernel.org with ESMTP id S1750818AbYC0I2g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 04:19:56 -0400
+	Thu, 27 Mar 2008 04:28:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jack@suse.cz, wfg@mail.ustc.edu.cn
 
 
 The patch titled
-     x86: don't allow KVM_CLOCK without HAVE_KVM
-has been removed from the -mm tree.  Its filename was
-     x86-dont-allow-kvm_clock-without-have_kvm.patch
+     vfs: skip inodes without pages to free in drop_pagecache_sb()
+has been added to the -mm tree.  Its filename is
+     vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: don't allow KVM_CLOCK without HAVE_KVM
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: vfs: skip inodes without pages to free in drop_pagecache_sb()
+From: Jan Kara <jack@suse.cz>
 
-Make KVM_CLOCK depend on HAVE_KVM.  Otherwise a Voyager build can
-fail with:
+Many inodes have no pagecache, so we can avoid lots of lock-takings.
 
-  CC      arch/x86/kernel/asm-offsets.s
-In file included from include2/asm/irqflags.h:59,
-                 from /local/linsrc/next-20080314/include/linux/irqflags.h:46,
-                 from include2/asm/system.h:11,
-                 from include2/asm/processor.h:21,
-                 from include2/asm/atomic_32.h:5,
-                 from include2/asm/atomic.h:2,
-                 from /local/linsrc/next-20080314/include/linux/crypto.h:20,
-                 from /local/linsrc/next-20080314/arch/x86/kernel/asm-offsets_32.c:7,
-                 from /local/linsrc/next-20080314/arch/x86/kernel/asm-offsets.c:2:
-include2/asm/paravirt.h: In function 'startup_ipi_hook':
-include2/asm/paravirt.h:856: error: 'struct pv_apic_ops' has no member named 'startup_ipi_hook'
-include2/asm/paravirt.h:856: error: 'struct pv_apic_ops' has no member named 'startup_ipi_hook'
-include2/asm/paravirt.h:856: error: memory input 4 is not directly addressable
-make[2]: *** [arch/x86/kernel/asm-offsets.s] Error 1
-make[1]: *** [prepare0] Error 2
-make: *** [sub-make] Error 2
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/drop_caches.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/x86/Kconfig~x86-dont-allow-kvm_clock-without-have_kvm arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-dont-allow-kvm_clock-without-have_kvm
-+++ a/arch/x86/Kconfig
-@@ -370,6 +370,7 @@ config VMI
- config KVM_CLOCK
- 	bool "KVM paravirtualized clock"
- 	select PARAVIRT
-+	depends on HAVE_KVM
- 	help
- 	  Turning on this option will allow you to run a paravirtualized clock
- 	  when running over the KVM hypervisor. Instead of relying on a PIT
+diff -puN fs/drop_caches.c~vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb fs/drop_caches.c
+--- a/fs/drop_caches.c~vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb
++++ a/fs/drop_caches.c
+@@ -20,6 +20,8 @@ static void drop_pagecache_sb(struct sup
+ 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+ 		if (inode->i_state & (I_FREEING|I_WILL_FREE))
+ 			continue;
++		if (inode->i_mapping->nrpages == 0)
++			continue;
+ 		__iget(inode);
+ 		spin_unlock(&inode_lock);
+ 		__invalidate_mapping_pages(inode->i_mapping, 0, -1, true);
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-origin.patch
-git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
-audit-ailence-two-kerneldoc-warnings-in-kernel-auditc.patch
-kernel-add-bit-rotation-helpers-for-16-and-8-bit.patch
-git-x86.patch
-rapidio-fix-docbook-references.patch
-pm-remove-legacy-pm-fix.patch
-kbuild-silence-documentation-gen-xml-messages-according-to-quiet.patch
-git-kvm.patch
-git-net.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-scsi-add-iscsi-ibft-support-fix.patch
-git-unionfs.patch
-x86-dont-allow-kvm_clock-without-have_kvm.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-let-log_buf_shift-default-to-17.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-jbd2-fix-kernel-doc-notation.patch
-basic-braille-screen-reader-support-makefile-fix.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-dma-mapping-add-dma_map_attrs-interfaces.patch
-dma-mapping-document-dma_map_attrs-interfaces.patch
-dma-mapping-ia64-update-ia64-machvecs-swiotlbc.patch
-dma-mapping-ib-expand-ib_umem_get-prototype.patch
-dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
-profile-likely-unlikely-macros.patch
+git-udf.patch
+git-ocfs2.patch
+vfs-fix-lock-inversion-in-drop_pagecache_sb.patch
+vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb.patch
+quota-do-not-allow-setting-of-quota-limits-to-too-high-values.patch
+quota-remove-superfluous-dquot_off-in-fs-namespacec.patch
+quota-various-style-cleanups.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-reiserfs-make-reiserfs-handle-quotaon-on-remount.patch
+ext3-fdatasync-should-skip-metadata-writeout-when-overwriting.patch
+quota-le_add_cpu-conversion.patch
 
