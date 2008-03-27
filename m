@@ -1,349 +1,336 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-add-diu-platform-code-for-mpc8610hpcd.patch removed from -mm tree
-Date: Thu, 27 Mar 2008 00:54:30 -0700
-Message-ID: <200803270754.m2R7sUhQ024487@imap1.linux-foundation.org>
+Subject: + acpi-change-processors-from-array-to-per_cpu-variable.patch added to -mm tree
+Date: Thu, 27 Mar 2008 01:00:32 -0700
+Message-ID: <200803270800.m2R80WVu024706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40067 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54481 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757030AbYC0Hyk (ORCPT
+	by vger.kernel.org with ESMTP id S1754165AbYC0IAf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 03:54:40 -0400
+	Thu, 27 Mar 2008 04:00:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yorksun@freescale.com, adaplas@pol.net, benh@kernel.crashing.org, galak@gate.crashing.org, krzysztof.h1@wp.pl, paulus@samba.org, timur@freescale.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: travis@sgi.com, len.brown@intel.com
 
 
 The patch titled
-     fbdev: add DIU platform code for MPC8610HPCD
-has been removed from the -mm tree.  Its filename was
-     fbdev-add-diu-platform-code-for-mpc8610hpcd.patch
+     acpi: change processors from array to per_cpu variable
+has been added to the -mm tree.  Its filename is
+     acpi-change-processors-from-array-to-per_cpu-variable.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: add DIU platform code for MPC8610HPCD
-From: York Sun <yorksun@freescale.com>
+Subject: acpi: change processors from array to per_cpu variable
+From: Mike Travis <travis@sgi.com>
 
-Add platform code to support Freescale DIU.  The platform code includes
-framebuffer memory allocation, pixel format, monitor port, etc.
+Change processors from an array sized by NR_CPUS to a per_cpu variable.
 
-Signed-off-by: York Sun <yorksun@freescale.com>
-Cc: Timur Tabi <timur@freescale.com>
-Cc: Kumar Gala <galak@gate.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Len Brown <len.brown@intel.com>
+Signed-off-by: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/86xx/mpc8610_hpcd.c |  182 ++++++++++++++++++-
- arch/powerpc/sysdev/fsl_soc.c              |   41 ++++
- arch/powerpc/sysdev/fsl_soc.h              |   22 ++
- 3 files changed, 243 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_core.c       |   18 ++++++++----------
+ drivers/acpi/processor_idle.c       |    8 ++++----
+ drivers/acpi/processor_perflib.c    |   18 +++++++++---------
+ drivers/acpi/processor_throttling.c |   14 +++++++-------
+ include/acpi/processor.h            |    2 +-
+ 5 files changed, 29 insertions(+), 31 deletions(-)
 
-diff -puN arch/powerpc/platforms/86xx/mpc8610_hpcd.c~fbdev-add-diu-platform-code-for-mpc8610hpcd arch/powerpc/platforms/86xx/mpc8610_hpcd.c
---- a/arch/powerpc/platforms/86xx/mpc8610_hpcd.c~fbdev-add-diu-platform-code-for-mpc8610hpcd
-+++ a/arch/powerpc/platforms/86xx/mpc8610_hpcd.c
-@@ -3,6 +3,7 @@
-  *
-  * Initial author: Xianghua Xiao <x.xiao@freescale.com>
-  * Recode: Jason Jin <jason.jin@freescale.com>
-+ *         York Sun <yorksun@freescale.com>
-  *
-  * Rewrite the interrupt routing. remove the 8259PIC support,
-  * All the integrated device in ULI use sideband interrupt.
-@@ -38,6 +39,8 @@
- #include <sysdev/fsl_pci.h>
- #include <sysdev/fsl_soc.h>
+diff -puN drivers/acpi/processor_core.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~acpi-change-processors-from-array-to-per_cpu-variable
++++ a/drivers/acpi/processor_core.c
+@@ -118,7 +118,7 @@ static const struct file_operations acpi
+ 	.release = single_release,
+ };
  
-+static unsigned char *pixis_bdcfg0, *pixis_arch;
-+
- static struct of_device_id __initdata mpc8610_ids[] = {
- 	{ .compatible = "fsl,mpc8610-immr", },
- 	{}
-@@ -161,12 +164,160 @@ DECLARE_PCI_FIXUP_HEADER(PCI_VENDOR_ID_A
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AL, 0x5288, final_uli5288);
- #endif /* CONFIG_PCI */
+-struct acpi_processor *processors[NR_CPUS];
++DEFINE_PER_CPU(struct acpi_processor *, processors);
+ struct acpi_processor_errata errata __read_mostly;
  
-+#if defined(CONFIG_FB_FSL_DIU) || defined(CONFIG_FB_FSL_DIU_MODULE)
-+
-+static u32 get_busfreq(void)
-+{
-+	struct device_node *node;
-+
-+	u32 fs_busfreq = 0;
-+	node = of_find_node_by_type(NULL, "cpu");
-+	if (node) {
-+		unsigned int size;
-+		const unsigned int *prop =
-+			of_get_property(node, "bus-frequency", &size);
-+		if (prop)
-+			fs_busfreq = *prop;
-+		of_node_put(node);
-+	};
-+	return fs_busfreq;
-+}
-+
-+unsigned int mpc8610hpcd_get_pixel_format
-+	(unsigned int bits_per_pixel, int monitor_port)
-+{
-+	static const unsigned long pixelformat[][3] = {
-+		{0x88882317, 0x88083218, 0x65052119},
-+		{0x88883316, 0x88082219, 0x65053118},
-+	};
-+	unsigned int pix_fmt, arch_monitor;
-+
-+	arch_monitor = ((*pixis_arch == 0x01) && (monitor_port == 0))? 0 : 1;
-+		/* DVI port for board version 0x01 */
-+
-+	if (bits_per_pixel == 32)
-+		pix_fmt = pixelformat[arch_monitor][0];
-+	else if (bits_per_pixel == 24)
-+		pix_fmt = pixelformat[arch_monitor][1];
-+	else if (bits_per_pixel == 16)
-+		pix_fmt = pixelformat[arch_monitor][2];
-+	else
-+		pix_fmt = pixelformat[1][0];
-+
-+	return pix_fmt;
-+}
-+
-+void mpc8610hpcd_set_gamma_table(int monitor_port, char *gamma_table_base)
-+{
-+	int i;
-+	if (monitor_port == 2) {		/* dual link LVDS */
-+		for (i = 0; i < 256*3; i++)
-+			gamma_table_base[i] = (gamma_table_base[i] << 2) |
-+					 ((gamma_table_base[i] >> 6) & 0x03);
-+	}
-+}
-+
-+void mpc8610hpcd_set_monitor_port(int monitor_port)
-+{
-+	static const u8 bdcfg[] = {0xBD, 0xB5, 0xA5};
-+	if (monitor_port < 3)
-+		*pixis_bdcfg0 = bdcfg[monitor_port];
-+}
-+
-+void mpc8610hpcd_set_pixel_clock(unsigned int pixclock)
-+{
-+	u32 __iomem *clkdvdr;
-+	u32 temp;
-+	/* variables for pixel clock calcs */
-+	ulong  bestval, bestfreq, speed_ccb, minpixclock, maxpixclock;
-+	ulong pixval;
-+	long err;
-+	int i;
-+
-+	clkdvdr = ioremap(get_immrbase() + 0xe0800, sizeof(u32));
-+	if (!clkdvdr) {
-+		printk(KERN_ERR "Err: can't map clock divider register!\n");
-+		return;
-+	}
-+
-+	/* Pixel Clock configuration */
-+	pr_debug("DIU: Bus Frequency = %d\n", get_busfreq());
-+	speed_ccb = get_busfreq();
-+
-+	/* Calculate the pixel clock with the smallest error */
-+	/* calculate the following in steps to avoid overflow */
-+	pr_debug("DIU pixclock in ps - %d\n", pixclock);
-+	temp = 1000000000/pixclock;
-+	temp *= 1000;
-+	pixclock = temp;
-+	pr_debug("DIU pixclock freq - %u\n", pixclock);
-+
-+	temp = pixclock * 5 / 100;
-+	pr_debug("deviation = %d\n", temp);
-+	minpixclock = pixclock - temp;
-+	maxpixclock = pixclock + temp;
-+	pr_debug("DIU minpixclock - %lu\n", minpixclock);
-+	pr_debug("DIU maxpixclock - %lu\n", maxpixclock);
-+	pixval = speed_ccb/pixclock;
-+	pr_debug("DIU pixval = %lu\n", pixval);
-+
-+	err = 100000000;
-+	bestval = pixval;
-+	pr_debug("DIU bestval = %lu\n", bestval);
-+
-+	bestfreq = 0;
-+	for (i = -1; i <= 1; i++) {
-+		temp = speed_ccb / ((pixval+i) + 1);
-+		pr_debug("DIU test pixval i= %d, pixval=%lu, temp freq. = %u\n",
-+							i, pixval, temp);
-+		if ((temp < minpixclock) || (temp > maxpixclock))
-+			pr_debug("DIU exceeds monitor range (%lu to %lu)\n",
-+				minpixclock, maxpixclock);
-+		else if (abs(temp - pixclock) < err) {
-+		  pr_debug("Entered the else if block %d\n", i);
-+			err = abs(temp - pixclock);
-+			bestval = pixval+i;
-+			bestfreq = temp;
-+		}
-+	}
-+
-+	pr_debug("DIU chose = %lx\n", bestval);
-+	pr_debug("DIU error = %ld\n NomPixClk ", err);
-+	pr_debug("DIU: Best Freq = %lx\n", bestfreq);
-+	/* Modify PXCLK in GUTS CLKDVDR */
-+	pr_debug("DIU: Current value of CLKDVDR = 0x%08x\n", (*clkdvdr));
-+	temp = (*clkdvdr) & 0x2000FFFF;
-+	*clkdvdr = temp;		/* turn off clock */
-+	*clkdvdr = temp | 0x80000000 | (((bestval) & 0x1F) << 16);
-+	pr_debug("DIU: Modified value of CLKDVDR = 0x%08x\n", (*clkdvdr));
-+	iounmap(clkdvdr);
-+}
-+
-+ssize_t mpc8610hpcd_show_monitor_port(int monitor_port, char *buf)
-+{
-+	return snprintf(buf, PAGE_SIZE,
-+			"%c0 - DVI\n"
-+			"%c1 - Single link LVDS\n"
-+			"%c2 - Dual link LVDS\n",
-+			monitor_port == 0 ? '*' : ' ',
-+			monitor_port == 1 ? '*' : ' ',
-+			monitor_port == 2 ? '*' : ' ');
-+}
-+
-+int mpc8610hpcd_set_sysfs_monitor_port(int val)
-+{
-+	return val < 3 ? val : 0;
-+}
-+
-+#endif
-+
-+int __init preallocate_diu_videomemory(void);
- static void __init
- mpc86xx_hpcd_setup_arch(void)
+ /* --------------------------------------------------------------------------
+@@ -615,7 +615,7 @@ static int acpi_processor_get_info(struc
+ 	return 0;
+ }
+ 
+-static void *processor_device_array[NR_CPUS];
++static DEFINE_PER_CPU(void *, processor_device_array);
+ 
+ static int __cpuinit acpi_processor_start(struct acpi_device *device)
  {
--#ifdef CONFIG_PCI
-+	struct resource r;
- 	struct device_node *np;
--#endif
-+
- 	if (ppc_md.progress)
- 		ppc_md.progress("mpc86xx_hpcd_setup_arch()", 0);
+@@ -639,15 +639,15 @@ static int __cpuinit acpi_processor_star
+ 	 * ACPI id of processors can be reported wrongly by the BIOS.
+ 	 * Don't trust it blindly
+ 	 */
+-	if (processor_device_array[pr->id] != NULL &&
+-	    processor_device_array[pr->id] != device) {
++	if (per_cpu(processor_device_array, pr->id) != NULL &&
++	    per_cpu(processor_device_array, pr->id) != device) {
+ 		printk(KERN_WARNING "BIOS reported wrong ACPI id "
+ 			"for the processor\n");
+ 		return -ENODEV;
+ 	}
+-	processor_device_array[pr->id] = device;
++	per_cpu(processor_device_array, pr->id) = device;
  
-@@ -183,6 +334,33 @@ mpc86xx_hpcd_setup_arch(void)
- 		}
-         }
- #endif
-+#if defined(CONFIG_FB_FSL_DIU) || defined(CONFIG_FB_FSL_DIU_MODULE)
-+	preallocate_diu_videomemory();
-+	diu_ops.get_pixel_format	= mpc8610hpcd_get_pixel_format;
-+	diu_ops.set_gamma_table		= mpc8610hpcd_set_gamma_table;
-+	diu_ops.set_monitor_port	= mpc8610hpcd_set_monitor_port;
-+	diu_ops.set_pixel_clock		= mpc8610hpcd_set_pixel_clock;
-+	diu_ops.show_monitor_port	= mpc8610hpcd_show_monitor_port;
-+	diu_ops.set_sysfs_monitor_port	= mpc8610hpcd_set_sysfs_monitor_port;
-+#endif
-+
-+	np = of_find_compatible_node(NULL, NULL, "fsl,fpga-pixis");
-+	if (np) {
-+		of_address_to_resource(np, 0, &r);
-+		of_node_put(np);
-+		pixis_bdcfg0 = ioremap(r.start + 0x00000008, sizeof(u8));
-+		if (!pixis_bdcfg0) {
-+			printk(KERN_ERR "Err: can't map FPGA cfg register!\n");
-+			return;
-+		}
-+		pixis_arch = ioremap(r.start + 0x00000001, sizeof(u8));
-+		if (!pixis_arch) {
-+			printk(KERN_ERR "Err: can't map FPGA arch register!\n");
-+			return;
-+		}
-+	} else
-+		printk(KERN_ERR "Err: "
-+				"can't find device node 'fsl,fpga-pixis'\n");
+-	processors[pr->id] = pr;
++	per_cpu(processors, pr->id) = pr;
  
- 	printk("MPC86xx HPCD board from Freescale Semiconductor\n");
- }
-diff -puN arch/powerpc/sysdev/fsl_soc.c~fbdev-add-diu-platform-code-for-mpc8610hpcd arch/powerpc/sysdev/fsl_soc.c
---- a/arch/powerpc/sysdev/fsl_soc.c~fbdev-add-diu-platform-code-for-mpc8610hpcd
-+++ a/arch/powerpc/sysdev/fsl_soc.c
-@@ -1438,3 +1438,44 @@ void fsl_rstcr_restart(char *cmd)
- 	while (1) ;
- }
- #endif
-+
-+#if defined(CONFIG_FB_FSL_DIU) || defined(CONFIG_FB_FSL_DIU_MODULE)
-+struct platform_diu_data_ops diu_ops = {
-+	.diu_size = 1280 * 1024 * 4,	/* default one 1280x1024 buffer */
-+};
-+EXPORT_SYMBOL(diu_ops);
-+
-+int __init preallocate_diu_videomemory(void)
-+{
-+	pr_debug("diu_size=%lu\n", diu_ops.diu_size);
-+
-+	diu_ops.diu_mem = __alloc_bootmem(diu_ops.diu_size, 8, 0);
-+	if (!diu_ops.diu_mem) {
-+		printk(KERN_ERR "fsl-diu: cannot allocate %lu bytes\n",
-+			diu_ops.diu_size);
-+		return -ENOMEM;
-+	}
-+
-+	printk(KERN_INFO "%s: diu_mem=%p\n", __func__, diu_ops.diu_mem);
-+
-+	rh_init(&diu_ops.diu_rh_info, 4096, ARRAY_SIZE(diu_ops.diu_rh_block),
-+		diu_ops.diu_rh_block);
-+	return rh_attach_region(&diu_ops.diu_rh_info,
-+				(unsigned long) diu_ops.diu_mem,
-+				diu_ops.diu_size);
-+}
-+
-+static int __init early_parse_diufb(char *p)
-+{
-+	if (!p)
-+		return 1;
-+
-+	diu_ops.diu_size = _ALIGN_UP(memparse(p, &p), 8);
-+
-+	printk(KERN_INFO "%s: diu_size=%lu\n", __func__, diu_ops.diu_size);
-+
-+	return 0;
-+}
-+early_param("diufb", early_parse_diufb);
-+
-+#endif
-diff -puN arch/powerpc/sysdev/fsl_soc.h~fbdev-add-diu-platform-code-for-mpc8610hpcd arch/powerpc/sysdev/fsl_soc.h
---- a/arch/powerpc/sysdev/fsl_soc.h~fbdev-add-diu-platform-code-for-mpc8610hpcd
-+++ a/arch/powerpc/sysdev/fsl_soc.h
-@@ -16,5 +16,27 @@ extern int fsl_spi_init(struct spi_board
- 			void (*deactivate_cs)(u8 cs, u8 polarity));
+ 	result = acpi_processor_add_fs(device);
+ 	if (result)
+@@ -749,7 +749,7 @@ static int acpi_cpu_soft_notify(struct n
+ 		unsigned long action, void *hcpu)
+ {
+ 	unsigned int cpu = (unsigned long)hcpu;
+-	struct acpi_processor *pr = processors[cpu];
++	struct acpi_processor *pr = per_cpu(processors, cpu);
  
- extern void fsl_rstcr_restart(char *cmd);
-+
-+#if defined(CONFIG_FB_FSL_DIU) || defined(CONFIG_FB_FSL_DIU_MODULE)
-+#include <linux/bootmem.h>
-+#include <asm/rheap.h>
-+struct platform_diu_data_ops {
-+	rh_block_t diu_rh_block[16];
-+	rh_info_t diu_rh_info;
-+	unsigned long diu_size;
-+	void *diu_mem;
-+
-+	unsigned int (*get_pixel_format) (unsigned int bits_per_pixel,
-+		int monitor_port);
-+	void (*set_gamma_table) (int monitor_port, char *gamma_table_base);
-+	void (*set_monitor_port) (int monitor_port);
-+	void (*set_pixel_clock) (unsigned int pixclock);
-+	ssize_t (*show_monitor_port) (int monitor_port, char *buf);
-+	int (*set_sysfs_monitor_port) (int val);
-+};
-+
-+extern struct platform_diu_data_ops diu_ops;
-+#endif
-+
- #endif
- #endif
+ 	if (action == CPU_ONLINE && pr) {
+ 		acpi_processor_ppc_has_changed(pr);
+@@ -819,7 +819,7 @@ static int acpi_processor_remove(struct 
+ 		pr->cdev = NULL;
+ 	}
+ 
+-	processors[pr->id] = NULL;
++	per_cpu(processors, pr->id) = NULL;
+ 
+ 	kfree(pr);
+ 
+@@ -1068,8 +1068,6 @@ static int __init acpi_processor_init(vo
+ {
+ 	int result = 0;
+ 
+-
+-	memset(&processors, 0, sizeof(processors));
+ 	memset(&errata, 0, sizeof(errata));
+ 
+ #ifdef CONFIG_SMP
+diff -puN drivers/acpi/processor_idle.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~acpi-change-processors-from-array-to-per_cpu-variable
++++ a/drivers/acpi/processor_idle.c
+@@ -419,7 +419,7 @@ static void acpi_processor_idle(void)
+ 	 */
+ 	local_irq_disable();
+ 
+-	pr = processors[smp_processor_id()];
++	pr = __get_cpu_var(processors);
+ 	if (!pr) {
+ 		local_irq_enable();
+ 		return;
+@@ -1444,7 +1444,7 @@ static int acpi_idle_enter_c1(struct cpu
+ 	struct acpi_processor *pr;
+ 	struct acpi_processor_cx *cx = cpuidle_get_statedata(state);
+ 
+-	pr = processors[smp_processor_id()];
++	pr = __get_cpu_var(processors);
+ 
+ 	if (unlikely(!pr))
+ 		return 0;
+@@ -1484,7 +1484,7 @@ static int acpi_idle_enter_simple(struct
+ 	u32 t1, t2;
+ 	int sleep_ticks = 0;
+ 
+-	pr = processors[smp_processor_id()];
++	pr = __get_cpu_var(processors);
+ 
+ 	if (unlikely(!pr))
+ 		return 0;
+@@ -1562,7 +1562,7 @@ static int acpi_idle_enter_bm(struct cpu
+ 	u32 t1, t2;
+ 	int sleep_ticks = 0;
+ 
+-	pr = processors[smp_processor_id()];
++	pr = __get_cpu_var(processors);
+ 
+ 	if (unlikely(!pr))
+ 		return 0;
+diff -puN drivers/acpi/processor_perflib.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_perflib.c
+--- a/drivers/acpi/processor_perflib.c~acpi-change-processors-from-array-to-per_cpu-variable
++++ a/drivers/acpi/processor_perflib.c
+@@ -89,7 +89,7 @@ static int acpi_processor_ppc_notifier(s
+ 	if (event != CPUFREQ_INCOMPATIBLE)
+ 		goto out;
+ 
+-	pr = processors[policy->cpu];
++	pr = per_cpu(processors, policy->cpu);
+ 	if (!pr || !pr->performance)
+ 		goto out;
+ 
+@@ -577,7 +577,7 @@ int acpi_processor_preregister_performan
+ 
+ 	/* Call _PSD for all CPUs */
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr) {
+ 			/* Look only at processors in ACPI namespace */
+ 			continue;
+@@ -608,7 +608,7 @@ int acpi_processor_preregister_performan
+ 	 * domain info.
+ 	 */
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr)
+ 			continue;
+ 
+@@ -629,7 +629,7 @@ int acpi_processor_preregister_performan
+ 
+ 	cpus_clear(covered_cpus);
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr)
+ 			continue;
+ 
+@@ -656,7 +656,7 @@ int acpi_processor_preregister_performan
+ 			if (i == j)
+ 				continue;
+ 
+-			match_pr = processors[j];
++			match_pr = per_cpu(processors, j);
+ 			if (!match_pr)
+ 				continue;
+ 
+@@ -685,7 +685,7 @@ int acpi_processor_preregister_performan
+ 			if (i == j)
+ 				continue;
+ 
+-			match_pr = processors[j];
++			match_pr = per_cpu(processors, j);
+ 			if (!match_pr)
+ 				continue;
+ 
+@@ -702,7 +702,7 @@ int acpi_processor_preregister_performan
+ 
+ err_ret:
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr || !pr->performance)
+ 			continue;
+ 
+@@ -733,7 +733,7 @@ acpi_processor_register_performance(stru
+ 
+ 	mutex_lock(&performance_mutex);
+ 
+-	pr = processors[cpu];
++	pr = per_cpu(processors, cpu);
+ 	if (!pr) {
+ 		mutex_unlock(&performance_mutex);
+ 		return -ENODEV;
+@@ -771,7 +771,7 @@ acpi_processor_unregister_performance(st
+ 
+ 	mutex_lock(&performance_mutex);
+ 
+-	pr = processors[cpu];
++	pr = per_cpu(processors, cpu);
+ 	if (!pr) {
+ 		mutex_unlock(&performance_mutex);
+ 		return;
+diff -puN drivers/acpi/processor_throttling.c~acpi-change-processors-from-array-to-per_cpu-variable drivers/acpi/processor_throttling.c
+--- a/drivers/acpi/processor_throttling.c~acpi-change-processors-from-array-to-per_cpu-variable
++++ a/drivers/acpi/processor_throttling.c
+@@ -71,7 +71,7 @@ static int acpi_processor_update_tsd_coo
+ 	 * coordination between all CPUs.
+ 	 */
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr)
+ 			continue;
+ 
+@@ -93,7 +93,7 @@ static int acpi_processor_update_tsd_coo
+ 
+ 	cpus_clear(covered_cpus);
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr)
+ 			continue;
+ 
+@@ -119,7 +119,7 @@ static int acpi_processor_update_tsd_coo
+ 			if (i == j)
+ 				continue;
+ 
+-			match_pr = processors[j];
++			match_pr = per_cpu(processors, j);
+ 			if (!match_pr)
+ 				continue;
+ 
+@@ -152,7 +152,7 @@ static int acpi_processor_update_tsd_coo
+ 			if (i == j)
+ 				continue;
+ 
+-			match_pr = processors[j];
++			match_pr = per_cpu(processors, j);
+ 			if (!match_pr)
+ 				continue;
+ 
+@@ -172,7 +172,7 @@ static int acpi_processor_update_tsd_coo
+ 
+ err_ret:
+ 	for_each_possible_cpu(i) {
+-		pr = processors[i];
++		pr = per_cpu(processors, i);
+ 		if (!pr)
+ 			continue;
+ 
+@@ -214,7 +214,7 @@ static int acpi_processor_throttling_not
+ 	struct acpi_processor_throttling *p_throttling;
+ 
+ 	cpu = p_tstate->cpu;
+-	pr = processors[cpu];
++	pr = per_cpu(processors, cpu);
+ 	if (!pr) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Invalid pr pointer\n"));
+ 		return 0;
+@@ -1035,7 +1035,7 @@ int acpi_processor_set_throttling(struct
+ 		 * cpus.
+ 		 */
+ 		for_each_cpu_mask(i, online_throttling_cpus) {
+-			match_pr = processors[i];
++			match_pr = per_cpu(processors, i);
+ 			/*
+ 			 * If the pointer is invalid, we will report the
+ 			 * error message and continue.
+diff -puN include/acpi/processor.h~acpi-change-processors-from-array-to-per_cpu-variable include/acpi/processor.h
+--- a/include/acpi/processor.h~acpi-change-processors-from-array-to-per_cpu-variable
++++ a/include/acpi/processor.h
+@@ -255,7 +255,7 @@ extern void acpi_processor_unregister_pe
+ int acpi_processor_notify_smm(struct module *calling_module);
+ 
+ /* for communication between multiple parts of the processor kernel module */
+-extern struct acpi_processor *processors[NR_CPUS];
++DECLARE_PER_CPU(struct acpi_processor *, processors);
+ extern struct acpi_processor_errata errata;
+ 
+ void arch_acpi_processor_init_pdc(struct acpi_processor *pr);
 _
 
-Patches currently in -mm which might be from yorksun@freescale.com are
+Patches currently in -mm which might be from travis@sgi.com are
 
-fbdev-add-diu-platform-code-for-mpc8610hpcd.patch
+git-cpufreq.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+cpufreq-change-cpu-freq-arrays-to-per_cpu-variables.patch
+acpi-change-processors-from-array-to-per_cpu-variable.patch
+cpumask-add-cpumask_scnprintf_len-function.patch
+cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
+net-remove-nr_cpus-arrays-in-net-core-devc-v2.patch
+sched-remove-fixed-nr_cpus-sized-arrays-in-kernel_schedc.patch
 
