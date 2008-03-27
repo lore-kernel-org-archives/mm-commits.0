@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-agpgart-fix-type-confusion.patch added to -mm tree
-Date: Thu, 27 Mar 2008 16:11:32 -0700
-Message-ID: <200803272321.m2RNLSJ4027016@imap1.linux-foundation.org>
+Subject: + drivers-scsi-aacraid-commsupc-dont-use-down_interruptible.patch added to -mm tree
+Date: Thu, 27 Mar 2008 16:20:49 -0700
+Message-ID: <200803272330.m2RNUjUN027595@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48591 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40949 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752086AbYC0XWE (ORCPT
+	by vger.kernel.org with ESMTP id S1752105AbYC0Xa5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 19:22:04 -0400
+	Thu, 27 Mar 2008 19:30:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     git-agpgart-fix-type-confusion
+     drivers/scsi/aacraid/commsup.c: don't use down_interruptible()
 has been added to the -mm tree.  Its filename is
-     git-agpgart-fix-type-confusion.patch
+     drivers-scsi-aacraid-commsupc-dont-use-down_interruptible.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-agpgart-fix-type-confusion
+Subject: drivers/scsi/aacraid/commsup.c: don't use down_interruptible()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-size_t != int.
+This code is buggy: if the calling process gets signalled the
+dwn_interruptible() will return without taking the lock and the driver has
+lost all track of the lock's state.
 
-Cc: Dave Airlie <airlied@linux.ie>
+Just use plain old down().
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/agp.h     |    2 +-
- drivers/char/agp/generic.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/aacraid/commsup.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/agp/agp.h~git-agpgart-fix-type-confusion drivers/char/agp/agp.h
---- a/drivers/char/agp/agp.h~git-agpgart-fix-type-confusion
-+++ a/drivers/char/agp/agp.h
-@@ -276,7 +276,7 @@ struct agp_memory *agp_generic_alloc_by_
- void agp_generic_free_by_type(struct agp_memory *curr);
- struct page *agp_generic_alloc_page(struct agp_bridge_data *bridge);
- int agp_generic_alloc_pages(struct agp_bridge_data *agp_bridge,
--			    struct agp_memory *memory, size_t page_count);
-+			    struct agp_memory *memory, int page_count);
- 
- void agp_generic_destroy_page(struct page *page, int flags);
- void agp_free_key(int key);
-diff -puN drivers/char/agp/generic.c~git-agpgart-fix-type-confusion drivers/char/agp/generic.c
---- a/drivers/char/agp/generic.c~git-agpgart-fix-type-confusion
-+++ a/drivers/char/agp/generic.c
-@@ -217,7 +217,7 @@ EXPORT_SYMBOL(agp_free_memory);
- #define ENTRIES_PER_PAGE		(PAGE_SIZE / sizeof(unsigned long))
- 
- int agp_generic_alloc_pages(struct agp_bridge_data *agp_bridge,
--			    struct agp_memory *memory, size_t page_count)
-+			    struct agp_memory *memory, int page_count)
- {
- 	int i;
- 	struct page *page;
+diff -puN drivers/scsi/aacraid/commsup.c~drivers-scsi-aacraid-commsupc-dont-use-down_interruptible drivers/scsi/aacraid/commsup.c
+--- a/drivers/scsi/aacraid/commsup.c~drivers-scsi-aacraid-commsupc-dont-use-down_interruptible
++++ a/drivers/scsi/aacraid/commsup.c
+@@ -515,8 +515,9 @@ int aac_fib_send(u16 command, struct fib
+ 				}
+ 				udelay(5);
+ 			}
+-		} else
+-			(void)down_interruptible(&fibptr->event_wait);
++		} else {
++			down(&fibptr->event_wait);
++		}
+ 		spin_lock_irqsave(&fibptr->event_lock, flags);
+ 		if (fibptr->done == 0) {
+ 			fibptr->done = 2; /* Tell interrupt we aborted */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -241,4 +236,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
+drivers-scsi-aacraid-commsupc-dont-use-down_interruptible.patch
 
