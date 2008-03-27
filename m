@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mac80211-michaelc-fold-initial-xor-into-block-helper.patch added to -mm tree
-Date: Thu, 27 Mar 2008 01:06:25 -0700
-Message-ID: <200803270806.m2R86PqU024885@imap1.linux-foundation.org>
+Subject: + mac80211-michaelc-use-unaligned-byteorder-helpers.patch added to -mm tree
+Date: Thu, 27 Mar 2008 01:06:23 -0700
+Message-ID: <200803270806.m2R86N48024882@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45069 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755440AbYC0IHW (ORCPT
+	by vger.kernel.org with ESMTP id S1755865AbYC0IHU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 04:07:22 -0400
+	Thu, 27 Mar 2008 04:07:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com, jbenc@suse.cz, linville@tuxdriver.com
 
 
 The patch titled
-     mac80211: michael.c fold initial xor into block helper
+     mac80211: michael.c use unaligned/byteorder helpers
 has been added to the -mm tree.  Its filename is
-     mac80211-michaelc-fold-initial-xor-into-block-helper.patch
+     mac80211-michaelc-use-unaligned-byteorder-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: michael.c fold initial xor into block helper
+Subject: mac80211: michael.c use unaligned/byteorder helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
+
+Rather than open-coding the get/put of little endian values, use
+get/put_unaligned and the byteorder helpers.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Jiri Benc <jbenc@suse.cz>
@@ -43,66 +46,60 @@ Cc: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/michael.c |   27 ++++++++++-----------------
- 1 file changed, 10 insertions(+), 17 deletions(-)
+ net/mac80211/michael.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN net/mac80211/michael.c~mac80211-michaelc-fold-initial-xor-into-block-helper net/mac80211/michael.c
---- a/net/mac80211/michael.c~mac80211-michaelc-fold-initial-xor-into-block-helper
+diff -puN net/mac80211/michael.c~mac80211-michaelc-use-unaligned-byteorder-helpers net/mac80211/michael.c
+--- a/net/mac80211/michael.c~mac80211-michaelc-use-unaligned-byteorder-helpers
 +++ a/net/mac80211/michael.c
-@@ -14,8 +14,9 @@
+@@ -9,6 +9,8 @@
+ 
+ #include <linux/types.h>
+ #include <linux/bitops.h>
++#include <asm/byteorder.h>
++#include <asm/unaligned.h>
  
  #include "michael.h"
  
--static void michael_block(u32 *l, u32 *r)
-+static void michael_block(u32 val, u32 *l, u32 *r)
- {
-+	*l ^= val;
- 	*r ^= rol32(*l, 17);
+@@ -24,21 +26,20 @@ static void michael_block(u32 *l, u32 *r
  	*l += *r;
- 	*r ^= ((*l & 0xff00ff00) >> 8) | ((*l & 0x00ff00ff) << 8);
-@@ -52,23 +53,17 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
+ }
  
- 	/* A pseudo header (DA, SA, Priority, 0, 0, 0) is used in Michael MIC
+-
+-static inline u32 michael_get32(u8 *data)
++static u32 michael_get16(u8 *data)
+ {
+-	return data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
++	return le16_to_cpu(get_unaligned((__le16 *)data));
+ }
+ 
+-
+-static inline void michael_put32(u32 val, u8 *data)
++static u32 michael_get32(u8 *data)
+ {
+-	data[0] = val & 0xff;
+-	data[1] = (val >> 8) & 0xff;
+-	data[2] = (val >> 16) & 0xff;
+-	data[3] = (val >> 24) & 0xff;
++	return le32_to_cpu(get_unaligned((__le32 *)data));
+ }
+ 
++static void michael_put32(u32 val, u8 *data)
++{
++	put_unaligned(cpu_to_le32(val), (__le32 *)data);
++}
+ 
+ void michael_mic(u8 *key, u8 *da, u8 *sa, u8 priority,
+ 		 u8 *data, size_t data_len, u8 *mic)
+@@ -53,7 +54,7 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
  	 * calculation, but it is _not_ transmitted */
--	l ^= michael_get32(da);
--	michael_block(&l, &r);
--	l ^= michael_get16(da) | (michael_get16(sa) << 16);
--	michael_block(&l, &r);
--	l ^= michael_get32(&sa[2]);
--	michael_block(&l, &r);
--	l ^= priority;
--	michael_block(&l, &r);
-+	michael_block(michael_get32(da), &l, &r);
-+	michael_block(michael_get16(da) | (michael_get16(sa) << 16), &l, &r);
-+	michael_block(michael_get32(&sa[2]), &l, &r);
-+	michael_block(priority, &l, &r);
- 
- 	/* Real data */
- 	blocks = data_len / 4;
- 	left = data_len % 4;
- 
--	for (block = 0; block < blocks; block++) {
--		l ^= michael_get32(&data[block * 4]);
--		michael_block(&l, &r);
--	}
-+	for (block = 0; block < blocks; block++)
-+		michael_block(michael_get32(&data[block * 4]), &l, &r);
- 
- 	/* Partial block of 0..3 bytes and padding: 0x5a + 4..7 zeros to make
- 	 * total length a multiple of 4. */
-@@ -78,10 +73,8 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
- 		left--;
- 		val |= data[blocks * 4 + left];
- 	}
--	l ^= val;
--	michael_block(&l, &r);
--	/* last block is zero, so l ^ 0 = l */
--	michael_block(&l, &r);
-+	michael_block(val, &l, &r);
-+	michael_block(0, &l, &r);
- 
- 	michael_put32(l, mic);
- 	michael_put32(r, mic + 4);
+ 	l ^= michael_get32(da);
+ 	michael_block(&l, &r);
+-	l ^= da[4] | (da[5] << 8) | (sa[0] << 16) | (sa[1] << 24);
++	l ^= michael_get16(da) | (michael_get16(sa) << 16);
+ 	michael_block(&l, &r);
+ 	l ^= michael_get32(&sa[2]);
+ 	michael_block(&l, &r);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
