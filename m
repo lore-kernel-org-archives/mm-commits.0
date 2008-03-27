@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-agpgart-export-agp_generic_alloc_pages.patch added to -mm tree
-Date: Thu, 27 Mar 2008 14:59:29 -0700
-Message-ID: <200803272209.m2RM9PmO024335@imap1.linux-foundation.org>
+Subject: + mm-allocate-section_map-for-sparse_init-update-fix.patch added to -mm tree
+Date: Thu, 27 Mar 2008 15:08:12 -0700
+Message-ID: <200803272218.m2RMI879024623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60693 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57504 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755742AbYC0WJ6 (ORCPT
+	by vger.kernel.org with ESMTP id S1761989AbYC0WSq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 18:09:58 -0400
+	Thu, 27 Mar 2008 18:18:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, airlied@linux.ie
+Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mingo@elte.hu, y-goto@jp.fujitsu.com, yhlu.kernel.send@gmail.com
 
 
 The patch titled
-     git-agpgart: export agp_generic_alloc_pages
+     mm-allocate-section_map-for-sparse_init-update-fix
 has been added to the -mm tree.  Its filename is
-     git-agpgart-export-agp_generic_alloc_pages.patch
+     mm-allocate-section_map-for-sparse_init-update-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-agpgart: export agp_generic_alloc_pages
+Subject: mm-allocate-section_map-for-sparse_init-update-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allmodconfig:
+mm/sparse.c: In function 'sparse_init':
+mm/sparse.c:301: warning: unused variable 'node'
 
-ERROR: "agp_generic_alloc_pages" [drivers/char/agp/intel-agp.ko] undefined!
-
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Yinghai Lu <yhlu.kernel.send@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/generic.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/sparse.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/char/agp/generic.c~git-agpgart-export-agp_generic_alloc_pages drivers/char/agp/generic.c
---- a/drivers/char/agp/generic.c~git-agpgart-export-agp_generic_alloc_pages
-+++ a/drivers/char/agp/generic.c
-@@ -234,6 +234,7 @@ int agp_generic_alloc_pages(struct agp_b
- 	}
- 	return 0;
- }
-+EXPORT_SYMBOL(drivers/char/agp/generic.c);
+diff -puN mm/sparse.c~mm-allocate-section_map-for-sparse_init-update-fix mm/sparse.c
+--- a/mm/sparse.c~mm-allocate-section_map-for-sparse_init-update-fix
++++ a/mm/sparse.c
+@@ -298,7 +298,6 @@ void __init sparse_init(void)
+ 	unsigned long *usemap;
+ 	struct page **section_map;
+ 	int size;
+-	int node;
  
- /**
-  *	agp_allocate_memory  -  allocate a group of pages of a certain type.
+ 	/*
+ 	 * map is using big page (aka 2M in x86 64 bit)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -141,6 +146,7 @@ git-semaphore-git-rejects.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-allocate-section_map-for-sparse_init-update-fix.patch
 mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
 mm-make-early_pfn_to_nid-a-c-function.patch
 vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
