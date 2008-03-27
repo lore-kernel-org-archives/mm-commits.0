@@ -1,130 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-git-rejects.patch added to -mm tree
-Date: Thu, 27 Mar 2008 15:37:19 -0700
-Message-ID: <200803272237.m2RMbJEH025384@imap1.linux-foundation.org>
+Subject: - git-agpgart-export-agp_generic_alloc_pages.patch removed from -mm tree
+Date: Thu, 27 Mar 2008 15:43:11 -0700
+Message-ID: <200803272243.m2RMhBmS025583@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59982 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46570 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752324AbYC0WhV (ORCPT
+	by vger.kernel.org with ESMTP id S1751191AbYC0Wno (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 18:37:21 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2RMbJNq012187
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 27 Mar 2008 15:37:20 -0700
+	Thu, 27 Mar 2008 18:43:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, airlied@linux.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-git-rejects
-has been added to the -mm tree.  Its filename is
-     git-net-git-rejects.patch
+     git-agpgart: export agp_generic_alloc_pages
+has been removed from the -mm tree.  Its filename was
+     git-agpgart-export-agp_generic_alloc_pages.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net-git-rejects
+Subject: git-agpgart: export agp_generic_alloc_pages
 From: Andrew Morton <akpm@linux-foundation.org>
 
+i386 allmodconfig:
+
+ERROR: "agp_generic_alloc_pages" [drivers/char/agp/intel-agp.ko] undefined!
+
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/usb/rndis_host.c   |    5 +----
- drivers/net/wireless/b43/dma.c |    3 ---
- net/ipv6/ndisc.c               |   19 -------------------
- 3 files changed, 1 insertion(+), 26 deletions(-)
+ drivers/char/agp/generic.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/usb/rndis_host.c~git-net-git-rejects drivers/net/usb/rndis_host.c
---- a/drivers/net/usb/rndis_host.c~git-net-git-rejects
-+++ a/drivers/net/usb/rndis_host.c
-@@ -283,12 +283,9 @@ generic_rndis_bind(struct usbnet *dev, s
- 		struct rndis_set_c	*set_c;
- 		struct rndis_halt	*halt;
- 	} u;
--<<<<<<< HEAD:drivers/net/usb/rndis_host.c
--	u32			tmp, phym_unspec, *phym;
--=======
- 	u32			tmp;
-+	u32			phym_unspec;
- 	__le32			*phym;
-->>>>>>> FETCH_HEAD:drivers/net/usb/rndis_host.c
- 	int			reply_len;
- 	unsigned char		*bp;
- 
-diff -puN drivers/net/wireless/b43/dma.c~git-net-git-rejects drivers/net/wireless/b43/dma.c
---- a/drivers/net/wireless/b43/dma.c~git-net-git-rejects
-+++ a/drivers/net/wireless/b43/dma.c
-@@ -1314,9 +1314,7 @@ out_unlock:
- 	return err;
- }
- 
--<<<<<<< HEAD:drivers/net/wireless/b43/dma.c
- /* Called with IRQs disabled. */
--=======
- static void b43_fill_txstatus_report(struct b43_dmaring *ring,
- 				    struct ieee80211_tx_status *report,
- 				    const struct b43_txstatus *status)
-@@ -1349,7 +1347,6 @@ static void b43_fill_txstatus_report(str
+diff -puN drivers/char/agp/generic.c~git-agpgart-export-agp_generic_alloc_pages drivers/char/agp/generic.c
+--- a/drivers/char/agp/generic.c~git-agpgart-export-agp_generic_alloc_pages
++++ a/drivers/char/agp/generic.c
+@@ -234,6 +234,7 @@ int agp_generic_alloc_pages(struct agp_b
  	}
+ 	return 0;
  }
++EXPORT_SYMBOL(drivers/char/agp/generic.c);
  
-->>>>>>> FETCH_HEAD:drivers/net/wireless/b43/dma.c
- void b43_dma_handle_txstatus(struct b43_wldev *dev,
- 			     const struct b43_txstatus *status)
- {
-diff -puN net/ipv6/ndisc.c~git-net-git-rejects net/ipv6/ndisc.c
---- a/net/ipv6/ndisc.c~git-net-git-rejects
-+++ a/net/ipv6/ndisc.c
-@@ -661,20 +661,6 @@ static void ndisc_solicit(struct neighbo
- 	}
- }
- 
--static struct pneigh_entry *pndisc_check_router(struct net_device *dev,
--		struct in6_addr *addr, int *is_router)
--{
--	struct pneigh_entry *n;
--
--	read_lock_bh(&nd_tbl.lock);
--	n = __pneigh_lookup(&nd_tbl, &init_net, addr, dev);
--	if (n != NULL)
--		*is_router = (n->flags & NTF_ROUTER);
--	read_unlock_bh(&nd_tbl.lock);
--
--	return n;
--}
--
- static void ndisc_recv_ns(struct sk_buff *skb)
- {
- 	struct nd_msg *msg = (struct nd_msg *)skb_transport_header(skb);
-@@ -790,13 +776,8 @@ static void ndisc_recv_ns(struct sk_buff
- 		if (ipv6_chk_acast_addr(dev_net(dev), dev, &msg->target) ||
- 		    (idev->cnf.forwarding &&
- 		     (ipv6_devconf.proxy_ndp || idev->cnf.proxy_ndp) &&
--<<<<<<< HEAD:net/ipv6/ndisc.c
--		     (pneigh = pndisc_check_router(dev, &msg->target,
--						  &is_router)) != NULL)) {
--=======
- 		     (pneigh = pneigh_lookup(&nd_tbl, dev_net(dev),
- 					     &msg->target, dev, 0)) != NULL)) {
-->>>>>>> FETCH_HEAD:net/ipv6/ndisc.c
- 			if (!(NEIGH_CB(skb)->flags & LOCALLY_ENQUEUED) &&
- 			    skb->pkt_type != PACKET_HOST &&
- 			    inc != 0 &&
+ /**
+  *	agp_allocate_memory  -  allocate a group of pages of a certain type.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -148,7 +72,6 @@ git-alsa-tiwai.patch
 git-agpgart-export-agp_generic_alloc_pages.patch
 cifs-suppress-warning.patch
 pm-remove-destroy_suspended_device-checkpatch-fixes.patch
-git-drm.patch
 git-dvb.patch
 drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
 i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes.patch
