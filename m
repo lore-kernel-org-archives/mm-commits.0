@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-implement-device-whitelist-doc.patch added to -mm tree
-Date: Thu, 27 Mar 2008 12:38:08 -0700
-Message-ID: <200803271938.m2RJc9VK018773@imap1.linux-foundation.org>
+Subject: + mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify.patch added to -mm tree
+Date: Thu, 27 Mar 2008 12:43:14 -0700
+Message-ID: <200803271943.m2RJhERw018960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35694 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59389 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757209AbYC0Tik (ORCPT
+	by vger.kernel.org with ESMTP id S1757664AbYC0ToE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 15:38:40 -0400
+	Thu, 27 Mar 2008 15:44:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: serue@us.ibm.com, balbir@in.ibm.com, daniel@hozac.com, jmorris@namei.org, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com
+Cc: mel@csn.ul.ie, clameter@sgi.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, nickpiggin@yahoo.com.au
 
 
 The patch titled
-     cgroups: devices: add Documentation/ file
+     Uninline zonelist iterator helper functions
 has been added to the -mm tree.  Its filename is
-     cgroups-implement-device-whitelist-doc.patch
+     mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,103 +34,256 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: devices: add Documentation/ file
-From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: Uninline zonelist iterator helper functions
+From: Mel Gorman <mel@csn.ul.ie>
 
-Fill a Documentation/controllers/devices.txt file with a modified text from
-the patch description.
+for_each_zone_zonelist_nodemask() uses large inlined helpers.  The number of
+callsites using it means that the size of the text section is increased.  This
+patch uninlines the helpers to reduce the amount of text bloat.
 
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daniel Hokka Zakrisson <daniel@hozac.com>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/controllers/devices.txt |   48 ++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+ fs/buffer.c            |    4 +-
+ include/linux/mmzone.h |   62 ++++++---------------------------------
+ mm/mempolicy.c         |    4 +-
+ mm/mmzone.c            |   30 ++++++++++++++++++
+ mm/page_alloc.c        |   10 +++++-
+ 5 files changed, 54 insertions(+), 56 deletions(-)
 
-diff -puN /dev/null Documentation/controllers/devices.txt
---- /dev/null
-+++ a/Documentation/controllers/devices.txt
-@@ -0,0 +1,48 @@
-+Device Whitelist Controller
+diff -puN fs/buffer.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify fs/buffer.c
+--- a/fs/buffer.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify
++++ a/fs/buffer.c
+@@ -361,6 +361,7 @@ void invalidate_bdev(struct block_device
+ static void free_more_memory(void)
+ {
+ 	struct zoneref *zrefs;
++	struct zone *dummy;
+ 	int nid;
+ 
+ 	wakeup_pdflush(1024);
+@@ -368,7 +369,8 @@ static void free_more_memory(void)
+ 
+ 	for_each_online_node(nid) {
+ 		zrefs = first_zones_zonelist(node_zonelist(nid, GFP_NOFS),
+-						gfp_zone(GFP_NOFS), NULL);
++						gfp_zone(GFP_NOFS), NULL,
++						&dummy);
+ 		if (zrefs->zone)
+ 			try_to_free_pages(node_zonelist(nid, GFP_NOFS), 0,
+ 						GFP_NOFS);
+diff -puN include/linux/mmzone.h~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify
++++ a/include/linux/mmzone.h
+@@ -750,59 +750,19 @@ static inline int zonelist_node_idx(stru
+ #endif /* CONFIG_NUMA */
+ }
+ 
+-static inline void zoneref_set_zone(struct zone *zone, struct zoneref *zoneref)
+-{
+-	zoneref->zone = zone;
+-	zoneref->zone_idx = zone_idx(zone);
+-}
+-
+-static inline int zref_in_nodemask(struct zoneref *zref, nodemask_t *nodes)
+-{
+-#ifdef CONFIG_NUMA
+-	return node_isset(zonelist_node_idx(zref), *nodes);
+-#else
+-	return 1;
+-#endif /* CONFIG_NUMA */
+-}
++struct zoneref *next_zones_zonelist(struct zoneref *z,
++					enum zone_type highest_zoneidx,
++					nodemask_t *nodes,
++					struct zone **zone);
+ 
+ /* Returns the first zone at or below highest_zoneidx in a zonelist */
+ static inline struct zoneref *first_zones_zonelist(struct zonelist *zonelist,
+ 					enum zone_type highest_zoneidx,
+-					nodemask_t *nodes)
++					nodemask_t *nodes,
++					struct zone **zone)
+ {
+-	struct zoneref *z;
+-
+-	/* Find the first suitable zone to use for the allocation */
+-	z = zonelist->_zonerefs;
+-	if (likely(nodes == NULL))
+-		while (zonelist_zone_idx(z) > highest_zoneidx)
+-			z++;
+-	else
+-		while (zonelist_zone_idx(z) > highest_zoneidx ||
+-				(z->zone && !zref_in_nodemask(z, nodes)))
+-			z++;
+-
+-	return z;
+-}
+-
+-/* Returns the next zone at or below highest_zoneidx in a zonelist */
+-static inline struct zoneref *next_zones_zonelist(struct zoneref *z,
+-					enum zone_type highest_zoneidx,
+-					nodemask_t *nodes)
+-{
+-	/*
+-	 * Find the next suitable zone to use for the allocation.
+-	 * Only filter based on nodemask if it's set
+-	 */
+-	if (likely(nodes == NULL))
+-		while (zonelist_zone_idx(z) > highest_zoneidx)
+-			z++;
+-	else
+-		while (zonelist_zone_idx(z) > highest_zoneidx ||
+-				(z->zone && !zref_in_nodemask(z, nodes)))
+-			z++;
+-
+-	return z;
++	return next_zones_zonelist(zonelist->_zonerefs, highest_zoneidx, nodes,
++								zone);
+ }
+ 
+ /**
+@@ -817,11 +777,9 @@ static inline struct zoneref *next_zones
+  * within a given nodemask
+  */
+ #define for_each_zone_zonelist_nodemask(zone, z, zlist, highidx, nodemask) \
+-	for (z = first_zones_zonelist(zlist, highidx, nodemask),	\
+-					zone = zonelist_zone(z++);	\
++	for (z = first_zones_zonelist(zlist, highidx, nodemask, &zone);	\
+ 		zone;							\
+-		z = next_zones_zonelist(z, highidx, nodemask),		\
+-					zone = zonelist_zone(z++))
++		z = next_zones_zonelist(z, highidx, nodemask, &zone))	\
+ 
+ /**
+  * for_each_zone_zonelist - helper macro to iterate over valid zones in a zonelist at or below a given zone index
+diff -puN mm/mempolicy.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify
++++ a/mm/mempolicy.c
+@@ -1214,10 +1214,12 @@ unsigned slab_node(struct mempolicy *pol
+ 		 */
+ 		struct zonelist *zonelist;
+ 		struct zoneref *z;
++		struct zone *dummy;
+ 		enum zone_type highest_zoneidx = gfp_zone(GFP_KERNEL);
+ 		zonelist = &NODE_DATA(numa_node_id())->node_zonelists[0];
+ 		z = first_zones_zonelist(zonelist, highest_zoneidx,
+-							&policy->v.nodes);
++							&policy->v.nodes,
++							&dummy);
+ 		return zonelist_node_idx(z);
+ 	}
+ 
+diff -puN mm/mmzone.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify mm/mmzone.c
+--- a/mm/mmzone.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify
++++ a/mm/mmzone.c
+@@ -42,3 +42,33 @@ struct zone *next_zone(struct zone *zone
+ 	return zone;
+ }
+ 
++static inline int zref_in_nodemask(struct zoneref *zref, nodemask_t *nodes)
++{
++#ifdef CONFIG_NUMA
++	return node_isset(zonelist_node_idx(zref), *nodes);
++#else
++	return 1;
++#endif /* CONFIG_NUMA */
++}
 +
-+1. Description:
++/* Returns the next zone at or below highest_zoneidx in a zonelist */
++struct zoneref *next_zones_zonelist(struct zoneref *z,
++					enum zone_type highest_zoneidx,
++					nodemask_t *nodes,
++					struct zone **zone)
++{
++	/*
++	 * Find the next suitable zone to use for the allocation.
++	 * Only filter based on nodemask if it's set
++	 */
++	if (likely(nodes == NULL))
++		while (zonelist_zone_idx(z) > highest_zoneidx)
++			z++;
++	else
++		while (zonelist_zone_idx(z) > highest_zoneidx ||
++				(z->zone && !zref_in_nodemask(z, nodes)))
++			z++;
 +
-+Implement a cgroup to track and enforce open and mknod restrictions
-+on device files.  A device cgroup associates a device access
-+whitelist with each cgroup.  A whitelist entry has 4 fields.
-+'type' is a (all), c (char), or b (block).  'all' means it applies
-+to all types and all major and minor numbers.  Major and minor are
-+either an integer or * for all.  Access is a composition of r
-+(read), w (write), and m (mknod).
++	*zone = zonelist_zone(z++);
++	return z;
++}
+diff -puN mm/page_alloc.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify
++++ a/mm/page_alloc.c
+@@ -1388,9 +1388,9 @@ get_page_from_freelist(gfp_t gfp_mask, n
+ 	int zlc_active = 0;		/* set if using zonelist_cache */
+ 	int did_zlc_setup = 0;		/* just call zlc_setup() one time */
+ 
+-	z = first_zones_zonelist(zonelist, high_zoneidx, nodemask);
++	z = first_zones_zonelist(zonelist, high_zoneidx, nodemask,
++							&preferred_zone);
+ 	classzone_idx = zonelist_zone_idx(z);
+-	preferred_zone = zonelist_zone(z);
+ 
+ zonelist_scan:
+ 	/*
+@@ -1896,6 +1896,12 @@ void show_free_areas(void)
+ 	show_swap_cache_info();
+ }
+ 
++static void zoneref_set_zone(struct zone *zone, struct zoneref *zoneref)
++{
++	zoneref->zone = zone;
++	zoneref->zone_idx = zone_idx(zone);
++}
 +
-+The root device cgroup starts with rwm to 'all'.  A child device
-+cgroup gets a copy of the parent.  Administrators can then remove
-+devices from the whitelist or add new entries.  A child cgroup can
-+never receive a device access which is denied its parent.  However
-+when a device access is removed from a parent it will not also be
-+removed from the child(ren).
-+
-+2. User Interface
-+
-+An entry is added using devices.allow, and removed using
-+devices.deny.  For instance
-+
-+	echo 'c 1:3 mr' > /cgroups/1/devices.allow
-+
-+allows cgroup 1 to read and mknod the device usually known as
-+/dev/null.  Doing
-+
-+	echo a > /cgroups/1/devices.deny
-+
-+will remove the default 'a *:* mrw' entry.
-+
-+3. Security
-+
-+Any task can move itself between cgroups.  This clearly won't
-+suffice, but we can decide the best way to adequately restrict
-+movement as people get some experience with this.  We may just want
-+to require CAP_SYS_ADMIN, which at least is a separate bit from
-+CAP_MKNOD.  We may want to just refuse moving to a cgroup which
-+isn't a descendent of the current one.  Or we may want to use
-+CAP_MAC_ADMIN, since we really are trying to lock down root.
-+
-+CAP_SYS_ADMIN is needed to modify the whitelist or move another
-+task to a new cgroup.  (Again we'll probably want to change that).
-+
-+A cgroup may not be granted more permissions than the cgroup's
-+parent has.
+ /*
+  * Builds allocation fallback zone lists.
+  *
 _
 
-Patches currently in -mm which might be from serue@us.ibm.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-git-unionfs.patch
-git-vfs.patch
-capabilities-implement-per-process-securebits.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-capabilities-implement-per-process-securebits-fix.patch
-root_plug-use-cap_task_prctl.patch
-smack-use-cap_task_prctl.patch
-cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh.patch
-cgroups-implement-device-whitelist-v6.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-doc.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-ipc-semaphores-code-factorisation.patch
-ipc-shared-memory-introduce-shmctl_down.patch
-ipc-message-queues-introduce-msgctl_down.patch
-ipc-semaphores-move-the-rwmutex-handling-inside-semctl_down.patch
-ipc-semaphores-remove-one-unused-parameter-from-semctl_down.patch
-ipc-get-rid-of-the-use-_setbuf-structure.patch
-ipc-introduce-ipc_update_perm.patch
-ipc-consolidate-all-xxxctl_down-functions.patch
-reiser4-replace-uid==0-check-with-capability.patch
+origin.patch
+remove-set_migrateflags.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify.patch
+hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages.patch
+mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
+mm-allocate-section_map-for-sparse_init.patch
+mm-allocate-section_map-for-sparse_init-update.patch
+mm-offset-align-in-alloc_bootmem.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+sparsemem-vmemmap-does-not-need-section-bits.patch
+kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
+pageflags-use-an-enum-for-the-flags.patch
+pageflags-get-rid-of-flags_reserved.patch
+pageflags-introduce-macros-to-generate-page-flag-functions.patch
+pageflags-convert-to-the-use-of-new-macros.patch
+pageflags-use-proper-page-flag-functions-in-xen.patch
+pageflags-eliminate-pg_xxx-aliases.patch
+get-rid-of-__zone_count.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
