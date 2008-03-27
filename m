@@ -1,235 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: + revert-set-relay-file-can-not-be-read-by-pread2.patch added to -mm tree
-Date: Thu, 27 Mar 2008 01:17:14 -0700
-Message-ID: <200803270817.m2R8HEmf025279@imap1.linux-foundation.org>
+Subject: - x86-dont-allow-kvm_clock-without-have_kvm.patch removed from -mm tree
+Date: Thu, 27 Mar 2008 01:19:06 -0700
+Message-ID: <200803270819.m2R8J6o3025378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45682 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750984AbYC0ISV (ORCPT
+	by vger.kernel.org with ESMTP id S1754676AbYC0IT4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 04:18:21 -0400
+	Thu, 27 Mar 2008 04:19:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com, laijs@cn.fujitsu.com
+To: randy.dunlap@oracle.com, avi@qumranet.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert "set relay file can not be read by pread(2)"
-has been added to the -mm tree.  Its filename is
-     revert-set-relay-file-can-not-be-read-by-pread2.patch
+     x86: don't allow KVM_CLOCK without HAVE_KVM
+has been removed from the -mm tree.  Its filename was
+     x86-dont-allow-kvm_clock-without-have_kvm.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "set relay file can not be read by pread(2)"
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86: don't allow KVM_CLOCK without HAVE_KVM
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Revert
+Make KVM_CLOCK depend on HAVE_KVM.  Otherwise a Voyager build can
+fail with:
 
-commit 37529fe9f62835e1c11895a1895064748b032dc1
-Author: Lai Jiangshan <laijs@cn.fujitsu.com>
-Date:   Wed Mar 26 12:01:28 2008 +0100
+  CC      arch/x86/kernel/asm-offsets.s
+In file included from include2/asm/irqflags.h:59,
+                 from /local/linsrc/next-20080314/include/linux/irqflags.h:46,
+                 from include2/asm/system.h:11,
+                 from include2/asm/processor.h:21,
+                 from include2/asm/atomic_32.h:5,
+                 from include2/asm/atomic.h:2,
+                 from /local/linsrc/next-20080314/include/linux/crypto.h:20,
+                 from /local/linsrc/next-20080314/arch/x86/kernel/asm-offsets_32.c:7,
+                 from /local/linsrc/next-20080314/arch/x86/kernel/asm-offsets.c:2:
+include2/asm/paravirt.h: In function 'startup_ipi_hook':
+include2/asm/paravirt.h:856: error: 'struct pv_apic_ops' has no member named 'startup_ipi_hook'
+include2/asm/paravirt.h:856: error: 'struct pv_apic_ops' has no member named 'startup_ipi_hook'
+include2/asm/paravirt.h:856: error: memory input 4 is not directly addressable
+make[2]: *** [arch/x86/kernel/asm-offsets.s] Error 1
+make[1]: *** [prepare0] Error 2
+make: *** [sub-make] Error 2
 
-    set relay file can not be read by pread(2)
-    
-    I found that relay files can be read by pread(2). I fix it,
-    for relay files are not capable of seeking.
-    
-    Signed-off-by: Lai Jiangshan <laijs@cn.fujitsu.com>
-    Signed-off-by: Jens Axboe <jens.axboe@oracle.com>
-
-as it will break any existing apps which are using pread() against relayfs
-files.  This presently works OK as long as the offset is zero, so there may be
-such apps out there.
-
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/relay.c~revert-set-relay-file-can-not-be-read-by-pread2 kernel/relay.c
---- a/kernel/relay.c~revert-set-relay-file-can-not-be-read-by-pread2
-+++ a/kernel/relay.c
-@@ -736,7 +736,7 @@ static int relay_file_open(struct inode 
- 	kref_get(&buf->kref);
- 	filp->private_data = buf;
- 
--	return nonseekable_open(inode, filp);
-+	return 0;
- }
- 
- /**
+diff -puN arch/x86/Kconfig~x86-dont-allow-kvm_clock-without-have_kvm arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86-dont-allow-kvm_clock-without-have_kvm
++++ a/arch/x86/Kconfig
+@@ -370,6 +370,7 @@ config VMI
+ config KVM_CLOCK
+ 	bool "KVM paravirtualized clock"
+ 	select PARAVIRT
++	depends on HAVE_KVM
+ 	help
+ 	  Turning on this option will allow you to run a paravirtualized clock
+ 	  when running over the KVM hypervisor. Instead of relying on a PIT
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
 git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
-x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
-net-9p-trans_fdc-p9_trans_fd_init-module_init-functions-should-return-0-on-success.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
+audit-ailence-two-kerneldoc-warnings-in-kernel-auditc.patch
+kernel-add-bit-rotation-helpers-for-16-and-8-bit.patch
 git-x86.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-pm-remove-destroy_suspended_device-checkpatch-fixes.patch
-git-drm.patch
-git-drm-git-rejects.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
+rapidio-fix-docbook-references.patch
+pm-remove-legacy-pm-fix.patch
+kbuild-silence-documentation-gen-xml-messages-according-to-quiet.patch
 git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-net.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
-drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
 scsi-add-iscsi-ibft-support-fix.patch
-git-block-git-rejects.patch
 git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+x86-dont-allow-kvm_clock-without-have_kvm.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
+let-log_buf_shift-default-to-17.patch
+sysrq-add-show-backtrace-on-all-cpus-function.patch
+isolate-ratelimit-from-printkc-for-other-use-update.patch
+documentation-move-spidev_fdx-example-to-its-own-source-file.patch
+add-a-document-describing-the-resource-counter-abstraction-v2.patch
 add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+jbd2-fix-kernel-doc-notation.patch
+basic-braille-screen-reader-support-makefile-fix.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+dma-mapping-add-dma_map_attrs-interfaces.patch
+dma-mapping-document-dma_map_attrs-interfaces.patch
+dma-mapping-ia64-update-ia64-machvecs-swiotlbc.patch
+dma-mapping-ib-expand-ib_umem_get-prototype.patch
 dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
 profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-w1-build-fix.patch
 
