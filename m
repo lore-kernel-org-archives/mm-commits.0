@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 27 Mar 2008 02:04:15 -0700
-Message-ID: <200803270904.m2R94F9p027053@imap1.linux-foundation.org>
+Subject: + ext3-dont-export-ext3_fsh-and-jbdh.patch added to -mm tree
+Date: Thu, 27 Mar 2008 02:23:30 -0700
+Message-ID: <200803270923.m2R9NU5s027791@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53677 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56582 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753730AbYC0JFQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751249AbYC0JYC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 05:05:16 -0400
+	Thu, 27 Mar 2008 05:24:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, daniel@hozac.com, jmorris@namei.org, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, serue@us.ibm.com
+Cc: hch@lst.de, tytso@mit.edu
 
 
 The patch titled
-     cgroups-implement-device-whitelist-v6-checkpatch-fixes
+     ext3: don't export ext3_fs.h and jbd.h
 has been added to the -mm tree.  Its filename is
-     cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+     ext3-dont-export-ext3_fsh-and-jbdh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,219 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups-implement-device-whitelist-v6-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ext3: don't export ext3_fs.h and jbd.h
+From: Christoph Hellwig <hch@lst.de>
 
-WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
-#153: FILE: security/device_cgroup.c:11:
-+#include <asm/uaccess.h>
+Neither of the headers actually compiles when included from userpsace nor
+should it be made available as userspace tools should be using the libraries
+or at least headers from e2fsprogs.
 
-ERROR: spaces required around that '=' (ctx:VxV)
-#609: FILE: security/device_cgroup.c:467:
-+			count=3;
- 			     ^
-
-total: 1 errors, 1 warnings, 669 lines checked
-
-./patches/cgroups-implement-device-whitelist-v6.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daniel Hokka Zakrisson <daniel@hozac.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/Kbuild |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN security/device_cgroup.c~cgroups-implement-device-whitelist-v6-checkpatch-fixes security/device_cgroup.c
---- a/security/device_cgroup.c~cgroups-implement-device-whitelist-v6-checkpatch-fixes
-+++ a/security/device_cgroup.c
-@@ -8,7 +8,7 @@
- #include <linux/cgroup.h>
- #include <linux/ctype.h>
- #include <linux/list.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- 
- #define ACC_MKNOD 1
- #define ACC_READ  2
-@@ -464,7 +464,7 @@ static ssize_t devcgroup_access_write(st
- 			break;
- 		case '\n':
- 		case '\0':
--			count=3;
-+			count = 3;
- 			break;
- 		default:
- 			retval = -EINVAL;
+diff -puN include/linux/Kbuild~ext3-dont-export-ext3_fsh-and-jbdh include/linux/Kbuild
+--- a/include/linux/Kbuild~ext3-dont-export-ext3_fsh-and-jbdh
++++ a/include/linux/Kbuild
+@@ -195,7 +195,6 @@ unifdef-y += ethtool.h
+ unifdef-y += eventpoll.h
+ unifdef-y += signalfd.h
+ unifdef-y += ext2_fs.h
+-unifdef-y += ext3_fs.h
+ unifdef-y += fb.h
+ unifdef-y += fcntl.h
+ unifdef-y += filter.h
+@@ -248,7 +247,6 @@ unifdef-y += isdn.h
+ unifdef-y += isdnif.h
+ unifdef-y += isdn_divertif.h
+ unifdef-y += isdn_ppp.h
+-unifdef-y += jbd.h
+ unifdef-y += joystick.h
+ unifdef-y += kdev_t.h
+ unifdef-y += kd.h
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hch@lst.de are
 
-origin.patch
-git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
-x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
-net-9p-trans_fdc-p9_trans_fd_init-module_init-functions-should-return-0-on-success.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-cifs-suppress-warning.patch
-pm-remove-destroy_suspended_device-checkpatch-fixes.patch
-git-drm.patch
-git-drm-git-rejects.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes.patch
-git-hwmon.patch
+ext3-dont-export-ext3_fsh-and-jbdh.patch
 git-gfs2-nmw.patch
-git-hrt.patch
-arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-git-net.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
-drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-sh.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-scsi-add-iscsi-ibft-support-fix.patch
-git-block-git-rejects.patch
+git-udf.patch
 git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
 git-vfs.patch
-git-watchdog.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
+vfs-mountinfo-add-dentry_path.patch
+vfs-mountinfo-add-seq_file_root.patch
+vfs-mountinfo-add-mount-id.patch
+vfs-mountinfo-add-mount-peer-group-id.patch
+vfs-mountinfo-allow-using-process-root.patch
+vfs-mountinfo-add-proc-pid-mountinfo.patch
+vfs-mountinfo-show-dominating-group-id.patch
+vfs-remove-lives_below_in_same_fs.patch
+signals-do_tkill-dont-use-tasklist_lock-comment.patch
+procfs-task-exe-symlink.patch
 procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-w1-build-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+mxser-convert-large-macros-to-functions.patch
+reiserfs-use-open_bdev_excl.patch
 
