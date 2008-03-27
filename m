@@ -1,89 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - git-drm-git-rejects.patch removed from -mm tree
-Date: Thu, 27 Mar 2008 13:58:06 -0700
-Message-ID: <200803272108.m2RL82mv022004@imap1.linux-foundation.org>
+Subject: - edac-fix-module-initialization-on-several-modules-fix.patch removed from -mm tree
+Date: Thu, 27 Mar 2008 14:06:19 -0700
+Message-ID: <200803272116.m2RLGGuT022329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46256 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50935 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756479AbYC0VIH (ORCPT
+	by vger.kernel.org with ESMTP id S1753706AbYC0VRB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 17:08:07 -0400
+	Thu, 27 Mar 2008 17:17:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, h.mitake@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-drm-git-rejects
+     edac-fix-module-initialization-on-several-modules-fix
 has been removed from the -mm tree.  Its filename was
-     git-drm-git-rejects.patch
+     edac-fix-module-initialization-on-several-modules-fix.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-drm-git-rejects
+Subject: edac-fix-module-initialization-on-several-modules-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Dave Airlie <airlied@linux.ie>
+drivers/edac/amd76x_edac.c: In function 'amd76x_init':
+drivers/edac/amd76x_edac.c:348: error: implicit declaration of function 'opstate_init'
+drivers/edac/amd76x_edac.c: In function '__check_edac_op_state':
+drivers/edac/amd76x_edac.c:365: error: 'edac_op_state' undeclared (first use in this function)
+drivers/edac/amd76x_edac.c:365: error: (Each undeclared identifier is reported only once
+drivers/edac/amd76x_edac.c:365: error: for each function it appears in.)
+drivers/edac/amd76x_edac.c: At top level:
+drivers/edac/amd76x_edac.c:365: error: 'edac_op_state' undeclared here (not in a function)
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Hitoshi Mitake <h.mitake@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/ati_pcigart.c |   15 ---------------
- drivers/char/drm/drm_fops.c    |    7 +------
- 2 files changed, 1 insertion(+), 21 deletions(-)
+ drivers/edac/amd76x_edac.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/drm/ati_pcigart.c~git-drm-git-rejects drivers/char/drm/ati_pcigart.c
---- a/drivers/char/drm/ati_pcigart.c~git-drm-git-rejects
-+++ a/drivers/char/drm/ati_pcigart.c
-@@ -38,26 +38,11 @@
- static int drm_ati_alloc_pcigart_table(struct drm_device *dev,
- 				       struct drm_ati_pcigart_info *gart_info)
- {
--<<<<<<< HEAD:drivers/char/drm/ati_pcigart.c
- 	gart_info->table_handle = drm_pci_alloc(dev, gart_info->table_size,
- 						PAGE_SIZE,
- 						gart_info->table_mask);
- 	if (gart_info->table_handle == NULL)
- 		return -ENOMEM;
--=======
--	unsigned long address;
--	struct page *page;
--	int i;
--
--	DRM_DEBUG("%d order\n", order);
--
--	address = __get_free_pages(GFP_KERNEL | __GFP_COMP,
--				   order);
--	if (address == 0UL)
--		return NULL;
--
--	page = virt_to_page(address);
-->>>>>>> FETCH_HEAD:drivers/char/drm/ati_pcigart.c
+diff -puN drivers/edac/amd76x_edac.c~edac-fix-module-initialization-on-several-modules-fix drivers/edac/amd76x_edac.c
+--- a/drivers/edac/amd76x_edac.c~edac-fix-module-initialization-on-several-modules-fix
++++ a/drivers/edac/amd76x_edac.c
+@@ -17,6 +17,7 @@
+ #include <linux/pci.h>
+ #include <linux/pci_ids.h>
+ #include <linux/slab.h>
++#include <linux/edac.h>
+ #include "edac_core.h"
  
- 	return 0;
- }
-diff -puN drivers/char/drm/drm_fops.c~git-drm-git-rejects drivers/char/drm/drm_fops.c
---- a/drivers/char/drm/drm_fops.c~git-drm-git-rejects
-+++ a/drivers/char/drm/drm_fops.c
-@@ -405,14 +405,9 @@ int drm_release(struct inode *inode, str
- 			 * Wait for a while.
- 			 */
- 
--<<<<<<< HEAD:drivers/char/drm/drm_fops.c
--			do{
-+			do {
- 				spin_lock_irqsave(&dev->lock.spinlock,
- 						  irqflags);
--=======
--			do {
--				spin_lock(&dev->lock.spinlock);
-->>>>>>> FETCH_HEAD:drivers/char/drm/drm_fops.c
- 				locked = dev->lock.idle_has_lock;
- 				spin_unlock_irqrestore(&dev->lock.spinlock,
- 						       irqflags);
+ #define AMD76X_REVISION	" Ver: 2.0.2 "  __DATE__
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,7 +77,6 @@ acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
 cifs-suppress-warning.patch
 pm-remove-destroy_suspended_device-checkpatch-fixes.patch
-git-drm-git-rejects.patch
 git-dvb.patch
 drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
 i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes.patch
