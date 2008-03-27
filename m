@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + git-agpgart-export-agp_generic_alloc_pages.patch added to -mm tree
-Date: Thu, 27 Mar 2008 15:50:17 -0700
-Message-ID: <200803272300.m2RN0D7m026220@imap1.linux-foundation.org>
+Subject: + git-agpgart-fix-type-confusion.patch added to -mm tree
+Date: Thu, 27 Mar 2008 16:11:32 -0700
+Message-ID: <200803272321.m2RNLSJ4027016@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35032 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48591 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751891AbYC0XAp (ORCPT
+	by vger.kernel.org with ESMTP id S1752086AbYC0XWE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 19:00:45 -0400
+	Thu, 27 Mar 2008 19:22:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, airlied@linux.ie
 
 
 The patch titled
-     git-agpgart: export agp_generic_alloc_pages
+     git-agpgart-fix-type-confusion
 has been added to the -mm tree.  Its filename is
-     git-agpgart-export-agp_generic_alloc_pages.patch
+     git-agpgart-fix-type-confusion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-agpgart: export agp_generic_alloc_pages
+Subject: git-agpgart-fix-type-confusion
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "agp_generic_alloc_pages" [drivers/char/agp/intel-agp.ko] undefined!
+size_t != int.
 
 Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/generic.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/char/agp/agp.h     |    2 +-
+ drivers/char/agp/generic.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/agp/generic.c~git-agpgart-export-agp_generic_alloc_pages drivers/char/agp/generic.c
---- a/drivers/char/agp/generic.c~git-agpgart-export-agp_generic_alloc_pages
-+++ a/drivers/char/agp/generic.c
-@@ -234,6 +234,7 @@ int agp_generic_alloc_pages(struct agp_b
- 	}
- 	return 0;
- }
-+EXPORT_SYMBOL(agp_generic_alloc_pages);
+diff -puN drivers/char/agp/agp.h~git-agpgart-fix-type-confusion drivers/char/agp/agp.h
+--- a/drivers/char/agp/agp.h~git-agpgart-fix-type-confusion
++++ a/drivers/char/agp/agp.h
+@@ -276,7 +276,7 @@ struct agp_memory *agp_generic_alloc_by_
+ void agp_generic_free_by_type(struct agp_memory *curr);
+ struct page *agp_generic_alloc_page(struct agp_bridge_data *bridge);
+ int agp_generic_alloc_pages(struct agp_bridge_data *agp_bridge,
+-			    struct agp_memory *memory, size_t page_count);
++			    struct agp_memory *memory, int page_count);
  
- /**
-  *	agp_allocate_memory  -  allocate a group of pages of a certain type.
+ void agp_generic_destroy_page(struct page *page, int flags);
+ void agp_free_key(int key);
+diff -puN drivers/char/agp/generic.c~git-agpgart-fix-type-confusion drivers/char/agp/generic.c
+--- a/drivers/char/agp/generic.c~git-agpgart-fix-type-confusion
++++ a/drivers/char/agp/generic.c
+@@ -217,7 +217,7 @@ EXPORT_SYMBOL(agp_free_memory);
+ #define ENTRIES_PER_PAGE		(PAGE_SIZE / sizeof(unsigned long))
+ 
+ int agp_generic_alloc_pages(struct agp_bridge_data *agp_bridge,
+-			    struct agp_memory *memory, size_t page_count)
++			    struct agp_memory *memory, int page_count)
+ {
+ 	int i;
+ 	struct page *page;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,6 +92,7 @@ git-acpi-fixup.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
 git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
 cifs-suppress-warning.patch
 pm-remove-destroy_suspended_device-checkpatch-fixes.patch
 git-dvb.patch
