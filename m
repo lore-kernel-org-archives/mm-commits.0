@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-implement-device-whitelist-v6-cleanups.patch added to -mm tree
-Date: Thu, 27 Mar 2008 02:04:17 -0700
-Message-ID: <200803270904.m2R94H9U027057@imap1.linux-foundation.org>
+Subject: + cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 27 Mar 2008 02:04:15 -0700
+Message-ID: <200803270904.m2R94F9p027053@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41866 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53677 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753063AbYC0JEz (ORCPT
+	by vger.kernel.org with ESMTP id S1753730AbYC0JFQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 05:04:55 -0400
+	Thu, 27 Mar 2008 05:05:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, balbir@in.ibm.com, daniel@hozac.com, jmorris@name
 
 
 The patch titled
-     cgroups-implement-device-whitelist-v6-cleanups
+     cgroups-implement-device-whitelist-v6-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     cgroups-implement-device-whitelist-v6-cleanups.patch
+     cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,25 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups-implement-device-whitelist-v6-cleanups
+Subject: cgroups-implement-device-whitelist-v6-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
+
+WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
+#153: FILE: security/device_cgroup.c:11:
++#include <asm/uaccess.h>
+
+ERROR: spaces required around that '=' (ctx:VxV)
+#609: FILE: security/device_cgroup.c:467:
++			count=3;
+ 			     ^
+
+total: 1 errors, 1 warnings, 669 lines checked
+
+./patches/cgroups-implement-device-whitelist-v6.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -48,28 +65,30 @@ Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ security/device_cgroup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN security/device_cgroup.c~cgroups-implement-device-whitelist-v6-cleanups security/device_cgroup.c
---- a/security/device_cgroup.c~cgroups-implement-device-whitelist-v6-cleanups
+diff -puN security/device_cgroup.c~cgroups-implement-device-whitelist-v6-checkpatch-fixes security/device_cgroup.c
+--- a/security/device_cgroup.c~cgroups-implement-device-whitelist-v6-checkpatch-fixes
 +++ a/security/device_cgroup.c
-@@ -48,14 +48,12 @@ struct dev_cgroup {
- 	spinlock_t lock;
- };
+@@ -8,7 +8,7 @@
+ #include <linux/cgroup.h>
+ #include <linux/ctype.h>
+ #include <linux/list.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
  
--static inline struct dev_cgroup *cgroup_to_devcgroup(
--		struct cgroup *cgroup)
-+static inline struct dev_cgroup *cgroup_to_devcgroup(struct cgroup *cgroup)
- {
- 	return container_of(cgroup_subsys_state(cgroup, devices_subsys_id),
- 			    struct dev_cgroup, css);
- }
- 
--
- struct cgroup_subsys devices_subsys;
- 
- static int devcgroup_can_attach(struct cgroup_subsys *ss,
+ #define ACC_MKNOD 1
+ #define ACC_READ  2
+@@ -464,7 +464,7 @@ static ssize_t devcgroup_access_write(st
+ 			break;
+ 		case '\n':
+ 		case '\0':
+-			count=3;
++			count = 3;
+ 			break;
+ 		default:
+ 			retval = -EINVAL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
