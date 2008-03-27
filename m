@@ -1,73 +1,130 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-fix-build-with-config_net=n.patch removed from -mm tree
-Date: Thu, 27 Mar 2008 15:30:10 -0700
-Message-ID: <200803272230.m2RMUA36025144@imap1.linux-foundation.org>
+Subject: + git-net-git-rejects.patch added to -mm tree
+Date: Thu, 27 Mar 2008 15:37:19 -0700
+Message-ID: <200803272237.m2RMbJEH025384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59982 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751791AbYC0Was (ORCPT
+	by vger.kernel.org with ESMTP id S1752324AbYC0WhV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 18:30:48 -0400
+	Thu, 27 Mar 2008 18:37:21 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2RMbJNq012187
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 27 Mar 2008 15:37:20 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, yoshfuji@linux-ipv6.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-net: fix build with CONFIG_NET=n
-has been removed from the -mm tree.  Its filename was
-     git-net-fix-build-with-config_net=n.patch
+     git-net-git-rejects
+has been added to the -mm tree.  Its filename is
+     git-net-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net: fix build with CONFIG_NET=n
+Subject: git-net-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/net/sock.h:49,
-                 from lib/kobject_uevent.c:23:
-include/linux/netdevice.h: In function 'dev_net':
-include/linux/netdevice.h:751: error: 'init_net' undeclared (first use in this function)
-include/linux/netdevice.h:751: error: (Each undeclared identifier is reported only once
-include/linux/netdevice.h:751: error: for each function it appears in.)
-In file included from include/net/dst.h:15,
-                 from include/net/sock.h:58,
-                 from lib/kobject_uevent.c:23:
-include/net/neighbour.h: In function 'neigh_parms_net':
-include/net/neighbour.h:227: error: 'init_net' undeclared (first use in this function)
-include/net/neighbour.h: In function 'pneigh_net':
-include/net/neighbour.h:244: error: 'init_net' undeclared (first use in this function)
-include/net/neighbour.h: At top level:
-include/net/neighbour.h:254: error: field 'p' has incomplete type
-In file included from lib/kobject_uevent.c:23:
-include/net/sock.h: In function 'sock_net':
-include/net/sock.h:1356: error: 'init_net' undeclared (first use in this function)
-
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject_uevent.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/net/usb/rndis_host.c   |    5 +----
+ drivers/net/wireless/b43/dma.c |    3 ---
+ net/ipv6/ndisc.c               |   19 -------------------
+ 3 files changed, 1 insertion(+), 26 deletions(-)
 
-diff -puN lib/kobject_uevent.c~git-net-fix-build-with-config_net=n lib/kobject_uevent.c
---- a/lib/kobject_uevent.c~git-net-fix-build-with-config_net=n
-+++ a/lib/kobject_uevent.c
-@@ -20,8 +20,9 @@
- #include <linux/netlink.h>
- #include <linux/string.h>
- #include <linux/kobject.h>
-+#ifdef CONFIG_NET
- #include <net/sock.h>
--
-+#endif
+diff -puN drivers/net/usb/rndis_host.c~git-net-git-rejects drivers/net/usb/rndis_host.c
+--- a/drivers/net/usb/rndis_host.c~git-net-git-rejects
++++ a/drivers/net/usb/rndis_host.c
+@@ -283,12 +283,9 @@ generic_rndis_bind(struct usbnet *dev, s
+ 		struct rndis_set_c	*set_c;
+ 		struct rndis_halt	*halt;
+ 	} u;
+-<<<<<<< HEAD:drivers/net/usb/rndis_host.c
+-	u32			tmp, phym_unspec, *phym;
+-=======
+ 	u32			tmp;
++	u32			phym_unspec;
+ 	__le32			*phym;
+->>>>>>> FETCH_HEAD:drivers/net/usb/rndis_host.c
+ 	int			reply_len;
+ 	unsigned char		*bp;
  
- u64 uevent_seqnum;
- char uevent_helper[UEVENT_HELPER_PATH_LEN] = CONFIG_UEVENT_HELPER_PATH;
+diff -puN drivers/net/wireless/b43/dma.c~git-net-git-rejects drivers/net/wireless/b43/dma.c
+--- a/drivers/net/wireless/b43/dma.c~git-net-git-rejects
++++ a/drivers/net/wireless/b43/dma.c
+@@ -1314,9 +1314,7 @@ out_unlock:
+ 	return err;
+ }
+ 
+-<<<<<<< HEAD:drivers/net/wireless/b43/dma.c
+ /* Called with IRQs disabled. */
+-=======
+ static void b43_fill_txstatus_report(struct b43_dmaring *ring,
+ 				    struct ieee80211_tx_status *report,
+ 				    const struct b43_txstatus *status)
+@@ -1349,7 +1347,6 @@ static void b43_fill_txstatus_report(str
+ 	}
+ }
+ 
+->>>>>>> FETCH_HEAD:drivers/net/wireless/b43/dma.c
+ void b43_dma_handle_txstatus(struct b43_wldev *dev,
+ 			     const struct b43_txstatus *status)
+ {
+diff -puN net/ipv6/ndisc.c~git-net-git-rejects net/ipv6/ndisc.c
+--- a/net/ipv6/ndisc.c~git-net-git-rejects
++++ a/net/ipv6/ndisc.c
+@@ -661,20 +661,6 @@ static void ndisc_solicit(struct neighbo
+ 	}
+ }
+ 
+-static struct pneigh_entry *pndisc_check_router(struct net_device *dev,
+-		struct in6_addr *addr, int *is_router)
+-{
+-	struct pneigh_entry *n;
+-
+-	read_lock_bh(&nd_tbl.lock);
+-	n = __pneigh_lookup(&nd_tbl, &init_net, addr, dev);
+-	if (n != NULL)
+-		*is_router = (n->flags & NTF_ROUTER);
+-	read_unlock_bh(&nd_tbl.lock);
+-
+-	return n;
+-}
+-
+ static void ndisc_recv_ns(struct sk_buff *skb)
+ {
+ 	struct nd_msg *msg = (struct nd_msg *)skb_transport_header(skb);
+@@ -790,13 +776,8 @@ static void ndisc_recv_ns(struct sk_buff
+ 		if (ipv6_chk_acast_addr(dev_net(dev), dev, &msg->target) ||
+ 		    (idev->cnf.forwarding &&
+ 		     (ipv6_devconf.proxy_ndp || idev->cnf.proxy_ndp) &&
+-<<<<<<< HEAD:net/ipv6/ndisc.c
+-		     (pneigh = pndisc_check_router(dev, &msg->target,
+-						  &is_router)) != NULL)) {
+-=======
+ 		     (pneigh = pneigh_lookup(&nd_tbl, dev_net(dev),
+ 					     &msg->target, dev, 0)) != NULL)) {
+->>>>>>> FETCH_HEAD:net/ipv6/ndisc.c
+ 			if (!(NEIGH_CB(skb)->flags & LOCALLY_ENQUEUED) &&
+ 			    skb->pkt_type != PACKET_HOST &&
+ 			    inc != 0 &&
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,7 +166,7 @@ git-leds.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-net.patch
-git-net-fix-build-with-config_net=n.patch
+git-net-git-rejects.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
@@ -143,7 +200,6 @@ fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
 git-v9fs.patch
 git-vfs.patch
 git-watchdog.patch
-git-watchdog-fix-build.patch
 xfs-suppress-uninitialized-var-warnings.patch
 git-xtensa.patch
 git-semaphore-git-rejects.patch
