@@ -1,54 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - git-agpgart-export-agp_generic_alloc_pages.patch removed from -mm tree
-Date: Thu, 27 Mar 2008 15:43:11 -0700
-Message-ID: <200803272243.m2RMhBmS025583@imap1.linux-foundation.org>
+Subject: - git-watchdog-fix-build.patch removed from -mm tree
+Date: Thu, 27 Mar 2008 15:45:38 -0700
+Message-ID: <200803272245.m2RMjcPR025709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46570 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751191AbYC0Wno (ORCPT
+	by vger.kernel.org with ESMTP id S1750774AbYC0WqN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 18:43:44 -0400
+	Thu, 27 Mar 2008 18:46:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-agpgart: export agp_generic_alloc_pages
+     git-watchdog: fix build
 has been removed from the -mm tree.  Its filename was
-     git-agpgart-export-agp_generic_alloc_pages.patch
+     git-watchdog-fix-build.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-agpgart: export agp_generic_alloc_pages
+Subject: git-watchdog: fix build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-i386 allmodconfig:
+drivers/watchdog/hpwdt.c: In function 'hpwdt_pretimeout':
+drivers/watchdog/hpwdt.c:424: error: 'cur_rom_addr' undeclared (first use in this function)
+drivers/watchdog/hpwdt.c:424: error: (Each undeclared identifier is reported only once
+drivers/watchdog/hpwdt.c:424: error: for each function it appears in.)
 
-ERROR: "agp_generic_alloc_pages" [drivers/char/agp/intel-agp.ko] undefined!
+how'd this happen?
 
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/generic.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/watchdog/hpwdt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/agp/generic.c~git-agpgart-export-agp_generic_alloc_pages drivers/char/agp/generic.c
---- a/drivers/char/agp/generic.c~git-agpgart-export-agp_generic_alloc_pages
-+++ a/drivers/char/agp/generic.c
-@@ -234,6 +234,7 @@ int agp_generic_alloc_pages(struct agp_b
- 	}
- 	return 0;
- }
-+EXPORT_SYMBOL(drivers/char/agp/generic.c);
- 
- /**
-  *	agp_allocate_memory  -  allocate a group of pages of a certain type.
+diff -puN drivers/watchdog/hpwdt.c~git-watchdog-fix-build drivers/watchdog/hpwdt.c
+--- a/drivers/watchdog/hpwdt.c~git-watchdog-fix-build
++++ a/drivers/watchdog/hpwdt.c
+@@ -421,7 +421,7 @@ static int hpwdt_pretimeout(struct notif
+ 	if (ulReason == DIE_NMI || ulReason == DIE_NMI_IPI) {
+ 		spin_lock_irqsave(&rom_lock, rom_pl);
+ 		if (!die_nmi_called)
+-			asminline_call(&cmn_regs, cur_rom_addr);
++			asminline_call(&cmn_regs, cru_rom_addr);
+ 		die_nmi_called = 1;
+ 		spin_unlock_irqrestore(&rom_lock, rom_pl);
+ 		if (cmn_regs.u1.ral != 0) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +73,6 @@ git-acpi.patch
 git-acpi-fixup.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
 cifs-suppress-warning.patch
 pm-remove-destroy_suspended_device-checkpatch-fixes.patch
 git-dvb.patch
