@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memstick-suppress-uninitialized-var-warning.patch added to -mm tree
-Date: Thu, 27 Mar 2008 14:37:33 -0700
-Message-ID: <200803272147.m2RLlTxk023464@imap1.linux-foundation.org>
+Subject: + pci-hotplug-introduce-pci_slot-fix-fix.patch added to -mm tree
+Date: Thu, 27 Mar 2008 14:42:15 -0700
+Message-ID: <200803272152.m2RLqBO7023653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37056 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42515 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757389AbYC0VsA (ORCPT
+	by vger.kernel.org with ESMTP id S1759019AbYC0Vwf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 17:48:00 -0400
+	Thu, 27 Mar 2008 17:52:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, oakad@yahoo.com
+Cc: akpm@linux-foundation.org, achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx
 
 
 The patch titled
-     memstick: suppress uninitialized-var warning
+     pci-hotplug-introduce-pci_slot-fix-fix
 has been added to the -mm tree.  Its filename is
-     memstick-suppress-uninitialized-var-warning.patch
+     pci-hotplug-introduce-pci_slot-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memstick: suppress uninitialized-var warning
+Subject: pci-hotplug-introduce-pci_slot-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/memstick/host/tifm_ms.c: In function 'tifm_ms_data_event':
-drivers/memstick/host/tifm_ms.c:185: warning: 'p_off' may be used uninitialized in this function
+make headers_check happy.
 
-Cc: Alex Dubov <oakad@yahoo.com>
+Cc: Alex Chiang <achiang@hp.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/tifm_ms.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/pci.h |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN drivers/memstick/host/tifm_ms.c~memstick-suppress-uninitialized-var-warning drivers/memstick/host/tifm_ms.c
---- a/drivers/memstick/host/tifm_ms.c~memstick-suppress-uninitialized-var-warning
-+++ a/drivers/memstick/host/tifm_ms.c
-@@ -182,7 +182,7 @@ static unsigned int tifm_ms_transfer_dat
- 	struct tifm_dev *sock = host->dev;
- 	unsigned int length;
- 	unsigned int off;
--	unsigned int t_size, p_off, p_cnt;
-+	unsigned int t_size, p_cnt;
- 	unsigned char *buf;
- 	struct page *pg;
- 	unsigned long flags = 0;
-@@ -198,6 +198,8 @@ static unsigned int tifm_ms_transfer_dat
- 		host->block_pos);
+diff -puN include/linux/pci.h~pci-hotplug-introduce-pci_slot-fix-fix include/linux/pci.h
+--- a/include/linux/pci.h~pci-hotplug-introduce-pci_slot-fix-fix
++++ a/include/linux/pci.h
+@@ -17,21 +17,10 @@
+ #ifndef LINUX_PCI_H
+ #define LINUX_PCI_H
  
- 	while (length) {
-+		unsigned int uninitialized_var(p_off);
+-#include <linux/list.h>
+-#include <linux/kobject.h>
+ #include <linux/pci_regs.h>	/* The pci register defines */
+ 
+ struct pci_vpd;
+ 
+-/* pci_slot represents a physical slot */
+-struct pci_slot {
+-	struct pci_bus *bus;		/* The bus this slot is on */
+-	struct list_head list;		/* node in list of slots on this bus */
+-	struct hotplug_slot *hotplug;	/* Hotplug info (migrate over time) */
+-	unsigned char number;		/* PCI_SLOT(pci_dev->devfn) */
+-	struct kobject kobj;
+-};
+-
+ /*
+  * The PCI interface treats multi-function devices as independent
+  * devices.  The slot/function address of each device is encoded
+@@ -60,12 +49,22 @@ struct pci_slot {
+ #include <linux/list.h>
+ #include <linux/compiler.h>
+ #include <linux/errno.h>
++#include <linux/kobject.h>
+ #include <asm/atomic.h>
+ #include <linux/device.h>
+ 
+ /* Include the ID list */
+ #include <linux/pci_ids.h>
+ 
++/* pci_slot represents a physical slot */
++struct pci_slot {
++	struct pci_bus *bus;		/* The bus this slot is on */
++	struct list_head list;		/* node in list of slots on this bus */
++	struct hotplug_slot *hotplug;	/* Hotplug info (migrate over time) */
++	unsigned char number;		/* PCI_SLOT(pci_dev->devfn) */
++	struct kobject kobj;
++};
 +
- 		if (host->req->long_data) {
- 			pg = nth_page(sg_page(&host->req->sg),
- 				      off >> PAGE_SHIFT);
+ /* File state for mmap()s on /proc/bus/pci/X/Y */
+ enum pci_mmap_state {
+ 	pci_mmap_io,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +108,7 @@ git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
 x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
 net-9p-trans_fdc-p9_trans_fd_init-module_init-functions-should-return-0-on-success.patch
 blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-to-lkml-review-fix.patch
+memstick-suppress-uninitialized-var-warning.patch
 revert-set-relay-file-can-not-be-read-by-pread2.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
@@ -122,6 +154,7 @@ arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
 git-selinux.patch
 pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-introduce-pci_slot-fix-fix.patch
 pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
 git-sh.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
@@ -235,5 +268,4 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-memstick-suppress-uninitialized-var-warning.patch
 
