@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-fix-build-with-config_net=n.patch added to -mm tree
-Date: Thu, 27 Mar 2008 13:27:15 -0700
-Message-ID: <200803272037.m2RKbBM3020873@imap1.linux-foundation.org>
+Subject: + git-x86-fix-printk-warning.patch added to -mm tree
+Date: Thu, 27 Mar 2008 13:30:16 -0700
+Message-ID: <200803272040.m2RKeC5R021018@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52984 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50096 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754806AbYC0Uhw (ORCPT
+	by vger.kernel.org with ESMTP id S1758405AbYC0UlG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 16:37:52 -0400
+	Thu, 27 Mar 2008 16:41:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, yoshfuji@linux-ipv6.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     git-net: fix build with CONFIG_NET=n
+     git-x86: fix printk warning
 has been added to the -mm tree.  Its filename is
-     git-net-fix-build-with-config_net=n.patch
+     git-x86-fix-printk-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net: fix build with CONFIG_NET=n
+Subject: git-x86: fix printk warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/net/sock.h:49,
-                 from lib/kobject_uevent.c:23:
-include/linux/netdevice.h: In function 'dev_net':
-include/linux/netdevice.h:751: error: 'init_net' undeclared (first use in this function)
-include/linux/netdevice.h:751: error: (Each undeclared identifier is reported only once
-include/linux/netdevice.h:751: error: for each function it appears in.)
-In file included from include/net/dst.h:15,
-                 from include/net/sock.h:58,
-                 from lib/kobject_uevent.c:23:
-include/net/neighbour.h: In function 'neigh_parms_net':
-include/net/neighbour.h:227: error: 'init_net' undeclared (first use in this function)
-include/net/neighbour.h: In function 'pneigh_net':
-include/net/neighbour.h:244: error: 'init_net' undeclared (first use in this function)
-include/net/neighbour.h: At top level:
-include/net/neighbour.h:254: error: field 'p' has incomplete type
-In file included from lib/kobject_uevent.c:23:
-include/net/sock.h: In function 'sock_net':
-include/net/sock.h:1356: error: 'init_net' undeclared (first use in this function)
+arch/x86/mm/ioremap.c: In function '__ioremap':
+arch/x86/mm/ioremap.c:135: warning: format '%lx' expects type 'long unsigned int', but argument 2 has type 'resource_size_t'
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject_uevent.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/x86/mm/ioremap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/kobject_uevent.c~git-net-fix-build-with-config_net=n lib/kobject_uevent.c
---- a/lib/kobject_uevent.c~git-net-fix-build-with-config_net=n
-+++ a/lib/kobject_uevent.c
-@@ -20,8 +20,9 @@
- #include <linux/netlink.h>
- #include <linux/string.h>
- #include <linux/kobject.h>
-+#ifdef CONFIG_NET
- #include <net/sock.h>
--
-+#endif
+diff -puN arch/x86/mm/ioremap.c~git-x86-fix-printk-warning arch/x86/mm/ioremap.c
+--- a/arch/x86/mm/ioremap.c~git-x86-fix-printk-warning
++++ a/arch/x86/mm/ioremap.c
+@@ -131,8 +131,8 @@ static void __iomem *__ioremap(resource_
+ 		return NULL;
  
- u64 uevent_seqnum;
- char uevent_helper[UEVENT_HELPER_PATH_LEN] = CONFIG_UEVENT_HELPER_PATH;
+ 	if (!phys_addr_valid(phys_addr)) {
+-		printk(KERN_WARNING "ioremap: invalid physical address %lx\n",
+-		       phys_addr);
++		printk(KERN_WARNING "ioremap: invalid physical address %Lx\n",
++		       (unsigned long long)phys_addr);
+ 		WARN_ON_ONCE(1);
+ 		return NULL;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,6 +74,7 @@ blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-
 revert-set-relay-file-can-not-be-read-by-pread2.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
+git-x86-fix-printk-warning.patch
 i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
 git-kgdb-light.patch
 git-acpi.patch
