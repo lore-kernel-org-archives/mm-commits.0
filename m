@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-implement-device-whitelist-v6-fix.patch added to -mm tree
-Date: Thu, 27 Mar 2008 13:38:19 -0700
-Message-ID: <200803272048.m2RKmFEA021268@imap1.linux-foundation.org>
+Subject: + pci-hotplug-acpi-pci-slot-detection-driver-fix.patch added to -mm tree
+Date: Thu, 27 Mar 2008 13:48:46 -0700
+Message-ID: <200803272058.m2RKwg9i021647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758604AbYC0UtR (ORCPT
+	by vger.kernel.org with ESMTP id S1759222AbYC0U7y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 16:49:17 -0400
+	Thu, 27 Mar 2008 16:59:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, daniel@hozac.com, jmorris@namei.org, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, serue@us.ibm.com
+Cc: akpm@linux-foundation.org, achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org
 
 
 The patch titled
-     cgroups-implement-device-whitelist-v6-fix
+     pci-hotplug-acpi-pci-slot-detection-driver-fix
 has been added to the -mm tree.  Its filename is
-     cgroups-implement-device-whitelist-v6-fix.patch
+     pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups-implement-device-whitelist-v6-fix
+Subject: pci-hotplug-acpi-pci-slot-detection-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-security/device_cgroup.c: In function 'devcgroup_access_read':
-security/device_cgroup.c:280: warning: 'len' may be used uninitialized in this function
+drivers/acpi/pci_slot.c: In function 'register_slot':
+drivers/acpi/pci_slot.c:168: warning: cast from pointer to integer of different size
+drivers/acpi/pci_slot.c:168: warning: format '%#lx' expects type 'long unsigned int', but argument 3 has type 'long long unsigned int'
 
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daniel Hokka Zakrisson <daniel@hozac.com>
-Cc: James Morris <jmorris@namei.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Alex Chiang <achiang@hp.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/acpi/pci_slot.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN security/device_cgroup.c~cgroups-implement-device-whitelist-v6-fix security/device_cgroup.c
---- a/security/device_cgroup.c~cgroups-implement-device-whitelist-v6-fix
-+++ a/security/device_cgroup.c
-@@ -277,7 +277,8 @@ static ssize_t devcgroup_access_read(str
- 	struct dev_cgroup *devcgroup = cgroup_to_devcgroup(cgroup);
- 	int filetype = cft->private;
- 	char *buffer;
--	int len, retval;
-+	int uninitialized_var(len);
-+	int retval;
+diff -puN drivers/acpi/pci_slot.c~pci-hotplug-acpi-pci-slot-detection-driver-fix drivers/acpi/pci_slot.c
+--- a/drivers/acpi/pci_slot.c~pci-hotplug-acpi-pci-slot-detection-driver-fix
++++ a/drivers/acpi/pci_slot.c
+@@ -165,8 +165,8 @@ register_slot(acpi_handle handle, u32 lv
+ 	list_add(&slot->list, &slot_list);
+ 	mutex_unlock(&slot_list_lock);
  
- 	if (filetype != DEVCG_ALLOW)
- 		return -EINVAL;
+-	dbg("pci_slot: %#lx, pci_bus: %x, device: %d, name: %s\n",
+-		(uint64_t)pci_slot, pci_bus->number, device, name);
++	dbg("pci_slot: %p, pci_bus: %x, device: %d, name: %s\n",
++		pci_slot, pci_bus->number, device, name);
+ 
+ 	return AE_OK;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +122,7 @@ arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
 git-selinux.patch
 pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
 git-sh.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
