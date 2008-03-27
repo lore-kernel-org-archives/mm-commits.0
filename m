@@ -1,77 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 27 Mar 2008 15:49:16 -0700
-Message-ID: <200803272259.m2RMxD7j026183@imap1.linux-foundation.org>
+Subject: + git-agpgart-export-agp_generic_alloc_pages.patch added to -mm tree
+Date: Thu, 27 Mar 2008 15:50:17 -0700
+Message-ID: <200803272300.m2RN0D7m026220@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35032 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751886AbYC0W7T (ORCPT
+	by vger.kernel.org with ESMTP id S1751891AbYC0XAp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 18:59:19 -0400
+	Thu, 27 Mar 2008 19:00:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, damm@igel.co.jp, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, airlied@linux.ie
 
 
 The patch titled
-     i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes.patch
+     git-agpgart: export agp_generic_alloc_pages
+has been added to the -mm tree.  Its filename is
+     git-agpgart-export-agp_generic_alloc_pages.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes
+Subject: git-agpgart: export agp_generic_alloc_pages
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: Use #include <linux/io.h> instead of <asm/io.h>
-#85: FILE: drivers/i2c/busses/i2c-sh_mobile.c:35:
-+#include <asm/io.h>
+ERROR: "agp_generic_alloc_pages" [drivers/char/agp/intel-agp.ko] undefined!
 
-WARNING: labels should not be indented
-#324: FILE: drivers/i2c/busses/i2c-sh_mobile.c:274:
-+	again:
-
-total: 0 errors, 2 warnings, 517 lines checked
-
-./patches/i2c-superh-mobile-i2c-bus-controller-v3.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Magnus Damm <damm@igel.co.jp>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-sh_mobile.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/agp/generic.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/i2c/busses/i2c-sh_mobile.c~i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes drivers/i2c/busses/i2c-sh_mobile.c
---- a/drivers/i2c/busses/i2c-sh_mobile.c~i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes
-+++ a/drivers/i2c/busses/i2c-sh_mobile.c
-@@ -32,7 +32,7 @@
- #include <linux/i2c.h>
- #include <linux/err.h>
- #include <linux/clk.h>
--#include <asm/io.h>
-+#include <linux/io.h>
+diff -puN drivers/char/agp/generic.c~git-agpgart-export-agp_generic_alloc_pages drivers/char/agp/generic.c
+--- a/drivers/char/agp/generic.c~git-agpgart-export-agp_generic_alloc_pages
++++ a/drivers/char/agp/generic.c
+@@ -234,6 +234,7 @@ int agp_generic_alloc_pages(struct agp_b
+ 	}
+ 	return 0;
+ }
++EXPORT_SYMBOL(agp_generic_alloc_pages);
  
- enum {
- 	OP_START = 0,
-@@ -271,7 +271,7 @@ static int sh_mobile_i2c_xfer(struct i2c
- 			dev_err(pd->dev, "Transfer request timed out\n");
- 
- 		k = 10;
--	again:
-+again:
- 		val = ioread8(ICSR(pd));
- 
- 		dev_dbg(pd->dev, "val 0x%02x pd->sr 0x%02x!\n", val, pd->sr);
+ /**
+  *	agp_allocate_memory  -  allocate a group of pages of a certain type.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,11 +77,11 @@ git-acpi.patch
 git-acpi-fixup.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
 cifs-suppress-warning.patch
 pm-remove-destroy_suspended_device-checkpatch-fixes.patch
 git-dvb.patch
 drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes.patch
 git-hwmon.patch
 git-gfs2-nmw.patch
 git-hrt.patch
