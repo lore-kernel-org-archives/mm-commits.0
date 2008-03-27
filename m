@@ -1,69 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: + mm-allocate-section_map-for-sparse_init-update-fix.patch added to -mm tree
-Date: Thu, 27 Mar 2008 15:08:12 -0700
-Message-ID: <200803272218.m2RMI879024623@imap1.linux-foundation.org>
+Subject: - git-net-fix-build.patch removed from -mm tree
+Date: Thu, 27 Mar 2008 15:29:52 -0700
+Message-ID: <200803272229.m2RMTqm7025123@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57504 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40653 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761989AbYC0WSq (ORCPT
+	by vger.kernel.org with ESMTP id S1752475AbYC0WaY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 18:18:46 -0400
+	Thu, 27 Mar 2008 18:30:24 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2RMTqt0011640
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 27 Mar 2008 15:29:53 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mingo@elte.hu, y-goto@jp.fujitsu.com, yhlu.kernel.send@gmail.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-allocate-section_map-for-sparse_init-update-fix
-has been added to the -mm tree.  Its filename is
-     mm-allocate-section_map-for-sparse_init-update-fix.patch
+     git-net: fix build
+has been removed from the -mm tree.  Its filename was
+     git-net-fix-build.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-allocate-section_map-for-sparse_init-update-fix
+Subject: git-net: fix build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/sparse.c: In function 'sparse_init':
-mm/sparse.c:301: warning: unused variable 'node'
-
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Yinghai Lu <yhlu.kernel.send@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/seq_file.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN mm/sparse.c~mm-allocate-section_map-for-sparse_init-update-fix mm/sparse.c
---- a/mm/sparse.c~mm-allocate-section_map-for-sparse_init-update-fix
-+++ a/mm/sparse.c
-@@ -298,7 +298,6 @@ void __init sparse_init(void)
- 	unsigned long *usemap;
- 	struct page **section_map;
- 	int size;
--	int node;
+diff -puN include/linux/seq_file.h~git-net-fix-build include/linux/seq_file.h
+--- a/include/linux/seq_file.h~git-net-fix-build
++++ a/include/linux/seq_file.h
+@@ -63,6 +63,7 @@ extern struct list_head *seq_list_start_
+ extern struct list_head *seq_list_next(void *v, struct list_head *head,
+ 		loff_t *ppos);
  
- 	/*
- 	 * map is using big page (aka 2M in x86 64 bit)
++#ifdef CONFIG_NET
+ struct net;
+ struct seq_net_private {
+ #ifdef CONFIG_NET_NS
+@@ -81,6 +82,7 @@ static inline struct net *seq_file_net(s
+ 	return &init_net;
+ #endif
+ }
++#endif
+ 
+ #endif
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +79,7 @@ git-alsa-tiwai.patch
 git-agpgart-export-agp_generic_alloc_pages.patch
 cifs-suppress-warning.patch
 pm-remove-destroy_suspended_device-checkpatch-fixes.patch
+git-drm.patch
 git-dvb.patch
 drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
 i2c-superh-mobile-i2c-bus-controller-v3-checkpatch-fixes.patch
