@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-fix-build.patch added to -mm tree
-Date: Thu, 27 Mar 2008 13:09:36 -0700
-Message-ID: <200803272019.m2RKJXhu020242@imap1.linux-foundation.org>
+Subject: + pci-hotplug-introduce-pci_slot-fix.patch added to -mm tree
+Date: Thu, 27 Mar 2008 13:18:10 -0700
+Message-ID: <200803272028.m2RKS6Wl020528@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51904 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755570AbYC0UTk (ORCPT
+	by vger.kernel.org with ESMTP id S1757897AbYC0U3B (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 16:19:40 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2RKJbZi032478
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 27 Mar 2008 13:19:39 -0700
+	Thu, 27 Mar 2008 16:29:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx
 
 
 The patch titled
-     git-net: fix build
+     pci-hotplug-introduce-pci_slot-fix
 has been added to the -mm tree.  Its filename is
-     git-net-fix-build.patch
+     pci-hotplug-introduce-pci_slot-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,33 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net: fix build
+Subject: pci-hotplug-introduce-pci_slot-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Please, see Documentation/SubmitChecklist?
+
+In file included from arch/x86/kernel/quirks.c:4:
+include/linux/pci.h:28: error: field 'list' has incomplete type
+include/linux/pci.h:31: error: field 'kobj' has incomplete type
+
+Cc: Alex Chiang <achiang@hp.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/seq_file.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/pci.h |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/seq_file.h~git-net-fix-build include/linux/seq_file.h
---- a/include/linux/seq_file.h~git-net-fix-build
-+++ a/include/linux/seq_file.h
-@@ -67,6 +67,7 @@ extern struct list_head *seq_list_start_
- extern struct list_head *seq_list_next(void *v, struct list_head *head,
- 		loff_t *ppos);
+diff -puN include/linux/pci.h~pci-hotplug-introduce-pci_slot-fix include/linux/pci.h
+--- a/include/linux/pci.h~pci-hotplug-introduce-pci_slot-fix
++++ a/include/linux/pci.h
+@@ -17,8 +17,9 @@
+ #ifndef LINUX_PCI_H
+ #define LINUX_PCI_H
  
-+#ifdef CONFIG_NET
- struct net;
- struct seq_net_private {
- #ifdef CONFIG_NET_NS
-@@ -85,5 +86,6 @@ static inline struct net *seq_file_net(s
- 	return &init_net;
- #endif
- }
-+#endif
+-/* Include the pci register defines */
+-#include <linux/pci_regs.h>
++#include <linux/list.h>
++#include <linux/kobject.h>
++#include <linux/pci_regs.h>	/* The pci register defines */
  
- #endif
+ struct pci_vpd;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,6 +123,7 @@ git-ocfs2.patch
 arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
 git-selinux.patch
+pci-hotplug-introduce-pci_slot-fix.patch
 git-sh.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
