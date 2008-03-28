@@ -1,34 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-mountinfo-add-mount-id.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 12:06:32 -0700
-Message-ID: <200803281906.m2SJ6W6c005395@imap1.linux-foundation.org>
+Subject: - vfs-mountinfo-add-mount-peer-group-id.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 12:06:34 -0700
+Message-ID: <200803281906.m2SJ6YSg005398@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44636 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45256 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753847AbYC1TGs (ORCPT
+	by vger.kernel.org with ESMTP id S1753949AbYC1TGu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 15:06:48 -0400
+	Fri, 28 Mar 2008 15:06:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mszeredi@suse.cz, hch@lst.de, linuxram@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: mountinfo: add mount ID
+     vfs: mountinfo: add mount peer group ID
 has been removed from the -mm tree.  Its filename was
-     vfs-mountinfo-add-mount-id.patch
+     vfs-mountinfo-add-mount-peer-group-id.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: mountinfo: add mount ID
+Subject: vfs: mountinfo: add mount peer group ID
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a unique ID to each vfsmount using the IDR infrastructure.  The
-identifiers are reused after the vfsmount is freed.
+Add a unique ID to each peer group using the IDR infrastructure.  The
+identifiers are reused after the peer group dissolves.
+
+The IDR structures are protected by holding namepspace_sem for write while
+allocating or deallocating ID's.
+
+ID's are allocated when a previously unshared vfsmount becomes the first
+member of a peer group.  When a new member is added to an existing group, the
+ID is copied from one of the old members.
+
+ID's are freed when the last member of a peer group is unshared.
+
+Setting the MNT_SHARED flag on members of a subtree is done as a separate
+step, after all the ID's have been allocated.  This way an allocation failure
+can be cleaned up easilty, without affecting the propagation state.
+
+Based on design sketch by Al Viro.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -37,87 +52,237 @@ Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c        |   34 ++++++++++++++++++++++++++++++++++
- include/linux/mount.h |    1 +
- 2 files changed, 35 insertions(+)
+ fs/namespace.c        |  100 ++++++++++++++++++++++++++++++++++++++--
+ fs/pnode.c            |   11 ++--
+ fs/pnode.h            |    1 
+ include/linux/mount.h |    1 
+ 4 files changed, 106 insertions(+), 7 deletions(-)
 
-diff -puN fs/namespace.c~vfs-mountinfo-add-mount-id fs/namespace.c
---- a/fs/namespace.c~vfs-mountinfo-add-mount-id
+diff -puN fs/namespace.c~vfs-mountinfo-add-mount-peer-group-id fs/namespace.c
+--- a/fs/namespace.c~vfs-mountinfo-add-mount-peer-group-id
 +++ a/fs/namespace.c
-@@ -27,6 +27,7 @@
- #include <linux/mount.h>
- #include <linux/ramfs.h>
- #include <linux/log2.h>
-+#include <linux/idr.h>
- #include <asm/uaccess.h>
- #include <asm/unistd.h>
- #include "pnode.h"
-@@ -39,6 +40,7 @@
- __cacheline_aligned_in_smp DEFINE_SPINLOCK(vfsmount_lock);
+@@ -41,6 +41,7 @@ __cacheline_aligned_in_smp DEFINE_SPINLO
  
  static int event;
-+static DEFINE_IDA(mnt_id_ida);
+ static DEFINE_IDA(mnt_id_ida);
++static DEFINE_IDA(mnt_group_ida);
  
  static struct list_head *mount_hashtable __read_mostly;
  static struct kmem_cache *mnt_cache __read_mostly;
-@@ -58,10 +60,41 @@ static inline unsigned long hash(struct 
+@@ -83,6 +84,35 @@ static void mnt_free_id(struct vfsmount 
+ 	spin_unlock(&vfsmount_lock);
+ }
  
- #define MNT_WRITER_UNDERFLOW_LIMIT -(1<<16)
- 
-+static int mnt_alloc_id(struct vfsmount *mnt)
++/*
++ * Allocate a new peer group ID
++ *
++ * mnt_group_ida is protected by namespace_sem
++ */
++static int mnt_alloc_group_id(struct vfsmount *mnt)
 +{
 +	int res;
 +
++	WARN_ON(mnt->mnt_group_id != 0);
 + retry:
-+	spin_lock(&vfsmount_lock);
-+	res = ida_get_new(&mnt_id_ida, &mnt->mnt_id);
-+	spin_unlock(&vfsmount_lock);
++	res = ida_get_new_above(&mnt_group_ida, 1, &mnt->mnt_group_id);
 +	if (res == -EAGAIN) {
-+		if (ida_pre_get(&mnt_id_ida, GFP_KERNEL))
++		if (ida_pre_get(&mnt_group_ida, GFP_KERNEL))
 +			goto retry;
 +		res = -ENOMEM;
 +	}
 +	return res;
 +}
 +
-+static void mnt_free_id(struct vfsmount *mnt)
++/*
++ * Release a peer group ID
++ */
++void mnt_release_group_id(struct vfsmount *mnt)
 +{
-+	spin_lock(&vfsmount_lock);
-+	ida_remove(&mnt_id_ida, mnt->mnt_id);
-+	spin_unlock(&vfsmount_lock);
++	ida_remove(&mnt_group_ida, mnt->mnt_group_id);
++	mnt->mnt_group_id = 0;
 +}
 +
  struct vfsmount *alloc_vfsmnt(const char *name)
  {
  	struct vfsmount *mnt = kmem_cache_zalloc(mnt_cache, GFP_KERNEL);
+@@ -533,6 +563,17 @@ static struct vfsmount *clone_mnt(struct
+ 	struct vfsmount *mnt = alloc_vfsmnt(old->mnt_devname);
+ 
  	if (mnt) {
-+		int err;
++		if (flag & (CL_SLAVE | CL_PRIVATE))
++			mnt->mnt_group_id = 0; /* not a peer of original */
++		else
++			mnt->mnt_group_id = old->mnt_group_id;
 +
-+		err = mnt_alloc_id(mnt);
-+		if (err) {
-+			kmem_cache_free(mnt_cache, mnt);
-+			return NULL;
++		if ((flag & CL_MAKE_SHARED) && !mnt->mnt_group_id) {
++			int err = mnt_alloc_group_id(mnt);
++			if (err)
++				goto out_free;
 +		}
 +
- 		atomic_set(&mnt->mnt_count, 1);
- 		INIT_LIST_HEAD(&mnt->mnt_hash);
- 		INIT_LIST_HEAD(&mnt->mnt_child);
-@@ -353,6 +386,7 @@ EXPORT_SYMBOL(simple_set_mnt);
- void free_vfsmnt(struct vfsmount *mnt)
- {
- 	kfree(mnt->mnt_devname);
-+	mnt_free_id(mnt);
- 	kmem_cache_free(mnt_cache, mnt);
+ 		mnt->mnt_flags = old->mnt_flags;
+ 		atomic_inc(&sb->s_active);
+ 		mnt->mnt_sb = sb;
+@@ -562,6 +603,10 @@ static struct vfsmount *clone_mnt(struct
+ 		}
+ 	}
+ 	return mnt;
++
++ out_free:
++	free_vfsmnt(mnt);
++	return NULL;
  }
  
-diff -puN include/linux/mount.h~vfs-mountinfo-add-mount-id include/linux/mount.h
---- a/include/linux/mount.h~vfs-mountinfo-add-mount-id
+ static inline void __mntput(struct vfsmount *mnt)
+@@ -1142,6 +1187,33 @@ void drop_collected_mounts(struct vfsmou
+ 	release_mounts(&umount_list);
+ }
+ 
++static void cleanup_group_ids(struct vfsmount *mnt, struct vfsmount *end)
++{
++	struct vfsmount *p;
++
++	for (p = mnt; p != end; p = next_mnt(p, mnt)) {
++		if (list_empty(&p->mnt_share) && !IS_MNT_SHARED(p))
++			mnt_release_group_id(p);
++	}
++}
++
++static int invent_group_ids(struct vfsmount *mnt, bool recurse)
++{
++	struct vfsmount *p;
++
++	for (p = mnt; p; p = recurse ? next_mnt(p, mnt) : NULL) {
++		if (list_empty(&p->mnt_share) && !IS_MNT_SHARED(p)) {
++			int err = mnt_alloc_group_id(p);
++			if (err) {
++				cleanup_group_ids(mnt, p);
++				return err;
++			}
++		}
++	}
++
++	return 0;
++}
++
+ /*
+  *  @source_mnt : mount tree to be attached
+  *  @nd         : place the mount tree @source_mnt is attached
+@@ -1212,9 +1284,16 @@ static int attach_recursive_mnt(struct v
+ 	struct vfsmount *dest_mnt = path->mnt;
+ 	struct dentry *dest_dentry = path->dentry;
+ 	struct vfsmount *child, *p;
++	int err;
+ 
+-	if (propagate_mnt(dest_mnt, dest_dentry, source_mnt, &tree_list))
+-		return -EINVAL;
++	if (IS_MNT_SHARED(dest_mnt)) {
++		err = invent_group_ids(source_mnt, true);
++		if (err)
++			goto out;
++	}
++	err = propagate_mnt(dest_mnt, dest_dentry, source_mnt, &tree_list);
++	if (err)
++		goto out_cleanup_ids;
+ 
+ 	if (IS_MNT_SHARED(dest_mnt)) {
+ 		for (p = source_mnt; p; p = next_mnt(p, source_mnt))
+@@ -1237,6 +1316,12 @@ static int attach_recursive_mnt(struct v
+ 	}
+ 	spin_unlock(&vfsmount_lock);
+ 	return 0;
++
++ out_cleanup_ids:
++	if (IS_MNT_SHARED(dest_mnt))
++		cleanup_group_ids(source_mnt, NULL);
++ out:
++	return err;
+ }
+ 
+ static int graft_tree(struct vfsmount *mnt, struct path *path)
+@@ -1277,6 +1362,7 @@ static noinline int do_change_type(struc
+ 	struct vfsmount *m, *mnt = nd->path.mnt;
+ 	int recurse = flag & MS_REC;
+ 	int type = flag & ~MS_REC;
++	int err = 0;
+ 
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+@@ -1285,12 +1371,20 @@ static noinline int do_change_type(struc
+ 		return -EINVAL;
+ 
+ 	down_write(&namespace_sem);
++	if (type == MS_SHARED) {
++		err = invent_group_ids(mnt, recurse);
++		if (err)
++			goto out_unlock;
++	}
++
+ 	spin_lock(&vfsmount_lock);
+ 	for (m = mnt; m; m = (recurse ? next_mnt(m, mnt) : NULL))
+ 		change_mnt_propagation(m, type);
+ 	spin_unlock(&vfsmount_lock);
++
++ out_unlock:
+ 	up_write(&namespace_sem);
+-	return 0;
++	return err;
+ }
+ 
+ /*
+diff -puN fs/pnode.c~vfs-mountinfo-add-mount-peer-group-id fs/pnode.c
+--- a/fs/pnode.c~vfs-mountinfo-add-mount-peer-group-id
++++ a/fs/pnode.c
+@@ -46,7 +46,11 @@ static int do_make_slave(struct vfsmount
+ 		if (peer_mnt == mnt)
+ 			peer_mnt = NULL;
+ 	}
++	if (IS_MNT_SHARED(mnt) && list_empty(&mnt->mnt_share))
++		mnt_release_group_id(mnt);
++
+ 	list_del_init(&mnt->mnt_share);
++	mnt->mnt_group_id = 0;
+ 
+ 	if (peer_mnt)
+ 		master = peer_mnt;
+@@ -58,9 +62,9 @@ static int do_make_slave(struct vfsmount
+ 		list_splice(&mnt->mnt_slave_list, master->mnt_slave_list.prev);
+ 		INIT_LIST_HEAD(&mnt->mnt_slave_list);
+ 	} else {
+-		struct list_head *p = &mnt->mnt_slave_list;
+-		while (!list_empty(p)) {
+-                        slave_mnt = list_first_entry(p,
++		struct list_head *slaves = &mnt->mnt_slave_list;
++		while (!list_empty(slaves)) {
++                        slave_mnt = list_first_entry(slaves,
+ 					struct vfsmount, mnt_slave);
+ 			list_del_init(&slave_mnt->mnt_slave);
+ 			slave_mnt->mnt_master = NULL;
+@@ -68,7 +72,6 @@ static int do_make_slave(struct vfsmount
+ 	}
+ 	mnt->mnt_master = master;
+ 	CLEAR_MNT_SHARED(mnt);
+-	INIT_LIST_HEAD(&mnt->mnt_slave_list);
+ 	return 0;
+ }
+ 
+diff -puN fs/pnode.h~vfs-mountinfo-add-mount-peer-group-id fs/pnode.h
+--- a/fs/pnode.h~vfs-mountinfo-add-mount-peer-group-id
++++ a/fs/pnode.h
+@@ -35,4 +35,5 @@ int propagate_mnt(struct vfsmount *, str
+ 		struct list_head *);
+ int propagate_umount(struct list_head *);
+ int propagate_mount_busy(struct vfsmount *, int);
++void mnt_release_group_id(struct vfsmount *);
+ #endif /* _LINUX_PNODE_H */
+diff -puN include/linux/mount.h~vfs-mountinfo-add-mount-peer-group-id include/linux/mount.h
+--- a/include/linux/mount.h~vfs-mountinfo-add-mount-peer-group-id
 +++ a/include/linux/mount.h
-@@ -56,6 +56,7 @@ struct vfsmount {
- 	struct list_head mnt_slave;	/* slave list entry */
+@@ -57,6 +57,7 @@ struct vfsmount {
  	struct vfsmount *mnt_master;	/* slave is on master->mnt_slave_list */
  	struct mnt_namespace *mnt_ns;	/* containing namespace */
-+	int mnt_id;			/* mount identifier */
+ 	int mnt_id;			/* mount identifier */
++	int mnt_group_id;		/* peer group identifier */
  	/*
  	 * We put mnt_count & mnt_expiry_mark at the end of struct vfsmount
  	 * to let these frequently modified fields in a separate cache line
