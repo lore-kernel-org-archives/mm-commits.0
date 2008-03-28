@@ -1,49 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-mountinfo-add-mount-peer-group-id.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 12:06:34 -0700
-Message-ID: <200803281906.m2SJ6YSg005398@imap1.linux-foundation.org>
+Subject: - vfs-mountinfo-allow-using-process-root.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 12:06:37 -0700
+Message-ID: <200803281906.m2SJ6bAV005401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45256 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36020 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753949AbYC1TGu (ORCPT
+	by vger.kernel.org with ESMTP id S1753968AbYC1THD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 15:06:50 -0400
+	Fri, 28 Mar 2008 15:07:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mszeredi@suse.cz, hch@lst.de, linuxram@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: mountinfo: add mount peer group ID
+     vfs: mountinfo: allow using process root
 has been removed from the -mm tree.  Its filename was
-     vfs-mountinfo-add-mount-peer-group-id.patch
+     vfs-mountinfo-allow-using-process-root.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: mountinfo: add mount peer group ID
+Subject: vfs: mountinfo: allow using process root
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add a unique ID to each peer group using the IDR infrastructure.  The
-identifiers are reused after the peer group dissolves.
+Allow /proc/<pid>/mountinfo to use the root of <pid> to calculate mountpoints.
 
-The IDR structures are protected by holding namepspace_sem for write while
-allocating or deallocating ID's.
+ - move definition of 'struct proc_mounts' to <linux/mnt_namespace.h>
+ - add the process's namespace and root to this structure
+ - pass a pointer to 'struct proc_mounts' into seq_operations
 
-ID's are allocated when a previously unshared vfsmount becomes the first
-member of a peer group.  When a new member is added to an existing group, the
-ID is copied from one of the old members.
+In addition the following cleanups are made:
 
-ID's are freed when the last member of a peer group is unshared.
-
-Setting the MNT_SHARED flag on members of a subtree is done as a separate
-step, after all the ID's have been allocated.  This way an allocation failure
-can be cleaned up easilty, without affecting the propagation state.
-
-Based on design sketch by Al Viro.
+ - use a common open function for /proc/<pid>/{mounts,mountstat}
+ - surround namespace.c part of these proc files with #ifdef CONFIG_PROC_FS
+ - make the seq_operations structures const
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -52,240 +46,257 @@ Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c        |  100 ++++++++++++++++++++++++++++++++++++++--
- fs/pnode.c            |   11 ++--
- fs/pnode.h            |    1 
- include/linux/mount.h |    1 
- 4 files changed, 106 insertions(+), 7 deletions(-)
+ fs/namespace.c                |   14 ++--
+ fs/proc/base.c                |  108 +++++++++++++++-----------------
+ include/linux/mnt_namespace.h |   11 +++
+ 3 files changed, 70 insertions(+), 63 deletions(-)
 
-diff -puN fs/namespace.c~vfs-mountinfo-add-mount-peer-group-id fs/namespace.c
---- a/fs/namespace.c~vfs-mountinfo-add-mount-peer-group-id
+diff -puN fs/namespace.c~vfs-mountinfo-allow-using-process-root fs/namespace.c
+--- a/fs/namespace.c~vfs-mountinfo-allow-using-process-root
 +++ a/fs/namespace.c
-@@ -41,6 +41,7 @@ __cacheline_aligned_in_smp DEFINE_SPINLO
- 
- static int event;
- static DEFINE_IDA(mnt_id_ida);
-+static DEFINE_IDA(mnt_group_ida);
- 
- static struct list_head *mount_hashtable __read_mostly;
- static struct kmem_cache *mnt_cache __read_mostly;
-@@ -83,6 +84,35 @@ static void mnt_free_id(struct vfsmount 
- 	spin_unlock(&vfsmount_lock);
+@@ -731,20 +731,21 @@ void save_mount_options(struct super_blo
  }
+ EXPORT_SYMBOL(save_mount_options);
  
-+/*
-+ * Allocate a new peer group ID
-+ *
-+ * mnt_group_ida is protected by namespace_sem
-+ */
-+static int mnt_alloc_group_id(struct vfsmount *mnt)
-+{
-+	int res;
-+
-+	WARN_ON(mnt->mnt_group_id != 0);
-+ retry:
-+	res = ida_get_new_above(&mnt_group_ida, 1, &mnt->mnt_group_id);
-+	if (res == -EAGAIN) {
-+		if (ida_pre_get(&mnt_group_ida, GFP_KERNEL))
-+			goto retry;
-+		res = -ENOMEM;
-+	}
-+	return res;
-+}
-+
-+/*
-+ * Release a peer group ID
-+ */
-+void mnt_release_group_id(struct vfsmount *mnt)
-+{
-+	ida_remove(&mnt_group_ida, mnt->mnt_group_id);
-+	mnt->mnt_group_id = 0;
-+}
-+
- struct vfsmount *alloc_vfsmnt(const char *name)
++#ifdef CONFIG_PROC_FS
+ /* iterator */
+ static void *m_start(struct seq_file *m, loff_t *pos)
  {
- 	struct vfsmount *mnt = kmem_cache_zalloc(mnt_cache, GFP_KERNEL);
-@@ -533,6 +563,17 @@ static struct vfsmount *clone_mnt(struct
- 	struct vfsmount *mnt = alloc_vfsmnt(old->mnt_devname);
+-	struct mnt_namespace *n = m->private;
++	struct proc_mounts *p = m->private;
  
- 	if (mnt) {
-+		if (flag & (CL_SLAVE | CL_PRIVATE))
-+			mnt->mnt_group_id = 0; /* not a peer of original */
-+		else
-+			mnt->mnt_group_id = old->mnt_group_id;
-+
-+		if ((flag & CL_MAKE_SHARED) && !mnt->mnt_group_id) {
-+			int err = mnt_alloc_group_id(mnt);
-+			if (err)
-+				goto out_free;
-+		}
-+
- 		mnt->mnt_flags = old->mnt_flags;
- 		atomic_inc(&sb->s_active);
- 		mnt->mnt_sb = sb;
-@@ -562,6 +603,10 @@ static struct vfsmount *clone_mnt(struct
+ 	down_read(&namespace_sem);
+-	return seq_list_start(&n->list, *pos);
++	return seq_list_start(&p->ns->list, *pos);
+ }
+ 
+ static void *m_next(struct seq_file *m, void *v, loff_t *pos)
+ {
+-	struct mnt_namespace *n = m->private;
++	struct proc_mounts *p = m->private;
+ 
+-	return seq_list_next(v, &n->list, pos);
++	return seq_list_next(v, &p->ns->list, pos);
+ }
+ 
+ static void m_stop(struct seq_file *m, void *v)
+@@ -801,7 +802,7 @@ static int show_vfsmnt(struct seq_file *
+ 	return err;
+ }
+ 
+-struct seq_operations mounts_op = {
++const struct seq_operations mounts_op = {
+ 	.start	= m_start,
+ 	.next	= m_next,
+ 	.stop	= m_stop,
+@@ -840,12 +841,13 @@ static int show_vfsstat(struct seq_file 
+ 	return err;
+ }
+ 
+-struct seq_operations mountstats_op = {
++const struct seq_operations mountstats_op = {
+ 	.start	= m_start,
+ 	.next	= m_next,
+ 	.stop	= m_stop,
+ 	.show	= show_vfsstat,
+ };
++#endif  /* CONFIG_PROC_FS */
+ 
+ /**
+  * may_umount_tree - check if a mount tree is busy
+diff -puN fs/proc/base.c~vfs-mountinfo-allow-using-process-root fs/proc/base.c
+--- a/fs/proc/base.c~vfs-mountinfo-allow-using-process-root
++++ a/fs/proc/base.c
+@@ -502,17 +502,14 @@ static const struct inode_operations pro
+ 	.setattr	= proc_setattr,
+ };
+ 
+-extern const struct seq_operations mounts_op;
+-struct proc_mounts {
+-	struct seq_file m;
+-	int event;
+-};
+-
+-static int mounts_open(struct inode *inode, struct file *file)
++static int mounts_open_common(struct inode *inode, struct file *file,
++			      const struct seq_operations *op)
+ {
+ 	struct task_struct *task = get_proc_task(inode);
+ 	struct nsproxy *nsp;
+ 	struct mnt_namespace *ns = NULL;
++	struct fs_struct *fs = NULL;
++	struct path root;
+ 	struct proc_mounts *p;
+ 	int ret = -EINVAL;
+ 
+@@ -525,40 +522,61 @@ static int mounts_open(struct inode *ino
+ 				get_mnt_ns(ns);
  		}
+ 		rcu_read_unlock();
+-
++		if (ns)
++			fs = get_fs_struct(task);
+ 		put_task_struct(task);
  	}
- 	return mnt;
-+
-+ out_free:
-+	free_vfsmnt(mnt);
-+	return NULL;
- }
  
- static inline void __mntput(struct vfsmount *mnt)
-@@ -1142,6 +1187,33 @@ void drop_collected_mounts(struct vfsmou
- 	release_mounts(&umount_list);
- }
- 
-+static void cleanup_group_ids(struct vfsmount *mnt, struct vfsmount *end)
-+{
-+	struct vfsmount *p;
+-	if (ns) {
+-		ret = -ENOMEM;
+-		p = kmalloc(sizeof(struct proc_mounts), GFP_KERNEL);
+-		if (p) {
+-			file->private_data = &p->m;
+-			ret = seq_open(file, &mounts_op);
+-			if (!ret) {
+-				p->m.private = ns;
+-				p->event = ns->event;
+-				return 0;
+-			}
+-			kfree(p);
+-		}
+-		put_mnt_ns(ns);
+-	}
++	if (!ns)
++		goto err;
++	if (!fs)
++		goto err_put_ns;
 +
-+	for (p = mnt; p != end; p = next_mnt(p, mnt)) {
-+		if (list_empty(&p->mnt_share) && !IS_MNT_SHARED(p))
-+			mnt_release_group_id(p);
-+	}
-+}
++	read_lock(&fs->lock);
++	root = fs->root;
++	path_get(&root);
++	read_unlock(&fs->lock);
++	put_fs_struct(fs);
 +
-+static int invent_group_ids(struct vfsmount *mnt, bool recurse)
-+{
-+	struct vfsmount *p;
++	ret = -ENOMEM;
++	p = kmalloc(sizeof(struct proc_mounts), GFP_KERNEL);
++	if (!p)
++		goto err_put_path;
 +
-+	for (p = mnt; p; p = recurse ? next_mnt(p, mnt) : NULL) {
-+		if (list_empty(&p->mnt_share) && !IS_MNT_SHARED(p)) {
-+			int err = mnt_alloc_group_id(p);
-+			if (err) {
-+				cleanup_group_ids(mnt, p);
-+				return err;
-+			}
-+		}
-+	}
++	file->private_data = &p->m;
++	ret = seq_open(file, op);
++	if (ret)
++		goto err_free;
++
++	p->m.private = p;
++	p->ns = ns;
++	p->root = root;
++	p->event = ns->event;
 +
 +	return 0;
++
++ err_free:
++	kfree(p);
++ err_put_path:
++	path_put(&root);
++ err_put_ns:
++	put_mnt_ns(ns);
++ err:
+ 	return ret;
+ }
+ 
+ static int mounts_release(struct inode *inode, struct file *file)
+ {
+-	struct seq_file *m = file->private_data;
+-	struct mnt_namespace *ns = m->private;
+-	put_mnt_ns(ns);
++	struct proc_mounts *p = file->private_data;
++	path_put(&p->root);
++	put_mnt_ns(p->ns);
+ 	return seq_release(inode, file);
+ }
+ 
+ static unsigned mounts_poll(struct file *file, poll_table *wait)
+ {
+ 	struct proc_mounts *p = file->private_data;
+-	struct mnt_namespace *ns = p->m.private;
++	struct mnt_namespace *ns = p->ns;
+ 	unsigned res = 0;
+ 
+ 	poll_wait(file, &ns->poll, wait);
+@@ -573,6 +591,11 @@ static unsigned mounts_poll(struct file 
+ 	return res;
+ }
+ 
++static int mounts_open(struct inode *inode, struct file *file)
++{
++	return mounts_open_common(inode, file, &mounts_op);
 +}
 +
- /*
-  *  @source_mnt : mount tree to be attached
-  *  @nd         : place the mount tree @source_mnt is attached
-@@ -1212,9 +1284,16 @@ static int attach_recursive_mnt(struct v
- 	struct vfsmount *dest_mnt = path->mnt;
- 	struct dentry *dest_dentry = path->dentry;
- 	struct vfsmount *child, *p;
-+	int err;
+ static const struct file_operations proc_mounts_operations = {
+ 	.open		= mounts_open,
+ 	.read		= seq_read,
+@@ -581,38 +604,9 @@ static const struct file_operations proc
+ 	.poll		= mounts_poll,
+ };
  
--	if (propagate_mnt(dest_mnt, dest_dentry, source_mnt, &tree_list))
--		return -EINVAL;
-+	if (IS_MNT_SHARED(dest_mnt)) {
-+		err = invent_group_ids(source_mnt, true);
-+		if (err)
-+			goto out;
-+	}
-+	err = propagate_mnt(dest_mnt, dest_dentry, source_mnt, &tree_list);
-+	if (err)
-+		goto out_cleanup_ids;
- 
- 	if (IS_MNT_SHARED(dest_mnt)) {
- 		for (p = source_mnt; p; p = next_mnt(p, source_mnt))
-@@ -1237,6 +1316,12 @@ static int attach_recursive_mnt(struct v
- 	}
- 	spin_unlock(&vfsmount_lock);
- 	return 0;
-+
-+ out_cleanup_ids:
-+	if (IS_MNT_SHARED(dest_mnt))
-+		cleanup_group_ids(source_mnt, NULL);
-+ out:
-+	return err;
+-extern const struct seq_operations mountstats_op;
+ static int mountstats_open(struct inode *inode, struct file *file)
+ {
+-	int ret = seq_open(file, &mountstats_op);
+-
+-	if (!ret) {
+-		struct seq_file *m = file->private_data;
+-		struct nsproxy *nsp;
+-		struct mnt_namespace *mnt_ns = NULL;
+-		struct task_struct *task = get_proc_task(inode);
+-
+-		if (task) {
+-			rcu_read_lock();
+-			nsp = task_nsproxy(task);
+-			if (nsp) {
+-				mnt_ns = nsp->mnt_ns;
+-				if (mnt_ns)
+-					get_mnt_ns(mnt_ns);
+-			}
+-			rcu_read_unlock();
+-
+-			put_task_struct(task);
+-		}
+-
+-		if (mnt_ns)
+-			m->private = mnt_ns;
+-		else {
+-			seq_release(inode, file);
+-			ret = -EINVAL;
+-		}
+-	}
+-	return ret;
++	return mounts_open_common(inode, file, &mountstats_op);
  }
  
- static int graft_tree(struct vfsmount *mnt, struct path *path)
-@@ -1277,6 +1362,7 @@ static noinline int do_change_type(struc
- 	struct vfsmount *m, *mnt = nd->path.mnt;
- 	int recurse = flag & MS_REC;
- 	int type = flag & ~MS_REC;
-+	int err = 0;
+ static const struct file_operations proc_mountstats_operations = {
+diff -puN include/linux/mnt_namespace.h~vfs-mountinfo-allow-using-process-root include/linux/mnt_namespace.h
+--- a/include/linux/mnt_namespace.h~vfs-mountinfo-allow-using-process-root
++++ a/include/linux/mnt_namespace.h
+@@ -5,6 +5,7 @@
+ #include <linux/mount.h>
+ #include <linux/sched.h>
+ #include <linux/nsproxy.h>
++#include <linux/seq_file.h>
  
- 	if (!capable(CAP_SYS_ADMIN))
- 		return -EPERM;
-@@ -1285,12 +1371,20 @@ static noinline int do_change_type(struc
- 		return -EINVAL;
+ struct mnt_namespace {
+ 	atomic_t		count;
+@@ -14,6 +15,13 @@ struct mnt_namespace {
+ 	int event;
+ };
  
- 	down_write(&namespace_sem);
-+	if (type == MS_SHARED) {
-+		err = invent_group_ids(mnt, recurse);
-+		if (err)
-+			goto out_unlock;
-+	}
++struct proc_mounts {
++	struct seq_file m; /* must be the first element */
++	struct mnt_namespace *ns;
++	struct path root;
++	int event;
++};
 +
- 	spin_lock(&vfsmount_lock);
- 	for (m = mnt; m; m = (recurse ? next_mnt(m, mnt) : NULL))
- 		change_mnt_propagation(m, type);
- 	spin_unlock(&vfsmount_lock);
-+
-+ out_unlock:
- 	up_write(&namespace_sem);
--	return 0;
-+	return err;
+ extern struct mnt_namespace *copy_mnt_ns(unsigned long, struct mnt_namespace *,
+ 		struct fs_struct *);
+ extern void __put_mnt_ns(struct mnt_namespace *ns);
+@@ -37,5 +45,8 @@ static inline void get_mnt_ns(struct mnt
+ 	atomic_inc(&ns->count);
  }
  
- /*
-diff -puN fs/pnode.c~vfs-mountinfo-add-mount-peer-group-id fs/pnode.c
---- a/fs/pnode.c~vfs-mountinfo-add-mount-peer-group-id
-+++ a/fs/pnode.c
-@@ -46,7 +46,11 @@ static int do_make_slave(struct vfsmount
- 		if (peer_mnt == mnt)
- 			peer_mnt = NULL;
- 	}
-+	if (IS_MNT_SHARED(mnt) && list_empty(&mnt->mnt_share))
-+		mnt_release_group_id(mnt);
++extern const struct seq_operations mounts_op;
++extern const struct seq_operations mountstats_op;
 +
- 	list_del_init(&mnt->mnt_share);
-+	mnt->mnt_group_id = 0;
- 
- 	if (peer_mnt)
- 		master = peer_mnt;
-@@ -58,9 +62,9 @@ static int do_make_slave(struct vfsmount
- 		list_splice(&mnt->mnt_slave_list, master->mnt_slave_list.prev);
- 		INIT_LIST_HEAD(&mnt->mnt_slave_list);
- 	} else {
--		struct list_head *p = &mnt->mnt_slave_list;
--		while (!list_empty(p)) {
--                        slave_mnt = list_first_entry(p,
-+		struct list_head *slaves = &mnt->mnt_slave_list;
-+		while (!list_empty(slaves)) {
-+                        slave_mnt = list_first_entry(slaves,
- 					struct vfsmount, mnt_slave);
- 			list_del_init(&slave_mnt->mnt_slave);
- 			slave_mnt->mnt_master = NULL;
-@@ -68,7 +72,6 @@ static int do_make_slave(struct vfsmount
- 	}
- 	mnt->mnt_master = master;
- 	CLEAR_MNT_SHARED(mnt);
--	INIT_LIST_HEAD(&mnt->mnt_slave_list);
- 	return 0;
- }
- 
-diff -puN fs/pnode.h~vfs-mountinfo-add-mount-peer-group-id fs/pnode.h
---- a/fs/pnode.h~vfs-mountinfo-add-mount-peer-group-id
-+++ a/fs/pnode.h
-@@ -35,4 +35,5 @@ int propagate_mnt(struct vfsmount *, str
- 		struct list_head *);
- int propagate_umount(struct list_head *);
- int propagate_mount_busy(struct vfsmount *, int);
-+void mnt_release_group_id(struct vfsmount *);
- #endif /* _LINUX_PNODE_H */
-diff -puN include/linux/mount.h~vfs-mountinfo-add-mount-peer-group-id include/linux/mount.h
---- a/include/linux/mount.h~vfs-mountinfo-add-mount-peer-group-id
-+++ a/include/linux/mount.h
-@@ -57,6 +57,7 @@ struct vfsmount {
- 	struct vfsmount *mnt_master;	/* slave is on master->mnt_slave_list */
- 	struct mnt_namespace *mnt_ns;	/* containing namespace */
- 	int mnt_id;			/* mount identifier */
-+	int mnt_group_id;		/* peer group identifier */
- 	/*
- 	 * We put mnt_count & mnt_expiry_mark at the end of struct vfsmount
- 	 * to let these frequently modified fields in a separate cache line
+ #endif
+ #endif
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
