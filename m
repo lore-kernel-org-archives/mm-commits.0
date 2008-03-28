@@ -1,234 +1,321 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-nastily-fix-build-with-config_net_ns=n.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 12:06:24 -0700
-Message-ID: <200803281906.m2SJ6OL2005386@imap1.linux-foundation.org>
+Subject: - vfs-mountinfo-add-dentry_path.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 12:06:27 -0700
+Message-ID: <200803281906.m2SJ6RT2005389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52531 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52275 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752063AbYC1TGi (ORCPT
+	by vger.kernel.org with ESMTP id S1753872AbYC1TGt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 15:06:38 -0400
+	Fri, 28 Mar 2008 15:06:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: linuxram@us.ibm.com, hch@lst.de, mszeredi@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net: nastily fix build with CONFIG_NET_NS=n
+     vfs: mountinfo: add dentry_path()
 has been removed from the -mm tree.  Its filename was
-     git-net-nastily-fix-build-with-config_net_ns=n.patch
+     vfs-mountinfo-add-dentry_path.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net: nastily fix build with CONFIG_NET_NS=n
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vfs: mountinfo: add dentry_path()
+From: Ram Pai <linuxram@us.ibm.com>
 
-net/core/neighbour.c: In function '__pneigh_lookup':
-net/core/neighbour.c:483: error: 'struct pneigh_entry' has no member named 'net'
+Add the following functions:
 
-Cc: "David S. Miller" <davem@davemloft.net>
+  dentry_path()
+  seq_dentry()
+
+These are similar to d_path() and seq_path().  But instead of calculating the
+path within a mount namespace, they calculate the path from the root of the
+filesystem to a given dentry, ignoring mounts completely.
+
+[mszeredi@suse.cz: split big patch into managable chunks]
+Signed-off-by: Ram Pai <linuxram@us.ibm.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/neighbour.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/dcache.c              |   88 +++++++++++++++++++++++++++----------
+ fs/seq_file.c            |   65 ++++++++++++++++++++-------
+ include/linux/dcache.h   |    1 
+ include/linux/seq_file.h |    2 
+ 4 files changed, 117 insertions(+), 39 deletions(-)
 
-diff -puN net/core/neighbour.c~git-net-nastily-fix-build-with-config_net_ns=n net/core/neighbour.c
---- a/net/core/neighbour.c~git-net-nastily-fix-build-with-config_net_ns=n
-+++ a/net/core/neighbour.c
-@@ -480,7 +480,9 @@ struct pneigh_entry *__pneigh_lookup(str
+diff -puN fs/dcache.c~vfs-mountinfo-add-dentry_path fs/dcache.c
+--- a/fs/dcache.c~vfs-mountinfo-add-dentry_path
++++ a/fs/dcache.c
+@@ -1746,6 +1746,17 @@ shouldnt_be_hashed:
+ 	goto shouldnt_be_hashed;
+ }
  
- 	for (n = tbl->phash_buckets[hash_val]; n; n = n->next) {
- 		if (!memcmp(n->key, pkey, key_len) &&
-+#ifdef CONFIG_NET_NS
- 		    (n->net == net) &&
-+#endif
- 		    (n->dev == dev || !n->dev))
- 			break;
++static int prepend(char **buffer, int *buflen, const char *str,
++			  int namelen)
++{
++	*buflen -= namelen;
++	if (*buflen < 0)
++		return -ENAMETOOLONG;
++	*buffer -= namelen;
++	memcpy(*buffer, str, namelen);
++	return 0;
++}
++
+ /**
+  * d_path - return the path of a dentry
+  * @dentry: dentry to report
+@@ -1767,17 +1778,11 @@ static char *__d_path(struct dentry *den
+ {
+ 	char * end = buffer+buflen;
+ 	char * retval;
+-	int namelen;
+ 
+-	*--end = '\0';
+-	buflen--;
+-	if (!IS_ROOT(dentry) && d_unhashed(dentry)) {
+-		buflen -= 10;
+-		end -= 10;
+-		if (buflen < 0)
++	prepend(&end, &buflen, "\0", 1);
++	if (!IS_ROOT(dentry) && d_unhashed(dentry) &&
++		(prepend(&end, &buflen, " (deleted)", 10) != 0))
+ 			goto Elong;
+-		memcpy(end, " (deleted)", 10);
+-	}
+ 
+ 	if (buflen < 1)
+ 		goto Elong;
+@@ -1804,13 +1809,10 @@ static char *__d_path(struct dentry *den
+ 		}
+ 		parent = dentry->d_parent;
+ 		prefetch(parent);
+-		namelen = dentry->d_name.len;
+-		buflen -= namelen + 1;
+-		if (buflen < 0)
++		if ((prepend(&end, &buflen, dentry->d_name.name,
++				dentry->d_name.len) != 0) ||
++		    (prepend(&end, &buflen, "/", 1) != 0))
+ 			goto Elong;
+-		end -= namelen;
+-		memcpy(end, dentry->d_name.name, namelen);
+-		*--end = '/';
+ 		retval = end;
+ 		dentry = parent;
  	}
+@@ -1818,12 +1820,10 @@ static char *__d_path(struct dentry *den
+ 	return retval;
+ 
+ global_root:
+-	namelen = dentry->d_name.len;
+-	buflen -= namelen;
+-	if (buflen < 0)
++	retval += 1;	/* hit the slash */
++	if (prepend(&retval, &buflen, dentry->d_name.name,
++		    dentry->d_name.len) != 0)
+ 		goto Elong;
+-	retval -= namelen-1;	/* hit the slash */
+-	memcpy(retval, dentry->d_name.name, namelen);
+ 	return retval;
+ Elong:
+ 	return ERR_PTR(-ENAMETOOLONG);
+@@ -1859,7 +1859,7 @@ char *d_path(struct path *path, char *bu
+ 
+ 	read_lock(&current->fs->lock);
+ 	root = current->fs->root;
+-	path_get(&current->fs->root);
++	path_get(&root);
+ 	read_unlock(&current->fs->lock);
+ 	spin_lock(&dcache_lock);
+ 	res = __d_path(path->dentry, path->mnt, &root, buf, buflen);
+@@ -1890,6 +1890,48 @@ char *dynamic_dname(struct dentry *dentr
+ }
+ 
+ /*
++ * Write full pathname from the root of the filesystem into the buffer.
++ */
++char *dentry_path(struct dentry *dentry, char *buf, int buflen)
++{
++	char *end = buf + buflen;
++	char *retval;
++
++	spin_lock(&dcache_lock);
++	prepend(&end, &buflen, "\0", 1);
++	if (!IS_ROOT(dentry) && d_unhashed(dentry) &&
++		(prepend(&end, &buflen, "//deleted", 9) != 0))
++			goto Elong;
++	if (buflen < 1)
++		goto Elong;
++	/* Get '/' right */
++	retval = end-1;
++	*retval = '/';
++
++	for (;;) {
++		struct dentry *parent;
++		if (IS_ROOT(dentry))
++			break;
++
++		parent = dentry->d_parent;
++		prefetch(parent);
++
++		if ((prepend(&end, &buflen, dentry->d_name.name,
++				dentry->d_name.len) != 0) ||
++		    (prepend(&end, &buflen, "/", 1) != 0))
++			goto Elong;
++
++		retval = end;
++		dentry = parent;
++	}
++	spin_unlock(&dcache_lock);
++	return retval;
++Elong:
++	spin_unlock(&dcache_lock);
++	return ERR_PTR(-ENAMETOOLONG);
++}
++
++/*
+  * NOTE! The user-level library version returns a
+  * character pointer. The kernel system call just
+  * returns the length of the buffer filled (which
+@@ -1918,9 +1960,9 @@ asmlinkage long sys_getcwd(char __user *
+ 
+ 	read_lock(&current->fs->lock);
+ 	pwd = current->fs->pwd;
+-	path_get(&current->fs->pwd);
++	path_get(&pwd);
+ 	root = current->fs->root;
+-	path_get(&current->fs->root);
++	path_get(&root);
+ 	read_unlock(&current->fs->lock);
+ 
+ 	error = -ENOENT;
+diff -puN fs/seq_file.c~vfs-mountinfo-add-dentry_path fs/seq_file.c
+--- a/fs/seq_file.c~vfs-mountinfo-add-dentry_path
++++ a/fs/seq_file.c
+@@ -342,28 +342,40 @@ int seq_printf(struct seq_file *m, const
+ }
+ EXPORT_SYMBOL(seq_printf);
+ 
++static char *mangle_path(char *s, char *p, char *esc)
++{
++	while (s <= p) {
++		char c = *p++;
++		if (!c) {
++			return s;
++		} else if (!strchr(esc, c)) {
++			*s++ = c;
++		} else if (s + 4 > p) {
++			break;
++		} else {
++			*s++ = '\\';
++			*s++ = '0' + ((c & 0300) >> 6);
++			*s++ = '0' + ((c & 070) >> 3);
++			*s++ = '0' + (c & 07);
++		}
++	}
++	return NULL;
++}
++
++/*
++ * return the absolute path of 'dentry' residing in mount 'mnt'.
++ */
+ int seq_path(struct seq_file *m, struct path *path, char *esc)
+ {
+ 	if (m->count < m->size) {
+ 		char *s = m->buf + m->count;
+ 		char *p = d_path(path, s, m->size - m->count);
+ 		if (!IS_ERR(p)) {
+-			while (s <= p) {
+-				char c = *p++;
+-				if (!c) {
+-					p = m->buf + m->count;
+-					m->count = s - m->buf;
+-					return s - p;
+-				} else if (!strchr(esc, c)) {
+-					*s++ = c;
+-				} else if (s + 4 > p) {
+-					break;
+-				} else {
+-					*s++ = '\\';
+-					*s++ = '0' + ((c & 0300) >> 6);
+-					*s++ = '0' + ((c & 070) >> 3);
+-					*s++ = '0' + (c & 07);
+-				}
++			s = mangle_path(s, p, esc);
++			if (s) {
++				p = m->buf + m->count;
++				m->count = s - m->buf;
++				return s - p;
+ 			}
+ 		}
+ 	}
+@@ -372,6 +384,27 @@ int seq_path(struct seq_file *m, struct 
+ }
+ EXPORT_SYMBOL(seq_path);
+ 
++/*
++ * returns the path of the 'dentry' from the root of its filesystem.
++ */
++int seq_dentry(struct seq_file *m, struct dentry *dentry, char *esc)
++{
++	if (m->count < m->size) {
++		char *s = m->buf + m->count;
++		char *p = dentry_path(dentry, s, m->size - m->count);
++		if (!IS_ERR(p)) {
++			s = mangle_path(s, p, esc);
++			if (s) {
++				p = m->buf + m->count;
++				m->count = s - m->buf;
++				return s - p;
++			}
++		}
++	}
++	m->count = m->size;
++	return -1;
++}
++
+ static void *single_start(struct seq_file *p, loff_t *pos)
+ {
+ 	return NULL + (*pos == 0);
+diff -puN include/linux/dcache.h~vfs-mountinfo-add-dentry_path include/linux/dcache.h
+--- a/include/linux/dcache.h~vfs-mountinfo-add-dentry_path
++++ a/include/linux/dcache.h
+@@ -302,6 +302,7 @@ extern int d_validate(struct dentry *, s
+ extern char *dynamic_dname(struct dentry *, char *, int, const char *, ...);
+ 
+ extern char *d_path(struct path *, char *, int);
++extern char *dentry_path(struct dentry *, char *, int);
+ 
+ /* Allocation counts.. */
+ 
+diff -puN include/linux/seq_file.h~vfs-mountinfo-add-dentry_path include/linux/seq_file.h
+--- a/include/linux/seq_file.h~vfs-mountinfo-add-dentry_path
++++ a/include/linux/seq_file.h
+@@ -11,6 +11,7 @@ struct seq_operations;
+ struct file;
+ struct path;
+ struct inode;
++struct dentry;
+ 
+ struct seq_file {
+ 	char *buf;
+@@ -43,6 +44,7 @@ int seq_printf(struct seq_file *, const 
+ 	__attribute__ ((format (printf,2,3)));
+ 
+ int seq_path(struct seq_file *, struct path *, char *);
++int seq_dentry(struct seq_file *, struct dentry *, char *);
+ 
+ int single_open(struct file *, int (*)(struct seq_file *, void *), void *);
+ int single_release(struct inode *, struct file *);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linuxram@us.ibm.com are
 
-origin.patch
-git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
-net-9p-trans_fdc-p9_trans_fd_init-module_init-functions-should-return-0-on-success.patch
-blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-to-lkml-review-fix.patch
-memstick-suppress-uninitialized-var-warning.patch
-alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
-x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-git-x86-fix-printk-warning.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
-pm-remove-destroy_suspended_device-checkpatch-fixes.patch
-git-drm.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-kvm-fixup.patch
-git-kvm-vs-git-s390.patch
-git-leds.patch
-git-libata-fix-config_pci=n-build.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-git-net.patch
-net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
-drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-net-ehea-port_lock-semaphore-to-mutex-fix.patch
-tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-git-s390-git-rejects.patch
-git-sh.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-scsi-add-iscsi-ibft-support-fix.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
 git-vfs.patch
-git-watchdog.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-allocate-section_map-for-sparse_init-update-fix.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-w1-build-fix.patch
 
