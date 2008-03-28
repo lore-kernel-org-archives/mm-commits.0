@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch added to -mm tree
-Date: Fri, 28 Mar 2008 02:19:52 -0700
-Message-ID: <200803280929.m2S9TniP015670@imap1.linux-foundation.org>
+Subject: + pci-hotplug-introduce-pci_slot-fix-2.patch added to -mm tree
+Date: Fri, 28 Mar 2008 02:43:50 -0700
+Message-ID: <200803280953.m2S9rm8f016541@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46027 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48728 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750761AbYC1JaE (ORCPT
+	by vger.kernel.org with ESMTP id S1751095AbYC1JyM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 05:30:04 -0400
+	Fri, 28 Mar 2008 05:54:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@infradead.org, clameter@sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au
+Cc: akpm@linux-foundation.org, achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx
 
 
 The patch titled
-     vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2
+     pci-hotplug-introduce-pci_slot-fix-2
 has been added to the -mm tree.  Its filename is
-     vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+     pci-hotplug-introduce-pci_slot-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2
+Subject: pci-hotplug-introduce-pci_slot-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix CONFIG_MMU=n build (vmalloc_op undefined)
+drivers/pci/slot.c: In function 'pci_create_slot':
+drivers/pci/slot.c:90: error: implicit declaration of function 'ERR_PTR'
+drivers/pci/slot.c:90: warning: assignment makes pointer from integer without a cast
+drivers/pci/slot.c:116: warning: assignment makes pointer from integer without a cast
 
-Cc: Arjan van de Ven <arjan@infradead.org>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Alex Chiang <achiang@hp.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/pci/slot.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/proc/proc_misc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2 fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2
-+++ a/fs/proc/proc_misc.c
-@@ -456,6 +456,7 @@ static const struct file_operations proc
- #endif
- #endif
+diff -puN drivers/pci/slot.c~pci-hotplug-introduce-pci_slot-fix-2 drivers/pci/slot.c
+--- a/drivers/pci/slot.c~pci-hotplug-introduce-pci_slot-fix-2
++++ a/drivers/pci/slot.c
+@@ -7,6 +7,7 @@
  
-+#ifdef CONFIG_MMU
- static int vmalloc_open(struct inode *inode, struct file *file)
- {
- 	return seq_open(file, &vmalloc_op);
-@@ -467,6 +468,7 @@ static const struct file_operations proc
- 	.llseek		= seq_lseek,
- 	.release	= seq_release,
- };
-+#endif
+ #include <linux/kobject.h>
+ #include <linux/pci.h>
++#include <linux/err.h>
+ #include "pci.h"
  
- static int show_stat(struct seq_file *p, void *v)
- {
-@@ -881,7 +883,9 @@ void __init proc_misc_init(void)
- 	create_seq_entry("slab_allocators", 0 ,&proc_slabstats_operations);
- #endif
- #endif
-+#ifdef CONFIG_MMU
- 	proc_create("vmallocinfo", S_IRUSR, NULL, &proc_vmalloc_operations);
-+#endif
- 	create_seq_entry("buddyinfo",S_IRUGO, &fragmentation_file_operations);
- 	create_seq_entry("pagetypeinfo", S_IRUGO, &pagetypeinfo_file_ops);
- 	create_seq_entry("vmstat",S_IRUGO, &proc_vmstat_file_operations);
+ struct kset *pci_slots_kset;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -140,6 +127,7 @@ drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make
 git-selinux.patch
 pci-hotplug-introduce-pci_slot-fix.patch
 pci-hotplug-introduce-pci_slot-fix-fix.patch
+pci-hotplug-introduce-pci_slot-fix-2.patch
 pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
 git-s390-git-rejects.patch
 git-sh.patch
@@ -230,6 +218,7 @@ sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
 keys-add-keyctl-function-to-get-a-security-label-fix.patch
 procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
 edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
 make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
