@@ -1,306 +1,232 @@
 From: akpm@linux-foundation.org
-Subject: - input-add-debouncing-for-generic-gpio-input-device-gpio_keyc-update.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 14:29:47 -0700
-Message-ID: <200803282129.m2SLTl4e011212@imap1.linux-foundation.org>
+Subject: - devres-implement-pcim_iomap_regions_request_all-fix.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 14:33:13 -0700
+Message-ID: <200803282133.m2SLXEoN011449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46851 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755782AbYC1VaR (ORCPT
+	by vger.kernel.org with ESMTP id S1755270AbYC1Vdd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 17:30:17 -0400
+	Fri, 28 Mar 2008 17:33:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ek9852@gmail.com, anti.sullin@artecdesign.ee, david-b@pacbell.net, dtor@mail.ru, hvr@gnu.org, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, gregkh@suse.de, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: add debouncing for generic gpio input device gpio_key.c (update)
+     devres-implement-pcim_iomap_regions_request_all-fix
 has been removed from the -mm tree.  Its filename was
-     input-add-debouncing-for-generic-gpio-input-device-gpio_keyc-update.patch
+     devres-implement-pcim_iomap_regions_request_all-fix.patch
 
-This patch was dropped because it was folded into input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: add debouncing for generic gpio input device gpio_key.c (update)
-From: Keith Mok <ek9852@gmail.com>
+Subject: devres-implement-pcim_iomap_regions_request_all-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-I put the timer and the flag into a struct and save it using
-input_set_drvdata.  This should make gpio-keys non single-instance-only
-driver.
-
-Signed-off-by: Keith Mok <ek9852@gmail.com>
-Cc: Herbert Valerio Riedel <hvr@gnu.org>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Anti Sullin <anti.sullin@artecdesign.ee>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/keyboard/gpio_keys.c |   98 ++++++++++++++-------------
- 1 file changed, 53 insertions(+), 45 deletions(-)
+ include/linux/io.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/input/keyboard/gpio_keys.c~input-add-debouncing-for-generic-gpio-input-device-gpio_keyc-update drivers/input/keyboard/gpio_keys.c
---- a/drivers/input/keyboard/gpio_keys.c~input-add-debouncing-for-generic-gpio-input-device-gpio_keyc-update
-+++ a/drivers/input/keyboard/gpio_keys.c
-@@ -26,35 +26,37 @@
+diff -puN include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix include/linux/io.h
+--- a/include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix
++++ a/include/linux/io.h
+@@ -65,5 +65,7 @@ void __iomem * devm_ioremap_nocache(stru
+ void devm_iounmap(struct device *dev, void __iomem *addr);
+ int check_signature(const volatile void __iomem *io_addr,
+ 			const unsigned char *signature, int length);
++int pcim_iomap_regions_request_all(struct pci_dev *pdev, u16 mask,
++			const char *name)
  
- #include <asm/gpio.h>
- 
--static void do_gpio_keys_tasklet(unsigned long);
- static void do_gpio_keys_timer(unsigned long);
- 
--static struct timer_list gpio_keys_timer;
--DECLARE_TASKLET_DISABLED(gpio_keys_tasklet, do_gpio_keys_tasklet, 0);
--static spinlock_t suspend_lock;
--static int suspended;
-+struct gpio_key_data {
-+	struct timer_list gpio_keys_timer;
-+	spinlock_t suspend_lock;
-+	int suspended;
-+};
- 
- static irqreturn_t gpio_keys_isr(int irq, void *dev_id)
- {
- 	struct platform_device *pdev = dev_id;
- 	struct gpio_keys_platform_data *pdata = pdev->dev.platform_data;
-+	struct input_dev *input = platform_get_drvdata(pdev);
-+	struct gpio_key_data *pgpiodata = input_get_drvdata(input);
- 	int i;
- 	unsigned long flags;
- 
--	spin_lock_irqsave(&suspend_lock, flags);
--	if (suspended) {
--		spin_unlock_irqrestore(&suspend_lock, flags);
-+	spin_lock_irqsave(&(pgpiodata->suspend_lock), flags);
-+	if (pgpiodata->suspended) {
-+		spin_unlock_irqrestore(&(pgpiodata->suspend_lock), flags);
- 		return IRQ_HANDLED;
- 	}
--	spin_unlock_irqrestore(&suspend_lock, flags);
-+	spin_unlock_irqrestore(&(pgpiodata->suspend_lock), flags);
- 
- 	/* disable keyboard interrupt and schedule for handling */
- 	for (i = 0; i < pdata->nbuttons; i++) {
- 		int irq = gpio_to_irq(pdata->buttons[i].gpio);
--		disable_irq(irq);
-+		disable_irq_nosync(irq);
- 	}
- 
--	tasklet_schedule(&gpio_keys_tasklet);
-+	mod_timer(&(pgpiodata->gpio_keys_timer), jiffies + HZ / 100);
- 
- 	return IRQ_HANDLED;
- }
-@@ -62,6 +64,7 @@ static irqreturn_t gpio_keys_isr(int irq
- static int __devinit gpio_keys_probe(struct platform_device *pdev)
- {
- 	struct gpio_keys_platform_data *pdata = pdev->dev.platform_data;
-+	struct gpio_key_data *pgpiodata;
- 	struct input_dev *input;
- 	int i, error;
- 	int wakeup = 0;
-@@ -70,14 +73,20 @@ static int __devinit gpio_keys_probe(str
- 	if (!input)
- 		return -ENOMEM;
- 
-+	pgpiodata = kmalloc(sizeof(struct gpio_key_data), GFP_KERNEL);
-+	if (!pgpiodata) {
-+		error = -ENOMEM;
-+		goto fail2;
-+	}
-+
-+	setup_timer(&(pgpiodata->gpio_keys_timer), do_gpio_keys_timer,
-+		(unsigned long) pdev);
-+	spin_lock_init(&(pgpiodata->suspend_lock));
-+	pgpiodata->suspended = 0;
-+
- 	platform_set_drvdata(pdev, input);
- 
- 	input->evbit[0] = BIT_MASK(EV_KEY);
--	setup_timer(&gpio_keys_timer, do_gpio_keys_timer, (unsigned long) pdev);
--	tasklet_enable(&gpio_keys_tasklet);
--	gpio_keys_tasklet.data = (unsigned long) pdev;
--	spin_lock_init(&suspend_lock);
--	suspended = 0;
- 
- 	input->name = pdev->name;
- 	input->phys = "gpio-keys/input0";
-@@ -88,6 +97,8 @@ static int __devinit gpio_keys_probe(str
- 	input->id.product = 0x0001;
- 	input->id.version = 0x0100;
- 
-+	input_set_drvdata(input, pgpiodata);
-+
- 	for (i = 0; i < pdata->nbuttons; i++) {
- 		struct gpio_keys_button *button = &pdata->buttons[i];
- 		int irq;
-@@ -97,7 +108,7 @@ static int __devinit gpio_keys_probe(str
- 		if (error < 0) {
- 			pr_err("gpio-keys: failed to request GPIO %d,"
- 				" error %d\n", button->gpio, error);
--			goto fail;
-+			goto fail1;
- 		}
- 
- 		error = gpio_direction_input(button->gpio);
-@@ -106,7 +117,7 @@ static int __devinit gpio_keys_probe(str
- 				" direction for GPIO %d, error %d\n",
- 				button->gpio, error);
- 			gpio_free(button->gpio);
--			goto fail;
-+			goto fail1;
- 		}
- 
- 		irq = gpio_to_irq(button->gpio);
-@@ -116,7 +127,7 @@ static int __devinit gpio_keys_probe(str
- 				" for GPIO %d, error %d\n",
- 				button->gpio, error);
- 			gpio_free(button->gpio);
--			goto fail;
-+			goto fail1;
- 		}
- 
- 		error = request_irq(irq, gpio_keys_isr,
-@@ -128,7 +139,7 @@ static int __devinit gpio_keys_probe(str
- 			pr_err("gpio-keys: Unable to claim irq %d; error %d\n",
- 				irq, error);
- 			gpio_free(button->gpio);
--			goto fail;
-+			goto fail1;
- 		}
- 
- 		if (button->wakeup)
-@@ -141,20 +152,21 @@ static int __devinit gpio_keys_probe(str
- 	if (error) {
- 		pr_err("gpio-keys: Unable to register input device, "
- 			"error: %d\n", error);
--		goto fail;
-+		goto fail1;
- 	}
- 
- 	device_init_wakeup(&pdev->dev, wakeup);
- 
- 	return 0;
- 
-- fail:
-+ fail1:
- 	while (--i >= 0) {
- 		free_irq(gpio_to_irq(pdata->buttons[i].gpio), pdev);
- 		gpio_free(pdata->buttons[i].gpio);
- 	}
- 
- 	platform_set_drvdata(pdev, NULL);
-+ fail2:
- 	input_free_device(input);
- 
- 	return error;
-@@ -164,6 +176,7 @@ static int __devexit gpio_keys_remove(st
- {
- 	struct gpio_keys_platform_data *pdata = pdev->dev.platform_data;
- 	struct input_dev *input = platform_get_drvdata(pdev);
-+	struct gpio_key_data *pgpiodata = input_get_drvdata(input);
- 	int i;
- 
- 	device_init_wakeup(&pdev->dev, 0);
-@@ -173,12 +186,13 @@ static int __devexit gpio_keys_remove(st
- 		free_irq(irq, pdev);
- 	}
- 
--	del_timer_sync(&gpio_keys_timer);
--	tasklet_kill(&gpio_keys_tasklet);
-+	del_timer_sync(&(pgpiodata->gpio_keys_timer));
- 
- 	for (i = 0; i < pdata->nbuttons; i++)
- 		gpio_free(pdata->buttons[i].gpio);
- 
-+	kfree(pgpiodata);
-+
- 	input_unregister_device(input);
- 
- 	return 0;
-@@ -190,9 +204,11 @@ static int gpio_keys_suspend(struct plat
- {
- 	unsigned long flags;
- 	struct gpio_keys_platform_data *pdata = pdev->dev.platform_data;
-+	struct input_dev *input = platform_get_drvdata(pdev);
-+	struct gpio_key_data *pgpiodata = input_get_drvdata(input);
- 	int i;
- 
--	spin_lock_irqsave(&suspend_lock, flags);
-+	spin_lock_irqsave(&(pgpiodata->suspend_lock), flags);
- 
- 	/*
- 	 * Re-enable the interrupt in case it has been masked by the
-@@ -200,11 +216,10 @@ static int gpio_keys_suspend(struct plat
- 	 * to wake us up from suspended.
- 	 */
- 
--	suspended = 1;
-+	pgpiodata->suspended = 1;
- 
--	spin_unlock_irqrestore(&suspend_lock, flags);
--	del_timer_sync(&gpio_keys_timer);
--	tasklet_kill(&gpio_keys_tasklet);
-+	spin_unlock_irqrestore(&(pgpiodata->suspend_lock), flags);
-+	del_timer_sync(&(pgpiodata->gpio_keys_timer));
- 
- 	for (i = 0; i < pdata->nbuttons; i++) {
- 		int irq = gpio_to_irq(pdata->buttons[i].gpio);
-@@ -227,9 +242,11 @@ static int gpio_keys_suspend(struct plat
- static int gpio_keys_resume(struct platform_device *pdev)
- {
- 	struct gpio_keys_platform_data *pdata = pdev->dev.platform_data;
-+	struct input_dev *input = platform_get_drvdata(pdev);
-+	struct gpio_key_data *pgpiodata = input_get_drvdata(input);
- 	int i;
- 
--	suspended = 0;
-+	pgpiodata->suspended = 0;
- 	if (device_may_wakeup(&pdev->dev)) {
- 		for (i = 0; i < pdata->nbuttons; i++) {
- 			struct gpio_keys_button *button = &pdata->buttons[i];
-@@ -247,13 +264,14 @@ static int gpio_keys_resume(struct platf
- #define gpio_keys_resume	NULL
- #endif
- 
--static void do_gpio_keys_tasklet(unsigned long data)
-+static void do_gpio_keys_timer(unsigned long data)
- {
- 	int pressed;
- 	int i;
--	struct platform_device *pdev = (struct platform_device*)data;
-+	struct platform_device *pdev = (struct platform_device *)data;
- 	struct gpio_keys_platform_data *pdata = pdev->dev.platform_data;
- 	struct input_dev *input = platform_get_drvdata(pdev);
-+	struct gpio_key_data *pgpiodata = input_get_drvdata(input);
- 
- 	/* check for any changes */
- 	pressed = 0;
-@@ -268,24 +286,14 @@ static void do_gpio_keys_tasklet(unsigne
- 		pressed |= !!state;
- 		input_sync(input);
- 	}
--	if(pressed) {
--                int delay = HZ / 20;
-+	if (pressed) {
-+		int delay = HZ / 20;
- 		/* some key is pressed - keep irq disabled and use timer
- 		 * to poll */
--		mod_timer(&gpio_keys_timer, jiffies + delay);
--	} else {
--		for (i = 0; i < pdata->nbuttons; i++) {
--			int irq = gpio_to_irq(pdata->buttons[i].gpio);
--			enable_irq(irq);
--		}
-+		mod_timer(&(pgpiodata->gpio_keys_timer), jiffies + delay);
- 	}
- }
- 
--static void do_gpio_keys_timer(unsigned long data)
--{
--	tasklet_schedule(&gpio_keys_tasklet);
--}
+ #endif /* _LINUX_IO_H */
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+net-9p-trans_fdc-p9_trans_fd_init-module_init-functions-should-return-0-on-success.patch
+memstick-suppress-uninitialized-var-warning.patch
+x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
+alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+git-x86-fix-printk-warning.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+cifs-suppress-warning.patch
+pm-remove-destroy_suspended_device.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-kvm-fixup.patch
+git-kvm-vs-git-s390.patch
+git-leds.patch
+git-libata-fix-config_pci=n-build.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-async-tx.patch
+git-net.patch
+net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+net-ehea-port_lock-semaphore-to-mutex-fix.patch
+tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-introduce-pci_slot-fix-fix.patch
+pci-hotplug-introduce-pci_slot-fix-2.patch
+pci-hotplug-introduce-pci_slot-fix-99.patch
+pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+git-s390-git-rejects.patch
+git-sh.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+scsi-add-iscsi-ibft-support-fix.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-allocate-section_map-for-sparse_init-update-fix.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+w1-build-fix.patch
+
