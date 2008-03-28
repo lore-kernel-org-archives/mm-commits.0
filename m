@@ -1,218 +1,282 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-mountinfo-add-seq_file_root.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 12:06:30 -0700
-Message-ID: <200803281906.m2SJ6UPf005392@imap1.linux-foundation.org>
+Subject: + git-drm-git-rejects.patch added to -mm tree
+Date: Fri, 28 Mar 2008 12:24:48 -0700
+Message-ID: <200803281934.m2SJYk5s006600@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51669 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44425 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753814AbYC1TR2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753117AbYC1Tey (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 15:17:28 -0400
+	Fri, 28 Mar 2008 15:34:54 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2SJYqIv006166
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 28 Mar 2008 12:34:53 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, hch@lst.de, linuxram@us.ibm.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     vfs: mountinfo: add seq_file_root()
-has been removed from the -mm tree.  Its filename was
-     vfs-mountinfo-add-seq_file_root.patch
+     git-drm-git-rejects
+has been added to the -mm tree.  Its filename is
+     git-drm-git-rejects.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: mountinfo: add seq_file_root()
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: git-drm-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add a new function:
-
-  seq_file_root()
-
-This is similar to seq_path(), but calculates the path relative to the
-given root, instead of current->fs->root.  If the path was unreachable
-from root, then modify the root parameter to reflect this.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ram Pai <linuxram@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c              |   24 ++++++++++++++++--------
- fs/seq_file.c            |   30 ++++++++++++++++++++++++++++++
- include/linux/dcache.h   |    1 +
- include/linux/seq_file.h |    2 ++
- 4 files changed, 49 insertions(+), 8 deletions(-)
+ drivers/char/drm/ati_pcigart.c |   15 ---------------
+ drivers/char/drm/drm_fops.c    |    7 +------
+ 2 files changed, 1 insertion(+), 21 deletions(-)
 
-diff -puN fs/dcache.c~vfs-mountinfo-add-seq_file_root fs/dcache.c
---- a/fs/dcache.c~vfs-mountinfo-add-seq_file_root
-+++ a/fs/dcache.c
-@@ -1759,10 +1759,8 @@ static int prepend(char **buffer, int *b
- 
- /**
-  * d_path - return the path of a dentry
-- * @dentry: dentry to report
-- * @vfsmnt: vfsmnt to which the dentry belongs
-- * @root: root dentry
-- * @rootmnt: vfsmnt to which the root dentry belongs
-+ * @path: the dentry/vfsmount to report
-+ * @root: root vfsmnt/dentry (may be modified by this function)
-  * @buffer: buffer to return value in
-  * @buflen: buffer length
-  *
-@@ -1772,10 +1770,15 @@ static int prepend(char **buffer, int *b
-  * Returns the buffer or an error code if the path was too long.
-  *
-  * "buflen" should be positive. Caller holds the dcache_lock.
-+ *
-+ * If path is not reachable from the supplied root, then the value of
-+ * root is changed (without modifying refcounts).
-  */
--static char *__d_path(struct dentry *dentry, struct vfsmount *vfsmnt,
--		       struct path *root, char *buffer, int buflen)
-+char *__d_path(const struct path *path, struct path *root,
-+	       char *buffer, int buflen)
+diff -puN drivers/char/drm/ati_pcigart.c~git-drm-git-rejects drivers/char/drm/ati_pcigart.c
+--- a/drivers/char/drm/ati_pcigart.c~git-drm-git-rejects
++++ a/drivers/char/drm/ati_pcigart.c
+@@ -38,26 +38,11 @@
+ static int drm_ati_alloc_pcigart_table(struct drm_device *dev,
+ 				       struct drm_ati_pcigart_info *gart_info)
  {
-+	struct dentry *dentry = path->dentry;
-+	struct vfsmount *vfsmnt = path->mnt;
- 	char * end = buffer+buflen;
- 	char * retval;
+-<<<<<<< HEAD:drivers/char/drm/ati_pcigart.c
+ 	gart_info->table_handle = drm_pci_alloc(dev, gart_info->table_size,
+ 						PAGE_SIZE,
+ 						gart_info->table_mask);
+ 	if (gart_info->table_handle == NULL)
+ 		return -ENOMEM;
+-=======
+-	unsigned long address;
+-	struct page *page;
+-	int i;
+-
+-	DRM_DEBUG("%d order\n", order);
+-
+-	address = __get_free_pages(GFP_KERNEL | __GFP_COMP,
+-				   order);
+-	if (address == 0UL)
+-		return NULL;
+-
+-	page = virt_to_page(address);
+->>>>>>> FETCH_HEAD:drivers/char/drm/ati_pcigart.c
  
-@@ -1824,6 +1827,8 @@ global_root:
- 	if (prepend(&retval, &buflen, dentry->d_name.name,
- 		    dentry->d_name.len) != 0)
- 		goto Elong;
-+	root->mnt = vfsmnt;
-+	root->dentry = dentry;
- 	return retval;
- Elong:
- 	return ERR_PTR(-ENAMETOOLONG);
-@@ -1846,6 +1851,7 @@ char *d_path(struct path *path, char *bu
- {
- 	char *res;
- 	struct path root;
-+	struct path tmp;
+ 	return 0;
+ }
+diff -puN drivers/char/drm/drm_fops.c~git-drm-git-rejects drivers/char/drm/drm_fops.c
+--- a/drivers/char/drm/drm_fops.c~git-drm-git-rejects
++++ a/drivers/char/drm/drm_fops.c
+@@ -405,14 +405,9 @@ int drm_release(struct inode *inode, str
+ 			 * Wait for a while.
+ 			 */
  
- 	/*
- 	 * We have various synthetic filesystems that never get mounted.  On
-@@ -1862,7 +1868,8 @@ char *d_path(struct path *path, char *bu
- 	path_get(&root);
- 	read_unlock(&current->fs->lock);
- 	spin_lock(&dcache_lock);
--	res = __d_path(path->dentry, path->mnt, &root, buf, buflen);
-+	tmp = root;
-+	res = __d_path(path, &tmp, buf, buflen);
- 	spin_unlock(&dcache_lock);
- 	path_put(&root);
- 	return res;
-@@ -1970,9 +1977,10 @@ asmlinkage long sys_getcwd(char __user *
- 	spin_lock(&dcache_lock);
- 	if (pwd.dentry->d_parent == pwd.dentry || !d_unhashed(pwd.dentry)) {
- 		unsigned long len;
-+		struct path tmp = root;
- 		char * cwd;
- 
--		cwd = __d_path(pwd.dentry, pwd.mnt, &root, page, PAGE_SIZE);
-+		cwd = __d_path(&pwd, &tmp, page, PAGE_SIZE);
- 		spin_unlock(&dcache_lock);
- 
- 		error = PTR_ERR(cwd);
-diff -puN fs/seq_file.c~vfs-mountinfo-add-seq_file_root fs/seq_file.c
---- a/fs/seq_file.c~vfs-mountinfo-add-seq_file_root
-+++ a/fs/seq_file.c
-@@ -385,6 +385,36 @@ int seq_path(struct seq_file *m, struct 
- EXPORT_SYMBOL(seq_path);
- 
- /*
-+ * Same as seq_path, but relative to supplied root.
-+ *
-+ * root may be changed, see __d_path().
-+ */
-+int seq_path_root(struct seq_file *m, struct path *path, struct path *root,
-+		  char *esc)
-+{
-+	int err = -ENAMETOOLONG;
-+	if (m->count < m->size) {
-+		char *s = m->buf + m->count;
-+		char *p;
-+
-+		spin_lock(&dcache_lock);
-+		p = __d_path(path, root, s, m->size - m->count);
-+		spin_unlock(&dcache_lock);
-+		err = PTR_ERR(p);
-+		if (!IS_ERR(p)) {
-+			s = mangle_path(s, p, esc);
-+			if (s) {
-+				p = m->buf + m->count;
-+				m->count = s - m->buf;
-+				return 0;
-+			}
-+		}
-+	}
-+	m->count = m->size;
-+	return err;
-+}
-+
-+/*
-  * returns the path of the 'dentry' from the root of its filesystem.
-  */
- int seq_dentry(struct seq_file *m, struct dentry *dentry, char *esc)
-diff -puN include/linux/dcache.h~vfs-mountinfo-add-seq_file_root include/linux/dcache.h
---- a/include/linux/dcache.h~vfs-mountinfo-add-seq_file_root
-+++ a/include/linux/dcache.h
-@@ -301,6 +301,7 @@ extern int d_validate(struct dentry *, s
-  */
- extern char *dynamic_dname(struct dentry *, char *, int, const char *, ...);
- 
-+extern char *__d_path(const struct path *path, struct path *root, char *, int);
- extern char *d_path(struct path *, char *, int);
- extern char *dentry_path(struct dentry *, char *, int);
- 
-diff -puN include/linux/seq_file.h~vfs-mountinfo-add-seq_file_root include/linux/seq_file.h
---- a/include/linux/seq_file.h~vfs-mountinfo-add-seq_file_root
-+++ a/include/linux/seq_file.h
-@@ -45,6 +45,8 @@ int seq_printf(struct seq_file *, const 
- 
- int seq_path(struct seq_file *, struct path *, char *);
- int seq_dentry(struct seq_file *, struct dentry *, char *);
-+int seq_path_root(struct seq_file *m, struct path *path, struct path *root,
-+		  char *esc);
- 
- int single_open(struct file *, int (*)(struct seq_file *, void *), void *);
- int single_release(struct inode *, struct file *);
+-<<<<<<< HEAD:drivers/char/drm/drm_fops.c
+-			do{
++			do {
+ 				spin_lock_irqsave(&dev->lock.spinlock,
+ 						  irqflags);
+-=======
+-			do {
+-				spin_lock(&dev->lock.spinlock);
+->>>>>>> FETCH_HEAD:drivers/char/drm/drm_fops.c
+ 				locked = dev->lock.idle_has_lock;
+ 				spin_unlock_irqrestore(&dev->lock.spinlock,
+ 						       irqflags);
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
+git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
+net-9p-trans_fdc-p9_trans_fd_init-module_init-functions-should-return-0-on-success.patch
+blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-to-lkml-review-fix.patch
+memstick-suppress-uninitialized-var-warning.patch
+alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
+x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+git-x86-fix-printk-warning.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+cifs-suppress-warning.patch
+pm-remove-destroy_suspended_device-checkpatch-fixes.patch
+git-drm.patch
+git-drm-git-rejects.patch
+git-dvb.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+git-kvm.patch
+git-kvm-fixup.patch
+git-kvm-vs-git-s390.patch
+git-leds.patch
+git-libata-fix-config_pci=n-build.patch
+devres-implement-pcim_iomap_regions_request_all-fix.patch
+devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-net.patch
+net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+net-ehea-port_lock-semaphore-to-mutex-fix.patch
+tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-introduce-pci_slot-fix-fix.patch
+pci-hotplug-introduce-pci_slot-fix-2.patch
+pci-hotplug-introduce-pci_slot-fix-99.patch
+pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+git-s390-git-rejects.patch
+git-sh.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+ipsc-fix-build-warning.patch
+drivers-scsi-initioc-suppress-compile-warning.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+scsi-add-iscsi-ibft-support-fix.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
 git-vfs.patch
-mm-rotate_reclaimable_page-cleanup.patch
-vfs-remove-lives_below_in_same_fs.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-semaphore-git-rejects.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-allocate-section_map-for-sparse_init-update-fix.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
-mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
-mm-bdi-move-statistics-to-debugfs.patch
-mm-bdi-add-separate-writeback-accounting-capability.patch
-mm-bdi-export-bdi_writeout_inc.patch
-mm-bdi-export-bdi_writeout_inc-fix.patch
-mm-add-nr_writeback_temp-counter.patch
-mm-document-missing-fields-for-proc-meminfo.patch
-fuse-support-writable-mmap.patch
-fuse-support-writable-mmap-fix.patch
-fuse-clean-up-setting-i_size-in-write.patch
-fuse-implement-perform_write.patch
-fuse-update-file-size-on-short-read.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+w1-build-fix.patch
 
