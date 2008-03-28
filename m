@@ -1,43 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 14:37:51 -0700
-Message-ID: <200803282137.m2SLbpHC011649@imap1.linux-foundation.org>
+Subject: - drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 14:38:29 -0700
+Message-ID: <200803282138.m2SLcTnR011724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56823 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49822 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758805AbYC1ViW (ORCPT
+	by vger.kernel.org with ESMTP id S1755085AbYC1VjC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 17:38:22 -0400
+	Fri, 28 Mar 2008 17:39:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, caglar@pardus.org.tr, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes
+     drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+     drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into drivers-net-arcnet-arcnetc-use-time_-macros.patch
+This patch was dropped because it was folded into drivers-net-tokenring-3c359c-use-time_-macros.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes
+Subject: drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#35: FILE: drivers/net/arcnet/arcnet.c:977:
-+		} else if (lp->network_down && time_after(jiffies, lp->last_recon + HZ * 10)) {
+ERROR: space required before the open parenthesis '('
+#33: FILE: drivers/net/tokenring/3c359.c:412:
++		if(time_after(jiffies, t + 40 * HZ)) {
 
-WARNING: line over 80 characters
-#47: FILE: include/linux/arcdevice.h:286:
-+	unsigned long first_recon,	/* time of "first" RECON message to count */
+ERROR: space required before the open parenthesis '('
+#42: FILE: drivers/net/tokenring/3c359.c:523:
++		if(time_after(jiffies, t + 15 * HZ)) {
 
-total: 0 errors, 2 warnings, 24 lines checked
+ERROR: space required before the open parenthesis '('
+#51: FILE: drivers/net/tokenring/3c359.c:794:
++		if(time_after(jiffies, t + 40 * HZ)) {
 
-./patches/drivers-net-arcnet-arcnetc-use-time_-macros.patch has style problems, please review.  If any of these errors
+ERROR: space required before the open parenthesis '('
+#60: FILE: drivers/net/tokenring/3c359.c:1007:
++		if(time_after(jiffies, t + 40 * HZ)) {
+
+ERROR: space required before the open parenthesis '('
+#69: FILE: drivers/net/tokenring/3c359.c:1274:
++		if(time_after(jiffies, t + 10 * HZ)) {
+
+ERROR: space required before the open parenthesis '('
+#78: FILE: drivers/net/tokenring/3c359.c:1283:
++		if(time_after(jiffies, t + 10 * HZ)) {
+
+ERROR: space required before the open parenthesis '('
+#87: FILE: drivers/net/tokenring/3c359.c:1292:
++		if(time_after(jiffies, t + 10 * HZ)) {
+
+ERROR: space required before the open parenthesis '('
+#96: FILE: drivers/net/tokenring/3c359.c:1309:
++		if(time_after(jiffies, t + 10 * HZ)) {
+
+ERROR: space required before the open parenthesis '('
+#105: FILE: drivers/net/tokenring/3c359.c:1338:
++		if(time_after(jiffies, t + 10 * HZ)) {
+
+ERROR: space required before the open parenthesis '('
+#114: FILE: drivers/net/tokenring/3c359.c:1347:
++		if(time_after(jiffies, t + 10 * HZ)) {
+
+total: 10 errors, 0 warnings, 87 lines checked
+
+./patches/drivers-net-tokenring-3c359c-use-time_-macros.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -48,37 +80,102 @@ Cc: S.Caglar Onur <caglar@pardus.org.tr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/arcnet/arcnet.c |    3 ++-
- include/linux/arcdevice.h   |    4 ++--
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/net/tokenring/3c359.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/net/arcnet/arcnet.c~drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes drivers/net/arcnet/arcnet.c
---- a/drivers/net/arcnet/arcnet.c~drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes
-+++ a/drivers/net/arcnet/arcnet.c
-@@ -974,7 +974,8 @@ irqreturn_t arcnet_interrupt(int irq, vo
- 					lp->num_recons = 1;
- 				}
- 			}
--		} else if (lp->network_down && time_after(jiffies, lp->last_recon + HZ * 10)) {
-+		} else if (lp->network_down &&
-+				time_after(jiffies, lp->last_recon + HZ * 10)) {
- 			if (lp->network_down)
- 				BUGMSG(D_NORMAL, "cabling restored?\n");
- 			lp->first_recon = lp->last_recon = 0;
-diff -puN include/linux/arcdevice.h~drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes include/linux/arcdevice.h
---- a/include/linux/arcdevice.h~drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes
-+++ a/include/linux/arcdevice.h
-@@ -283,8 +283,8 @@ struct arcnet_local {
- 	int next_buf, first_free_buf;
+diff -puN drivers/net/tokenring/3c359.c~drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes drivers/net/tokenring/3c359.c
+--- a/drivers/net/tokenring/3c359.c~drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes
++++ a/drivers/net/tokenring/3c359.c
+@@ -409,7 +409,7 @@ static int xl_hw_reset(struct net_device
+ 	t=jiffies;
+ 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
+ 		schedule();		
+-		if(time_after(jiffies, t + 40 * HZ)) {
++		if (time_after(jiffies, t + 40 * HZ)) {
+ 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL  card not responding to global reset.\n", dev->name);
+ 			return -ENODEV;
+ 		}
+@@ -520,7 +520,7 @@ static int xl_hw_reset(struct net_device
+ 	t=jiffies;
+ 	while ( !(readw(xl_mmio + MMIO_INTSTATUS_AUTO) & INTSTAT_SRB) ) { 
+ 		schedule();		
+-		if(time_after(jiffies, t + 15 * HZ)) {
++		if (time_after(jiffies, t + 15 * HZ)) {
+ 			printk(KERN_ERR "3COM 3C359 Velocity XL  card not responding.\n");
+ 			return -ENODEV; 
+ 		}
+@@ -791,7 +791,7 @@ static int xl_open_hw(struct net_device 
+ 	t=jiffies;
+ 	while (! (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_SRB)) { 
+ 		schedule();		
+-		if(time_after(jiffies, t + 40 * HZ)) {
++		if (time_after(jiffies, t + 40 * HZ)) {
+ 			printk(KERN_ERR "3COM 3C359 Velocity XL  card not responding.\n");
+ 			break ; 
+ 		}
+@@ -1004,7 +1004,7 @@ static void xl_reset(struct net_device *
  
- 	/* network "reconfiguration" handling */
--	unsigned long first_recon,	/* time of "first" RECON message to count */
--		last_recon;	/* time of most recent RECON */
-+	unsigned long first_recon; /* time of "first" RECON message to count */
-+	unsigned long last_recon;  /* time of most recent RECON */
- 	int num_recons;		/* number of RECONs between first and last. */
- 	bool network_down;	/* do we think the network is down? */
- 
+ 	t=jiffies;
+ 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
+-		if(time_after(jiffies, t + 40 * HZ)) {
++		if (time_after(jiffies, t + 40 * HZ)) {
+ 			printk(KERN_ERR "3COM 3C359 Velocity XL  card not responding.\n");
+ 			break ; 
+ 		}
+@@ -1271,7 +1271,7 @@ static int xl_close(struct net_device *d
+ 	t=jiffies;
+ 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
+ 		schedule();		
+-		if(time_after(jiffies, t + 10 * HZ)) {
++		if (time_after(jiffies, t + 10 * HZ)) {
+ 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-DNSTALL not responding.\n", dev->name);
+ 			break ; 
+ 		}
+@@ -1280,7 +1280,7 @@ static int xl_close(struct net_device *d
+ 	t=jiffies;
+ 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
+ 		schedule();		
+-		if(time_after(jiffies, t + 10 * HZ)) {
++		if (time_after(jiffies, t + 10 * HZ)) {
+ 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-DNDISABLE not responding.\n", dev->name);
+ 			break ;
+ 		}
+@@ -1289,7 +1289,7 @@ static int xl_close(struct net_device *d
+ 	t=jiffies;
+ 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
+ 		schedule();		
+-		if(time_after(jiffies, t + 10 * HZ)) {
++		if (time_after(jiffies, t + 10 * HZ)) {
+ 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-UPSTALL not responding.\n", dev->name);
+ 			break ; 
+ 		}
+@@ -1306,7 +1306,7 @@ static int xl_close(struct net_device *d
+ 	t=jiffies;
+ 	while (!(readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_SRB)) { 
+ 		schedule();		
+-		if(time_after(jiffies, t + 10 * HZ)) {
++		if (time_after(jiffies, t + 10 * HZ)) {
+ 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-CLOSENIC not responding.\n", dev->name);
+ 			break ; 
+ 		}
+@@ -1335,7 +1335,7 @@ static int xl_close(struct net_device *d
+ 	t=jiffies;
+ 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
+ 		schedule();		
+-		if(time_after(jiffies, t + 10 * HZ)) {
++		if (time_after(jiffies, t + 10 * HZ)) {
+ 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-UPRESET not responding.\n", dev->name);
+ 			break ; 
+ 		}
+@@ -1344,7 +1344,7 @@ static int xl_close(struct net_device *d
+ 	t=jiffies;
+ 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
+ 		schedule();		
+-		if(time_after(jiffies, t + 10 * HZ)) {
++		if (time_after(jiffies, t + 10 * HZ)) {
+ 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-DNRESET not responding.\n", dev->name);
+ 			break ; 
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,7 +222,7 @@ net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 drivers-net-arcnet-arcnetc-use-time_-macros.patch
-drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
+drivers-net-tokenring-3c359c-use-time_-macros.patch
 drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
 net-ehea-port_lock-semaphore-to-mutex-fix.patch
 tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
