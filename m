@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-hotplug-introduce-pci_slot-fix-2.patch added to -mm tree
-Date: Fri, 28 Mar 2008 02:43:50 -0700
-Message-ID: <200803280953.m2S9rm8f016541@imap1.linux-foundation.org>
+Subject: + net-ehea-port_lock-semaphore-to-mutex-fix.patch added to -mm tree
+Date: Fri, 28 Mar 2008 03:18:25 -0700
+Message-ID: <200803281028.m2SASNCO017868@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48728 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50434 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751095AbYC1JyM (ORCPT
+	by vger.kernel.org with ESMTP id S1755257AbYC1K3t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 05:54:12 -0400
+	Fri, 28 Mar 2008 06:29:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx
+Cc: akpm@linux-foundation.org, dwalker@mvista.com, jeff@garzik.org, raisch@de.ibm.com, themann@de.ibm.com, tklein@de.ibm.com
 
 
 The patch titled
-     pci-hotplug-introduce-pci_slot-fix-2
+     net-ehea-port_lock-semaphore-to-mutex-fix
 has been added to the -mm tree.  Its filename is
-     pci-hotplug-introduce-pci_slot-fix-2.patch
+     net-ehea-port_lock-semaphore-to-mutex-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-hotplug-introduce-pci_slot-fix-2
+Subject: net-ehea-port_lock-semaphore-to-mutex-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/pci/slot.c: In function 'pci_create_slot':
-drivers/pci/slot.c:90: error: implicit declaration of function 'ERR_PTR'
-drivers/pci/slot.c:90: warning: assignment makes pointer from integer without a cast
-drivers/pci/slot.c:116: warning: assignment makes pointer from integer without a cast
+drivers/net/ehea/ehea_main.c: In function 'ehea_rereg_mrs':
+drivers/net/ehea/ehea_main.c:2846: warning: ISO C90 forbids mixed declarations and code
 
-Cc: Alex Chiang <achiang@hp.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Christoph Raisch <raisch@de.ibm.com>
+Cc: Daniel Walker <dwalker@mvista.com>
+Cc: Jan-Bernd Themann <themann@de.ibm.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Thomas Klein <tklein@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/slot.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/net/ehea/ehea_main.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pci/slot.c~pci-hotplug-introduce-pci_slot-fix-2 drivers/pci/slot.c
---- a/drivers/pci/slot.c~pci-hotplug-introduce-pci_slot-fix-2
-+++ a/drivers/pci/slot.c
-@@ -7,6 +7,7 @@
+diff -puN drivers/net/ehea/ehea_main.c~net-ehea-port_lock-semaphore-to-mutex-fix drivers/net/ehea/ehea_main.c
+--- a/drivers/net/ehea/ehea_main.c~net-ehea-port_lock-semaphore-to-mutex-fix
++++ a/drivers/net/ehea/ehea_main.c
+@@ -2839,11 +2839,12 @@ static void ehea_rereg_mrs(struct work_s
+ 			/* Shutdown all ports */
+ 			for (i = 0; i < EHEA_MAX_PORTS; i++) {
+ 				struct ehea_port *port = adapter->port[i];
++				struct net_device *dev;
  
- #include <linux/kobject.h>
- #include <linux/pci.h>
-+#include <linux/err.h>
- #include "pci.h"
+ 				if (!port)
+ 					continue;
  
- struct kset *pci_slots_kset;
+-				struct net_device *dev = port->netdev;
++				dev = port->netdev;
+ 
+ 				if (dev->flags & IFF_UP) {
+ 					mutex_lock(&port->port_lock);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,6 +120,7 @@ wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
 drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+net-ehea-port_lock-semaphore-to-mutex-fix.patch
 tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
