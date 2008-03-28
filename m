@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + git-drm-git-rejects.patch added to -mm tree
-Date: Fri, 28 Mar 2008 12:24:48 -0700
-Message-ID: <200803281934.m2SJYk5s006600@imap1.linux-foundation.org>
+Subject: + git-cryptodev-fixup.patch added to -mm tree
+Date: Fri, 28 Mar 2008 14:02:52 -0700
+Message-ID: <200803282102.m2SL2qSO009751@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44425 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59166 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753117AbYC1Tey (ORCPT
+	by vger.kernel.org with ESMTP id S1754279AbYC1VCy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 15:34:54 -0400
+	Fri, 28 Mar 2008 17:02:54 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2SJYqIv006166
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2SL2qK2012118
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 28 Mar 2008 12:34:53 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 28 Mar 2008 14:02:53 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -20,9 +20,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-drm-git-rejects
+     git-cryptodev-fixup
 has been added to the -mm tree.  Its filename is
-     git-drm-git-rejects.patch
+     git-cryptodev-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,65 +38,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-drm-git-rejects
+Subject: git-cryptodev-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/ati_pcigart.c |   15 ---------------
- drivers/char/drm/drm_fops.c    |    7 +------
- 2 files changed, 1 insertion(+), 21 deletions(-)
+ arch/s390/crypto/sha1_s390.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/drm/ati_pcigart.c~git-drm-git-rejects drivers/char/drm/ati_pcigart.c
---- a/drivers/char/drm/ati_pcigart.c~git-drm-git-rejects
-+++ a/drivers/char/drm/ati_pcigart.c
-@@ -38,26 +38,11 @@
- static int drm_ati_alloc_pcigart_table(struct drm_device *dev,
- 				       struct drm_ati_pcigart_info *gart_info)
- {
--<<<<<<< HEAD:drivers/char/drm/ati_pcigart.c
- 	gart_info->table_handle = drm_pci_alloc(dev, gart_info->table_size,
- 						PAGE_SIZE,
- 						gart_info->table_mask);
- 	if (gart_info->table_handle == NULL)
- 		return -ENOMEM;
--=======
--	unsigned long address;
--	struct page *page;
--	int i;
--
--	DRM_DEBUG("%d order\n", order);
--
--	address = __get_free_pages(GFP_KERNEL | __GFP_COMP,
--				   order);
--	if (address == 0UL)
--		return NULL;
--
--	page = virt_to_page(address);
-->>>>>>> FETCH_HEAD:drivers/char/drm/ati_pcigart.c
+diff -puN arch/s390/crypto/sha1_s390.c~git-cryptodev-fixup arch/s390/crypto/sha1_s390.c
+--- a/arch/s390/crypto/sha1_s390.c~git-cryptodev-fixup
++++ a/arch/s390/crypto/sha1_s390.c
+@@ -50,14 +50,14 @@ static struct crypto_alg alg = {
+ 	.cra_priority	=	CRYPT_S390_PRIORITY,
+ 	.cra_flags	=	CRYPTO_ALG_TYPE_DIGEST,
+ 	.cra_blocksize	=	SHA1_BLOCK_SIZE,
+-	.cra_ctxsize	=	sizeof(struct s390_sha1_ctx),
++	.cra_ctxsize	=	sizeof(struct s390_sha_ctx),
+ 	.cra_module	=	THIS_MODULE,
+ 	.cra_list	=	LIST_HEAD_INIT(alg.cra_list),
+ 	.cra_u		=	{ .digest = {
+ 	.dia_digestsize	=	SHA1_DIGEST_SIZE,
+ 	.dia_init	=	sha1_init,
+-	.dia_update	=	sha1_update,
+-	.dia_final	=	sha1_final } }
++	.dia_update	=	s390_sha_update,
++	.dia_final	=	s390_sha_final } }
+ };
  
- 	return 0;
- }
-diff -puN drivers/char/drm/drm_fops.c~git-drm-git-rejects drivers/char/drm/drm_fops.c
---- a/drivers/char/drm/drm_fops.c~git-drm-git-rejects
-+++ a/drivers/char/drm/drm_fops.c
-@@ -405,14 +405,9 @@ int drm_release(struct inode *inode, str
- 			 * Wait for a while.
- 			 */
- 
--<<<<<<< HEAD:drivers/char/drm/drm_fops.c
--			do{
-+			do {
- 				spin_lock_irqsave(&dev->lock.spinlock,
- 						  irqflags);
--=======
--			do {
--				spin_lock(&dev->lock.spinlock);
-->>>>>>> FETCH_HEAD:drivers/char/drm/drm_fops.c
- 				locked = dev->lock.idle_has_lock;
- 				spin_unlock_irqrestore(&dev->lock.spinlock,
- 						       irqflags);
+ static int __init sha1_s390_init(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,8 +94,6 @@ git-agpgart-fix-type-confusion.patch
 git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
 cifs-suppress-warning.patch
 pm-remove-destroy_suspended_device-checkpatch-fixes.patch
-git-drm.patch
-git-drm-git-rejects.patch
 git-dvb.patch
 drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
 git-hwmon.patch
@@ -142,6 +111,7 @@ git-leds.patch
 git-libata-fix-config_pci=n-build.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+git-async-tx.patch
 git-net.patch
 net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
@@ -182,6 +152,7 @@ git-v9fs.patch
 git-vfs.patch
 git-watchdog.patch
 xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-fixup.patch
 git-xtensa.patch
 git-semaphore-git-rejects.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
