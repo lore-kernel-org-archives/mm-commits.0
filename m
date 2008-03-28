@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch added to -mm tree
-Date: Thu, 27 Mar 2008 23:25:27 -0700
-Message-ID: <200803280635.m2S6ZO1g009947@imap1.linux-foundation.org>
+Subject: + quota-convert-stub-functions-from-macros-into-inlines.patch added to -mm tree
+Date: Fri, 28 Mar 2008 00:09:38 -0700
+Message-ID: <200803280719.m2S7JZGU011268@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49842 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753903AbYC1Ggr (ORCPT
+	by vger.kernel.org with ESMTP id S1750815AbYC1HU0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 02:36:47 -0400
+	Fri, 28 Mar 2008 03:20:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, johannes@sipsolutions.net, linville@tuxdriver.com, luisca@cozybit.com
+Cc: akpm@linux-foundation.org, jack@ucw.cz, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     net/mac80211/debugfs_netdev.c: use of bool triggers a gcc bug
+     quota: convert stub functions from macros into inlines
 has been added to the -mm tree.  Its filename is
-     net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
+     quota-convert-stub-functions-from-macros-into-inlines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/mac80211/debugfs_netdev.c: use of bool triggers a gcc bug
+Subject: quota: convert stub functions from macros into inlines
 From: Andrew Morton <akpm@linux-foundation.org>
 
-This bool causes my gcc-4.1.0 alpha cross compiler to go into an infinite
-loop.  Switching it to u8 works around that.
+Fixes things like this:
 
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: John Linville <linville@tuxdriver.com>
-Cc: Luis Carlos Cobo <luisca@cozybit.com>
+fs/super.c: In function `deactivate_super':
+fs/super.c:182: warning: statement with no effect
+fs/super.c: In function `do_remount_sb':
+fs/super.c:644: warning: statement with no effect
+
+Cc: Jan Kara <jack@ucw.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/debugfs_netdev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/quotaops.h |   45 ++++++++++++++++++++++++++++++-------
+ 1 file changed, 37 insertions(+), 8 deletions(-)
 
-diff -puN net/mac80211/debugfs_netdev.c~net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug net/mac80211/debugfs_netdev.c
---- a/net/mac80211/debugfs_netdev.c~net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug
-+++ a/net/mac80211/debugfs_netdev.c
-@@ -222,7 +222,7 @@ IEEE80211_IF_WFILE(dot11MeshConfirmTimeo
- IEEE80211_IF_WFILE(dot11MeshHoldingTimeout,
- 		u.sta.mshcfg.dot11MeshHoldingTimeout, DEC, u16);
- IEEE80211_IF_WFILE(dot11MeshTTL, u.sta.mshcfg.dot11MeshTTL, DEC, u8);
--IEEE80211_IF_WFILE(auto_open_plinks, u.sta.mshcfg.auto_open_plinks, DEC, bool);
-+IEEE80211_IF_WFILE(auto_open_plinks, u.sta.mshcfg.auto_open_plinks, DEC, u8);
- IEEE80211_IF_WFILE(dot11MeshMaxPeerLinks,
- 		u.sta.mshcfg.dot11MeshMaxPeerLinks, DEC, u16);
- IEEE80211_IF_WFILE(dot11MeshHWMPactivePathTimeout,
+diff -puN include/linux/quotaops.h~quota-convert-stub-functions-from-macros-into-inlines include/linux/quotaops.h
+--- a/include/linux/quotaops.h~quota-convert-stub-functions-from-macros-into-inlines
++++ a/include/linux/quotaops.h
+@@ -207,14 +207,43 @@ static inline int DQUOT_ON_REMOUNT(struc
+  */
+ #define sb_dquot_ops				(NULL)
+ #define sb_quotactl_ops				(NULL)
+-#define DQUOT_INIT(inode)			do { } while(0)
+-#define DQUOT_DROP(inode)			do { } while(0)
+-#define DQUOT_ALLOC_INODE(inode)		(0)
+-#define DQUOT_FREE_INODE(inode)			do { } while(0)
+-#define DQUOT_SYNC(sb)				do { } while(0)
+-#define DQUOT_OFF(sb, remount)			(0)
+-#define DQUOT_ON_REMOUNT(sb)			(0)
+-#define DQUOT_TRANSFER(inode, iattr)		(0)
++
++static inline void DQUOT_INIT(struct inode *inode)
++{
++}
++
++static inline void DQUOT_DROP(struct inode *inode)
++{
++}
++
++static inline int DQUOT_ALLOC_INODE(struct inode *inode)
++{
++	return 0;
++}
++
++static inline void DQUOT_FREE_INODE(struct inode *inode)
++{
++}
++
++static inline void DQUOT_SYNC(struct super_block *sb)
++{
++}
++
++static inline int DQUOT_OFF(struct super_block *sb, int remount)
++{
++	return 0;
++}
++
++static inline int DQUOT_ON_REMOUNT(struct super_block *sb)
++{
++	return 0;
++}
++
++static inline int DQUOT_TRANSFER(struct inode *inode, struct iattr *iattr)
++{
++	return 0;
++}
++
+ static inline int DQUOT_PREALLOC_SPACE_NODIRTY(struct inode *inode, qsize_t nr)
+ {
+ 	inode_add_bytes(inode, nr);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -177,6 +223,7 @@ kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
 quota-various-style-cleanups-checkpatch-fixes.patch
 quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
 quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
 rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
 rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
 rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
