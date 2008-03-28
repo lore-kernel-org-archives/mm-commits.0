@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch added to -mm tree
-Date: Fri, 28 Mar 2008 16:48:27 -0700
-Message-ID: <200803282348.m2SNmR45016813@imap1.linux-foundation.org>
+Subject: + revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch added to -mm tree
+Date: Fri, 28 Mar 2008 16:48:35 -0700
+Message-ID: <200803282348.m2SNmZBq016829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51173 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43183 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756711AbYC1Xtv (ORCPT
+	by vger.kernel.org with ESMTP id S1756622AbYC1Xt5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 19:49:51 -0400
+	Fri, 28 Mar 2008 19:49:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, bjorn.helgaas@hp.com, davem@davemloft.net, greg@k
 
 
 The patch titled
-     revert gregkh-pci-pci-frv-use-generic-pci_enable_resources
+     revert gregkh-pci-pci-parisc-use-generic-pci_enable_resources
 has been added to the -mm tree.  Its filename is
-     revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
+     revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert gregkh-pci-pci-frv-use-generic-pci_enable_resources
+Subject: revert gregkh-pci-pci-parisc-use-generic-pci_enable_resources
 From: Andrew Morton <akpm@linux-foundation.org>
 
 On Fri, 28 Mar 2008 16:10:11 -0700 (PDT) David Miller <davem@davemloft.net> wrote:
@@ -67,76 +67,58 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mb93090-mb00/pci-frv.c |   32 ++++++++++++++++++++++++++++++
- arch/frv/mb93090-mb00/pci-frv.h |    1 
- arch/frv/mb93090-mb00/pci-vdk.c |    2 -
- 3 files changed, 34 insertions(+), 1 deletion(-)
+ arch/parisc/kernel/pci.c |   30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
-diff -puN arch/frv/mb93090-mb00/pci-frv.c~revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources arch/frv/mb93090-mb00/pci-frv.c
---- a/arch/frv/mb93090-mb00/pci-frv.c~revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources
-+++ a/arch/frv/mb93090-mb00/pci-frv.c
-@@ -231,6 +231,38 @@ void __init pcibios_resource_survey(void
- 	pcibios_assign_resources();
- }
- 
-+int pcibios_enable_resources(struct pci_dev *dev, int mask)
-+{
-+	u16 cmd, old_cmd;
+diff -puN arch/parisc/kernel/pci.c~revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources arch/parisc/kernel/pci.c
+--- a/arch/parisc/kernel/pci.c~revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources
++++ a/arch/parisc/kernel/pci.c
+@@ -287,15 +287,23 @@ void pcibios_align_resource(void *data, 
+  */
+ int pcibios_enable_device(struct pci_dev *dev, int mask)
+ {
+-	int err;
+-	u16 cmd, old_cmd;
+-
+-	err = pci_enable_resources(dev, mask);
+-	if (err < 0)
+-		return err;
++	u16 cmd;
 +	int idx;
-+	struct resource *r;
+ 
+ 	pci_read_config_word(dev, PCI_COMMAND, &cmd);
+-	old_cmd = cmd;
 +
-+	pci_read_config_word(dev, PCI_COMMAND, &cmd);
-+	old_cmd = cmd;
-+	for(idx=0; idx<6; idx++) {
-+		/* Only set up the requested stuff */
++	for (idx = 0; idx < DEVICE_COUNT_RESOURCE; idx++) {
++		struct resource *r = &dev->resource[idx];
++
++		/* only setup requested resources */
 +		if (!(mask & (1<<idx)))
 +			continue;
 +
-+		r = &dev->resource[idx];
-+		if (!r->start && r->end) {
-+			printk(KERN_ERR "PCI: Device %s not available because of resource collisions\n", pci_name(dev));
-+			return -EINVAL;
-+		}
 +		if (r->flags & IORESOURCE_IO)
 +			cmd |= PCI_COMMAND_IO;
 +		if (r->flags & IORESOURCE_MEM)
 +			cmd |= PCI_COMMAND_MEMORY;
 +	}
-+	if (dev->resource[PCI_ROM_RESOURCE].start)
-+		cmd |= PCI_COMMAND_MEMORY;
-+	if (cmd != old_cmd) {
-+		printk("PCI: Enabling device %s (%04x -> %04x)\n", pci_name(dev), old_cmd, cmd);
-+		pci_write_config_word(dev, PCI_COMMAND, cmd);
-+	}
-+	return 0;
-+}
-+
- /*
-  *  If we set up a device for bus mastering, we need to check the latency
-  *  timer as certain crappy BIOSes forget to set it properly.
-diff -puN arch/frv/mb93090-mb00/pci-frv.h~revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources arch/frv/mb93090-mb00/pci-frv.h
---- a/arch/frv/mb93090-mb00/pci-frv.h~revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources
-+++ a/arch/frv/mb93090-mb00/pci-frv.h
-@@ -29,6 +29,7 @@ extern unsigned int __nongpreldata pci_p
- extern unsigned int pcibios_max_latency;
  
- void pcibios_resource_survey(void);
-+int pcibios_enable_resources(struct pci_dev *, int);
+ 	cmd |= (PCI_COMMAND_SERR | PCI_COMMAND_PARITY);
  
- /* pci-vdk.c */
+@@ -304,12 +312,8 @@ int pcibios_enable_device(struct pci_dev
+ 	if (dev->bus->bridge_ctl & PCI_BRIDGE_CTL_FAST_BACK)
+ 		cmd |= PCI_COMMAND_FAST_BACK;
+ #endif
+-
+-	if (cmd != old_cmd) {
+-		dev_info(&dev->dev, "enabling SERR and PARITY (%04x -> %04x)\n",
+-			old_cmd, cmd);
+-		pci_write_config_word(dev, PCI_COMMAND, cmd);
+-	}
++	DBGC("PCIBIOS: Enabling device %s cmd 0x%04x\n", pci_name(dev), cmd);
++	pci_write_config_word(dev, PCI_COMMAND, cmd);
+ 	return 0;
+ }
  
-diff -puN arch/frv/mb93090-mb00/pci-vdk.c~revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources arch/frv/mb93090-mb00/pci-vdk.c
---- a/arch/frv/mb93090-mb00/pci-vdk.c~revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources
-+++ a/arch/frv/mb93090-mb00/pci-vdk.c
-@@ -412,7 +412,7 @@ int pcibios_enable_device(struct pci_dev
- {
- 	int err;
- 
--	if ((err = pci_enable_resources(dev, mask)) < 0)
-+	if ((err = pcibios_enable_resources(dev, mask)) < 0)
- 		return err;
- 	if (!dev->msi_enabled)
- 		pcibios_enable_irq(dev);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
