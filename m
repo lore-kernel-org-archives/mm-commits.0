@@ -1,61 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch removed from -mm tree
-Date: Thu, 27 Mar 2008 20:09:27 -0700
-Message-ID: <200803280319.m2S3JNdr003437@imap1.linux-foundation.org>
+Subject: + alpha-get_current-dont-add-zero-to-current_thread_info-task.patch added to -mm tree
+Date: Thu, 27 Mar 2008 20:58:19 -0700
+Message-ID: <200803280408.m2S48Gj4005085@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52915 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752191AbYC1DUa (ORCPT
+	by vger.kernel.org with ESMTP id S1750778AbYC1EIv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 27 Mar 2008 23:20:30 -0400
+	Fri, 28 Mar 2008 00:08:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, akepner@sgi.com, benh@kernel.crashing.org, davem@davemloft.net, grundler@parisc-linux.org, jbarnes@virtuousgeek.orgj
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, dhowells@redhat.com, ink@jurassic.park.msu.ru, rth@twiddle.net
 
 
 The patch titled
-     dma-mapping-ib-expand-ib_umem_get-prototype-fix
-has been removed from the -mm tree.  Its filename was
-     dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
+     alpha: get_current(): don't add zero to current_thread_info()->task
+has been added to the -mm tree.  Its filename is
+     alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma-mapping-ib-expand-ib_umem_get-prototype-fix
+Subject: alpha: get_current(): don't add zero to current_thread_info()->task
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Arthur Kepner <akepner@sgi.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Miller <davem@davemloft.net>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Jes Sorensen <jes@sgi.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Michael Ellerman <michael@ellerman.id.au>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Roland Dreier <rdreier@cisco.com>
-Cc: Tony Luck <tony.luck@intel.com>
+A nasty compile error:
+
+In file included from security/keys/internal.h:16,
+                 from security/keys/sysctl.c:14:
+include/linux/key-ui.h: In function 'key_permission':
+include/linux/key-ui.h:51: error: invalid use of undefined type 'struct task_struct'
+
+apparently the compiler has decided that it needs to know sizeof(task_struct)
+so that it can add zero to a task_struct* (which is rather dumb of it).
+
+Getting task_struct in scope in these deeply-nested headers is scary-looking,
+so let's just remove the "+ 0".
+
+Cc: David Howells <dhowells@redhat.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/nes/nes_verbs.c |    2 +-
+ include/asm-alpha/current.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/infiniband/hw/nes/nes_verbs.c~dma-mapping-ib-expand-ib_umem_get-prototype-fix drivers/infiniband/hw/nes/nes_verbs.c
---- a/drivers/infiniband/hw/nes/nes_verbs.c~dma-mapping-ib-expand-ib_umem_get-prototype-fix
-+++ a/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -2374,7 +2374,7 @@ static struct ib_mr *nes_reg_user_mr(str
- 	u8 single_page = 1;
- 	u8 stag_key;
+diff -puN include/asm-alpha/current.h~alpha-get_current-dont-add-zero-to-current_thread_info-task include/asm-alpha/current.h
+--- a/include/asm-alpha/current.h~alpha-get_current-dont-add-zero-to-current_thread_info-task
++++ a/include/asm-alpha/current.h
+@@ -3,7 +3,7 @@
  
--	region = ib_umem_get(pd->uobject->context, start, length, acc);
-+	region = ib_umem_get(pd->uobject->context, start, length, acc, 0);
- 	if (IS_ERR(region)) {
- 		return (struct ib_mr *)region;
- 	}
+ #include <linux/thread_info.h>
+ 
+-#define get_current()	(current_thread_info()->task + 0)
++#define get_current()	(current_thread_info()->task)
+ #define current		get_current()
+ 
+ #endif /* _ALPHA_CURRENT_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -211,7 +226,6 @@ clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
 idr-create-idr_layer_cache-at-boot-time-fix.patch
 idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
 edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-dma-mapping-ib-expand-ib_umem_get-prototype-fix.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
 page-owner-tracking-leak-detector.patch
@@ -226,4 +240,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
+alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
 
