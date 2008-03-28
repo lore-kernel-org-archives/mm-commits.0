@@ -1,120 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-git-rejects.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 11:58:28 -0700
-Message-ID: <200803281858.m2SIwSZd005119@imap1.linux-foundation.org>
+Subject: - git-net-nastily-fix-build-with-config_net_ns=n.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 12:06:24 -0700
+Message-ID: <200803281906.m2SJ6OL2005386@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53546 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52531 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751163AbYC1S7D (ORCPT
+	by vger.kernel.org with ESMTP id S1752063AbYC1TGi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 14:59:03 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m2SIwTOr003108
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 28 Mar 2008 11:58:30 -0700
+	Fri, 28 Mar 2008 15:06:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-git-rejects
+     git-net: nastily fix build with CONFIG_NET_NS=n
 has been removed from the -mm tree.  Its filename was
-     git-net-git-rejects.patch
+     git-net-nastily-fix-build-with-config_net_ns=n.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net-git-rejects
+Subject: git-net: nastily fix build with CONFIG_NET_NS=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
+net/core/neighbour.c: In function '__pneigh_lookup':
+net/core/neighbour.c:483: error: 'struct pneigh_entry' has no member named 'net'
+
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/usb/rndis_host.c   |    5 +----
- drivers/net/wireless/b43/dma.c |    3 ---
- net/ipv6/ndisc.c               |   19 -------------------
- 3 files changed, 1 insertion(+), 26 deletions(-)
+ net/core/neighbour.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/net/usb/rndis_host.c~git-net-git-rejects drivers/net/usb/rndis_host.c
---- a/drivers/net/usb/rndis_host.c~git-net-git-rejects
-+++ a/drivers/net/usb/rndis_host.c
-@@ -283,12 +283,9 @@ generic_rndis_bind(struct usbnet *dev, s
- 		struct rndis_set_c	*set_c;
- 		struct rndis_halt	*halt;
- 	} u;
--<<<<<<< HEAD:drivers/net/usb/rndis_host.c
--	u32			tmp, phym_unspec, *phym;
--=======
- 	u32			tmp;
-+	u32			phym_unspec;
- 	__le32			*phym;
-->>>>>>> FETCH_HEAD:drivers/net/usb/rndis_host.c
- 	int			reply_len;
- 	unsigned char		*bp;
+diff -puN net/core/neighbour.c~git-net-nastily-fix-build-with-config_net_ns=n net/core/neighbour.c
+--- a/net/core/neighbour.c~git-net-nastily-fix-build-with-config_net_ns=n
++++ a/net/core/neighbour.c
+@@ -480,7 +480,9 @@ struct pneigh_entry *__pneigh_lookup(str
  
-diff -puN drivers/net/wireless/b43/dma.c~git-net-git-rejects drivers/net/wireless/b43/dma.c
---- a/drivers/net/wireless/b43/dma.c~git-net-git-rejects
-+++ a/drivers/net/wireless/b43/dma.c
-@@ -1314,9 +1314,7 @@ out_unlock:
- 	return err;
- }
- 
--<<<<<<< HEAD:drivers/net/wireless/b43/dma.c
- /* Called with IRQs disabled. */
--=======
- static void b43_fill_txstatus_report(struct b43_dmaring *ring,
- 				    struct ieee80211_tx_status *report,
- 				    const struct b43_txstatus *status)
-@@ -1349,7 +1347,6 @@ static void b43_fill_txstatus_report(str
+ 	for (n = tbl->phash_buckets[hash_val]; n; n = n->next) {
+ 		if (!memcmp(n->key, pkey, key_len) &&
++#ifdef CONFIG_NET_NS
+ 		    (n->net == net) &&
++#endif
+ 		    (n->dev == dev || !n->dev))
+ 			break;
  	}
- }
- 
-->>>>>>> FETCH_HEAD:drivers/net/wireless/b43/dma.c
- void b43_dma_handle_txstatus(struct b43_wldev *dev,
- 			     const struct b43_txstatus *status)
- {
-diff -puN net/ipv6/ndisc.c~git-net-git-rejects net/ipv6/ndisc.c
---- a/net/ipv6/ndisc.c~git-net-git-rejects
-+++ a/net/ipv6/ndisc.c
-@@ -661,20 +661,6 @@ static void ndisc_solicit(struct neighbo
- 	}
- }
- 
--static struct pneigh_entry *pndisc_check_router(struct net_device *dev,
--		struct in6_addr *addr, int *is_router)
--{
--	struct pneigh_entry *n;
--
--	read_lock_bh(&nd_tbl.lock);
--	n = __pneigh_lookup(&nd_tbl, &init_net, addr, dev);
--	if (n != NULL)
--		*is_router = (n->flags & NTF_ROUTER);
--	read_unlock_bh(&nd_tbl.lock);
--
--	return n;
--}
--
- static void ndisc_recv_ns(struct sk_buff *skb)
- {
- 	struct nd_msg *msg = (struct nd_msg *)skb_transport_header(skb);
-@@ -790,13 +776,8 @@ static void ndisc_recv_ns(struct sk_buff
- 		if (ipv6_chk_acast_addr(dev_net(dev), dev, &msg->target) ||
- 		    (idev->cnf.forwarding &&
- 		     (ipv6_devconf.proxy_ndp || idev->cnf.proxy_ndp) &&
--<<<<<<< HEAD:net/ipv6/ndisc.c
--		     (pneigh = pndisc_check_router(dev, &msg->target,
--						  &is_router)) != NULL)) {
--=======
- 		     (pneigh = pneigh_lookup(&nd_tbl, dev_net(dev),
- 					     &msg->target, dev, 0)) != NULL)) {
-->>>>>>> FETCH_HEAD:net/ipv6/ndisc.c
- 			if (!(NEIGH_CB(skb)->flags & LOCALLY_ENQUEUED) &&
- 			    skb->pkt_type != PACKET_HOST &&
- 			    inc != 0 &&
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -160,9 +95,7 @@ git-libata-fix-config_pci=n-build.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-net.patch
-git-net-git-rejects.patch
 net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
-git-net-nastily-fix-build-with-config_net_ns=n.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
