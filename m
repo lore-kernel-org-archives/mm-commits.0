@@ -1,77 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - pm-remove-destroy_suspended_device-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 14:21:59 -0700
-Message-ID: <200803282121.m2SLLxCH010777@imap1.linux-foundation.org>
+Subject: - arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 14:25:57 -0700
+Message-ID: <200803282125.m2SLPvRh010989@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40439 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42060 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755061AbYC1VXB (ORCPT
+	by vger.kernel.org with ESMTP id S1754584AbYC1V0x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 17:23:01 -0400
+	Fri, 28 Mar 2008 17:26:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, kay.sievers@vrfy.org, lenb@kernel.org, mb@bu3sch.de, pavel@ucw.cz, rjw@sisk.pl, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, caglar@pardus.org.tr, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-remove-destroy_suspended_device-checkpatch-fixes
+     arch-ia64-kernel-use-time_-macros-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     pm-remove-destroy_suspended_device-checkpatch-fixes.patch
+     arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into pm-remove-destroy_suspended_device.patch
+This patch was dropped because it was folded into arch-ia64-kernel-use-time_-macros.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm-remove-destroy_suspended_device-checkpatch-fixes
+Subject: arch-ia64-kernel-use-time_-macros-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
-#263: FILE: drivers/char/misc.c:262:
-+EXPORT_SYMBOL(misc_deregister);
+WARNING: line over 80 characters
+#47: FILE: arch/ia64/kernel/mca.c:297:
++	if (mlogbuf_timestamp && time_before(jiffies, mlogbuf_timestamp + 30 * HZ)) {
 
-total: 0 errors, 1 warnings, 335 lines checked
+total: 0 errors, 1 warnings, 38 lines checked
 
-./patches/pm-remove-destroy_suspended_device.patch has style problems, please review.  If any of these errors
+./patches/arch-ia64-kernel-use-time_-macros.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: S.Caglar Onur <caglar@pardus.org.tr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/misc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/ia64/kernel/mca.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/misc.c~pm-remove-destroy_suspended_device-checkpatch-fixes drivers/char/misc.c
---- a/drivers/char/misc.c~pm-remove-destroy_suspended_device-checkpatch-fixes
-+++ a/drivers/char/misc.c
-@@ -230,6 +230,7 @@ int misc_register(struct miscdevice * mi
- 	mutex_unlock(&misc_mtx);
- 	return err;
- }
-+EXPORT_SYMBOL(misc_register);
+diff -puN arch/ia64/kernel/mca.c~arch-ia64-kernel-use-time_-macros-checkpatch-fixes arch/ia64/kernel/mca.c
+--- a/arch/ia64/kernel/mca.c~arch-ia64-kernel-use-time_-macros-checkpatch-fixes
++++ a/arch/ia64/kernel/mca.c
+@@ -294,7 +294,8 @@ static void ia64_mlogbuf_dump_from_init(
+ 	if (mlogbuf_finished)
+ 		return;
  
- /**
-  *	misc_deregister - unregister a miscellaneous device
-@@ -257,8 +258,6 @@ int misc_deregister(struct miscdevice *m
- 	mutex_unlock(&misc_mtx);
- 	return 0;
- }
--
--EXPORT_SYMBOL(misc_register);
- EXPORT_SYMBOL(misc_deregister);
- 
- static int __init misc_init(void)
+-	if (mlogbuf_timestamp && time_before(jiffies, mlogbuf_timestamp + 30 * HZ)) {
++	if (mlogbuf_timestamp &&
++			time_before(jiffies, mlogbuf_timestamp + 30 * HZ)) {
+ 		printk(KERN_ERR "INIT: mlogbuf_dump is interrupted by INIT "
+ 			" and the system seems to be messed up.\n");
+ 		ia64_mlogbuf_finish(0);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -97,12 +85,12 @@ git-agpgart-fix-type-confusion.patch
 git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
 cifs-suppress-warning.patch
 pm-remove-destroy_suspended_device.patch
-pm-remove-destroy_suspended_device-checkpatch-fixes.patch
 git-dvb.patch
 drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
 git-hwmon.patch
 git-gfs2-nmw.patch
 git-hrt.patch
+arch-ia64-kernel-use-time_-macros.patch
 arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
 git-ieee1394.patch
 git-infiniband.patch
