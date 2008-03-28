@@ -1,80 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 14:46:39 -0700
-Message-ID: <200803282146.m2SLkdJ8012097@imap1.linux-foundation.org>
+Subject: - scsi-add-iscsi-ibft-support-fix.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 14:47:10 -0700
+Message-ID: <200803282147.m2SLlBXN012129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42678 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58457 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756971AbYC1Vqp (ORCPT
+	by vger.kernel.org with ESMTP id S1756076AbYC1VsT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 17:46:45 -0400
+	Fri, 28 Mar 2008 17:48:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, greg@kroah.com, konradr@linux.vnet.ibm.com, michaelc@cs.wisc.edu, pjones@redhat.com, randy.dunlap@oracle.com, mm-comm
 
 
 The patch titled
-     scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes
+     scsi-add-iscsi-ibft-support-fix
 has been removed from the -mm tree.  Its filename was
-     scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
+     scsi-add-iscsi-ibft-support-fix.patch
 
-This patch was dropped because it was folded into scsi-chc-fix-shadowed-variable-warnings.patch
+This patch was dropped because it was folded into scsi-add-iscsi-ibft-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes
+Subject: scsi-add-iscsi-ibft-support-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: need space after that ',' (ctx:VxV)
-#66: FILE: drivers/scsi/ch.c:742:
-+		memset(ch_cmd,0,sizeof(ch_cmd));
- 		             ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#66: FILE: drivers/scsi/ch.c:742:
-+		memset(ch_cmd,0,sizeof(ch_cmd));
- 		               ^
-
-ERROR: need space after that ',' (ctx:VxV)
-#70: FILE: drivers/scsi/ch.c:746:
-+			    ch_elem_to_typecode(ch,elem);
- 			                          ^
-
-total: 3 errors, 0 warnings, 55 lines checked
-
-./patches/scsi-chc-fix-shadowed-variable-warnings.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Konrad Rzeszutek <konradr@linux.vnet.ibm.com>
+Cc: Mike Christie <michaelc@cs.wisc.edu>
+Cc: Peter Jones <pjones@redhat.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ch.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/firmware/iscsi_ibft.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/ch.c~scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes drivers/scsi/ch.c
---- a/drivers/scsi/ch.c~scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes
-+++ a/drivers/scsi/ch.c
-@@ -739,11 +739,11 @@ static long ch_ioctl(struct file *file,
- 		mutex_lock(&ch->lock);
+diff -puN drivers/firmware/iscsi_ibft.c~scsi-add-iscsi-ibft-support-fix drivers/firmware/iscsi_ibft.c
+--- a/drivers/firmware/iscsi_ibft.c~scsi-add-iscsi-ibft-support-fix
++++ a/drivers/firmware/iscsi_ibft.c
+@@ -65,6 +65,7 @@
  
- 	voltag_retry:
--		memset(ch_cmd,0,sizeof(ch_cmd));
-+		memset(ch_cmd, 0, sizeof(ch_cmd));
- 		ch_cmd[0] = READ_ELEMENT_STATUS;
- 		ch_cmd[1] = (ch->device->lun << 5) |
- 			    (ch->voltags ? 0x10 : 0) |
--			    ch_elem_to_typecode(ch,elem);
-+			    ch_elem_to_typecode(ch, elem);
- 		ch_cmd[2] = (elem >> 8) & 0xff;
- 		ch_cmd[3] = elem        & 0xff;
- 		ch_cmd[5] = 1;
+ 
+ #include <linux/blkdev.h>
++#include <linux/capability.h>
+ #include <linux/ctype.h>
+ #include <linux/device.h>
+ #include <linux/err.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,11 +118,11 @@ git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_de
 scsi-aic94xx-cleanups.patch
 scsi-fix-section-mismatch-in-aic94xx.patch
 scsi-chc-fix-shadowed-variable-warnings.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
 ipsc-fix-build-warning.patch
 drivers-scsi-initioc-suppress-compile-warning.patch
 drivers-scsi-hptiopc-fix-build-warning.patch
 drivers-scsi-mvsasc-fix-build-warnings.patch
+scsi-add-iscsi-ibft-support.patch
 scsi-add-iscsi-ibft-support-fix.patch
 git-block-git-rejects.patch
 git-unionfs.patch
