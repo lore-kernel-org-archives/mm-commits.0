@@ -1,55 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - devres-implement-pcim_iomap_regions_request_all-fix-fix.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 14:33:18 -0700
-Message-ID: <200803282133.m2SLXJNr011454@imap1.linux-foundation.org>
+Subject: - drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 14:37:51 -0700
+Message-ID: <200803282137.m2SLbpHC011649@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51646 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56823 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755481AbYC1Vdf (ORCPT
+	by vger.kernel.org with ESMTP id S1758805AbYC1ViW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 17:33:35 -0400
+	Fri, 28 Mar 2008 17:38:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, gregkh@suse.de, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, caglar@pardus.org.tr, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     devres-implement-pcim_iomap_regions_request_all-fix-fix
+     drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
+     drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into drivers-net-arcnet-arcnetc-use-time_-macros.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devres-implement-pcim_iomap_regions_request_all-fix-fix
+Subject: drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-stupid fascist compiler
+WARNING: line over 80 characters
+#35: FILE: drivers/net/arcnet/arcnet.c:977:
++		} else if (lp->network_down && time_after(jiffies, lp->last_recon + HZ * 10)) {
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+WARNING: line over 80 characters
+#47: FILE: include/linux/arcdevice.h:286:
++	unsigned long first_recon,	/* time of "first" RECON message to count */
+
+total: 0 errors, 2 warnings, 24 lines checked
+
+./patches/drivers-net-arcnet-arcnetc-use-time_-macros.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
+Cc: S.Caglar Onur <caglar@pardus.org.tr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/io.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/arcnet/arcnet.c |    3 ++-
+ include/linux/arcdevice.h   |    4 ++--
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix-fix include/linux/io.h
---- a/include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix-fix
-+++ a/include/linux/io.h
-@@ -66,6 +66,6 @@ void devm_iounmap(struct device *dev, vo
- int check_signature(const volatile void __iomem *io_addr,
- 			const unsigned char *signature, int length);
- int pcim_iomap_regions_request_all(struct pci_dev *pdev, u16 mask,
--			const char *name)
-+			const char *name);
+diff -puN drivers/net/arcnet/arcnet.c~drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes drivers/net/arcnet/arcnet.c
+--- a/drivers/net/arcnet/arcnet.c~drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes
++++ a/drivers/net/arcnet/arcnet.c
+@@ -974,7 +974,8 @@ irqreturn_t arcnet_interrupt(int irq, vo
+ 					lp->num_recons = 1;
+ 				}
+ 			}
+-		} else if (lp->network_down && time_after(jiffies, lp->last_recon + HZ * 10)) {
++		} else if (lp->network_down &&
++				time_after(jiffies, lp->last_recon + HZ * 10)) {
+ 			if (lp->network_down)
+ 				BUGMSG(D_NORMAL, "cabling restored?\n");
+ 			lp->first_recon = lp->last_recon = 0;
+diff -puN include/linux/arcdevice.h~drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes include/linux/arcdevice.h
+--- a/include/linux/arcdevice.h~drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes
++++ a/include/linux/arcdevice.h
+@@ -283,8 +283,8 @@ struct arcnet_local {
+ 	int next_buf, first_free_buf;
  
- #endif /* _LINUX_IO_H */
+ 	/* network "reconfiguration" handling */
+-	unsigned long first_recon,	/* time of "first" RECON message to count */
+-		last_recon;	/* time of most recent RECON */
++	unsigned long first_recon; /* time of "first" RECON message to count */
++	unsigned long last_recon;  /* time of most recent RECON */
+ 	int num_recons;		/* number of RECONs between first and last. */
+ 	bool network_down;	/* do we think the network is down? */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,13 +119,12 @@ git-kvm-fixup.patch
 git-kvm-vs-git-s390.patch
 git-leds.patch
 git-libata-fix-config_pci=n-build.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-async-tx.patch
 git-net.patch
 net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+drivers-net-arcnet-arcnetc-use-time_-macros.patch
 drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
 drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
 net-ehea-port_lock-semaphore-to-mutex-fix.patch
