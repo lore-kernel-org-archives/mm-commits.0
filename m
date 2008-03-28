@@ -1,56 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - scsi-fix-section-mismatch-in-aic94xx-fix.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 14:46:05 -0700
-Message-ID: <200803282146.m2SLk5Cl012090@imap1.linux-foundation.org>
+Subject: - scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 14:46:39 -0700
+Message-ID: <200803282146.m2SLkdJ8012097@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56536 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42678 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755940AbYC1VqQ (ORCPT
+	by vger.kernel.org with ESMTP id S1756971AbYC1Vqp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 17:46:16 -0400
+	Fri, 28 Mar 2008 17:46:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@SteelEye.com, gilbert_wu@adaptec.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     scsi-fix-section-mismatch-in-aic94xx-fix
+     scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     scsi-fix-section-mismatch-in-aic94xx-fix.patch
+     scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into scsi-fix-section-mismatch-in-aic94xx.patch
+This patch was dropped because it was folded into scsi-chc-fix-shadowed-variable-warnings.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi-fix-section-mismatch-in-aic94xx-fix
+Subject: scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/aic94xx/aic94xx_init.c: In function 'asd_pci_probe':
-drivers/scsi/aic94xx/aic94xx_init.c:762: warning: assignment discards qualifiers from pointer target type
+ERROR: need space after that ',' (ctx:VxV)
+#66: FILE: drivers/scsi/ch.c:742:
++		memset(ch_cmd,0,sizeof(ch_cmd));
+ 		             ^
 
-Cc: Gilbert Wu <gilbert_wu@adaptec.com>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+ERROR: need space after that ',' (ctx:VxV)
+#66: FILE: drivers/scsi/ch.c:742:
++		memset(ch_cmd,0,sizeof(ch_cmd));
+ 		               ^
+
+ERROR: need space after that ',' (ctx:VxV)
+#70: FILE: drivers/scsi/ch.c:746:
++			    ch_elem_to_typecode(ch,elem);
+ 			                          ^
+
+total: 3 errors, 0 warnings, 55 lines checked
+
+./patches/scsi-chc-fix-shadowed-variable-warnings.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aic94xx/aic94xx_init.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/ch.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/aic94xx/aic94xx_init.c~scsi-fix-section-mismatch-in-aic94xx-fix drivers/scsi/aic94xx/aic94xx_init.c
---- a/drivers/scsi/aic94xx/aic94xx_init.c~scsi-fix-section-mismatch-in-aic94xx-fix
-+++ a/drivers/scsi/aic94xx/aic94xx_init.c
-@@ -735,7 +735,7 @@ static int asd_unregister_sas_ha(struct 
- static int __devinit asd_pci_probe(struct pci_dev *dev,
- 				   const struct pci_device_id *id)
- {
--	struct asd_pcidev_struct *asd_dev;
-+	const struct asd_pcidev_struct *asd_dev;
- 	unsigned asd_id = (unsigned) id->driver_data;
- 	struct asd_ha_struct *asd_ha;
- 	struct Scsi_Host *shost;
+diff -puN drivers/scsi/ch.c~scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes drivers/scsi/ch.c
+--- a/drivers/scsi/ch.c~scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes
++++ a/drivers/scsi/ch.c
+@@ -739,11 +739,11 @@ static long ch_ioctl(struct file *file,
+ 		mutex_lock(&ch->lock);
+ 
+ 	voltag_retry:
+-		memset(ch_cmd,0,sizeof(ch_cmd));
++		memset(ch_cmd, 0, sizeof(ch_cmd));
+ 		ch_cmd[0] = READ_ELEMENT_STATUS;
+ 		ch_cmd[1] = (ch->device->lun << 5) |
+ 			    (ch->voltags ? 0x10 : 0) |
+-			    ch_elem_to_typecode(ch,elem);
++			    ch_elem_to_typecode(ch, elem);
+ 		ch_cmd[2] = (elem >> 8) & 0xff;
+ 		ch_cmd[3] = elem        & 0xff;
+ 		ch_cmd[5] = 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,7 +142,7 @@ git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_de
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
 scsi-aic94xx-cleanups.patch
 scsi-fix-section-mismatch-in-aic94xx.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
+scsi-chc-fix-shadowed-variable-warnings.patch
 scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
 ipsc-fix-build-warning.patch
 drivers-scsi-initioc-suppress-compile-warning.patch
