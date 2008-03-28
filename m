@@ -1,63 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - net-ehea-port_lock-semaphore-to-mutex-fix.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 14:39:08 -0700
-Message-ID: <200803282139.m2SLd98Y011742@imap1.linux-foundation.org>
+Subject: - scsi-fix-section-mismatch-in-aic94xx-fix.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 14:46:05 -0700
+Message-ID: <200803282146.m2SLk5Cl012090@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36858 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56536 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755376AbYC1Vom (ORCPT
+	by vger.kernel.org with ESMTP id S1755940AbYC1VqQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 17:44:42 -0400
+	Fri, 28 Mar 2008 17:46:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwalker@mvista.com, jeff@garzik.org, raisch@de.ibm.com, themann@de.ibm.com, tklein@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, James.Bottomley@SteelEye.com, gilbert_wu@adaptec.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net-ehea-port_lock-semaphore-to-mutex-fix
+     scsi-fix-section-mismatch-in-aic94xx-fix
 has been removed from the -mm tree.  Its filename was
-     net-ehea-port_lock-semaphore-to-mutex-fix.patch
+     scsi-fix-section-mismatch-in-aic94xx-fix.patch
 
-This patch was dropped because it was folded into net-ehea-port_lock-semaphore-to-mutex.patch
+This patch was dropped because it was folded into scsi-fix-section-mismatch-in-aic94xx.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net-ehea-port_lock-semaphore-to-mutex-fix
+Subject: scsi-fix-section-mismatch-in-aic94xx-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/ehea/ehea_main.c: In function 'ehea_rereg_mrs':
-drivers/net/ehea/ehea_main.c:2846: warning: ISO C90 forbids mixed declarations and code
+drivers/scsi/aic94xx/aic94xx_init.c: In function 'asd_pci_probe':
+drivers/scsi/aic94xx/aic94xx_init.c:762: warning: assignment discards qualifiers from pointer target type
 
-Cc: Christoph Raisch <raisch@de.ibm.com>
-Cc: Daniel Walker <dwalker@mvista.com>
-Cc: Jan-Bernd Themann <themann@de.ibm.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Thomas Klein <tklein@de.ibm.com>
+Cc: Gilbert Wu <gilbert_wu@adaptec.com>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea_main.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/scsi/aic94xx/aic94xx_init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/ehea/ehea_main.c~net-ehea-port_lock-semaphore-to-mutex-fix drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~net-ehea-port_lock-semaphore-to-mutex-fix
-+++ a/drivers/net/ehea/ehea_main.c
-@@ -2839,11 +2839,12 @@ static void ehea_rereg_mrs(struct work_s
- 			/* Shutdown all ports */
- 			for (i = 0; i < EHEA_MAX_PORTS; i++) {
- 				struct ehea_port *port = adapter->port[i];
-+				struct net_device *dev;
- 
- 				if (!port)
- 					continue;
- 
--				struct net_device *dev = port->netdev;
-+				dev = port->netdev;
- 
- 				if (dev->flags & IFF_UP) {
- 					mutex_lock(&port->port_lock);
+diff -puN drivers/scsi/aic94xx/aic94xx_init.c~scsi-fix-section-mismatch-in-aic94xx-fix drivers/scsi/aic94xx/aic94xx_init.c
+--- a/drivers/scsi/aic94xx/aic94xx_init.c~scsi-fix-section-mismatch-in-aic94xx-fix
++++ a/drivers/scsi/aic94xx/aic94xx_init.c
+@@ -735,7 +735,7 @@ static int asd_unregister_sas_ha(struct 
+ static int __devinit asd_pci_probe(struct pci_dev *dev,
+ 				   const struct pci_device_id *id)
+ {
+-	struct asd_pcidev_struct *asd_dev;
++	const struct asd_pcidev_struct *asd_dev;
+ 	unsigned asd_id = (unsigned) id->driver_data;
+ 	struct asd_ha_struct *asd_ha;
+ 	struct Scsi_Host *shost;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,13 +99,12 @@ drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 drivers-net-arcnet-arcnetc-use-time_-macros.patch
 drivers-net-tokenring-3c359c-use-time_-macros.patch
 net-ehea-port_lock-semaphore-to-mutex.patch
-net-ehea-port_lock-semaphore-to-mutex-fix.patch
-tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
+tulip-tulip_read_eeprom-fixes-for-bug-4420.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 git-nfsd.patch
 git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
 git-selinux.patch
 pci-hotplug-introduce-pci_slot-fix.patch
@@ -125,6 +117,7 @@ git-sh.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
 scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
 scsi-fix-section-mismatch-in-aic94xx-fix.patch
 scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
 ipsc-fix-build-warning.patch
