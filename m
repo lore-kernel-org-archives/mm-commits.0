@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + quota-convert-stub-functions-from-macros-into-inlines.patch added to -mm tree
-Date: Fri, 28 Mar 2008 00:09:38 -0700
-Message-ID: <200803280719.m2S7JZGU011268@imap1.linux-foundation.org>
+Subject: + git-agpgart-drivers-char-agp-i460-agpc-hacks.patch added to -mm tree
+Date: Fri, 28 Mar 2008 00:25:38 -0700
+Message-ID: <200803280735.m2S7ZZKp011777@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49842 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52152 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750815AbYC1HU0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751120AbYC1Hfk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 03:20:26 -0400
+	Fri, 28 Mar 2008 03:35:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jack@ucw.cz, viro@zeniv.linux.org.uk
+Cc: akpm@linux-foundation.org, airlied@linux.ie
 
 
 The patch titled
-     quota: convert stub functions from macros into inlines
+     git-agpgart: drivers/char/agp/i460-agp.c hacks
 has been added to the -mm tree.  Its filename is
-     quota-convert-stub-functions-from-macros-into-inlines.patch
+     git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,79 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: convert stub functions from macros into inlines
+Subject: git-agpgart: drivers/char/agp/i460-agp.c hacks
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fixes things like this:
-
-fs/super.c: In function `deactivate_super':
-fs/super.c:182: warning: statement with no effect
-fs/super.c: In function `do_remount_sb':
-fs/super.c:644: warning: statement with no effect
-
-Cc: Jan Kara <jack@ucw.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/quotaops.h |   45 ++++++++++++++++++++++++++++++-------
- 1 file changed, 37 insertions(+), 8 deletions(-)
+ drivers/char/agp/i460-agp.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/quotaops.h~quota-convert-stub-functions-from-macros-into-inlines include/linux/quotaops.h
---- a/include/linux/quotaops.h~quota-convert-stub-functions-from-macros-into-inlines
-+++ a/include/linux/quotaops.h
-@@ -207,14 +207,43 @@ static inline int DQUOT_ON_REMOUNT(struc
-  */
- #define sb_dquot_ops				(NULL)
- #define sb_quotactl_ops				(NULL)
--#define DQUOT_INIT(inode)			do { } while(0)
--#define DQUOT_DROP(inode)			do { } while(0)
--#define DQUOT_ALLOC_INODE(inode)		(0)
--#define DQUOT_FREE_INODE(inode)			do { } while(0)
--#define DQUOT_SYNC(sb)				do { } while(0)
--#define DQUOT_OFF(sb, remount)			(0)
--#define DQUOT_ON_REMOUNT(sb)			(0)
--#define DQUOT_TRANSFER(inode, iattr)		(0)
-+
-+static inline void DQUOT_INIT(struct inode *inode)
-+{
-+}
-+
-+static inline void DQUOT_DROP(struct inode *inode)
-+{
-+}
-+
-+static inline int DQUOT_ALLOC_INODE(struct inode *inode)
-+{
-+	return 0;
-+}
-+
-+static inline void DQUOT_FREE_INODE(struct inode *inode)
-+{
-+}
-+
-+static inline void DQUOT_SYNC(struct super_block *sb)
-+{
-+}
-+
-+static inline int DQUOT_OFF(struct super_block *sb, int remount)
-+{
-+	return 0;
-+}
-+
-+static inline int DQUOT_ON_REMOUNT(struct super_block *sb)
-+{
-+	return 0;
-+}
-+
-+static inline int DQUOT_TRANSFER(struct inode *inode, struct iattr *iattr)
-+{
-+	return 0;
-+}
-+
- static inline int DQUOT_PREALLOC_SPACE_NODIRTY(struct inode *inode, qsize_t nr)
+diff -puN drivers/char/agp/i460-agp.c~git-agpgart-drivers-char-agp-i460-agpc-hacks drivers/char/agp/i460-agp.c
+--- a/drivers/char/agp/i460-agp.c~git-agpgart-drivers-char-agp-i460-agpc-hacks
++++ a/drivers/char/agp/i460-agp.c
+@@ -296,8 +296,8 @@ static int i460_insert_memory_small_io_p
+ 	int i, j, k, num_entries;
+ 	void *temp;
+ 
+-	pr_debug("i460_insert_memory_small_io_page(mem=%p, pg_start=%ld, type=%d, paddr0=0x%lx)\n",
+-		 mem, pg_start, type, mem->memory[0]);
++//	pr_debug("i460_insert_memory_small_io_page(mem=%p, pg_start=%ld, type=%d, paddr0=0x%lx)\n",
++//		 mem, pg_start, type, mem->memory[0]);
+ 
+ 	if (type >= AGP_USER_TYPES || mem->type >= AGP_USER_TYPES)
+ 		return -EINVAL;
+@@ -324,7 +324,7 @@ static int i460_insert_memory_small_io_p
+ 
+ 	io_page_size = 1UL << I460_IO_PAGE_SHIFT;
+ 	for (i = 0, j = io_pg_start; i < mem->page_count; i++) {
+-		paddr = mem->memory[i];
++//		paddr = mem->memory[i];
+ 		for (k = 0; k < I460_IOPAGES_PER_KPAGE; k++, j++, paddr += io_page_size)
+ 			WR_GATT(j, i460_mask_memory(agp_bridge, paddr, mem->type));
+ 	}
+@@ -554,10 +554,9 @@ static unsigned long i460_mask_memory (s
+ }
+ 
+ static unsigned long i460_page_mask_memory(struct agp_bridge_data *bridge,
+-					   sturct page *page, int type)
++					   struct page *page, int type)
  {
- 	inode_add_bytes(inode, nr);
+-
+-
++	return 0;
+ }
+ 
+ const struct agp_bridge_driver intel_i460_driver = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -279,4 +252,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
 
