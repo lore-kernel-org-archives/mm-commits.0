@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-libata-fix-config_pci=n-build.patch added to -mm tree
-Date: Fri, 28 Mar 2008 01:50:35 -0700
-Message-ID: <200803280900.m2S90WoR014599@imap1.linux-foundation.org>
+Subject: + page_mapping-add-ifdef-around-reference-to-swapper_space.patch added to -mm tree
+Date: Fri, 28 Mar 2008 02:01:31 -0700
+Message-ID: <200803280911.m2S9BS55015063@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36289 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53601 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752865AbYC1JAr (ORCPT
+	by vger.kernel.org with ESMTP id S1752337AbYC1JMC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 05:00:47 -0400
+	Fri, 28 Mar 2008 05:12:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, htejun@gmail.com, jeff@garzik.org
+Cc: akpm@linux-foundation.org, clameter@sgi.com
 
 
 The patch titled
-     git-libata: fix CONFIG_PCI=n build
+     page_mapping(): add ifdef around reference to swapper_space
 has been added to the -mm tree.  Its filename is
-     git-libata-fix-config_pci=n-build.patch
+     page_mapping-add-ifdef-around-reference-to-swapper_space.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-libata: fix CONFIG_PCI=n build
+Subject: page_mapping(): add ifdef around reference to swapper_space
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sh allmodconfig:
+This fixes the superh build when the pageflags patches are applied.
 
-drivers/ata/libata-core.c:127: error: `ata_pci_default_filter' undeclared here (not in a function)
-drivers/ata/libata-core.c:127: error: initializer element is not constant
-drivers/ata/libata-core.c:127: error: (near initialization for `ata_bmdma_port_ops.mode_filter')
+But it shouldn't unless it's a gcc bug.
 
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mm.h |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/libata-core.c~git-libata-fix-config_pci=n-build drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~git-libata-fix-config_pci=n-build
-+++ a/drivers/ata/libata-core.c
-@@ -123,9 +123,9 @@ const struct ata_port_operations ata_sff
+diff -puN include/linux/mm.h~page_mapping-add-ifdef-around-reference-to-swapper_space include/linux/mm.h
+--- a/include/linux/mm.h~page_mapping-add-ifdef-around-reference-to-swapper_space
++++ a/include/linux/mm.h
+@@ -605,9 +605,12 @@ static inline struct address_space *page
+ 	struct address_space *mapping = page->mapping;
  
- const struct ata_port_operations ata_bmdma_port_ops = {
- 	.inherits		= &ata_sff_port_ops,
--
-+#ifdef CONFIG_PCI
- 	.mode_filter		= ata_pci_default_filter,
--
+ 	VM_BUG_ON(PageSlab(page));
++#ifdef CONFIG_SWAP
+ 	if (unlikely(PageSwapCache(page)))
+ 		mapping = &swapper_space;
+-	else if (unlikely((unsigned long)mapping & PAGE_MAPPING_ANON))
++	else
 +#endif
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
- 	.bmdma_stop		= ata_bmdma_stop,
++	if (unlikely((unsigned long)mapping & PAGE_MAPPING_ANON))
+ 		mapping = NULL;
+ 	return mapping;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +105,7 @@ git-kvm.patch
 git-kvm-fixup.patch
 git-kvm-vs-git-s390.patch
 git-leds.patch
+git-libata-fix-config_pci=n-build.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-net.patch
@@ -157,6 +157,7 @@ mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
 mm-make-early_pfn_to_nid-a-c-function.patch
 vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
 vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
 smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
@@ -241,5 +242,4 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-git-libata-fix-config_pci=n-build.patch
 
