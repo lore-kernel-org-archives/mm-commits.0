@@ -1,117 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - fsldma-remove-config_fsl_dma_selftest-keep-fsl_dma_self_test-running-always.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 14:04:58 -0700
-Message-ID: <200803282104.m2SL4w2f009860@imap1.linux-foundation.org>
+Subject: - fsldma-split-the-mpc83xx-event-from-mpc85xx-and-refine-irq-codes.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 14:05:00 -0700
+Message-ID: <200803282105.m2SL50fQ009863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43817 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37837 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753901AbYC1VFF (ORCPT
+	by vger.kernel.org with ESMTP id S1754305AbYC1VFG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 17:05:05 -0400
+	Fri, 28 Mar 2008 17:05:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wei.zhang@freescale.com, mm-commits@vger.kernel.org
+To: wei.zhang@freescale.com, dan.j.williams@intel.com, shannon.nelson@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fsldma: remove CONFIG_FSL_DMA_SELFTEST, keep fsl_dma_self_test() running always
+     fsldma: split the MPC83xx event from MPC85xx and refine irq codes.
 has been removed from the -mm tree.  Its filename was
-     fsldma-remove-config_fsl_dma_selftest-keep-fsl_dma_self_test-running-always.patch
+     fsldma-split-the-mpc83xx-event-from-mpc85xx-and-refine-irq-codes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fsldma: remove CONFIG_FSL_DMA_SELFTEST, keep fsl_dma_self_test() running always
+Subject: fsldma: split the MPC83xx event from MPC85xx and refine irq codes.
 From: Zhang Wei <wei.zhang@freescale.com>
 
-Always enabling the fsl_dma_self_test() to ensure the DMA controller should
-works well after the driver probed.
+Split MPC83xx EOCDI event from MPC85xx EOLNI event, which is
+also need to update cookie and start the next transfer.
+The DMA channel irq handler function code is refined.
+The patch is tested on MPC8377MDS board.
 
 Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
+Cc: "Nelson, Shannon" <shannon.nelson@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/Kconfig  |    8 --------
- drivers/dma/fsldma.c |   13 +++----------
- 2 files changed, 3 insertions(+), 18 deletions(-)
+ drivers/dma/fsldma.c |   26 +++++++++++++++++++++-----
+ 1 file changed, 21 insertions(+), 5 deletions(-)
 
-diff -puN drivers/dma/Kconfig~fsldma-remove-config_fsl_dma_selftest-keep-fsl_dma_self_test-running-always drivers/dma/Kconfig
---- a/drivers/dma/Kconfig~fsldma-remove-config_fsl_dma_selftest-keep-fsl_dma_self_test-running-always
-+++ a/drivers/dma/Kconfig
-@@ -46,14 +46,6 @@ config FSL_DMA
- 	  MPC8560/40, MPC8555, MPC8548 and MPC8641 processors.
- 	  The MPC8349, MPC8360 is also supported.
- 
--config FSL_DMA_SELFTEST
--	bool "Enable the self test for each DMA channel"
--	depends on FSL_DMA
--	default y
--	---help---
--	  Enable the self test for each DMA channel. A self test will be
--	  performed after the channel probed to ensure the DMA works well.
--
- config DMA_ENGINE
- 	bool
- 
-diff -puN drivers/dma/fsldma.c~fsldma-remove-config_fsl_dma_selftest-keep-fsl_dma_self_test-running-always drivers/dma/fsldma.c
---- a/drivers/dma/fsldma.c~fsldma-remove-config_fsl_dma_selftest-keep-fsl_dma_self_test-running-always
+diff -puN drivers/dma/fsldma.c~fsldma-split-the-mpc83xx-event-from-mpc85xx-and-refine-irq-codes drivers/dma/fsldma.c
+--- a/drivers/dma/fsldma.c~fsldma-split-the-mpc83xx-event-from-mpc85xx-and-refine-irq-codes
 +++ a/drivers/dma/fsldma.c
-@@ -769,15 +769,13 @@ static void dma_do_tasklet(unsigned long
- 	fsl_chan_ld_cleanup(fsl_chan);
- }
- 
--#ifdef FSL_DMA_CALLBACKTEST
--static void fsl_dma_callback_test(struct fsl_dma_chan *fsl_chan)
-+static void fsl_dma_callback_test(void *param)
+@@ -689,6 +689,8 @@ static irqreturn_t fsl_dma_chan_do_inter
  {
-+	struct fsl_dma_chan *fsl_chan = param;
- 	if (fsl_chan)
--		dev_info(fsl_chan->dev, "selftest: callback is ok!\n");
-+		dev_dbg(fsl_chan->dev, "selftest: callback is ok!\n");
- }
--#endif
+ 	struct fsl_dma_chan *fsl_chan = (struct fsl_dma_chan *)data;
+ 	u32 stat;
++	int update_cookie = 0;
++	int xfer_ld_q = 0;
  
--#ifdef CONFIG_FSL_DMA_SELFTEST
- static int fsl_dma_self_test(struct fsl_dma_chan *fsl_chan)
- {
- 	struct dma_chan *chan;
-@@ -868,13 +866,11 @@ static int fsl_dma_self_test(struct fsl_
- 	cookie = fsl_dma_tx_submit(tx3);
- 	cookie = fsl_dma_tx_submit(tx2);
- 
--#ifdef FSL_DMA_CALLBACKTEST
- 	if (dma_has_cap(DMA_INTERRUPT, ((struct fsl_dma_device *)
- 	    dev_get_drvdata(fsl_chan->dev->parent))->common.cap_mask)) {
- 		tx3->callback = fsl_dma_callback_test;
- 		tx3->callback_param = fsl_chan;
- 	}
--#endif
- 	fsl_dma_memcpy_issue_pending(chan);
- 	msleep(2);
- 
-@@ -899,7 +895,6 @@ out:
- 	kfree(src);
- 	return err;
- }
--#endif
- 
- static int __devinit of_fsl_dma_chan_probe(struct of_device *dev,
- 			const struct of_device_id *match)
-@@ -990,11 +985,9 @@ static int __devinit of_fsl_dma_chan_pro
+ 	stat = get_sr(fsl_chan);
+ 	dev_dbg(fsl_chan->dev, "event: channel %d, stat = 0x%x\n",
+@@ -713,8 +715,8 @@ static irqreturn_t fsl_dma_chan_do_inter
+ 			 * Now, update the completed cookie, and continue the
+ 			 * next uncompleted transfer.
+ 			 */
+-			fsl_dma_update_completed_cookie(fsl_chan);
+-			fsl_chan_xfer_ld_queue(fsl_chan);
++			update_cookie = 1;
++			xfer_ld_q = 1;
  		}
+ 		stat &= ~FSL_DMA_SR_PE;
+ 	}
+@@ -727,19 +729,33 @@ static irqreturn_t fsl_dma_chan_do_inter
+ 		dev_dbg(fsl_chan->dev, "event: clndar %p, nlndar %p\n",
+ 			(void *)get_cdar(fsl_chan), (void *)get_ndar(fsl_chan));
+ 		stat &= ~FSL_DMA_SR_EOSI;
+-		fsl_dma_update_completed_cookie(fsl_chan);
++		update_cookie = 1;
++	}
++
++	/* For MPC8349, EOCDI event need to update cookie
++	 * and start the next transfer if it exist.
++	 */
++	if (stat & FSL_DMA_SR_EOCDI) {
++		dev_dbg(fsl_chan->dev, "event: End-of-Chain link INT\n");
++		stat &= ~FSL_DMA_SR_EOCDI;
++		update_cookie = 1;
++		xfer_ld_q = 1;
  	}
  
--#ifdef CONFIG_FSL_DMA_SELFTEST
- 	err = fsl_dma_self_test(new_fsl_chan);
- 	if (err)
- 		goto err;
--#endif
+ 	/* If it current transfer is the end-of-transfer,
+ 	 * we should clear the Channel Start bit for
+ 	 * prepare next transfer.
+ 	 */
+-	if (stat & (FSL_DMA_SR_EOLNI | FSL_DMA_SR_EOCDI)) {
++	if (stat & FSL_DMA_SR_EOLNI) {
+ 		dev_dbg(fsl_chan->dev, "event: End-of-link INT\n");
+ 		stat &= ~FSL_DMA_SR_EOLNI;
+-		fsl_chan_xfer_ld_queue(fsl_chan);
++		xfer_ld_q = 1;
+ 	}
  
- 	dev_info(&dev->dev, "#%d (%s), irq %d\n", new_fsl_chan->id,
- 				match->compatible, new_fsl_chan->irq);
++	if (update_cookie)
++		fsl_dma_update_completed_cookie(fsl_chan);
++	if (xfer_ld_q)
++		fsl_chan_xfer_ld_queue(fsl_chan);
+ 	if (stat)
+ 		dev_dbg(fsl_chan->dev, "event: unhandled sr 0x%02x\n",
+ 					stat);
 _
 
 Patches currently in -mm which might be from wei.zhang@freescale.com are
