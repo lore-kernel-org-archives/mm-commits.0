@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-s390-git-rejects.patch added to -mm tree
-Date: Fri, 28 Mar 2008 01:23:33 -0700
-Message-ID: <200803280833.m2S8XUHo013703@imap1.linux-foundation.org>
+Subject: + git-libata-fix-config_pci=n-build.patch added to -mm tree
+Date: Fri, 28 Mar 2008 01:50:35 -0700
+Message-ID: <200803280900.m2S90WoR014599@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46683 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36289 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751154AbYC1IeF (ORCPT
+	by vger.kernel.org with ESMTP id S1752865AbYC1JAr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 04:34:05 -0400
+	Fri, 28 Mar 2008 05:00:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com, cotte@freenet.de, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     git-s390-git-rejects
+     git-libata: fix CONFIG_PCI=n build
 has been added to the -mm tree.  Its filename is
-     git-s390-git-rejects.patch
+     git-libata-fix-config_pci=n-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-s390-git-rejects
+Subject: git-libata: fix CONFIG_PCI=n build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-argh, fustercluck.
+sh allmodconfig:
 
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Carsten Otte <cotte@freenet.de>
+drivers/ata/libata-core.c:127: error: `ata_pci_default_filter' undeclared here (not in a function)
+drivers/ata/libata-core.c:127: error: initializer element is not constant
+drivers/ata/libata-core.c:127: error: (near initialization for `ata_bmdma_port_ops.mode_filter')
+
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-s390/sysinfo.h |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/ata/libata-core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/s390/sysinfo.c~git-s390-git-rejects drivers/s390/sysinfo.c
-diff -puN include/asm-s390/sysinfo.h~git-s390-git-rejects include/asm-s390/sysinfo.h
---- a/include/asm-s390/sysinfo.h~git-s390-git-rejects
-+++ a/include/asm-s390/sysinfo.h
-@@ -8,7 +8,7 @@
-  * as published by the Free Software Foundation.
-  *
-  *    Author(s): Ulrich Weigand <weigand@de.ibm.com>
-- *               Christian Borntraeger <borntraeger@de.ibm.com>
-+ *		 Christian Borntraeger <borntraeger@de.ibm.com>
-  */
+diff -puN drivers/ata/libata-core.c~git-libata-fix-config_pci=n-build drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~git-libata-fix-config_pci=n-build
++++ a/drivers/ata/libata-core.c
+@@ -123,9 +123,9 @@ const struct ata_port_operations ata_sff
  
- struct sysinfo_1_1_1 {
-@@ -20,6 +20,11 @@ struct sysinfo_1_1_1 {
- 	char sequence[16];
- 	char plant[4];
- 	char model[16];
-+	char model_perm_cap[16];
-+	char model_temp_cap[16];
-+	char model_cap_rating[4];
-+	char model_perm_cap_rating[4];
-+	char model_temp_cap_rating[4];
- };
- 
- struct sysinfo_1_2_1 {
+ const struct ata_port_operations ata_bmdma_port_ops = {
+ 	.inherits		= &ata_sff_port_ops,
+-
++#ifdef CONFIG_PCI
+ 	.mode_filter		= ata_pci_default_filter,
+-
++#endif
+ 	.bmdma_setup		= ata_bmdma_setup,
+ 	.bmdma_start		= ata_bmdma_start,
+ 	.bmdma_stop		= ata_bmdma_stop,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -249,4 +241,5 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
+git-libata-fix-config_pci=n-build.patch
 
