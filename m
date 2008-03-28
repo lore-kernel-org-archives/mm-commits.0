@@ -1,31 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - devres-implement-pcim_iomap_regions_request_all-fix.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 14:33:13 -0700
-Message-ID: <200803282133.m2SLXEoN011449@imap1.linux-foundation.org>
+Subject: - devres-implement-pcim_iomap_regions_request_all-fix-fix.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 14:33:18 -0700
+Message-ID: <200803282133.m2SLXJNr011454@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51646 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755270AbYC1Vdd (ORCPT
+	by vger.kernel.org with ESMTP id S1755481AbYC1Vdf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 17:33:33 -0400
+	Fri, 28 Mar 2008 17:33:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, gregkh@suse.de, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     devres-implement-pcim_iomap_regions_request_all-fix
+     devres-implement-pcim_iomap_regions_request_all-fix-fix
 has been removed from the -mm tree.  Its filename was
-     devres-implement-pcim_iomap_regions_request_all-fix.patch
+     devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devres-implement-pcim_iomap_regions_request_all-fix
+Subject: devres-implement-pcim_iomap_regions_request_all-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+stupid fascist compiler
 
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Greg Kroah-Hartman <gregkh@suse.de>
@@ -34,18 +36,18 @@ Cc: Tejun Heo <htejun@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/io.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/io.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix include/linux/io.h
---- a/include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix
+diff -puN include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix-fix include/linux/io.h
+--- a/include/linux/io.h~devres-implement-pcim_iomap_regions_request_all-fix-fix
 +++ a/include/linux/io.h
-@@ -65,5 +65,7 @@ void __iomem * devm_ioremap_nocache(stru
- void devm_iounmap(struct device *dev, void __iomem *addr);
+@@ -66,6 +66,6 @@ void devm_iounmap(struct device *dev, vo
  int check_signature(const volatile void __iomem *io_addr,
  			const unsigned char *signature, int length);
-+int pcim_iomap_regions_request_all(struct pci_dev *pdev, u16 mask,
-+			const char *name)
+ int pcim_iomap_regions_request_all(struct pci_dev *pdev, u16 mask,
+-			const char *name)
++			const char *name);
  
  #endif /* _LINUX_IO_H */
 _
@@ -88,7 +90,6 @@ git-kvm-fixup.patch
 git-kvm-vs-git-s390.patch
 git-leds.patch
 git-libata-fix-config_pci=n-build.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
 git-async-tx.patch
 git-net.patch
