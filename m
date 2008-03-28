@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-get_current-dont-add-zero-to-current_thread_info-task.patch added to -mm tree
-Date: Thu, 27 Mar 2008 20:58:19 -0700
-Message-ID: <200803280408.m2S48Gj4005085@imap1.linux-foundation.org>
+Subject: + md-introduce-get_priority_stripe-to-improve-raid456-write-performance.patch added to -mm tree
+Date: Thu, 27 Mar 2008 23:16:55 -0700
+Message-ID: <200803280616.m2S6Gu5V009303@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52915 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42175 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750778AbYC1EIv (ORCPT
+	by vger.kernel.org with ESMTP id S1752002AbYC1GRU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 00:08:51 -0400
+	Fri, 28 Mar 2008 02:17:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dhowells@redhat.com, ink@jurassic.park.msu.ru, rth@twiddle.net
+Cc: dan.j.williams@intel.com, babydr@baby-dragons.com, neilb@suse.de
 
 
 The patch titled
-     alpha: get_current(): don't add zero to current_thread_info()->task
+     md: introduce get_priority_stripe() to improve raid456 write performance
 has been added to the -mm tree.  Its filename is
-     alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
+     md-introduce-get_priority_stripe-to-improve-raid456-write-performance.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,211 +34,342 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: get_current(): don't add zero to current_thread_info()->task
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: md: introduce get_priority_stripe() to improve raid456 write performance
+From: Dan Williams <dan.j.williams@intel.com>
 
-A nasty compile error:
+Improve write performance by preventing the delayed_list from dumping all its
+stripes onto the handle_list in one shot.  Delayed stripes are now further
+delayed by being held on the 'hold_list'.  The 'hold_list' is bypassed when:
 
-In file included from security/keys/internal.h:16,
-                 from security/keys/sysctl.c:14:
-include/linux/key-ui.h: In function 'key_permission':
-include/linux/key-ui.h:51: error: invalid use of undefined type 'struct task_struct'
+  * a STRIPE_IO_STARTED stripe is found at the head of 'handle_list'
+  * 'handle_list' is empty and i/o is being done to satisfy full stripe-width
+    write requests
+  * 'bypass_count' is less than 'bypass_threshold'.  By default the threshold
+    is 1, i.e. every other stripe handled is a preread stripe provided the
+    top two conditions are false.
 
-apparently the compiler has decided that it needs to know sizeof(task_struct)
-so that it can add zero to a task_struct* (which is rather dumb of it).
+Benchmark data:
+System: 2x Xeon 5150, 4x SATA, mem=1GB
+Baseline: 2.6.24-rc7
+Configuration: mdadm --create /dev/md0 /dev/sd[b-e] -n 4 -l 5 --assume-clean
+Test1: dd if=/dev/zero of=/dev/md0 bs=1024k count=2048
+  * patched:  +33% (stripe_cache_size = 256), +25% (stripe_cache_size = 512)
 
-Getting task_struct in scope in these deeply-nested headers is scary-looking,
-so let's just remove the "+ 0".
+Test2: tiobench --size 2048 --numruns 5 --block 4096 --block 131072 (XFS)
+  * patched: +13%
+  * patched + preread_bypass_threshold = 0: +37%
 
-Cc: David Howells <dhowells@redhat.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Changes since v1:
+* reduce bypass_threshold from (chunk_size / sectors_per_chunk) to (1) and
+  make it configurable.  This defaults to fairness and modest performance
+  gains out of the box.
+Changes since v2:
+* [neilb@suse.de]: kill STRIPE_PRIO_HI and preread_needed as they are not
+  necessary, the important change was clearing STRIPE_DELAYED in
+  add_stripe_bio and this has been moved out to make_request for the hang
+  fix.
+* [neilb@suse.de]: simplify get_priority_stripe
+* [dan.j.williams@intel.com]: reset the bypass_count when ->hold_list is
+  sampled empty (+11%)
+* [dan.j.williams@intel.com]: decrement the bypass_count at the detection
+  of stripes being naturally promoted off of hold_list +2%.  Note, resetting
+  bypass_count instead of decrementing on these events yields +4% but that is
+  probably too aggressive.
+Changes since v3:
+* cosmetic fixups
+
+Tested-by: James W. Laferriere <babydr@baby-dragons.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/current.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/md.txt       |    6 +
+ drivers/md/raid5.c         |  122 ++++++++++++++++++++++++++++++++---
+ include/linux/raid/raid5.h |    7 ++
+ 3 files changed, 125 insertions(+), 10 deletions(-)
 
-diff -puN include/asm-alpha/current.h~alpha-get_current-dont-add-zero-to-current_thread_info-task include/asm-alpha/current.h
---- a/include/asm-alpha/current.h~alpha-get_current-dont-add-zero-to-current_thread_info-task
-+++ a/include/asm-alpha/current.h
-@@ -3,7 +3,7 @@
+diff -puN Documentation/md.txt~md-introduce-get_priority_stripe-to-improve-raid456-write-performance Documentation/md.txt
+--- a/Documentation/md.txt~md-introduce-get_priority_stripe-to-improve-raid456-write-performance
++++ a/Documentation/md.txt
+@@ -450,3 +450,9 @@ These currently include
+       there are upper and lower limits (32768, 16).  Default is 128.
+   strip_cache_active (currently raid5 only)
+       number of active entries in the stripe cache
++  preread_bypass_threshold (currently raid5 only)
++      number of times a stripe requiring preread will be bypassed by
++      a stripe that does not require preread.  For fairness defaults
++      to 1.  Setting this to 0 disables bypass accounting and
++      requires preread stripes to wait until all full-width stripe-
++      writes are complete.  Valid values are 0 to stripe_cache_size.
+diff -puN drivers/md/raid5.c~md-introduce-get_priority_stripe-to-improve-raid456-write-performance drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-introduce-get_priority_stripe-to-improve-raid456-write-performance
++++ a/drivers/md/raid5.c
+@@ -63,6 +63,7 @@
+ #define STRIPE_SHIFT		(PAGE_SHIFT - 9)
+ #define STRIPE_SECTORS		(STRIPE_SIZE>>9)
+ #define	IO_THRESHOLD		1
++#define BYPASS_THRESHOLD	1
+ #define NR_HASH			(PAGE_SIZE / sizeof(struct hlist_head))
+ #define HASH_MASK		(NR_HASH - 1)
  
- #include <linux/thread_info.h>
+@@ -398,6 +399,7 @@ static void ops_run_io(struct stripe_hea
  
--#define get_current()	(current_thread_info()->task + 0)
-+#define get_current()	(current_thread_info()->task)
- #define current		get_current()
+ 	might_sleep();
  
- #endif /* _ALPHA_CURRENT_H */
++	set_bit(STRIPE_IO_STARTED, &sh->state);
+ 	for (i = disks; i--; ) {
+ 		int rw;
+ 		struct bio *bi;
+@@ -1720,6 +1722,9 @@ handle_write_operations5(struct stripe_h
+ 				locked++;
+ 			}
+ 		}
++		if (locked + 1 == disks)
++			if (!test_and_set_bit(STRIPE_FULL_WRITE, &sh->state))
++				atomic_inc(&sh->raid_conf->pending_full_writes);
+ 	} else {
+ 		BUG_ON(!(test_bit(R5_UPTODATE, &sh->dev[pd_idx].flags) ||
+ 			test_bit(R5_Wantcompute, &sh->dev[pd_idx].flags)));
+@@ -1947,6 +1952,9 @@ handle_requests_to_failed_array(raid5_co
+ 					STRIPE_SECTORS, 0, 0);
+ 	}
+ 
++	if (test_and_clear_bit(STRIPE_FULL_WRITE, &sh->state))
++		if (atomic_dec_and_test(&conf->pending_full_writes))
++			md_wakeup_thread(conf->mddev->thread);
+ }
+ 
+ /* __handle_issuing_new_read_requests5 - returns 0 if there are no more disks
+@@ -2149,6 +2157,10 @@ static void handle_completed_write_reque
+ 							0);
+ 			}
+ 		}
++
++	if (test_and_clear_bit(STRIPE_FULL_WRITE, &sh->state))
++		if (atomic_dec_and_test(&conf->pending_full_writes))
++			md_wakeup_thread(conf->mddev->thread);
+ }
+ 
+ static void handle_issuing_new_write_requests5(raid5_conf_t *conf,
+@@ -2333,6 +2345,9 @@ static void handle_issuing_new_write_req
+ 				s->locked++;
+ 				set_bit(R5_Wantwrite, &sh->dev[i].flags);
+ 			}
++		if (s->locked == disks)
++			if (!test_and_set_bit(STRIPE_FULL_WRITE, &sh->state))
++				atomic_inc(&conf->pending_full_writes);
+ 		/* after a RECONSTRUCT_WRITE, the stripe MUST be in-sync */
+ 		set_bit(STRIPE_INSYNC, &sh->state);
+ 
+@@ -3087,6 +3102,8 @@ static void handle_stripe6(struct stripe
+ 		else
+ 			continue;
+ 
++		set_bit(STRIPE_IO_STARTED, &sh->state);
++
+ 		bi = &sh->dev[i].req;
+ 
+ 		bi->bi_rw = rw;
+@@ -3157,7 +3174,7 @@ static void raid5_activate_delayed(raid5
+ 			clear_bit(STRIPE_DELAYED, &sh->state);
+ 			if (!test_and_set_bit(STRIPE_PREREAD_ACTIVE, &sh->state))
+ 				atomic_inc(&conf->preread_active_stripes);
+-			list_add_tail(&sh->lru, &conf->handle_list);
++			list_add_tail(&sh->lru, &conf->hold_list);
+ 		}
+ 	} else
+ 		blk_plug_device(conf->mddev->queue);
+@@ -3435,6 +3452,58 @@ static int chunk_aligned_read(struct req
+ 	}
+ }
+ 
++/* __get_priority_stripe - get the next stripe to process
++ *
++ * Full stripe writes are allowed to pass preread active stripes up until
++ * the bypass_threshold is exceeded.  In general the bypass_count
++ * increments when the handle_list is handled before the hold_list; however, it
++ * will not be incremented when STRIPE_IO_STARTED is sampled set signifying a
++ * stripe with in flight i/o.  The bypass_count will be reset when the
++ * head of the hold_list has changed, i.e. the head was promoted to the
++ * handle_list.
++ */
++static struct stripe_head *__get_priority_stripe(raid5_conf_t *conf)
++{
++	struct stripe_head *sh;
++
++	pr_debug("%s: handle: %s hold: %s full_writes: %d bypass_count: %d\n",
++		  __func__,
++		  list_empty(&conf->handle_list) ? "empty" : "busy",
++		  list_empty(&conf->hold_list) ? "empty" : "busy",
++		  atomic_read(&conf->pending_full_writes), conf->bypass_count);
++
++	if (!list_empty(&conf->handle_list)) {
++		sh = list_entry(conf->handle_list.next, typeof(*sh), lru);
++
++		if (list_empty(&conf->hold_list))
++			conf->bypass_count = 0;
++		else if (!test_bit(STRIPE_IO_STARTED, &sh->state)) {
++			if (conf->hold_list.next == conf->last_hold)
++				conf->bypass_count++;
++			else {
++				conf->last_hold = conf->hold_list.next;
++				conf->bypass_count -= conf->bypass_threshold;
++				if (conf->bypass_count < 0)
++					conf->bypass_count = 0;
++			}
++		}
++	} else if (!list_empty(&conf->hold_list) &&
++		   ((conf->bypass_threshold &&
++		     conf->bypass_count > conf->bypass_threshold) ||
++		    atomic_read(&conf->pending_full_writes) == 0)) {
++		sh = list_entry(conf->hold_list.next,
++				typeof(*sh), lru);
++		conf->bypass_count -= conf->bypass_threshold;
++		if (conf->bypass_count < 0)
++			conf->bypass_count = 0;
++	} else
++		return NULL;
++
++	list_del_init(&sh->lru);
++	atomic_inc(&sh->count);
++	BUG_ON(atomic_read(&sh->count) != 1);
++	return sh;
++}
+ 
+ static int make_request(struct request_queue *q, struct bio * bi)
+ {
+@@ -3907,7 +3976,6 @@ static void raid5d(mddev_t *mddev)
+ 	handled = 0;
+ 	spin_lock_irq(&conf->device_lock);
+ 	while (1) {
+-		struct list_head *first;
+ 		struct bio *bio;
+ 
+ 		if (conf->seq_flush != conf->seq_write) {
+@@ -3929,17 +3997,12 @@ static void raid5d(mddev_t *mddev)
+ 			handled++;
+ 		}
+ 
+-		if (list_empty(&conf->handle_list)) {
++		sh = __get_priority_stripe(conf);
++
++		if (!sh) {
+ 			async_tx_issue_pending_all();
+ 			break;
+ 		}
+-
+-		first = conf->handle_list.next;
+-		sh = list_entry(first, struct stripe_head, lru);
+-
+-		list_del_init(first);
+-		atomic_inc(&sh->count);
+-		BUG_ON(atomic_read(&sh->count)!= 1);
+ 		spin_unlock_irq(&conf->device_lock);
+ 		
+ 		handled++;
+@@ -4004,6 +4067,42 @@ raid5_stripecache_size = __ATTR(stripe_c
+ 				raid5_store_stripe_cache_size);
+ 
+ static ssize_t
++raid5_show_preread_threshold(mddev_t *mddev, char *page)
++{
++	raid5_conf_t *conf = mddev_to_conf(mddev);
++	if (conf)
++		return sprintf(page, "%d\n", conf->bypass_threshold);
++	else
++		return 0;
++}
++
++static ssize_t
++raid5_store_preread_threshold(mddev_t *mddev, const char *page, size_t len)
++{
++	raid5_conf_t *conf = mddev_to_conf(mddev);
++	char *end;
++	int new;
++	if (len >= PAGE_SIZE)
++		return -EINVAL;
++	if (!conf)
++		return -ENODEV;
++
++	new = simple_strtoul(page, &end, 10);
++	if (!*page || (*end && *end != '\n'))
++		return -EINVAL;
++	if (new > conf->max_nr_stripes || new < 0)
++		return -EINVAL;
++	conf->bypass_threshold = new;
++	return len;
++}
++
++static struct md_sysfs_entry
++raid5_preread_bypass_threshold = __ATTR(preread_bypass_threshold,
++					S_IRUGO | S_IWUSR,
++					raid5_show_preread_threshold,
++					raid5_store_preread_threshold);
++
++static ssize_t
+ stripe_cache_active_show(mddev_t *mddev, char *page)
+ {
+ 	raid5_conf_t *conf = mddev_to_conf(mddev);
+@@ -4019,6 +4118,7 @@ raid5_stripecache_active = __ATTR_RO(str
+ static struct attribute *raid5_attrs[] =  {
+ 	&raid5_stripecache_size.attr,
+ 	&raid5_stripecache_active.attr,
++	&raid5_preread_bypass_threshold.attr,
+ 	NULL,
+ };
+ static struct attribute_group raid5_attrs_group = {
+@@ -4123,12 +4223,14 @@ static int run(mddev_t *mddev)
+ 	init_waitqueue_head(&conf->wait_for_stripe);
+ 	init_waitqueue_head(&conf->wait_for_overlap);
+ 	INIT_LIST_HEAD(&conf->handle_list);
++	INIT_LIST_HEAD(&conf->hold_list);
+ 	INIT_LIST_HEAD(&conf->delayed_list);
+ 	INIT_LIST_HEAD(&conf->bitmap_list);
+ 	INIT_LIST_HEAD(&conf->inactive_list);
+ 	atomic_set(&conf->active_stripes, 0);
+ 	atomic_set(&conf->preread_active_stripes, 0);
+ 	atomic_set(&conf->active_aligned_reads, 0);
++	conf->bypass_threshold = BYPASS_THRESHOLD;
+ 
+ 	pr_debug("raid5: run(%s) called.\n", mdname(mddev));
+ 
+diff -puN include/linux/raid/raid5.h~md-introduce-get_priority_stripe-to-improve-raid456-write-performance include/linux/raid/raid5.h
+--- a/include/linux/raid/raid5.h~md-introduce-get_priority_stripe-to-improve-raid456-write-performance
++++ a/include/linux/raid/raid5.h
+@@ -252,6 +252,8 @@ struct r6_state {
+ #define	STRIPE_EXPANDING	9
+ #define	STRIPE_EXPAND_SOURCE	10
+ #define	STRIPE_EXPAND_READY	11
++#define	STRIPE_IO_STARTED	12 /* do not count towards 'bypass_count' */
++#define	STRIPE_FULL_WRITE	13 /* all blocks are set to be overwritten */
+ /*
+  * Operations flags (in issue order)
+  */
+@@ -316,12 +318,17 @@ struct raid5_private_data {
+ 	int			previous_raid_disks;
+ 
+ 	struct list_head	handle_list; /* stripes needing handling */
++	struct list_head	hold_list; /* preread ready stripes */
+ 	struct list_head	delayed_list; /* stripes that have plugged requests */
+ 	struct list_head	bitmap_list; /* stripes delaying awaiting bitmap update */
+ 	struct bio		*retry_read_aligned; /* currently retrying aligned bios   */
+ 	struct bio		*retry_read_aligned_list; /* aligned bios retry list  */
+ 	atomic_t		preread_active_stripes; /* stripes with scheduled io */
+ 	atomic_t		active_aligned_reads;
++	atomic_t		pending_full_writes; /* full write backlog */
++	int			bypass_count; /* bypassed prereads */
++	int			bypass_threshold; /* preread nice */
++	struct list_head	*last_hold; /* detect hold_list promotions */
+ 
+ 	atomic_t		reshape_stripes; /* stripes with pending writes for reshape */
+ 	/* unfortunately we need two cache names as we temporarily have
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-origin.patch
-git-drm-drivers-char-drm-ati_pcigartc-fix-printk-warning.patch
-x86-kmap_atomic-debugging-only-run-debug_kmap_atomic_prot-for-highmem-pages.patch
-net-9p-trans_fdc-p9_trans_fd_init-module_init-functions-should-return-0-on-success.patch
-blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-to-lkml-review-fix.patch
-memstick-suppress-uninitialized-var-warning.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
-git-x86.patch
-git-x86-fix-printk-warning.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-cifs-suppress-warning.patch
-pm-remove-destroy_suspended_device-checkpatch-fixes.patch
-git-dvb.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-arch-ia64-kernel-use-time_-macros-checkpatch-fixes.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-kvm-fixup.patch
-git-leds.patch
-devres-implement-pcim_iomap_regions_request_all-fix.patch
-devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
-git-net.patch
-git-net-git-rejects.patch
-git-net-nastily-fix-build-with-config_net_ns=n.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-wan-new-ppp-code-for-generic-hdlc-checkpatch-fixes.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-drivers-net-arcnet-arcnetc-use-time_-macros-checkpatch-fixes.patch
-drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-git-sh.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx-fix.patch
-scsi-chc-fix-shadowed-variable-warnings-checkpatch-fixes.patch
-ipsc-fix-build-warning.patch
-drivers-scsi-initioc-suppress-compile-warning.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-scsi-add-iscsi-ibft-support-fix.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-git-semaphore-git-rejects.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-allocate-section_map-for-sparse_init-update-fix.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-w1-build-fix.patch
-alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
+git-async-tx.patch
+fsldma-split-the-mpc83xx-event-from-mpc85xx-and-refine-irq-codes.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+md-introduce-get_priority_stripe-to-improve-raid456-write-performance.patch
 
