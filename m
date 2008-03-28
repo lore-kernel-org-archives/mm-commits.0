@@ -1,181 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 14:38:29 -0700
-Message-ID: <200803282138.m2SLcTnR011724@imap1.linux-foundation.org>
+Subject: - tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 14:39:45 -0700
+Message-ID: <200803282139.m2SLdkxr011753@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49822 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52120 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755085AbYC1VjC (ORCPT
+	by vger.kernel.org with ESMTP id S1755838AbYC1Vko (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 17:39:02 -0400
+	Fri, 28 Mar 2008 17:40:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, caglar@pardus.org.tr, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, grundler@parisc-linux.org, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes
+     tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
+     tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into drivers-net-tokenring-3c359c-use-time_-macros.patch
+This patch was dropped because it was folded into tulip-tulip_read_eeprom-fixes-for-bug-4420.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes
+Subject: tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space required before the open parenthesis '('
-#33: FILE: drivers/net/tokenring/3c359.c:412:
-+		if(time_after(jiffies, t + 40 * HZ)) {
+ERROR: trailing whitespace
+#45: FILE: drivers/net/tulip/eeprom.c:348:
++^I */^I$
 
-ERROR: space required before the open parenthesis '('
-#42: FILE: drivers/net/tokenring/3c359.c:523:
-+		if(time_after(jiffies, t + 15 * HZ)) {
+total: 1 errors, 0 warnings, 32 lines checked
 
-ERROR: space required before the open parenthesis '('
-#51: FILE: drivers/net/tokenring/3c359.c:794:
-+		if(time_after(jiffies, t + 40 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#60: FILE: drivers/net/tokenring/3c359.c:1007:
-+		if(time_after(jiffies, t + 40 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#69: FILE: drivers/net/tokenring/3c359.c:1274:
-+		if(time_after(jiffies, t + 10 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#78: FILE: drivers/net/tokenring/3c359.c:1283:
-+		if(time_after(jiffies, t + 10 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#87: FILE: drivers/net/tokenring/3c359.c:1292:
-+		if(time_after(jiffies, t + 10 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#96: FILE: drivers/net/tokenring/3c359.c:1309:
-+		if(time_after(jiffies, t + 10 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#105: FILE: drivers/net/tokenring/3c359.c:1338:
-+		if(time_after(jiffies, t + 10 * HZ)) {
-
-ERROR: space required before the open parenthesis '('
-#114: FILE: drivers/net/tokenring/3c359.c:1347:
-+		if(time_after(jiffies, t + 10 * HZ)) {
-
-total: 10 errors, 0 warnings, 87 lines checked
-
-./patches/drivers-net-tokenring-3c359c-use-time_-macros.patch has style problems, please review.  If any of these errors
+./patches/tulip-tulip_read_eeprom-fixes-for-bug-4420.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
+Cc: Grant Grundler <grundler@parisc-linux.org>
 Cc: Jeff Garzik <jeff@garzik.org>
-Cc: S.Caglar Onur <caglar@pardus.org.tr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tokenring/3c359.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ drivers/net/tulip/eeprom.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/tokenring/3c359.c~drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes drivers/net/tokenring/3c359.c
---- a/drivers/net/tokenring/3c359.c~drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes
-+++ a/drivers/net/tokenring/3c359.c
-@@ -409,7 +409,7 @@ static int xl_hw_reset(struct net_device
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
- 		schedule();		
--		if(time_after(jiffies, t + 40 * HZ)) {
-+		if (time_after(jiffies, t + 40 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL  card not responding to global reset.\n", dev->name);
- 			return -ENODEV;
- 		}
-@@ -520,7 +520,7 @@ static int xl_hw_reset(struct net_device
- 	t=jiffies;
- 	while ( !(readw(xl_mmio + MMIO_INTSTATUS_AUTO) & INTSTAT_SRB) ) { 
- 		schedule();		
--		if(time_after(jiffies, t + 15 * HZ)) {
-+		if (time_after(jiffies, t + 15 * HZ)) {
- 			printk(KERN_ERR "3COM 3C359 Velocity XL  card not responding.\n");
- 			return -ENODEV; 
- 		}
-@@ -791,7 +791,7 @@ static int xl_open_hw(struct net_device 
- 	t=jiffies;
- 	while (! (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_SRB)) { 
- 		schedule();		
--		if(time_after(jiffies, t + 40 * HZ)) {
-+		if (time_after(jiffies, t + 40 * HZ)) {
- 			printk(KERN_ERR "3COM 3C359 Velocity XL  card not responding.\n");
- 			break ; 
- 		}
-@@ -1004,7 +1004,7 @@ static void xl_reset(struct net_device *
+diff -puN drivers/net/tulip/eeprom.c~tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes drivers/net/tulip/eeprom.c
+--- a/drivers/net/tulip/eeprom.c~tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes
++++ a/drivers/net/tulip/eeprom.c
+@@ -345,7 +345,7 @@ int __devinit tulip_read_eeprom(struct n
  
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
--		if(time_after(jiffies, t + 40 * HZ)) {
-+		if (time_after(jiffies, t + 40 * HZ)) {
- 			printk(KERN_ERR "3COM 3C359 Velocity XL  card not responding.\n");
- 			break ; 
- 		}
-@@ -1271,7 +1271,7 @@ static int xl_close(struct net_device *d
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
- 		schedule();		
--		if(time_after(jiffies, t + 10 * HZ)) {
-+		if (time_after(jiffies, t + 10 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-DNSTALL not responding.\n", dev->name);
- 			break ; 
- 		}
-@@ -1280,7 +1280,7 @@ static int xl_close(struct net_device *d
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
- 		schedule();		
--		if(time_after(jiffies, t + 10 * HZ)) {
-+		if (time_after(jiffies, t + 10 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-DNDISABLE not responding.\n", dev->name);
- 			break ;
- 		}
-@@ -1289,7 +1289,7 @@ static int xl_close(struct net_device *d
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
- 		schedule();		
--		if(time_after(jiffies, t + 10 * HZ)) {
-+		if (time_after(jiffies, t + 10 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-UPSTALL not responding.\n", dev->name);
- 			break ; 
- 		}
-@@ -1306,7 +1306,7 @@ static int xl_close(struct net_device *d
- 	t=jiffies;
- 	while (!(readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_SRB)) { 
- 		schedule();		
--		if(time_after(jiffies, t + 10 * HZ)) {
-+		if (time_after(jiffies, t + 10 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-CLOSENIC not responding.\n", dev->name);
- 			break ; 
- 		}
-@@ -1335,7 +1335,7 @@ static int xl_close(struct net_device *d
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
- 		schedule();		
--		if(time_after(jiffies, t + 10 * HZ)) {
-+		if (time_after(jiffies, t + 10 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-UPRESET not responding.\n", dev->name);
- 			break ; 
- 		}
-@@ -1344,7 +1344,7 @@ static int xl_close(struct net_device *d
- 	t=jiffies;
- 	while (readw(xl_mmio + MMIO_INTSTATUS) & INTSTAT_CMD_IN_PROGRESS) { 
- 		schedule();		
--		if(time_after(jiffies, t + 10 * HZ)) {
-+		if (time_after(jiffies, t + 10 * HZ)) {
- 			printk(KERN_ERR "%s: 3COM 3C359 Velocity XL-DNRESET not responding.\n", dev->name);
- 			break ; 
- 		}
+ 	/* If location is past the end of what we can address, don't
+ 	 * read some other location (ie truncate). Just return zero.
+-	 */	
++	 */
+ 	if (location > (1 << addr_len) - 1)
+ 		return 0;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -223,8 +106,8 @@ drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 drivers-net-arcnet-arcnetc-use-time_-macros.patch
 drivers-net-tokenring-3c359c-use-time_-macros.patch
-drivers-net-tokenring-3c359c-use-time_-macros-checkpatch-fixes.patch
-net-ehea-port_lock-semaphore-to-mutex-fix.patch
+net-ehea-port_lock-semaphore-to-mutex.patch
+tulip-tulip_read_eeprom-fixes-for-bug-4420.patch
 tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
