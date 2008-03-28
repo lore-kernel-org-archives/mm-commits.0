@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-ehea-port_lock-semaphore-to-mutex-fix.patch added to -mm tree
-Date: Fri, 28 Mar 2008 03:18:25 -0700
-Message-ID: <200803281028.m2SASNCO017868@imap1.linux-foundation.org>
+Subject: + pci-hotplug-introduce-pci_slot-fix-99.patch added to -mm tree
+Date: Fri, 28 Mar 2008 03:20:09 -0700
+Message-ID: <200803281030.m2SAU7ur017904@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54706 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755257AbYC1K3t (ORCPT
+	by vger.kernel.org with ESMTP id S1753575AbYC1Ka7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 06:29:49 -0400
+	Fri, 28 Mar 2008 06:30:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwalker@mvista.com, jeff@garzik.org, raisch@de.ibm.com, themann@de.ibm.com, tklein@de.ibm.com
+Cc: akpm@linux-foundation.org, achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx
 
 
 The patch titled
-     net-ehea-port_lock-semaphore-to-mutex-fix
+     pci-hotplug-introduce-pci_slot-fix-99
 has been added to the -mm tree.  Its filename is
-     net-ehea-port_lock-semaphore-to-mutex-fix.patch
+     pci-hotplug-introduce-pci_slot-fix-99.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net-ehea-port_lock-semaphore-to-mutex-fix
+Subject: pci-hotplug-introduce-pci_slot-fix-99
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/ehea/ehea_main.c: In function 'ehea_rereg_mrs':
-drivers/net/ehea/ehea_main.c:2846: warning: ISO C90 forbids mixed declarations and code
+this patch was a bit of a fiasco.
 
-Cc: Christoph Raisch <raisch@de.ibm.com>
-Cc: Daniel Walker <dwalker@mvista.com>
-Cc: Jan-Bernd Themann <themann@de.ibm.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Thomas Klein <tklein@de.ibm.com>
+Cc: Alex Chiang <achiang@hp.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea_main.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/pci/hotplug/rpadlpar_sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/ehea/ehea_main.c~net-ehea-port_lock-semaphore-to-mutex-fix drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~net-ehea-port_lock-semaphore-to-mutex-fix
-+++ a/drivers/net/ehea/ehea_main.c
-@@ -2839,11 +2839,12 @@ static void ehea_rereg_mrs(struct work_s
- 			/* Shutdown all ports */
- 			for (i = 0; i < EHEA_MAX_PORTS; i++) {
- 				struct ehea_port *port = adapter->port[i];
-+				struct net_device *dev;
+diff -puN drivers/pci/hotplug/rpadlpar_sysfs.c~pci-hotplug-introduce-pci_slot-fix-99 drivers/pci/hotplug/rpadlpar_sysfs.c
+--- a/drivers/pci/hotplug/rpadlpar_sysfs.c~pci-hotplug-introduce-pci_slot-fix-99
++++ a/drivers/pci/hotplug/rpadlpar_sysfs.c
+@@ -17,7 +17,7 @@
+ #include <linux/pci.h>
+ #include <linux/pci_hotplug.h>
+ #include "rpadlpar.h"
+-#include "../pcih."
++#include "../pci.h"
  
- 				if (!port)
- 					continue;
- 
--				struct net_device *dev = port->netdev;
-+				dev = port->netdev;
- 
- 				if (dev->flags & IFF_UP) {
- 					mutex_lock(&port->port_lock);
+ #define DLPAR_KOBJ_NAME       "control"
+ #define ADD_SLOT_ATTR_NAME    "add_slot"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -132,6 +127,7 @@ git-selinux.patch
 pci-hotplug-introduce-pci_slot-fix.patch
 pci-hotplug-introduce-pci_slot-fix-fix.patch
 pci-hotplug-introduce-pci_slot-fix-2.patch
+pci-hotplug-introduce-pci_slot-fix-99.patch
 pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
 git-s390-git-rejects.patch
 git-sh.patch
