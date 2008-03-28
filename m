@@ -1,73 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-kprobe-booster-for-ia64-fix.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 14:25:31 -0700
-Message-ID: <200803282125.m2SLPVlZ010981@imap1.linux-foundation.org>
+Subject: - input-core-driver-for-wm97xx-touchscreens-race-fix.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 14:29:22 -0700
+Message-ID: <200803282129.m2SLTNfr011202@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55947 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36213 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755322AbYC1V1B (ORCPT
+	by vger.kernel.org with ESMTP id S1755943AbYC1V3b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 17:27:01 -0400
+	Fri, 28 Mar 2008 17:29:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhiramat@redhat.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, bibo.mao@intel.com, jkenisto@us.ibm.com, prasanna@in.ibm.com, rusty.lynch@intel.com, shaohua.li@intel.com, tony
+To: broonie@opensource.wolfsonmicro.com, dtor@mail.ru, jkosina@suse.cz, liam.girdwood@wolfsonmicro.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes: fix prepare_booster to get correct slot
+     wm97xx-core: fix race in pen up reporting
 has been removed from the -mm tree.  Its filename was
-     kprobes-kprobe-booster-for-ia64-fix.patch
+     input-core-driver-for-wm97xx-touchscreens-race-fix.patch
 
-This patch was dropped because it was folded into kprobes-kprobe-booster-for-ia64.patch
+This patch was dropped because it was folded into input-core-driver-for-wm97xx-touchscreens.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: fix prepare_booster to get correct slot
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: wm97xx-core: fix race in pen up reporting
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Fix to get correct slot number from probing address in prepare_booster.
+Since the ts_reader will only report changes in pen down status avoid reseting
+the pen down flag once it is running.  While we're at it, only schedule the
+ts_reader when the pen goes down - if the pen is already down then it is
+already scheduled.
 
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: bibo,mao <bibo.mao@intel.com>
-Cc: Rusty Lynch <rusty.lynch@intel.com>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Jim Keniston <jkenisto@us.ibm.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Liam Girdwood <liam.girdwood@wolfsonmicro.com>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/kprobes.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/input/touchscreen/wm97xx-core.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/kernel/kprobes.c~kprobes-kprobe-booster-for-ia64-fix arch/ia64/kernel/kprobes.c
---- a/arch/ia64/kernel/kprobes.c~kprobes-kprobe-booster-for-ia64-fix
-+++ a/arch/ia64/kernel/kprobes.c
-@@ -565,7 +565,7 @@ static int __kprobes can_boost(bundle_t 
- static void __kprobes prepare_booster(struct kprobe *p)
+diff -puN drivers/input/touchscreen/wm97xx-core.c~input-core-driver-for-wm97xx-touchscreens-race-fix drivers/input/touchscreen/wm97xx-core.c
+--- a/drivers/input/touchscreen/wm97xx-core.c~input-core-driver-for-wm97xx-touchscreens-race-fix
++++ a/drivers/input/touchscreen/wm97xx-core.c
+@@ -267,6 +267,7 @@ EXPORT_SYMBOL_GPL(wm97xx_config_gpio);
+ static void wm97xx_pen_irq_worker(struct work_struct *work)
  {
- 	unsigned long addr = (unsigned long)p->addr & ~0xFULL;
--	unsigned int slot = addr & 0xf;
-+	unsigned int slot = (unsigned long)p->addr & 0xf;
- 	struct kprobe *other_kp;
+ 	struct wm97xx *wm = container_of(work, struct wm97xx, pen_event_work);
++	int pen_was_down = wm->pen_is_down;
  
- 	if (can_boost(&p->ainsn.insn[0].bundle, slot, addr)) {
+ 	/* do we need to enable the touch panel reader */
+ 	if (wm->id == WM9705_ID2) {
+@@ -301,16 +302,24 @@ static void wm97xx_pen_irq_worker(struct
+ 	}
+ 
+ 	/* If the system is not using continuous mode or it provides a
+-	 * pen down operation then start scheduling polls.  Otherwise
+-	 * the machine driver is responsible for scheduling reads.
++	 * pen down operation then we need to schedule polls while the
++	 * pen is down.  Otherwise the machine driver is responsible
++	 * for scheduling reads.
+ 	 */
+ 	if (!wm->mach_ops->acc_enabled || wm->mach_ops->acc_pen_down) {
+-		/* Data is not availiable immediately after pen down. */
+-		queue_delayed_work(wm->ts_workq, &wm->ts_reader, 1);
++		if (wm->pen_is_down && !pen_was_down) {
++			/* Data is not availiable immediately on pen down */
++			queue_delayed_work(wm->ts_workq, &wm->ts_reader, 1);
++		}
++
++		/* Let ts_reader report the pen up for debounce. */
++		if (!wm->pen_is_down && pen_was_down)
++			wm->pen_is_down = 1;
+ 	}
+ 
+ 	if (!wm->pen_is_down && wm->mach_ops->acc_enabled)
+ 		wm->mach_ops->acc_pen_up(wm);
++
+ 	wm->mach_ops->irq_enable(wm, 1);
+ }
+ 
 _
 
-Patches currently in -mm which might be from mhiramat@redhat.com are
+Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
 
-origin.patch
-kprobes-kprobe-booster-for-ia64.patch
-kprobes-kprobe-booster-for-ia64-fix.patch
-listh-add-list_singleton.patch
-listh-add-list_singleton-fix.patch
-kprobes-add-unregister_kprobes-for-batch-registration.patch
-kprobes-add-unregister_kprobes-for-batch-registration-fix.patch
-kprobes-add-unregister_kretprobes-for-batch-registration.patch
-kprobes-add-unregister_jprobes-for-batch-registration.patch
-kprobes-update-document-about-batch-registration.patch
+git-alsa-tiwai.patch
+git-arm.patch
+input-core-driver-for-wm97xx-touchscreens.patch
+input-core-driver-for-wm97xx-touchscreens-race-fix.patch
+input-add-chip-driver-for-wm9705-touchscreen.patch
+input-add-chip-driver-for-wm9712-touchscreen.patch
+input-add-chip-driver-for-wm9713-touchscreen.patch
+input-driver-for-wm97xx-touchscreens-in-streaming-mode-on-mainstone.patch
+input-build-system-and-maintainers-entry-for-wm97xx-touchscreen-drivers.patch
 
