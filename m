@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch added to -mm tree
-Date: Fri, 28 Mar 2008 16:48:23 -0700
-Message-ID: <200803282348.m2SNmNru016807@imap1.linux-foundation.org>
+Subject: + revert-gregkh-pci-pci-ia64-use-generic-pci_enable_resources.patch added to -mm tree
+Date: Fri, 28 Mar 2008 16:48:29 -0700
+Message-ID: <200803282348.m2SNmTbO016816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34310 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38107 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756650AbYC1Xtj (ORCPT
+	by vger.kernel.org with ESMTP id S1756517AbYC1Xtp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 19:49:39 -0400
+	Fri, 28 Mar 2008 19:49:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, bjorn.helgaas@hp.com, davem@davemloft.net, greg@k
 
 
 The patch titled
-     revert gregkh-pci-pci-arm-use-generic-pci_enable_resources
+     revert gregkh-pci-pci-ia64-use-generic-pci_enable_resources
 has been added to the -mm tree.  Its filename is
-     revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
+     revert-gregkh-pci-pci-ia64-use-generic-pci_enable_resources.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert gregkh-pci-pci-arm-use-generic-pci_enable_resources
+Subject: revert gregkh-pci-pci-ia64-use-generic-pci_enable_resources
 From: Andrew Morton <akpm@linux-foundation.org>
 
 On Fri, 28 Mar 2008 16:10:11 -0700 (PDT) David Miller <davem@davemloft.net> wrote:
@@ -67,36 +67,44 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/bios32.c |   27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
+ arch/ia64/pci/pci.c |   44 +++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 43 insertions(+), 1 deletion(-)
 
-diff -puN arch/arm/kernel/bios32.c~revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources arch/arm/kernel/bios32.c
---- a/arch/arm/kernel/bios32.c~revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources
-+++ a/arch/arm/kernel/bios32.c
-@@ -660,15 +660,28 @@ void pcibios_align_resource(void *data, 
-  */
- int pcibios_enable_device(struct pci_dev *dev, int mask)
- {
--	int err;
- 	u16 cmd, old_cmd;
--
--	err = pci_enable_resources(dev, mask);
--	if (err < 0)
--		return err;
+diff -puN arch/ia64/pci/pci.c~revert-gregkh-pci-pci-ia64-use-generic-pci_enable_resources arch/ia64/pci/pci.c
+--- a/arch/ia64/pci/pci.c~revert-gregkh-pci-pci-ia64-use-generic-pci_enable_resources
++++ a/arch/ia64/pci/pci.c
+@@ -499,12 +499,54 @@ pcibios_update_irq (struct pci_dev *dev,
+ 	/* ??? FIXME -- record old value for shutdown.  */
+ }
+ 
++static inline int
++pcibios_enable_resources (struct pci_dev *dev, int mask)
++{
++	u16 cmd, old_cmd;
 +	int idx;
 +	struct resource *r;
- 
- 	pci_read_config_word(dev, PCI_COMMAND, &cmd);
- 	old_cmd = cmd;
-+	for (idx = 0; idx < 6; idx++) {
-+		/* Only set up the requested stuff */
++	unsigned long type_mask = IORESOURCE_IO | IORESOURCE_MEM;
++
++	if (!dev)
++		return -EINVAL;
++
++	pci_read_config_word(dev, PCI_COMMAND, &cmd);
++	old_cmd = cmd;
++	for (idx=0; idx<PCI_NUM_RESOURCES; idx++) {
++		/* Only set up the desired resources.  */
 +		if (!(mask & (1 << idx)))
 +			continue;
 +
-+		r = dev->resource + idx;
++		r = &dev->resource[idx];
++		if (!(r->flags & type_mask))
++			continue;
++		if ((idx == PCI_ROM_RESOURCE) &&
++				(!(r->flags & IORESOURCE_ROM_ENABLE)))
++			continue;
 +		if (!r->start && r->end) {
-+			printk(KERN_ERR "PCI: Device %s not available because"
-+			       " of resource collisions\n", pci_name(dev));
++			printk(KERN_ERR
++			       "PCI: Device %s not available because of resource collisions\n",
++			       pci_name(dev));
 +			return -EINVAL;
 +		}
 +		if (r->flags & IORESOURCE_IO)
@@ -104,20 +112,23 @@ diff -puN arch/arm/kernel/bios32.c~revert-gregkh-pci-pci-arm-use-generic-pci_ena
 +		if (r->flags & IORESOURCE_MEM)
 +			cmd |= PCI_COMMAND_MEMORY;
 +	}
++	if (cmd != old_cmd) {
++		printk("PCI: Enabling device %s (%04x -> %04x)\n", pci_name(dev), old_cmd, cmd);
++		pci_write_config_word(dev, PCI_COMMAND, cmd);
++	}
++	return 0;
++}
++
+ int
+ pcibios_enable_device (struct pci_dev *dev, int mask)
+ {
+ 	int ret;
  
- 	/*
- 	 * Bridges (eg, cardbus bridges) need to be fully enabled
-@@ -677,8 +690,8 @@ int pcibios_enable_device(struct pci_dev
- 		cmd |= PCI_COMMAND_IO | PCI_COMMAND_MEMORY;
+-	ret = pci_enable_resources(dev, mask);
++	ret = pcibios_enable_resources(dev, mask);
+ 	if (ret < 0)
+ 		return ret;
  
- 	if (cmd != old_cmd) {
--		dev_info(&dev->dev, "enabling bridge device (%04x -> %04x)\n",
--		       old_cmd, cmd);
-+		printk("PCI: enabling device %s (%04x -> %04x)\n",
-+		       pci_name(dev), old_cmd, cmd);
- 		pci_write_config_word(dev, PCI_COMMAND, cmd);
- 	}
- 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
