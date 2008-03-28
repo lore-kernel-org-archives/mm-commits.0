@@ -1,64 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 28 Mar 2008 14:39:45 -0700
-Message-ID: <200803282139.m2SLdkxr011753@imap1.linux-foundation.org>
+Subject: - arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 28 Mar 2008 14:43:25 -0700
+Message-ID: <200803282143.m2SLhPqj011996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52120 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59802 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755838AbYC1Vko (ORCPT
+	by vger.kernel.org with ESMTP id S1756926AbYC1Vne (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 17:40:44 -0400
+	Fri, 28 Mar 2008 17:43:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, grundler@parisc-linux.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, caglar@pardus.org.tr, kyle@mcmartin.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes
+     arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
+     arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into tulip-tulip_read_eeprom-fixes-for-bug-4420.patch
+This patch was dropped because it was folded into arch-parisc-kernel-unalignedc-use-time_-macros.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes
+Subject: arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: trailing whitespace
-#45: FILE: drivers/net/tulip/eeprom.c:348:
-+^I */^I$
+WARNING: line over 80 characters
+#27: FILE: arch/parisc/kernel/unaligned.c:463:
++		if (unaligned_count > 5 && time_after(jiffies, last_time + 5 * HZ)) {
 
-total: 1 errors, 0 warnings, 32 lines checked
+total: 0 errors, 1 warnings, 8 lines checked
 
-./patches/tulip-tulip_read_eeprom-fixes-for-bug-4420.patch has style problems, please review.  If any of these errors
+./patches/arch-parisc-kernel-unalignedc-use-time_-macros.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: S.Caglar Onur <caglar@pardus.org.tr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/eeprom.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/parisc/kernel/unaligned.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/tulip/eeprom.c~tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes drivers/net/tulip/eeprom.c
---- a/drivers/net/tulip/eeprom.c~tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes
-+++ a/drivers/net/tulip/eeprom.c
-@@ -345,7 +345,7 @@ int __devinit tulip_read_eeprom(struct n
+diff -puN arch/parisc/kernel/unaligned.c~arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes arch/parisc/kernel/unaligned.c
+--- a/arch/parisc/kernel/unaligned.c~arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes
++++ a/arch/parisc/kernel/unaligned.c
+@@ -460,7 +460,8 @@ void handle_unaligned(struct pt_regs *re
+ 			goto force_sigbus;
+ 		}
  
- 	/* If location is past the end of what we can address, don't
- 	 * read some other location (ie truncate). Just return zero.
--	 */	
-+	 */
- 	if (location > (1 << addr_len) - 1)
- 		return 0;
- 
+-		if (unaligned_count > 5 && time_after(jiffies, last_time + 5 * HZ)) {
++		if (unaligned_count > 5 &&
++				time_after(jiffies, last_time + 5 * HZ)) {
+ 			unaligned_count = 0;
+ 			last_time = jiffies;
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,11 +109,11 @@ drivers-net-arcnet-arcnetc-use-time_-macros.patch
 drivers-net-tokenring-3c359c-use-time_-macros.patch
 net-ehea-port_lock-semaphore-to-mutex.patch
 tulip-tulip_read_eeprom-fixes-for-bug-4420.patch
-tulip-tulip_read_eeprom-fixes-for-bug-4420-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 git-nfsd.patch
 git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
 arch-parisc-kernel-unalignedc-use-time_-macros-checkpatch-fixes.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
 git-selinux.patch
