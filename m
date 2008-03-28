@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + git-kvm-vs-git-s390.patch added to -mm tree
-Date: Fri, 28 Mar 2008 01:16:37 -0700
-Message-ID: <200803280826.m2S8QYmV013490@imap1.linux-foundation.org>
+Subject: + git-s390-git-rejects.patch added to -mm tree
+Date: Fri, 28 Mar 2008 01:23:33 -0700
+Message-ID: <200803280833.m2S8XUHo013703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49280 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46683 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750771AbYC1I15 (ORCPT
+	by vger.kernel.org with ESMTP id S1751154AbYC1IeF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 28 Mar 2008 04:27:57 -0400
+	Fri, 28 Mar 2008 04:34:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, avi@qumranet.com, cotte@freenet.de, heiko.carsten
 
 
 The patch titled
-     git-kvm vs git-s390
+     git-s390-git-rejects
 has been added to the -mm tree.  Its filename is
-     git-kvm-vs-git-s390.patch
+     git-s390-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,13 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-kvm vs git-s390
+Subject: git-s390-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/s390/kvm/priv.c:155: error: redefinition of 'stfl'
-include/asm/system.h:427: error: previous definition of 'stfl' was here
-
-let's remove the git-kvm one.
+argh, fustercluck.
 
 Cc: Avi Kivity <avi@qumranet.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
@@ -49,28 +46,34 @@ Cc: Carsten Otte <cotte@freenet.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kvm/priv.c |    9 ---------
- 1 file changed, 9 deletions(-)
+ include/asm-s390/sysinfo.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN arch/s390/kvm/priv.c~git-kvm-vs-git-s390 arch/s390/kvm/priv.c
---- a/arch/s390/kvm/priv.c~git-kvm-vs-git-s390
-+++ a/arch/s390/kvm/priv.c
-@@ -151,15 +151,6 @@ static int handle_chsc(struct kvm_vcpu *
- 	return 0;
- }
+diff -puN drivers/s390/sysinfo.c~git-s390-git-rejects drivers/s390/sysinfo.c
+diff -puN include/asm-s390/sysinfo.h~git-s390-git-rejects include/asm-s390/sysinfo.h
+--- a/include/asm-s390/sysinfo.h~git-s390-git-rejects
++++ a/include/asm-s390/sysinfo.h
+@@ -8,7 +8,7 @@
+  * as published by the Free Software Foundation.
+  *
+  *    Author(s): Ulrich Weigand <weigand@de.ibm.com>
+- *               Christian Borntraeger <borntraeger@de.ibm.com>
++ *		 Christian Borntraeger <borntraeger@de.ibm.com>
+  */
  
--static unsigned int stfl(void)
--{
--	asm volatile(
--		"	.insn	s,0xb2b10000,0(0)\n" /* stfl */
--		"0:\n"
--		EX_TABLE(0b, 0b));
--	return S390_lowcore.stfl_fac_list;
--}
--
- static int handle_stfl(struct kvm_vcpu *vcpu)
- {
- 	unsigned int facility_list = stfl();
+ struct sysinfo_1_1_1 {
+@@ -20,6 +20,11 @@ struct sysinfo_1_1_1 {
+ 	char sequence[16];
+ 	char plant[4];
+ 	char model[16];
++	char model_perm_cap[16];
++	char model_temp_cap[16];
++	char model_cap_rating[4];
++	char model_perm_cap_rating[4];
++	char model_temp_cap_rating[4];
+ };
+ 
+ struct sysinfo_1_2_1 {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,6 +112,7 @@ git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.
 maple-add-driver-for-sega-dreamcast-controller.patch
 git-kvm.patch
 git-kvm-fixup.patch
+git-kvm-vs-git-s390.patch
 git-leds.patch
 devres-implement-pcim_iomap_regions_request_all-fix.patch
 devres-implement-pcim_iomap_regions_request_all-fix-fix.patch
@@ -132,6 +136,7 @@ git-selinux.patch
 pci-hotplug-introduce-pci_slot-fix.patch
 pci-hotplug-introduce-pci_slot-fix-fix.patch
 pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+git-s390-git-rejects.patch
 git-sh.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
@@ -244,5 +249,4 @@ getblk-handle-2tb-devices-fix.patch
 undeprecate-pci_find_device.patch
 i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 w1-build-fix.patch
-git-kvm-vs-git-s390.patch
 
