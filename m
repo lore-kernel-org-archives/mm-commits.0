@@ -1,62 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - ipsc-fix-build-warning.patch removed from -mm tree
-Date: Sun, 30 Mar 2008 16:53:01 -0700
-Message-ID: <200803302353.m2UNr1QA013571@imap1.linux-foundation.org>
+Subject: + add-warn_on_secs-macro-simplification-fix-fix.patch added to -mm tree
+Date: Sun, 30 Mar 2008 16:56:24 -0700
+Message-ID: <200803302356.m2UNuOvT013623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60864 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53887 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754551AbYC3Xx0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751626AbYC3X4h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 30 Mar 2008 19:53:26 -0400
+	Sun, 30 Mar 2008 19:56:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, Mark_Salyzyn@adaptec.com, aacraid@adaptec.com, fujita.tomonori@lab.ntt.co.jp, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, hannes@saeurebad.de, hidave.darkstar@gmail.com, paulmck@linux.vnet.ibm.com, tremyfr@yahoo.fr
 
 
 The patch titled
-     ips.c: fix build warning
-has been removed from the -mm tree.  Its filename was
-     ipsc-fix-build-warning.patch
+     add-warn_on_secs-macro-simplification-fix-fix
+has been added to the -mm tree.  Its filename is
+     add-warn_on_secs-macro-simplification-fix-fix.patch
 
-This patch was dropped because it was withdrawn
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ips.c: fix build warning
+Subject: add-warn_on_secs-macro-simplification-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-powerpc:
+We still need the param.h include.
 
-drivers/scsi/ips.c: In function 'ips_issue_copperhead':
-drivers/scsi/ips.c:5436: warning: large integer implicitly truncated to unsigned type
+> From: Reynes Philippe <tremyfr@yahoo.fr>
+> To: Andrew Morton <akpm@linux-foundation.org>
+> Subject: [PATCH] [MM] include param.h in rcupreempt.h if CONFIG_NO_HZ is set
+> Date: Sun, 30 Mar 2008 18:55:39 +0200 (CEST)
+> 
+> The file rcupreempt.h needs HZ if CONFIG_NO_HZ is set. But HZ is defined
+> in include/linux/param.h, and this file isn't included. So the compilation fails with
+> this error :
+> 
+>   CC      init/main.o
+> In file included from include/linux/rcupdate.h:57,
+>                  from include/linux/rculist.h:10,
+>                  from include/linux/dcache.h:6,
+>                  from include/linux/fs.h:278,
+>                  from include/linux/proc_fs.h:5,
+>                  from init/main.c:14:
+> include/linux/rcupreempt.h: In function rcu_enter_nohz:
+> include/linux/rcupreempt.h:90: erreur: HZ undeclared (first use in this function)
+> include/linux/rcupreempt.h:90: erreur: (Each undeclared identifier is reported only once
+> include/linux/rcupreempt.h:90: erreur: for each function it appears in.)
+> include/linux/rcupreempt.h: In function rcu_exit_nohz:
+> include/linux/rcupreempt.h:97: erreur: HZ undeclared (first use in this function)
 
-it doesn't seem necessary to do outw(cpu_to_le32(...), ...) anyway.
-
-Acked-by: Mark Salyzyn <Mark_Salyzyn@adaptec.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: <aacraid@adaptec.com>
+Cc: Dave Young <hidave.darkstar@gmail.com>
+Cc: Johannes Weiner <hannes@saeurebad.de>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Reynes Philippe <tremyfr@yahoo.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ips.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/bug.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/ips.c~ipsc-fix-build-warning drivers/scsi/ips.c
---- a/drivers/scsi/ips.c~ipsc-fix-build-warning
-+++ a/drivers/scsi/ips.c
-@@ -5399,7 +5399,7 @@ ips_issue_copperhead(ips_ha_t * ha, ips_
- 	}			/* end while */
+diff -puN include/asm-generic/bug.h~add-warn_on_secs-macro-simplification-fix-fix include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~add-warn_on_secs-macro-simplification-fix-fix
++++ a/include/asm-generic/bug.h
+@@ -2,6 +2,7 @@
+ #define _ASM_GENERIC_BUG_H
  
- 	outl(cpu_to_le32(scb->scb_busaddr), ha->io_addr + IPS_REG_CCSAR);
--	outw(cpu_to_le32(IPS_BIT_START_CMD), ha->io_addr + IPS_REG_CCCR);
-+	outw(cpu_to_le16(IPS_BIT_START_CMD), ha->io_addr + IPS_REG_CCCR);
+ #include <linux/compiler.h>
++#include <linux/param.h>
  
- 	return (IPS_SUCCESS);
- }
+ #ifdef CONFIG_BUG
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -141,7 +167,6 @@ git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_de
 scsi-aic94xx-cleanups.patch
 scsi-fix-section-mismatch-in-aic94xx.patch
 scsi-chc-fix-shadowed-variable-warnings.patch
-ipsc-fix-build-warning.patch
 drivers-scsi-hptiopc-fix-build-warning.patch
 drivers-scsi-mvsasc-fix-build-warnings.patch
 git-block-git-rejects.patch
@@ -185,6 +210,7 @@ lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixe
 fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
 add-rcu_assign_index-if-ever-needed-fix.patch
 add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
 uart_get_baud_rate-stop-mangling-termios-fix.patch
 oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
 vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
