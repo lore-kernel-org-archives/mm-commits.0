@@ -1,100 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - net-ehea-semaphore-to-mutex.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:18:44 -0700
-Message-ID: <200803312018.m2VKIiaS024078@imap1.linux-foundation.org>
+Subject: - ixp4xx-beeper-add-module_alias.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 13:17:46 -0700
+Message-ID: <200803312017.m2VKHkIS023995@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55061 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56155 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757464AbYCaUfb (ORCPT
+	by vger.kernel.org with ESMTP id S1754939AbYCaUgX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:35:31 -0400
+	Mon, 31 Mar 2008 16:36:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, jeff@garzik.org, raisch@de.ibm.com, themann@de.ibm.com, tklein@de.ibm.com, mm-commits@vger.kernel.org
+To: alessandro.zummo@towertech.it, a.zummo@towertech.it, anemo@mba.ocn.ne.jp, david-b@pacbell.net, dtor@mail.ru, gordonfarquharson@gmail.com, gregkh@suse.de, kay.sievers@vrfy.org, mm-comm
 
 
 The patch titled
-     netdev: ehea: semaphore to mutex
+     ixp4xx-beeper: add MODULE_ALIAS
 has been removed from the -mm tree.  Its filename was
-     net-ehea-semaphore-to-mutex.patch
+     ixp4xx-beeper-add-module_alias.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: netdev: ehea: semaphore to mutex
-From: Daniel Walker <dwalker@mvista.com>
+Subject: ixp4xx-beeper: add MODULE_ALIAS
+From: Alessandro Zummo <alessandro.zummo@towertech.it>
 
-Converted the dlpar_mem_lock.  With a bit of cleanup, I converted to
-DEFINE_MUTEX() instead of a runtime init.  I also made the lock static.
+The following patch allows ixp4xx-beeper to be loaded by udev automatically
+when compiled as a module with kernel versions 2.4.24 and greater.  This patch
+is required because
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Christoph Raisch <raisch@de.ibm.com>
-Acked-by: Jan-Bernd Themann <themann@de.ibm.com>
-Cc: Thomas Klein <tklein@de.ibm.com>
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=43cc71eed1250755986da4c0f9898f9a635cb3bf
+
+adds "platform:" to the modalias string.
+
+LKG7102D7:~# udevinfo -a -p /sys/devices/platform/ixp4xx-beeper.4
+
+ looking at device '/devices/platform/ixp4xx-beeper.4':
+   KERNEL=="ixp4xx-beeper.4"
+   SUBSYSTEM=="platform"
+   DRIVER==""
+   ATTR{modalias}=="platform:ixp4xx-beeper"
+
+udev therefore tries to modprobe platform:ixp4xx-beeper instead of
+ixp4xx-beeper.
+
+LKG7102D7:~# udevtest /sys/devices/platform/ixp4xx-beeper.4
+...
+import_uevent_var: import into environment: 'PHYSDEVBUS=platform'
+import_uevent_var: import into environment: 'MODALIAS=platform:ixp4xx-beeper'
+main: looking at device '/devices/platform/ixp4xx-beeper.4' from
+subsystem 'platform'
+wait_for_sysfs: file '/sys/devices/platform/ixp4xx-beeper.4/bus'
+appeared after 0 loops
+main: run: 'socket:/org/kernel/udev/monitor'
+main: run: '/sbin/modprobe --use-blacklist platform:ixp4xx-beeper'
+
+With this patch, depmod adds an alias line (see below) to
+modules.alias which allows modprobe to load the right module.
+
+alias platform:ixp4xx-beeper ixp4xx-beeper
+
+Signed-off-by: Gordon Farquharson <gordonfarquharson@gmail.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Atsushi Nemoto <anemo@mba.ocn.ne.jp>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea_main.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/input/misc/ixp4xx-beeper.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/ehea/ehea_main.c~net-ehea-semaphore-to-mutex drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~net-ehea-semaphore-to-mutex
-+++ a/drivers/net/ehea/ehea_main.c
-@@ -36,6 +36,7 @@
- #include <linux/notifier.h>
- #include <linux/reboot.h>
- #include <asm/kexec.h>
-+#include <linux/mutex.h>
+diff -puN drivers/input/misc/ixp4xx-beeper.c~ixp4xx-beeper-add-module_alias drivers/input/misc/ixp4xx-beeper.c
+--- a/drivers/input/misc/ixp4xx-beeper.c~ixp4xx-beeper-add-module_alias
++++ a/drivers/input/misc/ixp4xx-beeper.c
+@@ -25,6 +25,7 @@
+ MODULE_AUTHOR("Alessandro Zummo <a.zummo@towertech.it>");
+ MODULE_DESCRIPTION("ixp4xx beeper driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:ixp4xx-beeper");
  
- #include <net/ip.h>
- 
-@@ -99,7 +100,7 @@ static int port_name_cnt;
- static LIST_HEAD(adapter_list);
- u64 ehea_driver_flags;
- struct work_struct ehea_rereg_mr_task;
--struct semaphore dlpar_mem_lock;
-+static DEFINE_MUTEX(dlpar_mem_lock);
- struct ehea_fw_handle_array ehea_fw_handles;
- struct ehea_bcmc_reg_array ehea_bcmc_regs;
- 
-@@ -2830,7 +2831,7 @@ static void ehea_rereg_mrs(struct work_s
- 	int ret, i;
- 	struct ehea_adapter *adapter;
- 
--	down(&dlpar_mem_lock);
-+	mutex_lock(&dlpar_mem_lock);
- 	ehea_info("LPAR memory enlarged - re-initializing driver");
- 
- 	list_for_each_entry(adapter, &adapter_list, list)
-@@ -2902,7 +2903,7 @@ static void ehea_rereg_mrs(struct work_s
- 				}
- 			}
- 		}
--       up(&dlpar_mem_lock);
-+       mutex_unlock(&dlpar_mem_lock);
-        ehea_info("re-initializing driver complete");
- out:
- 	return;
-@@ -3543,7 +3544,6 @@ int __init ehea_module_init(void)
- 	memset(&ehea_fw_handles, 0, sizeof(ehea_fw_handles));
- 	memset(&ehea_bcmc_regs, 0, sizeof(ehea_bcmc_regs));
- 
--	sema_init(&dlpar_mem_lock, 1);
- 	sema_init(&ehea_fw_handles.lock, 1);
- 	sema_init(&ehea_bcmc_regs.lock, 1);
+ static DEFINE_SPINLOCK(beep_lock);
  
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from alessandro.zummo@towertech.it are
 
-git-net.patch
-usb-u132-hcd-driver-style-clean-up.patch
-usb-u132-hcd-driver-semaphore-to-mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-likely_prof-changed-to-use-proc_create.patch
+origin.patch
 
