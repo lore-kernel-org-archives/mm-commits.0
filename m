@@ -1,150 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: - net-ehea-bcmc_regs-semaphore-to-mutex.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:18:50 -0700
-Message-ID: <200803312018.m2VKIoWL024087@imap1.linux-foundation.org>
+Subject: + procfs-mem-permission-cleanup.patch added to -mm tree
+Date: Mon, 31 Mar 2008 13:55:21 -0700
+Message-ID: <200803312055.m2VKtLRF025622@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39413 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34815 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754985AbYCaUkp (ORCPT
+	by vger.kernel.org with ESMTP id S1752074AbYCaU4b (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:40:45 -0400
+	Mon, 31 Mar 2008 16:56:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, jeff@garzik.org, raisch@de.ibm.com, themann@de.ibm.com, tklein@de.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: roland@redhat.com, adobriyan@gmail.com, oleg@tv-sign.ru
 
 
 The patch titled
-     netdev: ehea: bcmc_regs semaphore to mutex
-has been removed from the -mm tree.  Its filename was
-     net-ehea-bcmc_regs-semaphore-to-mutex.patch
+     procfs: mem permission cleanup
+has been added to the -mm tree.  Its filename is
+     procfs-mem-permission-cleanup.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: netdev: ehea: bcmc_regs semaphore to mutex
-From: Daniel Walker <dwalker@mvista.com>
+Subject: procfs: mem permission cleanup
+From: Roland McGrath <roland@redhat.com>
 
-Convert the ehea_bcmc_regs.lock to a mutex.
+This cleans up the permission checks done for /proc/PID/mem i/o calls.  It
+puts all the logic in a new function, check_mem_permission().
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Christoph Raisch <raisch@de.ibm.com>
-Cc: Jan-Bernd Themann <themann@de.ibm.com>
-Cc: Thomas Klein <tklein@de.ibm.com>
+The old code repeated the (!MAY_PTRACE(task) || !ptrace_may_attach(task))
+magical expression multiple times.  The new function does all that work in one
+place, with clear comments.
+
+The old code called security_ptrace() twice on successful checks, once in
+MAY_PTRACE() and once in __ptrace_may_attach().  Now it's only called once,
+and only if all other checks have succeeded.
+
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea.h      |    2 +-
- drivers/net/ehea/ehea_main.c |   18 +++++++++---------
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ fs/proc/base.c |   38 +++++++++++++++++++++++++++++---------
+ 1 file changed, 29 insertions(+), 9 deletions(-)
 
-diff -puN drivers/net/ehea/ehea.h~net-ehea-bcmc_regs-semaphore-to-mutex drivers/net/ehea/ehea.h
---- a/drivers/net/ehea/ehea.h~net-ehea-bcmc_regs-semaphore-to-mutex
-+++ a/drivers/net/ehea/ehea.h
-@@ -434,7 +434,7 @@ struct ehea_bcmc_reg_entry {
- struct ehea_bcmc_reg_array {
- 	struct ehea_bcmc_reg_entry *arr;
- 	int num_entries;
--	struct semaphore lock;
-+	struct mutex lock;
- };
- 
- #define EHEA_PORT_UP 1
-diff -puN drivers/net/ehea/ehea_main.c~net-ehea-bcmc_regs-semaphore-to-mutex drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~net-ehea-bcmc_regs-semaphore-to-mutex
-+++ a/drivers/net/ehea/ehea_main.c
-@@ -1759,7 +1759,7 @@ static int ehea_set_mac_addr(struct net_
- 
- 	memcpy(dev->dev_addr, mac_addr->sa_data, dev->addr_len);
- 
--	down(&ehea_bcmc_regs.lock);
-+	mutex_lock(&ehea_bcmc_regs.lock);
- 
- 	/* Deregister old MAC in pHYP */
- 	ret = ehea_broadcast_reg_helper(port, H_DEREG_BCMC);
-@@ -1777,7 +1777,7 @@ static int ehea_set_mac_addr(struct net_
- 
- out_upregs:
- 	ehea_update_bcmc_registrations();
--	up(&ehea_bcmc_regs.lock);
-+	mutex_unlock(&ehea_bcmc_regs.lock);
- out_free:
- 	kfree(cb0);
- out:
-@@ -1939,7 +1939,7 @@ static void ehea_set_multicast_list(stru
- 	}
- 	ehea_promiscuous(dev, 0);
- 
--	down(&ehea_bcmc_regs.lock);
-+	mutex_lock(&ehea_bcmc_regs.lock);
- 
- 	if (dev->flags & IFF_ALLMULTI) {
- 		ehea_allmulti(dev, 1);
-@@ -1970,7 +1970,7 @@ static void ehea_set_multicast_list(stru
- 	}
- out:
- 	ehea_update_bcmc_registrations();
--	up(&ehea_bcmc_regs.lock);
-+	mutex_unlock(&ehea_bcmc_regs.lock);
- 	return;
+diff -puN fs/proc/base.c~procfs-mem-permission-cleanup fs/proc/base.c
+--- a/fs/proc/base.c~procfs-mem-permission-cleanup
++++ a/fs/proc/base.c
+@@ -195,12 +195,32 @@ static int proc_root_link(struct inode *
+ 	return result;
  }
  
-@@ -2491,7 +2491,7 @@ static int ehea_up(struct net_device *de
- 		}
- 	}
+-#define MAY_PTRACE(task) \
+-	(task == current || \
+-	(task->parent == current && \
+-	(task->ptrace & PT_PTRACED) && \
+-	 (task_is_stopped_or_traced(task)) && \
+-	 security_ptrace(current,task) == 0))
++/*
++ * Return zero if current may access user memory in @task, -error if not.
++ */
++static int check_mem_permission(struct task_struct *task)
++{
++	/*
++	 * A task can always look at itself, in case it chooses
++	 * to use system calls instead of load instructions.
++	 */
++	if (task == current)
++		return 0;
++
++	/*
++	 * If current is actively ptrace'ing, and would also be
++	 * permitted to freshly attach with ptrace now, permit it.
++	 */
++	if (task->parent == current && (task->ptrace & PT_PTRACED) &&
++	    task_is_stopped_or_traced(task) &&
++	    ptrace_may_attach(task))
++		return 0;
++
++	/*
++	 * Noone else is allowed.
++	 */
++	return -EPERM;
++}
  
--	down(&ehea_bcmc_regs.lock);
-+	mutex_lock(&ehea_bcmc_regs.lock);
+ struct mm_struct *mm_for_maps(struct task_struct *task)
+ {
+@@ -722,7 +742,7 @@ static ssize_t mem_read(struct file * fi
+ 	if (!task)
+ 		goto out_no_task;
  
- 	ret = ehea_broadcast_reg_helper(port, H_REG_BCMC);
- 	if (ret) {
-@@ -2514,7 +2514,7 @@ out:
- 		ehea_info("Failed starting %s. ret=%i", dev->name, ret);
+-	if (!MAY_PTRACE(task) || !ptrace_may_attach(task))
++	if (check_mem_permission(task))
+ 		goto out;
  
- 	ehea_update_bcmc_registrations();
--	up(&ehea_bcmc_regs.lock);
-+	mutex_unlock(&ehea_bcmc_regs.lock);
+ 	ret = -ENOMEM;
+@@ -748,7 +768,7 @@ static ssize_t mem_read(struct file * fi
  
- 	ehea_update_firmware_handles();
- 	mutex_unlock(&ehea_fw_handles.lock);
-@@ -2569,7 +2569,7 @@ static int ehea_down(struct net_device *
+ 		this_len = (count > PAGE_SIZE) ? PAGE_SIZE : count;
+ 		retval = access_process_vm(task, src, page, this_len, 0);
+-		if (!retval || !MAY_PTRACE(task) || !ptrace_may_attach(task)) {
++		if (!retval || check_mem_permission(task)) {
+ 			if (!ret)
+ 				ret = -EIO;
+ 			break;
+@@ -792,7 +812,7 @@ static ssize_t mem_write(struct file * f
+ 	if (!task)
+ 		goto out_no_task;
  
- 	mutex_lock(&ehea_fw_handles.lock);
+-	if (!MAY_PTRACE(task) || !ptrace_may_attach(task))
++	if (check_mem_permission(task))
+ 		goto out;
  
--	down(&ehea_bcmc_regs.lock);
-+	mutex_lock(&ehea_bcmc_regs.lock);
- 	ehea_drop_multicast_list(dev);
- 	ehea_broadcast_reg_helper(port, H_DEREG_BCMC);
- 
-@@ -2578,7 +2578,7 @@ static int ehea_down(struct net_device *
- 	port->state = EHEA_PORT_DOWN;
- 
- 	ehea_update_bcmc_registrations();
--	up(&ehea_bcmc_regs.lock);
-+	mutex_unlock(&ehea_bcmc_regs.lock);
- 
- 	ret = ehea_clean_all_portres(port);
- 	if (ret)
-@@ -3545,7 +3545,7 @@ int __init ehea_module_init(void)
- 	memset(&ehea_bcmc_regs, 0, sizeof(ehea_bcmc_regs));
- 
- 	mutex_init(&ehea_fw_handles.lock);
--	sema_init(&ehea_bcmc_regs.lock, 1);
-+	mutex_init(&ehea_bcmc_regs.lock);
- 
- 	ret = check_module_parm();
- 	if (ret)
+ 	copied = -ENOMEM;
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from roland@redhat.com are
 
-git-net.patch
-usb-u132-hcd-driver-style-clean-up.patch
-usb-u132-hcd-driver-semaphore-to-mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-likely_prof-changed-to-use-proc_create.patch
+origin.patch
+git-x86.patch
+x86-handle_vm86_trap-cleanup.patch
+x86_64-ia32-ptrace-vs-enosys.patch
+x86_64-ptrace-vs-enosys.patch
+x86_64-ia32-ptrace-vs-enosys-sysenter-syscall.patch
+git-powerpc.patch
+git-selinux.patch
+add-rusage_thread.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
+kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
+handle_stop_signal-unify-partial-full-stop-handling.patch
+handle_stop_signal-use-the-cached-p-signal-value.patch
+get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
+signals-send_sigqueue-dont-take-rcu-lock.patch
+signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
+signals-__group_complete_signal-cache-the-value-of-p-signal.patch
+signals-send_group_sigqueue-dont-take-tasklist_lock.patch
+signals-move-handle_stop_signal-into-send_signal.patch
+signals-do_tkill-dont-use-tasklist_lock.patch
+signals-do_tkill-dont-use-tasklist_lock-comment.patch
+signals-send_sig_info-dont-take-tasklist_lock.patch
+signals-microoptimize-the-usage-of-curr_target.patch
+signals-move-the-definition-of-__group_complete_signal-up.patch
+signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+signals-join-send_sigqueue-with-send_group_sigqueue.patch
+signals-handle_stop_signal-dont-worry-about-sigkill.patch
+signals-cleanup-the-usage-of-print_fatal_signal.patch
+signals-fold-sig_ignored-into-handle_stop_signal.patch
+signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
+signals-document-cld_continued-notification-mechanics.patch
+signals-document-cld_continued-notification-mechanics-more.patch
+signals-send_signal-be-paranoid-about-signalfd_notify.patch
+signals-check_kill_permission-check-session-under-tasklist_lock.patch
+signals-check_kill_permission-remove-tasklist_lock.patch
+signals-fix-sbin-init-protection-from-unwanted-signals.patch
+signals-de_thread-simplify-the-child_reaper-switching.patch
+signals-allow-the-kernel-to-actually-kill-sbin-init.patch
+ptrace-introduce-task_detached-helper.patch
+reparent_thread-use-same_thread_group.patch
+document-de_thread-with-exit_notify-connection.patch
+ptrace-introduce-ptrace_reparented-helper.patch
+ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
+ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
+ptrace-allow-to-ptrace-sbin-init.patch
+procfs-mem-permission-cleanup.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
+pids-introduce-change_pid-helper.patch
+pids-sys_setpgid-use-change_pid-helper.patch
+pids-__set_special_pids-use-change_pid-helper.patch
+pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
+pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
