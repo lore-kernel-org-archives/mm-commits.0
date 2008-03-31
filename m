@@ -1,65 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: - pata_sil680-only-enable-mmio-on-cell-blades.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:19:11 -0700
-Message-ID: <200803312019.m2VKJBTW024186@imap1.linux-foundation.org>
+Subject: - reiserfs-fix-sparse-warnings-in-fix_nodec.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 13:19:20 -0700
+Message-ID: <200803312019.m2VKJKG7024198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50627 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53059 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754079AbYCaUUF (ORCPT
+	by vger.kernel.org with ESMTP id S1751258AbYCaUUK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:20:05 -0400
+	Mon, 31 Mar 2008 16:20:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@ozlabs.org, alan@redhat.com, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, chris.mason@oracle.com, jeffm@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_sil680: only enable MMIO on Cell blades
+     reiserfs: fix sparse warnings in fix_node.c
 has been removed from the -mm tree.  Its filename was
-     pata_sil680-only-enable-mmio-on-cell-blades.patch
+     reiserfs-fix-sparse-warnings-in-fix_nodec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_sil680: only enable MMIO on Cell blades
-From: Benjamin Herrenschmidt <benh@ozlabs.org>
+Subject: reiserfs: fix sparse warnings in fix_node.c
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-There have been reported regressions of the SIL 680 driver when using MMIO, so
-this makes it only try MMIO on Cell blades where it's known to be necessary
-(the host bridge doesn't do PIO on these).
+fs/reiserfs/fix_node.c:156:3: warning: Using plain integer as NULL pointer
+fs/reiserfs/fix_node.c:860:46: warning: Using plain integer as NULL pointer
+fs/reiserfs/fix_node.c:860:70: warning: Using plain integer as NULL pointer
+fs/reiserfs/fix_node.c:881:46: warning: Using plain integer as NULL pointer
+fs/reiserfs/fix_node.c:881:70: warning: Using plain integer as NULL pointer
 
-We'll try to find the root problem with MMIO separately.
-
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Acked-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_sil680.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/reiserfs/fix_node.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_sil680.c~pata_sil680-only-enable-mmio-on-cell-blades drivers/ata/pata_sil680.c
---- a/drivers/ata/pata_sil680.c~pata_sil680-only-enable-mmio-on-cell-blades
-+++ a/drivers/ata/pata_sil680.c
-@@ -229,7 +229,11 @@ static u8 sil680_init_chip(struct pci_de
- 	dev_dbg(&pdev->dev, "sil680: BA5_EN = %d clock = %02X\n",
- 		tmpbyte & 1, tmpbyte & 0x30);
+diff -puN fs/reiserfs/fix_node.c~reiserfs-fix-sparse-warnings-in-fix_nodec fs/reiserfs/fix_node.c
+--- a/fs/reiserfs/fix_node.c~reiserfs-fix-sparse-warnings-in-fix_nodec
++++ a/fs/reiserfs/fix_node.c
+@@ -153,7 +153,7 @@ static void create_virtual_node(struct t
+ 	if (vn->vn_mode == M_INSERT) {
+ 		struct virtual_item *vi = vn->vn_vi + vn->vn_affected_item_num;
  
--	*try_mmio = (tmpbyte & 1) || pci_resource_start(pdev, 5);
-+	*try_mmio = 0;
-+#ifdef CONFIG_PPC
-+	if (machine_is(cell))
-+		*try_mmio = (tmpbyte & 1) || pci_resource_start(pdev, 5);
-+#endif
+-		RFALSE(vn->vn_ins_ih == 0,
++		RFALSE(vn->vn_ins_ih == NULL,
+ 		       "vs-8040: item header of inserted item is not specified");
+ 		vi->vi_item_len = tb->insert_size[0];
+ 		vi->vi_ih = vn->vn_ins_ih;
+@@ -857,7 +857,8 @@ static int get_lfree(struct tree_balance
+ 	struct buffer_head *l, *f;
+ 	int order;
  
- 	switch(tmpbyte & 0x30) {
- 		case 0x00:
+-	if ((f = PATH_H_PPARENT(tb->tb_path, h)) == 0 || (l = tb->FL[h]) == 0)
++	if ((f = PATH_H_PPARENT(tb->tb_path, h)) == NULL ||
++	    (l = tb->FL[h]) == NULL)
+ 		return 0;
+ 
+ 	if (f == l)
+@@ -878,7 +879,8 @@ static int get_rfree(struct tree_balance
+ 	struct buffer_head *r, *f;
+ 	int order;
+ 
+-	if ((f = PATH_H_PPARENT(tb->tb_path, h)) == 0 || (r = tb->FR[h]) == 0)
++	if ((f = PATH_H_PPARENT(tb->tb_path, h)) == NULL ||
++	    (r = tb->FR[h]) == NULL)
+ 		return 0;
+ 
+ 	if (f == r)
 _
 
-Patches currently in -mm which might be from benh@ozlabs.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
+git-x86.patch
+git-alsa-tiwai.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+cifs-remove-global_extern-macro.patch
+powerpc-replace-remaining-__function__-occurences.patch
+ppc-replace-remaining-__function__-occurences.patch
+power-replace-remaining-__function__-occurrences.patch
+git-dvb.patch
+git-dlm.patch
+git-ieee1394.patch
+git-infiniband.patch
+input-replace-remaining-__function__-occurrences.patch
+git-jfs.patch
+git-kvm.patch
+pata_amd-fix-sparse-warning.patch
+git-mips.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+mtd-replace-remaining-__function__-occurrences.patch
+git-net.patch
+blackfin-replace-remaining-__function__-occurences.patch
+git-nfsd.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+git-selinux.patch
+drivers-s390-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+block-replace-remaining-__function__-occurrences.patch
+git-watchdog.patch
+mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
+mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
+mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
+mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
+mac80211-michaelc-replace-macro-with-function.patch
+mac80211-michaelc-use-unaligned-byteorder-helpers.patch
+mac80211-michaelc-fold-initial-xor-into-block-helper.patch
+xfs-replace-remaining-__function__-occurrences.patch
+xfs-replace-__inline-with-inline.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+char-make-functions-static-in-synclinkmpc.patch
+spi-replace-remaining-__function__-occurrences.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+video-replace-remaining-__function__-occurrences.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+md-replace-remaining-__function__-occurrences.patch
+ext2-replace-remaining-__function__-occurrences.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+ufs-replace-__inline-with-inline.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+drivers-replace-remaining-__function__-occurrences.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
