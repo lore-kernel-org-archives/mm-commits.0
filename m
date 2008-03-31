@@ -1,98 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - fix-small-mem-leak-in-driver_add_kobj.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:18:19 -0700
-Message-ID: <200803312018.m2VKIJh0024048@imap1.linux-foundation.org>
+Subject: - mtd-maps-physmap-fix-oops-in-suspend-resume-shutdown-ops.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 13:18:09 -0700
+Message-ID: <200803312018.m2VKI9Uu024034@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42113 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43643 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754938AbYCaUbB (ORCPT
+	by vger.kernel.org with ESMTP id S1754846AbYCaUbi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:31:01 -0400
+	Mon, 31 Mar 2008 16:31:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jesper.juhl@gmail.com, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
+To: cbouatmailru@gmail.com, david-b@pacbell.net, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     driver core: fix small mem leak in driver_add_kobj()
+     mtd: maps/physmap: fix oops in suspend/resume/shutdown ops
 has been removed from the -mm tree.  Its filename was
-     fix-small-mem-leak-in-driver_add_kobj.patch
+     mtd-maps-physmap-fix-oops-in-suspend-resume-shutdown-ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: driver core: fix small mem leak in driver_add_kobj()
-From: Jesper Juhl <jesper.juhl@gmail.com>
+Subject: mtd: maps/physmap: fix oops in suspend/resume/shutdown ops
+From: Anton Vorontsov <cbouatmailru@gmail.com>
 
-The Coverity checker spotted that we leak the storage allocated to 'name' in
-int driver_add_kobj().  The leak looks legit to me - this is the code :
+# reboot
+...
+[   42.351266] Flash device refused suspend due to active operation (state 0)
+[   42.358195] Unable to handle kernel NULL pointer dereference at virtual address 00000078
+[   42.360060] pgd = c7d9c000
+[   42.362769] [00000078] *pgd=a7d8d031, *pte=00000000, *ppte=00000000
+[   42.372902] Internal error: Oops: 17 [#1]
+[   42.376911] Modules linked in:
+[   42.379980] CPU: 0    Not tainted  (2.6.25-rc2-10642-ge8f2594-dirty #73)
+[   42.380000] PC is at physmap_flash_shutdown+0x28/0x54
+...
+[   42.380000] Backtrace:
+[   42.380000] [<c0130c1c>] (physmap_flash_shutdown+0x0/0x54) from [<c01207c0>] (platform_drv_shutdown+0x20/0x24)
+[   42.380000]  r5:28121969 r4:c0229e08
+[   42.380000] [<c01207a0>] (platform_drv_shutdown+0x0/0x24) from [<c011cd40>] (device_shutdown+0x60/0x88)
+[   42.380000] [<c011cce0>] (device_shutdown+0x0/0x88) from [<c003e8a4>] (kernel_restart_prepare+0x2c/0x3c)
+[   42.380000]  r4:00000000
+[   42.380000] [<c003e878>] (kernel_restart_prepare+0x0/0x3c) from [<c003ea00>] (kernel_restart+0x14/0x48)
+[   42.380000] [<c003e9ec>] (kernel_restart+0x0/0x48) from [<c003fdc0>] (sys_reboot+0xe8/0x1f8)
+[   42.380000]  r4:01234567
+[   42.380000] [<c003fcd8>] (sys_reboot+0x0/0x1f8) from [<c001aa00>] (ret_fast_syscall+0x0/0x2c)
+[   42.380000]  r7:00000058 r6:00000004 r5:00000001 r4:00000000
+[   42.380000] Code: 0a000009 e7953004 e1a00003 e1a0e00f (e593f078)
+[   42.650051] ---[ end trace 6d6c26a0fc3141de ]---
+Segmentation fault
+INIT: no more processes left in this runlevel
 
-int driver_add_kobj(struct device_driver *drv, struct kobject *kobj,
-                    const char *fmt, ...)
-{
-        va_list args;
-        char *name;
-        int ret;
 
-        va_start(args, fmt);
-        name = kvasprintf(GFP_KERNEL, fmt, args);
-        ^^^^^^^^ This dynamically allocates space...
+While looping for mtd[i]s, we should stop at the mtd[i] == NULL.
 
-        va_end(args);
+This patch also removes unnecessary "if (info)" checks:
+suspend/resume/shutdown ops are executed only if probe() is succeeded, so info
+is guaranteed to be !NULL.
 
-        if (!name)
-                return -ENOMEM;
-
-        return kobject_add(kobj, &drv->p->kobj, "%s", name);
-	^^^^^^^^ This neglects to free the space allocated
-}
-
-Inside kobject_add() a copy of 'name' will be made and used.  As far as I can
-see, Coverity is correct in flagging this as a leak, but I'd like some
-configmation before the patch is applied.
-
-This should fix it.
-
-Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Anton Vorontsov <cbouatmailru@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/driver.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/mtd/maps/physmap.c |   15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN drivers/base/driver.c~fix-small-mem-leak-in-driver_add_kobj drivers/base/driver.c
---- a/drivers/base/driver.c~fix-small-mem-leak-in-driver_add_kobj
-+++ a/drivers/base/driver.c
-@@ -133,6 +133,7 @@ int driver_add_kobj(struct device_driver
- {
- 	va_list args;
- 	char *name;
-+	int ret;
+diff -puN drivers/mtd/maps/physmap.c~mtd-maps-physmap-fix-oops-in-suspend-resume-shutdown-ops drivers/mtd/maps/physmap.c
+--- a/drivers/mtd/maps/physmap.c~mtd-maps-physmap-fix-oops-in-suspend-resume-shutdown-ops
++++ a/drivers/mtd/maps/physmap.c
+@@ -202,9 +202,8 @@ static int physmap_flash_suspend(struct 
+ 	int ret = 0;
+ 	int i;
  
- 	va_start(args, fmt);
- 	name = kvasprintf(GFP_KERNEL, fmt, args);
-@@ -141,7 +142,9 @@ int driver_add_kobj(struct device_driver
- 	if (!name)
- 		return -ENOMEM;
+-	if (info)
+-		for (i = 0; i < MAX_RESOURCES; i++)
+-			ret |= info->mtd[i]->suspend(info->mtd[i]);
++	for (i = 0; i < MAX_RESOURCES && info->mtd[i]; i++)
++		ret |= info->mtd[i]->suspend(info->mtd[i]);
  
--	return kobject_add(kobj, &drv->p->kobj, "%s", name);
-+	ret = kobject_add(kobj, &drv->p->kobj, "%s", name);
-+	kfree(name);
-+	return ret;
+ 	return ret;
  }
- EXPORT_SYMBOL_GPL(driver_add_kobj);
+@@ -214,9 +213,9 @@ static int physmap_flash_resume(struct p
+ 	struct physmap_flash_info *info = platform_get_drvdata(dev);
+ 	int i;
  
+-	if (info)
+-		for (i = 0; i < MAX_RESOURCES; i++)
+-			info->mtd[i]->resume(info->mtd[i]);
++	for (i = 0; i < MAX_RESOURCES && info->mtd[i]; i++)
++		info->mtd[i]->resume(info->mtd[i]);
++
+ 	return 0;
+ }
+ 
+@@ -225,8 +224,8 @@ static void physmap_flash_shutdown(struc
+ 	struct physmap_flash_info *info = platform_get_drvdata(dev);
+ 	int i;
+ 
+-	for (i = 0; i < MAX_RESOURCES; i++)
+-		if (info && info->mtd[i]->suspend(info->mtd[i]) == 0)
++	for (i = 0; i < MAX_RESOURCES && info->mtd[i]; i++)
++		if (info->mtd[i]->suspend(info->mtd[i]) == 0)
+ 			info->mtd[i]->resume(info->mtd[i]);
+ }
+ #else
 _
 
-Patches currently in -mm which might be from jesper.juhl@gmail.com are
+Patches currently in -mm which might be from cbouatmailru@gmail.com are
 
 origin.patch
-pci-hotplug-fix-leaks-in-ibm-hot-plug-controller-driver-ibmphp_init_devno.patch
-git-sh.patch
-usb-mem-leak-fixes-for-amd-5536-udc-high-full-speed-usb-device-controller-driver.patch
 
