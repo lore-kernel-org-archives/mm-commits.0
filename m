@@ -1,117 +1,170 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-maps-physmap-fix-oops-in-suspend-resume-shutdown-ops.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:18:09 -0700
-Message-ID: <200803312018.m2VKI9Uu024034@imap1.linux-foundation.org>
+Subject: - reiserfs-fix-sparse-warning-in-nameic.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 13:19:24 -0700
+Message-ID: <200803312019.m2VKJOWl024204@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43643 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42687 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754846AbYCaUbi (ORCPT
+	by vger.kernel.org with ESMTP id S1754739AbYCaUcU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:31:38 -0400
+	Mon, 31 Mar 2008 16:32:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cbouatmailru@gmail.com, david-b@pacbell.net, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, chris.mason@oracle.com, jeffm@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: maps/physmap: fix oops in suspend/resume/shutdown ops
+     reiserfs: fix sparse warning in namei.c
 has been removed from the -mm tree.  Its filename was
-     mtd-maps-physmap-fix-oops-in-suspend-resume-shutdown-ops.patch
+     reiserfs-fix-sparse-warning-in-nameic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: maps/physmap: fix oops in suspend/resume/shutdown ops
-From: Anton Vorontsov <cbouatmailru@gmail.com>
+Subject: reiserfs: fix sparse warning in namei.c
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-# reboot
-...
-[   42.351266] Flash device refused suspend due to active operation (state 0)
-[   42.358195] Unable to handle kernel NULL pointer dereference at virtual address 00000078
-[   42.360060] pgd = c7d9c000
-[   42.362769] [00000078] *pgd=a7d8d031, *pte=00000000, *ppte=00000000
-[   42.372902] Internal error: Oops: 17 [#1]
-[   42.376911] Modules linked in:
-[   42.379980] CPU: 0    Not tainted  (2.6.25-rc2-10642-ge8f2594-dirty #73)
-[   42.380000] PC is at physmap_flash_shutdown+0x28/0x54
-...
-[   42.380000] Backtrace:
-[   42.380000] [<c0130c1c>] (physmap_flash_shutdown+0x0/0x54) from [<c01207c0>] (platform_drv_shutdown+0x20/0x24)
-[   42.380000]  r5:28121969 r4:c0229e08
-[   42.380000] [<c01207a0>] (platform_drv_shutdown+0x0/0x24) from [<c011cd40>] (device_shutdown+0x60/0x88)
-[   42.380000] [<c011cce0>] (device_shutdown+0x0/0x88) from [<c003e8a4>] (kernel_restart_prepare+0x2c/0x3c)
-[   42.380000]  r4:00000000
-[   42.380000] [<c003e878>] (kernel_restart_prepare+0x0/0x3c) from [<c003ea00>] (kernel_restart+0x14/0x48)
-[   42.380000] [<c003e9ec>] (kernel_restart+0x0/0x48) from [<c003fdc0>] (sys_reboot+0xe8/0x1f8)
-[   42.380000]  r4:01234567
-[   42.380000] [<c003fcd8>] (sys_reboot+0x0/0x1f8) from [<c001aa00>] (ret_fast_syscall+0x0/0x2c)
-[   42.380000]  r7:00000058 r6:00000004 r5:00000001 r4:00000000
-[   42.380000] Code: 0a000009 e7953004 e1a00003 e1a0e00f (e593f078)
-[   42.650051] ---[ end trace 6d6c26a0fc3141de ]---
-Segmentation fault
-INIT: no more processes left in this runlevel
+fs/reiserfs/namei.c:455:17: warning: Using plain integer as NULL pointer
 
-
-While looping for mtd[i]s, we should stop at the mtd[i] == NULL.
-
-This patch also removes unnecessary "if (info)" checks:
-suspend/resume/shutdown ops are executed only if probe() is succeeded, so info
-is guaranteed to be !NULL.
-
-Signed-off-by: Anton Vorontsov <cbouatmailru@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/maps/physmap.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ fs/reiserfs/namei.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/maps/physmap.c~mtd-maps-physmap-fix-oops-in-suspend-resume-shutdown-ops drivers/mtd/maps/physmap.c
---- a/drivers/mtd/maps/physmap.c~mtd-maps-physmap-fix-oops-in-suspend-resume-shutdown-ops
-+++ a/drivers/mtd/maps/physmap.c
-@@ -202,9 +202,8 @@ static int physmap_flash_suspend(struct 
- 	int ret = 0;
- 	int i;
- 
--	if (info)
--		for (i = 0; i < MAX_RESOURCES; i++)
--			ret |= info->mtd[i]->suspend(info->mtd[i]);
-+	for (i = 0; i < MAX_RESOURCES && info->mtd[i]; i++)
-+		ret |= info->mtd[i]->suspend(info->mtd[i]);
- 
- 	return ret;
- }
-@@ -214,9 +213,9 @@ static int physmap_flash_resume(struct p
- 	struct physmap_flash_info *info = platform_get_drvdata(dev);
- 	int i;
- 
--	if (info)
--		for (i = 0; i < MAX_RESOURCES; i++)
--			info->mtd[i]->resume(info->mtd[i]);
-+	for (i = 0; i < MAX_RESOURCES && info->mtd[i]; i++)
-+		info->mtd[i]->resume(info->mtd[i]);
-+
- 	return 0;
- }
- 
-@@ -225,8 +224,8 @@ static void physmap_flash_shutdown(struc
- 	struct physmap_flash_info *info = platform_get_drvdata(dev);
- 	int i;
- 
--	for (i = 0; i < MAX_RESOURCES; i++)
--		if (info && info->mtd[i]->suspend(info->mtd[i]) == 0)
-+	for (i = 0; i < MAX_RESOURCES && info->mtd[i]; i++)
-+		if (info->mtd[i]->suspend(info->mtd[i]) == 0)
- 			info->mtd[i]->resume(info->mtd[i]);
- }
- #else
+diff -puN fs/reiserfs/namei.c~reiserfs-fix-sparse-warning-in-nameic fs/reiserfs/namei.c
+--- a/fs/reiserfs/namei.c~reiserfs-fix-sparse-warning-in-nameic
++++ a/fs/reiserfs/namei.c
+@@ -452,7 +452,7 @@ static int reiserfs_add_entry(struct rei
+ 	buflen = DEH_SIZE + ROUND_UP(namelen);
+ 	if (buflen > sizeof(small_buf)) {
+ 		buffer = kmalloc(buflen, GFP_NOFS);
+-		if (buffer == 0)
++		if (!buffer)
+ 			return -ENOMEM;
+ 	} else
+ 		buffer = small_buf;
 _
 
-Patches currently in -mm which might be from cbouatmailru@gmail.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
+git-x86.patch
+git-alsa-tiwai.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+cifs-remove-global_extern-macro.patch
+powerpc-replace-remaining-__function__-occurences.patch
+ppc-replace-remaining-__function__-occurences.patch
+power-replace-remaining-__function__-occurrences.patch
+git-dvb.patch
+git-dlm.patch
+git-ieee1394.patch
+git-infiniband.patch
+input-replace-remaining-__function__-occurrences.patch
+git-jfs.patch
+git-kvm.patch
+pata_amd-fix-sparse-warning.patch
+git-mips.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+mtd-replace-remaining-__function__-occurrences.patch
+git-net.patch
+blackfin-replace-remaining-__function__-occurences.patch
+git-nfsd.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+git-selinux.patch
+drivers-s390-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+block-replace-remaining-__function__-occurrences.patch
+git-watchdog.patch
+mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
+mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
+mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
+mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
+mac80211-michaelc-replace-macro-with-function.patch
+mac80211-michaelc-use-unaligned-byteorder-helpers.patch
+mac80211-michaelc-fold-initial-xor-into-block-helper.patch
+xfs-replace-remaining-__function__-occurrences.patch
+xfs-replace-__inline-with-inline.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+char-make-functions-static-in-synclinkmpc.patch
+spi-replace-remaining-__function__-occurrences.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+video-replace-remaining-__function__-occurrences.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+md-replace-remaining-__function__-occurrences.patch
+ext2-replace-remaining-__function__-occurrences.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+ufs-replace-__inline-with-inline.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+drivers-replace-remaining-__function__-occurrences.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
