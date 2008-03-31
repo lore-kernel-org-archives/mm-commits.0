@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + lxfb-add-power-management-functionality-fix.patch added to -mm tree
-Date: Mon, 31 Mar 2008 14:27:51 -0700
-Message-ID: <200803312127.m2VLRp0I026866@imap1.linux-foundation.org>
+Subject: + paravirt_ops-dont-steal-memory-resources-in-paravirt_disable_iospace.patch added to -mm tree
+Date: Mon, 31 Mar 2008 14:33:40 -0700
+Message-ID: <200803312133.m2VLXesh027084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48622 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46165 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756695AbYCaV2b (ORCPT
+	by vger.kernel.org with ESMTP id S1754589AbYCaVed (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 17:28:31 -0400
+	Mon, 31 Mar 2008 17:34:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adaplas@pol.net, dilinger@debian.org, dilinger@queued.net, jordan.crouse@amd.com
+Cc: jeremy@goop.org, jeremy.fitzhardinge@citrix.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de
 
 
 The patch titled
-     lxfb-add-power-management-functionality-fix
+     paravirt_ops: don't steal memory resources in paravirt_disable_iospace
 has been added to the -mm tree.  Its filename is
-     lxfb-add-power-management-functionality-fix.patch
+     paravirt_ops-dont-steal-memory-resources-in-paravirt_disable_iospace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,233 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lxfb-add-power-management-functionality-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: paravirt_ops: don't steal memory resources in paravirt_disable_iospace
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Be conventional, save an ifdef
+The memory resource is also used for main memory, and we need it to allocate
+physical addresses for memory hotplug.  Knobbling io space is enough to get
+the job done anyway.
 
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Andres Salomon <dilinger@debian.org>
-Cc: Andres Salomon <dilinger@queued.net>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/lxfb_core.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/x86/kernel/paravirt.c |   18 +-----------------
+ 1 file changed, 1 insertion(+), 17 deletions(-)
 
-diff -puN drivers/video/geode/lxfb_core.c~lxfb-add-power-management-functionality-fix drivers/video/geode/lxfb_core.c
---- a/drivers/video/geode/lxfb_core.c~lxfb-add-power-management-functionality-fix
-+++ a/drivers/video/geode/lxfb_core.c
-@@ -468,6 +468,9 @@ static int lxfb_resume(struct pci_dev *p
- 	pdev->dev.power.power_state = PMSG_ON;
- 	return 0;
- }
-+#else
-+#define lxfb_suspend NULL
-+#define lxfb_resume NULL
- #endif
- 
- static int __init lxfb_probe(struct pci_dev *pdev,
-@@ -595,10 +598,8 @@ static struct pci_driver lxfb_driver = {
- 	.id_table	= lxfb_id_table,
- 	.probe		= lxfb_probe,
- 	.remove		= lxfb_remove,
--#ifdef CONFIG_PM
- 	.suspend	= lxfb_suspend,
- 	.resume		= lxfb_resume,
--#endif
+diff -puN arch/x86/kernel/paravirt.c~paravirt_ops-dont-steal-memory-resources-in-paravirt_disable_iospace arch/x86/kernel/paravirt.c
+--- a/arch/x86/kernel/paravirt.c~paravirt_ops-dont-steal-memory-resources-in-paravirt_disable_iospace
++++ a/arch/x86/kernel/paravirt.c
+@@ -206,13 +206,6 @@ static struct resource reserve_ioports =
+ 	.flags = IORESOURCE_IO | IORESOURCE_BUSY,
  };
  
- #ifndef MODULE
+-static struct resource reserve_iomem = {
+-	.start = 0,
+-	.end = -1,
+-	.name = "paravirt-iomem",
+-	.flags = IORESOURCE_MEM | IORESOURCE_BUSY,
+-};
+-
+ /*
+  * Reserve the whole legacy IO space to prevent any legacy drivers
+  * from wasting time probing for their hardware.  This is a fairly
+@@ -222,16 +215,7 @@ static struct resource reserve_iomem = {
+  */
+ int paravirt_disable_iospace(void)
+ {
+-	int ret;
+-
+-	ret = request_resource(&ioport_resource, &reserve_ioports);
+-	if (ret == 0) {
+-		ret = request_resource(&iomem_resource, &reserve_iomem);
+-		if (ret)
+-			release_resource(&reserve_ioports);
+-	}
+-
+-	return ret;
++	return request_resource(&ioport_resource, &reserve_ioports);
+ }
+ 
+ static DEFINE_PER_CPU(enum paravirt_lazy_mode, paravirt_lazy_mode) = PARAVIRT_LAZY_NONE;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jeremy@goop.org are
 
 origin.patch
-alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-lib-swiotlbc-avoid-endless-loops-fix.patch
 git-x86.patch
-git-x86-fix-printk-warning.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
-pm-remove-destroy_suspended_device.patch
-scsi-add-iscsi-ibft-support.patch
-git-dvb.patch
-git-dvb-git-rejects.patch
-drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-arch-ia64-kernel-use-time_-macros.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-git-kvm.patch
-git-kvm-fixup.patch
-git-kvm-vs-git-s390.patch
-git-leds.patch
-git-libata-fix-config_pci=n-build.patch
-git-async-tx.patch
-git-mips.patch
-git-net.patch
-net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-tulip-tulip_read_eeprom-fixes-for-bug-4420.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-gregkh-pci-pci-alpha-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ia64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-powerpc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-x86-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-git-s390-git-rejects.patch
-git-sh.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-aic94xx-cleanups.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-sparc64.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-git-semaphore-git-rejects.patch
-smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-allocate-section_map-for-sparse_init-update-fix.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lib-swiotlbc-cleanups.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ext4-is-broken.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+sparsemem-vmemmap-does-not-need-section-bits.patch
+kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
+pageflags-use-an-enum-for-the-flags.patch
+pageflags-get-rid-of-flags_reserved.patch
+pageflags-introduce-macros-to-generate-page-flag-functions.patch
+pageflags-convert-to-the-use-of-new-macros.patch
+pageflags-use-proper-page-flag-functions-in-xen.patch
+pageflags-eliminate-pg_xxx-aliases.patch
+hotplug-memory-add-add_memory_resource.patch
+hotplug-memory-adding-non-section-aligned-memory-is-bad.patch
+sparsemem-reduce-i386-pae-section-size.patch
+paravirt_ops-dont-steal-memory-resources-in-paravirt_disable_iospace.patch
+xen-make-blkif_getgeo-static.patch
 
