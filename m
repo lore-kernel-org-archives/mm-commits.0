@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-typos-in-documentation-unaligned-memory-accesstxt.patch added to -mm tree
-Date: Mon, 31 Mar 2008 16:25:29 -0700
-Message-ID: <200803312325.m2VNPULh031313@imap1.linux-foundation.org>
+Subject: + md-raid5c-convert-simple_strtoul-to-strict_strtoul.patch added to -mm tree
+Date: Mon, 31 Mar 2008 16:36:32 -0700
+Message-ID: <200803312336.m2VNaW8V031689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60224 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50752 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751684AbYCaX0B (ORCPT
+	by vger.kernel.org with ESMTP id S1751447AbYCaXh0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 19:26:01 -0400
+	Mon, 31 Mar 2008 19:37:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dmitri.vorobiev@gmail.com
+Cc: dan.j.williams@intel.com, neilb@suse.de
 
 
 The patch titled
-     Fix typos in Documentation/unaligned-memory-access.txt
+     md: raid5.c convert simple_strtoul to strict_strtoul
 has been added to the -mm tree.  Its filename is
-     fix-typos-in-documentation-unaligned-memory-accesstxt.patch
+     md-raid5c-convert-simple_strtoul-to-strict_strtoul.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix typos in Documentation/unaligned-memory-access.txt
-From: Dmitri Vorobiev <dmitri.vorobiev@gmail.com>
+Subject: md: raid5.c convert simple_strtoul to strict_strtoul
+From: Dan Williams <dan.j.williams@intel.com>
 
-This patch deletes a couple of superfluous word occurrences in the document
-Documentation/unaligned-memory-access.txt.
+strict_strtoul handles the open-coded sanity checks in
+raid5_store_stripe_cache_size and raid5_store_preread_threshold
 
-Thanks to Sebastien Dugue for the remark about English usage.
-
-Signed-off-by: Dmitri Vorobiev <dmitri.vorobiev@gmail.com>
+Acked-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/unaligned-memory-access.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/md/raid5.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/unaligned-memory-access.txt~fix-typos-in-documentation-unaligned-memory-accesstxt Documentation/unaligned-memory-access.txt
---- a/Documentation/unaligned-memory-access.txt~fix-typos-in-documentation-unaligned-memory-accesstxt
-+++ a/Documentation/unaligned-memory-access.txt
-@@ -57,7 +57,7 @@ here; a summary of the common scenarios 
-    unaligned access to be corrected.
-  - Some architectures are not capable of unaligned memory access, but will
-    silently perform a different memory access to the one that was requested,
--   resulting a a subtle code bug that is hard to detect!
-+   resulting in a subtle code bug that is hard to detect!
+diff -puN drivers/md/raid5.c~md-raid5c-convert-simple_strtoul-to-strict_strtoul drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-raid5c-convert-simple_strtoul-to-strict_strtoul
++++ a/drivers/md/raid5.c
+@@ -4034,15 +4034,13 @@ static ssize_t
+ raid5_store_stripe_cache_size(mddev_t *mddev, const char *page, size_t len)
+ {
+ 	raid5_conf_t *conf = mddev_to_conf(mddev);
+-	char *end;
+-	int new;
++	unsigned long new;
+ 	if (len >= PAGE_SIZE)
+ 		return -EINVAL;
+ 	if (!conf)
+ 		return -ENODEV;
  
- It should be obvious from the above that if your code causes unaligned
- memory accesses to happen, your code will not work correctly on certain
-@@ -209,7 +209,7 @@ memory and you wish to avoid unaligned a
+-	new = simple_strtoul(page, &end, 10);
+-	if (!*page || (*end && *end != '\n') )
++	if (strict_strtoul(page, 10, &new))
+ 		return -EINVAL;
+ 	if (new <= 16 || new > 32768)
+ 		return -EINVAL;
+@@ -4080,17 +4078,15 @@ static ssize_t
+ raid5_store_preread_threshold(mddev_t *mddev, const char *page, size_t len)
+ {
+ 	raid5_conf_t *conf = mddev_to_conf(mddev);
+-	char *end;
+-	int new;
++	unsigned long new;
+ 	if (len >= PAGE_SIZE)
+ 		return -EINVAL;
+ 	if (!conf)
+ 		return -ENODEV;
  
- 	u32 value = get_unaligned((u32 *) data);
- 
--These macros work work for memory accesses of any length (not just 32 bits as
-+These macros work for memory accesses of any length (not just 32 bits as
- in the examples above). Be aware that when compared to standard access of
- aligned memory, using these macros to access unaligned memory can be costly in
- terms of performance.
+-	new = simple_strtoul(page, &end, 10);
+-	if (!*page || (*end && *end != '\n'))
++	if (strict_strtoul(page, 10, &new))
+ 		return -EINVAL;
+-	if (new > conf->max_nr_stripes || new < 0)
++	if (new > conf->max_nr_stripes)
+ 		return -EINVAL;
+ 	conf->bypass_threshold = new;
+ 	return len;
 _
 
-Patches currently in -mm which might be from dmitri.vorobiev@gmail.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-fix-typos-in-documentation-unaligned-memory-accesstxt.patch
+git-arm.patch
+git-async-tx.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+md-introduce-get_priority_stripe-to-improve-raid456-write-performance.patch
+md-raid5c-convert-simple_strtoul-to-strict_strtoul.patch
 
