@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-provide-walk_memory_resource-for-ppc.patch added to -mm tree
-Date: Mon, 31 Mar 2008 14:38:39 -0700
-Message-ID: <200803312138.m2VLcdBc027303@imap1.linux-foundation.org>
+Subject: + hotplug-memory-remove-generic-__remove_pages-support.patch added to -mm tree
+Date: Mon, 31 Mar 2008 14:38:03 -0700
+Message-ID: <200803312138.m2VLc3wu027285@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:61000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58513 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756321AbYCaVjK (ORCPT
+	by vger.kernel.org with ESMTP id S1756688AbYCaVig (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 17:39:10 -0400
+	Mon, 31 Mar 2008 17:38:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: pbadari@us.ibm.com, benh@kernel.crashing.org, paulus@samba.org, y-goto@jp.fu
 
 
 The patch titled
-     powerpc: provide walk_memory_resource() for ppc
+     hotplug memory remove: generic __remove_pages() support
 has been added to the -mm tree.  Its filename is
-     powerpc-provide-walk_memory_resource-for-ppc.patch
+     hotplug-memory-remove-generic-__remove_pages-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,200 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: provide walk_memory_resource() for ppc
+Subject: hotplug memory remove: generic __remove_pages() support
 From: Badari Pulavarty <pbadari@us.ibm.com>
 
-Provide walk_memory_resource() for ppc64.  PPC maintains logic memory region
-mapping in lmb.memory structures.  Walk through these structures and do the
-callbacks for the contiguous chunks.
+Generic helper function to remove section mappings and sysfs entries for the
+section of the memory we are removing.  offline_pages() correctly adjusted
+zone and marked the pages reserved.
+
+TODO: Yasunori Goto is working on patches to free up allocations from bootmem.
 
 Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mem.c |   30 +++++++++++++++++++++++-------
- include/linux/lmb.h   |    1 +
- lib/lmb.c             |   33 +++++++++++++++++++++++++++++++++
- 3 files changed, 57 insertions(+), 7 deletions(-)
+ include/linux/memory_hotplug.h |    6 ++-
+ mm/memory_hotplug.c            |   55 +++++++++++++++++++++++++++++++
+ mm/sparse.c                    |   45 +++++++++++++++++++++++--
+ 3 files changed, 102 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/mm/mem.c~powerpc-provide-walk_memory_resource-for-ppc arch/powerpc/mm/mem.c
---- a/arch/powerpc/mm/mem.c~powerpc-provide-walk_memory_resource-for-ppc
-+++ a/arch/powerpc/mm/mem.c
-@@ -148,19 +148,35 @@ out:
+diff -puN include/linux/memory_hotplug.h~hotplug-memory-remove-generic-__remove_pages-support include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~hotplug-memory-remove-generic-__remove_pages-support
++++ a/include/linux/memory_hotplug.h
+@@ -8,6 +8,7 @@
+ struct page;
+ struct zone;
+ struct pglist_data;
++struct mem_section;
+ 
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ /*
+@@ -64,9 +65,11 @@ extern int offline_pages(unsigned long, 
+ /* reasonably generic interface to expand the physical pages in a zone  */
+ extern int __add_pages(struct zone *zone, unsigned long start_pfn,
+ 	unsigned long nr_pages);
++extern int __remove_pages(struct zone *zone, unsigned long start_pfn,
++	unsigned long nr_pages);
  
  /*
-  * walk_memory_resource() needs to make sure there is no holes in a given
-- * memory range. On PPC64, since this range comes from /sysfs, the range
-- * is guaranteed to be valid, non-overlapping and can not contain any
-- * holes. By the time we get here (memory add or remove), /proc/device-tree
-- * is updated and correct. Only reason we need to check against device-tree
-- * would be if we allow user-land to specify a memory range through a
-- * system call/ioctl etc. instead of doing offline/online through /sysfs.
-+ * memory range. PPC64 does not maintain the memory layout in /proc/iomem.
-+ * Instead it maintains it in lmb.memory structures. Walk through the
-+ * memory regions, find holes and callback for contiguous regions.
+- * Walk thorugh all memory which is registered as resource.
++ * Walk through all memory which is registered as resource.
+  * arg is (start_pfn, nr_pages, private_arg_pointer)
   */
- int
- walk_memory_resource(unsigned long start_pfn, unsigned long nr_pages, void *arg,
- 			int (*func)(unsigned long, unsigned long, void *))
- {
--	return  (*func)(start_pfn, nr_pages, arg);
-+	struct lmb_property res;
-+	unsigned long pfn, len;
-+	u64 end;
-+	int ret = -1;
+ extern int walk_memory_resource(unsigned long start_pfn,
+@@ -176,5 +179,6 @@ extern int arch_add_memory(int nid, u64 
+ extern int remove_memory(u64 start, u64 size);
+ extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+ 								int nr_pages);
++extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
+ 
+ #endif /* __LINUX_MEMORY_HOTPLUG_H */
+diff -puN mm/memory_hotplug.c~hotplug-memory-remove-generic-__remove_pages-support mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~hotplug-memory-remove-generic-__remove_pages-support
++++ a/mm/memory_hotplug.c
+@@ -101,6 +101,25 @@ static int __add_section(struct zone *zo
+ 	return register_new_memory(__pfn_to_section(phys_start_pfn));
+ }
+ 
++static int __remove_section(struct zone *zone, struct mem_section *ms)
++{
++	unsigned long flags;
++	struct pglist_data *pgdat = zone->zone_pgdat;
++	int ret = -EINVAL;
 +
-+	res.base = (u64) start_pfn << PAGE_SHIFT;
-+	res.size = (u64) nr_pages << PAGE_SHIFT;
++	if (!valid_section(ms))
++		return ret;
 +
-+	end = res.base + res.size - 1;
-+	while ((res.base < end) && (lmb_find(&res) >= 0)) {
-+		pfn = (unsigned long)(res.base >> PAGE_SHIFT);
-+		len = (unsigned long)(res.size >> PAGE_SHIFT);
-+		ret = (*func)(pfn, len, arg);
++	ret = unregister_memory_section(ms);
++	if (ret)
++		return ret;
++
++	pgdat_resize_lock(pgdat, &flags);
++	sparse_remove_one_section(zone, ms);
++	pgdat_resize_unlock(pgdat, &flags);
++	return 0;
++}
++
+ /*
+  * Reasonably generic function for adding memory.  It is
+  * expected that archs that support memory hotplug will
+@@ -134,6 +153,42 @@ int __add_pages(struct zone *zone, unsig
+ }
+ EXPORT_SYMBOL_GPL(__add_pages);
+ 
++/**
++ * __remove_pages() - remove sections of pages from a zone
++ * @zone: zone from which pages need to be removed
++ * @phys_start_pfn: starting pageframe (must be aligned to start of a section)
++ * @nr_pages: number of pages to remove (must be multiple of section size)
++ *
++ * Generic helper function to remove section mappings and sysfs entries
++ * for the section of the memory we are removing. Caller needs to make
++ * sure that pages are marked reserved and zones are adjust properly by
++ * calling offline_pages().
++ */
++int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
++		 unsigned long nr_pages)
++{
++	unsigned long i, ret = 0;
++	int sections_to_remove;
++
++	/*
++	 * We can only remove entire sections
++	 */
++	BUG_ON(phys_start_pfn & ~PAGE_SECTION_MASK);
++	BUG_ON(nr_pages % PAGES_PER_SECTION);
++
++	release_mem_region(phys_start_pfn << PAGE_SHIFT, nr_pages * PAGE_SIZE);
++
++	sections_to_remove = nr_pages / PAGES_PER_SECTION;
++	for (i = 0; i < sections_to_remove; i++) {
++		unsigned long pfn = phys_start_pfn + i*PAGES_PER_SECTION;
++		ret = __remove_section(zone, __pfn_to_section(pfn));
 +		if (ret)
 +			break;
-+		res.base += (res.size + 1);
-+		res.size = (end - res.base + 1);
 +	}
 +	return ret;
- }
-+EXPORT_SYMBOL_GPL(walk_memory_resource);
- 
- #endif /* CONFIG_MEMORY_HOTPLUG */
- 
-diff -puN include/linux/lmb.h~powerpc-provide-walk_memory_resource-for-ppc include/linux/lmb.h
---- a/include/linux/lmb.h~powerpc-provide-walk_memory_resource-for-ppc
-+++ a/include/linux/lmb.h
-@@ -54,6 +54,7 @@ extern u64 __init lmb_phys_mem_size(void
- extern u64 __init lmb_end_of_DRAM(void);
- extern void __init lmb_enforce_memory_limit(u64 memory_limit);
- extern int __init lmb_is_reserved(u64 addr);
-+extern int lmb_find(struct lmb_property *res);
- 
- extern void lmb_dump_all(void);
- 
-diff -puN lib/lmb.c~powerpc-provide-walk_memory_resource-for-ppc lib/lmb.c
---- a/lib/lmb.c~powerpc-provide-walk_memory_resource-for-ppc
-+++ a/lib/lmb.c
-@@ -482,3 +482,36 @@ int __init lmb_is_reserved(u64 addr)
- 	}
- 	return 0;
- }
-+
-+/*
-+ * Given a <base, len>, find which memory regions belong to this range.
-+ * Adjust the request and return a contiguous chunk.
-+ */
-+int lmb_find(struct lmb_property *res)
-+{
-+	int i;
-+	u64 rstart, rend;
-+
-+	rstart = res->base;
-+	rend = rstart + res->size - 1;
-+
-+	for (i = 0; i < lmb.memory.cnt; i++) {
-+		u64 start = lmb.memory.region[i].base;
-+		u64 end = start + lmb.memory.region[i].size - 1;
-+
-+		if (start > rend)
-+			return -1;
-+
-+		if ((end >= rstart) && (start < rend)) {
-+			/* adjust the request */
-+			if (rstart < start)
-+				rstart = start;
-+			if (rend > end)
-+				rend = end;
-+			res->base = rstart;
-+			res->size = rend - rstart + 1;
-+			return 0;
-+		}
-+	}
-+	return -1;
 +}
++EXPORT_SYMBOL_GPL(__remove_pages);
++
+ static void grow_zone_span(struct zone *zone,
+ 		unsigned long start_pfn, unsigned long end_pfn)
+ {
+diff -puN mm/sparse.c~hotplug-memory-remove-generic-__remove_pages-support mm/sparse.c
+--- a/mm/sparse.c~hotplug-memory-remove-generic-__remove_pages-support
++++ a/mm/sparse.c
+@@ -198,12 +198,13 @@ static unsigned long sparse_encode_mem_m
+ }
+ 
+ /*
+- * We need this if we ever free the mem_maps.  While not implemented yet,
+- * this function is included for parity with its sibling.
++ * Decode mem_map from the coded memmap
+  */
+-static __attribute((unused))
++static
+ struct page *sparse_decode_mem_map(unsigned long coded_mem_map, unsigned long pnum)
+ {
++	/* mask off the extra low bits of information */
++	coded_mem_map &= SECTION_MAP_MASK;
+ 	return ((struct page *)coded_mem_map) + section_nr_to_pfn(pnum);
+ }
+ 
+@@ -363,6 +364,28 @@ static void __kfree_section_memmap(struc
+ }
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
++static void free_section_usemap(struct page *memmap, unsigned long *usemap)
++{
++	if (!usemap)
++		return;
++
++	/*
++	 * Check to see if allocation came from hot-plug-add
++	 */
++	if (PageSlab(virt_to_page(usemap))) {
++		kfree(usemap);
++		if (memmap)
++			__kfree_section_memmap(memmap, PAGES_PER_SECTION);
++		return;
++	}
++
++	/*
++	 * TODO: Allocations came from bootmem - how do I free up ?
++	 */
++	printk(KERN_WARNING "Not freeing up allocations from bootmem "
++			"- leaking memory\n");
++}
++
+ /*
+  * returns the number of sections whose mem_maps were properly
+  * set.  If this is <=0, then that means that the passed-in
+@@ -415,4 +438,20 @@ out:
+ 	}
+ 	return ret;
+ }
++
++void sparse_remove_one_section(struct zone *zone, struct mem_section *ms)
++{
++	struct page *memmap = NULL;
++	unsigned long *usemap = NULL;
++
++	if (ms->section_mem_map) {
++		usemap = ms->pageblock_flags;
++		memmap = sparse_decode_mem_map(ms->section_mem_map,
++						__section_nr(ms));
++		ms->section_mem_map = 0;
++		ms->pageblock_flags = NULL;
++	}
++
++	free_section_usemap(memmap, usemap);
++}
+ #endif
 _
 
 Patches currently in -mm which might be from pbadari@us.ibm.com are
