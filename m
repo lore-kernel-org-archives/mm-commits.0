@@ -1,94 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-net-arcnet-arcnetc-use-time_-macros.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:18:39 -0700
-Message-ID: <200803312018.m2VKIdCb024072@imap1.linux-foundation.org>
+Subject: - blackfin-video-driver-fix-bug-when-opening-reading-mmaping-bf54x-and-bf52x-framebuffer-simultaneously.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 13:18:03 -0700
+Message-ID: <200803312018.m2VKI311024022@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52938 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45433 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753835AbYCaUTU (ORCPT
+	by vger.kernel.org with ESMTP id S1756323AbYCaUTB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:19:20 -0400
+	Mon, 31 Mar 2008 16:19:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: caglar@pardus.org.tr, jeff@garzik.org, mm-commits@vger.kernel.org
+To: michael.hennerich@analog.com, adaplas@pol.net, cooloney@kernel.org, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/net/arcnet/arcnet.c: use time_* macros
+     blackfin video driver: fix bug when opening/reading/mmaping BF54x and BF52x framebuffer simultaneously
 has been removed from the -mm tree.  Its filename was
-     drivers-net-arcnet-arcnetc-use-time_-macros.patch
+     blackfin-video-driver-fix-bug-when-opening-reading-mmaping-bf54x-and-bf52x-framebuffer-simultaneously.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/arcnet/arcnet.c: use time_* macros
-From: S.Caglar Onur <caglar@pardus.org.tr>
+Subject: blackfin video driver: fix bug when opening/reading/mmaping BF54x and BF52x framebuffer simultaneously
+From: Michael Hennerich <michael.hennerich@analog.com>
 
-The functions time_before, time_before_eq, time_after, and time_after_eq are
-more robust for comparing jiffies against other values.
+http://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_item_id=3974
 
-So use the time_after() macro, defined in linux/jiffies.h, which deals with
-wrapping correctly.
+opening/reading/mmaping BF54x and BF52x framebuffer simultaneously triggers
+BUG: failure at mm/nommu.c:470/add_nommu_vma() Add VM_SHARED to the default
+vm_flags
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: S.Caglar Onur <caglar@pardus.org.tr>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/arcnet/arcnet.c |    5 +++--
- include/linux/arcdevice.h   |    4 ++--
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/video/bf54x-lq043fb.c    |    2 +-
+ drivers/video/bfin-t350mcqb-fb.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/arcnet/arcnet.c~drivers-net-arcnet-arcnetc-use-time_-macros drivers/net/arcnet/arcnet.c
---- a/drivers/net/arcnet/arcnet.c~drivers-net-arcnet-arcnetc-use-time_-macros
-+++ a/drivers/net/arcnet/arcnet.c
-@@ -940,7 +940,7 @@ irqreturn_t arcnet_interrupt(int irq, vo
+diff -puN drivers/video/bf54x-lq043fb.c~blackfin-video-driver-fix-bug-when-opening-reading-mmaping-bf54x-and-bf52x-framebuffer-simultaneously drivers/video/bf54x-lq043fb.c
+--- a/drivers/video/bf54x-lq043fb.c~blackfin-video-driver-fix-bug-when-opening-reading-mmaping-bf54x-and-bf52x-framebuffer-simultaneously
++++ a/drivers/video/bf54x-lq043fb.c
+@@ -384,7 +384,7 @@ static int bfin_bf54x_fb_mmap(struct fb_
+ 	 *   Other flags can be set, and are documented in
+ 	 *   include/linux/mm.h
+ 	 */
+-	vma->vm_flags |= VM_MAYSHARE;
++	vma->vm_flags |=  VM_MAYSHARE | VM_SHARED;
  
- 			/* is the RECON info empty or old? */
- 			if (!lp->first_recon || !lp->last_recon ||
--			    jiffies - lp->last_recon > HZ * 10) {
-+			    time_after(jiffies, lp->last_recon + HZ * 10)) {
- 				if (lp->network_down)
- 					BUGMSG(D_NORMAL, "reconfiguration detected: cabling restored?\n");
- 				lp->first_recon = lp->last_recon = jiffies;
-@@ -974,7 +974,8 @@ irqreturn_t arcnet_interrupt(int irq, vo
- 					lp->num_recons = 1;
- 				}
- 			}
--		} else if (lp->network_down && jiffies - lp->last_recon > HZ * 10) {
-+		} else if (lp->network_down &&
-+				time_after(jiffies, lp->last_recon + HZ * 10)) {
- 			if (lp->network_down)
- 				BUGMSG(D_NORMAL, "cabling restored?\n");
- 			lp->first_recon = lp->last_recon = 0;
-diff -puN include/linux/arcdevice.h~drivers-net-arcnet-arcnetc-use-time_-macros include/linux/arcdevice.h
---- a/include/linux/arcdevice.h~drivers-net-arcnet-arcnetc-use-time_-macros
-+++ a/include/linux/arcdevice.h
-@@ -283,8 +283,8 @@ struct arcnet_local {
- 	int next_buf, first_free_buf;
+ 	return 0;
+ }
+diff -puN drivers/video/bfin-t350mcqb-fb.c~blackfin-video-driver-fix-bug-when-opening-reading-mmaping-bf54x-and-bf52x-framebuffer-simultaneously drivers/video/bfin-t350mcqb-fb.c
+--- a/drivers/video/bfin-t350mcqb-fb.c~blackfin-video-driver-fix-bug-when-opening-reading-mmaping-bf54x-and-bf52x-framebuffer-simultaneously
++++ a/drivers/video/bfin-t350mcqb-fb.c
+@@ -302,7 +302,7 @@ static int bfin_t350mcqb_fb_mmap(struct 
+ 	 *   Other flags can be set, and are documented in
+ 	 *   include/linux/mm.h
+ 	 */
+-	vma->vm_flags |= VM_MAYSHARE;
++	vma->vm_flags |= VM_MAYSHARE | VM_SHARED;
  
- 	/* network "reconfiguration" handling */
--	time_t first_recon,	/* time of "first" RECON message to count */
--		last_recon;	/* time of most recent RECON */
-+	unsigned long first_recon; /* time of "first" RECON message to count */
-+	unsigned long last_recon;  /* time of most recent RECON */
- 	int num_recons;		/* number of RECONs between first and last. */
- 	bool network_down;	/* do we think the network is down? */
- 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from caglar@pardus.org.tr are
+Patches currently in -mm which might be from michael.hennerich@analog.com are
 
-git-powerpc.patch
-arch-ia64-kernel-use-time_-macros.patch
-git-net.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-fix-indentation.patch
-arch-alpha-kernel-trapsc-use-time_-macros.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-fs-binfmt_aoutc-use-printk_ratelimit.patch
+origin.patch
+input-touchscreen-driver-add-support-ad7877-touchscreen-driver.patch
 
