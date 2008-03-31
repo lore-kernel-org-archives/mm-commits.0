@@ -1,200 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:18:23 -0700
-Message-ID: <200803312018.m2VKINon024054@imap1.linux-foundation.org>
+Subject: - afs-prevent-double-cell-registration.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 13:17:37 -0700
+Message-ID: <200803312017.m2VKHbAT023986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36511 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35374 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756183AbYCaUSz (ORCPT
+	by vger.kernel.org with ESMTP id S1756187AbYCaUS5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:18:55 -0400
+	Mon, 31 Mar 2008 16:18:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, airlied@linux.ie, mm-commits@vger.kernel.org
+To: svens@stackframe.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drm: radeon: fix sparse integer as NULL pointer warnings in radeon_mem.c
+     afs: prevent double cell registration
 has been removed from the -mm tree.  Its filename was
-     radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc.patch
+     afs-prevent-double-cell-registration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: radeon: fix sparse integer as NULL pointer warnings in radeon_mem.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: afs: prevent double cell registration
+From: Sven Schnelle <svens@stackframe.org>
 
-drivers/char/drm/radeon_mem.c:91:23: warning: Using plain integer as NULL pointer
-drivers/char/drm/radeon_mem.c:116:28: warning: Using plain integer as NULL pointer
-drivers/char/drm/radeon_mem.c:124:28: warning: Using plain integer as NULL pointer
-drivers/char/drm/radeon_mem.c:177:26: warning: Using plain integer as NULL pointer
-drivers/char/drm/radeon_mem.c:177:53: warning: Using plain integer as NULL pointer
+kafs doesn't check if the cell already exists - so if you do an echo "add
+newcell.org 1.2.3.4" >/proc/fs/afs/cells it will try to create this cell
+again.  kobject will also complain about a double registration.  To prevent
+such problems, return -EEXIST in that case.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Signed-off-by: Sven Schnelle <svens@stackframe.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/radeon_mem.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/afs/cell.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/drm/radeon_mem.c~radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc drivers/char/drm/radeon_mem.c
---- a/drivers/char/drm/radeon_mem.c~radeon-fix-integer-as-null-pointer-warnings-in-radeon_memc
-+++ a/drivers/char/drm/radeon_mem.c
-@@ -88,7 +88,7 @@ static struct mem_block *alloc_block(str
+diff -puN fs/afs/cell.c~afs-prevent-double-cell-registration fs/afs/cell.c
+--- a/fs/afs/cell.c~afs-prevent-double-cell-registration
++++ a/fs/afs/cell.c
+@@ -127,14 +127,20 @@ struct afs_cell *afs_cell_create(const c
  
- 	list_for_each(p, heap) {
- 		int start = (p->start + mask) & ~mask;
--		if (p->file_priv == 0 && start + size <= p->start + p->size)
-+		if (p->file_priv == NULL && start + size <= p->start + p->size)
- 			return split_block(p, start, size, file_priv);
+ 	_enter("%s,%s", name, vllist);
+ 
++	down_write(&afs_cells_sem);
++	read_lock(&afs_cells_lock);
++	list_for_each_entry(cell, &afs_cells, link) {
++		if (strcasecmp(cell->name, name) == 0)
++			goto duplicate_name;
++	}
++	read_unlock(&afs_cells_lock);
++
+ 	cell = afs_cell_alloc(name, vllist);
+ 	if (IS_ERR(cell)) {
+ 		_leave(" = %ld", PTR_ERR(cell));
+ 		return cell;
  	}
  
-@@ -113,7 +113,7 @@ static void free_block(struct mem_block 
- 	/* Assumes a single contiguous range.  Needs a special file_priv in
- 	 * 'heap' to stop it being subsumed.
- 	 */
--	if (p->next->file_priv == 0) {
-+	if (p->next->file_priv == NULL) {
- 		struct mem_block *q = p->next;
- 		p->size += q->size;
- 		p->next = q->next;
-@@ -121,7 +121,7 @@ static void free_block(struct mem_block 
- 		drm_free(q, sizeof(*q), DRM_MEM_BUFS);
- 	}
- 
--	if (p->prev->file_priv == 0) {
-+	if (p->prev->file_priv == NULL) {
- 		struct mem_block *q = p->prev;
- 		q->size += p->size;
- 		q->next = p->next;
-@@ -174,7 +174,7 @@ void radeon_mem_release(struct drm_file 
- 	 * 'heap' to stop it being subsumed.
- 	 */
- 	list_for_each(p, heap) {
--		while (p->file_priv == 0 && p->next->file_priv == 0) {
-+		while (p->file_priv == NULL && p->next->file_priv == NULL) {
- 			struct mem_block *q = p->next;
- 			p->size += q->size;
- 			p->next = q->next;
-_
-
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
-
-origin.patch
-git-x86.patch
-git-alsa-tiwai.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-cifs-remove-global_extern-macro.patch
-powerpc-replace-remaining-__function__-occurences.patch
-ppc-replace-remaining-__function__-occurences.patch
-power-replace-remaining-__function__-occurrences.patch
-git-dvb.patch
-git-dlm.patch
-git-ieee1394.patch
-git-infiniband.patch
-input-replace-remaining-__function__-occurrences.patch
-git-jfs.patch
-git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-git-mips.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-mtd-replace-remaining-__function__-occurrences.patch
-git-net.patch
-blackfin-replace-remaining-__function__-occurences.patch
-git-nfsd.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-git-selinux.patch
-drivers-s390-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-block-replace-remaining-__function__-occurrences.patch
-git-watchdog.patch
-mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
-mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
-mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
-mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
-mac80211-michaelc-replace-macro-with-function.patch
-mac80211-michaelc-use-unaligned-byteorder-helpers.patch
-mac80211-michaelc-fold-initial-xor-into-block-helper.patch
-xfs-replace-remaining-__function__-occurrences.patch
-xfs-replace-__inline-with-inline.patch
-xtensa-replace-remaining-__function__-occurences.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
-alpha-replace-__inline-with-inline.patch
-m68k-replace-remaining-__function__-occurences.patch
-uml-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-firmware-replace-remaining-__function__-occurrences.patch
-drivers-misc-replace-remaining-__function__-occurrences.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-char-make-functions-static-in-synclinkmpc.patch
-spi-replace-remaining-__function__-occurrences.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-isdn-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-rtc-replace-remaining-__function__-occurrences.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-video-replace-remaining-__function__-occurrences.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-md-replace-remaining-__function__-occurrences.patch
-ext2-replace-remaining-__function__-occurrences.patch
-ext3-replace-remaining-__function__-occurrences.patch
-jbd-replace-remaining-__function__-occurrences.patch
-ufs-replace-remaining-__function__-occurrences.patch
-ufs-replace-__inline-with-inline.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-reiserfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
-
+-	down_write(&afs_cells_sem);
