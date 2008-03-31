@@ -1,33 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-fix-sparse-warning-in-nameic.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:19:24 -0700
-Message-ID: <200803312019.m2VKJOWl024204@imap1.linux-foundation.org>
+Subject: - reiserfs-fix-sparse-warnings-in-do_balanc.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 13:19:22 -0700
+Message-ID: <200803312019.m2VKJMvl024201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42687 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52132 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754739AbYCaUcU (ORCPT
+	by vger.kernel.org with ESMTP id S1754853AbYCaUcq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:32:20 -0400
+	Mon, 31 Mar 2008 16:32:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, chris.mason@oracle.com, jeffm@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: fix sparse warning in namei.c
+     reiserfs: fix sparse warnings in do_balan.c
 has been removed from the -mm tree.  Its filename was
-     reiserfs-fix-sparse-warning-in-nameic.patch
+     reiserfs-fix-sparse-warnings-in-do_balanc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: fix sparse warning in namei.c
+Subject: reiserfs: fix sparse warnings in do_balan.c
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-fs/reiserfs/namei.c:455:17: warning: Using plain integer as NULL pointer
+fs/reiserfs/do_balan.c:286:34: warning: Using plain integer as NULL pointer
+fs/reiserfs/do_balan.c:1731:21: warning: Using plain integer as NULL pointer
+fs/reiserfs/do_balan.c:1830:2: warning: Using plain integer as NULL pointer
+fs/reiserfs/do_balan.c:1830:2: warning: Using plain integer as NULL pointer
+fs/reiserfs/do_balan.c:1844:2: warning: Using plain integer as NULL pointer
+fs/reiserfs/do_balan.c:1844:2: warning: Using plain integer as NULL pointer
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -35,21 +40,48 @@ Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/namei.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiserfs/do_balan.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/reiserfs/namei.c~reiserfs-fix-sparse-warning-in-nameic fs/reiserfs/namei.c
---- a/fs/reiserfs/namei.c~reiserfs-fix-sparse-warning-in-nameic
-+++ a/fs/reiserfs/namei.c
-@@ -452,7 +452,7 @@ static int reiserfs_add_entry(struct rei
- 	buflen = DEH_SIZE + ROUND_UP(namelen);
- 	if (buflen > sizeof(small_buf)) {
- 		buffer = kmalloc(buflen, GFP_NOFS);
--		if (buffer == 0)
-+		if (!buffer)
- 			return -ENOMEM;
- 	} else
- 		buffer = small_buf;
+diff -puN fs/reiserfs/do_balan.c~reiserfs-fix-sparse-warnings-in-do_balanc fs/reiserfs/do_balan.c
+--- a/fs/reiserfs/do_balan.c~reiserfs-fix-sparse-warnings-in-do_balanc
++++ a/fs/reiserfs/do_balan.c
+@@ -283,7 +283,7 @@ static int balance_leaf(struct tree_bala
+ 		return balance_leaf_when_delete(tb, flag);
+ 
+ 	zeros_num = 0;
+-	if (flag == M_INSERT && body == 0)
++	if (flag == M_INSERT && body == NULL)
+ 		zeros_num = ih_item_len(ih);
+ 
+ 	pos_in_item = tb->tb_path->pos_in_item;
+@@ -1728,7 +1728,7 @@ struct buffer_head *get_FEB(struct tree_
+ 	struct buffer_info bi;
+ 
+ 	for (i = 0; i < MAX_FEB_SIZE; i++)
+-		if (tb->FEB[i] != 0)
++		if (tb->FEB[i])
+ 			break;
+ 
+ 	if (i == MAX_FEB_SIZE)
+@@ -1827,7 +1827,7 @@ int get_left_neighbor_position(struct tr
+ {
+ 	int Sh_position = PATH_H_POSITION(tb->tb_path, h + 1);
+ 
+-	RFALSE(PATH_H_PPARENT(tb->tb_path, h) == 0 || tb->FL[h] == 0,
++	RFALSE(PATH_H_PPARENT(tb->tb_path, h) == NULL || tb->FL[h] == NULL,
+ 	       "vs-12325: FL[%d](%p) or F[%d](%p) does not exist",
+ 	       h, tb->FL[h], h, PATH_H_PPARENT(tb->tb_path, h));
+ 
+@@ -1841,7 +1841,7 @@ int get_right_neighbor_position(struct t
+ {
+ 	int Sh_position = PATH_H_POSITION(tb->tb_path, h + 1);
+ 
+-	RFALSE(PATH_H_PPARENT(tb->tb_path, h) == 0 || tb->FR[h] == 0,
++	RFALSE(PATH_H_PPARENT(tb->tb_path, h) == NULL || tb->FR[h] == NULL,
+ 	       "vs-12330: F[%d](%p) or FR[%d](%p) does not exist",
+ 	       h, PATH_H_PPARENT(tb->tb_path, h), h, tb->FR[h]);
+ 
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
