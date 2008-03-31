@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + touch-screen-driver-for-the-superh-migor-board.patch added to -mm tree
-Date: Mon, 31 Mar 2008 15:48:57 -0700
-Message-ID: <200803312248.m2VMmvGW029940@imap1.linux-foundation.org>
+Subject: + touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 31 Mar 2008 15:49:35 -0700
+Message-ID: <200803312249.m2VMnZkh030015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57738 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45278 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752815AbYCaWtN (ORCPT
+	by vger.kernel.org with ESMTP id S1752824AbYCaWtr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 18:49:13 -0400
+	Mon, 31 Mar 2008 18:49:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: magnus.damm@gmail.com, broonie@opensource.wolfsonmicro.com, damm@igel.co.jp, dtor@mail.ru, lethal@linux-sh.org
+Cc: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, damm@igel.co.jp, dtor@mail.ru, lethal@linux-sh.org, magnus.damm@gmail.com
 
 
 The patch titled
-     Touch screen driver for the SuperH MigoR board
+     touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     touch-screen-driver-for-the-superh-migor-board.patch
+     touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,284 +34,233 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Touch screen driver for the SuperH MigoR board
-From: Magnus Damm <magnus.damm@gmail.com>
+Subject: touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This is a MigoR touch screen driver.  The chip we interface to is
-unfortunately a custom designed microcontroller speaking some undocumented
-protocol over i2c.
+WARNING: Use #include <linux/io.h> instead of <asm/io.h>
+#84: FILE: drivers/input/touchscreen/migor_ts.c:26:
++#include <asm/io.h>
 
-The board specific code is expected to register this device as an i2c chip
-using struct i2c_board_info [] and i2c_register_board_info().
+total: 0 errors, 1 warnings, 238 lines checked
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
+./patches/touch-screen-driver-for-the-superh-migor-board.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Magnus Damm <damm@igel.co.jp>
+Cc: Magnus Damm <magnus.damm@gmail.com>
 Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/Kconfig    |   12 +
- drivers/input/touchscreen/Makefile   |    1 
- drivers/input/touchscreen/migor_ts.c |  213 +++++++++++++++++++++++++
- 3 files changed, 226 insertions(+)
+ drivers/input/touchscreen/migor_ts.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/touchscreen/Kconfig~touch-screen-driver-for-the-superh-migor-board drivers/input/touchscreen/Kconfig
---- a/drivers/input/touchscreen/Kconfig~touch-screen-driver-for-the-superh-migor-board
-+++ a/drivers/input/touchscreen/Kconfig
-@@ -147,6 +147,18 @@ config TOUCHSCREEN_HP7XX
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called jornada720_ts.
- 
-+config TOUCHSCREEN_MIGOR
-+	tristate "Renesas MIGO-R touchscreen"
-+	depends on SH_MIGOR
-+	default n
-+	help
-+	  Say Y here to enable MIGO-R touchscreen support.
-+
-+	  If unsure, say N.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called migor_ts.
-+
- config TOUCHSCREEN_PENMOUNT
- 	tristate "Penmount serial touchscreen"
- 	select SERIO
-diff -puN drivers/input/touchscreen/Makefile~touch-screen-driver-for-the-superh-migor-board drivers/input/touchscreen/Makefile
---- a/drivers/input/touchscreen/Makefile~touch-screen-driver-for-the-superh-migor-board
-+++ a/drivers/input/touchscreen/Makefile
-@@ -22,6 +22,7 @@ obj-$(CONFIG_TOUCHSCREEN_PENMOUNT)	+= pe
- obj-$(CONFIG_TOUCHSCREEN_TOUCHRIGHT)	+= touchright.o
- obj-$(CONFIG_TOUCHSCREEN_TOUCHWIN)	+= touchwin.o
- obj-$(CONFIG_TOUCHSCREEN_UCB1400)	+= ucb1400_ts.o
-+obj-$(CONFIG_TOUCHSCREEN_MIGOR)		+= migor_ts.o
- obj-$(CONFIG_TOUCHSCREEN_WM97XX)	+= wm97xx-ts.o
- obj-$(CONFIG_TOUCHSCREEN_WM97XX_MAINSTONE)	+= mainstone-wm97xx.o
- wm97xx-ts-$(CONFIG_TOUCHSCREEN_WM9705)  += wm9705.o
-diff -puN /dev/null drivers/input/touchscreen/migor_ts.c
---- /dev/null
+diff -puN drivers/input/touchscreen/migor_ts.c~touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes drivers/input/touchscreen/migor_ts.c
+--- a/drivers/input/touchscreen/migor_ts.c~touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes
 +++ a/drivers/input/touchscreen/migor_ts.c
-@@ -0,0 +1,213 @@
-+/*
-+ * Touch Screen driver for Renesas MIGO-R Platform
-+ *
-+ * Copyright (c) 2008 Magnus Damm
-+ * Copyright (c) 2007 Ujjwal Pande <ujjwal@kenati.com>,
-+ *  Kenati Technologies Pvt Ltd.
-+ *
-+ * This file is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU  General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2 of the License, or (at your option) any later version.
-+ *
-+ * This file is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ *  General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public
-+ * License along with this library; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/input.h>
-+#include <linux/interrupt.h>
-+#include <asm/io.h>
-+#include <linux/i2c.h>
-+#include <linux/timer.h>
-+
-+#define EVENT_PENDOWN 1
-+#define EVENT_REPEAT  2
-+#define EVENT_PENUP   3
-+
-+struct migor_ts_priv {
-+	struct i2c_client *client;
-+	struct input_dev *input;
-+	struct delayed_work work;
-+	int irq;
-+};
-+
-+static const u_int8_t migor_ts_ena_seq[17] = { 0x33, 0x22, 0x11,
-+					       0x01, 0x06, 0x07, };
-+static const u_int8_t migor_ts_dis_seq[17] = { };
-+
-+static void migor_ts_poscheck(struct work_struct *work)
-+{
-+	struct migor_ts_priv *priv = container_of(work,
-+						  struct migor_ts_priv,
-+						  work.work);
-+	unsigned short xpos, ypos;
-+	unsigned char event;
-+	u_int8_t buf[16];
-+
-+	memset(buf, 0, sizeof(buf));
-+
-+	/* Set Index 0 */
-+	buf[0] = 0;
-+	if (i2c_master_send(priv->client, buf, 1) != 1) {
-+		dev_err(&priv->client->dev, "Unable to write i2c index\n");
-+		goto out;
-+	}
-+
-+	/* Now do Page Read */
-+	if (i2c_master_recv(priv->client, buf, sizeof(buf)) != sizeof(buf)) {
-+		dev_err(&priv->client->dev, "Unable to read i2c page\n");
-+		goto out;
-+	}
-+
-+	ypos = ((buf[9] & 0x03) << 8 | buf[8]);
-+	xpos = ((buf[11] & 0x03) << 8 | buf[10]);
-+	event = buf[12];
-+
-+	if ((event == EVENT_PENDOWN) || (event == EVENT_REPEAT)) {
-+		input_report_key(priv->input, BTN_TOUCH, 1);
-+		input_report_abs(priv->input, ABS_X, ypos); /*X-Y swap*/
-+		input_report_abs(priv->input, ABS_Y, xpos);
-+		input_report_abs(priv->input, ABS_PRESSURE, 120);
-+		input_sync(priv->input);
-+	} else if (event == EVENT_PENUP) {
-+		input_report_abs(priv->input, ABS_PRESSURE, 0);
-+		input_sync(priv->input);
-+	}
-+ out:
-+	enable_irq(priv->irq);
-+}
-+
-+static irqreturn_t migor_ts_isr(int irq, void *dev_id)
-+{
-+	struct migor_ts_priv *priv = dev_id;
-+
-+	/* the touch screen controller chip is hooked up to the cpu
-+	 * using i2c and a single interrupt line. the interrupt line
-+	 * is pulled low whenever someone taps the screen. to deassert
-+	 * the interrupt line we need to acknowledge the interrupt by
-+	 * communicating with the controller over the slow i2c bus.
-+	 *
-+	 * we can't acknowledge from interrupt context since the i2c
-+	 * bus controller may sleep, so we just disable the interrupt
-+	 * here and handle the acknowledge using delayed work.
-+	 */
-+
-+	disable_irq_nosync(irq);
-+	schedule_delayed_work(&priv->work, HZ / 20);
-+	return IRQ_HANDLED;
-+}
-+
-+static int migor_ts_probe(struct i2c_client *client)
-+{
-+	struct migor_ts_priv *priv;
-+	int res = 0;
-+
-+	priv = kzalloc(sizeof(*priv), GFP_KERNEL);
-+	if (priv == NULL) {
-+		dev_err(&client->dev, "failed to allocate driver data\n");
-+		res = -ENOMEM;
-+		goto err0;
-+	}
-+
-+	dev_set_drvdata(&client->dev, priv);
-+	priv->client = client;
-+	INIT_DELAYED_WORK(&priv->work, migor_ts_poscheck);
-+	priv->irq = client->irq;
-+
-+	priv->input = input_allocate_device();
-+	if (!priv->input) {
-+		dev_err(&client->dev, "Failed to allocate input device.\n");
-+		res = -ENOMEM;
-+		goto err1;
-+	}
-+
-+	priv->input->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_ABS);
-+	priv->input->keybit[BIT_WORD(BTN_TOUCH)] = BIT_MASK(BTN_TOUCH);
-+
-+	input_set_abs_params(priv->input, ABS_X, 95, 955, 0, 0);
-+	input_set_abs_params(priv->input, ABS_Y, 85, 935, 0, 0);
-+	input_set_abs_params(priv->input, ABS_PRESSURE, 0, 0, 0, 0);
-+
-+	priv->input->name = client->driver_name;
-+	priv->input->phys = "input/event0";
-+	priv->input->id.bustype = BUS_ISA;
-+
-+	res = input_register_device(priv->input);
-+	if (res) {
-+		input_free_device(priv->input);
-+		goto err1;
-+	}
-+
-+	if (request_irq(priv->irq, migor_ts_isr, IRQF_TRIGGER_LOW,
-+			client->driver_name, priv)) {
-+		dev_err(&client->dev, "Unable to request touchscreen IRQ.\n");
-+		res = -EBUSY;
-+		goto err2;
-+	}
-+
-+	/* enable controller */
-+	if (i2c_master_send(client, migor_ts_ena_seq, sizeof(migor_ts_ena_seq))
-+	    == sizeof(migor_ts_ena_seq))
-+		return 0;
-+
-+	dev_err(&client->dev, "Unable to enable touchscreen.\n");
-+
-+	free_irq(priv->irq, priv);
-+ err2:
-+	input_unregister_device(priv->input);
-+ err1:
-+	kfree(priv);
-+ err0:
-+	return res;
-+}
-+
-+static int migor_ts_remove(struct i2c_client *client)
-+{
-+	struct migor_ts_priv *priv = dev_get_drvdata(&client->dev);
-+	int ret;
-+
-+	/* cancel pending work and wait for migor_ts_poscheck() to finish */
-+	ret = cancel_delayed_work_sync(&priv->work);
-+	if (ret)
-+		return ret;
-+
-+	/* disable controller */
-+	i2c_master_send(client, migor_ts_dis_seq, sizeof(migor_ts_dis_seq));
-+
-+	free_irq(priv->irq, priv);
-+	input_unregister_device(priv->input);
-+	kfree(priv);
-+	return ret;
-+}
-+
-+static struct i2c_driver migor_ts_driver = {
-+	.driver = {
-+		.name = "migor_ts",
-+	},
-+	.probe = migor_ts_probe,
-+	.remove = migor_ts_remove,
-+};
-+
-+static int __init migor_ts_init(void)
-+{
-+	return i2c_add_driver(&migor_ts_driver);
-+}
-+
-+static void __exit migor_ts_exit(void)
-+{
-+	i2c_del_driver(&migor_ts_driver);
-+}
-+
-+MODULE_DESCRIPTION("MigoR Touchscreen driver");
-+MODULE_AUTHOR("Magnus Damm <damm@opensource.se>");
-+MODULE_LICENSE("GPL");
-+
-+module_init(migor_ts_init);
-+module_exit(migor_ts_exit);
+@@ -23,7 +23,7 @@
+ #include <linux/kernel.h>
+ #include <linux/input.h>
+ #include <linux/interrupt.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ #include <linux/i2c.h>
+ #include <linux/timer.h>
+ 
 _
 
-Patches currently in -mm which might be from magnus.damm@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-touch-screen-driver-for-the-superh-migor-board.patch
+origin.patch
+alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+git-x86-fix-printk-warning.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+cifs-suppress-warning.patch
+pm-remove-destroy_suspended_device.patch
+scsi-add-iscsi-ibft-support.patch
+git-dvb.patch
+git-dvb-git-rejects.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-kvm.patch
+git-kvm-fixup.patch
+git-kvm-vs-git-s390.patch
+git-leds.patch
+git-libata-fix-config_pci=n-build.patch
+git-async-tx.patch
+git-mips.patch
 git-net.patch
+net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+tulip-tulip_read_eeprom-fixes-for-bug-4420.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-gregkh-pci-pci-alpha-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ia64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-powerpc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-x86-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
+pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-introduce-pci_slot-fix-fix.patch
+pci-hotplug-introduce-pci_slot-fix-2.patch
+pci-hotplug-introduce-pci_slot-fix-99.patch
+pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+git-s390-git-rejects.patch
 git-sh.patch
-sm501-add-uart-support.patch
+git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+git-sparc64.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+git-semaphore-git-rejects.patch
+smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-allocate-section_map-for-sparse_init-update-fix.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
 
