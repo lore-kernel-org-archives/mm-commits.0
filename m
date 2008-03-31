@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + dvb-usb-leadtek-winfast-usb-dtv-dongle-support.patch added to -mm tree
-Date: Mon, 31 Mar 2008 14:11:42 -0700
-Message-ID: <200803312111.m2VLBjm6026253@imap1.linux-foundation.org>
+Subject: + parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch added to -mm tree
+Date: Mon, 31 Mar 2008 14:21:46 -0700
+Message-ID: <200803312121.m2VLLk2i026609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60695 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755644AbYCaVMC (ORCPT
+	by vger.kernel.org with ESMTP id S1755660AbYCaVVx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 17:12:02 -0400
+	Mon, 31 Mar 2008 17:21:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: darryl.green@aanet.com.au, mchehab@infradead.org
+Cc: bjorn.helgaas@hp.com
 
 
 The patch titled
-     dvb-usb: Leadtek Winfast USB DTV Dongle support
+     parport_pc: wrap PNP probe code in #ifdef CONFIG_PNP
 has been added to the -mm tree.  Its filename is
-     dvb-usb-leadtek-winfast-usb-dtv-dongle-support.patch
+     parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dvb-usb: Leadtek Winfast USB DTV Dongle support
-From: Darryl Green <darryl.green@aanet.com.au>
+Subject: parport_pc: wrap PNP probe code in #ifdef CONFIG_PNP
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Support Winfast USB DTV dongle with device ID 6f01.
+Wrap PNP probe code in #ifdef CONFIG_PNP.  We already do the same for
+CONFIG_PCI.
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Without this change, we'll have unresolved references to pnp_get_resource()
+function when CONFIG_PNP=n.  (This is a new interface that's not in mainline
+yet.)
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/dvb-usb/dib0700_devices.c |    3 ++-
- drivers/media/dvb/dvb-usb/dvb-usb-ids.h     |    1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ drivers/parport/parport_pc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/media/dvb/dvb-usb/dib0700_devices.c~dvb-usb-leadtek-winfast-usb-dtv-dongle-support drivers/media/dvb/dvb-usb/dib0700_devices.c
---- a/drivers/media/dvb/dvb-usb/dib0700_devices.c~dvb-usb-leadtek-winfast-usb-dtv-dongle-support
-+++ a/drivers/media/dvb/dvb-usb/dib0700_devices.c
-@@ -905,6 +905,7 @@ struct usb_device_id dib0700_usb_id_tabl
- 		{ USB_DEVICE(USB_VID_ASUS,      USB_PID_ASUS_U3100) },
- /* 25 */	{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_STICK_3) },
- 		{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_MYTV_T) },
-+		{ USB_DEVICE(USB_VID_LEADTEK,   USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
- 		{ 0 }		/* Terminating entry */
+diff -puN drivers/parport/parport_pc.c~parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp drivers/parport/parport_pc.c
+--- a/drivers/parport/parport_pc.c~parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp
++++ a/drivers/parport/parport_pc.c
+@@ -3083,6 +3083,7 @@ static struct pci_driver parport_pc_pci_
+ static int __init parport_pc_init_superio(int autoirq, int autodma) {return 0;}
+ #endif /* CONFIG_PCI */
+ 
++#ifdef CONFIG_PNP
+ 
+ static const struct pnp_device_id parport_pc_pnp_tbl[] = {
+ 	/* Standard LPT Printer Port */
+@@ -3149,6 +3150,9 @@ static struct pnp_driver parport_pc_pnp_
+ 	.remove		= parport_pc_pnp_remove,
  };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -969,7 +970,7 @@ struct dvb_usb_device_properties dib0700
- 				{ NULL },
- 			},
- 			{   "Leadtek Winfast DTV Dongle (STK7700P based)",
--				{ &dib0700_usb_id_table[8], NULL },
-+				{ &dib0700_usb_id_table[8], &dib0700_usb_id_table[27] },
- 				{ NULL },
- 			},
- 			{   "AVerMedia AVerTV DVB-T Express",
-diff -puN drivers/media/dvb/dvb-usb/dvb-usb-ids.h~dvb-usb-leadtek-winfast-usb-dtv-dongle-support drivers/media/dvb/dvb-usb/dvb-usb-ids.h
---- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h~dvb-usb-leadtek-winfast-usb-dtv-dongle-support
-+++ a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-@@ -172,6 +172,7 @@
- #define USB_PID_WINFAST_DTV_DONGLE_COLD			0x6025
- #define USB_PID_WINFAST_DTV_DONGLE_WARM			0x6026
- #define USB_PID_WINFAST_DTV_DONGLE_STK7700P		0x6f00
-+#define USB_PID_WINFAST_DTV_DONGLE_STK7700P_2		0x6f01
- #define USB_PID_GENPIX_8PSK_REV_1_COLD			0x0200
- #define USB_PID_GENPIX_8PSK_REV_1_WARM			0x0201
- #define USB_PID_GENPIX_8PSK_REV_2			0x0202
+ 
++#else
++static struct pnp_driver parport_pc_pnp_driver;
++#endif /* CONFIG_PNP */
+ 
+ static int __devinit parport_pc_platform_probe(struct platform_device *pdev)
+ {
 _
 
-Patches currently in -mm which might be from darryl.green@aanet.com.au are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-dvb-usb-leadtek-winfast-usb-dtv-dongle-support.patch
+git-acpi.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+revert-gregkh-pci-pci-alpha-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ia64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-powerpc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-x86-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
+simplify-initcall_debug-output.patch
+pnp-skip-dev-protocol-null-checks.patch
+pnp-simplify-quirk-debug-output.patch
+pnp-use-dev_printk-for-quirk-messages.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+radio-cadet-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+tpm-change-kconfig-dependencies-from-pnpacpi-to-pnp.patch
+hisax-depend-on-config_pnp-not-__isapnp__.patch
 
