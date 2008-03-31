@@ -1,242 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - mips-replace-remaining-__function__-occurences.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:18:34 -0700
-Message-ID: <200803312018.m2VKIYGL024066@imap1.linux-foundation.org>
+Subject: - ext3-dont-export-ext3_fsh-and-jbdh.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 13:17:54 -0700
+Message-ID: <200803312017.m2VKHsX7024001@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47439 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33467 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753699AbYCaUTS (ORCPT
+	by vger.kernel.org with ESMTP id S1756288AbYCaUTA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:19:18 -0400
+	Mon, 31 Mar 2008 16:19:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: hch@lst.de, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: replace remaining __FUNCTION__ occurrences
+     ext3: don't export ext3_fs.h and jbd.h
 has been removed from the -mm tree.  Its filename was
-     mips-replace-remaining-__function__-occurences.patch
+     ext3-dont-export-ext3_fsh-and-jbdh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: replace remaining __FUNCTION__ occurrences
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: ext3: don't export ext3_fs.h and jbd.h
+From: Christoph Hellwig <hch@lst.de>
 
-__FUNCTION__ is gcc-specific, use __func__
+Neither of the headers actually compiles when included from userpsace nor
+should it be made available as userspace tools should be using the libraries
+or at least headers from e2fsprogs.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/au1000/common/power.c                            |    2 +-
- arch/mips/kernel/signal-common.h                           |    2 +-
- arch/mips/pci/ops-pnx8550.c                                |    4 ++--
- arch/mips/sgi-ip32/ip32-reset.c                            |    2 +-
- arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c   |    2 +-
- arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c |    2 +-
- 6 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/Kbuild |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/mips/au1000/common/power.c~mips-replace-remaining-__function__-occurences arch/mips/au1000/common/power.c
---- a/arch/mips/au1000/common/power.c~mips-replace-remaining-__function__-occurences
-+++ a/arch/mips/au1000/common/power.c
-@@ -47,7 +47,7 @@
- 
- #define DEBUG 1
- #ifdef DEBUG
--#  define DPRINTK(fmt, args...)	printk("%s: " fmt, __FUNCTION__ , ## args)
-+#  define DPRINTK(fmt, args...)	printk("%s: " fmt, __func__, ## args)
- #else
- #  define DPRINTK(fmt, args...)
- #endif
-diff -puN arch/mips/kernel/signal-common.h~mips-replace-remaining-__function__-occurences arch/mips/kernel/signal-common.h
---- a/arch/mips/kernel/signal-common.h~mips-replace-remaining-__function__-occurences
-+++ a/arch/mips/kernel/signal-common.h
-@@ -14,7 +14,7 @@
- /* #define DEBUG_SIG */
- 
- #ifdef DEBUG_SIG
--#  define DEBUGP(fmt, args...) printk("%s: " fmt, __FUNCTION__ , ##args)
-+#  define DEBUGP(fmt, args...) printk("%s: " fmt, __func__, ##args)
- #else
- #  define DEBUGP(fmt, args...)
- #endif
-diff -puN arch/mips/pci/ops-pnx8550.c~mips-replace-remaining-__function__-occurences arch/mips/pci/ops-pnx8550.c
---- a/arch/mips/pci/ops-pnx8550.c~mips-replace-remaining-__function__-occurences
-+++ a/arch/mips/pci/ops-pnx8550.c
-@@ -90,14 +90,14 @@ config_access(unsigned int pci_cmd, stru
- 
- 		loops--;
- 		if (loops == 0) {
--			printk("%s : Arbiter Locked.\n", __FUNCTION__);
-+			printk("%s : Arbiter Locked.\n", __func__);
- 		}
- 	}
- 
- 	clear_status();
- 	if ((pci_cmd == PCI_CMD_IOR) || (pci_cmd == PCI_CMD_IOW)) {
- 		printk("%s timeout (GPPM_CTRL=%X) ioaddr %lX pci_cmd %X\n",
--		       __FUNCTION__, inl(PCI_BASE | PCI_GPPM_CTRL), ioaddr,
-+		       __func__, inl(PCI_BASE | PCI_GPPM_CTRL), ioaddr,
- 		       pci_cmd);
- 	}
- 
-diff -puN arch/mips/sgi-ip32/ip32-reset.c~mips-replace-remaining-__function__-occurences arch/mips/sgi-ip32/ip32-reset.c
---- a/arch/mips/sgi-ip32/ip32-reset.c~mips-replace-remaining-__function__-occurences
-+++ a/arch/mips/sgi-ip32/ip32-reset.c
-@@ -142,7 +142,7 @@ static irqreturn_t ip32_rtc_int(int irq,
- 	reg_c = CMOS_READ(RTC_INTR_FLAGS);
- 	if (!(reg_c & RTC_IRQF)) {
- 		printk(KERN_WARNING
--			"%s: RTC IRQ without RTC_IRQF\n", __FUNCTION__);
-+			"%s: RTC IRQ without RTC_IRQF\n", __func__);
- 	}
- 	/* Wait until interrupt goes away */
- 	disable_irq(MACEISA_RTC_IRQ);
-diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c~mips-replace-remaining-__function__-occurences arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c
---- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c~mips-replace-remaining-__function__-occurences
-+++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c
-@@ -173,7 +173,7 @@ static const u32 toshiba_rbtx4927_irq_de
-         { \
-            char tmp[100]; \
-            sprintf( tmp, str ); \
--           printk( "%s(%s:%u)::%s", __FUNCTION__, __FILE__, __LINE__, tmp ); \
-+           printk( "%s(%s:%u)::%s", __func__, __FILE__, __LINE__, tmp ); \
-         }
- #else
- #define TOSHIBA_RBTX4927_IRQ_DPRINTK(flag, str...)
-diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~mips-replace-remaining-__function__-occurences arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
---- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~mips-replace-remaining-__function__-occurences
-+++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
-@@ -93,7 +93,7 @@ static const u32 toshiba_rbtx4927_setup_
-         { \
-            char tmp[100]; \
-            sprintf( tmp, str ); \
--           printk( "%s(%s:%u)::%s", __FUNCTION__, __FILE__, __LINE__, tmp ); \
-+           printk( "%s(%s:%u)::%s", __func__, __FILE__, __LINE__, tmp ); \
-         }
- #else
- #define TOSHIBA_RBTX4927_SETUP_DPRINTK(flag, str...)
+diff -puN include/linux/Kbuild~ext3-dont-export-ext3_fsh-and-jbdh include/linux/Kbuild
+--- a/include/linux/Kbuild~ext3-dont-export-ext3_fsh-and-jbdh
++++ a/include/linux/Kbuild
+@@ -195,7 +195,6 @@ unifdef-y += ethtool.h
+ unifdef-y += eventpoll.h
+ unifdef-y += signalfd.h
+ unifdef-y += ext2_fs.h
+-unifdef-y += ext3_fs.h
+ unifdef-y += fb.h
+ unifdef-y += fcntl.h
+ unifdef-y += filter.h
+@@ -248,7 +247,6 @@ unifdef-y += isdn.h
+ unifdef-y += isdnif.h
+ unifdef-y += isdn_divertif.h
+ unifdef-y += isdn_ppp.h
+-unifdef-y += jbd.h
+ unifdef-y += joystick.h
+ unifdef-y += kdev_t.h
+ unifdef-y += kd.h
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from hch@lst.de are
 
 origin.patch
-git-x86.patch
-git-alsa-tiwai.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-cifs-remove-global_extern-macro.patch
-powerpc-replace-remaining-__function__-occurences.patch
-ppc-replace-remaining-__function__-occurences.patch
-power-replace-remaining-__function__-occurrences.patch
-git-dvb.patch
-git-dlm.patch
-git-ieee1394.patch
-git-infiniband.patch
-input-replace-remaining-__function__-occurrences.patch
-git-jfs.patch
-git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-git-mips.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-mtd-replace-remaining-__function__-occurrences.patch
-git-net.patch
-blackfin-replace-remaining-__function__-occurences.patch
-git-nfsd.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-git-selinux.patch
-drivers-s390-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-block-replace-remaining-__function__-occurrences.patch
-git-watchdog.patch
-mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
-mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
-mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
-mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
-mac80211-michaelc-replace-macro-with-function.patch
-mac80211-michaelc-use-unaligned-byteorder-helpers.patch
-mac80211-michaelc-fold-initial-xor-into-block-helper.patch
-xfs-replace-remaining-__function__-occurrences.patch
-xfs-replace-__inline-with-inline.patch
-xtensa-replace-remaining-__function__-occurences.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
-alpha-replace-__inline-with-inline.patch
-m68k-replace-remaining-__function__-occurences.patch
-uml-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-firmware-replace-remaining-__function__-occurrences.patch
-drivers-misc-replace-remaining-__function__-occurrences.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-char-make-functions-static-in-synclinkmpc.patch
-spi-replace-remaining-__function__-occurrences.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-isdn-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-rtc-replace-remaining-__function__-occurrences.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-video-replace-remaining-__function__-occurrences.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-md-replace-remaining-__function__-occurrences.patch
-ext2-replace-remaining-__function__-occurrences.patch
-ext3-replace-remaining-__function__-occurrences.patch
-jbd-replace-remaining-__function__-occurrences.patch
-ufs-replace-remaining-__function__-occurrences.patch
-ufs-replace-__inline-with-inline.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-reiserfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
+git-gfs2-nmw.patch
+git-udf.patch
+git-unionfs.patch
+git-vfs.patch
+vfs-remove-lives_below_in_same_fs.patch
+signals-do_tkill-dont-use-tasklist_lock-comment.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+mxser-convert-large-macros-to-functions.patch
+reiserfs-use-open_bdev_excl.patch
 
