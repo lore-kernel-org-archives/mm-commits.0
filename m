@@ -1,207 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - dm-crypt-fix-ctx-pending.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:18:07 -0700
-Message-ID: <200803312018.m2VKI7J6024030@imap1.linux-foundation.org>
+Subject: - blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-to-lkml-review.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 13:18:00 -0700
+Message-ID: <200803312018.m2VKI0MP024012@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37389 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55002 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756288AbYCaUS6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756341AbYCaUTB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:18:58 -0400
+	Mon, 31 Mar 2008 16:19:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mbroz@redhat.com, agk@redhat.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: cooloney@kernel.org, adaplas@pol.net, geert@linux-m68k.org, michael.hennerich@analog.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dm crypt: fix ctx pending
+     blackfin video driver: update the BF52x EZKIT video framebuffer driver according to LKML review
 has been removed from the -mm tree.  Its filename was
-     dm-crypt-fix-ctx-pending.patch
+     blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-to-lkml-review.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dm crypt: fix ctx pending
-From: Milan Broz <mbroz@redhat.com>
+Subject: blackfin video driver: update the BF52x EZKIT video framebuffer driver according to LKML review
+From: Bryan Wu <cooloney@kernel.org>
 
-Fix regression in dm-crypt introduced in commit
-3a7f6c990ad04e6f576a159876c602d14d6f7fef (dm crypt: use async crypto).
+- Allocate pseudo_palette together with fbinfo
+- Code cleanup
 
-If write requests need to be split into pieces, the code must not process them
-in parallel because the crypto context cannot be shared.  So there can be
-parallel crypto operations on one part of the write, but only one write bio
-can be processed at a time.
-
-This is not optimal and the workqueue code needs to be optimized for parallel
-processing, but for now it solves the problem without affecting the
-performance of synchronous crypto operation (most of current dm-crypt users).
-
-http://bugzilla.kernel.org/show_bug.cgi?id=10242
-http://bugzilla.kernel.org/show_bug.cgi?id=10207
-
-Signed-off-by: Milan Broz <mbroz@redhat.com>
-Signed-off-by: Alasdair G Kergon <agk@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-crypt.c |   58 ++++++++++++++++++++--------------------
- 1 file changed, 30 insertions(+), 28 deletions(-)
+ drivers/video/bfin-t350mcqb-fb.c |   36 +++++++++++------------------
+ 1 file changed, 14 insertions(+), 22 deletions(-)
 
-diff -puN drivers/md/dm-crypt.c~dm-crypt-fix-ctx-pending drivers/md/dm-crypt.c
---- a/drivers/md/dm-crypt.c~dm-crypt-fix-ctx-pending
-+++ a/drivers/md/dm-crypt.c
-@@ -1,7 +1,7 @@
- /*
-  * Copyright (C) 2003 Christophe Saout <christophe@saout.de>
-  * Copyright (C) 2004 Clemens Fruhwirth <clemens@endorphin.org>
-- * Copyright (C) 2006-2007 Red Hat, Inc. All rights reserved.
-+ * Copyright (C) 2006-2008 Red Hat, Inc. All rights reserved.
-  *
-  * This file is released under the GPL.
-  */
-@@ -93,6 +93,8 @@ struct crypt_config {
+diff -puN drivers/video/bfin-t350mcqb-fb.c~blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-to-lkml-review drivers/video/bfin-t350mcqb-fb.c
+--- a/drivers/video/bfin-t350mcqb-fb.c~blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-to-lkml-review
++++ a/drivers/video/bfin-t350mcqb-fb.c
+@@ -91,6 +91,7 @@ struct bfin_t350mcqbfb_info {
+ 	int lq043_open_cnt;
+ 	int irq;
+ 	spinlock_t lock;	/* lock */
++	u32 pseudo_pal[16];
+ };
  
- 	struct workqueue_struct *io_queue;
- 	struct workqueue_struct *crypt_queue;
-+	wait_queue_head_t writeq;
-+
- 	/*
- 	 * crypto related data
- 	 */
-@@ -331,14 +333,7 @@ static void crypt_convert_init(struct cr
- 	ctx->idx_out = bio_out ? bio_out->bi_idx : 0;
- 	ctx->sector = sector + cc->iv_offset;
- 	init_completion(&ctx->restart);
--	/*
--	 * Crypto operation can be asynchronous,
--	 * ctx->pending is increased after request submission.
--	 * We need to ensure that we don't call the crypt finish
--	 * operation before pending got incremented
--	 * (dependent on crypt submission return code).
--	 */
--	atomic_set(&ctx->pending, 2);
-+	atomic_set(&ctx->pending, 1);
+ static int nocursor;
+@@ -182,13 +183,13 @@ static void bfin_t350mcqb_config_dma(str
+ 
  }
  
- static int crypt_convert_block(struct crypt_config *cc,
-@@ -411,43 +406,42 @@ static void crypt_alloc_req(struct crypt
- static int crypt_convert(struct crypt_config *cc,
- 			 struct convert_context *ctx)
- {
--	int r = 0;
-+	int r;
+-static int bfin_t350mcqb_request_ports(int action)
+-{
+-	u16 ppi0_req_8[] = {P_PPI0_CLK, P_PPI0_FS1, P_PPI0_FS2,
++static	u16 ppi0_req_8[] = {P_PPI0_CLK, P_PPI0_FS1, P_PPI0_FS2,
+ 			    P_PPI0_D0, P_PPI0_D1, P_PPI0_D2,
+ 			    P_PPI0_D3, P_PPI0_D4, P_PPI0_D5,
+ 			    P_PPI0_D6, P_PPI0_D7, 0};
  
- 	while(ctx->idx_in < ctx->bio_in->bi_vcnt &&
- 	      ctx->idx_out < ctx->bio_out->bi_vcnt) {
++static int bfin_t350mcqb_request_ports(int action)
++{
+ 	if (action) {
+ 		if (peripheral_request_list(ppi0_req_8, DRIVER_NAME)) {
+ 			printk(KERN_ERR "Requesting Peripherals faild\n");
+@@ -520,16 +521,7 @@ static int __init bfin_t350mcqb_probe(st
  
- 		crypt_alloc_req(cc, ctx);
+ 	fbinfo->fbops = &bfin_t350mcqb_fb_ops;
  
-+		atomic_inc(&ctx->pending);
-+
- 		r = crypt_convert_block(cc, ctx, cc->req);
- 
- 		switch (r) {
-+		/* async */
- 		case -EBUSY:
- 			wait_for_completion(&ctx->restart);
- 			INIT_COMPLETION(ctx->restart);
- 			/* fall through*/
- 		case -EINPROGRESS:
--			atomic_inc(&ctx->pending);
- 			cc->req = NULL;
--			r = 0;
--			/* fall through*/
-+			ctx->sector++;
-+			continue;
-+
-+		/* sync */
- 		case 0:
-+			atomic_dec(&ctx->pending);
- 			ctx->sector++;
- 			continue;
--		}
- 
--		break;
-+		/* error */
-+		default:
-+			atomic_dec(&ctx->pending);
-+			return r;
-+		}
- 	}
- 
--	/*
--	 * If there are pending crypto operation run async
--	 * code. Otherwise process return code synchronously.
--	 * The step of 2 ensures that async finish doesn't
--	 * call crypto finish too early.
--	 */
--	if (atomic_sub_return(2, &ctx->pending))
--		return -EINPROGRESS;
+-	fbinfo->pseudo_palette = kmalloc(sizeof(u32) * 16, GFP_KERNEL);
+-	if (!fbinfo->pseudo_palette) {
+-		printk(KERN_ERR DRIVER_NAME
+-		       "Fail to allocate pseudo_palette\n");
 -
--	return r;
-+	return 0;
- }
+-		ret = -ENOMEM;
+-		goto out4;
+-	}
+-
+-	memset(fbinfo->pseudo_palette, 0, sizeof(u32) * 16);
++	fbinfo->pseudo_palette = &info->pseudo_pal;
  
- static void dm_crypt_bio_destructor(struct bio *bio)
-@@ -624,8 +618,10 @@ static void kcryptd_io_read(struct dm_cr
- static void kcryptd_io_write(struct dm_crypt_io *io)
- {
- 	struct bio *clone = io->ctx.bio_out;
-+	struct crypt_config *cc = io->target->private;
- 
- 	generic_make_request(clone);
-+	wake_up(&cc->writeq);
- }
- 
- static void kcryptd_io(struct work_struct *work)
-@@ -698,7 +694,8 @@ static void kcryptd_crypt_write_convert_
- 
- 		r = crypt_convert(cc, &io->ctx);
- 
--		if (r != -EINPROGRESS) {
-+		if (atomic_dec_and_test(&io->ctx.pending)) {
-+			/* processed, no running async crypto  */
- 			kcryptd_crypt_write_io_submit(io, r, 0);
- 			if (unlikely(r < 0))
- 				return;
-@@ -706,8 +703,12 @@ static void kcryptd_crypt_write_convert_
- 			atomic_inc(&io->pending);
- 
- 		/* out of memory -> run queues */
--		if (unlikely(remaining))
-+		if (unlikely(remaining)) {
-+			/* wait for async crypto then reinitialize pending */
-+			wait_event(cc->writeq, !atomic_read(&io->ctx.pending));
-+			atomic_set(&io->ctx.pending, 1);
- 			congestion_wait(WRITE, HZ/100);
-+		}
- 	}
- }
- 
-@@ -746,7 +747,7 @@ static void kcryptd_crypt_read_convert(s
- 
- 	r = crypt_convert(cc, &io->ctx);
- 
--	if (r != -EINPROGRESS)
-+	if (atomic_dec_and_test(&io->ctx.pending))
- 		kcryptd_crypt_read_done(io, r);
- 
- 	crypt_dec_pending(io);
-@@ -1047,6 +1048,7 @@ static int crypt_ctr(struct dm_target *t
- 		goto bad_crypt_queue;
+ 	if (fb_alloc_cmap(&fbinfo->cmap, BFIN_LCD_NBR_PALETTE_ENTRIES, 0)
+ 	    < 0) {
+@@ -537,7 +529,7 @@ static int __init bfin_t350mcqb_probe(st
+ 		       "Fail to allocate colormap (%d entries)\n",
+ 		       BFIN_LCD_NBR_PALETTE_ENTRIES);
+ 		ret = -EFAULT;
+-		goto out5;
++		goto out4;
  	}
  
-+	init_waitqueue_head(&cc->writeq);
- 	ti->private = cc;
- 	return 0;
+ 	if (bfin_t350mcqb_request_ports(1)) {
+@@ -552,11 +544,11 @@ static int __init bfin_t350mcqb_probe(st
+ 		goto out7;
+ 	}
  
-_
-
-Patches currently in -mm which might be from mbroz@redhat.com are
-
-origin.patch
-
+-	if (request_irq(info->irq, (void *)bfin_t350mcqb_irq_error, IRQF_DISABLED,
+-			"PPI ERROR", info) < 0) {
++	ret = request_irq(info->irq, bfin_t350mcqb_irq_error, IRQF_DISABLED,
++			"PPI ERROR", info);
++	if (ret < 0) {
+ 		printk(KERN_ERR DRIVER_NAME
+ 		       ": unable to request PPI ERROR IRQ\n");
+-		ret = -EFAULT;
+ 		goto out7;
+ 	}
+ 
+@@ -584,8 +576,6 @@ out7:
+ 	bfin_t350mcqb_request_ports(0);
+ out6:
+ 	fb_dealloc_cmap(&fbinfo->cmap);
+-out5:
+-	kfree(fbinfo->pseudo_palette);
+ out4:
+ 	dma_free_coherent(NULL, fbinfo->fix.smem_len, info->fb_buffer,
+ 			  info->dma_handle);
+@@ -605,6 +595,8 @@ static int bfin_t350mcqb_remove(struct p
+ 	struct fb_info *fbinfo = platform_get_drvdata(pdev);
+ 	struct bfin_t350mcqbfb_info *info = fbinfo->par;
+ 
++	unregister_framebuffer(fbinfo);
++
+ 	free_dma(CH_PPI);
+ 	free_irq(info->irq, info);
+ 
+@@ -612,7 +604,6 @@ static int bfin_t350mcqb_remove(struct p
+ 		dma_free_coherent(NULL, fbinfo->fix.smem_len, info->fb_buffer,
+ 				  info->dma_handle);
+ 
+-	kfree(fbinfo->pseudo_palette);
+ 	fb_dealloc_cmap(&fbinfo->cmap);
+ 
+ #ifndef NO_BL_SUPPORT
+@@ -620,10 +611,11 @@ static int bfin_t350mcqb_remove(struct p
+ 	backlight_device_unregister(bl_dev);
+ #endif
+ 
+-	unregister_framebuffer(fbinfo);
