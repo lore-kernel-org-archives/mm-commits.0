@@ -1,202 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-fix-sparse-warnings-in-do_balanc.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:19:22 -0700
-Message-ID: <200803312019.m2VKJMvl024201@imap1.linux-foundation.org>
+Subject: - drm-fix-for-non-coherent-dma-powerpc.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 13:18:25 -0700
+Message-ID: <200803312018.m2VKIPNt024057@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52132 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41996 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754853AbYCaUcq (ORCPT
+	by vger.kernel.org with ESMTP id S1754862AbYCaUdB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:32:46 -0400
+	Mon, 31 Mar 2008 16:33:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, chris.mason@oracle.com, jeffm@suse.com, mm-commits@vger.kernel.org
+To: benh@kernel.crashing.org, airlied@linux.ie, davem@davemloft.net, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: fix sparse warnings in do_balan.c
+     drm: fix for non-coherent DMA PowerPC
 has been removed from the -mm tree.  Its filename was
-     reiserfs-fix-sparse-warnings-in-do_balanc.patch
+     drm-fix-for-non-coherent-dma-powerpc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: fix sparse warnings in do_balan.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: drm: fix for non-coherent DMA PowerPC
+From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 
-fs/reiserfs/do_balan.c:286:34: warning: Using plain integer as NULL pointer
-fs/reiserfs/do_balan.c:1731:21: warning: Using plain integer as NULL pointer
-fs/reiserfs/do_balan.c:1830:2: warning: Using plain integer as NULL pointer
-fs/reiserfs/do_balan.c:1830:2: warning: Using plain integer as NULL pointer
-fs/reiserfs/do_balan.c:1844:2: warning: Using plain integer as NULL pointer
-fs/reiserfs/do_balan.c:1844:2: warning: Using plain integer as NULL pointer
+This patch fixes bits of the DRM so to make the radeon DRI work on
+non-cache coherent PCI DMA variants of the PowerPC processors.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
+It moves the few places that needs change to wrappers to that
+other architectures with similar issues can easily add their
+own changes to those wrappers, at least until we have more useful
+generic kernel API.
+
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/do_balan.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/char/drm/ati_pcigart.c |    6 ++++++
+ drivers/char/drm/drm_scatter.c |   11 ++++++++++-
+ drivers/char/drm/drm_vm.c      |   20 +++++++++++++++-----
+ 3 files changed, 31 insertions(+), 6 deletions(-)
 
-diff -puN fs/reiserfs/do_balan.c~reiserfs-fix-sparse-warnings-in-do_balanc fs/reiserfs/do_balan.c
---- a/fs/reiserfs/do_balan.c~reiserfs-fix-sparse-warnings-in-do_balanc
-+++ a/fs/reiserfs/do_balan.c
-@@ -283,7 +283,7 @@ static int balance_leaf(struct tree_bala
- 		return balance_leaf_when_delete(tb, flag);
+diff -puN drivers/char/drm/ati_pcigart.c~drm-fix-for-non-coherent-dma-powerpc drivers/char/drm/ati_pcigart.c
+--- a/drivers/char/drm/ati_pcigart.c~drm-fix-for-non-coherent-dma-powerpc
++++ a/drivers/char/drm/ati_pcigart.c
+@@ -183,6 +183,12 @@ int drm_ati_pcigart_init(struct drm_devi
+ 		}
+ 	}
  
- 	zeros_num = 0;
--	if (flag == M_INSERT && body == 0)
-+	if (flag == M_INSERT && body == NULL)
- 		zeros_num = ih_item_len(ih);
++	if (gart_info->gart_table_location == DRM_ATI_GART_MAIN)
++		dma_sync_single_for_device(&dev->pdev->dev,
++					   bus_address,
++					   max_pages * sizeof(u32),
++					   PCI_DMA_TODEVICE);
++
+ 	ret = 1;
  
- 	pos_in_item = tb->tb_path->pos_in_item;
-@@ -1728,7 +1728,7 @@ struct buffer_head *get_FEB(struct tree_
- 	struct buffer_info bi;
+ #if defined(__i386__) || defined(__x86_64__)
+diff -puN drivers/char/drm/drm_scatter.c~drm-fix-for-non-coherent-dma-powerpc drivers/char/drm/drm_scatter.c
+--- a/drivers/char/drm/drm_scatter.c~drm-fix-for-non-coherent-dma-powerpc
++++ a/drivers/char/drm/drm_scatter.c
+@@ -36,6 +36,15 @@
  
- 	for (i = 0; i < MAX_FEB_SIZE; i++)
--		if (tb->FEB[i] != 0)
-+		if (tb->FEB[i])
- 			break;
+ #define DEBUG_SCATTER 0
  
- 	if (i == MAX_FEB_SIZE)
-@@ -1827,7 +1827,7 @@ int get_left_neighbor_position(struct tr
++static inline void *drm_vmalloc_dma(unsigned long size)
++{
++#if defined(__powerpc__) && defined(CONFIG_NOT_COHERENT_CACHE)
++	return __vmalloc(size, GFP_KERNEL, PAGE_KERNEL | _PAGE_NO_CACHE);
++#else
++	return vmalloc_32(size);
++#endif
++}
++
+ void drm_sg_cleanup(struct drm_sg_mem * entry)
  {
- 	int Sh_position = PATH_H_POSITION(tb->tb_path, h + 1);
+ 	struct page *page;
+@@ -104,7 +113,7 @@ int drm_sg_alloc(struct drm_device *dev,
+ 	}
+ 	memset((void *)entry->busaddr, 0, pages * sizeof(*entry->busaddr));
  
--	RFALSE(PATH_H_PPARENT(tb->tb_path, h) == 0 || tb->FL[h] == 0,
-+	RFALSE(PATH_H_PPARENT(tb->tb_path, h) == NULL || tb->FL[h] == NULL,
- 	       "vs-12325: FL[%d](%p) or F[%d](%p) does not exist",
- 	       h, tb->FL[h], h, PATH_H_PPARENT(tb->tb_path, h));
- 
-@@ -1841,7 +1841,7 @@ int get_right_neighbor_position(struct t
- {
- 	int Sh_position = PATH_H_POSITION(tb->tb_path, h + 1);
- 
--	RFALSE(PATH_H_PPARENT(tb->tb_path, h) == 0 || tb->FR[h] == 0,
-+	RFALSE(PATH_H_PPARENT(tb->tb_path, h) == NULL || tb->FR[h] == NULL,
- 	       "vs-12330: F[%d](%p) or FR[%d](%p) does not exist",
- 	       h, PATH_H_PPARENT(tb->tb_path, h), h, tb->FR[h]);
- 
+-	entry->virtual = vmalloc_32(pages << PAGE_SHIFT);
++	entry->virtual = drm_vmalloc_dma(pages << PAGE_SHIFT);
+ 	if (!entry->virtual) {
+ 		drm_free(entry->busaddr,
+ 			 entry->pages * sizeof(*entry->busaddr), DRM_MEM_PAGES);
+diff -puN drivers/char/drm/drm_vm.c~drm-fix-for-non-coherent-dma-powerpc drivers/char/drm/drm_vm.c
+--- a/drivers/char/drm/drm_vm.c~drm-fix-for-non-coherent-dma-powerpc
++++ a/drivers/char/drm/drm_vm.c
+@@ -58,13 +58,24 @@ static pgprot_t drm_io_prot(uint32_t map
+ 	pgprot_val(tmp) |= _PAGE_NO_CACHE;
+ 	if (map_type == _DRM_REGISTERS)
+ 		pgprot_val(tmp) |= _PAGE_GUARDED;
+-#endif
+-#if defined(__ia64__)
++#elif defined(__ia64__)
+ 	if (efi_range_is_wc(vma->vm_start, vma->vm_end -
+ 				    vma->vm_start))
+ 		tmp = pgprot_writecombine(tmp);
+ 	else
+ 		tmp = pgprot_noncached(tmp);
++#elif defined(__sparc__)
++	tmp = pgprot_noncached(tmp);
++#endif
++	return tmp;
++}
++
++static pgprot_t drm_dma_prot(uint32_t map_type, struct vm_area_struct *vma)
++{
++	pgprot_t tmp = vm_get_page_prot(vma->vm_flags);
++
++#if defined(__powerpc__) && defined(CONFIG_NOT_COHERENT_CACHE)
++	tmp |= _PAGE_NO_CACHE;
+ #endif
+ 	return tmp;
+ }
+@@ -610,9 +621,6 @@ static int drm_mmap_locked(struct file *
+ 		offset = dev->driver->get_reg_ofs(dev);
+ 		vma->vm_flags |= VM_IO;	/* not in core dump */
+ 		vma->vm_page_prot = drm_io_prot(map->type, vma);
+-#ifdef __sparc__
+-		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+-#endif
+ 		if (io_remap_pfn_range(vma, vma->vm_start,
+ 				       (map->offset + offset) >> PAGE_SHIFT,
+ 				       vma->vm_end - vma->vm_start,
+@@ -631,6 +639,7 @@ static int drm_mmap_locked(struct file *
+ 		    page_to_pfn(virt_to_page(map->handle)),
+ 		    vma->vm_end - vma->vm_start, vma->vm_page_prot))
+ 			return -EAGAIN;
++		vma->vm_page_prot = drm_dma_prot(map->type, vma);
+ 	/* fall through to _DRM_SHM */
+ 	case _DRM_SHM:
+ 		vma->vm_ops = &drm_vm_shm_ops;
+@@ -638,6 +647,7 @@ static int drm_mmap_locked(struct file *
+ 		/* Don't let this area swap.  Change when
+ 		   DRM_KERNEL advisory is supported. */
+ 		vma->vm_flags |= VM_RESERVED;
++		vma->vm_page_prot = drm_dma_prot(map->type, vma);
+ 		break;
+ 	case _DRM_SCATTER_GATHER:
+ 		vma->vm_ops = &drm_vm_sg_ops;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from benh@kernel.crashing.org are
 
 origin.patch
-git-x86.patch
-git-alsa-tiwai.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-cifs-remove-global_extern-macro.patch
+git-powerpc.patch
 powerpc-replace-remaining-__function__-occurences.patch
 ppc-replace-remaining-__function__-occurences.patch
-power-replace-remaining-__function__-occurrences.patch
-git-dvb.patch
-git-dlm.patch
+drivers-block-viodasdc-use-field_sizeof.patch
+powerpc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+ppc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+lmb-add-lmb_alloc_nid.patch
+adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
 git-ieee1394.patch
-git-infiniband.patch
-input-replace-remaining-__function__-occurrences.patch
-git-jfs.patch
-git-kvm.patch
-pata_amd-fix-sparse-warning.patch
-git-mips.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-mtd-replace-remaining-__function__-occurrences.patch
-git-net.patch
-blackfin-replace-remaining-__function__-occurences.patch
-git-nfsd.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-git-selinux.patch
-drivers-s390-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-block-replace-remaining-__function__-occurrences.patch
-git-watchdog.patch
-mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
-mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
-mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
-mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
-mac80211-michaelc-replace-macro-with-function.patch
-mac80211-michaelc-use-unaligned-byteorder-helpers.patch
-mac80211-michaelc-fold-initial-xor-into-block-helper.patch
-xfs-replace-remaining-__function__-occurrences.patch
-xfs-replace-__inline-with-inline.patch
-xtensa-replace-remaining-__function__-occurences.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
-alpha-replace-__inline-with-inline.patch
-m68k-replace-remaining-__function__-occurences.patch
-uml-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-firmware-replace-remaining-__function__-occurrences.patch
-drivers-misc-replace-remaining-__function__-occurrences.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-char-make-functions-static-in-synclinkmpc.patch
-spi-replace-remaining-__function__-occurrences.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-isdn-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-rtc-replace-remaining-__function__-occurrences.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+iomap-fix-64-bits-resources-on-32-bits.patch
+fb-add-support-for-foreign-endianness.patch
+fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+powerpc-offb-add-support-for-foreign-endianness.patch
+radeonfb-use-pci-device-id-in-hex-for-name-string.patch
+radeonfb-fix-debug-option.patch
+radeonfb-drop-redundant-rtrace-macro.patch
+radeonfb-speed-up-the-i2c-buses.patch
+drivers-video-imsttfbc-add-missing-curly-brackets.patch
 video-replace-remaining-__function__-occurrences.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-md-replace-remaining-__function__-occurrences.patch
-ext2-replace-remaining-__function__-occurrences.patch
-ext3-replace-remaining-__function__-occurrences.patch
-jbd-replace-remaining-__function__-occurrences.patch
-ufs-replace-remaining-__function__-occurrences.patch
-ufs-replace-__inline-with-inline.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-reiserfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
+asm-futexh-should-include-linux-uaccessh.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+introduce-a-generic-__fls-implementation.patch
+implement-__fls-on-all-64-bit-archs.patch
+use-__fls-for-fls64-on-64-bit-archs.patch
 
