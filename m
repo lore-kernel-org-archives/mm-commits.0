@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch added to -mm tree
-Date: Mon, 31 Mar 2008 16:03:22 -0700
-Message-ID: <200803312303.m2VN3MHw030461@imap1.linux-foundation.org>
+Subject: + nbd-prevent-sock_xmit-from-attempting-to-use-a-null-socket.patch added to -mm tree
+Date: Mon, 31 Mar 2008 16:16:10 -0700
+Message-ID: <200803312316.m2VNGARD030961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50261 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43239 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750872AbYCaXDr (ORCPT
+	by vger.kernel.org with ESMTP id S1752385AbYCaXQq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 19:03:47 -0400
+	Mon, 31 Mar 2008 19:16:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, kamalesh@linux.vnet.ibm.com, samuel@sortiz.org, sfr@canb.auug.org.au
+Cc: snitzer@gmail.com, paul.clements@steeleye.com
 
 
 The patch titled
-     smsc-ircc2: wrap PNP probe code in #ifdef CONFIG_PNP
+     nbd: prevent sock_xmit from attempting to use a NULL socket
 has been added to the -mm tree.  Its filename is
-     smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+     nbd-prevent-sock_xmit-from-attempting-to-use-a-null-socket.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,103 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smsc-ircc2: wrap PNP probe code in #ifdef CONFIG_PNP
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: nbd: prevent sock_xmit from attempting to use a NULL socket
+From: Mike Snitzer <snitzer@gmail.com>
 
-Wrap PNP probe code in #ifdef CONFIG_PNP.
+NBD does not protect the nbd_device's socket from becoming NULL during
+receives.
 
-Without this change, we'll have unresolved references to pnp_get_resource()
-function when CONFIG_PNP=n.  (This is a new interface that's not in mainline
-yet.)
+This closes a race with the NBD_CLEAR_SOCK ioctl (nbd-client -d) setting
+the nbd_device's socket to NULL right before NBD calls sock_xmit.
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+Signed-off-by: Mike Snitzer <snitzer@gmail.com>
+Cc: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/smsc-ircc2.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ drivers/block/nbd.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/net/irda/smsc-ircc2.c~smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp drivers/net/irda/smsc-ircc2.c
---- a/drivers/net/irda/smsc-ircc2.c~smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp
-+++ a/drivers/net/irda/smsc-ircc2.c
-@@ -79,9 +79,13 @@ MODULE_AUTHOR("Daniele Peri <peri@csai.u
- MODULE_DESCRIPTION("SMC IrCC SIR/FIR controller driver");
- MODULE_LICENSE("GPL");
+diff -puN drivers/block/nbd.c~nbd-prevent-sock_xmit-from-attempting-to-use-a-null-socket drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-prevent-sock_xmit-from-attempting-to-use-a-null-socket
++++ a/drivers/block/nbd.c
+@@ -153,6 +153,12 @@ static int sock_xmit(struct nbd_device *
+ 	struct kvec iov;
+ 	sigset_t blocked, oldset;
  
-+#ifdef CONFIG_PNP
- static int smsc_nopnp = 1;
- module_param_named(nopnp, smsc_nopnp, bool, 0);
- MODULE_PARM_DESC(nopnp, "Do not use PNP to detect controller settings, defaults to true");
-+#else
-+#define smsc_nopnp 1
-+#endif
- 
- #define DMA_INVAL 255
- static int ircc_dma = DMA_INVAL;
-@@ -366,6 +370,10 @@ static inline void register_bank(int iob
-                iobase + IRCC_MASTER);
- }
- 
-+static int pnp_driver_registered;
++	if (unlikely(!sock)) {
++		printk(KERN_ERR "%s: Attempted %s on closed socket in sock_xmit\n",
++		       lo->disk->disk_name, (send ? "send" : "recv"));
++		return -EINVAL;
++	}
 +
-+#ifdef CONFIG_PNP
-+
- /* PNP hotplug support */
- static const struct pnp_device_id smsc_ircc_pnp_table[] = {
- 	{ .id = "SMCf010", .driver_data = 0 },
-@@ -374,8 +382,6 @@ static const struct pnp_device_id smsc_i
- };
- MODULE_DEVICE_TABLE(pnp, smsc_ircc_pnp_table);
- 
--static int pnp_driver_registered;
--
- static int __init smsc_ircc_pnp_probe(struct pnp_dev *dev,
- 				      const struct pnp_device_id *dev_id)
- {
-@@ -403,6 +409,10 @@ static struct pnp_driver smsc_ircc_pnp_d
- 	.probe		= smsc_ircc_pnp_probe,
- };
- 
-+#else
-+static struct pnp_driver smsc_ircc_pnp_driver;
-+#endif
-+
- 
- /*******************************************************************************
-  *
+ 	/* Allow interception of SIGKILL only
+ 	 * Don't allow other signals to interrupt the transmission */
+ 	siginitsetinv(&blocked, sigmask(SIGKILL));
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from snitzer@gmail.com are
 
-git-acpi.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-radio-cadet-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-nsc-ircc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-revert-gregkh-pci-pci-alpha-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ia64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-powerpc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-x86-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-simplify-initcall_debug-output.patch
-hisax-depend-on-config_pnp-not-__isapnp__.patch
-pnp-skip-dev-protocol-null-checks.patch
-pnp-simplify-quirk-debug-output.patch
-pnp-use-dev_printk-for-quirk-messages.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-tpm-change-kconfig-dependencies-from-pnpacpi-to-pnp.patch
+percpu-__percpu_alloc_mask-can-dynamically-size-percpu_data-storage.patch
+nbd-prevent-sock_xmit-from-attempting-to-use-a-null-socket.patch
 
