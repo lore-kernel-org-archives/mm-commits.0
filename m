@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + procfs-mem-permission-cleanup.patch added to -mm tree
-Date: Mon, 31 Mar 2008 13:55:21 -0700
-Message-ID: <200803312055.m2VKtLRF025622@imap1.linux-foundation.org>
+Subject: + page-flags-handle-pg_uncached-like-all-other-flags.patch added to -mm tree
+Date: Mon, 31 Mar 2008 13:57:16 -0700
+Message-ID: <200803312057.m2VKvG9b025653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34815 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752074AbYCaU4b (ORCPT
+	by vger.kernel.org with ESMTP id S1754804AbYCaU5u (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:56:31 -0400
+	Mon, 31 Mar 2008 16:57:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, adobriyan@gmail.com, oleg@tv-sign.ru
+Cc: clameter@sgi.com, dcn@sgi.com, jes@trained-monkey.org
 
 
 The patch titled
-     procfs: mem permission cleanup
+     page flags: handle PG_uncached like all other flags
 has been added to the -mm tree.  Its filename is
-     procfs-mem-permission-cleanup.patch
+     page-flags-handle-pg_uncached-like-all-other-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,170 +34,124 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs: mem permission cleanup
-From: Roland McGrath <roland@redhat.com>
+Subject: page flags: handle PG_uncached like all other flags
+From: Christoph Lameter <clameter@sgi.com>
 
-This cleans up the permission checks done for /proc/PID/mem i/o calls.  It
-puts all the logic in a new function, check_mem_permission().
+Remove the special setup for PG_uncached and simply make it part of the enum. 
+The page flag will only be allocated when the kernel build includes the
+uncached allocator.
 
-The old code repeated the (!MAY_PTRACE(task) || !ptrace_may_attach(task))
-magical expression multiple times.  The new function does all that work in one
-place, with clear comments.
-
-The old code called security_ptrace() twice on successful checks, once in
-MAY_PTRACE() and once in __ptrace_may_attach().  Now it's only called once,
-and only if all other checks have succeeded.
-
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Acked-by: Dean Nelson <dcn@sgi.com>
+Cc: Jes Sorensen <jes@trained-monkey.org>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   38 +++++++++++++++++++++++++++++---------
- 1 file changed, 29 insertions(+), 9 deletions(-)
+ include/linux/page-flags.h |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN fs/proc/base.c~procfs-mem-permission-cleanup fs/proc/base.c
---- a/fs/proc/base.c~procfs-mem-permission-cleanup
-+++ a/fs/proc/base.c
-@@ -195,12 +195,32 @@ static int proc_root_link(struct inode *
- 	return result;
+diff -puN include/linux/page-flags.h~page-flags-handle-pg_uncached-like-all-other-flags include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-handle-pg_uncached-like-all-other-flags
++++ a/include/linux/page-flags.h
+@@ -88,16 +88,8 @@ enum pageflags {
+ 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
+ 	PG_reclaim,		/* To be reclaimed asap */
+ 	PG_buddy,		/* Page is free, on buddy lists */
+-
+-#if (BITS_PER_LONG > 32)
+-/*
+- * 64-bit-only flags build down from bit 31
+- *
+- * 32 bit  -------------------------------| FIELDS |       FLAGS         |
+- * 64 bit  |           FIELDS             | ??????         FLAGS         |
+- *         63                            32                              0
+- */
+-	PG_uncached = 31,		/* Page has been mapped as uncached */
++#ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
++	PG_uncached,		/* Page has been mapped as uncached */
+ #endif
+ 	__NR_PAGEFLAGS
+ };
+@@ -194,8 +186,13 @@ static inline int PageSwapCache(struct p
  }
+ #endif
  
--#define MAY_PTRACE(task) \
--	(task == current || \
--	(task->parent == current && \
--	(task->ptrace & PT_PTRACED) && \
--	 (task_is_stopped_or_traced(task)) && \
--	 security_ptrace(current,task) == 0))
-+/*
-+ * Return zero if current may access user memory in @task, -error if not.
-+ */
-+static int check_mem_permission(struct task_struct *task)
+-#if (BITS_PER_LONG > 32)
++#ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
+ PAGEFLAG(Uncached, uncached)
++#else
++static inline int PageUncached(struct page *)
 +{
-+	/*
-+	 * A task can always look at itself, in case it chooses
-+	 * to use system calls instead of load instructions.
-+	 */
-+	if (task == current)
-+		return 0;
-+
-+	/*
-+	 * If current is actively ptrace'ing, and would also be
-+	 * permitted to freshly attach with ptrace now, permit it.
-+	 */
-+	if (task->parent == current && (task->ptrace & PT_PTRACED) &&
-+	    task_is_stopped_or_traced(task) &&
-+	    ptrace_may_attach(task))
-+		return 0;
-+
-+	/*
-+	 * Noone else is allowed.
-+	 */
-+	return -EPERM;
++	return 0;
 +}
+ #endif
  
- struct mm_struct *mm_for_maps(struct task_struct *task)
- {
-@@ -722,7 +742,7 @@ static ssize_t mem_read(struct file * fi
- 	if (!task)
- 		goto out_no_task;
- 
--	if (!MAY_PTRACE(task) || !ptrace_may_attach(task))
-+	if (check_mem_permission(task))
- 		goto out;
- 
- 	ret = -ENOMEM;
-@@ -748,7 +768,7 @@ static ssize_t mem_read(struct file * fi
- 
- 		this_len = (count > PAGE_SIZE) ? PAGE_SIZE : count;
- 		retval = access_process_vm(task, src, page, this_len, 0);
--		if (!retval || !MAY_PTRACE(task) || !ptrace_may_attach(task)) {
-+		if (!retval || check_mem_permission(task)) {
- 			if (!ret)
- 				ret = -EIO;
- 			break;
-@@ -792,7 +812,7 @@ static ssize_t mem_write(struct file * f
- 	if (!task)
- 		goto out_no_task;
- 
--	if (!MAY_PTRACE(task) || !ptrace_may_attach(task))
-+	if (check_mem_permission(task))
- 		goto out;
- 
- 	copied = -ENOMEM;
+ static inline int PageUptodate(struct page *page)
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-git-x86.patch
-x86-handle_vm86_trap-cleanup.patch
-x86_64-ia32-ptrace-vs-enosys.patch
-x86_64-ptrace-vs-enosys.patch
-x86_64-ia32-ptrace-vs-enosys-sysenter-syscall.patch
-git-powerpc.patch
-git-selinux.patch
-add-rusage_thread.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-document-cld_continued-notification-mechanics-more.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-signals-check_kill_permission-remove-tasklist_lock.patch
-signals-fix-sbin-init-protection-from-unwanted-signals.patch
-signals-de_thread-simplify-the-child_reaper-switching.patch
-signals-allow-the-kernel-to-actually-kill-sbin-init.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
-ptrace-allow-to-ptrace-sbin-init.patch
-procfs-mem-permission-cleanup.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
-pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+git-unionfs.patch
+git-slub.patch
+remove-set_migrateflags.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify.patch
+mm-move-cache_line_size-to-linux-cacheh.patch
+mempolicy-convert-mpol-constants-to-enum.patch
+mempolicy-support-optional-mode-flags.patch
+mempolicy-support-optional-mode-flags-fix.patch
+mempolicy-add-mpol_f_static_nodes-flag.patch
+mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
+mempolicy-add-mpol_f_relative_nodes-flag.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-move-rebind-functions.patch
+mempolicy-create-mempolicy_operations-structure.patch
+mempolicy-create-mempolicy_operations-structure-fix.patch
+mempolicy-small-header-file-cleanup.patch
+mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
+mempolicy-fix-parsing-of-tmpfs-mpol-mount-option.patch
+mm-make-mem_map-allocation-continuous.patch
+mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
+mm-allocate-section_map-for-sparse_init.patch
+mm-allocate-section_map-for-sparse_init-update.patch
+mm-allocate-section_map-for-sparse_init-update-fix.patch
+mm-offset-align-in-alloc_bootmem.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+sparsemem-vmemmap-does-not-need-section-bits.patch
+kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+pageflags-use-an-enum-for-the-flags.patch
+pageflags-get-rid-of-flags_reserved.patch
+pageflags-introduce-macros-to-generate-page-flag-functions.patch
+pageflags-convert-to-the-use-of-new-macros.patch
+pageflags-use-proper-page-flag-functions-in-xen.patch
+pageflags-eliminate-pg_xxx-aliases.patch
+page-flags-handle-pg_uncached-like-all-other-flags.patch
+mm-remove-unused-max_nodes_shift.patch
+ipc-add-definitions-of-ushort_max-and-others.patch
+mm-add-nr_writeback_temp-counter.patch
+remove-div_long_long_rem.patch
+slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
 
