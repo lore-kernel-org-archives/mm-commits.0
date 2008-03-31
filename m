@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hisax-depend-on-config_pnp-not-__isapnp__.patch added to -mm tree
-Date: Mon, 31 Mar 2008 14:21:53 -0700
-Message-ID: <200803312121.m2VLLrnO026618@imap1.linux-foundation.org>
+Subject: + likeliness-accounting-change-and-cleanup.patch added to -mm tree
+Date: Mon, 31 Mar 2008 14:18:41 -0700
+Message-ID: <200803312118.m2VLIfB9026484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51149 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37296 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756732AbYCaVWA (ORCPT
+	by vger.kernel.org with ESMTP id S1755843AbYCaVXP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 17:22:00 -0400
+	Mon, 31 Mar 2008 17:23:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com, kkeil@suse.de
+Cc: 12o3l@tiscali.nl, dwalker@mvista.com, npiggin@suse.de
 
 
 The patch titled
-     hisax: depend on CONFIG_PNP, not __ISAPNP__
+     likeliness accounting change and cleanup
 has been added to the -mm tree.  Its filename is
-     hisax-depend-on-config_pnp-not-__isapnp__.patch
+     likeliness-accounting-change-and-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,199 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hisax: depend on CONFIG_PNP, not __ISAPNP__
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: likeliness accounting change and cleanup
+From: Roel Kluin <12o3l@tiscali.nl>
 
-The PNP driver interfaces depend on CONFIG_PNP, so test that rather than
-__ISAPNP__.
+Store __builtin_return_address (caller) rather than __func__ in likeliness
+struct. 'line' and 'type' are combined in 'label'
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Karsten Keil <kkeil@suse.de>
++/- now denotes whether expectation fails in less than 5% of the tests - rather
+than whether more unexpected than expected were encountered. The function at
+the displayed filename & line and the caller are not necessarily the same.
+A few more Likely Profiling Results changes were made.
+
+struct seq_operations becomes static, unsigned ints true and false (shadowed)
+are replaced by pos and neg.
+
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+---
+This should be applied after the -mm patches:
+http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.25-rc5/2.6.25-rc5-mm1/broken-out/profile-likely-unlikely-macros.patch
+http://www.kernel.org/pub/linux/kernel/people/akpm/patches/2.6/2.6.25-rc5/2.6.25-rc5-mm1/broken-out/profile-likely-unlikely-macros-fix.patch
+
+New layout:
+
+Likely Profiling Results
+ --------------------------------------------------------------------
+[+- ]Type | # True  | # False | Function@Filename:Line
+ unlikely |        0|    32082| fget+0xd0/0x1d0@include/asm/arch/atomic_32.h:235
+
+Cc: Daniel Walker <dwalker@mvista.com>
+Acked-by: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hisax/hisax_fcpcipnp.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/linux/compiler.h |   16 ++++++-------
+ lib/likely_prof.c        |   45 ++++++++++++++++++++-----------------
+ 2 files changed, 33 insertions(+), 28 deletions(-)
 
-diff -puN drivers/isdn/hisax/hisax_fcpcipnp.c~hisax-depend-on-config_pnp-not-__isapnp__ drivers/isdn/hisax/hisax_fcpcipnp.c
---- a/drivers/isdn/hisax/hisax_fcpcipnp.c~hisax-depend-on-config_pnp-not-__isapnp__
-+++ a/drivers/isdn/hisax/hisax_fcpcipnp.c
-@@ -68,7 +68,7 @@ static struct pci_device_id fcpci_ids[] 
+diff -puN include/linux/compiler.h~likeliness-accounting-change-and-cleanup include/linux/compiler.h
+--- a/include/linux/compiler.h~likeliness-accounting-change-and-cleanup
++++ a/include/linux/compiler.h
+@@ -54,25 +54,25 @@ extern void __chk_io_ptr(const volatile 
+ #if defined(CONFIG_PROFILE_LIKELY) && !defined(SUPPRESS_LIKELY_PROFILING) && \
+ 	!(defined(CONFIG_MODULE_UNLOAD) && defined(MODULE))
+ struct likeliness {
+-	const char *func;
+-	char *file;
+-	int line;
+-	int type;
++	char *const file;
++	unsigned long caller;
+ 	unsigned int count[2];
+ 	struct likeliness *next;
++	unsigned int label;
+ };
  
- MODULE_DEVICE_TABLE(pci, fcpci_ids);
+-extern int do_check_likely(struct likeliness *likeliness, int exp);
++extern int do_check_likely(struct likeliness *likeliness, unsigned int exp);
  
--#ifdef __ISAPNP__
-+#ifdef CONFIG_PNP
- static struct pnp_device_id fcpnp_ids[] __devinitdata = {
- 	{ 
- 		.id		= "AVM0900",
-@@ -914,7 +914,7 @@ static int __devinit fcpci_probe(struct 
- 	return retval;
++#define LP_IS_EXPECTED	1
+ #define LP_UNSEEN	4
++#define LP_LINE_SHIFT	3
+ 
+ #define __check_likely(exp, is_likely)					\
+ 	({								\
+ 		static struct likeliness likeliness = {			\
+-			.func = __func__,				\
+ 			.file = __FILE__,				\
+-			.line = __LINE__,				\
+-			.type = is_likely | LP_UNSEEN,			\
++			.label = __LINE__ << LP_LINE_SHIFT |		\
++						LP_UNSEEN | is_likely,	\
+ 		};							\
+ 		do_check_likely(&likeliness, !!(exp));			\
+ 	})
+diff -puN lib/likely_prof.c~likeliness-accounting-change-and-cleanup lib/likely_prof.c
+--- a/lib/likely_prof.c~likeliness-accounting-change-and-cleanup
++++ a/lib/likely_prof.c
+@@ -15,34 +15,34 @@
+ #include <linux/fs.h>
+ #include <linux/seq_file.h>
+ #include <linux/proc_fs.h>
++#include <linux/kallsyms.h>
+ 
+ #include <asm/bug.h>
+ #include <asm/atomic.h>
+ 
+ static struct likeliness *likeliness_head;
+ 
+-int do_check_likely(struct likeliness *likeliness, int ret)
++int do_check_likely(struct likeliness *likeliness, unsigned int ret)
+ {
+ 	static unsigned long likely_lock;
+ 
+-	if (ret)
+-		likeliness->count[1]++;
+-	else
+-		likeliness->count[0]++;
++	likeliness->count[ret]++;
+ 
+-	if (likeliness->type & LP_UNSEEN) {
++	if (likeliness->label & LP_UNSEEN) {
+ 		/*
+-		 * We don't simple use a spinlock because internally to the
++		 * We don't simply use a spinlock because internally to the
+ 		 * spinlock there is a call to unlikely which causes recursion.
+ 		 * We opted for this method because we didn't need a preempt/irq
+ 		 * disable and it was a bit cleaner then using internal __raw
+ 		 * spinlock calls.
+ 		 */
+ 		if (!test_and_set_bit(0, &likely_lock)) {
+-			if (likeliness->type & LP_UNSEEN) {
+-				likeliness->type &= (~LP_UNSEEN);
++			if (likeliness->label & LP_UNSEEN) {
++				likeliness->label &= (~LP_UNSEEN);
+ 				likeliness->next = likeliness_head;
+ 				likeliness_head = likeliness;
++				likeliness->caller = (unsigned long)
++						__builtin_return_address(0);
+ 			}
+ 			smp_mb__before_clear_bit();
+ 			clear_bit(0, &likely_lock);
+@@ -61,8 +61,8 @@ static void * lp_seq_start(struct seq_fi
+ 		seq_printf(out, "Likely Profiling Results\n");
+ 		seq_printf(out, " --------------------------------------------"
+ 				"------------------------\n");
+-		seq_printf(out, "[+- ] Type | # True | # False | Function:"
+-				"Filename@Line\n");
++		seq_printf(out, "[+- ]Type | # True  | # False | Function@"
++				"Filename:Line\n");
+ 
+ 		out->private = likeliness_head;
+ 	}
+@@ -86,18 +86,22 @@ static void *lp_seq_next(struct seq_file
+ static int lp_seq_show(struct seq_file *out, void *p)
+ {
+ 	struct likeliness *entry = p;
+-	unsigned int true = entry->count[1];
+-	unsigned int false = entry->count[0];
+-
+-	if (!entry->type) {
+-		if (true > false)
++	unsigned int pos = entry->count[1];
++	unsigned int neg = entry->count[0];
++	char function[KSYM_SYMBOL_LEN];
++
++	/*
++	 * Balanced if the suggestion was false in less than 5% of the tests
++	 */
++	if (!(entry->label & LP_IS_EXPECTED)) {
++		if (pos + neg < 20 * pos)
+ 			seq_printf(out, "+");
+ 		else
+ 			seq_printf(out, " ");
+ 
+ 		seq_printf(out, "unlikely ");
+ 	} else {
+-		if (true < false)
++		if (pos + neg < 20 * neg)
+ 			seq_printf(out, "-");
+ 		else
+ 			seq_printf(out, " ");
+@@ -105,8 +109,9 @@ static int lp_seq_show(struct seq_file *
+ 		seq_printf(out, "likely   ");
+ 	}
+ 
+-	seq_printf(out, "|%9u|%9u\t%s()@:%s@%d\n", true, false,
+-			entry->func, entry->file, entry->line);
++	sprint_symbol(function, entry->caller);
++	seq_printf(out, "|%9u|%9u|\t%s@%s:%u\n", pos, neg, function,
++			entry->file, entry->label >> LP_LINE_SHIFT);
+ 
+ 	return 0;
+ }
+@@ -115,7 +120,7 @@ static void lp_seq_stop(struct seq_file 
+ {
  }
  
--#ifdef __ISAPNP__
-+#ifdef CONFIG_PNP
- static int __devinit fcpnp_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
- {
- 	struct fritz_adapter *adapter;
-@@ -974,6 +974,8 @@ static struct pnp_driver fcpnp_driver = 
- 	.remove		= __devexit_p(fcpnp_remove),
- 	.id_table	= fcpnp_ids,
- };
-+#else
-+static struct pnp_driver fcpnp_driver;
- #endif
- 
- static void __devexit fcpci_remove(struct pci_dev *pdev)
-@@ -1001,7 +1003,7 @@ static int __init hisax_fcpcipnp_init(vo
- 	retval = pci_register_driver(&fcpci_driver);
- 	if (retval)
- 		return retval;
--#ifdef __ISAPNP__
-+#ifdef CONFIG_PNP
- 	retval = pnp_register_driver(&fcpnp_driver);
- 	if (retval < 0) {
- 		pci_unregister_driver(&fcpci_driver);
-@@ -1013,7 +1015,7 @@ static int __init hisax_fcpcipnp_init(vo
- 
- static void __exit hisax_fcpcipnp_exit(void)
- {
--#ifdef __ISAPNP__
-+#ifdef CONFIG_PNP
- 	pnp_unregister_driver(&fcpnp_driver);
- #endif
- 	pci_unregister_driver(&fcpci_driver);
+-struct seq_operations likely_profiling_ops = {
++static struct seq_operations likely_profiling_ops = {
+ 	.start  = lp_seq_start,
+ 	.next   = lp_seq_next,
+ 	.stop   = lp_seq_stop,
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
-git-acpi.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-revert-gregkh-pci-pci-alpha-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ia64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-powerpc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-x86-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-simplify-initcall_debug-output.patch
-pnp-skip-dev-protocol-null-checks.patch
-pnp-simplify-quirk-debug-output.patch
-pnp-use-dev_printk-for-quirk-messages.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-radio-cadet-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-tpm-change-kconfig-dependencies-from-pnpacpi-to-pnp.patch
-hisax-depend-on-config_pnp-not-__isapnp__.patch
+git-dvb.patch
+adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
+git-net.patch
+git-scsi-misc.patch
+block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn.patch
+git-cryptodev.patch
+free-when-fb-cant-be-registered-in-video-aty-atyfb_basec.patch
+drivers-video-aty-aty128fbc-fix-incorrect-usage-of-strncat-in-aty128_init.patch
+drivers-video-imsttfbc-add-missing-curly-brackets.patch
+likeliness-accounting-change-and-cleanup.patch
 
