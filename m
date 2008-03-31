@@ -1,143 +1,242 @@
 From: akpm@linux-foundation.org
-Subject: - blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-to-lkml-review.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:18:00 -0700
-Message-ID: <200803312018.m2VKI0MP024012@imap1.linux-foundation.org>
+Subject: - mips-replace-remaining-__function__-occurences.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 13:18:34 -0700
+Message-ID: <200803312018.m2VKIYGL024066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55002 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47439 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756341AbYCaUTB (ORCPT
+	by vger.kernel.org with ESMTP id S1753699AbYCaUTS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:19:01 -0400
+	Mon, 31 Mar 2008 16:19:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cooloney@kernel.org, adaplas@pol.net, geert@linux-m68k.org, michael.hennerich@analog.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     blackfin video driver: update the BF52x EZKIT video framebuffer driver according to LKML review
+     mips: replace remaining __FUNCTION__ occurrences
 has been removed from the -mm tree.  Its filename was
-     blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-to-lkml-review.patch
+     mips-replace-remaining-__function__-occurences.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin video driver: update the BF52x EZKIT video framebuffer driver according to LKML review
-From: Bryan Wu <cooloney@kernel.org>
+Subject: mips: replace remaining __FUNCTION__ occurrences
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-- Allocate pseudo_palette together with fbinfo
-- Code cleanup
+__FUNCTION__ is gcc-specific, use __func__
 
-Signed-off-by: Michael Hennerich <michael.hennerich@analog.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/bfin-t350mcqb-fb.c |   36 +++++++++++------------------
- 1 file changed, 14 insertions(+), 22 deletions(-)
+ arch/mips/au1000/common/power.c                            |    2 +-
+ arch/mips/kernel/signal-common.h                           |    2 +-
+ arch/mips/pci/ops-pnx8550.c                                |    4 ++--
+ arch/mips/sgi-ip32/ip32-reset.c                            |    2 +-
+ arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c   |    2 +-
+ arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c |    2 +-
+ 6 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/video/bfin-t350mcqb-fb.c~blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-to-lkml-review drivers/video/bfin-t350mcqb-fb.c
---- a/drivers/video/bfin-t350mcqb-fb.c~blackfin-video-driver-update-the-bf52x-ezkit-video-framebuffer-driver-according-to-lkml-review
-+++ a/drivers/video/bfin-t350mcqb-fb.c
-@@ -91,6 +91,7 @@ struct bfin_t350mcqbfb_info {
- 	int lq043_open_cnt;
- 	int irq;
- 	spinlock_t lock;	/* lock */
-+	u32 pseudo_pal[16];
- };
+diff -puN arch/mips/au1000/common/power.c~mips-replace-remaining-__function__-occurences arch/mips/au1000/common/power.c
+--- a/arch/mips/au1000/common/power.c~mips-replace-remaining-__function__-occurences
++++ a/arch/mips/au1000/common/power.c
+@@ -47,7 +47,7 @@
  
- static int nocursor;
-@@ -182,13 +183,13 @@ static void bfin_t350mcqb_config_dma(str
- 
- }
- 
--static int bfin_t350mcqb_request_ports(int action)
--{
--	u16 ppi0_req_8[] = {P_PPI0_CLK, P_PPI0_FS1, P_PPI0_FS2,
-+static	u16 ppi0_req_8[] = {P_PPI0_CLK, P_PPI0_FS1, P_PPI0_FS2,
- 			    P_PPI0_D0, P_PPI0_D1, P_PPI0_D2,
- 			    P_PPI0_D3, P_PPI0_D4, P_PPI0_D5,
- 			    P_PPI0_D6, P_PPI0_D7, 0};
- 
-+static int bfin_t350mcqb_request_ports(int action)
-+{
- 	if (action) {
- 		if (peripheral_request_list(ppi0_req_8, DRIVER_NAME)) {
- 			printk(KERN_ERR "Requesting Peripherals faild\n");
-@@ -520,16 +521,7 @@ static int __init bfin_t350mcqb_probe(st
- 
- 	fbinfo->fbops = &bfin_t350mcqb_fb_ops;
- 
--	fbinfo->pseudo_palette = kmalloc(sizeof(u32) * 16, GFP_KERNEL);
--	if (!fbinfo->pseudo_palette) {
--		printk(KERN_ERR DRIVER_NAME
--		       "Fail to allocate pseudo_palette\n");
--
--		ret = -ENOMEM;
--		goto out4;
--	}
--
--	memset(fbinfo->pseudo_palette, 0, sizeof(u32) * 16);
-+	fbinfo->pseudo_palette = &info->pseudo_pal;
- 
- 	if (fb_alloc_cmap(&fbinfo->cmap, BFIN_LCD_NBR_PALETTE_ENTRIES, 0)
- 	    < 0) {
-@@ -537,7 +529,7 @@ static int __init bfin_t350mcqb_probe(st
- 		       "Fail to allocate colormap (%d entries)\n",
- 		       BFIN_LCD_NBR_PALETTE_ENTRIES);
- 		ret = -EFAULT;
--		goto out5;
-+		goto out4;
- 	}
- 
- 	if (bfin_t350mcqb_request_ports(1)) {
-@@ -552,11 +544,11 @@ static int __init bfin_t350mcqb_probe(st
- 		goto out7;
- 	}
- 
--	if (request_irq(info->irq, (void *)bfin_t350mcqb_irq_error, IRQF_DISABLED,
--			"PPI ERROR", info) < 0) {
-+	ret = request_irq(info->irq, bfin_t350mcqb_irq_error, IRQF_DISABLED,
-+			"PPI ERROR", info);
-+	if (ret < 0) {
- 		printk(KERN_ERR DRIVER_NAME
- 		       ": unable to request PPI ERROR IRQ\n");
--		ret = -EFAULT;
- 		goto out7;
- 	}
- 
-@@ -584,8 +576,6 @@ out7:
- 	bfin_t350mcqb_request_ports(0);
- out6:
- 	fb_dealloc_cmap(&fbinfo->cmap);
--out5:
--	kfree(fbinfo->pseudo_palette);
- out4:
- 	dma_free_coherent(NULL, fbinfo->fix.smem_len, info->fb_buffer,
- 			  info->dma_handle);
-@@ -605,6 +595,8 @@ static int bfin_t350mcqb_remove(struct p
- 	struct fb_info *fbinfo = platform_get_drvdata(pdev);
- 	struct bfin_t350mcqbfb_info *info = fbinfo->par;
- 
-+	unregister_framebuffer(fbinfo);
-+
- 	free_dma(CH_PPI);
- 	free_irq(info->irq, info);
- 
-@@ -612,7 +604,6 @@ static int bfin_t350mcqb_remove(struct p
- 		dma_free_coherent(NULL, fbinfo->fix.smem_len, info->fb_buffer,
- 				  info->dma_handle);
- 
--	kfree(fbinfo->pseudo_palette);
- 	fb_dealloc_cmap(&fbinfo->cmap);
- 
- #ifndef NO_BL_SUPPORT
-@@ -620,10 +611,11 @@ static int bfin_t350mcqb_remove(struct p
- 	backlight_device_unregister(bl_dev);
+ #define DEBUG 1
+ #ifdef DEBUG
+-#  define DPRINTK(fmt, args...)	printk("%s: " fmt, __FUNCTION__ , ## args)
++#  define DPRINTK(fmt, args...)	printk("%s: " fmt, __func__, ## args)
+ #else
+ #  define DPRINTK(fmt, args...)
  #endif
+diff -puN arch/mips/kernel/signal-common.h~mips-replace-remaining-__function__-occurences arch/mips/kernel/signal-common.h
+--- a/arch/mips/kernel/signal-common.h~mips-replace-remaining-__function__-occurences
++++ a/arch/mips/kernel/signal-common.h
+@@ -14,7 +14,7 @@
+ /* #define DEBUG_SIG */
  
--	unregister_framebuffer(fbinfo);
+ #ifdef DEBUG_SIG
+-#  define DEBUGP(fmt, args...) printk("%s: " fmt, __FUNCTION__ , ##args)
++#  define DEBUGP(fmt, args...) printk("%s: " fmt, __func__, ##args)
+ #else
+ #  define DEBUGP(fmt, args...)
+ #endif
+diff -puN arch/mips/pci/ops-pnx8550.c~mips-replace-remaining-__function__-occurences arch/mips/pci/ops-pnx8550.c
+--- a/arch/mips/pci/ops-pnx8550.c~mips-replace-remaining-__function__-occurences
++++ a/arch/mips/pci/ops-pnx8550.c
+@@ -90,14 +90,14 @@ config_access(unsigned int pci_cmd, stru
+ 
+ 		loops--;
+ 		if (loops == 0) {
+-			printk("%s : Arbiter Locked.\n", __FUNCTION__);
++			printk("%s : Arbiter Locked.\n", __func__);
+ 		}
+ 	}
+ 
+ 	clear_status();
+ 	if ((pci_cmd == PCI_CMD_IOR) || (pci_cmd == PCI_CMD_IOW)) {
+ 		printk("%s timeout (GPPM_CTRL=%X) ioaddr %lX pci_cmd %X\n",
+-		       __FUNCTION__, inl(PCI_BASE | PCI_GPPM_CTRL), ioaddr,
++		       __func__, inl(PCI_BASE | PCI_GPPM_CTRL), ioaddr,
+ 		       pci_cmd);
+ 	}
+ 
+diff -puN arch/mips/sgi-ip32/ip32-reset.c~mips-replace-remaining-__function__-occurences arch/mips/sgi-ip32/ip32-reset.c
+--- a/arch/mips/sgi-ip32/ip32-reset.c~mips-replace-remaining-__function__-occurences
++++ a/arch/mips/sgi-ip32/ip32-reset.c
+@@ -142,7 +142,7 @@ static irqreturn_t ip32_rtc_int(int irq,
+ 	reg_c = CMOS_READ(RTC_INTR_FLAGS);
+ 	if (!(reg_c & RTC_IRQF)) {
+ 		printk(KERN_WARNING
+-			"%s: RTC IRQ without RTC_IRQF\n", __FUNCTION__);
++			"%s: RTC IRQ without RTC_IRQF\n", __func__);
+ 	}
+ 	/* Wait until interrupt goes away */
+ 	disable_irq(MACEISA_RTC_IRQ);
+diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c~mips-replace-remaining-__function__-occurences arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c
+--- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c~mips-replace-remaining-__function__-occurences
++++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_irq.c
+@@ -173,7 +173,7 @@ static const u32 toshiba_rbtx4927_irq_de
+         { \
+            char tmp[100]; \
+            sprintf( tmp, str ); \
+-           printk( "%s(%s:%u)::%s", __FUNCTION__, __FILE__, __LINE__, tmp ); \
++           printk( "%s(%s:%u)::%s", __func__, __FILE__, __LINE__, tmp ); \
+         }
+ #else
+ #define TOSHIBA_RBTX4927_IRQ_DPRINTK(flag, str...)
+diff -puN arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~mips-replace-remaining-__function__-occurences arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
+--- a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c~mips-replace-remaining-__function__-occurences
++++ a/arch/mips/tx4927/toshiba_rbtx4927/toshiba_rbtx4927_setup.c
+@@ -93,7 +93,7 @@ static const u32 toshiba_rbtx4927_setup_
+         { \
+            char tmp[100]; \
+            sprintf( tmp, str ); \
+-           printk( "%s(%s:%u)::%s", __FUNCTION__, __FILE__, __LINE__, tmp ); \
++           printk( "%s(%s:%u)::%s", __func__, __FILE__, __LINE__, tmp ); \
+         }
+ #else
+ #define TOSHIBA_RBTX4927_SETUP_DPRINTK(flag, str...)
+_
+
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
+
+origin.patch
+git-x86.patch
+git-alsa-tiwai.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+cifs-remove-global_extern-macro.patch
+powerpc-replace-remaining-__function__-occurences.patch
+ppc-replace-remaining-__function__-occurences.patch
+power-replace-remaining-__function__-occurrences.patch
+git-dvb.patch
+git-dlm.patch
+git-ieee1394.patch
+git-infiniband.patch
+input-replace-remaining-__function__-occurrences.patch
+git-jfs.patch
+git-kvm.patch
+pata_amd-fix-sparse-warning.patch
+git-mips.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+mtd-replace-remaining-__function__-occurrences.patch
+git-net.patch
+blackfin-replace-remaining-__function__-occurences.patch
+git-nfsd.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+git-selinux.patch
+drivers-s390-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+block-replace-remaining-__function__-occurrences.patch
+git-watchdog.patch
+mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
+mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
+mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
+mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
+mac80211-michaelc-replace-macro-with-function.patch
+mac80211-michaelc-use-unaligned-byteorder-helpers.patch
+mac80211-michaelc-fold-initial-xor-into-block-helper.patch
+xfs-replace-remaining-__function__-occurrences.patch
+xfs-replace-__inline-with-inline.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+char-make-functions-static-in-synclinkmpc.patch
+spi-replace-remaining-__function__-occurrences.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+video-replace-remaining-__function__-occurrences.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+md-replace-remaining-__function__-occurrences.patch
+ext2-replace-remaining-__function__-occurrences.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+ufs-replace-__inline-with-inline.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+drivers-replace-remaining-__function__-occurrences.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
+
