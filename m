@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + char-ip2-fix-sparse-warnings.patch added to -mm tree
-Date: Mon, 31 Mar 2008 16:57:27 -0700
-Message-ID: <200803312357.m2VNvRhe032454@imap1.linux-foundation.org>
+Subject: + char-rio-fix-sparse-warnings.patch added to -mm tree
+Date: Mon, 31 Mar 2008 16:58:13 -0700
+Message-ID: <200803312358.m2VNwDmr032499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60545 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753109AbYCaX57 (ORCPT
+	by vger.kernel.org with ESMTP id S1751272AbYCaX6q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 19:57:59 -0400
+	Mon, 31 Mar 2008 19:58:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jirislaby@gmail.com
 
 
 The patch titled
-     Char: ip2, fix sparse warnings
+     Char: rio, fix sparse warnings
 has been added to the -mm tree.  Its filename is
-     char-ip2-fix-sparse-warnings.patch
+     char-rio-fix-sparse-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: ip2, fix sparse warnings
+Subject: Char: rio, fix sparse warnings
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Unlock two grabbed locks on some paths.
+Add some locks and unlocks to some code paths.
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ip2/i2lib.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ drivers/char/rio/riotable.c |    4 +++-
+ drivers/char/rio/riotty.c   |    4 ++++
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/ip2/i2lib.c~char-ip2-fix-sparse-warnings drivers/char/ip2/i2lib.c
---- a/drivers/char/ip2/i2lib.c~char-ip2-fix-sparse-warnings
-+++ a/drivers/char/ip2/i2lib.c
-@@ -644,12 +644,12 @@ i2QueueCommands(int type, i2ChanStrPtr p
- 				// Normal Expected path - We still hold LOCK
- 				break; /* from for()- Enough room: goto proceed */
+diff -puN drivers/char/rio/riotable.c~char-rio-fix-sparse-warnings drivers/char/rio/riotable.c
+--- a/drivers/char/rio/riotable.c~char-rio-fix-sparse-warnings
++++ a/drivers/char/rio/riotable.c
+@@ -425,8 +425,10 @@ int RIOApel(struct rio_info *p)
+ 
+ 		MapP = &p->RIOConnectTable[Next++];
+ 		MapP->HostUniqueNum = HostP->UniqueNum;
+-		if ((HostP->Flags & RUN_STATE) != RC_RUNNING)
++		if ((HostP->Flags & RUN_STATE) != RC_RUNNING) {
++			rio_spin_unlock_irqrestore(&HostP->HostLock, flags);
+ 			continue;
++		}
+ 		MapP->RtaUniqueNum = 0;
+ 		MapP->ID = 0;
+ 		MapP->Flags = SLOT_IN_USE;
+diff -puN drivers/char/rio/riotty.c~char-rio-fix-sparse-warnings drivers/char/rio/riotty.c
+--- a/drivers/char/rio/riotty.c~char-rio-fix-sparse-warnings
++++ a/drivers/char/rio/riotty.c
+@@ -320,6 +320,7 @@ int riotopen(struct tty_struct *tty, str
+ 			PortP->State |= RIO_WOPEN;
+ 			rio_spin_unlock_irqrestore(&PortP->portSem, flags);
+ 			if (RIODelay(PortP, HUNDRED_MS) == RIO_FAIL) {
++				rio_spin_lock_irqsave(&PortP->portSem, flags);
+ 				/*
+ 				 ** ACTION: verify that this is a good thing
+ 				 ** to do here. -- ???
+@@ -335,6 +336,7 @@ int riotopen(struct tty_struct *tty, str
+ 				func_exit();
+ 				return -EINTR;
  			}
--		}
--
--		ip2trace (CHANN, ITRC_QUEUE, 3, 1, totalsize );
-+			ip2trace(CHANN, ITRC_QUEUE, 3, 1, totalsize);
-+			WRITE_UNLOCK_IRQRESTORE(lock_var_p, flags);
-+		} else
-+			ip2trace(CHANN, ITRC_QUEUE, 3, 1, totalsize);
++			rio_spin_lock_irqsave(&PortP->portSem, flags);
+ 		}
+ 		PortP->State &= ~RIO_WOPEN;
+ 	}
+@@ -494,6 +496,7 @@ int riotclose(void *ptr)
  
--		// Prepare to wait for buffers to empty
--		WRITE_UNLOCK_IRQRESTORE(lock_var_p,flags); 
-+		/* Prepare to wait for buffers to empty */
- 		serviceOutgoingFifo(pB);	// Dump what we got
+ 	if (RIOShortCommand(p, PortP, RIOC_CLOSE, 1, 0) == RIO_FAIL) {
+ 		RIOPreemptiveCmd(p, PortP, RIOC_FCLOSE);
++		rio_spin_lock_irqsave(&PortP->portSem, flags);
+ 		goto close_end;
+ 	}
  
- 		if (timeout == 0) {
-@@ -1830,6 +1830,8 @@ i2StripFifo(i2eBordStrPtr pB)
- 		default: // Neither packet? should be impossible
- 			ip2trace (ITRC_NO_PORT, ITRC_SFIFO, 5, 1,
- 				PTYPE_OF(pB->i2eLeadoffWord) );
-+			WRITE_UNLOCK_IRQRESTORE(&pB->read_fifo_spinlock,
-+					bflags);
+@@ -509,6 +512,7 @@ int riotclose(void *ptr)
  
- 			break;
- 		}  // End of switch on type of packets
+ 			if (p->RIOHalted) {
+ 				RIOClearUp(PortP);
++				rio_spin_lock_irqsave(&PortP->portSem, flags);
+ 				goto close_end;
+ 			}
+ 			if (RIODelay(PortP, HUNDRED_MS) == RIO_FAIL) {
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
