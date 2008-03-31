@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + video-test-cmd-not-definition-in-decoder_command-drivers-media-video-zoran_devicec.patch added to -mm tree
-Date: Mon, 31 Mar 2008 14:23:59 -0700
-Message-ID: <200803312123.m2VLNxoK026675@imap1.linux-foundation.org>
+Subject: + lxfb-rearrange-rename-msr-bitfields.patch added to -mm tree
+Date: Mon, 31 Mar 2008 14:26:15 -0700
+Message-ID: <200803312126.m2VLQFTb026800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54613 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43938 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756174AbYCaVYJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756530AbYCaV0y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 17:24:09 -0400
+	Mon, 31 Mar 2008 17:26:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl, mchehab@infradead.org
+Cc: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd.com
 
 
 The patch titled
-     video: test cmd, not definition in decoder_command(), drivers/media/video/zoran_device.c
+     lxfb: rearrange/rename MSR bitfields
 has been added to the -mm tree.  Its filename is
-     video-test-cmd-not-definition-in-decoder_command-drivers-media-video-zoran_devicec.patch
+     lxfb-rearrange-rename-msr-bitfields.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,198 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video: test cmd, not definition in decoder_command(), drivers/media/video/zoran_device.c
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: lxfb: rearrange/rename MSR bitfields
+From: Andres Salomon <dilinger@queued.net>
 
-include/linux/video_decoder.h:
-34:#define DECODER_SET_NORM	_IOW('d', 3, int)
-35:#define DECODER_SET_INPUT	_IOW('d', 4, int)
+Finally, move the MSR bitfields around in lxfb.h, and rename them.  Alas, most
+of that crap appears to be undocumented.
 
-Test cmd value, not definition of DECODER_SET_INPUT
-
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/zoran_device.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/geode/lxfb.h     |   52 ++++++++++++++++---------------
+ drivers/video/geode/lxfb_ops.c |   37 +++++++++++-----------
+ 2 files changed, 46 insertions(+), 43 deletions(-)
 
-diff -puN drivers/media/video/zoran_device.c~video-test-cmd-not-definition-in-decoder_command-drivers-media-video-zoran_devicec drivers/media/video/zoran_device.c
---- a/drivers/media/video/zoran_device.c~video-test-cmd-not-definition-in-decoder_command-drivers-media-video-zoran_devicec
-+++ a/drivers/media/video/zoran_device.c
-@@ -1727,7 +1727,7 @@ decoder_command (struct zoran *zr,
- 		return -EIO;
+diff -puN drivers/video/geode/lxfb.h~lxfb-rearrange-rename-msr-bitfields drivers/video/geode/lxfb.h
+--- a/drivers/video/geode/lxfb.h~lxfb-rearrange-rename-msr-bitfields
++++ a/drivers/video/geode/lxfb.h
+@@ -27,31 +27,6 @@ int lx_blank_display(struct fb_info *, i
+ void lx_set_palette_reg(struct fb_info *, unsigned int, unsigned int,
+ 			unsigned int, unsigned int);
  
- 	if (zr->card.type == LML33 &&
--	    (cmd == DECODER_SET_NORM || DECODER_SET_INPUT)) {
-+	    (cmd == DECODER_SET_NORM || cmd == DECODER_SET_INPUT)) {
- 		int res;
+-/* MSRS */
+-
+-#define GLCP_DOTPLL_RESET    (1 << 0)
+-#define GLCP_DOTPLL_BYPASS   (1 << 15)
+-#define GLCP_DOTPLL_HALFPIX  (1 << 24)
+-#define GLCP_DOTPLL_LOCK     (1 << 25)
+-
+-#define DF_CONFIG_OUTPUT_MASK       0x38
+-#define DF_OUTPUT_PANEL             0x08
+-#define DF_OUTPUT_CRT               0x00
+-#define DF_SIMULTANEOUS_CRT_AND_FP  (1 << 15)
+-
+-#define DF_DEFAULT_TFT_PAD_SEL_LOW  0xDFFFFFFF
+-#define DF_DEFAULT_TFT_PAD_SEL_HIGH 0x0000003F
+-
+-#define DC_SPARE_DISABLE_CFIFO_HGO         0x00000800
+-#define DC_SPARE_VFIFO_ARB_SELECT          0x00000400
+-#define DC_SPARE_WM_LPEN_OVRD              0x00000200
+-#define DC_SPARE_LOAD_WM_LPEN_MASK         0x00000100
+-#define DC_SPARE_DISABLE_INIT_VID_PRI      0x00000080
+-#define DC_SPARE_DISABLE_VFIFO_WM          0x00000040
+-#define DC_SPARE_DISABLE_CWD_CHECK         0x00000020
+-#define DC_SPARE_PIX8_PAN_FIX              0x00000010
+-#define DC_SPARE_FIRST_REQ_MASK            0x00000002
+-
  
- 		// Bt819 needs to reset its FIFO buffer using #FRST pin and
+ /* Graphics Processor registers (table 6-29 from the data book) */
+ enum gp_registers {
+@@ -390,4 +365,31 @@ static inline void write_fp(struct lxfb_
+ 	writel(val, par->vp_regs + 8*reg + VP_FP_START);
+ }
+ 
++
++/* MSRs are defined in asm/geode.h; their bitfields are here */
++
++#define MSR_GLCP_DOTPLL_LOCK		(1 << 25)	/* r/o */
++#define MSR_GLCP_DOTPLL_HALFPIX		(1 << 24)
++#define MSR_GLCP_DOTPLL_BYPASS		(1 << 15)
++#define MSR_GLCP_DOTPLL_DOTRESET	(1 << 0)
++
++/* note: this is actually the VP's GLD_MSR_CONFIG */
++#define MSR_LX_GLD_MSR_CONFIG_FMT	((1 << 3) | (1 << 4) | (1 << 5))
++#define MSR_LX_GLD_MSR_CONFIG_FMT_FP	(1 << 3)
++#define MSR_LX_GLD_MSR_CONFIG_FMT_CRT	(0)
++#define MSR_LX_GLD_MSR_CONFIG_FPC	(1 << 15)	/* FP *and* CRT */
++
++#define MSR_LX_MSR_PADSEL_TFT_SEL_LOW	0xDFFFFFFF	/* ??? */
++#define MSR_LX_MSR_PADSEL_TFT_SEL_HIGH	0x0000003F	/* ??? */
++
++#define MSR_LX_SPARE_MSR_DIS_CFIFO_HGO	(1 << 11)	/* undocumented */
++#define MSR_LX_SPARE_MSR_VFIFO_ARB_SEL	(1 << 10)	/* undocumented */
++#define MSR_LX_SPARE_MSR_WM_LPEN_OVRD	(1 << 9)	/* undocumented */
++#define MSR_LX_SPARE_MSR_LOAD_WM_LPEN_M	(1 << 8)	/* undocumented */
++#define MSR_LX_SPARE_MSR_DIS_INIT_V_PRI	(1 << 7)	/* undocumented */
++#define MSR_LX_SPARE_MSR_DIS_VIFO_WM	(1 << 6)
++#define MSR_LX_SPARE_MSR_DIS_CWD_CHECK	(1 << 5)	/* undocumented */
++#define MSR_LX_SPARE_MSR_PIX8_PAN_FIX	(1 << 4)	/* undocumented */
++#define MSR_LX_SPARE_MSR_FIRST_REQ_MASK	(1 << 1)	/* undocumented */
++
+ #endif
+diff -puN drivers/video/geode/lxfb_ops.c~lxfb-rearrange-rename-msr-bitfields drivers/video/geode/lxfb_ops.c
+--- a/drivers/video/geode/lxfb_ops.c~lxfb-rearrange-rename-msr-bitfields
++++ a/drivers/video/geode/lxfb_ops.c
+@@ -154,12 +154,12 @@ static void lx_set_dotpll(u32 pllval)
+ 
+ 	rdmsr(MSR_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
+ 
+-	if ((dotpll_lo & GLCP_DOTPLL_LOCK) && (dotpll_hi == pllval))
++	if ((dotpll_lo & MSR_GLCP_DOTPLL_LOCK) && (dotpll_hi == pllval))
+ 		return;
+ 
+ 	dotpll_hi = pllval;
+-	dotpll_lo &= ~(GLCP_DOTPLL_BYPASS | GLCP_DOTPLL_HALFPIX);
+-	dotpll_lo |= GLCP_DOTPLL_RESET;
++	dotpll_lo &= ~(MSR_GLCP_DOTPLL_BYPASS | MSR_GLCP_DOTPLL_HALFPIX);
++	dotpll_lo |= MSR_GLCP_DOTPLL_DOTRESET;
+ 
+ 	wrmsr(MSR_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
+ 
+@@ -171,13 +171,13 @@ static void lx_set_dotpll(u32 pllval)
+ 
+ 	for (i = 0; i < 1000; i++) {
+ 		rdmsr(MSR_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
+-		if (dotpll_lo & GLCP_DOTPLL_LOCK)
++		if (dotpll_lo & MSR_GLCP_DOTPLL_LOCK)
+ 			break;
+ 	}
+ 
+ 	/* Clear the reset bit */
+ 
+-	dotpll_lo &= ~GLCP_DOTPLL_RESET;
++	dotpll_lo &= ~MSR_GLCP_DOTPLL_DOTRESET;
+ 	wrmsr(MSR_GLCP_DOTPLL, dotpll_lo, dotpll_hi);
+ }
+ 
+@@ -299,8 +299,8 @@ static void lx_graphics_enable(struct fb
+ 		write_fp(par, FP_PT2, FP_PT2_SCRC);
+ 		write_fp(par, FP_DFC, FP_DFC_BC);
+ 
+-		msrlo = DF_DEFAULT_TFT_PAD_SEL_LOW;
+-		msrhi = DF_DEFAULT_TFT_PAD_SEL_HIGH;
++		msrlo = MSR_LX_MSR_PADSEL_TFT_SEL_LOW;
++		msrhi = MSR_LX_MSR_PADSEL_TFT_SEL_HIGH;
+ 
+ 		wrmsr(MSR_LX_MSR_PADSEL, msrlo, msrhi);
+ 	}
+@@ -366,18 +366,17 @@ void lx_set_mode(struct fb_info *info)
+ 	/* Set output mode */
+ 
+ 	rdmsrl(MSR_LX_GLD_MSR_CONFIG, msrval);
+-	msrval &= ~DF_CONFIG_OUTPUT_MASK;
++	msrval &= ~MSR_LX_GLD_MSR_CONFIG_FMT;
+ 
+ 	if (par->output & OUTPUT_PANEL) {
+-		msrval |= DF_OUTPUT_PANEL;
++		msrval |= MSR_LX_GLD_MSR_CONFIG_FMT_FP;
+ 
+ 		if (par->output & OUTPUT_CRT)
+-			msrval |= DF_SIMULTANEOUS_CRT_AND_FP;
++			msrval |= MSR_LX_GLD_MSR_CONFIG_FPC;
+ 		else
+-			msrval &= ~DF_SIMULTANEOUS_CRT_AND_FP;
+-	} else {
+-		msrval |= DF_OUTPUT_CRT;
+-	}
++			msrval &= ~MSR_LX_GLD_MSR_CONFIG_FPC;
++	} else
++		msrval |= MSR_LX_GLD_MSR_CONFIG_FMT_CRT;
+ 
+ 	wrmsrl(MSR_LX_GLD_MSR_CONFIG, msrval);
+ 
+@@ -429,10 +428,12 @@ void lx_set_mode(struct fb_info *info)
+ 
+ 	rdmsrl(MSR_LX_SPARE_MSR, msrval);
+ 
+-	msrval &= ~(DC_SPARE_DISABLE_CFIFO_HGO | DC_SPARE_VFIFO_ARB_SELECT |
+-		    DC_SPARE_LOAD_WM_LPEN_MASK | DC_SPARE_WM_LPEN_OVRD |
+-		    DC_SPARE_DISABLE_INIT_VID_PRI | DC_SPARE_DISABLE_VFIFO_WM);
+-	msrval |= DC_SPARE_DISABLE_VFIFO_WM | DC_SPARE_DISABLE_INIT_VID_PRI;
++	msrval &= ~(MSR_LX_SPARE_MSR_DIS_CFIFO_HGO
++			| MSR_LX_SPARE_MSR_VFIFO_ARB_SEL
++			| MSR_LX_SPARE_MSR_LOAD_WM_LPEN_M
++			| MSR_LX_SPARE_MSR_WM_LPEN_OVRD);
++	msrval |= MSR_LX_SPARE_MSR_DIS_VIFO_WM |
++			MSR_LX_SPARE_MSR_DIS_INIT_V_PRI;
+ 	wrmsrl(MSR_LX_SPARE_MSR, msrval);
+ 
+ 	gcfg = DC_GENERAL_CFG_DFLE;   /* Display fifo enable */
 _
 
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-git-dvb.patch
-adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
-git-net.patch
-git-scsi-misc.patch
-block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn.patch
-git-cryptodev.patch
-free-when-fb-cant-be-registered-in-video-aty-atyfb_basec.patch
-drivers-video-aty-aty128fbc-fix-incorrect-usage-of-strncat-in-aty128_init.patch
-drivers-video-imsttfbc-add-missing-curly-brackets.patch
-likeliness-accounting-change-and-cleanup.patch
-video-test-cmd-not-definition-in-decoder_command-drivers-media-video-zoran_devicec.patch
+origin.patch
+x86-geode-msr-cleanup.patch
+gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
+gxfb-replace-fbsize-config-option-with-a-module-parameter.patch
+gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
+gxfb-clean-up-register-definitions.patch
+gxfb-move-msr-bit-fields-into-gxfbh.patch
+gxfb-stop-sharing-code-with-gx1fb.patch
+gxfb-add-power-management-functionality.patch
+gxfb-add-power-management-functionality-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-create-gp-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
+lxfb-clean-up-register-definitions.patch
+lxfb-clean-up-final-bits-of-df_regs.patch
+lxfb-rearrange-rename-msr-bitfields.patch
+lxfb-add-power-management-functionality.patch
+lxfb-rename-kernel-arg-fbsize-to-vram.patch
+lxfb-disable-suspend-vt-switch-by-default.patch
 
