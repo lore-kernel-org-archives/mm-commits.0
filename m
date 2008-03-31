@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-vm_mixedmap.patch added to -mm tree
-Date: Mon, 31 Mar 2008 15:04:37 -0700
-Message-ID: <200803312204.m2VM4btC028360@imap1.linux-foundation.org>
+Subject: + mm-add-vm_insert_mixed.patch added to -mm tree
+Date: Mon, 31 Mar 2008 15:04:44 -0700
+Message-ID: <200803312204.m2VM4jB1028369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45206 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51146 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751844AbYCaWE6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754139AbYCaWEz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 18:04:58 -0400
+	Mon, 31 Mar 2008 18:04:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jaredeh@gmail.com, cotte@de.ibm.com, heiko.carstens@de.ibm.com, npiggin@suse.de, schwidefsky@de.ibm.com, torvalds@linux-foundation.org
+Cc: npiggin@suse.de, cotte@de.ibm.com, heiko.carstens@de.ibm.com, jaredeh@gmail.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     mm: introduce VM_MIXEDMAP
+     mm: add vm_insert_mixed
 has been added to the -mm tree.  Its filename is
-     mm-introduce-vm_mixedmap.patch
+     mm-add-vm_insert_mixed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,221 +34,188 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce VM_MIXEDMAP
-From: Jared Hulbert <jaredeh@gmail.com>
+Subject: mm: add vm_insert_mixed
+From: Nick Piggin <npiggin@suse.de>
 
-This series introduces some important infrastructure work.  The overall result
-is that:
+vm_insert_mixed will insert either a raw pfn or a refcounted struct page into
+the page tables, depending on whether vm_normal_page() will return the page or
+not.  With the introduction of the new pte bit, this is now a too tricky for
+drivers to be doing themselves.
 
-1. We now support XIP backed filesystems using memory that have no
-   struct page allocated to them. And patches 6 and 7 actually implement
-   this for s390.
+filemap_xip uses this in a subsequent patch.
 
-   This is pretty important in a number of cases. As far as I understand,
-   in the case of virtualisation (eg. s390), each guest may mount a
-   readonly copy of the same filesystem (eg. the distro). Currently,
-   guests need to allocate struct pages for this image. So if you have
-   100 guests, you already need to allocate more memory for the struct
-   pages than the size of the image. I think. (Carsten?)
-
-   For other (eg. embedded) systems, you may have a very large non-
-   volatile filesystem. If you have to have struct pages for this, then
-   your RAM consumption will go up proportionally to fs size. Even
-   though it is just a small proportion, the RAM can be much more costly
-   eg in terms of power, so every KB less that Linux uses makes it more
-   attractive to a lot of these guys.
-
-2. VM_MIXEDMAP allows us to support mappings where you actually do want
-   to refcount _some_ pages in the mapping, but not others, and support
-   COW on arbitrary (non-linear) mappings. Jared needs this for his NVRAM
-   filesystem in progress. Future iterations of this filesystem will
-   most likely want to migrate pages between pagecache and XIP backing,
-   which is where the requirement for mixed (some refcounted, some not)
-   comes from.
-
-3. pte_special also has a peripheral usage that I need for my lockless
-   get_user_pages patch. That was shown to speed up "oltp" on db2 by
-   10% on a 2 socket system, which is kind of significant because they
-   scrounge for months to try to find 0.1% improvement on these
-   workloads. I'm hoping we might finally be faster than AIX on
-   pSeries with this :). My reference to lockless get_user_pages is not
-   meant to justify this patchset (which doesn't include lockless gup),
-   but just to show that pte_special is not some s390 specific thing that
-   should be hidden in arch code or xip code: I definitely want to use it
-   on at least x86 and powerpc as well.
-
-
-
-This patch:
-
-Introduce a new type of mapping, VM_MIXEDMAP.  This is unlike VM_PFNMAP in
-that it can support COW mappings of arbitrary ranges including ranges without
-struct page *and* ranges with a struct page that we actually want to refcount
-(PFNMAP can only support COW in those cases where the un-COW-ed translations
-are mapped linearly in the virtual address, and can only support non
-refcounted ranges).
-
-VM_MIXEDMAP achieves this by refcounting all pfn_valid pages, and not
-refcounting !pfn_valid pages (which is not an option for VM_PFNMAP, because it
-needs to avoid refcounting pfn_valid pages eg.  for /dev/mem mappings).
-
-Signed-off-by: Jared Hulbert <jaredeh@gmail.com>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Carsten Otte <cotte@de.ibm.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Jared Hulbert <jaredeh@gmail.com>
+Cc: Carsten Otte <cotte@de.ibm.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 
- mm/memory.c        |   79 +++++++++++++++++++++++++++++++------------
- 2 files changed, 59 insertions(+), 21 deletions(-)
+ include/linux/mm.h |    2 +
+ mm/memory.c        |   86 ++++++++++++++++++++++++++++++-------------
+ 2 files changed, 62 insertions(+), 26 deletions(-)
 
-diff -puN include/linux/mm.h~mm-introduce-vm_mixedmap include/linux/mm.h
---- a/include/linux/mm.h~mm-introduce-vm_mixedmap
+diff -puN include/linux/mm.h~mm-add-vm_insert_mixed include/linux/mm.h
+--- a/include/linux/mm.h~mm-add-vm_insert_mixed
 +++ a/include/linux/mm.h
-@@ -107,6 +107,7 @@ extern unsigned int kobjsize(const void 
- #define VM_ALWAYSDUMP	0x04000000	/* Always include in core dumps */
+@@ -1152,6 +1152,8 @@ int remap_pfn_range(struct vm_area_struc
+ int vm_insert_page(struct vm_area_struct *, unsigned long addr, struct page *);
+ int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
+ 			unsigned long pfn);
++int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
++			unsigned long pfn);
  
- #define VM_CAN_NONLINEAR 0x08000000	/* Has ->fault & does nonlinear pages */
-+#define VM_MIXEDMAP	0x10000000	/* Can contain "struct page" and pure PFN pages */
- 
- #ifndef VM_STACK_DEFAULT_FLAGS		/* arch can override this */
- #define VM_STACK_DEFAULT_FLAGS VM_DATA_DEFAULT_FLAGS
-diff -puN mm/memory.c~mm-introduce-vm_mixedmap mm/memory.c
---- a/mm/memory.c~mm-introduce-vm_mixedmap
+ struct page *follow_page(struct vm_area_struct *, unsigned long address,
+ 			unsigned int foll_flags);
+diff -puN mm/memory.c~mm-add-vm_insert_mixed mm/memory.c
+--- a/mm/memory.c~mm-add-vm_insert_mixed
 +++ a/mm/memory.c
-@@ -371,35 +371,65 @@ static inline int is_cow_mapping(unsigne
+@@ -1176,8 +1176,10 @@ pte_t *get_locked_pte(struct mm_struct *
+  * old drivers should use this, and they needed to mark their
+  * pages reserved for the old functions anyway.
+  */
+-static int insert_page(struct mm_struct *mm, unsigned long addr, struct page *page, pgprot_t prot)
++static int insert_page(struct vm_area_struct *vma, unsigned long addr,
++			struct page *page, pgprot_t prot)
+ {
++	struct mm_struct *mm = vma->vm_mm;
+ 	int retval;
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
+@@ -1237,17 +1239,46 @@ out:
+  *
+  * The page does not need to be reserved.
+  */
+-int vm_insert_page(struct vm_area_struct *vma, unsigned long addr, struct page *page)
++int vm_insert_page(struct vm_area_struct *vma, unsigned long addr,
++			struct page *page)
+ {
+ 	if (addr < vma->vm_start || addr >= vma->vm_end)
+ 		return -EFAULT;
+ 	if (!page_count(page))
+ 		return -EINVAL;
+ 	vma->vm_flags |= VM_INSERTPAGE;
+-	return insert_page(vma->vm_mm, addr, page, vma->vm_page_prot);
++	return insert_page(vma, addr, page, vma->vm_page_prot);
  }
+ EXPORT_SYMBOL(vm_insert_page);
+ 
++static int insert_pfn(struct vm_area_struct *vma, unsigned long addr,
++			unsigned long pfn, pgprot_t prot)
++{
++	struct mm_struct *mm = vma->vm_mm;
++	int retval;
++	pte_t *pte, entry;
++	spinlock_t *ptl;
++
++	retval = -ENOMEM;
++	pte = get_locked_pte(mm, addr, &ptl);
++	if (!pte)
++		goto out;
++	retval = -EBUSY;
++	if (!pte_none(*pte))
++		goto out_unlock;
++
++	/* Ok, finally just insert the thing.. */
++	entry = pte_mkspecial(pfn_pte(pfn, prot));
++	set_pte_at(mm, addr, pte, entry);
++	update_mmu_cache(vma, addr, entry); /* XXX: why not for insert_page? */
++
++	retval = 0;
++out_unlock:
++	pte_unmap_unlock(pte, ptl);
++out:
++	return retval;
++}
++
+ /**
+  * vm_insert_pfn - insert single pfn into user vma
+  * @vma: user vma to map to
+@@ -1261,13 +1292,8 @@ EXPORT_SYMBOL(vm_insert_page);
+  * in that case the handler should return NULL.
+  */
+ int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
+-		unsigned long pfn)
++			unsigned long pfn)
+ {
+-	struct mm_struct *mm = vma->vm_mm;
+-	int retval;
+-	pte_t *pte, entry;
+-	spinlock_t *ptl;
+-
+ 	/*
+ 	 * Technically, architectures with pte_special can avoid all these
+ 	 * restrictions (same for remap_pfn_range).  However we would like
+@@ -1280,27 +1306,35 @@ int vm_insert_pfn(struct vm_area_struct 
+ 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
+ 	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
+ 
+-	retval = -ENOMEM;
+-	pte = get_locked_pte(mm, addr, &ptl);
+-	if (!pte)
+-		goto out;
+-	retval = -EBUSY;
+-	if (!pte_none(*pte))
+-		goto out_unlock;
++	if (addr < vma->vm_start || addr >= vma->vm_end)
++		return -EFAULT;
++	return insert_pfn(vma, addr, pfn, vma->vm_page_prot);
++}
++EXPORT_SYMBOL(vm_insert_pfn);
+ 
+-	/* Ok, finally just insert the thing.. */
+-	entry = pte_mkspecial(pfn_pte(pfn, vma->vm_page_prot));
+-	set_pte_at(mm, addr, pte, entry);
+-	update_mmu_cache(vma, addr, entry);
++int vm_insert_mixed(struct vm_area_struct *vma, unsigned long addr,
++			unsigned long pfn)
++{
++	BUG_ON(!(vma->vm_flags & VM_MIXEDMAP));
+ 
+-	retval = 0;
+-out_unlock:
+-	pte_unmap_unlock(pte, ptl);
++	if (addr < vma->vm_start || addr >= vma->vm_end)
++		return -EFAULT;
+ 
+-out:
+-	return retval;
++	/*
++	 * If we don't have pte special, then we have to use the pfn_valid()
++	 * based VM_MIXEDMAP scheme (see vm_normal_page), and thus we *must*
++	 * refcount the page if pfn_valid is true (hence insert_page rather
++	 * than insert_pfn).
++	 */
++	if (!HAVE_PTE_SPECIAL && pfn_valid(pfn)) {
++		struct page *page;
++
++		page = pfn_to_page(pfn);
++		return insert_page(vma, addr, page, vma->vm_page_prot);
++	}
++	return insert_pfn(vma, addr, pfn, vma->vm_page_prot);
+ }
+-EXPORT_SYMBOL(vm_insert_pfn);
++EXPORT_SYMBOL(vm_insert_mixed);
  
  /*
-- * This function gets the "struct page" associated with a pte.
-+ * This function gets the "struct page" associated with a pte or returns
-+ * NULL if no "struct page" is associated with the pte.
-  *
-- * NOTE! Some mappings do not have "struct pages". A raw PFN mapping
-- * will have each page table entry just pointing to a raw page frame
-- * number, and as far as the VM layer is concerned, those do not have
-- * pages associated with them - even if the PFN might point to memory
-+ * A raw VM_PFNMAP mapping (ie. one that is not COWed) may not have any "struct
-+ * page" backing, and even if they do, they are not refcounted. COWed pages of
-+ * a VM_PFNMAP do always have a struct page, and they are normally refcounted
-+ * (they are _normal_ pages).
-+ *
-+ * So a raw PFNMAP mapping will have each page table entry just pointing
-+ * to a page frame number, and as far as the VM layer is concerned, those do
-+ * not have pages associated with them - even if the PFN might point to memory
-  * that otherwise is perfectly fine and has a "struct page".
-  *
-- * The way we recognize those mappings is through the rules set up
-- * by "remap_pfn_range()": the vma will have the VM_PFNMAP bit set,
-- * and the vm_pgoff will point to the first PFN mapped: thus every
-+ * The way we recognize COWed pages within VM_PFNMAP mappings is through the
-+ * rules set up by "remap_pfn_range()": the vma will have the VM_PFNMAP bit
-+ * set, and the vm_pgoff will point to the first PFN mapped: thus every
-  * page that is a raw mapping will always honor the rule
-  *
-  *	pfn_of_page == vma->vm_pgoff + ((addr - vma->vm_start) >> PAGE_SHIFT)
-  *
-- * and if that isn't true, the page has been COW'ed (in which case it
-- * _does_ have a "struct page" associated with it even if it is in a
-- * VM_PFNMAP range).
-+ * A call to vm_normal_page() will return NULL for such a page.
-+ *
-+ * If the page doesn't follow the "remap_pfn_range()" rule in a VM_PFNMAP
-+ * then the page has been COW'ed.  A COW'ed page _does_ have a "struct page"
-+ * associated with it even if it is in a VM_PFNMAP range.  Calling
-+ * vm_normal_page() on such a page will therefore return the "struct page".
-+ *
-+ *
-+ * VM_MIXEDMAP mappings can likewise contain memory with or without "struct
-+ * page" backing, however the difference is that _all_ pages with a struct
-+ * page (that is, those where pfn_valid is true) are refcounted and considered
-+ * normal pages by the VM. The disadvantage is that pages are refcounted
-+ * (which can be slower and simply not an option for some PFNMAP users). The
-+ * advantage is that we don't have to follow the strict linearity rule of
-+ * PFNMAP mappings in order to support COWable mappings.
-+ *
-+ * A call to vm_normal_page() with a VM_MIXEDMAP mapping will return the
-+ * associated "struct page" or NULL for memory not backed by a "struct page".
-+ *
-+ *
-+ * All other mappings should have a valid struct page, which will be
-+ * returned by a call to vm_normal_page().
-  */
- struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr, pte_t pte)
- {
- 	unsigned long pfn = pte_pfn(pte);
- 
--	if (unlikely(vma->vm_flags & VM_PFNMAP)) {
--		unsigned long off = (addr - vma->vm_start) >> PAGE_SHIFT;
--		if (pfn == vma->vm_pgoff + off)
--			return NULL;
--		if (!is_cow_mapping(vma->vm_flags))
--			return NULL;
-+	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
-+		if (vma->vm_flags & VM_MIXEDMAP) {
-+			if (!pfn_valid(pfn))
-+				return NULL;
-+			goto out;
-+		} else {
-+			unsigned long off = (addr-vma->vm_start) >> PAGE_SHIFT;
-+			if (pfn == vma->vm_pgoff + off)
-+				return NULL;
-+			if (!is_cow_mapping(vma->vm_flags))
-+				return NULL;
-+		}
- 	}
- 
- #ifdef CONFIG_DEBUG_VM
-@@ -422,6 +452,7 @@ struct page *vm_normal_page(struct vm_ar
- 	 * The PAGE_ZERO() pages and various VDSO mappings can
- 	 * cause them to exist.
- 	 */
-+out:
- 	return pfn_to_page(pfn);
- }
- 
-@@ -1232,8 +1263,11 @@ int vm_insert_pfn(struct vm_area_struct 
- 	pte_t *pte, entry;
- 	spinlock_t *ptl;
- 
--	BUG_ON(!(vma->vm_flags & VM_PFNMAP));
--	BUG_ON(is_cow_mapping(vma->vm_flags));
-+	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
-+	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
-+						(VM_PFNMAP|VM_MIXEDMAP));
-+	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
-+	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
- 
- 	retval = -ENOMEM;
- 	pte = get_locked_pte(mm, addr, &ptl);
-@@ -2365,10 +2399,13 @@ static noinline int do_no_pfn(struct mm_
- 	unsigned long pfn;
- 
- 	pte_unmap(page_table);
--	BUG_ON(!(vma->vm_flags & VM_PFNMAP));
--	BUG_ON(is_cow_mapping(vma->vm_flags));
-+	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
-+	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
- 
- 	pfn = vma->vm_ops->nopfn(vma, address & PAGE_MASK);
-+
-+	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
-+
- 	if (unlikely(pfn == NOPFN_OOM))
- 		return VM_FAULT_OOM;
- 	else if (unlikely(pfn == NOPFN_SIGBUS))
+  * maps a range of physical memory into the requested pages. the old
 _
 
-Patches currently in -mm which might be from jaredeh@gmail.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
+origin.patch
+git-kvm.patch
+git-nfsd.patch
+mm-remove-nopage.patch
 mm-introduce-vm_mixedmap.patch
 mm-introduce-pte_special-pte-bit.patch
 mm-add-vm_insert_mixed.patch
 return-pfn-from-direct_access-for-xip.patch
 xip-support-non-struct-page-backed-memory.patch
 s390-implement-pte-special-bit.patch
+fuse-implement-perform_write.patch
+reiser4.patch
+reiser4-correct-references-to-filemap_nopage.patch
+likeliness-accounting-change-and-cleanup.patch
 
