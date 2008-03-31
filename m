@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-flags-handle-pg_uncached-like-all-other-flags.patch added to -mm tree
-Date: Mon, 31 Mar 2008 13:57:16 -0700
-Message-ID: <200803312057.m2VKvG9b025653@imap1.linux-foundation.org>
+Subject: + page-flags-add-pageflags_false-for-flags-that-are-always-false.patch added to -mm tree
+Date: Mon, 31 Mar 2008 13:58:32 -0700
+Message-ID: <200803312058.m2VKwWt5025700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42965 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754804AbYCaU5u (ORCPT
+	by vger.kernel.org with ESMTP id S1754804AbYCaU7G (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:57:50 -0400
+	Mon, 31 Mar 2008 16:59:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, dcn@sgi.com, jes@trained-monkey.org
+Cc: clameter@sgi.com
 
 
 The patch titled
-     page flags: handle PG_uncached like all other flags
+     page flags: add PAGEFLAGS_FALSE for flags that are always false
 has been added to the -mm tree.  Its filename is
-     page-flags-handle-pg_uncached-like-all-other-flags.patch
+     page-flags-add-pageflags_false-for-flags-that-are-always-false.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,56 +34,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page flags: handle PG_uncached like all other flags
+Subject: page flags: add PAGEFLAGS_FALSE for flags that are always false
 From: Christoph Lameter <clameter@sgi.com>
 
-Remove the special setup for PG_uncached and simply make it part of the enum. 
-The page flag will only be allocated when the kernel build includes the
-uncached allocator.
+Turns out that there are a number of times that a flag is simply always
+returning 0.  Define a macro for that.
 
-Acked-by: Dean Nelson <dcn@sgi.com>
-Cc: Jes Sorensen <jes@trained-monkey.org>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   19 ++++++++-----------
- 1 file changed, 8 insertions(+), 11 deletions(-)
+ include/linux/page-flags.h |   19 +++++++------------
+ 1 file changed, 7 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/page-flags.h~page-flags-handle-pg_uncached-like-all-other-flags include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-handle-pg_uncached-like-all-other-flags
+diff -puN include/linux/page-flags.h~page-flags-add-pageflags_false-for-flags-that-are-always-false include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-add-pageflags_false-for-flags-that-are-always-false
 +++ a/include/linux/page-flags.h
-@@ -88,16 +88,8 @@ enum pageflags {
- 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
- 	PG_reclaim,		/* To be reclaimed asap */
- 	PG_buddy,		/* Page is free, on buddy lists */
--
--#if (BITS_PER_LONG > 32)
--/*
-- * 64-bit-only flags build down from bit 31
-- *
-- * 32 bit  -------------------------------| FIELDS |       FLAGS         |
-- * 64 bit  |           FIELDS             | ??????         FLAGS         |
-- *         63                            32                              0
-- */
--	PG_uncached = 31,		/* Page has been mapped as uncached */
-+#ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
-+	PG_uncached,		/* Page has been mapped as uncached */
- #endif
- 	__NR_PAGEFLAGS
- };
-@@ -194,8 +186,13 @@ static inline int PageSwapCache(struct p
- }
+@@ -134,6 +134,10 @@ static inline int TestClearPage##uname(s
+ #define __PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
+ 	__SETPAGEFLAG(uname, lname)  __CLEARPAGEFLAG(uname, lname)
+ 
++#define PAGEFLAG_FALSE(uname) 						\
++static inline int Page##uname(struct page *page) 			\
++			{ return 0; }
++
+ #define TESTSCFLAG(uname, lname)					\
+ 	TESTSETFLAG(uname, lname) TESTCLEARFLAG(uname, lname)
+ 
+@@ -171,28 +175,19 @@ PAGEFLAG(Readahead, reclaim)		/* Reminde
+  */
+ #define PageHighMem(__p) is_highmem(page_zone(__p))
+ #else
+-static inline int PageHighMem(struct page *page)
+-{
+-	return 0;
+-}
++PAGEFLAG_FALSE(HighMem)
  #endif
  
--#if (BITS_PER_LONG > 32)
-+#ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
+ #ifdef CONFIG_SWAP
+ PAGEFLAG(SwapCache, swapcache)
+ #else
+-static inline int PageSwapCache(struct page *page)
+-{
+-	return 0;
+-}
++PAGEFLAG_FALSE(SwapCache)
+ #endif
+ 
+ #ifdef CONFIG_IA64_UNCACHED_ALLOCATOR
  PAGEFLAG(Uncached, uncached)
-+#else
-+static inline int PageUncached(struct page *)
-+{
-+	return 0;
-+}
+ #else
+-static inline int PageUncached(struct page *)
+-{
+-	return 0;
+-}
++PAGEFLAG_FALSE(Uncached)
  #endif
  
  static inline int PageUptodate(struct page *page)
@@ -146,6 +152,7 @@ pageflags-convert-to-the-use-of-new-macros.patch
 pageflags-use-proper-page-flag-functions-in-xen.patch
 pageflags-eliminate-pg_xxx-aliases.patch
 page-flags-handle-pg_uncached-like-all-other-flags.patch
+page-flags-add-pageflags_false-for-flags-that-are-always-false.patch
 mm-remove-unused-max_nodes_shift.patch
 ipc-add-definitions-of-ushort_max-and-others.patch
 mm-add-nr_writeback_temp-counter.patch
