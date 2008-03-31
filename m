@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch added to -mm tree
-Date: Mon, 31 Mar 2008 14:21:46 -0700
-Message-ID: <200803312121.m2VLLk2i026609@imap1.linux-foundation.org>
+Subject: + radio-cadet-wrap-pnp-probe-code-in-ifdef-config_pnp.patch added to -mm tree
+Date: Mon, 31 Mar 2008 14:21:48 -0700
+Message-ID: <200803312121.m2VLLmnT026612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60695 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47714 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755660AbYCaVVx (ORCPT
+	by vger.kernel.org with ESMTP id S1756712AbYCaVV7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 17:21:53 -0400
+	Mon, 31 Mar 2008 17:21:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bjorn.helgaas@hp.com
+Cc: bjorn.helgaas@hp.com, mchehab@infradead.org
 
 
 The patch titled
-     parport_pc: wrap PNP probe code in #ifdef CONFIG_PNP
+     radio-cadet: wrap PNP probe code in #ifdef CONFIG_PNP
 has been added to the -mm tree.  Its filename is
-     parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+     radio-cadet-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport_pc: wrap PNP probe code in #ifdef CONFIG_PNP
+Subject: radio-cadet: wrap PNP probe code in #ifdef CONFIG_PNP
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Wrap PNP probe code in #ifdef CONFIG_PNP.  We already do the same for
-CONFIG_PCI.
+Wrap PNP probe code in #ifdef CONFIG_PNP.
 
 Without this change, we'll have unresolved references to pnp_get_resource()
 function when CONFIG_PNP=n.  (This is a new interface that's not in mainline
 yet.)
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/radio/radio-cadet.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/parport/parport_pc.c~parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp
-+++ a/drivers/parport/parport_pc.c
-@@ -3083,6 +3083,7 @@ static struct pci_driver parport_pc_pci_
- static int __init parport_pc_init_superio(int autoirq, int autodma) {return 0;}
- #endif /* CONFIG_PCI */
+diff -puN drivers/media/radio/radio-cadet.c~radio-cadet-wrap-pnp-probe-code-in-ifdef-config_pnp drivers/media/radio/radio-cadet.c
+--- a/drivers/media/radio/radio-cadet.c~radio-cadet-wrap-pnp-probe-code-in-ifdef-config_pnp
++++ a/drivers/media/radio/radio-cadet.c
+@@ -589,6 +589,8 @@ static struct video_device cadet_radio=
+ 	.vidioc_s_input     = vidioc_s_input,
+ };
  
 +#ifdef CONFIG_PNP
- 
- static const struct pnp_device_id parport_pc_pnp_tbl[] = {
- 	/* Standard LPT Printer Port */
-@@ -3149,6 +3150,9 @@ static struct pnp_driver parport_pc_pnp_
- 	.remove		= parport_pc_pnp_remove,
++
+ static struct pnp_device_id cadet_pnp_devices[] = {
+ 	/* ADS Cadet AM/FM Radio Card */
+ 	{.id = "MSM0c24", .driver_data = 0},
+@@ -623,6 +625,10 @@ static struct pnp_driver cadet_pnp_drive
+ 	.remove		= NULL,
  };
  
 +#else
-+static struct pnp_driver parport_pc_pnp_driver;
-+#endif /* CONFIG_PNP */
- 
- static int __devinit parport_pc_platform_probe(struct platform_device *pdev)
++static struct pnp_driver cadet_pnp_driver;
++#endif
++
+ static int cadet_probe(void)
  {
+ 	static int iovals[8]={0x330,0x332,0x334,0x336,0x338,0x33a,0x33c,0x33e};
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
