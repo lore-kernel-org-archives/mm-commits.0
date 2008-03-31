@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + wm9705-bump-version-number.patch added to -mm tree
-Date: Mon, 31 Mar 2008 14:09:31 -0700
-Message-ID: <200803312109.m2VL9V9S026195@imap1.linux-foundation.org>
+Subject: + wm9712-return-0-rather-than-rc_penup-on-error.patch added to -mm tree
+Date: Mon, 31 Mar 2008 14:09:27 -0700
+Message-ID: <200803312109.m2VL9RjN026189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53491 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755654AbYCaVJi (ORCPT
+	by vger.kernel.org with ESMTP id S1751682AbYCaVJf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 17:09:38 -0400
+	Mon, 31 Mar 2008 17:09:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: broonie@opensource.wolfsonmicro.com, dtor@mail.ru, gg@opensource.wolfsonmicr
 
 
 The patch titled
-     wm9705: bump version number
+     wm9712: return 0 rather than RC_PENUP on error
 has been added to the -mm tree.  Its filename is
-     wm9705-bump-version-number.patch
+     wm9712-return-0-rather-than-rc_penup-on-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,8 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wm9705: bump version number
+Subject: wm9712: return 0 rather than RC_PENUP on error
 From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+
+This prevents spurious pen up events if the ADC failed to obtain a sample.
 
 Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Cc: Liam Girdwood <liam.girdwood@wolfsonmicro.com>
@@ -45,19 +47,19 @@ Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/wm9705.c |    2 +-
+ drivers/input/touchscreen/wm9712.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/touchscreen/wm9705.c~wm9705-bump-version-number drivers/input/touchscreen/wm9705.c
---- a/drivers/input/touchscreen/wm9705.c~wm9705-bump-version-number
-+++ a/drivers/input/touchscreen/wm9705.c
-@@ -25,7 +25,7 @@
- #include <linux/wm97xx.h>
- 
- #define TS_NAME			"wm97xx"
--#define WM9705_VERSION		"0.62"
-+#define WM9705_VERSION		"1.00"
- #define DEFAULT_PRESSURE	0xb0c0
+diff -puN drivers/input/touchscreen/wm9712.c~wm9712-return-0-rather-than-rc_penup-on-error drivers/input/touchscreen/wm9712.c
+--- a/drivers/input/touchscreen/wm9712.c~wm9712-return-0-rather-than-rc_penup-on-error
++++ a/drivers/input/touchscreen/wm9712.c
+@@ -368,7 +368,7 @@ static int wm9712_poll_coord(struct wm97
+ 	}
+ 	return RC_VALID;
+ err:
+-	return RC_PENUP;
++	return 0;
+ }
  
  /*
 _
