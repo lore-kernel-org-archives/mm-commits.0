@@ -1,62 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: - in_atomic-document-why-it-is-unsuitable-for-general-use.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:17:26 -0700
-Message-ID: <200803312017.m2VKHQfm023953@imap1.linux-foundation.org>
+Subject: - mtd-nand-add-out-label-in-rfc_from4.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 13:17:20 -0700
+Message-ID: <200803312017.m2VKHKqZ023947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60094 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57569 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752890AbYCaUR6 (ORCPT
+	by vger.kernel.org with ESMTP id S1753510AbYCaUSM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:17:58 -0400
+	Mon, 31 Mar 2008 16:18:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, mm-commits@vger.kernel.org
+To: bigeasy@tglx.de, bigeasy@linutronix.de, dwmw2@infradead.org, joern@wohnheim.fh-wedel.de, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     in_atomic(): document why it is unsuitable for general use
+     mtd: nand: add out label in rfc_from4
 has been removed from the -mm tree.  Its filename was
-     in_atomic-document-why-it-is-unsuitable-for-general-use.patch
+     mtd-nand-add-out-label-in-rfc_from4.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: in_atomic(): document why it is unsuitable for general use
-From: Jonathan Corbet <corbet@lwn.net>
+Subject: mtd: nand: add out label in rfc_from4
+From: Sebastian Siewior <bigeasy@tglx.de>
 
-Discourage people from inappropriately using in_atomic()
+This has been forgotten in commit f5bbdacc419 and nobody compiled the driver.
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Sebastian Siewior <bigeasy@linutronix.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Joern Engel <joern@wh.fh-wedel.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hardirq.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/mtd/nand/rtc_from4.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/hardirq.h~in_atomic-document-why-it-is-unsuitable-for-general-use include/linux/hardirq.h
---- a/include/linux/hardirq.h~in_atomic-document-why-it-is-unsuitable-for-general-use
-+++ a/include/linux/hardirq.h
-@@ -72,6 +72,13 @@
- #define in_softirq()		(softirq_count())
- #define in_interrupt()		(irq_count())
- 
-+/*
-+ * Are we running in atomic context?  WARNING: this macro cannot
-+ * always detect atomic context; in particular, it cannot know about
-+ * held spinlocks in non-preemptible kernels.  Thus it should not be
-+ * used in the general case to determine whether sleeping is possible.
-+ * Do not use in_atomic() in driver code.
-+ */
- #define in_atomic()		((preempt_count() & ~PREEMPT_ACTIVE) != 0)
- 
- #ifdef CONFIG_PREEMPT
-_
-
-Patches currently in -mm which might be from corbet@lwn.net are
-
-origin.patch
-documentation-patch-tags-one-more-time.patch
-
+diff -puN drivers/mtd/nand/rtc_from4.c~mtd-nand-add-out-label-in-rfc_from4 drivers/mtd/nand/rtc_from4.c
+--- a/drivers/mtd/nand/rtc_from4.c~mtd-nand-add-out-label-in-rfc_from4
++++ a/drivers/mtd/nand/rtc_from4.c
+@@ -460,7 +460,7 @@ static int rtc_from4_errstat(struct mtd_
+ 			er_stat |= 1 << 1;
+ 		kfree(buf);
+ 	}
