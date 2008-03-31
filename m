@@ -1,68 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - mips-remove-redundant-display-of-free-swap-space-in-show_mem.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 13:18:31 -0700
-Message-ID: <200803312018.m2VKIVY9024063@imap1.linux-foundation.org>
+Subject: - drivers-net-arcnet-arcnetc-use-time_-macros.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 13:18:39 -0700
+Message-ID: <200803312018.m2VKIdCb024072@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34521 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52938 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753851AbYCaUTV (ORCPT
+	by vger.kernel.org with ESMTP id S1753835AbYCaUTU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 16:19:21 -0400
+	Mon, 31 Mar 2008 16:19:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@saeurebad.de, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: caglar@pardus.org.tr, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: remove redundant display of free swap space in show_mem()
+     drivers/net/arcnet/arcnet.c: use time_* macros
 has been removed from the -mm tree.  Its filename was
-     mips-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+     drivers-net-arcnet-arcnetc-use-time_-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: remove redundant display of free swap space in show_mem()
-From: Johannes Weiner <hannes@saeurebad.de>
+Subject: drivers/net/arcnet/arcnet.c: use time_* macros
+From: S.Caglar Onur <caglar@pardus.org.tr>
 
-Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+The functions time_before, time_before_eq, time_after, and time_after_eq are
+more robust for comparing jiffies against other values.
+
+So use the time_after() macro, defined in linux/jiffies.h, which deals with
+wrapping correctly.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: S.Caglar Onur <caglar@pardus.org.tr>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/mm/pgtable.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/net/arcnet/arcnet.c |    5 +++--
+ include/linux/arcdevice.h   |    4 ++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN arch/mips/mm/pgtable.c~mips-remove-redundant-display-of-free-swap-space-in-show_mem arch/mips/mm/pgtable.c
---- a/arch/mips/mm/pgtable.c~mips-remove-redundant-display-of-free-swap-space-in-show_mem
-+++ a/arch/mips/mm/pgtable.c
-@@ -12,7 +12,6 @@ void show_mem(void)
+diff -puN drivers/net/arcnet/arcnet.c~drivers-net-arcnet-arcnetc-use-time_-macros drivers/net/arcnet/arcnet.c
+--- a/drivers/net/arcnet/arcnet.c~drivers-net-arcnet-arcnetc-use-time_-macros
++++ a/drivers/net/arcnet/arcnet.c
+@@ -940,7 +940,7 @@ irqreturn_t arcnet_interrupt(int irq, vo
  
- 	printk("Mem-info:\n");
- 	show_free_areas();
--	printk("Free swap:       %6ldkB\n", nr_swap_pages<<(PAGE_SHIFT-10));
- 	pfn = max_mapnr;
- 	while (pfn-- > 0) {
- 		if (!pfn_valid(pfn))
+ 			/* is the RECON info empty or old? */
+ 			if (!lp->first_recon || !lp->last_recon ||
+-			    jiffies - lp->last_recon > HZ * 10) {
++			    time_after(jiffies, lp->last_recon + HZ * 10)) {
+ 				if (lp->network_down)
+ 					BUGMSG(D_NORMAL, "reconfiguration detected: cabling restored?\n");
+ 				lp->first_recon = lp->last_recon = jiffies;
+@@ -974,7 +974,8 @@ irqreturn_t arcnet_interrupt(int irq, vo
+ 					lp->num_recons = 1;
+ 				}
+ 			}
+-		} else if (lp->network_down && jiffies - lp->last_recon > HZ * 10) {
++		} else if (lp->network_down &&
++				time_after(jiffies, lp->last_recon + HZ * 10)) {
+ 			if (lp->network_down)
+ 				BUGMSG(D_NORMAL, "cabling restored?\n");
+ 			lp->first_recon = lp->last_recon = 0;
+diff -puN include/linux/arcdevice.h~drivers-net-arcnet-arcnetc-use-time_-macros include/linux/arcdevice.h
+--- a/include/linux/arcdevice.h~drivers-net-arcnet-arcnetc-use-time_-macros
++++ a/include/linux/arcdevice.h
+@@ -283,8 +283,8 @@ struct arcnet_local {
+ 	int next_buf, first_free_buf;
+ 
+ 	/* network "reconfiguration" handling */
+-	time_t first_recon,	/* time of "first" RECON message to count */
+-		last_recon;	/* time of most recent RECON */
++	unsigned long first_recon; /* time of "first" RECON message to count */
++	unsigned long last_recon;  /* time of most recent RECON */
+ 	int num_recons;		/* number of RECONs between first and last. */
+ 	bool network_down;	/* do we think the network is down? */
+ 
 _
 
-Patches currently in -mm which might be from hannes@saeurebad.de are
+Patches currently in -mm which might be from caglar@pardus.org.tr are
 
-x86-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-arm-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-powerpc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-ppc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-ia64-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-git-mips.patch
-parisc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-s390-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-git-xtensa.patch
-mm-remove-unused-max_nodes_shift.patch
-m68k-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-cris-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-add-warn_on_secs-macro-simplification.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
+git-powerpc.patch
+arch-ia64-kernel-use-time_-macros.patch
+git-net.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+fix-indentation.patch
+arch-alpha-kernel-trapsc-use-time_-macros.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+fs-binfmt_aoutc-use-printk_ratelimit.patch
 
