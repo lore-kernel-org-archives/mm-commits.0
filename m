@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-um-os-linux-start_upc-various-improvements.patch added to -mm tree
-Date: Tue, 01 Apr 2008 13:43:37 -0700
-Message-ID: <200804012043.m31KhbYD012347@imap1.linux-foundation.org>
+Subject: + asm-generic-add-node_to_cpumask_ptr-macro.patch added to -mm tree
+Date: Tue, 01 Apr 2008 13:44:45 -0700
+Message-ID: <200804012044.m31KijO9012365@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60029 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54195 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754296AbYDAUn5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 16:43:57 -0400
+	by vger.kernel.org with ESMTP id S1759358AbYDAUpw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 16:45:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, jdike@addtoit.com, wangcong@zeuux.org
+Cc: travis@sgi.com, anton@samba.org, davem@davemloft.net, dhowells@redhat.com, hpa@zytor.com, mingo@elte.hu, paulus@samba.org, rth@twiddle.net, tglx@linutronix.de, tony.luck@intel.com, wli@holomorphy.com
 
 
 The patch titled
-     arch/um/os-Linux/start_up.c: various improvements.
+     asm-generic: add node_to_cpumask_ptr macro
 has been added to the -mm tree.  Its filename is
-     arch-um-os-linux-start_upc-various-improvements.patch
+     asm-generic-add-node_to_cpumask_ptr-macro.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,81 +33,163 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/um/os-Linux/start_up.c: various improvements.
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: asm-generic: add node_to_cpumask_ptr macro
+From: Mike Travis <travis@sgi.com>
 
- - lets ptrace_child become void
- - adds checking for the return value of change_sig
- - moves errors info into stderr instead of stdout.
+Create a simple macro to always return a pointer to the node_to_cpumask(node)
+value.  This relies on compiler optimization to remove the extra indirection:
 
-Cc: Jeff Dike <jdike@addtoit.com>
-Signed-off-by: WANG Cong <wangcong@zeuux.org>
+    #define node_to_cpumask_ptr(v, node) 		\
+	    cpumask_t _##v = node_to_cpumask(node), *v = &_##v
+
+For those systems with a large cpumask size, then a true pointer
+to the array element can be used:
+
+    #define node_to_cpumask_ptr(v, node)		\
+	    cpumask_t *v = &(node_to_cpumask_map[node])
+
+A node_to_cpumask_ptr_next() macro is provided to access another
+node_to_cpumask value.
+
+The other change is to always include asm-generic/topology.h moving the
+ifdef CONFIG_NUMA to this same file.
+
+Note: there are no references to either of these new macros in this patch,
+only the definition.
+
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: William L. Irwin <wli@holomorphy.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Signed-off-by: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/start_up.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ include/asm-alpha/topology.h   |    3 +--
+ include/asm-frv/topology.h     |    4 +---
+ include/asm-generic/topology.h |   14 ++++++++++++++
+ include/asm-ia64/topology.h    |    5 +++++
+ include/asm-powerpc/topology.h |    3 +--
+ include/asm-x86/topology.h     |   15 +++++++++++++--
+ 6 files changed, 35 insertions(+), 9 deletions(-)
 
-diff -puN arch/um/os-Linux/start_up.c~arch-um-os-linux-start_upc-various-improvements arch/um/os-Linux/start_up.c
---- a/arch/um/os-Linux/start_up.c~arch-um-os-linux-start_upc-various-improvements
-+++ a/arch/um/os-Linux/start_up.c
-@@ -25,15 +25,15 @@
- #include "registers.h"
- #include "skas_ptrace.h"
+diff -puN include/asm-alpha/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-alpha/topology.h
+--- a/include/asm-alpha/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
++++ a/include/asm-alpha/topology.h
+@@ -41,8 +41,7 @@ static inline cpumask_t node_to_cpumask(
  
--static int ptrace_child(void)
-+static void ptrace_child(void)
+ #define pcibus_to_cpumask(bus)	(cpu_online_map)
+ 
+-#else /* CONFIG_NUMA */
+-# include <asm-generic/topology.h>
+ #endif /* !CONFIG_NUMA */
++# include <asm-generic/topology.h>
+ 
+ #endif /* _ASM_ALPHA_TOPOLOGY_H */
+diff -puN include/asm-frv/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-frv/topology.h
+--- a/include/asm-frv/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
++++ a/include/asm-frv/topology.h
+@@ -5,10 +5,8 @@
+ 
+ #error NUMA not supported yet
+ 
+-#else /* !CONFIG_NUMA */
++#endif /* CONFIG_NUMA */
+ 
+ #include <asm-generic/topology.h>
+ 
+-#endif /* CONFIG_NUMA */
+-
+ #endif /* _ASM_TOPOLOGY_H */
+diff -puN include/asm-generic/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-generic/topology.h
+--- a/include/asm-generic/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
++++ a/include/asm-generic/topology.h
+@@ -27,6 +27,8 @@
+ #ifndef _ASM_GENERIC_TOPOLOGY_H
+ #define _ASM_GENERIC_TOPOLOGY_H
+ 
++#ifndef	CONFIG_NUMA
++
+ /* Other architectures wishing to use this simple topology API should fill
+    in the below functions as appropriate in their own <asm/topology.h> file. */
+ #ifndef cpu_to_node
+@@ -52,4 +54,16 @@
+ 				)
+ #endif
+ 
++#endif	/* CONFIG_NUMA */
++
++/* returns pointer to cpumask for specified node */
++#ifndef node_to_cpumask_ptr
++
++#define	node_to_cpumask_ptr(v, node) 					\
++		cpumask_t _##v = node_to_cpumask(node), *v = &_##v
++
++#define node_to_cpumask_ptr_next(v, node)				\
++			  _##v = node_to_cpumask(node)
++#endif
++
+ #endif /* _ASM_GENERIC_TOPOLOGY_H */
+diff -puN include/asm-ia64/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-ia64/topology.h
+--- a/include/asm-ia64/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
++++ a/include/asm-ia64/topology.h
+@@ -116,6 +116,11 @@ void build_cpu_to_node_map(void);
+ #define smt_capable() 				(smp_num_siblings > 1)
+ #endif
+ 
++#define pcibus_to_cpumask(bus)	(pcibus_to_node(bus) == -1 ? \
++					CPU_MASK_ALL : \
++					node_to_cpumask(pcibus_to_node(bus)) \
++				)
++
+ #include <asm-generic/topology.h>
+ 
+ #endif /* _ASM_IA64_TOPOLOGY_H */
+diff -puN include/asm-powerpc/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-powerpc/topology.h
+--- a/include/asm-powerpc/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
++++ a/include/asm-powerpc/topology.h
+@@ -96,11 +96,10 @@ static inline void sysfs_remove_device_f
  {
- 	int ret;
- 	/* Calling os_getpid because some libcs cached getpid incorrectly */
- 	int pid = os_getpid(), ppid = getppid();
- 	int sc_result;
- 
--	change_sig(SIGWINCH, 0);
--	if (ptrace(PTRACE_TRACEME, 0, 0, 0) < 0) {
-+	if (change_sig(SIGWINCH, 0) < 0 ||
-+	    ptrace(PTRACE_TRACEME, 0, 0, 0) < 0) {
- 		perror("ptrace");
- 		kill(pid, SIGKILL);
- 	}
-@@ -75,9 +75,8 @@ static void fatal(char *fmt, ...)
- 	va_list list;
- 
- 	va_start(list, fmt);
--	vprintf(fmt, list);
-+	vfprintf(stderr, fmt, list);
- 	va_end(list);
--	fflush(stdout);
- 
- 	exit(1);
- }
-@@ -87,9 +86,8 @@ static void non_fatal(char *fmt, ...)
- 	va_list list;
- 
- 	va_start(list, fmt);
--	vprintf(fmt, list);
-+	vfprintf(stderr, fmt, list);
- 	va_end(list);
--	fflush(stdout);
  }
  
- static int start_ptraced_child(void)
-@@ -495,7 +493,7 @@ int __init parse_iomem(char *str, int *a
- 	driver = str;
- 	file = strchr(str,',');
- 	if (file == NULL) {
--		printf("parse_iomem : failed to parse iomem\n");
-+		fprintf(stderr, "parse_iomem : failed to parse iomem\n");
- 		goto out;
- 	}
- 	*file = '\0';
-_
-
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
-
-git-hrt.patch
-arch-um-kernel-um_archc-some-small-improvements.patch
-arch-um-os-linux-start_upc-various-improvements.patch
-remove-the-macro-get_personality.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-
++#endif /* CONFIG_NUMA */
+ 
+ #include <asm-generic/topology.h>
+ 
+-#endif /* CONFIG_NUMA */
+-
+ #ifdef CONFIG_SMP
+ #include <asm/cputable.h>
+ #define smt_capable()		(cpu_has_feature(CPU_FTR_SMT))
+diff -puN include/asm-x86/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-x86/topology.h
+--- a/include/asm-x86/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
++++ a/include/asm-x86/topology.h
+@@ -81,6 +81,17 @@ static inline int cpu_to_node(int cpu)
+ 	else
+ 		return NUMA_NO_NODE;
+ }
++
++#ifdef	CONFIG_NUMA
++
++/* Returns a pointer to the cpumask of CPUs on Node 'node'. */
++#define node_to_cpumask_ptr(v, node)		\
++		cpumask_t *v = &(node_to_cpumask_map[node])
++
++#define node_to_cpumask_ptr_next(v, node)	\
++			   v = &(node_to_cpumask_map[node])
++#endif
++
+ #endif /* CONFIG_X86_64 */
+ 
+ /*
+@@ -167,10 +178,10 @@ extern int __node_distance(int, int);
+ 
+ #else /* CONFIG_NUMA */
+ 
+-#include <asm-generic/topology.h>
