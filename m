@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + proc-simplify-locking-in-remove_proc_entry.patch added to -mm tree
-Date: Tue, 01 Apr 2008 12:13:18 -0700
-Message-ID: <200804011913.m31JDIeK008787@imap1.linux-foundation.org>
+Subject: + proc-drop-several-pde-valid-invalid-checks.patch added to -mm tree
+Date: Tue, 01 Apr 2008 12:13:22 -0700
+Message-ID: <200804011913.m31JDMNQ008793@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34809 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38991 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756131AbYDATNw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 15:13:52 -0400
+	by vger.kernel.org with ESMTP id S1757014AbYDATNy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 15:13:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adobriyan@gmail.com
 
 
 The patch titled
-     proc: simplify locking in remove_proc_entry()
+     proc: drop several "PDE valid/invalid" checks
 has been added to the -mm tree.  Its filename is
-     proc-simplify-locking-in-remove_proc_entry.patch
+     proc-drop-several-pde-valid-invalid-checks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,123 +33,189 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: simplify locking in remove_proc_entry()
+Subject: proc: drop several "PDE valid/invalid" checks
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
-proc_subdir_lock protects only modifying and walking through PDE lists, so
-after we've found PDE to remove and actually removed it from lists, there is
-no need to hold proc_subdir_lock for the rest of operation.
+proc-misc code is noticeably full of "if (de)" checks when PDE passed is
+always valid.  Remove them.
+
+Addition of such check in proc_lookup_de() is for failed lookup case.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/generic.c |   80 +++++++++++++++++++++-----------------------
- 1 file changed, 39 insertions(+), 41 deletions(-)
+ fs/proc/generic.c |   31 ++++++++-----------
+ fs/proc/inode.c   |   69 ++++++++++++++++++++------------------------
+ 2 files changed, 45 insertions(+), 55 deletions(-)
 
-diff -puN fs/proc/generic.c~proc-simplify-locking-in-remove_proc_entry fs/proc/generic.c
---- a/fs/proc/generic.c~proc-simplify-locking-in-remove_proc_entry
+diff -puN fs/proc/generic.c~proc-drop-several-pde-valid-invalid-checks fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-drop-several-pde-valid-invalid-checks
 +++ a/fs/proc/generic.c
-@@ -734,60 +734,58 @@ void free_proc_entry(struct proc_dir_ent
- void remove_proc_entry(const char *name, struct proc_dir_entry *parent)
- {
- 	struct proc_dir_entry **p;
--	struct proc_dir_entry *de;
-+	struct proc_dir_entry *de = NULL;
- 	const char *fn = name;
- 	int len;
+@@ -388,20 +388,18 @@ struct dentry *proc_lookup_de(struct pro
  
- 	if (!parent && xlate_proc_name(name, &parent, &fn) != 0)
--		goto out;
-+		return;
- 	len = strlen(fn);
- 
+ 	lock_kernel();
  	spin_lock(&proc_subdir_lock);
- 	for (p = &parent->subdir; *p; p=&(*p)->next ) {
--		if (!proc_match(len, fn, *p))
--			continue;
--		de = *p;
--		*p = de->next;
--		de->next = NULL;
--
--		spin_lock(&de->pde_unload_lock);
--		/*
--		 * Stop accepting new callers into module. If you're
--		 * dynamically allocating ->proc_fops, save a pointer somewhere.
--		 */
--		de->proc_fops = NULL;
--		/* Wait until all existing callers into module are done. */
--		if (de->pde_users > 0) {
--			DECLARE_COMPLETION_ONSTACK(c);
--
--			if (!de->pde_unload_completion)
--				de->pde_unload_completion = &c;
-+		if (proc_match(len, fn, *p)) {
-+			de = *p;
-+			*p = de->next;
-+			de->next = NULL;
-+			break;
-+		}
-+	}
-+	spin_unlock(&proc_subdir_lock);
-+	if (!de)
-+		return;
+-	if (de) {
+-		for (de = de->subdir; de ; de = de->next) {
+-			if (de->namelen != dentry->d_name.len)
+-				continue;
+-			if (!memcmp(dentry->d_name.name, de->name, de->namelen)) {
+-				unsigned int ino;
++	for (de = de->subdir; de ; de = de->next) {
++		if (de->namelen != dentry->d_name.len)
++			continue;
++		if (!memcmp(dentry->d_name.name, de->name, de->namelen)) {
++			unsigned int ino;
  
--			spin_unlock(&de->pde_unload_lock);
--			spin_unlock(&proc_subdir_lock);
-+	spin_lock(&de->pde_unload_lock);
-+	/*
-+	 * Stop accepting new callers into module. If you're
-+	 * dynamically allocating ->proc_fops, save a pointer somewhere.
-+	 */
-+	de->proc_fops = NULL;
-+	/* Wait until all existing callers into module are done. */
-+	if (de->pde_users > 0) {
-+		DECLARE_COMPLETION_ONSTACK(c);
+-				ino = de->low_ino;
+-				de_get(de);
+-				spin_unlock(&proc_subdir_lock);
+-				error = -EINVAL;
+-				inode = proc_get_inode(dir->i_sb, ino, de);
+-				goto out_unlock;
+-			}
++			ino = de->low_ino;
++			de_get(de);
++			spin_unlock(&proc_subdir_lock);
++			error = -EINVAL;
++			inode = proc_get_inode(dir->i_sb, ino, de);
++			goto out_unlock;
+ 		}
+ 	}
+ 	spin_unlock(&proc_subdir_lock);
+@@ -413,7 +411,8 @@ out_unlock:
+ 		d_add(dentry, inode);
+ 		return NULL;
+ 	}
+-	de_put(de);
++	if (de)
++		de_put(de);
+ 	return ERR_PTR(error);
+ }
  
--			wait_for_completion(de->pde_unload_completion);
-+		if (!de->pde_unload_completion)
-+			de->pde_unload_completion = &c;
+@@ -443,10 +442,6 @@ int proc_readdir_de(struct proc_dir_entr
+ 	lock_kernel();
  
--			spin_lock(&proc_subdir_lock);
--			goto continue_removing;
+ 	ino = inode->i_ino;
+-	if (!de) {
+-		ret = -EINVAL;
+-		goto out;
+-	}
+ 	i = filp->f_pos;
+ 	switch (i) {
+ 		case 0:
+diff -puN fs/proc/inode.c~proc-drop-several-pde-valid-invalid-checks fs/proc/inode.c
+--- a/fs/proc/inode.c~proc-drop-several-pde-valid-invalid-checks
++++ a/fs/proc/inode.c
+@@ -25,8 +25,7 @@
+ 
+ struct proc_dir_entry *de_get(struct proc_dir_entry *de)
+ {
+-	if (de)
+-		atomic_inc(&de->count);
++	atomic_inc(&de->count);
+ 	return de;
+ }
+ 
+@@ -35,18 +34,16 @@ struct proc_dir_entry *de_get(struct pro
+  */
+ void de_put(struct proc_dir_entry *de)
+ {
+-	if (de) {	
+-		lock_kernel();		
+-		if (!atomic_read(&de->count)) {
+-			printk("de_put: entry %s already free!\n", de->name);
+-			unlock_kernel();
+-			return;
 -		}
- 		spin_unlock(&de->pde_unload_lock);
- 
-+		wait_for_completion(de->pde_unload_completion);
-+
-+		goto continue_removing;
-+	}
-+	spin_unlock(&de->pde_unload_lock);
-+
- continue_removing:
--		if (S_ISDIR(de->mode))
--			parent->nlink--;
--		de->nlink = 0;
--		if (de->subdir) {
--			printk(KERN_WARNING "%s: removing non-empty directory "
--			       "'%s/%s', leaking at least '%s'\n", __func__,
--			       de->parent->name, de->name, de->subdir->name);
--			WARN_ON(1);
--		}
+-
 -		if (atomic_dec_and_test(&de->count))
 -			free_proc_entry(de);
--		break;
-+	if (S_ISDIR(de->mode))
-+		parent->nlink--;
-+	de->nlink = 0;
-+	if (de->subdir) {
-+		printk(KERN_WARNING "%s: removing non-empty directory "
-+			"'%s/%s', leaking at least '%s'\n", __func__,
-+			de->parent->name, de->name, de->subdir->name);
-+		WARN_ON(1);
++	lock_kernel();
++	if (!atomic_read(&de->count)) {
++		printk("de_put: entry %s already free!\n", de->name);
+ 		unlock_kernel();
++		return;
  	}
--	spin_unlock(&proc_subdir_lock);
--out:
--	return;
++
 +	if (atomic_dec_and_test(&de->count))
 +		free_proc_entry(de);
++	unlock_kernel();
  }
+ 
+ /*
+@@ -392,7 +389,7 @@ struct inode *proc_get_inode(struct supe
+ {
+ 	struct inode * inode;
+ 
+-	if (de != NULL && !try_module_get(de->owner))
++	if (!try_module_get(de->owner))
+ 		goto out_mod;
+ 
+ 	inode = iget_locked(sb, ino);
+@@ -402,30 +399,29 @@ struct inode *proc_get_inode(struct supe
+ 		inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME;
+ 		PROC_I(inode)->fd = 0;
+ 		PROC_I(inode)->pde = de;
+-		if (de) {
+-			if (de->mode) {
+-				inode->i_mode = de->mode;
+-				inode->i_uid = de->uid;
+-				inode->i_gid = de->gid;
+-			}
+-			if (de->size)
+-				inode->i_size = de->size;
+-			if (de->nlink)
+-				inode->i_nlink = de->nlink;
+-			if (de->proc_iops)
+-				inode->i_op = de->proc_iops;
+-			if (de->proc_fops) {
+-				if (S_ISREG(inode->i_mode)) {
++
++		if (de->mode) {
++			inode->i_mode = de->mode;
++			inode->i_uid = de->uid;
++			inode->i_gid = de->gid;
++		}
++		if (de->size)
++			inode->i_size = de->size;
++		if (de->nlink)
++			inode->i_nlink = de->nlink;
++		if (de->proc_iops)
++			inode->i_op = de->proc_iops;
++		if (de->proc_fops) {
++			if (S_ISREG(inode->i_mode)) {
+ #ifdef CONFIG_COMPAT
+-					if (!de->proc_fops->compat_ioctl)
+-						inode->i_fop =
+-							&proc_reg_file_ops_no_compat;
+-					else
++				if (!de->proc_fops->compat_ioctl)
++					inode->i_fop =
++						&proc_reg_file_ops_no_compat;
++				else
+ #endif
+-						inode->i_fop = &proc_reg_file_ops;
+-				} else {
+-					inode->i_fop = de->proc_fops;
+-				}
++					inode->i_fop = &proc_reg_file_ops;
++			} else {
++				inode->i_fop = de->proc_fops;
+ 			}
+ 		}
+ 		unlock_new_inode(inode);
+@@ -433,8 +429,7 @@ struct inode *proc_get_inode(struct supe
+ 	return inode;
+ 
+ out_ino:
+-	if (de != NULL)
+-		module_put(de->owner);
++	module_put(de->owner);
+ out_mod:
+ 	return NULL;
+ }			
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
