@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + revert-slub-change-slub_debug-to-config_slub_debug-in-slubc.patch added to -mm tree
-Date: Tue, 01 Apr 2008 13:07:37 -0700
-Message-ID: <200804012007.m31K7bZq010875@imap1.linux-foundation.org>
+Subject: + revert-revert-slub-change-slub_debug-to-config_slub_debug-in-slubc.patch added to -mm tree
+Date: Tue, 01 Apr 2008 13:08:57 -0700
+Message-ID: <200804012008.m31K8vto010909@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53022 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754219AbYDAUHj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 16:07:39 -0400
+	by vger.kernel.org with ESMTP id S1757120AbYDAUI7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 16:08:59 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m31K7b2L009874
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m31K8vBq010009
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 1 Apr 2008 13:07:38 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 1 Apr 2008 13:08:59 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     revert slub-change-slub_debug-to-config_slub_debug-in-slubc
+     a
 has been added to the -mm tree.  Its filename is
-     revert-slub-change-slub_debug-to-config_slub_debug-in-slubc.patch
+     revert-revert-slub-change-slub_debug-to-config_slub_debug-in-slubc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,28 +37,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert slub-change-slub_debug-to-config_slub_debug-in-slubc
+Subject: a
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/slub.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~revert-slub-change-slub_debug-to-config_slub_debug-in-slubc mm/slub.c
---- a/mm/slub.c~revert-slub-change-slub_debug-to-config_slub_debug-in-slubc
+diff -puN mm/slub.c~revert-revert-slub-change-slub_debug-to-config_slub_debug-in-slubc mm/slub.c
+--- a/mm/slub.c~revert-revert-slub-change-slub_debug-to-config_slub_debug-in-slubc
 +++ a/mm/slub.c
-@@ -2688,8 +2688,7 @@ void kfree(const void *x)
+@@ -2719,7 +2719,8 @@ void kfree(const void *x)
  }
  EXPORT_SYMBOL(kfree);
  
--#if (defined(CONFIG_SYSFS) && defined(CONFIG_SLUB_DEBUG)) || \
--	defined(CONFIG_SLABINFO)
-+#if defined(SLUB_DEBUG) || defined(CONFIG_SLABINFO)
- static unsigned long count_partial(struct kmem_cache_node *n)
+-#if defined(SLUB_DEBUG) || defined(CONFIG_SLABINFO)
++#if (defined(CONFIG_SYSFS) && defined(CONFIG_SLUB_DEBUG)) || \
++	defined(CONFIG_SLABINFO)
+ static unsigned long count_partial(struct kmem_cache_node *n,
+ 					int (*get_count)(struct page *))
  {
- 	unsigned long flags;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,6 +149,7 @@ xfs-suppress-uninitialized-var-warnings.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
 revert-slub-change-slub_debug-to-config_slub_debug-in-slubc.patch
+revert-revert-slub-change-slub_debug-to-config_slub_debug-in-slubc.patch
 git-semaphore-git-rejects.patch
 smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
