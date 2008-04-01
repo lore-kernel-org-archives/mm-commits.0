@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - revert-gregkh-pci-pci-ia64-use-generic-pci_enable_resources.patch removed from -mm tree
-Date: Tue, 01 Apr 2008 10:00:15 -0700
-Message-ID: <200804011700.m31H0FFh003877@imap1.linux-foundation.org>
+Subject: - revert-gregkh-pci-pci-alpha-use-generic-pci_enable_resources.patch removed from -mm tree
+Date: Tue, 01 Apr 2008 10:00:12 -0700
+Message-ID: <200804011700.m31H0CbN003871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34025 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755100AbYDARAw (ORCPT
+	by vger.kernel.org with ESMTP id S1754948AbYDARAw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 13:00:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -14,16 +14,16 @@ To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, davem@davemloft.net, greg@k
 
 
 The patch titled
-     revert gregkh-pci-pci-ia64-use-generic-pci_enable_resources
+     revert gregkh-pci-pci-alpha-use-generic-pci_enable_resources
 has been removed from the -mm tree.  Its filename was
-     revert-gregkh-pci-pci-ia64-use-generic-pci_enable_resources.patch
+     revert-gregkh-pci-pci-alpha-use-generic-pci_enable_resources.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert gregkh-pci-pci-ia64-use-generic-pci_enable_resources
+Subject: revert gregkh-pci-pci-alpha-use-generic-pci_enable_resources
 From: Andrew Morton <akpm@linux-foundation.org>
 
 On Fri, 28 Mar 2008 16:10:11 -0700 (PDT) David Miller <davem@davemloft.net> wrote:
@@ -56,68 +56,42 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/pci/pci.c |   44 +++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 43 insertions(+), 1 deletion(-)
+ arch/alpha/kernel/pci.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/pci/pci.c~revert-gregkh-pci-pci-ia64-use-generic-pci_enable_resources arch/ia64/pci/pci.c
---- a/arch/ia64/pci/pci.c~revert-gregkh-pci-pci-ia64-use-generic-pci_enable_resources
-+++ a/arch/ia64/pci/pci.c
-@@ -499,12 +499,54 @@ pcibios_update_irq (struct pci_dev *dev,
- 	/* ??? FIXME -- record old value for shutdown.  */
- }
- 
-+static inline int
-+pcibios_enable_resources (struct pci_dev *dev, int mask)
-+{
-+	u16 cmd, old_cmd;
-+	int idx;
-+	struct resource *r;
-+	unsigned long type_mask = IORESOURCE_IO | IORESOURCE_MEM;
-+
-+	if (!dev)
-+		return -EINVAL;
+diff -puN arch/alpha/kernel/pci.c~revert-gregkh-pci-pci-alpha-use-generic-pci_enable_resources arch/alpha/kernel/pci.c
+--- a/arch/alpha/kernel/pci.c~revert-gregkh-pci-pci-alpha-use-generic-pci_enable_resources
++++ a/arch/alpha/kernel/pci.c
+@@ -372,7 +372,28 @@ EXPORT_SYMBOL(pcibios_bus_to_resource);
+ int
+ pcibios_enable_device(struct pci_dev *dev, int mask)
+ {
+-	return pci_enable_resources(dev, mask);
++	u16 cmd, oldcmd;
++	int i;
 +
 +	pci_read_config_word(dev, PCI_COMMAND, &cmd);
-+	old_cmd = cmd;
-+	for (idx=0; idx<PCI_NUM_RESOURCES; idx++) {
-+		/* Only set up the desired resources.  */
-+		if (!(mask & (1 << idx)))
-+			continue;
++	oldcmd = cmd;
 +
-+		r = &dev->resource[idx];
-+		if (!(r->flags & type_mask))
-+			continue;
-+		if ((idx == PCI_ROM_RESOURCE) &&
-+				(!(r->flags & IORESOURCE_ROM_ENABLE)))
-+			continue;
-+		if (!r->start && r->end) {
-+			printk(KERN_ERR
-+			       "PCI: Device %s not available because of resource collisions\n",
-+			       pci_name(dev));
-+			return -EINVAL;
-+		}
-+		if (r->flags & IORESOURCE_IO)
++	for (i = 0; i < PCI_NUM_RESOURCES; i++) {
++		struct resource *res = &dev->resource[i];
++
++		if (res->flags & IORESOURCE_IO)
 +			cmd |= PCI_COMMAND_IO;
-+		if (r->flags & IORESOURCE_MEM)
++		else if (res->flags & IORESOURCE_MEM)
 +			cmd |= PCI_COMMAND_MEMORY;
 +	}
-+	if (cmd != old_cmd) {
-+		printk("PCI: Enabling device %s (%04x -> %04x)\n", pci_name(dev), old_cmd, cmd);
++
++	if (cmd != oldcmd) {
++		printk(KERN_DEBUG "PCI: Enabling device: (%s), cmd %x\n",
++		       pci_name(dev), cmd);
++		/* Enable the appropriate bits in the PCI command register.  */
 +		pci_write_config_word(dev, PCI_COMMAND, cmd);
 +	}
 +	return 0;
-+}
-+
- int
- pcibios_enable_device (struct pci_dev *dev, int mask)
- {
- 	int ret;
+ }
  
--	ret = pci_enable_resources(dev, mask);
-+	ret = pcibios_enable_resources(dev, mask);
- 	if (ret < 0)
- 		return ret;
- 
+ /*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -171,6 +145,7 @@ git-ocfs2.patch
 arch-parisc-kernel-unalignedc-use-time_-macros.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
 git-selinux.patch
+revert-gregkh-pci-pci-alpha-use-generic-pci_enable_resources.patch
 revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
 revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
 revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
