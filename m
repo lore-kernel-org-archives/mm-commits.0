@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + git-watchdog-git-rejects.patch added to -mm tree
-Date: Tue, 01 Apr 2008 15:02:00 -0700
-Message-ID: <200804012202.m31M204s015924@imap1.linux-foundation.org>
+Subject: + git-slub-git-rejects.patch added to -mm tree
+Date: Tue, 01 Apr 2008 15:03:01 -0700
+Message-ID: <200804012203.m31M31Bp015965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46976 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50358 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752049AbYDAWCt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 18:02:49 -0400
+	by vger.kernel.org with ESMTP id S1752672AbYDAWDv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 18:03:51 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m31M20Ke021590
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m31M31CZ021723
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 1 Apr 2008 15:02:01 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 1 Apr 2008 15:03:02 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-watchdog-git-rejects
+     git-slub-git-rejects
 has been added to the -mm tree.  Its filename is
-     git-watchdog-git-rejects.patch
+     git-slub-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,49 +37,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-watchdog-git-rejects
+Subject: git-slub-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/it8712f_wdt.c |   11 -----------
- 1 file changed, 11 deletions(-)
+ mm/slub.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/watchdog/it8712f_wdt.c~git-watchdog-git-rejects drivers/watchdog/it8712f_wdt.c
---- a/drivers/watchdog/it8712f_wdt.c~git-watchdog-git-rejects
-+++ a/drivers/watchdog/it8712f_wdt.c
-@@ -170,14 +170,9 @@ it8712f_wdt_update_margin(void)
- 	superio_outb(config, WDT_CONFIG);
- 
- 	if (revision >= 0x08)
--<<<<<<< HEAD:drivers/watchdog/it8712f_wdt.c
--		superio_outb(units >> 8, WDT_TIMEOUT + 1);
--	superio_outb(units, WDT_TIMEOUT);
--=======
- 		superio_outw(units, WDT_TIMEOUT);
- 	else
- 		superio_outb(units, WDT_TIMEOUT);
-->>>>>>> FETCH_HEAD:drivers/watchdog/it8712f_wdt.c
+diff -puN mm/slub.c~git-slub-git-rejects mm/slub.c
+--- a/mm/slub.c~git-slub-git-rejects
++++ a/mm/slub.c
+@@ -2716,14 +2716,9 @@ void kfree(const void *x)
  }
+ EXPORT_SYMBOL(kfree);
  
- static int
-@@ -296,15 +291,9 @@ it8712f_wdt_ioctl(struct inode *inode, s
- 		if (get_user(value, p))
- 			return -EFAULT;
- 		if (value < 1)
--<<<<<<< HEAD:drivers/watchdog/it8712f_wdt.c
- 			return -EINVAL;
- 		if (value > (max_units * 60))
- 			return -EINVAL;
+-<<<<<<< HEAD:mm/slub.c
+ #if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SLABINFO)
+-static unsigned long count_partial(struct kmem_cache_node *n)
 -=======
--			return -EINVAL;
--		if (value > (max_units * 60))
--			return -EINVAL;
-->>>>>>> FETCH_HEAD:drivers/watchdog/it8712f_wdt.c
- 		margin = value;
- 		superio_enter();
- 		superio_select(LDN_GPIO);
+-#if defined(SLUB_DEBUG) || defined(CONFIG_SLABINFO)
+ static unsigned long count_partial(struct kmem_cache_node *n,
+ 					int (*get_count)(struct page *))
+->>>>>>> FETCH_HEAD:mm/slub.c
+ {
+ 	unsigned long flags;
+ 	unsigned long x = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -170,6 +154,7 @@ git-watchdog-git-rejects.patch
 xfs-suppress-uninitialized-var-warnings.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
+git-slub-git-rejects.patch
 git-semaphore-git-rejects.patch
 r8169-fix-irqx-nobody-cared-for-shared-irq-with-intx-checkpatch-fixes.patch
 smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
