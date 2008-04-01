@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + markers-use-synchronize_sched.patch added to -mm tree
-Date: Tue, 01 Apr 2008 13:30:22 -0700
-Message-ID: <200804012030.m31KUM0X011775@imap1.linux-foundation.org>
+Subject: + arch-um-os-linux-start_upc-various-improvements.patch added to -mm tree
+Date: Tue, 01 Apr 2008 13:43:37 -0700
+Message-ID: <200804012043.m31KhbYD012347@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60029 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758157AbYDAUfn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 16:35:43 -0400
+	by vger.kernel.org with ESMTP id S1754296AbYDAUn5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 16:43:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mathieu.desnoyers@polymtl.ca, paulmck@linux.vnet.ibm.com
+Cc: xiyou.wangcong@gmail.com, jdike@addtoit.com, wangcong@zeuux.org
 
 
 The patch titled
-     markers: use synchronize_sched()
+     arch/um/os-Linux/start_up.c: various improvements.
 has been added to the -mm tree.  Its filename is
-     markers-use-synchronize_sched.patch
+     arch-um-os-linux-start_upc-various-improvements.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,59 +33,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: markers: use synchronize_sched()
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: arch/um/os-Linux/start_up.c: various improvements.
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Use synchronize_sched before calling call_rcu in CONFIG_PREEMPT_RCU until we
-have call_rcu_sched and rcu_barrier_sched in mainline.  It will slow down the
-marker operations in CONFIG_PREEMPT_RCU, but it fixes the current race against
-the preempt_disable/enable() protected code paths.
+ - lets ptrace_child become void
+ - adds checking for the return value of change_sig
+ - moves errors info into stderr instead of stdout.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: WANG Cong <wangcong@zeuux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/marker.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/um/os-Linux/start_up.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN kernel/marker.c~markers-use-synchronize_sched kernel/marker.c
---- a/kernel/marker.c~markers-use-synchronize_sched
-+++ a/kernel/marker.c
-@@ -671,6 +671,9 @@ int marker_probe_register(const char *na
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
-+#ifdef CONFIG_PREEMPT_RCU
-+	synchronize_sched();	/* Until we have the call_rcu_sched() */
-+#endif
- 	call_rcu(&entry->rcu, free_old_closure);
- end:
- 	mutex_unlock(&markers_mutex);
-@@ -714,6 +717,9 @@ int marker_probe_unregister(const char *
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
-+#ifdef CONFIG_PREEMPT_RCU
-+	synchronize_sched();	/* Until we have the call_rcu_sched() */
-+#endif
- 	call_rcu(&entry->rcu, free_old_closure);
- 	remove_marker(name);	/* Ignore busy error message */
- 	ret = 0;
-@@ -792,6 +798,9 @@ int marker_probe_unregister_private_data
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
-+#ifdef CONFIG_PREEMPT_RCU
-+	synchronize_sched();	/* Until we have the call_rcu_sched() */
-+#endif
- 	call_rcu(&entry->rcu, free_old_closure);
- 	remove_marker(entry->name);	/* Ignore busy error message */
- end:
+diff -puN arch/um/os-Linux/start_up.c~arch-um-os-linux-start_upc-various-improvements arch/um/os-Linux/start_up.c
+--- a/arch/um/os-Linux/start_up.c~arch-um-os-linux-start_upc-various-improvements
++++ a/arch/um/os-Linux/start_up.c
+@@ -25,15 +25,15 @@
+ #include "registers.h"
+ #include "skas_ptrace.h"
+ 
+-static int ptrace_child(void)
++static void ptrace_child(void)
+ {
+ 	int ret;
+ 	/* Calling os_getpid because some libcs cached getpid incorrectly */
+ 	int pid = os_getpid(), ppid = getppid();
+ 	int sc_result;
+ 
+-	change_sig(SIGWINCH, 0);
+-	if (ptrace(PTRACE_TRACEME, 0, 0, 0) < 0) {
++	if (change_sig(SIGWINCH, 0) < 0 ||
++	    ptrace(PTRACE_TRACEME, 0, 0, 0) < 0) {
+ 		perror("ptrace");
+ 		kill(pid, SIGKILL);
+ 	}
+@@ -75,9 +75,8 @@ static void fatal(char *fmt, ...)
+ 	va_list list;
+ 
+ 	va_start(list, fmt);
+-	vprintf(fmt, list);
++	vfprintf(stderr, fmt, list);
+ 	va_end(list);
+-	fflush(stdout);
+ 
+ 	exit(1);
+ }
+@@ -87,9 +86,8 @@ static void non_fatal(char *fmt, ...)
+ 	va_list list;
+ 
+ 	va_start(list, fmt);
+-	vprintf(fmt, list);
++	vfprintf(stderr, fmt, list);
+ 	va_end(list);
+-	fflush(stdout);
+ }
+ 
+ static int start_ptraced_child(void)
+@@ -495,7 +493,7 @@ int __init parse_iomem(char *str, int *a
+ 	driver = str;
+ 	file = strchr(str,',');
+ 	if (file == NULL) {
+-		printf("parse_iomem : failed to parse iomem\n");
++		fprintf(stderr, "parse_iomem : failed to parse iomem\n");
+ 		goto out;
+ 	}
+ 	*file = '\0';
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-markers-use-synchronize_sched.patch
-make-marker_debug-static.patch
+git-hrt.patch
+arch-um-kernel-um_archc-some-small-improvements.patch
+arch-um-os-linux-start_upc-various-improvements.patch
+remove-the-macro-get_personality.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 
