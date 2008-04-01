@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + asm-generic-add-node_to_cpumask_ptr-macro.patch added to -mm tree
-Date: Tue, 01 Apr 2008 13:44:45 -0700
-Message-ID: <200804012044.m31KijO9012365@imap1.linux-foundation.org>
+Subject: + hugetlb-vmstat-events-for-huge-page-allocations.patch added to -mm tree
+Date: Tue, 01 Apr 2008 13:49:31 -0700
+Message-ID: <200804012049.m31KnV4R012560@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54195 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49096 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759358AbYDAUpw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 16:45:52 -0400
+	by vger.kernel.org with ESMTP id S1752667AbYDAUuL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 16:50:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, anton@samba.org, davem@davemloft.net, dhowells@redhat.com, hpa@zytor.com, mingo@elte.hu, paulus@samba.org, rth@twiddle.net, tglx@linutronix.de, tony.luck@intel.com, wli@holomorphy.com
+Cc: agl@us.ibm.com, apw@shadowen.org, ebmunson@us.ibm.com, mel@csn.ul.ie
 
 
 The patch titled
-     asm-generic: add node_to_cpumask_ptr macro
+     Subject: [PATCH] hugetlb: vmstat events for huge page allocations
 has been added to the -mm tree.  Its filename is
-     asm-generic-add-node_to_cpumask_ptr-macro.patch
+     hugetlb-vmstat-events-for-huge-page-allocations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,163 +33,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic: add node_to_cpumask_ptr macro
-From: Mike Travis <travis@sgi.com>
+Subject: Subject: [PATCH] hugetlb: vmstat events for huge page allocations
+From: Adam Litke <agl@us.ibm.com>
 
-Create a simple macro to always return a pointer to the node_to_cpumask(node)
-value.  This relies on compiler optimization to remove the extra indirection:
+Allocating huge pages directly from the buddy allocator is not guaranteed to
+succeed.  Success depends on several factors (such as the amount of physical
+memory available and the level of fragmentation).  With the addition of
+dynamic hugetlb pool resizing, allocations can occur much more frequently. 
+For these reasons it is desirable to keep track of huge page allocation
+successes and failures.
 
-    #define node_to_cpumask_ptr(v, node) 		\
-	    cpumask_t _##v = node_to_cpumask(node), *v = &_##v
+Add two new vmstat entries to track huge page allocations that succeed and
+fail.  The presence of the two entries is contingent upon CONFIG_HUGETLB_PAGE
+being enabled.
 
-For those systems with a large cpumask size, then a true pointer
-to the array element can be used:
-
-    #define node_to_cpumask_ptr(v, node)		\
-	    cpumask_t *v = &(node_to_cpumask_map[node])
-
-A node_to_cpumask_ptr_next() macro is provided to access another
-node_to_cpumask value.
-
-The other change is to always include asm-generic/topology.h moving the
-ifdef CONFIG_NUMA to this same file.
-
-Note: there are no references to either of these new macros in this patch,
-only the definition.
-
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: William L. Irwin <wli@holomorphy.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Signed-off-by: Mike Travis <travis@sgi.com>
+Signed-off-by: Adam Litke <agl@us.ibm.com>
+Signed-off-by: Eric Munson <ebmunson@us.ibm.com>
+Tested-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/topology.h   |    3 +--
- include/asm-frv/topology.h     |    4 +---
- include/asm-generic/topology.h |   14 ++++++++++++++
- include/asm-ia64/topology.h    |    5 +++++
- include/asm-powerpc/topology.h |    3 +--
- include/asm-x86/topology.h     |   15 +++++++++++++--
- 6 files changed, 35 insertions(+), 9 deletions(-)
+ include/linux/vmstat.h |    8 +++++++-
+ mm/hugetlb.c           |    7 +++++++
+ mm/vmstat.c            |    4 ++++
+ 3 files changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-alpha/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-alpha/topology.h
---- a/include/asm-alpha/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
-+++ a/include/asm-alpha/topology.h
-@@ -41,8 +41,7 @@ static inline cpumask_t node_to_cpumask(
- 
- #define pcibus_to_cpumask(bus)	(cpu_online_map)
- 
--#else /* CONFIG_NUMA */
--# include <asm-generic/topology.h>
- #endif /* !CONFIG_NUMA */
-+# include <asm-generic/topology.h>
- 
- #endif /* _ASM_ALPHA_TOPOLOGY_H */
-diff -puN include/asm-frv/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-frv/topology.h
---- a/include/asm-frv/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
-+++ a/include/asm-frv/topology.h
-@@ -5,10 +5,8 @@
- 
- #error NUMA not supported yet
- 
--#else /* !CONFIG_NUMA */
-+#endif /* CONFIG_NUMA */
- 
- #include <asm-generic/topology.h>
- 
--#endif /* CONFIG_NUMA */
--
- #endif /* _ASM_TOPOLOGY_H */
-diff -puN include/asm-generic/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-generic/topology.h
---- a/include/asm-generic/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
-+++ a/include/asm-generic/topology.h
-@@ -27,6 +27,8 @@
- #ifndef _ASM_GENERIC_TOPOLOGY_H
- #define _ASM_GENERIC_TOPOLOGY_H
- 
-+#ifndef	CONFIG_NUMA
-+
- /* Other architectures wishing to use this simple topology API should fill
-    in the below functions as appropriate in their own <asm/topology.h> file. */
- #ifndef cpu_to_node
-@@ -52,4 +54,16 @@
- 				)
+diff -puN include/linux/vmstat.h~hugetlb-vmstat-events-for-huge-page-allocations include/linux/vmstat.h
+--- a/include/linux/vmstat.h~hugetlb-vmstat-events-for-huge-page-allocations
++++ a/include/linux/vmstat.h
+@@ -25,6 +25,12 @@
+ #define HIGHMEM_ZONE(xx)
  #endif
  
-+#endif	/* CONFIG_NUMA */
-+
-+/* returns pointer to cpumask for specified node */
-+#ifndef node_to_cpumask_ptr
-+
-+#define	node_to_cpumask_ptr(v, node) 					\
-+		cpumask_t _##v = node_to_cpumask(node), *v = &_##v
-+
-+#define node_to_cpumask_ptr_next(v, node)				\
-+			  _##v = node_to_cpumask(node)
++#ifdef CONFIG_HUGETLB_PAGE
++#define HTLB_STATS	HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
++#else
++#define HTLB_STATS
 +#endif
 +
- #endif /* _ASM_GENERIC_TOPOLOGY_H */
-diff -puN include/asm-ia64/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-ia64/topology.h
---- a/include/asm-ia64/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
-+++ a/include/asm-ia64/topology.h
-@@ -116,6 +116,11 @@ void build_cpu_to_node_map(void);
- #define smt_capable() 				(smp_num_siblings > 1)
+ #define FOR_ALL_ZONES(xx) DMA_ZONE(xx) DMA32_ZONE(xx) xx##_NORMAL HIGHMEM_ZONE(xx) , xx##_MOVABLE
+ 
+ enum vm_event_item { PGPGIN, PGPGOUT, PSWPIN, PSWPOUT,
+@@ -36,7 +42,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		FOR_ALL_ZONES(PGSCAN_KSWAPD),
+ 		FOR_ALL_ZONES(PGSCAN_DIRECT),
+ 		PGINODESTEAL, SLABS_SCANNED, KSWAPD_STEAL, KSWAPD_INODESTEAL,
+-		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
++		PAGEOUTRUN, ALLOCSTALL, PGROTATED, HTLB_STATS
+ 		NR_VM_EVENT_ITEMS
+ };
+ 
+diff -puN mm/hugetlb.c~hugetlb-vmstat-events-for-huge-page-allocations mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlb-vmstat-events-for-huge-page-allocations
++++ a/mm/hugetlb.c
+@@ -247,6 +247,11 @@ static int alloc_fresh_huge_page(void)
+ 		hugetlb_next_nid = next_nid;
+ 	} while (!page && hugetlb_next_nid != start_nid);
+ 
++	if (ret)
++		count_vm_event(HTLB_BUDDY_PGALLOC);
++	else
++		count_vm_event(HTLB_BUDDY_PGALLOC_FAIL);
++
+ 	return ret;
+ }
+ 
+@@ -307,9 +312,11 @@ static struct page *alloc_buddy_huge_pag
+ 		 */
+ 		nr_huge_pages_node[nid]++;
+ 		surplus_huge_pages_node[nid]++;
++		__count_vm_event(HTLB_BUDDY_PGALLOC);
+ 	} else {
+ 		nr_huge_pages--;
+ 		surplus_huge_pages--;
++		__count_vm_event(HTLB_BUDDY_PGALLOC_FAIL);
+ 	}
+ 	spin_unlock(&hugetlb_lock);
+ 
+diff -puN mm/vmstat.c~hugetlb-vmstat-events-for-huge-page-allocations mm/vmstat.c
+--- a/mm/vmstat.c~hugetlb-vmstat-events-for-huge-page-allocations
++++ a/mm/vmstat.c
+@@ -644,6 +644,10 @@ static const char * const vmstat_text[] 
+ 	"allocstall",
+ 
+ 	"pgrotated",
++#ifdef CONFIG_HUGETLB_PAGE
++	"htlb_buddy_alloc_success",
++	"htlb_buddy_alloc_fail",
++#endif
  #endif
+ };
  
-+#define pcibus_to_cpumask(bus)	(pcibus_to_node(bus) == -1 ? \
-+					CPU_MASK_ALL : \
-+					node_to_cpumask(pcibus_to_node(bus)) \
-+				)
-+
- #include <asm-generic/topology.h>
- 
- #endif /* _ASM_IA64_TOPOLOGY_H */
-diff -puN include/asm-powerpc/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-powerpc/topology.h
---- a/include/asm-powerpc/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
-+++ a/include/asm-powerpc/topology.h
-@@ -96,11 +96,10 @@ static inline void sysfs_remove_device_f
- {
- }
- 
-+#endif /* CONFIG_NUMA */
- 
- #include <asm-generic/topology.h>
- 
--#endif /* CONFIG_NUMA */
--
- #ifdef CONFIG_SMP
- #include <asm/cputable.h>
- #define smt_capable()		(cpu_has_feature(CPU_FTR_SMT))
-diff -puN include/asm-x86/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-x86/topology.h
---- a/include/asm-x86/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
-+++ a/include/asm-x86/topology.h
-@@ -81,6 +81,17 @@ static inline int cpu_to_node(int cpu)
- 	else
- 		return NUMA_NO_NODE;
- }
-+
-+#ifdef	CONFIG_NUMA
-+
-+/* Returns a pointer to the cpumask of CPUs on Node 'node'. */
-+#define node_to_cpumask_ptr(v, node)		\
-+		cpumask_t *v = &(node_to_cpumask_map[node])
-+
-+#define node_to_cpumask_ptr_next(v, node)	\
-+			   v = &(node_to_cpumask_map[node])
-+#endif
-+
- #endif /* CONFIG_X86_64 */
- 
- /*
-@@ -167,10 +178,10 @@ extern int __node_distance(int, int);
- 
- #else /* CONFIG_NUMA */
- 
--#include <asm-generic/topology.h>
+_
+
+Patches currently in -mm which might be from agl@us.ibm.com are
+
+hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages.patch
+hugetlb-vmstat-events-for-huge-page-allocations.patch
+
