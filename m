@@ -1,110 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-htab_remove_mapping-error-handling.patch removed from -mm tree
-Date: Tue, 01 Apr 2008 14:37:55 -0700
-Message-ID: <200804012137.m31LbtKP014873@imap1.linux-foundation.org>
+Subject: - xilinx-hwicap-use-fixed-device-major.patch removed from -mm tree
+Date: Tue, 01 Apr 2008 14:38:43 -0700
+Message-ID: <200804012138.m31Lchi4014947@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45539 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44624 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761594AbYDAVij (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 17:38:39 -0400
+	by vger.kernel.org with ESMTP id S1758667AbYDAVjH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 17:39:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pbadari@us.ibm.com, benh@kernel.crashing.org, paulus@samba.org, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: stephen.neuendorffer@xilinx.com, grant.likely@secretlab.ca, jwboyer@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: htab_remove_mapping() error handling
+     xilinx: hwicap: use fixed device major
 has been removed from the -mm tree.  Its filename was
-     powerpc-htab_remove_mapping-error-handling.patch
+     xilinx-hwicap-use-fixed-device-major.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: htab_remove_mapping() error handling
-From: Badari Pulavarty <pbadari@us.ibm.com>
+Subject: xilinx: hwicap: use fixed device major
+From: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
 
-If the sub-arch doesn't support hpte_removebolted(), gracefully return failure
-rather than success.
+Major 259 has been assigned by lanana.  Use it.  Also, publish /dev/icap[0-k]
+as the device entries, and register platform devices named 'icap' to be
+consistent.
 
-Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
+Cc: Josh Boyer <jwboyer@linux.vnet.ibm.com>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/hash_utils_64.c |   14 +++++++++-----
- include/asm-powerpc/sparsemem.h |    2 +-
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/char/xilinx_hwicap/xilinx_hwicap.c |   43 ++++++-------------
+ 1 file changed, 14 insertions(+), 29 deletions(-)
 
-diff -puN arch/powerpc/mm/hash_utils_64.c~powerpc-htab_remove_mapping-error-handling arch/powerpc/mm/hash_utils_64.c
---- a/arch/powerpc/mm/hash_utils_64.c~powerpc-htab_remove_mapping-error-handling
-+++ a/arch/powerpc/mm/hash_utils_64.c
-@@ -192,7 +192,7 @@ int htab_bolt_mapping(unsigned long vsta
- 	return ret < 0 ? ret : 0;
- }
+diff -puN drivers/char/xilinx_hwicap/xilinx_hwicap.c~xilinx-hwicap-use-fixed-device-major drivers/char/xilinx_hwicap/xilinx_hwicap.c
+--- a/drivers/char/xilinx_hwicap/xilinx_hwicap.c~xilinx-hwicap-use-fixed-device-major
++++ a/drivers/char/xilinx_hwicap/xilinx_hwicap.c
+@@ -36,7 +36,7 @@
+  *****************************************************************************/
  
--static void htab_remove_mapping(unsigned long vstart, unsigned long vend,
-+static int htab_remove_mapping(unsigned long vstart, unsigned long vend,
- 		      int psize, int ssize)
+ /*
+- * This is the code behind /dev/xilinx_icap -- it allows a user-space
++ * This is the code behind /dev/icap* -- it allows a user-space
+  * application to use the Xilinx ICAP subsystem.
+  *
+  * The following operations are possible:
+@@ -67,7 +67,7 @@
+  * user-space application code that uses this device.  The simplest
+  * way to use this interface is simply:
+  *
+- * cp foo.bit /dev/xilinx_icap
++ * cp foo.bit /dev/icap0
+  *
+  * Note that unless foo.bit is an appropriately constructed partial
+  * bitstream, this has a high likelyhood of overwriting the design
+@@ -105,18 +105,14 @@
+ #include "buffer_icap.h"
+ #include "fifo_icap.h"
+ 
+-#define DRIVER_NAME "xilinx_icap"
++#define DRIVER_NAME "icap"
+ 
+ #define HWICAP_REGS   (0x10000)
+ 
+-/* dynamically allocate device number */
+-static int xhwicap_major;
+-static int xhwicap_minor;
++#define XHWICAP_MAJOR 259
++#define XHWICAP_MINOR 0
+ #define HWICAP_DEVICES 1
+ 
+-module_param(xhwicap_major, int, S_IRUGO);
+-module_param(xhwicap_minor, int, S_IRUGO);
+-
+ /* An array, which is set to true when the device is registered. */
+ static bool probed_devices[HWICAP_DEVICES];
+ static struct mutex icap_sem;
+@@ -605,7 +601,7 @@ static int __devinit hwicap_setup(struct
+ 	probed_devices[id] = 1;
+ 	mutex_unlock(&icap_sem);
+ 
+-	devt = MKDEV(xhwicap_major, xhwicap_minor + id);
++	devt = MKDEV(XHWICAP_MAJOR, XHWICAP_MINOR + id);
+ 
+ 	drvdata = kzalloc(sizeof(struct hwicap_drvdata), GFP_KERNEL);
+ 	if (!drvdata) {
+@@ -710,7 +706,7 @@ static int __devexit hwicap_remove(struc
+ 	dev_set_drvdata(dev, NULL);
+ 
+ 	mutex_lock(&icap_sem);
+-	probed_devices[MINOR(dev->devt)-xhwicap_minor] = 0;
++	probed_devices[MINOR(dev->devt)-XHWICAP_MINOR] = 0;
+ 	mutex_unlock(&icap_sem);
+ 	return 0;		/* success */
+ }
+@@ -850,23 +846,12 @@ static int __init hwicap_module_init(voi
+ 	icap_class = class_create(THIS_MODULE, "xilinx_config");
+ 	mutex_init(&icap_sem);
+ 
+-	if (xhwicap_major) {
+-		devt = MKDEV(xhwicap_major, xhwicap_minor);
+-		retval = register_chrdev_region(
+-				devt,
+-				HWICAP_DEVICES,
+-				DRIVER_NAME);
+-		if (retval < 0)
+-			return retval;
+-	} else {
+-		retval = alloc_chrdev_region(&devt,
+-				xhwicap_minor,
+-				HWICAP_DEVICES,
+-				DRIVER_NAME);
+-		if (retval < 0)
+-			return retval;
+-		xhwicap_major = MAJOR(devt);
+-	}
++	devt = MKDEV(XHWICAP_MAJOR, XHWICAP_MINOR);
++	retval = register_chrdev_region(devt,
++					HWICAP_DEVICES,
++					DRIVER_NAME);
++	if (retval < 0)
++		return retval;
+ 
+ 	retval = platform_driver_register(&hwicap_platform_driver);
+ 
+@@ -891,7 +876,7 @@ static int __init hwicap_module_init(voi
+ 
+ static void __exit hwicap_module_cleanup(void)
  {
- 	unsigned long vaddr;
-@@ -202,12 +202,15 @@ static void htab_remove_mapping(unsigned
- 	step = 1 << shift;
+-	dev_t devt = MKDEV(xhwicap_major, xhwicap_minor);
++	dev_t devt = MKDEV(XHWICAP_MAJOR, XHWICAP_MINOR);
  
- 	if (!ppc_md.hpte_removebolted) {
--		printk("Sub-arch doesn't implement hpte_removebolted\n");
--		return;
-+		printk(KERN_WARNING "Sub-arch doesn't implement "
-+				"hpte_removebolted\n");
-+		return -EINVAL;
- 	}
+ 	class_destroy(icap_class);
  
- 	for (vaddr = vstart; vaddr < vend; vaddr += step)
- 		ppc_md.hpte_removebolted(vaddr, psize, ssize);
-+
-+	return 0;
- }
- 
- static int __init htab_dt_scan_seg_sizes(unsigned long node,
-@@ -454,9 +457,10 @@ void create_section_mapping(unsigned lon
- 			mmu_linear_psize, mmu_kernel_ssize));
- }
- 
--void remove_section_mapping(unsigned long start, unsigned long end)
-+int remove_section_mapping(unsigned long start, unsigned long end)
- {
--	htab_remove_mapping(start, end, mmu_linear_psize, mmu_kernel_ssize);
-+	return htab_remove_mapping(start, end, mmu_linear_psize,
-+			mmu_kernel_ssize);
- }
- #endif /* CONFIG_MEMORY_HOTPLUG */
- 
-diff -puN include/asm-powerpc/sparsemem.h~powerpc-htab_remove_mapping-error-handling include/asm-powerpc/sparsemem.h
---- a/include/asm-powerpc/sparsemem.h~powerpc-htab_remove_mapping-error-handling
-+++ a/include/asm-powerpc/sparsemem.h
-@@ -15,7 +15,7 @@
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
- extern void create_section_mapping(unsigned long start, unsigned long end);
--extern void remove_section_mapping(unsigned long start, unsigned long end);
-+extern int remove_section_mapping(unsigned long start, unsigned long end);
- #ifdef CONFIG_NUMA
- extern int hot_add_scn_to_nid(unsigned long scn_addr);
- #else
 _
 
-Patches currently in -mm which might be from pbadari@us.ibm.com are
+Patches currently in -mm which might be from stephen.neuendorffer@xilinx.com are
 
-hotplug-memory-remove-generic-__remove_pages-support.patch
 git-powerpc.patch
-powerpc-hotplug-memory-notifications-for-ppc.patch
-powerpc-update-lmb-for-hotplug-memory-add-remove.patch
-powerpc-provide-walk_memory_resource-for-ppc.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret.patch
-memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
-fs-aioc-make-3-functions-static.patch
 
