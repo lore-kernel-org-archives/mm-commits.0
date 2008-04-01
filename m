@@ -1,40 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: - hotplug-memory-add-add_memory_resource.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 18:23:00 -0700
-Message-ID: <200804010123.m311N0gf002972@imap1.linux-foundation.org>
+Subject: - sparsemem-reduce-i386-pae-section-size.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 18:23:06 -0700
+Message-ID: <200804010123.m311N6Cj002984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38799 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751648AbYDABX4 (ORCPT
+	by vger.kernel.org with ESMTP id S1751380AbYDAB3Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 21:23:56 -0400
+	Mon, 31 Mar 2008 21:29:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jeremy@goop.org, clameter@sgi.com, dave@linux.vnet.ibm.com, jeremy.fitzhardinge@citrix.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, tglx@linutronix.de, y-goto@jp.fujitsu.comm
 
 
 The patch titled
-     hotplug-memory: add add_memory_resource
+     sparsemem: reduce i386 PAE section size
 has been removed from the -mm tree.  Its filename was
-     hotplug-memory-add-add_memory_resource.patch
+     sparsemem-reduce-i386-pae-section-size.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hotplug-memory: add add_memory_resource
+Subject: sparsemem: reduce i386 PAE section size
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-The Xen balloon driver uses hotplug memory to extend the amount of
-pseudo-physical memory available to a virtual domain.  Since this memory is
-virtual, it can go anywhere within the kernel's pseudo-physical address space.
-
-This patch adds a new hotplug memory call, add_memory_resource(), which adds
-memory corresponding to a pre-constructed resource.  This allows callers to
-use allocate_resource() to allocate a suitable chunk of address space for the
-new memory (as well as cosmetic details, like a descriptive name).
+A 1G section size makes memory hotplug too coarse in a virtual environment. 
+Retuce it by a factor of 2 to 512M.  I would have liked to make it smaller,
+but it runs out of reserved flags in the page flags.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -46,68 +41,21 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    3 +++
- mm/memory_hotplug.c            |   20 ++++++++++++++++----
- 2 files changed, 19 insertions(+), 4 deletions(-)
+ include/asm-x86/sparsemem.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/memory_hotplug.h~hotplug-memory-add-add_memory_resource include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~hotplug-memory-add-add_memory_resource
-+++ a/include/linux/memory_hotplug.h
-@@ -171,7 +171,10 @@ static inline int mhp_notimplemented(con
+diff -puN include/asm-x86/sparsemem.h~sparsemem-reduce-i386-pae-section-size include/asm-x86/sparsemem.h
+--- a/include/asm-x86/sparsemem.h~sparsemem-reduce-i386-pae-section-size
++++ a/include/asm-x86/sparsemem.h
+@@ -16,7 +16,7 @@
  
- #endif /* ! CONFIG_MEMORY_HOTPLUG */
- 
-+struct resource;
-+
- extern int add_memory(int nid, u64 start, u64 size);
-+extern int add_memory_resource(int nid, struct resource *res);
- extern int arch_add_memory(int nid, u64 start, u64 size);
- extern int remove_memory(u64 start, u64 size);
- extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
-diff -puN mm/memory_hotplug.c~hotplug-memory-add-add_memory_resource mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~hotplug-memory-add-add_memory_resource
-+++ a/mm/memory_hotplug.c
-@@ -278,8 +278,6 @@ static void rollback_node_hotadd(int nid
- 
- int add_memory(int nid, u64 start, u64 size)
- {
--	pg_data_t *pgdat = NULL;
--	int new_pgdat = 0;
- 	struct resource *res;
- 	int ret;
- 
-@@ -287,6 +285,22 @@ int add_memory(int nid, u64 start, u64 s
- 	if (!res)
- 		return -EEXIST;
- 
-+	ret = add_memory_resource(nid, res);
-+
-+	if (ret)
-+		release_memory_resource(res);
-+
-+	return ret;
-+}
-+
-+int add_memory_resource(int nid, struct resource *res)
-+{
-+	pg_data_t *pgdat = NULL;
-+	int new_pgdat = 0;
-+	int ret;
-+	u64 start = res->start;
-+	u64 size = res->end - res->start + 1;
-+
- 	if (!node_online(nid)) {
- 		pgdat = hotadd_new_pgdat(nid, start);
- 		if (!pgdat)
-@@ -320,8 +334,6 @@ error:
- 	/* rollback pgdat allocation and others */
- 	if (new_pgdat)
- 		rollback_node_hotadd(nid, pgdat);
--	if (res)
--		release_memory_resource(res);
- 
- 	return ret;
- }
+ #ifdef CONFIG_X86_32
+ # ifdef CONFIG_X86_PAE
+-#  define SECTION_SIZE_BITS	30
++#  define SECTION_SIZE_BITS	29
+ #  define MAX_PHYSADDR_BITS	36
+ #  define MAX_PHYSMEM_BITS	36
+ # else
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
@@ -122,8 +70,6 @@ pageflags-introduce-macros-to-generate-page-flag-functions.patch
 pageflags-convert-to-the-use-of-new-macros.patch
 pageflags-use-proper-page-flag-functions-in-xen.patch
 pageflags-eliminate-pg_xxx-aliases.patch
-hotplug-memory-add-add_memory_resource.patch
-hotplug-memory-adding-non-section-aligned-memory-is-bad.patch
 sparsemem-reduce-i386-pae-section-size.patch
 paravirt_ops-dont-steal-memory-resources-in-paravirt_disable_iospace.patch
 xen-make-blkif_getgeo-static.patch
