@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + usb-audio-fix-another-dallas-quirk.patch added to -mm tree
-Date: Tue, 01 Apr 2008 12:20:06 -0700
-Message-ID: <200804011920.m31JK6Eh009030@imap1.linux-foundation.org>
+Subject: + ata-swncq-should-be-enabled-by-default.patch added to -mm tree
+Date: Tue, 01 Apr 2008 12:22:18 -0700
+Message-ID: <200804011922.m31JMI41009149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47029 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37796 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754115AbYDATUQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 15:20:16 -0400
+	by vger.kernel.org with ESMTP id S1756576AbYDATWe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 15:22:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pavel@suse.cz, perex@suse.cz, tiwai@suse.de
+Cc: zboszor@dunaweb.hu, hancockr@shaw.ca, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     usb audio: fix another Dallas quirk
+     ata: SWNCQ should be enabled by default
 has been added to the -mm tree.  Its filename is
-     usb-audio-fix-another-dallas-quirk.patch
+     ata-swncq-should-be-enabled-by-default.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb audio: fix another Dallas quirk
-From: Pavel Machek <pavel@suse.cz>
+Subject: ata: SWNCQ should be enabled by default
+From: Zoltan Boszormenyi <zboszor@dunaweb.hu>
 
-Dallas USB speakers are buggy in more than one way. One of configs
-they offer does not work at all.
+Enable SWNCQ by default for testing in 2.6.26-rcX[-mm]
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Zoltan Boszormenyi <zboszor@dunaweb.hu>
+Cc: Robert Hancock <hancockr@shaw.ca>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/usb/usbaudio.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ drivers/ata/sata_nv.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN sound/usb/usbaudio.c~usb-audio-fix-another-dallas-quirk sound/usb/usbaudio.c
---- a/sound/usb/usbaudio.c~usb-audio-fix-another-dallas-quirk
-+++ a/sound/usb/usbaudio.c
-@@ -2676,12 +2676,23 @@ static int parse_audio_endpoints(struct 
- 	int format;
- 	struct audioformat *fp;
- 	unsigned char *fmt, *csep;
-+	int num;
+diff -puN drivers/ata/sata_nv.c~ata-swncq-should-be-enabled-by-default drivers/ata/sata_nv.c
+--- a/drivers/ata/sata_nv.c~ata-swncq-should-be-enabled-by-default
++++ a/drivers/ata/sata_nv.c
+@@ -532,7 +532,7 @@ MODULE_DEVICE_TABLE(pci, nv_pci_tbl);
+ MODULE_VERSION(DRV_VERSION);
  
- 	dev = chip->dev;
+ static int adma_enabled = 1;
+-static int swncq_enabled;
++static int swncq_enabled = 1;	/* FIXME: for testing during 2.6.26-rcX[-mmY] */
  
- 	/* parse the interface's altsettings */
- 	iface = usb_ifnum_to_if(dev, iface_no);
--	for (i = 0; i < iface->num_altsetting; i++) {
-+
-+	num = iface->num_altsetting;
-+
-+	/*
-+	 * Dallas DS4201 workaround: It presents 5 altsettings, but the last
-+	 * one misses syncpipe, and does not produce any sound.
-+	 */
-+	if (chip->usb_id == USB_ID(0x04fa, 0x4201))
-+		num = 4;
-+
-+	for (i = 0; i < num; i++) {
- 		alts = &iface->altsetting[i];
- 		altsd = get_iface_desc(alts);
- 		/* skip invalid one */
+ static void nv_adma_register_mode(struct ata_port *ap)
+ {
+@@ -2485,5 +2485,5 @@ module_exit(nv_exit);
+ module_param_named(adma, adma_enabled, bool, 0444);
+ MODULE_PARM_DESC(adma, "Enable use of ADMA (Default: true)");
+ module_param_named(swncq, swncq_enabled, bool, 0444);
+-MODULE_PARM_DESC(swncq, "Enable use of SWNCQ (Default: false)");
++MODULE_PARM_DESC(swncq, "Enable use of SWNCQ (Default: true)");
+ 
 _
 
-Patches currently in -mm which might be from pavel@suse.cz are
+Patches currently in -mm which might be from zboszor@dunaweb.hu are
 
-git-x86.patch
-git-acpi.patch
-usb-audio-fix-another-dallas-quirk.patch
-usb-audio-make-quirk-handling-more-readable-and-fix-commented-out-code.patch
-pm-remove-legacy-pm-fix.patch
+ata-swncq-should-be-enabled-by-default.patch
 
