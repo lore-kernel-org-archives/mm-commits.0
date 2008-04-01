@@ -1,39 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: - hotplug-memory-adding-non-section-aligned-memory-is-bad.patch removed from -mm tree
-Date: Mon, 31 Mar 2008 18:23:03 -0700
-Message-ID: <200804010123.m311N3ec002981@imap1.linux-foundation.org>
+Subject: - hotplug-memory-add-add_memory_resource.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 18:23:00 -0700
+Message-ID: <200804010123.m311N0gf002972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58356 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38799 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751543AbYDABXs (ORCPT
+	by vger.kernel.org with ESMTP id S1751648AbYDABX4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 21:23:48 -0400
+	Mon, 31 Mar 2008 21:23:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jeremy@goop.org, clameter@sgi.com, dave@linux.vnet.ibm.com, jeremy.fitzhardinge@citrix.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, tglx@linutronix.de, y-goto@jp.fujitsu.comm
 
 
 The patch titled
-     Subject: [PATCH 2 of 4] hotplug-memory: adding non-section-aligned memory is bad
+     hotplug-memory: add add_memory_resource
 has been removed from the -mm tree.  Its filename was
-     hotplug-memory-adding-non-section-aligned-memory-is-bad.patch
+     hotplug-memory-add-add_memory_resource.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Subject: [PATCH 2 of 4] hotplug-memory: adding non-section-aligned memory is bad
+Subject: hotplug-memory: add add_memory_resource
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Adding non-section-aligned memory will cause bad results, because page
-structures are only built on section-aligned boundaries.  Also, memory
-whose size isn't a multiple of the section size is silently ignored.
+The Xen balloon driver uses hotplug memory to extend the amount of
+pseudo-physical memory available to a virtual domain.  Since this memory is
+virtual, it can go anywhere within the kernel's pseudo-physical address space.
 
-This patch adds a couple of WARN_ONs to help confused programmers work
-out what's going wrong when they hotplug memory without being aware of
-these constraints.
+This patch adds a new hotplug memory call, add_memory_resource(), which adds
+memory corresponding to a pre-constructed resource.  This allows callers to
+use allocate_resource() to allocate a suitable chunk of address space for the
+new memory (as well as cosmetic details, like a descriptive name).
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -45,38 +46,68 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 +++
- mm/memory_hotplug.c    |    5 +++++
- 2 files changed, 8 insertions(+)
+ include/linux/memory_hotplug.h |    3 +++
+ mm/memory_hotplug.c            |   20 ++++++++++++++++----
+ 2 files changed, 19 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mmzone.h~hotplug-memory-adding-non-section-aligned-memory-is-bad include/linux/mmzone.h
---- a/include/linux/mmzone.h~hotplug-memory-adding-non-section-aligned-memory-is-bad
-+++ a/include/linux/mmzone.h
-@@ -829,6 +829,9 @@ static inline unsigned long early_pfn_to
- #define PAGES_PER_SECTION       (1UL << PFN_SECTION_SHIFT)
- #define PAGE_SECTION_MASK	(~(PAGES_PER_SECTION-1))
+diff -puN include/linux/memory_hotplug.h~hotplug-memory-add-add_memory_resource include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~hotplug-memory-add-add_memory_resource
++++ a/include/linux/memory_hotplug.h
+@@ -171,7 +171,10 @@ static inline int mhp_notimplemented(con
  
-+#define SECTION_SIZE		(1UL << SECTION_SIZE_BITS)
-+#define SECTION_SIZE_MASK	(SECTION_SIZE - 1)
+ #endif /* ! CONFIG_MEMORY_HOTPLUG */
+ 
++struct resource;
 +
- #define SECTION_BLOCKFLAGS_BITS \
- 	((1UL << (PFN_SECTION_SHIFT - pageblock_order)) * NR_PAGEBLOCK_BITS)
- 
-diff -puN mm/memory_hotplug.c~hotplug-memory-adding-non-section-aligned-memory-is-bad mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~hotplug-memory-adding-non-section-aligned-memory-is-bad
+ extern int add_memory(int nid, u64 start, u64 size);
++extern int add_memory_resource(int nid, struct resource *res);
+ extern int arch_add_memory(int nid, u64 start, u64 size);
+ extern int remove_memory(u64 start, u64 size);
+ extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+diff -puN mm/memory_hotplug.c~hotplug-memory-add-add_memory_resource mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~hotplug-memory-add-add_memory_resource
 +++ a/mm/memory_hotplug.c
-@@ -301,6 +301,11 @@ int add_memory_resource(int nid, struct 
- 	u64 start = res->start;
- 	u64 size = res->end - res->start + 1;
+@@ -278,8 +278,6 @@ static void rollback_node_hotadd(int nid
  
-+	/* Adding non-section-aligned memory will give unexpected
-+	   and unintuitive results. */
-+	WARN_ON((start & SECTION_SIZE_MASK) != 0);
-+	WARN_ON((size & SECTION_SIZE_MASK) != 0);
+ int add_memory(int nid, u64 start, u64 size)
+ {
+-	pg_data_t *pgdat = NULL;
+-	int new_pgdat = 0;
+ 	struct resource *res;
+ 	int ret;
+ 
+@@ -287,6 +285,22 @@ int add_memory(int nid, u64 start, u64 s
+ 	if (!res)
+ 		return -EEXIST;
+ 
++	ret = add_memory_resource(nid, res);
++
++	if (ret)
++		release_memory_resource(res);
++
++	return ret;
++}
++
++int add_memory_resource(int nid, struct resource *res)
++{
++	pg_data_t *pgdat = NULL;
++	int new_pgdat = 0;
++	int ret;
++	u64 start = res->start;
++	u64 size = res->end - res->start + 1;
 +
  	if (!node_online(nid)) {
  		pgdat = hotadd_new_pgdat(nid, start);
  		if (!pgdat)
+@@ -320,8 +334,6 @@ error:
+ 	/* rollback pgdat allocation and others */
+ 	if (new_pgdat)
+ 		rollback_node_hotadd(nid, pgdat);
+-	if (res)
+-		release_memory_resource(res);
+ 
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
@@ -91,6 +122,7 @@ pageflags-introduce-macros-to-generate-page-flag-functions.patch
 pageflags-convert-to-the-use-of-new-macros.patch
 pageflags-use-proper-page-flag-functions-in-xen.patch
 pageflags-eliminate-pg_xxx-aliases.patch
+hotplug-memory-add-add_memory_resource.patch
 hotplug-memory-adding-non-section-aligned-memory-is-bad.patch
 sparsemem-reduce-i386-pae-section-size.patch
 paravirt_ops-dont-steal-memory-resources-in-paravirt_disable_iospace.patch
