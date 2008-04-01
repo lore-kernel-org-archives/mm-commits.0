@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch added to -mm tree
-Date: Tue, 01 Apr 2008 11:51:53 -0700
-Message-ID: <200804011901.m31J1unT008374@imap1.linux-foundation.org>
+Subject: + drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch added to -mm tree
+Date: Tue, 01 Apr 2008 11:54:11 -0700
+Message-ID: <200804011904.m31J4Erm008444@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54707 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43900 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752855AbYDATCX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 15:02:23 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m31J1uu3004308
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 1 Apr 2008 12:01:57 -0700
+	by vger.kernel.org with ESMTP id S1754900AbYDATEy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 15:04:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org
 
 
 The patch titled
-     drivers/acpi/thermal.c: fix build with CONFIG_DMI=n
+     drivers/acpi/pci_slot.c: fix build with CONFIG_DMI=n
 has been added to the -mm tree.  Its filename is
-     drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+     drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,40 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/acpi/thermal.c: fix build with CONFIG_DMI=n
+Subject: drivers/acpi/pci_slot.c: fix build with CONFIG_DMI=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/acpi/thermal.c: In function 'acpi_thermal_init':
-drivers/acpi/thermal.c:1794: error: 'thermal_dmi_table' undeclared (first use in this function)
-drivers/acpi/thermal.c:1794: error: (Each undeclared identifier is reported only once
-drivers/acpi/thermal.c:1794: error: for each function it appears in.)
-
-
+Cc: Alex Chiang <achiang@hp.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/thermal.c |    2 --
+ drivers/acpi/pci_slot.c |    2 --
  1 file changed, 2 deletions(-)
 
-diff -puN drivers/acpi/thermal.c~drivers-acpi-thermalc-fix-build-with-config_dmi=n drivers/acpi/thermal.c
---- a/drivers/acpi/thermal.c~drivers-acpi-thermalc-fix-build-with-config_dmi=n
-+++ a/drivers/acpi/thermal.c
-@@ -1710,7 +1710,6 @@ static int acpi_thermal_resume(struct ac
- 	return AE_OK;
+diff -puN drivers/acpi/pci_slot.c~drivers-acpi-pci_slotc-fix-build-with-config_dmi=n drivers/acpi/pci_slot.c
+--- a/drivers/acpi/pci_slot.c~drivers-acpi-pci_slotc-fix-build-with-config_dmi=n
++++ a/drivers/acpi/pci_slot.c
+@@ -325,7 +325,6 @@ acpi_pci_slot_remove(acpi_handle handle)
+ 	mutex_unlock(&slot_list_lock);
  }
  
 -#ifdef CONFIG_DMI
- static int thermal_act(const struct dmi_system_id *d) {
- 
- 	if (act == 0) {
-@@ -1785,7 +1784,6 @@ static struct dmi_system_id thermal_dmi_
+ static int do_sta_before_sun(const struct dmi_system_id *d)
+ {
+ 	info("%s detected: will evaluate _STA before calling _SUN\n", d->ident);
+@@ -350,7 +349,6 @@ static struct dmi_system_id acpi_pci_slo
  	},
  	{}
  };
 -#endif /* CONFIG_DMI */
  
- static int __init acpi_thermal_init(void)
- {
+ static int __init
+ acpi_pci_slot_init(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -140,6 +135,7 @@ pci-hotplug-introduce-pci_slot-fix-fix.patch
 pci-hotplug-introduce-pci_slot-fix-2.patch
 pci-hotplug-introduce-pci_slot-fix-99.patch
 pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
 git-s390-git-rejects.patch
 git-sh.patch
 git-scsi-misc.patch
