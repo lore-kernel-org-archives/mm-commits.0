@@ -1,379 +1,288 @@
 From: akpm@linux-foundation.org
-Subject: + ib-expand-ib_umem_get-prototype.patch added to -mm tree
-Date: Tue, 01 Apr 2008 14:16:06 -0700
-Message-ID: <200804012116.m31LG6MC013877@imap1.linux-foundation.org>
+Subject: - git-dvb-git-rejects.patch removed from -mm tree
+Date: Tue, 01 Apr 2008 14:31:44 -0700
+Message-ID: <200804012131.m31LViLT014611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59131 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59329 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756166AbYDAVSH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 17:18:07 -0400
+	by vger.kernel.org with ESMTP id S1758532AbYDAVbr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 17:31:47 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m31LVirp018650
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 1 Apr 2008 14:31:46 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akepner@sgi.com, James.Bottomley@HansenPartnership.com, benh@kernel.crashing.org, davem@davemloft.net, grundler@parisc-linux.org, jbarnes@virtuousgeek.org, jes@sgi.com, michael@ellerman.id.au, randy.dunlap@oracle.com, rdreier@cisco.com, tony.luck@intel.com
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IB: expand ib_umem_get() prototype
-has been added to the -mm tree.  Its filename is
-     ib-expand-ib_umem_get-prototype.patch
+     git-dvb-git-rejects
+has been removed from the -mm tree.  Its filename was
+     git-dvb-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: IB: expand ib_umem_get() prototype
-From: Arthur Kepner <akepner@sgi.com>
+Subject: git-dvb-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add a new parameter, dmasync, to the ib_umem_get() prototype.  Use dmasync = 1
-when mapping user-allocated CQs with ib_umem_get().
-
-Signed-off-by: Arthur Kepner <akepner@sgi.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Jes Sorensen <jes@sgi.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Roland Dreier <rdreier@cisco.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Michael Ellerman <michael@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/core/umem.c               |   17 ++++++--
- drivers/infiniband/hw/amso1100/c2_provider.c |    2 -
- drivers/infiniband/hw/cxgb3/iwch_provider.c  |    2 -
- drivers/infiniband/hw/ehca/ehca_mrmw.c       |    2 -
- drivers/infiniband/hw/ipath/ipath_mr.c       |    3 +
- drivers/infiniband/hw/mlx4/cq.c              |    2 -
- drivers/infiniband/hw/mlx4/doorbell.c        |    2 -
- drivers/infiniband/hw/mlx4/mr.c              |    3 +
- drivers/infiniband/hw/mlx4/qp.c              |    2 -
- drivers/infiniband/hw/mlx4/srq.c             |    2 -
- drivers/infiniband/hw/mthca/mthca_provider.c |    8 +++-
- drivers/infiniband/hw/mthca/mthca_user.h     |   10 ++++-
- drivers/infiniband/hw/nes/nes_verbs.c        |    2 -
- include/rdma/ib_umem.h                       |    4 +-
- include/rdma/ib_verbs.h                      |   33 +++++++++++++++++
- 15 files changed, 75 insertions(+), 19 deletions(-)
+ drivers/media/common/saa7146_core.c |   14 --------------
+ drivers/media/common/saa7146_fops.c |    4 ----
+ 2 files changed, 18 deletions(-)
 
-diff -puN drivers/infiniband/core/umem.c~ib-expand-ib_umem_get-prototype drivers/infiniband/core/umem.c
---- a/drivers/infiniband/core/umem.c~ib-expand-ib_umem_get-prototype
-+++ a/drivers/infiniband/core/umem.c
-@@ -38,6 +38,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/sched.h>
- #include <linux/hugetlb.h>
-+#include <linux/dma-attrs.h>
- 
- #include "uverbs.h"
- 
-@@ -72,9 +73,10 @@ static void __ib_umem_release(struct ib_
-  * @addr: userspace virtual address to start at
-  * @size: length of region to pin
-  * @access: IB_ACCESS_xxx flags for memory being pinned
-+ * @dmasync: flush in-flight DMA when the memory region is written
-  */
- struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
--			    size_t size, int access)
-+			    size_t size, int access, int dmasync)
- {
- 	struct ib_umem *umem;
- 	struct page **page_list;
-@@ -87,6 +89,10 @@ struct ib_umem *ib_umem_get(struct ib_uc
- 	int ret;
- 	int off;
- 	int i;
-+	DEFINE_DMA_ATTRS(attrs);
-+
-+	if (dmasync)
-+		dma_set_attr(DMA_ATTR_WRITE_BARRIER, &attrs);
- 
- 	if (!can_do_mlock())
- 		return ERR_PTR(-EPERM);
-@@ -174,10 +180,11 @@ struct ib_umem *ib_umem_get(struct ib_uc
- 				sg_set_page(&chunk->page_list[i], page_list[i + off], PAGE_SIZE, 0);
- 			}
- 
--			chunk->nmap = ib_dma_map_sg(context->device,
--						    &chunk->page_list[0],
--						    chunk->nents,
--						    DMA_BIDIRECTIONAL);
-+			chunk->nmap = ib_dma_map_sg_attrs(context->device,
-+							  &chunk->page_list[0],
-+							  chunk->nents,
-+							  DMA_BIDIRECTIONAL,
-+							  &attrs);
- 			if (chunk->nmap <= 0) {
- 				for (i = 0; i < chunk->nents; ++i)
- 					put_page(sg_page(&chunk->page_list[i]));
-diff -puN drivers/infiniband/hw/amso1100/c2_provider.c~ib-expand-ib_umem_get-prototype drivers/infiniband/hw/amso1100/c2_provider.c
---- a/drivers/infiniband/hw/amso1100/c2_provider.c~ib-expand-ib_umem_get-prototype
-+++ a/drivers/infiniband/hw/amso1100/c2_provider.c
-@@ -452,7 +452,7 @@ static struct ib_mr *c2_reg_user_mr(stru
- 		return ERR_PTR(-ENOMEM);
- 	c2mr->pd = c2pd;
- 
--	c2mr->umem = ib_umem_get(pd->uobject->context, start, length, acc);
-+	c2mr->umem = ib_umem_get(pd->uobject->context, start, length, acc, 0);
- 	if (IS_ERR(c2mr->umem)) {
- 		err = PTR_ERR(c2mr->umem);
- 		kfree(c2mr);
-diff -puN drivers/infiniband/hw/cxgb3/iwch_provider.c~ib-expand-ib_umem_get-prototype drivers/infiniband/hw/cxgb3/iwch_provider.c
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c~ib-expand-ib_umem_get-prototype
-+++ a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -602,7 +602,7 @@ static struct ib_mr *iwch_reg_user_mr(st
- 	if (!mhp)
- 		return ERR_PTR(-ENOMEM);
- 
--	mhp->umem = ib_umem_get(pd->uobject->context, start, length, acc);
-+	mhp->umem = ib_umem_get(pd->uobject->context, start, length, acc, 0);
- 	if (IS_ERR(mhp->umem)) {
- 		err = PTR_ERR(mhp->umem);
- 		kfree(mhp);
-diff -puN drivers/infiniband/hw/ehca/ehca_mrmw.c~ib-expand-ib_umem_get-prototype drivers/infiniband/hw/ehca/ehca_mrmw.c
---- a/drivers/infiniband/hw/ehca/ehca_mrmw.c~ib-expand-ib_umem_get-prototype
-+++ a/drivers/infiniband/hw/ehca/ehca_mrmw.c
-@@ -323,7 +323,7 @@ struct ib_mr *ehca_reg_user_mr(struct ib
+diff -puN drivers/media/common/saa7146_core.c~git-dvb-git-rejects drivers/media/common/saa7146_core.c
+--- a/drivers/media/common/saa7146_core.c~git-dvb-git-rejects
++++ a/drivers/media/common/saa7146_core.c
+@@ -306,35 +306,21 @@ static irqreturn_t interrupt_hw(int irq,
+ 		return IRQ_NONE;
  	}
  
- 	e_mr->umem = ib_umem_get(pd->uobject->context, start, length,
--				 mr_access_flags);
-+				 mr_access_flags, 0);
- 	if (IS_ERR(e_mr->umem)) {
- 		ib_mr = (void *)e_mr->umem;
- 		goto reg_user_mr_exit1;
-diff -puN drivers/infiniband/hw/ipath/ipath_mr.c~ib-expand-ib_umem_get-prototype drivers/infiniband/hw/ipath/ipath_mr.c
---- a/drivers/infiniband/hw/ipath/ipath_mr.c~ib-expand-ib_umem_get-prototype
-+++ a/drivers/infiniband/hw/ipath/ipath_mr.c
-@@ -195,7 +195,8 @@ struct ib_mr *ipath_reg_user_mr(struct i
- 		goto bail;
- 	}
- 
--	umem = ib_umem_get(pd->uobject->context, start, length, mr_access_flags);
-+	umem = ib_umem_get(pd->uobject->context, start, length,
-+			   mr_access_flags, 0);
- 	if (IS_ERR(umem))
- 		return (void *) umem;
- 
-diff -puN drivers/infiniband/hw/mlx4/cq.c~ib-expand-ib_umem_get-prototype drivers/infiniband/hw/mlx4/cq.c
---- a/drivers/infiniband/hw/mlx4/cq.c~ib-expand-ib_umem_get-prototype
-+++ a/drivers/infiniband/hw/mlx4/cq.c
-@@ -116,7 +116,7 @@ struct ib_cq *mlx4_ib_create_cq(struct i
+-<<<<<<< HEAD:drivers/media/common/saa7146_core.c
+ 	if (dev->ext) {
+ 		if (dev->ext->irq_mask & isr) {
+ 			if (dev->ext->irq_func)
+-=======
+-	if( NULL != (dev->ext)) {
+-		if( 0 != (dev->ext->irq_mask & isr )) {
+-			if( NULL != dev->ext->irq_func ) {
+->>>>>>> FETCH_HEAD:drivers/media/common/saa7146_core.c
+ 				dev->ext->irq_func(dev, &isr);
+ 			isr &= ~dev->ext->irq_mask;
  		}
- 
- 		cq->umem = ib_umem_get(context, ucmd.buf_addr, buf_size,
--				       IB_ACCESS_LOCAL_WRITE);
-+				       IB_ACCESS_LOCAL_WRITE, 1);
- 		if (IS_ERR(cq->umem)) {
- 			err = PTR_ERR(cq->umem);
- 			goto err_cq;
-diff -puN drivers/infiniband/hw/mlx4/doorbell.c~ib-expand-ib_umem_get-prototype drivers/infiniband/hw/mlx4/doorbell.c
---- a/drivers/infiniband/hw/mlx4/doorbell.c~ib-expand-ib_umem_get-prototype
-+++ a/drivers/infiniband/hw/mlx4/doorbell.c
-@@ -181,7 +181,7 @@ int mlx4_ib_db_map_user(struct mlx4_ib_u
- 	page->user_virt = (virt & PAGE_MASK);
- 	page->refcnt    = 0;
- 	page->umem      = ib_umem_get(&context->ibucontext, virt & PAGE_MASK,
--				      PAGE_SIZE, 0);
-+				      PAGE_SIZE, 0, 0);
- 	if (IS_ERR(page->umem)) {
- 		err = PTR_ERR(page->umem);
- 		kfree(page);
-diff -puN drivers/infiniband/hw/mlx4/mr.c~ib-expand-ib_umem_get-prototype drivers/infiniband/hw/mlx4/mr.c
---- a/drivers/infiniband/hw/mlx4/mr.c~ib-expand-ib_umem_get-prototype
-+++ a/drivers/infiniband/hw/mlx4/mr.c
-@@ -132,7 +132,8 @@ struct ib_mr *mlx4_ib_reg_user_mr(struct
- 	if (!mr)
- 		return ERR_PTR(-ENOMEM);
- 
--	mr->umem = ib_umem_get(pd->uobject->context, start, length, access_flags);
-+	mr->umem = ib_umem_get(pd->uobject->context, start, length,
-+			       access_flags, 0);
- 	if (IS_ERR(mr->umem)) {
- 		err = PTR_ERR(mr->umem);
- 		goto err_free;
-diff -puN drivers/infiniband/hw/mlx4/qp.c~ib-expand-ib_umem_get-prototype drivers/infiniband/hw/mlx4/qp.c
---- a/drivers/infiniband/hw/mlx4/qp.c~ib-expand-ib_umem_get-prototype
-+++ a/drivers/infiniband/hw/mlx4/qp.c
-@@ -479,7 +479,7 @@ static int create_qp_common(struct mlx4_
- 			goto err;
- 
- 		qp->umem = ib_umem_get(pd->uobject->context, ucmd.buf_addr,
--				       qp->buf_size, 0);
-+				       qp->buf_size, 0, 0);
- 		if (IS_ERR(qp->umem)) {
- 			err = PTR_ERR(qp->umem);
- 			goto err;
-diff -puN drivers/infiniband/hw/mlx4/srq.c~ib-expand-ib_umem_get-prototype drivers/infiniband/hw/mlx4/srq.c
---- a/drivers/infiniband/hw/mlx4/srq.c~ib-expand-ib_umem_get-prototype
-+++ a/drivers/infiniband/hw/mlx4/srq.c
-@@ -109,7 +109,7 @@ struct ib_srq *mlx4_ib_create_srq(struct
- 		}
- 
- 		srq->umem = ib_umem_get(pd->uobject->context, ucmd.buf_addr,
--					buf_size, 0);
-+					buf_size, 0, 0);
- 		if (IS_ERR(srq->umem)) {
- 			err = PTR_ERR(srq->umem);
- 			goto err_srq;
-diff -puN drivers/infiniband/hw/mthca/mthca_provider.c~ib-expand-ib_umem_get-prototype drivers/infiniband/hw/mthca/mthca_provider.c
---- a/drivers/infiniband/hw/mthca/mthca_provider.c~ib-expand-ib_umem_get-prototype
-+++ a/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -1006,17 +1006,23 @@ static struct ib_mr *mthca_reg_user_mr(s
- 	struct mthca_dev *dev = to_mdev(pd->device);
- 	struct ib_umem_chunk *chunk;
- 	struct mthca_mr *mr;
-+	struct mthca_reg_mr ucmd;
- 	u64 *pages;
- 	int shift, n, len;
- 	int i, j, k;
- 	int err = 0;
- 	int write_mtt_size;
- 
-+	if (ib_copy_from_udata(&ucmd, udata, sizeof ucmd))
-+		return ERR_PTR(-EFAULT);
-+
- 	mr = kmalloc(sizeof *mr, GFP_KERNEL);
- 	if (!mr)
- 		return ERR_PTR(-ENOMEM);
- 
--	mr->umem = ib_umem_get(pd->uobject->context, start, length, acc);
-+	mr->umem = ib_umem_get(pd->uobject->context, start, length, acc,
-+			       ucmd.mr_attrs & MTHCA_MR_DMASYNC);
-+
- 	if (IS_ERR(mr->umem)) {
- 		err = PTR_ERR(mr->umem);
- 		goto err;
-diff -puN drivers/infiniband/hw/mthca/mthca_user.h~ib-expand-ib_umem_get-prototype drivers/infiniband/hw/mthca/mthca_user.h
---- a/drivers/infiniband/hw/mthca/mthca_user.h~ib-expand-ib_umem_get-prototype
-+++ a/drivers/infiniband/hw/mthca/mthca_user.h
-@@ -41,7 +41,7 @@
-  * Increment this value if any changes that break userspace ABI
-  * compatibility are made.
-  */
--#define MTHCA_UVERBS_ABI_VERSION	1
-+#define MTHCA_UVERBS_ABI_VERSION	2
- 
- /*
-  * Make sure that all structs defined in this file remain laid out so
-@@ -61,6 +61,14 @@ struct mthca_alloc_pd_resp {
- 	__u32 reserved;
- };
- 
-+struct mthca_reg_mr {
-+	__u32 mr_attrs;
-+#define MTHCA_MR_DMASYNC 0x1
-+/* mark the memory region with a DMA attribute that causes
-+ * in-flight DMA to be flushed when the region is written to */
-+	__u32 reserved;
-+};
-+
- struct mthca_create_cq {
- 	__u32 lkey;
- 	__u32 pdn;
-diff -puN drivers/infiniband/hw/nes/nes_verbs.c~ib-expand-ib_umem_get-prototype drivers/infiniband/hw/nes/nes_verbs.c
---- a/drivers/infiniband/hw/nes/nes_verbs.c~ib-expand-ib_umem_get-prototype
-+++ a/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -2377,7 +2377,7 @@ static struct ib_mr *nes_reg_user_mr(str
- 	u8 single_page = 1;
- 	u8 stag_key;
- 
--	region = ib_umem_get(pd->uobject->context, start, length, acc);
-+	region = ib_umem_get(pd->uobject->context, start, length, acc, 0);
- 	if (IS_ERR(region)) {
- 		return (struct ib_mr *)region;
  	}
-diff -puN include/rdma/ib_umem.h~ib-expand-ib_umem_get-prototype include/rdma/ib_umem.h
---- a/include/rdma/ib_umem.h~ib-expand-ib_umem_get-prototype
-+++ a/include/rdma/ib_umem.h
-@@ -62,7 +62,7 @@ struct ib_umem_chunk {
- #ifdef CONFIG_INFINIBAND_USER_MEM
+ 	if (0 != (isr & (MASK_27))) {
+ 		DEB_INT(("irq: RPS0 (0x%08x).\n",isr));
+-<<<<<<< HEAD:drivers/media/common/saa7146_core.c
+ 		if (dev->vv_data && dev->vv_callback)
+-=======
+-		if( NULL != dev->vv_data && NULL != dev->vv_callback) {
+->>>>>>> FETCH_HEAD:drivers/media/common/saa7146_core.c
+ 			dev->vv_callback(dev,isr);
+ 		isr &= ~MASK_27;
+ 	}
+ 	if (0 != (isr & (MASK_28))) {
+-<<<<<<< HEAD:drivers/media/common/saa7146_core.c
+ 		if (dev->vv_data && dev->vv_callback)
+-=======
+-		if( NULL != dev->vv_data && NULL != dev->vv_callback) {
+->>>>>>> FETCH_HEAD:drivers/media/common/saa7146_core.c
+ 			dev->vv_callback(dev,isr);
+ 		isr &= ~MASK_28;
+ 	}
+diff -puN drivers/media/common/saa7146_fops.c~git-dvb-git-rejects drivers/media/common/saa7146_fops.c
+--- a/drivers/media/common/saa7146_fops.c~git-dvb-git-rejects
++++ a/drivers/media/common/saa7146_fops.c
+@@ -272,11 +272,7 @@ static int fops_open(struct inode *inode
  
- struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
--			    size_t size, int access);
-+			    size_t size, int access, int dmasync);
- void ib_umem_release(struct ib_umem *umem);
- int ib_umem_page_count(struct ib_umem *umem);
- 
-@@ -72,7 +72,7 @@ int ib_umem_page_count(struct ib_umem *u
- 
- static inline struct ib_umem *ib_umem_get(struct ib_ucontext *context,
- 					  unsigned long addr, size_t size,
--					  int access) {
-+					  int access, int dmasync) {
- 	return ERR_PTR(-EINVAL);
- }
- static inline void ib_umem_release(struct ib_umem *umem) { }
-diff -puN include/rdma/ib_verbs.h~ib-expand-ib_umem_get-prototype include/rdma/ib_verbs.h
---- a/include/rdma/ib_verbs.h~ib-expand-ib_umem_get-prototype
-+++ a/include/rdma/ib_verbs.h
-@@ -1531,6 +1531,24 @@ static inline void ib_dma_unmap_single(s
- 		dma_unmap_single(dev->dma_device, addr, size, direction);
- }
- 
-+static inline u64 ib_dma_map_single_attrs(struct ib_device *dev,
-+					  void *cpu_addr, size_t size,
-+					  enum dma_data_direction direction,
-+					  struct dma_attrs *attrs)
-+{
-+	return dma_map_single_attrs(dev->dma_device, cpu_addr, size,
-+				    direction, attrs);
-+}
-+
-+static inline void ib_dma_unmap_single_attrs(struct ib_device *dev,
-+					     u64 addr, size_t size,
-+					     enum dma_data_direction direction,
-+					     struct dma_attrs *attrs)
-+{
-+	return dma_unmap_single_attrs(dev->dma_device, addr, size,
-+				      direction, attrs);
-+}
-+
- /**
-  * ib_dma_map_page - Map a physical page to DMA address
-  * @dev: The device for which the dma_addr is to be created
-@@ -1600,6 +1618,21 @@ static inline void ib_dma_unmap_sg(struc
- 		dma_unmap_sg(dev->dma_device, sg, nents, direction);
- }
- 
-+static inline int ib_dma_map_sg_attrs(struct ib_device *dev,
-+				      struct scatterlist *sg, int nents,
-+				      enum dma_data_direction direction,
-+				      struct dma_attrs *attrs)
-+{
-+	return dma_map_sg_attrs(dev->dma_device, sg, nents, direction, attrs);
-+}
-+
-+static inline void ib_dma_unmap_sg_attrs(struct ib_device *dev,
-+					 struct scatterlist *sg, int nents,
-+					 enum dma_data_direction direction,
-+					 struct dma_attrs *attrs)
-+{
-+	dma_unmap_sg_attrs(dev->dma_device, sg, nents, direction, attrs);
-+}
- /**
-  * ib_sg_dma_address - Return the DMA address from a scatter/gather entry
-  * @dev: The device for which the DMA addresses were created
+ 	result = 0;
+ out:
+-<<<<<<< HEAD:drivers/media/common/saa7146_fops.c
+ 	if (fh && result != 0) {
+-=======
+-	if( fh != NULL && result != 0 ) {
+->>>>>>> FETCH_HEAD:drivers/media/common/saa7146_fops.c
+ 		kfree(fh);
+ 		file->private_data = NULL;
+ 	}
 _
 
-Patches currently in -mm which might be from akepner@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-dma-add-dma_map_attrs-interfaces.patch
-dma-document-dma_map_attrs-interfaces.patch
-dma-ia64-update-ia64-machvecs-swiotlbc.patch
-ib-expand-ib_umem_get-prototype.patch
+origin.patch
+alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+lib-swiotlbc-avoid-endless-loops-fix.patch
+git-x86.patch
+git-x86-fix-printk-warning.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+cifs-suppress-warning.patch
+git-powerpc.patch
+pm-remove-destroy_suspended_device.patch
+scsi-add-iscsi-ibft-support.patch
+git-drm.patch
+git-dvb.patch
+git-dvb-git-rejects.patch
+drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-kvm.patch
+git-kvm-fixup.patch
+git-kvm-vs-git-s390.patch
+git-leds.patch
+git-libata-fix-config_pci=n-build.patch
+git-async-tx.patch
+git-mips.patch
+git-net.patch
+net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+tulip-tulip_read_eeprom-fixes-for-bug-4420.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
+pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-introduce-pci_slot-fix-fix.patch
+pci-hotplug-introduce-pci_slot-fix-2.patch
+pci-hotplug-introduce-pci_slot-fix-99.patch
+pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
+git-s390.patch
+git-s390-git-rejects.patch
+git-sh.patch
+git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-aic94xx-cleanups.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-hptiopc-fix-build-warning.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+git-sparc64.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+git-semaphore-git-rejects.patch
+r8169-fix-irqx-nobody-cared-for-shared-irq-with-intx-checkpatch-fixes.patch
+smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
+mm-allocate-section_map-for-sparse_init-update-fix.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lib-swiotlbc-cleanups.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ext4-is-broken.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
 
