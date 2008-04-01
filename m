@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86_32-fix-visualws-and-voyager-kexec-build-failures.patch added to -mm tree
-Date: Tue, 01 Apr 2008 15:44:01 -0700
-Message-ID: <200804012244.m31Mi2fB017492@imap1.linux-foundation.org>
+Subject: + nbd-add-partition-support.patch added to -mm tree
+Date: Tue, 01 Apr 2008 15:48:12 -0700
+Message-ID: <200804012248.m31MmDLw017643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57914 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751955AbYDAWol (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 18:44:41 -0400
+	by vger.kernel.org with ESMTP id S1751398AbYDAWsv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 18:48:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, ebiederm@xmission.com, mingo@elte.hu, sfr@canb.auug.org.au, tglx@linutronix.de
+Cc: Laurent.Vivier@bull.net, paul.clements@steeleye.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     x86_32: fix VisualWS and Voyager kexec build failures
+     NBD: add partition support
 has been added to the -mm tree.  Its filename is
-     x86_32-fix-visualws-and-voyager-kexec-build-failures.patch
+     nbd-add-partition-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,80 +33,181 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86_32: fix VisualWS and Voyager kexec build failures
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: NBD: add partition support
+From: Laurent Vivier <Laurent.Vivier@bull.net>
 
-Both Visual WS and Voyager builds fail in almost the same way (in linux-next)
-without this patch:
+Permit the use of partitions with network block devices (NBD).
 
-VOYAGER:
-kernel/built-in.o: In function `crash_kexec':
-(.text+0x28588): undefined reference to `machine_crash_shutdown'
+A new parameter is introduced to define how many partition we want to be able
+to manage per network block device.  This parameter is "max_part".
 
-VISWS:
-kernel/built-in.o: In function `crash_kexec':
-/next-20080401/kernel/kexec.c:1074: undefined reference to `machine_crash_shutdown'
-make[1]: *** [.tmp_vmlinux1] Error 1
+For instance, to manage 63 partitions / loop device, we will do:
 
-because arch/x86/kernel/reboot.c isn't built since CONFIG_X86_BIOS_REBOOT=n,
-so machine_crash_shutdown() isn't available.
+   [on the server side]
+# nbd-server 1234 /dev/sdb
+   [on the client side]
+# modprobe nbd max_part=63
+# ls -l /dev/nbd*
+brw-rw---- 1 root disk 43,   0 2008-03-25 11:14 /dev/nbd0
+brw-rw---- 1 root disk 43,  64 2008-03-25 11:11 /dev/nbd1
+brw-rw---- 1 root disk 43, 640 2008-03-25 11:11 /dev/nbd10
+brw-rw---- 1 root disk 43, 704 2008-03-25 11:11 /dev/nbd11
+brw-rw---- 1 root disk 43, 768 2008-03-25 11:11 /dev/nbd12
+brw-rw---- 1 root disk 43, 832 2008-03-25 11:11 /dev/nbd13
+brw-rw---- 1 root disk 43, 896 2008-03-25 11:11 /dev/nbd14
+brw-rw---- 1 root disk 43, 960 2008-03-25 11:11 /dev/nbd15
+brw-rw---- 1 root disk 43, 128 2008-03-25 11:11 /dev/nbd2
+brw-rw---- 1 root disk 43, 192 2008-03-25 11:11 /dev/nbd3
+brw-rw---- 1 root disk 43, 256 2008-03-25 11:11 /dev/nbd4
+brw-rw---- 1 root disk 43, 320 2008-03-25 11:11 /dev/nbd5
+brw-rw---- 1 root disk 43, 384 2008-03-25 11:11 /dev/nbd6
+brw-rw---- 1 root disk 43, 448 2008-03-25 11:11 /dev/nbd7
+brw-rw---- 1 root disk 43, 512 2008-03-25 11:11 /dev/nbd8
+brw-rw---- 1 root disk 43, 576 2008-03-25 11:11 /dev/nbd9
+# nbd-client localhost 1234 /dev/nbd0
+Negotiation: ..size = 80418240KB
+bs=1024, sz=80418240
 
-This patch does seem a small bit odd since the KEXEC help text says that
-kexec is independent of the system firmware.
+-------NOTE, RFC: partition table is not automatically read.
+The driver sets bdev->bd_invalidated to 1 to force the read of the partition
+table of the device, but this is done only on an open of the device.
+So we have to do a "touch /dev/nbdX" or something like that.
+It can't be done from the nbd-client or nbd driver because at this
+level we can't ask to read the partition table and to serve the request
+at the same time (-> deadlock)
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+If someone has a better idea, I'm open to any suggestion.
+-------NOTE, RFC
+
+# fdisk -l /dev/nbd0
+
+Disk /dev/nbd0: 82.3 GB, 82348277760 bytes
+255 heads, 63 sectors/track, 10011 cylinders
+Units = cylinders of 16065 * 512 = 8225280 bytes
+
+     Device Boot      Start         End      Blocks   Id  System
+/dev/nbd0p1   *           1        9965    80043831   83  Linux
+/dev/nbd0p2            9966       10011      369495    5  Extended
+/dev/nbd0p5            9966       10011      369463+  82  Linux swap / Solaris
+
+# ls -l /dev/nbd0*
+brw-rw---- 1 root disk 43,   0 2008-03-25 11:16 /dev/nbd0
+brw-rw---- 1 root disk 43,   1 2008-03-25 11:16 /dev/nbd0p1
+brw-rw---- 1 root disk 43,   2 2008-03-25 11:16 /dev/nbd0p2
+brw-rw---- 1 root disk 43,   5 2008-03-25 11:16 /dev/nbd0p5
+# mount /dev/nbd0p1 /mnt
+# ls /mnt
+bin    dev   initrd      lost+found  opt   sbin     sys  var
+boot   etc   initrd.img  media       proc  selinux  tmp  vmlinuz
+cdrom  home  lib         mnt         root  srv      usr
+# umount /mnt
+# nbd-client -d /dev/nbd0
+# ls -l /dev/nbd0*
+brw-rw---- 1 root disk 43, 0 2008-03-25 11:16 /dev/nbd0
+-------NOTE
+On "nbd-client -d", we can do an iocl(BLKRRPART) to update partition table:
+as the size of the device is 0, we don't have to serve the partition manager
+request (-> no deadlock).
+-------NOTE
+
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/block/nbd.c |   25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86_32-fix-visualws-and-voyager-kexec-build-failures arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86_32-fix-visualws-and-voyager-kexec-build-failures
-+++ a/arch/x86/Kconfig
-@@ -1077,6 +1077,7 @@ source kernel/Kconfig.hz
+diff -puN drivers/block/nbd.c~nbd-add-partition-support drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-add-partition-support
++++ a/drivers/block/nbd.c
+@@ -56,6 +56,7 @@ static unsigned int debugflags;
  
- config KEXEC
- 	bool "kexec system call"
-+	depends on X86_64 || X86_BIOS_REBOOT
- 	help
- 	  kexec is a system call that implements the ability to shutdown your
- 	  current kernel, and to start another kernel.  It is like a reboot
+ static unsigned int nbds_max = 16;
+ static struct nbd_device *nbd_dev;
++static int max_part;
+ 
+ /*
+  * Use just one lock (or at most 1 per NIC). Two arguments for this:
+@@ -610,10 +611,13 @@ static int nbd_ioctl(struct inode *inode
+ 		error = -EINVAL;
+ 		file = fget(arg);
+ 		if (file) {
++			struct block_device *bdev = inode->i_bdev;
+ 			inode = file->f_path.dentry->d_inode;
+ 			if (S_ISSOCK(inode->i_mode)) {
+ 				lo->file = file;
+ 				lo->sock = SOCKET_I(inode);
++				if (max_part > 0)
++					bdev->bd_invalidated = 1;
+ 				error = 0;
+ 			} else {
+ 				fput(file);
+@@ -663,6 +667,8 @@ static int nbd_ioctl(struct inode *inode
+ 		lo->bytesize = 0;
+ 		inode->i_bdev->bd_inode->i_size = 0;
+ 		set_capacity(lo->disk, 0);
++		if (max_part > 0)
++			ioctl_by_bdev(inode->i_bdev, BLKRRPART, 0);
+ 		return lo->harderror;
+ 	case NBD_CLEAR_QUE:
+ 		/*
+@@ -696,6 +702,7 @@ static int __init nbd_init(void)
+ {
+ 	int err = -ENOMEM;
+ 	int i;
++	int part_shift;
+ 
+ 	BUILD_BUG_ON(sizeof(struct nbd_request) != 28);
+ 
+@@ -703,8 +710,17 @@ static int __init nbd_init(void)
+ 	if (!nbd_dev)
+ 		return -ENOMEM;
+ 
++	if (max_part < 0) {
++		printk(KERN_CRIT "nbd: max_part must be >= 0\n");
++		return -EINVAL;
++	}
++
++	part_shift = 0;
++	if (max_part > 0)
++		part_shift = fls(max_part);
++
+ 	for (i = 0; i < nbds_max; i++) {
+-		struct gendisk *disk = alloc_disk(1);
++		struct gendisk *disk = alloc_disk(1 << part_shift);
+ 		elevator_t *old_e;
+ 		if (!disk)
+ 			goto out;
+@@ -748,10 +764,9 @@ static int __init nbd_init(void)
+ 		nbd_dev[i].blksize = 1024;
+ 		nbd_dev[i].bytesize = 0;
+ 		disk->major = NBD_MAJOR;
+-		disk->first_minor = i;
++		disk->first_minor = i << part_shift;
+ 		disk->fops = &nbd_fops;
+ 		disk->private_data = &nbd_dev[i];
+-		disk->flags |= GENHD_FL_SUPPRESS_PARTITION_INFO;
+ 		sprintf(disk->disk_name, "nbd%d", i);
+ 		set_capacity(disk, 0);
+ 		add_disk(disk);
+@@ -789,7 +804,9 @@ MODULE_DESCRIPTION("Network Block Device
+ MODULE_LICENSE("GPL");
+ 
+ module_param(nbds_max, int, 0444);
+-MODULE_PARM_DESC(nbds_max, "How many network block devices to initialize.");
++MODULE_PARM_DESC(nbds_max, "number of network block devices to initialize (default: 16)");
++module_param(max_part, int, 0444);
++MODULE_PARM_DESC(max_part, "number of partitions per device (default: 0)");
+ #ifndef NDEBUG
+ module_param(debugflags, int, 0644);
+ MODULE_PARM_DESC(debugflags, "flags for controlling debug output");
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from Laurent.Vivier@bull.net are
 
-x86_32-fix-visualws-and-voyager-kexec-build-failures.patch
-rapidio-fix-docbook-references.patch
-pm-remove-legacy-pm-fix.patch
-kbuild-silence-documentation-gen-xml-messages-according-to-quiet.patch
 git-kvm.patch
-git-net.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-unionfs.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-let-log_buf_shift-default-to-17.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-jbd2-fix-kernel-doc-notation.patch
-dma-add-dma_map_attrs-interfaces.patch
-dma-document-dma_map_attrs-interfaces.patch
-dma-ia64-update-ia64-machvecs-swiotlbc.patch
-ib-expand-ib_umem_get-prototype.patch
-basic-braille-screen-reader-support-makefile-fix.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
-profile-likely-unlikely-macros.patch
+git-block.patch
+nbd-allow-nbd-to-be-used-locally.patch
+nbd-add-partition-support.patch
 
