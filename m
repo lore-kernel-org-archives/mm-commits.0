@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + proc-remove-proc_bus.patch added to -mm tree
-Date: Tue, 01 Apr 2008 13:13:08 -0700
-Message-ID: <200804012013.m31KD8Ci011123@imap1.linux-foundation.org>
+Subject: + proc-remove-proc_root_driver.patch added to -mm tree
+Date: Tue, 01 Apr 2008 13:13:12 -0700
+Message-ID: <200804012013.m31KDC8N011133@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57887 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35876 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759039AbYDAUNM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 16:13:12 -0400
+	by vger.kernel.org with ESMTP id S1759145AbYDAUNQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 16:13:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: adobriyan@gmail.com
 
 
 The patch titled
-     proc: remove proc_bus
+     proc: remove proc_root_driver
 has been added to the -mm tree.  Its filename is
-     proc-remove-proc_bus.patch
+     proc-remove-proc_root_driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,220 +33,158 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: remove proc_bus
+Subject: proc: remove proc_root_driver
 From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Remove proc_bus export and variable itself. Using pathnames works fine
-and is slightly more understandable and greppable.
+Use creation by full path: "driver/foo".
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/ecard.c    |    2 +-
- drivers/input/input.c      |    6 +++---
- drivers/nubus/proc.c       |    2 +-
- drivers/pci/proc.c         |    2 +-
- drivers/pnp/isapnp/proc.c  |    2 +-
- drivers/pnp/pnpbios/proc.c |    4 ++--
- drivers/usb/core/inode.c   |    4 ++--
- drivers/zorro/proc.c       |    2 +-
- fs/proc/root.c             |    5 ++---
- include/linux/proc_fs.h    |    2 --
- 10 files changed, 14 insertions(+), 17 deletions(-)
+ drivers/block/cciss.c       |    4 ++--
+ drivers/block/cpqarray.c    |    4 ++--
+ drivers/block/pktcdvd.c     |    4 ++--
+ drivers/net/wireless/airo.c |    8 ++++----
+ fs/proc/root.c              |    5 +----
+ include/linux/proc_fs.h     |    3 ---
+ 6 files changed, 11 insertions(+), 17 deletions(-)
 
-diff -puN arch/arm/kernel/ecard.c~proc-remove-proc_bus arch/arm/kernel/ecard.c
---- a/arch/arm/kernel/ecard.c~proc-remove-proc_bus
-+++ a/arch/arm/kernel/ecard.c
-@@ -778,7 +778,7 @@ static struct proc_dir_entry *proc_bus_e
+diff -puN drivers/block/cciss.c~proc-remove-proc_root_driver drivers/block/cciss.c
+--- a/drivers/block/cciss.c~proc-remove-proc_root_driver
++++ a/drivers/block/cciss.c
+@@ -424,7 +424,7 @@ static void __devinit cciss_procinit(int
+ 	struct proc_dir_entry *pde;
  
- static void ecard_proc_init(void)
- {
--	proc_bus_ecard_dir = proc_mkdir("ecard", proc_bus);
-+	proc_bus_ecard_dir = proc_mkdir("bus/ecard", NULL);
- 	create_proc_info_entry("devices", 0, proc_bus_ecard_dir,
- 		get_ecard_dev_info);
- }
-diff -puN drivers/input/input.c~proc-remove-proc_bus drivers/input/input.c
---- a/drivers/input/input.c~proc-remove-proc_bus
-+++ a/drivers/input/input.c
-@@ -898,7 +898,7 @@ static int __init input_proc_init(void)
- {
- 	struct proc_dir_entry *entry;
- 
--	proc_bus_input_dir = proc_mkdir("input", proc_bus);
-+	proc_bus_input_dir = proc_mkdir("bus/input", NULL);
- 	if (!proc_bus_input_dir)
- 		return -ENOMEM;
- 
-@@ -921,7 +921,7 @@ static int __init input_proc_init(void)
- 	return 0;
- 
-  fail2:	remove_proc_entry("devices", proc_bus_input_dir);
-- fail1: remove_proc_entry("input", proc_bus);
-+ fail1: remove_proc_entry("bus/input", NULL);
- 	return -ENOMEM;
- }
- 
-@@ -929,7 +929,7 @@ static void input_proc_exit(void)
- {
- 	remove_proc_entry("devices", proc_bus_input_dir);
- 	remove_proc_entry("handlers", proc_bus_input_dir);
--	remove_proc_entry("input", proc_bus);
-+	remove_proc_entry("bus/input", NULL);
- }
- 
- #else /* !CONFIG_PROC_FS */
-diff -puN drivers/nubus/proc.c~proc-remove-proc_bus drivers/nubus/proc.c
---- a/drivers/nubus/proc.c~proc-remove-proc_bus
-+++ a/drivers/nubus/proc.c
-@@ -171,7 +171,7 @@ void __init nubus_proc_init(void)
- {
- 	if (!MACH_IS_MAC)
+ 	if (proc_cciss == NULL)
+-		proc_cciss = proc_mkdir("cciss", proc_root_driver);
++		proc_cciss = proc_mkdir("driver/cciss", NULL);
+ 	if (!proc_cciss)
  		return;
--	proc_bus_nubus_dir = proc_mkdir("nubus", proc_bus);
-+	proc_bus_nubus_dir = proc_mkdir("bus/nubus", NULL);
- 	create_proc_info_entry("devices", 0, proc_bus_nubus_dir,
- 				get_nubus_dev_info);
- 	proc_bus_nubus_add_devices();
-diff -puN drivers/pci/proc.c~proc-remove-proc_bus drivers/pci/proc.c
---- a/drivers/pci/proc.c~proc-remove-proc_bus
-+++ a/drivers/pci/proc.c
-@@ -472,7 +472,7 @@ static int __init pci_proc_init(void)
- {
- 	struct proc_dir_entry *entry;
- 	struct pci_dev *dev = NULL;
--	proc_bus_pci_dir = proc_mkdir("pci", proc_bus);
-+	proc_bus_pci_dir = proc_mkdir("bus/pci", NULL);
- 	entry = create_proc_entry("devices", 0, proc_bus_pci_dir);
- 	if (entry)
- 		entry->proc_fops = &proc_bus_pci_dev_operations;
-diff -puN drivers/pnp/isapnp/proc.c~proc-remove-proc_bus drivers/pnp/isapnp/proc.c
---- a/drivers/pnp/isapnp/proc.c~proc-remove-proc_bus
-+++ a/drivers/pnp/isapnp/proc.c
-@@ -116,7 +116,7 @@ int __init isapnp_proc_init(void)
- {
- 	struct pnp_dev *dev;
- 
--	isapnp_proc_bus_dir = proc_mkdir("isapnp", proc_bus);
-+	isapnp_proc_bus_dir = proc_mkdir("bus/isapnp", NULL);
- 	protocol_for_each_dev(&isapnp_protocol, dev) {
- 		isapnp_proc_attach_device(dev);
+ 	pde = proc_create(hba[i]->devname, S_IWUSR | S_IRUSR | S_IRGRP |
+@@ -3684,7 +3684,7 @@ static void __exit cciss_cleanup(void)
+ 			cciss_remove_one(hba[i]->pdev);
+ 		}
  	}
-diff -puN drivers/pnp/pnpbios/proc.c~proc-remove-proc_bus drivers/pnp/pnpbios/proc.c
---- a/drivers/pnp/pnpbios/proc.c~proc-remove-proc_bus
-+++ a/drivers/pnp/pnpbios/proc.c
-@@ -256,7 +256,7 @@ int pnpbios_interface_attach_device(stru
-  */
- int __init pnpbios_proc_init(void)
- {
--	proc_pnp = proc_mkdir("pnp", proc_bus);
-+	proc_pnp = proc_mkdir("bus/pnp", NULL);
- 	if (!proc_pnp)
- 		return -EIO;
- 	proc_pnp_boot = proc_mkdir("boot", proc_pnp);
-@@ -294,5 +294,5 @@ void __exit pnpbios_proc_exit(void)
- 	remove_proc_entry("configuration_info", proc_pnp);
- 	remove_proc_entry("devices", proc_pnp);
- 	remove_proc_entry("boot", proc_pnp);
--	remove_proc_entry("pnp", proc_bus);
-+	remove_proc_entry("bus/pnp", NULL);
+-	remove_proc_entry("cciss", proc_root_driver);
++	remove_proc_entry("driver/cciss", NULL);
  }
-diff -puN drivers/usb/core/inode.c~proc-remove-proc_bus drivers/usb/core/inode.c
---- a/drivers/usb/core/inode.c~proc-remove-proc_bus
-+++ a/drivers/usb/core/inode.c
-@@ -773,7 +773,7 @@ int __init usbfs_init(void)
- 	usb_register_notify(&usbfs_nb);
  
- 	/* create mount point for usbfs */
--	usbdir = proc_mkdir("usb", proc_bus);
-+	usbdir = proc_mkdir("bus/usb", NULL);
+ static void fail_all_cmds(unsigned long ctlr)
+diff -puN drivers/block/cpqarray.c~proc-remove-proc_root_driver drivers/block/cpqarray.c
+--- a/drivers/block/cpqarray.c~proc-remove-proc_root_driver
++++ a/drivers/block/cpqarray.c
+@@ -214,7 +214,7 @@ static struct proc_dir_entry *proc_array
+ static void __init ida_procinit(int i)
+ {
+ 	if (proc_array == NULL) {
+-		proc_array = proc_mkdir("cpqarray", proc_root_driver);
++		proc_array = proc_mkdir("driver/cpqarray", NULL);
+ 		if (!proc_array) return;
+ 	}
+ 
+@@ -1796,7 +1796,7 @@ static void __exit cpqarray_exit(void)
+ 		}
+ 	}
+ 
+-	remove_proc_entry("cpqarray", proc_root_driver);
++	remove_proc_entry("driver/cpqarray", NULL);
+ }
+ 
+ module_init(cpqarray_init)
+diff -puN drivers/block/pktcdvd.c~proc-remove-proc_root_driver drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~proc-remove-proc_root_driver
++++ a/drivers/block/pktcdvd.c
+@@ -3101,7 +3101,7 @@ static int __init pkt_init(void)
+ 		goto out_misc;
+ 	}
+ 
+-	pkt_proc = proc_mkdir(DRIVER_NAME, proc_root_driver);
++	pkt_proc = proc_mkdir("driver/"DRIVER_NAME, NULL);
  
  	return 0;
- }
-@@ -783,6 +783,6 @@ void usbfs_cleanup(void)
- 	usb_unregister_notify(&usbfs_nb);
- 	unregister_filesystem(&usb_fs_type);
- 	if (usbdir)
--		remove_proc_entry("usb", proc_bus);
-+		remove_proc_entry("bus/usb", NULL);
+ 
+@@ -3117,7 +3117,7 @@ out2:
+ 
+ static void __exit pkt_exit(void)
+ {
+-	remove_proc_entry(DRIVER_NAME, proc_root_driver);
++	remove_proc_entry("driver/"DRIVER_NAME, NULL);
+ 	misc_deregister(&pkt_misc);
+ 
+ 	pkt_debugfs_cleanup();
+diff -puN drivers/net/wireless/airo.c~proc-remove-proc_root_driver drivers/net/wireless/airo.c
+--- a/drivers/net/wireless/airo.c~proc-remove-proc_root_driver
++++ a/drivers/net/wireless/airo.c
+@@ -5625,9 +5625,9 @@ static int __init airo_init_module( void
+ 	int have_isa_dev = 0;
+ #endif
+ 
+-	airo_entry = create_proc_entry("aironet",
++	airo_entry = create_proc_entry("driver/aironet",
+ 				       S_IFDIR | airo_perm,
+-				       proc_root_driver);
++				       NULL);
+ 
+ 	if (airo_entry) {
+ 		airo_entry->uid = proc_uid;
+@@ -5651,7 +5651,7 @@ static int __init airo_init_module( void
+ 	airo_print_info("", "Finished probing for PCI adapters");
+ 
+ 	if (i) {
+-		remove_proc_entry("aironet", proc_root_driver);
++		remove_proc_entry("driver/aironet", NULL);
+ 		return i;
+ 	}
+ #endif
+@@ -5673,7 +5673,7 @@ static void __exit airo_cleanup_module( 
+ #ifdef CONFIG_PCI
+ 	pci_unregister_driver(&airo_driver);
+ #endif
+-	remove_proc_entry("aironet", proc_root_driver);
++	remove_proc_entry("driver/aironet", NULL);
  }
  
-diff -puN drivers/zorro/proc.c~proc-remove-proc_bus drivers/zorro/proc.c
---- a/drivers/zorro/proc.c~proc-remove-proc_bus
-+++ a/drivers/zorro/proc.c
-@@ -128,7 +128,7 @@ static int __init zorro_proc_init(void)
- 	u_int slot;
- 
- 	if (MACH_IS_AMIGA && AMIGAHW_PRESENT(ZORRO)) {
--		proc_bus_zorro_dir = proc_mkdir("zorro", proc_bus);
-+		proc_bus_zorro_dir = proc_mkdir("bus/zorro", NULL);
- 		create_proc_info_entry("devices", 0, proc_bus_zorro_dir,
- 				       get_zorro_dev_info);
- 		for (slot = 0; slot < zorro_num_autocon; slot++)
-diff -puN fs/proc/root.c~proc-remove-proc_bus fs/proc/root.c
---- a/fs/proc/root.c~proc-remove-proc_bus
+ /*
+diff -puN fs/proc/root.c~proc-remove-proc_root_driver fs/proc/root.c
+--- a/fs/proc/root.c~proc-remove-proc_root_driver
 +++ a/fs/proc/root.c
-@@ -22,7 +22,7 @@
+@@ -22,8 +22,6 @@
  
  #include "internal.h"
  
--struct proc_dir_entry *proc_bus, *proc_root_fs, *proc_root_driver;
-+struct proc_dir_entry *proc_root_fs, *proc_root_driver;
- 
+-struct proc_dir_entry *proc_root_driver;
+-
  static int proc_test_super(struct super_block *sb, void *data)
  {
-@@ -137,7 +137,7 @@ void __init proc_root_init(void)
- #ifdef CONFIG_PROC_DEVICETREE
- 	proc_device_tree_init();
+ 	return sb->s_fs_info == data;
+@@ -127,7 +125,7 @@ void __init proc_root_init(void)
+ 	proc_mkdir("sysvipc", NULL);
  #endif
--	proc_bus = proc_mkdir("bus", NULL);
-+	proc_mkdir("bus", NULL);
- 	proc_sys_init();
- }
- 
-@@ -236,5 +236,4 @@ EXPORT_SYMBOL(proc_create);
+ 	proc_mkdir("fs", NULL);
+-	proc_root_driver = proc_mkdir("driver", NULL);
++	proc_mkdir("driver", NULL);
+ 	proc_mkdir("fs/nfsd", NULL); /* somewhere for the nfsd filesystem to be mounted */
+ #if defined(CONFIG_SUN_OPENPROMFS) || defined(CONFIG_SUN_OPENPROMFS_MODULE)
+ 	/* just give it a mountpoint */
+@@ -235,4 +233,3 @@ EXPORT_SYMBOL(create_proc_entry);
+ EXPORT_SYMBOL(proc_create);
  EXPORT_SYMBOL(remove_proc_entry);
  EXPORT_SYMBOL(proc_root);
- EXPORT_SYMBOL(proc_root_fs);
--EXPORT_SYMBOL(proc_bus);
- EXPORT_SYMBOL(proc_root_driver);
-diff -puN include/linux/proc_fs.h~proc-remove-proc_bus include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~proc-remove-proc_bus
+-EXPORT_SYMBOL(proc_root_driver);
+diff -puN include/linux/proc_fs.h~proc-remove-proc_root_driver include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~proc-remove-proc_root_driver
 +++ a/include/linux/proc_fs.h
-@@ -98,7 +98,6 @@ struct vmcore {
+@@ -97,7 +97,6 @@ struct vmcore {
+ #ifdef CONFIG_PROC_FS
  
  extern struct proc_dir_entry proc_root;
- extern struct proc_dir_entry *proc_root_fs;
--extern struct proc_dir_entry *proc_bus;
- extern struct proc_dir_entry *proc_root_driver;
+-extern struct proc_dir_entry *proc_root_driver;
  extern struct proc_dir_entry *proc_root_kcore;
  
-@@ -214,7 +213,6 @@ extern void dup_mm_exe_file(struct mm_st
+ extern spinlock_t proc_subdir_lock;
+@@ -211,8 +210,6 @@ extern void dup_mm_exe_file(struct mm_st
+ 
  #else
  
- #define proc_root_driver NULL
--#define proc_bus NULL
- 
- #define proc_net_fops_create(net, name, mode, fops)  ({ (void)(mode), NULL; })
- static inline void proc_net_remove(struct net *net, const char *name) {}
-_
-
-Patches currently in -mm which might be from adobriyan@gmail.com are
-
-tags-add-menuconfig-symbols-as-well.patch
-remove-the-macro-get_personality.patch
-nv-drop-useless-module-ifdefs.patch
-nv-drop-useless-config_pci-checks.patch
-nv-fix-sparse-noise.patch
-procfs-mem-permission-cleanup.patch
-proc-simplify-locking-in-remove_proc_entry.patch
-proc-less-special-case-in-xlate-code.patch
-proc-drop-several-pde-valid-invalid-checks.patch
-proc-remove-proc_bus.patch
-proc-remove-proc_root_fs.patch
-proc-remove-proc_root_driver.patch
-proc-remove-proc_root-from-drivers.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
-
+-#define proc_root_driver NULL
