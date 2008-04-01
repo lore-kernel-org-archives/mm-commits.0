@@ -1,522 +1,249 @@
 From: akpm@linux-foundation.org
-Subject: - input-add-chip-driver-for-wm9712-touchscreen.patch removed from -mm tree
-Date: Tue, 01 Apr 2008 14:38:04 -0700
-Message-ID: <200804012138.m31Lc4kZ014894@imap1.linux-foundation.org>
+Subject: - xilinx-hwicap-refactor-status-handling-code.patch removed from -mm tree
+Date: Tue, 01 Apr 2008 14:38:38 -0700
+Message-ID: <200804012138.m31LccHr014941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60230 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758994AbYDAVju (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 17:39:50 -0400
+	by vger.kernel.org with ESMTP id S1758514AbYDAVjf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 17:39:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: broonie@opensource.wolfsonmicro.com, dbaryshkov@gmail.com, gg@opensource.wolfsonmicro.com, giometti@enneenne.com, liam.girdwood@wolfsonmicro.com, linux01@architechnical.net, mike.arth
+To: stephen.neuendorffer@xilinx.com, grant.likely@secretlab.ca, jwboyer@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: add chip driver for WM9712 touchscreen
+     xilinx: hwicap: refactor status handling code
 has been removed from the -mm tree.  Its filename was
-     input-add-chip-driver-for-wm9712-touchscreen.patch
+     xilinx-hwicap-refactor-status-handling-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: add chip driver for WM9712 touchscreen
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: xilinx: hwicap: refactor status handling code
+From: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
 
-Signed-off-by: Liam Girdwood <liam.girdwood@wolfsonmicro.com>
-Signed-off-by: Graeme Gregory <gg@opensource.wolfsonmicro.com>
-Signed-off-by: Mike Arthur <mike.arthur@wolfsonmicro.com>
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Dmitry Baryshkov <dbaryshkov@gmail.com>
-Cc: Stanley Cai <stanley.cai@intel.com>
-Cc: Rodolfo Giometti <giometti@enneenne.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Marc Kleine-Budde <mkl@pengutronix.de>
-Cc: Pete MacKay <linux01@architechnical.net>
-Cc: Ian Molton <spyro@f2s.com>
-Cc: Vince Sanders <vince@kyllikki.org>
-Cc: Andrew Zabolotny <zap@homelink.ru>
+Both the buffer-based and fifo-based icap cores have a status register. 
+Previously, this was only used internally to check whether transactions have
+completed.  However, the status can be useful to the main driver as well. 
+This patch exposes these status functions to the main driver along with some
+masks for the differnet bits.
+
+Signed-off-by: Stephen Neuendorffer <stephen.neuendorffer@xilinx.com>
+Cc: Josh Boyer <jwboyer@linux.vnet.ibm.com>
+Acked-by: Grant Likely <grant.likely@secretlab.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/wm9712.c |  461 +++++++++++++++++++++++++++
- 1 file changed, 461 insertions(+)
+ drivers/char/xilinx_hwicap/buffer_icap.c   |   22 +++----------
+ drivers/char/xilinx_hwicap/buffer_icap.h   |    5 +--
+ drivers/char/xilinx_hwicap/fifo_icap.c     |   31 ++++++++++++++-----
+ drivers/char/xilinx_hwicap/fifo_icap.h     |    1 
+ drivers/char/xilinx_hwicap/xilinx_hwicap.c |    2 +
+ drivers/char/xilinx_hwicap/xilinx_hwicap.h |   24 ++++++++++++++
+ 6 files changed, 58 insertions(+), 27 deletions(-)
 
-diff -puN /dev/null drivers/input/touchscreen/wm9712.c
---- /dev/null
-+++ a/drivers/input/touchscreen/wm9712.c
-@@ -0,0 +1,461 @@
-+/*
-+ * wm9712.c  --  Codec driver for Wolfson WM9712 AC97 Codecs.
-+ *
-+ * Copyright 2003, 2004, 2005, 2006, 2007 Wolfson Microelectronics PLC.
-+ * Author: Liam Girdwood
-+ *         liam.girdwood@wolfsonmicro.com or linux@wolfsonmicro.com
-+ * Parts Copyright : Ian Molton <spyro@f2s.com>
-+ *                   Andrew Zabolotny <zap@homelink.ru>
-+ *                   Russell King <rmk@arm.linux.org.uk>
-+ *
-+ *  This program is free software; you can redistribute  it and/or modify it
-+ *  under  the terms of  the GNU General  Public License as published by the
-+ *  Free Software Foundation;  either version 2 of the  License, or (at your
-+ *  option) any later version.
-+ *
-+ */
+diff -puN drivers/char/xilinx_hwicap/buffer_icap.c~xilinx-hwicap-refactor-status-handling-code drivers/char/xilinx_hwicap/buffer_icap.c
+--- a/drivers/char/xilinx_hwicap/buffer_icap.c~xilinx-hwicap-refactor-status-handling-code
++++ a/drivers/char/xilinx_hwicap/buffer_icap.c
+@@ -74,7 +74,7 @@
+ 
+ /**
+  * buffer_icap_get_status - Get the contents of the status register.
+- * @base_address: is the base address of the device
++ * @drvdata: a pointer to the drvdata.
+  *
+  * The status register contains the ICAP status and the done bit.
+  *
+@@ -88,9 +88,9 @@
+  * D1 - Always 1
+  * D0 - Done bit
+  **/
+-static inline u32 buffer_icap_get_status(void __iomem *base_address)
++u32 buffer_icap_get_status(struct hwicap_drvdata *drvdata)
+ {
+-	return in_be32(base_address + XHI_STATUS_REG_OFFSET);
++	return in_be32(drvdata->base_address + XHI_STATUS_REG_OFFSET);
+ }
+ 
+ /**
+@@ -117,20 +117,8 @@ static inline u32 buffer_icap_get_bram(v
+  **/
+ static inline bool buffer_icap_busy(void __iomem *base_address)
+ {
+-	return (buffer_icap_get_status(base_address) & 1) == XHI_NOT_FINISHED;
+-}
+-
+-/**
+- * buffer_icap_busy - Return true if the icap device is not busy
+- * @base_address: is the base address of the device
+- *
+- * The queries the low order bit of the status register, which
+- * indicates whether the current configuration or readback operation
+- * has completed.
+- **/
+-static inline bool buffer_icap_done(void __iomem *base_address)
+-{
+-	return (buffer_icap_get_status(base_address) & 1) == XHI_FINISHED;
++	u32 status = in_be32(base_address + XHI_STATUS_REG_OFFSET);
++	return (status & 1) == XHI_NOT_FINISHED;
+ }
+ 
+ /**
+diff -puN drivers/char/xilinx_hwicap/buffer_icap.h~xilinx-hwicap-refactor-status-handling-code drivers/char/xilinx_hwicap/buffer_icap.h
+--- a/drivers/char/xilinx_hwicap/buffer_icap.h~xilinx-hwicap-refactor-status-handling-code
++++ a/drivers/char/xilinx_hwicap/buffer_icap.h
+@@ -44,8 +44,6 @@
+ #include <asm/io.h>
+ #include "xilinx_hwicap.h"
+ 
+-void buffer_icap_reset(struct hwicap_drvdata *drvdata);
+-
+ /* Loads a partial bitstream from system memory. */
+ int buffer_icap_set_configuration(struct hwicap_drvdata *drvdata, u32 *data,
+ 			     u32 Size);
+@@ -54,4 +52,7 @@ int buffer_icap_set_configuration(struct
+ int buffer_icap_get_configuration(struct hwicap_drvdata *drvdata, u32 *data,
+ 			     u32 Size);
+ 
++u32 buffer_icap_get_status(struct hwicap_drvdata *drvdata);
++void buffer_icap_reset(struct hwicap_drvdata *drvdata);
 +
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/version.h>
-+#include <linux/kernel.h>
-+#include <linux/input.h>
-+#include <linux/delay.h>
-+#include <linux/bitops.h>
-+#include <linux/wm97xx.h>
-+
-+#define TS_NAME			"wm97xx"
-+#define WM9712_VERSION		"0.61"
-+#define DEFAULT_PRESSURE	0xb0c0
-+
-+/*
-+ * Module parameters
-+ */
-+
-+/*
-+ * Set internal pull up for pen detect.
+ #endif
+diff -puN drivers/char/xilinx_hwicap/fifo_icap.c~xilinx-hwicap-refactor-status-handling-code drivers/char/xilinx_hwicap/fifo_icap.c
+--- a/drivers/char/xilinx_hwicap/fifo_icap.c~xilinx-hwicap-refactor-status-handling-code
++++ a/drivers/char/xilinx_hwicap/fifo_icap.c
+@@ -78,13 +78,6 @@
+ #define XHI_CR_READ_MASK 0x00000002 /* Read from ICAP to FIFO */
+ #define XHI_CR_WRITE_MASK 0x00000001 /* Write from FIFO to ICAP */
+ 
+-/* Status Register (SR) */
+-#define XHI_SR_CFGERR_N_MASK 0x00000100 /* Config Error Mask */
+-#define XHI_SR_DALIGN_MASK 0x00000080 /* Data Alignment Mask */
+-#define XHI_SR_RIP_MASK 0x00000040 /* Read back Mask */
+-#define XHI_SR_IN_ABORT_N_MASK 0x00000020 /* Select Map Abort Mask */
+-#define XHI_SR_DONE_MASK 0x00000001 /* Done bit Mask  */
+-
+ 
+ #define XHI_WFO_MAX_VACANCY 1024 /* Max Write FIFO Vacancy, in words */
+ #define XHI_RFO_MAX_OCCUPANCY 256 /* Max Read FIFO Occupancy, in words */
+@@ -152,13 +145,35 @@ static inline void fifo_icap_start_readb
+ }
+ 
+ /**
++ * fifo_icap_get_status - Get the contents of the status register.
++ * @drvdata: a pointer to the drvdata.
 + *
-+ * Pull up is in the range 1.02k (least sensitive) to 64k (most sensitive)
-+ * i.e. pull up resistance = 64k Ohms / rpu.
++ * The status register contains the ICAP status and the done bit.
 + *
-+ * Adjust this value if you are having problems with pen detect not
-+ * detecting any down event.
-+ */
-+static int rpu = 8;
-+module_param(rpu, int, 0);
-+MODULE_PARM_DESC(rpu, "Set internal pull up resitor for pen detect.");
-+
-+/*
-+ * Set current used for pressure measurement.
-+ *
-+ * Set pil = 2 to use 400uA
-+ *     pil = 1 to use 200uA and
-+ *     pil = 0 to disable pressure measurement.
-+ *
-+ * This is used to increase the range of values returned by the adc
-+ * when measureing touchpanel pressure.
-+ */
-+static int pil;
-+module_param(pil, int, 0);
-+MODULE_PARM_DESC(pil, "Set current used for pressure measurement.");
-+
-+/*
-+ * Set threshold for pressure measurement.
-+ *
-+ * Pen down pressure below threshold is ignored.
-+ */
-+static int pressure = DEFAULT_PRESSURE & 0xfff;
-+module_param(pressure, int, 0);
-+MODULE_PARM_DESC(pressure, "Set threshold for pressure measurement.");
-+
-+/*
-+ * Set adc sample delay.
-+ *
-+ * For accurate touchpanel measurements, some settling time may be
-+ * required between the switch matrix applying a voltage across the
-+ * touchpanel plate and the ADC sampling the signal.
-+ *
-+ * This delay can be set by setting delay = n, where n is the array
-+ * position of the delay in the array delay_table below.
-+ * Long delays > 1ms are supported for completeness, but are not
-+ * recommended.
-+ */
-+static int delay = 3;
-+module_param(delay, int, 0);
-+MODULE_PARM_DESC(delay, "Set adc sample delay.");
-+
-+/*
-+ * Set five_wire = 1 to use a 5 wire touchscreen.
-+ *
-+ * NOTE: Five wire mode does not allow for readback of pressure.
-+ */
-+static int five_wire;
-+module_param(five_wire, int, 0);
-+MODULE_PARM_DESC(five_wire, "Set to '1' to use 5-wire touchscreen.");
-+
-+/*
-+ * Set adc mask function.
-+ *
-+ * Sources of glitch noise, such as signals driving an LCD display, may feed
-+ * through to the touch screen plates and affect measurement accuracy. In
-+ * order to minimise this, a signal may be applied to the MASK pin to delay or
-+ * synchronise the sampling.
-+ *
-+ * 0 = No delay or sync
-+ * 1 = High on pin stops conversions
-+ * 2 = Edge triggered, edge on pin delays conversion by delay param (above)
-+ * 3 = Edge triggered, edge on pin starts conversion after delay param
-+ */
-+static int mask;
-+module_param(mask, int, 0);
-+MODULE_PARM_DESC(mask, "Set adc mask function.");
-+
-+/*
-+ * Coordinate Polling Enable.
-+ *
-+ * Set to 1 to enable coordinate polling. e.g. x,y[,p] is sampled together
-+ * for every poll.
-+ */
-+static int coord;
-+module_param(coord, int, 0);
-+MODULE_PARM_DESC(coord, "Polling coordinate mode");
-+
-+/*
-+ * ADC sample delay times in uS
-+ */
-+static const int delay_table[] = {
-+	21,    /* 1 AC97 Link frames */
-+	42,    /* 2 */
-+	84,    /* 4 */
-+	167,   /* 8 */
-+	333,   /* 16 */
-+	667,   /* 32 */
-+	1000,  /* 48 */
-+	1333,  /* 64 */
-+	2000,  /* 96 */
-+	2667,  /* 128 */
-+	3333,  /* 160 */
-+	4000,  /* 192 */
-+	4667,  /* 224 */
-+	5333,  /* 256 */
-+	6000,  /* 288 */
-+	0      /* No delay, switch matrix always on */
-+};
-+
-+/*
-+ * Delay after issuing a POLL command.
-+ *
-+ * The delay is 3 AC97 link frames + the touchpanel settling delay
-+ */
-+static inline void poll_delay(int d)
++ * D8 - cfgerr
++ * D7 - dalign
++ * D6 - rip
++ * D5 - in_abort_l
++ * D4 - Always 1
++ * D3 - Always 1
++ * D2 - Always 1
++ * D1 - Always 1
++ * D0 - Done bit
++ **/
++u32 fifo_icap_get_status(struct hwicap_drvdata *drvdata)
 +{
-+	udelay(3 * AC97_LINK_FRAME + delay_table[d]);
++	u32 status = in_be32(drvdata->base_address + XHI_SR_OFFSET);
++	dev_dbg(drvdata->dev, "Getting status = %x\n", status);
++	return status;
 +}
 +
-+/*
-+ * set up the physical settings of the WM9712
-+ */
-+static void wm9712_phy_init(struct wm97xx *wm)
-+{
-+	u16 dig1 = 0;
-+	u16 dig2 = WM97XX_RPR | WM9712_RPU(1);
++/**
+  * fifo_icap_busy - Return true if the ICAP is still processing a transaction.
+  * @drvdata: a pointer to the drvdata.
+  **/
+ static inline u32 fifo_icap_busy(struct hwicap_drvdata *drvdata)
+ {
+ 	u32 status = in_be32(drvdata->base_address + XHI_SR_OFFSET);
+-	dev_dbg(drvdata->dev, "Getting status = %x\n", status);
+ 	return (status & XHI_SR_DONE_MASK) ? 0 : 1;
+ }
+ 
+diff -puN drivers/char/xilinx_hwicap/fifo_icap.h~xilinx-hwicap-refactor-status-handling-code drivers/char/xilinx_hwicap/fifo_icap.h
+--- a/drivers/char/xilinx_hwicap/fifo_icap.h~xilinx-hwicap-refactor-status-handling-code
++++ a/drivers/char/xilinx_hwicap/fifo_icap.h
+@@ -56,6 +56,7 @@ int fifo_icap_set_configuration(
+ 		u32 *FrameBuffer,
+ 		u32 NumWords);
+ 
++u32 fifo_icap_get_status(struct hwicap_drvdata *drvdata);
+ void fifo_icap_reset(struct hwicap_drvdata *drvdata);
+ void fifo_icap_flush_fifo(struct hwicap_drvdata *drvdata);
+ 
+diff -puN drivers/char/xilinx_hwicap/xilinx_hwicap.c~xilinx-hwicap-refactor-status-handling-code drivers/char/xilinx_hwicap/xilinx_hwicap.c
+--- a/drivers/char/xilinx_hwicap/xilinx_hwicap.c~xilinx-hwicap-refactor-status-handling-code
++++ a/drivers/char/xilinx_hwicap/xilinx_hwicap.c
+@@ -664,12 +664,14 @@ static int __devinit hwicap_setup(struct
+ static struct hwicap_driver_config buffer_icap_config = {
+ 	.get_configuration = buffer_icap_get_configuration,
+ 	.set_configuration = buffer_icap_set_configuration,
++	.get_status = buffer_icap_get_status,
+ 	.reset = buffer_icap_reset,
+ };
+ 
+ static struct hwicap_driver_config fifo_icap_config = {
+ 	.get_configuration = fifo_icap_get_configuration,
+ 	.set_configuration = fifo_icap_set_configuration,
++	.get_status = fifo_icap_get_status,
+ 	.reset = fifo_icap_reset,
+ };
+ 
+diff -puN drivers/char/xilinx_hwicap/xilinx_hwicap.h~xilinx-hwicap-refactor-status-handling-code drivers/char/xilinx_hwicap/xilinx_hwicap.h
+--- a/drivers/char/xilinx_hwicap/xilinx_hwicap.h~xilinx-hwicap-refactor-status-handling-code
++++ a/drivers/char/xilinx_hwicap/xilinx_hwicap.h
+@@ -65,10 +65,27 @@ struct hwicap_drvdata {
+ };
+ 
+ struct hwicap_driver_config {
++	/* Read configuration data given by size into the data buffer.
++	   Return 0 if successful. */
+ 	int (*get_configuration)(struct hwicap_drvdata *drvdata, u32 *data,
+ 			u32 size);
++	/* Write configuration data given by size from the data buffer.
++	   Return 0 if successful. */
+ 	int (*set_configuration)(struct hwicap_drvdata *drvdata, u32 *data,
+ 			u32 size);
++	/* Get the status register, bit pattern given by:
++	 * D8 - 0 = configuration error
++	 * D7 - 1 = alignment found
++	 * D6 - 1 = readback in progress
++	 * D5 - 0 = abort in progress
++	 * D4 - Always 1
++	 * D3 - Always 1
++	 * D2 - Always 1
++	 * D1 - Always 1
++	 * D0 - 1 = operation completed
++	 */
++	u32 (*get_status)(struct hwicap_drvdata *drvdata);
++	/* Reset the hw */
+ 	void (*reset)(struct hwicap_drvdata *drvdata);
+ };
+ 
+@@ -163,6 +180,13 @@ struct config_registers {
+ /* Constant to use for CRC check when CRC has been disabled */
+ #define XHI_DISABLED_AUTO_CRC       0x0000DEFCUL
+ 
++/* Meanings of the bits returned by get_status */
++#define XHI_SR_CFGERR_N_MASK 0x00000100 /* Config Error Mask */
++#define XHI_SR_DALIGN_MASK 0x00000080 /* Data Alignment Mask */
++#define XHI_SR_RIP_MASK 0x00000040 /* Read back Mask */
++#define XHI_SR_IN_ABORT_N_MASK 0x00000020 /* Select Map Abort Mask */
++#define XHI_SR_DONE_MASK 0x00000001 /* Done bit Mask  */
 +
-+	/* WM9712 rpu */
-+	if (rpu) {
-+		dig2 &= 0xffc0;
-+		dig2 |= WM9712_RPU(rpu);
-+		dev_dbg(wm->dev, "setting pen detect pull-up to %d Ohms",
-+			64000 / rpu);
-+	}
-+
-+	/* touchpanel pressure current*/
-+	if (pil == 2) {
-+		dig2 |= WM9712_PIL;
-+		dev_dbg(wm->dev,
-+			"setting pressure measurement current to 400uA.");
-+	} else if (pil)
-+		dev_dbg(wm->dev,
-+			"setting pressure measurement current to 200uA.");
-+	if (!pil)
-+		pressure = 0;
-+
-+	/* WM9712 five wire */
-+	if (five_wire) {
-+		dig2 |= WM9712_45W;
-+		dev_dbg(wm->dev, "setting 5-wire touchscreen mode.");
-+	}
-+
-+	/* polling mode sample settling delay */
-+	if (delay < 0 || delay > 15) {
-+		dev_dbg(wm->dev, "supplied delay out of range.");
-+		delay = 4;
-+	}
-+	dig1 &= 0xff0f;
-+	dig1 |= WM97XX_DELAY(delay);
-+	dev_dbg(wm->dev, "setting adc sample delay to %d u Secs.",
-+		delay_table[delay]);
-+
-+	/* mask */
-+	dig2 |= ((mask & 0x3) << 6);
-+	if (mask) {
-+		u16 reg;
-+		/* Set GPIO4 as Mask Pin*/
-+		reg = wm97xx_reg_read(wm, AC97_MISC_AFE);
-+		wm97xx_reg_write(wm, AC97_MISC_AFE, reg | WM97XX_GPIO_4);
-+		reg = wm97xx_reg_read(wm, AC97_GPIO_CFG);
-+		wm97xx_reg_write(wm, AC97_GPIO_CFG, reg | WM97XX_GPIO_4);
-+	}
-+
-+	/* wait - coord mode */
-+	if (coord)
-+		dig2 |= WM9712_WAIT;
-+
-+	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER1, dig1);
-+	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2, dig2);
-+}
-+
-+static void wm9712_dig_enable(struct wm97xx *wm, int enable)
-+{
-+	u16 dig2 = wm->dig[2];
-+
-+	if (enable) {
-+		wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2,
-+				 dig2 | WM97XX_PRP_DET_DIG);
-+		wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER_RD); /* dummy read */
-+	} else
-+		wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2,
-+				 dig2 & ~WM97XX_PRP_DET_DIG);
-+}
-+
-+static void wm9712_aux_prepare(struct wm97xx *wm)
-+{
-+	memcpy(wm->dig_save, wm->dig, sizeof(wm->dig));
-+	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER1, 0);
-+	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2, WM97XX_PRP_DET_DIG);
-+}
-+
-+static void wm9712_dig_restore(struct wm97xx *wm)
-+{
-+	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER1, wm->dig_save[1]);
-+	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2, wm->dig_save[2]);
-+}
-+
-+static inline int is_pden(struct wm97xx *wm)
-+{
-+	return wm->dig[2] & WM9712_PDEN;
-+}
-+
-+/*
-+ * Read a sample from the WM9712 adc in polling mode.
-+ */
-+static int wm9712_poll_sample(struct wm97xx *wm, int adcsel, int *sample)
-+{
-+	int timeout = 5 * delay;
-+
-+	if (!wm->pen_probably_down) {
-+		u16 data = wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER_RD);
-+		if (!(data & WM97XX_PEN_DOWN))
-+			return RC_PENUP;
-+		wm->pen_probably_down = 1;
-+	}
-+
-+	/* set up digitiser */
-+	if (adcsel & 0x8000)
-+		adcsel = ((adcsel & 0x7fff) + 3) << 12;
-+
-+	if (wm->mach_ops && wm->mach_ops->pre_sample)
-+		wm->mach_ops->pre_sample(adcsel);
-+	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER1,
-+			 adcsel | WM97XX_POLL | WM97XX_DELAY(delay));
-+
-+	/* wait 3 AC97 time slots + delay for conversion */
-+	poll_delay(delay);
-+
-+	/* wait for POLL to go low */
-+	while ((wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER1) & WM97XX_POLL)
-+	       && timeout) {
-+		udelay(AC97_LINK_FRAME);
-+		timeout--;
-+	}
-+
-+	if (timeout <= 0) {
-+		/* If PDEN is set, we can get a timeout when pen goes up */
-+		if (is_pden(wm))
-+			wm->pen_probably_down = 0;
-+		else
-+			dev_dbg(wm->dev, "adc sample timeout");
-+		return RC_PENUP;
-+	}
-+
-+	*sample = wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER_RD);
-+	if (wm->mach_ops && wm->mach_ops->post_sample)
-+		wm->mach_ops->post_sample(adcsel);
-+
-+	/* check we have correct sample */
-+	if ((*sample & WM97XX_ADCSEL_MASK) != adcsel) {
-+		dev_dbg(wm->dev, "adc wrong sample, read %x got %x", adcsel,
-+		*sample & WM97XX_ADCSEL_MASK);
-+		return RC_PENUP;
-+	}
-+
-+	if (!(*sample & WM97XX_PEN_DOWN)) {
-+		wm->pen_probably_down = 0;
-+		return RC_PENUP;
-+	}
-+
-+	return RC_VALID;
-+}
-+
-+/*
-+ * Read a coord from the WM9712 adc in polling mode.
-+ */
-+static int wm9712_poll_coord(struct wm97xx *wm, struct wm97xx_data *data)
-+{
-+	int timeout = 5 * delay;
-+
-+	if (!wm->pen_probably_down) {
-+		u16 data_rd = wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER_RD);
-+		if (!(data_rd & WM97XX_PEN_DOWN))
-+			return RC_PENUP;
-+		wm->pen_probably_down = 1;
-+	}
-+
-+	/* set up digitiser */
-+	if (wm->mach_ops && wm->mach_ops->pre_sample)
-+		wm->mach_ops->pre_sample(WM97XX_ADCSEL_X | WM97XX_ADCSEL_Y);
-+
-+	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER1,
-+		WM97XX_COO | WM97XX_POLL | WM97XX_DELAY(delay));
-+
-+	/* wait 3 AC97 time slots + delay for conversion and read x */
-+	poll_delay(delay);
-+	data->x = wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER_RD);
-+	/* wait for POLL to go low */
-+	while ((wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER1) & WM97XX_POLL)
-+	       && timeout) {
-+		udelay(AC97_LINK_FRAME);
-+		timeout--;
-+	}
-+
-+	if (timeout <= 0) {
-+		/* If PDEN is set, we can get a timeout when pen goes up */
-+		if (is_pden(wm))
-+			wm->pen_probably_down = 0;
-+		else
-+			dev_dbg(wm->dev, "adc sample timeout");
-+		return RC_PENUP;
-+	}
-+
-+	/* read back y data */
-+	data->y = wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER_RD);
-+	if (pil)
-+		data->p = wm97xx_reg_read(wm, AC97_WM97XX_DIGITISER_RD);
-+	else
-+		data->p = DEFAULT_PRESSURE;
-+
-+	if (wm->mach_ops && wm->mach_ops->post_sample)
-+		wm->mach_ops->post_sample(WM97XX_ADCSEL_X | WM97XX_ADCSEL_Y);
-+
-+	/* check we have correct sample */
-+	if (!(data->x & WM97XX_ADCSEL_X) || !(data->y & WM97XX_ADCSEL_Y))
-+		goto err;
-+	if (pil && !(data->p & WM97XX_ADCSEL_PRES))
-+		goto err;
-+
-+	if (!(data->x & WM97XX_PEN_DOWN)) {
-+		wm->pen_probably_down = 0;
-+		return RC_PENUP;
-+	}
-+	return RC_VALID;
-+err:
-+	return RC_PENUP;
-+}
-+
-+/*
-+ * Sample the WM9712 touchscreen in polling mode
-+ */
-+static int wm9712_poll_touch(struct wm97xx *wm, struct wm97xx_data *data)
-+{
-+	int rc;
-+
-+	if (coord) {
-+		rc = wm9712_poll_coord(wm, data);
-+		if (rc != RC_VALID)
-+			return rc;
-+	} else {
-+		rc = wm9712_poll_sample(wm, WM97XX_ADCSEL_X, &data->x);
-+		if (rc != RC_VALID)
-+			return rc;
-+
-+		rc = wm9712_poll_sample(wm, WM97XX_ADCSEL_Y, &data->y);
-+		if (rc != RC_VALID)
-+			return rc;
-+
-+		if (pil && !five_wire) {
-+			rc = wm9712_poll_sample(wm, WM97XX_ADCSEL_PRES,
-+						&data->p);
-+			if (rc != RC_VALID)
-+				return rc;
-+		} else
-+			data->p = DEFAULT_PRESSURE;
-+	}
-+	return RC_VALID;
-+}
-+
-+/*
-+ * Enable WM9712 continuous mode, i.e. touch data is streamed across
-+ * an AC97 slot
-+ */
-+static int wm9712_acc_enable(struct wm97xx *wm, int enable)
-+{
-+	u16 dig1, dig2;
-+	int ret = 0;
-+
-+	dig1 = wm->dig[1];
-+	dig2 = wm->dig[2];
-+
-+	if (enable) {
-+		/* continous mode */
-+		if (wm->mach_ops->acc_startup) {
-+			ret = wm->mach_ops->acc_startup(wm);
-+			if (ret < 0)
-+				return ret;
-+		}
-+		dig1 &= ~(WM97XX_CM_RATE_MASK | WM97XX_ADCSEL_MASK |
-+			WM97XX_DELAY_MASK | WM97XX_SLT_MASK);
-+		dig1 |= WM97XX_CTC | WM97XX_COO | WM97XX_SLEN |
-+			WM97XX_DELAY(delay) |
-+			WM97XX_SLT(wm->acc_slot) |
-+			WM97XX_RATE(wm->acc_rate);
-+		if (pil)
-+			dig1 |= WM97XX_ADCSEL_PRES;
-+		dig2 |= WM9712_PDEN;
-+	} else {
-+		dig1 &= ~(WM97XX_CTC | WM97XX_COO | WM97XX_SLEN);
-+		dig2 &= ~WM9712_PDEN;
-+		if (wm->mach_ops->acc_shutdown)
-+			wm->mach_ops->acc_shutdown(wm);
-+	}
-+
-+	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER1, dig1);
-+	wm97xx_reg_write(wm, AC97_WM97XX_DIGITISER2, dig2);
-+	return 0;
-+}
-+
-+struct wm97xx_codec_drv wm9712_codec = {
-+	.id = 	WM9712_ID2,
-+	.name = "wm9712",
-+	.poll_sample = wm9712_poll_sample,
-+	.poll_touch = wm9712_poll_touch,
-+	.acc_enable = wm9712_acc_enable,
-+	.phy_init = wm9712_phy_init,
-+	.dig_enable = wm9712_dig_enable,
-+	.dig_restore = wm9712_dig_restore,
-+	.aux_prepare = wm9712_aux_prepare,
-+};
-+EXPORT_SYMBOL_GPL(wm9712_codec);
-+
-+/* Module information */
-+MODULE_AUTHOR("Liam Girdwood <liam.girdwood@wolfsonmicro.com>");
-+MODULE_DESCRIPTION("WM9712 Touch Screen Driver");
-+MODULE_LICENSE("GPL");
+ /**
+  * hwicap_type_1_read - Generates a Type 1 read packet header.
+  * @reg: is the address of the register to be read back.
 _
 
-Patches currently in -mm which might be from broonie@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from stephen.neuendorffer@xilinx.com are
 
-git-alsa-tiwai.patch
-git-arm.patch
-git-wm97xx.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-powerpc.patch
 
