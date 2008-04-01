@@ -1,96 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-git-rejects.patch removed from -mm tree
-Date: Tue, 01 Apr 2008 14:31:44 -0700
-Message-ID: <200804012131.m31LViLT014611@imap1.linux-foundation.org>
+Subject: - drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch removed from -mm tree
+Date: Tue, 01 Apr 2008 14:32:31 -0700
+Message-ID: <200804012132.m31LWV8c014627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59329 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42880 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758532AbYDAVbr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 17:31:47 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m31LVirp018650
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 1 Apr 2008 14:31:46 -0700
+	by vger.kernel.org with ESMTP id S1755533AbYDAVcw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 17:32:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, isely@pobox.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb-git-rejects
+     drivers/media/video/pvrusb2/pvrusb2-sysfs.c: fix printk warnings
 has been removed from the -mm tree.  Its filename was
-     git-dvb-git-rejects.patch
+     drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-dvb-git-rejects
+Subject: drivers/media/video/pvrusb2/pvrusb2-sysfs.c: fix printk warnings
 From: Andrew Morton <akpm@linux-foundation.org>
+
+drivers/media/video/pvrusb2/pvrusb2-sysfs.c: In function 'store_val_norm':
+drivers/media/video/pvrusb2/pvrusb2-sysfs.c:290: warning: field precision should have type 'int', but argument 4 has type 'size_t'
+drivers/media/video/pvrusb2/pvrusb2-sysfs.c: In function 'store_val_custom':
+drivers/media/video/pvrusb2/pvrusb2-sysfs.c:303: warning: field precision should have type 'int', but argument 4 has type 'size_t'
+
+Also attempt to repair coding-style.  Please always use checkpatch - it is
+quite simple.
+
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Mike Isely <isely@pobox.com>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/common/saa7146_core.c |   14 --------------
- drivers/media/common/saa7146_fops.c |    4 ----
- 2 files changed, 18 deletions(-)
+ drivers/media/video/pvrusb2/pvrusb2-sysfs.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN drivers/media/common/saa7146_core.c~git-dvb-git-rejects drivers/media/common/saa7146_core.c
---- a/drivers/media/common/saa7146_core.c~git-dvb-git-rejects
-+++ a/drivers/media/common/saa7146_core.c
-@@ -306,35 +306,21 @@ static irqreturn_t interrupt_hw(int irq,
- 		return IRQ_NONE;
- 	}
+diff -puN drivers/media/video/pvrusb2/pvrusb2-sysfs.c~drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+--- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c~drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings
++++ a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+@@ -289,9 +289,10 @@ static ssize_t store_val_norm(int id,str
+ 	int ret;
+ 	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
+ 	pvr2_sysfs_trace("pvr2_sysfs(%p) store_val_norm(cid=%d) \"%.*s\"",
+-			 sfp,id,count,buf);
+-	ret = store_val_any(id,0,sfp,buf,count);
+-	if (!ret) ret = count;
++			 sfp, id, (int)count, buf);
++	ret = store_val_any(id, 0, sfp, buf, count);
++	if (!ret)
++		ret = count;
+ 	return ret;
+ }
  
--<<<<<<< HEAD:drivers/media/common/saa7146_core.c
- 	if (dev->ext) {
- 		if (dev->ext->irq_mask & isr) {
- 			if (dev->ext->irq_func)
--=======
--	if( NULL != (dev->ext)) {
--		if( 0 != (dev->ext->irq_mask & isr )) {
--			if( NULL != dev->ext->irq_func ) {
-->>>>>>> FETCH_HEAD:drivers/media/common/saa7146_core.c
- 				dev->ext->irq_func(dev, &isr);
- 			isr &= ~dev->ext->irq_mask;
- 		}
- 	}
- 	if (0 != (isr & (MASK_27))) {
- 		DEB_INT(("irq: RPS0 (0x%08x).\n",isr));
--<<<<<<< HEAD:drivers/media/common/saa7146_core.c
- 		if (dev->vv_data && dev->vv_callback)
--=======
--		if( NULL != dev->vv_data && NULL != dev->vv_callback) {
-->>>>>>> FETCH_HEAD:drivers/media/common/saa7146_core.c
- 			dev->vv_callback(dev,isr);
- 		isr &= ~MASK_27;
- 	}
- 	if (0 != (isr & (MASK_28))) {
--<<<<<<< HEAD:drivers/media/common/saa7146_core.c
- 		if (dev->vv_data && dev->vv_callback)
--=======
--		if( NULL != dev->vv_data && NULL != dev->vv_callback) {
-->>>>>>> FETCH_HEAD:drivers/media/common/saa7146_core.c
- 			dev->vv_callback(dev,isr);
- 		isr &= ~MASK_28;
- 	}
-diff -puN drivers/media/common/saa7146_fops.c~git-dvb-git-rejects drivers/media/common/saa7146_fops.c
---- a/drivers/media/common/saa7146_fops.c~git-dvb-git-rejects
-+++ a/drivers/media/common/saa7146_fops.c
-@@ -272,11 +272,7 @@ static int fops_open(struct inode *inode
+@@ -302,9 +303,10 @@ static ssize_t store_val_custom(int id,s
+ 	int ret;
+ 	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
+ 	pvr2_sysfs_trace("pvr2_sysfs(%p) store_val_custom(cid=%d) \"%.*s\"",
+-			 sfp,id,count,buf);
+-	ret = store_val_any(id,1,sfp,buf,count);
+-	if (!ret) ret = count;
++			 sfp, id, (int)count, buf);
++	ret = store_val_any(id, 1, sfp, buf, count);
++	if (!ret)
++		ret = count;
+ 	return ret;
+ }
  
- 	result = 0;
- out:
--<<<<<<< HEAD:drivers/media/common/saa7146_fops.c
- 	if (fh && result != 0) {
--=======
--	if( fh != NULL && result != 0 ) {
-->>>>>>> FETCH_HEAD:drivers/media/common/saa7146_fops.c
- 		kfree(fh);
- 		file->private_data = NULL;
- 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,7 +99,6 @@ pm-remove-destroy_suspended_device.patch
 scsi-add-iscsi-ibft-support.patch
 git-drm.patch
 git-dvb.patch
-git-dvb-git-rejects.patch
 drivers-media-video-pvrusb2-pvrusb2-sysfsc-fix-printk-warnings.patch
 git-hwmon.patch
 git-gfs2-nmw.patch
