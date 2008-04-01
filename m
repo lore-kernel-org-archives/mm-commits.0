@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + hci_usb-remove-code-obfuscation.patch added to -mm tree
-Date: Tue, 01 Apr 2008 15:29:34 -0700
-Message-ID: <200804012229.m31MTYkO016893@imap1.linux-foundation.org>
+Subject: + hci_usb-do-not-initialize-static-variables-to-0.patch added to -mm tree
+Date: Tue, 01 Apr 2008 15:29:27 -0700
+Message-ID: <200804012229.m31MTV0r016884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59920 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45613 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757159AbYDAWaN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 18:30:13 -0400
+	by vger.kernel.org with ESMTP id S1756722AbYDAWaM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 18:30:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: pavel@ucw.cz, hidave.darkstar@gmail.com, marcel@holtmann.org, pavel@suse.cz
 
 
 The patch titled
-     hci_usb: remove code obfuscation
+     hci_usb: do not initialize static variables to 0
 has been added to the -mm tree.  Its filename is
-     hci_usb-remove-code-obfuscation.patch
+     hci_usb-do-not-initialize-static-variables-to-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hci_usb: remove code obfuscation
+Subject: hci_usb: do not initialize static variables to 0
 From: Pavel Machek <pavel@ucw.cz>
 
-_urb_free is an alias for kfree... making code longer & harder to
-read. Remove it.
+hci_usb: do not initialize static variables to 0.
 
 Signed-off-by: Pavel Machek <pavel@suse.cz>
 Cc: Marcel Holtmann <marcel@holtmann.org>
@@ -45,66 +44,44 @@ Cc: Dave Young <hidave.darkstar@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/hci_usb.c |   10 +++++-----
- drivers/bluetooth/hci_usb.h |    5 -----
- 2 files changed, 5 insertions(+), 10 deletions(-)
+ drivers/bluetooth/hci_usb.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/bluetooth/hci_usb.c~hci_usb-remove-code-obfuscation drivers/bluetooth/hci_usb.c
---- a/drivers/bluetooth/hci_usb.c~hci_usb-remove-code-obfuscation
+diff -puN drivers/bluetooth/hci_usb.c~hci_usb-do-not-initialize-static-variables-to-0 drivers/bluetooth/hci_usb.c
+--- a/drivers/bluetooth/hci_usb.c~hci_usb-do-not-initialize-static-variables-to-0
 +++ a/drivers/bluetooth/hci_usb.c
-@@ -265,7 +265,7 @@ static int hci_usb_intr_rx_submit(struct
- 		BT_ERR("%s intr rx submit failed urb %p err %d",
- 				husb->hdev->name, urb, err);
- 		_urb_unlink(_urb);
--		_urb_free(_urb);
-+		kfree(_urb);
- 		kfree(buf);
- 	}
- 	return err;
-@@ -302,7 +302,7 @@ static int hci_usb_bulk_rx_submit(struct
- 		BT_ERR("%s bulk rx submit failed urb %p err %d",
- 				husb->hdev->name, urb, err);
- 		_urb_unlink(_urb);
--		_urb_free(_urb);
-+		kfree(_urb);
- 		kfree(buf);
- 	}
- 	return err;
-@@ -353,7 +353,7 @@ static int hci_usb_isoc_rx_submit(struct
- 		BT_ERR("%s isoc rx submit failed urb %p err %d",
- 				husb->hdev->name, urb, err);
- 		_urb_unlink(_urb);
--		_urb_free(_urb);
-+		kfree(_urb);
- 		kfree(buf);
- 	}
- 	return err;
-@@ -431,7 +431,7 @@ static void hci_usb_unlink_urbs(struct h
- 					husb->hdev->name, _urb, _urb->type, urb);
- 			kfree(urb->setup_packet);
- 			kfree(urb->transfer_buffer);
--			_urb_free(_urb);
-+			kfree(_urb);
- 		}
- 	}
- }
-@@ -490,7 +490,7 @@ static inline int hci_usb_send_ctrl(stru
+@@ -62,13 +62,13 @@
+ #define URB_ZERO_PACKET 0
+ #endif
  
- 		dr = kmalloc(sizeof(*dr), GFP_ATOMIC);
- 		if (!dr) {
--			_urb_free(_urb);
-+			kfree(_urb);
- 			return -ENOMEM;
- 		}
- 	} else
-diff -puN drivers/bluetooth/hci_usb.h~hci_usb-remove-code-obfuscation drivers/bluetooth/hci_usb.h
---- a/drivers/bluetooth/hci_usb.h~hci_usb-remove-code-obfuscation
-+++ a/drivers/bluetooth/hci_usb.h
-@@ -60,11 +60,6 @@ struct _urb {
- 	struct urb        urb;
- };
+-static int ignore = 0;
+-static int ignore_dga = 0;
+-static int ignore_csr = 0;
+-static int ignore_sniffer = 0;
+-static int disable_scofix = 0;
+-static int force_scofix = 0;
+-static int reset = 0;
++static int ignore;
++static int ignore_dga;
++static int ignore_csr;
++static int ignore_sniffer;
++static int disable_scofix;
++static int force_scofix;
++static int reset;
  
--static inline void _urb_free(struct _urb *_urb)
--{
--	kfree(_urb);
--}
+ #ifdef CONFIG_BT_HCIUSB_SCO
+ static int isoc = 2;
+_
+
+Patches currently in -mm which might be from pavel@ucw.cz are
+
+git-x86.patch
+git-acpi.patch
+pm-remove-destroy_suspended_device.patch
+git-hrt.patch
+hci_usb-do-not-initialize-static-variables-to-0.patch
+hci_usb-remove-code-obfuscation.patch
+hci_usbh-fix-hard-to-trigger-race.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+
