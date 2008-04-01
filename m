@@ -1,143 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: + char-rio-fix-sparse-warnings.patch added to -mm tree
-Date: Mon, 31 Mar 2008 16:58:13 -0700
-Message-ID: <200803312358.m2VNwDmr032499@imap1.linux-foundation.org>
+Subject: - paravirt_ops-dont-steal-memory-resources-in-paravirt_disable_iospace.patch removed from -mm tree
+Date: Mon, 31 Mar 2008 18:23:09 -0700
+Message-ID: <200804010123.m311N9jq002987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60545 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751272AbYCaX6q (ORCPT
+	by vger.kernel.org with ESMTP id S1751530AbYDABXp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 31 Mar 2008 19:58:46 -0400
+	Mon, 31 Mar 2008 21:23:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: jirislaby@gmail.com
+To: jeremy@goop.org, jeremy.fitzhardinge@citrix.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: rio, fix sparse warnings
-has been added to the -mm tree.  Its filename is
-     char-rio-fix-sparse-warnings.patch
+     paravirt_ops: don't steal memory resources in paravirt_disable_iospace
+has been removed from the -mm tree.  Its filename was
+     paravirt_ops-dont-steal-memory-resources-in-paravirt_disable_iospace.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: rio, fix sparse warnings
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: paravirt_ops: don't steal memory resources in paravirt_disable_iospace
+From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-Add some locks and unlocks to some code paths.
+The memory resource is also used for main memory, and we need it to allocate
+physical addresses for memory hotplug.  Knobbling io space is enough to get
+the job done anyway.
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rio/riotable.c |    4 +++-
- drivers/char/rio/riotty.c   |    4 ++++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ arch/x86/kernel/paravirt.c |   18 +-----------------
+ 1 file changed, 1 insertion(+), 17 deletions(-)
 
-diff -puN drivers/char/rio/riotable.c~char-rio-fix-sparse-warnings drivers/char/rio/riotable.c
---- a/drivers/char/rio/riotable.c~char-rio-fix-sparse-warnings
-+++ a/drivers/char/rio/riotable.c
-@@ -425,8 +425,10 @@ int RIOApel(struct rio_info *p)
+diff -puN arch/x86/kernel/paravirt.c~paravirt_ops-dont-steal-memory-resources-in-paravirt_disable_iospace arch/x86/kernel/paravirt.c
+--- a/arch/x86/kernel/paravirt.c~paravirt_ops-dont-steal-memory-resources-in-paravirt_disable_iospace
++++ a/arch/x86/kernel/paravirt.c
+@@ -206,13 +206,6 @@ static struct resource reserve_ioports =
+ 	.flags = IORESOURCE_IO | IORESOURCE_BUSY,
+ };
  
- 		MapP = &p->RIOConnectTable[Next++];
- 		MapP->HostUniqueNum = HostP->UniqueNum;
--		if ((HostP->Flags & RUN_STATE) != RC_RUNNING)
-+		if ((HostP->Flags & RUN_STATE) != RC_RUNNING) {
-+			rio_spin_unlock_irqrestore(&HostP->HostLock, flags);
- 			continue;
-+		}
- 		MapP->RtaUniqueNum = 0;
- 		MapP->ID = 0;
- 		MapP->Flags = SLOT_IN_USE;
-diff -puN drivers/char/rio/riotty.c~char-rio-fix-sparse-warnings drivers/char/rio/riotty.c
---- a/drivers/char/rio/riotty.c~char-rio-fix-sparse-warnings
-+++ a/drivers/char/rio/riotty.c
-@@ -320,6 +320,7 @@ int riotopen(struct tty_struct *tty, str
- 			PortP->State |= RIO_WOPEN;
- 			rio_spin_unlock_irqrestore(&PortP->portSem, flags);
- 			if (RIODelay(PortP, HUNDRED_MS) == RIO_FAIL) {
-+				rio_spin_lock_irqsave(&PortP->portSem, flags);
- 				/*
- 				 ** ACTION: verify that this is a good thing
- 				 ** to do here. -- ???
-@@ -335,6 +336,7 @@ int riotopen(struct tty_struct *tty, str
- 				func_exit();
- 				return -EINTR;
- 			}
-+			rio_spin_lock_irqsave(&PortP->portSem, flags);
- 		}
- 		PortP->State &= ~RIO_WOPEN;
- 	}
-@@ -494,6 +496,7 @@ int riotclose(void *ptr)
- 
- 	if (RIOShortCommand(p, PortP, RIOC_CLOSE, 1, 0) == RIO_FAIL) {
- 		RIOPreemptiveCmd(p, PortP, RIOC_FCLOSE);
-+		rio_spin_lock_irqsave(&PortP->portSem, flags);
- 		goto close_end;
- 	}
- 
-@@ -509,6 +512,7 @@ int riotclose(void *ptr)
- 
- 			if (p->RIOHalted) {
- 				RIOClearUp(PortP);
-+				rio_spin_lock_irqsave(&PortP->portSem, flags);
- 				goto close_end;
- 			}
- 			if (RIODelay(PortP, HUNDRED_MS) == RIO_FAIL) {
-_
-
-Patches currently in -mm which might be from jirislaby@gmail.com are
-
-git-hid.patch
-input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
-git-net.patch
-capabilities-implement-per-process-securebits-fix.patch
-misc-phantom-add-compat-ioctl.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-misc-phantom-fix-poll.patch
-misc-phantom-consistent-whitespace.patch
-mxser-prepare-for-bkl-pushdown.patch
-tty-bkl-pushdown-fix.patch
-tty-bkl-pushdown-fix1.patch
-char-moxa-remove-static-isa-support.patch
-char-moxa-cleanup-module-param-passed-isa-init.patch
-char-moxa-pci-io-space-fixup.patch
-char-moxa-fix-tiocg-ssoftcar-param.patch
-char-moxa-add-firmware-loading.patch
-char-moxa-merge-c2xx-and-c320-firmware-loading.patch
-char-moxa-remove-port-port.patch
-char-moxa-remove-unused-port-entries.patch
-char-moxa-centralize-board-readiness.patch
-char-moxa-timer-cleanup.patch
-char-moxa-ioctl-cleanup.patch
-char-moxa-merge-2-poll-functions.patch
-char-moxa-cleanup-rx-tx.patch
-char-moxa-serialise-timer.patch
-char-moxa-rework-open-close.patch
-char-moxa-little-cleanup.patch
-char-moxa-remove-useless-tty-functions.patch
-char-moxa-introduce-moxa_is_320-macro.patch
-char-moxa-notify-about-board-readiness.patch
-char-moxa-update-credits.patch
-char-moxa-add-firmware-loading-fix.patch
-char-espc-fix-possible-double-unlock.patch
-char-rio-fix-cirrus-defines.patch
-char-ip2-fix-sparse-warnings.patch
-char-rio-fix-sparse-warnings.patch
-mxser-convert-large-macros-to-functions.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
-
+-static struct resource reserve_iomem = {
+-	.start = 0,
+-	.end = -1,
+-	.name = "paravirt-iomem",
+-	.flags = IORESOURCE_MEM | IORESOURCE_BUSY,
+-};
+-
+ /*
+  * Reserve the whole legacy IO space to prevent any legacy drivers
+  * from wasting time probing for their hardware.  This is a fairly
+@@ -222,16 +215,7 @@ static struct resource reserve_iomem = {
+  */
+ int paravirt_disable_iospace(void)
+ {
+-	int ret;
+-
+-	ret = request_resource(&ioport_resource, &reserve_ioports);
+-	if (ret == 0) {
+-		ret = request_resource(&iomem_resource, &reserve_iomem);
+-		if (ret)
+-			release_resource(&reserve_ioports);
+-	}
