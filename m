@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ata-swncq-should-be-enabled-by-default.patch added to -mm tree
-Date: Tue, 01 Apr 2008 12:22:18 -0700
-Message-ID: <200804011922.m31JMI41009149@imap1.linux-foundation.org>
+Subject: + char-moxa-centralize-board-readiness-warning-fix.patch added to -mm tree
+Date: Tue, 01 Apr 2008 12:28:35 -0700
+Message-ID: <200804011928.m31JSZmG009379@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47261 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756576AbYDATWe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 15:22:34 -0400
+	by vger.kernel.org with ESMTP id S1756507AbYDAT2h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 15:28:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zboszor@dunaweb.hu, hancockr@shaw.ca, htejun@gmail.com, jeff@garzik.org
+Cc: jirislaby@gmail.com
 
 
 The patch titled
-     ata: SWNCQ should be enabled by default
+     Char: moxa, fix compiler warning
 has been added to the -mm tree.  Its filename is
-     ata-swncq-should-be-enabled-by-default.patch
+     char-moxa-centralize-board-readiness-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ata: SWNCQ should be enabled by default
-From: Zoltan Boszormenyi <zboszor@dunaweb.hu>
+Subject: Char: moxa, fix compiler warning
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Enable SWNCQ by default for testing in 2.6.26-rcX[-mm]
+On CONFIG_MOXA_INTELLIO=y, this warning was emitted:
+drivers/char/moxa.c: In function `moxa_init':
+drivers/char/moxa.c:1000: warning: unused variable `i'
 
-Signed-off-by: Zoltan Boszormenyi <zboszor@dunaweb.hu>
-Cc: Robert Hancock <hancockr@shaw.ca>
-Acked-by: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Move it into the conditional section where is only used.
+
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/sata_nv.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/moxa.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/ata/sata_nv.c~ata-swncq-should-be-enabled-by-default drivers/ata/sata_nv.c
---- a/drivers/ata/sata_nv.c~ata-swncq-should-be-enabled-by-default
-+++ a/drivers/ata/sata_nv.c
-@@ -532,7 +532,7 @@ MODULE_DEVICE_TABLE(pci, nv_pci_tbl);
- MODULE_VERSION(DRV_VERSION);
+diff -puN drivers/char/moxa.c~char-moxa-centralize-board-readiness-warning-fix drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-centralize-board-readiness-warning-fix
++++ a/drivers/char/moxa.c
+@@ -826,7 +826,7 @@ static struct pci_driver moxa_pci_driver
  
- static int adma_enabled = 1;
--static int swncq_enabled;
-+static int swncq_enabled = 1;	/* FIXME: for testing during 2.6.26-rcX[-mmY] */
- 
- static void nv_adma_register_mode(struct ata_port *ap)
+ static int __init moxa_init(void)
  {
-@@ -2485,5 +2485,5 @@ module_exit(nv_exit);
- module_param_named(adma, adma_enabled, bool, 0444);
- MODULE_PARM_DESC(adma, "Enable use of ADMA (Default: true)");
- module_param_named(swncq, swncq_enabled, bool, 0444);
--MODULE_PARM_DESC(swncq, "Enable use of SWNCQ (Default: false)");
-+MODULE_PARM_DESC(swncq, "Enable use of SWNCQ (Default: true)");
+-	unsigned int i, isabrds = 0;
++	unsigned int isabrds = 0;
+ 	int retval = 0;
  
+ 	printk(KERN_INFO "MOXA Intellio family driver version %s\n",
+@@ -862,6 +862,7 @@ static int __init moxa_init(void)
+ #ifdef MODULE
+ 	{
+ 	struct moxa_board_conf *brd = moxa_boards;
++	unsigned int i;
+ 	for (i = 0; i < MAX_BOARDS; i++) {
+ 		if (!baseaddr[i])
+ 			break;
 _
 
-Patches currently in -mm which might be from zboszor@dunaweb.hu are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
-ata-swncq-should-be-enabled-by-default.patch
+char-ip2-fix-sparse-warnings.patch
+char-rio-fix-sparse-warnings.patch
+git-hid.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
+git-net.patch
+capabilities-implement-per-process-securebits-fix.patch
+misc-phantom-add-compat-ioctl.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+misc-phantom-fix-poll.patch
+misc-phantom-consistent-whitespace.patch
+mxser-prepare-for-bkl-pushdown.patch
+tty-bkl-pushdown-fix.patch
+tty-bkl-pushdown-fix1.patch
+char-moxa-remove-static-isa-support.patch
+char-moxa-cleanup-module-param-passed-isa-init.patch
+char-moxa-pci-io-space-fixup.patch
+char-moxa-fix-tiocg-ssoftcar-param.patch
+char-moxa-add-firmware-loading.patch
+char-moxa-merge-c2xx-and-c320-firmware-loading.patch
+char-moxa-remove-port-port.patch
+char-moxa-remove-unused-port-entries.patch
+char-moxa-centralize-board-readiness.patch
+char-moxa-centralize-board-readiness-warning-fix.patch
+char-moxa-timer-cleanup.patch
+char-moxa-ioctl-cleanup.patch
+char-moxa-merge-2-poll-functions.patch
+char-moxa-cleanup-rx-tx.patch
+char-moxa-serialise-timer.patch
+char-moxa-rework-open-close.patch
+char-moxa-little-cleanup.patch
+char-moxa-remove-useless-tty-functions.patch
+char-moxa-introduce-moxa_is_320-macro.patch
+char-moxa-notify-about-board-readiness.patch
+char-moxa-update-credits.patch
+char-moxa-add-firmware-loading-fix.patch
+char-espc-fix-possible-double-unlock.patch
+char-rio-fix-cirrus-defines.patch
+mxser-convert-large-macros-to-functions.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
