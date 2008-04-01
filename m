@@ -1,75 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-remove-redundant-display-of-free-swap-space-in-show_mem.patch removed from -mm tree
-Date: Tue, 01 Apr 2008 14:37:50 -0700
-Message-ID: <200804012137.m31Lborj014865@imap1.linux-foundation.org>
+Subject: - drivers-block-viodasdc-use-field_sizeof.patch removed from -mm tree
+Date: Tue, 01 Apr 2008 14:37:47 -0700
+Message-ID: <200804012137.m31Lbl1q014861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47658 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760484AbYDAVh5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 17:37:57 -0400
+	by vger.kernel.org with ESMTP id S1759888AbYDAViS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Apr 2008 17:38:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@saeurebad.de, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: julia@diku.dk, benh@kernel.crashing.org, jens.axboe@oracle.com, paulus@samba.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: remove redundant display of free swap space in show_mem()
+     drivers/block/viodasd.c: Use FIELD_SIZEOF
 has been removed from the -mm tree.  Its filename was
-     powerpc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+     drivers-block-viodasdc-use-field_sizeof.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: remove redundant display of free swap space in show_mem()
-From: Johannes Weiner <hannes@saeurebad.de>
+Subject: drivers/block/viodasd.c: Use FIELD_SIZEOF
+From: Julia Lawall <julia@diku.dk>
 
-show_mem() has no need to print the amount of free swap space manually because
-show_free_areas() does this already and is called by the former.
+Robert P.J. Day proposed to use the macro FIELD_SIZEOF in replace of code
+that matches its definition.
 
-The two outputs only differ in text formatting:
+The modification was made using the following semantic patch
+(http://www.emn.fr/x-info/coccinelle/)
 
-  printk("Free swap  = %lukB\n", ...);
-  printk("Free swap:       %6ldkB\n", ...);
+// <smpl>
+@haskernel@
+@@
 
-Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Cc: Paul Mackerras <paulus@samba.org>
+#include <linux/kernel.h>
+
+@depends on haskernel@
+type t;
+identifier f;
+@@
+
+- (sizeof(((t*)0)->f))
++ FIELD_SIZEOF(t, f)
+
+@depends on haskernel@
+type t;
+identifier f;
+@@
+
+- sizeof(((t*)0)->f)
++ FIELD_SIZEOF(t, f)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Acked-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/mem.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/block/viodasd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/powerpc/mm/mem.c~powerpc-remove-redundant-display-of-free-swap-space-in-show_mem arch/powerpc/mm/mem.c
---- a/arch/powerpc/mm/mem.c~powerpc-remove-redundant-display-of-free-swap-space-in-show_mem
-+++ a/arch/powerpc/mm/mem.c
-@@ -175,7 +175,6 @@ void show_mem(void)
+diff -puN drivers/block/viodasd.c~drivers-block-viodasdc-use-field_sizeof drivers/block/viodasd.c
+--- a/drivers/block/viodasd.c~drivers-block-viodasdc-use-field_sizeof
++++ a/drivers/block/viodasd.c
+@@ -69,7 +69,7 @@ MODULE_LICENSE("GPL");
+ enum {
+ 	PARTITION_SHIFT = 3,
+ 	MAX_DISKNO = HVMAXARCHITECTEDVIRTUALDISKS,
+-	MAX_DISK_NAME = sizeof(((struct gendisk *)0)->disk_name)
++	MAX_DISK_NAME = FIELD_SIZEOF(struct gendisk, disk_name)
+ };
  
- 	printk("Mem-info:\n");
- 	show_free_areas();
--	printk("Free swap:       %6ldkB\n", nr_swap_pages<<(PAGE_SHIFT-10));
- 	for_each_online_pgdat(pgdat) {
- 		unsigned long flags;
- 		pgdat_resize_lock(pgdat, &flags);
+ static DEFINE_SPINLOCK(viodasd_spinlock);
 _
 
-Patches currently in -mm which might be from hannes@saeurebad.de are
+Patches currently in -mm which might be from julia@diku.dk are
 
-x86-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-arm-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+origin.patch
+git-alsa-tiwai.patch
 git-powerpc.patch
-ia64-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-git-mips.patch
-parisc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-git-s390.patch
-git-xtensa.patch
-mm-remove-unused-max_nodes_shift.patch
-m68k-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-cris-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-add-warn_on_secs-macro-simplification.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+git-udf.patch
+git-net.patch
+git-ocfs2.patch
+fs-affs-filec-use-bug_on.patch
+drivers-misc-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
+fbdev-use-div_round_up-or-roundup.patch
+fs-ext2-use-bug_on.patch
+fs-ext3-use-bug_on.patch
+fs-ext4-use-bug_on.patch
 
