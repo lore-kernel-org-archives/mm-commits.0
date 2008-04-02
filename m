@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + e1000e-use-netdev_alloc_skb_nowarn.patch added to -mm tree
-Date: Wed, 02 Apr 2008 01:41:33 -0700
-Message-ID: <200804020841.m328fXqh005354@imap1.linux-foundation.org>
+Subject: + e1000-use-netdev_alloc_skb_nowarn.patch added to -mm tree
+Date: Wed, 02 Apr 2008 01:41:31 -0700
+Message-ID: <200804020841.m328fVYv005351@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37077 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753048AbYDBImN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 04:42:13 -0400
+	by vger.kernel.org with ESMTP id S1752975AbYDBImI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 04:42:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, auke-jan.h.kok@intel.com, davem@davemloft.net, je
 
 
 The patch titled
-     e1000e: use netdev_alloc_skb_nowarn()
+     e1000: use netdev_alloc_skb_nowarn()
 has been added to the -mm tree.  Its filename is
-     e1000e-use-netdev_alloc_skb_nowarn.patch
+     e1000-use-netdev_alloc_skb_nowarn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000e: use netdev_alloc_skb_nowarn()
+Subject: e1000: use netdev_alloc_skb_nowarn()
 From: Andrew Morton <akpm@linux-foundation.org>
 
 We get rather a lot of reports of page allocation failure warnings coming out
-of e1000e.  But this driver is know to handle them properly so let's suppress
+of e1000.  But this driver is know to handle them properly so let's suppress
 them.
 
 Cc: Auke Kok <auke-jan.h.kok@intel.com>
@@ -47,39 +47,51 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000e/netdev.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/e1000/e1000_main.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/e1000e/netdev.c~e1000e-use-netdev_alloc_skb_nowarn drivers/net/e1000e/netdev.c
---- a/drivers/net/e1000e/netdev.c~e1000e-use-netdev_alloc_skb_nowarn
-+++ a/drivers/net/e1000e/netdev.c
-@@ -176,7 +176,7 @@ static void e1000_alloc_rx_buffers(struc
+diff -puN drivers/net/e1000/e1000_main.c~e1000-use-netdev_alloc_skb_nowarn drivers/net/e1000/e1000_main.c
+--- a/drivers/net/e1000/e1000_main.c~e1000-use-netdev_alloc_skb_nowarn
++++ a/drivers/net/e1000/e1000_main.c
+@@ -4281,7 +4281,8 @@ e1000_clean_rx_irq(struct e1000_adapter 
+ 		 * of reassembly being done in the stack */
+ 		if (length < copybreak) {
+ 			struct sk_buff *new_skb =
+-			    netdev_alloc_skb(netdev, length + NET_IP_ALIGN);
++			    netdev_alloc_skb_nowarn(netdev,
++						length + NET_IP_ALIGN);
+ 			if (new_skb) {
+ 				skb_reserve(new_skb, NET_IP_ALIGN);
+ 				skb_copy_to_linear_data_offset(new_skb,
+@@ -4570,7 +4571,7 @@ e1000_alloc_rx_buffers(struct e1000_adap
  			goto map_skb;
  		}
  
 -		skb = netdev_alloc_skb(netdev, bufsz);
 +		skb = netdev_alloc_skb_nowarn(netdev, bufsz);
- 		if (!skb) {
+ 		if (unlikely(!skb)) {
  			/* Better luck next round */
  			adapter->alloc_rx_buff_failed++;
-@@ -281,7 +281,7 @@ static void e1000_alloc_rx_buffers_ps(st
- 			     cpu_to_le64(ps_page->dma);
+@@ -4583,7 +4584,7 @@ e1000_alloc_rx_buffers(struct e1000_adap
+ 			DPRINTK(RX_ERR, ERR, "skb align check failed: %u bytes "
+ 					     "at %p\n", bufsz, skb->data);
+ 			/* Try again, without freeing the previous */
+-			skb = netdev_alloc_skb(netdev, bufsz);
++			skb = netdev_alloc_skb_nowarn(netdev, bufsz);
+ 			/* Failed allocation, critical failure */
+ 			if (!skb) {
+ 				dev_kfree_skb(oldskb);
+@@ -4705,8 +4706,8 @@ e1000_alloc_rx_buffers_ps(struct e1000_a
+ 				rx_desc->read.buffer_addr[j+1] = ~cpu_to_le64(0);
  		}
  
 -		skb = netdev_alloc_skb(netdev,
+-		                       adapter->rx_ps_bsize0 + NET_IP_ALIGN);
 +		skb = netdev_alloc_skb_nowarn(netdev,
- 				       adapter->rx_ps_bsize0 + NET_IP_ALIGN);
++					adapter->rx_ps_bsize0 + NET_IP_ALIGN);
  
- 		if (!skb) {
-@@ -424,7 +424,7 @@ static bool e1000_clean_rx_irq(struct e1
- 		 */
- 		if (length < copybreak) {
- 			struct sk_buff *new_skb =
--			    netdev_alloc_skb(netdev, length + NET_IP_ALIGN);
-+			    netdev_alloc_skb_nowarn(netdev, length + NET_IP_ALIGN);
- 			if (new_skb) {
- 				skb_reserve(new_skb, NET_IP_ALIGN);
- 				memcpy(new_skb->data - NET_IP_ALIGN,
+ 		if (unlikely(!skb)) {
+ 			adapter->alloc_rx_buff_failed++;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
