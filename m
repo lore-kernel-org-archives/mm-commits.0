@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + net-add-netdev_alloc_skb_nowarn.patch added to -mm tree
-Date: Wed, 02 Apr 2008 01:41:29 -0700
-Message-ID: <200804020841.m328fTH8005348@imap1.linux-foundation.org>
+Subject: + e1000e-use-netdev_alloc_skb_nowarn.patch added to -mm tree
+Date: Wed, 02 Apr 2008 01:41:33 -0700
+Message-ID: <200804020841.m328fXqh005354@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50459 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754673AbYDBImJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 04:42:09 -0400
+	by vger.kernel.org with ESMTP id S1753048AbYDBImN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 04:42:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, auke-jan.h.kok@intel.com, davem@davemloft.net, je
 
 
 The patch titled
-     net: add netdev_alloc_skb_nowarn()
+     e1000e: use netdev_alloc_skb_nowarn()
 has been added to the -mm tree.  Its filename is
-     net-add-netdev_alloc_skb_nowarn.patch
+     e1000e-use-netdev_alloc_skb_nowarn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,12 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net: add netdev_alloc_skb_nowarn()
+Subject: e1000e: use netdev_alloc_skb_nowarn()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Add a no-warn version of netdev_alloc_skb() for known-good drivers.
+We get rather a lot of reports of page allocation failure warnings coming out
+of e1000e.  But this driver is know to handle them properly so let's suppress
+them.
 
 Cc: Auke Kok <auke-jan.h.kok@intel.com>
 Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
@@ -45,43 +47,39 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/skbuff.h |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ drivers/net/e1000e/netdev.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/skbuff.h~net-add-netdev_alloc_skb_nowarn include/linux/skbuff.h
---- a/include/linux/skbuff.h~net-add-netdev_alloc_skb_nowarn
-+++ a/include/linux/skbuff.h
-@@ -1266,6 +1266,30 @@ static inline struct sk_buff *netdev_all
- }
+diff -puN drivers/net/e1000e/netdev.c~e1000e-use-netdev_alloc_skb_nowarn drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~e1000e-use-netdev_alloc_skb_nowarn
++++ a/drivers/net/e1000e/netdev.c
+@@ -176,7 +176,7 @@ static void e1000_alloc_rx_buffers(struc
+ 			goto map_skb;
+ 		}
  
- /**
-+ *	netdev_alloc_skb_nowarn - allocate an skbuff for rx on a specific device
-+ *	@dev: network device to receive on
-+ *	@length: length to allocate
-+ *
-+ *	Allocate a new &sk_buff and assign it a usage count of one. The
-+ *	buffer has unspecified headroom built in. Users should allocate
-+ *	the headroom they think they need without accounting for the
-+ *	built in space. The built in space is used for optimisations.
-+ *
-+ *	%NULL is returned if there is no free memory. Although this function
-+ *	allocates memory it can be called from an interrupt.
-+ *
-+ *	netdev_alloc_skb_nowarn() cause sthe page allocator to suppress the
-+ *	warning message which is normally produced when an allocation attempt
-+ *	fails.  It is to be used by drivers which are known to correctly
-+ *	recover from skb allocation failure.
-+ */
-+static inline struct sk_buff *netdev_alloc_skb_nowarn(struct net_device *dev,
-+		unsigned int length)
-+{
-+	return __netdev_alloc_skb(dev, length, GFP_ATOMIC|__GFP_NOWARN);
-+}
-+
-+/**
-  *	skb_clone_writable - is the header of a clone writable
-  *	@skb: buffer to check
-  *	@len: length up to which to write
+-		skb = netdev_alloc_skb(netdev, bufsz);
++		skb = netdev_alloc_skb_nowarn(netdev, bufsz);
+ 		if (!skb) {
+ 			/* Better luck next round */
+ 			adapter->alloc_rx_buff_failed++;
+@@ -281,7 +281,7 @@ static void e1000_alloc_rx_buffers_ps(st
+ 			     cpu_to_le64(ps_page->dma);
+ 		}
+ 
+-		skb = netdev_alloc_skb(netdev,
++		skb = netdev_alloc_skb_nowarn(netdev,
+ 				       adapter->rx_ps_bsize0 + NET_IP_ALIGN);
+ 
+ 		if (!skb) {
+@@ -424,7 +424,7 @@ static bool e1000_clean_rx_irq(struct e1
+ 		 */
+ 		if (length < copybreak) {
+ 			struct sk_buff *new_skb =
+-			    netdev_alloc_skb(netdev, length + NET_IP_ALIGN);
++			    netdev_alloc_skb_nowarn(netdev, length + NET_IP_ALIGN);
+ 			if (new_skb) {
+ 				skb_reserve(new_skb, NET_IP_ALIGN);
+ 				memcpy(new_skb->data - NET_IP_ALIGN,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
