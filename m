@@ -1,104 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - e1000-suppress-page-allocation-failure-warnings.patch removed from -mm tree
-Date: Wed, 02 Apr 2008 11:33:39 -0700
-Message-ID: <200804021833.m32IXe3P028189@imap1.linux-foundation.org>
+Subject: + gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix.patch added to -mm tree
+Date: Wed, 02 Apr 2008 11:59:13 -0700
+Message-ID: <200804021859.m32IxDlj029322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42477 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55301 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753506AbYDBSeC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 14:34:02 -0400
+	by vger.kernel.org with ESMTP id S1756304AbYDBS7r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 14:59:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, auke-jan.h.kok@intel.com, davem@davemloft.net, jeff@garzik.org, jesse.brandeburg@intel.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     e1000: suppress page allocation failure warnings
-has been removed from the -mm tree.  Its filename was
-     e1000-suppress-page-allocation-failure-warnings.patch
+     gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix
+has been added to the -mm tree.  Its filename is
+     gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix.patch
 
-This patch was dropped because of crapfest
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000: suppress page allocation failure warnings
+Subject: gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-We get rather a lot of reports of page allocation warnings coming out of
-e1000.  But this driver is know to handle them properly so let's suppress
-them.
+Repair rejects.
 
-Cc: Auke Kok <auke-jan.h.kok@intel.com>
-Cc: Jesse Brandeburg <jesse.brandeburg@intel.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000/e1000.h      |    4 ++++
- drivers/net/e1000/e1000_main.c |   10 +++++-----
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ drivers/scsi/hosts.c      |    2 +-
+ drivers/scsi/scsi_sysfs.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/e1000/e1000.h~e1000-suppress-page-allocation-failure-warningspatch-added-to-mm-tree drivers/net/e1000/e1000.h
---- a/drivers/net/e1000/e1000.h~e1000-suppress-page-allocation-failure-warningspatch-added-to-mm-tree
-+++ a/drivers/net/e1000/e1000.h
-@@ -357,5 +357,9 @@ extern void e1000_power_up_phy(struct e1
- extern void e1000_set_ethtool_ops(struct net_device *netdev);
- extern void e1000_check_options(struct e1000_adapter *adapter);
- 
-+static inline void *e1000_alloc_skb(struct net_device *dev, unsigned int length)
-+{
-+	return __netdev_alloc_skb(dev, length, GFP_ATOMIC|__GFP_NOWARN);
-+}
- 
- #endif /* _E1000_H_ */
-diff -puN drivers/net/e1000/e1000_main.c~e1000-suppress-page-allocation-failure-warningspatch-added-to-mm-tree drivers/net/e1000/e1000_main.c
---- a/drivers/net/e1000/e1000_main.c~e1000-suppress-page-allocation-failure-warningspatch-added-to-mm-tree
-+++ a/drivers/net/e1000/e1000_main.c
-@@ -4281,7 +4281,7 @@ e1000_clean_rx_irq(struct e1000_adapter 
- 		 * of reassembly being done in the stack */
- 		if (length < copybreak) {
- 			struct sk_buff *new_skb =
--			    netdev_alloc_skb(netdev, length + NET_IP_ALIGN);
-+			    e1000_alloc_skb(netdev, length + NET_IP_ALIGN);
- 			if (new_skb) {
- 				skb_reserve(new_skb, NET_IP_ALIGN);
- 				skb_copy_to_linear_data_offset(new_skb,
-@@ -4570,7 +4570,7 @@ e1000_alloc_rx_buffers(struct e1000_adap
- 			goto map_skb;
+diff -puN drivers/scsi/hosts.c~gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix drivers/scsi/hosts.c
+--- a/drivers/scsi/hosts.c~gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix
++++ a/drivers/scsi/hosts.c
+@@ -223,7 +223,7 @@ int scsi_add_host(struct Scsi_Host *shos
+ 					 GFP_KERNEL);
+ 		if (shost->shost_data == NULL) {
+ 			error = -ENOMEM;
+-			goto out_del_classdev;
++			goto out_del_dev;
  		}
+ 	}
  
--		skb = netdev_alloc_skb(netdev, bufsz);
-+		skb = e1000_alloc_skb(netdev, bufsz);
- 		if (unlikely(!skb)) {
- 			/* Better luck next round */
- 			adapter->alloc_rx_buff_failed++;
-@@ -4583,7 +4583,7 @@ e1000_alloc_rx_buffers(struct e1000_adap
- 			DPRINTK(RX_ERR, ERR, "skb align check failed: %u bytes "
- 					     "at %p\n", bufsz, skb->data);
- 			/* Try again, without freeing the previous */
--			skb = netdev_alloc_skb(netdev, bufsz);
-+			skb = e1000_alloc_skb(netdev, bufsz);
- 			/* Failed allocation, critical failure */
- 			if (!skb) {
- 				dev_kfree_skb(oldskb);
-@@ -4705,8 +4705,8 @@ e1000_alloc_rx_buffers_ps(struct e1000_a
- 				rx_desc->read.buffer_addr[j+1] = ~cpu_to_le64(0);
- 		}
+diff -puN drivers/scsi/scsi_sysfs.c~gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix drivers/scsi/scsi_sysfs.c
+--- a/drivers/scsi/scsi_sysfs.c~gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix
++++ a/drivers/scsi/scsi_sysfs.c
+@@ -878,7 +878,7 @@ void __scsi_remove_device(struct scsi_de
+ 		return;
  
--		skb = netdev_alloc_skb(netdev,
--		                       adapter->rx_ps_bsize0 + NET_IP_ALIGN);
-+		skb = e1000_alloc_skb(netdev,
-+					adapter->rx_ps_bsize0 + NET_IP_ALIGN);
- 
- 		if (unlikely(!skb)) {
- 			adapter->alloc_rx_buff_failed++;
+ 	bsg_unregister_queue(sdev->request_queue);
+-	class_device_unregister(&sdev->sdev_classdev);
++	device_unregister(&sdev->sdev_dev);
+ 	transport_remove_device(dev);
+ 	device_del(dev);
+ 	scsi_device_set_state(sdev, SDEV_DEL);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+origin.patch
 alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
 revert-set-relay-file-can-not-be-read-by-pread2.patch
 lib-swiotlbc-avoid-endless-loops-fix.patch
@@ -115,8 +91,10 @@ git-agpgart-fix-type-confusion.patch
 git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
 cifs-suppress-warning.patch
 git-powerpc.patch
+gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix.patch
 pm-remove-destroy_suspended_device.patch
 scsi-add-iscsi-ibft-support.patch
+git-drm.patch
 git-dvb.patch
 git-hwmon.patch
 git-gfs2-nmw.patch
@@ -139,8 +117,6 @@ net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 tulip-tulip_read_eeprom-fixes-for-bug-4420.patch
-e1000-suppress-page-allocation-failure-warnings.patch
-e1000e-suppress-page-allocation-failure-warnings.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 git-nfsd.patch
@@ -176,7 +152,6 @@ scsi-fix-section-mismatch-in-aic94xx.patch
 drivers-scsi-hptiopc-fix-build-warning.patch
 drivers-scsi-mvsasc-fix-build-warnings.patch
 git-block-git-rejects.patch
-git-sparc64.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
 git-v9fs.patch
