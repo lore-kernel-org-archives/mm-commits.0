@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - e1000-use-netdev_alloc_skb_nowarn.patch removed from -mm tree
-Date: Wed, 02 Apr 2008 01:43:39 -0700
-Message-ID: <200804020843.m328hdYp005488@imap1.linux-foundation.org>
+Subject: - e1000e-use-netdev_alloc_skb_nowarn.patch removed from -mm tree
+Date: Wed, 02 Apr 2008 01:43:41 -0700
+Message-ID: <200804020843.m328hfTe005491@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58109 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47474 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751779AbYDBIoQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 04:44:16 -0400
+	by vger.kernel.org with ESMTP id S1752313AbYDBIoU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 04:44:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, auke-jan.h.kok@intel.com, davem@davemloft.net, jeff@garzik.org, jesse.brandeburg@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     e1000: use netdev_alloc_skb_nowarn()
+     e1000e: use netdev_alloc_skb_nowarn()
 has been removed from the -mm tree.  Its filename was
-     e1000-use-netdev_alloc_skb_nowarn.patch
+     e1000e-use-netdev_alloc_skb_nowarn.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000: use netdev_alloc_skb_nowarn()
+Subject: e1000e: use netdev_alloc_skb_nowarn()
 From: Andrew Morton <akpm@linux-foundation.org>
 
 We get rather a lot of reports of page allocation failure warnings coming out
-of e1000.  But this driver is know to handle them properly so let's suppress
+of e1000e.  But this driver is know to handle them properly so let's suppress
 them.
 
 Cc: Auke Kok <auke-jan.h.kok@intel.com>
@@ -37,14 +37,32 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000/e1000_main.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/net/e1000e/netdev.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/e1000/e1000_main.c~e1000-use-netdev_alloc_skb_nowarn drivers/net/e1000/e1000_main.c
---- a/drivers/net/e1000/e1000_main.c~e1000-use-netdev_alloc_skb_nowarn
-+++ a/drivers/net/e1000/e1000_main.c
-@@ -4281,7 +4281,8 @@ e1000_clean_rx_irq(struct e1000_adapter 
- 		 * of reassembly being done in the stack */
+diff -puN drivers/net/e1000e/netdev.c~e1000e-use-netdev_alloc_skb_nowarn drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~e1000e-use-netdev_alloc_skb_nowarn
++++ a/drivers/net/e1000e/netdev.c
+@@ -176,7 +176,7 @@ static void e1000_alloc_rx_buffers(struc
+ 			goto map_skb;
+ 		}
+ 
+-		skb = netdev_alloc_skb(netdev, bufsz);
++		skb = netdev_alloc_skb_nowarn(netdev, bufsz);
+ 		if (!skb) {
+ 			/* Better luck next round */
+ 			adapter->alloc_rx_buff_failed++;
+@@ -281,7 +281,7 @@ static void e1000_alloc_rx_buffers_ps(st
+ 			     cpu_to_le64(ps_page->dma);
+ 		}
+ 
+-		skb = netdev_alloc_skb(netdev,
++		skb = netdev_alloc_skb_nowarn(netdev,
+ 				       adapter->rx_ps_bsize0 + NET_IP_ALIGN);
+ 
+ 		if (!skb) {
+@@ -424,7 +424,8 @@ static bool e1000_clean_rx_irq(struct e1
+ 		 */
  		if (length < copybreak) {
  			struct sk_buff *new_skb =
 -			    netdev_alloc_skb(netdev, length + NET_IP_ALIGN);
@@ -52,36 +70,7 @@ diff -puN drivers/net/e1000/e1000_main.c~e1000-use-netdev_alloc_skb_nowarn drive
 +						length + NET_IP_ALIGN);
  			if (new_skb) {
  				skb_reserve(new_skb, NET_IP_ALIGN);
- 				skb_copy_to_linear_data_offset(new_skb,
-@@ -4570,7 +4571,7 @@ e1000_alloc_rx_buffers(struct e1000_adap
- 			goto map_skb;
- 		}
- 
--		skb = netdev_alloc_skb(netdev, bufsz);
-+		skb = netdev_alloc_skb_nowarn(netdev, bufsz);
- 		if (unlikely(!skb)) {
- 			/* Better luck next round */
- 			adapter->alloc_rx_buff_failed++;
-@@ -4583,7 +4584,7 @@ e1000_alloc_rx_buffers(struct e1000_adap
- 			DPRINTK(RX_ERR, ERR, "skb align check failed: %u bytes "
- 					     "at %p\n", bufsz, skb->data);
- 			/* Try again, without freeing the previous */
--			skb = netdev_alloc_skb(netdev, bufsz);
-+			skb = netdev_alloc_skb_nowarn(netdev, bufsz);
- 			/* Failed allocation, critical failure */
- 			if (!skb) {
- 				dev_kfree_skb(oldskb);
-@@ -4705,8 +4706,8 @@ e1000_alloc_rx_buffers_ps(struct e1000_a
- 				rx_desc->read.buffer_addr[j+1] = ~cpu_to_le64(0);
- 		}
- 
--		skb = netdev_alloc_skb(netdev,
--		                       adapter->rx_ps_bsize0 + NET_IP_ALIGN);
-+		skb = netdev_alloc_skb_nowarn(netdev,
-+					adapter->rx_ps_bsize0 + NET_IP_ALIGN);
- 
- 		if (unlikely(!skb)) {
- 			adapter->alloc_rx_buff_failed++;
+ 				memcpy(new_skb->data - NET_IP_ALIGN,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -126,7 +115,6 @@ net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 tulip-tulip_read_eeprom-fixes-for-bug-4420.patch
-e1000-use-netdev_alloc_skb_nowarn.patch
 e1000e-use-netdev_alloc_skb_nowarn.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
