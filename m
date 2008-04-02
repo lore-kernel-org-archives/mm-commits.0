@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + e1000-suppress-page-allocation-failure-warnings.patch added to -mm tree
-Date: Wed, 02 Apr 2008 00:56:52 -0700
-Message-ID: <200804020756.m327uqsY003725@imap1.linux-foundation.org>
+Subject: + e1000e-suppress-page-allocation-failure-warnings.patch added to -mm tree
+Date: Wed, 02 Apr 2008 00:58:50 -0700
+Message-ID: <200804020758.m327woUV003857@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750885AbYDBH5D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 03:57:03 -0400
+	by vger.kernel.org with ESMTP id S1751501AbYDBH66 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 03:58:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, auke-jan.h.kok@intel.com, jeff@garzik.org, jesse.
 
 
 The patch titled
-     e1000: suppress page allocation failure warnings
+     e1000e: suppress page allocation failure warnings
 has been added to the -mm tree.  Its filename is
-     e1000-suppress-page-allocation-failure-warnings.patch
+     e1000e-suppress-page-allocation-failure-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: e1000: suppress page allocation failure warnings
+Subject: e1000e: suppress page allocation failure warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
 We get rather a lot of reports of page allocation warnings coming out of
-e1000.  But this driver is know to handle them properly so let's suppress
+e1000e.  But this driver is know to handle them properly so let's suppress
 them.
 
 Cc: Auke Kok <auke-jan.h.kok@intel.com>
@@ -46,14 +46,32 @@ Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/e1000/e1000.h      |    4 ++++
- drivers/net/e1000/e1000_main.c |   10 +++++-----
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ drivers/net/e1000e/e1000.h  |    5 +++++
+ drivers/net/e1000e/netdev.c |    6 +++---
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/e1000/e1000_main.c~e1000-suppress-page-allocation-failure-warnings drivers/net/e1000/e1000_main.c
---- a/drivers/net/e1000/e1000_main.c~e1000-suppress-page-allocation-failure-warnings
-+++ a/drivers/net/e1000/e1000_main.c
-@@ -4296,7 +4296,7 @@ e1000_clean_rx_irq(struct e1000_adapter 
+diff -puN drivers/net/e1000e/netdev.c~e1000e-suppress-page-allocation-failure-warnings drivers/net/e1000e/netdev.c
+--- a/drivers/net/e1000e/netdev.c~e1000e-suppress-page-allocation-failure-warnings
++++ a/drivers/net/e1000e/netdev.c
+@@ -175,7 +175,7 @@ static void e1000_alloc_rx_buffers(struc
+ 			goto map_skb;
+ 		}
+ 
+-		skb = netdev_alloc_skb(netdev, bufsz);
++		skb = e1000_alloc_skb(netdev, bufsz);
+ 		if (!skb) {
+ 			/* Better luck next round */
+ 			adapter->alloc_rx_buff_failed++;
+@@ -277,7 +277,7 @@ static void e1000_alloc_rx_buffers_ps(st
+ 			     cpu_to_le64(ps_page->dma);
+ 		}
+ 
+-		skb = netdev_alloc_skb(netdev,
++		skb = e1000_alloc_skb(netdev,
+ 				       adapter->rx_ps_bsize0 + NET_IP_ALIGN);
+ 
+ 		if (!skb) {
+@@ -414,7 +414,7 @@ static bool e1000_clean_rx_irq(struct e1
  		 * of reassembly being done in the stack */
  		if (length < copybreak) {
  			struct sk_buff *new_skb =
@@ -61,48 +79,19 @@ diff -puN drivers/net/e1000/e1000_main.c~e1000-suppress-page-allocation-failure-
 +			    e1000_alloc_skb(netdev, length + NET_IP_ALIGN);
  			if (new_skb) {
  				skb_reserve(new_skb, NET_IP_ALIGN);
- 				skb_copy_to_linear_data_offset(new_skb,
-@@ -4585,7 +4585,7 @@ e1000_alloc_rx_buffers(struct e1000_adap
- 			goto map_skb;
- 		}
- 
--		skb = netdev_alloc_skb(netdev, bufsz);
-+		skb = e1000_alloc_skb(netdev, bufsz);
- 		if (unlikely(!skb)) {
- 			/* Better luck next round */
- 			adapter->alloc_rx_buff_failed++;
-@@ -4598,7 +4598,7 @@ e1000_alloc_rx_buffers(struct e1000_adap
- 			DPRINTK(RX_ERR, ERR, "skb align check failed: %u bytes "
- 					     "at %p\n", bufsz, skb->data);
- 			/* Try again, without freeing the previous */
--			skb = netdev_alloc_skb(netdev, bufsz);
-+			skb = e1000_alloc_skb(netdev, bufsz);
- 			/* Failed allocation, critical failure */
- 			if (!skb) {
- 				dev_kfree_skb(oldskb);
-@@ -4720,8 +4720,8 @@ e1000_alloc_rx_buffers_ps(struct e1000_a
- 				rx_desc->read.buffer_addr[j+1] = ~cpu_to_le64(0);
- 		}
- 
--		skb = netdev_alloc_skb(netdev,
--		                       adapter->rx_ps_bsize0 + NET_IP_ALIGN);
-+		skb = e1000_alloc_skb(netdev,
-+					adapter->rx_ps_bsize0 + NET_IP_ALIGN);
- 
- 		if (unlikely(!skb)) {
- 			adapter->alloc_rx_buff_failed++;
-diff -puN drivers/net/e1000/e1000.h~e1000-suppress-page-allocation-failure-warnings drivers/net/e1000/e1000.h
---- a/drivers/net/e1000/e1000.h~e1000-suppress-page-allocation-failure-warnings
-+++ a/drivers/net/e1000/e1000.h
-@@ -358,5 +358,9 @@ extern void e1000_power_up_phy(struct e1
- extern void e1000_set_ethtool_ops(struct net_device *netdev);
- extern void e1000_check_options(struct e1000_adapter *adapter);
+ 				memcpy(new_skb->data - NET_IP_ALIGN,
+diff -puN drivers/net/e1000e/e1000.h~e1000e-suppress-page-allocation-failure-warnings drivers/net/e1000e/e1000.h
+--- a/drivers/net/e1000e/e1000.h~e1000e-suppress-page-allocation-failure-warnings
++++ a/drivers/net/e1000e/e1000.h
+@@ -508,4 +508,9 @@ static inline void __ew32(struct e1000_h
+ 	writel(val, hw->hw_addr + reg);
+ }
  
 +static inline void *e1000_alloc_skb(struct net_device *dev, unsigned int length)
 +{
 +	return __netdev_alloc_skb(dev, length, GFP_ATOMIC|__GFP_NOWARN);
 +}
- 
++
  #endif /* _E1000_H_ */
 _
 
@@ -148,6 +137,7 @@ net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 tulip-tulip_read_eeprom-fixes-for-bug-4420.patch
+e1000-suppress-page-allocation-failure-warnings.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 git-nfsd.patch
@@ -298,5 +288,5 @@ i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-e1000-suppress-page-allocation-failure-warnings.patch
+e1000e-suppress-page-allocation-failure-warnings.patch
 
