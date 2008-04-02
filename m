@@ -1,66 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: - bttv-fix-missed-index-check.patch removed from -mm tree
-Date: Wed, 02 Apr 2008 12:20:08 -0700
-Message-ID: <200804021920.m32JK8OX030241@imap1.linux-foundation.org>
+Subject: - dvb-usb-leadtek-winfast-usb-dtv-dongle-support.patch removed from -mm tree
+Date: Wed, 02 Apr 2008 12:19:57 -0700
+Message-ID: <200804021919.m32JJv43030201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42263 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58475 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759208AbYDBTUn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 15:20:43 -0400
+	by vger.kernel.org with ESMTP id S1756435AbYDBTUs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 15:20:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: darryl.green@aanet.com.au, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bttv: fix missed index check
+     dvb-usb: Leadtek Winfast USB DTV Dongle support
 has been removed from the -mm tree.  Its filename was
-     bttv-fix-missed-index-check.patch
+     dvb-usb-leadtek-winfast-usb-dtv-dongle-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bttv: fix missed index check
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: dvb-usb: Leadtek Winfast USB DTV Dongle support
+From: Darryl Green <darryl.green@aanet.com.au>
 
-We should check for proper index first
+Support Winfast USB DTV dongle with device ID 6f01.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/bt8xx/bttv-driver.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/dvb/dvb-usb/dib0700_devices.c |    3 ++-
+ drivers/media/dvb/dvb-usb/dvb-usb-ids.h     |    1 +
+ 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/video/bt8xx/bttv-driver.c~bttv-fix-missed-index-check drivers/media/video/bt8xx/bttv-driver.c
---- a/drivers/media/video/bt8xx/bttv-driver.c~bttv-fix-missed-index-check
-+++ a/drivers/media/video/bt8xx/bttv-driver.c
-@@ -3518,8 +3518,12 @@ static int radio_enum_input(struct file 
- static int radio_g_audio(struct file *file, void *priv,
- 					struct v4l2_audio *a)
- {
-+	if (a->index != 0)
-+		return -EINVAL;
-+
- 	memset(a, 0, sizeof(*a));
- 	strcpy(a->name, "Radio");
-+
- 	return 0;
- }
- 
+diff -puN drivers/media/dvb/dvb-usb/dib0700_devices.c~dvb-usb-leadtek-winfast-usb-dtv-dongle-support drivers/media/dvb/dvb-usb/dib0700_devices.c
+--- a/drivers/media/dvb/dvb-usb/dib0700_devices.c~dvb-usb-leadtek-winfast-usb-dtv-dongle-support
++++ a/drivers/media/dvb/dvb-usb/dib0700_devices.c
+@@ -905,6 +905,7 @@ struct usb_device_id dib0700_usb_id_tabl
+ 		{ USB_DEVICE(USB_VID_ASUS,      USB_PID_ASUS_U3100) },
+ /* 25 */	{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_NOVA_T_STICK_3) },
+ 		{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_MYTV_T) },
++		{ USB_DEVICE(USB_VID_LEADTEK,   USB_PID_WINFAST_DTV_DONGLE_STK7700P_2) },
+ 		{ 0 }		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+@@ -969,7 +970,7 @@ struct dvb_usb_device_properties dib0700
+ 				{ NULL },
+ 			},
+ 			{   "Leadtek Winfast DTV Dongle (STK7700P based)",
+-				{ &dib0700_usb_id_table[8], NULL },
++				{ &dib0700_usb_id_table[8], &dib0700_usb_id_table[27] },
+ 				{ NULL },
+ 			},
+ 			{   "AVerMedia AVerTV DVB-T Express",
+diff -puN drivers/media/dvb/dvb-usb/dvb-usb-ids.h~dvb-usb-leadtek-winfast-usb-dtv-dongle-support drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h~dvb-usb-leadtek-winfast-usb-dtv-dongle-support
++++ a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+@@ -172,6 +172,7 @@
+ #define USB_PID_WINFAST_DTV_DONGLE_COLD			0x6025
+ #define USB_PID_WINFAST_DTV_DONGLE_WARM			0x6026
+ #define USB_PID_WINFAST_DTV_DONGLE_STK7700P		0x6f00
++#define USB_PID_WINFAST_DTV_DONGLE_STK7700P_2		0x6f01
+ #define USB_PID_GENPIX_8PSK_REV_1_COLD			0x0200
+ #define USB_PID_GENPIX_8PSK_REV_1_WARM			0x0201
+ #define USB_PID_GENPIX_8PSK_REV_2			0x0202
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from darryl.green@aanet.com.au are
 
-origin.patch
-git-avr32.patch
 git-dvb.patch
-git-gfs2-nmw.patch
-m32r-cleanup-drop-dataidt-section-in-vmlinuxlds-script.patch
-elf-use-ei_nident-instead-of-numeric-value.patch
-binfmt-fill_elf_header-cleanup-use-straight-memset-first.patch
 
