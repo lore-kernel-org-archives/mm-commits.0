@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + git-net-git-rejects.patch added to -mm tree
-Date: Wed, 02 Apr 2008 12:07:13 -0700
-Message-ID: <200804021907.m32J7D1L029659@imap1.linux-foundation.org>
+Subject: + git-dvb-git-rejects.patch added to -mm tree
+Date: Wed, 02 Apr 2008 12:08:31 -0700
+Message-ID: <200804021908.m32J8VoV029727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59872 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52052 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760945AbYDBTHo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 15:07:44 -0400
+	by vger.kernel.org with ESMTP id S1755016AbYDBTId (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 15:08:33 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m32J7Dm6019134
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m32J8V7S019364
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 2 Apr 2008 12:07:14 -0700
+	for <mm-commits@vger.kernel.org>; Wed, 2 Apr 2008 12:08:32 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-net-git-rejects
+     git-dvb-git-rejects
 has been added to the -mm tree.  Its filename is
-     git-net-git-rejects.patch
+     git-dvb-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,30 +37,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net-git-rejects
+Subject: git-dvb-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/s2io.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/media/video/bt8xx/bttv-driver.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN drivers/net/s2io.c~git-net-git-rejects drivers/net/s2io.c
---- a/drivers/net/s2io.c~git-net-git-rejects
-+++ a/drivers/net/s2io.c
-@@ -86,11 +86,7 @@
- #include "s2io.h"
- #include "s2io-regs.h"
- 
--<<<<<<< HEAD:drivers/net/s2io.c
--#define DRV_VERSION "2.0.26.20"
+diff -puN drivers/media/video/bt8xx/bttv-driver.c~git-dvb-git-rejects drivers/media/video/bt8xx/bttv-driver.c
+--- a/drivers/media/video/bt8xx/bttv-driver.c~git-dvb-git-rejects
++++ a/drivers/media/video/bt8xx/bttv-driver.c
+@@ -3524,16 +3524,10 @@ static int radio_enum_input(struct file 
+ static int radio_g_audio(struct file *file, void *priv,
+ 					struct v4l2_audio *a)
+ {
+-<<<<<<< HEAD:drivers/media/video/bt8xx/bttv-driver.c
+-	if (a->index != 0)
+-		return -EINVAL;
+-
+-	memset(a, 0, sizeof(*a));
 -=======
- #define DRV_VERSION "2.0.26.19"
-->>>>>>> FETCH_HEAD:drivers/net/s2io.c
+ 	if (unlikely(a->index))
+ 		return -EINVAL;
++	memset(a, 0, sizeof(*a));
  
- /* S2io Driver name & version. */
- static char s2io_driver_name[] = "Neterion";
+->>>>>>> FETCH_HEAD:drivers/media/video/bt8xx/bttv-driver.c
+ 	strcpy(a->name, "Radio");
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +93,7 @@ pm-remove-destroy_suspended_device.patch
 scsi-add-iscsi-ibft-support.patch
 git-drm.patch
 git-dvb.patch
+git-dvb-git-rejects.patch
 git-hwmon.patch
 git-gfs2-nmw.patch
 git-hrt.patch
