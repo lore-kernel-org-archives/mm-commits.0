@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix.patch added to -mm tree
-Date: Wed, 02 Apr 2008 11:59:13 -0700
-Message-ID: <200804021859.m32IxDlj029322@imap1.linux-foundation.org>
+Subject: + git-selinux-git-rejects.patch added to -mm tree
+Date: Wed, 02 Apr 2008 12:06:36 -0700
+Message-ID: <200804021906.m32J6a5W029641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55301 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46620 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756304AbYDBS7r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 14:59:47 -0400
+	by vger.kernel.org with ESMTP id S1758686AbYDBTHH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 15:07:07 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m32J6bN4019085
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 2 Apr 2008 12:06:38 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix
+     git-selinux-git-rejects
 has been added to the -mm tree.  Its filename is
-     gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix.patch
+     git-selinux-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +37,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix
+Subject: git-selinux-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Repair rejects.
-
-Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/hosts.c      |    2 +-
- drivers/scsi/scsi_sysfs.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ security/selinux/include/security.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN drivers/scsi/hosts.c~gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix drivers/scsi/hosts.c
---- a/drivers/scsi/hosts.c~gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix
-+++ a/drivers/scsi/hosts.c
-@@ -223,7 +223,7 @@ int scsi_add_host(struct Scsi_Host *shos
- 					 GFP_KERNEL);
- 		if (shost->shost_data == NULL) {
- 			error = -ENOMEM;
--			goto out_del_classdev;
-+			goto out_del_dev;
- 		}
- 	}
+diff -puN security/selinux/include/security.h~git-selinux-git-rejects security/selinux/include/security.h
+--- a/security/selinux/include/security.h~git-selinux-git-rejects
++++ a/security/selinux/include/security.h
+@@ -36,17 +36,10 @@
+ #define POLICYDB_VERSION_MAX	POLICYDB_VERSION_PERMISSIVE
+ #endif
  
-diff -puN drivers/scsi/scsi_sysfs.c~gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix drivers/scsi/scsi_sysfs.c
---- a/drivers/scsi/scsi_sysfs.c~gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix
-+++ a/drivers/scsi/scsi_sysfs.c
-@@ -878,7 +878,7 @@ void __scsi_remove_device(struct scsi_de
- 		return;
+-<<<<<<< HEAD:security/selinux/include/security.h
+-#define CONTEXT_MNT	0x01
+-#define FSCONTEXT_MNT	0x02
+-#define ROOTCONTEXT_MNT	0x04
+-#define DEFCONTEXT_MNT	0x08
+-=======
+ #define CONTEXT_STR	"context="
+ #define FSCONTEXT_STR	"fscontext="
+ #define ROOTCONTEXT_STR	"rootcontext="
+ #define DEFCONTEXT_STR	"defcontext="
+->>>>>>> FETCH_HEAD:security/selinux/include/security.h
  
- 	bsg_unregister_queue(sdev->request_queue);
--	class_device_unregister(&sdev->sdev_classdev);
-+	device_unregister(&sdev->sdev_dev);
- 	transport_remove_device(dev);
- 	device_del(dev);
- 	scsi_device_set_state(sdev, SDEV_DEL);
+ struct netlbl_lsm_secattr;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,10 +110,8 @@ git-libata-fix-config_pci=n-build.patch
 git-async-tx.patch
 git-mips.patch
 git-net.patch
-net-mac80211-debugfs_netdevc-use-of-bool-triggers-a-gcc-bug.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-tulip-tulip_read_eeprom-fixes-for-bug-4420.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 git-nfsd.patch
@@ -124,6 +119,7 @@ git-ocfs2.patch
 arch-parisc-kernel-unalignedc-use-time_-macros.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
 git-selinux.patch
+git-selinux-git-rejects.patch
 revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
 revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
 revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
@@ -147,9 +143,7 @@ git-sh.patch
 git-scsi-misc.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-aic94xx-cleanups.patch
 scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-hptiopc-fix-build-warning.patch
 drivers-scsi-mvsasc-fix-build-warnings.patch
 git-block-git-rejects.patch
 git-unionfs.patch
