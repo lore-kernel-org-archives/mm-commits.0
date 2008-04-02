@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + git-selinux-git-rejects.patch added to -mm tree
-Date: Wed, 02 Apr 2008 12:06:36 -0700
-Message-ID: <200804021906.m32J6a5W029641@imap1.linux-foundation.org>
+Subject: + git-net-git-rejects.patch added to -mm tree
+Date: Wed, 02 Apr 2008 12:07:13 -0700
+Message-ID: <200804021907.m32J7D1L029659@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46620 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59872 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758686AbYDBTHH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 15:07:07 -0400
+	by vger.kernel.org with ESMTP id S1760945AbYDBTHo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 15:07:44 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m32J6bN4019085
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m32J7Dm6019134
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 2 Apr 2008 12:06:38 -0700
+	for <mm-commits@vger.kernel.org>; Wed, 2 Apr 2008 12:07:14 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -19,9 +19,9 @@ Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-selinux-git-rejects
+     git-net-git-rejects
 has been added to the -mm tree.  Its filename is
-     git-selinux-git-rejects.patch
+     git-net-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,36 +37,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-selinux-git-rejects
+Subject: git-net-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/include/security.h |    7 -------
- 1 file changed, 7 deletions(-)
+ drivers/net/s2io.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN security/selinux/include/security.h~git-selinux-git-rejects security/selinux/include/security.h
---- a/security/selinux/include/security.h~git-selinux-git-rejects
-+++ a/security/selinux/include/security.h
-@@ -36,17 +36,10 @@
- #define POLICYDB_VERSION_MAX	POLICYDB_VERSION_PERMISSIVE
- #endif
+diff -puN drivers/net/s2io.c~git-net-git-rejects drivers/net/s2io.c
+--- a/drivers/net/s2io.c~git-net-git-rejects
++++ a/drivers/net/s2io.c
+@@ -86,11 +86,7 @@
+ #include "s2io.h"
+ #include "s2io-regs.h"
  
--<<<<<<< HEAD:security/selinux/include/security.h
--#define CONTEXT_MNT	0x01
--#define FSCONTEXT_MNT	0x02
--#define ROOTCONTEXT_MNT	0x04
--#define DEFCONTEXT_MNT	0x08
+-<<<<<<< HEAD:drivers/net/s2io.c
+-#define DRV_VERSION "2.0.26.20"
 -=======
- #define CONTEXT_STR	"context="
- #define FSCONTEXT_STR	"fscontext="
- #define ROOTCONTEXT_STR	"rootcontext="
- #define DEFCONTEXT_STR	"defcontext="
-->>>>>>> FETCH_HEAD:security/selinux/include/security.h
+ #define DRV_VERSION "2.0.26.19"
+->>>>>>> FETCH_HEAD:drivers/net/s2io.c
  
- struct netlbl_lsm_secattr;
- 
+ /* S2io Driver name & version. */
+ static char s2io_driver_name[] = "Neterion";
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -110,6 +104,7 @@ git-libata-fix-config_pci=n-build.patch
 git-async-tx.patch
 git-mips.patch
 git-net.patch
+git-net-git-rejects.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
