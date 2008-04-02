@@ -1,122 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - tulip-tulip_read_eeprom-fixes-for-bug-4420.patch removed from -mm tree
-Date: Wed, 02 Apr 2008 12:20:23 -0700
-Message-ID: <200804021920.m32JKNO9030265@imap1.linux-foundation.org>
+Subject: + gxfb-add-power-management-functionality-update.patch added to -mm tree
+Date: Wed, 02 Apr 2008 13:34:33 -0700
+Message-ID: <200804022034.m32KYXNU000778@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51156 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757189AbYDBT2F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 15:28:05 -0400
+	by vger.kernel.org with ESMTP id S1757409AbYDBUeu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 16:34:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: grundler@parisc-linux.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd.com
 
 
 The patch titled
-     tulip: tulip_read_eeprom() fixes for BUG 4420
-has been removed from the -mm tree.  Its filename was
-     tulip-tulip_read_eeprom-fixes-for-bug-4420.patch
+     gxfb-add-power-management-functionality update
+has been added to the -mm tree.  Its filename is
+     gxfb-add-power-management-functionality-update.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tulip: tulip_read_eeprom() fixes for BUG 4420
-From: Grant Grundler <grundler@parisc-linux.org>
+Subject: gxfb-add-power-management-functionality update
+From: Andres Salomon <dilinger@queued.net>
 
-If "location" is > "addr_len" bits, the high bits of location would interfere
-with the READ_CMD sent to the eeprom controller.
+This drops the power_state stuff from the patch.  Can you please replace the
+original patch with this one?  Thanks!
 
-A patch was submitted to bug:
-    http://bugzilla.kernel.org/show_bug.cgi?id=4420
+This adds the ability to suspend/resume the gxfb driver, which includes:
+  - The addition of a Graphics Processor register table in gxfb.h, and
+    associated GP handling.
+  - Register and palette saving code; registers are stored in gxfb_par.
+    A few MSR values are saved as well.
+  - gx_powerup and gx_powerdown functions which restore/save registers and
+    enable/disable graphic engines.
+  - gxfb_suspend/gxfb_resume
 
-which simply truncated the "location", read whatever was in "location modulo
-addr_len", and returned that value.  That avoids confusing the eeprom but
-seems like the wrong solution to me.
+Originally based on a patch by Jordan Crouse.
 
-Correct would be to not read beyond "1 << addr_len" address of the eeprom.
-I am submitting two changes to implement this:
-
-1) tulip_read_eeprom will return zero (since we can't return -EINVAL)
-   if this is attempted (defensive programming).
-
-2) In tulip_core.c, fix the tulip_read_eeprom caller so they don't
-   iterate past addr_len bits and make sure the entire tp->eeprom[]
-   array is cleared.
-
-I know we don't strictly need both.  I would prefer both in the tree since it
-documents the issue and provides a second "defense" from the bug from creeping
-back in.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Grant Grundler <grundler@parisc-linux.org>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tulip/eeprom.c     |    6 ++++++
- drivers/net/tulip/tulip_core.c |    7 ++++++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ drivers/video/geode/gxfb_core.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/net/tulip/eeprom.c~tulip-tulip_read_eeprom-fixes-for-bug-4420 drivers/net/tulip/eeprom.c
---- a/drivers/net/tulip/eeprom.c~tulip-tulip_read_eeprom-fixes-for-bug-4420
-+++ a/drivers/net/tulip/eeprom.c
-@@ -343,6 +343,12 @@ int __devinit tulip_read_eeprom(struct n
- 	void __iomem *ee_addr = tp->base_addr + CSR9;
- 	int read_cmd = location | (EE_READ_CMD << addr_len);
+diff -puN drivers/video/geode/gxfb_core.c~gxfb-add-power-management-functionality-update drivers/video/geode/gxfb_core.c
+--- a/drivers/video/geode/gxfb_core.c~gxfb-add-power-management-functionality-update
++++ a/drivers/video/geode/gxfb_core.c
+@@ -310,9 +310,6 @@ static int gxfb_suspend(struct pci_dev *
+ {
+ 	struct fb_info *info = pci_get_drvdata(pdev);
  
-+	/* If location is past the end of what we can address, don't
-+	 * read some other location (ie truncate). Just return zero.
-+	 */
-+	if (location > (1 << addr_len) - 1)
-+		return 0;
-+
- 	iowrite32(EE_ENB & ~EE_CS, ee_addr);
- 	iowrite32(EE_ENB, ee_addr);
+-	if (pdev->dev.power.power_state.event == state.event)
+-		return 0;
+-
+ 	if (state.event == PM_EVENT_SUSPEND) {
+ 		acquire_console_sem();
+ 		gx_powerdown(info);
+@@ -323,7 +320,6 @@ static int gxfb_suspend(struct pci_dev *
+ 	/* there's no point in setting PCI states; we emulate PCI, so
+ 	 * we don't end up getting power savings anyways */
  
-diff -puN drivers/net/tulip/tulip_core.c~tulip-tulip_read_eeprom-fixes-for-bug-4420 drivers/net/tulip/tulip_core.c
---- a/drivers/net/tulip/tulip_core.c~tulip-tulip_read_eeprom-fixes-for-bug-4420
-+++ a/drivers/net/tulip/tulip_core.c
-@@ -1437,6 +1437,7 @@ static int __devinit tulip_init_one (str
- 	   EEPROM.
- 	   */
- 	ee_data = tp->eeprom;
-+	memset(ee_data, 0, sizeof(tp->eeprom));
- 	sum = 0;
- 	if (chip_idx == LC82C168) {
- 		for (i = 0; i < 3; i++) {
-@@ -1458,8 +1459,12 @@ static int __devinit tulip_init_one (str
- 		/* A serial EEPROM interface, we read now and sort it out later. */
- 		int sa_offset = 0;
- 		int ee_addr_size = tulip_read_eeprom(dev, 0xff, 8) & 0x40000 ? 8 : 6;
-+		int ee_max_addr = ((1 << ee_addr_size) - 1) * sizeof(u16);
+-	pdev->dev.power.power_state = state;
+ 	return 0;
+ }
  
--		for (i = 0; i < sizeof(tp->eeprom); i+=2) {
-+		if (ee_max_addr > sizeof(tp->eeprom))
-+			ee_max_addr = sizeof(tp->eeprom);
-+
-+		for (i = 0; i < ee_max_addr ; i += sizeof(u16)) {
- 			u16 data = tulip_read_eeprom(dev, i/2, ee_addr_size);
- 			ee_data[i] = data & 0xff;
- 			ee_data[i + 1] = data >> 8;
+@@ -341,8 +337,6 @@ static int gxfb_resume(struct pci_dev *p
+ 
+ 	fb_set_suspend(info, 0);
+ 	release_console_sem();
+-
+-	pdev->dev.power.power_state = PMSG_ON;
+ 	return 0;
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from grundler@parisc-linux.org are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-origin.patch
-parisc-new-termios-definitions.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-parisc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-iommu-iotlb-flushing-speedup.patch
-dma-add-dma_map_attrs-interfaces.patch
-dma-document-dma_map_attrs-interfaces.patch
-dma-ia64-update-ia64-machvecs-swiotlbc.patch
-ib-expand-ib_umem_get-prototype.patch
-introduce-a-generic-__fls-implementation.patch
-implement-__fls-on-all-64-bit-archs.patch
-use-__fls-for-fls64-on-64-bit-archs.patch
+x86-geode-msr-cleanup.patch
+gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
+gxfb-replace-fbsize-config-option-with-a-module-parameter.patch
+gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
+gxfb-clean-up-register-definitions.patch
+gxfb-move-msr-bit-fields-into-gxfbh.patch
+gxfb-stop-sharing-code-with-gx1fb.patch
+gxfb-add-power-management-functionality.patch
+gxfb-add-power-management-functionality-fix.patch
+gxfb-add-power-management-functionality-update.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-create-gp-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
+lxfb-clean-up-register-definitions.patch
+lxfb-clean-up-final-bits-of-df_regs.patch
+lxfb-rearrange-rename-msr-bitfields.patch
+lxfb-add-power-management-functionality.patch
+lxfb-add-power-management-functionality-fix.patch
+lxfb-rename-kernel-arg-fbsize-to-vram.patch
+lxfb-disable-suspend-vt-switch-by-default.patch
 
