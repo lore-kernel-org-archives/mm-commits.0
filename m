@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lxfb-add-power-management-functionality-update.patch added to -mm tree
-Date: Wed, 02 Apr 2008 13:36:33 -0700
-Message-ID: <200804022036.m32KaXGT000894@imap1.linux-foundation.org>
+Subject: + usb-another-ehci_iaa_watchdog-fix.patch added to -mm tree
+Date: Wed, 02 Apr 2008 13:44:56 -0700
+Message-ID: <200804022044.m32Kiu0D001197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47648 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763177AbYDBUgp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 16:36:45 -0400
+	by vger.kernel.org with ESMTP id S1764124AbYDBUp4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Apr 2008 16:45:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd.com
+Cc: david-b@pacbell.net, dbrownell@users.sourceforge.net, greg@kroah.com, mlord@pobox.com, rjw@sisk.pl, stern@rowland.harvard.edu
 
 
 The patch titled
-      lxfb-add-power-management-functionality update
+     usb: another ehci_iaa_watchdog fix
 has been added to the -mm tree.  Its filename is
-     lxfb-add-power-management-functionality-update.patch
+     usb-another-ehci_iaa_watchdog-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +33,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject:  lxfb-add-power-management-functionality update
-From: Andres Salomon <dilinger@queued.net>
+Subject: usb: another ehci_iaa_watchdog fix
+From: David Brownell <david-b@pacbell.net>
 
-This drops the power_state stuff from the patch.  Can you please replace the
-original patch with this one?  Thanks!
+This patch, suggested by Alan Stern, fixes the hung USB issues on my notebook
+from suspend/resume cycles.
 
-This adds the ability to suspend/resume the lxfb driver, which includes:
-  - Register and palette saving code; registers are stored in lxfb_par.
-    A few MSR values are saved as well.
-  - lx_powerup and lx_powerdown functions which restore/save registers and
-    enable/disable graphic engines.
-  - lxfb_suspend/lxfb_resume
+It does so by eliminating some confusion about the internal state machine
+associated with unlinking from the EHCI async schedule ring, which caused a
+recent regression:
 
-Originally based on a patch by Jordan Crouse.
+  http://bugzilla.kernel.org/show_bug.cgi?id=10345
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
+Signed-off-by: Mark Lord <mlord@pobox.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/lxfb_core.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/usb/host/ehci-hub.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/geode/lxfb_core.c~lxfb-add-power-management-functionality-update drivers/video/geode/lxfb_core.c
---- a/drivers/video/geode/lxfb_core.c~lxfb-add-power-management-functionality-update
-+++ a/drivers/video/geode/lxfb_core.c
-@@ -433,9 +433,6 @@ static int lxfb_suspend(struct pci_dev *
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
+diff -puN drivers/usb/host/ehci-hub.c~usb-another-ehci_iaa_watchdog-fix drivers/usb/host/ehci-hub.c
+--- a/drivers/usb/host/ehci-hub.c~usb-another-ehci_iaa_watchdog-fix
++++ a/drivers/usb/host/ehci-hub.c
+@@ -126,8 +126,6 @@ static int ehci_bus_suspend (struct usb_
+ 		hcd->state = HC_STATE_QUIESCING;
+ 	}
+ 	ehci->command = ehci_readl(ehci, &ehci->regs->command);
+-	if (ehci->reclaim)
+-		end_unlink_async(ehci);
+ 	ehci_work(ehci);
  
--	if (pdev->dev.power.power_state.event == state.event)
--		return 0;
--
- 	if (state.event == PM_EVENT_SUSPEND) {
- 		acquire_console_sem();
- 		lx_powerdown(info);
-@@ -446,7 +443,6 @@ static int lxfb_suspend(struct pci_dev *
- 	/* there's no point in setting PCI states; we emulate PCI, so
- 	 * we don't end up getting power savings anyways */
+ 	/* Unlike other USB host controller types, EHCI doesn't have
+@@ -171,6 +169,9 @@ static int ehci_bus_suspend (struct usb_
+ 	ehci_halt (ehci);
+ 	hcd->state = HC_STATE_SUSPENDED;
  
--	pdev->dev.power.power_state = state;
- 	return 0;
- }
- 
-@@ -464,8 +460,6 @@ static int lxfb_resume(struct pci_dev *p
- 
- 	fb_set_suspend(info, 0);
- 	release_console_sem();
--
--	pdev->dev.power.power_state = PMSG_ON;
- 	return 0;
- }
- #else
++	if (ehci->reclaim)
++		end_unlink_async(ehci);
++
+ 	/* allow remote wakeup */
+ 	mask = INTR_MASK;
+ 	if (!device_may_wakeup(&hcd->self.root_hub->dev))
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
-x86-geode-msr-cleanup.patch
-gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
-gxfb-replace-fbsize-config-option-with-a-module-parameter.patch
-gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
-gxfb-clean-up-register-definitions.patch
-gxfb-move-msr-bit-fields-into-gxfbh.patch
-gxfb-stop-sharing-code-with-gx1fb.patch
-gxfb-add-power-management-functionality.patch
-gxfb-add-power-management-functionality-fix.patch
-gxfb-add-power-management-functionality-update.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-create-gp-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
-lxfb-clean-up-register-definitions.patch
-lxfb-clean-up-final-bits-of-df_regs.patch
-lxfb-rearrange-rename-msr-bitfields.patch
-lxfb-add-power-management-functionality.patch
-lxfb-add-power-management-functionality-fix.patch
-lxfb-add-power-management-functionality-update.patch
-lxfb-rename-kernel-arg-fbsize-to-vram.patch
-lxfb-disable-suspend-vt-switch-by-default.patch
+origin.patch
+git-acpi.patch
+git-arm.patch
+git-avr32.patch
+git-input.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+usb-gadget-dummy_hcdc-fix-nested-switch-statements.patch
+usb-ohci-fix-2-timers-to-fire-at-jiffies-1s.patch
+usb-another-ehci_iaa_watchdog-fix.patch
+spi-pxa2xx_spi-sparse-fixes.patch
+atmel_spi-support-zero-length-transfer.patch
+rtc-avoid-legacy-drivers-with-generic-framework.patch
+rtc-avoid-legacy-drivers-with-generic-framework-update.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+rtc-silence-section-mismatch-warning-in-rtc-test.patch
+make-ds1511_rtc_readset_time-static.patch
+kerneldoc-for-linux-clkh.patch
+kerneldoc-for-linux-clkh-fix.patch
+rtc-rtc-rs5c372-fix-up-null-name-in-transfer-error-path.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
+rtc-replace-remaining-__function__-occurrences.patch
+remove-duplicated-unlikely-in-is_err.patch
 
