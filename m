@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sctp-fix-wrong-debug-counting-of-datamsg.patch added to -mm tree
-Date: Thu, 03 Apr 2008 12:33:40 -0700
-Message-ID: <200804031933.m33JXe3k018755@imap1.linux-foundation.org>
+Subject: + ia64-use-goto-to-jump-out-do-while_each_thread.patch added to -mm tree
+Date: Thu, 03 Apr 2008 12:35:37 -0700
+Message-ID: <200804031935.m33JZbMO018818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40161 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48302 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761590AbYDCTeV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 15:34:21 -0400
+	by vger.kernel.org with ESMTP id S1762100AbYDCTfs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 15:35:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, sri@us.ibm.com, vladislav.yasevich@hp.com
+Cc: lizf@cn.fujitsu.com, tony.luck@intel.com
 
 
 The patch titled
-     sctp: fix wrong debug counting of datamsg
+     ia64: use goto to jump out do/while_each_thread
 has been added to the -mm tree.  Its filename is
-     sctp-fix-wrong-debug-counting-of-datamsg.patch
+     ia64-use-goto-to-jump-out-do-while_each_thread.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sctp: fix wrong debug counting of datamsg
+Subject: ia64: use goto to jump out do/while_each_thread
 From: Li Zefan <lizf@cn.fujitsu.com>
 
-Should not count it if the allocation of this object failed.
+do_each_thread/while_each_thread is a double loop, so should use 'goto' rather
+than 'break' to break out the loop.
 
 Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
-Cc: Sridhar Samudrala <sri@us.ibm.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/chunk.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/ia64/kernel/perfmon.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/sctp/chunk.c~sctp-fix-wrong-debug-counting-of-datamsg net/sctp/chunk.c
---- a/net/sctp/chunk.c~sctp-fix-wrong-debug-counting-of-datamsg
-+++ a/net/sctp/chunk.c
-@@ -66,9 +66,10 @@ SCTP_STATIC struct sctp_datamsg *sctp_da
- {
- 	struct sctp_datamsg *msg;
- 	msg = kmalloc(sizeof(struct sctp_datamsg), gfp);
--	if (msg)
-+	if (msg) {
- 		sctp_datamsg_init(msg);
--	SCTP_DBG_OBJCNT_INC(datamsg);
-+		SCTP_DBG_OBJCNT_INC(datamsg);
-+	}
- 	return msg;
- }
+diff -puN arch/ia64/kernel/perfmon.c~ia64-use-goto-to-jump-out-do-while_each_thread arch/ia64/kernel/perfmon.c
+--- a/arch/ia64/kernel/perfmon.c~ia64-use-goto-to-jump-out-do-while_each_thread
++++ a/arch/ia64/kernel/perfmon.c
+@@ -4204,10 +4204,10 @@ pfm_check_task_exist(pfm_context_t *ctx)
+ 	do_each_thread (g, t) {
+ 		if (t->thread.pfm_context == ctx) {
+ 			ret = 0;
+-			break;
++			goto out;
+ 		}
+ 	} while_each_thread (g, t);
+-
++out:
+ 	read_unlock(&tasklist_lock);
  
+ 	DPRINT(("pfm_check_task_exist: ret=%d ctx=%p\n", ret, ctx));
 _
 
 Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
+ia64-use-goto-to-jump-out-do-while_each_thread.patch
 sctp-fix-wrong-debug-counting-of-datamsg.patch
 sctp-fix-wrong-debug-counting-of-bind_bucket.patch
 cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
