@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pageflags-get-rid-of-flags_reserved-sparc64-fix.patch added to -mm tree
-Date: Wed, 02 Apr 2008 22:07:06 -0700
-Message-ID: <200804030507.m33576t2019840@imap1.linux-foundation.org>
+Subject: - pageflags-get-rid-of-flags_reserved-sparc64-fix.patch removed from -mm tree
+Date: Wed, 02 Apr 2008 22:33:27 -0700
+Message-ID: <200804030533.m335XRs7020713@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34709 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48926 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751438AbYDCFHK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 01:07:10 -0400
+	by vger.kernel.org with ESMTP id S1755052AbYDCFdt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 01:33:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, davem@davemloft.net
+To: clameter@sgi.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
      sparc64: fix NR_PAGEFLAGS check
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      pageflags-get-rid-of-flags_reserved-sparc64-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
