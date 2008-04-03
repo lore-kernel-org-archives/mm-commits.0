@@ -1,255 +1,272 @@
 From: akpm@linux-foundation.org
-Subject: - clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 03 Apr 2008 14:10:27 -0700
-Message-ID: <200804032110.m33LARdQ022669@imap1.linux-foundation.org>
+Subject: - clocksource-introduce-clock_monotonic_raw.patch removed from -mm tree
+Date: Thu, 03 Apr 2008 14:10:21 -0700
+Message-ID: <200804032110.m33LALXA022663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57213 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756437AbYDCVKv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 17:10:51 -0400
+	by vger.kernel.org with ESMTP id S1757191AbYDCVLG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 17:11:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, johnstul@us.ibm.com, use-math@users.sourceforge.net, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: johnstul@us.ibm.com, use-math@users.sourceforge.net, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes
+     clocksource: introduce CLOCK_MONOTONIC_RAW
 has been removed from the -mm tree.  Its filename was
-     clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
+     clocksource-introduce-clock_monotonic_raw.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: clocksource: introduce CLOCK_MONOTONIC_RAW
+From: john stultz <johnstul@us.ibm.com>
 
-WARNING: EXPORT_SYMBOL(foo); should immediately follow its function/variable
-#108: FILE: kernel/time/timekeeping.c:235:
-+EXPORT_SYMBOL(getrawmonotonic);
+In talking with Josip Loncaric, and his work on clock synchronization (see
+btime.sf.net), he mentioned that for really close synchronization, it is
+useful to have access to "hardware time", that is a notion of time that is not
+in any way adjusted by the clock slewing done to keep close time sync.
 
-total: 0 errors, 1 warnings, 79 lines checked
+Part of the issue is if we are using the kernel's ntp adjusted representation
+of time in order to measure how we should correct time, we can run into what
+Paul McKenney aptly described as "Painting a road using the lines we're
+painting as the guide".
 
-./patches/clocksource-introduce-clock_monotonic_raw-fix.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+I had been thinking of a similar problem, and was trying to come up with a way
+to give users access to a purely hardware based time representation that
+avoided users having to know the underlying frequency and mask values needed
+to deal with the wide variety of possible underlying hardware counters.
 
-Please run checkpatch prior to sending patches
+My solution is to introduce CLOCK_MONOTONIC_RAW.  This exposes a nanosecond
+based time value, that increments starting at bootup and has no frequency
+adjustments made to it what so ever.
 
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Josip Loncaric <use-math@users.sourceforge.net>
+The time is accessed from userspace via the posix_clock_gettime() syscall,
+passing CLOCK_MONOTONIC_RAW as the clock_id.
+
+Signed-off-by: John Stultz <johnstul@us.ibm.com>
 Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: Josip Loncaric <use-math@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timekeeping.c |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/clocksource.h |    3 ++
+ include/linux/time.h        |    2 +
+ kernel/posix-timers.c       |   15 ++++++++++
+ kernel/time/timekeeping.c   |   49 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 69 insertions(+)
 
-diff -puN kernel/time/timekeeping.c~clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes
-+++ a/kernel/time/timekeeping.c
-@@ -235,7 +235,6 @@ void getrawmonotonic(struct timespec *ts
+diff -puN include/linux/clocksource.h~clocksource-introduce-clock_monotonic_raw include/linux/clocksource.h
+--- a/include/linux/clocksource.h~clocksource-introduce-clock_monotonic_raw
++++ a/include/linux/clocksource.h
+@@ -79,6 +79,7 @@ struct clocksource {
+ 	/* timekeeping specific data, ignore */
+ 	cycle_t cycle_interval;
+ 	u64	xtime_interval;
++	u64	raw_interval;
+ 	/*
+ 	 * Second part is written at each timer interrupt
+ 	 * Keep it in a different cache line to dirty no
+@@ -86,6 +87,7 @@ struct clocksource {
+ 	 */
+ 	cycle_t cycle_last ____cacheline_aligned_in_smp;
+ 	u64 xtime_nsec;
++	u64 raw_snsec;
+ 	s64 error;
  
- 	timespec_add_ns(ts, nsecs);
+ #ifdef CONFIG_CLOCKSOURCE_WATCHDOG
+@@ -215,6 +217,7 @@ static inline void clocksource_calculate
+ 
+ 	/* Go back from cycles -> shifted ns, this time use ntp adjused mult */
+ 	c->xtime_interval = (u64)c->cycle_interval * c->mult;
++	c->raw_interval = (u64)c->cycle_interval * c->mult_orig;
  }
--
- EXPORT_SYMBOL(getrawmonotonic);
  
  
+diff -puN include/linux/time.h~clocksource-introduce-clock_monotonic_raw include/linux/time.h
+--- a/include/linux/time.h~clocksource-introduce-clock_monotonic_raw
++++ a/include/linux/time.h
+@@ -116,6 +116,7 @@ extern int do_setitimer(int which, struc
+ extern unsigned int alarm_setitimer(unsigned int seconds);
+ extern int do_getitimer(int which, struct itimerval *value);
+ extern void getnstimeofday(struct timespec *tv);
++extern void getrawmonotonic(struct timespec *ts);
+ extern void getboottime(struct timespec *ts);
+ extern void monotonic_to_bootbased(struct timespec *ts);
+ 
+@@ -218,6 +219,7 @@ struct itimerval {
+ #define CLOCK_MONOTONIC			1
+ #define CLOCK_PROCESS_CPUTIME_ID	2
+ #define CLOCK_THREAD_CPUTIME_ID		3
++#define CLOCK_MONOTONIC_RAW		4
+ 
+ /*
+  * The IDs of various hardware clocks:
+diff -puN kernel/posix-timers.c~clocksource-introduce-clock_monotonic_raw kernel/posix-timers.c
+--- a/kernel/posix-timers.c~clocksource-introduce-clock_monotonic_raw
++++ a/kernel/posix-timers.c
+@@ -224,6 +224,15 @@ static int posix_ktime_get_ts(clockid_t 
+ }
+ 
+ /*
++ * Get monotonic time for posix timers
++ */
++static int posix_get_monotonic_raw(clockid_t which_clock, struct timespec *tp)
++{
++	getrawmonotonic(tp);
++	return 0;
++}
++
++/*
+  * Initialize everything, well, just everything in Posix clocks/timers ;)
+  */
+ static __init int init_posix_timers(void)
+@@ -236,9 +245,15 @@ static __init int init_posix_timers(void
+ 		.clock_get = posix_ktime_get_ts,
+ 		.clock_set = do_posix_clock_nosettime,
+ 	};
++	struct k_clock clock_monotonic_raw = {
++		.clock_getres = hrtimer_get_res,
++		.clock_get = posix_get_monotonic_raw,
++		.clock_set = do_posix_clock_nosettime,
++	};
+ 
+ 	register_posix_clock(CLOCK_REALTIME, &clock_realtime);
+ 	register_posix_clock(CLOCK_MONOTONIC, &clock_monotonic);
++	register_posix_clock(CLOCK_MONOTONIC_RAW, &clock_monotonic_raw);
+ 
+ 	posix_timers_cache = kmem_cache_create("posix_timers_cache",
+ 					sizeof (struct k_itimer), 0, SLAB_PANIC,
+diff -puN kernel/time/timekeeping.c~clocksource-introduce-clock_monotonic_raw kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~clocksource-introduce-clock_monotonic_raw
++++ a/kernel/time/timekeeping.c
+@@ -44,6 +44,7 @@ __cacheline_aligned_in_smp DEFINE_SEQLOC
+  */
+ struct timespec xtime __attribute__ ((aligned (16)));
+ struct timespec wall_to_monotonic __attribute__ ((aligned (16)));
++struct timespec monotonic_raw;
+ static unsigned long total_sleep_time;		/* seconds */
+ 
+ static struct timespec xtime_cache __attribute__ ((aligned (16)));
+@@ -106,6 +107,39 @@ void getnstimeofday(struct timespec *ts)
+ EXPORT_SYMBOL(getnstimeofday);
+ 
+ /**
++ * getrawmonotonic - Returns the raw monotonic time in a timespec
++ * @ts:		pointer to the timespec to be set
++ *
++ * Returns the raw monotonic time (completely un-modified by ntp)
++ */
++void getrawmonotonic(struct timespec *ts)
++{
++	unsigned long seq;
++	s64 nsecs;
++	cycle_t cycle_now, cycle_delta;
++
++	do {
++		seq = read_seqbegin(&xtime_lock);
++
++		/* read clocksource: */
++		cycle_now = clocksource_read(clock);
++
++		/* calculate the delta since the last update_wall_time: */
++		cycle_delta = (cycle_now - clock->cycle_last) & clock->mask;
++
++		/* convert to nanoseconds: */
++		nsecs = ((s64)cycle_delta * clock->mult_orig) >> clock->shift;
++
++		*ts = monotonic_raw;
++
++	} while (read_seqretry(&xtime_lock, seq));
++
++	timespec_add_ns(ts, nsecs);
++}
++
++EXPORT_SYMBOL(getrawmonotonic);
++
++/**
+  * do_gettimeofday - Returns the time of day in a timeval
+  * @tv:		pointer to the timeval to be set
+  *
+@@ -187,6 +221,7 @@ static void change_clocksource(void)
+ 
+ 	clock->error = 0;
+ 	clock->xtime_nsec = 0;
++	clock->raw_snsec = 0;
+ 	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
+ 
+ 	tick_clock_notify();
+@@ -255,6 +290,8 @@ void __init timekeeping_init(void)
+ 	xtime.tv_nsec = 0;
+ 	set_normalized_timespec(&wall_to_monotonic,
+ 		-xtime.tv_sec, -xtime.tv_nsec);
++	set_normalized_timespec(&monotonic_raw, 0,0);
++
+ 	update_xtime_cache(0);
+ 	total_sleep_time = 0;
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
+@@ -453,6 +490,7 @@ void update_wall_time(void)
+ 	offset = clock->cycle_interval;
+ #endif
+ 	clock->xtime_nsec += (s64)xtime.tv_nsec << clock->shift;
++	clock->raw_snsec += (s64) monotonic_raw.tv_nsec <<  clock->shift;
+ 
+ 	/* normally this loop will run just once, however in the
+ 	 * case of lost or late ticks, it will accumulate correctly.
+@@ -460,6 +498,7 @@ void update_wall_time(void)
+ 	while (offset >= clock->cycle_interval) {
+ 		/* accumulate one interval */
+ 		clock->xtime_nsec += clock->xtime_interval;
++		clock->raw_snsec += clock->raw_interval;
+ 		clock->cycle_last += clock->cycle_interval;
+ 		offset -= clock->cycle_interval;
+ 
+@@ -469,6 +508,11 @@ void update_wall_time(void)
+ 			second_overflow();
+ 		}
+ 
++		if (clock->raw_snsec >= (u64)NSEC_PER_SEC << clock->shift) {
++			clock->raw_snsec -= (u64)NSEC_PER_SEC << clock->shift;
++			monotonic_raw.tv_sec++;
++		}
++
+ 		/* accumulate error between NTP and clock interval */
+ 		clock->error += tick_length;
+ 		clock->error -= clock->xtime_interval << (NTP_SCALE_SHIFT - clock->shift);
+@@ -481,6 +525,11 @@ void update_wall_time(void)
+ 	xtime.tv_nsec = (s64)clock->xtime_nsec >> clock->shift;
+ 	clock->xtime_nsec -= (s64)xtime.tv_nsec << clock->shift;
+ 
++	/* store full nanoseconds into raw_monotonic */
++	monotonic_raw.tv_nsec = (s64)clock->raw_snsec >> clock->shift;
++	clock->raw_snsec -= (s64)monotonic_raw.tv_nsec << clock->shift;
++
++
+ 	update_xtime_cache(cyc2ns(clock, offset));
+ 
+ 	/* check to see if there is a new clocksource to use */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from johnstul@us.ibm.com are
 
-origin.patch
-alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-x86.patch
-git-x86-fix-printk-warning.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
-es1968-fix-sleep-while-holding-lock-bug-checkpatch-fixes.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
-git-powerpc.patch
-gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix.patch
-pm-remove-destroy_suspended_device.patch
-scsi-add-iscsi-ibft-support.patch
-git-dvb.patch
-git-dvb-git-rejects.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-arch-ia64-kernel-use-time_-macros.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-kvm.patch
-git-kvm-fixup.patch
-git-kvm-vs-git-s390.patch
-git-leds.patch
-git-libata-fix-config_pci=n-build.patch
-git-async-tx.patch
-git-mips.patch
-git-net.patch
-git-net-git-rejects.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-selinux-git-rejects.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
-git-s390.patch
-git-s390-git-rejects.patch
-git-sh.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-slub-git-rejects.patch
-git-semaphore-git-rejects.patch
-smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-allocate-section_map-for-sparse_init-update-fix.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-arch-um-os-linux-mainc-fix-memory-leaks-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
+proper-extern-for-late_time_init.patch
+introduce-explicit-signed-unsigned-64bit-divide.patch
+convert-a-few-do_div-user.patch
+remove-div_long_long_rem.patch
+ntp-cleanup-ntpc.patch
+ntp-ntp4-user-space-bits-update.patch
+ntp-increase-time_freq-resolution.patch
+ntp-increase-time_offset-resolution.patch
+ntp-support-for-tai.patch
+ntp-rename-tick_length_shift-to-ntp_scale_shift.patch
+ntp-remove-current_tick_length.patch
+ntp-handle-leap-second-via-timer.patch
+clocksource-introduce-clock_monotonic_raw.patch
+clocksource-introduce-clock_monotonic_raw-fix.patch
 clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+clocksource-introduce-clocksource_forward_now.patch
 
