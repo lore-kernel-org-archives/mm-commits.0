@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-free-memmaps-allocated-by-bootmem.patch added to -mm tree
-Date: Thu, 03 Apr 2008 15:53:19 -0700
-Message-ID: <200804032253.m33MrK6V026734@imap1.linux-foundation.org>
+Subject: + memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch added to -mm tree
+Date: Thu, 03 Apr 2008 15:53:17 -0700
+Message-ID: <200804032253.m33MrIh9026731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52857 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52098 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751369AbYDCWx2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751781AbYDCWx2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 18:53:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: y-goto@jp.fujitsu.com, clameter@sgi.com, pbadari@us.ibm.com, yhlu.kernel@gma
 
 
 The patch titled
-     memory hotplug: free memmaps allocated by bootmem
+     memory hotplug: allocate usemap on the section with pgdat
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-free-memmaps-allocated-by-bootmem.patch
+     memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,21 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: free memmaps allocated by bootmem
+Subject: memory hotplug: allocate usemap on the section with pgdat
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-This patch is to free memmaps which are allocated frmo bootmem.
+Usemaps are allocated on the section which has pgdat by this.
 
-Freeing usemap is not necessary.  The pages of usemap may be necessary for
-other sections.  If a removed section is the last section on a node, its page
-must be isolated from page allocator to remove it.
+Because usemap size is very small, many usemaps for sections are allocated on
+only one page.  The page will be quite hard to be removed until removing all
+other sections.  This dependency is not desirable for memory removing.
 
-Then it shouldn't be freed and kept as it is.
+Pgdat has similar feature.  If sections has pgdat area, it must be the last
+section for removing on the node.
+
+This is to collect the cause pages of its dependency on one section.  If other
+sections doesn't have any dependency, this section will be able to be removed
+finally.
 
 Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Cc: Yinghai Lu <yhlu.kernel@gmail.com>
@@ -51,128 +56,39 @@ Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    3 --
- mm/page_alloc.c |    2 -
- mm/sparse.c     |   50 ++++++++++++++++++++++++++++++++++++++++++----
- 3 files changed, 48 insertions(+), 7 deletions(-)
+ mm/sparse.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN mm/internal.h~memory-hotplug-free-memmaps-allocated-by-bootmem mm/internal.h
---- a/mm/internal.h~memory-hotplug-free-memmaps-allocated-by-bootmem
-+++ a/mm/internal.h
-@@ -34,8 +34,7 @@ static inline void __put_page(struct pag
- 	atomic_dec(&page->_count);
- }
- 
--extern void __init __free_pages_bootmem(struct page *page,
--						unsigned int order);
-+extern void __free_pages_bootmem(struct page *page, unsigned int order);
- 
- /*
-  * function for dealing with page's order in buddy system.
-diff -puN mm/page_alloc.c~memory-hotplug-free-memmaps-allocated-by-bootmem mm/page_alloc.c
---- a/mm/page_alloc.c~memory-hotplug-free-memmaps-allocated-by-bootmem
-+++ a/mm/page_alloc.c
-@@ -546,7 +546,7 @@ static void __free_pages_ok(struct page 
- /*
-  * permit the bootmem allocator to evade page validation on high-order frees
-  */
--void __init __free_pages_bootmem(struct page *page, unsigned int order)
-+void __free_pages_bootmem(struct page *page, unsigned int order)
- {
- 	if (order == 0) {
- 		__ClearPageReserved(page);
-diff -puN mm/sparse.c~memory-hotplug-free-memmaps-allocated-by-bootmem mm/sparse.c
---- a/mm/sparse.c~memory-hotplug-free-memmaps-allocated-by-bootmem
+diff -puN mm/sparse.c~memory-hotplug-allocate-usemap-on-the-section-with-pgdat mm/sparse.c
+--- a/mm/sparse.c~memory-hotplug-allocate-usemap-on-the-section-with-pgdat
 +++ a/mm/sparse.c
-@@ -8,6 +8,7 @@
- #include <linux/module.h>
- #include <linux/spinlock.h>
- #include <linux/vmalloc.h>
-+#include "internal.h"
- #include <asm/dma.h>
- #include <asm/pgalloc.h>
- #include <asm/pgtable.h>
-@@ -360,6 +361,10 @@ static void __kfree_section_memmap(struc
- {
- 	return; /* XXX: Not implemented yet */
+@@ -237,13 +237,23 @@ static unsigned long *__kmalloc_section_
  }
-+static void free_map_bootmem(struct page *page, unsigned long nr_pages)
-+{
-+	return; /* XXX: Not implemented yet */
-+}
- #else
- static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
+ #endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+-static unsigned long *__init sparse_early_usemap_alloc(unsigned long pnum)
++static unsigned long *__init sparse_early_usemap_alloc(int pnum)
  {
-@@ -397,17 +402,45 @@ static void __kfree_section_memmap(struc
- 		free_pages((unsigned long)memmap,
- 			   get_order(sizeof(struct page) * nr_pages));
- }
+-	unsigned long *usemap;
++	unsigned long *usemap, section_nr;
+ 	struct mem_section *ms = __nr_to_section(pnum);
+ 	int nid = sparse_early_nid(ms);
++	struct pglist_data *pgdat = NODE_DATA(nid);
 +
-+static void free_map_bootmem(struct page *page, unsigned long nr_pages)
-+{
-+	unsigned long maps_section_nr, removing_section_nr, i;
-+	int magic;
++	/*
++	 * This is allocated on same section of pgdat.
++	 * It will not be freed until other sections hot-removing on the node.
++	 * Pgdat has same feature. This collects all usemap on the same
++	 * section.
++	 */
 +
-+	for (i = 0; i < nr_pages; i++, page++) {
-+		magic = atomic_read(&page->_mapcount);
-+
-+		BUG_ON(magic == NODE_INFO);
-+
-+		maps_section_nr = pfn_to_section_nr(page_to_pfn(page));
-+		removing_section_nr = page->private;
-+
-+		/*
-+		 * If removing section's memmap is placed on other section,
-+		 * it must be free.
-+		 * Else, nothing is necessary. the memmap is already isolated
-+		 * against page allocator, and it is not used any more.
-+		 */
-+		if (maps_section_nr != removing_section_nr)
-+			put_page_bootmem(page);
-+	}
-+}
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
++	section_nr = pfn_to_section_nr(__pa(pgdat) >> PAGE_SHIFT);
++	usemap = alloc_bootmem_section(usemap_size(), section_nr);
  
- static void free_section_usemap(struct page *memmap, unsigned long *usemap)
- {
-+	struct page *usemap_page;
-+	unsigned long nr_pages;
-+
- 	if (!usemap)
- 		return;
+-	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
+ 	if (usemap)
+ 		return usemap;
  
-+	usemap_page = virt_to_page(usemap);
- 	/*
- 	 * Check to see if allocation came from hot-plug-add
- 	 */
--	if (PageSlab(virt_to_page(usemap))) {
-+	if (PageSlab(usemap_page)) {
- 		kfree(usemap);
- 		if (memmap)
- 			__kfree_section_memmap(memmap, PAGES_PER_SECTION);
-@@ -415,10 +448,19 @@ static void free_section_usemap(struct p
- 	}
- 
- 	/*
--	 * TODO: Allocations came from bootmem - how do I free up ?
-+	 * The usemap came from bootmem. This is packed with other usemaps
-+	 * on the section which has pgdat at boot time. Just keep it as is now.
- 	 */
--	printk(KERN_WARNING "Not freeing up allocations from bootmem "
--			"- leaking memory\n");
-+
-+	if (memmap) {
-+		struct page *memmap_page;
-+		memmap_page = virt_to_page(memmap);
-+
-+		nr_pages = PAGE_ALIGN(PAGES_PER_SECTION * sizeof(struct page))
-+			>> PAGE_SHIFT;
-+
-+		free_map_bootmem(memmap_page, nr_pages);
-+	}
- }
- 
- /*
 _
 
 Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
