@@ -1,174 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - clocksource-introduce-clock_monotonic_raw.patch removed from -mm tree
-Date: Thu, 03 Apr 2008 14:10:21 -0700
-Message-ID: <200804032110.m33LALXA022663@imap1.linux-foundation.org>
+Subject: - clocksource-introduce-clocksource_forward_now.patch removed from -mm tree
+Date: Thu, 03 Apr 2008 14:10:29 -0700
+Message-ID: <200804032110.m33LATOg022672@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48679 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33652 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757191AbYDCVLG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 17:11:06 -0400
+	by vger.kernel.org with ESMTP id S1757297AbYDCVLI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 17:11:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, use-math@users.sourceforge.net, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: zippel@linux-m68k.org, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     clocksource: introduce CLOCK_MONOTONIC_RAW
+     clocksource: introduce clocksource_forward_now
 has been removed from the -mm tree.  Its filename was
-     clocksource-introduce-clock_monotonic_raw.patch
+     clocksource-introduce-clocksource_forward_now.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource: introduce CLOCK_MONOTONIC_RAW
-From: john stultz <johnstul@us.ibm.com>
+Subject: clocksource: introduce clocksource_forward_now
+From: Roman Zippel <zippel@linux-m68k.org>
 
-In talking with Josip Loncaric, and his work on clock synchronization (see
-btime.sf.net), he mentioned that for really close synchronization, it is
-useful to have access to "hardware time", that is a notion of time that is not
-in any way adjusted by the clock slewing done to keep close time sync.
+There is a problem with the time offset since the last update_wall_time()
+call, which isn't taken into account when switching clocks (possibly during
+suspend/resume too), so that the clock might jump back during a clock switch.
 
-Part of the issue is if we are using the kernel's ntp adjusted representation
-of time in order to measure how we should correct time, we can run into what
-Paul McKenney aptly described as "Painting a road using the lines we're
-painting as the guide".
+To avoid making the whole more complex it's better to do small cleanup first,
+so this patch introduces clocksource_forward_now() which takes care of this
+offset since the last update_wall_time() call and adds it to the clock, so
+there is no need anymore to deal with it explicitly.  This is also gets rid of
+the timekeeping_suspend_nsecs hack, instead of waiting until resume, the value
+is accumulated during suspend.  In the end there is only a single user of
+__get_nsec_offset() left, so I integrated it back to getnstimeofday().
 
-I had been thinking of a similar problem, and was trying to come up with a way
-to give users access to a purely hardware based time representation that
-avoided users having to know the underlying frequency and mask values needed
-to deal with the wide variety of possible underlying hardware counters.
-
-My solution is to introduce CLOCK_MONOTONIC_RAW.  This exposes a nanosecond
-based time value, that increments starting at bootup and has no frequency
-adjustments made to it what so ever.
-
-The time is accessed from userspace via the posix_clock_gettime() syscall,
-passing CLOCK_MONOTONIC_RAW as the clock_id.
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Josip Loncaric <use-math@users.sourceforge.net>
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Acked-by: John Stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/clocksource.h |    3 ++
- include/linux/time.h        |    2 +
- kernel/posix-timers.c       |   15 ++++++++++
- kernel/time/timekeeping.c   |   49 ++++++++++++++++++++++++++++++++++
- 4 files changed, 69 insertions(+)
+ kernel/time/timekeeping.c |   66 ++++++++++++++++--------------------
+ 1 file changed, 30 insertions(+), 36 deletions(-)
 
-diff -puN include/linux/clocksource.h~clocksource-introduce-clock_monotonic_raw include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-introduce-clock_monotonic_raw
-+++ a/include/linux/clocksource.h
-@@ -79,6 +79,7 @@ struct clocksource {
- 	/* timekeeping specific data, ignore */
- 	cycle_t cycle_interval;
- 	u64	xtime_interval;
-+	u64	raw_interval;
- 	/*
- 	 * Second part is written at each timer interrupt
- 	 * Keep it in a different cache line to dirty no
-@@ -86,6 +87,7 @@ struct clocksource {
- 	 */
- 	cycle_t cycle_last ____cacheline_aligned_in_smp;
- 	u64 xtime_nsec;
-+	u64 raw_snsec;
- 	s64 error;
- 
- #ifdef CONFIG_CLOCKSOURCE_WATCHDOG
-@@ -215,6 +217,7 @@ static inline void clocksource_calculate
- 
- 	/* Go back from cycles -> shifted ns, this time use ntp adjused mult */
- 	c->xtime_interval = (u64)c->cycle_interval * c->mult;
-+	c->raw_interval = (u64)c->cycle_interval * c->mult_orig;
- }
- 
- 
-diff -puN include/linux/time.h~clocksource-introduce-clock_monotonic_raw include/linux/time.h
---- a/include/linux/time.h~clocksource-introduce-clock_monotonic_raw
-+++ a/include/linux/time.h
-@@ -116,6 +116,7 @@ extern int do_setitimer(int which, struc
- extern unsigned int alarm_setitimer(unsigned int seconds);
- extern int do_getitimer(int which, struct itimerval *value);
- extern void getnstimeofday(struct timespec *tv);
-+extern void getrawmonotonic(struct timespec *ts);
- extern void getboottime(struct timespec *ts);
- extern void monotonic_to_bootbased(struct timespec *ts);
- 
-@@ -218,6 +219,7 @@ struct itimerval {
- #define CLOCK_MONOTONIC			1
- #define CLOCK_PROCESS_CPUTIME_ID	2
- #define CLOCK_THREAD_CPUTIME_ID		3
-+#define CLOCK_MONOTONIC_RAW		4
- 
- /*
-  * The IDs of various hardware clocks:
-diff -puN kernel/posix-timers.c~clocksource-introduce-clock_monotonic_raw kernel/posix-timers.c
---- a/kernel/posix-timers.c~clocksource-introduce-clock_monotonic_raw
-+++ a/kernel/posix-timers.c
-@@ -224,6 +224,15 @@ static int posix_ktime_get_ts(clockid_t 
- }
- 
- /*
-+ * Get monotonic time for posix timers
-+ */
-+static int posix_get_monotonic_raw(clockid_t which_clock, struct timespec *tp)
-+{
-+	getrawmonotonic(tp);
-+	return 0;
-+}
-+
-+/*
-  * Initialize everything, well, just everything in Posix clocks/timers ;)
-  */
- static __init int init_posix_timers(void)
-@@ -236,9 +245,15 @@ static __init int init_posix_timers(void
- 		.clock_get = posix_ktime_get_ts,
- 		.clock_set = do_posix_clock_nosettime,
- 	};
-+	struct k_clock clock_monotonic_raw = {
-+		.clock_getres = hrtimer_get_res,
-+		.clock_get = posix_get_monotonic_raw,
-+		.clock_set = do_posix_clock_nosettime,
-+	};
- 
- 	register_posix_clock(CLOCK_REALTIME, &clock_realtime);
- 	register_posix_clock(CLOCK_MONOTONIC, &clock_monotonic);
-+	register_posix_clock(CLOCK_MONOTONIC_RAW, &clock_monotonic_raw);
- 
- 	posix_timers_cache = kmem_cache_create("posix_timers_cache",
- 					sizeof (struct k_itimer), 0, SLAB_PANIC,
-diff -puN kernel/time/timekeeping.c~clocksource-introduce-clock_monotonic_raw kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~clocksource-introduce-clock_monotonic_raw
+diff -puN kernel/time/timekeeping.c~clocksource-introduce-clocksource_forward_now kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~clocksource-introduce-clocksource_forward_now
 +++ a/kernel/time/timekeeping.c
-@@ -44,6 +44,7 @@ __cacheline_aligned_in_smp DEFINE_SEQLOC
-  */
- struct timespec xtime __attribute__ ((aligned (16)));
- struct timespec wall_to_monotonic __attribute__ ((aligned (16)));
-+struct timespec monotonic_raw;
- static unsigned long total_sleep_time;		/* seconds */
+@@ -59,27 +59,23 @@ struct clocksource *clock;
  
- static struct timespec xtime_cache __attribute__ ((aligned (16)));
-@@ -106,6 +107,39 @@ void getnstimeofday(struct timespec *ts)
- EXPORT_SYMBOL(getnstimeofday);
+ #ifdef CONFIG_GENERIC_TIME
+ /**
+- * __get_nsec_offset - Returns nanoseconds since last call to periodic_hook
++ * clocksource_forward_now - update clock to the current time
+  *
+- * private function, must hold xtime_lock lock when being
+- * called. Returns the number of nanoseconds since the
+- * last call to update_wall_time() (adjusted by NTP scaling)
++ * Forward the current clock to update its state since the last call to
++ * update_wall_time(). This is useful before significant clock changes,
++ * as it avoids having to deal with this time offset explicitly.
+  */
+-static inline s64 __get_nsec_offset(void)
++static void clocksource_forward_now(void)
+ {
+ 	cycle_t cycle_now, cycle_delta;
+-	s64 ns_offset;
++	s64 nsec;
+ 
+-	/* read clocksource: */
+ 	cycle_now = clocksource_read(clock);
+-
+-	/* calculate the delta since the last update_wall_time: */
+ 	cycle_delta = (cycle_now - clock->cycle_last) & clock->mask;
++	clock->cycle_last = cycle_now;
+ 
+-	/* convert to nanoseconds: */
+-	ns_offset = cyc2ns(clock, cycle_delta);
+-
+-	return ns_offset;
++	nsec = cyc2ns(clock, cycle_delta);
++	timespec_add_ns(&xtime, nsec);
+ }
  
  /**
-+ * getrawmonotonic - Returns the raw monotonic time in a timespec
-+ * @ts:		pointer to the timespec to be set
-+ *
-+ * Returns the raw monotonic time (completely un-modified by ntp)
-+ */
-+void getrawmonotonic(struct timespec *ts)
-+{
-+	unsigned long seq;
-+	s64 nsecs;
+@@ -90,6 +86,7 @@ static inline s64 __get_nsec_offset(void
+  */
+ void getnstimeofday(struct timespec *ts)
+ {
 +	cycle_t cycle_now, cycle_delta;
-+
-+	do {
-+		seq = read_seqbegin(&xtime_lock);
+ 	unsigned long seq;
+ 	s64 nsecs;
+ 
+@@ -97,7 +94,15 @@ void getnstimeofday(struct timespec *ts)
+ 		seq = read_seqbegin(&xtime_lock);
+ 
+ 		*ts = xtime;
+-		nsecs = __get_nsec_offset();
 +
 +		/* read clocksource: */
 +		cycle_now = clocksource_read(clock);
@@ -177,85 +108,132 @@ diff -puN kernel/time/timekeeping.c~clocksource-introduce-clock_monotonic_raw ke
 +		cycle_delta = (cycle_now - clock->cycle_last) & clock->mask;
 +
 +		/* convert to nanoseconds: */
-+		nsecs = ((s64)cycle_delta * clock->mult_orig) >> clock->shift;
++		nsecs = cyc2ns(clock, cycle_delta);
+ 
+ 	} while (read_seqretry(&xtime_lock, seq));
+ 
+@@ -131,21 +136,19 @@ EXPORT_SYMBOL(do_gettimeofday);
+ int do_settimeofday(struct timespec *tv)
+ {
+ 	unsigned long flags;
+-	time_t wtm_sec, sec = tv->tv_sec;
+-	long wtm_nsec, nsec = tv->tv_nsec;
+ 
+ 	if ((unsigned long)tv->tv_nsec >= NSEC_PER_SEC)
+ 		return -EINVAL;
+ 
+ 	write_seqlock_irqsave(&xtime_lock, flags);
+ 
+-	nsec -= __get_nsec_offset();
++	clocksource_forward_now();
+ 
+-	wtm_sec  = wall_to_monotonic.tv_sec + (xtime.tv_sec - sec);
+-	wtm_nsec = wall_to_monotonic.tv_nsec + (xtime.tv_nsec - nsec);
++	wall_to_monotonic.tv_sec += xtime.tv_sec - tv->tv_sec;
++	timespec_add_ns(&wall_to_monotonic, xtime.tv_nsec - tv->tv_nsec);
 +
-+		*ts = monotonic_raw;
-+
-+	} while (read_seqretry(&xtime_lock, seq));
-+
-+	timespec_add_ns(ts, nsecs);
-+}
-+
-+EXPORT_SYMBOL(getrawmonotonic);
-+
-+/**
-  * do_gettimeofday - Returns the time of day in a timeval
-  * @tv:		pointer to the timeval to be set
-  *
-@@ -187,6 +221,7 @@ static void change_clocksource(void)
++	xtime = *tv;
+ 
+-	set_normalized_timespec(&xtime, sec, nsec);
+-	set_normalized_timespec(&wall_to_monotonic, wtm_sec, wtm_nsec);
+ 	update_xtime_cache(0);
  
  	clock->error = 0;
+@@ -171,21 +174,16 @@ EXPORT_SYMBOL(do_settimeofday);
+ static void change_clocksource(void)
+ {
+ 	struct clocksource *new;
+-	cycle_t now;
+-	u64 nsec;
+ 
+ 	new = clocksource_get_next();
+ 
+ 	if (clock == new)
+ 		return;
+ 
+-	now = clocksource_read(new);
+-	nsec =  __get_nsec_offset();
+-	timespec_add_ns(&xtime, nsec);
++	clocksource_forward_now();
+ 
+ 	clock = new;
+-	clock->cycle_last = now;
+-
++	clock->cycle_last = clocksource_read(new);
+ 	clock->error = 0;
  	clock->xtime_nsec = 0;
-+	clock->raw_snsec = 0;
- 	clocksource_calculate_interval(clock, NTP_INTERVAL_LENGTH);
- 
- 	tick_clock_notify();
-@@ -255,6 +290,8 @@ void __init timekeeping_init(void)
- 	xtime.tv_nsec = 0;
- 	set_normalized_timespec(&wall_to_monotonic,
- 		-xtime.tv_sec, -xtime.tv_nsec);
-+	set_normalized_timespec(&monotonic_raw, 0,0);
-+
- 	update_xtime_cache(0);
- 	total_sleep_time = 0;
- 	write_sequnlock_irqrestore(&xtime_lock, flags);
-@@ -453,6 +490,7 @@ void update_wall_time(void)
- 	offset = clock->cycle_interval;
+ 	clock->raw_snsec = 0;
+@@ -201,8 +199,8 @@ static void change_clocksource(void)
+ 	 */
+ }
+ #else
++static inline void clocksource_forward_now(void) { }
+ static inline void change_clocksource(void) { }
+-static inline s64 __get_nsec_offset(void) { return 0; }
  #endif
- 	clock->xtime_nsec += (s64)xtime.tv_nsec << clock->shift;
-+	clock->raw_snsec += (s64) monotonic_raw.tv_nsec <<  clock->shift;
  
- 	/* normally this loop will run just once, however in the
- 	 * case of lost or late ticks, it will accumulate correctly.
-@@ -460,6 +498,7 @@ void update_wall_time(void)
+ /**
+@@ -301,8 +299,6 @@ void __init timekeeping_init(void)
+ static int timekeeping_suspended;
+ /* time in seconds when suspend began */
+ static unsigned long timekeeping_suspend_time;
+-/* xtime offset when we went into suspend */
+-static s64 timekeeping_suspend_nsecs;
+ 
+ /**
+  * timekeeping_resume - Resumes the generic timekeeping subsystem.
+@@ -328,8 +324,6 @@ static int timekeeping_resume(struct sys
+ 		wall_to_monotonic.tv_sec -= sleep_length;
+ 		total_sleep_time += sleep_length;
+ 	}
+-	/* Make sure that we have the correct xtime reference */
+-	timespec_add_ns(&xtime, timekeeping_suspend_nsecs);
+ 	update_xtime_cache(0);
+ 	/* re-base the last cycle value */
+ 	clock->cycle_last = clocksource_read(clock);
+@@ -354,8 +348,7 @@ static int timekeeping_suspend(struct sy
+ 	timekeeping_suspend_time = read_persistent_clock();
+ 
+ 	write_seqlock_irqsave(&xtime_lock, flags);
+-	/* Get the current xtime offset */
+-	timekeeping_suspend_nsecs = __get_nsec_offset();
++	clocksource_forward_now();
+ 	timekeeping_suspended = 1;
+ 	write_sequnlock_irqrestore(&xtime_lock, flags);
+ 
+@@ -497,9 +490,10 @@ void update_wall_time(void)
+ 	 */
  	while (offset >= clock->cycle_interval) {
  		/* accumulate one interval */
- 		clock->xtime_nsec += clock->xtime_interval;
-+		clock->raw_snsec += clock->raw_interval;
+-		clock->xtime_nsec += clock->xtime_interval;
+ 		clock->raw_snsec += clock->raw_interval;
  		clock->cycle_last += clock->cycle_interval;
++		clock->xtime_nsec += clock->xtime_interval;
++
  		offset -= clock->cycle_interval;
  
-@@ -469,6 +508,11 @@ void update_wall_time(void)
- 			second_overflow();
- 		}
- 
-+		if (clock->raw_snsec >= (u64)NSEC_PER_SEC << clock->shift) {
-+			clock->raw_snsec -= (u64)NSEC_PER_SEC << clock->shift;
-+			monotonic_raw.tv_sec++;
-+		}
-+
- 		/* accumulate error between NTP and clock interval */
- 		clock->error += tick_length;
- 		clock->error -= clock->xtime_interval << (NTP_SCALE_SHIFT - clock->shift);
-@@ -481,6 +525,11 @@ void update_wall_time(void)
- 	xtime.tv_nsec = (s64)clock->xtime_nsec >> clock->shift;
- 	clock->xtime_nsec -= (s64)xtime.tv_nsec << clock->shift;
- 
-+	/* store full nanoseconds into raw_monotonic */
-+	monotonic_raw.tv_nsec = (s64)clock->raw_snsec >> clock->shift;
-+	clock->raw_snsec -= (s64)monotonic_raw.tv_nsec << clock->shift;
-+
-+
- 	update_xtime_cache(cyc2ns(clock, offset));
- 
- 	/* check to see if there is a new clocksource to use */
+ 		if (clock->xtime_nsec >= (u64)NSEC_PER_SEC << clock->shift) {
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from zippel@linux-m68k.org are
 
-proper-extern-for-late_time_init.patch
+git-x86.patch
+provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
+git-watchdog.patch
+m68k-replace-remaining-__function__-occurences.patch
+fs-hfsplus-proper-externs.patch
+affs-handle-match_strdup-failure.patch
+hfs-handle-match_strdup-failure.patch
+hfsplus-handle-match_strdup-failure.patch
+fs-affs-filec-use-bug_on.patch
+affs-be_add_cpu-conversion.patch
+hfs-hfsplus-be_add_cpu-conversion.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
 introduce-explicit-signed-unsigned-64bit-divide.patch
 convert-a-few-do_div-user.patch
+rename-div64_64-to-div64_u64.patch
+rename-div64_64-to-div64_u64-mm.patch
 remove-div_long_long_rem.patch
 ntp-cleanup-ntpc.patch
 ntp-ntp4-user-space-bits-update.patch
@@ -265,8 +243,5 @@ ntp-support-for-tai.patch
 ntp-rename-tick_length_shift-to-ntp_scale_shift.patch
 ntp-remove-current_tick_length.patch
 ntp-handle-leap-second-via-timer.patch
-clocksource-introduce-clock_monotonic_raw.patch
-clocksource-introduce-clock_monotonic_raw-fix.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
 clocksource-introduce-clocksource_forward_now.patch
 
