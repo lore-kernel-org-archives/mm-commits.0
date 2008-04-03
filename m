@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + docbook-some-kernel-locking-fixes.patch added to -mm tree
-Date: Thu, 03 Apr 2008 15:03:39 -0700
-Message-ID: <200804032203.m33M3dqh024915@imap1.linux-foundation.org>
+Subject: + kernel-doc-detect-trailing-kernel-doc-line-trash.patch added to -mm tree
+Date: Thu, 03 Apr 2008 15:11:15 -0700
+Message-ID: <200804032211.m33MBFp1025147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43733 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757025AbYDCWEU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 18:04:20 -0400
+	by vger.kernel.org with ESMTP id S1756487AbYDCWL7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 18:11:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mattilinnanvuori@yahoo.com, randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     docbook: some kernel-locking fixes
+     kernel-doc: detect trailing kernel-doc line trash
 has been added to the -mm tree.  Its filename is
-     docbook-some-kernel-locking-fixes.patch
+     kernel-doc-detect-trailing-kernel-doc-line-trash.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,67 +33,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docbook: some kernel-locking fixes
-From: Matti Linnanvuori <mattilinnanvuori@yahoo.com>
+Subject: kernel-doc: detect trailing kernel-doc line trash
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix a wrong path. Add a chapter about try functions.
+Print a warning when a kernel-doc comment block ends with text on the same
+line as the ending comment characters, e.g.:
 
-http://bugzilla.kernel.org/show_bug.cgi?id=9011
+ * this text is lost. */
 
-Signed-off-by: Matti Linnanvuori <mattilinnanvuori@yahoo.com>
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-locking.tmpl |   25 +++++++++++++++++++-
- 1 file changed, 24 insertions(+), 1 deletion(-)
+ scripts/kernel-doc |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN Documentation/DocBook/kernel-locking.tmpl~docbook-some-kernel-locking-fixes Documentation/DocBook/kernel-locking.tmpl
---- a/Documentation/DocBook/kernel-locking.tmpl~docbook-some-kernel-locking-fixes
-+++ a/Documentation/DocBook/kernel-locking.tmpl
-@@ -290,7 +290,7 @@
-      <para>
-        If you have a data structure which is only ever accessed from
-        user context, then you can use a simple semaphore
--       (<filename>linux/asm/semaphore.h</filename>) to protect it.  This 
-+       (<filename>include/asm/semaphore.h</filename>) to protect it.  This
-        is the most trivial case: you initialize the semaphore to the number 
-        of resources available (usually 1), and call
-        <function>down_interruptible()</function> to grab the semaphore, and 
-@@ -703,6 +703,29 @@
- </sect1>
- </chapter>
+diff -puN scripts/kernel-doc~kernel-doc-detect-trailing-kernel-doc-line-trash scripts/kernel-doc
+--- a/scripts/kernel-doc~kernel-doc-detect-trailing-kernel-doc-line-trash
++++ a/scripts/kernel-doc
+@@ -1950,6 +1950,11 @@ sub process_file($) {
+ 		    $section = $section_default;
+ 		    $contents = "";
+ 		}
++		# look for doc_com + <text> + doc_end:
++		if ($_ =~ m'\s*\*\s*[a-zA-Z_0-9:\.]+\*/') {
++		    print STDERR "Warning(${file}:$.): suspicious ending line: $_";
++		    ++$warnings;
++		}
  
-+<chapter id="try-variants">
-+ <title>The try variants</title>
-+
-+  <para>
-+    <function>spin_trylock()</function> does not spin but returns non-zero if
-+    it acquires the spinlock on the first try or 0 if not.
-+  </para>
-+
-+  <para>
-+    <function>mutex_trylock()</function> does not suspend your task
-+    but returns non-zero if it could lock the mutex on the first try
-+    or 0 if not.
-+  </para>
-+
-+  <para>
-+    <function>down_trylock()</function> does not suspend your task
-+    but returns 0 if it could get the semaphore on the first try or
-+    non-zero if not. The return value is the inverse of that of
-+    <function>spin_trylock()</function> and <function>mutex_trylock()
-+    </function>.
-+  </para>
-+</chapter>
-+
-   <chapter id="Examples">
-    <title>Common Examples</title>
-     <para>
+ 		$prototype = "";
+ 		$state = 3;
 _
 
-Patches currently in -mm which might be from mattilinnanvuori@yahoo.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-origin.patch
 docbook-some-kernel-locking-fixes.patch
+x86_32-fix-visualws-and-voyager-kexec-build-failures.patch
+rapidio-fix-docbook-references.patch
+pm-remove-legacy-pm-fix.patch
+kbuild-silence-documentation-gen-xml-messages-according-to-quiet.patch
+git-kvm.patch
+git-net.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-unionfs.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
+let-log_buf_shift-default-to-17.patch
+sysrq-add-show-backtrace-on-all-cpus-function.patch
+isolate-ratelimit-from-printkc-for-other-use-update.patch
+documentation-move-spidev_fdx-example-to-its-own-source-file.patch
+kernel-doc-detect-prevent-duplicate-doc-section-names.patch
+kernel-doc-detect-trailing-kernel-doc-line-trash.patch
+add-a-document-describing-the-resource-counter-abstraction-v2.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+jbd2-fix-kernel-doc-notation.patch
+dma-add-dma_map_attrs-interfaces.patch
+dma-document-dma_map_attrs-interfaces.patch
+dma-ia64-update-ia64-machvecs-swiotlbc.patch
+ib-expand-ib_umem_get-prototype.patch
+basic-braille-screen-reader-support-makefile-fix.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
+profile-likely-unlikely-macros.patch
 
