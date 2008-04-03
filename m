@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sc92031-use-net_device-stats.patch added to -mm tree
-Date: Thu, 03 Apr 2008 14:59:27 -0700
-Message-ID: <200804032159.m33LxRjK024715@imap1.linux-foundation.org>
+Subject: + sc92031-sysfs-link-missing.patch added to -mm tree
+Date: Thu, 03 Apr 2008 14:58:36 -0700
+Message-ID: <200804032158.m33Lwb5n024694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34924 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755995AbYDCV7i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 17:59:38 -0400
+	by vger.kernel.org with ESMTP id S1754781AbYDCV7g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 17:59:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@vyatta.com
+Cc: shemminger@vyatta.com, cesarb@cesarb.net, jgarzik@pobox.com, tom@sharkbay.at
 
 
 The patch titled
-     sc92031: use net_device stats
+     sc92031: sysfs link missing
 has been added to the -mm tree.  Its filename is
-     sc92031-use-net_device-stats.patch
+     sc92031-sysfs-link-missing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,211 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sc92031: use net_device stats
+Subject: sc92031: sysfs link missing
 From: Stephen Hemminger <shemminger@vyatta.com>
 
-Statistics structure is available for use in net_device structure.  Compile
-tested only.
+Add missing sysfs device association. Compile tested only -ENOHW.
+
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10380
 
 Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Cc: Jeff Garzik <jgarzik@pobox.com>
+Cc: Cesar Eduardo Barros <cesarb@cesarb.net>
+Cc: <tom@sharkbay.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sc92031.c |   70 +++++++++++++++++++---------------------
- 1 file changed, 34 insertions(+), 36 deletions(-)
+ drivers/net/sc92031.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/sc92031.c~sc92031-use-net_device-stats drivers/net/sc92031.c
---- a/drivers/net/sc92031.c~sc92031-use-net_device-stats
+diff -puN drivers/net/sc92031.c~sc92031-sysfs-link-missing drivers/net/sc92031.c
+--- a/drivers/net/sc92031.c~sc92031-sysfs-link-missing
 +++ a/drivers/net/sc92031.c
-@@ -311,7 +311,6 @@ struct sc92031_priv {
- 
- 	/* for dev->get_stats */
- 	long			rx_value;
--	struct net_device_stats	stats;
- };
- 
- /* I don't know which registers can be safely read; however, I can guess
-@@ -421,7 +420,7 @@ static void _sc92031_tx_clear(struct net
- 
- 	while (priv->tx_head - priv->tx_tail > 0) {
- 		priv->tx_tail++;
--		priv->stats.tx_dropped++;
-+		dev->stats.tx_dropped++;
- 	}
- 	priv->tx_head = priv->tx_tail = 0;
- }
-@@ -676,27 +675,27 @@ static void _sc92031_tx_tasklet(struct n
- 		priv->tx_tail++;
- 
- 		if (tx_status & TxStatOK) {
--			priv->stats.tx_bytes += tx_status & 0x1fff;
--			priv->stats.tx_packets++;
-+			dev->stats.tx_bytes += tx_status & 0x1fff;
-+			dev->stats.tx_packets++;
- 			/* Note: TxCarrierLost is always asserted at 100mbps. */
--			priv->stats.collisions += (tx_status >> 22) & 0xf;
-+			dev->stats.collisions += (tx_status >> 22) & 0xf;
- 		}
- 
- 		if (tx_status & (TxOutOfWindow | TxAborted)) {
--			priv->stats.tx_errors++;
-+			dev->stats.tx_errors++;
- 
- 			if (tx_status & TxAborted)
--				priv->stats.tx_aborted_errors++;
-+				dev->stats.tx_aborted_errors++;
- 
- 			if (tx_status & TxCarrierLost)
--				priv->stats.tx_carrier_errors++;
-+				dev->stats.tx_carrier_errors++;
- 
- 			if (tx_status & TxOutOfWindow)
--				priv->stats.tx_window_errors++;
-+				dev->stats.tx_window_errors++;
- 		}
- 
- 		if (tx_status & TxUnderrun)
--			priv->stats.tx_fifo_errors++;
-+			dev->stats.tx_fifo_errors++;
+@@ -1446,6 +1446,7 @@ static int __devinit sc92031_probe(struc
  	}
  
- 	if (priv->tx_tail != old_tx_tail)
-@@ -704,27 +703,29 @@ static void _sc92031_tx_tasklet(struct n
- 			netif_wake_queue(dev);
- }
+ 	pci_set_drvdata(pdev, dev);
++	SET_NETDEV_DEV(dev, &pdev->dev);
  
--static void _sc92031_rx_tasklet_error(u32 rx_status,
--		struct sc92031_priv *priv, unsigned rx_size)
-+static void _sc92031_rx_tasklet_error(struct net_device *dev,
-+				      u32 rx_status, unsigned rx_size)
- {
- 	if(rx_size > (MAX_ETH_FRAME_SIZE + 4) || rx_size < 16) {
--		priv->stats.rx_errors++;
--		priv->stats.rx_length_errors++;
-+		dev->stats.rx_errors++;
-+		dev->stats.rx_length_errors++;
- 	}
- 
- 	if (!(rx_status & RxStatesOK)) {
--		priv->stats.rx_errors++;
-+		dev->stats.rx_errors++;
- 
- 		if (rx_status & (RxHugeFrame | RxSmallFrame))
--			priv->stats.rx_length_errors++;
-+			dev->stats.rx_length_errors++;
- 
- 		if (rx_status & RxBadAlign)
--			priv->stats.rx_frame_errors++;
-+			dev->stats.rx_frame_errors++;
- 
- 		if (!(rx_status & RxCRCOK))
--			priv->stats.rx_crc_errors++;
--	} else
-+			dev->stats.rx_crc_errors++;
-+	} else {
-+		struct sc92031_priv *priv = netdev_priv(dev);
- 		priv->rx_loss++;
-+	}
- }
- 
- static void _sc92031_rx_tasklet(struct net_device *dev)
-@@ -783,7 +784,7 @@ static void _sc92031_rx_tasklet(struct n
- 				|| rx_size > (MAX_ETH_FRAME_SIZE + 4)
- 				|| rx_size < 16
- 				|| !(rx_status & RxStatesOK))) {
--			_sc92031_rx_tasklet_error(rx_status, priv, rx_size);
-+			_sc92031_rx_tasklet_error(dev, rx_status, rx_size);
- 			break;
- 		}
- 
-@@ -818,11 +819,11 @@ static void _sc92031_rx_tasklet(struct n
- 		dev->last_rx = jiffies;
- 		netif_rx(skb);
- 
--		priv->stats.rx_bytes += pkt_size;
--		priv->stats.rx_packets++;
-+		dev->stats.rx_bytes += pkt_size;
-+		dev->stats.rx_packets++;
- 
- 		if (rx_status & Rx_Multicast)
--			priv->stats.multicast++;
-+			dev->stats.multicast++;
- 
- 	next:
- 		rx_ring_offset = (rx_ring_offset + rx_size_align) % RX_BUF_LEN;
-@@ -835,13 +836,11 @@ static void _sc92031_rx_tasklet(struct n
- 
- static void _sc92031_link_tasklet(struct net_device *dev)
- {
--	struct sc92031_priv *priv = netdev_priv(dev);
--
- 	if (_sc92031_check_media(dev))
- 		netif_wake_queue(dev);
- 	else {
- 		netif_stop_queue(dev);
--		priv->stats.tx_carrier_errors++;
-+		dev->stats.tx_carrier_errors++;
- 	}
- }
- 
-@@ -866,11 +865,11 @@ static void sc92031_tasklet(unsigned lon
- 		_sc92031_rx_tasklet(dev);
- 
- 	if (intr_status & RxOverflow)
--		priv->stats.rx_errors++;
-+		dev->stats.rx_errors++;
- 
- 	if (intr_status & TimeOut) {
--		priv->stats.rx_errors++;
--		priv->stats.rx_length_errors++;
-+		dev->stats.rx_errors++;
-+		dev->stats.rx_length_errors++;
- 	}
- 
- 	if (intr_status & (LinkFail | LinkOK))
-@@ -936,15 +935,14 @@ static struct net_device_stats *sc92031_
- 
- 		if (temp == 0xffff) {
- 			priv->rx_value += temp;
--			priv->stats.rx_fifo_errors = priv->rx_value;
--		} else {
--			priv->stats.rx_fifo_errors = temp + priv->rx_value;
--		}
-+			dev->stats.rx_fifo_errors = priv->rx_value;
-+		} else
-+			dev->stats.rx_fifo_errors = temp + priv->rx_value;
- 
- 		spin_unlock_bh(&priv->lock);
- 	}
- 
--	return &priv->stats;
-+	return &dev->stats;
- }
- 
- static int sc92031_start_xmit(struct sk_buff *skb, struct net_device *dev)
-@@ -959,7 +957,7 @@ static int sc92031_start_xmit(struct sk_
- 
- 	if (unlikely(skb->len > TX_BUF_SIZE)) {
- 		err = -EMSGSIZE;
--		priv->stats.tx_dropped++;
-+		dev->stats.tx_dropped++;
- 		goto out;
- 	}
- 
-@@ -967,7 +965,7 @@ static int sc92031_start_xmit(struct sk_
- 
- 	if (unlikely(!netif_carrier_ok(dev))) {
- 		err = -ENOLINK;
--		priv->stats.tx_dropped++;
-+		dev->stats.tx_dropped++;
- 		goto out_unlock;
- 	}
- 
+ #if SC92031_USE_BAR == 0
+ 	dev->mem_start = pci_resource_start(pdev, SC92031_USE_BAR);
 _
 
 Patches currently in -mm which might be from shemminger@vyatta.com are
 
 git-net.patch
-sc92031-use-net_device-stats.patch
 sc92031-sysfs-link-missing.patch
 
