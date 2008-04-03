@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-remove-the-css_set-linked-list.patch added to -mm tree
-Date: Thu, 03 Apr 2008 15:59:37 -0700
-Message-ID: <200804032259.m33MxbjY026915@imap1.linux-foundation.org>
+Subject: + splice-use-mapping_gfp_mask.patch added to -mm tree
+Date: Thu, 03 Apr 2008 16:01:19 -0700
+Message-ID: <200804032301.m33N1J4b026977@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45419 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55880 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750954AbYDCXAT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 19:00:19 -0400
+	by vger.kernel.org with ESMTP id S1753193AbYDCXCe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 19:02:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org
+Cc: hugh@veritas.com, jens.axboe@oracle.com, stable@kernel.org
 
 
 The patch titled
-     cgroups: remove the css_set linked-list
+     splice: use mapping_gfp_mask()
 has been added to the -mm tree.  Its filename is
-     cgroups-remove-the-css_set-linked-list.patch
+     splice-use-mapping_gfp_mask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,155 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: remove the css_set linked-list
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: splice: use mapping_gfp_mask()
+From: Hugh Dickins <hugh@veritas.com>
 
-Now we can run through the hash table instead of running through the
-linked-list.
+The loop block driver is careful to mask __GFP_IO|__GFP_FS out of its
+mapping_gfp_mask, to avoid hangs under memory pressure.  But nowadays it uses
+splice, usually going through __generic_file_splice_read.  That must use
+mapping_gfp_mask instead of GFP_KERNEL to avoid those hangs.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Reviewed-by: Paul Menage <menage@google.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Ought to go into 2.6.25.  For 2.6.23 and 2.6.24 stable?  Well, I've not
+actually seen this hang on any of these, though presumably it's lurking there.
+ Where I did see it, and test the fix, was 2.6.25-rc5-mm1: whose SLUB had a
+disturbing predilection (since corrected) for order-4 allocations, even when
+allocating radix tree nodes.
+
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    6 -----
- kernel/cgroup.c        |   40 +++++++++++++++++++--------------------
- 2 files changed, 20 insertions(+), 26 deletions(-)
+ fs/splice.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cgroup.h~cgroups-remove-the-css_set-linked-list include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-remove-the-css_set-linked-list
-+++ a/include/linux/cgroup.h
-@@ -150,12 +150,6 @@ struct css_set {
- 	struct kref ref;
+diff -puN fs/splice.c~splice-use-mapping_gfp_mask fs/splice.c
+--- a/fs/splice.c~splice-use-mapping_gfp_mask
++++ a/fs/splice.c
+@@ -320,7 +320,7 @@ __generic_file_splice_read(struct file *
+ 				break;
  
- 	/*
--	 * List running through all cgroup groups. Protected by
--	 * css_set_lock
--	 */
--	struct list_head list;
--
--	/*
- 	 * List running through all cgroup groups in the same hash
- 	 * slot. Protected by css_set_lock
- 	 */
-diff -puN kernel/cgroup.c~cgroups-remove-the-css_set-linked-list kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-remove-the-css_set-linked-list
-+++ a/kernel/cgroup.c
-@@ -242,7 +242,6 @@ static void unlink_css_set(struct css_se
- {
- 	write_lock(&css_set_lock);
- 	hlist_del(&cg->hlist);
--	list_del(&cg->list);
- 	css_set_count--;
- 	while (!list_empty(&cg->cg_links)) {
- 		struct cg_cgroup_link *link;
-@@ -477,8 +476,6 @@ static struct css_set *find_css_set(
- 
- 	BUG_ON(!list_empty(&tmp_cg_links));
- 
--	/* Link this cgroup group into the list */
--	list_add(&res->list, &init_css_set.list);
- 	css_set_count++;
- 
- 	/* Add this cgroup group to the hash table */
-@@ -963,7 +960,7 @@ static int cgroup_get_sb(struct file_sys
- 	int ret = 0;
- 	struct super_block *sb;
- 	struct cgroupfs_root *root;
--	struct list_head tmp_cg_links, *l;
-+	struct list_head tmp_cg_links;
- 	INIT_LIST_HEAD(&tmp_cg_links);
- 
- 	/* First find the desired set of subsystems */
-@@ -1005,6 +1002,7 @@ static int cgroup_get_sb(struct file_sys
- 		/* New superblock */
- 		struct cgroup *cgrp = &root->top_cgroup;
- 		struct inode *inode;
-+		int i;
- 
- 		BUG_ON(sb->s_root != NULL);
- 
-@@ -1049,22 +1047,25 @@ static int cgroup_get_sb(struct file_sys
- 		/* Link the top cgroup in this hierarchy into all
- 		 * the css_set objects */
- 		write_lock(&css_set_lock);
--		l = &init_css_set.list;
--		do {
-+		for (i = 0; i < CSS_SET_TABLE_SIZE; i++) {
-+			struct hlist_head *hhead = &css_set_table[i];
-+			struct hlist_node *node;
- 			struct css_set *cg;
--			struct cg_cgroup_link *link;
--			cg = list_entry(l, struct css_set, list);
--			BUG_ON(list_empty(&tmp_cg_links));
--			link = list_entry(tmp_cg_links.next,
--					  struct cg_cgroup_link,
--					  cgrp_link_list);
--			list_del(&link->cgrp_link_list);
--			link->cg = cg;
--			list_add(&link->cgrp_link_list,
--				 &root->top_cgroup.css_sets);
--			list_add(&link->cg_link_list, &cg->cg_links);
--			l = l->next;
--		} while (l != &init_css_set.list);
-+
-+			hlist_for_each_entry(cg, node, hhead, hlist) {
-+				struct cg_cgroup_link *link;
-+
-+				BUG_ON(list_empty(&tmp_cg_links));
-+				link = list_entry(tmp_cg_links.next,
-+						  struct cg_cgroup_link,
-+						  cgrp_link_list);
-+				list_del(&link->cgrp_link_list);
-+				link->cg = cg;
-+				list_add(&link->cgrp_link_list,
-+					 &root->top_cgroup.css_sets);
-+				list_add(&link->cg_link_list, &cg->cg_links);
-+			}
-+		}
- 		write_unlock(&css_set_lock);
- 
- 		free_cg_links(&tmp_cg_links);
-@@ -2509,7 +2510,6 @@ int __init cgroup_init_early(void)
- 	int i;
- 	kref_init(&init_css_set.ref);
- 	kref_get(&init_css_set.ref);
--	INIT_LIST_HEAD(&init_css_set.list);
- 	INIT_LIST_HEAD(&init_css_set.cg_links);
- 	INIT_LIST_HEAD(&init_css_set.tasks);
- 	INIT_HLIST_NODE(&init_css_set.hlist);
+ 			error = add_to_page_cache_lru(page, mapping, index,
+-					      GFP_KERNEL);
++						mapping_gfp_mask(mapping));
+ 			if (unlikely(error)) {
+ 				page_cache_release(page);
+ 				if (error == -EEXIST)
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
-ia64-use-goto-to-jump-out-do-while_each_thread.patch
-sctp-fix-wrong-debug-counting-of-datamsg.patch
-sctp-fix-wrong-debug-counting-of-bind_bucket.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroup-annotate-cgroup_init_subsys-with-__init.patch
-cgroup-switch-to-proc_create.patch
-cgroups-implement-device-whitelist-v6.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-doc.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-cgroups-use-a-hash-table-for-css_set-finding.patch
-cgroups-simplify-init_subsys.patch
-cgroups-remove-the-css_set-linked-list.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
+memory-controller-make-memory-resource-control-aware-of-boot-options.patch
+git-unionfs.patch
+splice-use-mapping_gfp_mask.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify.patch
+mm-try-both-endianess-when-checking-for-endianess.patch
+mempolicy-support-optional-mode-flags-fix.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+prio_tree-debugging-patch.patch
 
