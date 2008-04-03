@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch added to -mm tree
-Date: Thu, 03 Apr 2008 11:54:35 -0700
-Message-ID: <200804031854.m33IsZla017143@imap1.linux-foundation.org>
+Subject: + pci-clean-up-resource-alignment-management.patch added to -mm tree
+Date: Thu, 03 Apr 2008 11:56:50 -0700
+Message-ID: <200804031856.m33IuoRw017202@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44621 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42622 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753667AbYDCSzU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 14:55:20 -0400
+	by vger.kernel.org with ESMTP id S1754415AbYDCS5B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 14:57:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andreas@stapelspeicher.org, perex@suse.cz, rene.herman@keyaccess.nl, tiwai@suse.de
+Cc: ink@jurassic.park.msu.ru, garyhade@us.ibm.com, greg@kroah.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes
+     pci: clean up resource alignment management
 has been added to the -mm tree.  Its filename is
-     es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
+     pci-clean-up-resource-alignment-management.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,237 +33,243 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pci: clean up resource alignment management
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-WARNING: braces {} are not necessary for single statement blocks
-#40: FILE: sound/pci/es1968.c:1831:
-+	if (diff > 1) {
-+		__maestro_write(chip, IDR0_DATA_PORT, cp1);
-+	}
+Done per Linus' request and suggestions. Linus has explained that
+better than I'll be able to explain:
 
-total: 0 errors, 1 warnings, 35 lines checked
+On Thu, Mar 27, 2008 at 10:12:10AM -0700, Linus Torvalds wrote:
+> Actually, before we go any further, there might be a less intrusive
+> alternative: add just a couple of flags to the resource flags field (we
+> still have something like 8 unused bits on 32-bit), and use those to
+> implement a generic "resource_alignment()" routine.
+>
+> Two flags would do it:
+>
+>  - IORESOURCE_SIZEALIGN: size indicates alignment (regular PCI device
+>    resources)
+>
+>  - IORESOURCE_STARTALIGN: start field is alignment (PCI bus resources
+>    during probing)
+>
+> and then the case of both flags zero (or both bits set) would actually be
+> "invalid", and we would also clear the IORESOURCE_STARTALIGN flag when we
+> actually allocate the resource (so that we don't use the "start" field as
+> alignment incorrectly when it no longer indicates alignment).
+>
+> That wouldn't be totally generic, but it would have the nice property of
+> automatically at least add sanity checking for that whole "res->start has
+> the odd meaning of 'alignment' during probing" and remove the need for a
+> new field, and it would allow us to have a generic "resource_alignment()"
+> routine that just gets a resource pointer.
 
-./patches/es1968-fix-jitter-on-some-maestro-cards.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Besides, I removed IORESOURCE_BUS_HAS_VGA flag which was unused for ages.
 
-Please run checkpatch prior to sending patches
-
-Cc: Andreas Mueller <andreas@stapelspeicher.org>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Gary Hade <garyhade@us.ibm.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/es1968.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/pci/probe.c     |    5 ++--
+ drivers/pci/setup-bus.c |    3 ++
+ drivers/pci/setup-res.c |   42 ++++++++++++++++++++------------------
+ include/linux/ioport.h  |    5 +++-
+ kernel/resource.c       |   18 ++++++++++++++++
+ 5 files changed, 51 insertions(+), 22 deletions(-)
 
-diff -puN sound/pci/es1968.c~es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes sound/pci/es1968.c
---- a/sound/pci/es1968.c~es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes
-+++ a/sound/pci/es1968.c
-@@ -1828,9 +1828,8 @@ static void snd_es1968_suppress_jitter(s
- 	cp2 = __apu_get_register(chip, 1, 5);
- 	diff = (cp1 > cp2 ? cp1 - cp2 : cp2 - cp1);
+diff -puN drivers/pci/probe.c~pci-clean-up-resource-alignment-management drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci-clean-up-resource-alignment-management
++++ a/drivers/pci/probe.c
+@@ -235,7 +235,7 @@ static void pci_read_bases(struct pci_de
+ 			res->flags |= l & ~PCI_BASE_ADDRESS_IO_MASK;
+ 		}
+ 		res->end = res->start + (unsigned long) sz;
+-		res->flags |= pci_calc_resource_flags(l);
++		res->flags |= pci_calc_resource_flags(l) | IORESOURCE_SIZEALIGN;
+ 		if (is_64bit_memory(l)) {
+ 			u32 szhi, lhi;
  
--	if (diff > 1) {
-+	if (diff > 1)
- 		__maestro_write(chip, IDR0_DATA_PORT, cp1);
--	}
+@@ -288,7 +288,8 @@ static void pci_read_bases(struct pci_de
+ 			if (sz) {
+ 				res->flags = (l & IORESOURCE_ROM_ENABLE) |
+ 				  IORESOURCE_MEM | IORESOURCE_PREFETCH |
+-				  IORESOURCE_READONLY | IORESOURCE_CACHEABLE;
++				  IORESOURCE_READONLY | IORESOURCE_CACHEABLE |
++				  IORESOURCE_SIZEALIGN;
+ 				res->start = l & PCI_ROM_ADDRESS_MASK;
+ 				res->end = res->start + (unsigned long) sz;
+ 			}
+diff -puN drivers/pci/setup-bus.c~pci-clean-up-resource-alignment-management drivers/pci/setup-bus.c
+--- a/drivers/pci/setup-bus.c~pci-clean-up-resource-alignment-management
++++ a/drivers/pci/setup-bus.c
+@@ -65,6 +65,7 @@ static void pbus_assign_resources_sorted
+ 		res = list->res;
+ 		idx = res - &list->dev->resource[0];
+ 		if (pci_assign_resource(list->dev, idx)) {
++			/* FIXME: get rid of this */
+ 			res->start = 0;
+ 			res->end = 0;
+ 			res->flags = 0;
+@@ -326,6 +327,7 @@ static void pbus_size_io(struct pci_bus 
+ 	/* Alignment of the IO window is always 4K */
+ 	b_res->start = 4096;
+ 	b_res->end = b_res->start + size - 1;
++	b_res->flags |= IORESOURCE_STARTALIGN;
  }
  
+ /* Calculate the size of the bus and minimal alignment which
+@@ -400,6 +402,7 @@ static int pbus_size_mem(struct pci_bus 
+ 	}
+ 	b_res->start = min_align;
+ 	b_res->end = size + min_align - 1;
++	b_res->flags |= IORESOURCE_STARTALIGN;
+ 	return 1;
+ }
+ 
+diff -puN drivers/pci/setup-res.c~pci-clean-up-resource-alignment-management drivers/pci/setup-res.c
+--- a/drivers/pci/setup-res.c~pci-clean-up-resource-alignment-management
++++ a/drivers/pci/setup-res.c
+@@ -137,10 +137,16 @@ int pci_assign_resource(struct pci_dev *
+ 
+ 	size = res->end - res->start + 1;
+ 	min = (res->flags & IORESOURCE_IO) ? PCIBIOS_MIN_IO : PCIBIOS_MIN_MEM;
+-	/* The bridge resources are special, as their
+-	   size != alignment. Sizing routines return
+-	   required alignment in the "start" field. */
+-	align = (resno < PCI_BRIDGE_RESOURCES) ? size : res->start;
++
++	align = resource_alignment(res);
++	if (!align) {
++		printk(KERN_ERR "PCI: Cannot allocate resource (bogus "
++			"alignment) %d [%llx:%llx] (flags %lx) of %s\n",
++			resno, (unsigned long long)res->start,
++			(unsigned long long)res->end, res->flags,
++			pci_name(dev));
++		return -EINVAL;
++	}
+ 
+ 	/* First, try exact prefetching match.. */
+ 	ret = pci_bus_alloc_resource(bus, res, size, align, min,
+@@ -164,8 +170,10 @@ int pci_assign_resource(struct pci_dev *
+ 			res->flags & IORESOURCE_IO ? "I/O" : "mem",
+ 			resno, (unsigned long long)size,
+ 			(unsigned long long)res->start, pci_name(dev));
+-	} else if (resno < PCI_BRIDGE_RESOURCES) {
+-		pci_update_resource(dev, res, resno);
++	} else {
++		res->flags &= ~IORESOURCE_STARTALIGN;
++		if (resno < PCI_BRIDGE_RESOURCES)
++			pci_update_resource(dev, res, resno);
+ 	}
+ 
+ 	return ret;
+@@ -226,29 +234,25 @@ void pdev_sort_resources(struct pci_dev 
+ 		if (r->flags & IORESOURCE_PCI_FIXED)
+ 			continue;
+ 
+-		r_align = r->end - r->start;
+-		
+ 		if (!(r->flags) || r->parent)
+ 			continue;
++
++		r_align = resource_alignment(r);
+ 		if (!r_align) {
+-			printk(KERN_WARNING "PCI: Ignore bogus resource %d "
+-				"[%llx:%llx] of %s\n",
++			printk(KERN_WARNING "PCI: bogus alignment of resource "
++				"%d [%llx:%llx] (flags %lx) of %s\n",
+ 				i, (unsigned long long)r->start,
+-				(unsigned long long)r->end, pci_name(dev));
++				(unsigned long long)r->end, r->flags,
++				pci_name(dev));
+ 			continue;
+ 		}
+-		r_align = (i < PCI_BRIDGE_RESOURCES) ? r_align + 1 : r->start;
+ 		for (list = head; ; list = list->next) {
+ 			resource_size_t align = 0;
+ 			struct resource_list *ln = list->next;
+-			int idx;
+ 
+-			if (ln) {
+-				idx = ln->res - &ln->dev->resource[0];
+-				align = (idx < PCI_BRIDGE_RESOURCES) ?
+-					ln->res->end - ln->res->start + 1 :
+-					ln->res->start;
+-			}
++			if (ln)
++				align = resource_alignment(ln->res);
++
+ 			if (r_align > align) {
+ 				tmp = kmalloc(sizeof(*tmp), GFP_KERNEL);
+ 				if (!tmp)
+diff -puN include/linux/ioport.h~pci-clean-up-resource-alignment-management include/linux/ioport.h
+--- a/include/linux/ioport.h~pci-clean-up-resource-alignment-management
++++ a/include/linux/ioport.h
+@@ -44,7 +44,9 @@ struct resource_list {
+ #define IORESOURCE_CACHEABLE	0x00004000
+ #define IORESOURCE_RANGELENGTH	0x00008000
+ #define IORESOURCE_SHADOWABLE	0x00010000
+-#define IORESOURCE_BUS_HAS_VGA	0x00080000
++
++#define IORESOURCE_SIZEALIGN	0x00020000	/* size indicates alignment */
++#define IORESOURCE_STARTALIGN	0x00040000	/* start field is alignment */
+ 
+ #define IORESOURCE_DISABLED	0x10000000
+ #define IORESOURCE_UNSET	0x20000000
+@@ -110,6 +112,7 @@ extern int allocate_resource(struct reso
+ 			     void *alignf_data);
+ int adjust_resource(struct resource *res, resource_size_t start,
+ 		    resource_size_t size);
++resource_size_t resource_alignment(struct resource *res);
+ 
+ /* Convenience shorthand with allocation */
+ #define request_region(start,n,name)	__request_region(&ioport_resource, (start), (n), (name))
+diff -puN kernel/resource.c~pci-clean-up-resource-alignment-management kernel/resource.c
+--- a/kernel/resource.c~pci-clean-up-resource-alignment-management
++++ a/kernel/resource.c
+@@ -486,6 +486,24 @@ int adjust_resource(struct resource *res
+ 
+ EXPORT_SYMBOL(adjust_resource);
+ 
++/**
++ * resource_alignment - calculate resource's alignment
++ * @res: resource pointer
++ *
++ * Returns alignment on success, 0 (invalid alignment) on failure.
++ */
++resource_size_t resource_alignment(struct resource *res)
++{
++	switch (res->flags & (IORESOURCE_SIZEALIGN | IORESOURCE_STARTALIGN)) {
++	case IORESOURCE_SIZEALIGN:
++		return res->end - res->start + 1;
++	case IORESOURCE_STARTALIGN:
++		return res->start;
++	default:
++		return 0;
++	}
++}
++
  /*
+  * This is compatibility stuff for IO resources.
+  *
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
-origin.patch
+alpha-fix-alsa-dma-mmap-crash.patch
 alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-x86.patch
-git-x86-fix-printk-warning.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
-git-powerpc.patch
-gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix.patch
-pm-remove-destroy_suspended_device.patch
-scsi-add-iscsi-ibft-support.patch
-git-dvb.patch
-git-dvb-git-rejects.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-arch-ia64-kernel-use-time_-macros.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-kvm.patch
-git-kvm-fixup.patch
-git-kvm-vs-git-s390.patch
-git-leds.patch
-git-libata-fix-config_pci=n-build.patch
-git-async-tx.patch
-git-mips.patch
-git-net.patch
-git-net-git-rejects.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-git-selinux-git-rejects.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
-git-s390.patch
-git-s390-git-rejects.patch
-git-sh.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-slub-git-rejects.patch
-git-semaphore-git-rejects.patch
-smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-mem_map-allocation-continuous-checkpatch-fixes.patch
-mm-allocate-section_map-for-sparse_init-update-fix.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+pci-clean-up-resource-alignment-management.patch
+alpha-handle-kcalloc-failure.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+arch-alpha-kernel-trapsc-use-time_-macros.patch
 arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
 alpha-teach-the-compiler-that-bug-doesnt-return.patch
-arch-um-os-linux-mainc-fix-memory-leaks-checkpatch-fixes.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+introduce-a-generic-__fls-implementation.patch
+implement-__fls-on-all-64-bit-archs.patch
+use-__fls-for-fls64-on-64-bit-archs.patch
+make-sure-nobodys-leaking-resources.patch
 
