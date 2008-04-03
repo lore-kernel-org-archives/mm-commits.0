@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-register-section-node-id-to-free.patch added to -mm tree
-Date: Thu, 03 Apr 2008 15:53:11 -0700
-Message-ID: <200804032253.m33MrBGC026719@imap1.linux-foundation.org>
+Subject: + cgroups-simplify-init_subsys.patch added to -mm tree
+Date: Thu, 03 Apr 2008 15:59:35 -0700
+Message-ID: <200804032259.m33MxZ2Q026912@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43493 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751837AbYDCWyD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 18:54:03 -0400
+	by vger.kernel.org with ESMTP id S1753129AbYDCXAA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 19:00:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: y-goto@jp.fujitsu.com, clameter@sgi.com, pbadari@us.ibm.com, yhlu.kernel@gmail.com
+Cc: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org
 
 
 The patch titled
-     memory hotplug: register section/node id to free
+     cgroups: simplify init_subsys()
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-register-section-node-id-to-free.patch
+     cgroups-simplify-init_subsys.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,293 +33,136 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: register section/node id to free
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: cgroups: simplify init_subsys()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-This patchset is to free pages which are allocated by bootmem for
-memory-hotremove.  Some structures of memory management are allocated from
-bootmem, such as the memmap.
+We are at system boot and there is only 1 cgroup group (i,e, init_css_set), so
+we don't need to run through the css_set linked list.  Neither do we need to
+run through the task list, since no processes have been created yet.
 
-To remove memory physically, some of them must be freed according to
-circumstance.  This patch set makes basis to free those pages, and free
-memmaps.
+Also referring to a comment in cgroup.h:
 
-Basically my idea is using some remaining members of struct page to remember
-information about the users of bootmem (section number or node id).
+struct css_set
+{
+	...
+	/*
+	 * Set of subsystem states, one for each subsystem. This array
+	 * is immutable after creation apart from the init_css_set
+	 * during subsystem registration (at boot time).
+	 */
+	struct cgroup_subsys_state *subsys[CGROUP_SUBSYS_COUNT];
+}
 
-When the section is removed, the kernel can use this information to solve some
-issues:
-
-
-1) When the memmap of the to-be-removed section is allocated on another
-   section by bootmem, it should/can be free.  
-
-2) When the memmap of the to-be-removed section is allocated on the same
-   section, it shouldn't be freed.  Because the section has to be offlined
-   already and all pages must be isolated against the page allocater.
-
-3) When the to-be-removed section has another section's memmap, the kernel
-   will be able to show easily which section should be removed before it. 
-   (Not implemented yet)
-
-4) In case 2), the page migrator will be able to check and skip the memmap
-   during page isolation when page offline.  Current page migration fails in
-   this case because this page is just a reserved page and it can't determine
-   whether this page can be removed or not.  But, it will be able to do so
-   with the infrastructure which this patch adds.  (Not implemented yet.)
-
-5) The node information such as the pgdat has similar issues.  And this
-   will also be able to be solved with this infrastructure.  (Not implemented
-   yet, but, remembering node id in the pages.)
-
-Fortunately, the current bootmem allocator just keeps PageReserved flags, and
-doesn't use any other members of page struct.  The users of bootmem doesn't
-use them either.
-
-
-
-This patch:
-
-This is to register information which is a node or section's id.  The kernel
-can distinguish which node/section uses the pages allocated by bootmem.  This
-is the basis for hot-remove sections or nodes.
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Reviewed-by: Paul Menage <menage@google.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |   18 +++++
- include/linux/mmzone.h         |    1 
- mm/bootmem.c                   |    1 
- mm/memory_hotplug.c            |   97 ++++++++++++++++++++++++++++++-
- mm/sparse.c                    |    3 
- 5 files changed, 117 insertions(+), 3 deletions(-)
+ Documentation/cgroups.txt |    3 +--
+ kernel/cgroup.c           |   35 +++++++++--------------------------
+ 2 files changed, 10 insertions(+), 28 deletions(-)
 
-diff -puN include/linux/memory_hotplug.h~memory-hotplug-register-section-node-id-to-free include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~memory-hotplug-register-section-node-id-to-free
-+++ a/include/linux/memory_hotplug.h
-@@ -11,6 +11,15 @@ struct pglist_data;
- struct mem_section;
+diff -puN Documentation/cgroups.txt~cgroups-simplify-init_subsys Documentation/cgroups.txt
+--- a/Documentation/cgroups.txt~cgroups-simplify-init_subsys
++++ a/Documentation/cgroups.txt
+@@ -500,8 +500,7 @@ post-attachment activity that requires m
  
- #ifdef CONFIG_MEMORY_HOTPLUG
-+
-+/*
-+ * Magic number for free bootmem.
-+ * The normal smallest mapcount is -1. Here is smaller value than it.
-+ */
-+#define SECTION_INFO		0xfffffffe
-+#define MIX_INFO		0xfffffffd
-+#define NODE_INFO		0xfffffffc
-+
- /*
-  * pgdat resizing functions
-  */
-@@ -145,6 +154,9 @@ static inline void arch_refresh_nodedata
- #endif /* CONFIG_NUMA */
- #endif /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
+ void fork(struct cgroup_subsy *ss, struct task_struct *task)
  
-+extern void register_page_bootmem_info_node(struct pglist_data *pgdat);
-+extern void put_page_bootmem(struct page *page);
-+
- #else /* ! CONFIG_MEMORY_HOTPLUG */
- /*
-  * Stub functions for when hotplug is off
-@@ -172,6 +184,10 @@ static inline int mhp_notimplemented(con
- 	return -ENOSYS;
- }
+-Called when a task is forked into a cgroup. Also called during
+-registration for all existing tasks.
++Called when a task is forked into a cgroup.
  
-+static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
-+{
-+}
-+
- #endif /* ! CONFIG_MEMORY_HOTPLUG */
+ void exit(struct cgroup_subsys *ss, struct task_struct *task)
  
- extern int add_memory(int nid, u64 start, u64 size);
-@@ -180,5 +196,7 @@ extern int remove_memory(u64 start, u64 
- extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
- 								int nr_pages);
- extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
-+extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
-+					  unsigned long pnum);
- 
- #endif /* __LINUX_MEMORY_HOTPLUG_H */
-diff -puN include/linux/mmzone.h~memory-hotplug-register-section-node-id-to-free include/linux/mmzone.h
---- a/include/linux/mmzone.h~memory-hotplug-register-section-node-id-to-free
-+++ a/include/linux/mmzone.h
-@@ -879,6 +879,7 @@ static inline struct mem_section *__nr_t
- 	return &mem_section[SECTION_NR_TO_ROOT(nr)][nr & SECTION_ROOT_MASK];
- }
- extern int __section_nr(struct mem_section* ms);
-+extern unsigned long usemap_size(void);
- 
- /*
-  * We use the lower bits of the mem_map pointer to store
-diff -puN mm/bootmem.c~memory-hotplug-register-section-node-id-to-free mm/bootmem.c
---- a/mm/bootmem.c~memory-hotplug-register-section-node-id-to-free
-+++ a/mm/bootmem.c
-@@ -458,6 +458,7 @@ void __init free_bootmem_node(pg_data_t 
- 
- unsigned long __init free_all_bootmem_node(pg_data_t *pgdat)
+diff -puN kernel/cgroup.c~cgroups-simplify-init_subsys kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-simplify-init_subsys
++++ a/kernel/cgroup.c
+@@ -2472,7 +2472,6 @@ static int cgroup_rmdir(struct inode *un
+ static void __init cgroup_init_subsys(struct cgroup_subsys *ss)
  {
-+	register_page_bootmem_info_node(pgdat);
- 	return free_all_bootmem_core(pgdat);
- }
+ 	struct cgroup_subsys_state *css;
+-	struct list_head *l;
  
-diff -puN mm/memory_hotplug.c~memory-hotplug-register-section-node-id-to-free mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-register-section-node-id-to-free
-+++ a/mm/memory_hotplug.c
-@@ -58,8 +58,103 @@ static void release_memory_resource(stru
- 	return;
- }
+ 	printk(KERN_INFO "Initializing cgroup subsys %s\n", ss->name);
  
+@@ -2483,35 +2482,19 @@ static void __init cgroup_init_subsys(st
+ 	BUG_ON(IS_ERR(css));
+ 	init_cgroup_css(css, ss, dummytop);
+ 
+-	/* Update all cgroup groups to contain a subsys
++	/* Update the init_css_set to contain a subsys
+ 	 * pointer to this state - since the subsystem is
+-	 * newly registered, all tasks and hence all cgroup
+-	 * groups are in the subsystem's top cgroup. */
+-	write_lock(&css_set_lock);
+-	l = &init_css_set.list;
+-	do {
+-		struct css_set *cg =
+-			list_entry(l, struct css_set, list);
+-		cg->subsys[ss->subsys_id] = dummytop->subsys[ss->subsys_id];
+-		l = l->next;
+-	} while (l != &init_css_set.list);
+-	write_unlock(&css_set_lock);
 -
- #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
-+static void get_page_bootmem(unsigned long info,  struct page *page, int magic)
-+{
-+	atomic_set(&page->_mapcount, magic);
-+	SetPagePrivate(page);
-+	set_page_private(page, info);
-+	atomic_inc(&page->_count);
-+}
+- 	/* If this subsystem requested that it be notified with fork
+- 	 * events, we should send it one now for every process in the
+- 	 * system */
+-	if (ss->fork) {
+-		struct task_struct *g, *p;
+-
+-		read_lock(&tasklist_lock);
+-		do_each_thread(g, p) {
+-			ss->fork(ss, p);
+-		} while_each_thread(g, p);
+-		read_unlock(&tasklist_lock);
+-	}
++	 * newly registered, all tasks and hence the
++	 * init_css_set is in the subsystem's top cgroup. */
++	init_css_set.subsys[ss->subsys_id] = dummytop->subsys[ss->subsys_id];
+ 
+ 	need_forkexit_callback |= ss->fork || ss->exit;
+ 
++	/* At system boot, before all subsystems have been
++	 * registered, no tasks have been forked, so we don't
++	 * need to invoke fork callbacks here. */
++	BUG_ON(!list_empty(&init_task.tasks));
 +
-+void put_page_bootmem(struct page *page)
-+{
-+	int magic;
-+
-+	magic = atomic_read(&page->_mapcount);
-+	BUG_ON(magic >= -1);
-+
-+	if (atomic_dec_return(&page->_count) == 1) {
-+		ClearPagePrivate(page);
-+		set_page_private(page, 0);
-+		reset_page_mapcount(page);
-+		__free_pages_bootmem(page, 0);
-+	}
-+
-+}
-+
-+void register_page_bootmem_info_section(unsigned long start_pfn)
-+{
-+	unsigned long *usemap, mapsize, section_nr, i;
-+	struct mem_section *ms;
-+	struct page *page, *memmap;
-+
-+	if (!pfn_valid(start_pfn))
-+		return;
-+
-+	section_nr = pfn_to_section_nr(start_pfn);
-+	ms = __nr_to_section(section_nr);
-+
-+	/* Get section's memmap address */
-+	memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
-+
-+	/*
-+	 * Get page for the memmap's phys address
-+	 * XXX: need more consideration for sparse_vmemmap...
-+	 */
-+	page = virt_to_page(memmap);
-+	mapsize = sizeof(struct page) * PAGES_PER_SECTION;
-+	mapsize = PAGE_ALIGN(mapsize) >> PAGE_SHIFT;
-+
-+	/* remember memmap's page */
-+	for (i = 0; i < mapsize; i++, page++)
-+		get_page_bootmem(section_nr, page, SECTION_INFO);
-+
-+	usemap = __nr_to_section(section_nr)->pageblock_flags;
-+	page = virt_to_page(usemap);
-+
-+	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
-+
-+	for (i = 0; i < mapsize; i++, page++)
-+		get_page_bootmem(section_nr, page, MIX_INFO);
-+
-+}
-+
-+void register_page_bootmem_info_node(struct pglist_data *pgdat)
-+{
-+	unsigned long i, pfn, end_pfn, nr_pages;
-+	int node = pgdat->node_id;
-+	struct page *page;
-+	struct zone *zone;
-+
-+	nr_pages = PAGE_ALIGN(sizeof(struct pglist_data)) >> PAGE_SHIFT;
-+	page = virt_to_page(pgdat);
-+
-+	for (i = 0; i < nr_pages; i++, page++)
-+		get_page_bootmem(node, page, NODE_INFO);
-+
-+	zone = &pgdat->node_zones[0];
-+	for (; zone < pgdat->node_zones + MAX_NR_ZONES - 1; zone++) {
-+		if (zone->wait_table) {
-+			nr_pages = zone->wait_table_hash_nr_entries
-+				* sizeof(wait_queue_head_t);
-+			nr_pages = PAGE_ALIGN(nr_pages) >> PAGE_SHIFT;
-+			page = virt_to_page(zone->wait_table);
-+
-+			for (i = 0; i < nr_pages; i++, page++)
-+				get_page_bootmem(node, page, NODE_INFO);
-+		}
-+	}
-+
-+	pfn = pgdat->node_start_pfn;
-+	end_pfn = pfn + pgdat->node_spanned_pages;
-+
-+	/* register_section info */
-+	for (; pfn < end_pfn; pfn += PAGES_PER_SECTION)
-+		register_page_bootmem_info_section(pfn);
-+
-+}
-+
- static int __add_zone(struct zone *zone, unsigned long phys_start_pfn)
- {
- 	struct pglist_data *pgdat = zone->zone_pgdat;
-diff -puN mm/sparse.c~memory-hotplug-register-section-node-id-to-free mm/sparse.c
---- a/mm/sparse.c~memory-hotplug-register-section-node-id-to-free
-+++ a/mm/sparse.c
-@@ -200,7 +200,6 @@ static unsigned long sparse_encode_mem_m
- /*
-  * Decode mem_map from the coded memmap
-  */
--static
- struct page *sparse_decode_mem_map(unsigned long coded_mem_map, unsigned long pnum)
- {
- 	/* mask off the extra low bits of information */
-@@ -223,7 +222,7 @@ static int __meminit sparse_init_one_sec
- 	return 1;
+ 	ss->active = 1;
  }
  
--static unsigned long usemap_size(void)
-+unsigned long usemap_size(void)
- {
- 	unsigned long size_bytes;
- 	size_bytes = roundup(SECTION_BLOCKFLAGS_BITS, 8) / 8;
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-hotplug-memory-remove-generic-__remove_pages-support.patch
-powerpc-hotplug-memory-notifications-for-ppc.patch
-powerpc-update-lmb-for-hotplug-memory-add-remove.patch
-powerpc-provide-walk_memory_resource-for-ppc.patch
-block-fix-memory-hotplug-and-bouncing-in-block-layer.patch
-mm-make-mem_map-allocation-continuous-v2.patch
-mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
-mm-offset-align-in-alloc_bootmem.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes.patch
-memory-hotplug-register-section-node-id-to-free.patch
-memory-hotplug-align-memmap-to-page-size.patch
-memory-hotplug-create-alloc_bootmem_section.patch
-memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch
-memory-hotplug-free-memmaps-allocated-by-bootmem.patch
-ipc-scale-msgmni-to-the-amount-of-lowmem.patch
-ipc-scale-msgmni-to-the-number-of-ipc-namespaces.patch
-ipc-define-the-slab_memory_callback-priority-as-a-constant.patch
-ipc-recompute-msgmni-on-memory-add--remove.patch
-ipc-invoke-the-ipcns-notifier-chain-as-a-work-item.patch
-ipc-recompute-msgmni-on-ipc-namespace-creation-removal.patch
-ipc-do-not-recompute-msgmni-anymore-if-explicitly-set-by-user.patch
-ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative.patch
+cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
+ia64-use-goto-to-jump-out-do-while_each_thread.patch
+sctp-fix-wrong-debug-counting-of-datamsg.patch
+sctp-fix-wrong-debug-counting-of-bind_bucket.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+cgroup-annotate-cgroup_init_subsys-with-__init.patch
+cgroup-switch-to-proc_create.patch
+cgroups-implement-device-whitelist-v6.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-doc.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+cgroups-use-a-hash-table-for-css_set-finding.patch
+cgroups-simplify-init_subsys.patch
+cgroups-remove-the-css_set-linked-list.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
 
