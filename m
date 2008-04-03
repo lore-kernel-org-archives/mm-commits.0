@@ -1,114 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing.patch removed from -mm tree
-Date: Thu, 03 Apr 2008 13:37:27 -0700
-Message-ID: <200804032037.m33KbRZQ021392@imap1.linux-foundation.org>
+Subject: + ext3-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch added to -mm tree
+Date: Thu, 03 Apr 2008 13:54:58 -0700
+Message-ID: <200804032054.m33Ksw60022021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48329 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52894 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755225AbYDCUin (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 16:38:43 -0400
+	by vger.kernel.org with ESMTP id S1755568AbYDCUzg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 16:55:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, rientjes@google.com, skumar@linux.vnet.ibm.com, xemul@openvz.org
+To: mm-commits@vger.kernel.org
+Cc: jack@suse.cz, lioupayphone@gmail.com
 
 
 The patch titled
-     cgroup: fix boot option parsing
-has been removed from the -mm tree.  Its filename was
-     cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing.patch
+     ext3: fix hang on umount with quotas when journal is aborted
+has been added to the -mm tree.  Its filename is
+     ext3-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
 
-This patch was dropped because it was folded into cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: fix boot option parsing
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: ext3: fix hang on umount with quotas when journal is aborted
+From: Jan Kara <jack@suse.cz>
 
-When boot with 'cgroup_disable=cpuacct', it turns out subsystem 'cpu' is
-disabled.
+Call dquot_drop() from ext3_dquot_drop() even if we fail to start a
+transaction.  Otherwise we never get to dropping references to quota
+structures from the inode and umount will hang indefinitely.  Thanks to
+Payphone LIOU for spotting the problem.
 
-When Balbir posted the patch to add cgroup boot option support, Paul M noticed
-this problem, but the patch was accepted without fixing it.
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Payphone LIOU <lioupayphone@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ fs/ext3/super.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing
-+++ a/kernel/cgroup.c
-@@ -3022,25 +3022,22 @@ static void cgroup_release_agent(struct 
- static int __init cgroup_disable(char *str)
- {
- 	int i;
-+	char *token;
-+
-+	while ((token = strsep(&str, ",")) != NULL) {
-+		if (!*token)
-+			continue;
+diff -puN fs/ext3/super.c~ext3-fix-hang-on-umount-with-quotas-when-journal-is-aborted fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-fix-hang-on-umount-with-quotas-when-journal-is-aborted
++++ a/fs/ext3/super.c
+@@ -2639,8 +2639,14 @@ static int ext3_dquot_drop(struct inode 
  
--	while (*str) {
- 		for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
- 			struct cgroup_subsys *ss = subsys[i];
- 
--			if (!strncmp(str, ss->name, strlen(ss->name))) {
-+			if (!strcmp(token, ss->name)) {
- 				ss->disabled = 1;
- 				printk(KERN_INFO "Disabling %s control group"
- 					" subsystem\n", ss->name);
- 				break;
- 			}
- 		}
--		/*
--		 * Find the next option if any
--		 */
--		while (*str && (*str != ','))
--			str++;
--		if (*str == ',')
--			str++;
- 	}
- 	return 1;
- }
+ 	/* We may delete quota structure so we need to reserve enough blocks */
+ 	handle = ext3_journal_start(inode, 2*EXT3_QUOTA_DEL_BLOCKS(inode->i_sb));
+-	if (IS_ERR(handle))
++	if (IS_ERR(handle)) {
++		/*
++		 * We call dquot_drop() anyway to at least release references
++		 * to quota structures so that umount does not hang.
++		 */
++		dquot_drop(inode);
+ 		return PTR_ERR(handle);
++	}
+ 	ret = dquot_drop(inode);
+ 	err = ext3_journal_stop(handle);
+ 	if (!ret)
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time.patch
-cgroups-add-cgroup-support-for-enabling-controllers-at-boot-time-fix-boot-option-parsing.patch
-ia64-use-goto-to-jump-out-do-while_each_thread.patch
-sctp-fix-wrong-debug-counting-of-datamsg.patch
-sctp-fix-wrong-debug-counting-of-bind_bucket.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroup-annotate-cgroup_init_subsys-with-__init.patch
-cgroup-switch-to-proc_create.patch
-cgroups-implement-device-whitelist-v6.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-doc.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
+ext3-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
+ext4-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
+reiserfs-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
+git-udf.patch
+git-ocfs2.patch
+vfs-fix-lock-inversion-in-drop_pagecache_sb.patch
+vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb.patch
+quota-do-not-allow-setting-of-quota-limits-to-too-high-values.patch
+quota-remove-superfluous-dquot_off-in-fs-namespacec.patch
+quota-various-style-cleanups.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-reiserfs-make-reiserfs-handle-quotaon-on-remount.patch
+ext3-fdatasync-should-skip-metadata-writeout-when-overwriting.patch
+ext3-fix-update-of-mtime-and-ctime-on-rename.patch
+ext4-fix-update-of-mtime-and-ctime-on-rename.patch
+quota-le_add_cpu-conversion.patch
 
