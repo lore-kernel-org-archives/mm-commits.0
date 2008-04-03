@@ -1,160 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: - clocksource-introduce-clock_monotonic_raw-fix.patch removed from -mm tree
-Date: Thu, 03 Apr 2008 14:10:24 -0700
-Message-ID: <200804032110.m33LAOqf022666@imap1.linux-foundation.org>
+Subject: + acpi-fix-bug-10124.patch added to -mm tree
+Date: Thu, 03 Apr 2008 14:27:17 -0700
+Message-ID: <200804032127.m33LRHxl023552@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33204 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57673 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756246AbYDCVQ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 17:16:29 -0400
+	by vger.kernel.org with ESMTP id S1759924AbYDCV2M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 17:28:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: johnstul@us.ibm.com, use-math@users.sourceforge.net, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: yakui.zhao@intel.com, greg@kroah.com, lenb@kernel.org, stian@jordet.net
 
 
 The patch titled
-     clocksource: introduce CLOCK_MONOTONIC_RAW fix
-has been removed from the -mm tree.  Its filename was
-     clocksource-introduce-clock_monotonic_raw-fix.patch
+     acpi: fix bug 10124
+has been added to the -mm tree.  Its filename is
+     acpi-fix-bug-10124.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource: introduce CLOCK_MONOTONIC_RAW fix
-From: john stultz <johnstul@us.ibm.com>
+Subject: acpi: fix bug 10124
 
-On Tue, 2008-03-18 at 19:43 -0700, Andrew Morton wrote:
-> alpha:
-> 
-> kernel/built-in.o: In function `posix_get_monotonic_raw':
-> : undefined reference to `getrawmonotonic'
-> kernel/built-in.o: In function `posix_get_monotonic_raw':
-> : undefined reference to `getrawmonotonic'
-> 
-> presumably busted for all CONFIG_GENERIC_TIME=n architectures.
-> 
-> Couldn't see a quick fix so I dropped it.
 
-Ah, crud. Sorry about that.
+Unchangelogged patch, taken from
+http://bugzilla.kernel.org/show_bug.cgi?id=10124
 
-Hrmm.. How about this quick fix, move getrawmonotonic outside "#ifdef
-CONFIG_GENERIC_TIME" ?
-
-Build tested on x86_64 and also alpha.
-
-Signed-off-by: John Stultz <johnstul@us.ibm.com>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Josip Loncaric <use-math@users.sourceforge.net>
+Cc: <yakui.zhao@intel.com>
+Cc: Stian Jordet <stian@jordet.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/timekeeping.c |   67 ++++++++++++++++++------------------
- 1 file changed, 34 insertions(+), 33 deletions(-)
+ arch/ia64/pci/pci.c |    7 ++++++-
+ arch/x86/pci/acpi.c |   17 +++++++++++++++--
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
-diff -puN kernel/time/timekeeping.c~clocksource-introduce-clock_monotonic_raw-fix kernel/time/timekeeping.c
---- a/kernel/time/timekeeping.c~clocksource-introduce-clock_monotonic_raw-fix
-+++ a/kernel/time/timekeeping.c
-@@ -107,39 +107,6 @@ void getnstimeofday(struct timespec *ts)
- EXPORT_SYMBOL(getnstimeofday);
- 
- /**
-- * getrawmonotonic - Returns the raw monotonic time in a timespec
-- * @ts:		pointer to the timespec to be set
-- *
-- * Returns the raw monotonic time (completely un-modified by ntp)
-- */
--void getrawmonotonic(struct timespec *ts)
--{
--	unsigned long seq;
--	s64 nsecs;
--	cycle_t cycle_now, cycle_delta;
+diff -puN arch/ia64/pci/pci.c~acpi-fix-bug-10124 arch/ia64/pci/pci.c
+--- a/arch/ia64/pci/pci.c~acpi-fix-bug-10124
++++ a/arch/ia64/pci/pci.c
+@@ -362,7 +362,12 @@ pci_acpi_scan_root(struct acpi_device *d
+ 	info.name = name;
+ 	acpi_walk_resources(device->handle, METHOD_NAME__CRS, add_window,
+ 			&info);
 -
--	do {
--		seq = read_seqbegin(&xtime_lock);
--
--		/* read clocksource: */
--		cycle_now = clocksource_read(clock);
--
--		/* calculate the delta since the last update_wall_time: */
--		cycle_delta = (cycle_now - clock->cycle_last) & clock->mask;
--
--		/* convert to nanoseconds: */
--		nsecs = ((s64)cycle_delta * clock->mult_orig) >> clock->shift;
--
--		*ts = monotonic_raw;
--
--	} while (read_seqretry(&xtime_lock, seq));
--
--	timespec_add_ns(ts, nsecs);
--}
--
--EXPORT_SYMBOL(getrawmonotonic);
--
--/**
-  * do_gettimeofday - Returns the time of day in a timeval
-  * @tv:		pointer to the timeval to be set
-  *
-@@ -239,6 +206,40 @@ static inline s64 __get_nsec_offset(void
++	/*
++	 * See arch/x86/pci/acpi.c.
++	 * The desired pci bus might already be scanned in a quirk. We
++	 * should handle the case here, but it appears that IA64 hasn't
++	 * such quirk. So we just ignore the case now.
++	 */
+ 	pbus = pci_scan_bus_parented(NULL, bus, &pci_root_ops, controller);
+ 	if (pbus)
+ 		pcibios_setup_root_windows(pbus, controller);
+diff -puN arch/x86/pci/acpi.c~acpi-fix-bug-10124 arch/x86/pci/acpi.c
+--- a/arch/x86/pci/acpi.c~acpi-fix-bug-10124
++++ a/arch/x86/pci/acpi.c
+@@ -219,8 +219,21 @@ struct pci_bus * __devinit pci_acpi_scan
+ 	if (pxm >= 0)
+ 		sd->node = pxm_to_node(pxm);
  #endif
++	/*
++	 * Maybe the desired pci bus has been already scanned. In such case
++	 * it is unnecessary to scan the pci bus with the given domain,busnum.
++	 */
++	bus = pci_find_bus(domain, busnum);
++	if (bus) {
++		/*
++		 * If the desired bus exits, the content of bus->sysdata will
++		 * be replaced by sd.
++		 */
++		memcpy(bus->sysdata, sd, sizeof(*sd));
++		kfree(sd);
++	} else
++		bus = pci_scan_bus_parented(NULL, busnum, &pci_root_ops, sd);
  
- /**
-+ * getrawmonotonic - Returns the raw monotonic time in a timespec
-+ * @ts:		pointer to the timespec to be set
-+ *
-+ * Returns the raw monotonic time (completely un-modified by ntp)
-+ */
-+void getrawmonotonic(struct timespec *ts)
-+{
-+	unsigned long seq;
-+	s64 nsecs;
-+	cycle_t cycle_now, cycle_delta;
-+
-+	do {
-+		seq = read_seqbegin(&xtime_lock);
-+
-+		/* read clocksource: */
-+		cycle_now = clocksource_read(clock);
-+
-+		/* calculate the delta since the last update_wall_time: */
-+		cycle_delta = (cycle_now - clock->cycle_last) & clock->mask;
-+
-+		/* convert to nanoseconds: */
-+		nsecs = ((s64)cycle_delta * clock->mult_orig) >> clock->shift;
-+
-+		*ts = monotonic_raw;
-+
-+	} while (read_seqretry(&xtime_lock, seq));
-+
-+	timespec_add_ns(ts, nsecs);
-+}
-+
-+EXPORT_SYMBOL(getrawmonotonic);
-+
-+
-+/**
-  * timekeeping_valid_for_hres - Check if timekeeping is suitable for hres
-  */
- int timekeeping_valid_for_hres(void)
+-	bus = pci_scan_bus_parented(NULL, busnum, &pci_root_ops, sd);
+ 	if (!bus)
+ 		kfree(sd);
+ 
+@@ -228,7 +241,7 @@ struct pci_bus * __devinit pci_acpi_scan
+ 	if (bus != NULL) {
+ 		if (pxm >= 0) {
+ 			printk("bus %d -> pxm %d -> node %d\n",
+-				busnum, pxm, sd->node);
++				busnum, pxm, pxm_to_node(pxm));
+ 		}
+ 	}
+ #endif
 _
 
-Patches currently in -mm which might be from johnstul@us.ibm.com are
+Patches currently in -mm which might be from yakui.zhao@intel.com are
 
-proper-extern-for-late_time_init.patch
-introduce-explicit-signed-unsigned-64bit-divide.patch
-convert-a-few-do_div-user.patch
-remove-div_long_long_rem.patch
-ntp-cleanup-ntpc.patch
-ntp-ntp4-user-space-bits-update.patch
-ntp-increase-time_freq-resolution.patch
-ntp-increase-time_offset-resolution.patch
-ntp-support-for-tai.patch
-ntp-rename-tick_length_shift-to-ntp_scale_shift.patch
-ntp-remove-current_tick_length.patch
-ntp-handle-leap-second-via-timer.patch
-clocksource-introduce-clock_monotonic_raw-fix.patch
-clocksource-introduce-clock_monotonic_raw-fix-checkpatch-fixes.patch
-clocksource-introduce-clocksource_forward_now.patch
+acpi-fix-bug-10124.patch
 
