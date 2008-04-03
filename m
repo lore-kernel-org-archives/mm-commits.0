@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sc92031-sysfs-link-missing.patch added to -mm tree
-Date: Thu, 03 Apr 2008 14:58:36 -0700
-Message-ID: <200804032158.m33Lwb5n024694@imap1.linux-foundation.org>
+Subject: + ecryptfs-add-missing-lock-around-notify_change.patch added to -mm tree
+Date: Thu, 03 Apr 2008 15:01:35 -0700
+Message-ID: <200804032201.m33M1ZWq024786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34924 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60126 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754781AbYDCV7g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 17:59:36 -0400
+	by vger.kernel.org with ESMTP id S1756583AbYDCWCg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 18:02:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: shemminger@vyatta.com, cesarb@cesarb.net, jgarzik@pobox.com, tom@sharkbay.at
+Cc: mszeredi@suse.cz, mhalcrow@us.ibm.com
 
 
 The patch titled
-     sc92031: sysfs link missing
+     ecryptfs: add missing lock around notify_change
 has been added to the -mm tree.  Its filename is
-     sc92031-sysfs-link-missing.patch
+     ecryptfs-add-missing-lock-around-notify_change.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,62 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sc92031: sysfs link missing
-From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: ecryptfs: add missing lock around notify_change
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Add missing sysfs device association. Compile tested only -ENOHW.
+Callers of notify_change() need to hold i_mutex.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10380
-
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-Cc: Jeff Garzik <jgarzik@pobox.com>
-Cc: Cesar Eduardo Barros <cesarb@cesarb.net>
-Cc: <tom@sharkbay.at>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sc92031.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ecryptfs/inode.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/net/sc92031.c~sc92031-sysfs-link-missing drivers/net/sc92031.c
---- a/drivers/net/sc92031.c~sc92031-sysfs-link-missing
-+++ a/drivers/net/sc92031.c
-@@ -1446,6 +1446,7 @@ static int __devinit sc92031_probe(struc
- 	}
+diff -puN fs/ecryptfs/inode.c~ecryptfs-add-missing-lock-around-notify_change fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-add-missing-lock-around-notify_change
++++ a/fs/ecryptfs/inode.c
+@@ -908,7 +908,9 @@ static int ecryptfs_setattr(struct dentr
+ 	if (ia->ia_valid & (ATTR_KILL_SUID | ATTR_KILL_SGID))
+ 		ia->ia_valid &= ~ATTR_MODE;
  
- 	pci_set_drvdata(pdev, dev);
-+	SET_NETDEV_DEV(dev, &pdev->dev);
- 
- #if SC92031_USE_BAR == 0
- 	dev->mem_start = pci_resource_start(pdev, SC92031_USE_BAR);
++	mutex_lock(&lower_dentry->d_inode->i_mutex);
+ 	rc = notify_change(lower_dentry, ia);
++	mutex_unlock(&lower_dentry->d_inode->i_mutex);
+ out:
+ 	fsstack_copy_attr_all(inode, lower_inode);
+ 	return rc;
 _
 
-Patches currently in -mm which might be from shemminger@vyatta.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-git-net.patch
-sc92031-sysfs-link-missing.patch
+git-vfs.patch
+mm-rotate_reclaimable_page-cleanup.patch
+vfs-remove-lives_below_in_same_fs.patch
+ecryptfs-add-missing-lock-around-notify_change.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
+mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
+mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
+mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
+mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
+mm-bdi-move-statistics-to-debugfs.patch
+mm-bdi-add-separate-writeback-accounting-capability.patch
+mm-bdi-export-bdi_writeout_inc.patch
+mm-bdi-export-bdi_writeout_inc-fix.patch
+mm-add-nr_writeback_temp-counter.patch
+mm-document-missing-fields-for-proc-meminfo.patch
+fuse-support-writable-mmap.patch
+fuse-support-writable-mmap-fix.patch
+fuse-clean-up-setting-i_size-in-write.patch
+fuse-implement-perform_write.patch
+fuse-update-file-size-on-short-read.patch
 
