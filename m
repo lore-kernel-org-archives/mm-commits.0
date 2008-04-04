@@ -1,62 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - git-dvb-git-rejects.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 11:42:01 -0700
-Message-ID: <200804041842.m34Ig29T003501@imap1.linux-foundation.org>
+Subject: - git-kvm-fixup.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 11:43:21 -0700
+Message-ID: <200804041843.m34IhLmi003563@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58582 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48885 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757153AbYDDSmf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 14:42:35 -0400
+	by vger.kernel.org with ESMTP id S1760137AbYDDSny (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 14:43:54 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m34Ig2xc001760
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m34IhLiK001874
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 4 Apr 2008 11:42:03 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 4 Apr 2008 11:43:22 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dvb-git-rejects
+     git-kvm-fixup
 has been removed from the -mm tree.  Its filename was
-     git-dvb-git-rejects.patch
+     git-kvm-fixup.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-dvb-git-rejects
+Subject: git-kvm-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/bt8xx/bttv-driver.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ include/asm-s390/kvm.h |   40 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 39 insertions(+), 1 deletion(-)
 
-diff -puN drivers/media/video/bt8xx/bttv-driver.c~git-dvb-git-rejects drivers/media/video/bt8xx/bttv-driver.c
---- a/drivers/media/video/bt8xx/bttv-driver.c~git-dvb-git-rejects
-+++ a/drivers/media/video/bt8xx/bttv-driver.c
-@@ -3524,16 +3524,10 @@ static int radio_enum_input(struct file 
- static int radio_g_audio(struct file *file, void *priv,
- 					struct v4l2_audio *a)
- {
--<<<<<<< HEAD:drivers/media/video/bt8xx/bttv-driver.c
--	if (a->index != 0)
--		return -EINVAL;
--
--	memset(a, 0, sizeof(*a));
--=======
- 	if (unlikely(a->index))
- 		return -EINVAL;
-+	memset(a, 0, sizeof(*a));
+diff -puN include/asm-s390/kvm.h~git-kvm-fixup include/asm-s390/kvm.h
+--- a/include/asm-s390/kvm.h~git-kvm-fixup
++++ a/include/asm-s390/kvm.h
+@@ -1,6 +1,44 @@
+ #ifndef __LINUX_KVM_S390_H
+ #define __LINUX_KVM_S390_H
++/*
++ * asm-s390/kvm.h - KVM s390 specific structures and definitions
++ *
++ * Copyright IBM Corp. 2008
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License (version 2 only)
++ * as published by the Free Software Foundation.
++ *
++ *    Author(s): Carsten Otte <cotte@de.ibm.com>
++ *               Christian Borntraeger <borntraeger@de.ibm.com>
++ */
++#include <asm/types.h>
  
-->>>>>>> FETCH_HEAD:drivers/media/video/bt8xx/bttv-driver.c
- 	strcpy(a->name, "Radio");
+-/* s390 does not support KVM */
++/* for KVM_GET_IRQCHIP and KVM_SET_IRQCHIP */
++struct kvm_pic_state {
++	/* no PIC for s390 */
++};
++
++struct kvm_ioapic_state {
++	/* no IOAPIC for s390 */
++};
++
++/* for KVM_GET_REGS and KVM_SET_REGS */
++struct kvm_regs {
++	/* general purpose regs for s390 */
++	__u64 gprs[16];
++};
++
++/* for KVM_GET_SREGS and KVM_SET_SREGS */
++struct kvm_sregs {
++	__u32 acrs[16];
++	__u64 crs[16];
++};
++
++/* for KVM_GET_FPU and KVM_SET_FPU */
++struct kvm_fpu {
++	__u32 fpc;
++	__u64 fprs[16];
++};
  
- 	return 0;
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,7 +111,6 @@ pm-remove-destroy_suspended_device.patch
 scsi-add-iscsi-ibft-support.patch
 git-drm.patch
 git-dvb.patch
-git-dvb-git-rejects.patch
 git-hwmon.patch
 git-gfs2-nmw.patch
 git-hrt.patch
