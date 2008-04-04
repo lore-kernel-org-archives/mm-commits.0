@@ -1,56 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-git-rejects.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 11:45:35 -0700
-Message-ID: <200804041845.m34IjZXP003680@imap1.linux-foundation.org>
+Subject: - git-selinux-git-rejects.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 11:45:48 -0700
+Message-ID: <200804041845.m34Ijm7v003683@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58954 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756994AbYDDSph (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 14:45:37 -0400
+	by vger.kernel.org with ESMTP id S1757418AbYDDSpv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 14:45:51 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m34IjZdd001995
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m34Ijnun002007
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 4 Apr 2008 11:45:37 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 4 Apr 2008 11:45:50 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-net-git-rejects
+     git-selinux-git-rejects
 has been removed from the -mm tree.  Its filename was
-     git-net-git-rejects.patch
+     git-selinux-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net-git-rejects
+Subject: git-selinux-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/s2io.c |    4 ----
- 1 file changed, 4 deletions(-)
+ security/selinux/include/security.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN drivers/net/s2io.c~git-net-git-rejects drivers/net/s2io.c
---- a/drivers/net/s2io.c~git-net-git-rejects
-+++ a/drivers/net/s2io.c
-@@ -86,11 +86,7 @@
- #include "s2io.h"
- #include "s2io-regs.h"
+diff -puN security/selinux/include/security.h~git-selinux-git-rejects security/selinux/include/security.h
+--- a/security/selinux/include/security.h~git-selinux-git-rejects
++++ a/security/selinux/include/security.h
+@@ -36,17 +36,10 @@
+ #define POLICYDB_VERSION_MAX	POLICYDB_VERSION_PERMISSIVE
+ #endif
  
--<<<<<<< HEAD:drivers/net/s2io.c
--#define DRV_VERSION "2.0.26.20"
+-<<<<<<< HEAD:security/selinux/include/security.h
+-#define CONTEXT_MNT	0x01
+-#define FSCONTEXT_MNT	0x02
+-#define ROOTCONTEXT_MNT	0x04
+-#define DEFCONTEXT_MNT	0x08
 -=======
- #define DRV_VERSION "2.0.26.19"
-->>>>>>> FETCH_HEAD:drivers/net/s2io.c
+ #define CONTEXT_STR	"context="
+ #define FSCONTEXT_STR	"fscontext="
+ #define ROOTCONTEXT_STR	"rootcontext="
+ #define DEFCONTEXT_STR	"defcontext="
+->>>>>>> FETCH_HEAD:security/selinux/include/security.h
  
- /* S2io Driver name & version. */
- static char s2io_driver_name[] = "Neterion";
+ struct netlbl_lsm_secattr;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +99,6 @@ git-libata-all.patch
 git-async-tx.patch
 git-mips.patch
 git-net.patch
-git-net-git-rejects.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
