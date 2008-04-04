@@ -1,87 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - arch-um-os-linux-mainc-fix-memory-leaks-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 10:43:34 -0700
-Message-ID: <200804041743.m34HhZmL001347@imap1.linux-foundation.org>
+Subject: - git-dvb-git-rejects.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 11:42:01 -0700
+Message-ID: <200804041842.m34Ig29T003501@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55201 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58582 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756649AbYDDRni (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 13:43:38 -0400
+	by vger.kernel.org with ESMTP id S1757153AbYDDSmf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 14:42:35 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m34Ig2xc001760
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 4 Apr 2008 11:42:03 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jdike@addtoit.com, wangcong@zeuux.org, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch-um-os-linux-mainc-fix-memory-leaks-checkpatch-fixes
+     git-dvb-git-rejects
 has been removed from the -mm tree.  Its filename was
-     arch-um-os-linux-mainc-fix-memory-leaks-checkpatch-fixes.patch
+     git-dvb-git-rejects.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch-um-os-linux-mainc-fix-memory-leaks-checkpatch-fixes
+Subject: git-dvb-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo** bar" should be "foo **bar"
-#21: FILE: arch/um/os-Linux/main.c:116:
-+static char** dup_argv(int argc, char **argv)
-
-WARNING: braces {} are not necessary for single statement blocks
-#43: FILE: arch/um/os-Linux/main.c:140:
-+	for (i = 0; i < argc; i++) {
-+		free(argv[i]);
-+	}
-
-total: 1 errors, 1 warnings, 51 lines checked
-
-./patches/arch-um-os-linux-mainc-fix-memory-leaks.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: WANG Cong <wangcong@zeuux.org>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/main.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/media/video/bt8xx/bttv-driver.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN arch/um/os-Linux/main.c~arch-um-os-linux-mainc-fix-memory-leaks-checkpatch-fixes arch/um/os-Linux/main.c
---- a/arch/um/os-Linux/main.c~arch-um-os-linux-mainc-fix-memory-leaks-checkpatch-fixes
-+++ a/arch/um/os-Linux/main.c
-@@ -113,7 +113,7 @@ static void setup_env_path(void)
- 
- extern void scan_elf_aux( char **envp);
- 
--static char** dup_argv(int argc, char **argv)
-+static char **dup_argv(int argc, char **argv)
+diff -puN drivers/media/video/bt8xx/bttv-driver.c~git-dvb-git-rejects drivers/media/video/bt8xx/bttv-driver.c
+--- a/drivers/media/video/bt8xx/bttv-driver.c~git-dvb-git-rejects
++++ a/drivers/media/video/bt8xx/bttv-driver.c
+@@ -3524,16 +3524,10 @@ static int radio_enum_input(struct file 
+ static int radio_g_audio(struct file *file, void *priv,
+ 					struct v4l2_audio *a)
  {
- 	int i;
- 	char **new_argv;
-@@ -137,9 +137,8 @@ static char** dup_argv(int argc, char **
- static void free_argv(int argc, char **argv)
- {
- 	int i;
--	for (i = 0; i < argc; i++) {
-+	for (i = 0; i < argc; i++)
- 		free(argv[i]);
--	}
- 	free(argv);
- }
+-<<<<<<< HEAD:drivers/media/video/bt8xx/bttv-driver.c
+-	if (a->index != 0)
+-		return -EINVAL;
+-
+-	memset(a, 0, sizeof(*a));
+-=======
+ 	if (unlikely(a->index))
+ 		return -EINVAL;
++	memset(a, 0, sizeof(*a));
  
+->>>>>>> FETCH_HEAD:drivers/media/video/bt8xx/bttv-driver.c
+ 	strcpy(a->name, "Radio");
+ 
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-alpha-get_current-dont-add-zero-to-current_thread_info-task.patch
 parport_pc-dont-forget-to-unregister-the-temporarily-registered-region.patch
 revert-set-relay-file-can-not-be-read-by-pread2.patch
 git-x86.patch
@@ -99,9 +79,9 @@ git-agpgart-fix-type-confusion.patch
 git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
 cifs-suppress-warning.patch
 git-powerpc.patch
-gregkh-driver-scsi-convert-struct-class_device-to-struct-device-fix.patch
 pm-remove-destroy_suspended_device.patch
 scsi-add-iscsi-ibft-support.patch
+git-drm.patch
 git-dvb.patch
 git-dvb-git-rejects.patch
 git-hwmon.patch
@@ -117,6 +97,7 @@ git-kvm.patch
 git-kvm-fixup.patch
 git-kvm-vs-git-s390.patch
 git-leds.patch
+git-libata-all.patch
 git-libata-fix-config_pci=n-build.patch
 git-async-tx.patch
 git-mips.patch
@@ -191,7 +172,6 @@ selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
 audit-final-renamings-and-cleanup-checkpatch-fixes.patch
 arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
 alpha-teach-the-compiler-that-bug-doesnt-return.patch
-arch-um-os-linux-mainc-fix-memory-leaks-checkpatch-fixes.patch
 make-dev-kmem-a-config-option-fix.patch
 misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
