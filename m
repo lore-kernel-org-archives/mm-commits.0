@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-get-rid-of-__zone_count.patch added to -mm tree
-Date: Thu, 03 Apr 2008 16:03:39 -0700
-Message-ID: <200804032303.m33N3dvn027096@imap1.linux-foundation.org>
+Subject: + usb-ub-drop-bug-and-update-small-things.patch added to -mm tree
+Date: Thu, 03 Apr 2008 21:28:50 -0700
+Message-ID: <200804040428.m344SojG005883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753272AbYDCXDm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Apr 2008 19:03:42 -0400
+	by vger.kernel.org with ESMTP id S1750709AbYDDEaY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 00:30:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: zaitcev@redhat.com, cw@f00f.org, gregkh@suse.de, jens.axboe@oracle.com, k-ueda@ct.jp.nec.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     mm: Get rid of __ZONE_COUNT
+     ub: drop BUG() and update small things
 has been added to the -mm tree.  Its filename is
-     mm-get-rid-of-__zone_count.patch
+     usb-ub-drop-bug-and-update-small-things.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,189 +33,226 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: Get rid of __ZONE_COUNT
-From: Christoph Lameter <clameter@sgi.com>
+Subject: ub: drop BUG() and update small things
 
-It was used to compensate because MAX_NR_ZONES was not available to the
-#ifdefs.  Export MAX_NR_ZONES via the new mechanism and get rid of
-__ZONE_COUNT.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
+- Remove the BUG() which trips, borrow the code from scsi_end_request().
+  This may break CD burning, because I am not sure residue gets returned
+  to cdrecord for successful commands. But everything that's good for SCSI
+  should be good for everyone else, right?
+- Ignore improper USB level residue. Too many devices have this bug.
+- Update cosmetics: spelling, formatting
+
+Signed-off-by: Pete Zaitcev <zaitcev@redhat.com>
+Cc: Chris Wedgwood <cw@f00f.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Kiyoshi Ueda <k-ueda@ct.jp.nec.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   28 +++++++++++-----------------
- kernel/bounds.c        |    2 ++
- 2 files changed, 13 insertions(+), 17 deletions(-)
+ drivers/block/ub.c |   76 +++++++++++++++++++++++++------------------
+ 1 file changed, 45 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-get-rid-of-__zone_count include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-get-rid-of-__zone_count
-+++ a/include/linux/mmzone.h
-@@ -3,6 +3,7 @@
+diff -puN drivers/block/ub.c~usb-ub-drop-bug-and-update-small-things drivers/block/ub.c
+--- a/drivers/block/ub.c~usb-ub-drop-bug-and-update-small-things
++++ a/drivers/block/ub.c
+@@ -317,6 +317,7 @@ struct ub_dev {
+ 	int openc;			/* protected by ub_lock! */
+ 					/* kref is too implicit for our taste */
+ 	int reset;			/* Reset is running */
++	int bad_resid;
+ 	unsigned int tagcnt;
+ 	char name[12];
+ 	struct usb_device *dev;
+@@ -359,7 +360,8 @@ static void ub_cmd_build_block(struct ub
+ static void ub_cmd_build_packet(struct ub_dev *sc, struct ub_lun *lun,
+     struct ub_scsi_cmd *cmd, struct ub_request *urq);
+ static void ub_rw_cmd_done(struct ub_dev *sc, struct ub_scsi_cmd *cmd);
+-static void ub_end_rq(struct request *rq, unsigned int status);
++static void ub_end_rq(struct request *rq, unsigned int status,
++    unsigned int act_len);
+ static int ub_rw_cmd_retry(struct ub_dev *sc, struct ub_lun *lun,
+     struct ub_request *urq, struct ub_scsi_cmd *cmd);
+ static int ub_submit_scsi(struct ub_dev *sc, struct ub_scsi_cmd *cmd);
+@@ -642,13 +644,13 @@ static int ub_request_fn_1(struct ub_lun
  
- #ifdef __KERNEL__
- #ifndef __ASSEMBLY__
-+#ifndef __GENERATING_BOUNDS_H
+ 	if (atomic_read(&sc->poison)) {
+ 		blkdev_dequeue_request(rq);
+-		ub_end_rq(rq, DID_NO_CONNECT << 16);
++		ub_end_rq(rq, DID_NO_CONNECT << 16, 0);
+ 		return 0;
+ 	}
  
- #include <linux/spinlock.h>
- #include <linux/list.h>
-@@ -15,6 +16,7 @@
- #include <linux/seqlock.h>
- #include <linux/nodemask.h>
- #include <linux/pageblock-flags.h>
-+#include <linux/bounds.h>
- #include <asm/atomic.h>
- #include <asm/page.h>
+ 	if (lun->changed && !blk_pc_request(rq)) {
+ 		blkdev_dequeue_request(rq);
+-		ub_end_rq(rq, SAM_STAT_CHECK_CONDITION);
++		ub_end_rq(rq, SAM_STAT_CHECK_CONDITION, 0);
+ 		return 0;
+ 	}
  
-@@ -129,6 +131,8 @@ struct per_cpu_pageset {
- #define zone_pcp(__z, __cpu) (&(__z)->pageset[(__cpu)])
- #endif
+@@ -701,7 +703,7 @@ static int ub_request_fn_1(struct ub_lun
  
-+#endif /* !__GENERATING_BOUNDS.H */
-+
- enum zone_type {
- #ifdef CONFIG_ZONE_DMA
- 	/*
-@@ -177,9 +181,11 @@ enum zone_type {
- 	ZONE_HIGHMEM,
- #endif
- 	ZONE_MOVABLE,
--	MAX_NR_ZONES
-+	__MAX_NR_ZONES
- };
- 
-+#ifndef __GENERATING_BOUNDS_H
-+
- /*
-  * When a memory allocation must conform to specific limitations (such
-  * as being suitable for DMA) the caller will pass in hints to the
-@@ -188,28 +194,15 @@ enum zone_type {
-  * match the requested limits. See gfp_zone() in include/linux/gfp.h
-  */
- 
--/*
-- * Count the active zones.  Note that the use of defined(X) outside
-- * #if and family is not necessarily defined so ensure we cannot use
-- * it later.  Use __ZONE_COUNT to work out how many shift bits we need.
-- */
--#define __ZONE_COUNT (			\
--	  defined(CONFIG_ZONE_DMA)	\
--	+ defined(CONFIG_ZONE_DMA32)	\
--	+ 1				\
--	+ defined(CONFIG_HIGHMEM)	\
--	+ 1				\
--)
--#if __ZONE_COUNT < 2
-+#if MAX_NR_ZONES < 2
- #define ZONES_SHIFT 0
--#elif __ZONE_COUNT <= 2
-+#elif MAX_NR_ZONES <= 2
- #define ZONES_SHIFT 1
--#elif __ZONE_COUNT <= 4
-+#elif MAX_NR_ZONES <= 4
- #define ZONES_SHIFT 2
- #else
- #error ZONES_SHIFT -- too many zones configured adjust calculation
- #endif
--#undef __ZONE_COUNT
- 
- struct zone {
- 	/* Fields commonly accessed by the page allocator */
-@@ -985,6 +978,7 @@ unsigned long __init node_memmap_size_by
- #define pfn_valid_within(pfn) (1)
- #endif
- 
-+#endif /* !__GENERATING_BOUNDS.H */
- #endif /* !__ASSEMBLY__ */
- #endif /* __KERNEL__ */
- #endif /* _LINUX_MMZONE_H */
-diff -puN kernel/bounds.c~mm-get-rid-of-__zone_count kernel/bounds.c
---- a/kernel/bounds.c~mm-get-rid-of-__zone_count
-+++ a/kernel/bounds.c
-@@ -7,6 +7,7 @@
- #define __GENERATING_BOUNDS_H
- /* Include headers that define the enum constants of interest */
- #include <linux/page-flags.h>
-+#include <linux/mmzone.h>
- 
- #define DEFINE(sym, val) \
-         asm volatile("\n->" #sym " %0 " #val : : "i" (val))
-@@ -17,5 +18,6 @@ void foo(void)
- {
- 	/* The enum constants to put into include/linux/bounds.h */
- 	DEFINE(NR_PAGEFLAGS, __NR_PAGEFLAGS);
-+	DEFINE(MAX_NR_ZONES, __MAX_NR_ZONES);
- 	/* End of constants */
+ drop:
+ 	ub_put_cmd(lun, cmd);
+-	ub_end_rq(rq, DID_ERROR << 16);
++	ub_end_rq(rq, DID_ERROR << 16, 0);
+ 	return 0;
  }
+ 
+@@ -770,16 +772,11 @@ static void ub_rw_cmd_done(struct ub_dev
+ 	struct ub_request *urq = cmd->back;
+ 	struct request *rq;
+ 	unsigned int scsi_status;
++	unsigned int act_len;
+ 
+ 	rq = urq->rq;
+ 
+ 	if (cmd->error == 0) {
+-		if (blk_pc_request(rq)) {
+-			if (cmd->act_len >= rq->data_len)
+-				rq->data_len = 0;
+-			else
+-				rq->data_len -= cmd->act_len;
+-		}
+ 		scsi_status = 0;
+ 	} else {
+ 		if (blk_pc_request(rq)) {
+@@ -799,16 +796,21 @@ static void ub_rw_cmd_done(struct ub_dev
+ 		}
+ 	}
+ 
++	if ((act_len = cmd->act_len) > cmd->len)
++		act_len = cmd->len;
++
+ 	urq->rq = NULL;
+ 
+ 	ub_put_cmd(lun, cmd);
+-	ub_end_rq(rq, scsi_status);
++	ub_end_rq(rq, scsi_status, act_len);
+ 	blk_start_queue(lun->disk->queue);
+ }
+ 
+-static void ub_end_rq(struct request *rq, unsigned int scsi_status)
++static void ub_end_rq(struct request *rq, unsigned int scsi_status,
++    unsigned int act_len)
+ {
+ 	int error;
++	long rqlen;
+ 
+ 	if (scsi_status == 0) {
+ 		error = 0;
+@@ -816,8 +818,18 @@ static void ub_end_rq(struct request *rq
+ 		error = -EIO;
+ 		rq->errors = scsi_status;
+ 	}
+-	if (__blk_end_request(rq, error, blk_rq_bytes(rq)))
+-		BUG();
++	rqlen = blk_rq_bytes(rq);
++	if (__blk_end_request(rq, error, act_len)) {
++		if (error) {
++			if (__blk_end_request(rq, error, blk_rq_bytes(rq))) {
++				printk(KERN_WARNING DRV_NAME
++				    ": __blk_end_request blew,"
++				    " %s-cmd rqlen %ld act %u\n",
++				    blk_pc_request(rq)? "pc": "fs",
++				    rqlen, act_len);
++			}
++		}
++	}
+ }
+ 
+ static int ub_rw_cmd_retry(struct ub_dev *sc, struct ub_lun *lun,
+@@ -1239,14 +1251,19 @@ static void ub_scsi_urb_compl(struct ub_
+ 			return;
+ 		}
+ 
+-		len = le32_to_cpu(bcs->Residue);
+-		if (len != cmd->len - cmd->act_len) {
+-			/*
+-			 * It is all right to transfer less, the caller has
+-			 * to check. But it's not all right if the device
+-			 * counts disagree with our counts.
+-			 */
+-			goto Bad_End;
++		if (!sc->bad_resid) {
++			len = le32_to_cpu(bcs->Residue);
++			if (len != cmd->len - cmd->act_len) {
++				/*
++				 * Only start ignoring if this cmd ended well.
++				 */
++				if (cmd->len == cmd->act_len) {
++					printk(KERN_NOTICE "%s: "
++					    "bad residual %d of %d, ignoring\n",
++					    sc->name, len, cmd->len);
++					sc->bad_resid = 1;
++				}
++			}
+ 		}
+ 
+ 		switch (bcs->Status) {
+@@ -1277,8 +1294,7 @@ static void ub_scsi_urb_compl(struct ub_
+ 		ub_state_done(sc, cmd, -EIO);
+ 
+ 	} else {
+-		printk(KERN_WARNING "%s: "
+-		    "wrong command state %d\n",
++		printk(KERN_WARNING "%s: wrong command state %d\n",
+ 		    sc->name, cmd->state);
+ 		ub_state_done(sc, cmd, -EINVAL);
+ 		return;
+@@ -1495,8 +1511,7 @@ static void ub_top_sense_done(struct ub_
+ 		return;
+ 	}
+ 	if (cmd->state != UB_CMDST_SENSE) {
+-		printk(KERN_WARNING "%s: "
+-		    "sense done with bad cmd state %d\n",
++		printk(KERN_WARNING "%s: sense done with bad cmd state %d\n",
+ 		    sc->name, cmd->state);
+ 		return;
+ 	}
+@@ -1700,7 +1715,7 @@ static int ub_bd_ioctl(struct inode *ino
+ }
+ 
+ /*
+- * This is called once a new disk was seen by the block layer or by ub_probe().
++ * This is called by check_disk_change if we reported a media change.
+  * The main onjective here is to discover the features of the media such as
+  * the capacity, read-only status, etc. USB storage generally does not
+  * need to be spun up, but if we needed it, this would be the place.
+@@ -2116,8 +2131,7 @@ static int ub_get_pipes(struct ub_dev *s
+ 	}
+ 
+ 	if (ep_in == NULL || ep_out == NULL) {
+-		printk(KERN_NOTICE "%s: failed endpoint check\n",
+-		    sc->name);
++		printk(KERN_NOTICE "%s: failed endpoint check\n", sc->name);
+ 		return -ENODEV;
+ 	}
+ 
+@@ -2334,7 +2348,7 @@ static void ub_disconnect(struct usb_int
+ 	spin_unlock_irqrestore(&ub_lock, flags);
+ 
+ 	/*
+-	 * Fence stall clearnings, operations triggered by unlinkings and so on.
++	 * Fence stall clearings, operations triggered by unlinkings and so on.
+ 	 * We do not attempt to unlink any URBs, because we do not trust the
+ 	 * unlink paths in HC drivers. Also, we get -84 upon disconnect anyway.
+ 	 */
+@@ -2397,7 +2411,7 @@ static void ub_disconnect(struct usb_int
+ 	spin_unlock_irqrestore(sc->lock, flags);
+ 
+ 	/*
+-	 * There is virtually no chance that other CPU runs times so long
++	 * There is virtually no chance that other CPU runs a timeout so long
+ 	 * after ub_urb_complete should have called del_timer, but only if HCD
+ 	 * didn't forget to deliver a callback on unlink.
+ 	 */
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from zaitcev@redhat.com are
 
-git-unionfs.patch
-git-slub.patch
-remove-set_migrateflags.patch
-mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
-mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
-mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
-mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify.patch
-mm-move-cache_line_size-to-linux-cacheh.patch
-mempolicy-convert-mpol-constants-to-enum.patch
-mempolicy-support-optional-mode-flags.patch
-mempolicy-support-optional-mode-flags-fix.patch
-mempolicy-add-mpol_f_static_nodes-flag.patch
-mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
-mempolicy-add-mpol_f_relative_nodes-flag.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-move-rebind-functions.patch
-mempolicy-create-mempolicy_operations-structure.patch
-mempolicy-create-mempolicy_operations-structure-fix.patch
-mempolicy-small-header-file-cleanup.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-mempolicy-fix-parsing-of-tmpfs-mpol-mount-option.patch
-mm-make-mem_map-allocation-continuous-v2.patch
-mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
-mm-offset-align-in-alloc_bootmem.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-sparsemem-vmemmap-does-not-need-section-bits.patch
-kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-pageflags-use-an-enum-for-the-flags.patch
-pageflags-get-rid-of-flags_reserved.patch
-pageflags-introduce-macros-to-generate-page-flag-functions.patch
-pageflags-convert-to-the-use-of-new-macros.patch
-pageflags-use-proper-page-flag-functions-in-xen.patch
-pageflags-eliminate-pg_xxx-aliases.patch
-page-flags-handle-pg_uncached-like-all-other-flags.patch
-page-flags-add-pageflags_false-for-flags-that-are-always-false.patch
-mm-get-rid-of-__zone_count.patch
-mm-remove-unused-max_nodes_shift.patch
-vmcoreinfo-add-page-flags-values.patch
-memory-hotplug-register-section-node-id-to-free.patch
-memory-hotplug-align-memmap-to-page-size.patch
-memory-hotplug-create-alloc_bootmem_section.patch
-memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch
-memory-hotplug-free-memmaps-allocated-by-bootmem.patch
-ipc-add-definitions-of-ushort_max-and-others.patch
-mm-add-nr_writeback_temp-counter.patch
-remove-div_long_long_rem.patch
-slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+usb-ub-drop-bug-and-update-small-things.patch
+git-hid.patch
 
