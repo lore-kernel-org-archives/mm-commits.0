@@ -1,134 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - char-rio-fix-sparse-warnings.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 12:00:04 -0700
-Message-ID: <200804041900.m34J04Oi004245@imap1.linux-foundation.org>
+Subject: - alpha-fix-alsa-dma-mmap-crash.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 11:59:49 -0700
+Message-ID: <200804041859.m34IxncY004133@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57414 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38590 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754910AbYDDTAG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:00:06 -0400
+	by vger.kernel.org with ESMTP id S1756116AbYDDTAY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:00:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: ink@jurassic.park.msu.ru, mcree@orcon.net.nz, perex@perex.cz, rth@twiddle.net, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: rio, fix sparse warnings
+     alpha: fix ALSA DMA mmap crash
 has been removed from the -mm tree.  Its filename was
-     char-rio-fix-sparse-warnings.patch
+     alpha-fix-alsa-dma-mmap-crash.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: rio, fix sparse warnings
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: alpha: fix ALSA DMA mmap crash
+From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 
-Add some locks and unlocks to some code paths.
+Make dma_alloc_coherent respect gfp flags (__GFP_COMP is one that matters).
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Tested-by: Michael Cree <mcree@orcon.net.nz>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rio/riotable.c |    4 +++-
- drivers/char/rio/riotty.c   |    4 ++++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ arch/alpha/kernel/pci_iommu.c   |    8 +++++---
+ include/asm-alpha/dma-mapping.h |    2 +-
+ include/asm-alpha/pci.h         |    8 +++++++-
+ 3 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/rio/riotable.c~char-rio-fix-sparse-warnings drivers/char/rio/riotable.c
---- a/drivers/char/rio/riotable.c~char-rio-fix-sparse-warnings
-+++ a/drivers/char/rio/riotable.c
-@@ -425,8 +425,10 @@ int RIOApel(struct rio_info *p)
+diff -puN arch/alpha/kernel/pci_iommu.c~alpha-fix-alsa-dma-mmap-crash arch/alpha/kernel/pci_iommu.c
+--- a/arch/alpha/kernel/pci_iommu.c~alpha-fix-alsa-dma-mmap-crash
++++ a/arch/alpha/kernel/pci_iommu.c
+@@ -424,11 +424,13 @@ EXPORT_SYMBOL(pci_unmap_page);
+    else DMA_ADDRP is undefined.  */
  
- 		MapP = &p->RIOConnectTable[Next++];
- 		MapP->HostUniqueNum = HostP->UniqueNum;
--		if ((HostP->Flags & RUN_STATE) != RC_RUNNING)
-+		if ((HostP->Flags & RUN_STATE) != RC_RUNNING) {
-+			rio_spin_unlock_irqrestore(&HostP->HostLock, flags);
- 			continue;
-+		}
- 		MapP->RtaUniqueNum = 0;
- 		MapP->ID = 0;
- 		MapP->Flags = SLOT_IN_USE;
-diff -puN drivers/char/rio/riotty.c~char-rio-fix-sparse-warnings drivers/char/rio/riotty.c
---- a/drivers/char/rio/riotty.c~char-rio-fix-sparse-warnings
-+++ a/drivers/char/rio/riotty.c
-@@ -319,6 +319,7 @@ int riotopen(struct tty_struct *tty, str
- 			PortP->State |= RIO_WOPEN;
- 			rio_spin_unlock_irqrestore(&PortP->portSem, flags);
- 			if (RIODelay(PortP, HUNDRED_MS) == RIO_FAIL) {
-+				rio_spin_lock_irqsave(&PortP->portSem, flags);
- 				/*
- 				 ** ACTION: verify that this is a good thing
- 				 ** to do here. -- ???
-@@ -334,6 +335,7 @@ int riotopen(struct tty_struct *tty, str
- 				func_exit();
- 				return -EINTR;
- 			}
-+			rio_spin_lock_irqsave(&PortP->portSem, flags);
- 		}
- 		PortP->State &= ~RIO_WOPEN;
- 	}
-@@ -493,6 +495,7 @@ int riotclose(void *ptr)
+ void *
+-pci_alloc_consistent(struct pci_dev *pdev, size_t size, dma_addr_t *dma_addrp)
++__pci_alloc_consistent(struct pci_dev *pdev, size_t size,
++		       dma_addr_t *dma_addrp, gfp_t gfp)
+ {
+ 	void *cpu_addr;
+ 	long order = get_order(size);
+-	gfp_t gfp = GFP_ATOMIC;
++
++	gfp &= ~GFP_DMA;
  
- 	if (RIOShortCommand(p, PortP, CLOSE, 1, 0) == RIO_FAIL) {
- 		RIOPreemptiveCmd(p, PortP, FCLOSE);
-+		rio_spin_lock_irqsave(&PortP->portSem, flags);
- 		goto close_end;
- 	}
+ try_again:
+ 	cpu_addr = (void *)__get_free_pages(gfp, order);
+@@ -458,7 +460,7 @@ try_again:
  
-@@ -508,6 +511,7 @@ int riotclose(void *ptr)
+ 	return cpu_addr;
+ }
+-EXPORT_SYMBOL(pci_alloc_consistent);
++EXPORT_SYMBOL(__pci_alloc_consistent);
  
- 			if (p->RIOHalted) {
- 				RIOClearUp(PortP);
-+				rio_spin_lock_irqsave(&PortP->portSem, flags);
- 				goto close_end;
- 			}
- 			if (RIODelay(PortP, HUNDRED_MS) == RIO_FAIL) {
+ /* Free and unmap a consistent DMA buffer.  CPU_ADDR and DMA_ADDR must
+    be values that were returned from pci_alloc_consistent.  SIZE must
+diff -puN include/asm-alpha/dma-mapping.h~alpha-fix-alsa-dma-mmap-crash include/asm-alpha/dma-mapping.h
+--- a/include/asm-alpha/dma-mapping.h~alpha-fix-alsa-dma-mmap-crash
++++ a/include/asm-alpha/dma-mapping.h
+@@ -11,7 +11,7 @@
+ #define dma_unmap_single(dev, addr, size, dir)		\
+ 		pci_unmap_single(alpha_gendev_to_pci(dev), addr, size, dir)
+ #define dma_alloc_coherent(dev, size, addr, gfp)	\
+-		pci_alloc_consistent(alpha_gendev_to_pci(dev), size, addr)
++	      __pci_alloc_consistent(alpha_gendev_to_pci(dev), size, addr, gfp)
+ #define dma_free_coherent(dev, size, va, addr)		\
+ 		pci_free_consistent(alpha_gendev_to_pci(dev), size, va, addr)
+ #define dma_map_page(dev, page, off, size, dir)		\
+diff -puN include/asm-alpha/pci.h~alpha-fix-alsa-dma-mmap-crash include/asm-alpha/pci.h
+--- a/include/asm-alpha/pci.h~alpha-fix-alsa-dma-mmap-crash
++++ a/include/asm-alpha/pci.h
+@@ -76,7 +76,13 @@ extern inline void pcibios_penalize_isa_
+    successful and sets *DMA_ADDRP to the pci side dma address as well,
+    else DMA_ADDRP is undefined.  */
+ 
+-extern void *pci_alloc_consistent(struct pci_dev *, size_t, dma_addr_t *);
++extern void *__pci_alloc_consistent(struct pci_dev *, size_t,
++				    dma_addr_t *, gfp_t);
++static inline void *
++pci_alloc_consistent(struct pci_dev *dev, size_t size, dma_addr_t *dma)
++{
++	return __pci_alloc_consistent(dev, size, dma, GFP_ATOMIC);
++}
+ 
+ /* Free and unmap a consistent DMA buffer.  CPU_ADDR and DMA_ADDR must
+    be values that were returned from pci_alloc_consistent.  SIZE must
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
 
 origin.patch
-git-dvb.patch
-git-hid.patch
-input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
-git-net.patch
-capabilities-implement-per-process-securebits-fix.patch
-misc-phantom-add-compat-ioctl.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-misc-phantom-fix-poll.patch
-misc-phantom-consistent-whitespace.patch
-mxser-prepare-for-bkl-pushdown.patch
-tty-bkl-pushdown-fix.patch
-tty-bkl-pushdown-fix1.patch
-char-moxa-remove-static-isa-support.patch
-char-moxa-cleanup-module-param-passed-isa-init.patch
-char-moxa-pci-io-space-fixup.patch
-char-moxa-fix-tiocg-ssoftcar-param.patch
-char-moxa-add-firmware-loading.patch
-char-moxa-merge-c2xx-and-c320-firmware-loading.patch
-char-moxa-remove-port-port.patch
-char-moxa-remove-unused-port-entries.patch
-char-moxa-centralize-board-readiness.patch
-char-moxa-centralize-board-readiness-warning-fix.patch
-char-moxa-timer-cleanup.patch
-char-moxa-ioctl-cleanup.patch
-char-moxa-merge-2-poll-functions.patch
-char-moxa-cleanup-rx-tx.patch
-char-moxa-serialise-timer.patch
-char-moxa-rework-open-close.patch
-char-moxa-little-cleanup.patch
-char-moxa-remove-useless-tty-functions.patch
-char-moxa-introduce-moxa_is_320-macro.patch
-char-moxa-notify-about-board-readiness.patch
-char-moxa-update-credits.patch
-char-moxa-add-firmware-loading-fix.patch
-char-espc-fix-possible-double-unlock.patch
-char-ip2-macros-cleanup.patch
-char-rio-fix-cirrus-defines.patch
-mxser-convert-large-macros-to-functions.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+alpha-handle-kcalloc-failure.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+arch-alpha-kernel-trapsc-use-time_-macros.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+introduce-a-generic-__fls-implementation.patch
+implement-__fls-on-all-64-bit-archs.patch
+use-__fls-for-fls64-on-64-bit-archs.patch
+make-sure-nobodys-leaking-resources.patch
 
