@@ -1,59 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - git-slub-git-rejects.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 11:53:25 -0700
-Message-ID: <200804041853.m34IrPot003928@imap1.linux-foundation.org>
+Subject: + git-kvm-git-rejects.patch added to -mm tree
+Date: Fri, 04 Apr 2008 11:54:56 -0700
+Message-ID: <200804041854.m34Isunf003958@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42485 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758372AbYDDSx4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 14:53:56 -0400
+	by vger.kernel.org with ESMTP id S1754870AbYDDSz2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 14:55:28 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m34IrQW9002524
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m34IsuKt002590
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 4 Apr 2008 11:53:27 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 4 Apr 2008 11:54:57 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-slub-git-rejects
-has been removed from the -mm tree.  Its filename was
-     git-slub-git-rejects.patch
+     git-kvm-git-rejects
+has been added to the -mm tree.  Its filename is
+     git-kvm-git-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-slub-git-rejects
+Subject: git-kvm-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    5 -----
+ include/asm-s390/kvm.h |    5 -----
  1 file changed, 5 deletions(-)
 
-diff -puN mm/slub.c~git-slub-git-rejects mm/slub.c
---- a/mm/slub.c~git-slub-git-rejects
-+++ a/mm/slub.c
-@@ -2716,14 +2716,9 @@ void kfree(const void *x)
- }
- EXPORT_SYMBOL(kfree);
- 
--<<<<<<< HEAD:mm/slub.c
- #if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SLABINFO)
--static unsigned long count_partial(struct kmem_cache_node *n)
+diff -puN include/asm-s390/kvm.h~git-kvm-git-rejects include/asm-s390/kvm.h
+--- a/include/asm-s390/kvm.h~git-kvm-git-rejects
++++ a/include/asm-s390/kvm.h
+@@ -1,9 +1,5 @@
+ #ifndef __LINUX_KVM_S390_H
+ #define __LINUX_KVM_S390_H
+-<<<<<<< HEAD:include/asm-s390/kvm.h
+-
+-/* s390 does not support KVM */
 -=======
--#if defined(SLUB_DEBUG) || defined(CONFIG_SLABINFO)
- static unsigned long count_partial(struct kmem_cache_node *n,
- 					int (*get_count)(struct page *))
-->>>>>>> FETCH_HEAD:mm/slub.c
- {
- 	unsigned long flags;
- 	unsigned long x = 0;
+ /*
+  * asm-s390/kvm.h - KVM s390 specific structures and definitions
+  *
+@@ -44,6 +40,5 @@ struct kvm_fpu {
+ 	__u32 fpc;
+ 	__u64 fprs[16];
+ };
+->>>>>>> FETCH_HEAD:include/asm-s390/kvm.h
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,6 +102,7 @@ git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.
 maple-add-driver-for-sega-dreamcast-controller.patch
 touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
 git-kvm.patch
+git-kvm-git-rejects.patch
 git-kvm-vs-git-s390.patch
 git-leds.patch
 git-libata-all.patch
@@ -141,7 +154,6 @@ xfs-suppress-uninitialized-var-warnings.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
 make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-slub-git-rejects.patch
 git-semaphore-git-rejects.patch
 smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
