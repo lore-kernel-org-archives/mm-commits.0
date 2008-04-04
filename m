@@ -1,68 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - fix-typos-in-documentation-unaligned-memory-accesstxt.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 11:59:54 -0700
-Message-ID: <200804041859.m34Ixsn4004136@imap1.linux-foundation.org>
+Subject: - atmel_serial-avoid-stopping-pdc-during-transmission.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 11:59:43 -0700
+Message-ID: <200804041859.m34IxhGo004124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42783 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38918 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751392AbYDDS74 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 14:59:56 -0400
+	by vger.kernel.org with ESMTP id S1752065AbYDDTAB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:00:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmitri.vorobiev@gmail.com, mm-commits@vger.kernel.org
+To: trimarchimichael@yahoo.it, hskinnemoen@atmel.com, trimarchi@gandalf.sssup.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix typos in Documentation/unaligned-memory-access.txt
+     atmel_serial: avoid stopping pdc during transmission
 has been removed from the -mm tree.  Its filename was
-     fix-typos-in-documentation-unaligned-memory-accesstxt.patch
+     atmel_serial-avoid-stopping-pdc-during-transmission.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix typos in Documentation/unaligned-memory-access.txt
-From: Dmitri Vorobiev <dmitri.vorobiev@gmail.com>
+Subject: atmel_serial: avoid stopping pdc during transmission
+From: Michael Trimarchi <trimarchimichael@yahoo.it>
 
-This patch deletes a couple of superfluous word occurrences in the document
-Documentation/unaligned-memory-access.txt.
+I found a problem related to loosing data during pdc transmission in
+atmel_serial: connect ttyS1 with ttyS2 using a loopback cable, send 30 byte of
+packet from one to the other and waiting for 30 byte.  On the other side just
+read and echo the data received.
 
-Thanks to Sebastien Dugue for the remark about English usage.
+We always call atmel_tx_dma() from the tasklet regardless of what interrupt
+triggered it.
 
-Signed-off-by: Dmitri Vorobiev <dmitri.vorobiev@gmail.com>
+Signed-off-by: michael <trimarchi@gandalf.sssup.it>
+Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/unaligned-memory-access.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/serial/atmel_serial.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN Documentation/unaligned-memory-access.txt~fix-typos-in-documentation-unaligned-memory-accesstxt Documentation/unaligned-memory-access.txt
---- a/Documentation/unaligned-memory-access.txt~fix-typos-in-documentation-unaligned-memory-accesstxt
-+++ a/Documentation/unaligned-memory-access.txt
-@@ -57,7 +57,7 @@ here; a summary of the common scenarios 
-    unaligned access to be corrected.
-  - Some architectures are not capable of unaligned memory access, but will
-    silently perform a different memory access to the one that was requested,
--   resulting a a subtle code bug that is hard to detect!
-+   resulting in a subtle code bug that is hard to detect!
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-avoid-stopping-pdc-during-transmission drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-avoid-stopping-pdc-during-transmission
++++ a/drivers/serial/atmel_serial.c
+@@ -96,6 +96,7 @@
  
- It should be obvious from the above that if your code causes unaligned
- memory accesses to happen, your code will not work correctly on certain
-@@ -209,7 +209,7 @@ memory and you wish to avoid unaligned a
+  /* PDC registers */
+ #define UART_PUT_PTCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_PTCR)
++#define UART_GET_TCR(port)      __raw_readl((port)->membase + ATMEL_PDC_TCR)
+ #define UART_GET_PTSR(port)	__raw_readl((port)->membase + ATMEL_PDC_PTSR)
  
- 	u32 value = get_unaligned((u32 *) data);
+ #define UART_PUT_RPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_RPR)
+@@ -562,17 +563,22 @@ static void atmel_tx_dma(struct uart_por
+ 	struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
+ 	int count;
  
--These macros work work for memory accesses of any length (not just 32 bits as
-+These macros work for memory accesses of any length (not just 32 bits as
- in the examples above). Be aware that when compared to standard access of
- aligned memory, using these macros to access unaligned memory can be costly in
- terms of performance.
-_
-
-Patches currently in -mm which might be from dmitri.vorobiev@gmail.com are
-
-origin.patch
-git-mips.patch
-
++	/* nothing left to transmit? */
++	if (UART_GET_TCR(port))
++		return;
++
+ 	xmit->tail += pdc->ofs;
+ 	xmit->tail &= UART_XMIT_SIZE - 1;
+ 
+ 	port->icount.tx += pdc->ofs;
+ 	pdc->ofs = 0;
+ 
+-	if (!uart_circ_empty(xmit)) {
+-		/* more to transmit - setup next transfer */
++	/* more to transmit - setup next transfer */
+ 
+-		/* disable PDC transmit */
+-		UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
++	/* disable PDC transmit */
++	UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
++
++	if (!uart_circ_empty(xmit)) {
+ 		dma_sync_single_for_device(port->dev,
+ 					   pdc->dma_addr,
+ 					   pdc->dma_size,
+@@ -586,11 +592,6 @@ static void atmel_tx_dma(struct uart_por
+ 		/* re-enable PDC transmit and interrupts */
+ 		UART_PUT_PTCR(port, ATMEL_PDC_TXTEN);
+ 		UART_PUT_IER(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
+-	} else {
+-		/* nothing left to transmit - disable the transmitter */
