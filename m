@@ -1,263 +1,868 @@
 From: akpm@linux-foundation.org
-Subject: - pci-clean-up-resource-alignment-management.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 12:00:28 -0700
-Message-ID: <200804041900.m34J0SKr004272@imap1.linux-foundation.org>
+Subject: - usb-u132-hcd-driver-semaphore-to-mutex.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 12:00:38 -0700
+Message-ID: <200804041900.m34J0cvd004284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45928 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754816AbYDDTF4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:05:56 -0400
+	by vger.kernel.org with ESMTP id S1751068AbYDDTHL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:07:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ink@jurassic.park.msu.ru, garyhade@us.ibm.com, greg@kroah.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: dwalker@mvista.com, gregkh@suse.de, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci: clean up resource alignment management
+     usb: u132-hcd driver: semaphore to mutex
 has been removed from the -mm tree.  Its filename was
-     pci-clean-up-resource-alignment-management.patch
+     usb-u132-hcd-driver-semaphore-to-mutex.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: clean up resource alignment management
-From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Subject: usb: u132-hcd driver: semaphore to mutex
+From: Daniel Walker <dwalker@mvista.com>
 
-Done per Linus' request and suggestions. Linus has explained that
-better than I'll be able to explain:
-
-On Thu, Mar 27, 2008 at 10:12:10AM -0700, Linus Torvalds wrote:
-> Actually, before we go any further, there might be a less intrusive
-> alternative: add just a couple of flags to the resource flags field (we
-> still have something like 8 unused bits on 32-bit), and use those to
-> implement a generic "resource_alignment()" routine.
->
-> Two flags would do it:
->
->  - IORESOURCE_SIZEALIGN: size indicates alignment (regular PCI device
->    resources)
->
->  - IORESOURCE_STARTALIGN: start field is alignment (PCI bus resources
->    during probing)
->
-> and then the case of both flags zero (or both bits set) would actually be
-> "invalid", and we would also clear the IORESOURCE_STARTALIGN flag when we
-> actually allocate the resource (so that we don't use the "start" field as
-> alignment incorrectly when it no longer indicates alignment).
->
-> That wouldn't be totally generic, but it would have the nice property of
-> automatically at least add sanity checking for that whole "res->start has
-> the odd meaning of 'alignment' during probing" and remove the need for a
-> new field, and it would allow us to have a generic "resource_alignment()"
-> routine that just gets a resource pointer.
-
-Besides, I removed IORESOURCE_BUS_HAS_VGA flag which was unused for ages.
-
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Gary Hade <garyhade@us.ibm.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c     |    5 ++--
- drivers/pci/setup-bus.c |    3 ++
- drivers/pci/setup-res.c |   42 ++++++++++++++++++++------------------
- include/linux/ioport.h  |    5 +++-
- kernel/resource.c       |   18 ++++++++++++++++
- 5 files changed, 51 insertions(+), 22 deletions(-)
+ drivers/usb/host/u132-hcd.c |  220 +++++++++++++++++-----------------
+ 1 file changed, 110 insertions(+), 110 deletions(-)
 
-diff -puN drivers/pci/probe.c~pci-clean-up-resource-alignment-management drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci-clean-up-resource-alignment-management
-+++ a/drivers/pci/probe.c
-@@ -235,7 +235,7 @@ static void pci_read_bases(struct pci_de
- 			res->flags |= l & ~PCI_BASE_ADDRESS_IO_MASK;
- 		}
- 		res->end = res->start + (unsigned long) sz;
--		res->flags |= pci_calc_resource_flags(l);
-+		res->flags |= pci_calc_resource_flags(l) | IORESOURCE_SIZEALIGN;
- 		if (is_64bit_memory(l)) {
- 			u32 szhi, lhi;
- 
-@@ -288,7 +288,8 @@ static void pci_read_bases(struct pci_de
- 			if (sz) {
- 				res->flags = (l & IORESOURCE_ROM_ENABLE) |
- 				  IORESOURCE_MEM | IORESOURCE_PREFETCH |
--				  IORESOURCE_READONLY | IORESOURCE_CACHEABLE;
-+				  IORESOURCE_READONLY | IORESOURCE_CACHEABLE |
-+				  IORESOURCE_SIZEALIGN;
- 				res->start = l & PCI_ROM_ADDRESS_MASK;
- 				res->end = res->start + (unsigned long) sz;
+diff -puN drivers/usb/host/u132-hcd.c~usb-u132-hcd-driver-semaphore-to-mutex drivers/usb/host/u132-hcd.c
+--- a/drivers/usb/host/u132-hcd.c~usb-u132-hcd-driver-semaphore-to-mutex
++++ a/drivers/usb/host/u132-hcd.c
+@@ -184,7 +184,7 @@ struct u132 {
+ 	struct kref kref;
+ 	struct list_head u132_list;
+ 	struct mutex sw_lock;
+-	struct semaphore scheduler_lock;
++	struct mutex scheduler_lock;
+ 	struct u132_platform_data *board;
+ 	struct platform_device *platform_dev;
+ 	struct u132_ring ring[MAX_U132_RINGS];
+@@ -535,12 +535,12 @@ static void u132_hcd_giveback_urb(struct
+ 		spin_unlock_irqrestore(&endp->queue_lock.slock, irqs);
+ 		kfree(urbq);
+ 	}
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	ring = endp->ring;
+ 	ring->in_use = 0;
+ 	u132_ring_cancel_work(u132, ring);
+ 	u132_ring_queue_work(u132, ring, 0);
+-	up(&u132->scheduler_lock);
++	mutex_unlock(&u132->scheduler_lock);
+ 	u132_endp_put_kref(u132, endp);
+ 	usb_hcd_giveback_urb(hcd, urb, status);
+ 	return;
+@@ -631,22 +631,22 @@ static void u132_hcd_interrupt_recv(void
+ 	struct u132 *u132 = endp->u132;
+ 	u8 address = u132->addr[endp->usb_addr].address;
+ 	struct u132_udev *udev = &u132->udev[address];
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	if (u132->going > 1) {
+ 		dev_err(&u132->platform_dev->dev, "device has been removed %d\n"
+ 			, u132->going);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_forget_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (endp->dequeueing) {
+ 		endp->dequeueing = 0;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -EINTR);
+ 		return;
+ 	} else if (u132->going > 0) {
+ 		dev_err(&u132->platform_dev->dev, "device is being removed "
+ 				"urb=%p\n", urb);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (!urb->unlinked) {
+@@ -666,7 +666,7 @@ static void u132_hcd_interrupt_recv(void
+ 				1 & toggle_bits);
+ 			if (urb->actual_length > 0) {
+ 				int retval;
+-				up(&u132->scheduler_lock);
++				mutex_unlock(&u132->scheduler_lock);
+ 				retval = edset_single(u132, ring, endp, urb,
+ 					address, endp->toggle_bits,
+ 					u132_hcd_interrupt_recv);
+@@ -680,7 +680,7 @@ static void u132_hcd_interrupt_recv(void
+ 					msecs_to_jiffies(urb->interval);
+ 				u132_ring_cancel_work(u132, ring);
+ 				u132_ring_queue_work(u132, ring, 0);
+-				up(&u132->scheduler_lock);
++				mutex_unlock(&u132->scheduler_lock);
+ 				u132_endp_put_kref(u132, endp);
  			}
-diff -puN drivers/pci/setup-bus.c~pci-clean-up-resource-alignment-management drivers/pci/setup-bus.c
---- a/drivers/pci/setup-bus.c~pci-clean-up-resource-alignment-management
-+++ a/drivers/pci/setup-bus.c
-@@ -65,6 +65,7 @@ static void pbus_assign_resources_sorted
- 		res = list->res;
- 		idx = res - &list->dev->resource[0];
- 		if (pci_assign_resource(list->dev, idx)) {
-+			/* FIXME: get rid of this */
- 			res->start = 0;
- 			res->end = 0;
- 			res->flags = 0;
-@@ -326,6 +327,7 @@ static void pbus_size_io(struct pci_bus 
- 	/* Alignment of the IO window is always 4K */
- 	b_res->start = 4096;
- 	b_res->end = b_res->start + size - 1;
-+	b_res->flags |= IORESOURCE_STARTALIGN;
- }
- 
- /* Calculate the size of the bus and minimal alignment which
-@@ -400,6 +402,7 @@ static int pbus_size_mem(struct pci_bus 
+ 			return;
+@@ -689,7 +689,7 @@ static void u132_hcd_interrupt_recv(void
+ 			endp->toggle_bits = toggle_bits;
+ 			usb_settoggle(udev->usb_device, endp->usb_endp, 0,
+ 				1 & toggle_bits);
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 			return;
+ 		} else {
+@@ -709,7 +709,7 @@ static void u132_hcd_interrupt_recv(void
+ 					"g back INTERRUPT %s\n", urb,
+ 					cc_to_text[condition_code]);
+ 			}
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			u132_hcd_giveback_urb(u132, endp, urb,
+ 				cc_to_error[condition_code]);
+ 			return;
+@@ -717,7 +717,7 @@ static void u132_hcd_interrupt_recv(void
+ 	} else {
+ 		dev_err(&u132->platform_dev->dev, "CALLBACK called urb=%p "
+ 				"unlinked=%d\n", urb, urb->unlinked);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
  	}
- 	b_res->start = min_align;
- 	b_res->end = size + min_align - 1;
-+	b_res->flags |= IORESOURCE_STARTALIGN;
- 	return 1;
- }
- 
-diff -puN drivers/pci/setup-res.c~pci-clean-up-resource-alignment-management drivers/pci/setup-res.c
---- a/drivers/pci/setup-res.c~pci-clean-up-resource-alignment-management
-+++ a/drivers/pci/setup-res.c
-@@ -137,10 +137,16 @@ int pci_assign_resource(struct pci_dev *
- 
- 	size = res->end - res->start + 1;
- 	min = (res->flags & IORESOURCE_IO) ? PCIBIOS_MIN_IO : PCIBIOS_MIN_MEM;
--	/* The bridge resources are special, as their
--	   size != alignment. Sizing routines return
--	   required alignment in the "start" field. */
--	align = (resno < PCI_BRIDGE_RESOURCES) ? size : res->start;
-+
-+	align = resource_alignment(res);
-+	if (!align) {
-+		printk(KERN_ERR "PCI: Cannot allocate resource (bogus "
-+			"alignment) %d [%llx:%llx] (flags %lx) of %s\n",
-+			resno, (unsigned long long)res->start,
-+			(unsigned long long)res->end, res->flags,
-+			pci_name(dev));
-+		return -EINVAL;
-+	}
- 
- 	/* First, try exact prefetching match.. */
- 	ret = pci_bus_alloc_resource(bus, res, size, align, min,
-@@ -164,8 +170,10 @@ int pci_assign_resource(struct pci_dev *
- 			res->flags & IORESOURCE_IO ? "I/O" : "mem",
- 			resno, (unsigned long long)size,
- 			(unsigned long long)res->start, pci_name(dev));
--	} else if (resno < PCI_BRIDGE_RESOURCES) {
--		pci_update_resource(dev, res, resno);
-+	} else {
-+		res->flags &= ~IORESOURCE_STARTALIGN;
-+		if (resno < PCI_BRIDGE_RESOURCES)
-+			pci_update_resource(dev, res, resno);
- 	}
- 
- 	return ret;
-@@ -226,29 +234,25 @@ void pdev_sort_resources(struct pci_dev 
- 		if (r->flags & IORESOURCE_PCI_FIXED)
- 			continue;
- 
--		r_align = r->end - r->start;
--		
- 		if (!(r->flags) || r->parent)
- 			continue;
-+
-+		r_align = resource_alignment(r);
- 		if (!r_align) {
--			printk(KERN_WARNING "PCI: Ignore bogus resource %d "
--				"[%llx:%llx] of %s\n",
-+			printk(KERN_WARNING "PCI: bogus alignment of resource "
-+				"%d [%llx:%llx] (flags %lx) of %s\n",
- 				i, (unsigned long long)r->start,
--				(unsigned long long)r->end, pci_name(dev));
-+				(unsigned long long)r->end, r->flags,
-+				pci_name(dev));
- 			continue;
+@@ -730,22 +730,22 @@ static void u132_hcd_bulk_output_sent(vo
+ 	struct u132_endp *endp = data;
+ 	struct u132 *u132 = endp->u132;
+ 	u8 address = u132->addr[endp->usb_addr].address;
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	if (u132->going > 1) {
+ 		dev_err(&u132->platform_dev->dev, "device has been removed %d\n"
+ 			, u132->going);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_forget_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (endp->dequeueing) {
+ 		endp->dequeueing = 0;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -EINTR);
+ 		return;
+ 	} else if (u132->going > 0) {
+ 		dev_err(&u132->platform_dev->dev, "device is being removed "
+ 				"urb=%p\n", urb);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (!urb->unlinked) {
+@@ -754,21 +754,21 @@ static void u132_hcd_bulk_output_sent(vo
+ 		endp->toggle_bits = toggle_bits;
+ 		if (urb->transfer_buffer_length > urb->actual_length) {
+ 			int retval;
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			retval = edset_output(u132, ring, endp, urb, address,
+ 				endp->toggle_bits, u132_hcd_bulk_output_sent);
+ 			if (retval != 0)
+ 				u132_hcd_giveback_urb(u132, endp, urb, retval);
+ 			return;
+ 		} else {
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 			return;
  		}
--		r_align = (i < PCI_BRIDGE_RESOURCES) ? r_align + 1 : r->start;
- 		for (list = head; ; list = list->next) {
- 			resource_size_t align = 0;
- 			struct resource_list *ln = list->next;
--			int idx;
+ 	} else {
+ 		dev_err(&u132->platform_dev->dev, "CALLBACK called urb=%p "
+ 				"unlinked=%d\n", urb, urb->unlinked);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	}
+@@ -782,22 +782,22 @@ static void u132_hcd_bulk_input_recv(voi
+ 	struct u132 *u132 = endp->u132;
+ 	u8 address = u132->addr[endp->usb_addr].address;
+ 	struct u132_udev *udev = &u132->udev[address];
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	if (u132->going > 1) {
+ 		dev_err(&u132->platform_dev->dev, "device has been removed %d\n"
+ 			, u132->going);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_forget_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (endp->dequeueing) {
+ 		endp->dequeueing = 0;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -EINTR);
+ 		return;
+ 	} else if (u132->going > 0) {
+ 		dev_err(&u132->platform_dev->dev, "device is being removed "
+ 				"urb=%p\n", urb);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (!urb->unlinked) {
+@@ -816,7 +816,7 @@ static void u132_hcd_bulk_input_recv(voi
+ 			endp->toggle_bits = toggle_bits;
+ 			usb_settoggle(udev->usb_device, endp->usb_endp, 0,
+ 				1 & toggle_bits);
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			retval = usb_ftdi_elan_edset_input(u132->platform_dev,
+ 				ring->number, endp, urb, address,
+ 				endp->usb_endp, endp->toggle_bits,
+@@ -828,7 +828,7 @@ static void u132_hcd_bulk_input_recv(voi
+ 			endp->toggle_bits = toggle_bits;
+ 			usb_settoggle(udev->usb_device, endp->usb_endp, 0,
+ 				1 & toggle_bits);
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			u132_hcd_giveback_urb(u132, endp, urb,
+ 				cc_to_error[condition_code]);
+ 			return;
+@@ -837,7 +837,7 @@ static void u132_hcd_bulk_input_recv(voi
+ 			endp->toggle_bits = toggle_bits;
+ 			usb_settoggle(udev->usb_device, endp->usb_endp, 0,
+ 				1 & toggle_bits);
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 			return;
+ 		} else if (condition_code == TD_DATAUNDERRUN) {
+@@ -847,13 +847,13 @@ static void u132_hcd_bulk_input_recv(voi
+ 			dev_warn(&u132->platform_dev->dev, "urb=%p(SHORT NOT OK"
+ 				") giving back BULK IN %s\n", urb,
+ 				cc_to_text[condition_code]);
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 			return;
+ 		} else if (condition_code == TD_CC_STALL) {
+ 			endp->toggle_bits = 0x2;
+ 			usb_settoggle(udev->usb_device, endp->usb_endp, 0, 0);
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			u132_hcd_giveback_urb(u132, endp, urb,
+ 				cc_to_error[condition_code]);
+ 			return;
+@@ -863,7 +863,7 @@ static void u132_hcd_bulk_input_recv(voi
+ 			dev_err(&u132->platform_dev->dev, "urb=%p giving back B"
+ 				"ULK IN code=%d %s\n", urb, condition_code,
+ 				cc_to_text[condition_code]);
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			u132_hcd_giveback_urb(u132, endp, urb,
+ 				cc_to_error[condition_code]);
+ 			return;
+@@ -871,7 +871,7 @@ static void u132_hcd_bulk_input_recv(voi
+ 	} else {
+ 		dev_err(&u132->platform_dev->dev, "CALLBACK called urb=%p "
+ 				"unlinked=%d\n", urb, urb->unlinked);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	}
+@@ -883,32 +883,32 @@ static void u132_hcd_configure_empty_sen
+ {
+ 	struct u132_endp *endp = data;
+ 	struct u132 *u132 = endp->u132;
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	if (u132->going > 1) {
+ 		dev_err(&u132->platform_dev->dev, "device has been removed %d\n"
+ 			, u132->going);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_forget_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (endp->dequeueing) {
+ 		endp->dequeueing = 0;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -EINTR);
+ 		return;
+ 	} else if (u132->going > 0) {
+ 		dev_err(&u132->platform_dev->dev, "device is being removed "
+ 				"urb=%p\n", urb);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (!urb->unlinked) {
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	} else {
+ 		dev_err(&u132->platform_dev->dev, "CALLBACK called urb=%p "
+ 				"unlinked=%d\n", urb, urb->unlinked);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	}
+@@ -921,22 +921,22 @@ static void u132_hcd_configure_input_rec
+ 	struct u132_endp *endp = data;
+ 	struct u132 *u132 = endp->u132;
+ 	u8 address = u132->addr[endp->usb_addr].address;
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	if (u132->going > 1) {
+ 		dev_err(&u132->platform_dev->dev, "device has been removed %d\n"
+ 			, u132->going);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_forget_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (endp->dequeueing) {
+ 		endp->dequeueing = 0;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -EINTR);
+ 		return;
+ 	} else if (u132->going > 0) {
+ 		dev_err(&u132->platform_dev->dev, "device is being removed "
+ 				"urb=%p\n", urb);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (!urb->unlinked) {
+@@ -953,7 +953,7 @@ static void u132_hcd_configure_input_rec
+ 			TD_DATAUNDERRUN) && ((urb->transfer_flags &
+ 			URB_SHORT_NOT_OK) == 0))) {
+ 			int retval;
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			retval = usb_ftdi_elan_edset_empty(u132->platform_dev,
+ 				ring->number, endp, urb, address,
+ 				endp->usb_endp, 0x3,
+@@ -962,14 +962,14 @@ static void u132_hcd_configure_input_rec
+ 				u132_hcd_giveback_urb(u132, endp, urb, retval);
+ 			return;
+ 		} else if (condition_code == TD_CC_STALL) {
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			dev_warn(&u132->platform_dev->dev, "giving back SETUP I"
+ 				"NPUT STALL urb %p\n", urb);
+ 			u132_hcd_giveback_urb(u132, endp, urb,
+ 				cc_to_error[condition_code]);
+ 			return;
+ 		} else {
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			dev_err(&u132->platform_dev->dev, "giving back SETUP IN"
+ 				"PUT %s urb %p\n", cc_to_text[condition_code],
+ 				urb);
+@@ -980,7 +980,7 @@ static void u132_hcd_configure_input_rec
+ 	} else {
+ 		dev_err(&u132->platform_dev->dev, "CALLBACK called urb=%p "
+ 				"unlinked=%d\n", urb, urb->unlinked);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	}
+@@ -992,32 +992,32 @@ static void u132_hcd_configure_empty_rec
+ {
+ 	struct u132_endp *endp = data;
+ 	struct u132 *u132 = endp->u132;
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	if (u132->going > 1) {
+ 		dev_err(&u132->platform_dev->dev, "device has been removed %d\n"
+ 			, u132->going);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_forget_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (endp->dequeueing) {
+ 		endp->dequeueing = 0;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -EINTR);
+ 		return;
+ 	} else if (u132->going > 0) {
+ 		dev_err(&u132->platform_dev->dev, "device is being removed "
+ 				"urb=%p\n", urb);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (!urb->unlinked) {
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	} else {
+ 		dev_err(&u132->platform_dev->dev, "CALLBACK called urb=%p "
+ 				"unlinked=%d\n", urb, urb->unlinked);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	}
+@@ -1030,29 +1030,29 @@ static void u132_hcd_configure_setup_sen
+ 	struct u132_endp *endp = data;
+ 	struct u132 *u132 = endp->u132;
+ 	u8 address = u132->addr[endp->usb_addr].address;
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	if (u132->going > 1) {
+ 		dev_err(&u132->platform_dev->dev, "device has been removed %d\n"
+ 			, u132->going);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_forget_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (endp->dequeueing) {
+ 		endp->dequeueing = 0;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -EINTR);
+ 		return;
+ 	} else if (u132->going > 0) {
+ 		dev_err(&u132->platform_dev->dev, "device is being removed "
+ 				"urb=%p\n", urb);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (!urb->unlinked) {
+ 		if (usb_pipein(urb->pipe)) {
+ 			int retval;
+ 			struct u132_ring *ring = endp->ring;
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			retval = usb_ftdi_elan_edset_input(u132->platform_dev,
+ 				ring->number, endp, urb, address,
+ 				endp->usb_endp, 0,
+@@ -1063,7 +1063,7 @@ static void u132_hcd_configure_setup_sen
+ 		} else {
+ 			int retval;
+ 			struct u132_ring *ring = endp->ring;
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			retval = usb_ftdi_elan_edset_input(u132->platform_dev,
+ 				ring->number, endp, urb, address,
+ 				endp->usb_endp, 0,
+@@ -1075,7 +1075,7 @@ static void u132_hcd_configure_setup_sen
+ 	} else {
+ 		dev_err(&u132->platform_dev->dev, "CALLBACK called urb=%p "
+ 				"unlinked=%d\n", urb, urb->unlinked);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	}
+@@ -1089,34 +1089,34 @@ static void u132_hcd_enumeration_empty_r
+ 	struct u132 *u132 = endp->u132;
+ 	u8 address = u132->addr[endp->usb_addr].address;
+ 	struct u132_udev *udev = &u132->udev[address];
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	if (u132->going > 1) {
+ 		dev_err(&u132->platform_dev->dev, "device has been removed %d\n"
+ 			, u132->going);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_forget_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (endp->dequeueing) {
+ 		endp->dequeueing = 0;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -EINTR);
+ 		return;
+ 	} else if (u132->going > 0) {
+ 		dev_err(&u132->platform_dev->dev, "device is being removed "
+ 				"urb=%p\n", urb);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (!urb->unlinked) {
+ 		u132->addr[0].address = 0;
+ 		endp->usb_addr = udev->usb_addr;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	} else {
+ 		dev_err(&u132->platform_dev->dev, "CALLBACK called urb=%p "
+ 				"unlinked=%d\n", urb, urb->unlinked);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	}
+@@ -1128,28 +1128,28 @@ static void u132_hcd_enumeration_address
+ {
+ 	struct u132_endp *endp = data;
+ 	struct u132 *u132 = endp->u132;
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	if (u132->going > 1) {
+ 		dev_err(&u132->platform_dev->dev, "device has been removed %d\n"
+ 			, u132->going);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_forget_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (endp->dequeueing) {
+ 		endp->dequeueing = 0;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -EINTR);
+ 		return;
+ 	} else if (u132->going > 0) {
+ 		dev_err(&u132->platform_dev->dev, "device is being removed "
+ 				"urb=%p\n", urb);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (!urb->unlinked) {
+ 		int retval;
+ 		struct u132_ring *ring = endp->ring;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		retval = usb_ftdi_elan_edset_input(u132->platform_dev,
+ 			ring->number, endp, urb, 0, endp->usb_endp, 0,
+ 			u132_hcd_enumeration_empty_recv);
+@@ -1159,7 +1159,7 @@ static void u132_hcd_enumeration_address
+ 	} else {
+ 		dev_err(&u132->platform_dev->dev, "CALLBACK called urb=%p "
+ 				"unlinked=%d\n", urb, urb->unlinked);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	}
+@@ -1171,32 +1171,32 @@ static void u132_hcd_initial_empty_sent(
+ {
+ 	struct u132_endp *endp = data;
+ 	struct u132 *u132 = endp->u132;
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	if (u132->going > 1) {
+ 		dev_err(&u132->platform_dev->dev, "device has been removed %d\n"
+ 			, u132->going);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_forget_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (endp->dequeueing) {
+ 		endp->dequeueing = 0;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -EINTR);
+ 		return;
+ 	} else if (u132->going > 0) {
+ 		dev_err(&u132->platform_dev->dev, "device is being removed "
+ 				"urb=%p\n", urb);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (!urb->unlinked) {
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	} else {
+ 		dev_err(&u132->platform_dev->dev, "CALLBACK called urb=%p "
+ 				"unlinked=%d\n", urb, urb->unlinked);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	}
+@@ -1209,22 +1209,22 @@ static void u132_hcd_initial_input_recv(
+ 	struct u132_endp *endp = data;
+ 	struct u132 *u132 = endp->u132;
+ 	u8 address = u132->addr[endp->usb_addr].address;
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	if (u132->going > 1) {
+ 		dev_err(&u132->platform_dev->dev, "device has been removed %d\n"
+ 			, u132->going);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_forget_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (endp->dequeueing) {
+ 		endp->dequeueing = 0;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -EINTR);
+ 		return;
+ 	} else if (u132->going > 0) {
+ 		dev_err(&u132->platform_dev->dev, "device is being removed "
+ 				"urb=%p\n", urb);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (!urb->unlinked) {
+@@ -1238,7 +1238,7 @@ static void u132_hcd_initial_input_recv(
+ 			*u++ = *b++;
  
--			if (ln) {
--				idx = ln->res - &ln->dev->resource[0];
--				align = (idx < PCI_BRIDGE_RESOURCES) ?
--					ln->res->end - ln->res->start + 1 :
--					ln->res->start;
--			}
-+			if (ln)
-+				align = resource_alignment(ln->res);
-+
- 			if (r_align > align) {
- 				tmp = kmalloc(sizeof(*tmp), GFP_KERNEL);
- 				if (!tmp)
-diff -puN include/linux/ioport.h~pci-clean-up-resource-alignment-management include/linux/ioport.h
---- a/include/linux/ioport.h~pci-clean-up-resource-alignment-management
-+++ a/include/linux/ioport.h
-@@ -44,7 +44,9 @@ struct resource_list {
- #define IORESOURCE_CACHEABLE	0x00004000
- #define IORESOURCE_RANGELENGTH	0x00008000
- #define IORESOURCE_SHADOWABLE	0x00010000
--#define IORESOURCE_BUS_HAS_VGA	0x00080000
-+
-+#define IORESOURCE_SIZEALIGN	0x00020000	/* size indicates alignment */
-+#define IORESOURCE_STARTALIGN	0x00040000	/* start field is alignment */
- 
- #define IORESOURCE_DISABLED	0x10000000
- #define IORESOURCE_UNSET	0x20000000
-@@ -110,6 +112,7 @@ extern int allocate_resource(struct reso
- 			     void *alignf_data);
- int adjust_resource(struct resource *res, resource_size_t start,
- 		    resource_size_t size);
-+resource_size_t resource_alignment(struct resource *res);
- 
- /* Convenience shorthand with allocation */
- #define request_region(start,n,name)	__request_region(&ioport_resource, (start), (n), (name))
-diff -puN kernel/resource.c~pci-clean-up-resource-alignment-management kernel/resource.c
---- a/kernel/resource.c~pci-clean-up-resource-alignment-management
-+++ a/kernel/resource.c
-@@ -486,6 +486,24 @@ int adjust_resource(struct resource *res
- 
- EXPORT_SYMBOL(adjust_resource);
- 
-+/**
-+ * resource_alignment - calculate resource's alignment
-+ * @res: resource pointer
-+ *
-+ * Returns alignment on success, 0 (invalid alignment) on failure.
-+ */
-+resource_size_t resource_alignment(struct resource *res)
-+{
-+	switch (res->flags & (IORESOURCE_SIZEALIGN | IORESOURCE_STARTALIGN)) {
-+	case IORESOURCE_SIZEALIGN:
-+		return res->end - res->start + 1;
-+	case IORESOURCE_STARTALIGN:
-+		return res->start;
-+	default:
-+		return 0;
-+	}
-+}
-+
- /*
-  * This is compatibility stuff for IO resources.
-  *
+ 		urb->actual_length = len;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		retval = usb_ftdi_elan_edset_empty(u132->platform_dev,
+ 			ring->number, endp, urb, address, endp->usb_endp, 0x3,
+ 			u132_hcd_initial_empty_sent);
+@@ -1248,7 +1248,7 @@ static void u132_hcd_initial_input_recv(
+ 	} else {
+ 		dev_err(&u132->platform_dev->dev, "CALLBACK called urb=%p "
+ 				"unlinked=%d\n", urb, urb->unlinked);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	}
+@@ -1261,28 +1261,28 @@ static void u132_hcd_initial_setup_sent(
+ 	struct u132_endp *endp = data;
+ 	struct u132 *u132 = endp->u132;
+ 	u8 address = u132->addr[endp->usb_addr].address;
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	if (u132->going > 1) {
+ 		dev_err(&u132->platform_dev->dev, "device has been removed %d\n"
+ 			, u132->going);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_forget_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (endp->dequeueing) {
+ 		endp->dequeueing = 0;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -EINTR);
+ 		return;
+ 	} else if (u132->going > 0) {
+ 		dev_err(&u132->platform_dev->dev, "device is being removed "
+ 				"urb=%p\n", urb);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, -ENODEV);
+ 		return;
+ 	} else if (!urb->unlinked) {
+ 		int retval;
+ 		struct u132_ring *ring = endp->ring;
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		retval = usb_ftdi_elan_edset_input(u132->platform_dev,
+ 			ring->number, endp, urb, address, endp->usb_endp, 0,
+ 			u132_hcd_initial_input_recv);
+@@ -1292,7 +1292,7 @@ static void u132_hcd_initial_setup_sent(
+ 	} else {
+ 		dev_err(&u132->platform_dev->dev, "CALLBACK called urb=%p "
+ 				"unlinked=%d\n", urb, urb->unlinked);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_hcd_giveback_urb(u132, endp, urb, 0);
+ 		return;
+ 	}
+@@ -1307,9 +1307,9 @@ static void u132_hcd_ring_work_scheduler
+ 	struct u132_ring *ring =
+ 		container_of(work, struct u132_ring, scheduler.work);
+ 	struct u132 *u132 = ring->u132;
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	if (ring->in_use) {
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_ring_put_kref(u132, ring);
+ 		return;
+ 	} else if (ring->curr_endp) {
+@@ -1326,7 +1326,7 @@ static void u132_hcd_ring_work_scheduler
+ 				ring->curr_endp = endp;
+ 				u132_endp_cancel_work(u132, last_endp);
+ 				u132_endp_queue_work(u132, last_endp, 0);
+-				up(&u132->scheduler_lock);
++				mutex_unlock(&u132->scheduler_lock);
+ 				u132_ring_put_kref(u132, ring);
+ 				return;
+ 			} else {
+@@ -1340,7 +1340,7 @@ static void u132_hcd_ring_work_scheduler
+ 			last_endp->jiffies)) {
+ 			u132_endp_cancel_work(u132, last_endp);
+ 			u132_endp_queue_work(u132, last_endp, 0);
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			u132_ring_put_kref(u132, ring);
+ 			return;
+ 		} else {
+@@ -1350,15 +1350,15 @@ static void u132_hcd_ring_work_scheduler
+ 		}
+ 		if (wakeup > 0) {
+ 			u132_ring_requeue_work(u132, ring, wakeup);
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			return;
+ 		} else {
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			u132_ring_put_kref(u132, ring);
+ 			return;
+ 		}
+ 	} else {
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_ring_put_kref(u132, ring);
+ 		return;
+ 	}
+@@ -1370,32 +1370,32 @@ static void u132_hcd_endp_work_scheduler
+ 	struct u132_endp *endp =
+ 		container_of(work, struct u132_endp, scheduler.work);
+ 	struct u132 *u132 = endp->u132;
+-	down(&u132->scheduler_lock);
++	mutex_lock(&u132->scheduler_lock);
+ 	ring = endp->ring;
+ 	if (endp->edset_flush) {
+ 		endp->edset_flush = 0;
+ 		if (endp->dequeueing)
+ 			usb_ftdi_elan_edset_flush(u132->platform_dev,
+ 				ring->number, endp);
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_endp_put_kref(u132, endp);
+ 		return;
+ 	} else if (endp->active) {
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_endp_put_kref(u132, endp);
+ 		return;
+ 	} else if (ring->in_use) {
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_endp_put_kref(u132, endp);
+ 		return;
+ 	} else if (endp->queue_next == endp->queue_last) {
+-		up(&u132->scheduler_lock);
++		mutex_unlock(&u132->scheduler_lock);
+ 		u132_endp_put_kref(u132, endp);
+ 		return;
+ 	} else if (endp->pipetype == PIPE_INTERRUPT) {
+ 		u8 address = u132->addr[endp->usb_addr].address;
+ 		if (ring->in_use) {
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			u132_endp_put_kref(u132, endp);
+ 			return;
+ 		} else {
+@@ -1405,7 +1405,7 @@ static void u132_hcd_endp_work_scheduler
+ 			endp->active = 1;
+ 			ring->curr_endp = endp;
+ 			ring->in_use = 1;
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			retval = edset_single(u132, ring, endp, urb, address,
+ 				endp->toggle_bits, u132_hcd_interrupt_recv);
+ 			if (retval != 0)
+@@ -1415,7 +1415,7 @@ static void u132_hcd_endp_work_scheduler
+ 	} else if (endp->pipetype == PIPE_CONTROL) {
+ 		u8 address = u132->addr[endp->usb_addr].address;
+ 		if (ring->in_use) {
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			u132_endp_put_kref(u132, endp);
+ 			return;
+ 		} else if (address == 0) {
+@@ -1425,7 +1425,7 @@ static void u132_hcd_endp_work_scheduler
+ 			endp->active = 1;
+ 			ring->curr_endp = endp;
+ 			ring->in_use = 1;
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			retval = edset_setup(u132, ring, endp, urb, address,
+ 				0x2, u132_hcd_initial_setup_sent);
+ 			if (retval != 0)
+@@ -1438,7 +1438,7 @@ static void u132_hcd_endp_work_scheduler
+ 			endp->active = 1;
+ 			ring->curr_endp = endp;
+ 			ring->in_use = 1;
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			retval = edset_setup(u132, ring, endp, urb, 0, 0x2,
+ 				u132_hcd_enumeration_address_sent);
+ 			if (retval != 0)
+@@ -1452,7 +1452,7 @@ static void u132_hcd_endp_work_scheduler
+ 			endp->active = 1;
+ 			ring->curr_endp = endp;
+ 			ring->in_use = 1;
+-			up(&u132->scheduler_lock);
++			mutex_unlock(&u132->scheduler_lock);
+ 			retval = edset_setup(u132, ring, endp, urb, address,
+ 				0x2, u132_hcd_configure_setup_sent);
+ 			if (retval != 0)
+@@ -1463,7 +1463,7 @@ static void u132_hcd_endp_work_scheduler
+ 		if (endp->input) {
+ 			u8 address = u132->addr[endp->usb_addr].address;
+ 			if (ring->in_use) {
+-				up(&u132->scheduler_lock);
++				mutex_unlock(&u132->scheduler_lock);
+ 				u132_endp_put_kref(u132, endp);
+ 				return;
+ 			} else {
+@@ -1473,7 +1473,7 @@ static void u132_hcd_endp_work_scheduler
+ 				endp->active = 1;
+ 				ring->curr_endp = endp;
+ 				ring->in_use = 1;
+-				up(&u132->scheduler_lock);
++				mutex_unlock(&u132->scheduler_lock);
+ 				retval = edset_input(u132, ring, endp, urb,
+ 					address, endp->toggle_bits,
+ 					u132_hcd_bulk_input_recv);
+@@ -1486,7 +1486,7 @@ static void u132_hcd_endp_work_scheduler
+ 		} else {	/* output pipe */
+ 			u8 address = u132->addr[endp->usb_addr].address;
+ 			if (ring->in_use) {
+-				up(&u132->scheduler_lock);
++				mutex_unlock(&u132->scheduler_lock);
+ 				u132_endp_put_kref(u132, endp);
+ 				return;
+ 			} else {
+@@ -1496,7 +1496,7 @@ static void u132_hcd_endp_work_scheduler
+ 				endp->active = 1;
+ 				ring->curr_endp = endp;
+ 				ring->in_use = 1;
+-				up(&u132->scheduler_lock);
++				mutex_unlock(&u132->scheduler_lock);
+ 				retval = edset_output(u132, ring, endp, urb,
+ 					address, endp->toggle_bits,
+ 					u132_hcd_bulk_output_sent);
+@@ -3085,7 +3085,7 @@ static void u132_initialise(struct u132 
+ 	u132->power = 0;
+ 	u132->reset = 0;
+ 	mutex_init(&u132->sw_lock);
+-	init_MUTEX(&u132->scheduler_lock);
++	mutex_init(&u132->scheduler_lock);
+ 	while (rings-- > 0) {
+ 		struct u132_ring *ring = &u132->ring[rings];
+ 		ring->u132 = u132;
 _
 
-Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-origin.patch
-alpha-handle-kcalloc-failure.patch
-alpha-remove-remaining-__function__-occurences.patch
-alpha-replace-__inline-with-inline.patch
-arch-alpha-kernel-trapsc-use-time_-macros.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-introduce-a-generic-__fls-implementation.patch
-implement-__fls-on-all-64-bit-archs.patch
-use-__fls-for-fls64-on-64-bit-archs.patch
-make-sure-nobodys-leaking-resources.patch
+git-net.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+likely_prof-changed-to-use-proc_create.patch
+likeliness-accounting-change-and-cleanup.patch
 
