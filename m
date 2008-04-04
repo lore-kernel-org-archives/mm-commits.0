@@ -1,101 +1,359 @@
 From: akpm@linux-foundation.org
-Subject: - markers-use-synchronize_sched.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 12:00:12 -0700
-Message-ID: <200804041900.m34J0CRZ004254@imap1.linux-foundation.org>
+Subject: - kvm-provide-kvmh-for-all-architecture-fixes-headers_install.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 11:59:41 -0700
+Message-ID: <200804041859.m34IxfSN004121__43085.6953644708$1207335737$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36645 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751391AbYDDTAn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:00:43 -0400
+	by vger.kernel.org with ESMTP id S1755368AbYDDTAv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:00:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mathieu.desnoyers@polymtl.ca, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: borntraeger@de.ibm.com, avi@qumranet.com, dwmw2@infradead.org, linux-arch@vger.kernel.org, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     markers: use synchronize_sched()
+     kvm: provide kvm.h for all architecture: fixes headers_install
 has been removed from the -mm tree.  Its filename was
-     markers-use-synchronize_sched.patch
+     kvm-provide-kvmh-for-all-architecture-fixes-headers_install.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: markers: use synchronize_sched()
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: kvm: provide kvm.h for all architecture: fixes headers_install
+=46rom: Christian Borntraeger <borntraeger@de.ibm.com>
 
-Markers do not mix well with CONFIG_PREEMPT_RCU because it uses
-preempt_disable/enable() and not rcu_read_lock/unlock for minimal
-intrusiveness.  We would need call_sched and sched_barrier primitives.
+Currently include/linux/kvm.h is not considered by make headers_install=
+,
+because Kbuild cannot handle " unifdef-$(CONFIG_FOO) +=3D foo.h.  This =
+problem
+was introduced by=20
 
-Currently, the modification (connection and disconnection) of probes from
-markers requires changes to the data structure done in RCU-style : a new data
-structure is created, the pointer is changed atomically, a quiescent state is
-reached and then the old data structure is freed.
+commit fb56dbb31c4738a3918db81fd24da732ce3b4ae6
+Author: Avi Kivity <avi@qumranet.com>
+Date:   Sun Dec 2 10:50:06 2007 +0200
 
-The quiescent state is reached once all the currently running preempt_disable
-regions are done running.  We use the call_rcu mechanism to execute kfree()
-after such quiescent state has been reached.  However, the new
-CONFIG_PREEMPT_RCU version of call_rcu and rcu_barrier does not guarantee that
-all preempt_disable code regions have finished, hence the race.
+    KVM: Export include/linux/kvm.h only if $ARCH actually supports KVM
+   =20
+    Currently, make headers_check barfs due to <asm/kvm.h>, which <linu=
+x/kvm.h>
+    includes, not existing.  Rather than add a zillion <asm/kvm.h>s, ex=
+port kvm.
+    only if the arch actually supports it.
+   =20
+    Signed-off-by: Avi Kivity <avi@qumranet.com>
 
-The "proper" way to do this is to use rcu_read_lock/unlock, but we don't want
-to use it to minimize intrusiveness on the traced system.  (we do not want the
-marker code to call into much of the OS code, because it would quickly
-restrict what can and cannot be instrumented, such as the scheduler).
+which makes this an 2.6.25 regression.
 
-The temporary fix, until we get call_rcu_sched and rcu_barrier_sched in
-mainline, is to use synchronize_sched before each call_rcu calls, so we wait
-for the quiescent state in the system call code path.  It will slow down batch
-marker enable/disable, but will make sure the race is gone.
+One way of solving the issue is to enhance Kbuild, but Avi and David co=
+nviced
+me, that changing headers_install is not the way to go.  This patch cha=
+nges
+the definition for linux/kvm.h to unifdef-y.
 
-Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+If =A0unifdef-y is used for linux/kvm.h "make headers_check" will fail =
+on all
+architectures without asm/kvm.h.  Therefore, this patch also provides
+asm/kvm.h on all architectures.
+
+Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Acked-by: Avi Kivity <avi@qumranet.com>
+Cc: Sam Ravnborg <sam@ravnborg.org
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/marker.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/asm-alpha/kvm.h        |    6 ++++++
+ include/asm-arm/kvm.h          |    6 ++++++
+ include/asm-avr32/kvm.h        |    6 ++++++
+ include/asm-blackfin/kvm.h     |    6 ++++++
+ include/asm-cris/kvm.h         |    6 ++++++
+ include/asm-frv/kvm.h          |    6 ++++++
+ include/asm-generic/Kbuild.asm |    2 ++
+ include/asm-h8300/kvm.h        |    6 ++++++
+ include/asm-ia64/kvm.h         |    6 ++++++
+ include/asm-m32r/kvm.h         |    6 ++++++
+ include/asm-m68k/kvm.h         |    6 ++++++
+ include/asm-m68knommu/kvm.h    |    6 ++++++
+ include/asm-mips/kvm.h         |    6 ++++++
+ include/asm-mn10300/kvm.h      |    6 ++++++
+ include/asm-parisc/kvm.h       |    6 ++++++
+ include/asm-powerpc/kvm.h      |    6 ++++++
+ include/asm-s390/kvm.h         |    6 ++++++
+ include/asm-sh/kvm.h           |    6 ++++++
+ include/asm-sparc/kvm.h        |    6 ++++++
+ include/asm-sparc64/kvm.h      |    6 ++++++
+ include/asm-um/kvm.h           |    6 ++++++
+ include/asm-v850/kvm.h         |    6 ++++++
+ include/asm-xtensa/kvm.h       |    6 ++++++
+ include/linux/Kbuild           |    2 +-
+ 24 files changed, 135 insertions(+), 1 deletion(-)
 
-diff -puN kernel/marker.c~markers-use-synchronize_sched kernel/marker.c
---- a/kernel/marker.c~markers-use-synchronize_sched
-+++ a/kernel/marker.c
-@@ -671,6 +671,9 @@ int marker_probe_register(const char *na
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
-+#ifdef CONFIG_PREEMPT_RCU
-+	synchronize_sched();	/* Until we have the call_rcu_sched() */
+diff -puN /dev/null include/asm-alpha/kvm.h
+--- /dev/null
++++ a/include/asm-alpha/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_ALPHA_H
++#define __LINUX_KVM_ALPHA_H
++
++/* alpha does not support KVM */
++
 +#endif
- 	call_rcu(&entry->rcu, free_old_closure);
- end:
- 	mutex_unlock(&markers_mutex);
-@@ -714,6 +717,9 @@ int marker_probe_unregister(const char *
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
-+#ifdef CONFIG_PREEMPT_RCU
-+	synchronize_sched();	/* Until we have the call_rcu_sched() */
+diff -puN /dev/null include/asm-arm/kvm.h
+--- /dev/null
++++ a/include/asm-arm/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_ARM_H
++#define __LINUX_KVM_ARM_H
++
++/* arm does not support KVM */
++
 +#endif
- 	call_rcu(&entry->rcu, free_old_closure);
- 	remove_marker(name);	/* Ignore busy error message */
- 	ret = 0;
-@@ -792,6 +798,9 @@ int marker_probe_unregister_private_data
- 	entry->rcu_pending = 1;
- 	/* write rcu_pending before calling the RCU callback */
- 	smp_wmb();
-+#ifdef CONFIG_PREEMPT_RCU
-+	synchronize_sched();	/* Until we have the call_rcu_sched() */
+diff -puN /dev/null include/asm-avr32/kvm.h
+--- /dev/null
++++ a/include/asm-avr32/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_AVR32_H
++#define __LINUX_KVM_AVR32_H
++
++/* avr32 does not support KVM */
++
 +#endif
- 	call_rcu(&entry->rcu, free_old_closure);
- 	remove_marker(entry->name);	/* Ignore busy error message */
- end:
+diff -puN /dev/null include/asm-blackfin/kvm.h
+--- /dev/null
++++ a/include/asm-blackfin/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_BLACKFIN_H
++#define __LINUX_KVM_BLACKFIN_H
++
++/* blackfin does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-cris/kvm.h
+--- /dev/null
++++ a/include/asm-cris/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_CRIS_H
++#define __LINUX_KVM_CRIS_H
++
++/* cris does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-frv/kvm.h
+--- /dev/null
++++ a/include/asm-frv/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_FRV_H
++#define __LINUX_KVM_FRV_H
++
++/* frv does not support KVM */
++
++#endif
+diff -puN include/asm-generic/Kbuild.asm~kvm-provide-kvmh-for-all-archi=
+tecture-fixes-headers_install include/asm-generic/Kbuild.asm
+--- a/include/asm-generic/Kbuild.asm~kvm-provide-kvmh-for-all-architect=
+ure-fixes-headers_install
++++ a/include/asm-generic/Kbuild.asm
+@@ -1,3 +1,5 @@
++header-y  +=3D kvm.h
++
+ ifeq ($(wildcard include/asm-$(SRCARCH)/a.out.h),include/asm-$(SRCARCH=
+)/a.out.h)
+ unifdef-y +=3D a.out.h
+ endif
+diff -puN /dev/null include/asm-h8300/kvm.h
+--- /dev/null
++++ a/include/asm-h8300/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_H8300_H
++#define __LINUX_KVM_H8300_H
++
++/* h8300 does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-ia64/kvm.h
+--- /dev/null
++++ a/include/asm-ia64/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_IA64_H
++#define __LINUX_KVM_IA64_H
++
++/* ia64 does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-m32r/kvm.h
+--- /dev/null
++++ a/include/asm-m32r/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_M32R_H
++#define __LINUX_KVM_M32R_H
++
++/* m32r does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-m68k/kvm.h
+--- /dev/null
++++ a/include/asm-m68k/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_M68K_H
++#define __LINUX_KVM_M68K_H
++
++/* m68k does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-m68knommu/kvm.h
+--- /dev/null
++++ a/include/asm-m68knommu/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_M68KNOMMU_H
++#define __LINUX_KVM_M68KNOMMU_H
++
++/* m68knommu does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-mips/kvm.h
+--- /dev/null
++++ a/include/asm-mips/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_MIPS_H
++#define __LINUX_KVM_MIPS_H
++
++/* mips does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-mn10300/kvm.h
+--- /dev/null
++++ a/include/asm-mn10300/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_MN10300_H
++#define __LINUX_KVM_MN10300_H
++
++/* mn10300 does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-parisc/kvm.h
+--- /dev/null
++++ a/include/asm-parisc/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_PARISC_H
++#define __LINUX_KVM_PARISC_H
++
++/* parisc does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-powerpc/kvm.h
+--- /dev/null
++++ a/include/asm-powerpc/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_POWERPC_H
++#define __LINUX_KVM_POWERPC_H
++
++/* powerpc does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-s390/kvm.h
+--- /dev/null
++++ a/include/asm-s390/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_S390_H
++#define __LINUX_KVM_S390_H
++
++/* s390 does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-sh/kvm.h
+--- /dev/null
++++ a/include/asm-sh/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_SH_H
++#define __LINUX_KVM_SH_H
++
++/* sh does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-sparc/kvm.h
+--- /dev/null
++++ a/include/asm-sparc/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_SPARC_H
++#define __LINUX_KVM_SPARC_H
++
++/* sparc does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-sparc64/kvm.h
+--- /dev/null
++++ a/include/asm-sparc64/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_SPARC64_H
++#define __LINUX_KVM_SPARC64_H
++
++/* sparc64 does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-um/kvm.h
+--- /dev/null
++++ a/include/asm-um/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_UM_H
++#define __LINUX_KVM_UM_H
++
++/* um does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-v850/kvm.h
+--- /dev/null
++++ a/include/asm-v850/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_V850_H
++#define __LINUX_KVM_V850_H
++
++/* v850 does not support KVM */
++
++#endif
+diff -puN /dev/null include/asm-xtensa/kvm.h
+--- /dev/null
++++ a/include/asm-xtensa/kvm.h
+@@ -0,0 +1,6 @@
++#ifndef __LINUX_KVM_XTENSA_H
++#define __LINUX_KVM_XTENSA_H
++
++/* xtensa does not support KVM */
++
++#endif
+diff -puN include/linux/Kbuild~kvm-provide-kvmh-for-all-architecture-fi=
+xes-headers_install include/linux/Kbuild
+--- a/include/linux/Kbuild~kvm-provide-kvmh-for-all-architecture-fixes-=
+headers_install
++++ a/include/linux/Kbuild
+@@ -253,7 +253,7 @@ unifdef-y +=3D kd.h
+ unifdef-y +=3D kernelcapi.h
+ unifdef-y +=3D kernel.h
+ unifdef-y +=3D keyboard.h
+-unifdef-$(CONFIG_HAVE_KVM) +=3D kvm.h
++unifdef-y +=3D kvm.h
+ unifdef-y +=3D llc.h
+ unifdef-y +=3D loop.h
+ unifdef-y +=3D lp.h
 _
 
-Patches currently in -mm which might be from mathieu.desnoyers@polymtl.ca are
+Patches currently in -mm which might be from borntraeger@de.ibm.com are
 
 origin.patch
-make-marker_debug-static.patch
+git-kvm.patch
+git-s390.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
