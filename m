@@ -1,62 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - git-selinux-git-rejects.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 11:45:48 -0700
-Message-ID: <200804041845.m34Ijm7v003683@imap1.linux-foundation.org>
+Subject: - git-slub-git-rejects.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 11:53:25 -0700
+Message-ID: <200804041853.m34IrPot003928@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42485 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757418AbYDDSpv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 14:45:51 -0400
+	by vger.kernel.org with ESMTP id S1758372AbYDDSx4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 14:53:56 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m34Ijnun002007
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m34IrQW9002524
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Fri, 4 Apr 2008 11:45:50 -0700
+	for <mm-commits@vger.kernel.org>; Fri, 4 Apr 2008 11:53:27 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-selinux-git-rejects
+     git-slub-git-rejects
 has been removed from the -mm tree.  Its filename was
-     git-selinux-git-rejects.patch
+     git-slub-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-selinux-git-rejects
+Subject: git-slub-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/include/security.h |    7 -------
- 1 file changed, 7 deletions(-)
+ mm/slub.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN security/selinux/include/security.h~git-selinux-git-rejects security/selinux/include/security.h
---- a/security/selinux/include/security.h~git-selinux-git-rejects
-+++ a/security/selinux/include/security.h
-@@ -36,17 +36,10 @@
- #define POLICYDB_VERSION_MAX	POLICYDB_VERSION_PERMISSIVE
- #endif
+diff -puN mm/slub.c~git-slub-git-rejects mm/slub.c
+--- a/mm/slub.c~git-slub-git-rejects
++++ a/mm/slub.c
+@@ -2716,14 +2716,9 @@ void kfree(const void *x)
+ }
+ EXPORT_SYMBOL(kfree);
  
--<<<<<<< HEAD:security/selinux/include/security.h
--#define CONTEXT_MNT	0x01
--#define FSCONTEXT_MNT	0x02
--#define ROOTCONTEXT_MNT	0x04
--#define DEFCONTEXT_MNT	0x08
+-<<<<<<< HEAD:mm/slub.c
+ #if defined(CONFIG_SLUB_DEBUG) || defined(CONFIG_SLABINFO)
+-static unsigned long count_partial(struct kmem_cache_node *n)
 -=======
- #define CONTEXT_STR	"context="
- #define FSCONTEXT_STR	"fscontext="
- #define ROOTCONTEXT_STR	"rootcontext="
- #define DEFCONTEXT_STR	"defcontext="
-->>>>>>> FETCH_HEAD:security/selinux/include/security.h
- 
- struct netlbl_lsm_secattr;
- 
+-#if defined(SLUB_DEBUG) || defined(CONFIG_SLABINFO)
+ static unsigned long count_partial(struct kmem_cache_node *n,
+ 					int (*get_count)(struct page *))
+->>>>>>> FETCH_HEAD:mm/slub.c
+ {
+ 	unsigned long flags;
+ 	unsigned long x = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,7 +105,6 @@ git-ocfs2.patch
 arch-parisc-kernel-unalignedc-use-time_-macros.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
 git-selinux.patch
-git-selinux-git-rejects.patch
 revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
 revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
 revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
