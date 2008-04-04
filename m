@@ -1,88 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_serial-avoid-stopping-pdc-during-transmission.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 11:59:43 -0700
-Message-ID: <200804041859.m34IxhGo004124@imap1.linux-foundation.org>
+Subject: - atmel_serial-fix-uart-console-concurrent-access.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 11:59:46 -0700
+Message-ID: <200804041859.m34IxkRK004130@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59833 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752065AbYDDTAB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:00:01 -0400
+	by vger.kernel.org with ESMTP id S1752682AbYDDTAD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:00:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: trimarchimichael@yahoo.it, hskinnemoen@atmel.com, trimarchi@gandalf.sssup.it, mm-commits@vger.kernel.org
+To: marc.pignat@hevs.ch, haavard.skinnemoen@atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial: avoid stopping pdc during transmission
+     atmel_serial: fix uart/console concurrent access
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-avoid-stopping-pdc-during-transmission.patch
+     atmel_serial-fix-uart-console-concurrent-access.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: avoid stopping pdc during transmission
-From: Michael Trimarchi <trimarchimichael@yahoo.it>
+Subject: atmel_serial: fix uart/console concurrent access
+From: Marc Pignat <marc.pignat@hevs.ch>
 
-I found a problem related to loosing data during pdc transmission in
-atmel_serial: connect ttyS1 with ttyS2 using a loopback cable, send 30 byte of
-packet from one to the other and waiting for 30 byte.  On the other side just
-read and echo the data received.
+Strange chars appear on the serial port when a printk and a printf happens at
+the same time.  This is caused by the pdc sending chars while
+atmel_console_write (called from printk) is executing
 
-We always call atmel_tx_dma() from the tasklet regardless of what interrupt
-triggered it.
+Concurent access of uart and console to the same port leads to corrupted data
+to be transmitted, so disable tx dma (PDC) while writing to the console.
 
-Signed-off-by: michael <trimarchi@gandalf.sssup.it>
-Acked-by: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Signed-off-by: Marc Pignat <marc.pignat@hevs.ch>
+Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+ drivers/serial/atmel_serial.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-avoid-stopping-pdc-during-transmission drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-avoid-stopping-pdc-during-transmission
+diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-uart-console-concurrent-access drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~atmel_serial-fix-uart-console-concurrent-access
 +++ a/drivers/serial/atmel_serial.c
-@@ -96,6 +96,7 @@
+@@ -107,6 +107,7 @@
  
-  /* PDC registers */
- #define UART_PUT_PTCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_PTCR)
-+#define UART_GET_TCR(port)      __raw_readl((port)->membase + ATMEL_PDC_TCR)
- #define UART_GET_PTSR(port)	__raw_readl((port)->membase + ATMEL_PDC_PTSR)
+ #define UART_PUT_TPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TPR)
+ #define UART_PUT_TCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TCR)
++#define UART_GET_TCR(port)	__raw_readl((port)->membase + ATMEL_PDC_TCR)
  
- #define UART_PUT_RPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_RPR)
-@@ -562,17 +563,22 @@ static void atmel_tx_dma(struct uart_por
- 	struct atmel_dma_buffer *pdc = &atmel_port->pdc_tx;
- 	int count;
+ static int (*atmel_open_hook)(struct uart_port *);
+ static void (*atmel_close_hook)(struct uart_port *);
+@@ -1275,6 +1276,7 @@ static void atmel_console_write(struct c
+ {
+ 	struct uart_port *port = &atmel_ports[co->index].uart;
+ 	unsigned int status, imr;
++	unsigned int pdc_tx;
  
-+	/* nothing left to transmit? */
-+	if (UART_GET_TCR(port))
-+		return;
-+
- 	xmit->tail += pdc->ofs;
- 	xmit->tail &= UART_XMIT_SIZE - 1;
+ 	/*
+ 	 * First, save IMR and then disable interrupts
+@@ -1282,6 +1284,10 @@ static void atmel_console_write(struct c
+ 	imr = UART_GET_IMR(port);
+ 	UART_PUT_IDR(port, ATMEL_US_RXRDY | ATMEL_US_TXRDY);
  
- 	port->icount.tx += pdc->ofs;
- 	pdc->ofs = 0;
- 
--	if (!uart_circ_empty(xmit)) {
--		/* more to transmit - setup next transfer */
-+	/* more to transmit - setup next transfer */
- 
--		/* disable PDC transmit */
--		UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
-+	/* disable PDC transmit */
++	/* Store PDC transmit status and disable it */
++	pdc_tx = UART_GET_PTSR(port) & ATMEL_PDC_TXTEN;
 +	UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
 +
-+	if (!uart_circ_empty(xmit)) {
- 		dma_sync_single_for_device(port->dev,
- 					   pdc->dma_addr,
- 					   pdc->dma_size,
-@@ -586,11 +592,6 @@ static void atmel_tx_dma(struct uart_por
- 		/* re-enable PDC transmit and interrupts */
- 		UART_PUT_PTCR(port, ATMEL_PDC_TXTEN);
- 		UART_PUT_IER(port, ATMEL_US_ENDTX | ATMEL_US_TXBUFE);
--	} else {
--		/* nothing left to transmit - disable the transmitter */
+ 	uart_console_write(port, s, count, atmel_console_putchar);
+ 
+ 	/*
+@@ -1291,6 +1297,11 @@ static void atmel_console_write(struct c
+ 	do {
+ 		status = UART_GET_CSR(port);
+ 	} while (!(status & ATMEL_US_TXRDY));
++
++	/* Restore PDC transmit status */
++	if (pdc_tx)
++		UART_PUT_PTCR(port, ATMEL_PDC_TXTEN);
++
+ 	/* set interrupts back the way they were */
+ 	UART_PUT_IER(port, imr);
+ }
+_
+
+Patches currently in -mm which might be from marc.pignat@hevs.ch are
+
+origin.patch
+
