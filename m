@@ -1,75 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - usb-gadget-dummy_hcdc-fix-nested-switch-statements.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 12:00:31 -0700
-Message-ID: <200804041900.m34J0V9E004275@imap1.linux-foundation.org>
+Subject: - usb-mem-leak-fixes-for-amd-5536-udc-high-full-speed-usb-device-controller-driver.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 12:00:33 -0700
+Message-ID: <200804041900.m34J0XC3004278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55914 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39522 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756560AbYDDTAr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:00:47 -0400
+	by vger.kernel.org with ESMTP id S1756226AbYDDTAo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:00:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: inguin@gmx.de, david-b@pacbell.net, greg@kroah.com, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: jesper.juhl@gmail.com, dbrownell@users.sourceforge.net, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb gadget: dummy_hcd.c: fix nested switch statements
+     usb: mem leak fixes for AMD 5536 UDC high/full speed USB device controller driver
 has been removed from the -mm tree.  Its filename was
-     usb-gadget-dummy_hcdc-fix-nested-switch-statements.patch
+     usb-mem-leak-fixes-for-amd-5536-udc-high-full-speed-usb-device-controller-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb gadget: dummy_hcd.c: fix nested switch statements
-From: Ingo van Lil <inguin@gmx.de>
+Subject: usb: mem leak fixes for AMD 5536 UDC high/full speed USB device controller driver
+From: Jesper Juhl <jesper.juhl@gmail.com>
 
-Fix a messed up combination of two nested switch statements in
-drivers/usb/gadget/dummy_hcd.c.
+In drivers/usb/gadget/amd5536udc.c::udc_pci_probe(), sizeof(struct udc)
+storage is allocated for 'dev'.
 
-According to the USB spec (section 5.8.3) the maximum packet size for bulk
-endpoints can be 512 for high-speed devices and 8, 16, 32 or 64 for full-speed
-devices.  Low-speed devices must not have bulk endpoints.
+There are many exit points from the function where 'dev' is not free'd but has
+also not yet been used for anything.  The following patch free's 'dev' at the
+return points where it has not yet been used.
 
-Signed-off-by: Ingo van Lil <inguin@gmx.de>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Jesper Juhl <jesper.juhl@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/dummy_hcd.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/usb/gadget/amd5536udc.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN drivers/usb/gadget/dummy_hcd.c~usb-gadget-dummy_hcdc-fix-nested-switch-statements drivers/usb/gadget/dummy_hcd.c
---- a/drivers/usb/gadget/dummy_hcd.c~usb-gadget-dummy_hcdc-fix-nested-switch-statements
-+++ a/drivers/usb/gadget/dummy_hcd.c
-@@ -365,16 +365,14 @@ dummy_enable (struct usb_ep *_ep, const 
- 		case USB_SPEED_HIGH:
- 			if (max == 512)
- 				break;
--			/* conserve return statements */
--		default:
--			switch (max) {
--			case 8: case 16: case 32: case 64:
-+			goto done;
-+		case USB_SPEED_FULL:
-+			if (max == 8 || max == 16 || max == 32 || max == 64)
- 				/* we'll fake any legal size */
- 				break;
--			default:
--		case USB_SPEED_LOW:
--				goto done;
--			}
-+			/* save a return statement */
-+		default:
-+			goto done;
- 		}
- 		break;
- 	case USB_ENDPOINT_XFER_INT:
+diff -puN drivers/usb/gadget/amd5536udc.c~usb-mem-leak-fixes-for-amd-5536-udc-high-full-speed-usb-device-controller-driver drivers/usb/gadget/amd5536udc.c
+--- a/drivers/usb/gadget/amd5536udc.c~usb-mem-leak-fixes-for-amd-5536-udc-high-full-speed-usb-device-controller-driver
++++ a/drivers/usb/gadget/amd5536udc.c
+@@ -3248,6 +3248,8 @@ static int udc_pci_probe(
+ 
+ 	/* pci setup */
+ 	if (pci_enable_device(pdev) < 0) {
++		kfree(dev);
++		dev = 0;
+ 		retval = -ENODEV;
+ 		goto finished;
+ 	}
+@@ -3259,6 +3261,8 @@ static int udc_pci_probe(
+ 
+ 	if (!request_mem_region(resource, len, name)) {
+ 		dev_dbg(&pdev->dev, "pci device used already\n");
++		kfree(dev);
++		dev = 0;
+ 		retval = -EBUSY;
+ 		goto finished;
+ 	}
+@@ -3267,18 +3271,24 @@ static int udc_pci_probe(
+ 	dev->virt_addr = ioremap_nocache(resource, len);
+ 	if (dev->virt_addr == NULL) {
+ 		dev_dbg(&pdev->dev, "start address cannot be mapped\n");
++		kfree(dev);
++		dev = 0;
+ 		retval = -EFAULT;
+ 		goto finished;
+ 	}
+ 
+ 	if (!pdev->irq) {
+ 		dev_err(&dev->pdev->dev, "irq not set\n");
++		kfree(dev);
++		dev = 0;
+ 		retval = -ENODEV;
+ 		goto finished;
+ 	}
+ 
+ 	if (request_irq(pdev->irq, udc_irq, IRQF_SHARED, name, dev) != 0) {
+ 		dev_dbg(&dev->pdev->dev, "request_irq(%d) fail\n", pdev->irq);
++		kfree(dev);
++		dev = 0;
+ 		retval = -EBUSY;
+ 		goto finished;
+ 	}
 _
 
-Patches currently in -mm which might be from inguin@gmx.de are
+Patches currently in -mm which might be from jesper.juhl@gmail.com are
 
+pci-hotplug-fix-leaks-in-ibm-hot-plug-controller-driver-ibmphp_init_devno.patch
 
