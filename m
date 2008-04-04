@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry.patch added to -mm tree
-Date: Fri, 04 Apr 2008 14:57:23 -0700
-Message-ID: <200804042207.m34M7UW8011205@imap1.linux-foundation.org>
+Subject: + time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch added to -mm tree
+Date: Fri, 04 Apr 2008 15:54:09 -0700
+Message-ID: <200804042254.m34Ms9Ld012924@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51057 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41523 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751230AbYDDWMo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 18:12:44 -0400
+	by vger.kernel.org with ESMTP id S1751032AbYDDXA7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 19:00:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, rpjday@crashcourse.ca
+Cc: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, paulus@samba.org, tglx@linutronix.de, tony.luck@intel.com, zippel@linux-m68k.org
 
 
 The patch titled
-     fix gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry
+     time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry.patch
+     time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry
+Subject: time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-lib/kobject.c: In function 'kset_find_obj':
-lib/kobject.c:750: warning: unused variable 'entry'
+ERROR: use tabs not spaces
+#66: FILE: arch/ia64/kernel/time.c:357:
++        write_seqlock_irqsave(&fsyscall_gtod_data.lock, *flags);$
 
-Cc: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Cc: Greg KH <greg@kroah.com>
+ERROR: use tabs not spaces
+#72: FILE: arch/ia64/kernel/time.c:362:
++        write_sequnlock_irqrestore(&fsyscall_gtod_data.lock, *flags);$
+
+total: 2 errors, 0 warnings, 168 lines checked
+
+./patches/time-close-small-window-for-vsyscall-time-inconsistencies.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/ia64/kernel/time.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/kobject.c~fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry lib/kobject.c
---- a/lib/kobject.c~fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry
-+++ a/lib/kobject.c
-@@ -799,7 +799,6 @@ void kset_unregister(struct kset *k)
+diff -puN arch/ia64/kernel/time.c~time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes arch/ia64/kernel/time.c
+--- a/arch/ia64/kernel/time.c~time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes
++++ a/arch/ia64/kernel/time.c
+@@ -354,12 +354,12 @@ void update_vsyscall_tz(void)
   */
- struct kobject *kset_find_obj(struct kset *kset, const char *name)
+ void update_vsyscall_lock(unsigned long *flags)
  {
--	struct list_head *entry;
- 	struct kobject *k, *ret = NULL;
+-        write_seqlock_irqsave(&fsyscall_gtod_data.lock, *flags);
++	write_seqlock_irqsave(&fsyscall_gtod_data.lock, *flags);
+ }
  
- 	spin_lock(&kset->list_lock);
+ void update_vsyscall_unlock(unsigned long *flags)
+ {
+-        write_sequnlock_irqrestore(&fsyscall_gtod_data.lock, *flags);
++	write_sequnlock_irqrestore(&fsyscall_gtod_data.lock, *flags);
+ }
+ 
+ /* Assumes fsyscall_gtod_data.lock has been taken via update_vsyscall_lock() */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,13 +105,13 @@ git-agpgart-fix-type-confusion.patch
 git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
 cifs-suppress-warning.patch
 git-powerpc.patch
-fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry.patch
 pm-remove-destroy_suspended_device.patch
 scsi-add-iscsi-ibft-support.patch
 git-dvb.patch
 git-hwmon.patch
 git-gfs2-nmw.patch
 git-hrt.patch
+time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
 arch-ia64-kernel-use-time_-macros.patch
 git-ieee1394.patch
 git-infiniband.patch
