@@ -1,117 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - alpha-fix-alsa-dma-mmap-crash.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 11:59:49 -0700
-Message-ID: <200804041859.m34IxncY004133@imap1.linux-foundation.org>
+Subject: - char-ip2-fix-sparse-warnings.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 12:00:02 -0700
+Message-ID: <200804041900.m34J02v1004242@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38590 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34474 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756116AbYDDTAY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:00:24 -0400
+	by vger.kernel.org with ESMTP id S1752185AbYDDTAF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:00:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ink@jurassic.park.msu.ru, mcree@orcon.net.nz, perex@perex.cz, rth@twiddle.net, tiwai@suse.de, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     alpha: fix ALSA DMA mmap crash
+     Char: ip2, fix sparse warnings
 has been removed from the -mm tree.  Its filename was
-     alpha-fix-alsa-dma-mmap-crash.patch
+     char-ip2-fix-sparse-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: fix ALSA DMA mmap crash
-From: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Subject: Char: ip2, fix sparse warnings
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Make dma_alloc_coherent respect gfp flags (__GFP_COMP is one that matters).
+Unlock two grabbed locks on some paths.
 
-Signed-off-by: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Tested-by: Michael Cree <mcree@orcon.net.nz>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/pci_iommu.c   |    8 +++++---
- include/asm-alpha/dma-mapping.h |    2 +-
- include/asm-alpha/pci.h         |    8 +++++++-
- 3 files changed, 13 insertions(+), 5 deletions(-)
+ drivers/char/ip2/i2lib.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN arch/alpha/kernel/pci_iommu.c~alpha-fix-alsa-dma-mmap-crash arch/alpha/kernel/pci_iommu.c
---- a/arch/alpha/kernel/pci_iommu.c~alpha-fix-alsa-dma-mmap-crash
-+++ a/arch/alpha/kernel/pci_iommu.c
-@@ -424,11 +424,13 @@ EXPORT_SYMBOL(pci_unmap_page);
-    else DMA_ADDRP is undefined.  */
+diff -puN drivers/char/ip2/i2lib.c~char-ip2-fix-sparse-warnings drivers/char/ip2/i2lib.c
+--- a/drivers/char/ip2/i2lib.c~char-ip2-fix-sparse-warnings
++++ a/drivers/char/ip2/i2lib.c
+@@ -644,12 +644,12 @@ i2QueueCommands(int type, i2ChanStrPtr p
+ 				// Normal Expected path - We still hold LOCK
+ 				break; /* from for()- Enough room: goto proceed */
+ 			}
+-		}
+-
+-		ip2trace (CHANN, ITRC_QUEUE, 3, 1, totalsize );
++			ip2trace(CHANN, ITRC_QUEUE, 3, 1, totalsize);
++			WRITE_UNLOCK_IRQRESTORE(lock_var_p, flags);
++		} else
++			ip2trace(CHANN, ITRC_QUEUE, 3, 1, totalsize);
  
- void *
--pci_alloc_consistent(struct pci_dev *pdev, size_t size, dma_addr_t *dma_addrp)
-+__pci_alloc_consistent(struct pci_dev *pdev, size_t size,
-+		       dma_addr_t *dma_addrp, gfp_t gfp)
- {
- 	void *cpu_addr;
- 	long order = get_order(size);
--	gfp_t gfp = GFP_ATOMIC;
-+
-+	gfp &= ~GFP_DMA;
+-		// Prepare to wait for buffers to empty
+-		WRITE_UNLOCK_IRQRESTORE(lock_var_p,flags); 
++		/* Prepare to wait for buffers to empty */
+ 		serviceOutgoingFifo(pB);	// Dump what we got
  
- try_again:
- 	cpu_addr = (void *)__get_free_pages(gfp, order);
-@@ -458,7 +460,7 @@ try_again:
+ 		if (timeout == 0) {
+@@ -1830,6 +1830,8 @@ i2StripFifo(i2eBordStrPtr pB)
+ 		default: // Neither packet? should be impossible
+ 			ip2trace (ITRC_NO_PORT, ITRC_SFIFO, 5, 1,
+ 				PTYPE_OF(pB->i2eLeadoffWord) );
++			WRITE_UNLOCK_IRQRESTORE(&pB->read_fifo_spinlock,
++					bflags);
  
- 	return cpu_addr;
- }
--EXPORT_SYMBOL(pci_alloc_consistent);
-+EXPORT_SYMBOL(__pci_alloc_consistent);
- 
- /* Free and unmap a consistent DMA buffer.  CPU_ADDR and DMA_ADDR must
-    be values that were returned from pci_alloc_consistent.  SIZE must
-diff -puN include/asm-alpha/dma-mapping.h~alpha-fix-alsa-dma-mmap-crash include/asm-alpha/dma-mapping.h
---- a/include/asm-alpha/dma-mapping.h~alpha-fix-alsa-dma-mmap-crash
-+++ a/include/asm-alpha/dma-mapping.h
-@@ -11,7 +11,7 @@
- #define dma_unmap_single(dev, addr, size, dir)		\
- 		pci_unmap_single(alpha_gendev_to_pci(dev), addr, size, dir)
- #define dma_alloc_coherent(dev, size, addr, gfp)	\
--		pci_alloc_consistent(alpha_gendev_to_pci(dev), size, addr)
-+	      __pci_alloc_consistent(alpha_gendev_to_pci(dev), size, addr, gfp)
- #define dma_free_coherent(dev, size, va, addr)		\
- 		pci_free_consistent(alpha_gendev_to_pci(dev), size, va, addr)
- #define dma_map_page(dev, page, off, size, dir)		\
-diff -puN include/asm-alpha/pci.h~alpha-fix-alsa-dma-mmap-crash include/asm-alpha/pci.h
---- a/include/asm-alpha/pci.h~alpha-fix-alsa-dma-mmap-crash
-+++ a/include/asm-alpha/pci.h
-@@ -76,7 +76,13 @@ extern inline void pcibios_penalize_isa_
-    successful and sets *DMA_ADDRP to the pci side dma address as well,
-    else DMA_ADDRP is undefined.  */
- 
--extern void *pci_alloc_consistent(struct pci_dev *, size_t, dma_addr_t *);
-+extern void *__pci_alloc_consistent(struct pci_dev *, size_t,
-+				    dma_addr_t *, gfp_t);
-+static inline void *
-+pci_alloc_consistent(struct pci_dev *dev, size_t size, dma_addr_t *dma)
-+{
-+	return __pci_alloc_consistent(dev, size, dma, GFP_ATOMIC);
-+}
- 
- /* Free and unmap a consistent DMA buffer.  CPU_ADDR and DMA_ADDR must
-    be values that were returned from pci_alloc_consistent.  SIZE must
+ 			break;
+ 		}  // End of switch on type of packets
 _
 
-Patches currently in -mm which might be from ink@jurassic.park.msu.ru are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-alpha-handle-kcalloc-failure.patch
-alpha-remove-remaining-__function__-occurences.patch
-alpha-replace-__inline-with-inline.patch
-arch-alpha-kernel-trapsc-use-time_-macros.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-introduce-a-generic-__fls-implementation.patch
-implement-__fls-on-all-64-bit-archs.patch
-use-__fls-for-fls64-on-64-bit-archs.patch
-make-sure-nobodys-leaking-resources.patch
+git-dvb.patch
+git-hid.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
+git-net.patch
+capabilities-implement-per-process-securebits-fix.patch
+misc-phantom-add-compat-ioctl.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+misc-phantom-fix-poll.patch
+misc-phantom-consistent-whitespace.patch
+mxser-prepare-for-bkl-pushdown.patch
+tty-bkl-pushdown-fix.patch
+tty-bkl-pushdown-fix1.patch
+char-moxa-remove-static-isa-support.patch
+char-moxa-cleanup-module-param-passed-isa-init.patch
+char-moxa-pci-io-space-fixup.patch
+char-moxa-fix-tiocg-ssoftcar-param.patch
+char-moxa-add-firmware-loading.patch
+char-moxa-merge-c2xx-and-c320-firmware-loading.patch
+char-moxa-remove-port-port.patch
+char-moxa-remove-unused-port-entries.patch
+char-moxa-centralize-board-readiness.patch
+char-moxa-centralize-board-readiness-warning-fix.patch
+char-moxa-timer-cleanup.patch
+char-moxa-ioctl-cleanup.patch
+char-moxa-merge-2-poll-functions.patch
+char-moxa-cleanup-rx-tx.patch
+char-moxa-serialise-timer.patch
+char-moxa-rework-open-close.patch
+char-moxa-little-cleanup.patch
+char-moxa-remove-useless-tty-functions.patch
+char-moxa-introduce-moxa_is_320-macro.patch
+char-moxa-notify-about-board-readiness.patch
+char-moxa-update-credits.patch
+char-moxa-add-firmware-loading-fix.patch
+char-espc-fix-possible-double-unlock.patch
+char-ip2-macros-cleanup.patch
+char-rio-fix-cirrus-defines.patch
+mxser-convert-large-macros-to-functions.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
