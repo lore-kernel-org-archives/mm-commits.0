@@ -1,91 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_serial-fix-uart-console-concurrent-access.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 11:59:46 -0700
-Message-ID: <200804041859.m34IxkRK004130@imap1.linux-foundation.org>
+Subject: - nbd-prevent-sock_xmit-from-attempting-to-use-a-null-socket.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 11:59:59 -0700
+Message-ID: <200804041859.m34Ixxvp004149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59833 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59217 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752682AbYDDTAD (ORCPT
+	by vger.kernel.org with ESMTP id S1752185AbYDDTAD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:00:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marc.pignat@hevs.ch, haavard.skinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: snitzer@gmail.com, paul.clements@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_serial: fix uart/console concurrent access
+     nbd: prevent sock_xmit from attempting to use a NULL socket
 has been removed from the -mm tree.  Its filename was
-     atmel_serial-fix-uart-console-concurrent-access.patch
+     nbd-prevent-sock_xmit-from-attempting-to-use-a-null-socket.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_serial: fix uart/console concurrent access
-From: Marc Pignat <marc.pignat@hevs.ch>
+Subject: nbd: prevent sock_xmit from attempting to use a NULL socket
+From: Mike Snitzer <snitzer@gmail.com>
 
-Strange chars appear on the serial port when a printk and a printf happens at
-the same time.  This is caused by the pdc sending chars while
-atmel_console_write (called from printk) is executing
+NBD does not protect the nbd_device's socket from becoming NULL during
+receives.
 
-Concurent access of uart and console to the same port leads to corrupted data
-to be transmitted, so disable tx dma (PDC) while writing to the console.
+This closes a race with the NBD_CLEAR_SOCK ioctl (nbd-client -d) setting
+the nbd_device's socket to NULL right before NBD calls sock_xmit.
 
-Signed-off-by: Marc Pignat <marc.pignat@hevs.ch>
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Signed-off-by: Mike Snitzer <snitzer@gmail.com>
+Cc: Paul Clements <paul.clements@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/atmel_serial.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/block/nbd.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/serial/atmel_serial.c~atmel_serial-fix-uart-console-concurrent-access drivers/serial/atmel_serial.c
---- a/drivers/serial/atmel_serial.c~atmel_serial-fix-uart-console-concurrent-access
-+++ a/drivers/serial/atmel_serial.c
-@@ -107,6 +107,7 @@
+diff -puN drivers/block/nbd.c~nbd-prevent-sock_xmit-from-attempting-to-use-a-null-socket drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-prevent-sock_xmit-from-attempting-to-use-a-null-socket
++++ a/drivers/block/nbd.c
+@@ -153,6 +153,12 @@ static int sock_xmit(struct nbd_device *
+ 	struct kvec iov;
+ 	sigset_t blocked, oldset;
  
- #define UART_PUT_TPR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TPR)
- #define UART_PUT_TCR(port,v)	__raw_writel(v, (port)->membase + ATMEL_PDC_TCR)
-+#define UART_GET_TCR(port)	__raw_readl((port)->membase + ATMEL_PDC_TCR)
- 
- static int (*atmel_open_hook)(struct uart_port *);
- static void (*atmel_close_hook)(struct uart_port *);
-@@ -1275,6 +1276,7 @@ static void atmel_console_write(struct c
- {
- 	struct uart_port *port = &atmel_ports[co->index].uart;
- 	unsigned int status, imr;
-+	unsigned int pdc_tx;
- 
- 	/*
- 	 * First, save IMR and then disable interrupts
-@@ -1282,6 +1284,10 @@ static void atmel_console_write(struct c
- 	imr = UART_GET_IMR(port);
- 	UART_PUT_IDR(port, ATMEL_US_RXRDY | ATMEL_US_TXRDY);
- 
-+	/* Store PDC transmit status and disable it */
-+	pdc_tx = UART_GET_PTSR(port) & ATMEL_PDC_TXTEN;
-+	UART_PUT_PTCR(port, ATMEL_PDC_TXTDIS);
++	if (unlikely(!sock)) {
++		printk(KERN_ERR "%s: Attempted %s on closed socket in sock_xmit\n",
++		       lo->disk->disk_name, (send ? "send" : "recv"));
++		return -EINVAL;
++	}
 +
- 	uart_console_write(port, s, count, atmel_console_putchar);
- 
- 	/*
-@@ -1291,6 +1297,11 @@ static void atmel_console_write(struct c
- 	do {
- 		status = UART_GET_CSR(port);
- 	} while (!(status & ATMEL_US_TXRDY));
-+
-+	/* Restore PDC transmit status */
-+	if (pdc_tx)
-+		UART_PUT_PTCR(port, ATMEL_PDC_TXTEN);
-+
- 	/* set interrupts back the way they were */
- 	UART_PUT_IER(port, imr);
- }
+ 	/* Allow interception of SIGKILL only
+ 	 * Don't allow other signals to interrupt the transmission */
+ 	siginitsetinv(&blocked, sigmask(SIGKILL));
 _
 
-Patches currently in -mm which might be from marc.pignat@hevs.ch are
+Patches currently in -mm which might be from snitzer@gmail.com are
 
 origin.patch
 
