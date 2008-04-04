@@ -1,60 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - git-libata-fix-config_pci=n-build.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 11:43:45 -0700
-Message-ID: <200804041843.m34IhjIR003572@imap1.linux-foundation.org>
+Subject: - git-net-git-rejects.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 11:45:35 -0700
+Message-ID: <200804041845.m34IjZXP003680@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53288 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58954 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757418AbYDDSoT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 14:44:19 -0400
+	by vger.kernel.org with ESMTP id S1756994AbYDDSph (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 14:45:37 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m34IjZdd001995
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 4 Apr 2008 11:45:37 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, htejun@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-libata: fix CONFIG_PCI=n build
+     git-net-git-rejects
 has been removed from the -mm tree.  Its filename was
-     git-libata-fix-config_pci=n-build.patch
+     git-net-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-libata: fix CONFIG_PCI=n build
+Subject: git-net-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sh allmodconfig:
-
-drivers/ata/libata-core.c:127: error: `ata_pci_default_filter' undeclared here (not in a function)
-drivers/ata/libata-core.c:127: error: initializer element is not constant
-drivers/ata/libata-core.c:127: error: (near initialization for `ata_bmdma_port_ops.mode_filter')
-
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/libata-core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/net/s2io.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/ata/libata-core.c~git-libata-fix-config_pci=n-build drivers/ata/libata-core.c
---- a/drivers/ata/libata-core.c~git-libata-fix-config_pci=n-build
-+++ a/drivers/ata/libata-core.c
-@@ -123,9 +123,9 @@ const struct ata_port_operations ata_sff
+diff -puN drivers/net/s2io.c~git-net-git-rejects drivers/net/s2io.c
+--- a/drivers/net/s2io.c~git-net-git-rejects
++++ a/drivers/net/s2io.c
+@@ -86,11 +86,7 @@
+ #include "s2io.h"
+ #include "s2io-regs.h"
  
- const struct ata_port_operations ata_bmdma_port_ops = {
- 	.inherits		= &ata_sff_port_ops,
--
-+#ifdef CONFIG_PCI
- 	.mode_filter		= ata_pci_default_filter,
--
-+#endif
- 	.bmdma_setup		= ata_bmdma_setup,
- 	.bmdma_start		= ata_bmdma_start,
- 	.bmdma_stop		= ata_bmdma_stop,
+-<<<<<<< HEAD:drivers/net/s2io.c
+-#define DRV_VERSION "2.0.26.20"
+-=======
+ #define DRV_VERSION "2.0.26.19"
+->>>>>>> FETCH_HEAD:drivers/net/s2io.c
+ 
+ /* S2io Driver name & version. */
+ static char s2io_driver_name[] = "Neterion";
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,7 +90,6 @@ git-kvm.patch
 git-kvm-vs-git-s390.patch
 git-leds.patch
 git-libata-all.patch
-git-libata-fix-config_pci=n-build.patch
 git-async-tx.patch
 git-mips.patch
 git-net.patch
