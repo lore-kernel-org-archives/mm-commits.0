@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + modify-ramdisk-brd-device-to-be-able-to-manage-partitions.patch added to -mm tree
-Date: Thu, 03 Apr 2008 21:39:42 -0700
-Message-ID: <200804040439.m344dgVp006221@imap1.linux-foundation.org>
+Subject: + parport_pc-dont-forget-to-unregister-the-temporarily-registered-region.patch added to -mm tree
+Date: Thu, 03 Apr 2008 21:41:57 -0700
+Message-ID: <200804040441.m344fvkP006285@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59393 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41926 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751001AbYDDEk1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 00:40:27 -0400
+	by vger.kernel.org with ESMTP id S1751169AbYDDEmI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 00:42:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Laurent.Vivier@bull.net, jens.axboe@oracle.com, nickpiggin@yahoo.com.au, viro@zeniv.linux.org.uk
+Cc: torvalds@linux-foundation.org, akpm@linux-foundation.org, jack@suse.cz, petr.cvek@tul.cz, rjw@sisk.pl
 
 
 The patch titled
-     brd: Modify ramdisk device to be able to manage partitions
+     parport_pc: don't forget to unregister the temporarily-registered region
 has been added to the -mm tree.  Its filename is
-     modify-ramdisk-brd-device-to-be-able-to-manage-partitions.patch
+     parport_pc-dont-forget-to-unregister-the-temporarily-registered-region.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,180 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: brd: Modify ramdisk device to be able to manage partitions
-From: Laurent Vivier <Laurent.Vivier@bull.net>
+Subject: parport_pc: don't forget to unregister the temporarily-registered region
+From: Linus Torvalds <torvalds@linux-foundation.org>
 
-This patch adds partition management for Block RAM Device (BRD).
+Otherwise /proc/ioports goes oops after rmmod.
 
-This patch is done to keep in sync BRD and loop device drivers.
+Addresses:
 
-This patch adds a parameter to the module, max_part, to specify
-the maximum number of partitions per RAM device.
+> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=10390
+> Subject		: Oops while reading /proc/ioports or /proc/iomem
+> Submitter	: Jan Kara <jack@suse.cz>
+> Date		: 2008-04-03 15:25 (1 days old)
+> References	: http://lkml.org/lkml/2008/4/3/149
 
-Example:
+Fixes a regression added by
 
-# modprobe brd max_part=63
-# ls -l /dev/ram*
-brw-rw---- 1 root disk 1,   0 2008-04-03 13:39 /dev/ram0
-brw-rw---- 1 root disk 1,  64 2008-04-03 13:39 /dev/ram1
-brw-rw---- 1 root disk 1, 640 2008-04-03 13:39 /dev/ram10
-brw-rw---- 1 root disk 1, 704 2008-04-03 13:39 /dev/ram11
-brw-rw---- 1 root disk 1, 768 2008-04-03 13:39 /dev/ram12
-brw-rw---- 1 root disk 1, 832 2008-04-03 13:39 /dev/ram13
-brw-rw---- 1 root disk 1, 896 2008-04-03 13:39 /dev/ram14
-brw-rw---- 1 root disk 1, 960 2008-04-03 13:39 /dev/ram15
-brw-rw---- 1 root disk 1, 128 2008-04-03 13:39 /dev/ram2
-brw-rw---- 1 root disk 1, 192 2008-04-03 13:39 /dev/ram3
-brw-rw---- 1 root disk 1, 256 2008-04-03 13:39 /dev/ram4
-brw-rw---- 1 root disk 1, 320 2008-04-03 13:39 /dev/ram5
-brw-rw---- 1 root disk 1, 384 2008-04-03 13:39 /dev/ram6
-brw-rw---- 1 root disk 1, 448 2008-04-03 13:39 /dev/ram7
-brw-rw---- 1 root disk 1, 512 2008-04-03 13:39 /dev/ram8
-brw-rw---- 1 root disk 1, 576 2008-04-03 13:39 /dev/ram9
-# fdisk /dev/ram0
-Device contains neither a valid DOS partition table, nor Sun, SGI or OSF disklabel
-Building a new DOS disklabel. Changes will remain in memory only,
-until you decide to write them. After that, of course, the previous
-content won't be recoverable.
+commit f63fd7e299ee13da071ecfce2b90b58c5e1562b1
+Author: Petr Cvek <petr.cvek@tul.cz>
+Date:   Wed Feb 6 01:37:48 2008 -0800
 
-Warning: invalid flag 0x0000 of partition table 4 will be corrected by w(rite)
+    parport_pc: detection for SuperIO IT87XX POST
+    
+    Add detection for IT87XX SuperIO chip and disabling its POST feature, which
+    made noise on parallel port's pins.
+    
+    Signed-off-by: Petr Cvek <petr.cvek@tul.cz>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 
-Command (m for help): o
-Building a new DOS disklabel. Changes will remain in memory only,
-until you decide to write them. After that, of course, the previous
-content won't be recoverable.
-
-Warning: invalid flag 0x0000 of partition table 4 will be corrected by w(rite)
-
-Command (m for help): n
-Command action
-   e   extended
-   p   primary partition (1-4)
-p
-Partition number (1-4): 1
-First cylinder (1-2, default 1): 1
-Last cylinder or +size or +sizeM or +sizeK (1-2, default 2): 2
-
-Command (m for help): w
-The partition table has been altered!
-
-Calling ioctl() to re-read partition table.
-Syncing disks.
-# ls -l /dev/ram0*
-brw-rw---- 1 root disk 1, 0 2008-04-03 13:40 /dev/ram0
-brw-rw---- 1 root disk 1, 1 2008-04-03 13:40 /dev/ram0p1
-# mkfs /dev/ram0p1
-mke2fs 1.40-WIP (14-Nov-2006)
-Filesystem label=
-OS type: Linux
-Block size=1024 (log=0)
-Fragment size=1024 (log=0)
-4016 inodes, 16032 blocks
-801 blocks (5.00%) reserved for the super user
-First data block=1
-Maximum filesystem blocks=16515072
-2 block groups
-8192 blocks per group, 8192 fragments per group
-2008 inodes per group
-Superblock backups stored on blocks:
-	8193
-
-Writing inode tables: done
-Writing superblocks and filesystem accounting information: done
-
-This filesystem will be automatically checked every 26 mounts or
-180 days, whichever comes first.  Use tune2fs -c or -i to override.
-# mount /dev/ram0p1 /mnt
-df /mnt
-Filesystem           1K-blocks      Used Available Use% Mounted on
-/dev/ram0p1              15521       138     14582   1% /mnt
-# ls -l /mnt
-total 12
-drwx------ 2 root root 12288 2008-04-03 13:41 lost+found
-# umount /mnt
-# rmmod brd
-
-Signed-off-by: Laurent Vivier <Laurent.Vivier@bull.net>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Petr Cvek <petr.cvek@tul.cz>
+Cc: Jan Kara <jack@suse.cz>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/brd.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ drivers/parport/parport_pc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/block/brd.c~modify-ramdisk-brd-device-to-be-able-to-manage-partitions drivers/block/brd.c
---- a/drivers/block/brd.c~modify-ramdisk-brd-device-to-be-able-to-manage-partitions
-+++ a/drivers/block/brd.c
-@@ -387,10 +387,14 @@ static struct block_device_operations br
-  */
- static int rd_nr;
- int rd_size = CONFIG_BLK_DEV_RAM_SIZE;
-+static int max_part;
-+static int part_shift;
- module_param(rd_nr, int, 0);
- MODULE_PARM_DESC(rd_nr, "Maximum number of brd devices");
- module_param(rd_size, int, 0);
- MODULE_PARM_DESC(rd_size, "Size of each RAM disk in kbytes.");
-+module_param(max_part, int, 0);
-+MODULE_PARM_DESC(max_part, "Maximum number of partitions per RAM disk");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS_BLOCKDEV_MAJOR(RAMDISK_MAJOR);
- 
-@@ -435,11 +439,11 @@ static struct brd_device *brd_alloc(int 
- 	blk_queue_max_sectors(brd->brd_queue, 1024);
- 	blk_queue_bounce_limit(brd->brd_queue, BLK_BOUNCE_ANY);
- 
--	disk = brd->brd_disk = alloc_disk(1);
-+	disk = brd->brd_disk = alloc_disk(1 << part_shift);
- 	if (!disk)
- 		goto out_free_queue;
- 	disk->major		= RAMDISK_MAJOR;
--	disk->first_minor	= i;
-+	disk->first_minor	= i << part_shift;
- 	disk->fops		= &brd_fops;
- 	disk->private_data	= brd;
- 	disk->queue		= brd->brd_queue;
-@@ -523,7 +527,12 @@ static int __init brd_init(void)
- 	 *     themselves and have kernel automatically instantiate actual
- 	 *     device on-demand.
- 	 */
--	if (rd_nr > 1UL << MINORBITS)
-+
-+	part_shift = 0;
-+	if (max_part > 0)
-+		part_shift = fls(max_part);
-+
-+	if (rd_nr > 1UL << (MINORBITS - part_shift))
- 		return -EINVAL;
- 
- 	if (rd_nr) {
-@@ -531,7 +540,7 @@ static int __init brd_init(void)
- 		range = rd_nr;
- 	} else {
- 		nr = CONFIG_BLK_DEV_RAM_COUNT;
--		range = 1UL << MINORBITS;
-+		range = 1UL << (MINORBITS - part_shift);
- 	}
- 
- 	if (register_blkdev(RAMDISK_MAJOR, "ramdisk"))
-@@ -570,7 +579,7 @@ static void __exit brd_exit(void)
- 	unsigned long range;
- 	struct brd_device *brd, *next;
- 
--	range = rd_nr ? rd_nr :  1UL << MINORBITS;
-+	range = rd_nr ? rd_nr :  1UL << (MINORBITS - part_shift);
- 
- 	list_for_each_entry_safe(brd, next, &brd_devices, brd_list)
- 		brd_del_one(brd);
-_
-
-Patches currently in -mm which might be from Laurent.Vivier@bull.net are
-
-git-kvm.patch
-git-block.patch
-nbd-allow-nbd-to-be-used-locally.patch
-nbd-add-partition-support.patch
-modify-ramdisk-brd-device-to-be-able-to-manage-partitions.patch
-
+diff -puN drivers/parport/parport_pc.c~parport_pc-dont-forget-to-unregister-the-temporarily-registered-region drivers/parport/parport_pc.c
+--- a/drivers/parport/parport_pc.c~parport_pc-dont-forget-to-unregister-the-temporarily-registered-region
++++ a/drivers/parport/parport_pc.c
+@@ -1568,9 +1568,8 @@ static void __devinit detect_and_report_
+ 		outb(r | 8, 0x2F);
+ 		outb(0x02, 0x2E);	/* Lock */
+ 		outb(0x02, 0x2F);
