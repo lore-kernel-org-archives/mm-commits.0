@@ -1,248 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - usb-ub-drop-bug-and-update-small-things.patch removed from -mm tree
-Date: Fri, 04 Apr 2008 10:38:46 -0700
-Message-ID: <200804041738.m34Hcklc001155@imap1.linux-foundation.org>
+Subject: - arch-um-os-linux-mainc-fix-memory-leaks.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 10:43:28 -0700
+Message-ID: <200804041743.m34HhT4C001344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44596 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757346AbYDDRja (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 13:39:30 -0400
+	by vger.kernel.org with ESMTP id S1754415AbYDDRnf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 13:43:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zaitcev@redhat.com, cw@f00f.org, gregkh@suse.de, jens.axboe@oracle.com, k-ueda@ct.jp.nec.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, jdike@addtoit.com, wangcong@zeuux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ub: drop BUG() and update small things
+     arch/um/os-Linux/main.c: fix memory leaks
 has been removed from the -mm tree.  Its filename was
-     usb-ub-drop-bug-and-update-small-things.patch
+     arch-um-os-linux-mainc-fix-memory-leaks.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ub: drop BUG() and update small things
+Subject: arch/um/os-Linux/main.c: fix memory leaks
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
+Fix possible memory leaks in the main() function of arch/um/os-Linux/main.c.
 
-- Remove the BUG() which trips, borrow the code from scsi_end_request().
-  This may break CD burning, because I am not sure residue gets returned
-  to cdrecord for successful commands. But everything that's good for SCSI
-  should be good for everyone else, right?
-- Ignore improper USB level residue. Too many devices have this bug.
-- Update cosmetics: spelling, formatting
-
-Signed-off-by: Pete Zaitcev <zaitcev@redhat.com>
-Cc: Chris Wedgwood <cw@f00f.org>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-Cc: Kiyoshi Ueda <k-ueda@ct.jp.nec.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: WANG Cong <wangcong@zeuux.org>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/ub.c |   76 +++++++++++++++++++++++++------------------
- 1 file changed, 45 insertions(+), 31 deletions(-)
+ arch/um/os-Linux/main.c |   31 +++++++++++++++++++++++++------
+ 1 file changed, 25 insertions(+), 6 deletions(-)
 
-diff -puN drivers/block/ub.c~usb-ub-drop-bug-and-update-small-things drivers/block/ub.c
---- a/drivers/block/ub.c~usb-ub-drop-bug-and-update-small-things
-+++ a/drivers/block/ub.c
-@@ -317,6 +317,7 @@ struct ub_dev {
- 	int openc;			/* protected by ub_lock! */
- 					/* kref is too implicit for our taste */
- 	int reset;			/* Reset is running */
-+	int bad_resid;
- 	unsigned int tagcnt;
- 	char name[12];
- 	struct usb_device *dev;
-@@ -359,7 +360,8 @@ static void ub_cmd_build_block(struct ub
- static void ub_cmd_build_packet(struct ub_dev *sc, struct ub_lun *lun,
-     struct ub_scsi_cmd *cmd, struct ub_request *urq);
- static void ub_rw_cmd_done(struct ub_dev *sc, struct ub_scsi_cmd *cmd);
--static void ub_end_rq(struct request *rq, unsigned int status);
-+static void ub_end_rq(struct request *rq, unsigned int status,
-+    unsigned int act_len);
- static int ub_rw_cmd_retry(struct ub_dev *sc, struct ub_lun *lun,
-     struct ub_request *urq, struct ub_scsi_cmd *cmd);
- static int ub_submit_scsi(struct ub_dev *sc, struct ub_scsi_cmd *cmd);
-@@ -642,13 +644,13 @@ static int ub_request_fn_1(struct ub_lun
+diff -puN arch/um/os-Linux/main.c~arch-um-os-linux-mainc-fix-memory-leaks arch/um/os-Linux/main.c
+--- a/arch/um/os-Linux/main.c~arch-um-os-linux-mainc-fix-memory-leaks
++++ a/arch/um/os-Linux/main.c
+@@ -113,14 +113,10 @@ static void setup_env_path(void)
  
- 	if (atomic_read(&sc->poison)) {
- 		blkdev_dequeue_request(rq);
--		ub_end_rq(rq, DID_NO_CONNECT << 16);
-+		ub_end_rq(rq, DID_NO_CONNECT << 16, 0);
- 		return 0;
- 	}
+ extern void scan_elf_aux( char **envp);
  
- 	if (lun->changed && !blk_pc_request(rq)) {
- 		blkdev_dequeue_request(rq);
--		ub_end_rq(rq, SAM_STAT_CHECK_CONDITION);
-+		ub_end_rq(rq, SAM_STAT_CHECK_CONDITION, 0);
- 		return 0;
- 	}
- 
-@@ -701,7 +703,7 @@ static int ub_request_fn_1(struct ub_lun
- 
- drop:
- 	ub_put_cmd(lun, cmd);
--	ub_end_rq(rq, DID_ERROR << 16);
-+	ub_end_rq(rq, DID_ERROR << 16, 0);
- 	return 0;
- }
- 
-@@ -770,16 +772,11 @@ static void ub_rw_cmd_done(struct ub_dev
- 	struct ub_request *urq = cmd->back;
- 	struct request *rq;
- 	unsigned int scsi_status;
-+	unsigned int act_len;
- 
- 	rq = urq->rq;
- 
- 	if (cmd->error == 0) {
--		if (blk_pc_request(rq)) {
--			if (cmd->act_len >= rq->data_len)
--				rq->data_len = 0;
--			else
--				rq->data_len -= cmd->act_len;
--		}
- 		scsi_status = 0;
- 	} else {
- 		if (blk_pc_request(rq)) {
-@@ -799,16 +796,21 @@ static void ub_rw_cmd_done(struct ub_dev
- 		}
- 	}
- 
-+	if ((act_len = cmd->act_len) > cmd->len)
-+		act_len = cmd->len;
-+
- 	urq->rq = NULL;
- 
- 	ub_put_cmd(lun, cmd);
--	ub_end_rq(rq, scsi_status);
-+	ub_end_rq(rq, scsi_status, act_len);
- 	blk_start_queue(lun->disk->queue);
- }
- 
--static void ub_end_rq(struct request *rq, unsigned int scsi_status)
-+static void ub_end_rq(struct request *rq, unsigned int scsi_status,
-+    unsigned int act_len)
+-int __init main(int argc, char **argv, char **envp)
++static char** dup_argv(int argc, char **argv)
  {
- 	int error;
-+	long rqlen;
++	int i;
+ 	char **new_argv;
+-	int ret, i, err;
+-
+-	set_stklim();
+-
+-	setup_env_path();
  
- 	if (scsi_status == 0) {
- 		error = 0;
-@@ -816,8 +818,18 @@ static void ub_end_rq(struct request *rq
- 		error = -EIO;
- 		rq->errors = scsi_status;
+ 	new_argv = malloc((argc + 1) * sizeof(char *));
+ 	if (new_argv == NULL) {
+@@ -135,6 +131,28 @@ int __init main(int argc, char **argv, c
+ 		}
  	}
--	if (__blk_end_request(rq, error, blk_rq_bytes(rq)))
--		BUG();
-+	rqlen = blk_rq_bytes(rq);
-+	if (__blk_end_request(rq, error, act_len)) {
-+		if (error) {
-+			if (__blk_end_request(rq, error, blk_rq_bytes(rq))) {
-+				printk(KERN_WARNING DRV_NAME
-+				    ": __blk_end_request blew,"
-+				    " %s-cmd rqlen %ld act %u\n",
-+				    blk_pc_request(rq)? "pc": "fs",
-+				    rqlen, act_len);
-+			}
-+		}
+ 	new_argv[argc] = NULL;
++	return new_argv;
++}
++
++static void free_argv(int argc, char **argv)
++{
++	int i;
++	for (i = 0; i < argc; i++) {
++		free(argv[i]);
 +	}
- }
- 
- static int ub_rw_cmd_retry(struct ub_dev *sc, struct ub_lun *lun,
-@@ -1239,14 +1251,19 @@ static void ub_scsi_urb_compl(struct ub_
- 			return;
- 		}
- 
--		len = le32_to_cpu(bcs->Residue);
--		if (len != cmd->len - cmd->act_len) {
--			/*
--			 * It is all right to transfer less, the caller has
--			 * to check. But it's not all right if the device
--			 * counts disagree with our counts.
--			 */
--			goto Bad_End;
-+		if (!sc->bad_resid) {
-+			len = le32_to_cpu(bcs->Residue);
-+			if (len != cmd->len - cmd->act_len) {
-+				/*
-+				 * Only start ignoring if this cmd ended well.
-+				 */
-+				if (cmd->len == cmd->act_len) {
-+					printk(KERN_NOTICE "%s: "
-+					    "bad residual %d of %d, ignoring\n",
-+					    sc->name, len, cmd->len);
-+					sc->bad_resid = 1;
-+				}
-+			}
- 		}
- 
- 		switch (bcs->Status) {
-@@ -1277,8 +1294,7 @@ static void ub_scsi_urb_compl(struct ub_
- 		ub_state_done(sc, cmd, -EIO);
- 
- 	} else {
--		printk(KERN_WARNING "%s: "
--		    "wrong command state %d\n",
-+		printk(KERN_WARNING "%s: wrong command state %d\n",
- 		    sc->name, cmd->state);
- 		ub_state_done(sc, cmd, -EINVAL);
- 		return;
-@@ -1495,8 +1511,7 @@ static void ub_top_sense_done(struct ub_
- 		return;
- 	}
- 	if (cmd->state != UB_CMDST_SENSE) {
--		printk(KERN_WARNING "%s: "
--		    "sense done with bad cmd state %d\n",
-+		printk(KERN_WARNING "%s: sense done with bad cmd state %d\n",
- 		    sc->name, cmd->state);
- 		return;
- 	}
-@@ -1700,7 +1715,7 @@ static int ub_bd_ioctl(struct inode *ino
- }
- 
- /*
-- * This is called once a new disk was seen by the block layer or by ub_probe().
-+ * This is called by check_disk_change if we reported a media change.
-  * The main onjective here is to discover the features of the media such as
-  * the capacity, read-only status, etc. USB storage generally does not
-  * need to be spun up, but if we needed it, this would be the place.
-@@ -2116,8 +2131,7 @@ static int ub_get_pipes(struct ub_dev *s
- 	}
- 
- 	if (ep_in == NULL || ep_out == NULL) {
--		printk(KERN_NOTICE "%s: failed endpoint check\n",
--		    sc->name);
-+		printk(KERN_NOTICE "%s: failed endpoint check\n", sc->name);
- 		return -ENODEV;
- 	}
- 
-@@ -2334,7 +2348,7 @@ static void ub_disconnect(struct usb_int
- 	spin_unlock_irqrestore(&ub_lock, flags);
++	free(argv);
++}
++
++int __init main(int argc, char **argv, char **envp)
++{
++	char **new_argv;
++	int ret, i, err;
++
++	set_stklim();
++
++	setup_env_path();
++
++	new_argv = dup_argv(argc, argv);
  
  	/*
--	 * Fence stall clearnings, operations triggered by unlinkings and so on.
-+	 * Fence stall clearings, operations triggered by unlinkings and so on.
- 	 * We do not attempt to unlink any URBs, because we do not trust the
- 	 * unlink paths in HC drivers. Also, we get -84 upon disconnect anyway.
- 	 */
-@@ -2397,7 +2411,7 @@ static void ub_disconnect(struct usb_int
- 	spin_unlock_irqrestore(sc->lock, flags);
- 
- 	/*
--	 * There is virtually no chance that other CPU runs times so long
-+	 * There is virtually no chance that other CPU runs a timeout so long
- 	 * after ub_urb_complete should have called del_timer, but only if HCD
- 	 * didn't forget to deliver a callback on unlink.
- 	 */
+ 	 * Allow these signals to bring down a UML if all other
+@@ -185,6 +203,7 @@ int __init main(int argc, char **argv, c
+ 		perror("Failed to exec kernel");
+ 		ret = 1;
+ 	}
++	free_argv(argc, new_argv);
+ 	printf("\n");
+ 	return uml_exitcode;
+ }
 _
 
-Patches currently in -mm which might be from zaitcev@redhat.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
-usb-ub-drop-bug-and-update-small-things.patch
-git-hid.patch
+git-hrt.patch
+arch-um-kernel-um_archc-some-small-improvements.patch
+arch-um-os-linux-start_upc-various-improvements.patch
+arch-um-os-linux-mainc-fix-memory-leaks.patch
+arch-um-os-linux-mainc-fix-memory-leaks-checkpatch-fixes.patch
+remove-the-macro-get_personality.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 
