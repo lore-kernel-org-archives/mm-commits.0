@@ -1,81 +1,248 @@
 From: akpm@linux-foundation.org
-Subject: + mtd-fix-broken-state-in-cfi-driver-caused-by-fl_shutdown.patch added to -mm tree
-Date: Fri, 04 Apr 2008 09:59:26 -0700
-Message-ID: <200804041659.m34GxQMG032286@imap1.linux-foundation.org>
+Subject: - usb-ub-drop-bug-and-update-small-things.patch removed from -mm tree
+Date: Fri, 04 Apr 2008 10:38:46 -0700
+Message-ID: <200804041738.m34Hcklc001155@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47066 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44596 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751681AbYDDQ76 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 12:59:58 -0400
+	by vger.kernel.org with ESMTP id S1757346AbYDDRja (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 13:39:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akorolev@infradead.org, dwmw2@infradead.org, joern@logfs.org, stable@kernel.org
+To: zaitcev@redhat.com, cw@f00f.org, gregkh@suse.de, jens.axboe@oracle.com, k-ueda@ct.jp.nec.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: fix broken state in CFI driver caused by FL_SHUTDOWN
-has been added to the -mm tree.  Its filename is
-     mtd-fix-broken-state-in-cfi-driver-caused-by-fl_shutdown.patch
+     ub: drop BUG() and update small things
+has been removed from the -mm tree.  Its filename was
+     usb-ub-drop-bug-and-update-small-things.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: fix broken state in CFI driver caused by FL_SHUTDOWN
-From: Alexey Korolev <akorolev@infradead.org>
+Subject: ub: drop BUG() and update small things
 
-THe CFI driver in 2.6.24 kernel is broken.  Not so intensive read/write
-operations cause incomplete writes which lead to kernel panics in JFFS2.
 
-We investigated the issue - it is caused by bug in FL_SHUTDOWN parsing code. 
-Sometimes chip returns -EIO as if it is in FL_SHUTDOWN state when it should
-wait in FL_PONT (error in order of conditions).
+- Remove the BUG() which trips, borrow the code from scsi_end_request().
+  This may break CD burning, because I am not sure residue gets returned
+  to cdrecord for successful commands. But everything that's good for SCSI
+  should be good for everyone else, right?
+- Ignore improper USB level residue. Too many devices have this bug.
+- Update cosmetics: spelling, formatting
 
-The following patch fixes the bug in state parsing code of CFI.  Also I've
-added comments to notify developers if they want to add new case in future. 
-
-Signed-off-by: Alexey Korolev <akorolev@infradead.org>
-Reviewed-by: Joern Engel <joern@logfs.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Pete Zaitcev <zaitcev@redhat.com>
+Cc: Chris Wedgwood <cw@f00f.org>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Kiyoshi Ueda <k-ueda@ct.jp.nec.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/chips/cfi_cmdset_0001.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/block/ub.c |   76 +++++++++++++++++++++++++------------------
+ 1 file changed, 45 insertions(+), 31 deletions(-)
 
-diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~mtd-fix-broken-state-in-cfi-driver-caused-by-fl_shutdown drivers/mtd/chips/cfi_cmdset_0001.c
---- a/drivers/mtd/chips/cfi_cmdset_0001.c~mtd-fix-broken-state-in-cfi-driver-caused-by-fl_shutdown
-+++ a/drivers/mtd/chips/cfi_cmdset_0001.c
-@@ -718,7 +718,7 @@ static int chip_ready (struct map_info *
- 			/* Someone else might have been playing with it. */
- 			return -EAGAIN;
- 		}
--
-+		/* Fall through */
- 	case FL_READY:
- 	case FL_CFI_QUERY:
- 	case FL_JEDEC_QUERY:
-@@ -778,14 +778,14 @@ static int chip_ready (struct map_info *
- 		chip->state = FL_READY;
- 		return 0;
+diff -puN drivers/block/ub.c~usb-ub-drop-bug-and-update-small-things drivers/block/ub.c
+--- a/drivers/block/ub.c~usb-ub-drop-bug-and-update-small-things
++++ a/drivers/block/ub.c
+@@ -317,6 +317,7 @@ struct ub_dev {
+ 	int openc;			/* protected by ub_lock! */
+ 					/* kref is too implicit for our taste */
+ 	int reset;			/* Reset is running */
++	int bad_resid;
+ 	unsigned int tagcnt;
+ 	char name[12];
+ 	struct usb_device *dev;
+@@ -359,7 +360,8 @@ static void ub_cmd_build_block(struct ub
+ static void ub_cmd_build_packet(struct ub_dev *sc, struct ub_lun *lun,
+     struct ub_scsi_cmd *cmd, struct ub_request *urq);
+ static void ub_rw_cmd_done(struct ub_dev *sc, struct ub_scsi_cmd *cmd);
+-static void ub_end_rq(struct request *rq, unsigned int status);
++static void ub_end_rq(struct request *rq, unsigned int status,
++    unsigned int act_len);
+ static int ub_rw_cmd_retry(struct ub_dev *sc, struct ub_lun *lun,
+     struct ub_request *urq, struct ub_scsi_cmd *cmd);
+ static int ub_submit_scsi(struct ub_dev *sc, struct ub_scsi_cmd *cmd);
+@@ -642,13 +644,13 @@ static int ub_request_fn_1(struct ub_lun
  
-+	case FL_SHUTDOWN:
-+		/* The machine is rebooting now,so no one can get chip anymore */
-+		return -EIO;
- 	case FL_POINT:
- 		/* Only if there's no operation suspended... */
- 		if (mode == FL_READY && chip->oldstate == FL_READY)
- 			return 0;
+ 	if (atomic_read(&sc->poison)) {
+ 		blkdev_dequeue_request(rq);
+-		ub_end_rq(rq, DID_NO_CONNECT << 16);
++		ub_end_rq(rq, DID_NO_CONNECT << 16, 0);
+ 		return 0;
+ 	}
+ 
+ 	if (lun->changed && !blk_pc_request(rq)) {
+ 		blkdev_dequeue_request(rq);
+-		ub_end_rq(rq, SAM_STAT_CHECK_CONDITION);
++		ub_end_rq(rq, SAM_STAT_CHECK_CONDITION, 0);
+ 		return 0;
+ 	}
+ 
+@@ -701,7 +703,7 @@ static int ub_request_fn_1(struct ub_lun
+ 
+ drop:
+ 	ub_put_cmd(lun, cmd);
+-	ub_end_rq(rq, DID_ERROR << 16);
++	ub_end_rq(rq, DID_ERROR << 16, 0);
+ 	return 0;
+ }
+ 
+@@ -770,16 +772,11 @@ static void ub_rw_cmd_done(struct ub_dev
+ 	struct ub_request *urq = cmd->back;
+ 	struct request *rq;
+ 	unsigned int scsi_status;
++	unsigned int act_len;
+ 
+ 	rq = urq->rq;
+ 
+ 	if (cmd->error == 0) {
+-		if (blk_pc_request(rq)) {
+-			if (cmd->act_len >= rq->data_len)
+-				rq->data_len = 0;
+-			else
+-				rq->data_len -= cmd->act_len;
+-		}
+ 		scsi_status = 0;
+ 	} else {
+ 		if (blk_pc_request(rq)) {
+@@ -799,16 +796,21 @@ static void ub_rw_cmd_done(struct ub_dev
+ 		}
+ 	}
+ 
++	if ((act_len = cmd->act_len) > cmd->len)
++		act_len = cmd->len;
++
+ 	urq->rq = NULL;
+ 
+ 	ub_put_cmd(lun, cmd);
+-	ub_end_rq(rq, scsi_status);
++	ub_end_rq(rq, scsi_status, act_len);
+ 	blk_start_queue(lun->disk->queue);
+ }
+ 
+-static void ub_end_rq(struct request *rq, unsigned int scsi_status)
++static void ub_end_rq(struct request *rq, unsigned int scsi_status,
++    unsigned int act_len)
+ {
+ 	int error;
++	long rqlen;
+ 
+ 	if (scsi_status == 0) {
+ 		error = 0;
+@@ -816,8 +818,18 @@ static void ub_end_rq(struct request *rq
+ 		error = -EIO;
+ 		rq->errors = scsi_status;
+ 	}
+-	if (__blk_end_request(rq, error, blk_rq_bytes(rq)))
+-		BUG();
++	rqlen = blk_rq_bytes(rq);
++	if (__blk_end_request(rq, error, act_len)) {
++		if (error) {
++			if (__blk_end_request(rq, error, blk_rq_bytes(rq))) {
++				printk(KERN_WARNING DRV_NAME
++				    ": __blk_end_request blew,"
++				    " %s-cmd rqlen %ld act %u\n",
++				    blk_pc_request(rq)? "pc": "fs",
++				    rqlen, act_len);
++			}
++		}
++	}
+ }
+ 
+ static int ub_rw_cmd_retry(struct ub_dev *sc, struct ub_lun *lun,
+@@ -1239,14 +1251,19 @@ static void ub_scsi_urb_compl(struct ub_
+ 			return;
+ 		}
+ 
+-		len = le32_to_cpu(bcs->Residue);
+-		if (len != cmd->len - cmd->act_len) {
+-			/*
+-			 * It is all right to transfer less, the caller has
+-			 * to check. But it's not all right if the device
+-			 * counts disagree with our counts.
+-			 */
+-			goto Bad_End;
++		if (!sc->bad_resid) {
++			len = le32_to_cpu(bcs->Residue);
++			if (len != cmd->len - cmd->act_len) {
++				/*
++				 * Only start ignoring if this cmd ended well.
++				 */
++				if (cmd->len == cmd->act_len) {
++					printk(KERN_NOTICE "%s: "
++					    "bad residual %d of %d, ignoring\n",
++					    sc->name, len, cmd->len);
++					sc->bad_resid = 1;
++				}
++			}
+ 		}
+ 
+ 		switch (bcs->Status) {
+@@ -1277,8 +1294,7 @@ static void ub_scsi_urb_compl(struct ub_
+ 		ub_state_done(sc, cmd, -EIO);
+ 
+ 	} else {
+-		printk(KERN_WARNING "%s: "
+-		    "wrong command state %d\n",
++		printk(KERN_WARNING "%s: wrong command state %d\n",
+ 		    sc->name, cmd->state);
+ 		ub_state_done(sc, cmd, -EINVAL);
+ 		return;
+@@ -1495,8 +1511,7 @@ static void ub_top_sense_done(struct ub_
+ 		return;
+ 	}
+ 	if (cmd->state != UB_CMDST_SENSE) {
+-		printk(KERN_WARNING "%s: "
+-		    "sense done with bad cmd state %d\n",
++		printk(KERN_WARNING "%s: sense done with bad cmd state %d\n",
+ 		    sc->name, cmd->state);
+ 		return;
+ 	}
+@@ -1700,7 +1715,7 @@ static int ub_bd_ioctl(struct inode *ino
+ }
+ 
+ /*
+- * This is called once a new disk was seen by the block layer or by ub_probe().
++ * This is called by check_disk_change if we reported a media change.
+  * The main onjective here is to discover the features of the media such as
+  * the capacity, read-only status, etc. USB storage generally does not
+  * need to be spun up, but if we needed it, this would be the place.
+@@ -2116,8 +2131,7 @@ static int ub_get_pipes(struct ub_dev *s
+ 	}
+ 
+ 	if (ep_in == NULL || ep_out == NULL) {
+-		printk(KERN_NOTICE "%s: failed endpoint check\n",
+-		    sc->name);
++		printk(KERN_NOTICE "%s: failed endpoint check\n", sc->name);
+ 		return -ENODEV;
+ 	}
+ 
+@@ -2334,7 +2348,7 @@ static void ub_disconnect(struct usb_int
+ 	spin_unlock_irqrestore(&ub_lock, flags);
+ 
+ 	/*
+-	 * Fence stall clearnings, operations triggered by unlinkings and so on.
++	 * Fence stall clearings, operations triggered by unlinkings and so on.
+ 	 * We do not attempt to unlink any URBs, because we do not trust the
+ 	 * unlink paths in HC drivers. Also, we get -84 upon disconnect anyway.
+ 	 */
+@@ -2397,7 +2411,7 @@ static void ub_disconnect(struct usb_int
+ 	spin_unlock_irqrestore(sc->lock, flags);
+ 
+ 	/*
+-	 * There is virtually no chance that other CPU runs times so long
++	 * There is virtually no chance that other CPU runs a timeout so long
+ 	 * after ub_urb_complete should have called del_timer, but only if HCD
+ 	 * didn't forget to deliver a callback on unlink.
+ 	 */
+_
+
+Patches currently in -mm which might be from zaitcev@redhat.com are
+
+usb-ub-drop-bug-and-update-small-things.patch
+git-hid.patch
+
