@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + ub-remove-bug-after-__blk_end_request-and-fix-the-condition-causing-it.patch added to -mm tree
-Date: Fri, 04 Apr 2008 12:55:39 -0700
-Message-ID: <200804041955.m34Jtdfi006321@imap1.linux-foundation.org>
+Subject: + git-cryptodev-misplaced-hunk.patch added to -mm tree
+Date: Fri, 04 Apr 2008 12:49:22 -0700
+Message-ID: <200804041959.m34JxT7I006406@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52861 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49206 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752718AbYDDT60 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:58:26 -0400
+	by vger.kernel.org with ESMTP id S1752718AbYDDT7h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 15:59:37 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m34JxYDl007164
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Fri, 4 Apr 2008 12:59:36 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zaitcev@redhat.com, bharrosh@panasas.com, greg@kroah.com, k-ueda@ct.jp.nec.com, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     ub: remove BUG() after __blk_end_request and fix the condition causing it
+     git-cryptodev-misplaced-hunk
 has been added to the -mm tree.  Its filename is
-     ub-remove-bug-after-__blk_end_request-and-fix-the-condition-causing-it.patch
+     git-cryptodev-misplaced-hunk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,145 +37,213 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ub: remove BUG() after __blk_end_request and fix the condition causing it
-From: Pete Zaitcev <zaitcev@redhat.com>
+Subject: git-cryptodev-misplaced-hunk
+From: Andrew Morton <akpm@linux-foundation.org>
 
-When __blk_end_request returns nonzero, it means that the request was
-not completely processed and some BIOs are still attached. Since we
-have dequeued it by that time, it means leaking requests and hanging
-processes, which is why BUG() was in there. In ub this happens if
-a packet request ends normally, but with residue (e.g. when scsi_id
-issues INQUIRY).
-
-The fix is to make sure that arguments passed to __blk_end_request
-are correct: the full request length and not just transferred length.
-The transferred length is indicated to applications by adjusting
-rq->data_len with old, unchanged code outside of this patch.
-
-Signed-off-by: Pete Zaitcev <zaitcev@redhat.com>
-Cc: Kiyoshi Ueda <k-ueda@ct.jp.nec.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Boaz Harrosh <bharrosh@panasas.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/ub.c |   38 +++++++++++++++++++++++++++++---------
- 1 file changed, 29 insertions(+), 9 deletions(-)
+ drivers/char/hw_random/core.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/block/ub.c~ub-remove-bug-after-__blk_end_request-and-fix-the-condition-causing-it drivers/block/ub.c
---- a/drivers/block/ub.c~ub-remove-bug-after-__blk_end_request-and-fix-the-condition-causing-it
-+++ a/drivers/block/ub.c
-@@ -8,6 +8,7 @@
-  * and is not licensed separately. See file COPYING for details.
-  *
-  * TODO (sorted by decreasing priority)
-+ *  -- Return sense now that rq allows it (we always auto-sense anyway).
-  *  -- set readonly flag for CDs, set removable flag for CF readers
-  *  -- do inquiry and verify we got a disk and not a tape (for LUN mismatch)
-  *  -- verify the 13 conditions and do bulk resets
-@@ -359,7 +360,8 @@ static void ub_cmd_build_block(struct ub
- static void ub_cmd_build_packet(struct ub_dev *sc, struct ub_lun *lun,
-     struct ub_scsi_cmd *cmd, struct ub_request *urq);
- static void ub_rw_cmd_done(struct ub_dev *sc, struct ub_scsi_cmd *cmd);
--static void ub_end_rq(struct request *rq, unsigned int status);
-+static void ub_end_rq(struct request *rq, unsigned int status,
-+    unsigned int cmd_len);
- static int ub_rw_cmd_retry(struct ub_dev *sc, struct ub_lun *lun,
-     struct ub_request *urq, struct ub_scsi_cmd *cmd);
- static int ub_submit_scsi(struct ub_dev *sc, struct ub_scsi_cmd *cmd);
-@@ -642,13 +644,13 @@ static int ub_request_fn_1(struct ub_lun
+diff -puN drivers/char/hw_random/core.c~git-cryptodev-misplaced-hunk drivers/char/hw_random/core.c
+--- a/drivers/char/hw_random/core.c~git-cryptodev-misplaced-hunk
++++ a/drivers/char/hw_random/core.c
+@@ -279,10 +279,6 @@ int hwrng_register(struct hwrng *rng)
+ 	if (rng->name == NULL ||
+ 	    rng->data_read == NULL)
+ 		goto out;
+-		if (bytes_read < 0) {
+-			err = bytes_read;
+-			goto out;
+-		}
  
- 	if (atomic_read(&sc->poison)) {
- 		blkdev_dequeue_request(rq);
--		ub_end_rq(rq, DID_NO_CONNECT << 16);
-+		ub_end_rq(rq, DID_NO_CONNECT << 16, blk_rq_bytes(rq));
- 		return 0;
- 	}
+ 	mutex_lock(&rng_mutex);
  
- 	if (lun->changed && !blk_pc_request(rq)) {
- 		blkdev_dequeue_request(rq);
--		ub_end_rq(rq, SAM_STAT_CHECK_CONDITION);
-+		ub_end_rq(rq, SAM_STAT_CHECK_CONDITION, blk_rq_bytes(rq));
- 		return 0;
- 	}
- 
-@@ -701,7 +703,7 @@ static int ub_request_fn_1(struct ub_lun
- 
- drop:
- 	ub_put_cmd(lun, cmd);
--	ub_end_rq(rq, DID_ERROR << 16);
-+	ub_end_rq(rq, DID_ERROR << 16, blk_rq_bytes(rq));
- 	return 0;
- }
- 
-@@ -770,6 +772,7 @@ static void ub_rw_cmd_done(struct ub_dev
- 	struct ub_request *urq = cmd->back;
- 	struct request *rq;
- 	unsigned int scsi_status;
-+	unsigned int cmd_len;
- 
- 	rq = urq->rq;
- 
-@@ -779,8 +782,18 @@ static void ub_rw_cmd_done(struct ub_dev
- 				rq->data_len = 0;
- 			else
- 				rq->data_len -= cmd->act_len;
-+			scsi_status = 0;
-+		} else {
-+			if (cmd->act_len != cmd->len) {
-+				if ((cmd->key == MEDIUM_ERROR ||
-+				     cmd->key == UNIT_ATTENTION) &&
-+				    ub_rw_cmd_retry(sc, lun, urq, cmd) == 0)
-+					return;
-+				scsi_status = SAM_STAT_CHECK_CONDITION;
-+			} else {
-+				scsi_status = 0;
-+			}
- 		}
--		scsi_status = 0;
- 	} else {
- 		if (blk_pc_request(rq)) {
- 			/* UB_SENSE_SIZE is smaller than SCSI_SENSE_BUFFERSIZE */
-@@ -801,14 +814,17 @@ static void ub_rw_cmd_done(struct ub_dev
- 
- 	urq->rq = NULL;
- 
-+	cmd_len = cmd->len;
- 	ub_put_cmd(lun, cmd);
--	ub_end_rq(rq, scsi_status);
-+	ub_end_rq(rq, scsi_status, cmd_len);
- 	blk_start_queue(lun->disk->queue);
- }
- 
--static void ub_end_rq(struct request *rq, unsigned int scsi_status)
-+static void ub_end_rq(struct request *rq, unsigned int scsi_status,
-+    unsigned int cmd_len)
- {
- 	int error;
-+	long rqlen;
- 
- 	if (scsi_status == 0) {
- 		error = 0;
-@@ -816,8 +832,12 @@ static void ub_end_rq(struct request *rq
- 		error = -EIO;
- 		rq->errors = scsi_status;
- 	}
--	if (__blk_end_request(rq, error, blk_rq_bytes(rq)))
--		BUG();
-+	rqlen = blk_rq_bytes(rq);    /* Oddly enough, this is the residue. */
-+	if (__blk_end_request(rq, error, cmd_len)) {
-+		printk(KERN_WARNING DRV_NAME
-+		    ": __blk_end_request blew, %s-cmd total %u rqlen %ld\n",
-+		    blk_pc_request(rq)? "pc": "fs", cmd_len, rqlen);
-+	}
- }
- 
- static int ub_rw_cmd_retry(struct ub_dev *sc, struct ub_lun *lun,
 _
 
-Patches currently in -mm which might be from zaitcev@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ub-remove-bug-after-__blk_end_request-and-fix-the-condition-causing-it.patch
-git-hid.patch
+origin.patch
+parport_pc-dont-forget-to-unregister-the-temporarily-registered-region.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+git-x86.patch
+git-x86-fix-printk-warning.patch
+i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
+git-kgdb-light.patch
+git-acpi.patch
+git-acpi-fixup.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-alsa-tiwai.patch
+es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
+es1968-fix-sleep-while-holding-lock-bug-checkpatch-fixes.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+cifs-suppress-warning.patch
+git-powerpc.patch
+pm-remove-destroy_suspended_device.patch
+scsi-add-iscsi-ibft-support.patch
+git-dvb.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-hrt.patch
+arch-ia64-kernel-use-time_-macros.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-kvm.patch
+git-kvm-git-rejects.patch
+git-kvm-vs-git-s390.patch
+git-leds.patch
+git-libata-all.patch
+git-async-tx.patch
+git-mips.patch
+git-net.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
+pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-introduce-pci_slot-fix-fix.patch
+pci-hotplug-introduce-pci_slot-fix-2.patch
+pci-hotplug-introduce-pci_slot-fix-99.patch
+pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
+git-s390.patch
+git-s390-git-rejects.patch
+git-sh.patch
+git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-misplaced-hunk.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+git-semaphore-git-rejects.patch
+smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+mm-introduce-pte_special-pte-bit-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
 
