@@ -1,97 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: + gpiochip_reserve-fix-2.patch added to -mm tree
-Date: Fri, 04 Apr 2008 20:27:56 -0700
-Message-ID: <200804050327.m353RufX022660@imap1.linux-foundation.org>
+Subject: - acpi-fix-bug-10124.patch removed from -mm tree
+Date: Sat, 05 Apr 2008 23:58:16 -0700
+Message-ID: <200804060658.m366wGeq011024@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45022 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39592 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751133AbYDED2v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Apr 2008 23:28:51 -0400
+	by vger.kernel.org with ESMTP id S1751015AbYDFG6m (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Apr 2008 02:58:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net
+To: yakui.zhao@intel.com, greg@kroah.com, lenb@kernel.org, stian@jordet.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     don't export gpiochip_reserve (section fix)
-has been added to the -mm tree.  Its filename is
-     gpiochip_reserve-fix-2.patch
+     acpi: fix bug 10124
+has been removed from the -mm tree.  Its filename was
+     acpi-fix-bug-10124.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: don't export gpiochip_reserve (section fix)
-From: David Brownell <david-b@pacbell.net>
+Subject: acpi: fix bug 10124
 
-Fix section warning:
-  WARNING: drivers/gpio/built-in.o(__ksymtab_gpl+0xc0): Section mismatch
-  in reference from the variable __ksymtab_gpiochip_reserve
-  to the function .init.text:gpiochip_reserve()
-  The symbol gpiochip_reserve is exported and annotated __init
-  Fix this by removing the __init annotation of gpiochip_reserve or drop the export.
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
+Unchangelogged patch, taken from
+http://bugzilla.kernel.org/show_bug.cgi?id=10124
+
+Cc: <yakui.zhao@intel.com>
+Cc: Stian Jordet <stian@jordet.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/ia64/pci/pci.c |    7 ++++++-
+ arch/x86/pci/acpi.c |   17 +++++++++++++++--
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpiochip_reserve-fix-2 drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiochip_reserve-fix-2
-+++ a/drivers/gpio/gpiolib.c
-@@ -150,7 +150,6 @@ err:
+diff -puN arch/ia64/pci/pci.c~acpi-fix-bug-10124 arch/ia64/pci/pci.c
+--- a/arch/ia64/pci/pci.c~acpi-fix-bug-10124
++++ a/arch/ia64/pci/pci.c
+@@ -362,7 +362,12 @@ pci_acpi_scan_root(struct acpi_device *d
+ 	info.name = name;
+ 	acpi_walk_resources(device->handle, METHOD_NAME__CRS, add_window,
+ 			&info);
+-
++	/*
++	 * See arch/x86/pci/acpi.c.
++	 * The desired pci bus might already be scanned in a quirk. We
++	 * should handle the case here, but it appears that IA64 hasn't
++	 * such quirk. So we just ignore the case now.
++	 */
+ 	pbus = pci_scan_bus_parented(NULL, bus, &pci_root_ops, controller);
+ 	if (pbus)
+ 		pcibios_setup_root_windows(pbus, controller);
+diff -puN arch/x86/pci/acpi.c~acpi-fix-bug-10124 arch/x86/pci/acpi.c
+--- a/arch/x86/pci/acpi.c~acpi-fix-bug-10124
++++ a/arch/x86/pci/acpi.c
+@@ -219,8 +219,21 @@ struct pci_bus * __devinit pci_acpi_scan
+ 	if (pxm >= 0)
+ 		sd->node = pxm_to_node(pxm);
+ #endif
++	/*
++	 * Maybe the desired pci bus has been already scanned. In such case
++	 * it is unnecessary to scan the pci bus with the given domain,busnum.
++	 */
++	bus = pci_find_bus(domain, busnum);
++	if (bus) {
++		/*
++		 * If the desired bus exits, the content of bus->sysdata will
++		 * be replaced by sd.
++		 */
++		memcpy(bus->sysdata, sd, sizeof(*sd));
++		kfree(sd);
++	} else
++		bus = pci_scan_bus_parented(NULL, busnum, &pci_root_ops, sd);
  
- 	return ret;
- }
--EXPORT_SYMBOL_GPL(gpiochip_reserve);
+-	bus = pci_scan_bus_parented(NULL, busnum, &pci_root_ops, sd);
+ 	if (!bus)
+ 		kfree(sd);
  
- /**
-  * gpiochip_add() - register a gpio_chip
+@@ -228,7 +241,7 @@ struct pci_bus * __devinit pci_acpi_scan
+ 	if (bus != NULL) {
+ 		if (pxm >= 0) {
+ 			printk("bus %d -> pxm %d -> node %d\n",
+-				busnum, pxm, sd->node);
++				busnum, pxm, pxm_to_node(pxm));
+ 		}
+ 	}
+ #endif
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from yakui.zhao@intel.com are
 
-origin.patch
-git-acpi.patch
-git-arm.patch
-git-avr32.patch
-git-input.patch
-input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-spi-pxa2xx_spi-sparse-fixes.patch
-atmel_spi-support-zero-length-transfer.patch
-rtc-avoid-legacy-drivers-with-generic-framework.patch
-rtc-avoid-legacy-drivers-with-generic-framework-update.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
-make-ds1511_rtc_readset_time-static.patch
-kerneldoc-for-linux-clkh.patch
-kerneldoc-for-linux-clkh-fix.patch
-rtc-rtc-rs5c372-fix-up-null-name-in-transfer-error-path.patch
-rtc-rtc-rs5c372-smbus-conversion-support.patch
-rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
-rtc-replace-remaining-__function__-occurrences.patch
-gpiochip_reserve-fix-2.patch
-remove-duplicated-unlikely-in-is_err.patch
+acpi-fix-bug-10124.patch
 
