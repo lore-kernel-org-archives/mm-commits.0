@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-build-source-files-in-documentation-sub-dir.patch added to -mm tree
-Date: Mon, 07 Apr 2008 16:17:12 -0700
-Message-ID: <200804072317.m37NHCU5030031@imap1.linux-foundation.org>
+Subject: + cgroups-introduce-cft-read_seq-v2.patch added to -mm tree
+Date: Mon, 07 Apr 2008 16:18:34 -0700
+Message-ID: <200804072318.m37NIY4k030076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51607 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44742 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755746AbYDGXSO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 19:18:14 -0400
+	by vger.kernel.org with ESMTP id S1751405AbYDGXTO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 19:19:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, sam@ravnborg.org
+Cc: serue@us.ibm.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com
 
 
 The patch titled
-     documentation: build source files in Documentation sub-dir
+     cgroups: introduce cft->read_seq()
 has been added to the -mm tree.  Its filename is
-     documentation-build-source-files-in-documentation-sub-dir.patch
+     cgroups-introduce-cft-read_seq-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,280 +33,232 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation: build source files in Documentation sub-dir
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: cgroups: introduce cft->read_seq()
+From: Serge E. Hallyn <serue@us.ibm.com>
 
-Currently source files in the Documentation/ sub-dir can easily bit-rot since
-they are not generally buildable, either because they are hidden in text files
-or because there are no Makefile rules for them.  This needs to be fixed so
-that the source files remain usable and good examples of code instead of bad
-examples.
+Introduce a read_seq() helper in cftype, which uses seq_file to print out
+lists.  Use it in the devices cgroup.  Also split devices.allow into two
+files, so now devices.deny and devices.allow are the ones to use to manipulate
+the whitelist, while devices.list outputs the cgroup's current whitelist.
 
-Add the ability to build source files that are in the Documentation/ dir.  Add
-to Kconfig as "BUILD_DOCSRC" config symbol.
-
-Use "CONFIG_BUILD_DOCSRC=1 make ..." to build objects from the Documentation/
-sources.  Or enable BUILD_DOCSRC in the *config system.
-
-The Makefiles use $objdir/usr/include for header files, so doing
-"make headers_install" is required.  This is done for you if you enable
-CONFIG_HEADERS_CHECK=y.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Reviewed-by: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Acked-by: Paul Menage <menage@google.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/Makefile              |    7 +++++++
- Documentation/Makefile                      |    3 +++
- Documentation/accounting/Makefile           |   10 ++++++++++
- Documentation/auxdisplay/Makefile           |   10 ++++++++++
- Documentation/connector/Makefile            |    9 +++++++++
- Documentation/filesystems/configfs/Makefile |    1 +
- Documentation/ia64/Makefile                 |    8 ++++++++
- Documentation/networking/Makefile           |    8 ++++++++
- Documentation/pcmcia/Makefile               |   10 ++++++++++
- Documentation/spi/Makefile                  |   11 +++++++++++
- Documentation/video4linux/Makefile          |    8 ++++++++
- Documentation/vm/Makefile                   |    8 ++++++++
- Documentation/watchdog/src/Makefile         |    8 ++++++++
- Makefile                                    |    5 ++++-
- lib/Kconfig.debug                           |    8 ++++++++
- 15 files changed, 113 insertions(+), 1 deletion(-)
+ include/linux/cgroup.h   |    6 +++
+ kernel/cgroup.c          |   15 ++++---
+ security/device_cgroup.c |   74 +++++++++++--------------------------
+ 3 files changed, 38 insertions(+), 57 deletions(-)
 
-diff -puN Documentation/DocBook/Makefile~documentation-build-source-files-in-documentation-sub-dir Documentation/DocBook/Makefile
---- a/Documentation/DocBook/Makefile~documentation-build-source-files-in-documentation-sub-dir
-+++ a/Documentation/DocBook/Makefile
-@@ -102,6 +102,13 @@ C-procfs-example = procfs_example.xml
- C-procfs-example2 = $(addprefix $(obj)/,$(C-procfs-example))
- $(obj)/procfs-guide.xml: $(C-procfs-example2)
+diff -puN include/linux/cgroup.h~cgroups-introduce-cft-read_seq-v2 include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroups-introduce-cft-read_seq-v2
++++ a/include/linux/cgroup.h
+@@ -226,6 +226,12 @@ struct cftype {
+ 	 */
+ 	int (*read_map) (struct cgroup *cont, struct cftype *cft,
+ 			 struct cgroup_map_cb *cb);
++	/*
++	 * read_seq_string() is used for outputting a simple sequence
++	 * using seqfile.
++	 */
++	int (*read_seq_string) (struct cgroup *cont, struct cftype *cft,
++			 struct seq_file *m);
  
-+# List of programs to build
-+##oops, this is a kernel module::hostprogs-y := procfs_example
-+obj-m += procfs_example.o
-+
-+# Tell kbuild to always build the programs
-+always := $(hostprogs-y)
-+
- notfoundtemplate = echo "*** You have to install docbook-utils or xmlto ***"; \
- 		   exit 1
- db2xtemplate = db2TYPE -o $(dir $@) $<
-diff -puN /dev/null Documentation/Makefile
---- /dev/null
-+++ a/Documentation/Makefile
-@@ -0,0 +1,3 @@
-+obj-m := DocBook/ accounting/ auxdisplay/ connector/ \
-+	filesystems/configfs/ ia64/ networking/ \
-+	pcmcia/ spi/ video4linux/ vm/ watchdog/src/
-diff -puN /dev/null Documentation/accounting/Makefile
---- /dev/null
-+++ a/Documentation/accounting/Makefile
-@@ -0,0 +1,10 @@
-+# kbuild trick to avoid linker error. Can be omitted if a module is built.
-+obj- := dummy.o
-+
-+# List of programs to build
-+hostprogs-y := getdelays
-+
-+# Tell kbuild to always build the programs
-+always := $(hostprogs-y)
-+
-+HOSTCFLAGS_getdelays.o += -I$(srctree)/usr/include
-diff -puN /dev/null Documentation/auxdisplay/Makefile
---- /dev/null
-+++ a/Documentation/auxdisplay/Makefile
-@@ -0,0 +1,10 @@
-+# kbuild trick to avoid linker error. Can be omitted if a module is built.
-+obj- := dummy.o
-+
-+# List of programs to build
-+hostprogs-y := cfag12864b-example
-+
-+# Tell kbuild to always build the programs
-+always := $(hostprogs-y)
-+
-+HOSTCFLAGS_cfag12864b-example.o += -I$(srctree)/usr/include
-diff -puN /dev/null Documentation/connector/Makefile
---- /dev/null
-+++ a/Documentation/connector/Makefile
-@@ -0,0 +1,9 @@
-+obj-m += cn_test.o
-+
-+# List of programs to build
-+hostprogs-y := ucon
-+
-+# Tell kbuild to always build the programs
-+always := $(hostprogs-y)
-+
-+HOSTCFLAGS_ucon.o += -I$(srctree)/usr/include
-diff -puN /dev/null Documentation/filesystems/configfs/Makefile
---- /dev/null
-+++ a/Documentation/filesystems/configfs/Makefile
-@@ -0,0 +1 @@
-+obj-m += configfs_example.o
-diff -puN /dev/null Documentation/ia64/Makefile
---- /dev/null
-+++ a/Documentation/ia64/Makefile
-@@ -0,0 +1,8 @@
-+# kbuild trick to avoid linker error. Can be omitted if a module is built.
-+obj- := dummy.o
-+
-+# List of programs to build
-+hostprogs-y := aliasing-test
-+
-+# Tell kbuild to always build the programs
-+always := $(hostprogs-y)
-diff -puN /dev/null Documentation/networking/Makefile
---- /dev/null
-+++ a/Documentation/networking/Makefile
-@@ -0,0 +1,8 @@
-+# kbuild trick to avoid linker error. Can be omitted if a module is built.
-+obj- := dummy.o
-+
-+# List of programs to build
-+hostprogs-y := ifenslave
-+
-+# Tell kbuild to always build the programs
-+always := $(hostprogs-y)
-diff -puN /dev/null Documentation/pcmcia/Makefile
---- /dev/null
-+++ a/Documentation/pcmcia/Makefile
-@@ -0,0 +1,10 @@
-+# kbuild trick to avoid linker error. Can be omitted if a module is built.
-+obj- := dummy.o
-+
-+# List of programs to build
-+hostprogs-y := crc32hash
-+
-+# Tell kbuild to always build the programs
-+always := $(hostprogs-y)
-+
-+HOSTCFLAGS_crc32hash.o += -I$(srctree)/usr/include
-diff -puN /dev/null Documentation/spi/Makefile
---- /dev/null
-+++ a/Documentation/spi/Makefile
-@@ -0,0 +1,11 @@
-+# kbuild trick to avoid linker error. Can be omitted if a module is built.
-+obj- := dummy.o
-+
-+# List of programs to build
-+hostprogs-y := spidev_test spidev_fdx
-+
-+# Tell kbuild to always build the programs
-+always := $(hostprogs-y)
-+
-+HOSTCFLAGS_spidev_test.o += -I$(srctree)/usr/include
-+HOSTCFLAGS_spidev_fdx.o += -I$(srctree)/usr/include
-diff -puN /dev/null Documentation/video4linux/Makefile
---- /dev/null
-+++ a/Documentation/video4linux/Makefile
-@@ -0,0 +1,8 @@
-+# kbuild trick to avoid linker error. Can be omitted if a module is built.
-+obj- := dummy.o
-+
-+# List of programs to build
-+hostprogs-y := v4lgrab
-+
-+# Tell kbuild to always build the programs
-+always := $(hostprogs-y)
-diff -puN /dev/null Documentation/vm/Makefile
---- /dev/null
-+++ a/Documentation/vm/Makefile
-@@ -0,0 +1,8 @@
-+# kbuild trick to avoid linker error. Can be omitted if a module is built.
-+obj- := dummy.o
-+
-+# List of programs to build
-+hostprogs-y := slabinfo
-+
-+# Tell kbuild to always build the programs
-+always := $(hostprogs-y)
-diff -puN /dev/null Documentation/watchdog/src/Makefile
---- /dev/null
-+++ a/Documentation/watchdog/src/Makefile
-@@ -0,0 +1,8 @@
-+# kbuild trick to avoid linker error. Can be omitted if a module is built.
-+obj- := dummy.o
-+
-+# List of programs to build
-+hostprogs-y := watchdog-simple watchdog-test
-+
-+# Tell kbuild to always build the programs
-+always := $(hostprogs-y)
-diff -puN Makefile~documentation-build-source-files-in-documentation-sub-dir Makefile
---- a/Makefile~documentation-build-source-files-in-documentation-sub-dir
-+++ a/Makefile
-@@ -806,6 +806,9 @@ endif
- ifdef CONFIG_SAMPLES
- 	$(Q)$(MAKE) $(build)=samples
- endif
-+ifdef CONFIG_BUILD_DOCSRC
-+	$(Q)$(MAKE) $(build)=Documentation
-+endif
- 	$(call vmlinux-modpost)
- 	$(call if_changed_rule,vmlinux__)
- 	$(Q)rm -f .old_version
-@@ -1114,7 +1117,7 @@ MRPROPER_FILES += .config .config.old in
- #
- clean: rm-dirs  := $(CLEAN_DIRS)
- clean: rm-files := $(CLEAN_FILES)
--clean-dirs      := $(addprefix _clean_,$(srctree) $(vmlinux-alldirs))
-+clean-dirs      := $(addprefix _clean_,$(srctree) $(vmlinux-alldirs) Documentation)
+ 	ssize_t (*write) (struct cgroup *cgrp, struct cftype *cft,
+ 			  struct file *file,
+diff -puN kernel/cgroup.c~cgroups-introduce-cft-read_seq-v2 kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-introduce-cft-read_seq-v2
++++ a/kernel/cgroup.c
+@@ -1549,11 +1549,14 @@ static int cgroup_seqfile_show(struct se
+ {
+ 	struct cgroup_seqfile_state *state = m->private;
+ 	struct cftype *cft = state->cft;
+-	struct cgroup_map_cb cb = {
+-		.fill = cgroup_map_add,
+-		.state = m,
+-	};
+-	return cft->read_map(state->cgroup, cft, &cb);
++	if (cft->read_map) {
++		struct cgroup_map_cb cb = {
++			.fill = cgroup_map_add,
++			.state = m,
++		};
++		return cft->read_map(state->cgroup, cft, &cb);
++	}
++	return cft->read_seq_string(state->cgroup, cft, m);
+ }
  
- PHONY += $(clean-dirs) clean archclean
- $(clean-dirs):
-diff -puN lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir lib/Kconfig.debug
---- a/lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir
-+++ a/lib/Kconfig.debug
-@@ -641,6 +641,14 @@ config PROVIDE_OHCI1394_DMA_INIT
+ int cgroup_seqfile_release(struct inode *inode, struct file *file)
+@@ -1581,7 +1584,7 @@ static int cgroup_file_open(struct inode
+ 	cft = __d_cft(file->f_dentry);
+ 	if (!cft)
+ 		return -ENODEV;
+-	if (cft->read_map) {
++	if (cft->read_map || cft->read_seq_string) {
+ 		struct cgroup_seqfile_state *state =
+ 			kzalloc(sizeof(*state), GFP_USER);
+ 		if (!state)
+diff -puN security/device_cgroup.c~cgroups-introduce-cft-read_seq-v2 security/device_cgroup.c
+--- a/security/device_cgroup.c~cgroups-introduce-cft-read_seq-v2
++++ a/security/device_cgroup.c
+@@ -9,6 +9,7 @@
+ #include <linux/ctype.h>
+ #include <linux/list.h>
+ #include <linux/uaccess.h>
++#include <linux/seq_file.h>
  
- 	  See Documentation/debugging-via-ohci1394.txt for more information.
+ #define ACC_MKNOD 1
+ #define ACC_READ  2
+@@ -201,11 +202,15 @@ static void devcgroup_destroy(struct cgr
  
-+menuconfig BUILD_DOCSRC
-+	bool "Build targets in Documentation/ tree"
-+	help
-+	  This option attempts to build objects from the source files in the
-+	  kernel Documentation/ tree.
+ #define DEVCG_ALLOW 1
+ #define DEVCG_DENY 2
++#define DEVCG_LIST 3
 +
-+	  Say N if you are unsure.
-+
- source "samples/Kconfig"
++#define MAJMINLEN 10
++#define ACCLEN 4
  
- source "lib/Kconfig.kgdb"
+ static void set_access(char *acc, short access)
+ {
+ 	int idx = 0;
+-	memset(acc, 0, 4);
++	memset(acc, 0, ACCLEN);
+ 	if (access & ACC_READ)
+ 		acc[idx++] = 'r';
+ 	if (access & ACC_WRITE)
+@@ -225,70 +230,33 @@ static char type_to_char(short type)
+ 	return 'X';
+ }
+ 
+-static void set_majmin(char *str, int len, unsigned m)
++static void set_majmin(char *str, unsigned m)
+ {
+-	memset(str, 0, len);
++	memset(str, 0, MAJMINLEN);
+ 	if (m == ~0)
+ 		sprintf(str, "*");
+ 	else
+-		snprintf(str, len, "%d", m);
++		snprintf(str, MAJMINLEN, "%d", m);
+ }
+ 
+-static char *print_whitelist(struct dev_cgroup *devcgroup, int *len)
++static int devcgroup_seq_read(struct cgroup *cgroup, struct cftype *cft,
++				struct seq_file *m)
+ {
+-	char *buf, *s, acc[4];
++	struct dev_cgroup *devcgroup = cgroup_to_devcgroup(cgroup);
+ 	struct dev_whitelist_item *wh;
+-	int ret;
+-	int count = 0;
+-	char maj[10], min[10];
+-
+-	buf = kmalloc(4096, GFP_KERNEL);
+-	if (!buf)
+-		return ERR_PTR(-ENOMEM);
+-	s = buf;
+-	*s = '\0';
+-	*len = 0;
++	char maj[MAJMINLEN], min[MAJMINLEN], acc[ACCLEN];
+ 
+ 	spin_lock(&devcgroup->lock);
+ 	list_for_each_entry(wh, &devcgroup->whitelist, list) {
+ 		set_access(acc, wh->access);
+-		set_majmin(maj, 10, wh->major);
+-		set_majmin(min, 10, wh->minor);
+-		ret = snprintf(s, 4095-(s-buf), "%c %s:%s %s\n",
+-			type_to_char(wh->type), maj, min, acc);
+-		if (s+ret >= buf+4095) {
+-			kfree(buf);
+-			buf = ERR_PTR(-ENOMEM);
+-			break;
+-		}
+-		s += ret;
+-		*len += ret;
+-		count++;
++		set_majmin(maj, wh->major);
++		set_majmin(min, wh->minor);
++		seq_printf(m, "%c %s:%s %s\n", type_to_char(wh->type),
++			   maj, min, acc);
+ 	}
+ 	spin_unlock(&devcgroup->lock);
+ 
+-	return buf;
+-}
+-
+-static ssize_t devcgroup_access_read(struct cgroup *cgroup,
+-			struct cftype *cft, struct file *file,
+-			char __user *userbuf, size_t nbytes, loff_t *ppos)
+-{
+-	struct dev_cgroup *devcgroup = cgroup_to_devcgroup(cgroup);
+-	int filetype = cft->private;
+-	char *buffer;
+-	int uninitialized_var(len);
+-	int retval;
+-
+-	if (filetype != DEVCG_ALLOW)
+-		return -EINVAL;
+-	buffer = print_whitelist(devcgroup, &len);
+-	if (IS_ERR(buffer))
+-		return PTR_ERR(buffer);
+-
+-	retval = simple_read_from_buffer(userbuf, nbytes, ppos, buffer, len);
+-	kfree(buffer);
+-	return retval;
++	return 0;
+ }
+ 
+ /*
+@@ -501,7 +469,6 @@ out1:
+ static struct cftype dev_cgroup_files[] = {
+ 	{
+ 		.name = "allow",
+-		.read = devcgroup_access_read,
+ 		.write  = devcgroup_access_write,
+ 		.private = DEVCG_ALLOW,
+ 	},
+@@ -510,6 +477,11 @@ static struct cftype dev_cgroup_files[] 
+ 		.write = devcgroup_access_write,
+ 		.private = DEVCG_DENY,
+ 	},
++	{
++		.name = "list",
++		.read_seq_string = devcgroup_seq_read,
++		.private = DEVCG_LIST,
++	},
+ };
+ 
+ static int devcgroup_populate(struct cgroup_subsys *ss,
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
-x86_32-fix-visualws-and-voyager-kexec-build-failures.patch
-rapidio-fix-docbook-references.patch
-kbuild-silence-documentation-gen-xml-messages-according-to-quiet.patch
-git-net.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-ocfs2.patch
 git-unionfs.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-let-log_buf_shift-default-to-17.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-docbook-some-kernel-locking-fixes.patch
-kernel-doc-detect-prevent-duplicate-doc-section-names.patch
-kernel-doc-detect-trailing-kernel-doc-line-trash.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-jbd2-fix-kernel-doc-notation.patch
-dma-add-dma_map_attrs-interfaces.patch
-dma-document-dma_map_attrs-interfaces.patch
-dma-ia64-update-ia64-machvecs-swiotlbc.patch
-ib-expand-ib_umem_get-prototype.patch
-basic-braille-screen-reader-support-makefile-fix.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
-profile-likely-unlikely-macros.patch
+git-vfs.patch
+capabilities-implement-per-process-securebits.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+capabilities-implement-per-process-securebits-fix.patch
+root_plug-use-cap_task_prctl.patch
+smack-use-cap_task_prctl.patch
+cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh.patch
+cgroups-implement-device-whitelist-v6.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-doc.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+cgroups-introduce-cft-read_seq-v2.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-check_kill_permission-check-session-under-tasklist_lock.patch
+ipc-semaphores-code-factorisation.patch
+ipc-shared-memory-introduce-shmctl_down.patch
+ipc-message-queues-introduce-msgctl_down.patch
+ipc-semaphores-move-the-rwmutex-handling-inside-semctl_down.patch
+ipc-semaphores-remove-one-unused-parameter-from-semctl_down.patch
+ipc-get-rid-of-the-use-_setbuf-structure.patch
+ipc-introduce-ipc_update_perm.patch
+ipc-consolidate-all-xxxctl_down-functions.patch
+reiser4-replace-uid==0-check-with-capability.patch
 
