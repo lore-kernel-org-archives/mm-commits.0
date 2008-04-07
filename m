@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-thermal-trip-points-increased-to-12.patch added to -mm tree
-Date: Mon, 07 Apr 2008 15:20:36 -0700
-Message-ID: <200804072220.m37MKaKm028019@imap1.linux-foundation.org>
+Subject: + git-alsa-tiwai-hda_codec-fix-locking.patch added to -mm tree
+Date: Mon, 07 Apr 2008 15:32:59 -0700
+Message-ID: <200804072233.m37MWxMX028420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54901 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52915 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754994AbYDGWUy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 18:20:54 -0400
+	by vger.kernel.org with ESMTP id S1752268AbYDGWdl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 18:33:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, lenb@kernel.org, rjw@sisk.pl, rui.zhang@intel.com
+Cc: deweerdt@free.fr, miles.lane@gmail.com, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     acpi thermal trip points increased to 12
+     git-alsa-tiwai: hda_codec: fix locking
 has been added to the -mm tree.  Its filename is
-     acpi-thermal-trip-points-increased-to-12.patch
+     git-alsa-tiwai-hda_codec-fix-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi thermal trip points increased to 12
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: git-alsa-tiwai: hda_codec: fix locking
+From: Frederik Deweerdt <deweerdt@free.fr>
 
-The THERMAL_MAX_TRIPS value is set to 10.  It is too few for the Compaq AP550
-machine which has 12 trip points.
+On Wed, Apr 02, 2008 at 08:19:29AM -0400, Miles Lane wrote:
+> [   48.765906] [ BUG: bad unlock balance detected! ]
+> [   48.765912] -------------------------------------
+> [   48.765918] pulseaudio/4277 is trying to release lock
+> (&codec->spdif_mutex) at:
+> [   48.765930] [<c03031b7>] mutex_unlock+0x8/0xa
+> [   48.765945] but there are no more locks to release!
+> [   48.765950]
+> [   48.765952] other info that might help us debug this:
+> [   48.765959] 2 locks held by pulseaudio/4277:
+> [   48.765965]  #0:  (&pcm->open_mutex){--..}, at: [<f89f134b>]
+> snd_pcm_open+0xc1/0x1ba [snd_pcm]
+> [   48.766003]  #1:  (&chip->open_mutex){--..}, at: [<f8b4f13d>]
+> azx_pcm_open+0x36/0x184 [snd_hda_intel]
+> [   48.766057]
+> [   48.766059] stack backtrace:
+> [   48.766066] Pid: 4277, comm: pulseaudio Not tainted 2.6.25-rc8-mm1 #12
+> [   48.766086]  [<c013afc6>] print_unlock_inbalance_bug+0xce/0xd8
+> [   48.766107]  [<c0109e1c>] ? save_stack_trace+0x1d/0x3b
+> [   48.766130]  [<c012f54e>] ? __kernel_text_address+0x1b/0x27
+> [   48.766146]  [<c0104533>] ? dump_trace+0xcd/0xd9
+> [   48.766160]  [<c0109d9e>] ? save_stack_address+0x0/0x2c
+> [   48.766176]  [<c013b80a>] ? find_usage_backwards+0xa4/0xc3
+> [   48.766193]  [<c013cfb5>] lock_release_non_nested+0x84/0x120
+> [   48.766209]  [<c03031b7>] ? mutex_unlock+0x8/0xa
+> [   48.766222]  [<c013d1bb>] lock_release+0x16a/0x199
+> [   48.766238]  [<c0303137>] __mutex_unlock_slowpath+0xa9/0x121
+> [   48.766252]  [<c03031b7>] mutex_unlock+0x8/0xa
+> [   48.766263]  [<f8b4ffd8>] snd_hda_multi_out_analog_open+0xd3/0xef
+> [snd_hda_intel]
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+The following patch should fix it.
+
+Cc: "Miles Lane" <miles.lane@gmail.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/thermal.c |    4 ++++
- include/linux/thermal.h   |    2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ sound/pci/hda/hda_codec.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/thermal/thermal.c~acpi-thermal-trip-points-increased-to-12 drivers/thermal/thermal.c
---- a/drivers/thermal/thermal.c~acpi-thermal-trip-points-increased-to-12
-+++ a/drivers/thermal/thermal.c
-@@ -196,6 +196,10 @@ static struct device_attribute trip_poin
- 	__ATTR(trip_point_8_temp, 0444, trip_point_temp_show, NULL),
- 	__ATTR(trip_point_9_type, 0444, trip_point_type_show, NULL),
- 	__ATTR(trip_point_9_temp, 0444, trip_point_temp_show, NULL),
-+	__ATTR(trip_point_10_type, 0444, trip_point_type_show, NULL),
-+	__ATTR(trip_point_10_temp, 0444, trip_point_temp_show, NULL),
-+	__ATTR(trip_point_11_type, 0444, trip_point_type_show, NULL),
-+	__ATTR(trip_point_11_temp, 0444, trip_point_temp_show, NULL),
- };
- 
- #define TRIP_POINT_ATTR_ADD(_dev, _index, result)     \
-diff -puN include/linux/thermal.h~acpi-thermal-trip-points-increased-to-12 include/linux/thermal.h
---- a/include/linux/thermal.h~acpi-thermal-trip-points-increased-to-12
-+++ a/include/linux/thermal.h
-@@ -50,7 +50,7 @@ struct thermal_cooling_device_ops {
- };
- 
- #define THERMAL_TRIPS_NONE -1
--#define THERMAL_MAX_TRIPS 10
-+#define THERMAL_MAX_TRIPS 12
- #define THERMAL_NAME_LENGTH 20
- struct thermal_cooling_device {
- 	int id;
+diff -puN sound/pci/hda/hda_codec.c~git-alsa-tiwai-hda_codec-fix-locking sound/pci/hda/hda_codec.c
+--- a/sound/pci/hda/hda_codec.c~git-alsa-tiwai-hda_codec-fix-locking
++++ a/sound/pci/hda/hda_codec.c
+@@ -2665,8 +2665,8 @@ int snd_hda_multi_out_analog_open(struct
+ 			if (mout->spdif_maxbps < hinfo->maxbps)
+ 				hinfo->maxbps = mout->spdif_maxbps;
+ 		}
++		mutex_unlock(&codec->spdif_mutex);
+ 	}
+-	mutex_unlock(&codec->spdif_mutex);
+ 	return snd_pcm_hw_constraint_step(substream->runtime, 0,
+ 					  SNDRV_PCM_HW_PARAM_CHANNELS, 2);
+ }
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from deweerdt@free.fr are
 
-acpi-thermal-fix-result-check.patch
-acpi-thermal-trip-points-increased-to-12.patch
-pm2fb-correct-error-values-returned-from-probe-function.patch
-pm2fb-change-option-mode-to-mode_option.patch
-tridentfb-change-option-mode-to-mode_option.patch
-pm3fb-change-option-mode-to-mode_option.patch
-update-modedbtxt-documentation-about-mode_option-parameter-change.patch
-vt8623fb-change-option-mode-to-mode_option.patch
-arkfb-add-option-mode_option.patch
-s3fb-add-option-mode_option.patch
-fbdev-add-removed-option-mode-to-keep-compatibility.patch
-video-replace-remaining-__function__-occurrences.patch
+reiser4-sb_sync_inodes.patch
+getblk-handle-2tb-devices-fix.patch
+git-alsa-tiwai-hda_codec-fix-locking.patch
 
