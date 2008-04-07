@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-adjust-register-handling.patch added to -mm tree
-Date: Mon, 07 Apr 2008 16:55:06 -0700
-Message-ID: <200804072355.m37Nt7bU031421@imap1.linux-foundation.org>
+Subject: + acpi-use-__init-on-everything-in-tables-tbfadtc.patch added to -mm tree
+Date: Mon, 07 Apr 2008 16:55:11 -0700
+Message-ID: <200804072355.m37NtCIp031434@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57884 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56826 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752227AbYDGXzV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 19:55:21 -0400
+	by vger.kernel.org with ESMTP id S1754118AbYDGXzg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 19:55:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jbeulich@novell.com, lenb@kernel.org
 
 
 The patch titled
-     acpi: adjust register handling
+     acpi: use __init* on everything in tables/tbfadt.c
 has been added to the -mm tree.  Its filename is
-     acpi-adjust-register-handling.patch
+     acpi-use-__init-on-everything-in-tables-tbfadtc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,135 +33,95 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: adjust register handling
+Subject: acpi: use __init* on everything in tables/tbfadt.c
 From: "Jan Beulich" <jbeulich@novell.com>
 
-acpi_hw_low_level_{read,write}() have no need to accept a NULL reg argument
-anymore (all callers use addresses of or derived from ACPI globals), and it
-really should always have been considered an error to call these functions in
-such a way.
+All of the code in this file is use at boot time only.
 
-Additionally acpi_hw_low_level_read() should initialize the value read in all
-cases when it returns successfully.
-
-Also use ACPI_GPE_REGISTER_WIDTH where possible rather than a plain number.
+Additionally, acpi_tb_create_local_fadt() doesn't need a globally visible
+declaration.
 
 Signed-off-by: Jan Beulich <jbeulich@novell.com>
 Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/hardware/hwgpe.c  |   15 ++++++++-------
- drivers/acpi/hardware/hwregs.c |    6 +++---
- 2 files changed, 11 insertions(+), 10 deletions(-)
+ drivers/acpi/tables/tbfadt.c |   15 +++++++++------
+ include/acpi/actables.h      |    2 --
+ 2 files changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN drivers/acpi/hardware/hwgpe.c~acpi-adjust-register-handling drivers/acpi/hardware/hwgpe.c
---- a/drivers/acpi/hardware/hwgpe.c~acpi-adjust-register-handling
-+++ a/drivers/acpi/hardware/hwgpe.c
-@@ -84,7 +84,8 @@ acpi_hw_write_gpe_enable_reg(struct acpi
+diff -puN drivers/acpi/tables/tbfadt.c~acpi-use-__init-on-everything-in-tables-tbfadtc drivers/acpi/tables/tbfadt.c
+--- a/drivers/acpi/tables/tbfadt.c~acpi-use-__init-on-everything-in-tables-tbfadtc
++++ a/drivers/acpi/tables/tbfadt.c
+@@ -52,6 +52,8 @@ static void inline
+ acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
+ 			     u8 bit_width, u64 address);
  
- 	/* Write the entire GPE (runtime) enable register */
++static void acpi_tb_create_local_fadt(struct acpi_table_header *, u32 length);
++
+ static void acpi_tb_convert_fadt(void);
  
--	status = acpi_hw_low_level_write(8, gpe_register_info->enable_for_run,
-+	status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH,
-+					 gpe_register_info->enable_for_run,
- 					 &gpe_register_info->enable_address);
+ static void acpi_tb_validate_fadt(void);
+@@ -59,7 +61,7 @@ static void acpi_tb_validate_fadt(void);
+ /* Table for conversion of FADT to common internal format and FADT validation */
  
- 	return (status);
-@@ -118,7 +119,7 @@ acpi_status acpi_hw_clear_gpe(struct acp
- 	 * Write a one to the appropriate bit in the status register to
- 	 * clear this GPE.
- 	 */
--	status = acpi_hw_low_level_write(8, register_bit,
-+	status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH, register_bit,
- 					 &gpe_event_info->register_info->
- 					 status_address);
+ typedef struct acpi_fadt_info {
+-	char *name;
++	const char *name;
+ 	u8 target;
+ 	u8 source;
+ 	u8 length;
+@@ -70,7 +72,7 @@ typedef struct acpi_fadt_info {
+ #define ACPI_FADT_REQUIRED          1
+ #define ACPI_FADT_SEPARATE_LENGTH   2
  
-@@ -181,7 +182,7 @@ acpi_hw_get_gpe_status(struct acpi_gpe_e
- 	/* GPE currently active (status bit == 1)? */
+-static struct acpi_fadt_info fadt_info_table[] = {
++static struct acpi_fadt_info __initdata fadt_info_table[] = {
+ 	{"Pm1aEventBlock", ACPI_FADT_OFFSET(xpm1a_event_block),
+ 	 ACPI_FADT_OFFSET(pm1a_event_block),
+ 	 ACPI_FADT_OFFSET(pm1_event_length), ACPI_FADT_REQUIRED},
+@@ -155,7 +157,7 @@ acpi_tb_init_generic_address(struct acpi
+  *
+  ******************************************************************************/
  
- 	status =
--	    acpi_hw_low_level_read(8, &in_byte,
-+	    acpi_hw_low_level_read(ACPI_GPE_REGISTER_WIDTH, &in_byte,
- 				   &gpe_register_info->status_address);
- 	if (ACPI_FAILURE(status)) {
- 		goto unlock_and_exit;
-@@ -226,7 +227,7 @@ acpi_hw_disable_gpe_block(struct acpi_gp
+-void acpi_tb_parse_fadt(acpi_native_uint table_index, u8 flags)
++void __init acpi_tb_parse_fadt(acpi_native_uint table_index, u8 flags)
+ {
+ 	u32 length;
+ 	struct acpi_table_header *table;
+@@ -215,7 +217,8 @@ void acpi_tb_parse_fadt(acpi_native_uint
+  *
+  ******************************************************************************/
  
- 		/* Disable all GPEs in this register */
- 
--		status = acpi_hw_low_level_write(8, 0x00,
-+		status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH, 0x00,
- 						 &gpe_block->register_info[i].
- 						 enable_address);
- 		if (ACPI_FAILURE(status)) {
-@@ -263,7 +264,7 @@ acpi_hw_clear_gpe_block(struct acpi_gpe_
- 
- 		/* Clear status on all GPEs in this register */
- 
--		status = acpi_hw_low_level_write(8, 0xFF,
-+		status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH, 0xFF,
- 						 &gpe_block->register_info[i].
- 						 status_address);
- 		if (ACPI_FAILURE(status)) {
-@@ -307,7 +308,7 @@ acpi_hw_enable_runtime_gpe_block(struct 
- 		/* Enable all "runtime" GPEs in this register */
- 
- 		status =
--		    acpi_hw_low_level_write(8,
-+		    acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH,
- 					    gpe_block->register_info[i].
- 					    enable_for_run,
- 					    &gpe_block->register_info[i].
-@@ -350,7 +351,7 @@ acpi_hw_enable_wakeup_gpe_block(struct a
- 
- 		/* Enable all "wake" GPEs in this register */
- 
--		status = acpi_hw_low_level_write(8,
-+		status = acpi_hw_low_level_write(ACPI_GPE_REGISTER_WIDTH,
- 						 gpe_block->register_info[i].
- 						 enable_for_wake,
- 						 &gpe_block->register_info[i].
-diff -puN drivers/acpi/hardware/hwregs.c~acpi-adjust-register-handling drivers/acpi/hardware/hwregs.c
---- a/drivers/acpi/hardware/hwregs.c~acpi-adjust-register-handling
-+++ a/drivers/acpi/hardware/hwregs.c
-@@ -745,8 +745,9 @@ acpi_hw_low_level_read(u32 width, u32 * 
- 	 * because the PM1A/B code must not fail if B isn't present.
- 	 */
- 	if (!reg) {
--		return (AE_OK);
-+		return (AE_BAD_PARAMETER);
- 	}
-+	*value = 0;
- 
- 	/* Get a local copy of the address. Handles possible alignment issues */
- 
-@@ -754,7 +755,6 @@ acpi_hw_low_level_read(u32 width, u32 * 
- 	if (!address) {
- 		return (AE_OK);
- 	}
--	*value = 0;
+-void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length)
++static void __init
++acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length)
+ {
  
  	/*
- 	 * Two address spaces supported: Memory or IO.
-@@ -815,7 +815,7 @@ acpi_hw_low_level_write(u32 width, u32 v
- 	 * because the PM1A/B code must not fail if B isn't present.
- 	 */
- 	if (!reg) {
--		return (AE_OK);
-+		return (AE_BAD_PARAMETER);
- 	}
+@@ -276,7 +279,7 @@ void acpi_tb_create_local_fadt(struct ac
+  *
+  ******************************************************************************/
  
- 	/* Get a local copy of the address. Handles possible alignment issues */
-_
-
-Patches currently in -mm which might be from jbeulich@novell.com are
-
-git-x86.patch
-acpi-fix-fadt-parsing.patch
-acpi-adjust-register-handling.patch
-acpi-adjust-_acpi_modulefunction_name-definitions.patch
-acpi-use-__init-on-everything-in-tables-tbfadtc.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-
+-static void acpi_tb_convert_fadt(void)
++static void __init acpi_tb_convert_fadt(void)
+ {
+ 	u8 pm1_register_length;
+ 	struct acpi_generic_address *target;
+@@ -397,7 +400,7 @@ static void acpi_tb_convert_fadt(void)
+  *
+  ******************************************************************************/
+ 
+-static void acpi_tb_validate_fadt(void)
++static void __init acpi_tb_validate_fadt(void)
+ {
+ 	u32 *address32;
+ 	struct acpi_generic_address *address64;
+diff -puN include/acpi/actables.h~acpi-use-__init-on-everything-in-tables-tbfadtc include/acpi/actables.h
+--- a/include/acpi/actables.h~acpi-use-__init-on-everything-in-tables-tbfadtc
++++ a/include/acpi/actables.h
+@@ -51,8 +51,6 @@ acpi_status acpi_allocate_root_table(u32
+  */
+ void acpi_tb_parse_fadt(acpi_native_uint table_index, u8 flags);
+ 
+-void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length);
