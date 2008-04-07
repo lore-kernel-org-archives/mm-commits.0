@@ -1,61 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - git-kvm-git-rejects.patch removed from -mm tree
-Date: Mon, 07 Apr 2008 12:42:37 -0700
-Message-ID: <200804071942.m37Jgbr3022057@imap1.linux-foundation.org>
+Subject: - git-s390-git-rejects.patch removed from -mm tree
+Date: Mon, 07 Apr 2008 12:46:11 -0700
+Message-ID: <200804071946.m37JkBf4022194@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33886 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751504AbYDGTmm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 15:42:42 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m37Jgdiv003750
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 7 Apr 2008 12:42:40 -0700
+	by vger.kernel.org with ESMTP id S1753203AbYDGTqz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 15:46:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, avi@qumranet.com, cotte@freenet.de, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-kvm-git-rejects
+     git-s390-git-rejects
 has been removed from the -mm tree.  Its filename was
-     git-kvm-git-rejects.patch
+     git-s390-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-kvm-git-rejects
+Subject: git-s390-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
+argh, fustercluck.
+
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Carsten Otte <cotte@freenet.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-s390/kvm.h |    5 -----
- 1 file changed, 5 deletions(-)
+ include/asm-s390/sysinfo.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-s390/kvm.h~git-kvm-git-rejects include/asm-s390/kvm.h
---- a/include/asm-s390/kvm.h~git-kvm-git-rejects
-+++ a/include/asm-s390/kvm.h
-@@ -1,9 +1,5 @@
- #ifndef __LINUX_KVM_S390_H
- #define __LINUX_KVM_S390_H
--<<<<<<< HEAD:include/asm-s390/kvm.h
--
--/* s390 does not support KVM */
--=======
- /*
-  * asm-s390/kvm.h - KVM s390 specific structures and definitions
+diff -puN drivers/s390/sysinfo.c~git-s390-git-rejects drivers/s390/sysinfo.c
+diff -puN include/asm-s390/sysinfo.h~git-s390-git-rejects include/asm-s390/sysinfo.h
+--- a/include/asm-s390/sysinfo.h~git-s390-git-rejects
++++ a/include/asm-s390/sysinfo.h
+@@ -8,7 +8,7 @@
+  * as published by the Free Software Foundation.
   *
-@@ -44,6 +40,5 @@ struct kvm_fpu {
- 	__u32 fpc;
- 	__u64 fprs[16];
- };
-->>>>>>> FETCH_HEAD:include/asm-s390/kvm.h
+  *    Author(s): Ulrich Weigand <weigand@de.ibm.com>
+- *               Christian Borntraeger <borntraeger@de.ibm.com>
++ *		 Christian Borntraeger <borntraeger@de.ibm.com>
+  */
  
- #endif
+ struct sysinfo_1_1_1 {
+@@ -20,6 +20,11 @@ struct sysinfo_1_1_1 {
+ 	char sequence[16];
+ 	char plant[4];
+ 	char model[16];
++	char model_perm_cap[16];
++	char model_temp_cap[16];
++	char model_cap_rating[4];
++	char model_perm_cap_rating[4];
++	char model_temp_cap_rating[4];
+ };
+ 
+ struct sysinfo_1_2_1 {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,8 +99,6 @@ git-infiniband.patch
 git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
 maple-add-driver-for-sega-dreamcast-controller.patch
 touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-kvm-git-rejects.patch
-git-kvm-vs-git-s390.patch
 git-leds.patch
 git-libata-all.patch
 drivers-ata-sata_fslc-fix-warnings-small-memory-leak.patch
