@@ -1,69 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - parport_pc-dont-forget-to-unregister-the-temporarily-registered-region.patch removed from -mm tree
-Date: Mon, 07 Apr 2008 13:01:45 -0700
-Message-ID: <200804072001.m37K1jKC022766@imap1.linux-foundation.org>
+Subject: - mtd-fix-broken-state-in-cfi-driver-caused-by-fl_shutdown.patch removed from -mm tree
+Date: Mon, 07 Apr 2008 13:01:48 -0700
+Message-ID: <200804072001.m37K1m2l022774@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44591 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752523AbYDGUCD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 16:02:03 -0400
+	by vger.kernel.org with ESMTP id S1753072AbYDGUCX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 16:02:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: torvalds@linux-foundation.org, akpm@linux-foundation.org, jack@suse.cz, petr.cvek@tul.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: akorolev@infradead.org, dwmw2@infradead.org, joern@logfs.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     parport_pc: don't forget to unregister the temporarily-registered region
+     mtd: fix broken state in CFI driver caused by FL_SHUTDOWN
 has been removed from the -mm tree.  Its filename was
-     parport_pc-dont-forget-to-unregister-the-temporarily-registered-region.patch
+     mtd-fix-broken-state-in-cfi-driver-caused-by-fl_shutdown.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport_pc: don't forget to unregister the temporarily-registered region
-From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: mtd: fix broken state in CFI driver caused by FL_SHUTDOWN
+From: Alexey Korolev <akorolev@infradead.org>
 
-Otherwise /proc/ioports goes oops after rmmod.
+THe CFI driver in 2.6.24 kernel is broken.  Not so intensive read/write
+operations cause incomplete writes which lead to kernel panics in JFFS2.
 
-Addresses:
+We investigated the issue - it is caused by bug in FL_SHUTDOWN parsing code. 
+Sometimes chip returns -EIO as if it is in FL_SHUTDOWN state when it should
+wait in FL_PONT (error in order of conditions).
 
-> Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=10390
-> Subject		: Oops while reading /proc/ioports or /proc/iomem
-> Submitter	: Jan Kara <jack@suse.cz>
-> Date		: 2008-04-03 15:25 (1 days old)
-> References	: http://lkml.org/lkml/2008/4/3/149
+The following patch fixes the bug in state parsing code of CFI.  Also I've
+added comments to notify developers if they want to add new case in future. 
 
-Fixes a regression added by
-
-commit f63fd7e299ee13da071ecfce2b90b58c5e1562b1
-Author: Petr Cvek <petr.cvek@tul.cz>
-Date:   Wed Feb 6 01:37:48 2008 -0800
-
-    parport_pc: detection for SuperIO IT87XX POST
-    
-    Add detection for IT87XX SuperIO chip and disabling its POST feature, which
-    made noise on parallel port's pins.
-    
-    Signed-off-by: Petr Cvek <petr.cvek@tul.cz>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-
-Cc: Petr Cvek <petr.cvek@tul.cz>
-Cc: Jan Kara <jack@suse.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Signed-off-by: Alexey Korolev <akorolev@infradead.org>
+Reviewed-by: Joern Engel <joern@logfs.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/parport_pc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/mtd/chips/cfi_cmdset_0001.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/parport/parport_pc.c~parport_pc-dont-forget-to-unregister-the-temporarily-registered-region drivers/parport/parport_pc.c
---- a/drivers/parport/parport_pc.c~parport_pc-dont-forget-to-unregister-the-temporarily-registered-region
-+++ a/drivers/parport/parport_pc.c
-@@ -1568,9 +1568,8 @@ static void __devinit detect_and_report_
- 		outb(r | 8, 0x2F);
- 		outb(0x02, 0x2E);	/* Lock */
- 		outb(0x02, 0x2F);
+diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~mtd-fix-broken-state-in-cfi-driver-caused-by-fl_shutdown drivers/mtd/chips/cfi_cmdset_0001.c
+--- a/drivers/mtd/chips/cfi_cmdset_0001.c~mtd-fix-broken-state-in-cfi-driver-caused-by-fl_shutdown
++++ a/drivers/mtd/chips/cfi_cmdset_0001.c
+@@ -718,7 +718,7 @@ static int chip_ready (struct map_info *
+ 			/* Someone else might have been playing with it. */
+ 			return -EAGAIN;
+ 		}
+-
++		/* Fall through */
+ 	case FL_READY:
+ 	case FL_CFI_QUERY:
+ 	case FL_JEDEC_QUERY:
+@@ -778,14 +778,14 @@ static int chip_ready (struct map_info *
+ 		chip->state = FL_READY;
+ 		return 0;
+ 
++	case FL_SHUTDOWN:
++		/* The machine is rebooting now,so no one can get chip anymore */
++		return -EIO;
+ 	case FL_POINT:
+ 		/* Only if there's no operation suspended... */
+ 		if (mode == FL_READY && chip->oldstate == FL_READY)
+ 			return 0;
