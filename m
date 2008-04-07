@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-alsa-tiwai-hda_codec-fix-locking.patch added to -mm tree
-Date: Mon, 07 Apr 2008 15:32:59 -0700
-Message-ID: <200804072233.m37MWxMX028420@imap1.linux-foundation.org>
+Subject: + sysfs-refill-attribute-buffer-when-reading-from-offset-0.patch added to -mm tree
+Date: Mon, 07 Apr 2008 15:50:01 -0700
+Message-ID: <200804072250.m37Mo1EU029042@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52915 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51004 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752268AbYDGWdl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 18:33:41 -0400
+	by vger.kernel.org with ESMTP id S1752667AbYDGWui (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 18:50:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: deweerdt@free.fr, miles.lane@gmail.com, perex@suse.cz, tiwai@suse.de
+Cc: dan.j.williams@intel.com, greg@kroah.com, htejun@gmail.com, kay.sievers@vrfy.org, neilb@suse.de
 
 
 The patch titled
-     git-alsa-tiwai: hda_codec: fix locking
+     sysfs: refill attribute buffer when reading from offset 0
 has been added to the -mm tree.  Its filename is
-     git-alsa-tiwai-hda_codec-fix-locking.patch
+     sysfs-refill-attribute-buffer-when-reading-from-offset-0.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,69 +33,88 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-alsa-tiwai: hda_codec: fix locking
-From: Frederik Deweerdt <deweerdt@free.fr>
+Subject: sysfs: refill attribute buffer when reading from offset 0
+From: Dan Williams <dan.j.williams@intel.com>
 
-On Wed, Apr 02, 2008 at 08:19:29AM -0400, Miles Lane wrote:
-> [   48.765906] [ BUG: bad unlock balance detected! ]
-> [   48.765912] -------------------------------------
-> [   48.765918] pulseaudio/4277 is trying to release lock
-> (&codec->spdif_mutex) at:
-> [   48.765930] [<c03031b7>] mutex_unlock+0x8/0xa
-> [   48.765945] but there are no more locks to release!
-> [   48.765950]
-> [   48.765952] other info that might help us debug this:
-> [   48.765959] 2 locks held by pulseaudio/4277:
-> [   48.765965]  #0:  (&pcm->open_mutex){--..}, at: [<f89f134b>]
-> snd_pcm_open+0xc1/0x1ba [snd_pcm]
-> [   48.766003]  #1:  (&chip->open_mutex){--..}, at: [<f8b4f13d>]
-> azx_pcm_open+0x36/0x184 [snd_hda_intel]
-> [   48.766057]
-> [   48.766059] stack backtrace:
-> [   48.766066] Pid: 4277, comm: pulseaudio Not tainted 2.6.25-rc8-mm1 #12
-> [   48.766086]  [<c013afc6>] print_unlock_inbalance_bug+0xce/0xd8
-> [   48.766107]  [<c0109e1c>] ? save_stack_trace+0x1d/0x3b
-> [   48.766130]  [<c012f54e>] ? __kernel_text_address+0x1b/0x27
-> [   48.766146]  [<c0104533>] ? dump_trace+0xcd/0xd9
-> [   48.766160]  [<c0109d9e>] ? save_stack_address+0x0/0x2c
-> [   48.766176]  [<c013b80a>] ? find_usage_backwards+0xa4/0xc3
-> [   48.766193]  [<c013cfb5>] lock_release_non_nested+0x84/0x120
-> [   48.766209]  [<c03031b7>] ? mutex_unlock+0x8/0xa
-> [   48.766222]  [<c013d1bb>] lock_release+0x16a/0x199
-> [   48.766238]  [<c0303137>] __mutex_unlock_slowpath+0xa9/0x121
-> [   48.766252]  [<c03031b7>] mutex_unlock+0x8/0xa
-> [   48.766263]  [<f8b4ffd8>] snd_hda_multi_out_analog_open+0xd3/0xef
-> [snd_hda_intel]
+Requiring userspace to close and re-open sysfs attributes has been the policy
+since before 2.6.12.  It allows userspace to get a consistent snapshot of
+kernel state and consume it with incremental reads and seeks.
 
-The following patch should fix it.
+Now, if the file position is zero the kernel assumes userspace wants to see
+the new value.  The application for this change is to allow a userspace RAID
+metadata handler to check the state of an array without causing any memory
+allocations.  Thus not causing writeback to a raid array that might be blocked
+waiting for userspace to take action.
 
-Cc: "Miles Lane" <miles.lane@gmail.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: NeilBrown <neilb@suse.de>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/hda_codec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/filesystems/sysfs.txt |    9 +++++++--
+ fs/sysfs/file.c                     |    5 ++---
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN sound/pci/hda/hda_codec.c~git-alsa-tiwai-hda_codec-fix-locking sound/pci/hda/hda_codec.c
---- a/sound/pci/hda/hda_codec.c~git-alsa-tiwai-hda_codec-fix-locking
-+++ a/sound/pci/hda/hda_codec.c
-@@ -2665,8 +2665,8 @@ int snd_hda_multi_out_analog_open(struct
- 			if (mout->spdif_maxbps < hinfo->maxbps)
- 				hinfo->maxbps = mout->spdif_maxbps;
- 		}
-+		mutex_unlock(&codec->spdif_mutex);
- 	}
--	mutex_unlock(&codec->spdif_mutex);
- 	return snd_pcm_hw_constraint_step(substream->runtime, 0,
- 					  SNDRV_PCM_HW_PARAM_CHANNELS, 2);
- }
+diff -puN Documentation/filesystems/sysfs.txt~sysfs-refill-attribute-buffer-when-reading-from-offset-0 Documentation/filesystems/sysfs.txt
+--- a/Documentation/filesystems/sysfs.txt~sysfs-refill-attribute-buffer-when-reading-from-offset-0
++++ a/Documentation/filesystems/sysfs.txt
+@@ -176,8 +176,10 @@ implementations: 
+   Recall that an attribute should only be exporting one value, or an
+   array of similar values, so this shouldn't be that expensive. 
+ 
+-  This allows userspace to do partial reads and seeks arbitrarily over
+-  the entire file at will. 
++  This allows userspace to do partial reads and forward seeks
++  arbitrarily over the entire file at will. If userspace seeks back to
++  zero or does a pread(2) with an offset of '0' the show() method will
++  be called again, rearmed, to fill the buffer.
+ 
+ - On write(2), sysfs expects the entire buffer to be passed during the
+   first write. Sysfs then passes the entire buffer to the store()
+@@ -192,6 +194,9 @@ implementations: 
+ 
+ Other notes:
+ 
++- Writing causes the show() method to be rearmed regardless of current
++  file position.
++
+ - The buffer will always be PAGE_SIZE bytes in length. On i386, this
+   is 4096. 
+ 
+diff -puN fs/sysfs/file.c~sysfs-refill-attribute-buffer-when-reading-from-offset-0 fs/sysfs/file.c
+--- a/fs/sysfs/file.c~sysfs-refill-attribute-buffer-when-reading-from-offset-0
++++ a/fs/sysfs/file.c
+@@ -137,7 +137,7 @@ sysfs_read_file(struct file *file, char 
+ 	ssize_t retval = 0;
+ 
+ 	mutex_lock(&buffer->mutex);
+-	if (buffer->needs_read_fill) {
++	if (buffer->needs_read_fill || *ppos == 0) {
+ 		retval = fill_read_buffer(file->f_path.dentry,buffer);
+ 		if (retval)
+ 			goto out;
+@@ -423,8 +423,7 @@ static int sysfs_release(struct inode *i
+  * return POLLERR|POLLPRI, and select will return the fd whether
+  * it is waiting for read, write, or exceptions.
+  * Once poll/select indicates that the value has changed, you
+- * need to close and re-open the file, as simply seeking and reading
+- * again will not get new data, or reset the state of 'poll'.
++ * need to close and re-open the file, or seek to 0 and read again.
+  * Reminder: this only works for attributes which actively support
+  * it, and it is not possible to test an attribute from userspace
+  * to see if it supports poll (Neither 'poll' nor 'select' return
 _
 
-Patches currently in -mm which might be from deweerdt@free.fr are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-reiser4-sb_sync_inodes.patch
-getblk-handle-2tb-devices-fix.patch
-git-alsa-tiwai-hda_codec-fix-locking.patch
+origin.patch
+git-arm.patch
+git-async-tx.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+md-introduce-get_priority_stripe-to-improve-raid456-write-performance.patch
+md-raid5c-convert-simple_strtoul-to-strict_strtoul.patch
+sysfs-refill-attribute-buffer-when-reading-from-offset-0.patch
 
