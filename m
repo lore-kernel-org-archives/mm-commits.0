@@ -1,33 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: - memory-hotplug-create-alloc_bootmem_section.patch removed from -mm tree
-Date: Sun, 06 Apr 2008 19:35:06 -0700
-Message-ID: <200804070235.m372Z6ll018331@imap1.linux-foundation.org>
+Subject: - memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch removed from -mm tree
+Date: Sun, 06 Apr 2008 19:35:08 -0700
+Message-ID: <200804070235.m372Z8Ck018341@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36425 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37105 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753586AbYDGCfm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Apr 2008 22:35:42 -0400
+	by vger.kernel.org with ESMTP id S1753762AbYDGCfr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 6 Apr 2008 22:35:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: y-goto@jp.fujitsu.com, clameter@sgi.com, pbadari@us.ibm.com, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory hotplug: create alloc_bootmem_section()
+     memory hotplug: allocate usemap on the section with pgdat
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-create-alloc_bootmem_section.patch
+     memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: create alloc_bootmem_section()
+Subject: memory hotplug: allocate usemap on the section with pgdat
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-alloc_bootmem_section() can a allocate specified section's area.  This is used
-for usemap to associate a section with a pgdat in a later patch.
+Usemaps are allocated on the section which has pgdat by this.
+
+Because usemap size is very small, many usemaps for sections are allocated on
+only one page.  The page will be quite hard to be removed until removing all
+other sections.  This dependency is not desirable for memory removing.
+
+Pgdat has similar feature.  If sections has pgdat area, it must be the last
+section for removing on the node.
+
+This is to collect the cause pages of its dependency on one section.  If other
+sections doesn't have any dependency, this section will be able to be removed
+finally.
 
 Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Cc: Yinghai Lu <yhlu.kernel@gmail.com>
@@ -36,63 +46,39 @@ Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    2 ++
- mm/bootmem.c            |   31 +++++++++++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
+ mm/sparse.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/bootmem.h~memory-hotplug-create-alloc_bootmem_section include/linux/bootmem.h
---- a/include/linux/bootmem.h~memory-hotplug-create-alloc_bootmem_section
-+++ a/include/linux/bootmem.h
-@@ -101,6 +101,8 @@ extern void reserve_bootmem_node(pg_data
- extern void free_bootmem_node(pg_data_t *pgdat,
- 			      unsigned long addr,
- 			      unsigned long size);
-+extern void *alloc_bootmem_section(unsigned long size,
-+				   unsigned long section_nr);
- 
- #ifndef CONFIG_HAVE_ARCH_BOOTMEM_NODE
- #define alloc_bootmem_node(pgdat, x) \
-diff -puN mm/bootmem.c~memory-hotplug-create-alloc_bootmem_section mm/bootmem.c
---- a/mm/bootmem.c~memory-hotplug-create-alloc_bootmem_section
-+++ a/mm/bootmem.c
-@@ -540,6 +540,37 @@ void * __init __alloc_bootmem_node(pg_da
- 	return __alloc_bootmem(size, align, goal);
+diff -puN mm/sparse.c~memory-hotplug-allocate-usemap-on-the-section-with-pgdat mm/sparse.c
+--- a/mm/sparse.c~memory-hotplug-allocate-usemap-on-the-section-with-pgdat
++++ a/mm/sparse.c
+@@ -237,13 +237,23 @@ static unsigned long *__kmalloc_section_
  }
+ #endif /* CONFIG_MEMORY_HOTPLUG */
  
-+#ifdef CONFIG_SPARSEMEM
-+void * __init alloc_bootmem_section(unsigned long size,
-+				    unsigned long section_nr)
-+{
-+	void *ptr;
-+	unsigned long limit, goal, start_nr, end_nr, pfn;
-+	struct pglist_data *pgdat;
+-static unsigned long *__init sparse_early_usemap_alloc(unsigned long pnum)
++static unsigned long *__init sparse_early_usemap_alloc(int pnum)
+ {
+-	unsigned long *usemap;
++	unsigned long *usemap, section_nr;
+ 	struct mem_section *ms = __nr_to_section(pnum);
+ 	int nid = sparse_early_nid(ms);
++	struct pglist_data *pgdat = NODE_DATA(nid);
 +
-+	pfn = section_nr_to_pfn(section_nr);
-+	goal = PFN_PHYS(pfn);
-+	limit = PFN_PHYS(section_nr_to_pfn(section_nr + 1)) - 1;
-+	pgdat = NODE_DATA(early_pfn_to_nid(pfn));
-+	ptr = __alloc_bootmem_core(pgdat->bdata, size, SMP_CACHE_BYTES, goal,
-+				   limit);
++	/*
++	 * This is allocated on same section of pgdat.
++	 * It will not be freed until other sections hot-removing on the node.
++	 * Pgdat has same feature. This collects all usemap on the same
++	 * section.
++	 */
 +
-+	if (!ptr)
-+		return NULL;
-+
-+	start_nr = pfn_to_section_nr(PFN_DOWN(__pa(ptr)));
-+	end_nr = pfn_to_section_nr(PFN_DOWN(__pa(ptr) + size));
-+	if (start_nr != section_nr || end_nr != section_nr) {
-+		printk(KERN_WARNING "alloc_bootmem failed on section %ld.\n",
-+		       section_nr);
-+		free_bootmem_core(pgdat->bdata, __pa(ptr), size);
-+		ptr = NULL;
-+	}
-+
-+	return ptr;
-+}
-+#endif
-+
- #ifndef ARCH_LOW_ADDRESS_LIMIT
- #define ARCH_LOW_ADDRESS_LIMIT	0xffffffffUL
- #endif
++	section_nr = pfn_to_section_nr(__pa(pgdat) >> PAGE_SHIFT);
++	usemap = alloc_bootmem_section(usemap_size(), section_nr);
+ 
+-	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
+ 	if (usemap)
+ 		return usemap;
+ 
 _
 
 Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
@@ -106,7 +92,6 @@ mm-make-mem_map-allocation-continuous-v2.patch
 mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
 mm-offset-align-in-alloc_bootmem.patch
 mm-make-reserve_bootmem-can-crossed-the-nodes.patch
-memory-hotplug-create-alloc_bootmem_section.patch
 memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch
 memory-hotplug-free-memmaps-allocated-by-bootmem.patch
 ipc-scale-msgmni-to-the-amount-of-lowmem.patch
