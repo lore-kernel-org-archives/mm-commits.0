@@ -1,218 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - asm-generic-add-node_to_cpumask_ptr-macro.patch removed from -mm tree
-Date: Mon, 07 Apr 2008 14:43:24 -0700
-Message-ID: <200804072143.m37LhOBq026567@imap1.linux-foundation.org>
+Subject: + memcg-fix-node_state-handling.patch added to -mm tree
+Date: Mon, 07 Apr 2008 15:16:43 -0700
+Message-ID: <200804072216.m37MGhfT027821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56750 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33962 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751405AbYDGVou (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 17:44:50 -0400
+	by vger.kernel.org with ESMTP id S1752167AbYDGWQ5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 18:16:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: travis@sgi.com, anton@samba.org, davem@davemloft.net, dhowells@redhat.com, hpa@zytor.com, mingo@elte.hu, paulus@samba.org, rth@twiddle.net, tglx@linutronix.de, tony.luck@intel.com, wl
+To: mm-commits@vger.kernel.org
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     asm-generic: add node_to_cpumask_ptr macro
-has been removed from the -mm tree.  Its filename was
-     asm-generic-add-node_to_cpumask_ptr-macro.patch
+     memcg: fix node_state handling
+has been added to the -mm tree.  Its filename is
+     memcg-fix-node_state-handling.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic: add node_to_cpumask_ptr macro
-From: Mike Travis <travis@sgi.com>
+Subject: memcg: fix node_state handling
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Create a simple macro to always return a pointer to the node_to_cpumask(node)
-value.  This relies on compiler optimization to remove the extra indirection:
+This should be N_NORMAL_MEMORY.
 
-    #define node_to_cpumask_ptr(v, node) 		\
-	    cpumask_t _##v = node_to_cpumask(node), *v = &_##v
-
-For those systems with a large cpumask size, then a true pointer
-to the array element can be used:
-
-    #define node_to_cpumask_ptr(v, node)		\
-	    cpumask_t *v = &(node_to_cpumask_map[node])
-
-A node_to_cpumask_ptr_next() macro is provided to access another
-node_to_cpumask value.
-
-The other change is to always include asm-generic/topology.h moving the
-ifdef CONFIG_NUMA to this same file.
-
-Note: there are no references to either of these new macros in this patch,
-only the definition.
-
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: William L. Irwin <wli@holomorphy.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Signed-off-by: Mike Travis <travis@sgi.com>
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/topology.h   |    3 +--
- include/asm-frv/topology.h     |    4 +---
- include/asm-generic/topology.h |   14 ++++++++++++++
- include/asm-ia64/topology.h    |    5 +++++
- include/asm-powerpc/topology.h |    3 +--
- include/asm-x86/topology.h     |   15 +++++++++++++--
- 6 files changed, 35 insertions(+), 9 deletions(-)
+ mm/memcontrol.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN include/asm-alpha/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-alpha/topology.h
---- a/include/asm-alpha/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
-+++ a/include/asm-alpha/topology.h
-@@ -41,8 +41,7 @@ static inline cpumask_t node_to_cpumask(
- 
- #define pcibus_to_cpumask(bus)	(cpu_online_map)
- 
--#else /* CONFIG_NUMA */
--# include <asm-generic/topology.h>
- #endif /* !CONFIG_NUMA */
-+# include <asm-generic/topology.h>
- 
- #endif /* _ASM_ALPHA_TOPOLOGY_H */
-diff -puN include/asm-frv/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-frv/topology.h
---- a/include/asm-frv/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
-+++ a/include/asm-frv/topology.h
-@@ -5,10 +5,8 @@
- 
- #error NUMA not supported yet
- 
--#else /* !CONFIG_NUMA */
-+#endif /* CONFIG_NUMA */
- 
- #include <asm-generic/topology.h>
- 
--#endif /* CONFIG_NUMA */
--
- #endif /* _ASM_TOPOLOGY_H */
-diff -puN include/asm-generic/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-generic/topology.h
---- a/include/asm-generic/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
-+++ a/include/asm-generic/topology.h
-@@ -27,6 +27,8 @@
- #ifndef _ASM_GENERIC_TOPOLOGY_H
- #define _ASM_GENERIC_TOPOLOGY_H
- 
-+#ifndef	CONFIG_NUMA
-+
- /* Other architectures wishing to use this simple topology API should fill
-    in the below functions as appropriate in their own <asm/topology.h> file. */
- #ifndef cpu_to_node
-@@ -52,4 +54,16 @@
- 				)
- #endif
- 
-+#endif	/* CONFIG_NUMA */
-+
-+/* returns pointer to cpumask for specified node */
-+#ifndef node_to_cpumask_ptr
-+
-+#define	node_to_cpumask_ptr(v, node) 					\
-+		cpumask_t _##v = node_to_cpumask(node), *v = &_##v
-+
-+#define node_to_cpumask_ptr_next(v, node)				\
-+			  _##v = node_to_cpumask(node)
-+#endif
-+
- #endif /* _ASM_GENERIC_TOPOLOGY_H */
-diff -puN include/asm-ia64/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-ia64/topology.h
---- a/include/asm-ia64/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
-+++ a/include/asm-ia64/topology.h
-@@ -116,6 +116,11 @@ void build_cpu_to_node_map(void);
- #define smt_capable() 				(smp_num_siblings > 1)
- #endif
- 
-+#define pcibus_to_cpumask(bus)	(pcibus_to_node(bus) == -1 ? \
-+					CPU_MASK_ALL : \
-+					node_to_cpumask(pcibus_to_node(bus)) \
-+				)
-+
- #include <asm-generic/topology.h>
- 
- #endif /* _ASM_IA64_TOPOLOGY_H */
-diff -puN include/asm-powerpc/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-powerpc/topology.h
---- a/include/asm-powerpc/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
-+++ a/include/asm-powerpc/topology.h
-@@ -96,11 +96,10 @@ static inline void sysfs_remove_device_f
+diff -puN mm/memcontrol.c~memcg-fix-node_state-handling mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-node_state-handling
++++ a/mm/memcontrol.c
+@@ -947,7 +947,7 @@ static int alloc_mem_cgroup_per_zone_inf
  {
- }
+ 	struct mem_cgroup_per_node *pn;
+ 	struct mem_cgroup_per_zone *mz;
+-	int zone;
++	int zone, tmp = node;
+ 	/*
+ 	 * This routine is called against possible nodes.
+ 	 * But it's BUG to call kmalloc() against offline node.
+@@ -956,10 +956,9 @@ static int alloc_mem_cgroup_per_zone_inf
+ 	 *       never be onlined. It's better to use memory hotplug callback
+ 	 *       function.
+ 	 */
+-	if (node_state(node, N_HIGH_MEMORY))
+-		pn = kmalloc_node(sizeof(*pn), GFP_KERNEL, node);
+-	else
+-		pn = kmalloc(sizeof(*pn), GFP_KERNEL);
++	if (!node_state(node, N_NORMAL_MEMORY))
++		tmp = -1;
++	pn = kmalloc_node(sizeof(*pn), GFP_KERNEL, tmp);
+ 	if (!pn)
+ 		return 1;
  
-+#endif /* CONFIG_NUMA */
- 
- #include <asm-generic/topology.h>
- 
--#endif /* CONFIG_NUMA */
--
- #ifdef CONFIG_SMP
- #include <asm/cputable.h>
- #define smt_capable()		(cpu_has_feature(CPU_FTR_SMT))
-diff -puN include/asm-x86/topology.h~asm-generic-add-node_to_cpumask_ptr-macro include/asm-x86/topology.h
---- a/include/asm-x86/topology.h~asm-generic-add-node_to_cpumask_ptr-macro
-+++ a/include/asm-x86/topology.h
-@@ -81,6 +81,17 @@ static inline int cpu_to_node(int cpu)
- 	else
- 		return NUMA_NO_NODE;
- }
-+
-+#ifdef	CONFIG_NUMA
-+
-+/* Returns a pointer to the cpumask of CPUs on Node 'node'. */
-+#define node_to_cpumask_ptr(v, node)		\
-+		cpumask_t *v = &(node_to_cpumask_map[node])
-+
-+#define node_to_cpumask_ptr_next(v, node)	\
-+			   v = &(node_to_cpumask_map[node])
-+#endif
-+
- #endif /* CONFIG_X86_64 */
- 
- /*
-@@ -167,10 +178,10 @@ extern int __node_distance(int, int);
- 
- #else /* CONFIG_NUMA */
- 
--#include <asm-generic/topology.h>
--
- #endif
- 
-+#include <asm-generic/topology.h>
-+
- extern cpumask_t cpu_coregroup_map(int cpu);
- 
- #ifdef ENABLE_TOPO_DEFINES
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-git-cpufreq.patch
-asm-generic-add-node_to_cpumask_ptr-macro.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-cpufreq-change-cpu-freq-arrays-to-per_cpu-variables.patch
-acpi-change-processors-from-array-to-per_cpu-variable.patch
-cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
-net-remove-nr_cpus-arrays-in-net-core-devc-v2.patch
-cpumask-convert-cpumask_of_cpu-to-static-array.patch
-cpumask-pass-pointer-to-cpumask-for-set_cpus_allowed.patch
-cpumask-reduce-stack-pressure-in-sched_affinity.patch
-cpumask-pass-cpumask-by-reference-to-acpi-cpufreq.patch
-init-move-large-array-from-stack-to-_initdata-section.patch
-cpumask-create-pointer-to-node_to_cpumask-array-element.patch
-cpumask-reduce-stack-usage-in-sd_x_init-initializers.patch
-cpumask-pass-temp-cpumask-variables-in-init_sched_build_groups.patch
-sched-fix-memory-leak-in-build_sched_domains.patch
-cpumask-reduce-stack-usage-in-build_sched_domains.patch
-cpumask-reduce-stack-pressure-in-cpu_coregroup_map.patch
-cpu-node-mask-reduce-stack-usage-using-mask_none-mask_all.patch
+origin.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify.patch
+mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
+mm-offset-align-in-alloc_bootmem.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+sparsemem-vmemmap-does-not-need-section-bits.patch
+kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
+pageflags-use-an-enum-for-the-flags.patch
+pageflags-get-rid-of-flags_reserved.patch
+pageflags-introduce-macros-to-generate-page-flag-functions.patch
+pageflags-convert-to-the-use-of-new-macros.patch
+pageflags-use-proper-page-flag-functions-in-xen.patch
+pageflags-eliminate-pg_xxx-aliases.patch
+memory-hotplug-add-removable-to-sysfs-to-show-memblock-removability.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+cgroups-add-the-trigger-callback-to-struct-cftype.patch
+cgroups-implement-device-whitelist-v6.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-doc.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+cgroups-use-a-hash-table-for-css_set-finding.patch
+cgroups-simplify-init_subsys.patch
+cgroups-remove-the-css_set-linked-list.patch
+memcgroup-add-the-max_usage-member-on-the-res_counter.patch
+add-a-document-describing-the-resource-counter-abstraction-v2.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
+memcgroup-use-triggers-in-force_empty-and-max_usage-files.patch
+memcgroup-implement-failcounter-reset.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+memcg-fix-node_state-handling.patch
+memcg-remove-redundant-function-calls.patch
 
