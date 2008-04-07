@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-fix-unlock-ordering-in-smp_callin.patch added to -mm tree
-Date: Mon, 07 Apr 2008 16:13:59 -0700
-Message-ID: <200804072313.m37NDx7L029901@imap1.linux-foundation.org>
+Subject: + mtd-chips-add-missing-set_current_state-to-cfi_amdstdstaa_sync.patch added to -mm tree
+Date: Mon, 07 Apr 2008 16:15:33 -0700
+Message-ID: <200804072315.m37NFXp4029992@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48620 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40488 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752881AbYDGXOj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 19:14:39 -0400
+	by vger.kernel.org with ESMTP id S1755389AbYDGXPk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 19:15:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Alan.Brunelle@hp.com, alan.brunelle@hp.com
+Cc: dmitry.adamushko@gmail.com, dwmw2@infradead.org
 
 
 The patch titled
-     ia64: fix unlock ordering in smp_callin
+     mtd/chips: add missing set_current_state() to cfi_{amdstd,staa}_sync()
 has been added to the -mm tree.  Its filename is
-     ia64-fix-unlock-ordering-in-smp_callin.patch
+     mtd-chips-add-missing-set_current_state-to-cfi_amdstdstaa_sync.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: fix unlock ordering in smp_callin
-From: "Alan D. Brunelle" <Alan.Brunelle@hp.com>
+Subject: mtd/chips: add missing set_current_state() to cfi_{amdstd,staa}_sync()
+From: Dmitry Adamushko <dmitry.adamushko@gmail.com>
 
-One should normally unlock in the reverse order of the lock calls, and in this
-case there certainly is no reason not to.
+cfi_amdstd_sync() and cfi_staa_sync() call schedule() without changing task's
+state appropriately.
 
-To better see the results (with locks included), here's the complete
-section of corrected code:
+In case of e.g.  chip->state == FL_ERASING, cfi_*_sync() will be busy-looping
+either redundantly for a fixed interval of time (for SCHED_NORMAL tasks) or
+possibly endlessly (for RT tasks and UP).
 
-        lock_ipi_calllock();
-        spin_lock(&vector_lock);
-        /* Setup the per cpu irq handling data structures */
-        __setup_vector_irq(cpuid);
-        cpu_set(cpuid, cpu_online_map);
-        per_cpu(cpu_state, cpuid) = CPU_ONLINE;
-        spin_unlock(&vector_lock);
-        unlock_ipi_calllock();
-
-Signed-off-by: Alan D. Brunelle <alan.brunelle@hp.com>
+Signed-off-by: Dmitry Adamushko <dmitry.adamushko@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/smpboot.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mtd/chips/cfi_cmdset_0002.c |    1 +
+ drivers/mtd/chips/cfi_cmdset_0020.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN arch/ia64/kernel/smpboot.c~ia64-fix-unlock-ordering-in-smp_callin arch/ia64/kernel/smpboot.c
---- a/arch/ia64/kernel/smpboot.c~ia64-fix-unlock-ordering-in-smp_callin
-+++ a/arch/ia64/kernel/smpboot.c
-@@ -400,9 +400,9 @@ smp_callin (void)
- 	/* Setup the per cpu irq handling data structures */
- 	__setup_vector_irq(cpuid);
- 	cpu_set(cpuid, cpu_online_map);
--	unlock_ipi_calllock();
- 	per_cpu(cpu_state, cpuid) = CPU_ONLINE;
- 	spin_unlock(&vector_lock);
-+	unlock_ipi_calllock();
+diff -puN drivers/mtd/chips/cfi_cmdset_0002.c~mtd-chips-add-missing-set_current_state-to-cfi_amdstdstaa_sync drivers/mtd/chips/cfi_cmdset_0002.c
+--- a/drivers/mtd/chips/cfi_cmdset_0002.c~mtd-chips-add-missing-set_current_state-to-cfi_amdstdstaa_sync
++++ a/drivers/mtd/chips/cfi_cmdset_0002.c
+@@ -1763,6 +1763,7 @@ static void cfi_amdstd_sync (struct mtd_
  
- 	smp_setup_percpu_timer();
+ 		default:
+ 			/* Not an idle state */
++			set_current_state(TASK_UNINTERRUPTIBLE);
+ 			add_wait_queue(&chip->wq, &wait);
  
+ 			spin_unlock(chip->mutex);
+diff -puN drivers/mtd/chips/cfi_cmdset_0020.c~mtd-chips-add-missing-set_current_state-to-cfi_amdstdstaa_sync drivers/mtd/chips/cfi_cmdset_0020.c
+--- a/drivers/mtd/chips/cfi_cmdset_0020.c~mtd-chips-add-missing-set_current_state-to-cfi_amdstdstaa_sync
++++ a/drivers/mtd/chips/cfi_cmdset_0020.c
+@@ -1015,6 +1015,7 @@ static void cfi_staa_sync (struct mtd_in
+ 
+ 		default:
+ 			/* Not an idle state */
++			set_current_state(TASK_UNINTERRUPTIBLE);
+ 			add_wait_queue(&chip->wq, &wait);
+ 
+ 			spin_unlock_bh(chip->mutex);
 _
 
-Patches currently in -mm which might be from Alan.Brunelle@hp.com are
+Patches currently in -mm which might be from dmitry.adamushko@gmail.com are
 
-ia64-fix-unlock-ordering-in-smp_callin.patch
+git-sched.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+mtd-chips-add-missing-set_current_state-to-cfi_amdstdstaa_sync.patch
 
