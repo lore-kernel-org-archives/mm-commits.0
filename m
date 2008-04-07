@@ -1,252 +1,585 @@
 From: akpm@linux-foundation.org
-Subject: - git-s390-git-rejects.patch removed from -mm tree
-Date: Mon, 07 Apr 2008 12:46:11 -0700
-Message-ID: <200804071946.m37JkBf4022194@imap1.linux-foundation.org>
+Subject: - i2c-superh-mobile-i2c-bus-controller-v5.patch removed from -mm tree
+Date: Mon, 07 Apr 2008 13:01:54 -0700
+Message-ID: <200804072001.m37K1s1J022782@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34062 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56792 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753203AbYDGTqz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 15:46:55 -0400
+	by vger.kernel.org with ESMTP id S1752355AbYDGUCH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 16:02:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, avi@qumranet.com, cotte@freenet.de, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: magnus.damm@gmail.com, damm@igel.co.jp, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-s390-git-rejects
+     i2c: SuperH Mobile I2C Bus Controller
 has been removed from the -mm tree.  Its filename was
-     git-s390-git-rejects.patch
+     i2c-superh-mobile-i2c-bus-controller-v5.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-s390-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: i2c: SuperH Mobile I2C Bus Controller
+From: Magnus Damm <magnus.damm@gmail.com>
 
-argh, fustercluck.
+This is V5 of the SuperH Mobile I2C Controller Driver.  A simple Master only
+driver for the I2C block included in processors such as sh7343, sh7722 and
+sh7723.  Tested on a sh7722 MigoR using a rs5c732b rtc.
 
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Carsten Otte <cotte@freenet.de>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Signed-off-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-s390/sysinfo.h |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/i2c/busses/Kconfig         |   10 
+ drivers/i2c/busses/Makefile        |    1 
+ drivers/i2c/busses/i2c-sh_mobile.c |  500 +++++++++++++++++++++++++++
+ 3 files changed, 511 insertions(+)
 
-diff -puN drivers/s390/sysinfo.c~git-s390-git-rejects drivers/s390/sysinfo.c
-diff -puN include/asm-s390/sysinfo.h~git-s390-git-rejects include/asm-s390/sysinfo.h
---- a/include/asm-s390/sysinfo.h~git-s390-git-rejects
-+++ a/include/asm-s390/sysinfo.h
-@@ -8,7 +8,7 @@
-  * as published by the Free Software Foundation.
-  *
-  *    Author(s): Ulrich Weigand <weigand@de.ibm.com>
-- *               Christian Borntraeger <borntraeger@de.ibm.com>
-+ *		 Christian Borntraeger <borntraeger@de.ibm.com>
-  */
+diff -puN drivers/i2c/busses/Kconfig~i2c-superh-mobile-i2c-bus-controller-v5 drivers/i2c/busses/Kconfig
+--- a/drivers/i2c/busses/Kconfig~i2c-superh-mobile-i2c-bus-controller-v5
++++ a/drivers/i2c/busses/Kconfig
+@@ -707,4 +707,14 @@ config I2C_SH7760
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called i2c-sh7760.
  
- struct sysinfo_1_1_1 {
-@@ -20,6 +20,11 @@ struct sysinfo_1_1_1 {
- 	char sequence[16];
- 	char plant[4];
- 	char model[16];
-+	char model_perm_cap[16];
-+	char model_temp_cap[16];
-+	char model_cap_rating[4];
-+	char model_perm_cap_rating[4];
-+	char model_temp_cap_rating[4];
- };
++config I2C_SH_MOBILE
++	tristate "SuperH Mobile I2C Controller"
++	depends on SUPERH
++	help
++	  If you say yes to this option, support will be included for the
++	  built-in I2C interface on the Renesas SH-Mobile processor.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called i2c-sh_mobile.
++
+ endmenu
+diff -puN drivers/i2c/busses/Makefile~i2c-superh-mobile-i2c-bus-controller-v5 drivers/i2c/busses/Makefile
+--- a/drivers/i2c/busses/Makefile~i2c-superh-mobile-i2c-bus-controller-v5
++++ a/drivers/i2c/busses/Makefile
+@@ -55,6 +55,7 @@ obj-$(CONFIG_I2C_VIAPRO)	+= i2c-viapro.o
+ obj-$(CONFIG_I2C_VOODOO3)	+= i2c-voodoo3.o
+ obj-$(CONFIG_SCx200_ACB)	+= scx200_acb.o
+ obj-$(CONFIG_SCx200_I2C)	+= scx200_i2c.o
++obj-$(CONFIG_I2C_SH_MOBILE)	+= i2c-sh_mobile.o
  
- struct sysinfo_1_2_1 {
+ ifeq ($(CONFIG_I2C_DEBUG_BUS),y)
+ EXTRA_CFLAGS += -DDEBUG
+diff -puN /dev/null drivers/i2c/busses/i2c-sh_mobile.c
+--- /dev/null
++++ a/drivers/i2c/busses/i2c-sh_mobile.c
+@@ -0,0 +1,500 @@
++/*
++ * SuperH Mobile I2C Controller
++ *
++ * Copyright (C) 2008 Magnus Damm
++ *
++ * Portions of the code based on out-of-tree driver i2c-sh7343.c
++ * Copyright (c) 2006 Carlos Munoz <carlos@kenati.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/delay.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/i2c.h>
++#include <linux/err.h>
++#include <linux/clk.h>
++#include <linux/io.h>
++
++enum sh_mobile_i2c_op {
++	OP_START = 0,
++	OP_TX_ONLY,
++	OP_TX_STOP,
++	OP_TX_TO_RX,
++	OP_RX_ONLY,
++	OP_RX_STOP,
++};
++
++struct sh_mobile_i2c_data {
++	struct device *dev;
++	void __iomem *reg;
++	struct i2c_adapter adap;
++
++	struct clk *clk;
++	u_int8_t iccl;
++	u_int8_t icch;
++
++	spinlock_t lock;
++	wait_queue_head_t wait;
++	struct i2c_msg *msg;
++	int pos;
++	int sr;
++};
++
++#define NORMAL_SPEED		100000 /* FAST_SPEED 400000 */
++
++/* Register offsets */
++#define ICDR(pd)		(pd->reg + 0x00)
++#define ICCR(pd)		(pd->reg + 0x04)
++#define ICSR(pd)		(pd->reg + 0x08)
++#define ICIC(pd)		(pd->reg + 0x0c)
++#define ICCL(pd)		(pd->reg + 0x10)
++#define ICCH(pd)		(pd->reg + 0x14)
++
++/* Register bits */
++#define ICCR_ICE		0x80
++#define ICCR_RACK		0x40
++#define ICCR_TRS		0x10
++#define ICCR_BBSY		0x04
++#define ICCR_SCP		0x01
++
++#define ICSR_SCLM		0x80
++#define ICSR_SDAM		0x40
++#define SW_DONE			0x20
++#define ICSR_BUSY		0x10
++#define ICSR_AL			0x08
++#define ICSR_TACK		0x04
++#define ICSR_WAIT		0x02
++#define ICSR_DTE		0x01
++
++#define ICIC_ALE		0x08
++#define ICIC_TACKE		0x04
++#define ICIC_WAITE		0x02
++#define ICIC_DTEE		0x01
++
++static void activate_ch(struct sh_mobile_i2c_data *pd)
++{
++	/* Make sure the clock is enabled */
++	clk_enable(pd->clk);
++
++	/* Enable channel and configure rx ack */
++	iowrite8(ioread8(ICCR(pd)) | ICCR_ICE, ICCR(pd));
++
++	/* Mask all interrupts */
++	iowrite8(0, ICIC(pd));
++
++	/* Set the clock */
++	iowrite8(pd->iccl, ICCL(pd));
++	iowrite8(pd->icch, ICCH(pd));
++}
++
++static void deactivate_ch(struct sh_mobile_i2c_data *pd)
++{
++	/* Clear/disable interrupts */
++	iowrite8(0, ICSR(pd));
++	iowrite8(0, ICIC(pd));
++
++	/* Disable channel */
++	iowrite8(ioread8(ICCR(pd)) & ~ICCR_ICE, ICCR(pd));
++
++	/* Disable clock */
++	clk_disable(pd->clk);
++}
++
++static unsigned char i2c_op(struct sh_mobile_i2c_data *pd,
++			    enum sh_mobile_i2c_op op, unsigned char data)
++{
++	unsigned char ret = 0;
++	unsigned long flags;
++
++	dev_dbg(pd->dev, "op %d, data in 0x%02x\n", op, data);
++
++	spin_lock_irqsave(&pd->lock, flags);
++
++	switch (op) {
++	case OP_START:
++		iowrite8(0x94, ICCR(pd));
++		break;
++	case OP_TX_ONLY:
++		iowrite8(data, ICDR(pd));
++		break;
++	case OP_TX_STOP:
++		iowrite8(data, ICDR(pd));
++		iowrite8(0x90, ICCR(pd));
++		iowrite8(ICIC_ALE | ICIC_TACKE, ICIC(pd));
++		break;
++	case OP_TX_TO_RX:
++		iowrite8(data, ICDR(pd));
++		iowrite8(0x81, ICCR(pd));
++		break;
++	case OP_RX_ONLY:
++		ret = ioread8(ICDR(pd));
++		break;
++	case OP_RX_STOP:
++		ret = ioread8(ICDR(pd));
++		iowrite8(0xc0, ICCR(pd));
++		break;
++	}
++
++	spin_unlock_irqrestore(&pd->lock, flags);
++
++	dev_dbg(pd->dev, "op %d, data out 0x%02x\n", op, ret);
++	return ret;
++}
++
++static irqreturn_t sh_mobile_i2c_isr(int irq, void *dev_id)
++{
++	struct platform_device *dev = dev_id;
++	struct sh_mobile_i2c_data *pd = platform_get_drvdata(dev);
++	struct i2c_msg *msg = pd->msg;
++	unsigned char data, sr;
++	int wakeup = 0;
++
++	sr = ioread8(ICSR(pd));
++	pd->sr |= sr;
++
++	dev_dbg(pd->dev, "i2c_isr 0x%02x 0x%02x %s %d %d!\n", sr, pd->sr,
++	       (msg->flags & I2C_M_RD) ? "read" : "write",
++	       pd->pos, msg->len);
++
++	if (sr & (ICSR_AL | ICSR_TACK)) {
++		iowrite8(0, ICIC(pd)); /* disable interrupts */
++		wakeup = 1;
++		goto do_wakeup;
++	}
++
++	if (pd->pos == msg->len) {
++		i2c_op(pd, OP_RX_ONLY, 0);
++		wakeup = 1;
++		goto do_wakeup;
++	}
++
++	if (pd->pos == -1) {
++		data = (msg->addr & 0x7f) << 1;
++		data |= (msg->flags & I2C_M_RD) ? 1 : 0;
++	} else
++		data = msg->buf[pd->pos];
++
++	if ((pd->pos == -1) || !(msg->flags & I2C_M_RD)) {
++		if (msg->flags & I2C_M_RD)
++			i2c_op(pd, OP_TX_TO_RX, data);
++		else if (pd->pos == (msg->len - 1)) {
++			i2c_op(pd, OP_TX_STOP, data);
++			wakeup = 1;
++		} else
++			i2c_op(pd, OP_TX_ONLY, data);
++	} else {
++		if (pd->pos == (msg->len - 1))
++			data = i2c_op(pd, OP_RX_STOP, 0);
++		else
++			data = i2c_op(pd, OP_RX_ONLY, 0);
++
++		msg->buf[pd->pos] = data;
++	}
++	pd->pos++;
++
++ do_wakeup:
++	if (wakeup) {
++		pd->sr |= SW_DONE;
++		wake_up(&pd->wait);
++	}
++
++	return IRQ_HANDLED;
++}
++
++static int start_ch(struct sh_mobile_i2c_data *pd, struct i2c_msg *usr_msg)
++{
++	/* Initialize channel registers */
++	iowrite8(ioread8(ICCR(pd)) & ~ICCR_ICE, ICCR(pd));
++
++	/* Enable channel and configure rx ack */
++	iowrite8(ioread8(ICCR(pd)) | ICCR_ICE, ICCR(pd));
++
++	/* Set the clock */
++	iowrite8(pd->iccl, ICCL(pd));
++	iowrite8(pd->icch, ICCH(pd));
++
++	pd->msg = usr_msg;
++	pd->pos = -1;
++	pd->sr = 0;
++
++	/* Enable all interrupts except wait */
++	iowrite8(ioread8(ICIC(pd)) | ICIC_ALE | ICIC_TACKE | ICIC_DTEE,
++		 ICIC(pd));
++	return 0;
++}
++
++static int sh_mobile_i2c_xfer(struct i2c_adapter *adapter,
++			      struct i2c_msg *msgs,
++			      int num)
++{
++	struct sh_mobile_i2c_data *pd = i2c_get_adapdata(adapter);
++	struct i2c_msg	*msg;
++	int err = 0;
++	u_int8_t val;
++	int i, k, retry_count;
++
++	activate_ch(pd);
++
++	/* Process all messages */
++	for (i = 0; i < num; i++) {
++		msg = &msgs[i];
++
++		err = start_ch(pd, msg);
++		if (err)
++			break;
++
++		i2c_op(pd, OP_START, 0);
++
++		/* The interrupt handler takes care of the rest... */
++		k = wait_event_timeout(pd->wait,
++				       pd->sr & (ICSR_TACK | SW_DONE),
++				       5 * HZ);
++		if (!k)
++			dev_err(pd->dev, "Transfer request timed out\n");
++
++		retry_count = 10;
++again:
++		val = ioread8(ICSR(pd));
++
++		dev_dbg(pd->dev, "val 0x%02x pd->sr 0x%02x\n", val, pd->sr);
++
++		if ((val | pd->sr) & (ICSR_TACK | ICSR_AL)) {
++			err = -EIO;
++			break;
++		}
++
++		/* the interrupt handler may wake us up before the
++		 * transfer is finished, so poll the hardware
++		 * until we're done.
++		 */
++
++		if (!(!(val & ICSR_BUSY) && (val & ICSR_SCLM) &&
++		      (val & ICSR_SDAM))) {
++			msleep(1);
++			if (retry_count--)
++				goto again;
++
++			err = -EIO;
++			dev_err(pd->dev, "Polling timed out\n");
++			break;
++		}
++	}
++
++	deactivate_ch(pd);
++
++	if (!err)
++		err = num;
++	return err;
++}
++
++static u32 sh_mobile_i2c_func(struct i2c_adapter *adapter)
++{
++	return I2C_FUNC_I2C | I2C_FUNC_SMBUS_EMUL;
++}
++
++static struct i2c_algorithm sh_mobile_i2c_algorithm = {
++	.functionality	= sh_mobile_i2c_func,
++	.master_xfer	= sh_mobile_i2c_xfer,
++};
++
++static void sh_mobile_i2c_setup_channel(struct platform_device *dev)
++{
++	struct sh_mobile_i2c_data *pd = platform_get_drvdata(dev);
++	unsigned long peripheral_clk = clk_get_rate(pd->clk);
++	u_int32_t num;
++	u_int32_t denom;
++	u_int32_t tmp;
++
++	spin_lock_init(&pd->lock);
++	init_waitqueue_head(&pd->wait);
++
++	/* Calculate the value for iccl. From the data sheet:
++	 * iccl = (p clock / transfer rate) * (L / (L + H))
++	 * where L and H are the SCL low/high ratio (5/4 in this case).
++	 * We also round off the result.
++	 */
++	num = peripheral_clk * 5;
++	denom = NORMAL_SPEED * 9;
++	tmp = num * 10 / denom;
++	if (tmp % 10 >= 5)
++		pd->iccl = (u_int8_t)((num/denom) + 1);
++	else
++		pd->iccl = (u_int8_t)(num/denom);
++
++	/* Calculate the value for icch. From the data sheet:
++	   icch = (p clock / transfer rate) * (H / (L + H)) */
++	num = peripheral_clk * 4;
++	tmp = num * 10 / denom;
++	if (tmp % 10 >= 5)
++		pd->icch = (u_int8_t)((num/denom) + 1);
++	else
++		pd->icch = (u_int8_t)(num/denom);
++}
++
++static int sh_mobile_i2c_hook_irqs(struct platform_device *dev, int hook)
++{
++	struct resource *res;
++	int ret = -ENXIO;
++	int q, m;
++	int k = 0;
++	int n = 0;
++
++	while ((res = platform_get_resource(dev, IORESOURCE_IRQ, k))) {
++		for (n = res->start; hook && n <= res->end; n++) {
++			if (request_irq(n, sh_mobile_i2c_isr, IRQF_DISABLED,
++					dev->dev.bus_id, dev))
++				goto rollback;
++		}
++		k++;
++	}
++
++	if (hook)
++		return k > 0 ? 0 : -ENOENT;
++
++	k--;
++	ret = 0;
++
++ rollback:
++	for (q = k; k >= 0; k--) {
++		for (m = n; m >= res->start; m--)
++			free_irq(m, dev);
++
++		res = platform_get_resource(dev, IORESOURCE_IRQ, k - 1);
++		m = res->end;
++	}
++
++	return ret;
++}
++
++static int sh_mobile_i2c_probe(struct platform_device *dev)
++{
++	struct sh_mobile_i2c_data *pd;
++	struct i2c_adapter *adap;
++	struct resource *res;
++	int size;
++	int ret;
++
++	pd = kzalloc(sizeof(struct sh_mobile_i2c_data), GFP_KERNEL);
++	if (pd == NULL) {
++		dev_err(&dev->dev, "cannot allocate private data\n");
++		return -ENOMEM;
++	}
++
++	pd->clk = clk_get(&dev->dev, "peripheral_clk");
++	if (IS_ERR(pd->clk)) {
++		dev_err(&dev->dev, "cannot get peripheral clock\n");
++		ret = PTR_ERR(pd->clk);
++		goto err;
++	}
++
++	ret = sh_mobile_i2c_hook_irqs(dev, 1);
++	if (ret) {
++		dev_err(&dev->dev, "cannot request IRQ\n");
++		goto err_clk;
++	}
++
++	pd->dev = &dev->dev;
++	platform_set_drvdata(dev, pd);
++
++	res = platform_get_resource(dev, IORESOURCE_MEM, 0);
++	if (res == NULL) {
++		dev_err(&dev->dev, "cannot find IO resource\n");
++		ret = -ENOENT;
++		goto err_irq;
++	}
++
++	size = (res->end - res->start) + 1;
++
++	pd->reg = ioremap(res->start, size);
++	if (pd->reg == NULL) {
++		dev_err(&dev->dev, "cannot map IO\n");
++		ret = -ENXIO;
++		goto err_irq;
++	}
++
++	/* setup the private data */
++	adap = &pd->adap;
++	i2c_set_adapdata(adap, pd);
++
++	adap->owner = THIS_MODULE;
++	adap->algo = &sh_mobile_i2c_algorithm;
++	adap->dev.parent = &dev->dev;
++	adap->retries = 5;
++	adap->nr = dev->id;
++
++	strlcpy(adap->name, dev->name, sizeof(adap->name));
++
++	sh_mobile_i2c_setup_channel(dev);
++
++	ret = i2c_add_numbered_adapter(adap);
++	if (ret < 0) {
++		dev_err(&dev->dev, "cannot add numbered adapter\n");
++		goto err_all;
++	}
++
++	return 0;
++
++ err_all:
++	iounmap(pd->reg);
++ err_irq:
++	sh_mobile_i2c_hook_irqs(dev, 0);
++ err_clk:
++	clk_put(pd->clk);
++ err:
++	kfree(pd);
++	return ret;
++}
++
++static int sh_mobile_i2c_remove(struct platform_device *dev)
++{
++	struct sh_mobile_i2c_data *pd = platform_get_drvdata(dev);
++
++	i2c_del_adapter(&pd->adap);
++	iounmap(pd->reg);
++	sh_mobile_i2c_hook_irqs(dev, 0);
++	clk_put(pd->clk);
++	kfree(pd);
++	return 0;
++}
++
++static struct platform_driver sh_mobile_i2c_driver = {
++	.driver		= {
++		.name		= "i2c-sh_mobile",
++		.owner		= THIS_MODULE,
++	},
++	.probe		= sh_mobile_i2c_probe,
++	.remove		= sh_mobile_i2c_remove,
++};
++
++static int __init sh_mobile_i2c_adap_init(void)
++{
++	return platform_driver_register(&sh_mobile_i2c_driver);
++}
++
++static void __exit sh_mobile_i2c_adap_exit(void)
++{
++	platform_driver_unregister(&sh_mobile_i2c_driver);
++}
++
++module_init(sh_mobile_i2c_adap_init);
++module_exit(sh_mobile_i2c_adap_exit);
++
++MODULE_DESCRIPTION("SuperH Mobile I2C Bus Controller driver");
++MODULE_AUTHOR("Magnus Damm");
++MODULE_LICENSE("GPL v2");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from magnus.damm@gmail.com are
 
-origin.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-x86.patch
-git-x86-fix-printk-warning.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
-git-kgdb-light.patch
-git-acpi.patch
-git-acpi-fixup.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-alsa-tiwai.patch
-es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
-es1968-fix-sleep-while-holding-lock-bug-checkpatch-fixes.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
-git-powerpc.patch
-fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry.patch
-pm-remove-destroy_suspended_device.patch
-scsi-add-iscsi-ibft-support.patch
-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-hrt.patch
-time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
-arch-ia64-kernel-use-time_-macros.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
+touch-screen-driver-for-the-superh-migor-board.patch
 touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-leds.patch
-git-libata-all.patch
-drivers-ata-sata_fslc-fix-warnings-small-memory-leak.patch
-git-async-tx.patch
-git-mips.patch
 git-net.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
-git-s390.patch
-git-s390-git-rejects.patch
 git-sh.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-misplaced-hunk.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-semaphore-git-rejects.patch
-smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-i386-arch-x86-math-emu-reg_ld_strc-fix-warning.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+sm501-add-uart-support.patch
 
