@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-fix-node_state-handling.patch added to -mm tree
-Date: Mon, 07 Apr 2008 15:16:43 -0700
-Message-ID: <200804072216.m37MGhfT027821@imap1.linux-foundation.org>
+Subject: + memcg-remove-redundant-function-calls.patch added to -mm tree
+Date: Mon, 07 Apr 2008 15:17:05 -0700
+Message-ID: <200804072217.m37MH5bj027835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33962 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53990 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752167AbYDGWQ5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 18:16:57 -0400
+	by vger.kernel.org with ESMTP id S1754930AbYDGWRP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 18:17:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     memcg: fix node_state handling
+     memcg: remove redundant function calls
 has been added to the -mm tree.  Its filename is
-     memcg-fix-node_state-handling.patch
+     memcg-remove-redundant-function-calls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,22 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix node_state handling
+Subject: memcg: remove redundant function calls
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-This should be N_NORMAL_MEMORY.
+remove_list/add_list uses page_cgroup_zoneinfo() in it.
+
+So, it's called twice before and after lock.
+
+	mz = page_cgroup_zoneinfo();
+	lock();
+	mz = page_cgroup_zoneinfo();
+	....
+	unlock();
+
+And address of mz never changes.
+
+This is not good. This patch fixes this behavior.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -44,35 +56,74 @@ Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-node_state-handling mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-node_state-handling
+diff -puN mm/memcontrol.c~memcg-remove-redundant-function-calls mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-redundant-function-calls
 +++ a/mm/memcontrol.c
-@@ -947,7 +947,7 @@ static int alloc_mem_cgroup_per_zone_inf
- {
- 	struct mem_cgroup_per_node *pn;
- 	struct mem_cgroup_per_zone *mz;
--	int zone;
-+	int zone, tmp = node;
- 	/*
- 	 * This routine is called against possible nodes.
- 	 * But it's BUG to call kmalloc() against offline node.
-@@ -956,10 +956,9 @@ static int alloc_mem_cgroup_per_zone_inf
- 	 *       never be onlined. It's better to use memory hotplug callback
- 	 *       function.
- 	 */
--	if (node_state(node, N_HIGH_MEMORY))
--		pn = kmalloc_node(sizeof(*pn), GFP_KERNEL, node);
--	else
--		pn = kmalloc(sizeof(*pn), GFP_KERNEL);
-+	if (!node_state(node, N_NORMAL_MEMORY))
-+		tmp = -1;
-+	pn = kmalloc_node(sizeof(*pn), GFP_KERNEL, tmp);
- 	if (!pn)
- 		return 1;
+@@ -287,10 +287,10 @@ static void unlock_page_cgroup(struct pa
+ 	bit_spin_unlock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
+ }
  
+-static void __mem_cgroup_remove_list(struct page_cgroup *pc)
++static void __mem_cgroup_remove_list(struct mem_cgroup_per_zone *mz,
++			struct page_cgroup *pc)
+ {
+ 	int from = pc->flags & PAGE_CGROUP_FLAG_ACTIVE;
+-	struct mem_cgroup_per_zone *mz = page_cgroup_zoneinfo(pc);
+ 
+ 	if (from)
+ 		MEM_CGROUP_ZSTAT(mz, MEM_CGROUP_ZSTAT_ACTIVE) -= 1;
+@@ -301,10 +301,10 @@ static void __mem_cgroup_remove_list(str
+ 	list_del_init(&pc->lru);
+ }
+ 
+-static void __mem_cgroup_add_list(struct page_cgroup *pc)
++static void __mem_cgroup_add_list(struct mem_cgroup_per_zone *mz,
++				struct page_cgroup *pc)
+ {
+ 	int to = pc->flags & PAGE_CGROUP_FLAG_ACTIVE;
+-	struct mem_cgroup_per_zone *mz = page_cgroup_zoneinfo(pc);
+ 
+ 	if (!to) {
+ 		MEM_CGROUP_ZSTAT(mz, MEM_CGROUP_ZSTAT_INACTIVE) += 1;
+@@ -629,7 +629,7 @@ retry:
+ 
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	spin_lock_irqsave(&mz->lru_lock, flags);
+-	__mem_cgroup_add_list(pc);
++	__mem_cgroup_add_list(mz, pc);
+ 	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 
+ 	unlock_page_cgroup(page);
+@@ -685,7 +685,7 @@ void mem_cgroup_uncharge_page(struct pag
+ 	if (--(pc->ref_cnt) == 0) {
+ 		mz = page_cgroup_zoneinfo(pc);
+ 		spin_lock_irqsave(&mz->lru_lock, flags);
+-		__mem_cgroup_remove_list(pc);
++		__mem_cgroup_remove_list(mz, pc);
+ 		spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 
+ 		page_assign_page_cgroup(page, NULL);
+@@ -747,7 +747,7 @@ void mem_cgroup_page_migration(struct pa
+ 
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	spin_lock_irqsave(&mz->lru_lock, flags);
+-	__mem_cgroup_remove_list(pc);
++	__mem_cgroup_remove_list(mz, pc);
+ 	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 
+ 	page_assign_page_cgroup(page, NULL);
+@@ -759,7 +759,7 @@ void mem_cgroup_page_migration(struct pa
+ 
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	spin_lock_irqsave(&mz->lru_lock, flags);
+-	__mem_cgroup_add_list(pc);
++	__mem_cgroup_add_list(mz, pc);
+ 	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 
+ 	unlock_page_cgroup(newpage);
 _
 
 Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
