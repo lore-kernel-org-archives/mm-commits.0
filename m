@@ -1,133 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - memory-controller-make-memory-resource-control-aware-of-boot-options.patch removed from -mm tree
-Date: Mon, 07 Apr 2008 13:01:42 -0700
-Message-ID: <200804072001.m37K1gEu022761@imap1.linux-foundation.org>
+Subject: - ipmi-change-device-node-ordering-to-reflect-probe-order.patch removed from -mm tree
+Date: Mon, 07 Apr 2008 13:01:51 -0700
+Message-ID: <200804072001.m37K1p2m022777@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56090 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49970 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752979AbYDGUCN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 16:02:13 -0400
+	by vger.kernel.org with ESMTP id S1751785AbYDGUFn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 16:05:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: balbir@linux.vnet.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, rientjes@google.com, skumar@linux.vnet.ibm.com, xemul@openvz.org, yamamoto@valinux.co.j
+To: cah@us.ibm.com, cminyard@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory controller: make memory resource control aware of boot options
+     ipmi: change device node ordering to reflect probe order
 has been removed from the -mm tree.  Its filename was
-     memory-controller-make-memory-resource-control-aware-of-boot-options.patch
+     ipmi-change-device-node-ordering-to-reflect-probe-order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory controller: make memory resource control aware of boot options
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: ipmi: change device node ordering to reflect probe order
+From: Carol Hebert <cah@us.ibm.com>
 
-A boot option for the memory controller was discussed on lkml.  It is a good
-idea to add it, since it saves memory for people who want to turn off the
-memory controller.
+In 2.6.14 a patch was merged which switching the order of the ipmi device
+naming from in-order-of-discovery over to reverse-order-of-discovery.
 
-By default the option is on for the following two reasons:
+So on systems with multiple BMC interfaces, the ipmi device names are being
+created in reverse order relative to how they are discovered on the system
+(e.g.  on an IBM x3950 multinode server with N nodes, the device name for the
+BMC in the first node is /dev/ipmiN-1 and the device name for the BMC in the
+last node is /dev/ipmi0, etc.).
 
-1. It provides compatibility with the current scheme where the memory
-   controller turns on if the config option is enabled
-2. It allows for wider testing of the memory controller, once the config
-   option is enabled
+The problem is caused by the list handling routines chosen in dmi_scan.c. 
+Using list_add() causes the multiple ipmi devices to be added to the device
+list using a stack-paradigm and so the ipmi driver subsequently pulls them off
+during initialization in LIFO order.  This patch changes the
+dmi_save_ipmi_device() list handling paradigm to a queue, thereby allowing the
+ipmi driver to build the ipmi device names in the order in which they are
+found on the system.
 
-We still allow the create, destroy callbacks to succeed, since they are not
-aware of boot options.  We do not populate the directory will memory resource
-controller specific files.
-
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Paul Menage <menage@google.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Carol Hebert <cah@us.ibm.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+ drivers/firmware/dmi_scan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memory-controller-make-memory-resource-control-aware-of-boot-options mm/memcontrol.c
---- a/mm/memcontrol.c~memory-controller-make-memory-resource-control-aware-of-boot-options
-+++ a/mm/memcontrol.c
-@@ -533,6 +533,9 @@ static int mem_cgroup_charge_common(stru
- 	unsigned long nr_retries = MEM_CGROUP_RECLAIM_RETRIES;
- 	struct mem_cgroup_per_zone *mz;
+diff -puN drivers/firmware/dmi_scan.c~ipmi-change-device-node-ordering-to-reflect-probe-order drivers/firmware/dmi_scan.c
+--- a/drivers/firmware/dmi_scan.c~ipmi-change-device-node-ordering-to-reflect-probe-order
++++ a/drivers/firmware/dmi_scan.c
+@@ -266,7 +266,7 @@ static void __init dmi_save_ipmi_device(
+ 	dev->name = "IPMI controller";
+ 	dev->device_data = data;
  
-+	if (mem_cgroup_subsys.disabled)
-+		return 0;
-+
- 	/*
- 	 * Should page_cgroup's go to their own slab?
- 	 * One could optimize the performance of the charging routine
-@@ -665,6 +668,9 @@ void mem_cgroup_uncharge_page(struct pag
- 	struct mem_cgroup_per_zone *mz;
- 	unsigned long flags;
- 
-+	if (mem_cgroup_subsys.disabled)
-+		return;
-+
- 	/*
- 	 * Check if our page_cgroup is valid
- 	 */
-@@ -705,6 +711,9 @@ int mem_cgroup_prepare_migration(struct 
- {
- 	struct page_cgroup *pc;
- 
-+	if (mem_cgroup_subsys.disabled)
-+		return 0;
-+
- 	lock_page_cgroup(page);
- 	pc = page_get_page_cgroup(page);
- 	if (pc)
-@@ -803,6 +812,9 @@ static int mem_cgroup_force_empty(struct
- 	int ret = -EBUSY;
- 	int node, zid;
- 
-+	if (mem_cgroup_subsys.disabled)
-+		return 0;
-+
- 	css_get(&mem->css);
- 	/*
- 	 * page reclaim code (kswapd etc..) will move pages between
-@@ -1053,6 +1065,8 @@ static void mem_cgroup_destroy(struct cg
- static int mem_cgroup_populate(struct cgroup_subsys *ss,
- 				struct cgroup *cont)
- {
-+	if (mem_cgroup_subsys.disabled)
-+		return 0;
- 	return cgroup_add_files(cont, ss, mem_cgroup_files,
- 					ARRAY_SIZE(mem_cgroup_files));
+-	list_add(&dev->list, &dmi_devices);
++	list_add_tail(&dev->list, &dmi_devices);
  }
-@@ -1065,6 +1079,9 @@ static void mem_cgroup_move_task(struct 
- 	struct mm_struct *mm;
- 	struct mem_cgroup *mem, *old_mem;
  
-+	if (mem_cgroup_subsys.disabled)
-+		return;
-+
- 	mm = get_task_mm(p);
- 	if (mm == NULL)
- 		return;
+ static void __init dmi_save_extended_devices(const struct dmi_header *dm)
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from cah@us.ibm.com are
 
 origin.patch
-cgroups-use-a-hash-table-for-css_set-finding.patch
-cgroups-simplify-init_subsys.patch
-cgroups-remove-the-css_set-linked-list.patch
-memcgroup-add-the-max_usage-member-on-the-res_counter.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
 
