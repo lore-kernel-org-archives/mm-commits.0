@@ -1,68 +1,407 @@
 From: akpm@linux-foundation.org
-Subject: - git-acpi-fixup.patch removed from -mm tree
-Date: Tue, 08 Apr 2008 11:21:58 -0700
-Message-ID: <200804081821.m38ILwl5005653@imap1.linux-foundation.org>
+Subject: + git-semaphore-vs-git-x86.patch added to -mm tree
+Date: Tue, 08 Apr 2008 11:33:44 -0700
+Message-ID: <200804081833.m38IXi7u006035@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58592 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753421AbYDHSXc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 14:23:32 -0400
+	by vger.kernel.org with ESMTP id S1753942AbYDHSeR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 14:34:17 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m38IXi4t023531
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 8 Apr 2008 11:33:45 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-acpi-fixup
-has been removed from the -mm tree.  Its filename was
-     git-acpi-fixup.patch
+     git-semaphore-vs-git-x86
+has been added to the -mm tree.  Its filename is
+     git-semaphore-vs-git-x86.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-acpi-fixup
+Subject: git-semaphore-vs-git-x86
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix git-acpi versus git-x86 conflict.
-
-Generally, adding new code at the end-of-file is a bad idea - because that's
-where everyone else adds new code!  Please prefer to add new stuff in the body
-of the C file, preferably somewhere logical.  
-
-Cc: Len Brown <lenb@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup_64.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ include/asm-x86/semaphore_32.h |  171 ------------------------------
+ include/asm-x86/semaphore_64.h |  176 -------------------------------
+ 2 files changed, 347 deletions(-)
 
-diff -puN arch/x86/kernel/setup_64.c~git-acpi-fixup arch/x86/kernel/setup_64.c
---- a/arch/x86/kernel/setup_64.c~git-acpi-fixup
-+++ a/arch/x86/kernel/setup_64.c
-@@ -1088,3 +1088,18 @@ static __init int setup_disablecpuid(cha
- 	return 1;
- }
- __setup("clearcpuid=", setup_disablecpuid);
-+
-+#ifdef CONFIG_X86_TRAMPOLINE
-+/*
-+ * Currently trivial. Write the real->protected mode
-+ * bootstrap into the page concerned. The caller
-+ * has made sure it's suitably aligned.
-+ */
-+
-+unsigned long setup_trampoline(void)
-+{
-+	void *tramp = __va(TRAMPOLINE_BASE);
-+	memcpy(tramp, trampoline_data, trampoline_end - trampoline_data);
-+	return virt_to_phys(tramp);
-+}
-+#endif /* CONFIG_X86_TRAMPOLINE */
+diff -puN include/asm-x86/semaphore_32.h~git-semaphore-vs-git-x86 /dev/null
+--- a/include/asm-x86/semaphore_32.h
++++ /dev/null
+@@ -1,171 +0,0 @@
+-#ifndef _I386_SEMAPHORE_H
+-#define _I386_SEMAPHORE_H
+-
+-#include <linux/linkage.h>
+-
+-#ifdef __KERNEL__
+-
+-/*
+- * SMP- and interrupt-safe semaphores..
+- *
+- * (C) Copyright 1996 Linus Torvalds
+- *
+- * Modified 1996-12-23 by Dave Grothe <dave@gcom.com> to fix bugs in
+- *                     the original code and to make semaphore waits
+- *                     interruptible so that processes waiting on
+- *                     semaphores can be killed.
+- * Modified 1999-02-14 by Andrea Arcangeli, split the sched.c helper
+- *		       functions in asm/sempahore-helper.h while fixing a
+- *		       potential and subtle race discovered by Ulrich Schmid
+- *		       in down_interruptible(). Since I started to play here I
+- *		       also implemented the `trylock' semaphore operation.
+- *          1999-07-02 Artur Skawina <skawina@geocities.com>
+- *                     Optimized "0(ecx)" -> "(ecx)" (the assembler does not
+- *                     do this). Changed calling sequences from push/jmp to
+- *                     traditional call/ret.
+- * Modified 2001-01-01 Andreas Franck <afranck@gmx.de>
+- *		       Some hacks to ensure compatibility with recent
+- *		       GCC snapshots, to avoid stack corruption when compiling
+- *		       with -fomit-frame-pointer. It's not sure if this will
+- *		       be fixed in GCC, as our previous implementation was a
+- *		       bit dubious.
+- *
+- * If you would like to see an analysis of this implementation, please
+- * ftp to gcom.com and download the file
+- * /pub/linux/src/semaphore/semaphore-2.0.24.tar.gz.
+- *
+- */
+-
+-#include <asm/system.h>
+-#include <asm/atomic.h>
+-#include <linux/wait.h>
+-#include <linux/rwsem.h>
+-
+-struct semaphore {
+-	atomic_t count;
+-	int sleepers;
+-	wait_queue_head_t wait;
+-};
+-
+-
+-#define __SEMAPHORE_INITIALIZER(name, n)				\
+-{									\
+-	.count		= ATOMIC_INIT(n),				\
+-	.sleepers	= 0,						\
+-	.wait		= __WAIT_QUEUE_HEAD_INITIALIZER((name).wait)	\
+-}
+-
+-#define __DECLARE_SEMAPHORE_GENERIC(name, count)			\
+-	struct semaphore name = __SEMAPHORE_INITIALIZER(name, count)
+-
+-#define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name, 1)
+-
+-static inline void sema_init(struct semaphore *sem, int val)
+-{
+-/*
+- *	*sem = (struct semaphore)__SEMAPHORE_INITIALIZER((*sem),val);
+- *
+- * i'd rather use the more flexible initialization above, but sadly
+- * GCC 2.7.2.3 emits a bogus warning. EGCS doesn't. Oh well.
+- */
+-	atomic_set(&sem->count, val);
+-	sem->sleepers = 0;
+-	init_waitqueue_head(&sem->wait);
+-}
+-
+-static inline void init_MUTEX(struct semaphore *sem)
+-{
+-	sema_init(sem, 1);
+-}
+-
+-static inline void init_MUTEX_LOCKED(struct semaphore *sem)
+-{
+-	sema_init(sem, 0);
+-}
+-
+-extern asmregparm void __down_failed(atomic_t *count_ptr);
+-extern asmregparm int __down_failed_interruptible(atomic_t *count_ptr);
+-extern asmregparm int __down_failed_trylock(atomic_t *count_ptr);
+-extern asmregparm void __up_wakeup(atomic_t *count_ptr);
+-
+-/*
+- * This is ugly, but we want the default case to fall through.
+- * "__down_failed" is a special asm handler that calls the C
+- * routine that actually waits. See arch/i386/kernel/semaphore.c
+- */
+-static inline void down(struct semaphore *sem)
+-{
+-	might_sleep();
+-	asm volatile("# atomic down operation\n\t"
+-		     LOCK_PREFIX "decl %0\n\t"     /* --sem->count */
+-		     "jns 2f\n"
+-		     "\tlea %0,%%eax\n\t"
+-		     "call __down_failed\n"
+-		     "2:"
+-		     : "+m" (sem->count)
+-		     :
+-		     : "memory", "ax");
+-}
+-
+-/*
+- * Interruptible try to acquire a semaphore.  If we obtained
+- * it, return zero.  If we were interrupted, returns -EINTR
+- */
+-static inline int down_interruptible(struct semaphore *sem)
+-{
+-	int result;
+-
+-	might_sleep();
+-	asm volatile("# atomic interruptible down operation\n\t"
+-		     "xorl %0,%0\n\t"
+-		     LOCK_PREFIX "decl %1\n\t"     /* --sem->count */
+-		     "jns 2f\n\t"
+-		     "lea %1,%%eax\n\t"
+-		     "call __down_failed_interruptible\n"
+-		     "2:"
+-		     : "=&a" (result), "+m" (sem->count)
+-		     :
+-		     : "memory");
+-	return result;
+-}
+-
+-/*
+- * Non-blockingly attempt to down() a semaphore.
+- * Returns zero if we acquired it
+- */
+-static inline int down_trylock(struct semaphore *sem)
+-{
+-	int result;
+-
+-	asm volatile("# atomic interruptible down operation\n\t"
+-		     "xorl %0,%0\n\t"
+-		     LOCK_PREFIX "decl %1\n\t"     /* --sem->count */
+-		     "jns 2f\n\t"
+-		     "lea %1,%%eax\n\t"
+-		     "call __down_failed_trylock\n\t"
+-		     "2:\n"
+-		     : "=&a" (result), "+m" (sem->count)
+-		     :
+-		     : "memory");
+-	return result;
+-}
+-
+-/*
+- * Note! This is subtle. We jump to wake people up only if
+- * the semaphore was negative (== somebody was waiting on it).
+- */
+-static inline void up(struct semaphore *sem)
+-{
+-	asm volatile("# atomic up operation\n\t"
+-		     LOCK_PREFIX "incl %0\n\t"     /* ++sem->count */
+-		     "jg 1f\n\t"
+-		     "lea %0,%%eax\n\t"
+-		     "call __up_wakeup\n"
+-		     "1:"
+-		     : "+m" (sem->count)
+-		     :
+-		     : "memory", "ax");
+-}
+-
+-#endif
+-#endif
+diff -puN include/asm-x86/semaphore_64.h~git-semaphore-vs-git-x86 /dev/null
+--- a/include/asm-x86/semaphore_64.h
++++ /dev/null
+@@ -1,176 +0,0 @@
+-#ifndef _X86_64_SEMAPHORE_H
+-#define _X86_64_SEMAPHORE_H
+-
+-#include <linux/linkage.h>
+-
+-#ifdef __KERNEL__
+-
+-/*
+- * SMP- and interrupt-safe semaphores..
+- *
+- * (C) Copyright 1996 Linus Torvalds
+- *
+- * Modified 1996-12-23 by Dave Grothe <dave@gcom.com> to fix bugs in
+- *                     the original code and to make semaphore waits
+- *                     interruptible so that processes waiting on
+- *                     semaphores can be killed.
+- * Modified 1999-02-14 by Andrea Arcangeli, split the sched.c helper
+- *		       functions in asm/sempahore-helper.h while fixing a
+- *		       potential and subtle race discovered by Ulrich Schmid
+- *		       in down_interruptible(). Since I started to play here I
+- *		       also implemented the `trylock' semaphore operation.
+- *          1999-07-02 Artur Skawina <skawina@geocities.com>
+- *                     Optimized "0(ecx)" -> "(ecx)" (the assembler does not
+- *                     do this). Changed calling sequences from push/jmp to
+- *                     traditional call/ret.
+- * Modified 2001-01-01 Andreas Franck <afranck@gmx.de>
+- *		       Some hacks to ensure compatibility with recent
+- *		       GCC snapshots, to avoid stack corruption when compiling
+- *		       with -fomit-frame-pointer. It's not sure if this will
+- *		       be fixed in GCC, as our previous implementation was a
+- *		       bit dubious.
+- *
+- * If you would like to see an analysis of this implementation, please
+- * ftp to gcom.com and download the file
+- * /pub/linux/src/semaphore/semaphore-2.0.24.tar.gz.
+- *
+- */
+-
+-#include <asm/system.h>
+-#include <asm/atomic.h>
+-#include <asm/rwlock.h>
+-#include <linux/wait.h>
+-#include <linux/rwsem.h>
+-#include <linux/stringify.h>
+-
+-struct semaphore {
+-	atomic_t count;
+-	int sleepers;
+-	wait_queue_head_t wait;
+-};
+-
+-#define __SEMAPHORE_INITIALIZER(name, n)				\
+-{									\
+-	.count		= ATOMIC_INIT(n),				\
+-	.sleepers	= 0,						\
+-	.wait		= __WAIT_QUEUE_HEAD_INITIALIZER((name).wait)	\
+-}
+-
+-#define __DECLARE_SEMAPHORE_GENERIC(name,count) \
+-	struct semaphore name = __SEMAPHORE_INITIALIZER(name, count)
+-
+-#define DECLARE_MUTEX(name) __DECLARE_SEMAPHORE_GENERIC(name, 1)
+-
+-static inline void sema_init(struct semaphore *sem, int val)
+-{
+-/*
+- *	*sem = (struct semaphore)__SEMAPHORE_INITIALIZER((*sem),val);
+- *
+- * i'd rather use the more flexible initialization above, but sadly
+- * GCC 2.7.2.3 emits a bogus warning. EGCS doesn't. Oh well.
+- */
+-	atomic_set(&sem->count, val);
+-	sem->sleepers = 0;
+-	init_waitqueue_head(&sem->wait);
+-}
+-
+-static inline void init_MUTEX(struct semaphore *sem)
+-{
+-	sema_init(sem, 1);
+-}
+-
+-static inline void init_MUTEX_LOCKED(struct semaphore *sem)
+-{
+-	sema_init(sem, 0);
+-}
+-
+-asmlinkage void __down_failed(void /* special register calling convention */);
+-asmlinkage int  __down_failed_interruptible(void  /* params in registers */);
+-asmlinkage int  __down_failed_trylock(void  /* params in registers */);
+-asmlinkage void __up_wakeup(void /* special register calling convention */);
+-
+-asmlinkage void __down(struct semaphore *sem);
+-asmlinkage int  __down_interruptible(struct semaphore *sem);
+-asmlinkage int  __down_trylock(struct semaphore *sem);
+-asmlinkage void __up(struct semaphore *sem);
+-
+-/*
+- * This is ugly, but we want the default case to fall through.
+- * "__down_failed" is a special asm handler that calls the C
+- * routine that actually waits. See arch/x86_64/kernel/semaphore.c
+- */
+-static inline void down(struct semaphore *sem)
+-{
+-	might_sleep();
+-
+-	asm volatile("# atomic down operation\n\t"
+-		     LOCK_PREFIX "decl %0\n\t"     /* --sem->count */
+-		     "jns 1f\n\t"
+-		     "call __down_failed\n"
+-		     "1:"
+-		     : "=m" (sem->count)
+-		     : "D" (sem)
+-		     : "memory");
+-}
+-
+-/*
+- * Interruptible try to acquire a semaphore.  If we obtained
+- * it, return zero.  If we were interrupted, returns -EINTR
+- */
+-static inline int down_interruptible(struct semaphore *sem)
+-{
+-	int result;
+-
+-	might_sleep();
+-
+-	asm volatile("# atomic interruptible down operation\n\t"
+-		     "xorl %0,%0\n\t"
+-		     LOCK_PREFIX "decl %1\n\t"     /* --sem->count */
+-		     "jns 2f\n\t"
+-		     "call __down_failed_interruptible\n"
+-		     "2:\n"
+-		     : "=&a" (result), "=m" (sem->count)
+-		     : "D" (sem)
+-		     : "memory");
+-	return result;
+-}
+-
+-/*
+- * Non-blockingly attempt to down() a semaphore.
+- * Returns zero if we acquired it
+- */
+-static inline int down_trylock(struct semaphore *sem)
+-{
+-	int result;
+-
+-	asm volatile("# atomic interruptible down operation\n\t"
+-		     "xorl %0,%0\n\t"
+-		     LOCK_PREFIX "decl %1\n\t"     /* --sem->count */
+-		     "jns 2f\n\t"
+-		     "call __down_failed_trylock\n\t"
+-		     "2:\n"
+-		     : "=&a" (result), "=m" (sem->count)
+-		     : "D" (sem)
+-		     : "memory", "cc");
+-	return result;
+-}
+-
+-/*
+- * Note! This is subtle. We jump to wake people up only if
+- * the semaphore was negative (== somebody was waiting on it).
+- * The default case (no contention) will result in NO
+- * jumps for both down() and up().
+- */
+-static inline void up(struct semaphore *sem)
+-{
+-	asm volatile("# atomic up operation\n\t"
+-		     LOCK_PREFIX "incl %0\n\t"     /* ++sem->count */
+-		     "jg 1f\n\t"
+-		     "call __up_wakeup\n"
+-		     "1:"
+-		     : "=m" (sem->count)
+-		     : "D" (sem)
+-		     : "memory");
+-}
+-#endif /* __KERNEL__ */
+-#endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +411,6 @@ es1968-fix-sleep-while-holding-lock-bug-checkpatch-fixes.patch
 revert-set-relay-file-can-not-be-read-by-pread2.patch
 git-acpi.patch
 git-acpi-revert-suspend-wakeup-code-in-c.patch
-git-acpi-fixup.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-x86.patch
 git-kgdb-light.patch
@@ -100,7 +438,6 @@ git-infiniband.patch
 git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
 maple-add-driver-for-sega-dreamcast-controller.patch
 touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-kvm.patch
 git-leds.patch
 git-libata-all.patch
 drivers-ata-sata_fslc-fix-warnings-small-memory-leak.patch
@@ -155,6 +492,7 @@ git-cryptodev-misplaced-hunk.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
 make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+git-semaphore-vs-git-x86.patch
 git-semaphore-git-rejects.patch
 smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
