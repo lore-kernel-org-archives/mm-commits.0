@@ -1,72 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + git-dlm-vs-git-gfs2-nwm.patch added to -mm tree
-Date: Tue, 08 Apr 2008 11:05:07 -0700
-Message-ID: <200804081805.m38I57dd005037@imap1.linux-foundation.org>
+Subject: - git-acpi-fixup.patch removed from -mm tree
+Date: Tue, 08 Apr 2008 11:21:58 -0700
+Message-ID: <200804081821.m38ILwl5005653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58592 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751833AbYDHSFo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 14:05:44 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m38I5AKE021630
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 8 Apr 2008 11:05:11 -0700
+	by vger.kernel.org with ESMTP id S1753421AbYDHSXc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 14:23:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, lenb@kernel.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-dlm-vs-git-gfs2-nwm
-has been added to the -mm tree.  Its filename is
-     git-dlm-vs-git-gfs2-nwm.patch
+     git-acpi-fixup
+has been removed from the -mm tree.  Its filename was
+     git-acpi-fixup.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-dlm-vs-git-gfs2-nwm
+Subject: git-acpi-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Fix git-acpi versus git-x86 conflict.
+
+Generally, adding new code at the end-of-file is a bad idea - because that's
+where everyone else adds new code!  Please prefer to add new stuff in the body
+of the C file, preferably somewhere logical.  
+
+Cc: Len Brown <lenb@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/locking/dlm/lock_dlm.h |   11 -----------
- 1 file changed, 11 deletions(-)
+ arch/x86/kernel/setup_64.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN fs/gfs2/locking/dlm/lock_dlm.h~git-dlm-vs-git-gfs2-nwm fs/gfs2/locking/dlm/lock_dlm.h
---- a/fs/gfs2/locking/dlm/lock_dlm.h~git-dlm-vs-git-gfs2-nwm
-+++ a/fs/gfs2/locking/dlm/lock_dlm.h
-@@ -174,17 +174,6 @@ void gdlm_cancel(void *);
- int gdlm_hold_lvb(void *, char **);
- void gdlm_unhold_lvb(void *, char *);
- 
--/* plock.c */
--
--int gdlm_plock_init(void);
--void gdlm_plock_exit(void);
--int gdlm_plock(void *, struct lm_lockname *, struct file *, int,
--		struct file_lock *);
--int gdlm_plock_get(void *, struct lm_lockname *, struct file *,
--		struct file_lock *);
--int gdlm_punlock(void *, struct lm_lockname *, struct file *,
--		struct file_lock *);
--
- /* mount.c */
- 
- extern const struct lm_lockops gdlm_ops;
+diff -puN arch/x86/kernel/setup_64.c~git-acpi-fixup arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~git-acpi-fixup
++++ a/arch/x86/kernel/setup_64.c
+@@ -1088,3 +1088,18 @@ static __init int setup_disablecpuid(cha
+ 	return 1;
+ }
+ __setup("clearcpuid=", setup_disablecpuid);
++
++#ifdef CONFIG_X86_TRAMPOLINE
++/*
++ * Currently trivial. Write the real->protected mode
++ * bootstrap into the page concerned. The caller
++ * has made sure it's suitably aligned.
++ */
++
++unsigned long setup_trampoline(void)
++{
++	void *tramp = __va(TRAMPOLINE_BASE);
++	memcpy(tramp, trampoline_data, trampoline_end - trampoline_data);
++	return virt_to_phys(tramp);
++}
++#endif /* CONFIG_X86_TRAMPOLINE */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,10 +70,12 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 es1968-fix-sleep-while-holding-lock-bug-checkpatch-fixes.patch
 revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-x86.patch
-git-kgdb-light.patch
+git-acpi.patch
+git-acpi-revert-suspend-wakeup-code-in-c.patch
 git-acpi-fixup.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86.patch
+git-kgdb-light.patch
 git-alsa-tiwai.patch
 es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
 git-agpgart-export-agp_generic_alloc_pages.patch
