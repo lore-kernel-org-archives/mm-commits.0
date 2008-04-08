@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch added to -mm tree
-Date: Tue, 08 Apr 2008 12:26:45 -0700
-Message-ID: <200804081936.m38Jau5W008326@imap1.linux-foundation.org>
+Subject: + git-x86-fix-build-in-arch-x86-kernel-vm86_32c.patch added to -mm tree
+Date: Tue, 08 Apr 2008 12:27:45 -0700
+Message-ID: <200804081937.m38JbuYe008343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59672 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43025 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753197AbYDHThZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 15:37:25 -0400
+	by vger.kernel.org with ESMTP id S1751994AbYDHTi0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 15:38:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     git-x86: fix warning in arch/x86/kernel/vsmp_64.c
+     git-x86: fix build in arch/x86/kernel/vm86_32.c
 has been added to the -mm tree.  Its filename is
-     git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+     git-x86-fix-build-in-arch-x86-kernel-vm86_32c.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86: fix warning in arch/x86/kernel/vsmp_64.c
+Subject: git-x86: fix build in arch/x86/kernel/vm86_32.c
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/vsmp_64.c: In function 'detect_vsmp_box':
-arch/x86/kernel/vsmp_64.c:138: warning: control reaches end of non-void function
+arch/x86/kernel/vm86_32.c:302: error: 'VM_MASK' undeclared (first use in this function)
+arch/x86/kernel/vm86_32.c:302: error: (Each undeclared identifier is reported only once
+arch/x86/kernel/vm86_32.c:302: error: for each function it appears in.)
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/vsmp_64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/vm86_32.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/vsmp_64.c~git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c arch/x86/kernel/vsmp_64.c
---- a/arch/x86/kernel/vsmp_64.c~git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c
-+++ a/arch/x86/kernel/vsmp_64.c
-@@ -133,7 +133,7 @@ int is_vsmp_box(void)
+diff -puN arch/x86/kernel/vm86_32.c~git-x86-fix-build-in-arch-x86-kernel-vm86_32c arch/x86/kernel/vm86_32.c
+--- a/arch/x86/kernel/vm86_32.c~git-x86-fix-build-in-arch-x86-kernel-vm86_32c
++++ a/arch/x86/kernel/vm86_32.c
+@@ -299,7 +299,7 @@ static void do_sys_vm86(struct kernel_vm
+ 	VEFLAGS = info->regs.pt.flags;
+ 	info->regs.pt.flags &= SAFE_MASK;
+ 	info->regs.pt.flags |= info->regs32->flags & ~SAFE_MASK;
+-	info->regs.pt.flags |= VM_MASK;
++	info->regs.pt.flags |= X86_VM_MASK;
+ 
+ 	switch (info->cpu_type) {
+ 	case CPU_286:
+@@ -834,4 +834,3 @@ static int do_vm86_irq_handling(int subf
  	}
+ 	return -EINVAL;
  }
- #else
--static int __init detect_vsmp_box(void)
-+static void __init detect_vsmp_box(void)
- {
- }
- int is_vsmp_box(void)
+-
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +77,7 @@ git-acpi-revert-suspend-wakeup-code-in-c.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-x86.patch
 arch-x86-mm-ioremapc-fix-printk-warnings.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
 git-x86-i386-build-fix.patch
 git-kgdb-light.patch
 git-alsa-tiwai.patch
@@ -249,5 +256,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+git-x86-fix-build-in-arch-x86-kernel-vm86_32c.patch
 
