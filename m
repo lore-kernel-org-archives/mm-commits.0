@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + oom_kill-remove-unused-parameter-in-badness.patch added to -mm tree
-Date: Tue, 08 Apr 2008 01:35:12 -0700
-Message-ID: <200804080835.m388ZCEa016635@imap1.linux-foundation.org>
+Subject: + pxafb-preliminary-smart-panel-interface-support-update.patch added to -mm tree
+Date: Tue, 08 Apr 2008 01:43:35 -0700
+Message-ID: <200804080843.m388hZhn016897@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50252 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59642 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751946AbYDHIfT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 04:35:19 -0400
+	by vger.kernel.org with ESMTP id S1752863AbYDHInz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 04:43:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com
+Cc: eric.miao@marvell.com, adaplas@pol.net, daniel@caiaq.de, rmk@arm.linux.org.uk
 
 
 The patch titled
-     oom_kill: remove unused parameter in badness()
+     pxafb: preliminary smart panel interface support (update)
 has been added to the -mm tree.  Its filename is
-     oom_kill-remove-unused-parameter-in-badness.patch
+     pxafb-preliminary-smart-panel-interface-support-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oom_kill: remove unused parameter in badness()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: pxafb: preliminary smart panel interface support (update)
+From: Eric Miao <eric.miao@marvell.com>
 
-In commit 4c4a22148909e4c003562ea7ffe0a06e26919e3c, we moved the
-memcontroller-related code from badness() to select_bad_process(), so the
-parameter 'mem' in badness() is unused now.
+FB_PXA_SMARTPANEL defaults to "n" and removed the cast to void *.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Acked-by: Eric Miao <eric.miao@marvell.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/video/Kconfig |    2 +-
+ drivers/video/pxafb.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/oom_kill.c~oom_kill-remove-unused-parameter-in-badness mm/oom_kill.c
---- a/mm/oom_kill.c~oom_kill-remove-unused-parameter-in-badness
-+++ a/mm/oom_kill.c
-@@ -53,8 +53,7 @@ static DEFINE_SPINLOCK(zone_scan_mutex);
-  *    of least surprise ... (be careful when you change it)
-  */
+diff -puN drivers/video/Kconfig~pxafb-preliminary-smart-panel-interface-support-update drivers/video/Kconfig
+--- a/drivers/video/Kconfig~pxafb-preliminary-smart-panel-interface-support-update
++++ a/drivers/video/Kconfig
+@@ -1769,7 +1769,7 @@ config FB_PXA
  
--unsigned long badness(struct task_struct *p, unsigned long uptime,
--			struct mem_cgroup *mem)
-+unsigned long badness(struct task_struct *p, unsigned long uptime)
+ config FB_PXA_SMARTPANEL
+ 	bool "PXA Smartpanel LCD support"
+-	default y
++	default n
+ 	depends on FB_PXA
+ 
+ config FB_PXA_PARAMETERS
+diff -puN drivers/video/pxafb.c~pxafb-preliminary-smart-panel-interface-support-update drivers/video/pxafb.c
+--- a/drivers/video/pxafb.c~pxafb-preliminary-smart-panel-interface-support-update
++++ a/drivers/video/pxafb.c
+@@ -711,7 +711,7 @@ static void setup_smart_timing(struct px
+ 
+ static int pxafb_smart_thread(void *arg)
  {
- 	unsigned long points, cpu_time, run_time, s;
- 	struct mm_struct *mm;
-@@ -256,7 +255,7 @@ static struct task_struct *select_bad_pr
- 		if (p->oomkilladj == OOM_DISABLE)
- 			continue;
+-	struct pxafb_info *fbi = (struct pxafb_info *) arg;
++	struct pxafb_info *fbi = arg;
+ 	struct pxafb_mach_info *inf = fbi->dev->platform_data;
  
--		points = badness(p, uptime.tv_sec, mem);
-+		points = badness(p, uptime.tv_sec);
- 		if (points > *ppoints || !chosen) {
- 			chosen = p;
- 			*ppoints = points;
+ 	if (!fbi || !inf->smart_update) {
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from eric.miao@marvell.com are
 
-origin.patch
-ia64-use-goto-to-jump-out-do-while_each_thread.patch
-sctp-fix-wrong-debug-counting-of-datamsg.patch
-sctp-fix-wrong-debug-counting-of-bind_bucket.patch
-oom_kill-remove-unused-parameter-in-badness.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroup-annotate-cgroup_init_subsys-with-__init.patch
-cgroup-switch-to-proc_create.patch
-cgroups-implement-device-whitelist-v6.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-doc.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-cgroups-use-a-hash-table-for-css_set-finding.patch
-cgroups-simplify-init_subsys.patch
-cgroups-remove-the-css_set-linked-list.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
+git-arm.patch
+pxafb-un-nest-pxafb_parse_options-to-cleanup-the-coding-style-issue.patch
+pxafb-fix-various-coding-style-issues-for-pxafb.patch
+pxafb-purge-unnecessary-pr_debug-and-comments-from-pxafb.patch
+pxafb-sanitize-the-usage-of-ifdef-processing-pxafb-parameters.patch
+pxafb-convert-fb-driver-to-use-ioremap-and-__raw_readl-writel.patch
+pxafb-introduce-struct-pxafb_dma_buff-for-palette-and-dma-descriptors.patch
+pxafb-introduce-register-independent-lcd-connection-type-for-pxafb.patch
+pxafb-make-lubbock-mainstone-zylonite-littleton-to-use-new-lcd-connection-type.patch
+pxafb-introduce-lcd_readwritel-to-wrap-the-__raw_readwritel.patch
+pxafb-use-completion-for-lcd-disable-wait-code.patch
+pxafb-move-parallel-lcd-timing-setup-into-dedicate-function.patch
+pxafb-preliminary-smart-panel-interface-support.patch
+pxafb-preliminary-smart-panel-interface-support-update.patch
+pxafb-preliminary-smart-panel-interface-support-fix.patch
 
