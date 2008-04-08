@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-mark-shared-policies-for-unref.patch added to -mm tree
-Date: Mon, 07 Apr 2008 20:26:49 -0700
-Message-ID: <200804080326.m383Qn9x006019@imap1.linux-foundation.org>
+Subject: + mempolicy-rename-mpol_copy-to-mpol_dup.patch added to -mm tree
+Date: Mon, 07 Apr 2008 20:26:41 -0700
+Message-ID: <200804080326.m383Qf84006007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33613 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57446 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751646AbYDHD1Z (ORCPT
+	by vger.kernel.org with ESMTP id S1751385AbYDHD1Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 23:27:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: lee.schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, mel@csn.ul.ie, rientj
 
 
 The patch titled
-     mempolicy:  mark shared policies for unref
+     mempolicy: rename mpol_copy to mpol_dup
 has been added to the -mm tree.  Its filename is
-     mempolicy-mark-shared-policies-for-unref.patch
+     mempolicy-rename-mpol_copy-to-mpol_dup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy:  mark shared policies for unref
+Subject: mempolicy: rename mpol_copy to mpol_dup
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-As part of yet another rework of mempolicy reference counting, we want to be
-able to identify shared policies efficiently, because they have an extra ref
-taken on lookup that needs to be removed when we're finished using the policy.
+This patch renames mpol_copy() to mpol_dup() because, well, that's what it
+does.  Like, e.g., strdup() for strings, mpol_dup() takes a pointer to an
+existing mempolicy, allocates a new one and copies the contents.
 
-  Note:  the extra ref is required because the policies are
-  shared between tasks/processes and can be changed/freed
-  by one task while another task is using them--e.g., for
-  page allocation.
-
-Building on David Rientjes mempolicy "mode flags" enhancement, this patch
-indicates a "shared" policy by setting a new MPOL_F_SHARED flag in the flags
-member of the struct mempolicy added by David.  MPOL_F_SHARED, and any future
-"internal mode flags" are reserved from bit zero up, as they will never be
-passed in the upper bits of the mode argument of a mempolicy API.
-
-I set the MPOL_F_SHARED flag when the policy is installed in the shared policy
-rb-tree.  Don't need/want to clear the flag when removing from the tree as the
-mempolicy is freed [unref'd] internally to the sp_delete() function.  However,
-a task could hold another reference on this mempolicy from a prior lookup.  We
-need the MPOL_F_SHARED flag to stay put so that any tasks holding a ref will
-unref, eventually freeing, the mempolicy.
-
-A later patch in this series will introduce a function to conditionally unref
-[mpol_free] a policy.  The MPOL_F_SHARED flag is one reason [currently the
-only reason] to unref/free a policy via the conditional free.
+In a later patch, I want to use the name mpol_copy() to copy the contents from
+one mempolicy to another like, e.g., strcpy() does for strings.
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Christoph Lameter <clameter@sgi.com>
@@ -70,38 +51,139 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    7 +++++++
- mm/mempolicy.c            |    1 +
- 2 files changed, 8 insertions(+)
+ include/linux/mempolicy.h |   14 +++++++-------
+ kernel/cpuset.c           |    4 ++--
+ kernel/fork.c             |    4 ++--
+ mm/mempolicy.c            |    6 +++---
+ mm/mmap.c                 |    4 ++--
+ 5 files changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mempolicy-mark-shared-policies-for-unref include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mempolicy-mark-shared-policies-for-unref
+diff -puN include/linux/mempolicy.h~mempolicy-rename-mpol_copy-to-mpol_dup include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mempolicy-rename-mpol_copy-to-mpol_dup
 +++ a/include/linux/mempolicy.h
-@@ -44,6 +44,13 @@ enum {
- #define MPOL_MF_MOVE_ALL (1<<2)	/* Move every page to conform to mapping */
- #define MPOL_MF_INTERNAL (1<<3)	/* Internal flags start here */
- 
-+/*
-+ * Internal flags that share the struct mempolicy flags word with
-+ * "mode flags".  These flags are allocated from bit 0 up, as they
-+ * are never OR'ed into the mode in mempolicy API arguments.
-+ */
-+#define MPOL_F_SHARED  (1 << 0)	/* identify shared policies */
-+
- #ifdef __KERNEL__
- 
- #include <linux/mmzone.h>
-diff -puN mm/mempolicy.c~mempolicy-mark-shared-policies-for-unref mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-mark-shared-policies-for-unref
-+++ a/mm/mempolicy.c
-@@ -1751,6 +1751,7 @@ static struct sp_node *sp_alloc(unsigned
- 	n->start = start;
- 	n->end = end;
- 	mpol_get(pol);
-+	pol->flags |= MPOL_F_SHARED;	/* for unref */
- 	n->policy = pol;
- 	return n;
+@@ -73,10 +73,10 @@ struct mm_struct;
+  * Mempolicy objects are reference counted.  A mempolicy will be freed when
+  * mpol_put() decrements the reference count to zero.
+  *
+- * Copying policy objects:
+- * mpol_copy() allocates a new mempolicy and copies the specified mempolicy
++ * Duplicating policy objects:
++ * mpol_dup() allocates a new mempolicy and copies the specified mempolicy
+  * to the new storage.  The reference count of the new object is initialized
+- * to 1, representing the caller of mpol_copy().
++ * to 1, representing the caller of mpol_dup().
+  */
+ struct mempolicy {
+ 	atomic_t refcnt;
+@@ -105,11 +105,11 @@ static inline void mpol_put(struct mempo
+ 		__mpol_put(pol);
  }
+ 
+-extern struct mempolicy *__mpol_copy(struct mempolicy *pol);
+-static inline struct mempolicy *mpol_copy(struct mempolicy *pol)
++extern struct mempolicy *__mpol_dup(struct mempolicy *pol);
++static inline struct mempolicy *mpol_dup(struct mempolicy *pol)
+ {
+ 	if (pol)
+-		pol = __mpol_copy(pol);
++		pol = __mpol_dup(pol);
+ 	return pol;
+ }
+ 
+@@ -198,7 +198,7 @@ static inline void mpol_get(struct mempo
+ {
+ }
+ 
+-static inline struct mempolicy *mpol_copy(struct mempolicy *old)
++static inline struct mempolicy *mpol_dup(struct mempolicy *old)
+ {
+ 	return NULL;
+ }
+diff -puN kernel/cpuset.c~mempolicy-rename-mpol_copy-to-mpol_dup kernel/cpuset.c
+--- a/kernel/cpuset.c~mempolicy-rename-mpol_copy-to-mpol_dup
++++ a/kernel/cpuset.c
+@@ -916,7 +916,7 @@ static int update_nodemask(struct cpuset
+ 	cs->mems_generation = cpuset_mems_generation++;
+ 	mutex_unlock(&callback_mutex);
+ 
+-	cpuset_being_rebound = cs;		/* causes mpol_copy() rebind */
++	cpuset_being_rebound = cs;		/* causes mpol_dup() rebind */
+ 
+ 	fudge = 10;				/* spare mmarray[] slots */
+ 	fudge += cpus_weight(cs->cpus_allowed);	/* imagine one fork-bomb/cpu */
+@@ -967,7 +967,7 @@ static int update_nodemask(struct cpuset
+ 	 * rebind the vma mempolicies of each mm in mmarray[] to their
+ 	 * new cpuset, and release that mm.  The mpol_rebind_mm()
+ 	 * call takes mmap_sem, which we couldn't take while holding
+-	 * tasklist_lock.  Forks can happen again now - the mpol_copy()
++	 * tasklist_lock.  Forks can happen again now - the mpol_dup()
+ 	 * cpuset_being_rebound check will catch such forks, and rebind
+ 	 * their vma mempolicies too.  Because we still hold the global
+ 	 * cgroup_mutex, we know that no other rebind effort will
+diff -puN kernel/fork.c~mempolicy-rename-mpol_copy-to-mpol_dup kernel/fork.c
+--- a/kernel/fork.c~mempolicy-rename-mpol_copy-to-mpol_dup
++++ a/kernel/fork.c
+@@ -256,7 +256,7 @@ static int dup_mmap(struct mm_struct *mm
+ 		if (!tmp)
+ 			goto fail_nomem;
+ 		*tmp = *mpnt;
+-		pol = mpol_copy(vma_policy(mpnt));
++		pol = mpol_dup(vma_policy(mpnt));
+ 		retval = PTR_ERR(pol);
+ 		if (IS_ERR(pol))
+ 			goto fail_nomem_policy;
+@@ -1127,7 +1127,7 @@ static struct task_struct *copy_process(
+ 	p->audit_context = NULL;
+ 	cgroup_fork(p);
+ #ifdef CONFIG_NUMA
+- 	p->mempolicy = mpol_copy(p->mempolicy);
++	p->mempolicy = mpol_dup(p->mempolicy);
+  	if (IS_ERR(p->mempolicy)) {
+  		retval = PTR_ERR(p->mempolicy);
+  		p->mempolicy = NULL;
+diff -puN mm/mempolicy.c~mempolicy-rename-mpol_copy-to-mpol_dup mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-rename-mpol_copy-to-mpol_dup
++++ a/mm/mempolicy.c
+@@ -1567,15 +1567,15 @@ struct page *alloc_pages_current(gfp_t g
+ EXPORT_SYMBOL(alloc_pages_current);
+ 
+ /*
+- * If mpol_copy() sees current->cpuset == cpuset_being_rebound, then it
++ * If mpol_dup() sees current->cpuset == cpuset_being_rebound, then it
+  * rebinds the mempolicy its copying by calling mpol_rebind_policy()
+  * with the mems_allowed returned by cpuset_mems_allowed().  This
+  * keeps mempolicies cpuset relative after its cpuset moves.  See
+  * further kernel/cpuset.c update_nodemask().
+  */
+ 
+-/* Slow path of a mempolicy copy */
+-struct mempolicy *__mpol_copy(struct mempolicy *old)
++/* Slow path of a mempolicy duplicate */
++struct mempolicy *__mpol_dup(struct mempolicy *old)
+ {
+ 	struct mempolicy *new = kmem_cache_alloc(policy_cache, GFP_KERNEL);
+ 
+diff -puN mm/mmap.c~mempolicy-rename-mpol_copy-to-mpol_dup mm/mmap.c
+--- a/mm/mmap.c~mempolicy-rename-mpol_copy-to-mpol_dup
++++ a/mm/mmap.c
+@@ -1810,7 +1810,7 @@ int split_vma(struct mm_struct * mm, str
+ 		new->vm_pgoff += ((addr - vma->vm_start) >> PAGE_SHIFT);
+ 	}
+ 
+-	pol = mpol_copy(vma_policy(vma));
++	pol = mpol_dup(vma_policy(vma));
+ 	if (IS_ERR(pol)) {
+ 		kmem_cache_free(vm_area_cachep, new);
+ 		return PTR_ERR(pol);
+@@ -2126,7 +2126,7 @@ struct vm_area_struct *copy_vma(struct v
+ 		new_vma = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
+ 		if (new_vma) {
+ 			*new_vma = *vma;
+-			pol = mpol_copy(vma_policy(vma));
++			pol = mpol_dup(vma_policy(vma));
+ 			if (IS_ERR(pol)) {
+ 				kmem_cache_free(vm_area_cachep, new_vma);
+ 				return NULL;
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
