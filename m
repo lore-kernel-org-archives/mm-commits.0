@@ -1,53 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - pxafb-preliminary-smart-panel-interface-support-fix.patch removed from -mm tree
-Date: Tue, 08 Apr 2008 01:43:43 -0700
-Message-ID: <200804080843.m388hhnu016901@imap1.linux-foundation.org>
+Subject: + git-dlm-vs-git-gfs2-nwm.patch added to -mm tree
+Date: Tue, 08 Apr 2008 11:05:07 -0700
+Message-ID: <200804081805.m38I57dd005037@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56113 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49444 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753158AbYDHIn7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 04:43:59 -0400
+	by vger.kernel.org with ESMTP id S1751833AbYDHSFo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 14:05:44 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m38I5AKE021630
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 8 Apr 2008 11:05:11 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, daniel@caiaq.de, eric.miao@marvell.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     pxafb-preliminary-smart-panel-interface-support-fix
-has been removed from the -mm tree.  Its filename was
-     pxafb-preliminary-smart-panel-interface-support-fix.patch
+     git-dlm-vs-git-gfs2-nwm
+has been added to the -mm tree.  Its filename is
+     git-dlm-vs-git-gfs2-nwm.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pxafb-preliminary-smart-panel-interface-support-fix
+Subject: git-dlm-vs-git-gfs2-nwm
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Daniel Mack <daniel@caiaq.de>
-Cc: Eric Miao <eric.miao@marvell.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pxafb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/gfs2/locking/dlm/lock_dlm.h |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN drivers/video/pxafb.c~pxafb-preliminary-smart-panel-interface-support-fix drivers/video/pxafb.c
---- a/drivers/video/pxafb.c~pxafb-preliminary-smart-panel-interface-support-fix
-+++ a/drivers/video/pxafb.c
-@@ -711,7 +711,7 @@ static void setup_smart_timing(struct px
+diff -puN fs/gfs2/locking/dlm/lock_dlm.h~git-dlm-vs-git-gfs2-nwm fs/gfs2/locking/dlm/lock_dlm.h
+--- a/fs/gfs2/locking/dlm/lock_dlm.h~git-dlm-vs-git-gfs2-nwm
++++ a/fs/gfs2/locking/dlm/lock_dlm.h
+@@ -174,17 +174,6 @@ void gdlm_cancel(void *);
+ int gdlm_hold_lvb(void *, char **);
+ void gdlm_unhold_lvb(void *, char *);
  
- static int pxafb_smart_thread(void *arg)
- {
--	struct pxafb_info *fbi = (struct pxafb_info *) arg;
-+	struct pxafb_info *fbi = arg;
- 	struct pxafb_mach_info *inf = fbi->dev->platform_data;
+-/* plock.c */
+-
+-int gdlm_plock_init(void);
+-void gdlm_plock_exit(void);
+-int gdlm_plock(void *, struct lm_lockname *, struct file *, int,
+-		struct file_lock *);
+-int gdlm_plock_get(void *, struct lm_lockname *, struct file *,
+-		struct file_lock *);
+-int gdlm_punlock(void *, struct lm_lockname *, struct file *,
+-		struct file_lock *);
+-
+ /* mount.c */
  
- 	if (!fbi || !inf->smart_update) {
+ extern const struct lm_lockops gdlm_ops;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -56,10 +75,7 @@ origin.patch
 es1968-fix-sleep-while-holding-lock-bug-checkpatch-fixes.patch
 revert-set-relay-file-can-not-be-read-by-pread2.patch
 git-x86.patch
-git-x86-fix-printk-warning.patch
-i386-arch-x86-math-emu-fpu_entryc-warning-fix.patch
 git-kgdb-light.patch
-git-acpi.patch
 git-acpi-fixup.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-alsa-tiwai.patch
@@ -72,9 +88,12 @@ git-powerpc.patch
 fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry.patch
 pm-remove-destroy_suspended_device.patch
 scsi-add-iscsi-ibft-support.patch
+git-drm.patch
 git-dvb.patch
 git-hwmon.patch
 git-gfs2-nmw.patch
+git-dlm-vs-git-gfs2-nwm.patch
+git-hid.patch
 git-hrt.patch
 time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
 arch-ia64-kernel-use-time_-macros.patch
@@ -83,6 +102,7 @@ git-infiniband.patch
 git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
 maple-add-driver-for-sega-dreamcast-controller.patch
 touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-kvm.patch
 git-leds.patch
 git-libata-all.patch
 drivers-ata-sata_fslc-fix-warnings-small-memory-leak.patch
@@ -117,6 +137,8 @@ pci-hotplug-introduce-pci_slot-fix-2.patch
 pci-hotplug-introduce-pci_slot-fix-99.patch
 pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
 drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
+git-s390.patch
+git-sched.patch
 git-sh.patch
 git-scsi-misc.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
@@ -186,7 +208,6 @@ gpiochip_reserve-fix.patch
 fb-add-support-for-foreign-endianness-force-it-on.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
 pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-pxafb-preliminary-smart-panel-interface-support-fix.patch
 lxfb-add-power-management-functionality-fix.patch
 pnp-use-dev_printk-for-quirk-messages-fix.patch
 fat_valid_media-remove-pointless-test.patch
