@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-mm-ioremapc-fix-printk-warnings.patch added to -mm tree
-Date: Tue, 08 Apr 2008 12:11:10 -0700
-Message-ID: <200804081921.m38JLM9h007796@imap1.linux-foundation.org>
+Subject: + git-x86-i386-build-fix.patch added to -mm tree
+Date: Tue, 08 Apr 2008 12:13:11 -0700
+Message-ID: <200804081923.m38JNMtk007840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57848 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49015 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751968AbYDHTV6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 15:21:58 -0400
+	by vger.kernel.org with ESMTP id S1751881AbYDHTXu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 15:23:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     arch/x86/mm/ioremap.c: fix printk warnings
+     git-x86: i386 build fix
 has been added to the -mm tree.  Its filename is
-     arch-x86-mm-ioremapc-fix-printk-warnings.patch
+     git-x86-i386-build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/mm/ioremap.c: fix printk warnings
+Subject: git-x86: i386 build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/mm/ioremap.c: In function '__ioremap_caller':
-arch/x86/mm/ioremap.c:137: warning: format '%llx' expects type 'long long unsigned int', but argument 2 has type 'resource_size_t'
-arch/x86/mm/ioremap.c:188: warning: format '%llx' expects type 'long long unsigned int', but argument 2 has type 'resource_size_t'
-arch/x86/mm/ioremap.c:188: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'long unsigned int'
+arch/x86/kernel/traps_32.c: In function 'do_general_protection':
+arch/x86/kernel/traps_32.c:647: error: 'VM_MASK' undeclared (first use in this function)
+arch/x86/kernel/traps_32.c:647: error: (Each undeclared identifier is reported only once
+arch/x86/kernel/traps_32.c:647: error: for each function it appears in.)
+arch/x86/kernel/traps_32.c: In function 'do_debug':
+arch/x86/kernel/traps_32.c:928: error: 'VM_MASK' undeclared (first use in this function)
+arch/x86/kernel/traps_32.c: In function 'do_simd_coprocessor_error':
+arch/x86/kernel/traps_32.c:1100: error: 'VM_MASK' undeclared (first use in this function)
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/ioremap.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ arch/x86/kernel/traps_32.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/mm/ioremap.c~arch-x86-mm-ioremapc-fix-printk-warnings arch/x86/mm/ioremap.c
---- a/arch/x86/mm/ioremap.c~arch-x86-mm-ioremapc-fix-printk-warnings
-+++ a/arch/x86/mm/ioremap.c
-@@ -134,7 +134,7 @@ static void __iomem *__ioremap(resource_
- 
- 	if (!phys_addr_valid(phys_addr)) {
- 		printk(KERN_WARNING "ioremap: invalid physical address %llx\n",
--		       phys_addr);
-+		       (unsigned long long)phys_addr);
- 		WARN_ON_ONCE(1);
- 		return NULL;
+diff -puN arch/x86/kernel/traps_32.c~git-x86-i386-build-fix arch/x86/kernel/traps_32.c
+--- a/arch/x86/kernel/traps_32.c~git-x86-i386-build-fix
++++ a/arch/x86/kernel/traps_32.c
+@@ -643,7 +643,7 @@ void __kprobes do_general_protection(str
  	}
-@@ -185,9 +185,10 @@ static void __iomem *__ioremap(resource_
- 		      new_prot_val == _PAGE_CACHE_WC)) ||
- 		    (prot_val == _PAGE_CACHE_WC &&
- 		     new_prot_val == _PAGE_CACHE_WB)) {
--			pr_debug(
--		"ioremap error for 0x%llx-0x%llx, requested 0x%lx, got 0x%lx\n",
--				phys_addr, phys_addr + size,
-+			pr_debug("ioremap error for 0x%llx-0x%llx, "
-+					"requested 0x%lx, got 0x%lx\n",
-+				(unsigned long long)phys_addr,
-+				(unsigned long long)phys_addr + size,
- 				prot_val, new_prot_val);
- 			free_memtype(phys_addr, phys_addr + size);
- 			return NULL;
+ 	put_cpu();
+ 
+-	if (regs->flags & VM_MASK)
++	if (regs->flags & X86_VM_MASK)
+ 		goto gp_in_vm86;
+ 
+ 	if (!user_mode(regs))
+@@ -922,7 +922,7 @@ void __kprobes do_debug(struct pt_regs *
+ 			goto clear_dr7;
+ 	}
+ 
+-	if (regs->flags & VM_MASK)
++	if (regs->flags & X86_VM_MASK)
+ 		goto debug_vm86;
+ 
+ 	/* Save debug status register where ptrace can see it */
+@@ -1094,7 +1094,7 @@ void do_simd_coprocessor_error(struct pt
+ 	 * Handle strange cache flush from user space exception
+ 	 * in all other cases.  This is undocumented behaviour.
+ 	 */
+-	if (regs->flags & VM_MASK) {
++	if (regs->flags & X86_VM_MASK) {
+ 		handle_vm86_fault((struct kernel_vm86_regs *)regs, error_code);
+ 		return;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +95,7 @@ git-acpi-revert-suspend-wakeup-code-in-c.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-x86.patch
 arch-x86-mm-ioremapc-fix-printk-warnings.patch
+git-x86-i386-build-fix.patch
 git-kgdb-light.patch
 git-alsa-tiwai.patch
 es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
