@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch added to -mm tree
-Date: Tue, 08 Apr 2008 13:02:32 -0700
-Message-ID: <200804082012.m38KCh6L009574@imap1.linux-foundation.org>
+Subject: + git-x86-include-asm-ptraceh-needs-processor-flagsh.patch added to -mm tree
+Date: Tue, 08 Apr 2008 13:10:09 -0700
+Message-ID: <200804082020.m38KKKjO009883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40532 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54767 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756481AbYDHUNh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 16:13:37 -0400
+	by vger.kernel.org with ESMTP id S1754242AbYDHUUj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 16:20:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, rientjes@google.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix
+     git-x86: include/asm/ptrace.h needs processor-flags.h
 has been added to the -mm tree.  Its filename is
-     mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+     git-x86-include-asm-ptraceh-needs-processor-flagsh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix
+Subject: git-x86: include/asm/ptrace.h needs processor-flags.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Documentation/SubmitChecklist considered useful
+In file included from include/linux/ptrace.h:49,
+                 from security/selinux/hooks.c:27:
+include/asm/ptrace.h: In function 'user_mode_vm':
+include/asm/ptrace.h:173: error: 'X86_EFLAGS_VM' undeclared (first use in this function)
+include/asm/ptrace.h:173: error: (Each undeclared identifier is reported only once
+include/asm/ptrace.h:173: error: for each function it appears in.)
+include/asm/ptrace.h: In function 'v8086_mode':
+include/asm/ptrace.h:183: error: 'X86_EFLAGS_VM' undeclared (first use in this function)
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm/ptrace.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/mempolicy.h~mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix
-+++ a/include/linux/mempolicy.h
-@@ -321,7 +321,7 @@ static inline void check_highest_zone(in
- }
+diff -puN include/asm/ptrace.h~git-x86-include-asm-ptraceh-needs-processor-flagsh include/asm/ptrace.h
+--- a/include/asm/ptrace.h~git-x86-include-asm-ptraceh-needs-processor-flagsh
++++ a/include/asm/ptrace.h
+@@ -2,6 +2,7 @@
+ #define _ASM_X86_PTRACE_H
  
- #ifdef CONFIG_TMPFS
--static inline int mpol_parse_str(char *str, struct mempolicy **mpol);
-+static inline int mpol_parse_str(char *str, struct mempolicy **mpol)
- {
- 	return 1;	/* error */
- }
+ #include <linux/compiler.h>	/* For __user */
++#include <asm/processor-flags.h>
+ #include <asm/ptrace-abi.h>
+ 
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -254,4 +257,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
+git-x86-include-asm-ptraceh-needs-processor-flagsh.patch
 
