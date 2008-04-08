@@ -1,23 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch added to -mm tree
-Date: Tue, 08 Apr 2008 12:16:17 -0700
-Message-ID: <200804081926.m38JQS0D007948@imap1.linux-foundation.org>
+Subject: + rename-div64_64-to-div64_u64-fix.patch added to -mm tree
+Date: Tue, 08 Apr 2008 12:22:02 -0700
+Message-ID: <200804081932.m38JWDn5008129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55082 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34204 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751865AbYDHT1Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 15:27:25 -0400
+	by vger.kernel.org with ESMTP id S1752019AbYDHTcn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 15:32:43 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m38JWDQF027484
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 8 Apr 2008 12:32:15 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, rientjes@google.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix
+     rename-div64_64-to-div64_u64-fix
 has been added to the -mm tree.  Its filename is
-     mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+     rename-div64_64-to-div64_u64-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +37,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix
+Subject: rename-div64_64-to-div64_u64-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 +-
+ kernel/time.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/shmem.c~mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix mm/shmem.c
---- a/mm/shmem.c~mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix
-+++ a/mm/shmem.c
-@@ -1160,7 +1160,7 @@ static inline struct page *shmem_alloc_p
- #endif /* CONFIG_NUMA */
+diff -puN kernel/time.c~rename-div64_64-to-div64_u64-fix kernel/time.c
+--- a/kernel/time.c~rename-div64_64-to-div64_u64-fix
++++ a/kernel/time.c
+@@ -273,7 +273,7 @@ EXPORT_SYMBOL(jiffies_to_usecs);
  
- #if !defined(CONFIG_NUMA) || !defined(CONFIG_TMPFS)
--static inline struct mempolicy *shmem_get_sbmpol(shmem_sb_info *sbinfo)
-+static inline struct mempolicy *shmem_get_sbmpol(struct shmem_sb_info *sbinfo)
+ u64 jiffies_64_to_usecs(const u64 j)
  {
- 	return NULL;
+-	return div64_64(j*HZ_TO_USEC_NUM + HZ_TO_USEC_DEN-1, HZ_TO_USEC_DEN);
++	return div64_u64(j*HZ_TO_USEC_NUM + HZ_TO_USEC_DEN-1, HZ_TO_USEC_DEN);
  }
+ EXPORT_SYMBOL(jiffies_64_to_usecs);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -231,6 +232,7 @@ hfs-fix-warning-with-64k-page_size.patch
 hfsplus-fix-warning-with-64k-page_size.patch
 alloc_uid-cleanup.patch
 add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
 idr-create-idr_layer_cache-at-boot-time-fix.patch
 idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
 edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
