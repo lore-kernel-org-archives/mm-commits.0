@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + hugetlbfs-architecture-header-cleanup.patch added to -mm tree
-Date: Mon, 07 Apr 2008 21:02:17 -0700
-Message-ID: <200804080402.m3842HKJ007254@imap1.linux-foundation.org>
+Subject: + hugetlbfs-common-code-update-for-s390.patch added to -mm tree
+Date: Mon, 07 Apr 2008 21:02:21 -0700
+Message-ID: <200804080402.m3842LUc007260@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46171 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42740 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751445AbYDHEDP (ORCPT
+	by vger.kernel.org with ESMTP id S1750698AbYDHEDP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 00:03:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: gerald.schaefer@de.ibm.com, davem@davemloft.net, lethal@linux-sh.org, mingo@
 
 
 The patch titled
-     hugetlbfs: architecture header cleanup
+     hugetlbfs: common code update for s390
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-architecture-header-cleanup.patch
+     hugetlbfs-common-code-update-for-s390.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,19 +33,16 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlbfs: architecture header cleanup
+Subject: hugetlbfs: common code update for s390
 From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 
-This patch moves all architecture functions for hugetlb to architecture header
-files (include/asm-foo/hugetlb.h) and converts all macros to inline functions.
- It also removes (!) ARCH_HAS_HUGEPAGE_ONLY_RANGE,
-ARCH_HAS_HUGETLB_FREE_PGD_RANGE, ARCH_HAS_PREPARE_HUGEPAGE_RANGE,
-ARCH_HAS_SETCLEAR_HUGE_PTE and ARCH_HAS_HUGETLB_PREFAULT_HOOK.
+Huge ptes have a special type on s390 and cannot be handled with the standard
+pte functions in certain cases, e.g.  because of a different location of the
+invalid bit.  This patch adds some new architecture- specific functions to
+hugetlb common code, as a prerequisite for the s390 large page support.
 
-Getting rid of the ARCH_HAS_xxx #ifdef and macro fugliness should increase
-readability and maintainability, at the price of some code duplication.  An
-asm-generic common part would have reduced the loc, but we would end up with
-new ARCH_HAS_xxx defines eventually.
+This won't affect other architectures in functionality, but I need to add some
+new dummy inline functions to the headers.
 
 Acked-by: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
@@ -57,366 +54,375 @@ Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-ia64/hugetlb.h    |   37 ++++++++++++++++++++++++
- include/asm-ia64/page.h       |    6 ---
- include/asm-powerpc/hugetlb.h |   37 ++++++++++++++++++++++++
- include/asm-powerpc/page_64.h |    7 ----
- include/asm-sh/hugetlb.h      |   49 ++++++++++++++++++++++++++++++++
- include/asm-sparc64/hugetlb.h |   42 +++++++++++++++++++++++++++
- include/asm-sparc64/page.h    |    2 -
- include/asm-x86/hugetlb.h     |   49 ++++++++++++++++++++++++++++++++
- include/linux/hugetlb.h       |   46 ------------------------------
- 9 files changed, 215 insertions(+), 60 deletions(-)
+ include/asm-ia64/hugetlb.h    |   37 ++++++++++++++++++++++++++++++++
+ include/asm-powerpc/hugetlb.h |   37 ++++++++++++++++++++++++++++++++
+ include/asm-sh/hugetlb.h      |   37 ++++++++++++++++++++++++++++++++
+ include/asm-sparc64/hugetlb.h |   37 ++++++++++++++++++++++++++++++++
+ include/asm-x86/hugetlb.h     |   37 ++++++++++++++++++++++++++++++++
+ mm/hugetlb.c                  |   36 ++++++++++++++++++-------------
+ 6 files changed, 206 insertions(+), 15 deletions(-)
 
-diff -puN /dev/null include/asm-ia64/hugetlb.h
---- /dev/null
+diff -puN include/asm-ia64/hugetlb.h~hugetlbfs-common-code-update-for-s390 include/asm-ia64/hugetlb.h
+--- a/include/asm-ia64/hugetlb.h~hugetlbfs-common-code-update-for-s390
 +++ a/include/asm-ia64/hugetlb.h
-@@ -0,0 +1,37 @@
-+#ifndef _ASM_IA64_HUGETLB_H
-+#define _ASM_IA64_HUGETLB_H
-+
-+#include <asm/page.h>
-+
-+
-+void hugetlb_free_pgd_range(struct mmu_gather **tlb, unsigned long addr,
-+			    unsigned long end, unsigned long floor,
-+			    unsigned long ceiling);
-+
-+int prepare_hugepage_range(unsigned long addr, unsigned long len);
-+
-+static inline int is_hugepage_only_range(struct mm_struct *mm,
-+					 unsigned long addr,
-+					 unsigned long len)
-+{
-+	return (REGION_NUMBER(addr) == RGN_HPAGE ||
-+		REGION_NUMBER((addr)+(len)-1) == RGN_HPAGE);
-+}
-+
-+static inline void hugetlb_prefault_arch_hook(struct mm_struct *mm)
-+{
-+}
-+
-+static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-+				   pte_t *ptep, pte_t pte)
-+{
-+	set_pte_at(mm, addr, ptep, pte);
-+}
-+
-+static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
-+					    unsigned long addr, pte_t *ptep)
-+{
-+	return ptep_get_and_clear(mm, addr, ptep);
-+}
-+
-+#endif /* _ASM_IA64_HUGETLB_H */
-diff -puN include/asm-ia64/page.h~hugetlbfs-architecture-header-cleanup include/asm-ia64/page.h
---- a/include/asm-ia64/page.h~hugetlbfs-architecture-header-cleanup
-+++ a/include/asm-ia64/page.h
-@@ -54,9 +54,6 @@
- # define HPAGE_MASK		(~(HPAGE_SIZE - 1))
+@@ -39,4 +39,41 @@ static inline void huge_ptep_clear_flush
+ {
+ }
  
- # define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
--# define ARCH_HAS_HUGEPAGE_ONLY_RANGE
--# define ARCH_HAS_PREPARE_HUGEPAGE_RANGE
--# define ARCH_HAS_HUGETLB_FREE_PGD_RANGE
- #endif /* CONFIG_HUGETLB_PAGE */
- 
- #ifdef __ASSEMBLY__
-@@ -153,9 +150,6 @@ typedef union ia64_va {
- # define htlbpage_to_page(x)	(((unsigned long) REGION_NUMBER(x) << 61)			\
- 				 | (REGION_OFFSET(x) >> (HPAGE_SHIFT-PAGE_SHIFT)))
- # define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
--# define is_hugepage_only_range(mm, addr, len)		\
--	 (REGION_NUMBER(addr) == RGN_HPAGE ||	\
--	  REGION_NUMBER((addr)+(len)-1) == RGN_HPAGE)
- extern unsigned int hpage_shift;
- #endif
- 
-diff -puN /dev/null include/asm-powerpc/hugetlb.h
---- /dev/null
++static inline int huge_pte_none(pte_t pte)
++{
++	return pte_none(pte);
++}
++
++static inline pte_t huge_pte_wrprotect(pte_t pte)
++{
++	return pte_wrprotect(pte);
++}
++
++static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
++					   unsigned long addr, pte_t *ptep)
++{
++	ptep_set_wrprotect(mm, addr, ptep);
++}
++
++static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
++					     unsigned long addr, pte_t *ptep,
++					     pte_t pte, int dirty)
++{
++	return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
++}
++
++static inline pte_t huge_ptep_get(pte_t *ptep)
++{
++	return *ptep;
++}
++
++static inline int arch_prepare_hugepage(struct page *page)
++{
++	return 0;
++}
++
++static inline void arch_release_hugepage(struct page *page)
++{
++}
++
+ #endif /* _ASM_IA64_HUGETLB_H */
+diff -puN include/asm-powerpc/hugetlb.h~hugetlbfs-common-code-update-for-s390 include/asm-powerpc/hugetlb.h
+--- a/include/asm-powerpc/hugetlb.h~hugetlbfs-common-code-update-for-s390
 +++ a/include/asm-powerpc/hugetlb.h
-@@ -0,0 +1,37 @@
-+#ifndef _ASM_POWERPC_HUGETLB_H
-+#define _ASM_POWERPC_HUGETLB_H
-+
-+#include <asm/page.h>
-+
-+
-+int is_hugepage_only_range(struct mm_struct *mm, unsigned long addr,
-+			   unsigned long len);
-+
-+void hugetlb_free_pgd_range(struct mmu_gather **tlb, unsigned long addr,
-+			    unsigned long end, unsigned long floor,
-+			    unsigned long ceiling);
-+
-+void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-+		     pte_t *ptep, pte_t pte);
-+
-+pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
-+			      pte_t *ptep);
-+
-+/*
-+ * If the arch doesn't supply something else, assume that hugepage
-+ * size aligned regions are ok without further preparation.
-+ */
-+static inline int prepare_hugepage_range(unsigned long addr, unsigned long len)
+@@ -39,4 +39,41 @@ static inline void huge_ptep_clear_flush
+ {
+ }
+ 
++static inline int huge_pte_none(pte_t pte)
 +{
-+	if (len & ~HPAGE_MASK)
-+		return -EINVAL;
-+	if (addr & ~HPAGE_MASK)
-+		return -EINVAL;
++	return pte_none(pte);
++}
++
++static inline pte_t huge_pte_wrprotect(pte_t pte)
++{
++	return pte_wrprotect(pte);
++}
++
++static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
++					   unsigned long addr, pte_t *ptep)
++{
++	ptep_set_wrprotect(mm, addr, ptep);
++}
++
++static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
++					     unsigned long addr, pte_t *ptep,
++					     pte_t pte, int dirty)
++{
++	return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
++}
++
++static inline pte_t huge_ptep_get(pte_t *ptep)
++{
++	return *ptep;
++}
++
++static inline int arch_prepare_hugepage(struct page *page)
++{
 +	return 0;
 +}
 +
-+static inline void hugetlb_prefault_arch_hook(struct mm_struct *mm)
++static inline void arch_release_hugepage(struct page *page)
 +{
 +}
 +
-+#endif /* _ASM_POWERPC_HUGETLB_H */
-diff -puN include/asm-powerpc/page_64.h~hugetlbfs-architecture-header-cleanup include/asm-powerpc/page_64.h
---- a/include/asm-powerpc/page_64.h~hugetlbfs-architecture-header-cleanup
-+++ a/include/asm-powerpc/page_64.h
-@@ -128,11 +128,6 @@ extern void slice_init_context(struct mm
- extern void slice_set_user_psize(struct mm_struct *mm, unsigned int psize);
- #define slice_mm_new_context(mm)	((mm)->context.id == 0)
- 
--#define ARCH_HAS_HUGEPAGE_ONLY_RANGE
--extern int is_hugepage_only_range(struct mm_struct *m,
--				  unsigned long addr,
--				  unsigned long len);
--
- #endif /* __ASSEMBLY__ */
- #else
- #define slice_init()
-@@ -146,8 +141,6 @@ do {						\
- 
- #ifdef CONFIG_HUGETLB_PAGE
- 
--#define ARCH_HAS_HUGETLB_FREE_PGD_RANGE
--#define ARCH_HAS_SETCLEAR_HUGE_PTE
- #define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
- 
- #endif /* !CONFIG_HUGETLB_PAGE */
-diff -puN /dev/null include/asm-sh/hugetlb.h
---- /dev/null
+ #endif /* _ASM_POWERPC_HUGETLB_H */
+diff -puN include/asm-sh/hugetlb.h~hugetlbfs-common-code-update-for-s390 include/asm-sh/hugetlb.h
+--- a/include/asm-sh/hugetlb.h~hugetlbfs-common-code-update-for-s390
 +++ a/include/asm-sh/hugetlb.h
-@@ -0,0 +1,49 @@
-+#ifndef _ASM_SH_HUGETLB_H
-+#define _ASM_SH_HUGETLB_H
+@@ -51,4 +51,41 @@ static inline void huge_ptep_clear_flush
+ {
+ }
+ 
++static inline int huge_pte_none(pte_t pte)
++{
++	return pte_none(pte);
++}
 +
-+#include <asm/page.h>
++static inline pte_t huge_pte_wrprotect(pte_t pte)
++{
++	return pte_wrprotect(pte);
++}
 +
++static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
++					   unsigned long addr, pte_t *ptep)
++{
++	ptep_set_wrprotect(mm, addr, ptep);
++}
 +
-+static inline int is_hugepage_only_range(struct mm_struct *mm,
-+					 unsigned long addr,
-+					 unsigned long len) {
++static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
++					     unsigned long addr, pte_t *ptep,
++					     pte_t pte, int dirty)
++{
++	return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
++}
++
++static inline pte_t huge_ptep_get(pte_t *ptep)
++{
++	return *ptep;
++}
++
++static inline int arch_prepare_hugepage(struct page *page)
++{
 +	return 0;
 +}
 +
-+/*
-+ * If the arch doesn't supply something else, assume that hugepage
-+ * size aligned regions are ok without further preparation.
-+ */
-+static inline int prepare_hugepage_range(unsigned long addr, unsigned long len)
++static inline void arch_release_hugepage(struct page *page)
 +{
-+	if (len & ~HPAGE_MASK)
-+		return -EINVAL;
-+	if (addr & ~HPAGE_MASK)
-+		return -EINVAL;
-+	return 0;
 +}
 +
-+static inline void hugetlb_prefault_arch_hook(struct mm_struct *mm) {
-+}
-+
-+static inline void hugetlb_free_pgd_range(struct mmu_gather **tlb,
-+					  unsigned long addr, unsigned long end,
-+					  unsigned long floor,
-+					  unsigned long ceiling)
-+{
-+	free_pgd_range(tlb, addr, end, floor, ceiling);
-+}
-+
-+static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-+				   pte_t *ptep, pte_t pte)
-+{
-+	set_pte_at(mm, addr, ptep, pte);
-+}
-+
-+static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
-+					    unsigned long addr, pte_t *ptep)
-+{
-+	return ptep_get_and_clear(mm, addr, ptep);
-+}
-+
-+#endif /* _ASM_SH_HUGETLB_H */
-diff -puN /dev/null include/asm-sparc64/hugetlb.h
---- /dev/null
+ #endif /* _ASM_SH_HUGETLB_H */
+diff -puN include/asm-sparc64/hugetlb.h~hugetlbfs-common-code-update-for-s390 include/asm-sparc64/hugetlb.h
+--- a/include/asm-sparc64/hugetlb.h~hugetlbfs-common-code-update-for-s390
 +++ a/include/asm-sparc64/hugetlb.h
-@@ -0,0 +1,42 @@
-+#ifndef _ASM_SPARC64_HUGETLB_H
-+#define _ASM_SPARC64_HUGETLB_H
-+
-+#include <asm/page.h>
-+
-+
-+void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-+		     pte_t *ptep, pte_t pte);
-+
-+pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
-+			      pte_t *ptep);
-+
-+void hugetlb_prefault_arch_hook(struct mm_struct *mm);
-+
-+static inline int is_hugepage_only_range(struct mm_struct *mm,
-+					 unsigned long addr,
-+					 unsigned long len) {
-+	return 0;
-+}
-+
-+/*
-+ * If the arch doesn't supply something else, assume that hugepage
-+ * size aligned regions are ok without further preparation.
-+ */
-+static inline int prepare_hugepage_range(unsigned long addr, unsigned long len)
-+{
-+	if (len & ~HPAGE_MASK)
-+		return -EINVAL;
-+	if (addr & ~HPAGE_MASK)
-+		return -EINVAL;
-+	return 0;
-+}
-+
-+static inline void hugetlb_free_pgd_range(struct mmu_gather **tlb,
-+					  unsigned long addr, unsigned long end,
-+					  unsigned long floor,
-+					  unsigned long ceiling)
-+{
-+	free_pgd_range(tlb, addr, end, floor, ceiling);
-+}
-+
-+#endif /* _ASM_SPARC64_HUGETLB_H */
-diff -puN include/asm-sparc64/page.h~hugetlbfs-architecture-header-cleanup include/asm-sparc64/page.h
---- a/include/asm-sparc64/page.h~hugetlbfs-architecture-header-cleanup
-+++ a/include/asm-sparc64/page.h
-@@ -39,8 +39,6 @@
- #define HPAGE_SIZE		(_AC(1,UL) << HPAGE_SHIFT)
- #define HPAGE_MASK		(~(HPAGE_SIZE - 1UL))
- #define HUGETLB_PAGE_ORDER	(HPAGE_SHIFT - PAGE_SHIFT)
--#define ARCH_HAS_SETCLEAR_HUGE_PTE
--#define ARCH_HAS_HUGETLB_PREFAULT_HOOK
- #define HAVE_ARCH_HUGETLB_UNMAPPED_AREA
- #endif
+@@ -44,4 +44,41 @@ static inline void huge_ptep_clear_flush
+ {
+ }
  
-diff -puN /dev/null include/asm-x86/hugetlb.h
---- /dev/null
++static inline int huge_pte_none(pte_t pte)
++{
++	return pte_none(pte);
++}
++
++static inline pte_t huge_pte_wrprotect(pte_t pte)
++{
++	return pte_wrprotect(pte);
++}
++
++static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
++					   unsigned long addr, pte_t *ptep)
++{
++	ptep_set_wrprotect(mm, addr, ptep);
++}
++
++static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
++					     unsigned long addr, pte_t *ptep,
++					     pte_t pte, int dirty)
++{
++	return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
++}
++
++static inline pte_t huge_ptep_get(pte_t *ptep)
++{
++	return *ptep;
++}
++
++static inline int arch_prepare_hugepage(struct page *page)
++{
++	return 0;
++}
++
++static inline void arch_release_hugepage(struct page *page)
++{
++}
++
+ #endif /* _ASM_SPARC64_HUGETLB_H */
+diff -puN include/asm-x86/hugetlb.h~hugetlbfs-common-code-update-for-s390 include/asm-x86/hugetlb.h
+--- a/include/asm-x86/hugetlb.h~hugetlbfs-common-code-update-for-s390
 +++ a/include/asm-x86/hugetlb.h
-@@ -0,0 +1,49 @@
-+#ifndef _ASM_X86_HUGETLB_H
-+#define _ASM_X86_HUGETLB_H
+@@ -51,4 +51,41 @@ static inline void huge_ptep_clear_flush
+ {
+ }
+ 
++static inline int huge_pte_none(pte_t pte)
++{
++	return pte_none(pte);
++}
 +
-+#include <asm/page.h>
++static inline pte_t huge_pte_wrprotect(pte_t pte)
++{
++	return pte_wrprotect(pte);
++}
 +
++static inline void huge_ptep_set_wrprotect(struct mm_struct *mm,
++					   unsigned long addr, pte_t *ptep)
++{
++	ptep_set_wrprotect(mm, addr, ptep);
++}
 +
-+static inline int is_hugepage_only_range(struct mm_struct *mm,
-+					 unsigned long addr,
-+					 unsigned long len) {
++static inline int huge_ptep_set_access_flags(struct vm_area_struct *vma,
++					     unsigned long addr, pte_t *ptep,
++					     pte_t pte, int dirty)
++{
++	return ptep_set_access_flags(vma, addr, ptep, pte, dirty);
++}
++
++static inline pte_t huge_ptep_get(pte_t *ptep)
++{
++	return *ptep;
++}
++
++static inline int arch_prepare_hugepage(struct page *page)
++{
 +	return 0;
 +}
 +
-+/*
-+ * If the arch doesn't supply something else, assume that hugepage
-+ * size aligned regions are ok without further preparation.
-+ */
-+static inline int prepare_hugepage_range(unsigned long addr, unsigned long len)
++static inline void arch_release_hugepage(struct page *page)
 +{
-+	if (len & ~HPAGE_MASK)
-+		return -EINVAL;
-+	if (addr & ~HPAGE_MASK)
-+		return -EINVAL;
-+	return 0;
 +}
 +
-+static inline void hugetlb_prefault_arch_hook(struct mm_struct *mm) {
-+}
-+
-+static inline void hugetlb_free_pgd_range(struct mmu_gather **tlb,
-+					  unsigned long addr, unsigned long end,
-+					  unsigned long floor,
-+					  unsigned long ceiling)
-+{
-+	free_pgd_range(tlb, addr, end, floor, ceiling);
-+}
-+
-+static inline void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
-+				   pte_t *ptep, pte_t pte)
-+{
-+	set_pte_at(mm, addr, ptep, pte);
-+}
-+
-+static inline pte_t huge_ptep_get_and_clear(struct mm_struct *mm,
-+					    unsigned long addr, pte_t *ptep)
-+{
-+	return ptep_get_and_clear(mm, addr, ptep);
-+}
-+
-+#endif /* _ASM_X86_HUGETLB_H */
-diff -puN include/linux/hugetlb.h~hugetlbfs-architecture-header-cleanup include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlbfs-architecture-header-cleanup
-+++ a/include/linux/hugetlb.h
-@@ -8,6 +8,7 @@
- #include <linux/mempolicy.h>
- #include <linux/shm.h>
- #include <asm/tlbflush.h>
-+#include <asm/hugetlb.h>
+ #endif /* _ASM_X86_HUGETLB_H */
+diff -puN mm/hugetlb.c~hugetlbfs-common-code-update-for-s390 mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlbfs-common-code-update-for-s390
++++ a/mm/hugetlb.c
+@@ -132,6 +132,7 @@ static void update_and_free_page(struct 
+ 	}
+ 	set_compound_page_dtor(page, NULL);
+ 	set_page_refcounted(page);
++	arch_release_hugepage(page);
+ 	__free_pages(page, HUGETLB_PAGE_ORDER);
+ }
  
- struct ctl_table;
+@@ -201,6 +202,10 @@ static struct page *alloc_fresh_huge_pag
+ 		htlb_alloc_mask|__GFP_COMP|__GFP_THISNODE|__GFP_NOWARN,
+ 		HUGETLB_PAGE_ORDER);
+ 	if (page) {
++		if (arch_prepare_hugepage(page)) {
++			__free_pages(page, HUGETLB_PAGE_ORDER);
++			return 0;
++		}
+ 		set_compound_page_dtor(page, free_huge_page);
+ 		spin_lock(&hugetlb_lock);
+ 		nr_huge_pages++;
+@@ -735,7 +740,7 @@ static pte_t make_huge_pte(struct vm_are
+ 		entry =
+ 		    pte_mkwrite(pte_mkdirty(mk_pte(page, vma->vm_page_prot)));
+ 	} else {
+-		entry = pte_wrprotect(mk_pte(page, vma->vm_page_prot));
++		entry = huge_pte_wrprotect(mk_pte(page, vma->vm_page_prot));
+ 	}
+ 	entry = pte_mkyoung(entry);
+ 	entry = pte_mkhuge(entry);
+@@ -748,8 +753,8 @@ static void set_huge_ptep_writable(struc
+ {
+ 	pte_t entry;
  
-@@ -51,51 +52,6 @@ int pmd_huge(pmd_t pmd);
- void hugetlb_change_protection(struct vm_area_struct *vma,
- 		unsigned long address, unsigned long end, pgprot_t newprot);
+-	entry = pte_mkwrite(pte_mkdirty(*ptep));
+-	if (ptep_set_access_flags(vma, address, ptep, entry, 1)) {
++	entry = pte_mkwrite(pte_mkdirty(huge_ptep_get(ptep)));
++	if (huge_ptep_set_access_flags(vma, address, ptep, entry, 1)) {
+ 		update_mmu_cache(vma, address, entry);
+ 	}
+ }
+@@ -779,10 +784,10 @@ int copy_hugetlb_page_range(struct mm_st
  
--#ifndef ARCH_HAS_HUGEPAGE_ONLY_RANGE
--#define is_hugepage_only_range(mm, addr, len)	0
--#endif
--
--#ifndef ARCH_HAS_HUGETLB_FREE_PGD_RANGE
--#define hugetlb_free_pgd_range	free_pgd_range
--#else
--void hugetlb_free_pgd_range(struct mmu_gather **tlb, unsigned long addr,
--			    unsigned long end, unsigned long floor,
--			    unsigned long ceiling);
--#endif
--
--#ifndef ARCH_HAS_PREPARE_HUGEPAGE_RANGE
--/*
-- * If the arch doesn't supply something else, assume that hugepage
-- * size aligned regions are ok without further preparation.
-- */
--static inline int prepare_hugepage_range(unsigned long addr, unsigned long len)
--{
--	if (len & ~HPAGE_MASK)
--		return -EINVAL;
--	if (addr & ~HPAGE_MASK)
--		return -EINVAL;
--	return 0;
--}
--#else
--int prepare_hugepage_range(unsigned long addr, unsigned long len);
--#endif
--
--#ifndef ARCH_HAS_SETCLEAR_HUGE_PTE
--#define set_huge_pte_at(mm, addr, ptep, pte)	set_pte_at(mm, addr, ptep, pte)
--#define huge_ptep_get_and_clear(mm, addr, ptep) ptep_get_and_clear(mm, addr, ptep)
--#else
--void set_huge_pte_at(struct mm_struct *mm, unsigned long addr,
--		     pte_t *ptep, pte_t pte);
--pte_t huge_ptep_get_and_clear(struct mm_struct *mm, unsigned long addr,
--			      pte_t *ptep);
--#endif
--
--#ifndef ARCH_HAS_HUGETLB_PREFAULT_HOOK
--#define hugetlb_prefault_arch_hook(mm)		do { } while (0)
--#else
--void hugetlb_prefault_arch_hook(struct mm_struct *mm);
--#endif
+ 		spin_lock(&dst->page_table_lock);
+ 		spin_lock(&src->page_table_lock);
+-		if (!pte_none(*src_pte)) {
++		if (!huge_pte_none(huge_ptep_get(src_pte))) {
+ 			if (cow)
+-				ptep_set_wrprotect(src, addr, src_pte);
+-			entry = *src_pte;
++				huge_ptep_set_wrprotect(src, addr, src_pte);
++			entry = huge_ptep_get(src_pte);
+ 			ptepage = pte_page(entry);
+ 			get_page(ptepage);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
+@@ -826,7 +831,7 @@ void __unmap_hugepage_range(struct vm_ar
+ 			continue;
+ 
+ 		pte = huge_ptep_get_and_clear(mm, address, ptep);
+-		if (pte_none(pte))
++		if (huge_pte_none(pte))
+ 			continue;
+ 
+ 		page = pte_page(pte);
+@@ -890,7 +895,7 @@ static int hugetlb_cow(struct mm_struct 
+ 	spin_lock(&mm->page_table_lock);
+ 
+ 	ptep = huge_pte_offset(mm, address & HPAGE_MASK);
+-	if (likely(pte_same(*ptep, pte))) {
++	if (likely(pte_same(huge_ptep_get(ptep), pte))) {
+ 		/* Break COW */
+ 		huge_ptep_clear_flush(vma, address, ptep);
+ 		set_huge_pte_at(mm, address, ptep,
+@@ -960,7 +965,7 @@ retry:
+ 		goto backout;
+ 
+ 	ret = 0;
+-	if (!pte_none(*ptep))
++	if (!huge_pte_none(huge_ptep_get(ptep)))
+ 		goto backout;
+ 
+ 	new_pte = make_huge_pte(vma, page, ((vma->vm_flags & VM_WRITE)
+@@ -1002,8 +1007,8 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 	 * the same page in the page cache.
+ 	 */
+ 	mutex_lock(&hugetlb_instantiation_mutex);
+-	entry = *ptep;
+-	if (pte_none(entry)) {
++	entry = huge_ptep_get(ptep);
++	if (huge_pte_none(entry)) {
+ 		ret = hugetlb_no_page(mm, vma, address, ptep, write_access);
+ 		mutex_unlock(&hugetlb_instantiation_mutex);
+ 		return ret;
+@@ -1013,7 +1018,7 @@ int hugetlb_fault(struct mm_struct *mm, 
+ 
+ 	spin_lock(&mm->page_table_lock);
+ 	/* Check for a racing update before calling hugetlb_cow */
+-	if (likely(pte_same(entry, *ptep)))
++	if (likely(pte_same(entry, huge_ptep_get(ptep))))
+ 		if (write_access && !pte_write(entry))
+ 			ret = hugetlb_cow(mm, vma, address, ptep, entry);
+ 	spin_unlock(&mm->page_table_lock);
+@@ -1043,7 +1048,8 @@ int follow_hugetlb_page(struct mm_struct
+ 		 */
+ 		pte = huge_pte_offset(mm, vaddr & HPAGE_MASK);
+ 
+-		if (!pte || pte_none(*pte) || (write && !pte_write(*pte))) {
++		if (!pte || huge_pte_none(huge_ptep_get(pte)) ||
++		    (write && !pte_write(huge_ptep_get(pte)))) {
+ 			int ret;
+ 
+ 			spin_unlock(&mm->page_table_lock);
+@@ -1059,7 +1065,7 @@ int follow_hugetlb_page(struct mm_struct
+ 		}
+ 
+ 		pfn_offset = (vaddr & ~HPAGE_MASK) >> PAGE_SHIFT;
+-		page = pte_page(*pte);
++		page = pte_page(huge_ptep_get(pte));
+ same_page:
+ 		if (pages) {
+ 			get_page(page);
+@@ -1108,7 +1114,7 @@ void hugetlb_change_protection(struct vm
+ 			continue;
+ 		if (huge_pmd_unshare(mm, &address, ptep))
+ 			continue;
+-		if (!pte_none(*ptep)) {
++		if (!huge_pte_none(huge_ptep_get(ptep))) {
+ 			pte = huge_ptep_get_and_clear(mm, address, ptep);
+ 			pte = pte_mkhuge(pte_modify(pte, newprot));
+ 			set_huge_pte_at(mm, address, ptep, pte);
+_
+
+Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
+
+hugetlbfs-architecture-header-cleanup.patch
+hugetlbfs-add-missing-tlb-flush-to-hugetlb_cow.patch
+hugetlbfs-common-code-update-for-s390.patch
+
