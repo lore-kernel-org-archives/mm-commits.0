@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-platforming-metronomefb-and-am200epd-v4.patch added to -mm tree
-Date: Mon, 07 Apr 2008 17:00:24 -0700
-Message-ID: <200804080000.m3800O7U031629@imap1.linux-foundation.org>
+Subject: + fbdev-platforming-hecubafb-and-n411-v4.patch added to -mm tree
+Date: Mon, 07 Apr 2008 17:00:28 -0700
+Message-ID: <200804080000.m3800Sta031632@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47318 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36838 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754930AbYDHAAh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 20:00:37 -0400
+	by vger.kernel.org with ESMTP id S1755448AbYDHAAk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 20:00:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jayakumar.lkml@gmail.com, adaplas@pol.net, geert@linux-m68k.org
 
 
 The patch titled
-     fbdev: platforming metronomefb and am200epd
+     fbdev: platforming hecubafb and n411
 has been added to the -mm tree.  Its filename is
-     fbdev-platforming-metronomefb-and-am200epd-v4.patch
+     fbdev-platforming-hecubafb-and-n411-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: platforming metronomefb and am200epd
+Subject: fbdev: platforming hecubafb and n411
 From: Jaya Kumar <jayakumar.lkml@gmail.com>
 
-This patch splits metronomefb into the platform independent metronomefb and
-the platform dependent am200epd.
+This patch splits hecubafb into the platform independent hecubafb and the
+platform dependent n411.
 
 Signed-off-by: Jaya Kumar <jayakumar.lkml@gmail.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
@@ -45,61 +45,20 @@ Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/fb/metronomefb.txt |   16 -
- drivers/video/Kconfig            |   16 -
- drivers/video/Makefile           |    1 
- drivers/video/am200epd.c         |  295 +++++++++++++++++++++++++++
- drivers/video/metronomefb.c      |  314 ++++-------------------------
- include/video/metronomefb.h      |   62 +++++
- 6 files changed, 422 insertions(+), 282 deletions(-)
+ drivers/video/Kconfig    |   17 +-
+ drivers/video/hecubafb.c |  250 +++++++------------------------------
+ drivers/video/n411.c     |  202 +++++++++++++++++++++++++++++
+ include/video/hecubafb.h |   51 +++++++
+ 4 files changed, 314 insertions(+), 206 deletions(-)
 
-diff -puN Documentation/fb/metronomefb.txt~fbdev-platforming-metronomefb-and-am200epd-v4 Documentation/fb/metronomefb.txt
---- a/Documentation/fb/metronomefb.txt~fbdev-platforming-metronomefb-and-am200epd-v4
-+++ a/Documentation/fb/metronomefb.txt
-@@ -1,7 +1,7 @@
- 			Metronomefb
- 			-----------
- Maintained by Jaya Kumar <jayakumar.lkml.gmail.com>
--Last revised: Nov 20, 2007
-+Last revised: Mar 10, 2008
- 
- Metronomefb is a driver for the Metronome display controller. The controller
- is from E-Ink Corporation. It is intended to be used to drive the E-Ink
-@@ -11,20 +11,18 @@ display media here http://www.e-ink.com/
- Metronome is interfaced to the host CPU through the AMLCD interface. The
- host CPU generates the control information and the image in a framebuffer
- which is then delivered to the AMLCD interface by a host specific method.
--Currently, that's implemented for the PXA's LCDC controller. The display and
--error status are each pulled through individual GPIOs.
-+The display and error status are each pulled through individual GPIOs.
- 
--Metronomefb was written for the PXA255/gumstix/lyre combination and
--therefore currently has board set specific code in it. If other boards based on
--other architectures are available, then the host specific code can be separated
--and abstracted out.
-+Metronomefb is platform independent and depends on a board specific driver
-+to do all physical IO work. Currently, an example is implemented for the
-+PXA board used in the AM-200 EPD devkit. This example is am200epd.c
- 
- Metronomefb requires waveform information which is delivered via the AMLCD
- interface to the metronome controller. The waveform information is expected to
- be delivered from userspace via the firmware class interface. The waveform file
- can be compressed as long as your udev or hotplug script is aware of the need
--to uncompress it before delivering it. metronomefb will ask for waveform.wbf
--which would typically go into /lib/firmware/waveform.wbf depending on your
-+to uncompress it before delivering it. metronomefb will ask for metronome.wbf
-+which would typically go into /lib/firmware/metronome.wbf depending on your
- udev/hotplug setup. I have only tested with a single waveform file which was
- originally labeled 23P01201_60_WT0107_MTC. I do not know what it stands for.
- Caution should be exercised when manipulating the waveform as there may be
-diff -puN drivers/video/Kconfig~fbdev-platforming-metronomefb-and-am200epd-v4 drivers/video/Kconfig
---- a/drivers/video/Kconfig~fbdev-platforming-metronomefb-and-am200epd-v4
+diff -puN drivers/video/Kconfig~fbdev-platforming-hecubafb-and-n411-v4 drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-platforming-hecubafb-and-n411-v4
 +++ a/drivers/video/Kconfig
-@@ -174,6 +174,11 @@ config FB_DEFERRED_IO
+@@ -179,6 +179,11 @@ config FB_METRONOME
  	depends on FB
- 	default y
+ 	depends on FB_DEFERRED_IO
  
-+config FB_METRONOME
++config FB_HECUBA
 +	tristate
 +	depends on FB
 +	depends on FB_DEFERRED_IO
@@ -107,48 +66,440 @@ diff -puN drivers/video/Kconfig~fbdev-platforming-metronomefb-and-am200epd-v4 dr
  config FB_SVGALIB
  	tristate
  	depends on FB
-@@ -1928,19 +1933,18 @@ config FB_XILINX
- 	  framebuffer. ML300 carries a 640*480 LCD display on the board,
- 	  ML403 uses a standard DB15 VGA connector.
+@@ -704,20 +709,18 @@ config FB_IMAC
+ 	help
+ 	  This is the frame buffer device driver for the Intel-based Macintosh
  
--config FB_METRONOME
--       tristate "Metronome display controller support"
-+config FB_AM200EPD
-+       tristate "AM-200 E-Ink EPD devkit support"
-        depends on FB && ARCH_PXA && MMU
+-config FB_HECUBA
+-       tristate "Hecuba board support"
++config FB_N411
++       tristate "N411 Apollo/Hecuba devkit support"
+        depends on FB && X86 && MMU
         select FB_SYS_FILLRECT
         select FB_SYS_COPYAREA
         select FB_SYS_IMAGEBLIT
         select FB_SYS_FOPS
         select FB_DEFERRED_IO
-+       select FB_METRONOME
++       select FB_HECUBA
         help
--         This enables support for the Metronome display controller. Tested
--         with an E-Ink 800x600 display and Gumstix Connex through an AMLCD
--         interface. Please read <file:Documentation/fb/metronomefb.txt>
--         for more information.
-+         This enables support for the Metronome display controller used on
-+         the E-Ink AM-200 EPD devkit.
+-         This enables support for the Hecuba board. This driver was tested
+-         with an E-Ink 800x600 display and x86 SBCs through a 16 bit GPIO
+-         interface (8 bit data, 4 bit control). If you anticipate using
+-         this driver, say Y or M; otherwise say N. You must specify the
+-         GPIO IO address to be used for setting control and data.
++         This enables support for the Apollo display controller in its
++         Hecuba form using the n411 devkit.
  
- config FB_VIRTUAL
- 	tristate "Virtual Frame Buffer support (ONLY FOR TESTING!)"
-diff -puN drivers/video/Makefile~fbdev-platforming-metronomefb-and-am200epd-v4 drivers/video/Makefile
---- a/drivers/video/Makefile~fbdev-platforming-metronomefb-and-am200epd-v4
-+++ a/drivers/video/Makefile
-@@ -29,6 +29,7 @@ obj-$(CONFIG_FB_DEFERRED_IO)   += fb_def
+ config FB_HGA
+ 	tristate "Hercules mono graphics support"
+diff -puN drivers/video/hecubafb.c~fbdev-platforming-hecubafb-and-n411-v4 drivers/video/hecubafb.c
+--- a/drivers/video/hecubafb.c~fbdev-platforming-hecubafb-and-n411-v4
++++ a/drivers/video/hecubafb.c
+@@ -1,5 +1,5 @@
+ /*
+- * linux/drivers/video/hecubafb.c -- FB driver for Hecuba controller
++ * linux/drivers/video/hecubafb.c -- FB driver for Hecuba/Apollo controller
+  *
+  * Copyright (C) 2006, Jaya Kumar
+  * This work was sponsored by CIS(M) Sdn Bhd
+@@ -17,18 +17,13 @@
+  * values. There are other commands that the display is capable of,
+  * beyond the 5 used here but they are more complex.
+  *
+- * This driver is written to be used with the Hecuba display controller
+- * board, and tested with the EInk 800x600 display in 1 bit mode.
+- * The interface between Hecuba and the host is TTL based GPIO. The
+- * GPIO requirements are 8 writable data lines and 6 lines for control.
+- * Only 4 of the controls are actually used here but 6 for future use.
+- * The driver requires the IO addresses for data and control GPIO at
+- * load time. It is also possible to use this display with a standard
+- * PC parallel port.
++ * This driver is written to be used with the Hecuba display architecture.
++ * The actual display chip is called Apollo and the interface electronics
++ * it needs is called Hecuba.
+  *
+- * General notes:
+- * - User must set hecubafb_enable=1 to enable it
+- * - User must set dio_addr=0xIOADDR cio_addr=0xIOADDR c2io_addr=0xIOADDR
++ * It is intended to be architecture independent. A board specific driver
++ * must be used to perform all the physical IO interactions. An example
++ * is provided as n411.c
+  *
+  */
  
- # Hardware specific drivers go first
- obj-$(CONFIG_FB_AMIGA)            += amifb.o c2p.o
-+obj-$(CONFIG_FB_AM200EPD)         += am200epd.o
- obj-$(CONFIG_FB_ARC)              += arcfb.o
- obj-$(CONFIG_FB_CLPS711X)         += clps711xfb.o
- obj-$(CONFIG_FB_CYBER2000)        += cyber2000fb.o
-diff -puN /dev/null drivers/video/am200epd.c
+@@ -47,34 +42,12 @@
+ #include <linux/list.h>
+ #include <linux/uaccess.h>
+ 
+-/* Apollo controller specific defines */
+-#define APOLLO_START_NEW_IMG	0xA0
+-#define APOLLO_STOP_IMG_DATA	0xA1
+-#define APOLLO_DISPLAY_IMG	0xA2
+-#define APOLLO_ERASE_DISPLAY	0xA3
+-#define APOLLO_INIT_DISPLAY	0xA4
+-
+-/* Hecuba interface specific defines */
+-/* WUP is inverted, CD is inverted, DS is inverted */
+-#define HCB_NWUP_BIT	0x01
+-#define HCB_NDS_BIT 	0x02
+-#define HCB_RW_BIT 	0x04
+-#define HCB_NCD_BIT 	0x08
+-#define HCB_ACK_BIT 	0x80
++#include <video/hecubafb.h>
+ 
+ /* Display specific information */
+ #define DPY_W 600
+ #define DPY_H 800
+ 
+-struct hecubafb_par {
+-	unsigned long dio_addr;
+-	unsigned long cio_addr;
+-	unsigned long c2io_addr;
+-	unsigned char ctl;
+-	struct fb_info *info;
+-	unsigned int irq;
+-};
+-
+ static struct fb_fix_screeninfo hecubafb_fix __devinitdata = {
+ 	.id =		"hecubafb",
+ 	.type =		FB_TYPE_PACKED_PIXELS,
+@@ -82,6 +55,7 @@ static struct fb_fix_screeninfo hecubafb
+ 	.xpanstep =	0,
+ 	.ypanstep =	0,
+ 	.ywrapstep =	0,
++	.line_length =	DPY_W,
+ 	.accel =	FB_ACCEL_NONE,
+ };
+ 
+@@ -94,136 +68,51 @@ static struct fb_var_screeninfo hecubafb
+ 	.nonstd		= 1,
+ };
+ 
+-static unsigned long dio_addr;
+-static unsigned long cio_addr;
+-static unsigned long c2io_addr;
+-static unsigned long splashval;
+-static unsigned int nosplash;
+-static unsigned int hecubafb_enable;
+-static unsigned int irq;
+-
+-static DECLARE_WAIT_QUEUE_HEAD(hecubafb_waitq);
+-
+-static void hcb_set_ctl(struct hecubafb_par *par)
+-{
+-	outb(par->ctl, par->cio_addr);
+-}
+-
+-static unsigned char hcb_get_ctl(struct hecubafb_par *par)
+-{
+-	return inb(par->c2io_addr);
+-}
+-
+-static void hcb_set_data(struct hecubafb_par *par, unsigned char value)
+-{
+-	outb(value, par->dio_addr);
+-}
+-
+-static int __devinit apollo_init_control(struct hecubafb_par *par)
+-{
+-	unsigned char ctl;
+-	/* for init, we want the following setup to be set:
+-	WUP = lo
+-	ACK = hi
+-	DS = hi
+-	RW = hi
+-	CD = lo
+-	*/
+-
+-	/* write WUP to lo, DS to hi, RW to hi, CD to lo */
+-	par->ctl = HCB_NWUP_BIT | HCB_RW_BIT | HCB_NCD_BIT ;
+-	par->ctl &= ~HCB_NDS_BIT;
+-	hcb_set_ctl(par);
+-
+-	/* check ACK is not lo */
+-	ctl = hcb_get_ctl(par);
+-	if ((ctl & HCB_ACK_BIT)) {
+-		printk(KERN_ERR "Fail because ACK is already low\n");
+-		return -ENXIO;
+-	}
+-
+-	return 0;
+-}
+-
+-static void hcb_wait_for_ack(struct hecubafb_par *par)
+-{
+-
+-	int timeout;
+-	unsigned char ctl;
+-
+-	timeout=500;
+-	do {
+-		ctl = hcb_get_ctl(par);
+-		if ((ctl & HCB_ACK_BIT))
+-			return;
+-		udelay(1);
+-	} while (timeout--);
+-	printk(KERN_ERR "timed out waiting for ack\n");
+-}
+-
+-static void hcb_wait_for_ack_clear(struct hecubafb_par *par)
+-{
+-
+-	int timeout;
+-	unsigned char ctl;
+-
+-	timeout=500;
+-	do {
+-		ctl = hcb_get_ctl(par);
+-		if (!(ctl & HCB_ACK_BIT))
+-			return;
+-		udelay(1);
+-	} while (timeout--);
+-	printk(KERN_ERR "timed out waiting for clear\n");
+-}
++/* main hecubafb functions */
+ 
+ static void apollo_send_data(struct hecubafb_par *par, unsigned char data)
+ {
+ 	/* set data */
+-	hcb_set_data(par, data);
++	par->board->set_data(par, data);
+ 
+ 	/* set DS low */
+-	par->ctl |= HCB_NDS_BIT;
+-	hcb_set_ctl(par);
++	par->board->set_ctl(par, HCB_DS_BIT, 0);
+ 
+-	hcb_wait_for_ack(par);
++	/* wait for ack */
++	par->board->wait_for_ack(par, 0);
+ 
+ 	/* set DS hi */
+-	par->ctl &= ~(HCB_NDS_BIT);
+-	hcb_set_ctl(par);
++	par->board->set_ctl(par, HCB_DS_BIT, 1);
+ 
+-	hcb_wait_for_ack_clear(par);
++	/* wait for ack to clear */
++	par->board->wait_for_ack(par, 1);
+ }
+ 
+ static void apollo_send_command(struct hecubafb_par *par, unsigned char data)
+ {
+ 	/* command so set CD to high */
+-	par->ctl &= ~(HCB_NCD_BIT);
+-	hcb_set_ctl(par);
++	par->board->set_ctl(par, HCB_CD_BIT, 1);
+ 
+ 	/* actually strobe with command */
+ 	apollo_send_data(par, data);
+ 
+ 	/* clear CD back to low */
+-	par->ctl |= (HCB_NCD_BIT);
+-	hcb_set_ctl(par);
++	par->board->set_ctl(par, HCB_CD_BIT, 0);
+ }
+ 
+-/* main hecubafb functions */
+-
+ static void hecubafb_dpy_update(struct hecubafb_par *par)
+ {
+ 	int i;
+ 	unsigned char *buf = (unsigned char __force *)par->info->screen_base;
+ 
+-	apollo_send_command(par, 0xA0);
++	apollo_send_command(par, APOLLO_START_NEW_IMG);
+ 
+ 	for (i=0; i < (DPY_W*DPY_H/8); i++) {
+ 		apollo_send_data(par, *(buf++));
+ 	}
+ 
+-	apollo_send_command(par, 0xA1);
+-	apollo_send_command(par, 0xA2);
++	apollo_send_command(par, APOLLO_STOP_IMG_DATA);
++	apollo_send_command(par, APOLLO_DISPLAY_IMG);
+ }
+ 
+ /* this is called back from the deferred io workqueue */
+@@ -326,11 +215,21 @@ static struct fb_deferred_io hecubafb_de
+ static int __devinit hecubafb_probe(struct platform_device *dev)
+ {
+ 	struct fb_info *info;
++	struct hecuba_board *board;
+ 	int retval = -ENOMEM;
+ 	int videomemorysize;
+ 	unsigned char *videomemory;
+ 	struct hecubafb_par *par;
+ 
++	/* pick up board specific routines */
++	board = dev->dev.platform_data;
++	if (!board)
++		return -EINVAL;
++
++	/* try to count device specific driver, if can't, platform recalls */
++	if (!try_module_get(board->owner))
++		return -ENODEV;
++
+ 	videomemorysize = (DPY_W*DPY_H)/8;
+ 
+ 	if (!(videomemory = vmalloc(videomemorysize)))
+@@ -340,9 +239,9 @@ static int __devinit hecubafb_probe(stru
+ 
+ 	info = framebuffer_alloc(sizeof(struct hecubafb_par), &dev->dev);
+ 	if (!info)
+-		goto err;
++		goto err_fballoc;
+ 
+-	info->screen_base = (char __iomem *) videomemory;
++	info->screen_base = (char __force __iomem *)videomemory;
+ 	info->fbops = &hecubafb_ops;
+ 
+ 	info->var = hecubafb_var;
+@@ -350,14 +249,10 @@ static int __devinit hecubafb_probe(stru
+ 	info->fix.smem_len = videomemorysize;
+ 	par = info->par;
+ 	par->info = info;
++	par->board = board;
++	par->send_command = apollo_send_command;
++	par->send_data = apollo_send_data;
+ 
+-	if (!dio_addr || !cio_addr || !c2io_addr) {
+-		printk(KERN_WARNING "no IO addresses supplied\n");
+-		goto err1;
+-	}
+-	par->dio_addr = dio_addr;
+-	par->cio_addr = cio_addr;
+-	par->c2io_addr = c2io_addr;
+ 	info->flags = FBINFO_FLAG_DEFAULT;
+ 
+ 	info->fbdefio = &hecubafb_defio;
+@@ -365,7 +260,7 @@ static int __devinit hecubafb_probe(stru
+ 
+ 	retval = register_framebuffer(info);
+ 	if (retval < 0)
+-		goto err1;
++		goto err_fbreg;
+ 	platform_set_drvdata(dev, info);
+ 
+ 	printk(KERN_INFO
+@@ -373,25 +268,16 @@ static int __devinit hecubafb_probe(stru
+ 	       info->node, videomemorysize >> 10);
+ 
+ 	/* this inits the dpy */
+-	apollo_init_control(par);
+-
+-	apollo_send_command(par, APOLLO_INIT_DISPLAY);
+-	apollo_send_data(par, 0x81);
+-
+-	/* have to wait while display resets */
+-	udelay(1000);
+-
+-	/* if we were told to splash the screen, we just clear it */
+-	if (!nosplash) {
+-		apollo_send_command(par, APOLLO_ERASE_DISPLAY);
+-		apollo_send_data(par, splashval);
+-	}
++	retval = par->board->init(par);
++	if (retval < 0)
++		goto err_fbreg;
+ 
+ 	return 0;
+-err1:
++err_fbreg:
+ 	framebuffer_release(info);
+-err:
++err_fballoc:
+ 	vfree(videomemory);
++	module_put(board->owner);
+ 	return retval;
+ }
+ 
+@@ -400,9 +286,13 @@ static int __devexit hecubafb_remove(str
+ 	struct fb_info *info = platform_get_drvdata(dev);
+ 
+ 	if (info) {
++		struct hecubafb_par *par = info->par;
+ 		fb_deferred_io_cleanup(info);
+ 		unregister_framebuffer(info);
+ 		vfree((void __force *)info->screen_base);
++		if (par->board->remove)
++			par->board->remove(par);
++		module_put(par->board->owner);
+ 		framebuffer_release(info);
+ 	}
+ 	return 0;
+@@ -412,62 +302,24 @@ static struct platform_driver hecubafb_d
+ 	.probe	= hecubafb_probe,
+ 	.remove = hecubafb_remove,
+ 	.driver	= {
++		.owner	= THIS_MODULE,
+ 		.name	= "hecubafb",
+ 	},
+ };
+ 
+-static struct platform_device *hecubafb_device;
+-
+ static int __init hecubafb_init(void)
+ {
+-	int ret;
+-
+-	if (!hecubafb_enable) {
+-		printk(KERN_ERR "Use hecubafb_enable to enable the device\n");
+-		return -ENXIO;
+-	}
+-
+-	ret = platform_driver_register(&hecubafb_driver);
+-	if (!ret) {
+-		hecubafb_device = platform_device_alloc("hecubafb", 0);
+-		if (hecubafb_device)
+-			ret = platform_device_add(hecubafb_device);
+-		else
+-			ret = -ENOMEM;
+-
+-		if (ret) {
+-			platform_device_put(hecubafb_device);
+-			platform_driver_unregister(&hecubafb_driver);
+-		}
+-	}
+-	return ret;
+-
++	return platform_driver_register(&hecubafb_driver);
+ }
+ 
+ static void __exit hecubafb_exit(void)
+ {
+-	platform_device_unregister(hecubafb_device);
+ 	platform_driver_unregister(&hecubafb_driver);
+ }
+ 
+-module_param(nosplash, uint, 0);
+-MODULE_PARM_DESC(nosplash, "Disable doing the splash screen");
+-module_param(hecubafb_enable, uint, 0);
+-MODULE_PARM_DESC(hecubafb_enable, "Enable communication with Hecuba board");
+-module_param(dio_addr, ulong, 0);
+-MODULE_PARM_DESC(dio_addr, "IO address for data, eg: 0x480");
+-module_param(cio_addr, ulong, 0);
+-MODULE_PARM_DESC(cio_addr, "IO address for control, eg: 0x400");
+-module_param(c2io_addr, ulong, 0);
+-MODULE_PARM_DESC(c2io_addr, "IO address for secondary control, eg: 0x408");
+-module_param(splashval, ulong, 0);
+-MODULE_PARM_DESC(splashval, "Splash pattern: 0x00 is black, 0x01 is white");
+-module_param(irq, uint, 0);
+-MODULE_PARM_DESC(irq, "IRQ for the Hecuba board");
+-
+ module_init(hecubafb_init);
+ module_exit(hecubafb_exit);
+ 
+-MODULE_DESCRIPTION("fbdev driver for Hecuba board");
++MODULE_DESCRIPTION("fbdev driver for Hecuba/Apollo controller");
+ MODULE_AUTHOR("Jaya Kumar");
+ MODULE_LICENSE("GPL");
+diff -puN /dev/null drivers/video/n411.c
 --- /dev/null
-+++ a/drivers/video/am200epd.c
-@@ -0,0 +1,295 @@
++++ a/drivers/video/n411.c
+@@ -0,0 +1,202 @@
 +/*
-+ * linux/drivers/video/am200epd.c -- Platform device for AM200 EPD kit
++ * linux/drivers/video/n411.c -- Platform device for N411 EPD kit
 + *
 + * Copyright (C) 2008, Jaya Kumar
 + *
@@ -158,12 +509,17 @@ diff -puN /dev/null drivers/video/am200epd.c
 + *
 + * Layout is based on skeletonfb.c by James Simmons and Geert Uytterhoeven.
 + *
-+ * This work was made possible by help and equipment support from E-Ink
-+ * Corporation. http://support.eink.com/community
++ * This driver is written to be used with the Hecuba display controller
++ * board, and tested with the EInk 800x600 display in 1 bit mode.
++ * The interface between Hecuba and the host is TTL based GPIO. The
++ * GPIO requirements are 8 writable data lines and 6 lines for control.
++ * Only 4 of the controls are actually used here but 6 for future use.
++ * The driver requires the IO addresses for data and control GPIO at
++ * load time. It is also possible to use this display with a standard
++ * PC parallel port.
 + *
-+ * This driver is written to be used with the Metronome display controller.
-+ * on the AM200 EPD prototype kit/development kit with an E-Ink 800x600
-+ * Vizplex EPD on a Gumstix board using the Lyre interface board.
++ * General notes:
++ * - User must set dio_addr=0xIOADDR cio_addr=0xIOADDR c2io_addr=0xIOADDR
 + *
 + */
 +
@@ -180,791 +536,176 @@ diff -puN /dev/null drivers/video/am200epd.c
 +#include <linux/uaccess.h>
 +#include <linux/irq.h>
 +
-+#include <video/metronomefb.h>
++#include <video/hecubafb.h>
 +
-+#include <asm/arch/pxa-regs.h>
++static unsigned long dio_addr;
++static unsigned long cio_addr;
++static unsigned long c2io_addr;
++static unsigned long splashval;
++static unsigned int nosplash;
++static unsigned char ctl;
 +
-+/* register offsets for gpio control */
-+#define LED_GPIO_PIN 51
-+#define STDBY_GPIO_PIN 48
-+#define RST_GPIO_PIN 49
-+#define RDY_GPIO_PIN 32
-+#define ERR_GPIO_PIN 17
-+#define PCBPWR_GPIO_PIN 16
-+
-+#define AF_SEL_GPIO_N 0x3
-+#define GAFR0_U_OFFSET(pin) ((pin - 16) * 2)
-+#define GAFR1_L_OFFSET(pin) ((pin - 32) * 2)
-+#define GAFR1_U_OFFSET(pin) ((pin - 48) * 2)
-+#define GPDR1_OFFSET(pin) (pin - 32)
-+#define GPCR1_OFFSET(pin) (pin - 32)
-+#define GPSR1_OFFSET(pin) (pin - 32)
-+#define GPCR0_OFFSET(pin) (pin)
-+#define GPSR0_OFFSET(pin) (pin)
-+
-+static void am200_set_gpio_output(int pin, int val)
++static void n411_set_ctl(struct hecubafb_par *par, unsigned char bit, unsigned
++							char state)
 +{
-+	u8 index;
-+
-+	index = pin >> 4;
-+
-+	switch (index) {
-+	case 1:
-+		if (val)
-+			GPSR0 |= (1 << GPSR0_OFFSET(pin));
++	switch (bit) {
++	case HCB_CD_BIT:
++		if (state)
++			ctl &= ~(HCB_CD_BIT);
 +		else
-+			GPCR0 |= (1 << GPCR0_OFFSET(pin));
++			ctl |= HCB_CD_BIT;
 +		break;
-+	case 2:
-+		break;
-+	case 3:
-+		if (val)
-+			GPSR1 |= (1 << GPSR1_OFFSET(pin));
++	case HCB_DS_BIT:
++		if (state)
++			ctl &= ~(HCB_DS_BIT);
 +		else
-+			GPCR1 |= (1 << GPCR1_OFFSET(pin));
++			ctl |= HCB_DS_BIT;
 +		break;
-+	default:
-+		printk(KERN_ERR "unimplemented\n");
 +	}
++	outb(ctl, cio_addr);
 +}
 +
-+static void __devinit am200_init_gpio_pin(int pin, int dir)
++static unsigned char n411_get_ctl(struct hecubafb_par *par)
 +{
-+	u8 index;
-+	/* dir 0 is output, 1 is input
-+	- do 2 things here:
-+	- set gpio alternate function to standard gpio
-+	- set gpio direction to input or output  */
-+
-+	index = pin >> 4;
-+	switch (index) {
-+	case 1:
-+		GAFR0_U &= ~(AF_SEL_GPIO_N << GAFR0_U_OFFSET(pin));
-+
-+		if (dir)
-+			GPDR0 &= ~(1 << pin);
-+		else
-+			GPDR0 |= (1 << pin);
-+		break;
-+	case 2:
-+		GAFR1_L &= ~(AF_SEL_GPIO_N << GAFR1_L_OFFSET(pin));
-+
-+		if (dir)
-+			GPDR1 &= ~(1 << GPDR1_OFFSET(pin));
-+		else
-+			GPDR1 |= (1 << GPDR1_OFFSET(pin));
-+		break;
-+	case 3:
-+		GAFR1_U &= ~(AF_SEL_GPIO_N << GAFR1_U_OFFSET(pin));
-+
-+		if (dir)
-+			GPDR1 &= ~(1 << GPDR1_OFFSET(pin));
-+		else
-+			GPDR1 |= (1 << GPDR1_OFFSET(pin));
-+		break;
-+	default:
-+		printk(KERN_ERR "unimplemented\n");
-+	}
++	return inb(c2io_addr);
 +}
 +
-+static void am200_init_gpio_regs(struct metronomefb_par *par)
++static void n411_set_data(struct hecubafb_par *par, unsigned char value)
 +{
-+	am200_init_gpio_pin(LED_GPIO_PIN, 0);
-+	am200_set_gpio_output(LED_GPIO_PIN, 0);
-+
-+	am200_init_gpio_pin(STDBY_GPIO_PIN, 0);
-+	am200_set_gpio_output(STDBY_GPIO_PIN, 0);
-+
-+	am200_init_gpio_pin(RST_GPIO_PIN, 0);
-+	am200_set_gpio_output(RST_GPIO_PIN, 0);
-+
-+	am200_init_gpio_pin(RDY_GPIO_PIN, 1);
-+
-+	am200_init_gpio_pin(ERR_GPIO_PIN, 1);
-+
-+	am200_init_gpio_pin(PCBPWR_GPIO_PIN, 0);
-+	am200_set_gpio_output(PCBPWR_GPIO_PIN, 0);
++	outb(value, dio_addr);
 +}
 +
-+static void am200_disable_lcd_controller(struct metronomefb_par *par)
++static void n411_wait_for_ack(struct hecubafb_par *par, int clear)
 +{
-+	LCSR = 0xffffffff;	/* Clear LCD Status Register */
-+	LCCR0 |= LCCR0_DIS;	/* Disable LCD Controller */
++	int timeout;
++	unsigned char tmp;
 +
-+	/* we reset and just wait for things to settle */
-+	msleep(200);
++	timeout = 500;
++	do {
++		tmp = n411_get_ctl(par);
++		if ((tmp & HCB_ACK_BIT) && (!clear))
++			return;
++		else if (!(tmp & HCB_ACK_BIT) && (clear))
++			return;
++		udelay(1);
++	} while (timeout--);
++	printk(KERN_ERR "timed out waiting for ack\n");
 +}
 +
-+static void am200_enable_lcd_controller(struct metronomefb_par *par)
++static int n411_init_control(struct hecubafb_par *par)
 +{
-+	LCSR = 0xffffffff;
-+	FDADR0 = par->metromem_desc_dma;
-+	LCCR0 |= LCCR0_ENB;
-+}
-+
-+static void am200_init_lcdc_regs(struct metronomefb_par *par)
-+{
-+	/* here we do:
-+	- disable the lcd controller
-+	- setup lcd control registers
-+	- setup dma descriptor
-+	- reenable lcd controller
++	unsigned char tmp;
++	/* for init, we want the following setup to be set:
++	WUP = lo
++	ACK = hi
++	DS = hi
++	RW = hi
++	CD = lo
 +	*/
 +
-+	/* disable the lcd controller */
-+	am200_disable_lcd_controller(par);
++	/* write WUP to lo, DS to hi, RW to hi, CD to lo */
++	ctl = HCB_WUP_BIT | HCB_RW_BIT | HCB_CD_BIT ;
++	n411_set_ctl(par, HCB_DS_BIT, 1);
 +
-+	/* setup lcd control registers */
-+	LCCR0 = LCCR0_LDM | LCCR0_SFM | LCCR0_IUM | LCCR0_EFM | LCCR0_PAS
-+		| LCCR0_QDM | LCCR0_BM | LCCR0_OUM;
++	/* check ACK is not lo */
++	tmp = n411_get_ctl(par);
++	if (tmp & HCB_ACK_BIT) {
++		printk(KERN_ERR "Fail because ACK is already low\n");
++		return -ENXIO;
++	}
 +
-+	LCCR1 = (par->info->var.xres/2 - 1) /* pixels per line */
-+		| (27 << 10) /* hsync pulse width - 1 */
-+		| (33 << 16) /* eol pixel count */
-+		| (33 << 24); /* bol pixel count */
-+
-+	LCCR2 = (par->info->var.yres - 1) /* lines per panel */
-+		| (24 << 10) /* vsync pulse width - 1 */
-+		| (2 << 16) /* eof pixel count */
-+		| (0 << 24); /* bof pixel count */
-+
-+	LCCR3 = 2 /* pixel clock divisor */
-+		| (24 << 8) /* AC Bias pin freq */
-+		| LCCR3_16BPP /* BPP */
-+		| LCCR3_PCP;  /* PCP falling edge */
-+
++	return 0;
 +}
 +
-+static void am200_post_dma_setup(struct metronomefb_par *par)
-+{
-+	par->metromem_desc->mFDADR0 = par->metromem_desc_dma;
-+	par->metromem_desc->mFSADR0 = par->metromem_dma;
-+	par->metromem_desc->mFIDR0 = 0;
-+	par->metromem_desc->mLDCMD0 = par->info->var.xres
-+					* par->info->var.yres;
-+	am200_enable_lcd_controller(par);
-+}
 +
-+static void am200_free_irq(struct fb_info *info)
-+{
-+	free_irq(IRQ_GPIO(RDY_GPIO_PIN), info);
-+}
-+
-+static irqreturn_t am200_handle_irq(int irq, void *dev_id)
-+{
-+	struct fb_info *info = dev_id;
-+	struct metronomefb_par *par = info->par;
-+
-+	wake_up_interruptible(&par->waitq);
-+	return IRQ_HANDLED;
-+}
-+
-+static int am200_setup_irq(struct fb_info *info)
++static int n411_init_board(struct hecubafb_par *par)
 +{
 +	int retval;
 +
-+	retval = request_irq(IRQ_GPIO(RDY_GPIO_PIN), am200_handle_irq,
-+				IRQF_DISABLED, "AM200", info);
-+	if (retval) {
-+		printk(KERN_ERR "am200epd: request_irq failed: %d\n", retval);
++	retval = n411_init_control(par);
++	if (retval)
 +		return retval;
++
++	par->send_command(par, APOLLO_INIT_DISPLAY);
++	par->send_data(par, 0x81);
++
++	/* have to wait while display resets */
++	udelay(1000);
++
++	/* if we were told to splash the screen, we just clear it */
++	if (!nosplash) {
++		par->send_command(par, APOLLO_ERASE_DISPLAY);
++		par->send_data(par, splashval);
 +	}
 +
-+	return set_irq_type(IRQ_GPIO(RDY_GPIO_PIN), IRQT_FALLING);
++	return 0;
 +}
 +
-+static void am200_set_rst(struct metronomefb_par *par, int state)
-+{
-+	am200_set_gpio_output(RST_GPIO_PIN, state);
-+}
-+
-+static void am200_set_stdby(struct metronomefb_par *par, int state)
-+{
-+	am200_set_gpio_output(STDBY_GPIO_PIN, state);
-+}
-+
-+static int am200_wait_event(struct metronomefb_par *par)
-+{
-+	return wait_event_timeout(par->waitq, (GPLR1 & 0x01), HZ);
-+}
-+
-+static int am200_wait_event_intr(struct metronomefb_par *par)
-+{
-+	return wait_event_interruptible_timeout(par->waitq, (GPLR1 & 0x01), HZ);
-+}
-+
-+static struct metronome_board am200_board = {
++static struct hecuba_board n411_board = {
 +	.owner			= THIS_MODULE,
-+	.free_irq		= am200_free_irq,
-+	.setup_irq		= am200_setup_irq,
-+	.init_gpio_regs		= am200_init_gpio_regs,
-+	.init_lcdc_regs		= am200_init_lcdc_regs,
-+	.post_dma_setup		= am200_post_dma_setup,
-+	.set_rst		= am200_set_rst,
-+	.set_stdby		= am200_set_stdby,
-+	.met_wait_event		= am200_wait_event,
-+	.met_wait_event_intr	= am200_wait_event_intr,
++	.init			= n411_init_board,
++	.set_ctl		= n411_set_ctl,
++	.set_data		= n411_set_data,
++	.wait_for_ack		= n411_wait_for_ack,
 +};
 +
-+static struct platform_device *am200_device;
-+
-+static int __init am200_init(void)
++static struct platform_device *n411_device;
++static int __init n411_init(void)
 +{
 +	int ret;
++	if (!dio_addr || !cio_addr || !c2io_addr) {
++		printk(KERN_WARNING "no IO addresses supplied\n");
++		return -EINVAL;
++	}
 +
 +	/* request our platform independent driver */
-+	request_module("metronomefb");
++	request_module("hecubafb");
 +
-+	am200_device = platform_device_alloc("metronomefb", -1);
-+	if (!am200_device)
++	n411_device = platform_device_alloc("hecubafb", -1);
++	if (!n411_device)
 +		return -ENOMEM;
 +
-+	platform_device_add_data(am200_device, &am200_board,
-+					sizeof(am200_board));
++	platform_device_add_data(n411_device, &n411_board, sizeof(n411_board));
 +
-+	/* this _add binds metronomefb to am200. metronomefb refcounts am200 */
-+	ret = platform_device_add(am200_device);
++	/* this _add binds hecubafb to n411. hecubafb refcounts n411 */
++	ret = platform_device_add(n411_device);
 +
 +	if (ret)
-+		platform_device_put(am200_device);
++		platform_device_put(n411_device);
 +
 +	return ret;
++
 +}
 +
-+static void __exit am200_exit(void)
++static void __exit n411_exit(void)
 +{
-+	platform_device_unregister(am200_device);
++	platform_device_unregister(n411_device);
 +}
 +
-+module_init(am200_init);
-+module_exit(am200_exit);
++module_init(n411_init);
++module_exit(n411_exit);
 +
-+MODULE_DESCRIPTION("board driver for am200 metronome epd kit");
++module_param(nosplash, uint, 0);
++MODULE_PARM_DESC(nosplash, "Disable doing the splash screen");
++module_param(dio_addr, ulong, 0);
++MODULE_PARM_DESC(dio_addr, "IO address for data, eg: 0x480");
++module_param(cio_addr, ulong, 0);
++MODULE_PARM_DESC(cio_addr, "IO address for control, eg: 0x400");
++module_param(c2io_addr, ulong, 0);
++MODULE_PARM_DESC(c2io_addr, "IO address for secondary control, eg: 0x408");
++module_param(splashval, ulong, 0);
++MODULE_PARM_DESC(splashval, "Splash pattern: 0x00 is black, 0x01 is white");
++
++MODULE_DESCRIPTION("board driver for n411 hecuba/apollo epd kit");
 +MODULE_AUTHOR("Jaya Kumar");
 +MODULE_LICENSE("GPL");
-diff -puN drivers/video/metronomefb.c~fbdev-platforming-metronomefb-and-am200epd-v4 drivers/video/metronomefb.c
---- a/drivers/video/metronomefb.c~fbdev-platforming-metronomefb-and-am200epd-v4
-+++ a/drivers/video/metronomefb.c
-@@ -13,12 +13,10 @@
-  * Corporation. http://support.eink.com/community
-  *
-  * This driver is written to be used with the Metronome display controller.
-- * It was tested with an E-Ink 800x600 Vizplex EPD on a Gumstix Connex board
-- * using the Lyre interface board.
-+ * It is intended to be architecture independent. A board specific driver
-+ * must be used to perform all the physical IO interactions. An example
-+ * is provided as am200epd.c
-  *
-- * General notes:
-- * - User must set metronomefb_enable=1 to enable it.
-- * - See Documentation/fb/metronomefb.txt for how metronome works.
-  */
- #include <linux/module.h>
- #include <linux/kernel.h>
-@@ -38,9 +36,11 @@
- #include <linux/uaccess.h>
- #include <linux/irq.h>
- 
--#include <asm/arch/pxa-regs.h>
-+#include <video/metronomefb.h>
 +
- #include <asm/unaligned.h>
- 
-+
- #define DEBUG 1
- #ifdef DEBUG
- #define DPRINTK(f, a...) printk(KERN_DEBUG "%s: " f, __func__ , ## a)
-@@ -53,35 +53,6 @@
- #define DPY_W 832
- #define DPY_H 622
- 
--struct metromem_desc {
--	u32 mFDADR0;
--	u32 mFSADR0;
--	u32 mFIDR0;
--	u32 mLDCMD0;
--};
--
--struct metromem_cmd {
--	u16 opcode;
--	u16 args[((64-2)/2)];
--	u16 csum;
--};
--
--struct metronomefb_par {
--	unsigned char *metromem;
--	struct metromem_desc *metromem_desc;
--	struct metromem_cmd *metromem_cmd;
--	unsigned char *metromem_wfm;
--	unsigned char *metromem_img;
--	u16 *metromem_img_csum;
--	u16 *csum_table;
--	int metromemsize;
--	dma_addr_t metromem_dma;
--	dma_addr_t metromem_desc_dma;
--	struct fb_info *info;
--	wait_queue_head_t waitq;
--	u8 frame_count;
--};
--
- /* frame differs from image. frame includes non-visible pixels */
- struct epd_frame {
- 	int fw; /* frame width */
-@@ -120,8 +91,7 @@ static struct fb_var_screeninfo metronom
- 	.transp =	{ 0, 0, 0 },
- };
- 
--static unsigned int metronomefb_enable;
--
-+/* the waveform structure that is coming from userspace firmware */
- struct waveform_hdr {
- 	u8 stuff[32];
- 
-@@ -301,165 +271,6 @@ static int load_waveform(u8 *mem, size_t
- 	return 0;
- }
- 
--/* register offsets for gpio control */
--#define LED_GPIO_PIN 51
--#define STDBY_GPIO_PIN 48
--#define RST_GPIO_PIN 49
--#define RDY_GPIO_PIN 32
--#define ERR_GPIO_PIN 17
--#define PCBPWR_GPIO_PIN 16
--
--#define AF_SEL_GPIO_N 0x3
--#define GAFR0_U_OFFSET(pin) ((pin - 16) * 2)
--#define GAFR1_L_OFFSET(pin) ((pin - 32) * 2)
--#define GAFR1_U_OFFSET(pin) ((pin - 48) * 2)
--#define GPDR1_OFFSET(pin) (pin - 32)
--#define GPCR1_OFFSET(pin) (pin - 32)
--#define GPSR1_OFFSET(pin) (pin - 32)
--#define GPCR0_OFFSET(pin) (pin)
--#define GPSR0_OFFSET(pin) (pin)
--
--static void metronome_set_gpio_output(int pin, int val)
--{
--	u8 index;
--
--	index = pin >> 4;
--
--	switch (index) {
--	case 1:
--		if (val)
--			GPSR0 |= (1 << GPSR0_OFFSET(pin));
--		else
--			GPCR0 |= (1 << GPCR0_OFFSET(pin));
--		break;
--	case 2:
--		break;
--	case 3:
--		if (val)
--			GPSR1 |= (1 << GPSR1_OFFSET(pin));
--		else
--			GPCR1 |= (1 << GPCR1_OFFSET(pin));
--		break;
--	default:
--		printk(KERN_ERR "unimplemented\n");
--	}
--}
--
--static void __devinit metronome_init_gpio_pin(int pin, int dir)
--{
--	u8 index;
--	/* dir 0 is output, 1 is input
--	- do 2 things here:
--	- set gpio alternate function to standard gpio
--	- set gpio direction to input or output  */
--
--	index = pin >> 4;
--	switch (index) {
--	case 1:
--		GAFR0_U &= ~(AF_SEL_GPIO_N << GAFR0_U_OFFSET(pin));
--
--		if (dir)
--			GPDR0 &= ~(1 << pin);
--		else
--			GPDR0 |= (1 << pin);
--		break;
--	case 2:
--		GAFR1_L &= ~(AF_SEL_GPIO_N << GAFR1_L_OFFSET(pin));
--
--		if (dir)
--			GPDR1 &= ~(1 << GPDR1_OFFSET(pin));
--		else
--			GPDR1 |= (1 << GPDR1_OFFSET(pin));
--		break;
--	case 3:
--		GAFR1_U &= ~(AF_SEL_GPIO_N << GAFR1_U_OFFSET(pin));
--
--		if (dir)
--			GPDR1 &= ~(1 << GPDR1_OFFSET(pin));
--		else
--			GPDR1 |= (1 << GPDR1_OFFSET(pin));
--		break;
--	default:
--		printk(KERN_ERR "unimplemented\n");
--	}
--}
--
--static void __devinit metronome_init_gpio_regs(void)
--{
--	metronome_init_gpio_pin(LED_GPIO_PIN, 0);
--	metronome_set_gpio_output(LED_GPIO_PIN, 0);
--
--	metronome_init_gpio_pin(STDBY_GPIO_PIN, 0);
--	metronome_set_gpio_output(STDBY_GPIO_PIN, 0);
--
--	metronome_init_gpio_pin(RST_GPIO_PIN, 0);
--	metronome_set_gpio_output(RST_GPIO_PIN, 0);
--
--	metronome_init_gpio_pin(RDY_GPIO_PIN, 1);
--
--	metronome_init_gpio_pin(ERR_GPIO_PIN, 1);
--
--	metronome_init_gpio_pin(PCBPWR_GPIO_PIN, 0);
--	metronome_set_gpio_output(PCBPWR_GPIO_PIN, 0);
--}
--
--static void metronome_disable_lcd_controller(struct metronomefb_par *par)
--{
--	LCSR = 0xffffffff;	/* Clear LCD Status Register */
--	LCCR0 |= LCCR0_DIS;	/* Disable LCD Controller */
--
--	/* we reset and just wait for things to settle */
--	msleep(200);
--}
--
--static void metronome_enable_lcd_controller(struct metronomefb_par *par)
--{
--	LCSR = 0xffffffff;
--	FDADR0 = par->metromem_desc_dma;
--	LCCR0 |= LCCR0_ENB;
--}
--
--static void __devinit metronome_init_lcdc_regs(struct metronomefb_par *par)
--{
--	/* here we do:
--	- disable the lcd controller
--	- setup lcd control registers
--	- setup dma descriptor
--	- reenable lcd controller
--	*/
--
--	/* disable the lcd controller */
--	metronome_disable_lcd_controller(par);
--
--	/* setup lcd control registers */
--	LCCR0 = LCCR0_LDM | LCCR0_SFM | LCCR0_IUM | LCCR0_EFM | LCCR0_PAS
--		| LCCR0_QDM | LCCR0_BM | LCCR0_OUM;
--
--	LCCR1 = (epd_frame_table[0].fw/2 - 1) /* pixels per line */
--		| (27 << 10) /* hsync pulse width - 1 */
--		| (33 << 16) /* eol pixel count */
--		| (33 << 24); /* bol pixel count */
--
--	LCCR2 = (epd_frame_table[0].fh - 1) /* lines per panel */
--		| (24 << 10) /* vsync pulse width - 1 */
--		| (2 << 16) /* eof pixel count */
--		| (0 << 24); /* bof pixel count */
--
--	LCCR3 = 2 /* pixel clock divisor */
--		| (24 << 8) /* AC Bias pin freq */
--		| LCCR3_16BPP /* BPP */
--		| LCCR3_PCP;  /* PCP falling edge */
--
--	/* setup dma descriptor */
--	par->metromem_desc->mFDADR0 = par->metromem_desc_dma;
--	par->metromem_desc->mFSADR0 = par->metromem_dma;
--	par->metromem_desc->mFIDR0 = 0;
--	par->metromem_desc->mLDCMD0 = epd_frame_table[0].fw
--					* epd_frame_table[0].fh;
--	/* reenable lcd controller */
--	metronome_enable_lcd_controller(par);
--}
--
- static int metronome_display_cmd(struct metronomefb_par *par)
- {
- 	int i;
-@@ -493,8 +304,7 @@ static int metronome_display_cmd(struct 
- 	par->metromem_cmd->csum = cs;
- 	par->metromem_cmd->opcode = opcode; /* display cmd */
- 
--	i = wait_event_interruptible_timeout(par->waitq, (GPLR1 & 0x01), HZ);
--	return i;
-+	return par->board->met_wait_event_intr(par);
- }
- 
- static int __devinit metronome_powerup_cmd(struct metronomefb_par *par)
-@@ -518,13 +328,12 @@ static int __devinit metronome_powerup_c
- 	par->metromem_cmd->csum = cs;
- 
- 	msleep(1);
--	metronome_set_gpio_output(RST_GPIO_PIN, 1);
-+	par->board->set_rst(par, 1);
- 
- 	msleep(1);
--	metronome_set_gpio_output(STDBY_GPIO_PIN, 1);
-+	par->board->set_stdby(par, 1);
- 
--	i = wait_event_timeout(par->waitq, (GPLR1 & 0x01), HZ);
--	return i;
-+	return par->board->met_wait_event(par);
- }
- 
- static int __devinit metronome_config_cmd(struct metronomefb_par *par)
-@@ -569,8 +378,7 @@ static int __devinit metronome_config_cm
- 	par->metromem_cmd->csum = cs;
- 	par->metromem_cmd->opcode = 0xCC10; /* config cmd */
- 
--	i = wait_event_timeout(par->waitq, (GPLR1 & 0x01), HZ);
--	return i;
-+	return par->board->met_wait_event(par);
- }
- 
- static int __devinit metronome_init_cmd(struct metronomefb_par *par)
-@@ -596,16 +404,19 @@ static int __devinit metronome_init_cmd(
- 	par->metromem_cmd->csum = cs;
- 	par->metromem_cmd->opcode = 0xCC20; /* init cmd */
- 
--	i = wait_event_timeout(par->waitq, (GPLR1 & 0x01), HZ);
--	return i;
-+	return par->board->met_wait_event(par);
- }
- 
- static int __devinit metronome_init_regs(struct metronomefb_par *par)
- {
- 	int res;
- 
--	metronome_init_gpio_regs();
--	metronome_init_lcdc_regs(par);
-+	par->board->init_gpio_regs(par);
-+
-+	par->board->init_lcdc_regs(par);
-+
-+	/* now that lcd is setup, setup dma descriptor */
-+	par->board->post_dma_setup(par);
- 
- 	res = metronome_powerup_cmd(par);
- 	if (res)
-@@ -616,8 +427,6 @@ static int __devinit metronome_init_regs
- 		return res;
- 
- 	res = metronome_init_cmd(par);
--	if (res)
--		return res;
- 
- 	return res;
- }
-@@ -632,7 +441,7 @@ static void metronomefb_dpy_update(struc
- 
- 	cksum = calc_img_cksum((u16 *) par->metromem_img,
- 				(epd_frame_table[0].fw * DPY_H)/2);
--	*((u16 *) (par->metromem_img) +
-+	*((u16 *)(par->metromem_img) +
- 			(epd_frame_table[0].fw * DPY_H)/2) = cksum;
- 	metronome_display_cmd(par);
- }
-@@ -641,8 +450,8 @@ static u16 metronomefb_dpy_update_page(s
- {
- 	int i;
- 	u16 csum = 0;
--	u16 *buf = (u16 __force *) (par->info->screen_base + index);
--	u16 *img = (u16 *) (par->metromem_img + index);
-+	u16 *buf = (u16 __force *)(par->info->screen_base + index);
-+	u16 *img = (u16 *)(par->metromem_img + index);
- 
- 	/* swizzle from vm to metromem and recalc cksum at the same time*/
- 	for (i = 0; i < PAGE_SIZE/2; i++) {
-@@ -733,7 +542,7 @@ static ssize_t metronomefb_write(struct 
- 		count = total_size - p;
- 	}
- 
--	dst = (void __force *) (info->screen_base + p);
-+	dst = (void __force *)(info->screen_base + p);
- 
- 	if (copy_from_user(dst, buf, count))
- 		err = -EFAULT;
-@@ -759,18 +568,10 @@ static struct fb_deferred_io metronomefb
- 	.deferred_io	= metronomefb_dpy_deferred_io,
- };
- 
--static irqreturn_t metronome_handle_irq(int irq, void *dev_id)
--{
--	struct fb_info *info = dev_id;
--	struct metronomefb_par *par = info->par;
--
--	wake_up_interruptible(&par->waitq);
--	return IRQ_HANDLED;
--}
--
- static int __devinit metronomefb_probe(struct platform_device *dev)
- {
- 	struct fb_info *info;
-+	struct metronome_board *board;
- 	int retval = -ENOMEM;
- 	int videomemorysize;
- 	unsigned char *videomemory;
-@@ -779,17 +580,26 @@ static int __devinit metronomefb_probe(s
- 	int cmd_size, wfm_size, img_size, padding_size, totalsize;
- 	int i;
- 
-+	/* pick up board specific routines */
-+	board = dev->dev.platform_data;
-+	if (!board)
-+		return -EINVAL;
-+
-+	/* try to count device specific driver, if can't, platform recalls */
-+	if (!try_module_get(board->owner))
-+		return -ENODEV;
-+
- 	/* we have two blocks of memory.
- 	info->screen_base which is vm, and is the fb used by apps.
- 	par->metromem which is physically contiguous memory and
- 	contains the display controller commands, waveform,
- 	processed image data and padding. this is the data pulled
--	by the pxa255's LCD controller and pushed to Metronome */
-+	by the device's LCD controller and pushed to Metronome */
- 
- 	videomemorysize = (DPY_W*DPY_H);
- 	videomemory = vmalloc(videomemorysize);
- 	if (!videomemory)
--		return retval;
-+		return -ENOMEM;
- 
- 	memset(videomemory, 0, videomemorysize);
- 
-@@ -797,7 +607,7 @@ static int __devinit metronomefb_probe(s
- 	if (!info)
- 		goto err_vfree;
- 
--	info->screen_base = (char __iomem *) videomemory;
-+	info->screen_base = (char __force __iomem *)videomemory;
- 	info->fbops = &metronomefb_ops;
- 
- 	info->var = metronomefb_var;
-@@ -805,6 +615,7 @@ static int __devinit metronomefb_probe(s
- 	info->fix.smem_len = videomemorysize;
- 	par = info->par;
- 	par->info = info;
-+	par->board = board;
- 	init_waitqueue_head(&par->waitq);
- 
- 	/* this table caches per page csum values. */
-@@ -849,11 +660,10 @@ static int __devinit metronomefb_probe(s
- 	par->metromem_desc_dma = par->metromem_dma + cmd_size + wfm_size
- 				 + img_size + padding_size;
- 
--	/* load the waveform in. assume mode 3, temp 31 for now */
--	/* 	a) request the waveform file from userspace
-+	/* load the waveform in. assume mode 3, temp 31 for now
-+		a) request the waveform file from userspace
- 		b) process waveform and decode into metromem */
--
--	retval = request_firmware(&fw_entry, "waveform.wbf", &dev->dev);
-+	retval = request_firmware(&fw_entry, "metronome.wbf", &dev->dev);
- 	if (retval < 0) {
- 		printk(KERN_ERR "metronomefb: couldn't get waveform\n");
- 		goto err_dma_free;
-@@ -867,13 +677,8 @@ static int __devinit metronomefb_probe(s
- 	}
- 	release_firmware(fw_entry);
- 
--	retval = request_irq(IRQ_GPIO(RDY_GPIO_PIN), metronome_handle_irq,
--				IRQF_DISABLED, "Metronome", info);
--	if (retval) {
--		dev_err(&dev->dev, "request_irq failed: %d\n", retval);
-+	if (board->setup_irq(info))
- 		goto err_ld_wfm;
--	}
--	set_irq_type(IRQ_GPIO(RDY_GPIO_PIN), IRQT_FALLING);
- 
- 	retval = metronome_init_regs(par);
- 	if (retval < 0)
-@@ -913,7 +718,7 @@ err_cmap:
- err_fb_rel:
- 	framebuffer_release(info);
- err_free_irq:
--	free_irq(IRQ_GPIO(RDY_GPIO_PIN), info);
-+	board->free_irq(info);
- err_ld_wfm:
- 	release_firmware(fw_entry);
- err_dma_free:
-@@ -923,6 +728,7 @@ err_csum_table:
- 	vfree(par->csum_table);
- err_vfree:
- 	vfree(videomemory);
-+	module_put(board->owner);
- 	return retval;
- }
- 
-@@ -939,7 +745,8 @@ static int __devexit metronomefb_remove(
- 		vfree(par->csum_table);
- 		unregister_framebuffer(info);
- 		vfree((void __force *)info->screen_base);
--		free_irq(IRQ_GPIO(RDY_GPIO_PIN), info);
-+		par->board->free_irq(info);
-+		module_put(par->board->owner);
- 		framebuffer_release(info);
- 	}
- 	return 0;
-@@ -949,48 +756,21 @@ static struct platform_driver metronomef
- 	.probe	= metronomefb_probe,
- 	.remove = metronomefb_remove,
- 	.driver	= {
-+		.owner	= THIS_MODULE,
- 		.name	= "metronomefb",
- 	},
- };
- 
--static struct platform_device *metronomefb_device;
--
- static int __init metronomefb_init(void)
- {
--	int ret;
--
--	if (!metronomefb_enable) {
--		printk(KERN_ERR
--			"Use metronomefb_enable to enable the device\n");
--		return -ENXIO;
--	}
--
--	ret = platform_driver_register(&metronomefb_driver);
--	if (!ret) {
--		metronomefb_device = platform_device_alloc("metronomefb", 0);
--		if (metronomefb_device)
--			ret = platform_device_add(metronomefb_device);
--		else
--			ret = -ENOMEM;
--
--		if (ret) {
--			platform_device_put(metronomefb_device);
--			platform_driver_unregister(&metronomefb_driver);
--		}
--	}
--	return ret;
--
-+	return platform_driver_register(&metronomefb_driver);
- }
- 
- static void __exit metronomefb_exit(void)
- {
--	platform_device_unregister(metronomefb_device);
- 	platform_driver_unregister(&metronomefb_driver);
- }
- 
--module_param(metronomefb_enable, uint, 0);
--MODULE_PARM_DESC(metronomefb_enable, "Enable communication with Metronome");
--
- module_init(metronomefb_init);
- module_exit(metronomefb_exit);
- 
-diff -puN /dev/null include/video/metronomefb.h
+diff -puN /dev/null include/video/hecubafb.h
 --- /dev/null
-+++ a/include/video/metronomefb.h
-@@ -0,0 +1,62 @@
++++ a/include/video/hecubafb.h
+@@ -0,0 +1,51 @@
 +/*
-+ * metronomefb.h - definitions for the metronome framebuffer driver
++ * hecubafb.h - definitions for the hecuba framebuffer driver
 + *
 + * Copyright (C) 2008 by Jaya Kumar
 + *
@@ -974,55 +715,44 @@ diff -puN /dev/null include/video/metronomefb.h
 + *
 + */
 +
-+#ifndef _LINUX_METRONOMEFB_H_
-+#define _LINUX_METRONOMEFB_H_
++#ifndef _LINUX_HECUBAFB_H_
++#define _LINUX_HECUBAFB_H_
 +
-+/* address and control descriptors used by metronome controller */
-+struct metromem_desc {
-+	u32 mFDADR0;
-+	u32 mFSADR0;
-+	u32 mFIDR0;
-+	u32 mLDCMD0;
-+};
++/* Apollo controller specific defines */
++#define APOLLO_START_NEW_IMG	0xA0
++#define APOLLO_STOP_IMG_DATA	0xA1
++#define APOLLO_DISPLAY_IMG	0xA2
++#define APOLLO_ERASE_DISPLAY	0xA3
++#define APOLLO_INIT_DISPLAY	0xA4
 +
-+/* command structure used by metronome controller */
-+struct metromem_cmd {
-+	u16 opcode;
-+	u16 args[((64-2)/2)];
-+	u16 csum;
-+};
++/* Hecuba interface specific defines */
++#define HCB_WUP_BIT	0x01
++#define HCB_DS_BIT 	0x02
++#define HCB_RW_BIT 	0x04
++#define HCB_CD_BIT 	0x08
++#define HCB_ACK_BIT 	0x80
 +
-+/* struct used by metronome. board specific stuff comes from *board */
-+struct metronomefb_par {
-+	unsigned char *metromem;
-+	struct metromem_desc *metromem_desc;
-+	struct metromem_cmd *metromem_cmd;
-+	unsigned char *metromem_wfm;
-+	unsigned char *metromem_img;
-+	u16 *metromem_img_csum;
-+	u16 *csum_table;
-+	int metromemsize;
-+	dma_addr_t metromem_dma;
-+	dma_addr_t metromem_desc_dma;
++/* struct used by hecuba. board specific stuff comes from *board */
++struct hecubafb_par {
 +	struct fb_info *info;
-+	struct metronome_board *board;
-+	wait_queue_head_t waitq;
-+	u8 frame_count;
++	struct hecuba_board *board;
++	void (*send_command)(struct hecubafb_par *, unsigned char);
++	void (*send_data)(struct hecubafb_par *, unsigned char);
 +};
 +
-+/* board specific routines */
-+struct metronome_board {
++/* board specific routines
++board drivers can implement wait_for_ack with interrupts if desired. if
++wait_for_ack is called with clear=0, then go to sleep and return when ack
++goes hi or if wait_for_ack with clear=1, then return when ack goes lo */
++struct hecuba_board {
 +	struct module *owner;
-+	void (*free_irq)(struct fb_info *);
-+	void (*init_gpio_regs)(struct metronomefb_par *);
-+	void (*init_lcdc_regs)(struct metronomefb_par *);
-+	void (*post_dma_setup)(struct metronomefb_par *);
-+	void (*set_rst)(struct metronomefb_par *, int);
-+	void (*set_stdby)(struct metronomefb_par *, int);
-+	int (*met_wait_event)(struct metronomefb_par *);
-+	int (*met_wait_event_intr)(struct metronomefb_par *);
-+	int (*setup_irq)(struct fb_info *);
++	void (*remove)(struct hecubafb_par *);
++	void (*set_ctl)(struct hecubafb_par *, unsigned char, unsigned char);
++	void (*set_data)(struct hecubafb_par *, unsigned char);
++	void (*wait_for_ack)(struct hecubafb_par *, int);
++	int (*init)(struct hecubafb_par *);
 +};
++
 +
 +#endif
 _
