@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-use-mpol_preferred-for-system-wide-default-policy.patch added to -mm tree
-Date: Mon, 07 Apr 2008 20:26:57 -0700
-Message-ID: <200804080326.m383QvVf006028@imap1.linux-foundation.org>
+Subject: + mempolicy-clean-up-mpol-to-str-mempolicy-formatting.patch added to -mm tree
+Date: Mon, 07 Apr 2008 20:27:02 -0700
+Message-ID: <200804080327.m383R2Ji006043@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35425 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56838 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751890AbYDHD1h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 23:27:37 -0400
+	by vger.kernel.org with ESMTP id S1751927AbYDHD1i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 23:27:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: lee.schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, mel@csn.ul.ie, rientj
 
 
 The patch titled
-     mempolicy: use MPOL_PREFERRED for system-wide default policy
+     mempolicy: clean-up mpol-to-str() mempolicy formatting
 has been added to the -mm tree.  Its filename is
-     mempolicy-use-mpol_preferred-for-system-wide-default-policy.patch
+     mempolicy-clean-up-mpol-to-str-mempolicy-formatting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: use MPOL_PREFERRED for system-wide default policy
+Subject: mempolicy: clean-up mpol-to-str() mempolicy formatting
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Currently, when one specifies MPOL_DEFAULT via a NUMA memory policy API
-[set_mempolicy(), mbind() and internal versions], the kernel simply installs a
-NULL struct mempolicy pointer in the appropriate context: task policy, vma
-policy, or shared policy.  This causes any use of that policy to "fall back"
-to the next most specific policy scope.
+mpol-to-str() formats memory policies into printable strings.  Currently this
+is only used to display "numa_maps".  A subsequent patch will use
+mpol_to_str() for formatting tmpfs [shmem] mpol mount options, allowing us to
+remove essentially duplicate code in mm/shmem.c.  This patch cleans up
+mpol_to_str() generally and in preparation for that patch.
 
-The only use of MPOL_DEFAULT to mean "local allocation" is in the system
-default policy.  This requires extra checks/cases for MPOL_DEFAULT in many
-mempolicy.c functions.
+1) show_numa_maps() is not checking the return code from mpol_to_str(). 
+   There's not a lot we can do in this context if mpol_to_str() did return the
+   error [insufficient space in buffer].  Proposed "solution": just check,
+   under DEBUG_VM, that callers are providing sufficient buffer space for the
+   policy, flags, and a few nodes.  This way, we'll get some display. 
+   show_numa_maps() is providing a 50-byte buffer, so it won't trip this
+   check.  50-bytes should be sufficient unless one has a large number of
+   nodes in a very sparse nodemask.
 
-There is another, "preferred" way to specify local allocation via the APIs. 
-That is using the MPOL_PREFERRED policy mode with an empty nodemask. 
-Internally, the empty nodemask gets converted to a preferred_node id of '-1'. 
-All internal usage of MPOL_PREFERRED will convert the '-1' to the id of the
-node local to the cpu where the allocation occurs.
+2) The display of the new mode flags ["static" & "relative"] was set up to
+   display multiple flags, separated by a "bar" '|'.  However, this support is
+   incomplete--e.g., need_bar was never incremented; and currently, these two
+   flags are mutually exclusive.  So remove the "bar" support, for now, and
+   only display one flag.
 
-System default policy, except during boot, is hard-coded to "local
-allocation".  By using the MPOL_PREFERRED mode with a negative value of
-preferred node for system default policy, MPOL_DEFAULT will never occur in the
-'policy' member of a struct mempolicy.  Thus, we can remove all checks for
-MPOL_DEFAULT when converting policy to a node id/zonelist in the allocation
-paths.
-
-In slab_node() return local node id when policy pointer is NULL.  No need to
-set a pol value to take the switch default.  Replace switch default with
-BUG()--i.e., shouldn't happen.
-
-With this patch MPOL_DEFAULT is only used in the APIs, including internal
-calls to do_set_mempolicy() and in the display of policy in
-/proc/<pid>/numa_maps.  It always means "fall back" to the the next most
-specific policy scope.  This simplifies the description of memory policies
-quite a bit, with no visible change in behavior.
-
-get_mempolicy() continues to return MPOL_DEFAULT and an empty nodemask when
-the requested policy [task or vma/shared] is NULL.  These are the values one
-would supply via set_mempolicy() or mbind() to achieve that condition--default
-behavior.
-
-This patch updates Documentation to reflect this change.
+3) Use snprint() to format flags, so as not to overflow the buffer.  Not
+   that it's ever happed, AFAIK.
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Christoph Lameter <clameter@sgi.com>
@@ -84,271 +68,55 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/numa_memory_policy.txt |   52 +++++-----------
- mm/mempolicy.c                          |   68 +++++++++++++---------
- 2 files changed, 59 insertions(+), 61 deletions(-)
+ mm/mempolicy.c |   17 +++++++++++------
+ 1 file changed, 11 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/vm/numa_memory_policy.txt~mempolicy-use-mpol_preferred-for-system-wide-default-policy Documentation/vm/numa_memory_policy.txt
---- a/Documentation/vm/numa_memory_policy.txt~mempolicy-use-mpol_preferred-for-system-wide-default-policy
-+++ a/Documentation/vm/numa_memory_policy.txt
-@@ -147,35 +147,18 @@ Components of Memory Policies
- 
-    Linux memory policy supports the following 4 behavioral modes:
- 
--	Default Mode--MPOL_DEFAULT:  The behavior specified by this mode is
--	context or scope dependent.
-+	Default Mode--MPOL_DEFAULT:  This mode is only used in the memory
-+	policy APIs.  Internally, MPOL_DEFAULT is converted to the NULL
-+	memory policy in all policy scopes.  Any existing non-default policy
-+	will simply be removed when MPOL_DEFAULT is specified.  As a result,
-+	MPOL_DEFAULT means "fall back to the next most specific policy scope."
-+
-+	    For example, a NULL or default task policy will fall back to the
-+	    system default policy.  A NULL or default vma policy will fall
-+	    back to the task policy.
- 
--	    As mentioned in the Policy Scope section above, during normal
--	    system operation, the System Default Policy is hard coded to
--	    contain the Default mode.
--
--	    In this context, default mode means "local" allocation--that is
--	    attempt to allocate the page from the node associated with the cpu
--	    where the fault occurs.  If the "local" node has no memory, or the
--	    node's memory can be exhausted [no free pages available], local
--	    allocation will "fallback to"--attempt to allocate pages from--
--	    "nearby" nodes, in order of increasing "distance".
--
--		Implementation detail -- subject to change:  "Fallback" uses
--		a per node list of sibling nodes--called zonelists--built at
--		boot time, or when nodes or memory are added or removed from
--		the system [memory hotplug].  These per node zonelist are
--		constructed with nodes in order of increasing distance based
--		on information provided by the platform firmware.
--
--	    When a task/process policy or a shared policy contains the Default
--	    mode, this also means "local allocation", as described above.
--
--	    In the context of a VMA, Default mode means "fall back to task
--	    policy"--which may or may not specify Default mode.  Thus, Default
--	    mode can not be counted on to mean local allocation when used
--	    on a non-shared region of the address space.  However, see
--	    MPOL_PREFERRED below.
-+	    When specified in one of the memory policy APIs, the Default mode
-+	    does not use the optional set of nodes.
- 
- 	    It is an error for the set of nodes specified for this policy to
- 	    be non-empty.
-@@ -187,19 +170,18 @@ Components of Memory Policies
- 
- 	MPOL_PREFERRED:  This mode specifies that the allocation should be
- 	attempted from the single node specified in the policy.  If that
--	allocation fails, the kernel will search other nodes, exactly as
--	it would for a local allocation that started at the preferred node
--	in increasing distance from the preferred node.  "Local" allocation
--	policy can be viewed as a Preferred policy that starts at the node
-+	allocation fails, the kernel will search other nodes, in order of
-+	increasing distance from the preferred node based on information
-+	provided by the platform firmware.
- 	containing the cpu where the allocation takes place.
- 
- 	    Internally, the Preferred policy uses a single node--the
- 	    preferred_node member of struct mempolicy.  A "distinguished
- 	    value of this preferred_node, currently '-1', is interpreted
- 	    as "the node containing the cpu where the allocation takes
--	    place"--local allocation.  This is the way to specify
--	    local allocation for a specific range of addresses--i.e. for
--	    VMA policies.
-+	    place"--local allocation.  "Local" allocation policy can be
-+	    viewed as a Preferred policy that starts at the node containing
-+	    the cpu where the allocation takes place.
- 
- 	    It is possible for the user to specify that local allocation is
- 	    always preferred by passing an empty nodemask with this mode.
-diff -puN mm/mempolicy.c~mempolicy-use-mpol_preferred-for-system-wide-default-policy mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-use-mpol_preferred-for-system-wide-default-policy
+diff -puN mm/mempolicy.c~mempolicy-clean-up-mpol-to-str-mempolicy-formatting mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-clean-up-mpol-to-str-mempolicy-formatting
 +++ a/mm/mempolicy.c
-@@ -104,9 +104,13 @@ static struct kmem_cache *sn_cache;
-    policied. */
- enum zone_type policy_zone = 0;
- 
-+/*
-+ * run-time system-wide default policy => local allocation
-+ */
- struct mempolicy default_policy = {
- 	.refcnt = ATOMIC_INIT(1), /* never free it */
--	.mode   = MPOL_DEFAULT,
-+	.mode = MPOL_PREFERRED,
-+	.v =  { .preferred_node =  -1 },
- };
- 
- static const struct mempolicy_operations {
-@@ -189,7 +193,7 @@ static struct mempolicy *mpol_new(unsign
- 	if (mode == MPOL_DEFAULT) {
- 		if (nodes && !nodes_empty(*nodes))
- 			return ERR_PTR(-EINVAL);
--		return NULL;
-+		return NULL;	/* simply delete any existing policy */
- 	}
- 	VM_BUG_ON(!nodes);
- 
-@@ -246,7 +250,6 @@ void __mpol_put(struct mempolicy *p)
- {
- 	if (!atomic_dec_and_test(&p->refcnt))
- 		return;
--	p->mode = MPOL_DEFAULT;
- 	kmem_cache_free(policy_cache, p);
- }
- 
-@@ -626,13 +629,16 @@ static long do_set_mempolicy(unsigned sh
- 	return 0;
- }
- 
--/* Fill a zone bitmap for a policy */
--static void get_zonemask(struct mempolicy *p, nodemask_t *nodes)
-+/*
-+ * Return nodemask for policy for get_mempolicy() query
-+ */
-+static void get_policy_nodemask(struct mempolicy *p, nodemask_t *nodes)
- {
- 	nodes_clear(*nodes);
-+	if (p == &default_policy)
-+		return;
-+
- 	switch (p->mode) {
--	case MPOL_DEFAULT:
--		break;
- 	case MPOL_BIND:
- 		/* Fall through */
- 	case MPOL_INTERLEAVE:
-@@ -686,6 +692,11 @@ static long do_get_mempolicy(int *policy
- 	}
- 
- 	if (flags & MPOL_F_ADDR) {
-+		/*
-+		 * Do NOT fall back to task policy if the
-+		 * vma/shared policy at addr is NULL.  We
-+		 * want to return MPOL_DEFAULT in this case.
-+		 */
- 		down_read(&mm->mmap_sem);
- 		vma = find_vma_intersection(mm, addr, addr+1);
- 		if (!vma) {
-@@ -700,7 +711,7 @@ static long do_get_mempolicy(int *policy
- 		return -EINVAL;
- 
- 	if (!pol)
--		pol = &default_policy;
-+		pol = &default_policy;	/* indicates default behavior */
- 
- 	if (flags & MPOL_F_NODE) {
- 		if (flags & MPOL_F_ADDR) {
-@@ -715,8 +726,11 @@ static long do_get_mempolicy(int *policy
- 			err = -EINVAL;
- 			goto out;
- 		}
--	} else
--		*policy = pol->mode | pol->flags;
-+	} else {
-+		*policy = pol == &default_policy ? MPOL_DEFAULT :
-+						pol->mode;
-+		*policy |= pol->flags;
-+	}
- 
- 	if (vma) {
- 		up_read(&current->mm->mmap_sem);
-@@ -725,7 +739,7 @@ static long do_get_mempolicy(int *policy
- 
- 	err = 0;
- 	if (nmask)
--		get_zonemask(pol, nmask);
-+		get_policy_nodemask(pol, nmask);
- 
-  out:
- 	mpol_cond_put(pol);
-@@ -1286,8 +1300,7 @@ static struct mempolicy *get_vma_policy(
- 									addr);
- 			if (vpol)
- 				pol = vpol;
--		} else if (vma->vm_policy &&
--				vma->vm_policy->mode != MPOL_DEFAULT)
-+		} else if (vma->vm_policy)
- 			pol = vma->vm_policy;
- 	}
- 	if (!pol)
-@@ -1334,7 +1347,6 @@ static struct zonelist *policy_zonelist(
- 			nd = first_node(policy->v.nodes);
- 		break;
- 	case MPOL_INTERLEAVE: /* should not happen */
--	case MPOL_DEFAULT:
- 		nd = numa_node_id();
- 		break;
- 	default:
-@@ -1369,9 +1381,15 @@ static unsigned interleave_nodes(struct 
-  */
- unsigned slab_node(struct mempolicy *policy)
- {
--	unsigned short pol = policy ? policy->mode : MPOL_DEFAULT;
-+	if (!policy)
-+		return numa_node_id();
-+
-+	switch (policy->mode) {
-+	case MPOL_PREFERRED:
-+		if (unlikely(policy->v.preferred_node >= 0))
-+			return policy->v.preferred_node;
-+		return numa_node_id();
- 
--	switch (pol) {
- 	case MPOL_INTERLEAVE:
- 		return interleave_nodes(policy);
- 
-@@ -1391,13 +1409,8 @@ unsigned slab_node(struct mempolicy *pol
- 		return zonelist_node_idx(z);
- 	}
- 
--	case MPOL_PREFERRED:
--		if (policy->v.preferred_node >= 0)
--			return policy->v.preferred_node;
--		/* Fall through */
--
- 	default:
--		return numa_node_id();
-+		BUG();
- 	}
- }
- 
-@@ -1651,8 +1664,6 @@ int __mpol_equal(struct mempolicy *a, st
- 	if (a->mode != MPOL_DEFAULT && !mpol_match_intent(a, b))
- 		return 0;
- 	switch (a->mode) {
--	case MPOL_DEFAULT:
--		return 1;
- 	case MPOL_BIND:
- 		/* Fall through */
- 	case MPOL_INTERLEAVE:
-@@ -1829,7 +1840,7 @@ void mpol_shared_policy_init(struct shar
- 	if (policy != MPOL_DEFAULT) {
- 		struct mempolicy *newpol;
- 
--		/* Falls back to MPOL_DEFAULT on any error */
-+		/* Falls back to NULL policy [MPOL_DEFAULT] on any error */
- 		newpol = mpol_new(policy, flags, policy_nodes);
- 		if (!IS_ERR(newpol)) {
- 			/* Create pseudo-vma that contains just the policy */
-@@ -1953,9 +1964,14 @@ static inline int mpol_to_str(char *buff
- 	char *p = buffer;
- 	int l;
- 	nodemask_t nodes;
--	unsigned short mode = pol ? pol->mode : MPOL_DEFAULT;
-+	unsigned short mode;
+@@ -1966,6 +1966,11 @@ static inline int mpol_to_str(char *buff
+ 	unsigned short mode;
  	unsigned short flags = pol ? pol->flags : 0;
  
-+	if (!pol || pol == &default_policy)
-+		mode = MPOL_DEFAULT;
-+	else
-+		mode = pol->mode;
++	/*
++	 * Sanity check:  room for longest mode, flag and some nodes
++	 */
++	VM_BUG_ON(maxlen < strlen("interleave") + strlen("relative") + 16);
 +
- 	switch (mode) {
- 	case MPOL_DEFAULT:
- 		nodes_clear(nodes);
+ 	if (!pol || pol == &default_policy)
+ 		mode = MPOL_DEFAULT;
+ 	else
+@@ -1992,7 +1997,6 @@ static inline int mpol_to_str(char *buff
+ 
+ 	default:
+ 		BUG();
+-		return -EFAULT;
+ 	}
+ 
+ 	l = strlen(policy_types[mode]);
+@@ -2003,16 +2007,17 @@ static inline int mpol_to_str(char *buff
+ 	p += l;
+ 
+ 	if (flags) {
+-		int need_bar = 0;
+-
+ 		if (buffer + maxlen < p + 2)
+ 			return -ENOSPC;
+ 		*p++ = '=';
+ 
++		/*
++		 * Currently, the only defined flags are mutually exclusive
++		 */
+ 		if (flags & MPOL_F_STATIC_NODES)
+-			p += sprintf(p, "%sstatic", need_bar++ ? "|" : "");
+-		if (flags & MPOL_F_RELATIVE_NODES)
+-			p += sprintf(p, "%srelative", need_bar++ ? "|" : "");
++			p += snprintf(p, buffer + maxlen - p, "static");
++		else if (flags & MPOL_F_RELATIVE_NODES)
++			p += snprintf(p, buffer + maxlen - p, "relative");
+ 	}
+ 
+ 	if (!nodes_empty(nodes)) {
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
