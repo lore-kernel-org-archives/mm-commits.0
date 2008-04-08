@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rename-div64_64-to-div64_u64-fix.patch added to -mm tree
-Date: Tue, 08 Apr 2008 12:22:02 -0700
-Message-ID: <200804081932.m38JWDn5008129@imap1.linux-foundation.org>
+Subject: + git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch added to -mm tree
+Date: Tue, 08 Apr 2008 12:26:45 -0700
+Message-ID: <200804081936.m38Jau5W008326@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34204 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59672 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752019AbYDHTcn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 15:32:43 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m38JWDQF027484
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 8 Apr 2008 12:32:15 -0700
+	by vger.kernel.org with ESMTP id S1753197AbYDHThZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 15:37:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     rename-div64_64-to-div64_u64-fix
+     git-x86: fix warning in arch/x86/kernel/vsmp_64.c
 has been added to the -mm tree.  Its filename is
-     rename-div64_64-to-div64_u64-fix.patch
+     git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,29 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rename-div64_64-to-div64_u64-fix
+Subject: git-x86: fix warning in arch/x86/kernel/vsmp_64.c
 From: Andrew Morton <akpm@linux-foundation.org>
 
+arch/x86/kernel/vsmp_64.c: In function 'detect_vsmp_box':
+arch/x86/kernel/vsmp_64.c:138: warning: control reaches end of non-void function
 
-
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time.c |    2 +-
+ arch/x86/kernel/vsmp_64.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/time.c~rename-div64_64-to-div64_u64-fix kernel/time.c
---- a/kernel/time.c~rename-div64_64-to-div64_u64-fix
-+++ a/kernel/time.c
-@@ -273,7 +273,7 @@ EXPORT_SYMBOL(jiffies_to_usecs);
- 
- u64 jiffies_64_to_usecs(const u64 j)
- {
--	return div64_64(j*HZ_TO_USEC_NUM + HZ_TO_USEC_DEN-1, HZ_TO_USEC_DEN);
-+	return div64_u64(j*HZ_TO_USEC_NUM + HZ_TO_USEC_DEN-1, HZ_TO_USEC_DEN);
+diff -puN arch/x86/kernel/vsmp_64.c~git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c arch/x86/kernel/vsmp_64.c
+--- a/arch/x86/kernel/vsmp_64.c~git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c
++++ a/arch/x86/kernel/vsmp_64.c
+@@ -133,7 +133,7 @@ int is_vsmp_box(void)
+ 	}
  }
- EXPORT_SYMBOL(jiffies_64_to_usecs);
- 
+ #else
+-static int __init detect_vsmp_box(void)
++static void __init detect_vsmp_box(void)
+ {
+ }
+ int is_vsmp_box(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -250,4 +249,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
 
