@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-i386-build-fix.patch added to -mm tree
-Date: Tue, 08 Apr 2008 12:13:11 -0700
-Message-ID: <200804081923.m38JNMtk007840@imap1.linux-foundation.org>
+Subject: + mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch added to -mm tree
+Date: Tue, 08 Apr 2008 12:16:17 -0700
+Message-ID: <200804081926.m38JQS0D007948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49015 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751881AbYDHTXu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 15:23:50 -0400
+	by vger.kernel.org with ESMTP id S1751865AbYDHT1Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 15:27:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, rientjes@google.com
 
 
 The patch titled
-     git-x86: i386 build fix
+     mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix
 has been added to the -mm tree.  Its filename is
-     git-x86-i386-build-fix.patch
+     mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86: i386 build fix
+Subject: mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/traps_32.c: In function 'do_general_protection':
-arch/x86/kernel/traps_32.c:647: error: 'VM_MASK' undeclared (first use in this function)
-arch/x86/kernel/traps_32.c:647: error: (Each undeclared identifier is reported only once
-arch/x86/kernel/traps_32.c:647: error: for each function it appears in.)
-arch/x86/kernel/traps_32.c: In function 'do_debug':
-arch/x86/kernel/traps_32.c:928: error: 'VM_MASK' undeclared (first use in this function)
-arch/x86/kernel/traps_32.c: In function 'do_simd_coprocessor_error':
-arch/x86/kernel/traps_32.c:1100: error: 'VM_MASK' undeclared (first use in this function)
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/traps_32.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/traps_32.c~git-x86-i386-build-fix arch/x86/kernel/traps_32.c
---- a/arch/x86/kernel/traps_32.c~git-x86-i386-build-fix
-+++ a/arch/x86/kernel/traps_32.c
-@@ -643,7 +643,7 @@ void __kprobes do_general_protection(str
- 	}
- 	put_cpu();
+diff -puN mm/shmem.c~mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix mm/shmem.c
+--- a/mm/shmem.c~mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix
++++ a/mm/shmem.c
+@@ -1160,7 +1160,7 @@ static inline struct page *shmem_alloc_p
+ #endif /* CONFIG_NUMA */
  
--	if (regs->flags & VM_MASK)
-+	if (regs->flags & X86_VM_MASK)
- 		goto gp_in_vm86;
- 
- 	if (!user_mode(regs))
-@@ -922,7 +922,7 @@ void __kprobes do_debug(struct pt_regs *
- 			goto clear_dr7;
- 	}
- 
--	if (regs->flags & VM_MASK)
-+	if (regs->flags & X86_VM_MASK)
- 		goto debug_vm86;
- 
- 	/* Save debug status register where ptrace can see it */
-@@ -1094,7 +1094,7 @@ void do_simd_coprocessor_error(struct pt
- 	 * Handle strange cache flush from user space exception
- 	 * in all other cases.  This is undocumented behaviour.
- 	 */
--	if (regs->flags & VM_MASK) {
-+	if (regs->flags & X86_VM_MASK) {
- 		handle_vm86_fault((struct kernel_vm86_regs *)regs, error_code);
- 		return;
- 	}
+ #if !defined(CONFIG_NUMA) || !defined(CONFIG_TMPFS)
+-static inline struct mempolicy *shmem_get_sbmpol(shmem_sb_info *sbinfo)
++static inline struct mempolicy *shmem_get_sbmpol(struct shmem_sb_info *sbinfo)
+ {
+ 	return NULL;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -187,6 +163,7 @@ page_mapping-add-ifdef-around-reference-to-swapper_space.patch
 smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
 mm-introduce-pte_special-pte-bit-fix.patch
 hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 capabilities-implement-per-process-securebits-warning-fix.patch
