@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-document-setget_policy-vm_ops-apis.patch added to -mm tree
-Date: Mon, 07 Apr 2008 20:26:51 -0700
-Message-ID: <200804080326.m383Qp5l006022@imap1.linux-foundation.org>
+Subject: + mempolicy-support-mpol=local-tmpfs-mount-option.patch added to -mm tree
+Date: Mon, 07 Apr 2008 20:27:06 -0700
+Message-ID: <200804080327.m383R6Ht006049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38542 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41613 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751890AbYDHD10 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 23:27:26 -0400
+	by vger.kernel.org with ESMTP id S1751890AbYDHD1i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 23:27:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: lee.schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, mel@csn.ul.ie, rientj
 
 
 The patch titled
-     mempolicy: document {set|get}_policy() vm_ops APIs
+     mempolicy: support mpol=local tmpfs mount option
 has been added to the -mm tree.  Its filename is
-     mempolicy-document-setget_policy-vm_ops-apis.patch
+     mempolicy-support-mpol=local-tmpfs-mount-option.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,13 +33,21 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: document {set|get}_policy() vm_ops APIs
+Subject: mempolicy: support mpol=local tmpfs mount option
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Document mempolicy return value reference semantics assumed by the rest of the
-mempolicy code for the set_ and get_policy vm_ops in <linux/mm.h>--where the
-prototypes are defined--to inform any future mempolicy vm_op writers what the
-rest of the subsystem expects of them.
+For tmpfs/shmem shared policies, MPOL_DEFAULT is not necessarily equivalent to
+"local allocation".  Because shared policies are at the same "scope" level
+[see Documentation/vm/numa_memory_policy.txt], as vma policies MPOL_DEFAULT
+means "fall back to current task policy".
+
+This patch extends the memory policy string parsing function to display
+"local" for MPOL_PREFERRED + MPOL_F_LOCAL.  This allows one to specify local
+allocation as the default policy for shared memory areas via the tmpfs mpol
+mount option, regardless of the current task's policy.
+
+Also, "local" is now displayed for this policy.  This patch allows us to
+accept the same input format as the display.
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Christoph Lameter <clameter@sgi.com>
@@ -49,38 +57,66 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ mm/mempolicy.c |   25 +++++++++++++++++--------
+ 1 file changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/mm.h~mempolicy-document-setget_policy-vm_ops-apis include/linux/mm.h
---- a/include/linux/mm.h~mempolicy-document-setget_policy-vm_ops-apis
-+++ a/include/linux/mm.h
-@@ -172,7 +172,25 @@ struct vm_operations_struct {
- 	 * writable, if an error is returned it will cause a SIGBUS */
- 	int (*page_mkwrite)(struct vm_area_struct *vma, struct page *page);
- #ifdef CONFIG_NUMA
-+	/*
-+	 * set_policy() op must add a reference to any non-NULL @new mempolicy
-+	 * to hold the policy upon return.  Caller should pass NULL @new to
-+	 * remove a policy and fall back to surrounding context--i.e. do not
-+	 * install a MPOL_DEFAULT policy, nor the task or system default
-+	 * mempolicy.
-+	 */
- 	int (*set_policy)(struct vm_area_struct *vma, struct mempolicy *new);
-+
-+	/*
-+	 * get_policy() op must add reference [mpol_get()] to any policy at
-+	 * (vma,addr) marked as MPOL_SHARED.  The shared policy infrastructure
-+	 * in mm/mempolicy.c will do this automatically.
-+	 * get_policy() must NOT add a ref if the policy at (vma,addr) is not
-+	 * marked as MPOL_SHARED. vma policies are protected by the mmap_sem.
-+	 * If no [shared/vma] mempolicy exists at the addr, get_policy() op
-+	 * must return NULL--i.e., do not "fallback" to task or system default
-+	 * policy.
-+	 */
- 	struct mempolicy *(*get_policy)(struct vm_area_struct *vma,
- 					unsigned long addr);
- 	int (*migrate)(struct vm_area_struct *vma, const nodemask_t *from,
+diff -puN mm/mempolicy.c~mempolicy-support-mpol=local-tmpfs-mount-option mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-support-mpol=local-tmpfs-mount-option
++++ a/mm/mempolicy.c
+@@ -1952,7 +1952,7 @@ void numa_default_policy(void)
+ 
+ /*
+  * "local" is pseudo-policy:  MPOL_PREFERRED with MPOL_F_LOCAL flag
+- * Used only for mpol_to_str()
++ * Used only for mpol_parse_str() and mpol_to_str()
+  */
+ #define MPOL_LOCAL (MPOL_INTERLEAVE + 1)
+ static const char * const policy_types[] =
+@@ -1991,21 +1991,16 @@ int mpol_parse_str(char *str, unsigned s
+ 	if (flags)
+ 		*flags++ = '\0';	/* terminate mode string */
+ 
+-	for (i = 0; i < MPOL_MAX; i++) {
++	for (i = 0; i <= MPOL_LOCAL; i++) {
+ 		if (!strcmp(str, policy_types[i])) {
+ 			*mode = i;
+ 			break;
+ 		}
+ 	}
+-	if (i == MPOL_MAX)
++	if (i > MPOL_LOCAL)
+ 		goto out;
+ 
+ 	switch (*mode) {
+-	case MPOL_DEFAULT:
+-		/* Don't allow a nodelist nor flags */
+-		if (!nodelist && !flags)
+-			err = 0;
+-		break;
+ 	case MPOL_PREFERRED:
+ 		/* Insist on a nodelist of one node only */
+ 		if (nodelist) {
+@@ -2028,6 +2023,20 @@ int mpol_parse_str(char *str, unsigned s
+ 		if (!nodelist)
+ 			*policy_nodes = node_states[N_HIGH_MEMORY];
+ 		err = 0;
++		break;
++	default:
++		/*
++		 * MPOL_DEFAULT or MPOL_LOCAL
++		 * Don't allow a nodelist nor flags
++		 */
++		if (!nodelist && !flags)
++			err = 0;
++		if (*mode == MPOL_DEFAULT)
++			goto out;
++		/* else MPOL_LOCAL */
++		*mode = MPOL_PREFERRED;
++		nodes_clear(*policy_nodes);
++		break;
+ 	}
+ 
+ 	*mode_flags = 0;
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
