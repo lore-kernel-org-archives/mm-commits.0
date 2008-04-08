@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + signals-use-have_set_restore_sigmask.patch added to -mm tree
-Date: Mon, 07 Apr 2008 17:52:47 -0700
-Message-ID: <200804080052.m380qlZl000864@imap1.linux-foundation.org>
+Subject: + signals-powerpc-tlf_restore_sigmask.patch added to -mm tree
+Date: Mon, 07 Apr 2008 17:52:51 -0700
+Message-ID: <200804080052.m380qpes000871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35020 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43920 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755364AbYDHAyM (ORCPT
+	by vger.kernel.org with ESMTP id S1755160AbYDHAyM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 20:54:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: roland@redhat.com, heiko.carstens@de.ibm.com, mingo@elte.hu, oleg@tv-sign.ru
 
 
 The patch titled
-     signals: use HAVE_SET_RESTORE_SIGMASK
+     signals: powerpc TLF_RESTORE_SIGMASK
 has been added to the -mm tree.  Its filename is
-     signals-use-have_set_restore_sigmask.patch
+     signals-powerpc-tlf_restore_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: use HAVE_SET_RESTORE_SIGMASK
+Subject: signals: powerpc TLF_RESTORE_SIGMASK
 From: Roland McGrath <roland@redhat.com>
 
-Change all the #ifdef TIF_RESTORE_SIGMASK conditionals in non-arch code to
-#ifdef HAVE_SET_RESTORE_SIGMASK.  If arch code defines it first, the generic
-set_restore_sigmask() using TIF_RESTORE_SIGMASK is not defined.
+Replace TIF_RESTORE_SIGMASK with TLF_RESTORE_SIGMASK and define our own
+set_restore_sigmask() function.  This saves the costly SMP-safe set_bit
+operation, which we do not need for the sigmask flag since TIF_SIGPENDING
+always has to be set too.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -50,147 +51,128 @@ Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c                 |    8 ++++----
- fs/eventpoll.c              |    4 ++--
- fs/select.c                 |    8 ++++----
- include/linux/sched.h       |    2 +-
- include/linux/thread_info.h |   10 ++++++++--
- 5 files changed, 19 insertions(+), 13 deletions(-)
+ arch/powerpc/kernel/entry_32.S    |    4 ++--
+ arch/powerpc/kernel/signal.c      |   12 ++++++------
+ arch/powerpc/kernel/signal_32.c   |    2 +-
+ include/asm-powerpc/thread_info.h |   17 +++++++++++++----
+ 4 files changed, 22 insertions(+), 13 deletions(-)
 
-diff -puN fs/compat.c~signals-use-have_set_restore_sigmask fs/compat.c
---- a/fs/compat.c~signals-use-have_set_restore_sigmask
-+++ a/fs/compat.c
-@@ -1634,7 +1634,7 @@ sticky:
- 	return ret;
- }
+diff -puN arch/powerpc/kernel/entry_32.S~signals-powerpc-tlf_restore_sigmask arch/powerpc/kernel/entry_32.S
+--- a/arch/powerpc/kernel/entry_32.S~signals-powerpc-tlf_restore_sigmask
++++ a/arch/powerpc/kernel/entry_32.S
+@@ -661,7 +661,7 @@ user_exc_return:		/* r10 contains MSR_KE
+ 	/* Check current_thread_info()->flags */
+ 	rlwinm	r9,r1,0,0,(31-THREAD_SHIFT)
+ 	lwz	r9,TI_FLAGS(r9)
+-	andi.	r0,r9,(_TIF_SIGPENDING|_TIF_RESTORE_SIGMASK|_TIF_NEED_RESCHED)
++	andi.	r0,r9,(_TIF_SIGPENDING|_TIF_NEED_RESCHED)
+ 	bne	do_work
  
--#ifdef TIF_RESTORE_SIGMASK
-+#ifdef HAVE_SET_RESTORE_SIGMASK
- asmlinkage long compat_sys_pselect7(int n, compat_ulong_t __user *inp,
- 	compat_ulong_t __user *outp, compat_ulong_t __user *exp,
- 	struct compat_timespec __user *tsp, compat_sigset_t __user *sigmask,
-@@ -1825,7 +1825,7 @@ sticky:
+ restore_user:
+@@ -912,7 +912,7 @@ recheck:
+ 	lwz	r9,TI_FLAGS(r9)
+ 	andi.	r0,r9,_TIF_NEED_RESCHED
+ 	bne-	do_resched
+-	andi.	r0,r9,_TIF_SIGPENDING|_TIF_RESTORE_SIGMASK
++	andi.	r0,r9,_TIF_SIGPENDING
+ 	beq	restore_user
+ do_user_signal:			/* r10 contains MSR_KERNEL here */
+ 	ori	r10,r10,MSR_EE
+diff -puN arch/powerpc/kernel/signal.c~signals-powerpc-tlf_restore_sigmask arch/powerpc/kernel/signal.c
+--- a/arch/powerpc/kernel/signal.c~signals-powerpc-tlf_restore_sigmask
++++ a/arch/powerpc/kernel/signal.c
+@@ -120,7 +120,7 @@ int do_signal(sigset_t *oldset, struct p
+ 	int ret;
+ 	int is32 = is_32bit_task();
  
- 	return ret;
- }
--#endif /* TIF_RESTORE_SIGMASK */
-+#endif /* HAVE_SET_RESTORE_SIGMASK */
+-	if (test_thread_flag(TIF_RESTORE_SIGMASK))
++	if (current_thread_info()->local_flags & _TLF_RESTORE_SIGMASK)
+ 		oldset = &current->saved_sigmask;
+ 	else if (!oldset)
+ 		oldset = &current->blocked;
+@@ -131,9 +131,10 @@ int do_signal(sigset_t *oldset, struct p
+ 	check_syscall_restart(regs, &ka, signr > 0);
  
- #if defined(CONFIG_NFSD) || defined(CONFIG_NFSD_MODULE)
- /* Stuff for NFS server syscalls... */
-@@ -2080,7 +2080,7 @@ long asmlinkage compat_sys_nfsservctl(in
+ 	if (signr <= 0) {
++		struct thread_info *ti = current_thread_info();
+ 		/* No signal to deliver -- put the saved sigmask back */
+-		if (test_thread_flag(TIF_RESTORE_SIGMASK)) {
+-			clear_thread_flag(TIF_RESTORE_SIGMASK);
++		if (ti->local_flags & _TLF_RESTORE_SIGMASK) {
++			ti->local_flags &= ~_TLF_RESTORE_SIGMASK;
+ 			sigprocmask(SIG_SETMASK, &current->saved_sigmask, NULL);
+ 		}
+ 		return 0;               /* no signals delivered */
+@@ -169,10 +170,9 @@ int do_signal(sigset_t *oldset, struct p
  
- #ifdef CONFIG_EPOLL
- 
--#ifdef TIF_RESTORE_SIGMASK
-+#ifdef HAVE_SET_RESTORE_SIGMASK
- asmlinkage long compat_sys_epoll_pwait(int epfd,
- 			struct compat_epoll_event __user *events,
- 			int maxevents, int timeout,
-@@ -2124,7 +2124,7 @@ asmlinkage long compat_sys_epoll_pwait(i
- 
- 	return err;
- }
--#endif /* TIF_RESTORE_SIGMASK */
-+#endif /* HAVE_SET_RESTORE_SIGMASK */
- 
- #endif /* CONFIG_EPOLL */
- 
-diff -puN fs/eventpoll.c~signals-use-have_set_restore_sigmask fs/eventpoll.c
---- a/fs/eventpoll.c~signals-use-have_set_restore_sigmask
-+++ a/fs/eventpoll.c
-@@ -1238,7 +1238,7 @@ error_return:
- 	return error;
- }
- 
--#ifdef TIF_RESTORE_SIGMASK
-+#ifdef HAVE_SET_RESTORE_SIGMASK
- 
- /*
-  * Implement the event wait interface for the eventpoll file. It is the kernel
-@@ -1284,7 +1284,7 @@ asmlinkage long sys_epoll_pwait(int epfd
- 	return error;
- }
- 
--#endif /* #ifdef TIF_RESTORE_SIGMASK */
-+#endif /* HAVE_SET_RESTORE_SIGMASK */
- 
- static int __init eventpoll_init(void)
- {
-diff -puN fs/select.c~signals-use-have_set_restore_sigmask fs/select.c
---- a/fs/select.c~signals-use-have_set_restore_sigmask
-+++ a/fs/select.c
-@@ -425,7 +425,7 @@ sticky:
- 	return ret;
- }
- 
--#ifdef TIF_RESTORE_SIGMASK
-+#ifdef HAVE_SET_RESTORE_SIGMASK
- asmlinkage long sys_pselect7(int n, fd_set __user *inp, fd_set __user *outp,
- 		fd_set __user *exp, struct timespec __user *tsp,
- 		const sigset_t __user *sigmask, size_t sigsetsize)
-@@ -528,7 +528,7 @@ asmlinkage long sys_pselect6(int n, fd_s
- 
- 	return sys_pselect7(n, inp, outp, exp, tsp, up, sigsetsize);
- }
--#endif /* TIF_RESTORE_SIGMASK */
-+#endif /* HAVE_SET_RESTORE_SIGMASK */
- 
- struct poll_list {
- 	struct poll_list *next;
-@@ -759,7 +759,7 @@ asmlinkage long sys_poll(struct pollfd _
- 	return ret;
- }
- 
--#ifdef TIF_RESTORE_SIGMASK
-+#ifdef HAVE_SET_RESTORE_SIGMASK
- asmlinkage long sys_ppoll(struct pollfd __user *ufds, unsigned int nfds,
- 	struct timespec __user *tsp, const sigset_t __user *sigmask,
- 	size_t sigsetsize)
-@@ -839,4 +839,4 @@ asmlinkage long sys_ppoll(struct pollfd 
+ 		/*
+ 		 * A signal was successfully delivered; the saved sigmask is in
+-		 * its frame, and we can clear the TIF_RESTORE_SIGMASK flag.
++		 * its frame, and we can clear the TLF_RESTORE_SIGMASK flag.
+ 		 */
+-		if (test_thread_flag(TIF_RESTORE_SIGMASK))
+-			clear_thread_flag(TIF_RESTORE_SIGMASK);
++		current_thread_info()->local_flags &= ~_TLF_RESTORE_SIGMASK;
+ 	}
  
  	return ret;
+diff -puN arch/powerpc/kernel/signal_32.c~signals-powerpc-tlf_restore_sigmask arch/powerpc/kernel/signal_32.c
+--- a/arch/powerpc/kernel/signal_32.c~signals-powerpc-tlf_restore_sigmask
++++ a/arch/powerpc/kernel/signal_32.c
+@@ -243,7 +243,7 @@ long sys_sigsuspend(old_sigset_t mask)
+ 
+  	current->state = TASK_INTERRUPTIBLE;
+  	schedule();
+- 	set_thread_flag(TIF_RESTORE_SIGMASK);
++	set_restore_sigmask();
+  	return -ERESTARTNOHAND;
  }
--#endif /* TIF_RESTORE_SIGMASK */
-+#endif /* HAVE_SET_RESTORE_SIGMASK */
-diff -puN include/linux/sched.h~signals-use-have_set_restore_sigmask include/linux/sched.h
---- a/include/linux/sched.h~signals-use-have_set_restore_sigmask
-+++ a/include/linux/sched.h
-@@ -1151,7 +1151,7 @@ struct task_struct {
- 	struct sighand_struct *sighand;
  
- 	sigset_t blocked, real_blocked;
--	sigset_t saved_sigmask;		/* To be restored with TIF_RESTORE_SIGMASK */
-+	sigset_t saved_sigmask;	/* restored if set_restore_sigmask() was used */
- 	struct sigpending pending;
+diff -puN include/asm-powerpc/thread_info.h~signals-powerpc-tlf_restore_sigmask include/asm-powerpc/thread_info.h
+--- a/include/asm-powerpc/thread_info.h~signals-powerpc-tlf_restore_sigmask
++++ a/include/asm-powerpc/thread_info.h
+@@ -120,7 +120,6 @@ static inline struct thread_info *curren
+ #define TIF_SECCOMP		10	/* secure computing */
+ #define TIF_RESTOREALL		11	/* Restore all regs (implies NOERROR) */
+ #define TIF_NOERROR		12	/* Force successful syscall return */
+-#define TIF_RESTORE_SIGMASK	13	/* Restore signal mask in do_signal */
+ #define TIF_FREEZE		14	/* Freezing for suspend */
+ #define TIF_RUNLATCH		15	/* Is the runlatch enabled? */
+ #define TIF_ABI_PENDING		16	/* 32/64 bit switch needed */
+@@ -138,21 +137,31 @@ static inline struct thread_info *curren
+ #define _TIF_SECCOMP		(1<<TIF_SECCOMP)
+ #define _TIF_RESTOREALL		(1<<TIF_RESTOREALL)
+ #define _TIF_NOERROR		(1<<TIF_NOERROR)
+-#define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
+ #define _TIF_FREEZE		(1<<TIF_FREEZE)
+ #define _TIF_RUNLATCH		(1<<TIF_RUNLATCH)
+ #define _TIF_ABI_PENDING	(1<<TIF_ABI_PENDING)
+ #define _TIF_SYSCALL_T_OR_A	(_TIF_SYSCALL_TRACE|_TIF_SYSCALL_AUDIT|_TIF_SECCOMP)
  
- 	unsigned long sas_ss_sp;
-diff -puN include/linux/thread_info.h~signals-use-have_set_restore_sigmask include/linux/thread_info.h
---- a/include/linux/thread_info.h~signals-use-have_set_restore_sigmask
-+++ a/include/linux/thread_info.h
-@@ -92,7 +92,13 @@ static inline int test_ti_thread_flag(st
- #define set_need_resched()	set_thread_flag(TIF_NEED_RESCHED)
- #define clear_need_resched()	clear_thread_flag(TIF_NEED_RESCHED)
+-#define _TIF_USER_WORK_MASK	( _TIF_SIGPENDING | \
+-				 _TIF_NEED_RESCHED | _TIF_RESTORE_SIGMASK)
++#define _TIF_USER_WORK_MASK	(_TIF_SIGPENDING | _TIF_NEED_RESCHED)
+ #define _TIF_PERSYSCALL_MASK	(_TIF_RESTOREALL|_TIF_NOERROR)
  
--#ifdef TIF_RESTORE_SIGMASK
-+#if defined TIF_RESTORE_SIGMASK && !defined HAVE_SET_RESTORE_SIGMASK
-+/*
-+ * An arch can define its own version of set_restore_sigmask() to get the
-+ * job done however works, with or without TIF_RESTORE_SIGMASK.
-+ */
-+#define HAVE_SET_RESTORE_SIGMASK	1
+ /* Bits in local_flags */
+ /* Don't move TLF_NAPPING without adjusting the code in entry_32.S */
+ #define TLF_NAPPING		0	/* idle thread enabled NAP mode */
++#define TLF_RESTORE_SIGMASK	1	/* Restore signal mask in do_signal */
+ 
+ #define _TLF_NAPPING		(1 << TLF_NAPPING)
++#define _TLF_RESTORE_SIGMASK	(1 << TLF_RESTORE_SIGMASK)
 +
- /**
-  * set_restore_sigmask() - make sure saved_sigmask processing gets done
-  *
-@@ -109,7 +115,7 @@ static inline void set_restore_sigmask(v
- 	set_thread_flag(TIF_RESTORE_SIGMASK);
- 	set_thread_flag(TIF_SIGPENDING);
- }
--#endif	/* TIF_RESTORE_SIGMASK */
-+#endif	/* TIF_RESTORE_SIGMASK && !HAVE_SET_RESTORE_SIGMASK */
++#ifndef __ASSEMBLY__
++#define HAVE_SET_RESTORE_SIGMASK	1
++static inline void set_restore_sigmask(void)
++{
++	struct thread_info *ti = current_thread_info();
++	ti->local_flags |= TLF_RESTORE_SIGMASK;
++	set_bit(TIF_SIGPENDING, &ti->flags);
++}
++#endif	/* !__ASSEMBLY__ */
  
- #endif	/* __KERNEL__ */
+ #endif /* __KERNEL__ */
  
 _
 
