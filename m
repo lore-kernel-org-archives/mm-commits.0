@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-write-lock-mmap_sem-while-changing-task-mempolicy.patch added to -mm tree
-Date: Mon, 07 Apr 2008 20:26:43 -0700
-Message-ID: <200804080326.m383QhsA006010@imap1.linux-foundation.org>
+Subject: + mempolicy-mark-shared-policies-for-unref.patch added to -mm tree
+Date: Mon, 07 Apr 2008 20:26:49 -0700
+Message-ID: <200804080326.m383Qn9x006019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40962 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33613 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751181AbYDHD1V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 23:27:21 -0400
+	by vger.kernel.org with ESMTP id S1751646AbYDHD1Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 23:27:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: lee.schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, mel@csn.ul.ie, rientj
 
 
 The patch titled
-     mempolicy: write lock mmap_sem while changing task mempolicy
+     mempolicy:  mark shared policies for unref
 has been added to the -mm tree.  Its filename is
-     mempolicy-write-lock-mmap_sem-while-changing-task-mempolicy.patch
+     mempolicy-mark-shared-policies-for-unref.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,26 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: write lock mmap_sem while changing task mempolicy
+Subject: mempolicy:  mark shared policies for unref
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-A read of /proc/<pid>/numa_maps holds the target task's mmap_sem for read
-while examining each vma's mempolicy.  A vma's mempolicy can fall back to the
-task's policy.  However, the task could be changing it's task policy and free
-the one that the show_numa_maps() is examining.
+As part of yet another rework of mempolicy reference counting, we want to be
+able to identify shared policies efficiently, because they have an extra ref
+taken on lookup that needs to be removed when we're finished using the policy.
 
-To prevent this, grab the mmap_sem for write when updating task mempolicy. 
-Pointed out to me by Christoph Lameter and extracted and reworked from
-Christoph's alternative mempol reference counting patch.
+  Note:  the extra ref is required because the policies are
+  shared between tasks/processes and can be changed/freed
+  by one task while another task is using them--e.g., for
+  page allocation.
 
-This is analogous to the way that do_mbind() and do_get_mempolicy() prevent
-races between task's sharing an mm_struct [a.k.a.  threads] setting and
-querying a mempolicy for a particular address.
+Building on David Rientjes mempolicy "mode flags" enhancement, this patch
+indicates a "shared" policy by setting a new MPOL_F_SHARED flag in the flags
+member of the struct mempolicy added by David.  MPOL_F_SHARED, and any future
+"internal mode flags" are reserved from bit zero up, as they will never be
+passed in the upper bits of the mode argument of a mempolicy API.
 
-Note: this is necessary, but not sufficient, to allow us to stop taking an
-extra reference on "other task's mempolicy" in get_vma_policy.  Subsequent
-patches will complete this update, allowing us to simplify the tests for
-whether we need to unref a mempolicy at various points in the code.
+I set the MPOL_F_SHARED flag when the policy is installed in the shared policy
+rb-tree.  Don't need/want to clear the flag when removing from the tree as the
+mempolicy is freed [unref'd] internally to the sp_delete() function.  However,
+a task could hold another reference on this mempolicy from a prior lookup.  We
+need the MPOL_F_SHARED flag to stay put so that any tasks holding a ref will
+unref, eventually freeing, the mempolicy.
+
+A later patch in this series will introduce a function to conditionally unref
+[mpol_free] a policy.  The MPOL_F_SHARED flag is one reason [currently the
+only reason] to unref/free a policy via the conditional free.
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Christoph Lameter <clameter@sgi.com>
@@ -62,42 +70,38 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ include/linux/mempolicy.h |    7 +++++++
+ mm/mempolicy.c            |    1 +
+ 2 files changed, 8 insertions(+)
 
-diff -puN mm/mempolicy.c~mempolicy-write-lock-mmap_sem-while-changing-task-mempolicy mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-write-lock-mmap_sem-while-changing-task-mempolicy
+diff -puN include/linux/mempolicy.h~mempolicy-mark-shared-policies-for-unref include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mempolicy-mark-shared-policies-for-unref
++++ a/include/linux/mempolicy.h
+@@ -44,6 +44,13 @@ enum {
+ #define MPOL_MF_MOVE_ALL (1<<2)	/* Move every page to conform to mapping */
+ #define MPOL_MF_INTERNAL (1<<3)	/* Internal flags start here */
+ 
++/*
++ * Internal flags that share the struct mempolicy flags word with
++ * "mode flags".  These flags are allocated from bit 0 up, as they
++ * are never OR'ed into the mode in mempolicy API arguments.
++ */
++#define MPOL_F_SHARED  (1 << 0)	/* identify shared policies */
++
+ #ifdef __KERNEL__
+ 
+ #include <linux/mmzone.h>
+diff -puN mm/mempolicy.c~mempolicy-mark-shared-policies-for-unref mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-mark-shared-policies-for-unref
 +++ a/mm/mempolicy.c
-@@ -591,16 +591,29 @@ static long do_set_mempolicy(unsigned sh
- 			     nodemask_t *nodes)
- {
- 	struct mempolicy *new;
-+	struct mm_struct *mm = current->mm;
- 
- 	new = mpol_new(mode, flags, nodes);
- 	if (IS_ERR(new))
- 		return PTR_ERR(new);
-+
-+	/*
-+	 * prevent changing our mempolicy while show_numa_maps()
-+	 * is using it.
-+	 * Note:  do_set_mempolicy() can be called at init time
-+	 * with no 'mm'.
-+	 */
-+	if (mm)
-+		down_write(&mm->mmap_sem);
- 	mpol_put(current->mempolicy);
- 	current->mempolicy = new;
- 	mpol_set_task_struct_flag();
- 	if (new && new->policy == MPOL_INTERLEAVE &&
- 	    nodes_weight(new->v.nodes))
- 		current->il_next = first_node(new->v.nodes);
-+	if (mm)
-+		up_write(&mm->mmap_sem);
-+
- 	return 0;
+@@ -1751,6 +1751,7 @@ static struct sp_node *sp_alloc(unsigned
+ 	n->start = start;
+ 	n->end = end;
+ 	mpol_get(pol);
++	pol->flags |= MPOL_F_SHARED;	/* for unref */
+ 	n->policy = pol;
+ 	return n;
  }
- 
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
