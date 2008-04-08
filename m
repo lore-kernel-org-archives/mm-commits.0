@@ -1,39 +1,38 @@
 From: akpm@linux-foundation.org
-Subject: - x86_64-ptrace-vs-enosys.patch removed from -mm tree
-Date: Tue, 08 Apr 2008 11:59:10 -0700
-Message-ID: <200804081859.m38IxApN006961@imap1.linux-foundation.org>
+Subject: - x86_64-ia32-ptrace-vs-enosys.patch removed from -mm tree
+Date: Tue, 08 Apr 2008 11:59:08 -0700
+Message-ID: <200804081859.m38Ix8Yn006958@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59815 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752264AbYDHS74 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 14:59:56 -0400
+	by vger.kernel.org with ESMTP id S1752264AbYDHS7w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 14:59:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: roland@redhat.com, ak@suse.de, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86_64 ptrace vs -ENOSYS
+     x86_64 ia32 ptrace vs -ENOSYS
 has been removed from the -mm tree.  Its filename was
-     x86_64-ptrace-vs-enosys.patch
+     x86_64-ia32-ptrace-vs-enosys.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86_64 ptrace vs -ENOSYS
+Subject: x86_64 ia32 ptrace vs -ENOSYS
 From: Roland McGrath <roland@redhat.com>
 
-When we're stopped at syscall entry tracing, ptrace can change the %rax value
+When we're stopped at syscall entry tracing, ptrace can change the %eax value
 from -ENOSYS to something else.  If no system call is actually made because
-the syscall number (now in orig_rax) is bad, then we now always reset %rax to
--ENOSYS again.
+the syscall number (now in orig_eax) is bad, then the %eax value set by ptrace
+should be returned to the user.  But, instead it gets reset to -ENOSYS again. 
+This is a regression from the native 32-bit kernel.
 
-This changes it to leave the return value alone after entry tracing.  That
-way, the %rax value set by ptrace is there to be seen in user mode (or in
-syscall exit tracing).  This is consistent with what the 32-bit kernel does.
+This change fixes it by leaving the return value alone after entry tracing.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -42,35 +41,30 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/entry_64.S |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ arch/x86/ia32/ia32entry.S |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/entry_64.S~x86_64-ptrace-vs-enosys arch/x86/kernel/entry_64.S
---- a/arch/x86/kernel/entry_64.S~x86_64-ptrace-vs-enosys
-+++ a/arch/x86/kernel/entry_64.S
-@@ -319,19 +319,17 @@ badsys:
- 	/* Do syscall tracing */
- tracesys:			 
+diff -puN arch/x86/ia32/ia32entry.S~x86_64-ia32-ptrace-vs-enosys arch/x86/ia32/ia32entry.S
+--- a/arch/x86/ia32/ia32entry.S~x86_64-ia32-ptrace-vs-enosys
++++ a/arch/x86/ia32/ia32entry.S
+@@ -325,7 +325,7 @@ ENTRY(ia32_syscall)
+ 	jnz ia32_tracesys
+ ia32_do_syscall:	
+ 	cmpl $(IA32_NR_syscalls-1),%eax
+-	ja  ia32_badsys
++	ja  int_ret_from_sys_call	/* ia32_tracesys has set RAX(%rsp) */
+ 	IA32_ARG_FIXUP
+ 	call *ia32_sys_call_table(,%rax,8) # xxx: rip relative
+ ia32_sysret:
+@@ -335,7 +335,7 @@ ia32_sysret:
+ ia32_tracesys:			 
  	SAVE_REST
--	movq $-ENOSYS,RAX(%rsp)
-+	movq $-ENOSYS,RAX(%rsp) /* ptrace can change this for a bad syscall */
- 	FIXUP_TOP_OF_STACK %rdi
- 	movq %rsp,%rdi
+ 	CLEAR_RREGS
+-	movq $-ENOSYS,RAX(%rsp)	/* really needed? */
++	movq $-ENOSYS,RAX(%rsp)	/* ptrace can change this for a bad syscall */
+ 	movq %rsp,%rdi        /* &pt_regs -> arg1 */
  	call syscall_trace_enter
- 	LOAD_ARGS ARGOFFSET  /* reload args from stack in case ptrace changed it */
- 	RESTORE_REST
- 	cmpq $__NR_syscall_max,%rax
--	movq $-ENOSYS,%rcx
--	cmova %rcx,%rax
--	ja  1f
-+	ja   int_ret_from_sys_call	/* RAX(%rsp) set to -ENOSYS above */
- 	movq %r10,%rcx	/* fixup for C */
- 	call *sys_call_table(,%rax,8)
--1:	movq %rax,RAX-ARGOFFSET(%rsp)
-+	movq %rax,RAX-ARGOFFSET(%rsp)
- 	/* Use IRET because user could have changed frame */
- 		
- /* 
+ 	LOAD_ARGS32 ARGOFFSET  /* reload args from stack in case ptrace changed it */
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
