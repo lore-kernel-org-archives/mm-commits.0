@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + sundance-set-carrier-status-on-link-change-events.patch added to -mm tree
-Date: Tue, 08 Apr 2008 00:09:22 -0700
-Message-ID: <200804080709.m3879MRh013650@imap1.linux-foundation.org>
+Date: Tue, 08 Apr 2008 00:12:40 -0700
+Message-ID: <200804080712.m387Cehu013703@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58273 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57461 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751572AbYDHHJz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 03:09:55 -0400
+	by vger.kernel.org with ESMTP id S1750960AbYDHHNO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 03:13:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -176,4 +176,5 @@ _
 Patches currently in -mm which might be from dbn.lists@gmail.com are
 
 sundance-set-carrier-status-on-link-change-events.patch
+sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
 
