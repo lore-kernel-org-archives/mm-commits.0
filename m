@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch added to -mm tree
-Date: Tue, 08 Apr 2008 14:27:46 -0700
-Message-ID: <200804082137.m38LbvE9012719@imap1.linux-foundation.org>
+Subject: + git-x86-hack-around-to-make-git-kgdb-build.patch added to -mm tree
+Date: Tue, 08 Apr 2008 14:28:06 -0700
+Message-ID: <200804082138.m38LcHJ6012755@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47319 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751785AbYDHViC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 17:38:02 -0400
+	by vger.kernel.org with ESMTP id S1752582AbYDHVit (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 17:38:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, rolandd@cisco.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     gregkh-driver-ib-convert-struct-class_device-to-struct-device vs git-infiniband
+     git-x86: hack around to make git-kgdb build
 has been added to the -mm tree.  Its filename is
-     gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
+     git-x86-hack-around-to-make-git-kgdb-build.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gregkh-driver-ib-convert-struct-class_device-to-struct-device vs git-infiniband
+Subject: git-x86: hack around to make git-kgdb build
 From: Andrew Morton <akpm@linux-foundation.org>
 
-I didn't try very hard on this one.
-
-Cc: Greg KH <greg@kroah.com>
-Cc: Roland Dreier <rolandd@cisco.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/ipath/ipath_verbs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/kgdb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/infiniband/hw/ipath/ipath_verbs.c~gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband drivers/infiniband/hw/ipath/ipath_verbs.c
---- a/drivers/infiniband/hw/ipath/ipath_verbs.c~gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband
-+++ a/drivers/infiniband/hw/ipath/ipath_verbs.c
-@@ -2068,7 +2068,7 @@ int ipath_register_ib_device(struct ipat
- 	dev->phys_port_cnt = 1;
- 	dev->num_comp_vectors = 1;
- 	dev->dma_device = &dd->pcidev->dev;
--	dev->class_dev.dev = dev->dma_device;
-+//	dev->class_dev.dev = dev->dma_device;
- 	dev->query_device = ipath_query_device;
- 	dev->modify_device = ipath_modify_device;
- 	dev->query_port = ipath_query_port;
+diff -puN arch/x86/kernel/kgdb.c~git-x86-hack-around-to-make-git-kgdb-build arch/x86/kernel/kgdb.c
+--- a/arch/x86/kernel/kgdb.c~git-x86-hack-around-to-make-git-kgdb-build
++++ a/arch/x86/kernel/kgdb.c
+@@ -49,7 +49,7 @@
+ #ifdef CONFIG_X86_32
+ # include <mach_ipi.h>
+ #else
+-# include <asm/mach_apic.h>
++//# include <asm/mach_apic.h>
+ #endif
+ 
+ /*
+@@ -334,7 +334,7 @@ void kgdb_post_primary_code(struct pt_re
+  */
+ void kgdb_roundup_cpus(unsigned long flags)
+ {
+-	send_IPI_allbutself(APIC_DM_NMI);
++//	send_IPI_allbutself(APIC_DM_NMI);
+ }
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,6 +103,7 @@ arch-ia64-kernel-use-time_-macros.patch
 git-ieee1394.patch
 git-infiniband.patch
 git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
 maple-add-driver-for-sega-dreamcast-controller.patch
 touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
 git-leds.patch
@@ -255,5 +263,4 @@ profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
 git-x86-hack-around-to-make-git-kgdb-build.patch
-gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
 
