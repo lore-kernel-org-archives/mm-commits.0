@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-build-source-files-in-documentation-sub-dir-disable.patch added to -mm tree
-Date: Tue, 08 Apr 2008 13:36:21 -0700
-Message-ID: <200804082046.m38KkXLp010898@imap1.linux-foundation.org>
+Subject: + gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch added to -mm tree
+Date: Tue, 08 Apr 2008 14:27:46 -0700
+Message-ID: <200804082137.m38LbvE9012719@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57081 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47319 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752165AbYDHUrR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 16:47:17 -0400
+	by vger.kernel.org with ESMTP id S1751785AbYDHViC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 17:38:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, randy.dunlap@oracle.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, rolandd@cisco.com
 
 
 The patch titled
-     documentation-build-source-files-in-documentation-sub-dir-disable
+     gregkh-driver-ib-convert-struct-class_device-to-struct-device vs git-infiniband
 has been added to the -mm tree.  Its filename is
-     documentation-build-source-files-in-documentation-sub-dir-disable.patch
+     gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,27 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation-build-source-files-in-documentation-sub-dir-disable
+Subject: gregkh-driver-ib-convert-struct-class_device-to-struct-device vs git-infiniband
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+I didn't try very hard on this one.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/infiniband/hw/ipath/ipath_verbs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir-disable lib/Kconfig.debug
---- a/lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir-disable
-+++ a/lib/Kconfig.debug
-@@ -644,6 +644,7 @@ config PROVIDE_OHCI1394_DMA_INIT
- 
- menuconfig BUILD_DOCSRC
- 	bool "Build targets in Documentation/ tree"
-+	depends on BROKEN
- 	help
- 	  This option attempts to build objects from the source files in the
- 	  kernel Documentation/ tree.
+diff -puN drivers/infiniband/hw/ipath/ipath_verbs.c~gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband drivers/infiniband/hw/ipath/ipath_verbs.c
+--- a/drivers/infiniband/hw/ipath/ipath_verbs.c~gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband
++++ a/drivers/infiniband/hw/ipath/ipath_verbs.c
+@@ -2068,7 +2068,7 @@ int ipath_register_ib_device(struct ipat
+ 	dev->phys_port_cnt = 1;
+ 	dev->num_comp_vectors = 1;
+ 	dev->dma_device = &dd->pcidev->dev;
+-	dev->class_dev.dev = dev->dma_device;
++//	dev->class_dev.dev = dev->dma_device;
+ 	dev->query_device = ipath_query_device;
+ 	dev->modify_device = ipath_modify_device;
+ 	dev->query_port = ipath_query_port;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -250,4 +254,6 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
+git-x86-hack-around-to-make-git-kgdb-build.patch
+gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
 
