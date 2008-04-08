@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + signals-s390-renumber-tif_restore_sigmask.patch added to -mm tree
-Date: Mon, 07 Apr 2008 17:52:43 -0700
-Message-ID: <200804080052.m380qher000858@imap1.linux-foundation.org>
+Subject: + signals-ia64-renumber-tif_restore_sigmask.patch added to -mm tree
+Date: Mon, 07 Apr 2008 17:52:45 -0700
+Message-ID: <200804080052.m380qjYc000861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39282 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48863 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754635AbYDHAyL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 20:54:11 -0400
+	by vger.kernel.org with ESMTP id S1755160AbYDHAyX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Apr 2008 20:54:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: roland@redhat.com, heiko.carstens@de.ibm.com, mingo@elte.hu, oleg@tv-sign.ru
 
 
 The patch titled
-     signals: s390: renumber TIF_RESTORE_SIGMASK
+     signals: ia64 renumber TIF_RESTORE_SIGMASK
 has been added to the -mm tree.  Its filename is
-     signals-s390-renumber-tif_restore_sigmask.patch
+     signals-ia64-renumber-tif_restore_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: s390: renumber TIF_RESTORE_SIGMASK
-From: Roland McGrath <roland@redhat.com>
+Subject: signals: ia64 renumber TIF_RESTORE_SIGMASK
 
-TIF_RESTORE_SIGMASK no longer needs to be in the _TIF_WORK_* masks.  Those low
-bits are scarce, and are all used up now.  Renumber TIF_RESTORE_SIGMASK to
-free one up.
+DESC
+signals: ia64 renumber TIF_RESTORE_SIGMASK
+
+TIF_RESTORE_SIGMASK no longer needs to be in the _TIF_WORK_* masks.
+Those low bits are scarce.  Renumber TIF_RESTORE_SIGMASK to free one up.
 
 Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
@@ -50,141 +51,51 @@ Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/entry.S       |   14 +++++++-------
- arch/s390/kernel/entry64.S     |   12 ++++++------
- include/asm-s390/thread_info.h |    2 +-
- 3 files changed, 14 insertions(+), 14 deletions(-)
+ arch/ia64/kernel/process.c     |    2 +-
+ include/asm-ia64/thread_info.h |    5 ++---
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN arch/s390/kernel/entry.S~signals-s390-renumber-tif_restore_sigmask arch/s390/kernel/entry.S
---- a/arch/s390/kernel/entry.S~signals-s390-renumber-tif_restore_sigmask
-+++ a/arch/s390/kernel/entry.S
-@@ -49,9 +49,9 @@ SP_ILC	     =	STACK_FRAME_OVERHEAD + __P
- SP_TRAP      =	STACK_FRAME_OVERHEAD + __PT_TRAP
- SP_SIZE      =	STACK_FRAME_OVERHEAD + __PT_SIZE
+diff -puN arch/ia64/kernel/process.c~signals-ia64-renumber-tif_restore_sigmask arch/ia64/kernel/process.c
+--- a/arch/ia64/kernel/process.c~signals-ia64-renumber-tif_restore_sigmask
++++ a/arch/ia64/kernel/process.c
+@@ -183,7 +183,7 @@ do_notify_resume_user (sigset_t *unused,
+ #endif
  
--_TIF_WORK_SVC = (_TIF_SIGPENDING | _TIF_RESTORE_SIGMASK | _TIF_NEED_RESCHED | \
-+_TIF_WORK_SVC = (_TIF_SIGPENDING | _TIF_NEED_RESCHED | \
- 		 _TIF_MCCK_PENDING | _TIF_RESTART_SVC | _TIF_SINGLE_STEP )
--_TIF_WORK_INT = (_TIF_SIGPENDING | _TIF_RESTORE_SIGMASK | _TIF_NEED_RESCHED | \
-+_TIF_WORK_INT = (_TIF_SIGPENDING | _TIF_NEED_RESCHED | \
- 		 _TIF_MCCK_PENDING)
+ 	/* deal with pending signal delivery */
+-	if (test_thread_flag(TIF_SIGPENDING)||test_thread_flag(TIF_RESTORE_SIGMASK))
++	if (test_thread_flag(TIF_SIGPENDING))
+ 		ia64_do_signal(scr, in_syscall);
  
- STACK_SHIFT = PAGE_SHIFT + THREAD_ORDER
-@@ -316,7 +316,7 @@ sysc_work:
- 	bo	BASED(sysc_mcck_pending)
- 	tm	__TI_flags+3(%r9),_TIF_NEED_RESCHED
- 	bo	BASED(sysc_reschedule)
--	tm	__TI_flags+3(%r9),(_TIF_SIGPENDING | _TIF_RESTORE_SIGMASK)
-+	tm	__TI_flags+3(%r9),_TIF_SIGPENDING
- 	bnz	BASED(sysc_sigpending)
- 	tm	__TI_flags+3(%r9),_TIF_RESTART_SVC
- 	bo	BASED(sysc_restart)
-@@ -342,7 +342,7 @@ sysc_mcck_pending:
- 	br	%r1			# TIF bit will be cleared by handler
+ 	/* copy user rbs to kernel rbs */
+diff -puN include/asm-ia64/thread_info.h~signals-ia64-renumber-tif_restore_sigmask include/asm-ia64/thread_info.h
+--- a/include/asm-ia64/thread_info.h~signals-ia64-renumber-tif_restore_sigmask
++++ a/include/asm-ia64/thread_info.h
+@@ -101,7 +101,6 @@ extern void tsk_clear_notify_resume(stru
+ #define TIF_SYSCALL_TRACE	2	/* syscall trace active */
+ #define TIF_SYSCALL_AUDIT	3	/* syscall auditing active */
+ #define TIF_SINGLESTEP		4	/* restore singlestep on return to user mode */
+-#define TIF_RESTORE_SIGMASK	5	/* restore signal mask in do_signal() */
+ #define TIF_NOTIFY_RESUME	6	/* resumption notification requested */
+ #define TIF_POLLING_NRFLAG	16	/* true if poll_idle() is polling TIF_NEED_RESCHED */
+ #define TIF_MEMDIE		17
+@@ -109,6 +108,7 @@ extern void tsk_clear_notify_resume(stru
+ #define TIF_DB_DISABLED		19	/* debug trap disabled for fsyscall */
+ #define TIF_FREEZE		20	/* is freezing for suspend */
+ #define TIF_RESTORE_RSE		21	/* user RBS is newer than kernel RBS */
++#define TIF_RESTORE_SIGMASK	22	/* restore signal mask in do_signal() */
  
- #
--# _TIF_SIGPENDING or _TIF_RESTORE_SIGMASK is set, call do_signal
-+# _TIF_SIGPENDING is set, call do_signal
- #
- sysc_sigpending:
- 	ni	__TI_flags+3(%r9),255-_TIF_SINGLE_STEP # clear TIF_SINGLE_STEP
-@@ -657,7 +657,7 @@ io_work:
- 	lr	%r15,%r1
- #
- # One of the work bits is on. Find out which one.
--# Checked are: _TIF_SIGPENDING, _TIF_RESTORE_SIGMASK, _TIF_NEED_RESCHED
-+# Checked are: _TIF_SIGPENDING, _TIF_NEED_RESCHED
- #		and _TIF_MCCK_PENDING
- #
- io_work_loop:
-@@ -665,7 +665,7 @@ io_work_loop:
- 	bo	BASED(io_mcck_pending)
- 	tm	__TI_flags+3(%r9),_TIF_NEED_RESCHED
- 	bo	BASED(io_reschedule)
--	tm	__TI_flags+3(%r9),(_TIF_SIGPENDING | _TIF_RESTORE_SIGMASK)
-+	tm	__TI_flags+3(%r9),_TIF_SIGPENDING
- 	bnz	BASED(io_sigpending)
- 	b	BASED(io_restore)
- io_work_done:
-@@ -693,7 +693,7 @@ io_reschedule:
- 	b	BASED(io_work_loop)
+ #define _TIF_SYSCALL_TRACE	(1 << TIF_SYSCALL_TRACE)
+ #define _TIF_SYSCALL_AUDIT	(1 << TIF_SYSCALL_AUDIT)
+@@ -126,8 +126,7 @@ extern void tsk_clear_notify_resume(stru
  
- #
--# _TIF_SIGPENDING or _TIF_RESTORE_SIGMASK is set, call do_signal
-+# _TIF_SIGPENDING is set, call do_signal
- #
- io_sigpending:
- 	TRACE_IRQS_ON
-diff -puN arch/s390/kernel/entry64.S~signals-s390-renumber-tif_restore_sigmask arch/s390/kernel/entry64.S
---- a/arch/s390/kernel/entry64.S~signals-s390-renumber-tif_restore_sigmask
-+++ a/arch/s390/kernel/entry64.S
-@@ -52,9 +52,9 @@ SP_SIZE      =	STACK_FRAME_OVERHEAD + __
- STACK_SHIFT = PAGE_SHIFT + THREAD_ORDER
- STACK_SIZE  = 1 << STACK_SHIFT
+ /* "work to do on user-return" bits */
+ #define TIF_ALLWORK_MASK	(_TIF_SIGPENDING|_TIF_NOTIFY_RESUME|_TIF_SYSCALL_AUDIT|\
+-				 _TIF_NEED_RESCHED| _TIF_SYSCALL_TRACE|\
+-				 _TIF_RESTORE_SIGMASK)
++				 _TIF_NEED_RESCHED|_TIF_SYSCALL_TRACE)
+ /* like TIF_ALLWORK_BITS but sans TIF_SYSCALL_TRACE or TIF_SYSCALL_AUDIT */
+ #define TIF_WORK_MASK		(TIF_ALLWORK_MASK&~(_TIF_SYSCALL_TRACE|_TIF_SYSCALL_AUDIT))
  
--_TIF_WORK_SVC = (_TIF_SIGPENDING | _TIF_RESTORE_SIGMASK | _TIF_NEED_RESCHED | \
-+_TIF_WORK_SVC = (_TIF_SIGPENDING | _TIF_NEED_RESCHED | \
- 		 _TIF_MCCK_PENDING | _TIF_RESTART_SVC | _TIF_SINGLE_STEP )
--_TIF_WORK_INT = (_TIF_SIGPENDING | _TIF_RESTORE_SIGMASK | _TIF_NEED_RESCHED | \
-+_TIF_WORK_INT = (_TIF_SIGPENDING | _TIF_NEED_RESCHED | \
- 		 _TIF_MCCK_PENDING)
- 
- #define BASED(name) name-system_call(%r13)
-@@ -308,7 +308,7 @@ sysc_work:
- 	jo	sysc_mcck_pending
- 	tm	__TI_flags+7(%r9),_TIF_NEED_RESCHED
- 	jo	sysc_reschedule
--	tm	__TI_flags+7(%r9),(_TIF_SIGPENDING | _TIF_RESTORE_SIGMASK)
-+	tm	__TI_flags+7(%r9),_TIF_SIGPENDING
- 	jnz	sysc_sigpending
- 	tm	__TI_flags+7(%r9),_TIF_RESTART_SVC
- 	jo	sysc_restart
-@@ -332,7 +332,7 @@ sysc_mcck_pending:
- 	jg	s390_handle_mcck	# TIF bit will be cleared by handler
- 
- #
--# _TIF_SIGPENDING or _TIF_RESTORE_SIGMASK is set, call do_signal
-+# _TIF_SIGPENDING is set, call do_signal
- #
- sysc_sigpending:
- 	ni	__TI_flags+7(%r9),255-_TIF_SINGLE_STEP # clear TIF_SINGLE_STEP
-@@ -647,7 +647,7 @@ io_work_loop:
- 	jo	io_mcck_pending
- 	tm	__TI_flags+7(%r9),_TIF_NEED_RESCHED
- 	jo	io_reschedule
--	tm	__TI_flags+7(%r9),(_TIF_SIGPENDING | _TIF_RESTORE_SIGMASK)
-+	tm	__TI_flags+7(%r9),_TIF_SIGPENDING
- 	jnz	io_sigpending
- 	j	io_restore
- io_work_done:
-@@ -673,7 +673,7 @@ io_reschedule:
- 	j	io_work_loop
- 
- #
--# _TIF_SIGPENDING or _TIF_RESTORE_SIGMASK is set, call do_signal
-+# _TIF_SIGPENDING or is set, call do_signal
- #
- io_sigpending:
- 	TRACE_IRQS_ON
-diff -puN include/asm-s390/thread_info.h~signals-s390-renumber-tif_restore_sigmask include/asm-s390/thread_info.h
---- a/include/asm-s390/thread_info.h~signals-s390-renumber-tif_restore_sigmask
-+++ a/include/asm-s390/thread_info.h
-@@ -89,7 +89,6 @@ static inline struct thread_info *curren
-  * thread information flags bit numbers
-  */
- #define TIF_SYSCALL_TRACE	0	/* syscall trace active */
--#define TIF_RESTORE_SIGMASK	1	/* restore signal mask in do_signal() */
- #define TIF_SIGPENDING		2	/* signal pending */
- #define TIF_NEED_RESCHED	3	/* rescheduling necessary */
- #define TIF_RESTART_SVC		4	/* restart svc with new svc number */
-@@ -101,6 +100,7 @@ static inline struct thread_info *curren
- 					   TIF_NEED_RESCHED */
- #define TIF_31BIT		18	/* 32bit process */ 
- #define TIF_MEMDIE		19
-+#define TIF_RESTORE_SIGMASK	20	/* restore signal mask in do_signal() */
- 
- #define _TIF_SYSCALL_TRACE	(1<<TIF_SYSCALL_TRACE)
- #define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
 _
 
 Patches currently in -mm which might be from roland@redhat.com are
