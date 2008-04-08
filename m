@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-register-section-node-id-to-free.patch added to -mm tree
-Date: Tue, 08 Apr 2008 01:02:35 -0700
-Message-ID: <200804080802.m3882Zb6015404@imap1.linux-foundation.org>
+Subject: + pxafb-move-parallel-lcd-timing-setup-into-dedicate-function.patch added to -mm tree
+Date: Tue, 08 Apr 2008 01:27:53 -0700
+Message-ID: <200804080827.m388Rr3O016308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33552 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751699AbYDHIIx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 04:08:53 -0400
+	by vger.kernel.org with ESMTP id S1751572AbYDHI2C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 04:28:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: y-goto@jp.fujitsu.com, pbadari@us.ibm.com, yhlu.kernel@gmail.com
+Cc: eric.miao@marvell.com, adaplas@pol.net, rmk@arm.linux.org.uk
 
 
 The patch titled
-     memory hotplug: register section/node id to free
+     pxafb: move parallel LCD timing setup into dedicate function
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-register-section-node-id-to-free.patch
+     pxafb-move-parallel-lcd-timing-setup-into-dedicate-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,300 +33,167 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: register section/node id to free
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: pxafb: move parallel LCD timing setup into dedicate function
+From: Eric Miao <eric.miao@marvell.com>
 
-This patch set is to free pages which is allocated by bootmem for
-memory-hotremove.  Some structures of memory management are allocated by
-bootmem.  ex) memmap, etc.
+the new_regs stuff has been removed, and all the setup (modification to those
+fbi->reg_*) is protected with IRQ disabled
 
-To remove memory physically, some of them must be freed according to
-circumstance.  This patch set makes basis to free those pages, and free
-memmaps.
+   * disable IRQ is too heavy here, provided that no IRQ context will
+     touch the fbi->reg_* and the only possible contending place is
+     in the CPUFREQ_POSTCHANGE (task context), a mutex will be better,
+     leave this for future improvement
 
-Basic my idea is using remain members of struct page to remember information
-of users of bootmem (section number or node id).  When the section is
-removing, kernel can confirm it.  By this information, some issues can be
-solved.
-
-  1) When the memmap of removing section is allocated on other
-     section by bootmem, it should/can be free. 
-  2) When the memmap of removing section is allocated on the
-     same section, it shouldn't be freed. Because the section has to be
-     logical memory offlined already and all pages must be isolated against
-     page allocater. If it is freed, page allocator may use it which will
-     be removed physically soon.
-  3) When removing section has other section's memmap, 
-     kernel will be able to show easily which section should be removed
-     before it for user. (Not implemented yet)
-  4) When the above case 2), the page isolation will be able to check and skip
-     memmap's page when logical memory offline (offline_pages()).
-     Current page isolation code fails in this case because this page is 
-     just reserved page and it can't distinguish this pages can be
-     removed or not. But, it will be able to do by this patch.
-     (Not implemented yet.)
-  5) The node information like pgdat has similar issues. But, this
-     will be able to be solved too by this.
-     (Not implemented yet, but, remembering node id in the pages.)
-
-Fortunately, current bootmem allocator just keeps PageReserved flags,
-and doesn't use any other members of page struct. The users of
-bootmem doesn't use them too.
-
-
-This patch:
-
-This is to register information which is node or section's id.  Kernel can
-distinguish which node/section uses the pages allcated by bootmem.  This is
-basis for hot-remove sections or nodes.
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: eric miao <eric.miao@marvell.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |   27 ++++++++
- include/linux/mmzone.h         |    1 
- mm/bootmem.c                   |    1 
- mm/memory_hotplug.c            |   99 ++++++++++++++++++++++++++++++-
- mm/sparse.c                    |    3 
- 5 files changed, 128 insertions(+), 3 deletions(-)
+ drivers/video/pxafb.c |   89 +++++++++++++++++++++-------------------
+ drivers/video/pxafb.h |    8 ---
+ 2 files changed, 47 insertions(+), 50 deletions(-)
 
-diff -puN include/linux/memory_hotplug.h~memory-hotplug-register-section-node-id-to-free include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~memory-hotplug-register-section-node-id-to-free
-+++ a/include/linux/memory_hotplug.h
-@@ -11,6 +11,15 @@ struct pglist_data;
- struct mem_section;
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
-+
-+/*
-+ * Magic number for free bootmem.
-+ * The normal smallest mapcount is -1. Here is smaller value than it.
-+ */
-+#define SECTION_INFO		0xfffffffe
-+#define MIX_INFO		0xfffffffd
-+#define NODE_INFO		0xfffffffc
-+
- /*
-  * pgdat resizing functions
-  */
-@@ -145,6 +154,18 @@ static inline void arch_refresh_nodedata
- #endif /* CONFIG_NUMA */
- #endif /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
- 
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
-+{
-+}
-+static inline void put_page_bootmem(struct page *page)
-+{
-+}
-+#else
-+extern void register_page_bootmem_info_node(struct pglist_data *pgdat);
-+extern void put_page_bootmem(struct page *page);
-+#endif
-+
- #else /* ! CONFIG_MEMORY_HOTPLUG */
- /*
-  * Stub functions for when hotplug is off
-@@ -172,6 +193,10 @@ static inline int mhp_notimplemented(con
- 	return -ENOSYS;
+diff -puN drivers/video/pxafb.c~pxafb-move-parallel-lcd-timing-setup-into-dedicate-function drivers/video/pxafb.c
+--- a/drivers/video/pxafb.c~pxafb-move-parallel-lcd-timing-setup-into-dedicate-function
++++ a/drivers/video/pxafb.c
+@@ -585,6 +585,43 @@ static int setup_frame_dma(struct pxafb_
+ 	return 0;
  }
  
-+static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
++static void setup_parallel_timing(struct pxafb_info *fbi,
++				  struct fb_var_screeninfo *var)
 +{
-+}
++	unsigned int lines_per_panel, pcd = get_pcd(fbi, var->pixclock);
 +
- #endif /* ! CONFIG_MEMORY_HOTPLUG */
- 
- extern int add_memory(int nid, u64 start, u64 size);
-@@ -180,5 +205,7 @@ extern int remove_memory(u64 start, u64 
- extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
- 								int nr_pages);
- extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
-+extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
-+					  unsigned long pnum);
- 
- #endif /* __LINUX_MEMORY_HOTPLUG_H */
-diff -puN include/linux/mmzone.h~memory-hotplug-register-section-node-id-to-free include/linux/mmzone.h
---- a/include/linux/mmzone.h~memory-hotplug-register-section-node-id-to-free
-+++ a/include/linux/mmzone.h
-@@ -872,6 +872,7 @@ static inline struct mem_section *__nr_t
- 	return &mem_section[SECTION_NR_TO_ROOT(nr)][nr & SECTION_ROOT_MASK];
- }
- extern int __section_nr(struct mem_section* ms);
-+extern unsigned long usemap_size(void);
- 
- /*
-  * We use the lower bits of the mem_map pointer to store
-diff -puN mm/bootmem.c~memory-hotplug-register-section-node-id-to-free mm/bootmem.c
---- a/mm/bootmem.c~memory-hotplug-register-section-node-id-to-free
-+++ a/mm/bootmem.c
-@@ -458,6 +458,7 @@ void __init free_bootmem_node(pg_data_t 
- 
- unsigned long __init free_all_bootmem_node(pg_data_t *pgdat)
- {
-+	register_page_bootmem_info_node(pgdat);
- 	return free_all_bootmem_core(pgdat);
- }
- 
-diff -puN mm/memory_hotplug.c~memory-hotplug-register-section-node-id-to-free mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-register-section-node-id-to-free
-+++ a/mm/memory_hotplug.c
-@@ -58,8 +58,105 @@ static void release_memory_resource(stru
- 	return;
- }
- 
--
- #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
-+#ifndef CONFIG_SPARSEMEM_VMEMMAP
-+static void get_page_bootmem(unsigned long info,  struct page *page, int magic)
-+{
-+	atomic_set(&page->_mapcount, magic);
-+	SetPagePrivate(page);
-+	set_page_private(page, info);
-+	atomic_inc(&page->_count);
-+}
-+
-+void put_page_bootmem(struct page *page)
-+{
-+	int magic;
-+
-+	magic = atomic_read(&page->_mapcount);
-+	BUG_ON(magic >= -1);
-+
-+	if (atomic_dec_return(&page->_count) == 1) {
-+		ClearPagePrivate(page);
-+		set_page_private(page, 0);
-+		reset_page_mapcount(page);
-+		__free_pages_bootmem(page, 0);
-+	}
-+
-+}
-+
-+void register_page_bootmem_info_section(unsigned long start_pfn)
-+{
-+	unsigned long *usemap, mapsize, section_nr, i;
-+	struct mem_section *ms;
-+	struct page *page, *memmap;
-+
-+	if (!pfn_valid(start_pfn))
-+		return;
-+
-+	section_nr = pfn_to_section_nr(start_pfn);
-+	ms = __nr_to_section(section_nr);
-+
-+	/* Get section's memmap address */
-+	memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
++	fbi->reg_lccr1 =
++		LCCR1_DisWdth(var->xres) +
++		LCCR1_HorSnchWdth(var->hsync_len) +
++		LCCR1_BegLnDel(var->left_margin) +
++		LCCR1_EndLnDel(var->right_margin);
 +
 +	/*
-+	 * Get page for the memmap's phys address
-+	 * XXX: need more consideration for sparse_vmemmap...
++	 * If we have a dual scan LCD, we need to halve
++	 * the YRES parameter.
 +	 */
-+	page = virt_to_page(memmap);
-+	mapsize = sizeof(struct page) * PAGES_PER_SECTION;
-+	mapsize = PAGE_ALIGN(mapsize) >> PAGE_SHIFT;
++	lines_per_panel = var->yres;
++	if ((fbi->lccr0 & LCCR0_SDS) == LCCR0_Dual)
++		lines_per_panel /= 2;
 +
-+	/* remember memmap's page */
-+	for (i = 0; i < mapsize; i++, page++)
-+		get_page_bootmem(section_nr, page, SECTION_INFO);
++	fbi->reg_lccr2 =
++		LCCR2_DisHght(lines_per_panel) +
++		LCCR2_VrtSnchWdth(var->vsync_len) +
++		LCCR2_BegFrmDel(var->upper_margin) +
++		LCCR2_EndFrmDel(var->lower_margin);
 +
-+	usemap = __nr_to_section(section_nr)->pageblock_flags;
-+	page = virt_to_page(usemap);
++	fbi->reg_lccr3 = fbi->lccr3 |
++		(var->sync & FB_SYNC_HOR_HIGH_ACT ?
++		 LCCR3_HorSnchH : LCCR3_HorSnchL) |
++		(var->sync & FB_SYNC_VERT_HIGH_ACT ?
++		 LCCR3_VrtSnchH : LCCR3_VrtSnchL);
 +
-+	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
-+
-+	for (i = 0; i < mapsize; i++, page++)
-+		get_page_bootmem(section_nr, page, MIX_INFO);
-+
-+}
-+
-+void register_page_bootmem_info_node(struct pglist_data *pgdat)
-+{
-+	unsigned long i, pfn, end_pfn, nr_pages;
-+	int node = pgdat->node_id;
-+	struct page *page;
-+	struct zone *zone;
-+
-+	nr_pages = PAGE_ALIGN(sizeof(struct pglist_data)) >> PAGE_SHIFT;
-+	page = virt_to_page(pgdat);
-+
-+	for (i = 0; i < nr_pages; i++, page++)
-+		get_page_bootmem(node, page, NODE_INFO);
-+
-+	zone = &pgdat->node_zones[0];
-+	for (; zone < pgdat->node_zones + MAX_NR_ZONES - 1; zone++) {
-+		if (zone->wait_table) {
-+			nr_pages = zone->wait_table_hash_nr_entries
-+				* sizeof(wait_queue_head_t);
-+			nr_pages = PAGE_ALIGN(nr_pages) >> PAGE_SHIFT;
-+			page = virt_to_page(zone->wait_table);
-+
-+			for (i = 0; i < nr_pages; i++, page++)
-+				get_page_bootmem(node, page, NODE_INFO);
-+		}
++	if (pcd) {
++		fbi->reg_lccr3 |= LCCR3_PixClkDiv(pcd);
++		set_hsync_time(fbi, pcd);
 +	}
-+
-+	pfn = pgdat->node_start_pfn;
-+	end_pfn = pfn + pgdat->node_spanned_pages;
-+
-+	/* register_section info */
-+	for (; pfn < end_pfn; pfn += PAGES_PER_SECTION)
-+		register_page_bootmem_info_section(pfn);
-+
 +}
-+#endif /* !CONFIG_SPARSEMEM_VMEMMAP */
 +
- static int __add_zone(struct zone *zone, unsigned long phys_start_pfn)
- {
- 	struct pglist_data *pgdat = zone->zone_pgdat;
-diff -puN mm/sparse.c~memory-hotplug-register-section-node-id-to-free mm/sparse.c
---- a/mm/sparse.c~memory-hotplug-register-section-node-id-to-free
-+++ a/mm/sparse.c
-@@ -200,7 +200,6 @@ static unsigned long sparse_encode_mem_m
  /*
-  * Decode mem_map from the coded memmap
-  */
--static
- struct page *sparse_decode_mem_map(unsigned long coded_mem_map, unsigned long pnum)
+  * pxafb_activate_var():
+  *	Configures LCD Controller based on entries in var parameter.
+@@ -593,9 +630,7 @@ static int setup_frame_dma(struct pxafb_
+ static int pxafb_activate_var(struct fb_var_screeninfo *var,
+ 			      struct pxafb_info *fbi)
  {
- 	/* mask off the extra low bits of information */
-@@ -223,7 +222,7 @@ static int __meminit sparse_init_one_sec
- 	return 1;
- }
+-	struct pxafb_lcd_reg new_regs;
+ 	u_long flags;
+-	u_int lines_per_panel, pcd = get_pcd(fbi, var->pixclock);
+ 	size_t nbytes;
  
--static unsigned long usemap_size(void)
-+unsigned long usemap_size(void)
- {
- 	unsigned long size_bytes;
- 	size_bytes = roundup(SECTION_BLOCKFLAGS_BITS, 8) / 8;
-_
-
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
-
-hotplug-memory-remove-generic-__remove_pages-support.patch
-powerpc-hotplug-memory-notifications-for-ppc.patch
-powerpc-update-lmb-for-hotplug-memory-add-remove.patch
-powerpc-provide-walk_memory_resource-for-ppc.patch
-block-fix-memory-hotplug-and-bouncing-in-block-layer.patch
-mm-make-mem_map-allocation-continuous-v2.patch
-mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
-mm-offset-align-in-alloc_bootmem.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes.patch
-memory-hotplug-register-section-node-id-to-free.patch
-memory-hotplug-align-memmap-to-page-size.patch
-memory-hotplug-make-alloc_bootmem_section.patch
-memory-hotplugallocate-usemap-on-the-section-with-pgdat.patch
-memory-hotplug-free-memmaps-allocated-by-bootmem.patch
-ipc-scale-msgmni-to-the-amount-of-lowmem.patch
-ipc-scale-msgmni-to-the-number-of-ipc-namespaces.patch
-ipc-define-the-slab_memory_callback-priority-as-a-constant.patch
-ipc-recompute-msgmni-on-memory-add--remove.patch
-ipc-invoke-the-ipcns-notifier-chain-as-a-work-item.patch
-ipc-recompute-msgmni-on-ipc-namespace-creation-removal.patch
-ipc-do-not-recompute-msgmni-anymore-if-explicitly-set-by-user.patch
-ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative.patch
-
+ #if DEBUG_VAR
+@@ -636,61 +671,31 @@ static int pxafb_activate_var(struct fb_
+ 		printk(KERN_ERR "%s: invalid lower_margin %d\n",
+ 			fbi->fb.fix.id, var->lower_margin);
+ #endif
++	/* Update shadow copy atomically */
++	local_irq_save(flags);
++
++	setup_parallel_timing(fbi, var);
+ 
+-	new_regs.lccr0 = fbi->lccr0 |
++	fbi->reg_lccr0 = fbi->lccr0 |
+ 		(LCCR0_LDM | LCCR0_SFM | LCCR0_IUM | LCCR0_EFM |
+ 		 LCCR0_QDM | LCCR0_BM  | LCCR0_OUM);
+ 
+-	new_regs.lccr1 =
+-		LCCR1_DisWdth(var->xres) +
+-		LCCR1_HorSnchWdth(var->hsync_len) +
+-		LCCR1_BegLnDel(var->left_margin) +
+-		LCCR1_EndLnDel(var->right_margin);
+-
+-	/*
+-	 * If we have a dual scan LCD, we need to halve
+-	 * the YRES parameter.
+-	 */
+-	lines_per_panel = var->yres;
+-	if ((fbi->lccr0 & LCCR0_SDS) == LCCR0_Dual)
+-		lines_per_panel /= 2;
+-
+-	new_regs.lccr2 =
+-		LCCR2_DisHght(lines_per_panel) +
+-		LCCR2_VrtSnchWdth(var->vsync_len) +
+-		LCCR2_BegFrmDel(var->upper_margin) +
+-		LCCR2_EndFrmDel(var->lower_margin);
++	fbi->reg_lccr3 |= pxafb_bpp_to_lccr3(var);
+ 
+-	new_regs.lccr3 = fbi->lccr3 |
+-		pxafb_bpp_to_lccr3(var) |
+-		(var->sync & FB_SYNC_HOR_HIGH_ACT ?
+-		 LCCR3_HorSnchH : LCCR3_HorSnchL) |
+-		(var->sync & FB_SYNC_VERT_HIGH_ACT ?
+-		 LCCR3_VrtSnchH : LCCR3_VrtSnchL);
++	nbytes = var->yres * fbi->fb.fix.line_length;
+ 
+-	if (pcd)
+-		new_regs.lccr3 |= LCCR3_PixClkDiv(pcd);
+-
+-	/* Update shadow copy atomically */
+-	local_irq_save(flags);
+-
+-	nbytes = lines_per_panel * fbi->fb.fix.line_length;
+-
+-	if ((fbi->lccr0 & LCCR0_SDS) == LCCR0_Dual)
++	if ((fbi->lccr0 & LCCR0_SDS) == LCCR0_Dual) {
++		nbytes = nbytes / 2;
+ 		setup_frame_dma(fbi, DMA_LOWER, PAL_NONE, nbytes, nbytes);
++	}
+ 
+ 	if (var->bits_per_pixel >= 16)
+ 		setup_frame_dma(fbi, DMA_BASE, PAL_NONE, 0, nbytes);
+ 	else
+ 		setup_frame_dma(fbi, DMA_BASE, PAL_BASE, 0, nbytes);
+ 
+-	fbi->reg_lccr0 = new_regs.lccr0;
+-	fbi->reg_lccr1 = new_regs.lccr1;
+-	fbi->reg_lccr2 = new_regs.lccr2;
+-	fbi->reg_lccr3 = new_regs.lccr3;
+ 	fbi->reg_lccr4 = lcd_readl(fbi, LCCR4) & ~LCCR4_PAL_FOR_MASK;
+ 	fbi->reg_lccr4 |= (fbi->lccr4 & LCCR4_PAL_FOR_MASK);
+-	set_hsync_time(fbi, pcd);
+ 	local_irq_restore(flags);
+ 
+ 	/*
+diff -puN drivers/video/pxafb.h~pxafb-move-parallel-lcd-timing-setup-into-dedicate-function drivers/video/pxafb.h
+--- a/drivers/video/pxafb.h~pxafb-move-parallel-lcd-timing-setup-into-dedicate-function
++++ a/drivers/video/pxafb.h
+@@ -21,14 +21,6 @@
+  * for more details.
+  */
+ 
+-/* Shadows for LCD controller registers */
+-struct pxafb_lcd_reg {
+-	unsigned int lccr0;
+-	unsigned int lccr1;
+-	unsigned int lccr2;
+-	unsigned int lccr3;
+-};
