@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + doc-fix-dma-api-function-parameters.patch added to -mm tree
-Date: Tue, 08 Apr 2008 00:00:33 -0700
-Message-ID: <200804080700.m3870X6v013334@imap1.linux-foundation.org>
+Subject: + acpi-fix-buggy-bios-check-when-cpus-are-hot-removed.patch added to -mm tree
+Date: Tue, 08 Apr 2008 00:02:52 -0700
+Message-ID: <200804080702.m3872qrk013363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35188 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55189 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751553AbYDHHAp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 03:00:45 -0400
+	by vger.kernel.org with ESMTP id S1751670AbYDHHDF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 03:03:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: akataria@vmware.com, arai@vmware.com, lenb@kernel.org, stable@kernel.org
 
 
 The patch titled
-     doc: fix DMA-API function parameters
+     acpi: fix "buggy BIOS check" when CPUs are hot removed
 has been added to the -mm tree.  Its filename is
-     doc-fix-dma-api-function-parameters.patch
+     acpi-fix-buggy-bios-check-when-cpus-are-hot-removed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,77 +33,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: doc: fix DMA-API function parameters
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: acpi: fix "buggy BIOS check" when CPUs are hot removed
+From: Alok Kataria <akataria@vmware.com>
 
-Fix kernel bugzilla #10388.
+Fixes a BUG in ACPI hotplugging.
 
-DMA-API.txt has wrong argument type for some functions.  It uses struct device
-but should use struct pci_dev.
+processor_device_array[pr->id] needs to be set to NULL when removing a CPU. 
+Else the "buggy BIOS check" in acpi_processor_start mistakenly fires when a
+CPU is removed from the system and then later re-added.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Alok N Kataria <akataria@vmware.com>
+Signed-off-by: Dan Arai <arai@vmware.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-API.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/processor_core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/DMA-API.txt~doc-fix-dma-api-function-parameters Documentation/DMA-API.txt
---- a/Documentation/DMA-API.txt~doc-fix-dma-api-function-parameters
-+++ a/Documentation/DMA-API.txt
-@@ -145,7 +145,7 @@ Part Ic - DMA addressing limitations
- int
- dma_supported(struct device *dev, u64 mask)
- int
--pci_dma_supported(struct device *dev, u64 mask)
-+pci_dma_supported(struct pci_dev *hwdev, u64 mask)
+diff -puN drivers/acpi/processor_core.c~acpi-fix-buggy-bios-check-when-cpus-are-hot-removed drivers/acpi/processor_core.c
+--- a/drivers/acpi/processor_core.c~acpi-fix-buggy-bios-check-when-cpus-are-hot-removed
++++ a/drivers/acpi/processor_core.c
+@@ -822,7 +822,7 @@ static int acpi_processor_remove(struct 
+ 	}
  
- Checks to see if the device can support DMA to the memory described by
- mask.
-@@ -189,7 +189,7 @@ dma_addr_t
- dma_map_single(struct device *dev, void *cpu_addr, size_t size,
- 		      enum dma_data_direction direction)
- dma_addr_t
--pci_map_single(struct device *dev, void *cpu_addr, size_t size,
-+pci_map_single(struct pci_dev *hwdev, void *cpu_addr, size_t size,
- 		      int direction)
- 
- Maps a piece of processor virtual memory so it can be accessed by the
-_
-
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
-
-x86_32-fix-visualws-and-voyager-kexec-build-failures.patch
-rapidio-fix-docbook-references.patch
-kbuild-silence-documentation-gen-xml-messages-according-to-quiet.patch
-git-net.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-ocfs2.patch
-git-unionfs.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-let-log_buf_shift-default-to-17.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-docbook-some-kernel-locking-fixes.patch
-kernel-doc-detect-prevent-duplicate-doc-section-names.patch
-kernel-doc-detect-trailing-kernel-doc-line-trash.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-jbd2-fix-kernel-doc-notation.patch
-dma-add-dma_map_attrs-interfaces.patch
-dma-document-dma_map_attrs-interfaces.patch
-dma-ia64-update-ia64-machvecs-swiotlbc.patch
-ib-expand-ib_umem_get-prototype.patch
-doc-fix-dma-api-function-parameters.patch
-basic-braille-screen-reader-support-makefile-fix.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
-profile-likely-unlikely-macros.patch
-
+ 	processors[pr->id] = NULL;
