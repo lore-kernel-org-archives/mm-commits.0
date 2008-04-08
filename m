@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + memory-hotplug-make-alloc_bootmem_section.patch added to -mm tree
-Date: Tue, 08 Apr 2008 01:02:39 -0700
-Message-ID: <200804080802.m3882dqt015411@imap1.linux-foundation.org>
+Subject: + memory-hotplugallocate-usemap-on-the-section-with-pgdat.patch added to -mm tree
+Date: Tue, 08 Apr 2008 01:02:41 -0700
+Message-ID: <200804080802.m3882f94015414@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39462 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46073 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751572AbYDHIDX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 04:03:23 -0400
+	by vger.kernel.org with ESMTP id S1751781AbYDHID3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 04:03:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: y-goto@jp.fujitsu.com, pbadari@us.ibm.com, yhlu.kernel@gmail.com
 
 
 The patch titled
-     memory hotplug: make alloc_bootmem_section()
+     memory hotplug)allocat: usemap on the section with pgdat
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-make-alloc_bootmem_section.patch
+     memory-hotplugallocate-usemap-on-the-section-with-pgdat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,11 +33,23 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: make alloc_bootmem_section()
+Subject: memory hotplug)allocat: usemap on the section with pgdat
 From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-alloc_bootmem_section() can allocate specified section's area.  This is used
-for usemap to keep same section with pgdat by later patch.
+Usemaps are allocated on the section which has pgdat by this.
+
+Because usemap size is very small, many other sections usemaps are allocated
+on only one page.  If a section has usemap, it can't be removed until removing
+other sections.  This dependency is not desirable for memory removing.
+
+Pgdat has similar feature.  When a section has pgdat area, it must be the last
+section for removing on the node.  So, if section A has pgdat and section B
+has usemap for section A, Both sections can't be removed due to dependency
+each other.
+
+To solve this issue, this patch collects usemap on same section with pgdat. 
+If other sections doesn't have any dependency, this section will be able to be
+removed finally.
 
 Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Cc: Badari Pulavarty <pbadari@us.ibm.com>
@@ -46,63 +58,37 @@ Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    2 ++
- mm/bootmem.c            |   31 +++++++++++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
+ mm/sparse.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/bootmem.h~memory-hotplug-make-alloc_bootmem_section include/linux/bootmem.h
---- a/include/linux/bootmem.h~memory-hotplug-make-alloc_bootmem_section
-+++ a/include/linux/bootmem.h
-@@ -101,6 +101,8 @@ extern void reserve_bootmem_node(pg_data
- extern void free_bootmem_node(pg_data_t *pgdat,
- 			      unsigned long addr,
- 			      unsigned long size);
-+extern void *alloc_bootmem_section(unsigned long size,
-+				   unsigned long section_nr);
+diff -puN mm/sparse.c~memory-hotplugallocate-usemap-on-the-section-with-pgdat mm/sparse.c
+--- a/mm/sparse.c~memory-hotplugallocate-usemap-on-the-section-with-pgdat
++++ a/mm/sparse.c
+@@ -239,11 +239,22 @@ static unsigned long *__kmalloc_section_
  
- #ifndef CONFIG_HAVE_ARCH_BOOTMEM_NODE
- #define alloc_bootmem_node(pgdat, x) \
-diff -puN mm/bootmem.c~memory-hotplug-make-alloc_bootmem_section mm/bootmem.c
---- a/mm/bootmem.c~memory-hotplug-make-alloc_bootmem_section
-+++ a/mm/bootmem.c
-@@ -540,6 +540,37 @@ void * __init __alloc_bootmem_node(pg_da
- 	return __alloc_bootmem(size, align, goal);
- }
+ static unsigned long *__init sparse_early_usemap_alloc(unsigned long pnum)
+ {
+-	unsigned long *usemap;
++	unsigned long *usemap, section_nr;
+ 	struct mem_section *ms = __nr_to_section(pnum);
+ 	int nid = sparse_early_nid(ms);
++	struct pglist_data *pgdat = NODE_DATA(nid);
  
-+#ifdef CONFIG_SPARSEMEM
-+void * __init alloc_bootmem_section(unsigned long size,
-+				    unsigned long section_nr)
-+{
-+	void *ptr;
-+	unsigned long limit, goal, start_nr, end_nr, pfn;
-+	struct pglist_data *pgdat;
-+
-+	pfn = section_nr_to_pfn(section_nr);
-+	goal = PFN_PHYS(pfn);
-+	limit = PFN_PHYS(section_nr_to_pfn(section_nr + 1)) - 1;
-+	pgdat = NODE_DATA(early_pfn_to_nid(pfn));
-+	ptr = __alloc_bootmem_core(pgdat->bdata, size, SMP_CACHE_BYTES, goal,
-+				   limit);
-+
-+	if (!ptr)
-+		return NULL;
-+
-+	start_nr = pfn_to_section_nr(PFN_DOWN(__pa(ptr)));
-+	end_nr = pfn_to_section_nr(PFN_DOWN(__pa(ptr) + size));
-+	if (start_nr != section_nr || end_nr != section_nr) {
-+		printk(KERN_WARNING "alloc_bootmem failed on section %ld.\n",
-+		       section_nr);
-+		free_bootmem_core(pgdat->bdata, __pa(ptr), size);
-+		ptr = NULL;
-+	}
-+
-+	return ptr;
-+}
-+#endif
-+
- #ifndef ARCH_LOW_ADDRESS_LIMIT
- #define ARCH_LOW_ADDRESS_LIMIT	0xffffffffUL
- #endif
+-	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
++	/*
++	 * Usemap's page can't be freed until freeing other sections
++	 * which use it. And, Pgdat has same feature.
++	 * If section A has pgdat and section B has usemap for other
++	 * sections (includes section A), both sections can't be removed,
++	 * because there is the dependency each other.
++	 * To solve above issue, this collects all usemap on the same section
++	 * which has pgdat.
++	 */
++	section_nr = pfn_to_section_nr(__pa(pgdat) >> PAGE_SHIFT);
++	usemap = alloc_bootmem_section(usemap_size(), section_nr);
+ 	if (usemap)
+ 		return usemap;
+ 
 _
 
 Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
