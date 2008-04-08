@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch added to -mm tree
-Date: Tue, 08 Apr 2008 13:12:34 -0700
-Message-ID: <200804082022.m38KMjT9009992@imap1.linux-foundation.org>
+Subject: + documentation-build-source-files-in-documentation-sub-dir-disable.patch added to -mm tree
+Date: Tue, 08 Apr 2008 13:36:21 -0700
+Message-ID: <200804082046.m38KkXLp010898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57081 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753049AbYDHUXI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 16:23:08 -0400
+	by vger.kernel.org with ESMTP id S1752165AbYDHUrR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 16:47:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, clameter@sgi.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, rientjes@google.com
+Cc: akpm@linux-foundation.org, randy.dunlap@oracle.com
 
 
 The patch titled
-     mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix
+     documentation-build-source-files-in-documentation-sub-dir-disable
 has been added to the -mm tree.  Its filename is
-     mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+     documentation-build-source-files-in-documentation-sub-dir-disable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix
+Subject: documentation-build-source-files-in-documentation-sub-dir-disable
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Andi Kleen <ak@suse.de>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/Kconfig.debug |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/mempolicy.h~mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix
-+++ a/include/linux/mempolicy.h
-@@ -321,7 +321,8 @@ static inline void check_highest_zone(in
- }
+diff -puN lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir-disable lib/Kconfig.debug
+--- a/lib/Kconfig.debug~documentation-build-source-files-in-documentation-sub-dir-disable
++++ a/lib/Kconfig.debug
+@@ -644,6 +644,7 @@ config PROVIDE_OHCI1394_DMA_INIT
  
- #ifdef CONFIG_TMPFS
--static inline int mpol_parse_str(char *str, struct mempolicy **mpol)
-+static inline int mpol_parse_str(char *str, struct mempolicy **mpol,
-+				int no_context)
- {
- 	return 1;	/* error */
- }
+ menuconfig BUILD_DOCSRC
+ 	bool "Build targets in Documentation/ tree"
++	depends on BROKEN
+ 	help
+ 	  This option attempts to build objects from the source files in the
+ 	  kernel Documentation/ tree.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -211,6 +205,7 @@ pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-
 lxfb-add-power-management-functionality-fix.patch
 pnp-use-dev_printk-for-quirk-messages-fix.patch
 fat_valid_media-remove-pointless-test.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
 cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
 cgroups-implement-device-whitelist-v6-cleanups.patch
