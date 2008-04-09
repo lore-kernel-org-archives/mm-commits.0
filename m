@@ -1,59 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-include-asm-ptraceh-needs-processor-flagsh.patch removed from -mm tree
-Date: Wed, 09 Apr 2008 15:12:02 -0700
-Message-ID: <200804092212.m39MC29o032420@imap1.linux-foundation.org>
+Subject: - git-cryptodev-fixup.patch removed from -mm tree
+Date: Wed, 09 Apr 2008 15:20:36 -0700
+Message-ID: <200804092220.m39MKawP032692@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52446 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59635 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752789AbYDIWMY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 18:12:24 -0400
+	by vger.kernel.org with ESMTP id S1753584AbYDIWUj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 18:20:39 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m39MKaf4015717
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 9 Apr 2008 15:20:38 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86: include/asm/ptrace.h needs processor-flags.h
+     git-cryptodev-fixup
 has been removed from the -mm tree.  Its filename was
-     git-x86-include-asm-ptraceh-needs-processor-flagsh.patch
+     git-cryptodev-fixup.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86: include/asm/ptrace.h needs processor-flags.h
+Subject: git-cryptodev-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/ptrace.h:49,
-                 from security/selinux/hooks.c:27:
-include/asm/ptrace.h: In function 'user_mode_vm':
-include/asm/ptrace.h:173: error: 'X86_EFLAGS_VM' undeclared (first use in this function)
-include/asm/ptrace.h:173: error: (Each undeclared identifier is reported only once
-include/asm/ptrace.h:173: error: for each function it appears in.)
-include/asm/ptrace.h: In function 'v8086_mode':
-include/asm/ptrace.h:183: error: 'X86_EFLAGS_VM' undeclared (first use in this function)
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/ptrace.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/s390/crypto/sha1_s390.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-x86/ptrace.h~git-x86-include-asm-ptraceh-needs-processor-flagsh include/asm-x86/ptrace.h
---- a/include/asm-x86/ptrace.h~git-x86-include-asm-ptraceh-needs-processor-flagsh
-+++ a/include/asm-x86/ptrace.h
-@@ -2,6 +2,7 @@
- #define _ASM_X86_PTRACE_H
+diff -puN arch/s390/crypto/sha1_s390.c~git-cryptodev-fixup arch/s390/crypto/sha1_s390.c
+--- a/arch/s390/crypto/sha1_s390.c~git-cryptodev-fixup
++++ a/arch/s390/crypto/sha1_s390.c
+@@ -50,14 +50,14 @@ static struct crypto_alg alg = {
+ 	.cra_priority	=	CRYPT_S390_PRIORITY,
+ 	.cra_flags	=	CRYPTO_ALG_TYPE_DIGEST,
+ 	.cra_blocksize	=	SHA1_BLOCK_SIZE,
+-	.cra_ctxsize	=	sizeof(struct s390_sha1_ctx),
++	.cra_ctxsize	=	sizeof(struct s390_sha_ctx),
+ 	.cra_module	=	THIS_MODULE,
+ 	.cra_list	=	LIST_HEAD_INIT(alg.cra_list),
+ 	.cra_u		=	{ .digest = {
+ 	.dia_digestsize	=	SHA1_DIGEST_SIZE,
+ 	.dia_init	=	sha1_init,
+-	.dia_update	=	sha1_update,
+-	.dia_final	=	sha1_final } }
++	.dia_update	=	s390_sha_update,
++	.dia_final	=	s390_sha_final } }
+ };
  
- #include <linux/compiler.h>	/* For __user */
-+#include <asm/processor-flags.h>
- #include <asm/ptrace-abi.h>
- 
- 
+ static int __init sha1_s390_init(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,7 +71,6 @@ acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-x86.patch
 arch-x86-mm-ioremapc-fix-printk-warnings.patch
 git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-git-x86-include-asm-ptraceh-needs-processor-flagsh.patch
 git-kgdb-light.patch
 git-x86-hack-around-to-make-git-kgdb-build.patch
 git-alsa-tiwai.patch
@@ -78,7 +80,6 @@ git-agpgart-fix-type-confusion.patch
 git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
 cifs-suppress-warning.patch
 git-powerpc.patch
-fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry.patch
 pm-remove-destroy_suspended_device.patch
 scsi-add-iscsi-ibft-support.patch
 pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
@@ -97,7 +98,6 @@ git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.
 gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
 maple-add-driver-for-sega-dreamcast-controller.patch
 touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-kvm.patch
 git-leds.patch
 git-libata-all.patch
 drivers-ata-sata_fslc-fix-warnings-small-memory-leak.patch
@@ -149,6 +149,7 @@ git-watchdog.patch
 git-watchdog-git-rejects.patch
 xfs-suppress-uninitialized-var-warnings.patch
 git-cryptodev-misplaced-hunk.patch
+git-cryptodev-fix-conflict.patch
 git-cryptodev-fixup.patch
 git-xtensa.patch
 make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
