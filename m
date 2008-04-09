@@ -1,43 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - git-cryptodev-fixup.patch removed from -mm tree
-Date: Wed, 09 Apr 2008 15:20:36 -0700
-Message-ID: <200804092220.m39MKawP032692@imap1.linux-foundation.org>
+Subject: + git-cryptodev-fix-conflict.patch added to -mm tree
+Date: Wed, 09 Apr 2008 15:20:24 -0700
+Message-ID: <200804092220.m39MKOun032687@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49397 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753584AbYDIWUj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 18:20:39 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m39MKaf4015717
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 9 Apr 2008 15:20:38 -0700
+	by vger.kernel.org with ESMTP id S1754524AbYDIWVM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 18:21:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, herbert@gondor.apana.org.au, schwidefsky@de.ibm.com
 
 
 The patch titled
-     git-cryptodev-fixup
-has been removed from the -mm tree.  Its filename was
-     git-cryptodev-fixup.patch
+     git-cryptodev vs git-s390
+has been added to the -mm tree.  Its filename is
+     git-cryptodev-fix-conflict.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-cryptodev-fixup
+Subject: git-cryptodev vs git-s390
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  arch/s390/crypto/sha1_s390.c |    6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/s390/crypto/sha1_s390.c~git-cryptodev-fixup arch/s390/crypto/sha1_s390.c
---- a/arch/s390/crypto/sha1_s390.c~git-cryptodev-fixup
+diff -puN arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict arch/s390/crypto/sha1_s390.c
+--- a/arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict
 +++ a/arch/s390/crypto/sha1_s390.c
 @@ -50,14 +50,14 @@ static struct crypto_alg alg = {
  	.cra_priority	=	CRYPT_S390_PRIORITY,
@@ -53,7 +61,7 @@ diff -puN arch/s390/crypto/sha1_s390.c~git-cryptodev-fixup arch/s390/crypto/sha1
 -	.dia_update	=	sha1_update,
 -	.dia_final	=	sha1_final } }
 +	.dia_update	=	s390_sha_update,
-+	.dia_final	=	s390_sha_final } }
++	.dia_final	=	s390_sha1_final } }
  };
  
  static int __init sha1_s390_init(void)
