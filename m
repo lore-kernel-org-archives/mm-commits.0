@@ -1,26 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cciss-error-implicit-declaration-of-function-sg_init_table.patch added to -mm tree
-Date: Wed, 09 Apr 2008 16:09:57 -0700
-Message-ID: <200804092309.m39N9vpY001970@imap1.linux-foundation.org>
+Subject: + hfs-fix-unlink-of-links.patch added to -mm tree
+Date: Wed, 09 Apr 2008 16:19:03 -0700
+Message-ID: <200804092319.m39NJ3La002316@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40426 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57102 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752701AbYDIXLL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 19:11:11 -0400
+	by vger.kernel.org with ESMTP id S1752826AbYDIXT3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 19:19:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mpagano@gentoo.org, jens.axboe@oracle.com, mike.miller@hp.com
+Cc: zippel@linux-m68k.org, rechner@vlado-do.de, stable@kernel.org
 
 
 The patch titled
-     cciss: error: implicit declaration of function 'sg_init_table'
+     HFS+: fix unlink of links
 has been added to the -mm tree.  Its filename is
-     cciss-error-implicit-declaration-of-function-sg_init_table.patch
+     hfs-fix-unlink-of-links.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -28,61 +25,96 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cciss: error: implicit declaration of function 'sg_init_table'
-=46rom: Mike Pagano <mpagano@gentoo.org>
+Subject: HFS+: fix unlink of links
+From: Roman Zippel <zippel@linux-m68k.org>
 
-This patch adds the missing include directive <linux/scatterlist.h> to =
-the
-cciss.c source file.  =A0 This was discovered by our release team when =
-building
-the kernel for the Alpha architecture.
+Some time ago while attempting to handle invalid link counts, I botched the
+unlink of links itself, so this patch fixes this now correctly, so that only
+the link count of nodes that don't point to links is ignored.  Thanks to Vlado
+Plaga for notifying me of this problem.
 
-Errors were found as references to functions 'sg_init_table' and 'sg_pa=
-ge' do
-not exist without the include for Alpha.
-
-Signed-off-by: Mike Pagano <mpagano@gentoo.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: <mike.miller@hp.com>
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Cc: Vlado Plaga <rechner@vlado-do.de> 
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/cciss.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/hfsplus/dir.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff -puN drivers/block/cciss.c~cciss-error-implicit-declaration-of-fun=
-ction-sg_init_table drivers/block/cciss.c
---- a/drivers/block/cciss.c~cciss-error-implicit-declaration-of-functio=
-n-sg_init_table
-+++ a/drivers/block/cciss.c
-@@ -50,6 +50,7 @@
- #include <scsi/sg.h>
- #include <scsi/scsi_ioctl.h>
- #include <linux/cdrom.h>
-+#include <linux/scatterlist.h>
-=20
- #define CCISS_DRIVER_VERSION(maj,min,submin) ((maj<<16)|(min<<8)|(subm=
-in))
- #define DRIVER_NAME "HP CISS Driver (v 3.6.14)"
+diff -puN fs/hfsplus/dir.c~hfs-fix-unlink-of-links fs/hfsplus/dir.c
+--- a/fs/hfsplus/dir.c~hfs-fix-unlink-of-links
++++ a/fs/hfsplus/dir.c
+@@ -340,16 +340,23 @@ static int hfsplus_unlink(struct inode *
+ 
+ 	if (inode->i_nlink > 0)
+ 		drop_nlink(inode);
+-	hfsplus_delete_inode(inode);
+-	if (inode->i_ino != cnid && !inode->i_nlink) {
+-		if (!atomic_read(&HFSPLUS_I(inode).opencnt)) {
+-			res = hfsplus_delete_cat(inode->i_ino, HFSPLUS_SB(sb).hidden_dir, NULL);
+-			if (!res)
+-				hfsplus_delete_inode(inode);
++	if (inode->i_ino == cnid)
++		clear_nlink(inode);
++	if (!inode->i_nlink) {
++		if (inode->i_ino != cnid) {
++			HFSPLUS_SB(sb).file_count--;
++			if (!atomic_read(&HFSPLUS_I(inode).opencnt)) {
++				res = hfsplus_delete_cat(inode->i_ino,
++							 HFSPLUS_SB(sb).hidden_dir,
++							 NULL);
++				if (!res)
++					hfsplus_delete_inode(inode);
++			} else
++				inode->i_flags |= S_DEAD;
+ 		} else
+-			inode->i_flags |= S_DEAD;
++			hfsplus_delete_inode(inode);
+ 	} else
+-		clear_nlink(inode);
++		HFSPLUS_SB(sb).file_count--;
+ 	inode->i_ctime = CURRENT_TIME_SEC;
+ 	mark_inode_dirty(inode);
+ 
 _
 
-Patches currently in -mm which might be from mpagano@gentoo.org are
+Patches currently in -mm which might be from zippel@linux-m68k.org are
 
-cciss-error-implicit-declaration-of-function-sg_init_table.patch
+hfs-fix-unlink-of-links.patch
+git-x86.patch
+provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
+time-close-small-window-for-vsyscall-time-inconsistencies.patch
+time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
+git-watchdog.patch
+m68k-replace-remaining-__function__-occurences.patch
+fs-hfsplus-proper-externs.patch
+affs-handle-match_strdup-failure.patch
+hfs-handle-match_strdup-failure.patch
+hfsplus-handle-match_strdup-failure.patch
+fs-affs-filec-use-bug_on.patch
+affs-be_add_cpu-conversion.patch
+hfs-hfsplus-be_add_cpu-conversion.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+introduce-explicit-signed-unsigned-64bit-divide.patch
+convert-a-few-do_div-user.patch
+rename-div64_64-to-div64_u64.patch
+remove-div_long_long_rem.patch
+ntp-cleanup-ntpc.patch
+ntp-ntp4-user-space-bits-update.patch
+ntp-increase-time_freq-resolution.patch
+ntp-increase-time_offset-resolution.patch
+ntp-support-for-tai.patch
+ntp-rename-tick_length_shift-to-ntp_scale_shift.patch
+ntp-remove-current_tick_length.patch
+ntp-handle-leap-second-via-timer.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
