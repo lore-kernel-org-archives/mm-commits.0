@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
-Date: Wed, 09 Apr 2008 15:57:42 -0700
-Message-ID: <200804092257.m39MvhCf001537@imap1.linux-foundation.org>
+Subject: + rtc-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
+Date: Wed, 09 Apr 2008 15:57:44 -0700
+Message-ID: <200804092257.m39MvjlL001540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48068 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43267 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752913AbYDIW55 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 18:57:57 -0400
+	by vger.kernel.org with ESMTP id S1753155AbYDIW6F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 18:58:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, greg@kroah.com, wim@iguana.be
+Cc: kay.sievers@vrfy.org, a.zummo@towertech.it, dbrownell@users.sourceforge.net, greg@kroah.com
 
 
 The patch titled
-     watchdog: fix platform driver hotplug/coldplug
+     rtc: fix platform driver hotplug/coldplug
 has been added to the -mm tree.  Its filename is
-     watchdog-fix-platform-driver-hotplug-coldplug.patch
+     rtc-fix-platform-driver-hotplug-coldplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,173 +33,243 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: watchdog: fix platform driver hotplug/coldplug
+Subject: rtc: fix platform driver hotplug/coldplug
 From: Kay Sievers <kay.sievers@vrfy.org>
 
 Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias is
-prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable watchdog
-drivers, to re-enable auto loading.
+prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable RTC
+platform drivers, to re-enable module auto loading.
 
-[dbrownell@users.sourceforge.net: more drivers; registration fixes]
+[dbrownell@users.sourceforge.net: more drivers, minor fix]
 Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Wim Van Sebroeck <wim@iguana.be>
 Cc: Greg KH <greg@kroah.com>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/watchdog/at32ap700x_wdt.c |    3 +++
- drivers/watchdog/at91rm9200_wdt.c |    1 +
- drivers/watchdog/davinci_wdt.c    |    2 ++
- drivers/watchdog/ks8695_wdt.c     |    1 +
- drivers/watchdog/mpc83xx_wdt.c    |    2 ++
- drivers/watchdog/mpcore_wdt.c     |    3 +++
- drivers/watchdog/mtx-1_wdt.c      |    2 ++
- drivers/watchdog/mv64x60_wdt.c    |    1 +
- drivers/watchdog/omap_wdt.c       |    1 +
- drivers/watchdog/pnx4008_wdt.c    |    2 ++
- drivers/watchdog/s3c2410_wdt.c    |    1 +
- drivers/watchdog/txx9wdt.c        |    1 +
- 12 files changed, 20 insertions(+)
+ drivers/rtc/rtc-at32ap700x.c |    2 +-
+ drivers/rtc/rtc-at91rm9200.c |    1 +
+ drivers/rtc/rtc-bfin.c       |    1 +
+ drivers/rtc/rtc-cmos.c       |    3 +++
+ drivers/rtc/rtc-ds1216.c     |    1 +
+ drivers/rtc/rtc-ds1511.c     |    3 +++
+ drivers/rtc/rtc-ds1553.c     |    3 +++
+ drivers/rtc/rtc-ds1742.c     |    1 +
+ drivers/rtc/rtc-ep93xx.c     |    3 +++
+ drivers/rtc/rtc-m48t59.c     |    3 +++
+ drivers/rtc/rtc-m48t86.c     |    1 +
+ drivers/rtc/rtc-omap.c       |    2 +-
+ drivers/rtc/rtc-rs5c313.c    |    1 +
+ drivers/rtc/rtc-s3c.c        |    1 +
+ drivers/rtc/rtc-sa1100.c     |    1 +
+ drivers/rtc/rtc-sh.c         |    1 +
+ drivers/rtc/rtc-stk17ta8.c   |    3 +++
+ drivers/rtc/rtc-v3020.c      |    1 +
+ drivers/rtc/rtc-vr41xx.c     |    3 +++
+ 19 files changed, 33 insertions(+), 2 deletions(-)
 
-diff -puN drivers/watchdog/at32ap700x_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/at32ap700x_wdt.c
---- a/drivers/watchdog/at32ap700x_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/watchdog/at32ap700x_wdt.c
-@@ -418,6 +418,9 @@ static int at32_wdt_resume(struct platfo
- #define at32_wdt_resume NULL
- #endif
+diff -puN drivers/rtc/rtc-at32ap700x.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-at32ap700x.c
+--- a/drivers/rtc/rtc-at32ap700x.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-at32ap700x.c
+@@ -290,7 +290,7 @@ static int __exit at32_rtc_remove(struct
+ 	return 0;
+ }
+ 
+-MODULE_ALIAS("at32ap700x_rtc");
++MODULE_ALIAS("platform:at32ap700x_rtc");
+ 
+ static struct platform_driver at32_rtc_driver = {
+ 	.remove		= __exit_p(at32_rtc_remove),
+diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-at91rm9200.c
+--- a/drivers/rtc/rtc-at91rm9200.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-at91rm9200.c
+@@ -407,3 +407,4 @@ module_exit(at91_rtc_exit);
+ MODULE_AUTHOR("Rick Bronson");
+ MODULE_DESCRIPTION("RTC driver for Atmel AT91RM9200");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:at91_rtc");
+diff -puN drivers/rtc/rtc-bfin.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-bfin.c
+--- a/drivers/rtc/rtc-bfin.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-bfin.c
+@@ -470,3 +470,4 @@ module_exit(bfin_rtc_exit);
+ MODULE_DESCRIPTION("Blackfin On-Chip Real Time Clock Driver");
+ MODULE_AUTHOR("Mike Frysinger <vapier@gentoo.org>");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:rtc-bfin");
+diff -puN drivers/rtc/rtc-cmos.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-cmos.c
+@@ -943,6 +943,9 @@ static void cmos_platform_shutdown(struc
+ 	cmos_do_shutdown();
+ }
  
 +/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:at32_wdt");
++MODULE_ALIAS("platform:rtc_cmos");
 +
- static struct platform_driver at32_wdt_driver = {
- 	.remove		= __exit_p(at32_wdt_remove),
- 	.suspend	= at32_wdt_suspend,
-diff -puN drivers/watchdog/at91rm9200_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/at91rm9200_wdt.c
---- a/drivers/watchdog/at91rm9200_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/watchdog/at91rm9200_wdt.c
-@@ -286,3 +286,4 @@ MODULE_AUTHOR("Andrew Victor");
- MODULE_DESCRIPTION("Watchdog driver for Atmel AT91RM9200");
+ static struct platform_driver cmos_platform_driver = {
+ 	.remove		= __exit_p(cmos_platform_remove),
+ 	.shutdown	= cmos_platform_shutdown,
+diff -puN drivers/rtc/rtc-ds1216.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-ds1216.c
+--- a/drivers/rtc/rtc-ds1216.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-ds1216.c
+@@ -221,6 +221,7 @@ MODULE_AUTHOR("Thomas Bogendoerfer <tsbo
+ MODULE_DESCRIPTION("DS1216 RTC driver");
  MODULE_LICENSE("GPL");
- MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
-+MODULE_ALIAS("platform:at91_wdt");
-diff -puN drivers/watchdog/davinci_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/davinci_wdt.c
---- a/drivers/watchdog/davinci_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/watchdog/davinci_wdt.c
-@@ -248,6 +248,7 @@ static int davinci_wdt_remove(struct pla
- static struct platform_driver platform_wdt_driver = {
- 	.driver = {
- 		.name = "watchdog",
-+		.owner	= THIS_MODULE,
- 	},
- 	.probe = davinci_wdt_probe,
- 	.remove = davinci_wdt_remove,
-@@ -277,3 +278,4 @@ MODULE_PARM_DESC(heartbeat,
+ MODULE_VERSION(DRV_VERSION);
++MODULE_ALIAS("platform:rtc-ds1216");
  
- MODULE_LICENSE("GPL");
- MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
-+MODULE_ALIAS("platform:watchdog");
-diff -puN drivers/watchdog/ks8695_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/ks8695_wdt.c
---- a/drivers/watchdog/ks8695_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/watchdog/ks8695_wdt.c
-@@ -306,3 +306,4 @@ MODULE_AUTHOR("Andrew Victor");
- MODULE_DESCRIPTION("Watchdog driver for KS8695");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
-+MODULE_ALIAS("platform:ks8695_wdt");
-diff -puN drivers/watchdog/mpc83xx_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/mpc83xx_wdt.c
---- a/drivers/watchdog/mpc83xx_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/watchdog/mpc83xx_wdt.c
-@@ -206,6 +206,7 @@ static struct platform_driver mpc83xx_wd
- 	.remove		= __devexit_p(mpc83xx_wdt_remove),
- 	.driver		= {
- 		.name	= "mpc83xx_wdt",
-+		.owner	= THIS_MODULE,
- 	},
- };
- 
-@@ -226,3 +227,4 @@ MODULE_AUTHOR("Dave Updegraff, Kumar Gal
- MODULE_DESCRIPTION("Driver for watchdog timer in MPC83xx uProcessor");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
-+MODULE_ALIAS("platform:mpc83xx_wdt");
-diff -puN drivers/watchdog/mpcore_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/mpcore_wdt.c
---- a/drivers/watchdog/mpcore_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/watchdog/mpcore_wdt.c
-@@ -392,6 +392,9 @@ static int __devexit mpcore_wdt_remove(s
+ module_init(ds1216_rtc_init);
+ module_exit(ds1216_rtc_exit);
+diff -puN drivers/rtc/rtc-ds1511.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-ds1511.c
+--- a/drivers/rtc/rtc-ds1511.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-ds1511.c
+@@ -626,6 +626,9 @@ ds1511_rtc_remove(struct platform_device
  	return 0;
  }
  
 +/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:mpcore_wdt");
++MODULE_ALIAS("platform:ds1511");
 +
- static struct platform_driver mpcore_wdt_driver = {
- 	.probe		= mpcore_wdt_probe,
- 	.remove		= __devexit_p(mpcore_wdt_remove),
-diff -puN drivers/watchdog/mtx-1_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/mtx-1_wdt.c
---- a/drivers/watchdog/mtx-1_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/watchdog/mtx-1_wdt.c
-@@ -243,6 +243,7 @@ static struct platform_driver mtx1_wdt =
- 	.probe = mtx1_wdt_probe,
- 	.remove = mtx1_wdt_remove,
- 	.driver.name = "mtx1-wdt",
-+	.driver.owner = THIS_MODULE,
- };
+ static struct platform_driver ds1511_rtc_driver = {
+ 	.probe		= ds1511_rtc_probe,
+ 	.remove		= __devexit_p(ds1511_rtc_remove),
+diff -puN drivers/rtc/rtc-ds1553.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-ds1553.c
+--- a/drivers/rtc/rtc-ds1553.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-ds1553.c
+@@ -391,6 +391,9 @@ static int __devexit ds1553_rtc_remove(s
+ 	return 0;
+ }
  
- static int __init mtx1_wdt_init(void)
-@@ -262,3 +263,4 @@ MODULE_AUTHOR("Michael Stickel, Florian 
- MODULE_DESCRIPTION("Driver for the MTX-1 watchdog");
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:rtc-ds1553");
++
+ static struct platform_driver ds1553_rtc_driver = {
+ 	.probe		= ds1553_rtc_probe,
+ 	.remove		= __devexit_p(ds1553_rtc_remove),
+diff -puN drivers/rtc/rtc-ds1742.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-ds1742.c
+--- a/drivers/rtc/rtc-ds1742.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-ds1742.c
+@@ -276,3 +276,4 @@ MODULE_AUTHOR("Atsushi Nemoto <anemo@mba
+ MODULE_DESCRIPTION("Dallas DS1742 RTC driver");
  MODULE_LICENSE("GPL");
- MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
-+MODULE_ALIAS("platform:mtx1-wdt");
-diff -puN drivers/watchdog/mv64x60_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/mv64x60_wdt.c
---- a/drivers/watchdog/mv64x60_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/watchdog/mv64x60_wdt.c
-@@ -324,3 +324,4 @@ MODULE_AUTHOR("James Chapman <jchapman@k
- MODULE_DESCRIPTION("MV64x60 watchdog driver");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
-+MODULE_ALIAS("platform:" MV64x60_WDT_NAME);
-diff -puN drivers/watchdog/omap_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/omap_wdt.c
---- a/drivers/watchdog/omap_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/watchdog/omap_wdt.c
-@@ -387,3 +387,4 @@ module_exit(omap_wdt_exit);
- MODULE_AUTHOR("George G. Davis");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
-+MODULE_ALIAS("platform:omap_wdt");
-diff -puN drivers/watchdog/pnx4008_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/pnx4008_wdt.c
---- a/drivers/watchdog/pnx4008_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/watchdog/pnx4008_wdt.c
-@@ -321,6 +321,7 @@ static int pnx4008_wdt_remove(struct pla
- static struct platform_driver platform_wdt_driver = {
- 	.driver = {
- 		.name = "watchdog",
-+		.owner	= THIS_MODULE,
- 	},
- 	.probe = pnx4008_wdt_probe,
- 	.remove = pnx4008_wdt_remove,
-@@ -354,3 +355,4 @@ MODULE_PARM_DESC(nowayout,
+ MODULE_VERSION(DRV_VERSION);
++MODULE_ALIAS("platform:rtc-ds1742");
+diff -puN drivers/rtc/rtc-ep93xx.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-ep93xx.c
+--- a/drivers/rtc/rtc-ep93xx.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-ep93xx.c
+@@ -132,6 +132,9 @@ static int __devexit ep93xx_rtc_remove(s
+ 	return 0;
+ }
  
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:ep93xx-rtc");
++
+ static struct platform_driver ep93xx_rtc_platform_driver = {
+ 	.driver		= {
+ 		.name	= "ep93xx-rtc",
+diff -puN drivers/rtc/rtc-m48t59.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-m48t59.c
+--- a/drivers/rtc/rtc-m48t59.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-m48t59.c
+@@ -465,6 +465,9 @@ static int __devexit m48t59_rtc_remove(s
+ 	return 0;
+ }
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:rtc-m48t59");
++
+ static struct platform_driver m48t59_rtc_driver = {
+ 	.driver		= {
+ 		.name	= "rtc-m48t59",
+diff -puN drivers/rtc/rtc-m48t86.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-m48t86.c
+--- a/drivers/rtc/rtc-m48t86.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-m48t86.c
+@@ -199,6 +199,7 @@ MODULE_AUTHOR("Alessandro Zummo <a.zummo
+ MODULE_DESCRIPTION("M48T86 RTC driver");
  MODULE_LICENSE("GPL");
- MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
-+MODULE_ALIAS("platform:watchdog");
-diff -puN drivers/watchdog/s3c2410_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/s3c2410_wdt.c
---- a/drivers/watchdog/s3c2410_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/watchdog/s3c2410_wdt.c
-@@ -561,3 +561,4 @@ MODULE_AUTHOR("Ben Dooks <ben@simtec.co.
- MODULE_DESCRIPTION("S3C2410 Watchdog Device Driver");
+ MODULE_VERSION(DRV_VERSION);
++MODULE_ALIAS("platform:rtc-m48t86");
+ 
+ module_init(m48t86_rtc_init);
+ module_exit(m48t86_rtc_exit);
+diff -puN drivers/rtc/rtc-omap.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-omap.c
+--- a/drivers/rtc/rtc-omap.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-omap.c
+@@ -497,7 +497,7 @@ static void omap_rtc_shutdown(struct pla
+ 	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
+ }
+ 
+-MODULE_ALIAS("omap_rtc");
++MODULE_ALIAS("platform:omap_rtc");
+ static struct platform_driver omap_rtc_driver = {
+ 	.probe		= omap_rtc_probe,
+ 	.remove		= __devexit_p(omap_rtc_remove),
+diff -puN drivers/rtc/rtc-rs5c313.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-rs5c313.c
+--- a/drivers/rtc/rtc-rs5c313.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-rs5c313.c
+@@ -421,3 +421,4 @@ MODULE_VERSION(DRV_VERSION);
+ MODULE_AUTHOR("kogiidena , Nobuhiro Iwamatsu <iwamatsu@nigauri.org>");
+ MODULE_DESCRIPTION("Ricoh RS5C313 RTC device driver");
  MODULE_LICENSE("GPL");
- MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
-+MODULE_ALIAS("platform:s3c2410-wdt");
-diff -puN drivers/watchdog/txx9wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/txx9wdt.c
---- a/drivers/watchdog/txx9wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/watchdog/txx9wdt.c
-@@ -274,3 +274,4 @@ module_exit(watchdog_exit);
- MODULE_DESCRIPTION("TXx9 Watchdog Driver");
++MODULE_ALIAS("platform:" DRV_NAME);
+diff -puN drivers/rtc/rtc-s3c.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-s3c.c
+--- a/drivers/rtc/rtc-s3c.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-s3c.c
+@@ -592,3 +592,4 @@ module_exit(s3c_rtc_exit);
+ MODULE_DESCRIPTION("Samsung S3C RTC Driver");
+ MODULE_AUTHOR("Ben Dooks <ben@simtec.co.uk>");
  MODULE_LICENSE("GPL");
- MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
-+MODULE_ALIAS("platform:txx9wdt");
++MODULE_ALIAS("platform:s3c2410-rtc");
+diff -puN drivers/rtc/rtc-sa1100.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-sa1100.c
+--- a/drivers/rtc/rtc-sa1100.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-sa1100.c
+@@ -399,3 +399,4 @@ module_exit(sa1100_rtc_exit);
+ MODULE_AUTHOR("Richard Purdie <rpurdie@rpsys.net>");
+ MODULE_DESCRIPTION("SA11x0/PXA2xx Realtime Clock Driver (RTC)");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:sa1100-rtc");
+diff -puN drivers/rtc/rtc-sh.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-sh.c
+--- a/drivers/rtc/rtc-sh.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-sh.c
+@@ -664,3 +664,4 @@ MODULE_DESCRIPTION("SuperH on-chip RTC d
+ MODULE_VERSION(DRV_VERSION);
+ MODULE_AUTHOR("Paul Mundt <lethal@linux-sh.org>, Jamie Lenehan <lenehan@twibble.org>");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" DRV_NAME);
+diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-stk17ta8.c
+--- a/drivers/rtc/rtc-stk17ta8.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-stk17ta8.c
+@@ -394,6 +394,9 @@ static int __devexit stk17ta8_rtc_remove
+ 	return 0;
+ }
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:stk17ta8");
++
+ static struct platform_driver stk17ta8_rtc_driver = {
+ 	.probe		= stk17ta8_rtc_probe,
+ 	.remove		= __devexit_p(stk17ta8_rtc_remove),
+diff -puN drivers/rtc/rtc-v3020.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-v3020.c
+--- a/drivers/rtc/rtc-v3020.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-v3020.c
+@@ -264,3 +264,4 @@ module_exit(v3020_exit);
+ MODULE_DESCRIPTION("V3020 RTC");
+ MODULE_AUTHOR("Raphael Assenat");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:v3020");
+diff -puN drivers/rtc/rtc-vr41xx.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-vr41xx.c
+--- a/drivers/rtc/rtc-vr41xx.c~rtc-fix-platform-driver-hotplug-coldplug
++++ a/drivers/rtc/rtc-vr41xx.c
+@@ -422,6 +422,9 @@ static int __devexit rtc_remove(struct p
+ 	return 0;
+ }
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:RTC");
++
+ static struct platform_driver rtc_platform_driver = {
+ 	.probe		= rtc_probe,
+ 	.remove		= __devexit_p(rtc_remove),
 _
 
 Patches currently in -mm which might be from kay.sievers@vrfy.org are
