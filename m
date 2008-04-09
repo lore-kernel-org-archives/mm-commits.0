@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch added to -mm tree
-Date: Wed, 09 Apr 2008 13:14:19 -0700
-Message-ID: <200804092024.m39KOXk7028482@imap1.linux-foundation.org>
+Subject: + i2c-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
+Date: Wed, 09 Apr 2008 14:13:41 -0700
+Message-ID: <200804092113.m39LDfXg030334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56082 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752608AbYDIUZR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 16:25:17 -0400
+	by vger.kernel.org with ESMTP id S1750942AbYDIVOE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 17:14:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, david-b@pacbell.net, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl, stern@rowland.harvard.edu
+Cc: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, greg@kroah.com, khali@linux-fr.org
 
 
 The patch titled
-     pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7 fix
+     i2c: fix platform driver hotplug/coldplug
 has been added to the -mm tree.  Its filename is
-     pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
+     i2c-fix-platform-driver-hotplug-coldplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,242 +33,238 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7 fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: i2c: fix platform driver hotplug/coldplug
+From: Kay Sievers <kay.sievers@vrfy.org>
 
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias is
+prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable I2C
+platform drivers, to allow module auto loading.
+
+[dbrownell@users.sourceforge.net: add some more drivers]
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Len Brown <lenb@kernel.org>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/apm_32.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/i2c/busses/i2c-at91.c      |    2 +-
+ drivers/i2c/busses/i2c-au1550.c    |    1 +
+ drivers/i2c/busses/i2c-bfin-twi.c  |    1 +
+ drivers/i2c/busses/i2c-davinci.c   |    3 +++
+ drivers/i2c/busses/i2c-gpio.c      |    1 +
+ drivers/i2c/busses/i2c-iop3xx.c    |    1 +
+ drivers/i2c/busses/i2c-ixp2000.c   |    1 +
+ drivers/i2c/busses/i2c-mpc.c       |    3 +++
+ drivers/i2c/busses/i2c-ocores.c    |    3 +++
+ drivers/i2c/busses/i2c-omap.c      |    1 +
+ drivers/i2c/busses/i2c-pmcmsp.c    |    3 +++
+ drivers/i2c/busses/i2c-pnx.c       |    1 +
+ drivers/i2c/busses/i2c-powermac.c  |    3 +++
+ drivers/i2c/busses/i2c-pxa.c       |    1 +
+ drivers/i2c/busses/i2c-s3c2410.c   |    1 +
+ drivers/i2c/busses/i2c-simtec.c    |    3 +++
+ drivers/i2c/busses/i2c-versatile.c |    1 +
+ 17 files changed, 29 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/apm_32.c~pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix arch/x86/kernel/apm_32.c
---- a/arch/x86/kernel/apm_32.c~pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix
-+++ a/arch/x86/kernel/apm_32.c
-@@ -1235,7 +1235,7 @@ static void standby(void)
- 		apm_error("standby", err);
+diff -puN drivers/i2c/busses/i2c-at91.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-at91.c
+--- a/drivers/i2c/busses/i2c-at91.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-at91.c
+@@ -298,7 +298,7 @@ static int at91_i2c_resume(struct platfo
+ #endif
  
- 	local_irq_disable();
--	device_power_up();
-+	device_power_up(PMSG_RESUME);
- 	local_irq_enable();
+ /* work with "modprobe at91_i2c" from hotplugging or coldplugging */
+-MODULE_ALIAS("at91_i2c");
++MODULE_ALIAS("platform:at91_i2c");
+ 
+ static struct platform_driver at91_i2c_driver = {
+ 	.probe		= at91_i2c_probe,
+diff -puN drivers/i2c/busses/i2c-au1550.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-au1550.c
+--- a/drivers/i2c/busses/i2c-au1550.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-au1550.c
+@@ -472,6 +472,7 @@ i2c_au1550_exit(void)
+ MODULE_AUTHOR("Dan Malek, Embedded Edge, LLC.");
+ MODULE_DESCRIPTION("SMBus adapter Alchemy pb1550");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:au1xpsc_smbus");
+ 
+ module_init (i2c_au1550_init);
+ module_exit (i2c_au1550_exit);
+diff -puN drivers/i2c/busses/i2c-bfin-twi.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-bfin-twi.c
+--- a/drivers/i2c/busses/i2c-bfin-twi.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-bfin-twi.c
+@@ -624,6 +624,7 @@ static void __exit i2c_bfin_twi_exit(voi
+ MODULE_AUTHOR("Sonic Zhang <sonic.zhang@analog.com>");
+ MODULE_DESCRIPTION("I2C-Bus adapter routines for Blackfin TWI");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:i2c-bfin-twi");
+ 
+ module_init(i2c_bfin_twi_init);
+ module_exit(i2c_bfin_twi_exit);
+diff -puN drivers/i2c/busses/i2c-davinci.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-davinci.c
+--- a/drivers/i2c/busses/i2c-davinci.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-davinci.c
+@@ -558,6 +558,9 @@ static int davinci_i2c_remove(struct pla
+ 	return 0;
  }
  
-@@ -1321,7 +1321,7 @@ static void check_events(void)
- 			ignore_bounce = 1;
- 			if ((event != APM_NORMAL_RESUME)
- 			    || (ignore_normal_resume == 0)) {
--				device_resume();
-+				device_resume(PMSG_RESUME);
- 				queue_event(event, NULL);
- 			}
- 			ignore_normal_resume = 0;
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:i2c_davinci");
++
+ static struct platform_driver davinci_i2c_driver = {
+ 	.probe		= davinci_i2c_probe,
+ 	.remove		= davinci_i2c_remove,
+diff -puN drivers/i2c/busses/i2c-gpio.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-gpio.c
+--- a/drivers/i2c/busses/i2c-gpio.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-gpio.c
+@@ -220,3 +220,4 @@ module_exit(i2c_gpio_exit);
+ MODULE_AUTHOR("Haavard Skinnemoen <hskinnemoen@atmel.com>");
+ MODULE_DESCRIPTION("Platform-independent bitbanging I2C driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:i2c-gpio");
+diff -puN drivers/i2c/busses/i2c-iop3xx.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-iop3xx.c
+--- a/drivers/i2c/busses/i2c-iop3xx.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-iop3xx.c
+@@ -550,3 +550,4 @@ module_exit (i2c_iop3xx_exit);
+ MODULE_AUTHOR("D-TACQ Solutions Ltd <www.d-tacq.com>");
+ MODULE_DESCRIPTION("IOP3xx iic algorithm and driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:IOP3xx-I2C");
+diff -puN drivers/i2c/busses/i2c-ixp2000.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-ixp2000.c
+--- a/drivers/i2c/busses/i2c-ixp2000.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-ixp2000.c
+@@ -164,4 +164,5 @@ module_exit(ixp2000_i2c_exit);
+ MODULE_AUTHOR ("Deepak Saxena <dsaxena@plexity.net>");
+ MODULE_DESCRIPTION("IXP2000 GPIO-based I2C bus driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:IXP2000-I2C");
+ 
+diff -puN drivers/i2c/busses/i2c-mpc.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-mpc.c
+--- a/drivers/i2c/busses/i2c-mpc.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-mpc.c
+@@ -392,6 +392,9 @@ static int fsl_i2c_remove(struct platfor
+ 	return 0;
+ };
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:fsl-i2c");
++
+ /* Structure for a device driver */
+ static struct platform_driver fsl_i2c_driver = {
+ 	.probe = fsl_i2c_probe,
+diff -puN drivers/i2c/busses/i2c-ocores.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-ocores.c
+--- a/drivers/i2c/busses/i2c-ocores.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-ocores.c
+@@ -312,6 +312,9 @@ static int __devexit ocores_i2c_remove(s
+ 	return 0;
+ }
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:ocores-i2c");
++
+ static struct platform_driver ocores_i2c_driver = {
+ 	.probe  = ocores_i2c_probe,
+ 	.remove = __devexit_p(ocores_i2c_remove),
+diff -puN drivers/i2c/busses/i2c-omap.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-omap.c
+--- a/drivers/i2c/busses/i2c-omap.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-omap.c
+@@ -693,3 +693,4 @@ module_exit(omap_i2c_exit_driver);
+ MODULE_AUTHOR("MontaVista Software, Inc. (and others)");
+ MODULE_DESCRIPTION("TI OMAP I2C bus adapter");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:i2c_omap");
+diff -puN drivers/i2c/busses/i2c-pmcmsp.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-pmcmsp.c
+--- a/drivers/i2c/busses/i2c-pmcmsp.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-pmcmsp.c
+@@ -627,6 +627,9 @@ static struct i2c_adapter pmcmsptwi_adap
+ 	.name		= DRV_NAME,
+ };
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:" DRV_NAME);
++
+ static struct platform_driver pmcmsptwi_driver = {
+ 	.probe  = pmcmsptwi_probe,
+ 	.remove	= __devexit_p(pmcmsptwi_remove),
+diff -puN drivers/i2c/busses/i2c-pnx.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-pnx.c
+--- a/drivers/i2c/busses/i2c-pnx.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-pnx.c
+@@ -697,6 +697,7 @@ static void __exit i2c_adap_pnx_exit(voi
+ MODULE_AUTHOR("Vitaly Wool, Dennis Kovalev <source@mvista.com>");
+ MODULE_DESCRIPTION("I2C driver for Philips IP3204-based I2C busses");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:pnx-i2c");
+ 
+ /* We need to make sure I2C is initialized before USB */
+ subsys_initcall(i2c_adap_pnx_init);
+diff -puN drivers/i2c/busses/i2c-powermac.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-powermac.c
+--- a/drivers/i2c/busses/i2c-powermac.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-powermac.c
+@@ -263,6 +263,9 @@ static int __devexit i2c_powermac_probe(
+ }
+ 
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:i2c-powermac");
++
+ static struct platform_driver i2c_powermac_driver = {
+ 	.probe = i2c_powermac_probe,
+ 	.remove = __devexit_p(i2c_powermac_remove),
+diff -puN drivers/i2c/busses/i2c-pxa.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-pxa.c
+--- a/drivers/i2c/busses/i2c-pxa.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-pxa.c
+@@ -1131,6 +1131,7 @@ static void __exit i2c_adap_pxa_exit(voi
+ }
+ 
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:pxa2xx-i2c");
+ 
+ module_init(i2c_adap_pxa_init);
+ module_exit(i2c_adap_pxa_exit);
+diff -puN drivers/i2c/busses/i2c-s3c2410.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-s3c2410.c
+--- a/drivers/i2c/busses/i2c-s3c2410.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-s3c2410.c
+@@ -948,3 +948,4 @@ module_exit(i2c_adap_s3c_exit);
+ MODULE_DESCRIPTION("S3C24XX I2C Bus driver");
+ MODULE_AUTHOR("Ben Dooks, <ben@simtec.co.uk>");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:s3c2410-i2c");
+diff -puN drivers/i2c/busses/i2c-simtec.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-simtec.c
+--- a/drivers/i2c/busses/i2c-simtec.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-simtec.c
+@@ -159,6 +159,9 @@ static int simtec_i2c_remove(struct plat
+ 
+ /* device driver */
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:simtec-i2c");
++
+ static struct platform_driver simtec_i2c_driver = {
+ 	.driver		= {
+ 		.name		= "simtec-i2c",
+diff -puN drivers/i2c/busses/i2c-versatile.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-versatile.c
+--- a/drivers/i2c/busses/i2c-versatile.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-versatile.c
+@@ -151,3 +151,4 @@ module_exit(i2c_versatile_exit);
+ 
+ MODULE_DESCRIPTION("ARM Versatile I2C bus driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:versatile-i2c");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kay.sievers@vrfy.org are
 
-origin.patch
-es1968-fix-sleep-while-holding-lock-bug.patch
-revert-x86-fix-call-to-set_cyc2ns_scale-from-time_cpufreq_notifier.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-acpi.patch
-git-acpi-revert-suspend-wakeup-code-in-c.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86.patch
-arch-x86-mm-ioremapc-fix-printk-warnings.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-git-x86-fix-build-in-arch-x86-kernel-vm86_32c.patch
-git-x86-i386-build-fix.patch
-git-x86-include-asm-ptraceh-needs-processor-flagsh.patch
-git-kgdb-light.patch
-git-x86-hack-around-to-make-git-kgdb-build.patch
-git-alsa-tiwai.patch
-es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
-git-powerpc.patch
-fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry.patch
+i2c-fix-platform-driver-hotplug-coldplug.patch
 pm-remove-destroy_suspended_device.patch
-scsi-add-iscsi-ibft-support.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-dlm-vs-git-gfs2-nwm.patch
-git-hid.patch
-git-hrt.patch
-time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
-arch-ia64-kernel-use-time_-macros.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-leds.patch
-git-libata-all.patch
-drivers-ata-sata_fslc-fix-warnings-small-memory-leak.patch
-git-async-tx.patch
-git-mips.patch
-git-net.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-ehea-fix-dlpar-memory-add-support-fix.patch
-sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
-git-sched.patch
-git-sh.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-misplaced-hunk.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-semaphore-vs-git-x86.patch
-git-semaphore-git-rejects.patch
-smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+sysfs-refill-attribute-buffer-when-reading-from-offset-0.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7.patch
+pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.patch
+pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
+cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
 
