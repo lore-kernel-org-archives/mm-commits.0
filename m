@@ -1,74 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-include-asm-ptraceh-needs-processor-flagsh.patch added to -mm tree
-Date: Tue, 08 Apr 2008 17:29:28 -0700
-Message-ID: <200804090029.m390TSRO018661@imap1.linux-foundation.org>
+Subject: - es1968-fix-sleep-while-holding-lock-bug-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 08 Apr 2008 17:38:00 -0700
+Message-ID: <200804090038.m390c02x018962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34116 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751416AbYDIA3w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 20:29:52 -0400
+	by vger.kernel.org with ESMTP id S1751801AbYDIAiL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Apr 2008 20:38:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+To: akpm@linux-foundation.org, arjan@linux.intel.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86: include/asm/ptrace.h needs processor-flags.h
-has been added to the -mm tree.  Its filename is
-     git-x86-include-asm-ptraceh-needs-processor-flagsh.patch
+     es1968-fix-sleep-while-holding-lock-bug-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     es1968-fix-sleep-while-holding-lock-bug-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into es1968-fix-sleep-while-holding-lock-bug.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86: include/asm/ptrace.h needs processor-flags.h
+Subject: es1968-fix-sleep-while-holding-lock-bug-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from include/linux/ptrace.h:49,
-                 from security/selinux/hooks.c:27:
-include/asm/ptrace.h: In function 'user_mode_vm':
-include/asm/ptrace.h:173: error: 'X86_EFLAGS_VM' undeclared (first use in this function)
-include/asm/ptrace.h:173: error: (Each undeclared identifier is reported only once
-include/asm/ptrace.h:173: error: for each function it appears in.)
-include/asm/ptrace.h: In function 'v8086_mode':
-include/asm/ptrace.h:183: error: 'X86_EFLAGS_VM' undeclared (first use in this function)
+ERROR: space prohibited after that '!' (ctx:BxW)
+#50: FILE: sound/pci/es1968.c:660:
++	if (! snd_es1968_ac97_wait_poll(chip)) {
+ 	    ^
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+total: 1 errors, 0 warnings, 26 lines checked
+
+./patches/es1968-fix-sleep-while-holding-lock-bug.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/ptrace.h |    1 +
- 1 file changed, 1 insertion(+)
+ sound/pci/es1968.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-x86/ptrace.h~git-x86-include-asm-ptraceh-needs-processor-flagsh include/asm-x86/ptrace.h
---- a/include/asm-x86/ptrace.h~git-x86-include-asm-ptraceh-needs-processor-flagsh
-+++ a/include/asm-x86/ptrace.h
-@@ -2,6 +2,7 @@
- #define _ASM_X86_PTRACE_H
+diff -puN sound/pci/es1968.c~es1968-fix-sleep-while-holding-lock-bug-checkpatch-fixes sound/pci/es1968.c
+--- a/sound/pci/es1968.c~es1968-fix-sleep-while-holding-lock-bug-checkpatch-fixes
++++ a/sound/pci/es1968.c
+@@ -657,7 +657,7 @@ static unsigned short snd_es1968_ac97_re
+ 	outb(reg | 0x80, chip->io_port + ESM_AC97_INDEX);
+ 	/*msleep(1);*/
  
- #include <linux/compiler.h>	/* For __user */
-+#include <asm/processor-flags.h>
- #include <asm/ptrace-abi.h>
- 
- 
+-	if (! snd_es1968_ac97_wait_poll(chip)) {
++	if (!snd_es1968_ac97_wait_poll(chip)) {
+ 		data = inw(chip->io_port + ESM_AC97_DATA);
+ 		/*msleep(1);*/
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+es1968-fix-sleep-while-holding-lock-bug.patch
 es1968-fix-sleep-while-holding-lock-bug-checkpatch-fixes.patch
 revert-set-relay-file-can-not-be-read-by-pread2.patch
 git-acpi.patch
@@ -80,8 +77,8 @@ git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
 git-x86-fix-build-in-arch-x86-kernel-vm86_32c.patch
 git-x86-i386-build-fix.patch
 git-x86-include-asm-ptraceh-needs-processor-flagsh.patch
-git-x86-hack-around-to-make-git-kgdb-build.patch
 git-kgdb-light.patch
+git-x86-hack-around-to-make-git-kgdb-build.patch
 git-alsa-tiwai.patch
 es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
 git-agpgart-export-agp_generic_alloc_pages.patch
