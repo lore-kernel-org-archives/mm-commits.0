@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-build-source-files-in-documentation-sub-dir-update.patch added to -mm tree
-Date: Wed, 09 Apr 2008 12:48:50 -0700
-Message-ID: <200804091948.m39Jmoqe027106@imap1.linux-foundation.org>
+Subject: + pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch added to -mm tree
+Date: Wed, 09 Apr 2008 13:14:19 -0700
+Message-ID: <200804092024.m39KOXk7028482@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38365 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753685AbYDITtx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 15:49:53 -0400
+	by vger.kernel.org with ESMTP id S1752608AbYDIUZR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 16:25:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, sam@ravnborg.org
+Cc: akpm@linux-foundation.org, david-b@pacbell.net, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org, lenb@kernel.org, pavel@ucw.cz, rjw@sisk.pl, stern@rowland.harvard.edu
 
 
 The patch titled
-     documentation: build source files in Documentation sub-dir (update)
+     pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7 fix
 has been added to the -mm tree.  Its filename is
-     documentation-build-source-files-in-documentation-sub-dir-update.patch
+     pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,109 +33,242 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation: build source files in Documentation sub-dir (update)
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7 fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Change all -I$(srctree) in Makefiles to -I$(objtree).
-New (full) patch file with only that change is below.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/Makefile |    2 +-
- Documentation/auxdisplay/Makefile |    2 +-
- Documentation/connector/Makefile  |    2 +-
- Documentation/pcmcia/Makefile     |    2 +-
- Documentation/spi/Makefile        |    4 ++--
- 5 files changed, 6 insertions(+), 6 deletions(-)
+ arch/x86/kernel/apm_32.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/accounting/Makefile~documentation-build-source-files-in-documentation-sub-dir-update Documentation/accounting/Makefile
---- a/Documentation/accounting/Makefile~documentation-build-source-files-in-documentation-sub-dir-update
-+++ a/Documentation/accounting/Makefile
-@@ -7,4 +7,4 @@ hostprogs-y := getdelays
- # Tell kbuild to always build the programs
- always := $(hostprogs-y)
+diff -puN arch/x86/kernel/apm_32.c~pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix arch/x86/kernel/apm_32.c
+--- a/arch/x86/kernel/apm_32.c~pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix
++++ a/arch/x86/kernel/apm_32.c
+@@ -1235,7 +1235,7 @@ static void standby(void)
+ 		apm_error("standby", err);
  
--HOSTCFLAGS_getdelays.o += -I$(srctree)/usr/include
-+HOSTCFLAGS_getdelays.o += -I$(objtree)/usr/include
-diff -puN Documentation/auxdisplay/Makefile~documentation-build-source-files-in-documentation-sub-dir-update Documentation/auxdisplay/Makefile
---- a/Documentation/auxdisplay/Makefile~documentation-build-source-files-in-documentation-sub-dir-update
-+++ a/Documentation/auxdisplay/Makefile
-@@ -7,4 +7,4 @@ hostprogs-y := cfag12864b-example
- # Tell kbuild to always build the programs
- always := $(hostprogs-y)
+ 	local_irq_disable();
+-	device_power_up();
++	device_power_up(PMSG_RESUME);
+ 	local_irq_enable();
+ }
  
--HOSTCFLAGS_cfag12864b-example.o += -I$(srctree)/usr/include
-+HOSTCFLAGS_cfag12864b-example.o += -I$(objtree)/usr/include
-diff -puN Documentation/connector/Makefile~documentation-build-source-files-in-documentation-sub-dir-update Documentation/connector/Makefile
---- a/Documentation/connector/Makefile~documentation-build-source-files-in-documentation-sub-dir-update
-+++ a/Documentation/connector/Makefile
-@@ -6,4 +6,4 @@ hostprogs-y := ucon
- # Tell kbuild to always build the programs
- always := $(hostprogs-y)
- 
--HOSTCFLAGS_ucon.o += -I$(srctree)/usr/include
-+HOSTCFLAGS_ucon.o += -I$(objtree)/usr/include
-diff -puN Documentation/pcmcia/Makefile~documentation-build-source-files-in-documentation-sub-dir-update Documentation/pcmcia/Makefile
---- a/Documentation/pcmcia/Makefile~documentation-build-source-files-in-documentation-sub-dir-update
-+++ a/Documentation/pcmcia/Makefile
-@@ -7,4 +7,4 @@ hostprogs-y := crc32hash
- # Tell kbuild to always build the programs
- always := $(hostprogs-y)
- 
--HOSTCFLAGS_crc32hash.o += -I$(srctree)/usr/include
-+HOSTCFLAGS_crc32hash.o += -I$(objtree)/usr/include
-diff -puN Documentation/spi/Makefile~documentation-build-source-files-in-documentation-sub-dir-update Documentation/spi/Makefile
---- a/Documentation/spi/Makefile~documentation-build-source-files-in-documentation-sub-dir-update
-+++ a/Documentation/spi/Makefile
-@@ -7,5 +7,5 @@ hostprogs-y := spidev_test spidev_fdx
- # Tell kbuild to always build the programs
- always := $(hostprogs-y)
- 
--HOSTCFLAGS_spidev_test.o += -I$(srctree)/usr/include
--HOSTCFLAGS_spidev_fdx.o += -I$(srctree)/usr/include
-+HOSTCFLAGS_spidev_test.o += -I$(objtree)/usr/include
-+HOSTCFLAGS_spidev_fdx.o += -I$(objtree)/usr/include
+@@ -1321,7 +1321,7 @@ static void check_events(void)
+ 			ignore_bounce = 1;
+ 			if ((event != APM_NORMAL_RESUME)
+ 			    || (ignore_normal_resume == 0)) {
+-				device_resume();
++				device_resume(PMSG_RESUME);
+ 				queue_event(event, NULL);
+ 			}
+ 			ignore_normal_resume = 0;
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rtc-rtc-s35390ac-needs-the-bitreverse-library.patch
+origin.patch
+es1968-fix-sleep-while-holding-lock-bug.patch
+revert-x86-fix-call-to-set_cyc2ns_scale-from-time_cpufreq_notifier.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+git-acpi.patch
+git-acpi-revert-suspend-wakeup-code-in-c.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-x86.patch
-rapidio-fix-docbook-references.patch
-kbuild-silence-documentation-gen-xml-messages-according-to-quiet.patch
+arch-x86-mm-ioremapc-fix-printk-warnings.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+git-x86-fix-build-in-arch-x86-kernel-vm86_32c.patch
+git-x86-i386-build-fix.patch
+git-x86-include-asm-ptraceh-needs-processor-flagsh.patch
+git-kgdb-light.patch
+git-x86-hack-around-to-make-git-kgdb-build.patch
+git-alsa-tiwai.patch
+es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+cifs-suppress-warning.patch
+git-powerpc.patch
+fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry.patch
+pm-remove-destroy_suspended_device.patch
+scsi-add-iscsi-ibft-support.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
+git-dvb.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-dlm-vs-git-gfs2-nwm.patch
+git-hid.patch
+git-hrt.patch
+time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
+arch-ia64-kernel-use-time_-macros.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-leds.patch
+git-libata-all.patch
+drivers-ata-sata_fslc-fix-warnings-small-memory-leak.patch
+git-async-tx.patch
+git-mips.patch
 git-net.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+ehea-fix-dlpar-memory-add-support-fix.patch
+sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
 git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
+pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-introduce-pci_slot-fix-fix.patch
+pci-hotplug-introduce-pci_slot-fix-2.patch
+pci-hotplug-introduce-pci_slot-fix-99.patch
+pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
+git-sched.patch
+git-sh.patch
+git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
 git-unionfs.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-let-log_buf_shift-default-to-17.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-docbook-some-kernel-locking-fixes.patch
-kernel-doc-detect-prevent-duplicate-doc-section-names.patch
-kernel-doc-detect-trailing-kernel-doc-line-trash.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-documentation-build-source-files-in-documentation-sub-dir-update.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-misplaced-hunk.patch
+git-cryptodev-fixup.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+git-semaphore-vs-git-x86.patch
+git-semaphore-git-rejects.patch
+smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+mm-introduce-pte_special-pte-bit-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
 documentation-build-source-files-in-documentation-sub-dir-disable.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
 add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-jbd2-fix-kernel-doc-notation.patch
-dma-add-dma_map_attrs-interfaces.patch
-dma-document-dma_map_attrs-interfaces.patch
-dma-ia64-update-ia64-machvecs-swiotlbc.patch
-ib-expand-ib_umem_get-prototype.patch
-doc-fix-dma-api-function-parameters.patch
-basic-braille-screen-reader-support-makefile-fix.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
 
