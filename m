@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-cryptodev-fix-conflict.patch added to -mm tree
-Date: Wed, 09 Apr 2008 15:20:24 -0700
-Message-ID: <200804092220.m39MKOun032687@imap1.linux-foundation.org>
+Subject: + usb-host-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
+Date: Wed, 09 Apr 2008 15:22:12 -0700
+Message-ID: <200804092222.m39MMCCf000313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49397 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59665 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754524AbYDIWVM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 18:21:12 -0400
+	by vger.kernel.org with ESMTP id S1753931AbYDIWWX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 18:22:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, herbert@gondor.apana.org.au, schwidefsky@de.ibm.com
+Cc: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, greg@kroah.com
 
 
 The patch titled
-     git-cryptodev vs git-s390
+     usb host: fix platform driver hotplug/coldplug
 has been added to the -mm tree.  Its filename is
-     git-cryptodev-fix-conflict.patch
+     usb-host-fix-platform-driver-hotplug-coldplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,235 +33,259 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-cryptodev vs git-s390
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: usb host: fix platform driver hotplug/coldplug
+From: Kay Sievers <kay.sievers@vrfy.org>
 
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias is
+prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable USB HCDs,
+to allow re-enable auto loading.
+
+[dbrownell@users.sourceforge.net: more drivers; registration fixes]
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/crypto/sha1_s390.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/usb/host/isp116x-hcd.c  |    8 ++++++--
+ drivers/usb/host/ohci-at91.c    |    3 +--
+ drivers/usb/host/ohci-au1xxx.c  |    1 +
+ drivers/usb/host/ohci-ep93xx.c  |    2 ++
+ drivers/usb/host/ohci-lh7a404.c |    1 +
+ drivers/usb/host/ohci-omap.c    |    1 +
+ drivers/usb/host/ohci-pnx4008.c |    4 ++++
+ drivers/usb/host/ohci-pnx8550.c |    5 +++--
+ drivers/usb/host/ohci-ppc-soc.c |    1 +
+ drivers/usb/host/ohci-pxa27x.c  |    3 +++
+ drivers/usb/host/ohci-s3c2410.c |    1 +
+ drivers/usb/host/ohci-sh.c      |    1 +
+ drivers/usb/host/ohci-sm501.c   |    1 +
+ drivers/usb/host/r8a66597-hcd.c |    2 ++
+ drivers/usb/host/sl811-hcd.c    |    1 +
+ drivers/usb/host/u132-hcd.c     |    1 +
+ 16 files changed, 30 insertions(+), 6 deletions(-)
 
-diff -puN arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict arch/s390/crypto/sha1_s390.c
---- a/arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict
-+++ a/arch/s390/crypto/sha1_s390.c
-@@ -50,14 +50,14 @@ static struct crypto_alg alg = {
- 	.cra_priority	=	CRYPT_S390_PRIORITY,
- 	.cra_flags	=	CRYPTO_ALG_TYPE_DIGEST,
- 	.cra_blocksize	=	SHA1_BLOCK_SIZE,
--	.cra_ctxsize	=	sizeof(struct s390_sha1_ctx),
-+	.cra_ctxsize	=	sizeof(struct s390_sha_ctx),
- 	.cra_module	=	THIS_MODULE,
- 	.cra_list	=	LIST_HEAD_INIT(alg.cra_list),
- 	.cra_u		=	{ .digest = {
- 	.dia_digestsize	=	SHA1_DIGEST_SIZE,
- 	.dia_init	=	sha1_init,
--	.dia_update	=	sha1_update,
--	.dia_final	=	sha1_final } }
-+	.dia_update	=	s390_sha_update,
-+	.dia_final	=	s390_sha1_final } }
+diff -puN drivers/usb/host/isp116x-hcd.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/isp116x-hcd.c
+--- a/drivers/usb/host/isp116x-hcd.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/isp116x-hcd.c
+@@ -1684,14 +1684,18 @@ static int isp116x_resume(struct platfor
+ 
+ #endif
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:isp116x-hcd");
++
+ static struct platform_driver isp116x_driver = {
+ 	.probe = isp116x_probe,
+ 	.remove = isp116x_remove,
+ 	.suspend = isp116x_suspend,
+ 	.resume = isp116x_resume,
+ 	.driver = {
+-		   .name = (char *)hcd_name,
+-		   },
++		.name = (char *)hcd_name,
++		.owner	= THIS_MODULE,
++	},
  };
  
- static int __init sha1_s390_init(void)
+ /*-----------------------------------------------------------------*/
+diff -puN drivers/usb/host/ohci-at91.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/ohci-at91.c
+--- a/drivers/usb/host/ohci-at91.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/ohci-at91.c
+@@ -355,7 +355,7 @@ static int ohci_hcd_at91_drv_resume(stru
+ #define ohci_hcd_at91_drv_resume  NULL
+ #endif
+ 
+-MODULE_ALIAS("at91_ohci");
++MODULE_ALIAS("platform:at91_ohci");
+ 
+ static struct platform_driver ohci_hcd_at91_driver = {
+ 	.probe		= ohci_hcd_at91_drv_probe,
+@@ -368,4 +368,3 @@ static struct platform_driver ohci_hcd_a
+ 		.owner	= THIS_MODULE,
+ 	},
+ };
+-
+diff -puN drivers/usb/host/ohci-au1xxx.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/ohci-au1xxx.c
+--- a/drivers/usb/host/ohci-au1xxx.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/ohci-au1xxx.c
+@@ -345,3 +345,4 @@ static struct platform_driver ohci_hcd_a
+ 	},
+ };
+ 
++MODULE_ALIAS("platform:au1xxx-ohci");
+diff -puN drivers/usb/host/ohci-ep93xx.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/ohci-ep93xx.c
+--- a/drivers/usb/host/ohci-ep93xx.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/ohci-ep93xx.c
+@@ -211,6 +211,8 @@ static struct platform_driver ohci_hcd_e
+ #endif
+ 	.driver		= {
+ 		.name	= "ep93xx-ohci",
++		.owner	= THIS_MODULE,
+ 	},
+ };
+ 
++MODULE_ALIAS("platform:ep93xx-ohci");
+diff -puN drivers/usb/host/ohci-lh7a404.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/ohci-lh7a404.c
+--- a/drivers/usb/host/ohci-lh7a404.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/ohci-lh7a404.c
+@@ -251,3 +251,4 @@ static struct platform_driver ohci_hcd_l
+ 	},
+ };
+ 
++MODULE_ALIAS("platform:lh7a404-ohci");
+diff -puN drivers/usb/host/ohci-omap.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/ohci-omap.c
+--- a/drivers/usb/host/ohci-omap.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/ohci-omap.c
+@@ -544,3 +544,4 @@ static struct platform_driver ohci_hcd_o
+ 	},
+ };
+ 
++MODULE_ALIAS("platform:ohci");
+diff -puN drivers/usb/host/ohci-pnx4008.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/ohci-pnx4008.c
+--- a/drivers/usb/host/ohci-pnx4008.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/ohci-pnx4008.c
+@@ -456,9 +456,13 @@ static int usb_hcd_pnx4008_remove(struct
+ 	return 0;
+ }
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:usb-ohci");
++
+ static struct platform_driver usb_hcd_pnx4008_driver = {
+ 	.driver = {
+ 		.name = "usb-ohci",
++		.owner	= THIS_MODULE,
+ 	},
+ 	.probe = usb_hcd_pnx4008_probe,
+ 	.remove = usb_hcd_pnx4008_remove,
+diff -puN drivers/usb/host/ohci-pnx8550.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/ohci-pnx8550.c
+--- a/drivers/usb/host/ohci-pnx8550.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/ohci-pnx8550.c
+@@ -230,11 +230,12 @@ static int ohci_hcd_pnx8550_drv_remove(s
+ 	return 0;
+ }
+ 
+-MODULE_ALIAS("pnx8550-ohci");
++MODULE_ALIAS("platform:pnx8550-ohci");
+ 
+ static struct platform_driver ohci_hcd_pnx8550_driver = {
+ 	.driver = {
+-		.name		= "pnx8550-ohci",
++		.name	= "pnx8550-ohci",
++		.owner	= THIS_MODULE,
+ 	},
+ 	.probe		= ohci_hcd_pnx8550_drv_probe,
+ 	.remove		= ohci_hcd_pnx8550_drv_remove,
+diff -puN drivers/usb/host/ohci-ppc-soc.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/ohci-ppc-soc.c
+--- a/drivers/usb/host/ohci-ppc-soc.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/ohci-ppc-soc.c
+@@ -213,3 +213,4 @@ static struct platform_driver ohci_hcd_p
+ 	},
+ };
+ 
++MODULE_ALIAS("platform:ppc-soc-ohci");
+diff -puN drivers/usb/host/ohci-pxa27x.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/ohci-pxa27x.c
+--- a/drivers/usb/host/ohci-pxa27x.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/ohci-pxa27x.c
+@@ -364,6 +364,8 @@ static int ohci_hcd_pxa27x_drv_resume(st
+ }
+ #endif
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:pxa27x-ohci");
+ 
+ static struct platform_driver ohci_hcd_pxa27x_driver = {
+ 	.probe		= ohci_hcd_pxa27x_drv_probe,
+@@ -375,6 +377,7 @@ static struct platform_driver ohci_hcd_p
+ #endif
+ 	.driver		= {
+ 		.name	= "pxa27x-ohci",
++		.owner	= THIS_MODULE,
+ 	},
+ };
+ 
+diff -puN drivers/usb/host/ohci-s3c2410.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/ohci-s3c2410.c
+--- a/drivers/usb/host/ohci-s3c2410.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/ohci-s3c2410.c
+@@ -501,3 +501,4 @@ static struct platform_driver ohci_hcd_s
+ 	},
+ };
+ 
++MODULE_ALIAS("platform:s3c2410-ohci");
+diff -puN drivers/usb/host/ohci-sh.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/ohci-sh.c
+--- a/drivers/usb/host/ohci-sh.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/ohci-sh.c
+@@ -141,3 +141,4 @@ static struct platform_driver ohci_hcd_s
+ 	},
+ };
+ 
++MODULE_ALIAS("platform:sh_ohci");
+diff -puN drivers/usb/host/ohci-sm501.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/ohci-sm501.c
+--- a/drivers/usb/host/ohci-sm501.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/ohci-sm501.c
+@@ -262,3 +262,4 @@ static struct platform_driver ohci_hcd_s
+ 		.name	= "sm501-usb",
+ 	},
+ };
++MODULE_ALIAS("platform:sm501-usb");
+diff -puN drivers/usb/host/r8a66597-hcd.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/r8a66597-hcd.c
+--- a/drivers/usb/host/r8a66597-hcd.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/r8a66597-hcd.c
+@@ -44,6 +44,7 @@
+ MODULE_DESCRIPTION("R8A66597 USB Host Controller Driver");
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Yoshihiro Shimoda");
++MODULE_ALIAS("platform:r8a66597_hcd");
+ 
+ #define DRIVER_VERSION	"29 May 2007"
+ 
+@@ -2219,6 +2220,7 @@ static struct platform_driver r8a66597_d
+ 	.resume =	r8a66597_resume,
+ 	.driver		= {
+ 		.name = (char *) hcd_name,
++		.owner	= THIS_MODULE,
+ 	},
+ };
+ 
+diff -puN drivers/usb/host/sl811-hcd.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/sl811-hcd.c
+--- a/drivers/usb/host/sl811-hcd.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/sl811-hcd.c
+@@ -58,6 +58,7 @@
+ 
+ MODULE_DESCRIPTION("SL811HS USB Host Controller Driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:sl811-hcd");
+ 
+ #define DRIVER_VERSION	"19 May 2005"
+ 
+diff -puN drivers/usb/host/u132-hcd.c~usb-host-fix-platform-driver-hotplug-coldplug drivers/usb/host/u132-hcd.c
+--- a/drivers/usb/host/u132-hcd.c~usb-host-fix-platform-driver-hotplug-coldplug
++++ a/drivers/usb/host/u132-hcd.c
+@@ -3316,3 +3316,4 @@ static void __exit u132_hcd_exit(void)
+ 
+ module_exit(u132_hcd_exit);
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:u132_hcd");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kay.sievers@vrfy.org are
 
-origin.patch
-es1968-fix-sleep-while-holding-lock-bug.patch
-revert-x86-fix-call-to-set_cyc2ns_scale-from-time_cpufreq_notifier.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-acpi.patch
-git-acpi-revert-suspend-wakeup-code-in-c.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86.patch
-arch-x86-mm-ioremapc-fix-printk-warnings.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-git-kgdb-light.patch
-git-x86-hack-around-to-make-git-kgdb-build.patch
-git-alsa-tiwai.patch
-es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
-git-powerpc.patch
+i2c-fix-platform-driver-hotplug-coldplug.patch
+spi-fix-platform-driver-hotplug-coldplug.patch
+usb-gadget-fix-platform-driver-hotplug-coldplug.patch
+usb-host-fix-platform-driver-hotplug-coldplug.patch
 pm-remove-destroy_suspended_device.patch
-scsi-add-iscsi-ibft-support.patch
+sysfs-refill-attribute-buffer-when-reading-from-offset-0.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7.patch
 pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-dlm-vs-git-gfs2-nwm.patch
-git-hid.patch
-git-hrt.patch
-time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
-arch-ia64-kernel-use-time_-macros.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-leds.patch
-git-libata-all.patch
-drivers-ata-sata_fslc-fix-warnings-small-memory-leak.patch
-git-async-tx.patch
-git-mips.patch
-git-net.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-ehea-fix-dlpar-memory-add-support-fix.patch
-sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
-git-s390.patch
-git-sched.patch
-git-sh.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-misplaced-hunk.patch
-git-cryptodev-fix-conflict.patch
-git-cryptodev-fixup.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-semaphore-vs-git-x86.patch
-git-semaphore-git-rejects.patch
-smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.patch
+pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
+cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
 
