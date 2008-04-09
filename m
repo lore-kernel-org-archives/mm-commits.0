@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-x86-vs-git-kgdb-lite.patch added to -mm tree
-Date: Wed, 09 Apr 2008 16:13:49 -0700
-Message-ID: <200804092324.m39NO3IX002495@imap1.linux-foundation.org>
+Subject: + pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch added to -mm tree
+Date: Wed, 09 Apr 2008 16:17:33 -0700
+Message-ID: <200804092327.m39NRlUn002612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35169 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38000 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754605AbYDIXYb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 19:24:31 -0400
+	by vger.kernel.org with ESMTP id S1753715AbYDIX2B (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 19:28:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, greg@kroah.com, rjw@sisk.pl
 
 
 The patch titled
-     git-x86 vs git-kgdb-lite
+     pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix
 has been added to the -mm tree.  Its filename is
-     git-x86-vs-git-kgdb-lite.patch
+     pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86 vs git-kgdb-lite
+Subject: pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
+drivers/pci/pci-driver.c: In function 'pci_pm_thaw':
+drivers/pci/pci-driver.c:520: warning: unused variable 'pci_dev'
+drivers/pci/pci-driver.c: In function 'pci_pm_poweroff':
+drivers/pci/pci-driver.c:552: warning: unused variable 'pci_dev'
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kgdb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/pci-driver.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN arch/x86/kernel/kgdb.c~git-x86-vs-git-kgdb-lite arch/x86/kernel/kgdb.c
---- a/arch/x86/kernel/kgdb.c~git-x86-vs-git-kgdb-lite
-+++ a/arch/x86/kernel/kgdb.c
-@@ -375,12 +375,12 @@ int kgdb_arch_handle_exception(int e_vec
- 		newPC = linux_regs->ip;
+diff -puN drivers/pci/pci-driver.c~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix drivers/pci/pci-driver.c
+--- a/drivers/pci/pci-driver.c~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix
++++ a/drivers/pci/pci-driver.c
+@@ -517,7 +517,6 @@ static int pci_pm_freeze_noirq(struct de
  
- 		/* clear the trace bit */
--		linux_regs->flags &= ~TF_MASK;
-+		linux_regs->flags &= ~X86_EFLAGS_TF;
- 		atomic_set(&kgdb_cpu_doing_single_step, -1);
+ static int pci_pm_thaw(struct device *dev)
+ {
+-	struct pci_dev *pci_dev = to_pci_dev(dev);
+ 	struct device_driver *drv = dev->driver;
+ 	int error = 0;
  
- 		/* set the trace bit if we're stepping */
- 		if (remcomInBuffer[0] == 's') {
--			linux_regs->flags |= TF_MASK;
-+			linux_regs->flags |= X86_EFLAGS_TF;
- 			kgdb_single_step = 1;
- 			if (kgdb_contthread) {
- 				atomic_set(&kgdb_cpu_doing_single_step,
+@@ -549,7 +548,6 @@ static int pci_pm_thaw_noirq(struct devi
+ 
+ static int pci_pm_poweroff(struct device *dev)
+ {
+-	struct pci_dev *pci_dev = to_pci_dev(dev);
+ 	struct device_driver *drv = dev->driver;
+ 	int error = 0;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +84,7 @@ arch-x86-mm-ioremapc-fix-printk-warnings.patch
 git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
 git-kgdb-light.patch
 git-x86-hack-around-to-make-git-kgdb-build.patch
+git-x86-vs-git-kgdb-lite.patch
 git-alsa-tiwai.patch
 es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
 git-agpgart-export-agp_generic_alloc_pages.patch
@@ -87,6 +95,7 @@ git-powerpc.patch
 pm-remove-destroy_suspended_device.patch
 scsi-add-iscsi-ibft-support.patch
 pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
+pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch
 git-dvb.patch
 git-hwmon.patch
 git-gfs2-nmw.patch
@@ -258,5 +267,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-git-x86-vs-git-kgdb-lite.patch
 
