@@ -1,304 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: - revert-ide-mm-ide-remove-inswl-and-outswl-methods.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 12:12:54 -0700
-Message-ID: <200804101912.m3AJCsdl013052@imap1.linux-foundation.org>
+Subject: + git-semaphore-alpha-fix.patch added to -mm tree
+Date: Thu, 10 Apr 2008 12:53:38 -0700
+Message-ID: <200804101953.m3AJrcxI014608@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48641 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49565 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751673AbYDJTNZ (ORCPT
+	by vger.kernel.org with ESMTP id S1756591AbYDJTxl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 15:13:25 -0400
+	Thu, 10 Apr 2008 15:53:41 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3AJrcSN003224
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2008 12:53:39 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bzolnier@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     revert ide-mm-ide-remove-inswl-and-outswl-methods
-has been removed from the -mm tree.  Its filename was
-     revert-ide-mm-ide-remove-inswl-and-outswl-methods.patch
+     git-semaphore-alpha-fix
+has been added to the -mm tree.  Its filename is
+     git-semaphore-alpha-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert ide-mm-ide-remove-inswl-and-outswl-methods
+Subject: git-semaphore-alpha-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-oopses powerpc
-
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/h8300/ide-h8300.c |    4 +
- drivers/ide/ide-iops.c        |  114 ++++++++++++++++++--------------
- drivers/ide/mips/au1xxx-ide.c |    3 
- drivers/ide/pci/scc_pata.c    |    4 +
- include/linux/ide.h           |    4 +
- 5 files changed, 81 insertions(+), 48 deletions(-)
+ include/asm-alpha/semaphore.h |  150 --------------------------------
+ 1 file changed, 1 insertion(+), 149 deletions(-)
 
-diff -puN drivers/ide/h8300/ide-h8300.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods drivers/ide/h8300/ide-h8300.c
---- a/drivers/ide/h8300/ide-h8300.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods
-+++ a/drivers/ide/h8300/ide-h8300.c
-@@ -88,7 +88,11 @@ static inline void hwif_setup(ide_hwif_t
- 	hwif->output_data = h8300_output_data;
- 
- 	hwif->OUTW  = mm_outw;
-+	hwif->OUTSW = mm_outsw;
- 	hwif->INW   = mm_inw;
-+	hwif->INSW  = mm_insw;
-+	hwif->OUTSL = NULL;
-+	hwif->INSL  = NULL;
- }
- 
- static int __init h8300_ide_init(void)
-diff -puN drivers/ide/ide-iops.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods drivers/ide/ide-iops.c
---- a/drivers/ide/ide-iops.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods
-+++ a/drivers/ide/ide-iops.c
-@@ -42,6 +42,16 @@ static u16 ide_inw (unsigned long port)
- 	return (u16) inw(port);
- }
- 
-+static void ide_insw (unsigned long port, void *addr, u32 count)
-+{
-+	insw(port, addr, count);
-+}
-+
-+static void ide_insl (unsigned long port, void *addr, u32 count)
-+{
-+	insl(port, addr, count);
-+}
-+
- static void ide_outb (u8 val, unsigned long port)
- {
- 	outb(val, port);
-@@ -57,13 +67,27 @@ static void ide_outw (u16 val, unsigned 
- 	outw(val, port);
- }
- 
-+static void ide_outsw (unsigned long port, void *addr, u32 count)
-+{
-+	outsw(port, addr, count);
-+}
-+
-+static void ide_outsl (unsigned long port, void *addr, u32 count)
-+{
-+	outsl(port, addr, count);
-+}
-+
- void default_hwif_iops (ide_hwif_t *hwif)
- {
- 	hwif->OUTB	= ide_outb;
- 	hwif->OUTBSYNC	= ide_outbsync;
- 	hwif->OUTW	= ide_outw;
-+	hwif->OUTSW	= ide_outsw;
-+	hwif->OUTSL	= ide_outsl;
- 	hwif->INB	= ide_inb;
- 	hwif->INW	= ide_inw;
-+	hwif->INSW	= ide_insw;
-+	hwif->INSL	= ide_insl;
- }
- 
- /*
-@@ -80,6 +104,16 @@ static u16 ide_mm_inw (unsigned long por
- 	return (u16) readw((void __iomem *) port);
- }
- 
-+static void ide_mm_insw (unsigned long port, void *addr, u32 count)
-+{
-+	__ide_mm_insw((void __iomem *) port, addr, count);
-+}
-+
-+static void ide_mm_insl (unsigned long port, void *addr, u32 count)
-+{
-+	__ide_mm_insl((void __iomem *) port, addr, count);
-+}
-+
- static void ide_mm_outb (u8 value, unsigned long port)
- {
- 	writeb(value, (void __iomem *) port);
-@@ -95,6 +129,16 @@ static void ide_mm_outw (u16 value, unsi
- 	writew(value, (void __iomem *) port);
- }
- 
-+static void ide_mm_outsw (unsigned long port, void *addr, u32 count)
-+{
-+	__ide_mm_outsw((void __iomem *) port, addr, count);
-+}
-+
-+static void ide_mm_outsl (unsigned long port, void *addr, u32 count)
-+{
-+	__ide_mm_outsl((void __iomem *) port, addr, count);
-+}
-+
- void default_hwif_mmiops (ide_hwif_t *hwif)
- {
- 	hwif->OUTB	= ide_mm_outb;
-@@ -102,8 +146,12 @@ void default_hwif_mmiops (ide_hwif_t *hw
- 	   this one is controller specific! */
- 	hwif->OUTBSYNC	= ide_mm_outbsync;
- 	hwif->OUTW	= ide_mm_outw;
-+	hwif->OUTSW	= ide_mm_outsw;
-+	hwif->OUTSL	= ide_mm_outsl;
- 	hwif->INB	= ide_mm_inb;
- 	hwif->INW	= ide_mm_inw;
-+	hwif->INSW	= ide_mm_insw;
-+	hwif->INSL	= ide_mm_insl;
- }
- 
- EXPORT_SYMBOL(default_hwif_mmiops);
-@@ -155,39 +203,24 @@ static void ata_input_data(ide_drive_t *
- 	struct ide_io_ports *io_ports = &hwif->io_ports;
- 	unsigned long data_addr = io_ports->data_addr;
- 	u8 io_32bit = drive->io_32bit;
--	u8 mmio = (hwif->host_flags & IDE_HFLAG_MMIO) ? 1 : 0;
- 
- 	len++;
- 
- 	if (io_32bit) {
--		unsigned long uninitialized_var(flags);
+diff -puN include/asm-alpha/semaphore.h~git-semaphore-alpha-fix include/asm-alpha/semaphore.h
+--- a/include/asm-alpha/semaphore.h~git-semaphore-alpha-fix
++++ a/include/asm-alpha/semaphore.h
+@@ -1,149 +1 @@
+-#ifndef _ALPHA_SEMAPHORE_H
+-#define _ALPHA_SEMAPHORE_H
 -
- 		if (io_32bit & 2) {
-+			unsigned long flags;
-+
- 			local_irq_save(flags);
- 			ata_vlb_sync(drive, io_ports->nsect_addr);
--		}
+-/*
+- * SMP- and interrupt-safe semaphores..
+- *
+- * (C) Copyright 1996 Linus Torvalds
+- * (C) Copyright 1996, 2000 Richard Henderson
+- */
 -
--		if (mmio)
--			__ide_mm_insl((void __iomem *)data_addr, buf, len / 4);
--		else
--			insl(data_addr, buf, len / 4);
+-#include <asm/current.h>
+-#include <asm/system.h>
+-#include <asm/atomic.h>
+-#include <linux/compiler.h>
+-#include <linux/wait.h>
+-#include <linux/rwsem.h>
 -
--		if (io_32bit & 2)
-+			hwif->INSL(data_addr, buf, len / 4);
- 			local_irq_restore(flags);
-+		} else
-+			hwif->INSL(data_addr, buf, len / 4);
- 
--		if ((len & 3) >= 2) {
--			if (mmio)
--				__ide_mm_insw((void __iomem *)data_addr,
--						(u8 *)buf + (len & ~3), 1);
--			else
--				insw(data_addr, (u8 *)buf + (len & ~3), 1);
--		}
--	} else {
--		if (mmio)
--			__ide_mm_insw((void __iomem *)data_addr, buf, len / 2);
--		else
--			insw(data_addr, buf, len / 2);
--	}
-+		if ((len & 3) >= 2)
-+			hwif->INSW(data_addr, (u8 *)buf + (len & ~3), 1);
-+	} else
-+		hwif->INSW(data_addr, buf, len / 2);
- }
- 
- /*
-@@ -200,37 +233,22 @@ static void ata_output_data(ide_drive_t 
- 	struct ide_io_ports *io_ports = &hwif->io_ports;
- 	unsigned long data_addr = io_ports->data_addr;
- 	u8 io_32bit = drive->io_32bit;
--	u8 mmio = (hwif->host_flags & IDE_HFLAG_MMIO) ? 1 : 0;
- 
- 	if (io_32bit) {
--		unsigned long uninitialized_var(flags);
+-struct semaphore {
+-	atomic_t count;
+-	wait_queue_head_t wait;
+-};
 -
- 		if (io_32bit & 2) {
-+			unsigned long flags;
-+
- 			local_irq_save(flags);
- 			ata_vlb_sync(drive, io_ports->nsect_addr);
--		}
+-#define __SEMAPHORE_INITIALIZER(name, n)			\
+-{								\
+-	.count	= ATOMIC_INIT(n),				\
+-  	.wait	= __WAIT_QUEUE_HEAD_INITIALIZER((name).wait),	\
+-}
 -
--		if (mmio)
--			__ide_mm_outsl((void __iomem *)data_addr, buf, len / 4);
--		else
--			outsl(data_addr, buf, len / 4);
+-#define __DECLARE_SEMAPHORE_GENERIC(name,count)		\
+-	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
 -
--		if (io_32bit & 2)
-+			hwif->OUTSL(data_addr, buf, len / 4);
- 			local_irq_restore(flags);
-+		} else
-+			hwif->OUTSL(data_addr, buf, len / 4);
- 
--		if ((len & 3) >= 2) {
--			if (mmio)
--				__ide_mm_outsw((void __iomem *)data_addr,
--						 (u8 *)buf + (len & ~3), 1);
--			else
--				outsw(data_addr, (u8 *)buf + (len & ~3), 1);
--		}
--	} else {
--		if (mmio)
--			__ide_mm_outsw((void __iomem *)data_addr, buf, len / 2);
--		else
--			outsw(data_addr, buf, len / 2);
--	}
-+		if ((len & 3) >= 2)
-+			hwif->OUTSW(data_addr, (u8 *)buf + (len & ~3), 1);
-+	} else
-+		hwif->OUTSW(data_addr, buf, len / 2);
- }
- 
- void default_hwif_transport(ide_hwif_t *hwif)
-diff -puN drivers/ide/mips/au1xxx-ide.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods drivers/ide/mips/au1xxx-ide.c
---- a/drivers/ide/mips/au1xxx-ide.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods
-+++ a/drivers/ide/mips/au1xxx-ide.c
-@@ -613,6 +613,9 @@ static int au_ide_probe(struct device *d
- #ifdef CONFIG_BLK_DEV_IDE_AU1XXX_PIO_DBDMA	
- 	hwif->input_data  = au1xxx_input_data;
- 	hwif->output_data = au1xxx_output_data;
-+
-+	hwif->INSW                      = auide_insw;
-+	hwif->OUTSW                     = auide_outsw;
- #endif
- 	hwif->select_data               = 0;    /* no chipset-specific code */
- 	hwif->config_data               = 0;    /* no chipset-specific code */
-diff -puN drivers/ide/pci/scc_pata.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods drivers/ide/pci/scc_pata.c
---- a/drivers/ide/pci/scc_pata.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods
-+++ a/drivers/ide/pci/scc_pata.c
-@@ -624,9 +624,13 @@ static void __devinit init_mmio_iops_scc
- 
- 	hwif->INB = scc_ide_inb;
- 	hwif->INW = scc_ide_inw;
-+	hwif->INSW = scc_ide_insw;
-+	hwif->INSL = scc_ide_insl;
- 	hwif->OUTB = scc_ide_outb;
- 	hwif->OUTBSYNC = scc_ide_outbsync;
- 	hwif->OUTW = scc_ide_outw;
-+	hwif->OUTSW = scc_ide_outsw;
-+	hwif->OUTSL = scc_ide_outsl;
- 
- 	io_ports->data_addr	= dma_base + 0x20;
- 	io_ports->error_addr	= dma_base + 0x24;
-diff -puN include/linux/ide.h~revert-ide-mm-ide-remove-inswl-and-outswl-methods include/linux/ide.h
---- a/include/linux/ide.h~revert-ide-mm-ide-remove-inswl-and-outswl-methods
-+++ a/include/linux/ide.h
-@@ -480,9 +480,13 @@ typedef struct hwif_s {
- 	void (*OUTB)(u8 addr, unsigned long port);
- 	void (*OUTBSYNC)(ide_drive_t *drive, u8 addr, unsigned long port);
- 	void (*OUTW)(u16 addr, unsigned long port);
-+	void (*OUTSW)(unsigned long port, void *addr, u32 count);
-+	void (*OUTSL)(unsigned long port, void *addr, u32 count);
- 
- 	u8  (*INB)(unsigned long port);
- 	u16 (*INW)(unsigned long port);
-+	void (*INSW)(unsigned long port, void *addr, u32 count);
-+	void (*INSL)(unsigned long port, void *addr, u32 count);
- 
- 	/* dma physical region descriptor table (cpu view) */
- 	unsigned int	*dmatable_cpu;
+-#define DECLARE_MUTEX(name)		__DECLARE_SEMAPHORE_GENERIC(name,1)
+-
+-static inline void sema_init(struct semaphore *sem, int val)
+-{
+-	/*
+-	 * Logically, 
+-	 *   *sem = (struct semaphore)__SEMAPHORE_INITIALIZER((*sem),val);
+-	 * except that gcc produces better initializing by parts yet.
+-	 */
+-
+-	atomic_set(&sem->count, val);
+-	init_waitqueue_head(&sem->wait);
+-}
+-
+-static inline void init_MUTEX (struct semaphore *sem)
+-{
+-	sema_init(sem, 1);
+-}
+-
+-static inline void init_MUTEX_LOCKED (struct semaphore *sem)
+-{
+-	sema_init(sem, 0);
+-}
+-
+-extern void down(struct semaphore *);
+-extern void __down_failed(struct semaphore *);
+-extern int  down_interruptible(struct semaphore *);
+-extern int  __down_failed_interruptible(struct semaphore *);
+-extern int  down_trylock(struct semaphore *);
+-extern void up(struct semaphore *);
+-extern void __up_wakeup(struct semaphore *);
+-
+-/*
+- * Hidden out of line code is fun, but extremely messy.  Rely on newer
+- * compilers to do a respectable job with this.  The contention cases
+- * are handled out of line in arch/alpha/kernel/semaphore.c.
+- */
+-
+-static inline void __down(struct semaphore *sem)
+-{
+-	long count;
+-	might_sleep();
+-	count = atomic_dec_return(&sem->count);
+-	if (unlikely(count < 0))
+-		__down_failed(sem);
+-}
+-
+-static inline int __down_interruptible(struct semaphore *sem)
+-{
+-	long count;
+-	might_sleep();
+-	count = atomic_dec_return(&sem->count);
+-	if (unlikely(count < 0))
+-		return __down_failed_interruptible(sem);
+-	return 0;
+-}
+-
+-/*
+- * down_trylock returns 0 on success, 1 if we failed to get the lock.
+- */
+-
+-static inline int __down_trylock(struct semaphore *sem)
+-{
+-	long ret;
+-
+-	/* "Equivalent" C:
+-
+-	   do {
+-		ret = ldl_l;
+-		--ret;
+-		if (ret < 0)
+-			break;
+-		ret = stl_c = ret;
+-	   } while (ret == 0);
+-	*/
+-	__asm__ __volatile__(
+-		"1:	ldl_l	%0,%1\n"
+-		"	subl	%0,1,%0\n"
+-		"	blt	%0,2f\n"
+-		"	stl_c	%0,%1\n"
+-		"	beq	%0,3f\n"
+-		"	mb\n"
+-		"2:\n"
+-		".subsection 2\n"
+-		"3:	br	1b\n"
+-		".previous"
+-		: "=&r" (ret), "=m" (sem->count)
+-		: "m" (sem->count));
+-
+-	return ret < 0;
+-}
+-
+-static inline void __up(struct semaphore *sem)
+-{
+-	if (unlikely(atomic_inc_return(&sem->count) <= 0))
+-		__up_wakeup(sem);
+-}
+-
+-#if !defined(CONFIG_DEBUG_SEMAPHORE)
+-static inline void down(struct semaphore *sem)
+-{
+-	__down(sem);
+-}
+-static inline int down_interruptible(struct semaphore *sem)
+-{
+-	return __down_interruptible(sem);
+-}
+-static inline int down_trylock(struct semaphore *sem)
+-{
+-	return __down_trylock(sem);
+-}
+-static inline void up(struct semaphore *sem)
+-{
+-	__up(sem);
+-}
+-#endif
+-
+-#endif
++#include <linux/semaphore.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-es1968-fix-sleep-while-holding-lock-bug.patch
 include-asm-alpha-semaphoreh-use-static-inline-on-inlines.patch
 revert-x86-fix-call-to-set_cyc2ns_scale-from-time_cpufreq_notifier.patch
 revert-set-relay-file-can-not-be-read-by-pread2.patch
@@ -319,9 +226,9 @@ git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
 cifs-suppress-warning.patch
 git-powerpc.patch
 pm-remove-destroy_suspended_device.patch
-scsi-add-iscsi-ibft-support.patch
 pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
 pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch
+git-drm.patch
 git-dvb.patch
 git-hwmon.patch
 git-gfs2-nmw.patch
@@ -329,7 +236,7 @@ git-dlm-vs-git-gfs2-nwm.patch
 git-hid.patch
 git-hrt.patch
 time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
-arch-ia64-kernel-use-time_-macros.patch
+git-ia64.patch
 git-ieee1394.patch
 git-infiniband.patch
 git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
@@ -338,8 +245,6 @@ maple-add-driver-for-sega-dreamcast-controller.patch
 touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
 git-leds.patch
 git-libata-all.patch
-drivers-ata-sata_fslc-fix-warnings-small-memory-leak.patch
-revert-ide-mm-ide-remove-inswl-and-outswl-methods.patch
 git-async-tx.patch
 git-mips.patch
 git-net.patch
@@ -397,6 +302,7 @@ git-xtensa.patch
 make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
 git-semaphore-vs-git-x86.patch
 git-semaphore-git-rejects.patch
+git-semaphore-alpha-fix.patch
 ext4-is-busted-on-m68k.patch
 smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
