@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-switch-proc-scsi-device_info-to-seq_file-interface.patch added to -mm tree
-Date: Thu, 10 Apr 2008 14:35:01 -0700
-Message-ID: <200804102135.m3ALZ2Kk018559@imap1.linux-foundation.org>
+Subject: + proc-switch-proc-ip2mem-to-seq_file-interface.patch added to -mm tree
+Date: Thu, 10 Apr 2008 14:34:59 -0700
+Message-ID: <200804102134.m3ALYxdL018484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46796 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57232 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756803AbYDJVmt (ORCPT
+	by vger.kernel.org with ESMTP id S1757889AbYDJVnb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 17:42:49 -0400
+	Thu, 10 Apr 2008 17:43:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, James.Bottomley@SteelEye.com, matthew@wil.cx, michaelc@cs.wisc.edu
+Cc: adobriyan@sw.ru, gregkh@suse.de, jdike@addtoit.com, jeff@garzik.org
 
 
 The patch titled
-     proc: switch /proc/scsi/device_info to seq_file interface
+     proc: switch /proc/ip2mem to seq_file interface
 has been added to the -mm tree.  Its filename is
-     proc-switch-proc-scsi-device_info-to-seq_file-interface.patch
+     proc-switch-proc-ip2mem-to-seq_file-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,145 +34,134 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: switch /proc/scsi/device_info to seq_file interface
+Subject: proc: switch /proc/ip2mem to seq_file interface
 From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Note 1: 0644 should be used, but root bypasses permissions, so writing
-	to /proc/scsi/device_info still works.
-Note 2: looks like scsi_dev_info_list is unprotected
-Note 3: probably make proc whine about "unwriteable but with ->write hook"
-	entries. Probably.
+/******************************************/
+/* Remove useless comment, while I am it. */
+/******************************************/
 
 Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Cc: Mike Christie <michaelc@cs.wisc.edu>
-Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_devinfo.c |   77 +++++++++++++++++++---------------
- 1 file changed, 44 insertions(+), 33 deletions(-)
+ drivers/char/ip2/ip2main.c |   53 ++++++++++++++++-------------------
+ 1 file changed, 25 insertions(+), 28 deletions(-)
 
-diff -puN drivers/scsi/scsi_devinfo.c~proc-switch-proc-scsi-device_info-to-seq_file-interface drivers/scsi/scsi_devinfo.c
---- a/drivers/scsi/scsi_devinfo.c~proc-switch-proc-scsi-device_info-to-seq_file-interface
-+++ a/drivers/scsi/scsi_devinfo.c
-@@ -449,37 +449,40 @@ int scsi_get_device_flags(struct scsi_de
+diff -puN drivers/char/ip2/ip2main.c~proc-switch-proc-ip2mem-to-seq_file-interface drivers/char/ip2/ip2main.c
+--- a/drivers/char/ip2/ip2main.c~proc-switch-proc-ip2mem-to-seq_file-interface
++++ a/drivers/char/ip2/ip2main.c
+@@ -133,8 +133,9 @@
+  *****************/
+ 
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ 
+-static int ip2_read_procmem(char *, char **, off_t, int);
++static const struct file_operations ip2mem_proc_fops;
+ static int ip2_read_proc(char *, char **, off_t, int, int *, void * );
+ 
+ /********************/
+@@ -697,7 +698,7 @@ ip2_loadmain(int *iop, int *irqp, unsign
+ 		}
+ 	}
+ 	/* Register the read_procmem thing */
+-	if (!create_proc_info_entry("ip2mem",0,NULL,ip2_read_procmem)) {
++	if (!proc_create("ip2mem",0,NULL,&ip2mem_proc_fops)) {
+ 		printk(KERN_ERR "IP2: failed to register read_procmem\n");
+ 	} else {
+ 
+@@ -2969,65 +2970,61 @@ ip2_ipl_open( struct inode *pInode, stru
+ 	}
+ 	return 0;
  }
+-/******************************************************************************/
+-/* Function:   ip2_read_procmem                                               */
+-/* Parameters:                                                                */
+-/*                                                                            */
+-/* Returns: Length of output                                                  */
+-/*                                                                            */
+-/* Description:                                                               */
+-/*   Supplies some driver operating parameters                                */
+-/*	Not real useful unless your debugging the fifo							  */
+-/*                                                                            */
+-/******************************************************************************/
+-
+-#define LIMIT  (PAGE_SIZE - 120)
  
- #ifdef CONFIG_SCSI_PROC_FS
--/* 
-- * proc_scsi_dev_info_read: dump the scsi_dev_info_list via
-- * /proc/scsi/device_info
-- */
--static int proc_scsi_devinfo_read(char *buffer, char **start,
--				  off_t offset, int length)
-+static int devinfo_seq_show(struct seq_file *m, void *v)
+ static int
+-ip2_read_procmem(char *buf, char **start, off_t offset, int len)
++proc_ip2mem_show(struct seq_file *m, void *v)
  {
--	struct scsi_dev_info_list *devinfo;
--	int size, len = 0;
--	off_t begin = 0;
--	off_t pos = 0;
-+	struct scsi_dev_info_list *devinfo =
-+		list_entry(v, struct scsi_dev_info_list, dev_info_list);
+ 	i2eBordStrPtr  pB;
+ 	i2ChanStrPtr  pCh;
+ 	PTTY tty;
+ 	int i;
  
--	list_for_each_entry(devinfo, &scsi_dev_info_list, dev_info_list) {
--		size = sprintf(buffer + len, "'%.8s' '%.16s' 0x%x\n",
-+	seq_printf(m, "'%.8s' '%.16s' 0x%x\n",
- 			devinfo->vendor, devinfo->model, devinfo->flags);
--		len += size;
--		pos = begin + len;
--		if (pos < offset) {
--			len = 0;
--			begin = pos;
--		}
--		if (pos > offset + length)
--			goto stop_output;
--	}
+-	len = 0;
+-
+ #define FMTLINE	"%3d: 0x%08x 0x%08x 0%011o 0%011o\n"
+ #define FMTLIN2	"     0x%04x 0x%04x tx flow 0x%x\n"
+ #define FMTLIN3	"     0x%04x 0x%04x rc flow\n"
+ 
+-	len += sprintf(buf+len,"\n");
++	seq_printf(m,"\n");
+ 
+ 	for( i = 0; i < IP2_MAX_BOARDS; ++i ) {
+ 		pB = i2BoardPtrTable[i];
+ 		if ( pB ) {
+-			len += sprintf(buf+len,"board %d:\n",i);
+-			len += sprintf(buf+len,"\tFifo rem: %d mty: %x outM %x\n",
++			seq_printf(m,"board %d:\n",i);
++			seq_printf(m,"\tFifo rem: %d mty: %x outM %x\n",
+ 				pB->i2eFifoRemains,pB->i2eWaitingForEmptyFifo,pB->i2eOutMailWaiting);
+ 		}
+ 	}
+ 
+-	len += sprintf(buf+len,"#: tty flags, port flags,     cflags,     iflags\n");
++	seq_printf(m,"#: tty flags, port flags,     cflags,     iflags\n");
+ 	for (i=0; i < IP2_MAX_PORTS; i++) {
+-		if (len > LIMIT)
+-			break;
+ 		pCh = DevTable[i];
+ 		if (pCh) {
+ 			tty = pCh->pTTY;
+ 			if (tty && tty->count) {
+-				len += sprintf(buf+len,FMTLINE,i,(int)tty->flags,pCh->flags,
++				seq_printf(m,FMTLINE,i,(int)tty->flags,pCh->flags,
+ 									tty->termios->c_cflag,tty->termios->c_iflag);
+ 
+-				len += sprintf(buf+len,FMTLIN2,
++				seq_printf(m,FMTLIN2,
+ 						pCh->outfl.asof,pCh->outfl.room,pCh->channelNeeds);
+-				len += sprintf(buf+len,FMTLIN3,pCh->infl.asof,pCh->infl.room);
++				seq_printf(m,FMTLIN3,pCh->infl.asof,pCh->infl.room);
+ 			}
+ 		}
+ 	}
+-	return len;
 +	return 0;
 +}
- 
--stop_output:
--	*start = buffer + (offset - begin);	/* Start of wanted data */
--	len -= (offset - begin);	/* Start slop */
--	if (len > length)
--		len = length;	/* Ending slop */
--	return (len);
-+static void * devinfo_seq_start(struct seq_file *m, loff_t *pos)
-+{
-+	return seq_list_start(&scsi_dev_info_list, *pos);
-+}
 +
-+static void * devinfo_seq_next(struct seq_file *m, void *v, loff_t *pos)
++static int proc_ip2mem_open(struct inode *inode, struct file *file)
 +{
-+	return seq_list_next(v, &scsi_dev_info_list, pos);
-+}
-+
-+static void devinfo_seq_stop(struct seq_file *m, void *v)
-+{
-+}
-+
-+static const struct seq_operations scsi_devinfo_seq_ops = {
-+	.start	= devinfo_seq_start,
-+	.next	= devinfo_seq_next,
-+	.stop	= devinfo_seq_stop,
-+	.show	= devinfo_seq_show,
-+};
-+
-+static int proc_scsi_devinfo_open(struct inode *inode, struct file *file)
-+{
-+	return seq_open(file, &scsi_devinfo_seq_ops);
++	return single_open(file, proc_ip2mem_show, NULL);
  }
  
- /* 
-@@ -489,11 +492,12 @@ stop_output:
-  * integer value of flag to the scsi device info list.
-  * To use, echo "vendor:model:flag" > /proc/scsi/device_info
-  */
--static int proc_scsi_devinfo_write(struct file *file, const char __user *buf,
--				   unsigned long length, void *data)
-+static ssize_t proc_scsi_devinfo_write(struct file *file,
-+				       const char __user *buf,
-+				       size_t length, loff_t *ppos)
- {
- 	char *buffer;
--	int err = length;
-+	ssize_t err = length;
- 
- 	if (!buf || length>PAGE_SIZE)
- 		return -EINVAL;
-@@ -517,6 +521,15 @@ out:
- 	free_page((unsigned long)buffer);
- 	return err;
- }
-+
-+static const struct file_operations scsi_devinfo_proc_fops = {
++static const struct file_operations ip2mem_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= proc_scsi_devinfo_open,
++	.open		= proc_ip2mem_open,
 +	.read		= seq_read,
-+	.write		= proc_scsi_devinfo_write,
 +	.llseek		= seq_lseek,
-+	.release	= seq_release,
++	.release	= single_release,
 +};
- #endif /* CONFIG_SCSI_PROC_FS */
- 
- module_param_string(dev_flags, scsi_dev_flags, sizeof(scsi_dev_flags), 0);
-@@ -577,15 +590,13 @@ int __init scsi_init_devinfo(void)
- 	}
- 
- #ifdef CONFIG_SCSI_PROC_FS
--	p = create_proc_entry("scsi/device_info", 0, NULL);
-+	p = proc_create("scsi/device_info", 0, NULL, &scsi_devinfo_proc_fops);
- 	if (!p) {
- 		error = -ENOMEM;
- 		goto out;
- 	}
- 
- 	p->owner = THIS_MODULE;
--	p->get_info = proc_scsi_devinfo_read;
--	p->write_proc = proc_scsi_devinfo_write;
- #endif /* CONFIG_SCSI_PROC_FS */
- 
-  out:
++
+ /*
+  * This is the handler for /proc/tty/driver/ip2
+  *
 _
 
 Patches currently in -mm which might be from adobriyan@sw.ru are
