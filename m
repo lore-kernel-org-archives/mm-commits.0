@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-ipv6-ip6_inputc-fix-a-couple-of-warnings.patch added to -mm tree
-Date: Wed, 09 Apr 2008 22:16:43 -0600
-Message-ID: <200804100416.m3A4Gjdw012426@imap1.linux-foundation.org>
+Subject: + revert-ide-mm-ide-remove-inswl-and-outswl-methods.patch added to -mm tree
+Date: Wed, 09 Apr 2008 23:24:55 -0600
+Message-ID: <200804100524.m3A5OuNs014731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35939 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750820AbYDJER2 (ORCPT
+	by vger.kernel.org with ESMTP id S1751605AbYDJFZG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 00:17:28 -0400
+	Thu, 10 Apr 2008 01:25:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net, yoshfuji@linux-ipv6.org
+Cc: akpm@linux-foundation.org, bzolnier@gmail.com
 
 
 The patch titled
-     net/ipv6/ip6_input.c: fix a couple of warnings
+     revert ide-mm-ide-remove-inswl-and-outswl-methods
 has been added to the -mm tree.  Its filename is
-     net-ipv6-ip6_inputc-fix-a-couple-of-warnings.patch
+     revert-ide-mm-ide-remove-inswl-and-outswl-methods.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,275 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/ipv6/ip6_input.c: fix a couple of warnings
+Subject: revert ide-mm-ide-remove-inswl-and-outswl-methods
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/ipv6/ip6_input.c: In function `ip6_mc_input':
-net/ipv6/ip6_input.c:312: warning: label `out' defined but not used
-net/ipv6/ip6_input.c:317: warning: label `discard' defined but not used
+oopses powerpc
 
-It adds extra code and is slower.  Fire me.
-
-Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv6/ip6_input.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/ide/h8300/ide-h8300.c |    4 +
+ drivers/ide/ide-iops.c        |  114 ++++++++++++++++++--------------
+ drivers/ide/mips/au1xxx-ide.c |    3 
+ drivers/ide/pci/scc_pata.c    |    4 +
+ include/linux/ide.h           |    4 +
+ 5 files changed, 81 insertions(+), 48 deletions(-)
 
-diff -puN net/ipv6/ip6_input.c~net-ipv6-ip6_inputc-fix-a-couple-of-warnings net/ipv6/ip6_input.c
---- a/net/ipv6/ip6_input.c~net-ipv6-ip6_inputc-fix-a-couple-of-warnings
-+++ a/net/ipv6/ip6_input.c
-@@ -288,7 +288,8 @@ int ip6_mc_input(struct sk_buff *skb)
- 					break;
- 				default:
- 					/* Bogus */
--					goto discard;
-+					deliver = 0;
-+					goto out;
- 				}
- 				deliver = 1;
- 				goto out;
-@@ -308,13 +309,12 @@ int ip6_mc_input(struct sk_buff *skb)
- 			ip6_mr_input(skb2);
- 		}
- 	}
--#endif
- out:
-+#endif
- 	if (likely(deliver)) {
- 		ip6_input(skb);
- 		return 0;
- 	}
--discard:
- 	/* discard */
- 	kfree_skb(skb);
+diff -puN drivers/ide/h8300/ide-h8300.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods drivers/ide/h8300/ide-h8300.c
+--- a/drivers/ide/h8300/ide-h8300.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods
++++ a/drivers/ide/h8300/ide-h8300.c
+@@ -88,7 +88,11 @@ static inline void hwif_setup(ide_hwif_t
+ 	hwif->output_data = h8300_output_data;
  
+ 	hwif->OUTW  = mm_outw;
++	hwif->OUTSW = mm_outsw;
+ 	hwif->INW   = mm_inw;
++	hwif->INSW  = mm_insw;
++	hwif->OUTSL = NULL;
++	hwif->INSL  = NULL;
+ }
+ 
+ static int __init h8300_ide_init(void)
+diff -puN drivers/ide/ide-iops.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods drivers/ide/ide-iops.c
+--- a/drivers/ide/ide-iops.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods
++++ a/drivers/ide/ide-iops.c
+@@ -42,6 +42,16 @@ static u16 ide_inw (unsigned long port)
+ 	return (u16) inw(port);
+ }
+ 
++static void ide_insw (unsigned long port, void *addr, u32 count)
++{
++	insw(port, addr, count);
++}
++
++static void ide_insl (unsigned long port, void *addr, u32 count)
++{
++	insl(port, addr, count);
++}
++
+ static void ide_outb (u8 val, unsigned long port)
+ {
+ 	outb(val, port);
+@@ -57,13 +67,27 @@ static void ide_outw (u16 val, unsigned 
+ 	outw(val, port);
+ }
+ 
++static void ide_outsw (unsigned long port, void *addr, u32 count)
++{
++	outsw(port, addr, count);
++}
++
++static void ide_outsl (unsigned long port, void *addr, u32 count)
++{
++	outsl(port, addr, count);
++}
++
+ void default_hwif_iops (ide_hwif_t *hwif)
+ {
+ 	hwif->OUTB	= ide_outb;
+ 	hwif->OUTBSYNC	= ide_outbsync;
+ 	hwif->OUTW	= ide_outw;
++	hwif->OUTSW	= ide_outsw;
++	hwif->OUTSL	= ide_outsl;
+ 	hwif->INB	= ide_inb;
+ 	hwif->INW	= ide_inw;
++	hwif->INSW	= ide_insw;
++	hwif->INSL	= ide_insl;
+ }
+ 
+ /*
+@@ -80,6 +104,16 @@ static u16 ide_mm_inw (unsigned long por
+ 	return (u16) readw((void __iomem *) port);
+ }
+ 
++static void ide_mm_insw (unsigned long port, void *addr, u32 count)
++{
++	__ide_mm_insw((void __iomem *) port, addr, count);
++}
++
++static void ide_mm_insl (unsigned long port, void *addr, u32 count)
++{
++	__ide_mm_insl((void __iomem *) port, addr, count);
++}
++
+ static void ide_mm_outb (u8 value, unsigned long port)
+ {
+ 	writeb(value, (void __iomem *) port);
+@@ -95,6 +129,16 @@ static void ide_mm_outw (u16 value, unsi
+ 	writew(value, (void __iomem *) port);
+ }
+ 
++static void ide_mm_outsw (unsigned long port, void *addr, u32 count)
++{
++	__ide_mm_outsw((void __iomem *) port, addr, count);
++}
++
++static void ide_mm_outsl (unsigned long port, void *addr, u32 count)
++{
++	__ide_mm_outsl((void __iomem *) port, addr, count);
++}
++
+ void default_hwif_mmiops (ide_hwif_t *hwif)
+ {
+ 	hwif->OUTB	= ide_mm_outb;
+@@ -102,8 +146,12 @@ void default_hwif_mmiops (ide_hwif_t *hw
+ 	   this one is controller specific! */
+ 	hwif->OUTBSYNC	= ide_mm_outbsync;
+ 	hwif->OUTW	= ide_mm_outw;
++	hwif->OUTSW	= ide_mm_outsw;
++	hwif->OUTSL	= ide_mm_outsl;
+ 	hwif->INB	= ide_mm_inb;
+ 	hwif->INW	= ide_mm_inw;
++	hwif->INSW	= ide_mm_insw;
++	hwif->INSL	= ide_mm_insl;
+ }
+ 
+ EXPORT_SYMBOL(default_hwif_mmiops);
+@@ -155,39 +203,24 @@ static void ata_input_data(ide_drive_t *
+ 	struct ide_io_ports *io_ports = &hwif->io_ports;
+ 	unsigned long data_addr = io_ports->data_addr;
+ 	u8 io_32bit = drive->io_32bit;
+-	u8 mmio = (hwif->host_flags & IDE_HFLAG_MMIO) ? 1 : 0;
+ 
+ 	len++;
+ 
+ 	if (io_32bit) {
+-		unsigned long uninitialized_var(flags);
+-
+ 		if (io_32bit & 2) {
++			unsigned long flags;
++
+ 			local_irq_save(flags);
+ 			ata_vlb_sync(drive, io_ports->nsect_addr);
+-		}
+-
+-		if (mmio)
+-			__ide_mm_insl((void __iomem *)data_addr, buf, len / 4);
+-		else
+-			insl(data_addr, buf, len / 4);
+-
+-		if (io_32bit & 2)
++			hwif->INSL(data_addr, buf, len / 4);
+ 			local_irq_restore(flags);
++		} else
++			hwif->INSL(data_addr, buf, len / 4);
+ 
+-		if ((len & 3) >= 2) {
+-			if (mmio)
+-				__ide_mm_insw((void __iomem *)data_addr,
+-						(u8 *)buf + (len & ~3), 1);
+-			else
+-				insw(data_addr, (u8 *)buf + (len & ~3), 1);
+-		}
+-	} else {
+-		if (mmio)
+-			__ide_mm_insw((void __iomem *)data_addr, buf, len / 2);
+-		else
+-			insw(data_addr, buf, len / 2);
+-	}
++		if ((len & 3) >= 2)
++			hwif->INSW(data_addr, (u8 *)buf + (len & ~3), 1);
++	} else
++		hwif->INSW(data_addr, buf, len / 2);
+ }
+ 
+ /*
+@@ -200,37 +233,22 @@ static void ata_output_data(ide_drive_t 
+ 	struct ide_io_ports *io_ports = &hwif->io_ports;
+ 	unsigned long data_addr = io_ports->data_addr;
+ 	u8 io_32bit = drive->io_32bit;
+-	u8 mmio = (hwif->host_flags & IDE_HFLAG_MMIO) ? 1 : 0;
+ 
+ 	if (io_32bit) {
+-		unsigned long uninitialized_var(flags);
+-
+ 		if (io_32bit & 2) {
++			unsigned long flags;
++
+ 			local_irq_save(flags);
+ 			ata_vlb_sync(drive, io_ports->nsect_addr);
+-		}
+-
+-		if (mmio)
+-			__ide_mm_outsl((void __iomem *)data_addr, buf, len / 4);
+-		else
+-			outsl(data_addr, buf, len / 4);
+-
+-		if (io_32bit & 2)
++			hwif->OUTSL(data_addr, buf, len / 4);
+ 			local_irq_restore(flags);
++		} else
++			hwif->OUTSL(data_addr, buf, len / 4);
+ 
+-		if ((len & 3) >= 2) {
+-			if (mmio)
+-				__ide_mm_outsw((void __iomem *)data_addr,
+-						 (u8 *)buf + (len & ~3), 1);
+-			else
+-				outsw(data_addr, (u8 *)buf + (len & ~3), 1);
+-		}
+-	} else {
+-		if (mmio)
+-			__ide_mm_outsw((void __iomem *)data_addr, buf, len / 2);
+-		else
+-			outsw(data_addr, buf, len / 2);
+-	}
++		if ((len & 3) >= 2)
++			hwif->OUTSW(data_addr, (u8 *)buf + (len & ~3), 1);
++	} else
++		hwif->OUTSW(data_addr, buf, len / 2);
+ }
+ 
+ void default_hwif_transport(ide_hwif_t *hwif)
+diff -puN drivers/ide/mips/au1xxx-ide.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods drivers/ide/mips/au1xxx-ide.c
+--- a/drivers/ide/mips/au1xxx-ide.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods
++++ a/drivers/ide/mips/au1xxx-ide.c
+@@ -613,6 +613,9 @@ static int au_ide_probe(struct device *d
+ #ifdef CONFIG_BLK_DEV_IDE_AU1XXX_PIO_DBDMA	
+ 	hwif->input_data  = au1xxx_input_data;
+ 	hwif->output_data = au1xxx_output_data;
++
++	hwif->INSW                      = auide_insw;
++	hwif->OUTSW                     = auide_outsw;
+ #endif
+ 	hwif->select_data               = 0;    /* no chipset-specific code */
+ 	hwif->config_data               = 0;    /* no chipset-specific code */
+diff -puN drivers/ide/pci/scc_pata.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods drivers/ide/pci/scc_pata.c
+--- a/drivers/ide/pci/scc_pata.c~revert-ide-mm-ide-remove-inswl-and-outswl-methods
++++ a/drivers/ide/pci/scc_pata.c
+@@ -624,9 +624,13 @@ static void __devinit init_mmio_iops_scc
+ 
+ 	hwif->INB = scc_ide_inb;
+ 	hwif->INW = scc_ide_inw;
++	hwif->INSW = scc_ide_insw;
++	hwif->INSL = scc_ide_insl;
+ 	hwif->OUTB = scc_ide_outb;
+ 	hwif->OUTBSYNC = scc_ide_outbsync;
+ 	hwif->OUTW = scc_ide_outw;
++	hwif->OUTSW = scc_ide_outsw;
++	hwif->OUTSL = scc_ide_outsl;
+ 
+ 	io_ports->data_addr	= dma_base + 0x20;
+ 	io_ports->error_addr	= dma_base + 0x24;
+diff -puN include/linux/ide.h~revert-ide-mm-ide-remove-inswl-and-outswl-methods include/linux/ide.h
+--- a/include/linux/ide.h~revert-ide-mm-ide-remove-inswl-and-outswl-methods
++++ a/include/linux/ide.h
+@@ -480,9 +480,13 @@ typedef struct hwif_s {
+ 	void (*OUTB)(u8 addr, unsigned long port);
+ 	void (*OUTBSYNC)(ide_drive_t *drive, u8 addr, unsigned long port);
+ 	void (*OUTW)(u16 addr, unsigned long port);
++	void (*OUTSW)(unsigned long port, void *addr, u32 count);
++	void (*OUTSL)(unsigned long port, void *addr, u32 count);
+ 
+ 	u8  (*INB)(unsigned long port);
+ 	u16 (*INW)(unsigned long port);
++	void (*INSW)(unsigned long port, void *addr, u32 count);
++	void (*INSL)(unsigned long port, void *addr, u32 count);
+ 
+ 	/* dma physical region descriptor table (cpu view) */
+ 	unsigned int	*dmatable_cpu;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -124,9 +348,11 @@ touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
 git-leds.patch
 git-libata-all.patch
 drivers-ata-sata_fslc-fix-warnings-small-memory-leak.patch
+revert-ide-mm-ide-remove-inswl-and-outswl-methods.patch
 git-async-tx.patch
 git-mips.patch
 git-net.patch
+net-ipv6-ip6_inputc-fix-a-couple-of-warnings.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 ehea-fix-dlpar-memory-add-support-fix.patch
@@ -283,5 +509,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-net-ipv6-ip6_inputc-fix-a-couple-of-warnings.patch
 
