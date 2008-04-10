@@ -1,92 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - adm8211-remove-commented-out-code.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 13:01:44 -0700
-Message-ID: <200804102001.m3AK1ieL014999@imap1.linux-foundation.org>
+Subject: - nfs-nommu-fix-bug-executing-fdpic-elf-on-nfs-mount-triggers-bug-at-mm-nommuc-862-do_mmap_private.patch removed from -mm tree
+Date: Thu, 10 Apr 2008 13:01:49 -0700
+Message-ID: <200804102001.m3AK1n1T015005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51711 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752659AbYDJUDl (ORCPT
+	by vger.kernel.org with ESMTP id S1757547AbYDJUMK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 16:03:41 -0400
+	Thu, 10 Apr 2008 16:12:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, flamingice@sourmilk.net, johannes@sipsolutions.net, linville@tuxdriver.com, pavel@suse.cz, mm-commits@vger.kernel.org
+To: cooloney@kernel.org, bfields@fieldses.org, dhowells@redhat.com, trond.myklebust@fys.uio.no, vapier.adi@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     adm8211: remove commented-out code
+     nfs/nommu: fix bug: executing FDPIC ELF on NFS mount triggers BUG() at mm/nommu.c:862:/do_mmap_private()
 has been removed from the -mm tree.  Its filename was
-     adm8211-remove-commented-out-code.patch
+     nfs-nommu-fix-bug-executing-fdpic-elf-on-nfs-mount-triggers-bug-at-mm-nommuc-862-do_mmap_private.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: adm8211: remove commented-out code
-From: Pavel Machek <pavel@ucw.cz>
+Subject: nfs/nommu: fix bug: executing FDPIC ELF on NFS mount triggers BUG() at mm/nommu.c:862:/do_mmap_private()
+From: Bryan Wu <cooloney@kernel.org>
 
-Remove some commented-out code from adm8211.
+NFS needs a NOMMU version mmap function to support uClinux on NOMMU machine
+http://blackfin.uclinux.org/gf/project/uclinux-dist/tracker/?action=TrackerItemEdit&tracker_id=141&tracker_item_id=3992
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: Michael Wu <flamingice@sourmilk.net>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/adm8211.c |    7 -------
- 1 file changed, 7 deletions(-)
+ fs/nfs/file.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/net/wireless/adm8211.c~adm8211-remove-commented-out-code drivers/net/wireless/adm8211.c
---- a/drivers/net/wireless/adm8211.c~adm8211-remove-commented-out-code
-+++ a/drivers/net/wireless/adm8211.c
-@@ -488,9 +488,6 @@ do {									   \
- 	if (stsr & ADM8211_STSR_TCI)
- 		adm8211_interrupt_tci(dev);
- 
--	/*ADM8211_INT(LinkOn);*/
--	/*ADM8211_INT(LinkOff);*/
--
- 	ADM8211_INT(PCF);
- 	ADM8211_INT(BCNTC);
- 	ADM8211_INT(GPINT);
-@@ -500,7 +497,6 @@ do {									   \
- 	ADM8211_INT(SQL);
- 	ADM8211_INT(WEPTD);
- 	ADM8211_INT(ATIME);
--	/*ADM8211_INT(TBTT);*/
- 	ADM8211_INT(TEIS);
- 	ADM8211_INT(FBE);
- 	ADM8211_INT(REIS);
-@@ -508,9 +504,6 @@ do {									   \
- 	ADM8211_INT(RPS);
- 	ADM8211_INT(RDU);
- 	ADM8211_INT(TUF);
--	/*ADM8211_INT(TRT);*/
--	/*ADM8211_INT(TLT);*/
--	/*ADM8211_INT(TDU);*/
- 	ADM8211_INT(TPS);
- 
- 	return IRQ_HANDLED;
+diff -puN fs/nfs/file.c~nfs-nommu-fix-bug-executing-fdpic-elf-on-nfs-mount-triggers-bug-at-mm-nommuc-862-do_mmap_private fs/nfs/file.c
+--- a/fs/nfs/file.c~nfs-nommu-fix-bug-executing-fdpic-elf-on-nfs-mount-triggers-bug-at-mm-nommuc-862-do_mmap_private
++++ a/fs/nfs/file.c
+@@ -64,7 +64,11 @@ const struct file_operations nfs_file_op
+ 	.write		= do_sync_write,
+ 	.aio_read	= nfs_file_read,
+ 	.aio_write	= nfs_file_write,
++#ifdef CONFIG_MMU
+ 	.mmap		= nfs_file_mmap,
++#else
++	.mmap		= generic_file_mmap,
++#endif
+ 	.open		= nfs_file_open,
+ 	.flush		= nfs_file_flush,
+ 	.release	= nfs_file_release,
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from cooloney@kernel.org are
 
 origin.patch
-git-acpi.patch
-git-x86.patch
-pm-remove-destroy_suspended_device.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
-pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.patch
-pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
-git-hrt.patch
-git-net.patch
-hci_usb-do-not-initialize-static-variables-to-0.patch
-hci_usb-remove-code-obfuscation.patch
-hci_usbh-fix-hard-to-trigger-race.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+git-watchdog.patch
+smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
 
