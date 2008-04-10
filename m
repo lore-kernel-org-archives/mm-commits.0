@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + frv-make-nommu-mode-work-with-base-addresses-other-than-0xc0000000.patch added to -mm tree
-Date: Thu, 10 Apr 2008 13:46:22 -0700
-Message-ID: <200804102046.m3AKkMWc016698@imap1.linux-foundation.org>
+Subject: + frv-handle-update_mmu_cache-being-called-when-current-mm-is-null.patch added to -mm tree
+Date: Thu, 10 Apr 2008 13:46:16 -0700
+Message-ID: <200804102046.m3AKkGRg016689@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60091 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40367 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758729AbYDJUqn (ORCPT
+	by vger.kernel.org with ESMTP id S1757575AbYDJUqi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 16:46:43 -0400
+	Thu, 10 Apr 2008 16:46:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dhowells@redhat.com
 
 
 The patch titled
-     frv: make NOMMU-mode work with base addresses other than 0xC0000000
+     frv: handle update_mmu_cache() being called when current->mm is NULL
 has been added to the -mm tree.  Its filename is
-     frv-make-nommu-mode-work-with-base-addresses-other-than-0xc0000000.patch
+     frv-handle-update_mmu_cache-being-called-when-current-mm-is-null.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: make NOMMU-mode work with base addresses other than 0xC0000000
+Subject: frv: handle update_mmu_cache() being called when current->mm is NULL
 From: David Howells <dhowells@redhat.com>
 
-Make NOMMU-mode work with base addresses other than 0xC0000000 by:
+Handle update_mmu_cache() being called when current->mm is NULL.
 
- (1) Giving the code that sets up the protection registers the right address
-     in __sdram_base.  Rather than being hard coded to 0xC0000000, the value
-     of __page_offset is obtained from the linker script.
+We cache static TLB mappings for the current page table in DAMPR4 and DAMPR5
+on the theory that the next data lookup is likely to be in the same general
+region, and thus is likely to be mapped by the same page table.  However, we
+can't get this information if we can't access the appropriate mm_struct.
 
- (2) Eliminate the check in __switch_to() that verifies the current thread
-     info is in the 0xCxxxxxxx region.
+If current->mm is NULL, we just clear the cache in the knowledge that the TLB
+miss handlers will load it.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/head.inc    |    2 +-
- arch/frv/kernel/switch_to.S |    7 -------
- 2 files changed, 1 insertion(+), 8 deletions(-)
+ include/asm-frv/pgtable.h |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN arch/frv/kernel/head.inc~frv-make-nommu-mode-work-with-base-addresses-other-than-0xc0000000 arch/frv/kernel/head.inc
---- a/arch/frv/kernel/head.inc~frv-make-nommu-mode-work-with-base-addresses-other-than-0xc0000000
-+++ a/arch/frv/kernel/head.inc
-@@ -46,5 +46,5 @@
- #ifdef CONFIG_MMU
- __sdram_base = 0x00000000		/* base address to which SDRAM relocated */
- #else
--__sdram_base = 0xc0000000		/* base address to which SDRAM relocated */
-+__sdram_base = __page_offset		/* base address to which SDRAM relocated */
- #endif
-diff -puN arch/frv/kernel/switch_to.S~frv-make-nommu-mode-work-with-base-addresses-other-than-0xc0000000 arch/frv/kernel/switch_to.S
---- a/arch/frv/kernel/switch_to.S~frv-make-nommu-mode-work-with-base-addresses-other-than-0xc0000000
-+++ a/arch/frv/kernel/switch_to.S
-@@ -102,13 +102,6 @@ __switch_to:
- 	movgs		gr14,lr
- 	bar
+diff -puN include/asm-frv/pgtable.h~frv-handle-update_mmu_cache-being-called-when-current-mm-is-null include/asm-frv/pgtable.h
+--- a/include/asm-frv/pgtable.h~frv-handle-update_mmu_cache-being-called-when-current-mm-is-null
++++ a/include/asm-frv/pgtable.h
+@@ -507,13 +507,22 @@ static inline int pte_file(pte_t pte)
+  */
+ static inline void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t pte)
+ {
++	struct mm_struct *mm;
+ 	unsigned long ampr;
+-	pgd_t *pge = pgd_offset(current->mm, address);
+-	pud_t *pue = pud_offset(pge, address);
+-	pmd_t *pme = pmd_offset(pue, address);
  
--	srli		gr15,#28,gr5
--	subicc		gr5,#0xc,gr0,icc0
--	beq		icc0,#0,111f
--	break
--	nop
--111:
--
- 	# jump to __switch_back or ret_from_fork as appropriate
- 	# - move prev to GR8
- 	movgs		gr4,psr
+-	ampr = pme->ste[0] & 0xffffff00;
+-	ampr |= xAMPRx_L | xAMPRx_SS_16Kb | xAMPRx_S | xAMPRx_C | xAMPRx_V;
++	mm = current->mm;
++	if (mm) {
++		pgd_t *pge = pgd_offset(mm, address);
++		pud_t *pue = pud_offset(pge, address);
++		pmd_t *pme = pmd_offset(pue, address);
++
++		ampr = pme->ste[0] & 0xffffff00;
++		ampr |= xAMPRx_L | xAMPRx_SS_16Kb | xAMPRx_S | xAMPRx_C |
++			xAMPRx_V;
++	} else {
++		address = ULONG_MAX;
++		ampr = 0;
++	}
+ 
+ 	asm volatile("movgs %0,scr0\n"
+ 		     "movgs %0,scr1\n"
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
