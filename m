@@ -1,220 +1,296 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-make-iommu-respect-the-segment-boundary-limits.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 13:01:20 -0700
-Message-ID: <200804102001.m3AK1KaW014966@imap1.linux-foundation.org>
+Subject: - drivers-ata-sata_fslc-fix-warnings-small-memory-leak.patch removed from -mm tree
+Date: Thu, 10 Apr 2008 13:01:32 -0700
+Message-ID: <200804102001.m3AK1WfR014982@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758789AbYDJUCP (ORCPT
+	by vger.kernel.org with ESMTP id S1756922AbYDJUCl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 16:02:15 -0400
+	Thu, 10 Apr 2008 16:02:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fujita.tomonori@lab.ntt.co.jp, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ashish.kalra@freescale.com, danielm77@spray.se, galak@kernel.crashing.org, htejun@gmail.com, jeff@garzik.org, kim.phillips@freescale.com, leoli@freescale.com
 
 
 The patch titled
-     ia64: make IOMMU respect the segment boundary limits
+     drivers/ata/sata_fsl.c: fix warnings, small memory leak
 has been removed from the -mm tree.  Its filename was
-     ia64-make-iommu-respect-the-segment-boundary-limits.patch
+     drivers-ata-sata_fslc-fix-warnings-small-memory-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: make IOMMU respect the segment boundary limits
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: drivers/ata/sata_fsl.c: fix warnings, small memory leak
+From: Andrew Morton <akpm@linux-foundation.org>
 
-IA64's IOMMU implementation allocates memory areas spanning LLD's segment
-boundary limit.  It forces low level drivers to have a workaround to adjust
-scatter lists that the IOMMU builds.
+As pointed out by Daniel Marjamki in
+http://bugzilla.kernel.org/show_bug.cgi?id=10404, local variable `r' in
+sata_fsl_probe() is unused.
 
-We are in the process of making all the IOMMUs respect the segment boundary
-limits to remove such work around in LLDs.  This patch is for IA64's IOMMU.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Tony Luck <tony.luck@intel.com>
+Also, fix these:
+
+drivers/ata/sata_fsl.c: In function 'sata_fsl_fill_sg':
+drivers/ata/sata_fsl.c:352: warning: format '%x' expects type 'unsigned int', but argument 4 has type 'dma_addr_t'
+drivers/ata/sata_fsl.c: In function 'sata_fsl_port_start':
+drivers/ata/sata_fsl.c:595: warning: unused variable 'retval'
+
+Reported-by: Daniel Marjamki <danielm77@spray.se>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Li Yang <leoli@freescale.com>
+Cc: ashish kalra <ashish.kalra@freescale.com>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Kim Phillips <kim.phillips@freescale.com>
+Cc: Kumar Gala <galak@kernel.crashing.org>
+Cc: Ashish Kalra <ashish.kalra@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/Kconfig               |    3 +
- arch/ia64/hp/common/sba_iommu.c |   56 ++++++++++++++++++++----------
- 2 files changed, 42 insertions(+), 17 deletions(-)
+ drivers/ata/sata_fsl.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/Kconfig~ia64-make-iommu-respect-the-segment-boundary-limits arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~ia64-make-iommu-respect-the-segment-boundary-limits
-+++ a/arch/ia64/Kconfig
-@@ -622,6 +622,9 @@ config IRQ_PER_CPU
- 	bool
- 	default y
- 
-+config IOMMU_HELPER
-+	def_bool (IA64_HP_ZX1 || IA64_HP_ZX1_SWIOTLB || IA64_GENERIC)
-+
- source "arch/ia64/hp/sim/Kconfig"
- 
- source "arch/ia64/Kconfig.debug"
-diff -puN arch/ia64/hp/common/sba_iommu.c~ia64-make-iommu-respect-the-segment-boundary-limits arch/ia64/hp/common/sba_iommu.c
---- a/arch/ia64/hp/common/sba_iommu.c~ia64-make-iommu-respect-the-segment-boundary-limits
-+++ a/arch/ia64/hp/common/sba_iommu.c
-@@ -35,6 +35,7 @@
- #include <linux/nodemask.h>
- #include <linux/bitops.h>         /* hweight64() */
- #include <linux/crash_dump.h>
-+#include <linux/iommu-helper.h>
- 
- #include <asm/delay.h>		/* ia64_get_itc() */
- #include <asm/io.h>
-@@ -460,6 +461,13 @@ get_iovp_order (unsigned long size)
- 	return order;
- }
- 
-+static unsigned long ptr_to_pide(struct ioc *ioc, unsigned long *res_ptr,
-+				 unsigned int bitshiftcnt)
-+{
-+	return (((unsigned long)res_ptr - (unsigned long)ioc->res_map) << 3)
-+		+ bitshiftcnt;
-+}
-+
- /**
-  * sba_search_bitmap - find free space in IO PDIR resource bitmap
-  * @ioc: IO MMU structure which owns the pdir we are interested in.
-@@ -471,15 +479,25 @@ get_iovp_order (unsigned long size)
-  * Cool perf optimization: search for log2(size) bits at a time.
-  */
- static SBA_INLINE unsigned long
--sba_search_bitmap(struct ioc *ioc, unsigned long bits_wanted, int use_hint)
-+sba_search_bitmap(struct ioc *ioc, struct device *dev,
-+		  unsigned long bits_wanted, int use_hint)
+diff -puN drivers/ata/sata_fsl.c~drivers-ata-sata_fslc-fix-warnings-small-memory-leak drivers/ata/sata_fsl.c
+--- a/drivers/ata/sata_fsl.c~drivers-ata-sata_fslc-fix-warnings-small-memory-leak
++++ a/drivers/ata/sata_fsl.c
+@@ -349,7 +349,8 @@ static unsigned int sata_fsl_fill_sg(str
+ 		/* warn if each s/g element is not dword aligned */
+ 		if (sg_addr & 0x03)
+ 			ata_port_printk(qc->ap, KERN_ERR,
+-					"s/g addr unaligned : 0x%x\n", sg_addr);
++					"s/g addr unaligned : 0x%Lx\n",
++					(unsigned long long)sg_addr);
+ 		if (sg_len & 0x03)
+ 			ata_port_printk(qc->ap, KERN_ERR,
+ 					"s/g len unaligned : 0x%x\n", sg_len);
+@@ -591,7 +592,6 @@ static int sata_fsl_port_start(struct at
  {
- 	unsigned long *res_ptr;
- 	unsigned long *res_end = (unsigned long *) &(ioc->res_map[ioc->res_size]);
--	unsigned long flags, pide = ~0UL;
-+	unsigned long flags, pide = ~0UL, tpide;
-+	unsigned long boundary_size;
-+	unsigned long shift;
-+	int ret;
+ 	struct device *dev = ap->host->dev;
+ 	struct sata_fsl_port_priv *pp;
+-	int retval;
+ 	void *mem;
+ 	dma_addr_t mem_dma;
+ 	struct sata_fsl_host_priv *host_priv = ap->host->private_data;
+@@ -1227,7 +1227,6 @@ static int sata_fsl_probe(struct of_devi
+ 	void __iomem *ssr_base = NULL;
+ 	void __iomem *csr_base = NULL;
+ 	struct sata_fsl_host_priv *host_priv = NULL;
+-	struct resource *r;
+ 	int irq;
+ 	struct ata_host *host;
  
- 	ASSERT(((unsigned long) ioc->res_hint & (sizeof(unsigned long) - 1UL)) == 0);
- 	ASSERT(res_ptr < res_end);
+@@ -1237,7 +1236,6 @@ static int sata_fsl_probe(struct of_devi
+ 	dev_printk(KERN_INFO, &ofdev->dev,
+ 		   "Sata FSL Platform/CSB Driver init\n");
  
-+	boundary_size = (unsigned long long)dma_get_seg_boundary(dev) + 1;
-+	boundary_size = ALIGN(boundary_size, 1ULL << iovp_shift) >> iovp_shift;
-+
-+	BUG_ON(ioc->ibase & ~iovp_mask);
-+	shift = ioc->ibase >> iovp_shift;
-+
- 	spin_lock_irqsave(&ioc->res_lock, flags);
+-	r = kmalloc(sizeof(struct resource), GFP_KERNEL);
  
- 	/* Allow caller to force a search through the entire resource space */
-@@ -504,9 +522,7 @@ sba_search_bitmap(struct ioc *ioc, unsig
- 			if (likely(*res_ptr != ~0UL)) {
- 				bitshiftcnt = ffz(*res_ptr);
- 				*res_ptr |= (1UL << bitshiftcnt);
--				pide = ((unsigned long)res_ptr - (unsigned long)ioc->res_map);
--				pide <<= 3;	/* convert to bit address */
--				pide += bitshiftcnt;
-+				pide = ptr_to_pide(ioc, res_ptr, bitshiftcnt);
- 				ioc->res_bitshift = bitshiftcnt + bits_wanted;
- 				goto found_it;
- 			}
-@@ -535,11 +551,13 @@ sba_search_bitmap(struct ioc *ioc, unsig
- 			DBG_RES("    %p %lx %lx\n", res_ptr, mask, *res_ptr);
- 			ASSERT(0 != mask);
- 			for (; mask ; mask <<= o, bitshiftcnt += o) {
--				if(0 == ((*res_ptr) & mask)) {
-+				tpide = ptr_to_pide(ioc, res_ptr, bitshiftcnt);
-+				ret = iommu_is_span_boundary(tpide, bits_wanted,
-+							     shift,
-+							     boundary_size);
-+				if ((0 == ((*res_ptr) & mask)) && !ret) {
- 					*res_ptr |= mask;     /* mark resources busy! */
--					pide = ((unsigned long)res_ptr - (unsigned long)ioc->res_map);
--					pide <<= 3;	/* convert to bit address */
--					pide += bitshiftcnt;
-+					pide = tpide;
- 					ioc->res_bitshift = bitshiftcnt + bits_wanted;
- 					goto found_it;
- 				}
-@@ -560,6 +578,11 @@ sba_search_bitmap(struct ioc *ioc, unsig
- 		end = res_end - qwords;
- 
- 		for (; res_ptr < end; res_ptr++) {
-+			tpide = ptr_to_pide(ioc, res_ptr, 0);
-+			ret = iommu_is_span_boundary(tpide, bits_wanted,
-+						     shift, boundary_size);
-+			if (ret)
-+				goto next_ptr;
- 			for (i = 0 ; i < qwords ; i++) {
- 				if (res_ptr[i] != 0)
- 					goto next_ptr;
-@@ -572,8 +595,7 @@ sba_search_bitmap(struct ioc *ioc, unsig
- 				res_ptr[i] = ~0UL;
- 			res_ptr[i] |= RESMAP_MASK(bits);
- 
--			pide = ((unsigned long)res_ptr - (unsigned long)ioc->res_map);
--			pide <<= 3;	/* convert to bit address */
-+			pide = tpide;
- 			res_ptr += qwords;
- 			ioc->res_bitshift = bits;
- 			goto found_it;
-@@ -605,7 +627,7 @@ found_it:
-  * resource bit map.
-  */
- static int
--sba_alloc_range(struct ioc *ioc, size_t size)
-+sba_alloc_range(struct ioc *ioc, struct device *dev, size_t size)
- {
- 	unsigned int pages_needed = size >> iovp_shift;
- #ifdef PDIR_SEARCH_TIMING
-@@ -622,9 +644,9 @@ sba_alloc_range(struct ioc *ioc, size_t 
- 	/*
- 	** "seek and ye shall find"...praying never hurts either...
- 	*/
--	pide = sba_search_bitmap(ioc, pages_needed, 1);
-+	pide = sba_search_bitmap(ioc, dev, pages_needed, 1);
- 	if (unlikely(pide >= (ioc->res_size << 3))) {
--		pide = sba_search_bitmap(ioc, pages_needed, 0);
-+		pide = sba_search_bitmap(ioc, dev, pages_needed, 0);
- 		if (unlikely(pide >= (ioc->res_size << 3))) {
- #if DELAYED_RESOURCE_CNT > 0
- 			unsigned long flags;
-@@ -653,7 +675,7 @@ sba_alloc_range(struct ioc *ioc, size_t 
- 			}
- 			spin_unlock_irqrestore(&ioc->saved_lock, flags);
- 
--			pide = sba_search_bitmap(ioc, pages_needed, 0);
-+			pide = sba_search_bitmap(ioc, dev, pages_needed, 0);
- 			if (unlikely(pide >= (ioc->res_size << 3)))
- 				panic(__FILE__ ": I/O MMU @ %p is out of mapping resources\n",
- 				      ioc->ioc_hpa);
-@@ -936,7 +958,7 @@ sba_map_single(struct device *dev, void 
- 	spin_unlock_irqrestore(&ioc->res_lock, flags);
- #endif
- 
--	pide = sba_alloc_range(ioc, size);
-+	pide = sba_alloc_range(ioc, dev, size);
- 
- 	iovp = (dma_addr_t) pide << iovp_shift;
- 
-@@ -1373,7 +1395,7 @@ sba_coalesce_chunks(struct ioc *ioc, str
- 		dma_len = (dma_len + dma_offset + ~iovp_mask) & iovp_mask;
- 		ASSERT(dma_len <= DMA_CHUNK_SIZE);
- 		dma_sg->dma_address = (dma_addr_t) (PIDE_FLAG
--			| (sba_alloc_range(ioc, dma_len) << iovp_shift)
-+			| (sba_alloc_range(ioc, dev, dma_len) << iovp_shift)
- 			| dma_offset);
- 		n_mappings++;
- 	}
+ 	hcr_base = of_iomap(ofdev->node, 0);
+ 	if (!hcr_base)
 _
 
-Patches currently in -mm which might be from fujita.tomonori@lab.ntt.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+include-asm-alpha-semaphoreh-use-static-inline-on-inlines.patch
+revert-x86-fix-call-to-set_cyc2ns_scale-from-time_cpufreq_notifier.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+git-acpi.patch
+git-acpi-revert-suspend-wakeup-code-in-c.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86.patch
+arch-x86-mm-ioremapc-fix-printk-warnings.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+git-kgdb-light.patch
+git-x86-hack-around-to-make-git-kgdb-build.patch
+git-x86-vs-git-kgdb-lite.patch
+git-alsa-tiwai.patch
+es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+cifs-suppress-warning.patch
+git-powerpc.patch
+pm-remove-destroy_suspended_device.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
+pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch
+git-dvb.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-dlm-vs-git-gfs2-nwm.patch
+git-hid.patch
+git-hrt.patch
+time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
 git-ia64.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-leds.patch
+git-libata-all.patch
+git-async-tx.patch
+git-mips.patch
+git-net.patch
+net-ipv6-ip6_inputc-fix-a-couple-of-warnings.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+ehea-fix-dlpar-memory-add-support-fix.patch
+sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
+pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-introduce-pci_slot-fix-fix.patch
+pci-hotplug-introduce-pci_slot-fix-2.patch
+pci-hotplug-introduce-pci_slot-fix-99.patch
+pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
+git-s390.patch
+git-sched.patch
+git-sh.patch
+sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
 git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-misplaced-hunk.patch
+git-cryptodev-fix-conflict.patch
+git-cryptodev-fix-conflict-hack.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+git-semaphore-vs-git-x86.patch
+git-semaphore-git-rejects.patch
+git-semaphore-alpha-fix.patch
+ext4-is-busted-on-m68k.patch
+smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+mm-introduce-pte_special-pte-bit-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
 lib-swiotlbc-cleanups.patch
-swiotlb-use-iommu_is_span_boundary-helper-function.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
 
