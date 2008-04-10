@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-switch-proc-driver-ray_cs-ray_cs-to-seq_file-interface.patch added to -mm tree
-Date: Thu, 10 Apr 2008 14:34:35 -0700
-Message-ID: <200804102134.m3ALYZfh018457@imap1.linux-foundation.org>
+Subject: + proc-remove-proc-mac_iop.patch added to -mm tree
+Date: Thu, 10 Apr 2008 14:34:46 -0700
+Message-ID: <200804102134.m3ALYkwn018469@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44864 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39123 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756310AbYDJVgw (ORCPT
+	by vger.kernel.org with ESMTP id S1753373AbYDJVg1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 17:36:52 -0400
+	Thu, 10 Apr 2008 17:36:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, davem@davemloft.net, jgarzik@pobox.com, jt@hpl.hp.com, linux@dominikbrodowski.net, linville@tuxdriver.com
+Cc: adobriyan@sw.ru, joern@wohnheim.fh-wedel.de, simon@fire.lp0.eu, zippel@linux-m68k.org
 
 
 The patch titled
-     proc: switch /proc/driver/ray_cs/ray_cs to seq_file interface
+     proc: remove /proc/mac_iop
 has been added to the -mm tree.  Its filename is
-     proc-switch-proc-driver-ray_cs-ray_cs-to-seq_file-interface.patch
+     proc-remove-proc-mac_iop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,173 +34,135 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: switch /proc/driver/ray_cs/ray_cs to seq_file interface
+Subject: proc: remove /proc/mac_iop
 From: Alexey Dobriyan <adobriyan@sw.ru>
 
+Entry creation was commented for a long time and right now it stands on
+the way of ->get_info removal, so unless nobody objects...
+
 Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Jean Tourrilhes <jt@hpl.hp.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Jeff Garzik <jgarzik@pobox.com>
+Cc: Simon Arlott <simon@fire.lp0.eu>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Joern Engel <joern@wohnheim.fh-wedel.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ray_cs.c |   73 ++++++++++++++++++--------------
- 1 file changed, 42 insertions(+), 31 deletions(-)
+ arch/m68k/mac/iop.c |   85 ------------------------------------------
+ 1 file changed, 85 deletions(-)
 
-diff -puN drivers/net/wireless/ray_cs.c~proc-switch-proc-driver-ray_cs-ray_cs-to-seq_file-interface drivers/net/wireless/ray_cs.c
---- a/drivers/net/wireless/ray_cs.c~proc-switch-proc-driver-ray_cs-ray_cs-to-seq_file-interface
-+++ a/drivers/net/wireless/ray_cs.c
-@@ -34,6 +34,7 @@
- #include <linux/kernel.h>
- #include <linux/proc_fs.h>
- #include <linux/ptrace.h>
-+#include <linux/seq_file.h>
- #include <linux/slab.h>
- #include <linux/string.h>
- #include <linux/timer.h>
-@@ -2582,7 +2583,7 @@ static char *nettype[] = {"Adhoc", "Infr
- static char *framing[] = {"Encapsulation", "Translation"}
- ;
- /*===========================================================================*/
--static int ray_cs_proc_read(char *buf, char **start, off_t offset, int len)
-+static int ray_cs_proc_show(struct seq_file *m, void *v)
- {
- /* Print current values which are not available via other means
-  * eg ifconfig 
-@@ -2606,83 +2607,93 @@ static int ray_cs_proc_read(char *buf, c
-     if (!local)
-     	return 0;
+diff -puN arch/m68k/mac/iop.c~proc-remove-proc-mac_iop arch/m68k/mac/iop.c
+--- a/arch/m68k/mac/iop.c~proc-remove-proc-mac_iop
++++ a/arch/m68k/mac/iop.c
+@@ -109,7 +109,6 @@
+ #include <linux/mm.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
+-#include <linux/proc_fs.h>
+ #include <linux/interrupt.h>
  
--    len = 0;
+ #include <asm/bootinfo.h>
+@@ -124,10 +123,6 @@
+ 
+ int iop_scc_present,iop_ism_present;
+ 
+-#ifdef CONFIG_PROC_FS
+-static int iop_get_proc_info(char *, char **, off_t, int);
+-#endif /* CONFIG_PROC_FS */
 -
--    len += sprintf(buf + len, "Raylink Wireless LAN driver status\n");
--    len += sprintf(buf + len, "%s\n", rcsid);
-+    seq_puts(m, "Raylink Wireless LAN driver status\n");
-+    seq_printf(m, "%s\n", rcsid);
-     /* build 4 does not report version, and field is 0x55 after memtest */
--    len += sprintf(buf + len, "Firmware version     = ");
-+    seq_puts(m, "Firmware version     = ");
-     if (local->fw_ver == 0x55)
--        len += sprintf(buf + len, "4 - Use dump_cis for more details\n");
-+        seq_puts(m, "4 - Use dump_cis for more details\n");
-     else
--        len += sprintf(buf + len, "%2d.%02d.%02d\n",
-+        seq_printf(m, "%2d.%02d.%02d\n",
-                    local->fw_ver, local->fw_bld, local->fw_var);
+ /* structure for tracking channel listeners */
  
-     for (i=0; i<32; i++) c[i] = local->sparm.b5.a_current_ess_id[i];
-     c[32] = 0;
--    len += sprintf(buf + len, "%s network ESSID = \"%s\"\n", 
-+    seq_printf(m, "%s network ESSID = \"%s\"\n",
-                    nettype[local->sparm.b5.a_network_type], c);
- 
-     p = local->bss_id;
--    len += sprintf(buf + len, "BSSID                = %s\n",
-+    seq_printf(m, "BSSID                = %s\n",
-                    print_mac(mac, p));
- 
--    len += sprintf(buf + len, "Country code         = %d\n", 
-+    seq_printf(m, "Country code         = %d\n",
-                    local->sparm.b5.a_curr_country_code);
- 
-     i = local->card_status;
-     if (i < 0) i = 10;
-     if (i > 16) i = 10;
--    len += sprintf(buf + len, "Card status          = %s\n", card_status[i]);
-+    seq_printf(m, "Card status          = %s\n", card_status[i]);
- 
--    len += sprintf(buf + len, "Framing mode         = %s\n",framing[translate]);
-+    seq_printf(m, "Framing mode         = %s\n",framing[translate]);
- 
--    len += sprintf(buf + len, "Last pkt signal lvl  = %d\n", local->last_rsl);
-+    seq_printf(m, "Last pkt signal lvl  = %d\n", local->last_rsl);
- 
-     if (local->beacon_rxed) {
- 	/* Pull some fields out of last beacon received */
--	len += sprintf(buf + len, "Beacon Interval      = %d Kus\n", 
-+	seq_printf(m, "Beacon Interval      = %d Kus\n",
- 		       local->last_bcn.beacon_intvl[0]
- 		       + 256 * local->last_bcn.beacon_intvl[1]);
-     
-     p = local->last_bcn.elements;
-     if (p[0] == C_ESSID_ELEMENT_ID) p += p[1] + 2;
-     else {
--        len += sprintf(buf + len, "Parse beacon failed at essid element id = %d\n",p[0]);
--        return len;
-+        seq_printf(m, "Parse beacon failed at essid element id = %d\n",p[0]);
-+        return 0;
-     }
- 
-     if (p[0] == C_SUPPORTED_RATES_ELEMENT_ID) {
--        len += sprintf(buf + len, "Supported rate codes = ");
-+        seq_puts(m, "Supported rate codes = ");
-         for (i=2; i<p[1] + 2; i++) 
--            len += sprintf(buf + len, "0x%02x ", p[i]);
--        len += sprintf(buf + len, "\n");
-+            seq_printf(m, "0x%02x ", p[i]);
-+        seq_putc(m, '\n');
-         p += p[1] + 2;
-     }
-     else {
--        len += sprintf(buf + len, "Parse beacon failed at rates element\n");
--        return len;
-+        seq_puts(m, "Parse beacon failed at rates element\n");
-+        return 0;
-     }
- 
- 	if (p[0] == C_FH_PARAM_SET_ELEMENT_ID) {
- 	    pfh = (struct freq_hop_element *)p;
--	    len += sprintf(buf + len, "Hop dwell            = %d Kus\n",
-+	    seq_printf(m, "Hop dwell            = %d Kus\n",
- 			   pfh->dwell_time[0] + 256 * pfh->dwell_time[1]);
--	    len += sprintf(buf + len, "Hop set              = %d \n", pfh->hop_set);
--	    len += sprintf(buf + len, "Hop pattern          = %d \n", pfh->hop_pattern);
--	    len += sprintf(buf + len, "Hop index            = %d \n", pfh->hop_index);
-+	    seq_printf(m, "Hop set              = %d \n", pfh->hop_set);
-+	    seq_printf(m, "Hop pattern          = %d \n", pfh->hop_pattern);
-+	    seq_printf(m, "Hop index            = %d \n", pfh->hop_index);
- 	    p += p[1] + 2;
+ struct listener {
+@@ -299,12 +294,6 @@ void __init iop_init(void)
+ 		iop_listeners[IOP_NUM_ISM][i].devname = NULL;
+ 		iop_listeners[IOP_NUM_ISM][i].handler = NULL;
  	}
- 	else {
--	    len += sprintf(buf + len, "Parse beacon failed at FH param element\n");
--	    return len;
-+	    seq_puts(m, "Parse beacon failed at FH param element\n");
-+	    return 0;
- 	}
-     } else {
--	len += sprintf(buf + len, "No beacons received\n");
-+	seq_puts(m, "No beacons received\n");
-     }
--    return len;
-+    return 0;
+-
+-#if 0	/* Crashing in 2.4 now, not yet sure why.   --jmt */
+-#ifdef CONFIG_PROC_FS
+-	create_proc_info_entry("mac_iop", 0, NULL, iop_get_proc_info);
+-#endif
+-#endif
  }
  
-+static int ray_cs_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, ray_cs_proc_show, NULL);
-+}
-+
-+static const struct file_operations ray_cs_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= ray_cs_proc_open,
-+	.read		= seq_read,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
- #endif
- /*===========================================================================*/
- static int build_auth_frame(ray_dev_t *local, UCHAR *dest, int auth_type)
-@@ -2815,7 +2826,7 @@ static int __init init_ray_cs(void)
- #ifdef CONFIG_PROC_FS
-     proc_mkdir("driver/ray_cs", NULL);
- 
--    create_proc_info_entry("driver/ray_cs/ray_cs", 0, NULL, &ray_cs_proc_read);
-+    proc_create("driver/ray_cs/ray_cs", 0, NULL, &ray_cs_proc_fops);
-     raycs_write("driver/ray_cs/essid", write_essid, NULL);
-     raycs_write("driver/ray_cs/net_type", write_int, &net_type);
-     raycs_write("driver/ray_cs/translate", write_int, &translate);
+ /*
+@@ -637,77 +626,3 @@ irqreturn_t iop_ism_irq(int irq, void *d
+ 	}
+ 	return IRQ_HANDLED;
+ }
+-
+-#ifdef CONFIG_PROC_FS
+-
+-char *iop_chan_state(int state)
+-{
+-	switch(state) {
+-		case IOP_MSG_IDLE	: return "idle      ";
+-		case IOP_MSG_NEW	: return "new       ";
+-		case IOP_MSG_RCVD	: return "received  ";
+-		case IOP_MSG_COMPLETE	: return "completed ";
+-		default			: return "unknown   ";
+-	}
+-}
+-
+-int iop_dump_one_iop(char *buf, int iop_num, char *iop_name)
+-{
+-	int i,len = 0;
+-	volatile struct mac_iop *iop = iop_base[iop_num];
+-
+-	len += sprintf(buf+len, "%s IOP channel states:\n\n", iop_name);
+-	len += sprintf(buf+len, "##  send_state  recv_state  device\n");
+-	len += sprintf(buf+len, "------------------------------------------------\n");
+-	for (i = 0 ; i < NUM_IOP_CHAN ; i++) {
+-		len += sprintf(buf+len, "%2d  %10s  %10s  %s\n", i,
+-			iop_chan_state(iop_readb(iop, IOP_ADDR_SEND_STATE+i)),
+-			iop_chan_state(iop_readb(iop, IOP_ADDR_RECV_STATE+i)),
+-			iop_listeners[iop_num][i].handler?
+-				      iop_listeners[iop_num][i].devname : "");
+-
+-	}
+-	len += sprintf(buf+len, "\n");
+-	return len;
+-}
+-
+-static int iop_get_proc_info(char *buf, char **start, off_t pos, int count)
+-{
+-	int len, cnt;
+-
+-	cnt = 0;
+-	len =  sprintf(buf, "IOPs detected:\n\n");
+-
+-	if (iop_scc_present) {
+-		len += sprintf(buf+len, "SCC IOP (%p): status %02X\n",
+-				iop_base[IOP_NUM_SCC],
+-				(uint) iop_base[IOP_NUM_SCC]->status_ctrl);
+-	}
+-	if (iop_ism_present) {
+-		len += sprintf(buf+len, "ISM IOP (%p): status %02X\n\n",
+-				iop_base[IOP_NUM_ISM],
+-				(uint) iop_base[IOP_NUM_ISM]->status_ctrl);
+-	}
+-
+-	if (iop_scc_present) {
+-		len += iop_dump_one_iop(buf+len, IOP_NUM_SCC, "SCC");
+-
+-	}
+-
+-	if (iop_ism_present) {
+-		len += iop_dump_one_iop(buf+len, IOP_NUM_ISM, "ISM");
+-
+-	}
+-
+-	if (len >= pos) {
+-		if (!*start) {
+-			*start = buf + pos;
+-			cnt = len - pos;
+-		} else {
+-			cnt += len;
+-		}
+-	}
+-	return (count > cnt) ? cnt : count;
+-}
+-
+-#endif /* CONFIG_PROC_FS */
 _
 
 Patches currently in -mm which might be from adobriyan@sw.ru are
