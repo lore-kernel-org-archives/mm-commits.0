@@ -1,63 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: + pata_atiixp-simplex-clear-fix.patch added to -mm tree
-Date: Thu, 10 Apr 2008 14:50:16 -0700
-Message-ID: <200804102200.m3AM0XdY019538@imap1.linux-foundation.org>
+Subject: - net-ipv6-ip6_inputc-fix-a-couple-of-warnings.patch removed from -mm tree
+Date: Thu, 10 Apr 2008 15:03:05 -0700
+Message-ID: <200804102213.m3AMDMXD019997@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41935 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47353 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756716AbYDJWAt (ORCPT
+	by vger.kernel.org with ESMTP id S1757148AbYDJWNd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 18:00:49 -0400
+	Thu, 10 Apr 2008 18:13:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org
+To: akpm@linux-foundation.org, davem@davemloft.net, yoshfuji@linux-ipv6.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_atiixp-simplex-clear-fix
-has been added to the -mm tree.  Its filename is
-     pata_atiixp-simplex-clear-fix.patch
+     net/ipv6/ip6_input.c: fix a couple of warnings
+has been removed from the -mm tree.  Its filename was
+     net-ipv6-ip6_inputc-fix-a-couple-of-warnings.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_atiixp-simplex-clear-fix
+Subject: net/ipv6/ip6_input.c: fix a couple of warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-stop renaming stuff
+net/ipv6/ip6_input.c: In function `ip6_mc_input':
+net/ipv6/ip6_input.c:312: warning: label `out' defined but not used
+net/ipv6/ip6_input.c:317: warning: label `discard' defined but not used
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jeff Garzik <jeff@garzik.org>
+It adds extra code and is slower.  Fire me.
+
+Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_atiixp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/ipv6/ip6_input.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/ata/pata_atiixp.c~pata_atiixp-simplex-clear-fix drivers/ata/pata_atiixp.c
---- a/drivers/ata/pata_atiixp.c~pata_atiixp-simplex-clear-fix
-+++ a/drivers/ata/pata_atiixp.c
-@@ -245,7 +245,7 @@ static int atiixp_init_one(struct pci_de
- 	const struct ata_port_info *ppi[] = { &info, NULL };
- 	/* Some of the quirk reconfiguration messes up the simplex flag, so
- 	   clear it again */
--	ata_pci_clear_simplex(dev);
-+	ata_pci_bmdma_clear_simplex(dev);
- 	return ata_pci_sff_init_one(dev, ppi, &atiixp_sht, NULL);
- }
+diff -puN net/ipv6/ip6_input.c~net-ipv6-ip6_inputc-fix-a-couple-of-warnings net/ipv6/ip6_input.c
+--- a/net/ipv6/ip6_input.c~net-ipv6-ip6_inputc-fix-a-couple-of-warnings
++++ a/net/ipv6/ip6_input.c
+@@ -288,7 +288,8 @@ int ip6_mc_input(struct sk_buff *skb)
+ 					break;
+ 				default:
+ 					/* Bogus */
+-					goto discard;
++					deliver = 0;
++					goto out;
+ 				}
+ 				deliver = 1;
+ 				goto out;
+@@ -308,13 +309,12 @@ int ip6_mc_input(struct sk_buff *skb)
+ 			ip6_mr_input(skb2);
+ 		}
+ 	}
+-#endif
+ out:
++#endif
+ 	if (likely(deliver)) {
+ 		ip6_input(skb);
+ 		return 0;
+ 	}
+-discard:
+ 	/* discard */
+ 	kfree_skb(skb);
  
 _
 
