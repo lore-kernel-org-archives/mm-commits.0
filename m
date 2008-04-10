@@ -1,111 +1,255 @@
 From: akpm@linux-foundation.org
-Subject: - spi-documentation-tweaks.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 13:01:07 -0700
-Message-ID: <200804102001.m3AK17qa014951@imap1.linux-foundation.org>
+Subject: - fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry.patch removed from -mm tree
+Date: Thu, 10 Apr 2008 13:00:42 -0700
+Message-ID: <200804102000.m3AK0gqK014917@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46327 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756636AbYDJUBu (ORCPT
+	by vger.kernel.org with ESMTP id S1753377AbYDJUBV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 16:01:50 -0400
+	Thu, 10 Apr 2008 16:01:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, rpjday@crashcourse.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: documentation tweaks
+     fix gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry
 has been removed from the -mm tree.  Its filename was
-     spi-documentation-tweaks.patch
+     fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: documentation tweaks
-From: David Brownell <david-b@pacbell.net>
+Subject: fix gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Update SPI documentation to clarify some areas of recent confusion: clock
-polarity takes effect when chipselect goes active; and zero length buffers are
-OK in certain cases.
+lib/kobject.c: In function 'kset_find_obj':
+lib/kobject.c:750: warning: unused variable 'entry'
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/spi/spi-summary |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ lib/kobject.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN Documentation/spi/spi-summary~spi-documentation-tweaks Documentation/spi/spi-summary
---- a/Documentation/spi/spi-summary~spi-documentation-tweaks
-+++ a/Documentation/spi/spi-summary
-@@ -116,6 +116,13 @@ low order bit.  So when a chip's timing 
- starting low (CPOL=0) and data stabilized for sampling during the
- trailing clock edge (CPHA=1), that's SPI mode 1.
+diff -puN lib/kobject.c~fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry lib/kobject.c
+--- a/lib/kobject.c~fix-gregkh-driver-kobject-replace-list_for_each-with-list_for_each_entry
++++ a/lib/kobject.c
+@@ -799,7 +799,6 @@ void kset_unregister(struct kset *k)
+  */
+ struct kobject *kset_find_obj(struct kset *kset, const char *name)
+ {
+-	struct list_head *entry;
+ 	struct kobject *k, *ret = NULL;
  
-+Note that the clock mode is relevant as soon as the chipselect goes
-+active.  So the master must set the clock to inactive before selecting
-+a slave, and the slave can tell the chosen polarity by sampling the
-+clock level when its select line goes active.  That's why many devices
-+support for example both modes 0 and 3:  they don't care about polarity,
-+and alway clock data in/out on rising clock edges.
-+
- 
- How do these driver programming interfaces work?
- ------------------------------------------------
-@@ -379,8 +386,14 @@ any more such messages.
-       + when bidirectional reads and writes start ... by how its
-         sequence of spi_transfer requests is arranged;
- 
-+      + which I/O buffers are used ... each spi_transfer wraps a
-+        buffer for each transfer direction, supporting full duplex
-+        (two pointers, maybe the same one in both cases) and half
-+        duplex (one pointer is NULL) transfers;
-+
-       + optionally defining short delays after transfers ... using
--        the spi_transfer.delay_usecs setting;
-+        the spi_transfer.delay_usecs setting (this delay can be the
-+        only protocol effect, if the buffer length is zero);
- 
-       + whether the chipselect becomes inactive after a transfer and
-         any delay ... by using the spi_transfer.cs_change flag;
+ 	spin_lock(&kset->list_lock);
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+include-asm-alpha-semaphoreh-use-static-inline-on-inlines.patch
+revert-x86-fix-call-to-set_cyc2ns_scale-from-time_cpufreq_notifier.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
 git-acpi.patch
-git-arm.patch
-git-avr32.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7.patch
+git-acpi-revert-suspend-wakeup-code-in-c.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86.patch
+arch-x86-mm-ioremapc-fix-printk-warnings.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+git-kgdb-light.patch
+git-x86-hack-around-to-make-git-kgdb-build.patch
+git-x86-vs-git-kgdb-lite.patch
+git-alsa-tiwai.patch
+es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+cifs-suppress-warning.patch
+git-powerpc.patch
+pm-remove-destroy_suspended_device.patch
 pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
-pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.patch
-pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
-git-input.patch
-input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
-jffs2-summary-allocation-dont-use-vmalloc.patch
+pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch
+git-dvb.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-dlm-vs-git-gfs2-nwm.patch
+git-hid.patch
+git-hrt.patch
+time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
+git-ia64.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-leds.patch
+git-libata-all.patch
+git-async-tx.patch
+git-mips.patch
+git-net.patch
+net-ipv6-ip6_inputc-fix-a-couple-of-warnings.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+ehea-fix-dlpar-memory-add-support-fix.patch
+sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
+pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-introduce-pci_slot-fix-fix.patch
+pci-hotplug-introduce-pci_slot-fix-2.patch
+pci-hotplug-introduce-pci_slot-fix-99.patch
+pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
+git-s390.patch
+git-sched.patch
+git-sh.patch
+sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
+git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
 fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-spi-pxa2xx_spi-sparse-fixes.patch
-atmel_spi-support-zero-length-transfer.patch
-rtc-avoid-legacy-drivers-with-generic-framework.patch
-rtc-avoid-legacy-drivers-with-generic-framework-update.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-misplaced-hunk.patch
+git-cryptodev-fix-conflict.patch
+git-cryptodev-fix-conflict-hack.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+git-semaphore-vs-git-x86.patch
+git-semaphore-git-rejects.patch
+git-semaphore-alpha-fix.patch
+ext4-is-busted-on-m68k.patch
+smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+mm-introduce-pte_special-pte-bit-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
 rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion.patch
 rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
 rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion.patch
 rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
-make-ds1511_rtc_readset_time-static.patch
-kerneldoc-for-linux-clkh.patch
-kerneldoc-for-linux-clkh-fix.patch
-rtc-rtc-rs5c372-fix-up-null-name-in-transfer-error-path.patch
-rtc-rtc-rs5c372-smbus-conversion-support.patch
-rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
-rtc-replace-remaining-__function__-occurrences.patch
-gpiochip_reserve-fix-2.patch
-remove-duplicated-unlikely-in-is_err.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
 
