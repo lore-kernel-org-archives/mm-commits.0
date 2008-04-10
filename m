@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-switch-proc-bus-zorro-devices-to-seq_file-interface.patch added to -mm tree
-Date: Thu, 10 Apr 2008 14:34:41 -0700
-Message-ID: <200804102134.m3ALYfXF018463@imap1.linux-foundation.org>
+Subject: + proc-switch-proc-driver-radio-typhoon-to-seq_file-interface.patch added to -mm tree
+Date: Thu, 10 Apr 2008 14:34:39 -0700
+Message-ID: <200804102134.m3ALYdma018460@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47108 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49175 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759303AbYDJVgB (ORCPT
+	by vger.kernel.org with ESMTP id S1758649AbYDJVf5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 17:36:01 -0400
+	Thu, 10 Apr 2008 17:35:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, geert@linux-m68k.org, jsipek@fsl.cs.sunysb.edu
+Cc: adobriyan@sw.ru, dougsland@gmail.com, mchehab@infradead.org, xyzzy@speakeasy.org
 
 
 The patch titled
-     proc: switch /proc/bus/zorro/devices to seq_file interface
+     proc: switch /proc/driver/radio-typhoon to seq_file interface
 has been added to the -mm tree.  Its filename is
-     proc-switch-proc-bus-zorro-devices-to-seq_file-interface.patch
+     proc-switch-proc-driver-radio-typhoon-to-seq_file-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,116 +34,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: switch /proc/bus/zorro/devices to seq_file interface
+Subject: proc: switch /proc/driver/radio-typhoon to seq_file interface
 From: Alexey Dobriyan <adobriyan@sw.ru>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Josef Sipek <jsipek@fsl.cs.sunysb.edu>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: Trent Piepho <xyzzy@speakeasy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/zorro/proc.c |   70 ++++++++++++++++++++++++++---------------
- 1 file changed, 46 insertions(+), 24 deletions(-)
+ drivers/media/radio/radio-typhoon.c |   40 ++++++++++++++------------
+ 1 file changed, 23 insertions(+), 17 deletions(-)
 
-diff -puN drivers/zorro/proc.c~proc-switch-proc-bus-zorro-devices-to-seq_file-interface drivers/zorro/proc.c
---- a/drivers/zorro/proc.c~proc-switch-proc-bus-zorro-devices-to-seq_file-interface
-+++ a/drivers/zorro/proc.c
-@@ -13,6 +13,7 @@
- #include <linux/types.h>
- #include <linux/zorro.h>
- #include <linux/proc_fs.h>
+diff -puN drivers/media/radio/radio-typhoon.c~proc-switch-proc-driver-radio-typhoon-to-seq_file-interface drivers/media/radio/radio-typhoon.c
+--- a/drivers/media/radio/radio-typhoon.c~proc-switch-proc-driver-radio-typhoon-to-seq_file-interface
++++ a/drivers/media/radio/radio-typhoon.c
+@@ -35,6 +35,7 @@
+ #include <linux/init.h>		/* Initdata                       */
+ #include <linux/ioport.h>	/* request_region		  */
+ #include <linux/proc_fs.h>	/* radio card status report	  */
 +#include <linux/seq_file.h>
- #include <linux/init.h>
- #include <linux/smp_lock.h>
- #include <asm/uaccess.h>
-@@ -80,32 +81,53 @@ static const struct file_operations proc
- 	.read		= proc_bus_zorro_read,
- };
+ #include <asm/io.h>		/* outb, outb_p                   */
+ #include <asm/uaccess.h>	/* copy to/from user              */
+ #include <linux/videodev2.h>	/* kernel radio structs           */
+@@ -93,9 +94,6 @@ static int typhoon_setfreq(struct typhoo
+ static void typhoon_mute(struct typhoon_device *dev);
+ static void typhoon_unmute(struct typhoon_device *dev);
+ static int typhoon_setvol(struct typhoon_device *dev, int vol);
+-#ifdef CONFIG_RADIO_TYPHOON_PROC_FS
+-static int typhoon_get_info(char *buf, char **start, off_t offset, int len);
+-#endif
  
--static int
--get_zorro_dev_info(char *buf, char **start, off_t pos, int count)
-+static void * zorro_seq_start(struct seq_file *m, loff_t *pos)
+ static void typhoon_setvol_generic(struct typhoon_device *dev, int vol)
  {
--	u_int slot;
--	off_t at = 0;
--	int len, cnt;
-+	return (*pos < zorro_num_autocon) ? pos : NULL;
-+}
+@@ -368,30 +366,39 @@ static struct video_device typhoon_radio
  
--	for (slot = cnt = 0; slot < zorro_num_autocon && count > cnt; slot++) {
--		struct zorro_dev *z = &zorro_autocon[slot];
--		len = sprintf(buf, "%02x\t%08x\t%08lx\t%08lx\t%02x\n", slot,
--			      z->id, (unsigned long)zorro_resource_start(z),
--			      (unsigned long)zorro_resource_len(z),
--			      z->rom.er_Type);
--		at += len;
--		if (at >= pos) {
--			if (!*start) {
--				*start = buf + (pos - (at - len));
--				cnt = at - pos;
--			} else
--				cnt += len;
--			buf += len;
--		}
--	}
--	return (count > cnt) ? cnt : count;
-+static void * zorro_seq_next(struct seq_file *m, void *v, loff_t *pos)
-+{
-+	(*pos)++;
-+	return (*pos < zorro_num_autocon) ? pos : NULL;
-+}
-+
-+static void zorro_seq_stop(struct seq_file *m, void *v)
-+{
+ #ifdef CONFIG_RADIO_TYPHOON_PROC_FS
+ 
+-static int typhoon_get_info(char *buf, char **start, off_t offset, int len)
++static int typhoon_proc_show(struct seq_file *m, void *v)
+ {
+-	char *out = buf;
+-
+ 	#ifdef MODULE
+ 	    #define MODULEPROCSTRING "Driver loaded as a module"
+ 	#else
+ 	    #define MODULEPROCSTRING "Driver compiled into kernel"
+ 	#endif
+ 
+-	/* output must be kept under PAGE_SIZE */
+-	out += sprintf(out, BANNER);
+-	out += sprintf(out, "Load type: " MODULEPROCSTRING "\n\n");
+-	out += sprintf(out, "frequency = %lu kHz\n",
++	seq_puts(m, BANNER);
++	seq_puts(m, "Load type: " MODULEPROCSTRING "\n\n");
++	seq_printf(m, "frequency = %lu kHz\n",
+ 		typhoon_unit.curfreq >> 4);
+-	out += sprintf(out, "volume = %d\n", typhoon_unit.curvol);
+-	out += sprintf(out, "mute = %s\n", typhoon_unit.muted ?
++	seq_printf(m, "volume = %d\n", typhoon_unit.curvol);
++	seq_printf(m, "mute = %s\n", typhoon_unit.muted ?
+ 		"on" : "off");
+-	out += sprintf(out, "iobase = 0x%x\n", typhoon_unit.iobase);
+-	out += sprintf(out, "mute frequency = %lu kHz\n",
++	seq_printf(m, "iobase = 0x%x\n", typhoon_unit.iobase);
++	seq_printf(m, "mute frequency = %lu kHz\n",
+ 		typhoon_unit.mutefreq >> 4);
+-	return out - buf;
++	return 0;
  }
  
-+static int zorro_seq_show(struct seq_file *m, void *v)
++static int typhoon_proc_open(struct inode *inode, struct file *file)
 +{
-+	u_int slot = *(loff_t *)v;
-+	struct zorro_dev *z = &zorro_autocon[slot];
-+
-+	seq_printf(m, "%02x\t%08x\t%08lx\t%08lx\t%02x\n", slot, z->id,
-+		   (unsigned long)zorro_resource_start(z),
-+		   (unsigned long)zorro_resource_len(z),
-+		   z->rom.er_Type);
-+	return 0;
++	return single_open(file, typhoon_proc_show, NULL);
 +}
 +
-+static const struct seq_operations zorro_devices_seq_ops = {
-+	.start = zorro_seq_start,
-+	.next  = zorro_seq_next,
-+	.stop  = zorro_seq_stop,
-+	.show  = zorro_seq_show,
-+};
-+
-+static int zorro_devices_proc_open(struct inode *inode, struct file *file)
-+{
-+	return seq_open(file, &zorro_devices_seq_ops);
-+}
-+
-+static const struct file_operations zorro_devices_proc_fops = {
++static const struct file_operations typhoon_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= zorro_devices_proc_open,
++	.open		= typhoon_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
-+	.release	= seq_release,
++	.release	= single_release,
 +};
-+
- static struct proc_dir_entry *proc_bus_zorro_dir;
+ #endif /* CONFIG_RADIO_TYPHOON_PROC_FS */
  
- static int __init zorro_proc_attach_device(u_int slot)
-@@ -129,8 +151,8 @@ static int __init zorro_proc_init(void)
+ MODULE_AUTHOR("Dr. Henrik Seidel");
+@@ -452,8 +459,7 @@ static int __init typhoon_init(void)
+ 	typhoon_mute(&typhoon_unit);
  
- 	if (MACH_IS_AMIGA && AMIGAHW_PRESENT(ZORRO)) {
- 		proc_bus_zorro_dir = proc_mkdir("bus/zorro", NULL);
--		create_proc_info_entry("devices", 0, proc_bus_zorro_dir,
--				       get_zorro_dev_info);
-+		proc_create("devices", 0, proc_bus_zorro_dir,
-+			    &zorro_devices_proc_fops);
- 		for (slot = 0; slot < zorro_num_autocon; slot++)
- 			zorro_proc_attach_device(slot);
- 	}
+ #ifdef CONFIG_RADIO_TYPHOON_PROC_FS
+-	if (!create_proc_info_entry("driver/radio-typhoon", 0, NULL,
+-				    typhoon_get_info))
++	if (!proc_create("driver/radio-typhoon", 0, NULL, &typhoon_proc_fops))
+ 		printk(KERN_ERR "radio-typhoon: registering /proc/driver/radio-typhoon failed\n");
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from adobriyan@sw.ru are
