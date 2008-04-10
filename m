@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-cryptodev-fix-conflict-hack.patch added to -mm tree
-Date: Wed, 09 Apr 2008 18:52:03 -0700
-Message-ID: <200804100202.m3A22IFJ007929@imap1.linux-foundation.org>
+Subject: + sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch added to -mm tree
+Date: Wed, 09 Apr 2008 19:33:45 -0700
+Message-ID: <200804100244.m3A2i0VR009313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33667 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35370 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753153AbYDJCDa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 22:03:30 -0400
+	by vger.kernel.org with ESMTP id S1753685AbYDJCoe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 22:44:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, herbert@gondor.apana.org.au, schwidefsky@de.ibm.com
+Cc: akpm@linux-foundation.org, lethal@linux-sh.org
 
 
 The patch titled
-     git-cryptodev-fix-conflict-hack
+     sh: arch/sh/kernel/traps_32.c needs asm/fpu.h
 has been added to the -mm tree.  Its filename is
-     git-cryptodev-fix-conflict-hack.patch
+     sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-cryptodev-fix-conflict-hack
+Subject: sh: arch/sh/kernel/traps_32.c needs asm/fpu.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-blah.  Guys, talk to each other...
+arch/sh/kernel/traps_32.c: In function `do_reserved_inst':
+arch/sh/kernel/traps_32.c:667: error: implicit declaration of function `do_fpu_inst'
 
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/crypto/sha1_s390.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/sh/kernel/traps_32.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict-hack arch/s390/crypto/sha1_s390.c
---- a/arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict-hack
-+++ a/arch/s390/crypto/sha1_s390.c
-@@ -57,7 +57,7 @@ static struct crypto_alg alg = {
- 	.dia_digestsize	=	SHA1_DIGEST_SIZE,
- 	.dia_init	=	sha1_init,
- 	.dia_update	=	s390_sha_update,
--	.dia_final	=	s390_sha1_final } }
-+	.dia_final	=	NULL } }
- };
+diff -puN arch/sh/kernel/traps_32.c~sh-arch-sh-kernel-traps_32c-needs-asm-fpuh arch/sh/kernel/traps_32.c
+--- a/arch/sh/kernel/traps_32.c~sh-arch-sh-kernel-traps_32c-needs-asm-fpuh
++++ a/arch/sh/kernel/traps_32.c
+@@ -25,6 +25,7 @@
+ #include <linux/limits.h>
+ #include <asm/system.h>
+ #include <asm/uaccess.h>
++#include <asm/fpu.h>
  
- static int __init sha1_s390_init(void)
+ #ifdef CONFIG_SH_KGDB
+ #include <asm/kgdb.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -259,4 +258,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
+sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
 
