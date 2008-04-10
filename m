@@ -1,245 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: - signals-powerpc-tlf_restore_sigmask.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 00:52:14 -0600
-Message-ID: <200804100652.m3A6qFJm017641@imap1.linux-foundation.org>
+Subject: - pps-serial-clients-support.patch removed from -mm tree
+Date: Thu, 10 Apr 2008 10:41:11 -0700
+Message-ID: <200804101741.m3AHfBcW009499@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33385 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35101 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750820AbYDJGyQ (ORCPT
+	by vger.kernel.org with ESMTP id S1757162AbYDJRlP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 02:54:16 -0400
+	Thu, 10 Apr 2008 13:41:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: roland@redhat.com, heiko.carstens@de.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, schwidefsky@de.ibm.com, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: giometti@linux.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: powerpc TLF_RESTORE_SIGMASK
+     PPS: serial clients support
 has been removed from the -mm tree.  Its filename was
-     signals-powerpc-tlf_restore_sigmask.patch
+     pps-serial-clients-support.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: powerpc TLF_RESTORE_SIGMASK
-From: Roland McGrath <roland@redhat.com>
+Subject: PPS: serial clients support
+From: Rodolfo Giometti <giometti@linux.it>
 
-Replace TIF_RESTORE_SIGMASK with TLF_RESTORE_SIGMASK and define our own
-set_restore_sigmask() function.  This saves the costly SMP-safe set_bit
-operation, which we do not need for the sigmask flag since TIF_SIGPENDING
-always has to be set too.
+Adds support for the PPS sources connected with the CD (Carrier Detect) pin of
+a serial port.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/entry_32.S    |    4 ++--
- arch/powerpc/kernel/signal.c      |   12 ++++++------
- arch/powerpc/kernel/signal_32.c   |    2 +-
- include/asm-powerpc/thread_info.h |   17 +++++++++++++----
- 4 files changed, 22 insertions(+), 13 deletions(-)
+ drivers/pps/clients/Kconfig  |   10 ++++
+ drivers/serial/8250.c        |    2 
+ drivers/serial/serial_core.c |   71 ++++++++++++++++++++++++++++++++-
+ include/linux/serial_core.h  |   30 +++++++++++--
+ 4 files changed, 106 insertions(+), 7 deletions(-)
 
-diff -puN arch/powerpc/kernel/entry_32.S~signals-powerpc-tlf_restore_sigmask arch/powerpc/kernel/entry_32.S
---- a/arch/powerpc/kernel/entry_32.S~signals-powerpc-tlf_restore_sigmask
-+++ a/arch/powerpc/kernel/entry_32.S
-@@ -661,7 +661,7 @@ user_exc_return:		/* r10 contains MSR_KE
- 	/* Check current_thread_info()->flags */
- 	rlwinm	r9,r1,0,0,(31-THREAD_SHIFT)
- 	lwz	r9,TI_FLAGS(r9)
--	andi.	r0,r9,(_TIF_SIGPENDING|_TIF_RESTORE_SIGMASK|_TIF_NEED_RESCHED)
-+	andi.	r0,r9,(_TIF_SIGPENDING|_TIF_NEED_RESCHED)
- 	bne	do_work
+diff -puN drivers/pps/clients/Kconfig~pps-serial-clients-support drivers/pps/clients/Kconfig
+--- a/drivers/pps/clients/Kconfig~pps-serial-clients-support
++++ a/drivers/pps/clients/Kconfig
+@@ -15,4 +15,14 @@ config PPS_CLIENT_KTIMER
+ 	  This driver can also be built as a module.  If so, the module
+ 	  will be called ktimer.ko.
  
- restore_user:
-@@ -912,7 +912,7 @@ recheck:
- 	lwz	r9,TI_FLAGS(r9)
- 	andi.	r0,r9,_TIF_NEED_RESCHED
- 	bne-	do_resched
--	andi.	r0,r9,_TIF_SIGPENDING|_TIF_RESTORE_SIGMASK
-+	andi.	r0,r9,_TIF_SIGPENDING
- 	beq	restore_user
- do_user_signal:			/* r10 contains MSR_KERNEL here */
- 	ori	r10,r10,MSR_EE
-diff -puN arch/powerpc/kernel/signal.c~signals-powerpc-tlf_restore_sigmask arch/powerpc/kernel/signal.c
---- a/arch/powerpc/kernel/signal.c~signals-powerpc-tlf_restore_sigmask
-+++ a/arch/powerpc/kernel/signal.c
-@@ -120,7 +120,7 @@ int do_signal(sigset_t *oldset, struct p
- 	int ret;
- 	int is32 = is_32bit_task();
++comment "UART serial support (forced off)"
++	depends on ! (SERIAL_CORE != n && !(PPS = m && SERIAL_CORE = y))
++
++config PPS_CLIENT_UART
++	bool "UART serial support"
++	depends on SERIAL_CORE != n && !(PPS = m && SERIAL_CORE = y)
++	help
++	  If you say yes here you get support for a PPS source connected
++	  with the CD (Carrier Detect) pin of your serial port.
++
+ endif
+diff -puN drivers/serial/8250.c~pps-serial-clients-support drivers/serial/8250.c
+--- a/drivers/serial/8250.c~pps-serial-clients-support
++++ a/drivers/serial/8250.c
+@@ -2174,6 +2174,8 @@ serial8250_set_termios(struct uart_port 
+ 		up->ier |= UART_IER_MSI;
+ 	if (up->capabilities & UART_CAP_UUE)
+ 		up->ier |= UART_IER_UUE | UART_IER_RTOIE;
++	if (up->port.flags & UPF_HARDPPS_CD)
++		up->ier |= UART_IER_MSI;	/* enable interrupts */
  
--	if (test_thread_flag(TIF_RESTORE_SIGMASK))
-+	if (current_thread_info()->local_flags & _TLF_RESTORE_SIGMASK)
- 		oldset = &current->saved_sigmask;
- 	else if (!oldset)
- 		oldset = &current->blocked;
-@@ -131,9 +131,10 @@ int do_signal(sigset_t *oldset, struct p
- 	check_syscall_restart(regs, &ka, signr > 0);
+ 	serial_out(up, UART_IER, up->ier);
  
- 	if (signr <= 0) {
-+		struct thread_info *ti = current_thread_info();
- 		/* No signal to deliver -- put the saved sigmask back */
--		if (test_thread_flag(TIF_RESTORE_SIGMASK)) {
--			clear_thread_flag(TIF_RESTORE_SIGMASK);
-+		if (ti->local_flags & _TLF_RESTORE_SIGMASK) {
-+			ti->local_flags &= ~_TLF_RESTORE_SIGMASK;
- 			sigprocmask(SIG_SETMASK, &current->saved_sigmask, NULL);
- 		}
- 		return 0;               /* no signals delivered */
-@@ -169,10 +170,9 @@ int do_signal(sigset_t *oldset, struct p
+diff -puN drivers/serial/serial_core.c~pps-serial-clients-support drivers/serial/serial_core.c
+--- a/drivers/serial/serial_core.c~pps-serial-clients-support
++++ a/drivers/serial/serial_core.c
+@@ -33,6 +33,7 @@
+ #include <linux/serial.h> /* for serial_state and serial_icounter_struct */
+ #include <linux/delay.h>
+ #include <linux/mutex.h>
++#include <linux/pps.h>
  
- 		/*
- 		 * A signal was successfully delivered; the saved sigmask is in
--		 * its frame, and we can clear the TIF_RESTORE_SIGMASK flag.
-+		 * its frame, and we can clear the TLF_RESTORE_SIGMASK flag.
- 		 */
--		if (test_thread_flag(TIF_RESTORE_SIGMASK))
--			clear_thread_flag(TIF_RESTORE_SIGMASK);
-+		current_thread_info()->local_flags &= ~_TLF_RESTORE_SIGMASK;
- 	}
- 
- 	return ret;
-diff -puN arch/powerpc/kernel/signal_32.c~signals-powerpc-tlf_restore_sigmask arch/powerpc/kernel/signal_32.c
---- a/arch/powerpc/kernel/signal_32.c~signals-powerpc-tlf_restore_sigmask
-+++ a/arch/powerpc/kernel/signal_32.c
-@@ -243,7 +243,7 @@ long sys_sigsuspend(old_sigset_t mask)
- 
-  	current->state = TASK_INTERRUPTIBLE;
-  	schedule();
-- 	set_thread_flag(TIF_RESTORE_SIGMASK);
-+	set_restore_sigmask();
-  	return -ERESTARTNOHAND;
+ #include <asm/irq.h>
+ #include <asm/uaccess.h>
+@@ -642,6 +643,54 @@ static int uart_get_info(struct uart_sta
+ 	return 0;
  }
  
-diff -puN include/asm-powerpc/thread_info.h~signals-powerpc-tlf_restore_sigmask include/asm-powerpc/thread_info.h
---- a/include/asm-powerpc/thread_info.h~signals-powerpc-tlf_restore_sigmask
-+++ a/include/asm-powerpc/thread_info.h
-@@ -120,7 +120,6 @@ static inline struct thread_info *curren
- #define TIF_SECCOMP		10	/* secure computing */
- #define TIF_RESTOREALL		11	/* Restore all regs (implies NOERROR) */
- #define TIF_NOERROR		12	/* Force successful syscall return */
--#define TIF_RESTORE_SIGMASK	13	/* Restore signal mask in do_signal */
- #define TIF_FREEZE		14	/* Freezing for suspend */
- #define TIF_RUNLATCH		15	/* Is the runlatch enabled? */
- #define TIF_ABI_PENDING		16	/* 32/64 bit switch needed */
-@@ -138,21 +137,31 @@ static inline struct thread_info *curren
- #define _TIF_SECCOMP		(1<<TIF_SECCOMP)
- #define _TIF_RESTOREALL		(1<<TIF_RESTOREALL)
- #define _TIF_NOERROR		(1<<TIF_NOERROR)
--#define _TIF_RESTORE_SIGMASK	(1<<TIF_RESTORE_SIGMASK)
- #define _TIF_FREEZE		(1<<TIF_FREEZE)
- #define _TIF_RUNLATCH		(1<<TIF_RUNLATCH)
- #define _TIF_ABI_PENDING	(1<<TIF_ABI_PENDING)
- #define _TIF_SYSCALL_T_OR_A	(_TIF_SYSCALL_TRACE|_TIF_SYSCALL_AUDIT|_TIF_SECCOMP)
- 
--#define _TIF_USER_WORK_MASK	( _TIF_SIGPENDING | \
--				 _TIF_NEED_RESCHED | _TIF_RESTORE_SIGMASK)
-+#define _TIF_USER_WORK_MASK	(_TIF_SIGPENDING | _TIF_NEED_RESCHED)
- #define _TIF_PERSYSCALL_MASK	(_TIF_RESTOREALL|_TIF_NOERROR)
- 
- /* Bits in local_flags */
- /* Don't move TLF_NAPPING without adjusting the code in entry_32.S */
- #define TLF_NAPPING		0	/* idle thread enabled NAP mode */
-+#define TLF_RESTORE_SIGMASK	1	/* Restore signal mask in do_signal */
- 
- #define _TLF_NAPPING		(1 << TLF_NAPPING)
-+#define _TLF_RESTORE_SIGMASK	(1 << TLF_RESTORE_SIGMASK)
++#ifdef CONFIG_PPS_CLIENT_UART
 +
-+#ifndef __ASSEMBLY__
-+#define HAVE_SET_RESTORE_SIGMASK	1
-+static inline void set_restore_sigmask(void)
++static int
++uart_register_pps_port(struct uart_state *state, struct uart_port *port)
 +{
-+	struct thread_info *ti = current_thread_info();
-+	ti->local_flags |= TLF_RESTORE_SIGMASK;
-+	set_bit(TIF_SIGPENDING, &ti->flags);
++	struct tty_driver *drv = port->info->tty->driver;
++	int ret;
++
++	state->pps_info.owner = THIS_MODULE;
++	state->pps_info.dev = port->dev;
++	snprintf(state->pps_info.name, PPS_MAX_NAME_LEN, "%s%d",
++		drv->driver_name, port->line);
++	snprintf(state->pps_info.path, PPS_MAX_NAME_LEN, "/dev/%s%d",
++		drv->name, port->line);
++
++	state->pps_info.mode = PPS_CAPTUREBOTH | \
++			PPS_OFFSETASSERT | PPS_OFFSETCLEAR | \
++			PPS_CANWAIT | PPS_TSFMT_TSPEC;
++
++	ret = pps_register_source(&state->pps_info, PPS_CAPTUREBOTH | \
++				PPS_OFFSETASSERT | PPS_OFFSETCLEAR);
++	if (ret < 0) {
++		dev_err(port->dev, "cannot register PPS source \"%s\"\n",
++						state->pps_info.path);
++		return ret;
++	}
++	port->pps_source = ret;
++	dev_dbg(port->dev, "PPS source #%d \"%s\" added\n",
++		port->pps_source, state->pps_info.path);
++
++	return 0;
 +}
-+#endif	/* !__ASSEMBLY__ */
++
++static void
++uart_unregister_pps_port(struct uart_state *state, struct uart_port *port)
++{
++	pps_unregister_source(port->pps_source);
++	dev_dbg(port->dev, "PPS source #%d \"%s\" removed\n",
++				port->pps_source, state->pps_info.path);
++}
++
++#else
++
++#define uart_register_pps_port(state, port)	do { } while (0)
++#define uart_unregister_pps_port(state, port)	do { } while (0)
++
++#endif /* CONFIG_PPS_CLIENT_UART */
++
+ static int uart_set_info(struct uart_state *state,
+ 			 struct serial_struct __user *newinfo)
+ {
+@@ -817,11 +866,19 @@ static int uart_set_info(struct uart_sta
+ 			(port->flags & UPF_LOW_LATENCY) ? 1 : 0;
  
- #endif /* __KERNEL__ */
+  check_and_exit:
++	/* PPS support enabled/disabled? */
++	if ((old_flags & UPF_HARDPPS_CD) != (new_flags & UPF_HARDPPS_CD)) {
++		if (new_flags & UPF_HARDPPS_CD)
++			uart_register_pps_port(state, port);
++		else
++			uart_unregister_pps_port(state, port);
++	}
++
+ 	retval = 0;
+ 	if (port->type == PORT_UNKNOWN)
+ 		goto exit;
+ 	if (state->info->flags & UIF_INITIALIZED) {
+-		if (((old_flags ^ port->flags) & UPF_SPD_MASK) ||
++		if (((old_flags ^ port->flags) & (UPF_SPD_MASK|UPF_HARDPPS_CD)) ||
+ 		    old_custom_divisor != port->custom_divisor) {
+ 			/*
+ 			 * If they're setting up a custom divisor or speed,
+@@ -2164,6 +2221,12 @@ uart_configure_port(struct uart_driver *
+ 		port->ops->config_port(port, flags);
+ 	}
  
++	/*
++	 * Add the PPS support for the current port.
++	 */
++	if (port->flags & UPF_HARDPPS_CD)
++		uart_register_pps_port(state, port);
++
+ 	if (port->type != PORT_UNKNOWN) {
+ 		unsigned long flags;
+ 
+@@ -2480,6 +2543,12 @@ int uart_remove_one_port(struct uart_dri
+ 	mutex_unlock(&state->mutex);
+ 
+ 	/*
++	 * Remove PPS support from the current port.
++	 */
++	if (port->flags & UPF_HARDPPS_CD)
++		uart_unregister_pps_port(state, port);
++
++	/*
+ 	 * Remove the devices from the tty layer
+ 	 */
+ 	tty_unregister_device(drv->tty_driver, port->line);
+diff -puN include/linux/serial_core.h~pps-serial-clients-support include/linux/serial_core.h
+--- a/include/linux/serial_core.h~pps-serial-clients-support
++++ a/include/linux/serial_core.h
+@@ -168,6 +168,7 @@
+ #include <linux/tty.h>
+ #include <linux/mutex.h>
+ #include <linux/sysrq.h>
++#include <linux/pps.h>
+ 
+ struct uart_port;
+ struct uart_info;
+@@ -251,6 +252,9 @@ struct uart_port {
+ 	unsigned char		regshift;		/* reg offset shift */
+ 	unsigned char		iotype;			/* io access style */
+ 	unsigned char		unused1;
++#ifdef CONFIG_PPS_CLIENT_UART
++	int			pps_source;		/* PPS source ID */
++#endif
+ 
+ #define UPIO_PORT		(0)
+ #define UPIO_HUB6		(1)
+@@ -295,7 +299,8 @@ struct uart_port {
+ #define UPF_IOREMAP		((__force upf_t) (1 << 31))
+ 
+ #define UPF_CHANGE_MASK		((__force upf_t) (0x17fff))
+-#define UPF_USR_MASK		((__force upf_t) (UPF_SPD_MASK|UPF_LOW_LATENCY))
++#define UPF_USR_MASK		((__force upf_t) (UPF_SPD_MASK|UPF_LOW_LATENCY\
++							|UPF_HARDPPS_CD))
+ 
+ 	unsigned int		mctrl;			/* current modem ctrl settings */
+ 	unsigned int		timeout;		/* character-based timeout */
+@@ -328,6 +333,10 @@ struct uart_state {
+ 	struct uart_info	*info;
+ 	struct uart_port	*port;
+ 
++#ifdef CONFIG_PPS_CLIENT_UART
++	struct pps_source_info	pps_info;
++#endif
++
+ 	struct mutex		mutex;
+ };
+ 
+@@ -492,13 +501,22 @@ uart_handle_dcd_change(struct uart_port 
+ {
+ 	struct uart_info *info = port->info;
+ 
+-	port->icount.dcd++;
+-
+-#ifdef CONFIG_HARD_PPS
+-	if ((port->flags & UPF_HARDPPS_CD) && status)
+-		hardpps();
++#ifdef CONFIG_PPS_CLIENT_UART
++	if (port->flags & UPF_HARDPPS_CD) {
++		if (status) {
++			pps_event(port->pps_source, PPS_CAPTUREASSERT, port);
++			dev_dbg(port->dev, "PPS assert at %lu on source #%d\n",
++				jiffies, port->pps_source);
++		} else {
++			pps_event(port->pps_source, PPS_CAPTURECLEAR, port);
++			dev_dbg(port->dev, "PPS clear at %lu on source #%d\n",
++				jiffies, port->pps_source);
++		}
++	}
+ #endif
+ 
++	port->icount.dcd++;
++
+ 	if (info->flags & UIF_CHECK_CD) {
+ 		if (status)
+ 			wake_up_interruptible(&info->open_wait);
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from giometti@linux.it are
 
-origin.patch
-git-x86.patch
-git-powerpc.patch
-git-selinux.patch
-add-rusage_thread.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-document-cld_continued-notification-mechanics-more.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-signals-check_kill_permission-remove-tasklist_lock.patch
-signals-fix-sbin-init-protection-from-unwanted-signals.patch
-signals-de_thread-simplify-the-child_reaper-switching.patch
-signals-allow-the-kernel-to-actually-kill-sbin-init.patch
-signals-add-set_restore_sigmask.patch
-signals-set_restore_sigmask-tif_sigpending.patch
-signals-s390-renumber-tif_restore_sigmask.patch
-signals-ia64-renumber-tif_restore_sigmask.patch
-signals-use-have_set_restore_sigmask.patch
-signals-x86-ts_restore_sigmask.patch
-signals-powerpc-tlf_restore_sigmask.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
-ptrace-allow-to-ptrace-sbin-init.patch
-procfs-mem-permission-cleanup.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
-pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+pps-serial-clients-support.patch
+pps-example-program-to-enable-pps-support-on-serial-ports.patch
+pps-parallel-port-clients-support.patch
 
