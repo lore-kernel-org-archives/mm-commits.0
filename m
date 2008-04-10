@@ -1,168 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - ub-remove-bug-after-__blk_end_request-and-fix-the-condition-causing-it.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 13:00:45 -0700
-Message-ID: <200804102000.m3AK0jd2014920@imap1.linux-foundation.org>
+Subject: - es1968-fix-sleep-while-holding-lock-bug.patch removed from -mm tree
+Date: Thu, 10 Apr 2008 13:00:54 -0700
+Message-ID: <200804102000.m3AK0s33014929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57781 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56701 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756953AbYDJUFA (ORCPT
+	by vger.kernel.org with ESMTP id S1757485AbYDJUCd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 16:05:00 -0400
+	Thu, 10 Apr 2008 16:02:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zaitcev@redhat.com, bharrosh@panasas.com, greg@kroah.com, k-ueda@ct.jp.nec.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: arjan@linux.intel.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ub: remove BUG() after __blk_end_request and fix the condition causing it
+     es1968: fix sleep-while-holding-lock bug
 has been removed from the -mm tree.  Its filename was
-     ub-remove-bug-after-__blk_end_request-and-fix-the-condition-causing-it.patch
+     es1968-fix-sleep-while-holding-lock-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ub: remove BUG() after __blk_end_request and fix the condition causing it
-From: Pete Zaitcev <zaitcev@redhat.com>
+Subject: es1968: fix sleep-while-holding-lock bug
+From: Arjan van de Ven <arjan@linux.intel.com>
 
-When __blk_end_request returns nonzero, it means that the request was
-not completely processed and some BIOs are still attached. Since we
-have dequeued it by that time, it means leaking requests and hanging
-processes, which is why BUG() was in there. In ub this happens if
-a packet request ends normally, but with residue (e.g. when scsi_id
-issues INQUIRY).
+snd_es1968_ac97_read() calls snd_es1968_ac97_wait() first outside a locked
+area, and later, while holding a lock.
 
-The fix is to make sure that arguments passed to __blk_end_request
-are correct: the full request length and not just transferred length.
-The transferred length is indicated to applications by adjusting
-rq->data_len with old, unchanged code outside of this patch.
+snd_es1968_ac97_wait() has a polling loop with a cond_resched() inside it.. 
+which sleeps, so the second call is invalid.
 
-Signed-off-by: Pete Zaitcev <zaitcev@redhat.com>
-Cc: Kiyoshi Ueda <k-ueda@ct.jp.nec.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Boaz Harrosh <bharrosh@panasas.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+This patch adds a version of the wait function that just pure polls.  While
+this is not very elegant in principle, it's very likely the easiest thing to
+do here, we already checked if the chip was ready (while yielding) just
+before, so it is very unlikely to take a long time here.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/ub.c |   38 +++++++++++++++++++++++++++++---------
- 1 file changed, 29 insertions(+), 9 deletions(-)
+ sound/pci/es1968.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/ub.c~ub-remove-bug-after-__blk_end_request-and-fix-the-condition-causing-it drivers/block/ub.c
---- a/drivers/block/ub.c~ub-remove-bug-after-__blk_end_request-and-fix-the-condition-causing-it
-+++ a/drivers/block/ub.c
-@@ -8,6 +8,7 @@
-  * and is not licensed separately. See file COPYING for details.
-  *
-  * TODO (sorted by decreasing priority)
-+ *  -- Return sense now that rq allows it (we always auto-sense anyway).
-  *  -- set readonly flag for CDs, set removable flag for CF readers
-  *  -- do inquiry and verify we got a disk and not a tape (for LUN mismatch)
-  *  -- verify the 13 conditions and do bulk resets
-@@ -359,7 +360,8 @@ static void ub_cmd_build_block(struct ub
- static void ub_cmd_build_packet(struct ub_dev *sc, struct ub_lun *lun,
-     struct ub_scsi_cmd *cmd, struct ub_request *urq);
- static void ub_rw_cmd_done(struct ub_dev *sc, struct ub_scsi_cmd *cmd);
--static void ub_end_rq(struct request *rq, unsigned int status);
-+static void ub_end_rq(struct request *rq, unsigned int status,
-+    unsigned int cmd_len);
- static int ub_rw_cmd_retry(struct ub_dev *sc, struct ub_lun *lun,
-     struct ub_request *urq, struct ub_scsi_cmd *cmd);
- static int ub_submit_scsi(struct ub_dev *sc, struct ub_scsi_cmd *cmd);
-@@ -642,13 +644,13 @@ static int ub_request_fn_1(struct ub_lun
- 
- 	if (atomic_read(&sc->poison)) {
- 		blkdev_dequeue_request(rq);
--		ub_end_rq(rq, DID_NO_CONNECT << 16);
-+		ub_end_rq(rq, DID_NO_CONNECT << 16, blk_rq_bytes(rq));
- 		return 0;
- 	}
- 
- 	if (lun->changed && !blk_pc_request(rq)) {
- 		blkdev_dequeue_request(rq);
--		ub_end_rq(rq, SAM_STAT_CHECK_CONDITION);
-+		ub_end_rq(rq, SAM_STAT_CHECK_CONDITION, blk_rq_bytes(rq));
- 		return 0;
- 	}
- 
-@@ -701,7 +703,7 @@ static int ub_request_fn_1(struct ub_lun
- 
- drop:
- 	ub_put_cmd(lun, cmd);
--	ub_end_rq(rq, DID_ERROR << 16);
-+	ub_end_rq(rq, DID_ERROR << 16, blk_rq_bytes(rq));
- 	return 0;
+diff -puN sound/pci/es1968.c~es1968-fix-sleep-while-holding-lock-bug sound/pci/es1968.c
+--- a/sound/pci/es1968.c~es1968-fix-sleep-while-holding-lock-bug
++++ a/sound/pci/es1968.c
+@@ -617,6 +617,18 @@ static int snd_es1968_ac97_wait(struct e
+ 	return 1; /* timeout */
  }
  
-@@ -770,6 +772,7 @@ static void ub_rw_cmd_done(struct ub_dev
- 	struct ub_request *urq = cmd->back;
- 	struct request *rq;
- 	unsigned int scsi_status;
-+	unsigned int cmd_len;
- 
- 	rq = urq->rq;
- 
-@@ -779,8 +782,18 @@ static void ub_rw_cmd_done(struct ub_dev
- 				rq->data_len = 0;
- 			else
- 				rq->data_len -= cmd->act_len;
-+			scsi_status = 0;
-+		} else {
-+			if (cmd->act_len != cmd->len) {
-+				if ((cmd->key == MEDIUM_ERROR ||
-+				     cmd->key == UNIT_ATTENTION) &&
-+				    ub_rw_cmd_retry(sc, lun, urq, cmd) == 0)
-+					return;
-+				scsi_status = SAM_STAT_CHECK_CONDITION;
-+			} else {
-+				scsi_status = 0;
-+			}
- 		}
--		scsi_status = 0;
- 	} else {
- 		if (blk_pc_request(rq)) {
- 			/* UB_SENSE_SIZE is smaller than SCSI_SENSE_BUFFERSIZE */
-@@ -801,14 +814,17 @@ static void ub_rw_cmd_done(struct ub_dev
- 
- 	urq->rq = NULL;
- 
-+	cmd_len = cmd->len;
- 	ub_put_cmd(lun, cmd);
--	ub_end_rq(rq, scsi_status);
-+	ub_end_rq(rq, scsi_status, cmd_len);
- 	blk_start_queue(lun->disk->queue);
- }
- 
--static void ub_end_rq(struct request *rq, unsigned int scsi_status)
-+static void ub_end_rq(struct request *rq, unsigned int scsi_status,
-+    unsigned int cmd_len)
- {
- 	int error;
-+	long rqlen;
- 
- 	if (scsi_status == 0) {
- 		error = 0;
-@@ -816,8 +832,12 @@ static void ub_end_rq(struct request *rq
- 		error = -EIO;
- 		rq->errors = scsi_status;
- 	}
--	if (__blk_end_request(rq, error, blk_rq_bytes(rq)))
--		BUG();
-+	rqlen = blk_rq_bytes(rq);    /* Oddly enough, this is the residue. */
-+	if (__blk_end_request(rq, error, cmd_len)) {
-+		printk(KERN_WARNING DRV_NAME
-+		    ": __blk_end_request blew, %s-cmd total %u rqlen %ld\n",
-+		    blk_pc_request(rq)? "pc": "fs", cmd_len, rqlen);
++static int snd_es1968_ac97_wait_poll(struct es1968 *chip)
++{
++	int timeout = 100000;
++
++	while (timeout-- > 0) {
++		if (!(inb(chip->io_port + ESM_AC97_INDEX) & 1))
++			return 0;
 +	}
- }
++	snd_printd("es1968: ac97 timeout\n");
++	return 1; /* timeout */
++}
++
+ static void snd_es1968_ac97_write(struct snd_ac97 *ac97, unsigned short reg, unsigned short val)
+ {
+ 	struct es1968 *chip = ac97->private_data;
+@@ -645,7 +657,7 @@ static unsigned short snd_es1968_ac97_re
+ 	outb(reg | 0x80, chip->io_port + ESM_AC97_INDEX);
+ 	/*msleep(1);*/
  
- static int ub_rw_cmd_retry(struct ub_dev *sc, struct ub_lun *lun,
+-	if (! snd_es1968_ac97_wait(chip)) {
++	if (!snd_es1968_ac97_wait_poll(chip)) {
+ 		data = inw(chip->io_port + ESM_AC97_DATA);
+ 		/*msleep(1);*/
+ 	}
 _
 
-Patches currently in -mm which might be from zaitcev@redhat.com are
+Patches currently in -mm which might be from arjan@linux.intel.com are
 
 origin.patch
-git-hid.patch
+git-x86.patch
+git-hrt.patch
+make-dev-kmem-a-config-option.patch
+make-dev-kmem-a-config-option-fix.patch
+proc-print-more-information-when-removing-non-empty-directories.patch
 
