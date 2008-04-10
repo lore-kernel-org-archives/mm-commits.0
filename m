@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-switch-proc-irda-irnet-to-seq_file-interface.patch added to -mm tree
-Date: Thu, 10 Apr 2008 14:34:53 -0700
-Message-ID: <200804102134.m3ALYroD018478@imap1.linux-foundation.org>
+Subject: + proc-convert-proc-bus-nubus-to-seq_file-interface.patch added to -mm tree
+Date: Thu, 10 Apr 2008 14:34:55 -0700
+Message-ID: <200804102134.m3ALYteh018481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41608 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757054AbYDJVgJ (ORCPT
+	by vger.kernel.org with ESMTP id S1757394AbYDJVgM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 17:36:09 -0400
+	Thu, 10 Apr 2008 17:36:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, davem@davemloft.net, samuel@sortiz.org
+Cc: adobriyan@sw.ru, geert@linux-m68k.org
 
 
 The patch titled
-     proc: switch /proc/irda/irnet to seq_file interface
+     proc: convert /proc/bus/nubus to seq_file interface
 has been added to the -mm tree.  Its filename is
-     proc-switch-proc-irda-irnet-to-seq_file-interface.patch
+     proc-convert-proc-bus-nubus-to-seq_file-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,175 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: switch /proc/irda/irnet to seq_file interface
+Subject: proc: convert /proc/bus/nubus to seq_file interface
 From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Probably interface misuse, because of the way iterating over hashbin is done.
-However! Printing of socket number ("IrNET socket %d - ", i++") made conversion
-to proper ->start/->next difficult enough to do blindly without hardware.
-Said that, please apply.
-
-Remove useless comment while I am it.
-
 Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Samuel Ortiz <samuel@sortiz.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/irda/irnet/irnet_irda.c |   65 +++++++++++++++++-----------------
- net/irda/irnet/irnet_irda.h |    8 ----
- 2 files changed, 34 insertions(+), 39 deletions(-)
+ drivers/nubus/proc.c |   42 +++++++++++++++++++----------------------
+ 1 file changed, 20 insertions(+), 22 deletions(-)
 
-diff -puN net/irda/irnet/irnet_irda.c~proc-switch-proc-irda-irnet-to-seq_file-interface net/irda/irnet/irnet_irda.c
---- a/net/irda/irnet/irnet_irda.c~proc-switch-proc-irda-irnet-to-seq_file-interface
-+++ a/net/irda/irnet/irnet_irda.c
-@@ -9,6 +9,7 @@
-  */
- 
- #include "irnet_irda.h"		/* Private header */
+diff -puN drivers/nubus/proc.c~proc-convert-proc-bus-nubus-to-seq_file-interface drivers/nubus/proc.c
+--- a/drivers/nubus/proc.c~proc-convert-proc-bus-nubus-to-seq_file-interface
++++ a/drivers/nubus/proc.c
+@@ -21,6 +21,7 @@
+ #include <linux/kernel.h>
+ #include <linux/nubus.h>
+ #include <linux/proc_fs.h>
 +#include <linux/seq_file.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
  
- /*
-  * PPP disconnect work: we need to make sure we're in
-@@ -1717,34 +1718,23 @@ irnet_expiry_indication(discinfo_t *	exp
-  */
+@@ -28,38 +29,36 @@
+ #include <asm/byteorder.h>
  
- #ifdef CONFIG_PROC_FS
--/*------------------------------------------------------------------*/
--/*
-- * Function irnet_proc_read (buf, start, offset, len, unused)
-- *
-- *    Give some info to the /proc file system
-- */
  static int
--irnet_proc_read(char *	buf,
--		char **	start,
--		off_t	offset,
--		int	len)
-+irnet_proc_show(struct seq_file *m, void *v)
+-get_nubus_dev_info(char *buf, char **start, off_t pos, int count)
++nubus_devices_proc_show(struct seq_file *m, void *v)
  {
-   irnet_socket *	self;
-   char *		state;
-   int			i = 0;
+ 	struct nubus_dev *dev = nubus_devices;
+-	off_t at = 0;
+-	int len, cnt;
  
--  len = 0;
--
-   /* Get the IrNET server information... */
--  len += sprintf(buf+len, "IrNET server - ");
--  len += sprintf(buf+len, "IrDA state: %s, ",
-+  seq_printf(m, "IrNET server - ");
-+  seq_printf(m, "IrDA state: %s, ",
- 		 (irnet_server.running ? "running" : "dead"));
--  len += sprintf(buf+len, "stsap_sel: %02x, ", irnet_server.s.stsap_sel);
--  len += sprintf(buf+len, "dtsap_sel: %02x\n", irnet_server.s.dtsap_sel);
-+  seq_printf(m, "stsap_sel: %02x, ", irnet_server.s.stsap_sel);
-+  seq_printf(m, "dtsap_sel: %02x\n", irnet_server.s.dtsap_sel);
- 
-   /* Do we need to continue ? */
-   if(!irnet_server.running)
--    return len;
-+    return 0;
- 
-   /* Protect access to the instance list */
-   spin_lock_bh(&irnet_server.spinlock);
-@@ -1754,23 +1744,23 @@ irnet_proc_read(char *	buf,
-   while(self != NULL)
-     {
-       /* Start printing info about the socket. */
--      len += sprintf(buf+len, "\nIrNET socket %d - ", i++);
-+      seq_printf(m, "\nIrNET socket %d - ", i++);
- 
-       /* First, get the requested configuration */
--      len += sprintf(buf+len, "Requested IrDA name: \"%s\", ", self->rname);
--      len += sprintf(buf+len, "daddr: %08x, ", self->rdaddr);
--      len += sprintf(buf+len, "saddr: %08x\n", self->rsaddr);
-+      seq_printf(m, "Requested IrDA name: \"%s\", ", self->rname);
-+      seq_printf(m, "daddr: %08x, ", self->rdaddr);
-+      seq_printf(m, "saddr: %08x\n", self->rsaddr);
- 
-       /* Second, get all the PPP info */
--      len += sprintf(buf+len, "	PPP state: %s",
-+      seq_printf(m, "	PPP state: %s",
- 		 (self->ppp_open ? "registered" : "unregistered"));
-       if(self->ppp_open)
- 	{
--	  len += sprintf(buf+len, ", unit: ppp%d",
-+	  seq_printf(m, ", unit: ppp%d",
- 			 ppp_unit_number(&self->chan));
--	  len += sprintf(buf+len, ", channel: %d",
-+	  seq_printf(m, ", channel: %d",
- 			 ppp_channel_index(&self->chan));
--	  len += sprintf(buf+len, ", mru: %d",
-+	  seq_printf(m, ", mru: %d",
- 			 self->mru);
- 	  /* Maybe add self->flags ? Later... */
+-	cnt = 0;
+-	while (dev && count > cnt) {
+-		len = sprintf(buf, "%x\t%04x %04x %04x %04x",
++	while (dev) {
++		seq_printf(m, "%x\t%04x %04x %04x %04x",
+ 			      dev->board->slot,
+ 			      dev->category,
+ 			      dev->type,
+ 			      dev->dr_sw,
+ 			      dev->dr_hw);
+-		len += sprintf(buf+len,
+-			       "\t%08lx",
+-			       dev->board->slot_addr);
+-		buf[len++] = '\n';
+-		at += len;
+-		if (at >= pos) {
+-			if (!*start) {
+-				*start = buf + (pos - (at - len));
+-				cnt = at - pos;
+-			} else
+-				cnt += len;
+-			buf += len;
+-		}
++		seq_printf(m, "\t%08lx\n", dev->board->slot_addr);
+ 		dev = dev->next;
  	}
-@@ -1789,10 +1779,10 @@ irnet_proc_read(char *	buf,
- 	      state = "weird";
- 	    else
- 	      state = "idle";
--      len += sprintf(buf+len, "\n	IrDA state: %s, ", state);
--      len += sprintf(buf+len, "daddr: %08x, ", self->daddr);
--      len += sprintf(buf+len, "stsap_sel: %02x, ", self->stsap_sel);
--      len += sprintf(buf+len, "dtsap_sel: %02x\n", self->dtsap_sel);
-+      seq_printf(m, "\n	IrDA state: %s, ", state);
-+      seq_printf(m, "daddr: %08x, ", self->daddr);
-+      seq_printf(m, "stsap_sel: %02x, ", self->stsap_sel);
-+      seq_printf(m, "dtsap_sel: %02x\n", self->dtsap_sel);
- 
-       /* Next socket, please... */
-       self = (irnet_socket *) hashbin_get_next(irnet_server.list);
-@@ -1801,8 +1791,21 @@ irnet_proc_read(char *	buf,
-   /* Spin lock end */
-   spin_unlock_bh(&irnet_server.spinlock);
- 
--  return len;
-+  return 0;
- }
-+
-+static int irnet_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, irnet_proc_show, NULL);
+-	return (count > cnt) ? cnt : count;
++	return 0;
 +}
 +
-+static const struct file_operations irnet_proc_fops = {
++static int nubus_devices_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, nubus_devices_proc_show, NULL);
+ }
+ 
++static const struct file_operations nubus_devices_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= irnet_proc_open,
++	.open		= nubus_devices_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
 +};
- #endif /* PROC_FS */
++
+ static struct proc_dir_entry *proc_bus_nubus_dir;
  
- 
-@@ -1841,7 +1844,7 @@ irda_irnet_init(void)
- 
- #ifdef CONFIG_PROC_FS
-   /* Add a /proc file for irnet infos */
--  create_proc_info_entry("irnet", 0, proc_irda, irnet_proc_read);
-+  proc_create("irnet", 0, proc_irda, &irnet_proc_fops);
- #endif /* CONFIG_PROC_FS */
- 
-   /* Setup the IrNET server */
-diff -puN net/irda/irnet/irnet_irda.h~proc-switch-proc-irda-irnet-to-seq_file-interface net/irda/irnet/irnet_irda.h
---- a/net/irda/irnet/irnet_irda.h~proc-switch-proc-irda-irnet-to-seq_file-interface
-+++ a/net/irda/irnet/irnet_irda.h
-@@ -159,14 +159,6 @@ static void
- 				DISCOVERY_MODE,
- 				void *);
- #endif
--/* -------------------------- PROC ENTRY -------------------------- */
--#ifdef CONFIG_PROC_FS
--static int
--	irnet_proc_read(char *,
--			char **,
--			off_t,
--			int);
--#endif /* CONFIG_PROC_FS */
- 
- /**************************** VARIABLES ****************************/
- 
+ static void nubus_proc_subdir(struct nubus_dev* dev,
+@@ -172,7 +171,6 @@ void __init nubus_proc_init(void)
+ 	if (!MACH_IS_MAC)
+ 		return;
+ 	proc_bus_nubus_dir = proc_mkdir("bus/nubus", NULL);
+-	create_proc_info_entry("devices", 0, proc_bus_nubus_dir,
+-				get_nubus_dev_info);
++	proc_create("devices", 0, proc_bus_nubus_dir, &nubus_devices_proc_fops);
+ 	proc_bus_nubus_add_devices();
+ }
 _
 
 Patches currently in -mm which might be from adobriyan@sw.ru are
