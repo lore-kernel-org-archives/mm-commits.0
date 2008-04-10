@@ -1,262 +1,261 @@
 From: akpm@linux-foundation.org
-Subject: - pps-serial-clients-support.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 10:41:11 -0700
-Message-ID: <200804101741.m3AHfBcW009499@imap1.linux-foundation.org>
+Subject: - pps-documentation-programs-and-examples.patch removed from -mm tree
+Date: Thu, 10 Apr 2008 10:41:07 -0700
+Message-ID: <200804101741.m3AHf7QI009493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35101 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55443 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757162AbYDJRlP (ORCPT
+	by vger.kernel.org with ESMTP id S1756704AbYDJRlM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 13:41:15 -0400
+	Thu, 10 Apr 2008 13:41:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: giometti@linux.it, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PPS: serial clients support
+     PPS: documentation programs and examples
 has been removed from the -mm tree.  Its filename was
-     pps-serial-clients-support.patch
+     pps-documentation-programs-and-examples.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PPS: serial clients support
+Subject: PPS: documentation programs and examples
 From: Rodolfo Giometti <giometti@linux.it>
 
-Adds support for the PPS sources connected with the CD (Carrier Detect) pin of
-a serial port.
+Here some utilities and examples about the PPS API and the LinuxPPS support.
+
+* ppstest.c implements an useful testing program, while
+
+* ppsfind tries to help the user into finding a specific PPS source by
+  using its name or path.
 
 Signed-off-by: Rodolfo Giometti <giometti@linux.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pps/clients/Kconfig  |   10 ++++
- drivers/serial/8250.c        |    2 
- drivers/serial/serial_core.c |   71 ++++++++++++++++++++++++++++++++-
- include/linux/serial_core.h  |   30 +++++++++++--
- 4 files changed, 106 insertions(+), 7 deletions(-)
+ Documentation/pps/Makefile  |   27 ++++++
+ Documentation/pps/ppsfind   |   17 +++
+ Documentation/pps/ppstest.c |  151 ++++++++++++++++++++++++++++++++++
+ 3 files changed, 195 insertions(+)
 
-diff -puN drivers/pps/clients/Kconfig~pps-serial-clients-support drivers/pps/clients/Kconfig
---- a/drivers/pps/clients/Kconfig~pps-serial-clients-support
-+++ a/drivers/pps/clients/Kconfig
-@@ -15,4 +15,14 @@ config PPS_CLIENT_KTIMER
- 	  This driver can also be built as a module.  If so, the module
- 	  will be called ktimer.ko.
- 
-+comment "UART serial support (forced off)"
-+	depends on ! (SERIAL_CORE != n && !(PPS = m && SERIAL_CORE = y))
+diff -puN /dev/null Documentation/pps/Makefile
+--- /dev/null
++++ a/Documentation/pps/Makefile
+@@ -0,0 +1,27 @@
++TARGETS = ppstest
 +
-+config PPS_CLIENT_UART
-+	bool "UART serial support"
-+	depends on SERIAL_CORE != n && !(PPS = m && SERIAL_CORE = y)
-+	help
-+	  If you say yes here you get support for a PPS source connected
-+	  with the CD (Carrier Detect) pin of your serial port.
++CFLAGS += -Wall -O2 -D_GNU_SOURCE
++CFLAGS += -I .
++CFLAGS += -ggdb
 +
- endif
-diff -puN drivers/serial/8250.c~pps-serial-clients-support drivers/serial/8250.c
---- a/drivers/serial/8250.c~pps-serial-clients-support
-+++ a/drivers/serial/8250.c
-@@ -2174,6 +2174,8 @@ serial8250_set_termios(struct uart_port 
- 		up->ier |= UART_IER_MSI;
- 	if (up->capabilities & UART_CAP_UUE)
- 		up->ier |= UART_IER_UUE | UART_IER_RTOIE;
-+	if (up->port.flags & UPF_HARDPPS_CD)
-+		up->ier |= UART_IER_MSI;	/* enable interrupts */
- 
- 	serial_out(up, UART_IER, up->ier);
- 
-diff -puN drivers/serial/serial_core.c~pps-serial-clients-support drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~pps-serial-clients-support
-+++ a/drivers/serial/serial_core.c
-@@ -33,6 +33,7 @@
- #include <linux/serial.h> /* for serial_state and serial_icounter_struct */
- #include <linux/delay.h>
- #include <linux/mutex.h>
-+#include <linux/pps.h>
- 
- #include <asm/irq.h>
- #include <asm/uaccess.h>
-@@ -642,6 +643,54 @@ static int uart_get_info(struct uart_sta
- 	return 0;
- }
- 
-+#ifdef CONFIG_PPS_CLIENT_UART
++# -- Actions section --
 +
-+static int
-+uart_register_pps_port(struct uart_state *state, struct uart_port *port)
++.PHONY : all depend dep
++
++all : .depend $(TARGETS)
++
++.depend depend dep :
++	$(CC) $(CFLAGS) -M $(TARGETS:=.c) > .depend
++
++ifeq (.depend,$(wildcard .depend))
++include .depend
++endif
++
++
++# -- Clean section --
++
++.PHONY : clean
++
++clean :
++	rm -f *.o *~ core .depend
++	rm -f ${TARGETS}
+diff -puN /dev/null Documentation/pps/ppsfind
+--- /dev/null
++++ a/Documentation/pps/ppsfind
+@@ -0,0 +1,17 @@
++#!/bin/sh
++
++SYS="/sys/class/pps/"
++
++if [ $# -lt 1 ] ; then
++	echo "usage: ppsfind <name>" >&2
++	exit 1
++fi
++
++for d in $(ls $SYS) ; do
++	if grep $1 $SYS/$d/name >& /dev/null || \
++	   grep $1 $SYS/$d/path >& /dev/null ; then
++		echo "$d: name=$(cat $SYS/$d/name) path=$(cat $SYS/$d/path)"
++	fi
++done
++
++exit 0
+diff -puN /dev/null Documentation/pps/ppstest.c
+--- /dev/null
++++ a/Documentation/pps/ppstest.c
+@@ -0,0 +1,151 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <errno.h>
++#include <string.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
++
++#include <timepps.h>
++
++int find_source(char *path, pps_handle_t *handle, int *avail_mode)
 +{
-+	struct tty_driver *drv = port->info->tty->driver;
++	pps_params_t params;
 +	int ret;
 +
-+	state->pps_info.owner = THIS_MODULE;
-+	state->pps_info.dev = port->dev;
-+	snprintf(state->pps_info.name, PPS_MAX_NAME_LEN, "%s%d",
-+		drv->driver_name, port->line);
-+	snprintf(state->pps_info.path, PPS_MAX_NAME_LEN, "/dev/%s%d",
-+		drv->name, port->line);
++	printf("trying PPS source \"%s\"\n", path);
 +
-+	state->pps_info.mode = PPS_CAPTUREBOTH | \
-+			PPS_OFFSETASSERT | PPS_OFFSETCLEAR | \
-+			PPS_CANWAIT | PPS_TSFMT_TSPEC;
-+
-+	ret = pps_register_source(&state->pps_info, PPS_CAPTUREBOTH | \
-+				PPS_OFFSETASSERT | PPS_OFFSETCLEAR);
++	/* Try to find the source by using the supplied "path" name */
++	ret = open(path, O_RDWR);
 +	if (ret < 0) {
-+		dev_err(port->dev, "cannot register PPS source \"%s\"\n",
-+						state->pps_info.path);
++		fprintf(stderr, "unable to open device \"%s\" (%m)\n", path);
 +		return ret;
 +	}
-+	port->pps_source = ret;
-+	dev_dbg(port->dev, "PPS source #%d \"%s\" added\n",
-+		port->pps_source, state->pps_info.path);
++
++	/* Open the PPS source (and check the file descriptor) */
++	ret = time_pps_create(ret, handle);
++	if (ret < 0) {
++		fprintf(stderr, "cannot create a PPS source from device "
++				"\"%s\" (%m)\n", path);
++		return -1;
++	}
++	printf("found PPS source \"%s\"\n", path);
++
++	/* Find out what features are supported */
++	ret = time_pps_getcap(*handle, avail_mode);
++	if (ret < 0) {
++		fprintf(stderr, "cannot get capabilities (%m)\n");
++		return -1;
++	}
++	if ((*avail_mode & PPS_CAPTUREASSERT) == 0) {
++		fprintf(stderr, "cannot CAPTUREASSERT\n");
++		return -1;
++	}
++	if ((*avail_mode & PPS_OFFSETASSERT) == 0) {
++		fprintf(stderr, "cannot OFFSETASSERT\n");
++		return -1;
++	}
++
++	/* Capture assert timestamps, and compensate for a 675 nsec
++	 * propagation delay */
++	ret = time_pps_getparams(*handle, &params);
++	if (ret < 0) {
++		fprintf(stderr, "cannot get parameters (%m)\n");
++		return -1;
++	}
++	params.assert_offset.tv_sec = 0;
++	params.assert_offset.tv_nsec = 675;
++	params.mode |= PPS_CAPTUREASSERT | PPS_OFFSETASSERT;
++	ret = time_pps_setparams(*handle, &params);
++	if (ret < 0) {
++		fprintf(stderr, "cannot set parameters (%m)\n");
++		return -1;
++	}
 +
 +	return 0;
 +}
 +
-+static void
-+uart_unregister_pps_port(struct uart_state *state, struct uart_port *port)
++int fetch_source(int i, pps_handle_t *handle, int *avail_mode)
 +{
-+	pps_unregister_source(port->pps_source);
-+	dev_dbg(port->dev, "PPS source #%d \"%s\" removed\n",
-+				port->pps_source, state->pps_info.path);
++	struct timespec timeout;
++	pps_info_t infobuf;
++	int ret;
++
++	/* create a zero-valued timeout */
++	timeout.tv_sec = 3;
++	timeout.tv_nsec = 0;
++
++retry:
++	if (*avail_mode & PPS_CANWAIT) /* waits for the next event */
++		ret = time_pps_fetch(*handle, PPS_TSFMT_TSPEC, &infobuf,
++				   &timeout);
++	else {
++		sleep(1);
++		ret = time_pps_fetch(*handle, PPS_TSFMT_TSPEC, &infobuf,
++				   &timeout);
++	}
++	if (ret < 0) {
++		if (ret == -EINTR) {
++			fprintf(stderr, "time_pps_fetch() got a signal!\n");
++			goto retry;
++		}
++
++		fprintf(stderr, "time_pps_fetch() error %d (%m)\n", ret);
++		return -1;
++	}
++
++	printf("source %d - "
++	       "assert %ld.%09ld, sequence: %ld - "
++	       "clear  %ld.%09ld, sequence: %ld\n",
++	       i,
++	       infobuf.assert_timestamp.tv_sec,
++	       infobuf.assert_timestamp.tv_nsec,
++	       infobuf.assert_sequence,
++	       infobuf.clear_timestamp.tv_sec,
++	       infobuf.clear_timestamp.tv_nsec, infobuf.clear_sequence);
++
++	return 0;
 +}
 +
-+#else
++void usage(char *name)
++{
++	fprintf(stderr, "usage: %s <ppsdev> [<ppsdev> ...]\n", name);
++	exit(EXIT_FAILURE);
++}
 +
-+#define uart_register_pps_port(state, port)	do { } while (0)
-+#define uart_unregister_pps_port(state, port)	do { } while (0)
++int main(int argc, char *argv[])
++{
++	int num;
++	pps_handle_t handle[4];
++	int avail_mode[4];
++	int i = 0;
++	int ret;
 +
-+#endif /* CONFIG_PPS_CLIENT_UART */
++	/* Check the command line */
++	if (argc < 2)
++		usage(argv[0]);
 +
- static int uart_set_info(struct uart_state *state,
- 			 struct serial_struct __user *newinfo)
- {
-@@ -817,11 +866,19 @@ static int uart_set_info(struct uart_sta
- 			(port->flags & UPF_LOW_LATENCY) ? 1 : 0;
- 
-  check_and_exit:
-+	/* PPS support enabled/disabled? */
-+	if ((old_flags & UPF_HARDPPS_CD) != (new_flags & UPF_HARDPPS_CD)) {
-+		if (new_flags & UPF_HARDPPS_CD)
-+			uart_register_pps_port(state, port);
-+		else
-+			uart_unregister_pps_port(state, port);
++	for (i = 1; i < argc && i <= 4; i++) {
++		ret = find_source(argv[i], &handle[i - 1], &avail_mode[i - 1]);
++		if (ret < 0)
++			exit(EXIT_FAILURE);
 +	}
 +
- 	retval = 0;
- 	if (port->type == PORT_UNKNOWN)
- 		goto exit;
- 	if (state->info->flags & UIF_INITIALIZED) {
--		if (((old_flags ^ port->flags) & UPF_SPD_MASK) ||
-+		if (((old_flags ^ port->flags) & (UPF_SPD_MASK|UPF_HARDPPS_CD)) ||
- 		    old_custom_divisor != port->custom_divisor) {
- 			/*
- 			 * If they're setting up a custom divisor or speed,
-@@ -2164,6 +2221,12 @@ uart_configure_port(struct uart_driver *
- 		port->ops->config_port(port, flags);
- 	}
- 
-+	/*
-+	 * Add the PPS support for the current port.
-+	 */
-+	if (port->flags & UPF_HARDPPS_CD)
-+		uart_register_pps_port(state, port);
++	num = i - 1;
++	printf("ok, found %d source(s), now start fetching data...\n", num);
 +
- 	if (port->type != PORT_UNKNOWN) {
- 		unsigned long flags;
- 
-@@ -2480,6 +2543,12 @@ int uart_remove_one_port(struct uart_dri
- 	mutex_unlock(&state->mutex);
- 
- 	/*
-+	 * Remove PPS support from the current port.
-+	 */
-+	if (port->flags & UPF_HARDPPS_CD)
-+		uart_unregister_pps_port(state, port);
-+
-+	/*
- 	 * Remove the devices from the tty layer
- 	 */
- 	tty_unregister_device(drv->tty_driver, port->line);
-diff -puN include/linux/serial_core.h~pps-serial-clients-support include/linux/serial_core.h
---- a/include/linux/serial_core.h~pps-serial-clients-support
-+++ a/include/linux/serial_core.h
-@@ -168,6 +168,7 @@
- #include <linux/tty.h>
- #include <linux/mutex.h>
- #include <linux/sysrq.h>
-+#include <linux/pps.h>
- 
- struct uart_port;
- struct uart_info;
-@@ -251,6 +252,9 @@ struct uart_port {
- 	unsigned char		regshift;		/* reg offset shift */
- 	unsigned char		iotype;			/* io access style */
- 	unsigned char		unused1;
-+#ifdef CONFIG_PPS_CLIENT_UART
-+	int			pps_source;		/* PPS source ID */
-+#endif
- 
- #define UPIO_PORT		(0)
- #define UPIO_HUB6		(1)
-@@ -295,7 +299,8 @@ struct uart_port {
- #define UPF_IOREMAP		((__force upf_t) (1 << 31))
- 
- #define UPF_CHANGE_MASK		((__force upf_t) (0x17fff))
--#define UPF_USR_MASK		((__force upf_t) (UPF_SPD_MASK|UPF_LOW_LATENCY))
-+#define UPF_USR_MASK		((__force upf_t) (UPF_SPD_MASK|UPF_LOW_LATENCY\
-+							|UPF_HARDPPS_CD))
- 
- 	unsigned int		mctrl;			/* current modem ctrl settings */
- 	unsigned int		timeout;		/* character-based timeout */
-@@ -328,6 +333,10 @@ struct uart_state {
- 	struct uart_info	*info;
- 	struct uart_port	*port;
- 
-+#ifdef CONFIG_PPS_CLIENT_UART
-+	struct pps_source_info	pps_info;
-+#endif
-+
- 	struct mutex		mutex;
- };
- 
-@@ -492,13 +501,22 @@ uart_handle_dcd_change(struct uart_port 
- {
- 	struct uart_info *info = port->info;
- 
--	port->icount.dcd++;
--
--#ifdef CONFIG_HARD_PPS
--	if ((port->flags & UPF_HARDPPS_CD) && status)
--		hardpps();
-+#ifdef CONFIG_PPS_CLIENT_UART
-+	if (port->flags & UPF_HARDPPS_CD) {
-+		if (status) {
-+			pps_event(port->pps_source, PPS_CAPTUREASSERT, port);
-+			dev_dbg(port->dev, "PPS assert at %lu on source #%d\n",
-+				jiffies, port->pps_source);
-+		} else {
-+			pps_event(port->pps_source, PPS_CAPTURECLEAR, port);
-+			dev_dbg(port->dev, "PPS clear at %lu on source #%d\n",
-+				jiffies, port->pps_source);
++	/* loop, printing the most recent timestamp every second or so */
++	while (1) {
++		for (i = 0; i < num; i++) {
++			ret = fetch_source(i, &handle[i], &avail_mode[i]);
++			if (ret < 0 && errno != ETIMEDOUT)
++				exit(EXIT_FAILURE);
 +		}
 +	}
- #endif
- 
-+	port->icount.dcd++;
 +
- 	if (info->flags & UIF_CHECK_CD) {
- 		if (status)
- 			wake_up_interruptible(&info->open_wait);
++	for (; i >= 0; i--)
++		time_pps_destroy(handle[i]);
++
++	return 0;
++}
 _
 
 Patches currently in -mm which might be from giometti@linux.it are
 
+pps-documentation-programs-and-examples.patch
+pps-linuxpps-clients-support.patch
 pps-serial-clients-support.patch
 pps-example-program-to-enable-pps-support-on-serial-ports.patch
 pps-parallel-port-clients-support.patch
