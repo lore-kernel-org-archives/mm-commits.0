@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-switch-proc-driver-radio-typhoon-to-seq_file-interface.patch added to -mm tree
-Date: Thu, 10 Apr 2008 14:34:39 -0700
-Message-ID: <200804102134.m3ALYdma018460@imap1.linux-foundation.org>
+Subject: + proc-switch-proc-excite-unit_id-to-seq_file-interface.patch added to -mm tree
+Date: Thu, 10 Apr 2008 14:34:51 -0700
+Message-ID: <200804102134.m3ALYpMN018475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49175 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48951 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758649AbYDJVf5 (ORCPT
+	by vger.kernel.org with ESMTP id S1757245AbYDJVgV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 17:35:57 -0400
+	Thu, 10 Apr 2008 17:36:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, dougsland@gmail.com, mchehab@infradead.org, xyzzy@speakeasy.org
+Cc: adobriyan@sw.ru, ralf@linux-mips.org, thomas.koeller@baslerweb.com
 
 
 The patch titled
-     proc: switch /proc/driver/radio-typhoon to seq_file interface
+     proc: switch /proc/excite/unit_id to seq_file interface
 has been added to the -mm tree.  Its filename is
-     proc-switch-proc-driver-radio-typhoon-to-seq_file-interface.patch
+     proc-switch-proc-excite-unit_id-to-seq_file-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,102 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: switch /proc/driver/radio-typhoon to seq_file interface
+Subject: proc: switch /proc/excite/unit_id to seq_file interface
 From: Alexey Dobriyan <adobriyan@sw.ru>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Thomas Koeller <thomas.koeller@baslerweb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/radio/radio-typhoon.c |   40 ++++++++++++++------------
- 1 file changed, 23 insertions(+), 17 deletions(-)
+ arch/mips/basler/excite/excite_procfs.c |   28 +++++++++++++++-------
+ 1 file changed, 20 insertions(+), 8 deletions(-)
 
-diff -puN drivers/media/radio/radio-typhoon.c~proc-switch-proc-driver-radio-typhoon-to-seq_file-interface drivers/media/radio/radio-typhoon.c
---- a/drivers/media/radio/radio-typhoon.c~proc-switch-proc-driver-radio-typhoon-to-seq_file-interface
-+++ a/drivers/media/radio/radio-typhoon.c
-@@ -35,6 +35,7 @@
- #include <linux/init.h>		/* Initdata                       */
- #include <linux/ioport.h>	/* request_region		  */
- #include <linux/proc_fs.h>	/* radio card status report	  */
-+#include <linux/seq_file.h>
- #include <asm/io.h>		/* outb, outb_p                   */
- #include <asm/uaccess.h>	/* copy to/from user              */
- #include <linux/videodev2.h>	/* kernel radio structs           */
-@@ -93,9 +94,6 @@ static int typhoon_setfreq(struct typhoo
- static void typhoon_mute(struct typhoon_device *dev);
- static void typhoon_unmute(struct typhoon_device *dev);
- static int typhoon_setvol(struct typhoon_device *dev, int vol);
--#ifdef CONFIG_RADIO_TYPHOON_PROC_FS
--static int typhoon_get_info(char *buf, char **start, off_t offset, int len);
--#endif
- 
- static void typhoon_setvol_generic(struct typhoon_device *dev, int vol)
- {
-@@ -368,30 +366,39 @@ static struct video_device typhoon_radio
- 
- #ifdef CONFIG_RADIO_TYPHOON_PROC_FS
- 
--static int typhoon_get_info(char *buf, char **start, off_t offset, int len)
-+static int typhoon_proc_show(struct seq_file *m, void *v)
- {
--	char *out = buf;
+diff -puN arch/mips/basler/excite/excite_procfs.c~proc-switch-proc-excite-unit_id-to-seq_file-interface arch/mips/basler/excite/excite_procfs.c
+--- a/arch/mips/basler/excite/excite_procfs.c~proc-switch-proc-excite-unit_id-to-seq_file-interface
++++ a/arch/mips/basler/excite/excite_procfs.c
+@@ -18,8 +18,9 @@
+  *  along with this program; if not, write to the Free Software
+  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
 -
- 	#ifdef MODULE
- 	    #define MODULEPROCSTRING "Driver loaded as a module"
- 	#else
- 	    #define MODULEPROCSTRING "Driver compiled into kernel"
- 	#endif
++#include <linux/module.h>
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ #include <linux/stat.h>
+ #include <asm/page.h>
+ #include <asm/io.h>
+@@ -28,14 +29,25 @@
  
--	/* output must be kept under PAGE_SIZE */
--	out += sprintf(out, BANNER);
--	out += sprintf(out, "Load type: " MODULEPROCSTRING "\n\n");
--	out += sprintf(out, "frequency = %lu kHz\n",
-+	seq_puts(m, BANNER);
-+	seq_puts(m, "Load type: " MODULEPROCSTRING "\n\n");
-+	seq_printf(m, "frequency = %lu kHz\n",
- 		typhoon_unit.curfreq >> 4);
--	out += sprintf(out, "volume = %d\n", typhoon_unit.curvol);
--	out += sprintf(out, "mute = %s\n", typhoon_unit.muted ?
-+	seq_printf(m, "volume = %d\n", typhoon_unit.curvol);
-+	seq_printf(m, "mute = %s\n", typhoon_unit.muted ?
- 		"on" : "off");
--	out += sprintf(out, "iobase = 0x%x\n", typhoon_unit.iobase);
--	out += sprintf(out, "mute frequency = %lu kHz\n",
-+	seq_printf(m, "iobase = 0x%x\n", typhoon_unit.iobase);
-+	seq_printf(m, "mute frequency = %lu kHz\n",
- 		typhoon_unit.mutefreq >> 4);
--	return out - buf;
+ #include <excite.h>
+ 
+-static int excite_get_unit_id(char *buf, char **addr, off_t offs, int size)
++static int excite_unit_id_proc_show(struct seq_file *m, void *v)
+ {
+-	const int len = snprintf(buf, PAGE_SIZE, "%06x", unit_id);
+-	const int w = len - offs;
+-	*addr = buf + offs;
+-	return w < size ? w : size;
++	seq_printf(m, "%06x", unit_id);
 +	return 0;
  }
  
-+static int typhoon_proc_open(struct inode *inode, struct file *file)
++static int excite_unit_id_proc_open(struct inode *inode, struct file *file)
 +{
-+	return single_open(file, typhoon_proc_show, NULL);
++	return single_open(file, excite_unit_id_proc_show, NULL);
 +}
 +
-+static const struct file_operations typhoon_proc_fops = {
++static const struct file_operations excite_unit_id_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= typhoon_proc_open,
++	.open		= excite_unit_id_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
 +};
- #endif /* CONFIG_RADIO_TYPHOON_PROC_FS */
++
+ static int
+ excite_bootrom_read(char *page, char **start, off_t off, int count,
+ 		  int *eof, void *data)
+@@ -69,8 +81,8 @@ void excite_procfs_init(void)
+ 	if (pdir) {
+ 		struct proc_dir_entry * e;
  
- MODULE_AUTHOR("Dr. Henrik Seidel");
-@@ -452,8 +459,7 @@ static int __init typhoon_init(void)
- 	typhoon_mute(&typhoon_unit);
+-		e = create_proc_info_entry("unit_id", S_IRUGO, pdir,
+-					   excite_get_unit_id);
++		e = proc_create("unit_id", S_IRUGO, pdir,
++				&excite_unit_id_proc_fops);
+ 		if (e) e->size = 6;
  
- #ifdef CONFIG_RADIO_TYPHOON_PROC_FS
--	if (!create_proc_info_entry("driver/radio-typhoon", 0, NULL,
--				    typhoon_get_info))
-+	if (!proc_create("driver/radio-typhoon", 0, NULL, &typhoon_proc_fops))
- 		printk(KERN_ERR "radio-typhoon: registering /proc/driver/radio-typhoon failed\n");
- #endif
- 
+ 		e = create_proc_read_entry("bootrom", S_IRUGO, pdir,
 _
 
 Patches currently in -mm which might be from adobriyan@sw.ru are
