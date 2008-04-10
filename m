@@ -1,52 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-fix-buggy-bios-check-when-cpus-are-hot-removed.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 13:00:57 -0700
-Message-ID: <200804102000.m3AK0veA014932@imap1.linux-foundation.org>
+Subject: - spi-spi_bfin5xx-build-fix.patch removed from -mm tree
+Date: Thu, 10 Apr 2008 13:01:00 -0700
+Message-ID: <200804102001.m3AK10NZ014935@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51527 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52496 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756466AbYDJUBp (ORCPT
+	by vger.kernel.org with ESMTP id S1756757AbYDJUB6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 16:01:45 -0400
+	Thu, 10 Apr 2008 16:01:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akataria@vmware.com, arai@vmware.com, lenb@kernel.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: vapier.adi@gmail.com, cooloney@kernel.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: fix "buggy BIOS check" when CPUs are hot removed
+     spi: spi_bfin5xx build fix
 has been removed from the -mm tree.  Its filename was
-     acpi-fix-buggy-bios-check-when-cpus-are-hot-removed.patch
+     spi-spi_bfin5xx-build-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: fix "buggy BIOS check" when CPUs are hot removed
-From: Alok Kataria <akataria@vmware.com>
+Subject: spi: spi_bfin5xx build fix
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-Fixes a BUG in ACPI hotplugging.
+Fix breakage cause by overzealous line wrapping; there should be only one
+format string.
 
-processor_device_array[pr->id] needs to be set to NULL when removing a CPU. 
-Else the "buggy BIOS check" in acpi_processor_start mistakenly fires when a
-CPU is removed from the system and then later re-added.
-
-Signed-off-by: Alok N Kataria <akataria@vmware.com>
-Signed-off-by: Dan Arai <arai@vmware.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/processor_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/spi/spi_bfin5xx.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/acpi/processor_core.c~acpi-fix-buggy-bios-check-when-cpus-are-hot-removed drivers/acpi/processor_core.c
---- a/drivers/acpi/processor_core.c~acpi-fix-buggy-bios-check-when-cpus-are-hot-removed
-+++ a/drivers/acpi/processor_core.c
-@@ -822,7 +822,7 @@ static int acpi_processor_remove(struct 
+diff -puN drivers/spi/spi_bfin5xx.c~spi-spi_bfin5xx-build-fix drivers/spi/spi_bfin5xx.c
+--- a/drivers/spi/spi_bfin5xx.c~spi-spi_bfin5xx-build-fix
++++ a/drivers/spi/spi_bfin5xx.c
+@@ -713,8 +713,8 @@ static void pump_transfers(unsigned long
+ 	} else {
+ 		drv_data->len = transfer->len;
  	}
+-	dev_dbg(&drv_data->pdev->dev, "transfer: ",
+-		"drv_data->write is %p, chip->write is %p, null_wr is %p\n",
++	dev_dbg(&drv_data->pdev->dev,
++		"transfer: drv_data->write is %p, chip->write is %p, null_wr is %p\n",
+ 		drv_data->write, chip->write, null_writer);
  
- 	processors[pr->id] = NULL;
+ 	/* speed and width has been set on per message */
+_
+
+Patches currently in -mm which might be from vapier.adi@gmail.com are
+
+origin.patch
+blackfin-replace-remaining-__function__-occurences.patch
+git-watchdog.patch
+procfs-task-exe-symlink-fix-2.patch
+
