@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + proc-convert-proc-bus-nubus-to-seq_file-interface.patch added to -mm tree
-Date: Thu, 10 Apr 2008 14:34:55 -0700
-Message-ID: <200804102134.m3ALYteh018481@imap1.linux-foundation.org>
+Subject: + proc-switch-proc-driver-ray_cs-ray_cs-to-seq_file-interface.patch added to -mm tree
+Date: Thu, 10 Apr 2008 14:34:35 -0700
+Message-ID: <200804102134.m3ALYZfh018457@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56583 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44864 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757394AbYDJVgM (ORCPT
+	by vger.kernel.org with ESMTP id S1756310AbYDJVgw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 17:36:12 -0400
+	Thu, 10 Apr 2008 17:36:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@sw.ru, geert@linux-m68k.org
+Cc: adobriyan@sw.ru, davem@davemloft.net, jgarzik@pobox.com, jt@hpl.hp.com, linux@dominikbrodowski.net, linville@tuxdriver.com
 
 
 The patch titled
-     proc: convert /proc/bus/nubus to seq_file interface
+     proc: switch /proc/driver/ray_cs/ray_cs to seq_file interface
 has been added to the -mm tree.  Its filename is
-     proc-convert-proc-bus-nubus-to-seq_file-interface.patch
+     proc-switch-proc-driver-ray_cs-ray_cs-to-seq_file-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,173 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: convert /proc/bus/nubus to seq_file interface
+Subject: proc: switch /proc/driver/ray_cs/ray_cs to seq_file interface
 From: Alexey Dobriyan <adobriyan@sw.ru>
 
 Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Jean Tourrilhes <jt@hpl.hp.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Jeff Garzik <jgarzik@pobox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nubus/proc.c |   42 +++++++++++++++++++----------------------
- 1 file changed, 20 insertions(+), 22 deletions(-)
+ drivers/net/wireless/ray_cs.c |   73 ++++++++++++++++++--------------
+ 1 file changed, 42 insertions(+), 31 deletions(-)
 
-diff -puN drivers/nubus/proc.c~proc-convert-proc-bus-nubus-to-seq_file-interface drivers/nubus/proc.c
---- a/drivers/nubus/proc.c~proc-convert-proc-bus-nubus-to-seq_file-interface
-+++ a/drivers/nubus/proc.c
-@@ -21,6 +21,7 @@
+diff -puN drivers/net/wireless/ray_cs.c~proc-switch-proc-driver-ray_cs-ray_cs-to-seq_file-interface drivers/net/wireless/ray_cs.c
+--- a/drivers/net/wireless/ray_cs.c~proc-switch-proc-driver-ray_cs-ray_cs-to-seq_file-interface
++++ a/drivers/net/wireless/ray_cs.c
+@@ -34,6 +34,7 @@
  #include <linux/kernel.h>
- #include <linux/nubus.h>
  #include <linux/proc_fs.h>
+ #include <linux/ptrace.h>
 +#include <linux/seq_file.h>
- #include <linux/init.h>
- #include <linux/module.h>
- 
-@@ -28,38 +29,36 @@
- #include <asm/byteorder.h>
- 
- static int
--get_nubus_dev_info(char *buf, char **start, off_t pos, int count)
-+nubus_devices_proc_show(struct seq_file *m, void *v)
+ #include <linux/slab.h>
+ #include <linux/string.h>
+ #include <linux/timer.h>
+@@ -2582,7 +2583,7 @@ static char *nettype[] = {"Adhoc", "Infr
+ static char *framing[] = {"Encapsulation", "Translation"}
+ ;
+ /*===========================================================================*/
+-static int ray_cs_proc_read(char *buf, char **start, off_t offset, int len)
++static int ray_cs_proc_show(struct seq_file *m, void *v)
  {
- 	struct nubus_dev *dev = nubus_devices;
--	off_t at = 0;
--	int len, cnt;
+ /* Print current values which are not available via other means
+  * eg ifconfig 
+@@ -2606,83 +2607,93 @@ static int ray_cs_proc_read(char *buf, c
+     if (!local)
+     	return 0;
  
--	cnt = 0;
--	while (dev && count > cnt) {
--		len = sprintf(buf, "%x\t%04x %04x %04x %04x",
-+	while (dev) {
-+		seq_printf(m, "%x\t%04x %04x %04x %04x",
- 			      dev->board->slot,
- 			      dev->category,
- 			      dev->type,
- 			      dev->dr_sw,
- 			      dev->dr_hw);
--		len += sprintf(buf+len,
--			       "\t%08lx",
--			       dev->board->slot_addr);
--		buf[len++] = '\n';
--		at += len;
--		if (at >= pos) {
--			if (!*start) {
--				*start = buf + (pos - (at - len));
--				cnt = at - pos;
--			} else
--				cnt += len;
--			buf += len;
--		}
-+		seq_printf(m, "\t%08lx\n", dev->board->slot_addr);
- 		dev = dev->next;
+-    len = 0;
+-
+-    len += sprintf(buf + len, "Raylink Wireless LAN driver status\n");
+-    len += sprintf(buf + len, "%s\n", rcsid);
++    seq_puts(m, "Raylink Wireless LAN driver status\n");
++    seq_printf(m, "%s\n", rcsid);
+     /* build 4 does not report version, and field is 0x55 after memtest */
+-    len += sprintf(buf + len, "Firmware version     = ");
++    seq_puts(m, "Firmware version     = ");
+     if (local->fw_ver == 0x55)
+-        len += sprintf(buf + len, "4 - Use dump_cis for more details\n");
++        seq_puts(m, "4 - Use dump_cis for more details\n");
+     else
+-        len += sprintf(buf + len, "%2d.%02d.%02d\n",
++        seq_printf(m, "%2d.%02d.%02d\n",
+                    local->fw_ver, local->fw_bld, local->fw_var);
+ 
+     for (i=0; i<32; i++) c[i] = local->sparm.b5.a_current_ess_id[i];
+     c[32] = 0;
+-    len += sprintf(buf + len, "%s network ESSID = \"%s\"\n", 
++    seq_printf(m, "%s network ESSID = \"%s\"\n",
+                    nettype[local->sparm.b5.a_network_type], c);
+ 
+     p = local->bss_id;
+-    len += sprintf(buf + len, "BSSID                = %s\n",
++    seq_printf(m, "BSSID                = %s\n",
+                    print_mac(mac, p));
+ 
+-    len += sprintf(buf + len, "Country code         = %d\n", 
++    seq_printf(m, "Country code         = %d\n",
+                    local->sparm.b5.a_curr_country_code);
+ 
+     i = local->card_status;
+     if (i < 0) i = 10;
+     if (i > 16) i = 10;
+-    len += sprintf(buf + len, "Card status          = %s\n", card_status[i]);
++    seq_printf(m, "Card status          = %s\n", card_status[i]);
+ 
+-    len += sprintf(buf + len, "Framing mode         = %s\n",framing[translate]);
++    seq_printf(m, "Framing mode         = %s\n",framing[translate]);
+ 
+-    len += sprintf(buf + len, "Last pkt signal lvl  = %d\n", local->last_rsl);
++    seq_printf(m, "Last pkt signal lvl  = %d\n", local->last_rsl);
+ 
+     if (local->beacon_rxed) {
+ 	/* Pull some fields out of last beacon received */
+-	len += sprintf(buf + len, "Beacon Interval      = %d Kus\n", 
++	seq_printf(m, "Beacon Interval      = %d Kus\n",
+ 		       local->last_bcn.beacon_intvl[0]
+ 		       + 256 * local->last_bcn.beacon_intvl[1]);
+     
+     p = local->last_bcn.elements;
+     if (p[0] == C_ESSID_ELEMENT_ID) p += p[1] + 2;
+     else {
+-        len += sprintf(buf + len, "Parse beacon failed at essid element id = %d\n",p[0]);
+-        return len;
++        seq_printf(m, "Parse beacon failed at essid element id = %d\n",p[0]);
++        return 0;
+     }
+ 
+     if (p[0] == C_SUPPORTED_RATES_ELEMENT_ID) {
+-        len += sprintf(buf + len, "Supported rate codes = ");
++        seq_puts(m, "Supported rate codes = ");
+         for (i=2; i<p[1] + 2; i++) 
+-            len += sprintf(buf + len, "0x%02x ", p[i]);
+-        len += sprintf(buf + len, "\n");
++            seq_printf(m, "0x%02x ", p[i]);
++        seq_putc(m, '\n');
+         p += p[1] + 2;
+     }
+     else {
+-        len += sprintf(buf + len, "Parse beacon failed at rates element\n");
+-        return len;
++        seq_puts(m, "Parse beacon failed at rates element\n");
++        return 0;
+     }
+ 
+ 	if (p[0] == C_FH_PARAM_SET_ELEMENT_ID) {
+ 	    pfh = (struct freq_hop_element *)p;
+-	    len += sprintf(buf + len, "Hop dwell            = %d Kus\n",
++	    seq_printf(m, "Hop dwell            = %d Kus\n",
+ 			   pfh->dwell_time[0] + 256 * pfh->dwell_time[1]);
+-	    len += sprintf(buf + len, "Hop set              = %d \n", pfh->hop_set);
+-	    len += sprintf(buf + len, "Hop pattern          = %d \n", pfh->hop_pattern);
+-	    len += sprintf(buf + len, "Hop index            = %d \n", pfh->hop_index);
++	    seq_printf(m, "Hop set              = %d \n", pfh->hop_set);
++	    seq_printf(m, "Hop pattern          = %d \n", pfh->hop_pattern);
++	    seq_printf(m, "Hop index            = %d \n", pfh->hop_index);
+ 	    p += p[1] + 2;
  	}
--	return (count > cnt) ? cnt : count;
-+	return 0;
-+}
-+
-+static int nubus_devices_proc_open(struct inode *inode, struct file *file)
-+{
-+	return single_open(file, nubus_devices_proc_show, NULL);
+ 	else {
+-	    len += sprintf(buf + len, "Parse beacon failed at FH param element\n");
+-	    return len;
++	    seq_puts(m, "Parse beacon failed at FH param element\n");
++	    return 0;
+ 	}
+     } else {
+-	len += sprintf(buf + len, "No beacons received\n");
++	seq_puts(m, "No beacons received\n");
+     }
+-    return len;
++    return 0;
  }
  
-+static const struct file_operations nubus_devices_proc_fops = {
++static int ray_cs_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, ray_cs_proc_show, NULL);
++}
++
++static const struct file_operations ray_cs_proc_fops = {
 +	.owner		= THIS_MODULE,
-+	.open		= nubus_devices_proc_open,
++	.open		= ray_cs_proc_open,
 +	.read		= seq_read,
 +	.llseek		= seq_lseek,
 +	.release	= single_release,
 +};
-+
- static struct proc_dir_entry *proc_bus_nubus_dir;
+ #endif
+ /*===========================================================================*/
+ static int build_auth_frame(ray_dev_t *local, UCHAR *dest, int auth_type)
+@@ -2815,7 +2826,7 @@ static int __init init_ray_cs(void)
+ #ifdef CONFIG_PROC_FS
+     proc_mkdir("driver/ray_cs", NULL);
  
- static void nubus_proc_subdir(struct nubus_dev* dev,
-@@ -172,7 +171,6 @@ void __init nubus_proc_init(void)
- 	if (!MACH_IS_MAC)
- 		return;
- 	proc_bus_nubus_dir = proc_mkdir("bus/nubus", NULL);
--	create_proc_info_entry("devices", 0, proc_bus_nubus_dir,
--				get_nubus_dev_info);
-+	proc_create("devices", 0, proc_bus_nubus_dir, &nubus_devices_proc_fops);
- 	proc_bus_nubus_add_devices();
- }
+-    create_proc_info_entry("driver/ray_cs/ray_cs", 0, NULL, &ray_cs_proc_read);
++    proc_create("driver/ray_cs/ray_cs", 0, NULL, &ray_cs_proc_fops);
+     raycs_write("driver/ray_cs/essid", write_essid, NULL);
+     raycs_write("driver/ray_cs/net_type", write_int, &net_type);
+     raycs_write("driver/ray_cs/translate", write_int, &translate);
 _
 
 Patches currently in -mm which might be from adobriyan@sw.ru are
