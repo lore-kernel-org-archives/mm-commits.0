@@ -1,196 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - git-semaphore-alpha-fix.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 13:09:53 -0700
-Message-ID: <200804102020.m3AKKB3X015756@imap1.linux-foundation.org>
+Subject: + aacraid-fix-unchecked-down_interruptible.patch added to -mm tree
+Date: Thu, 10 Apr 2008 13:26:46 -0700
+Message-ID: <200804102037.m3AKb2g4016314@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53666 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754812AbYDJUUr (ORCPT
+	by vger.kernel.org with ESMTP id S1751657AbYDJUhO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 16:20:47 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3AKKHjd004949
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 10 Apr 2008 13:20:18 -0700
+	Thu, 10 Apr 2008 16:37:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     git-semaphore-alpha-fix
-has been removed from the -mm tree.  Its filename was
-     git-semaphore-alpha-fix.patch
+     aacraid: fix unchecked down_interruptible()
+has been added to the -mm tree.  Its filename is
+     aacraid-fix-unchecked-down_interruptible.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-semaphore-alpha-fix
+Subject: aacraid: fix unchecked down_interruptible()
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/scsi/aacraid/commsup.c: In function 'aac_fib_send':
+drivers/scsi/aacraid/commsup.c:519: warning: ignoring return value of 'down_interruptible', declared with attribute warn_unused_result
+
+This is a bug.  Code *must* check whether or not down_interruptible()
+succeeded.  This driver has lost track of whether or not the lock was taken.
+
+(I thought I already fixed this once?)
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/semaphore.h |  150 --------------------------------
- 1 file changed, 1 insertion(+), 149 deletions(-)
+ drivers/scsi/aacraid/commsup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-alpha/semaphore.h~git-semaphore-alpha-fix include/asm-alpha/semaphore.h
---- a/include/asm-alpha/semaphore.h~git-semaphore-alpha-fix
-+++ a/include/asm-alpha/semaphore.h
-@@ -1,149 +1 @@
--#ifndef _ALPHA_SEMAPHORE_H
--#define _ALPHA_SEMAPHORE_H
--
--/*
-- * SMP- and interrupt-safe semaphores..
-- *
-- * (C) Copyright 1996 Linus Torvalds
-- * (C) Copyright 1996, 2000 Richard Henderson
-- */
--
--#include <asm/current.h>
--#include <asm/system.h>
--#include <asm/atomic.h>
--#include <linux/compiler.h>
--#include <linux/wait.h>
--#include <linux/rwsem.h>
--
--struct semaphore {
--	atomic_t count;
--	wait_queue_head_t wait;
--};
--
--#define __SEMAPHORE_INITIALIZER(name, n)			\
--{								\
--	.count	= ATOMIC_INIT(n),				\
--  	.wait	= __WAIT_QUEUE_HEAD_INITIALIZER((name).wait),	\
--}
--
--#define __DECLARE_SEMAPHORE_GENERIC(name,count)		\
--	struct semaphore name = __SEMAPHORE_INITIALIZER(name,count)
--
--#define DECLARE_MUTEX(name)		__DECLARE_SEMAPHORE_GENERIC(name,1)
--
--static inline void sema_init(struct semaphore *sem, int val)
--{
--	/*
--	 * Logically, 
--	 *   *sem = (struct semaphore)__SEMAPHORE_INITIALIZER((*sem),val);
--	 * except that gcc produces better initializing by parts yet.
--	 */
--
--	atomic_set(&sem->count, val);
--	init_waitqueue_head(&sem->wait);
--}
--
--static inline void init_MUTEX (struct semaphore *sem)
--{
--	sema_init(sem, 1);
--}
--
--static inline void init_MUTEX_LOCKED (struct semaphore *sem)
--{
--	sema_init(sem, 0);
--}
--
--extern void down(struct semaphore *);
--extern void __down_failed(struct semaphore *);
--extern int  down_interruptible(struct semaphore *);
--extern int  __down_failed_interruptible(struct semaphore *);
--extern int  down_trylock(struct semaphore *);
--extern void up(struct semaphore *);
--extern void __up_wakeup(struct semaphore *);
--
--/*
-- * Hidden out of line code is fun, but extremely messy.  Rely on newer
-- * compilers to do a respectable job with this.  The contention cases
-- * are handled out of line in arch/alpha/kernel/semaphore.c.
-- */
--
--static inline void __down(struct semaphore *sem)
--{
--	long count;
--	might_sleep();
--	count = atomic_dec_return(&sem->count);
--	if (unlikely(count < 0))
--		__down_failed(sem);
--}
--
--static inline int __down_interruptible(struct semaphore *sem)
--{
--	long count;
--	might_sleep();
--	count = atomic_dec_return(&sem->count);
--	if (unlikely(count < 0))
--		return __down_failed_interruptible(sem);
--	return 0;
--}
--
--/*
-- * down_trylock returns 0 on success, 1 if we failed to get the lock.
-- */
--
--static inline int __down_trylock(struct semaphore *sem)
--{
--	long ret;
--
--	/* "Equivalent" C:
--
--	   do {
--		ret = ldl_l;
--		--ret;
--		if (ret < 0)
--			break;
--		ret = stl_c = ret;
--	   } while (ret == 0);
--	*/
--	__asm__ __volatile__(
--		"1:	ldl_l	%0,%1\n"
--		"	subl	%0,1,%0\n"
--		"	blt	%0,2f\n"
--		"	stl_c	%0,%1\n"
--		"	beq	%0,3f\n"
--		"	mb\n"
--		"2:\n"
--		".subsection 2\n"
--		"3:	br	1b\n"
--		".previous"
--		: "=&r" (ret), "=m" (sem->count)
--		: "m" (sem->count));
--
--	return ret < 0;
--}
--
--static inline void __up(struct semaphore *sem)
--{
--	if (unlikely(atomic_inc_return(&sem->count) <= 0))
--		__up_wakeup(sem);
--}
--
--#if !defined(CONFIG_DEBUG_SEMAPHORE)
--static inline void down(struct semaphore *sem)
--{
--	__down(sem);
--}
--static inline int down_interruptible(struct semaphore *sem)
--{
--	return __down_interruptible(sem);
--}
--static inline int down_trylock(struct semaphore *sem)
--{
--	return __down_trylock(sem);
--}
--static inline void up(struct semaphore *sem)
--{
--	__up(sem);
--}
--#endif
--
--#endif
-+#include <linux/semaphore.h>
+diff -puN drivers/scsi/aacraid/commsup.c~aacraid-fix-unchecked-down_interruptible drivers/scsi/aacraid/commsup.c
+--- a/drivers/scsi/aacraid/commsup.c~aacraid-fix-unchecked-down_interruptible
++++ a/drivers/scsi/aacraid/commsup.c
+@@ -516,7 +516,7 @@ int aac_fib_send(u16 command, struct fib
+ 				udelay(5);
+ 			}
+ 		} else
+-			(void)down_interruptible(&fibptr->event_wait);
++			down(&fibptr->event_wait);
+ 		spin_lock_irqsave(&fibptr->event_lock, flags);
+ 		if (fibptr->done == 0) {
+ 			fibptr->done = 2; /* Tell interrupt we aborted */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -273,6 +147,7 @@ git-scsi-misc.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
 git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
 scsi-fix-section-mismatch-in-aic94xx.patch
+aacraid-fix-unchecked-down_interruptible.patch
 drivers-scsi-mvsasc-fix-build-warnings.patch
 git-block-git-rejects.patch
 sparc32-export-empty_zero_page.patch
@@ -290,7 +165,6 @@ git-xtensa.patch
 make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
 git-semaphore-vs-git-x86.patch
 git-semaphore-git-rejects.patch
-git-semaphore-alpha-fix.patch
 ext4-is-busted-on-m68k.patch
 smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
