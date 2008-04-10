@@ -1,82 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-infinite-loop-in-fcntlf_setlkw.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 14:36:24 -0700
-Message-ID: <200804102136.m3ALaOh2018592@imap1.linux-foundation.org>
+Subject: + usb-asix-add-buffalo-lua-u2-gt-10-100-1000.patch added to -mm tree
+Date: Thu, 10 Apr 2008 14:38:27 -0700
+Message-ID: <200804102138.m3ALcRFf018655@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55341 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51269 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755116AbYDJVh0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756475AbYDJVjG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 17:37:26 -0400
+	Thu, 10 Apr 2008 17:39:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: miklos@szeredi.hu, bfields@fieldses.org, cel@citi.umich.edu, mszeredi@suse.cz, neilb@suse.de, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: malattia@linux.it, dhollis@davehollis.com, greg@kroah.com
 
 
 The patch titled
-     nfs: infinite loop in fcntl(F_SETLKW)
-has been removed from the -mm tree.  Its filename was
-     nfs-infinite-loop-in-fcntlf_setlkw.patch
+     usb/asix: add Buffalo LUA-U2-GT 10/100/1000
+has been added to the -mm tree.  Its filename is
+     usb-asix-add-buffalo-lua-u2-gt-10-100-1000.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfs: infinite loop in fcntl(F_SETLKW)
-From: Miklos Szeredi <miklos@szeredi.hu>
+Subject: usb/asix: add Buffalo LUA-U2-GT 10/100/1000
+From: Mattia Dongili <malattia@linux.it>
 
-Another infinite loop, this one involving both client and server.
+The USB net adapter Buffalo LUA-U2-GT (0411:006e) carries a AX88178 chip. 
+Tested on the above HW.
 
-Basically what happens is that on the server nlm_fopen() calls nfsd_open()
-which returns -EACCES, to which nlm_fopen() returns NLM_LCK_DENIED.
-
-On the client this will turn into a -EAGAIN (nlm_stat_to_errno()), which in
-will cause fcntl_setlk() to retry forever.
-
-I _think_ the solution is to turn NLM_LCK_DENIED into ENOLCK for blocking
-locks, as NLM_LCK_BLOCKED is for the contended case.  For testing the lock
-leave NLM_LCK_DENIED as EAGAIN.  That still could be misleading, but at least
-there's no infinite loop in that case.
-
-I've minimally tested this patch to verify that it cures the lockup,
-and that simple blocking locks keep working.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Chuck Lever <cel@citi.umich.edu>
+Signed-off-by: Mattia Dongili <malattia@linux.it>
+Acked-off-by: David Hollis <dhollis@davehollis.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/lockd/clntproc.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/net/usb/asix.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN fs/lockd/clntproc.c~nfs-infinite-loop-in-fcntlf_setlkw fs/lockd/clntproc.c
---- a/fs/lockd/clntproc.c~nfs-infinite-loop-in-fcntlf_setlkw
-+++ a/fs/lockd/clntproc.c
-@@ -536,6 +536,9 @@ again:
- 		up_read(&host->h_rwsem);
- 	}
- 	status = nlm_stat_to_errno(resp->status);
-+	/* Don't return EAGAIN, as that would make fcntl_setlk() loop */
-+	if (status == -EAGAIN)
-+		status = -ENOLCK;
- out_unblock:
- 	nlmclnt_finish_block(block);
- 	/* Cancel the blocked request if it is still pending */
+diff -puN drivers/net/usb/asix.c~usb-asix-add-buffalo-lua-u2-gt-10-100-1000 drivers/net/usb/asix.c
+--- a/drivers/net/usb/asix.c~usb-asix-add-buffalo-lua-u2-gt-10-100-1000
++++ a/drivers/net/usb/asix.c
+@@ -1381,6 +1381,10 @@ static const struct usb_device_id	produc
+ 	USB_DEVICE (0x0411, 0x003d),
+ 	.driver_info =  (unsigned long) &ax8817x_info,
+ }, {
++	// Buffalo LUA-U2-GT 10/100/1000
++	USB_DEVICE (0x0411, 0x006e),
++	.driver_info =  (unsigned long) &ax88178_info,
++}, {
+ 	// Sitecom LN-029 "USB 2.0 10/100 Ethernet adapter"
+ 	USB_DEVICE (0x6189, 0x182d),
+ 	.driver_info =  (unsigned long) &ax8817x_info,
 _
 
-Patches currently in -mm which might be from miklos@szeredi.hu are
+Patches currently in -mm which might be from malattia@linux.it are
 
-generic_file_splice_read-fix-lockups.patch
-git-nfsd.patch
-nfs-infinite-loop-in-fcntlf_setlkw.patch
-mmap_region-cleanup-the-final-vma_merge-related-code.patch
-mm-bdi-move-statistics-to-debugfs.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-notify_change-callers-must-hold-i_mutex.patch
+usb-asix-add-buffalo-lua-u2-gt-10-100-1000.patch
 
