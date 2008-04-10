@@ -1,74 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - net-ipv6-ip6_inputc-fix-a-couple-of-warnings.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 15:03:05 -0700
-Message-ID: <200804102213.m3AMDMXD019997@imap1.linux-foundation.org>
+Subject: - usb-serial-more-fixes-and-groundwork-for-tty-changes-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 10 Apr 2008 15:24:47 -0700
+Message-ID: <200804102235.m3AMZ4KS020752@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47353 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757148AbYDJWNd (ORCPT
+	by vger.kernel.org with ESMTP id S1751318AbYDJWfc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 18:13:33 -0400
+	Thu, 10 Apr 2008 18:35:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, yoshfuji@linux-ipv6.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, alan@redhat.com, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/ipv6/ip6_input.c: fix a couple of warnings
+     usb-serial-more-fixes-and-groundwork-for-tty-changes-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     net-ipv6-ip6_inputc-fix-a-couple-of-warnings.patch
+     usb-serial-more-fixes-and-groundwork-for-tty-changes-checkpatch-fixes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/ipv6/ip6_input.c: fix a couple of warnings
+Subject: usb-serial-more-fixes-and-groundwork-for-tty-changes-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/ipv6/ip6_input.c: In function `ip6_mc_input':
-net/ipv6/ip6_input.c:312: warning: label `out' defined but not used
-net/ipv6/ip6_input.c:317: warning: label `discard' defined but not used
+ERROR: space prohibited after that open parenthesis '('
+#70: FILE: drivers/usb/serial/cyberjack.c:229:
++	if( (count+priv->wrfilled) > sizeof(priv->wrbuf) ) {
 
-It adds extra code and is slower.  Fire me.
+ERROR: space prohibited before that close parenthesis ')'
+#70: FILE: drivers/usb/serial/cyberjack.c:229:
++	if( (count+priv->wrfilled) > sizeof(priv->wrbuf) ) {
 
-Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Cc: "David S. Miller" <davem@davemloft.net>
+ERROR: space required before the open parenthesis '('
+#70: FILE: drivers/usb/serial/cyberjack.c:229:
++	if( (count+priv->wrfilled) > sizeof(priv->wrbuf) ) {
+
+ERROR: space prohibited after that open parenthesis '('
+#117: FILE: drivers/usb/serial/cyberjack.c:321:
++	if( (urb->actual_length == 4) && (data[0] == 0x01) ) {
+
+ERROR: space prohibited before that close parenthesis ')'
+#117: FILE: drivers/usb/serial/cyberjack.c:321:
++	if( (urb->actual_length == 4) && (data[0] == 0x01) ) {
+
+ERROR: space required before the open parenthesis '('
+#117: FILE: drivers/usb/serial/cyberjack.c:321:
++	if( (urb->actual_length == 4) && (data[0] == 0x01) ) {
+
+ERROR: space required before the open parenthesis '('
+#329: FILE: drivers/usb/serial/kl5kusb105.c:739:
++	switch(baud) {
+
+ERROR: space prohibited before that close parenthesis ')'
+#353: FILE: drivers/usb/serial/kl5kusb105.c:774:
++	if ((cflag & CBAUD) == B0 ) {
+
+ERROR: code indent should use tabs where possible
+#364: FILE: drivers/usb/serial/kl5kusb105.c:783:
++       ^I^Imct_u232_set_modem_ctrl(serial, priv->control_state);$
+
+WARNING: line over 80 characters
+#500: FILE: drivers/usb/serial/safe_serial.c:232:
++				tty_insert_flip_string(port->tty, data, actual_length);
+
+total: 9 errors, 1 warnings, 490 lines checked
+
+./patches/usb-serial-more-fixes-and-groundwork-for-tty-changes.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alan Cox <alan@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv6/ip6_input.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/usb/serial/cyberjack.c  |    4 ++--
+ drivers/usb/serial/kl5kusb105.c |    6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN net/ipv6/ip6_input.c~net-ipv6-ip6_inputc-fix-a-couple-of-warnings net/ipv6/ip6_input.c
---- a/net/ipv6/ip6_input.c~net-ipv6-ip6_inputc-fix-a-couple-of-warnings
-+++ a/net/ipv6/ip6_input.c
-@@ -288,7 +288,8 @@ int ip6_mc_input(struct sk_buff *skb)
- 					break;
- 				default:
- 					/* Bogus */
--					goto discard;
-+					deliver = 0;
-+					goto out;
- 				}
- 				deliver = 1;
- 				goto out;
-@@ -308,13 +309,12 @@ int ip6_mc_input(struct sk_buff *skb)
- 			ip6_mr_input(skb2);
+diff -puN drivers/usb/serial/cyberjack.c~usb-serial-more-fixes-and-groundwork-for-tty-changes-checkpatch-fixes drivers/usb/serial/cyberjack.c
+--- a/drivers/usb/serial/cyberjack.c~usb-serial-more-fixes-and-groundwork-for-tty-changes-checkpatch-fixes
++++ a/drivers/usb/serial/cyberjack.c
+@@ -226,7 +226,7 @@ static int cyberjack_write (struct usb_s
+ 
+ 	spin_lock_irqsave(&priv->lock, flags);
+ 
+-	if( (count+priv->wrfilled) > sizeof(priv->wrbuf) ) {
++	if ((count+priv->wrfilled) > sizeof(priv->wrbuf)) {
+ 		/* To much data for buffer. Reset buffer. */
+ 		priv->wrfilled = 0;
+ 		port->write_urb_busy = 0;
+@@ -318,7 +318,7 @@ static void cyberjack_read_int_callback(
+ 	usb_serial_debug_data(debug, &port->dev, __func__, urb->actual_length, data);
+ 
+ 	/* React only to interrupts signaling a bulk_in transfer */
+-	if( (urb->actual_length == 4) && (data[0] == 0x01) ) {
++	if ((urb->actual_length == 4) && (data[0] == 0x01)) {
+ 		short old_rdtodo;
+ 
+ 		/* This is a announcement of coming bulk_ins. */
+diff -puN drivers/usb/serial/kl5kusb105.c~usb-serial-more-fixes-and-groundwork-for-tty-changes-checkpatch-fixes drivers/usb/serial/kl5kusb105.c
+--- a/drivers/usb/serial/kl5kusb105.c~usb-serial-more-fixes-and-groundwork-for-tty-changes-checkpatch-fixes
++++ a/drivers/usb/serial/kl5kusb105.c
+@@ -736,7 +736,7 @@ static void klsi_105_set_termios (struct
+ #endif
  		}
  	}
--#endif
- out:
-+#endif
- 	if (likely(deliver)) {
- 		ip6_input(skb);
- 		return 0;
+-	switch(baud) {
++	switch (baud) {
+ 		case 0: /* handled below */
+ 			break;
+ 		case 1200:
+@@ -771,7 +771,7 @@ static void klsi_105_set_termios (struct
+ 			baud = 9600;
+ 			break;
  	}
--discard:
- 	/* discard */
- 	kfree_skb(skb);
- 
+-	if ((cflag & CBAUD) == B0 ) {
++	if ((cflag & CBAUD) == B0) {
+ 		dbg("%s: baud is B0", __func__);
+ 		/* Drop RTS and DTR */
+ 		/* maybe this should be simulated by sending read
+@@ -780,7 +780,7 @@ static void klsi_105_set_termios (struct
+ 		;
+ #if 0
+ 		priv->control_state &= ~(TIOCM_DTR | TIOCM_RTS);
+-       		mct_u232_set_modem_ctrl(serial, priv->control_state);
++		mct_u232_set_modem_ctrl(serial, priv->control_state);
+ #endif
+ 	}
+ 	tty_encode_baud_rate(tty, baud, baud);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,7 +183,6 @@ pata_atiixp-simplex-clear-fix.patch
 git-async-tx.patch
 git-mips.patch
 git-net.patch
-net-ipv6-ip6_inputc-fix-a-couple-of-warnings.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 ehea-fix-dlpar-memory-add-support-fix.patch
