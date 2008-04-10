@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-slub-fix.patch added to -mm tree
-Date: Thu, 10 Apr 2008 11:05:06 -0700
-Message-ID: <200804101805.m3AI56lM010454@imap1.linux-foundation.org>
+Subject: + pnp-increase-number-of-devices-supported-per-protocol.patch added to -mm tree
+Date: Thu, 10 Apr 2008 11:44:56 -0700
+Message-ID: <200804101844.m3AIiumh011994@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56816 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33643 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756608AbYDJSFJ (ORCPT
+	by vger.kernel.org with ESMTP id S1751318AbYDJSpG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 14:05:09 -0400
+	Thu, 10 Apr 2008 14:45:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com
+Cc: bjorn.helgaas@hp.com
 
 
 The patch titled
-     git-slub crashes on the t16p
+     pnp: increase number of devices supported per protocol
 has been added to the -mm tree.  Its filename is
-     git-slub-fix.patch
+     pnp-increase-number-of-devices-supported-per-protocol.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-slub crashes on the t16p
-From: Christoph Lameter <clameter@sgi.com>
+Subject: pnp: increase number of devices supported per protocol
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-On Thu, 10 Apr 2008, Andrew Morton wrote:
+Increase the PNP "number of devices" limit.  We currently use an unsigned
+char, which limits us to 256 devices per protocol.  This patch changes that to
+an unsigned int.
 
-> That's within the call to atomic64_inc(), from the inc_slabs_node() here:
+Not all backends can take advantage of this: we limit ISAPNP to 10 devices in
+isapnp_cfg_begin(), and PNPBIOS is limited to 256 devices because the BIOS
+interfaces use a one-byte device node number.
 
-Right. The slab counter cleanup patch did a non equivalent transformation
-here.
+But there is no limit on the number of PNPACPI devices we may have.  Large HP
+Integrity machines have more than 256, which causes the current "unsigned char
+number" to wrap around.  This causes errors like this:
 
-Index: linux-2.6/mm/slub.c
-===================================================================
+    pnp: PnP ACPI init
+    kobject_add failed for 00:00 with -EEXIST, don't try to register things with the same name in the same directory.
 
+    Call Trace:
+     [<a000000100010720>] show_stack+0x40/0xa0
+     [<a0000001000107b0>] dump_stack+0x30/0x60
+     [<a0000001001dbdf0>] kobject_add+0x290/0x2c0
+     [<a0000001002bfd40>] device_add+0x160/0x860
+     [<a0000001002c0470>] device_register+0x30/0x60
+     [<a00000010026ba70>] __pnp_add_device+0x130/0x180
+     [<a00000010026bb70>] pnp_add_device+0xb0/0xe0
+     [<a0000001007f2730>] pnpacpi_add_device+0x510/0x5a0
+     [<a0000001007f2810>] pnpacpi_add_device_handler+0x50/0x80
+
+This patch increases the limit to fix this PNPACPI problem.  It should not
+have any adverse effect on ISAPNP or PNPBIOS because their limits are still
+enforced in the backends.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/pnp.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~git-slub-fix mm/slub.c
---- a/mm/slub.c~git-slub-fix
-+++ a/mm/slub.c
-@@ -1155,6 +1155,8 @@ static struct page *new_slab(struct kmem
- 	if (!page)
- 		goto out;
+diff -puN include/linux/pnp.h~pnp-increase-number-of-devices-supported-per-protocol include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-increase-number-of-devices-supported-per-protocol
++++ a/include/linux/pnp.h
+@@ -175,7 +175,7 @@ static inline void pnp_set_card_drvdata(
+ struct pnp_dev {
+ 	struct device dev;		/* Driver Model device interface */
+ 	u64 dma_mask;
+-	unsigned char number;		/* used as an index, must be unique */
++	unsigned int number;		/* used as an index, must be unique */
+ 	int status;
  
-+	/* Must use the node that the page allocator determined for us. */
-+	node = page_to_nid(page);
- 	inc_slabs_node(s, node, page->objects);
- 	page->slab = s;
- 	page->flags |= 1 << PG_slab;
+ 	struct list_head global_list;	/* node in global list of devices */
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 origin.patch
-git-x86.patch
-git-unionfs.patch
-git-slub.patch
-git-slub-fix.patch
-remove-set_migrateflags.patch
-mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
-mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
-mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
-mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
-mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify.patch
-mm-move-cache_line_size-to-linux-cacheh.patch
-mempolicy-convert-mpol-constants-to-enum.patch
-mempolicy-support-optional-mode-flags.patch
-mempolicy-support-optional-mode-flags-fix.patch
-mempolicy-add-mpol_f_static_nodes-flag.patch
-mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
-mempolicy-add-mpol_f_relative_nodes-flag.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-move-rebind-functions.patch
-mempolicy-create-mempolicy_operations-structure.patch
-mempolicy-create-mempolicy_operations-structure-fix.patch
-mempolicy-small-header-file-cleanup.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-mempolicy-fix-parsing-of-tmpfs-mpol-mount-option.patch
-mm-make-mem_map-allocation-continuous-v2.patch
-mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
-mm-offset-align-in-alloc_bootmem.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-sparsemem-vmemmap-does-not-need-section-bits.patch
-kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-pageflags-use-an-enum-for-the-flags.patch
-pageflags-get-rid-of-flags_reserved.patch
-pageflags-introduce-macros-to-generate-page-flag-functions.patch
-pageflags-convert-to-the-use-of-new-macros.patch
-pageflags-use-proper-page-flag-functions-in-xen.patch
-pageflags-eliminate-pg_xxx-aliases.patch
-page-flags-handle-pg_uncached-like-all-other-flags.patch
-page-flags-add-pageflags_false-for-flags-that-are-always-false.patch
-mm-get-rid-of-__zone_count.patch
-pageflags_extended-and-separate-page-flags-for-head-and-tail.patch
-mm-remove-unused-max_nodes_shift.patch
-vmcoreinfo-add-page-flags-values.patch
-mempolicy-rename-mpol_free-to-mpol_put.patch
-mempolicy-rename-mpol_copy-to-mpol_dup.patch
-mempolicy-write-lock-mmap_sem-while-changing-task-mempolicy.patch
-mempolicy-fixup-fallback-for-default-shmem-policy.patch
-mempolicy-rename-struct-mempolicy-policy-member-to-mode.patch
-mempolicy-mark-shared-policies-for-unref.patch
-mempolicy-document-setget_policy-vm_ops-apis.patch
-mempolicy-rework-mempolicy-reference-counting.patch
-mempolicy-use-mpol_preferred-for-system-wide-default-policy.patch
-mempolicy-mpol_preferred-cleanups-for-local-allocation.patch
-mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy.patch
-mempolicy-clean-up-mpol-to-str-mempolicy-formatting.patch
-mempolicy-rework-shmem-mpol-parsing-and-display.patch
-mempolicy-support-mpol=local-tmpfs-mount-option.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-ipc-add-definitions-of-ushort_max-and-others.patch
-mm-add-nr_writeback_temp-counter.patch
-remove-div_long_long_rem.patch
-slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+pnp-increase-number-of-devices-supported-per-protocol.patch
+git-acpi.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+nsc-ircc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
+simplify-initcall_debug-output.patch
+hisax-depend-on-config_pnp-not-__isapnp__.patch
+pnp-skip-dev-protocol-null-checks.patch
+pnp-simplify-quirk-debug-output.patch
+pnp-use-dev_printk-for-quirk-messages.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+tpm-change-kconfig-dependencies-from-pnpacpi-to-pnp.patch
 
