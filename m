@@ -1,88 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - ia64-use-goto-to-jump-out-do-while_each_thread.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 13:01:28 -0700
-Message-ID: <200804102001.m3AK1SGB014975@imap1.linux-foundation.org>
+Subject: - spi-documentation-tweaks.patch removed from -mm tree
+Date: Thu, 10 Apr 2008 13:01:07 -0700
+Message-ID: <200804102001.m3AK17qa014951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44666 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37316 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758680AbYDJUCM (ORCPT
+	by vger.kernel.org with ESMTP id S1756636AbYDJUBu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 16:02:12 -0400
+	Thu, 10 Apr 2008 16:01:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: david-b@pacbell.net, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ia64: use goto to jump out do/while_each_thread
+     spi: documentation tweaks
 has been removed from the -mm tree.  Its filename was
-     ia64-use-goto-to-jump-out-do-while_each_thread.patch
+     spi-documentation-tweaks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: use goto to jump out do/while_each_thread
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: spi: documentation tweaks
+From: David Brownell <david-b@pacbell.net>
 
-do_each_thread/while_each_thread is a double loop, so should use 'goto' rather
-than 'break' to break out the loop.
+Update SPI documentation to clarify some areas of recent confusion: clock
+polarity takes effect when chipselect goes active; and zero length buffers are
+OK in certain cases.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/perfmon.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/spi/spi-summary |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/perfmon.c~ia64-use-goto-to-jump-out-do-while_each_thread arch/ia64/kernel/perfmon.c
---- a/arch/ia64/kernel/perfmon.c~ia64-use-goto-to-jump-out-do-while_each_thread
-+++ a/arch/ia64/kernel/perfmon.c
-@@ -4204,10 +4204,10 @@ pfm_check_task_exist(pfm_context_t *ctx)
- 	do_each_thread (g, t) {
- 		if (t->thread.pfm_context == ctx) {
- 			ret = 0;
--			break;
-+			goto out;
- 		}
- 	} while_each_thread (g, t);
--
-+out:
- 	read_unlock(&tasklist_lock);
+diff -puN Documentation/spi/spi-summary~spi-documentation-tweaks Documentation/spi/spi-summary
+--- a/Documentation/spi/spi-summary~spi-documentation-tweaks
++++ a/Documentation/spi/spi-summary
+@@ -116,6 +116,13 @@ low order bit.  So when a chip's timing 
+ starting low (CPOL=0) and data stabilized for sampling during the
+ trailing clock edge (CPHA=1), that's SPI mode 1.
  
- 	DPRINT(("pfm_check_task_exist: ret=%d ctx=%p\n", ret, ctx));
++Note that the clock mode is relevant as soon as the chipselect goes
++active.  So the master must set the clock to inactive before selecting
++a slave, and the slave can tell the chosen polarity by sampling the
++clock level when its select line goes active.  That's why many devices
++support for example both modes 0 and 3:  they don't care about polarity,
++and alway clock data in/out on rising clock edges.
++
+ 
+ How do these driver programming interfaces work?
+ ------------------------------------------------
+@@ -379,8 +386,14 @@ any more such messages.
+       + when bidirectional reads and writes start ... by how its
+         sequence of spi_transfer requests is arranged;
+ 
++      + which I/O buffers are used ... each spi_transfer wraps a
++        buffer for each transfer direction, supporting full duplex
++        (two pointers, maybe the same one in both cases) and half
++        duplex (one pointer is NULL) transfers;
++
+       + optionally defining short delays after transfers ... using
+-        the spi_transfer.delay_usecs setting;
++        the spi_transfer.delay_usecs setting (this delay can be the
++        only protocol effect, if the buffer length is zero);
+ 
+       + whether the chipselect becomes inactive after a transfer and
+         any delay ... by using the spi_transfer.cs_change flag;
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from david-b@pacbell.net are
 
 origin.patch
-git-ia64.patch
-git-net.patch
-oom_kill-remove-unused-parameter-in-badness.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroup-annotate-cgroup_init_subsys-with-__init.patch
-cgroup-switch-to-proc_create.patch
-cgroups-implement-device-whitelist-v6.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-doc.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-cgroups-use-a-hash-table-for-css_set-finding.patch
-cgroups-simplify-init_subsys.patch
-cgroups-remove-the-css_set-linked-list.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
+git-acpi.patch
+git-arm.patch
+git-avr32.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
+pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.patch
+pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
+git-input.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
+jffs2-summary-allocation-dont-use-vmalloc.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+spi-pxa2xx_spi-sparse-fixes.patch
+atmel_spi-support-zero-length-transfer.patch
+rtc-avoid-legacy-drivers-with-generic-framework.patch
+rtc-avoid-legacy-drivers-with-generic-framework-update.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+rtc-silence-section-mismatch-warning-in-rtc-test.patch
+make-ds1511_rtc_readset_time-static.patch
+kerneldoc-for-linux-clkh.patch
+kerneldoc-for-linux-clkh-fix.patch
+rtc-rtc-rs5c372-fix-up-null-name-in-transfer-error-path.patch
+rtc-rtc-rs5c372-smbus-conversion-support.patch
+rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
+rtc-replace-remaining-__function__-occurrences.patch
+gpiochip_reserve-fix-2.patch
+remove-duplicated-unlikely-in-is_err.patch
 
