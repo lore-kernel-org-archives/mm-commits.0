@@ -1,300 +1,352 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-kprobe-booster-for-ia64.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 13:01:17 -0700
-Message-ID: <200804102001.m3AK1HJC014963@imap1.linux-foundation.org>
+Subject: - wavelan_cs-stop-inlining-largish-static-functions.patch removed from -mm tree
+Date: Thu, 10 Apr 2008 13:01:41 -0700
+Message-ID: <200804102001.m3AK1fsi014996@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756932AbYDJULn (ORCPT
+	by vger.kernel.org with ESMTP id S1752918AbYDJULd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 16:11:43 -0400
+	Thu, 10 Apr 2008 16:11:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhiramat@redhat.com, ananth@in.ibm.com, anil.s.keshavamurthy@intel.com, bibo.mao@intel.com, jkenisto@us.ibm.com, prasanna@in.ibm.com, rusty.lynch@intel.com, shaohua.li@intel.com, tony
+To: vda.linux@googlemail.com, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes: kprobe-booster for ia64
+     wavelan_cs: stop inlining largish static functions
 has been removed from the -mm tree.  Its filename was
-     kprobes-kprobe-booster-for-ia64.patch
+     wavelan_cs-stop-inlining-largish-static-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: kprobe-booster for ia64
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: wavelan_cs: stop inlining largish static functions
+From: Denys Vlasenko <vda.linux@googlemail.com>
 
-Add kprobe-booster support on ia64.
+drivers/net/wireless/wavelan_cs.c has unusually large number
+of static inline functions - 27.
 
-Kprobe-booster improves the performance of kprobes by eliminating single-step,
-where possible.  Currently, kprobe-booster is implemented on x86 and x86-64. 
-This is an ia64 port.
+I looked through them and 20 of them do not seem to warrant inlining.  Some
+are really big; others call mdelay(1) or busy-wait for a bit to be set in a
+hardware register - it's pointless to optimize such functions for speed.
 
-On ia64, kprobe-booster executes a copied bundle directly, instead of single
-stepping.  Bundles which have B or X unit and which may cause an exception
-(including break) are not executed directly.  And also, to prevent hitting
-break exceptions on the copied bundle, only the hindmost kprobe is executed
-directly if several kprobes share a bundle and are placed in different slots. 
-Note: set_brl_inst() is used for preparing an instruction buffer(it does not
-modify any active code), so it does not need any atomic operation.
+This patch removes "inline" from these static function (regardless of number
+of callsites - gcc nowadays auto-inlines statics with one callsite).
 
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: bibo,mao <bibo.mao@intel.com>
-Cc: Rusty Lynch <rusty.lynch@intel.com>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Jim Keniston <jkenisto@us.ibm.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
+Size difference for 32bit x86:
+
+   text    data     bss     dec     hex filename
+  17020     372       8   17400    43f8 linux-2.6-ALLYES/drivers/net/wireless/wavelan_cs.o
+  14032     356       8   14396    383c linux-2.6.inline-ALLYES/drivers/net/wireless/wavelan_cs.o
+
+Signed-off-by: Denys Vlasenko <vda.linux@googlemail.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/kprobes.c |  133 ++++++++++++++++++++++++++++-------
- include/asm-ia64/kprobes.h |    7 +
- 2 files changed, 113 insertions(+), 27 deletions(-)
+ drivers/net/wireless/wavelan_cs.c   |   47 ++++++++++++--------------
+ drivers/net/wireless/wavelan_cs.p.h |   26 +++++++-------
+ 2 files changed, 36 insertions(+), 37 deletions(-)
 
-diff -puN arch/ia64/kernel/kprobes.c~kprobes-kprobe-booster-for-ia64 arch/ia64/kernel/kprobes.c
---- a/arch/ia64/kernel/kprobes.c~kprobes-kprobe-booster-for-ia64
-+++ a/arch/ia64/kernel/kprobes.c
-@@ -78,6 +78,20 @@ static enum instruction_type bundle_enco
-   { u, u, u },  			/* 1F */
- };
- 
-+/* Insert a long branch code */
-+static void __kprobes set_brl_inst(void *from, void *to)
-+{
-+	s64 rel = ((s64) to - (s64) from) >> 4;
-+	bundle_t *brl;
-+	brl = (bundle_t *) ((u64) from & ~0xf);
-+	brl->quad0.template = 0x05;	/* [MLX](stop) */
-+	brl->quad0.slot0 = NOP_M_INST;	/* nop.m 0x0 */
-+	brl->quad0.slot1_p0 = ((rel >> 20) & 0x7fffffffff) << 2;
-+	brl->quad1.slot1_p1 = (((rel >> 20) & 0x7fffffffff) << 2) >> (64 - 46);
-+	/* brl.cond.sptk.many.clr rel<<4 (qp=0) */
-+	brl->quad1.slot2 = BRL_INST(rel >> 59, rel & 0xfffff);
-+}
-+
+diff -puN drivers/net/wireless/wavelan_cs.c~wavelan_cs-stop-inlining-largish-static-functions drivers/net/wireless/wavelan_cs.c
+--- a/drivers/net/wireless/wavelan_cs.c~wavelan_cs-stop-inlining-largish-static-functions
++++ a/drivers/net/wireless/wavelan_cs.c
+@@ -102,7 +102,7 @@ hacr_write(u_long	base,
+  * Write to card's Host Adapter Command Register. Include a delay for
+  * those times when it is needed.
+  */
+-static inline void
++static void
+ hacr_write_slow(u_long	base,
+ 		u_char	hacr)
+ {
+@@ -255,7 +255,7 @@ update_psa_checksum(struct net_device *	
  /*
-  * In this function we check to see if the instruction
-  * is IP relative instruction and update the kprobe
-@@ -496,6 +510,77 @@ void __kprobes arch_prepare_kretprobe(st
- 	regs->b0 = ((struct fnptr *)kretprobe_trampoline)->ip;
- }
- 
-+/* Check the instruction in the slot is break */
-+static int __kprobes __is_ia64_break_inst(bundle_t *bundle, uint slot)
-+{
-+	unsigned int major_opcode;
-+	unsigned int template = bundle->quad0.template;
-+	unsigned long kprobe_inst;
-+
-+	/* Move to slot 2, if bundle is MLX type and kprobe slot is 1 */
-+	if (slot == 1 && bundle_encoding[template][1] == L)
-+		slot++;
-+
-+	/* Get Kprobe probe instruction at given slot*/
-+	get_kprobe_inst(bundle, slot, &kprobe_inst, &major_opcode);
-+
-+	/* For break instruction,
-+	 * Bits 37:40 Major opcode to be zero
-+	 * Bits 27:32 X6 to be zero
-+	 * Bits 32:35 X3 to be zero
-+	 */
-+	if (major_opcode || ((kprobe_inst >> 27) & 0x1FF)) {
-+		/* Not a break instruction */
-+		return 0;
-+	}
-+
-+	/* Is a break instruction */
-+	return 1;
-+}
-+
-+/*
-+ * In this function, we check whether the target bundle modifies IP or
-+ * it triggers an exception. If so, it cannot be boostable.
-+ */
-+static int __kprobes can_boost(bundle_t *bundle, uint slot,
-+			       unsigned long bundle_addr)
-+{
-+	unsigned int template = bundle->quad0.template;
-+
-+	do {
-+		if (search_exception_tables(bundle_addr + slot) ||
-+		    __is_ia64_break_inst(bundle, slot))
-+			return 0;	/* exception may occur in this bundle*/
-+	} while ((++slot) < 3);
-+	template &= 0x1e;
-+	if (template >= 0x10 /* including B unit */ ||
-+	    template == 0x04 /* including X unit */ ||
-+	    template == 0x06) /* undefined */
-+		return 0;
-+
-+	return 1;
-+}
-+
-+/* Prepare long jump bundle and disables other boosters if need */
-+static void __kprobes prepare_booster(struct kprobe *p)
-+{
-+	unsigned long addr = (unsigned long)p->addr & ~0xFULL;
-+	unsigned int slot = (unsigned long)p->addr & 0xf;
-+	struct kprobe *other_kp;
-+
-+	if (can_boost(&p->ainsn.insn[0].bundle, slot, addr)) {
-+		set_brl_inst(&p->ainsn.insn[1].bundle, (bundle_t *)addr + 1);
-+		p->ainsn.inst_flag |= INST_FLAG_BOOSTABLE;
-+	}
-+
-+	/* disables boosters in previous slots */
-+	for (; addr < (unsigned long)p->addr; addr++) {
-+		other_kp = get_kprobe((void *)addr);
-+		if (other_kp)
-+			other_kp->ainsn.inst_flag &= ~INST_FLAG_BOOSTABLE;
-+	}
-+}
-+
- int __kprobes arch_prepare_kprobe(struct kprobe *p)
+  * Write 1 byte to the MMC.
+  */
+-static inline void
++static void
+ mmc_out(u_long		base,
+ 	u_short		o,
+ 	u_char		d)
+@@ -275,7 +275,7 @@ mmc_out(u_long		base,
+  * Routine to write bytes to the Modem Management Controller.
+  * We start by the end because it is the way it should be !
+  */
+-static inline void
++static void
+ mmc_write(u_long	base,
+ 	  u_char	o,
+ 	  u_char *	b,
+@@ -293,7 +293,7 @@ mmc_write(u_long	base,
+  * Read 1 byte from the MMC.
+  * Optimised version for 1 byte, avoid using memory...
+  */
+-static inline u_char
++static u_char
+ mmc_in(u_long	base,
+        u_short	o)
  {
- 	unsigned long addr = (unsigned long) p->addr;
-@@ -530,6 +615,8 @@ int __kprobes arch_prepare_kprobe(struct
- 
- 	prepare_break_inst(template, slot, major_opcode, kprobe_inst, p, qp);
- 
-+	prepare_booster(p);
-+
- 	return 0;
- }
- 
-@@ -543,7 +630,9 @@ void __kprobes arch_arm_kprobe(struct kp
- 	src = &p->opcode.bundle;
- 
- 	flush_icache_range((unsigned long)p->ainsn.insn,
--			(unsigned long)p->ainsn.insn + sizeof(kprobe_opcode_t));
-+			   (unsigned long)p->ainsn.insn +
-+			   sizeof(kprobe_opcode_t) * MAX_INSN_SIZE);
-+
- 	switch (p->ainsn.slot) {
- 		case 0:
- 			dest->quad0.slot0 = src->quad0.slot0;
-@@ -584,13 +673,13 @@ void __kprobes arch_disarm_kprobe(struct
- void __kprobes arch_remove_kprobe(struct kprobe *p)
- {
- 	mutex_lock(&kprobe_mutex);
--	free_insn_slot(p->ainsn.insn, 0);
-+	free_insn_slot(p->ainsn.insn, p->ainsn.inst_flag & INST_FLAG_BOOSTABLE);
- 	mutex_unlock(&kprobe_mutex);
- }
+@@ -318,7 +318,7 @@ mmc_in(u_long	base,
+  * (code has just been moved in the above function)
+  * We start by the end because it is the way it should be !
+  */
+-static inline void
++static void
+ mmc_read(u_long		base,
+ 	 u_char		o,
+ 	 u_char *	b,
+@@ -350,9 +350,8 @@ mmc_encr(u_long		base)	/* i/o port of th
+ /*------------------------------------------------------------------*/
  /*
-  * We are resuming execution after a single step fault, so the pt_regs
-  * structure reflects the register state after we executed the instruction
-- * located in the kprobe (p->ainsn.insn.bundle).  We still need to adjust
-+ * located in the kprobe (p->ainsn.insn->bundle).  We still need to adjust
-  * the ip to point back to the original stack address. To set the IP address
-  * to original stack address, handle the case where we need to fixup the
-  * relative IP address and/or fixup branch register.
-@@ -607,7 +696,7 @@ static void __kprobes resume_execution(s
- 	if (slot == 1 && bundle_encoding[template][1] == L)
- 		slot = 2;
- 
--	if (p->ainsn.inst_flag) {
-+	if (p->ainsn.inst_flag & ~INST_FLAG_BOOSTABLE) {
- 
- 		if (p->ainsn.inst_flag & INST_FLAG_FIX_RELATIVE_IP_ADDR) {
- 			/* Fix relative IP address */
-@@ -686,33 +775,12 @@ static void __kprobes prepare_ss(struct 
- static int __kprobes is_ia64_break_inst(struct pt_regs *regs)
- {
- 	unsigned int slot = ia64_psr(regs)->ri;
--	unsigned int template, major_opcode;
--	unsigned long kprobe_inst;
- 	unsigned long *kprobe_addr = (unsigned long *)regs->cr_iip;
- 	bundle_t bundle;
- 
- 	memcpy(&bundle, kprobe_addr, sizeof(bundle_t));
--	template = bundle.quad0.template;
--
--	/* Move to slot 2, if bundle is MLX type and kprobe slot is 1 */
--	if (slot == 1 && bundle_encoding[template][1] == L)
--		slot++;
--
--	/* Get Kprobe probe instruction at given slot*/
--	get_kprobe_inst(&bundle, slot, &kprobe_inst, &major_opcode);
--
--	/* For break instruction,
--	 * Bits 37:40 Major opcode to be zero
--	 * Bits 27:32 X6 to be zero
--	 * Bits 32:35 X3 to be zero
--	 */
--	if (major_opcode || ((kprobe_inst >> 27) & 0x1FF) ) {
--		/* Not a break instruction */
--		return 0;
--	}
- 
--	/* Is a break instruction */
--	return 1;
-+	return __is_ia64_break_inst(&bundle, slot);
+  * Wait for the frequency EEprom to complete a command...
+- * I hope this one will be optimally inlined...
+  */
+-static inline void
++static void
+ fee_wait(u_long		base,	/* i/o port of the card */
+ 	 int		delay,	/* Base delay to wait for */
+ 	 int		number)	/* Number of time to wait */
+@@ -738,9 +737,9 @@ static void wv_roam_handover(wavepoint_h
  }
  
- static int __kprobes pre_kprobes_handler(struct die_args *args)
-@@ -802,6 +870,19 @@ static int __kprobes pre_kprobes_handler
- 		return 1;
- 
- ss_probe:
-+#if !defined(CONFIG_PREEMPT) || defined(CONFIG_PM)
-+	if (p->ainsn.inst_flag == INST_FLAG_BOOSTABLE && !p->post_handler) {
-+		/* Boost up -- we can execute copied instructions directly */
-+		ia64_psr(regs)->ri = p->ainsn.slot;
-+		regs->cr_iip = (unsigned long)&p->ainsn.insn->bundle & ~0xFULL;
-+		/* turn single stepping off */
-+		ia64_psr(regs)->ss = 0;
-+
-+		reset_current_kprobe();
-+		preempt_enable_no_resched();
-+		return 1;
-+	}
-+#endif
- 	prepare_ss(p, regs);
- 	kcb->kprobe_status = KPROBE_HIT_SS;
- 	return 1;
-diff -puN include/asm-ia64/kprobes.h~kprobes-kprobe-booster-for-ia64 include/asm-ia64/kprobes.h
---- a/include/asm-ia64/kprobes.h~kprobes-kprobe-booster-for-ia64
-+++ a/include/asm-ia64/kprobes.h
-@@ -30,8 +30,12 @@
- #include <asm/break.h>
- 
- #define __ARCH_WANT_KPROBES_INSN_SLOT
--#define MAX_INSN_SIZE   1
-+#define MAX_INSN_SIZE   2	/* last half is for kprobe-booster */
- #define BREAK_INST	(long)(__IA64_BREAK_KPROBE << 6)
-+#define NOP_M_INST	(long)(1<<27)
-+#define BRL_INST(i1, i2) ((long)((0xcL << 37) |	/* brl */ \
-+				(0x1L << 12) |	/* many */ \
-+				(((i1) & 1) << 36) | ((i2) << 13))) /* imm */
- 
- typedef union cmp_inst {
- 	struct {
-@@ -112,6 +116,7 @@ struct arch_specific_insn {
-  #define INST_FLAG_FIX_RELATIVE_IP_ADDR		1
-  #define INST_FLAG_FIX_BRANCH_REG		2
-  #define INST_FLAG_BREAK_INST			4
-+ #define INST_FLAG_BOOSTABLE			8
-  	unsigned long inst_flag;
-  	unsigned short target_br_reg;
- 	unsigned short slot;
+ /* Called when a WavePoint beacon is received */
+-static inline void wl_roam_gather(struct net_device *  dev,
+-				  u_char *  hdr,   /* Beacon header */
+-				  u_char *  stats) /* SNR, Signal quality 
++static void wl_roam_gather(struct net_device *  dev,
++			   u_char *  hdr,   /* Beacon header */
++			   u_char *  stats) /* SNR, Signal quality
+ 						      of packet */
+ {
+   wavepoint_beacon *beacon= (wavepoint_beacon *)hdr; /* Rcvd. Beacon */
+@@ -794,7 +793,7 @@ out:
+ static inline int WAVELAN_BEACON(unsigned char *data)
+ {
+   wavepoint_beacon *beacon= (wavepoint_beacon *)data;
+-  static wavepoint_beacon beacon_template={0xaa,0xaa,0x03,0x08,0x00,0x0e,0x20,0x03,0x00};
++  static const wavepoint_beacon beacon_template={0xaa,0xaa,0x03,0x08,0x00,0x0e,0x20,0x03,0x00};
+   
+   if(memcmp(beacon,&beacon_template,9)==0)
+     return 1;
+@@ -980,7 +979,7 @@ read_ringbuf(struct net_device *	dev,
+  * wavelan_interrupt is not an option...), so you may experience
+  * some delay sometime...
+  */
+-static inline void
++static void
+ wv_82593_reconfig(struct net_device *	dev)
+ {
+   net_local *		lp = netdev_priv(dev);
+@@ -1233,7 +1232,7 @@ wv_local_show(struct net_device *	dev)
+ /*
+  * Dump packet header (and content if necessary) on the screen
+  */
+-static inline void
++static void
+ wv_packet_info(u_char *		p,		/* Packet to dump */
+ 	       int		length,		/* Length of the packet */
+ 	       char *		msg1,		/* Name of the device */
+@@ -1272,7 +1271,7 @@ wv_packet_info(u_char *		p,		/* Packet t
+  * This is the information which is displayed by the driver at startup
+  * There  is a lot of flag to configure it at your will...
+  */
+-static inline void
++static void
+ wv_init_info(struct net_device *	dev)
+ {
+   unsigned int	base = dev->base_addr;
+@@ -1509,7 +1508,7 @@ wavelan_set_mac_address(struct net_devic
+  * Frequency setting (for hardware able of it)
+  * It's a bit complicated and you don't really want to look into it...
+  */
+-static inline int
++static int
+ wv_set_frequency(u_long		base,	/* i/o port of the card */
+ 		 iw_freq *	frequency)
+ {
+@@ -1706,7 +1705,7 @@ wv_set_frequency(u_long		base,	/* i/o po
+ /*
+  * Give the list of available frequencies
+  */
+-static inline int
++static int
+ wv_frequency_list(u_long	base,	/* i/o port of the card */
+ 		  iw_freq *	list,	/* List of frequency to fill */
+ 		  int		max)	/* Maximum number of frequencies */
+@@ -2759,7 +2758,7 @@ wavelan_get_wireless_stats(struct net_de
+  * frame pointer and verify that the frame seem correct
+  * (called by wv_packet_rcv())
+  */
+-static inline int
++static int
+ wv_start_of_frame(struct net_device *	dev,
+ 		  int		rfp,	/* end of frame */
+ 		  int		wrap)	/* start of buffer */
+@@ -2821,7 +2820,7 @@ wv_start_of_frame(struct net_device *	de
+  * Note: if any errors occur, the packet is "dropped on the floor"
+  * (called by wv_packet_rcv())
+  */
+-static inline void
++static void
+ wv_packet_read(struct net_device *		dev,
+ 	       int		fd_p,
+ 	       int		sksize)
+@@ -2922,7 +2921,7 @@ wv_packet_read(struct net_device *		dev,
+  * (called by wavelan_interrupt())
+  * Note : the spinlock is already grabbed for us and irq are disabled.
+  */
+-static inline void
++static void
+ wv_packet_rcv(struct net_device *	dev)
+ {
+   unsigned int	base = dev->base_addr;
+@@ -3056,7 +3055,7 @@ wv_packet_rcv(struct net_device *	dev)
+  * the transmit.
+  * (called in wavelan_packet_xmit())
+  */
+-static inline void
++static void
+ wv_packet_write(struct net_device *	dev,
+ 		void *		buf,
+ 		short		length)
+@@ -3180,7 +3179,7 @@ wavelan_packet_xmit(struct sk_buff *	skb
+  * Routine to initialize the Modem Management Controller.
+  * (called by wv_hw_config())
+  */
+-static inline int
++static int
+ wv_mmc_init(struct net_device *	dev)
+ {
+   unsigned int	base = dev->base_addr;
+@@ -3699,7 +3698,7 @@ wv_82593_config(struct net_device *	dev)
+  * wavelan.
+  * (called by wv_config())
+  */
+-static inline int
++static int
+ wv_pcmcia_reset(struct net_device *	dev)
+ {
+   int		i;
+@@ -3864,7 +3863,7 @@ wv_hw_config(struct net_device *	dev)
+  *	2. Start the LAN controller's receive unit
+  * (called by wavelan_event(), wavelan_watchdog() and wavelan_open())
+  */
+-static inline void
++static void
+ wv_hw_reset(struct net_device *	dev)
+ {
+   net_local *	lp = netdev_priv(dev);
+@@ -3895,7 +3894,7 @@ wv_hw_reset(struct net_device *	dev)
+  * device available to the system.
+  * (called by wavelan_event())
+  */
+-static inline int
++static int
+ wv_pcmcia_config(struct pcmcia_device *	link)
+ {
+   struct net_device *	dev = (struct net_device *) link->priv;
+diff -puN drivers/net/wireless/wavelan_cs.p.h~wavelan_cs-stop-inlining-largish-static-functions drivers/net/wireless/wavelan_cs.p.h
+--- a/drivers/net/wireless/wavelan_cs.p.h~wavelan_cs-stop-inlining-largish-static-functions
++++ a/drivers/net/wireless/wavelan_cs.p.h
+@@ -637,7 +637,7 @@ struct net_local
+ /* ----------------- MODEM MANAGEMENT SUBROUTINES ----------------- */
+ static inline u_char		/* data */
+ 	hasr_read(u_long);	/* Read the host interface : base address */
+-static inline void
++static void
+ 	hacr_write(u_long,	/* Write to host interface : base address */
+ 		   u_char),	/* data */
+ 	hacr_write_slow(u_long,
+@@ -651,7 +651,7 @@ static void
+ 		  int,		/* Offset in psa */
+ 		  u_char *,	/* Buffer in memory */
+ 		  int);		/* Length of buffer */
+-static inline void
++static void
+ 	mmc_out(u_long,		/* Write 1 byte to the Modem Manag Control */
+ 		u_short,
+ 		u_char),
+@@ -659,10 +659,10 @@ static inline void
+ 		  u_char,
+ 		  u_char *,
+ 		  int);
+-static inline u_char		/* Read 1 byte from the MMC */
++static u_char			/* Read 1 byte from the MMC */
+ 	mmc_in(u_long,
+ 	       u_short);
+-static inline void
++static void
+ 	mmc_read(u_long,	/* Read n bytes from the MMC */
+ 		 u_char,
+ 		 u_char *,
+@@ -688,10 +688,10 @@ static int
+ 		     int,
+ 		     char *,
+ 		     int);
+-static inline void
++static void
+ 	wv_82593_reconfig(struct net_device *);	/* Reconfigure the controller */
+ /* ------------------- DEBUG & INFO SUBROUTINES ------------------- */
+-static inline void
++static void
+ 	wv_init_info(struct net_device *);	/* display startup info */
+ /* ------------------- IOCTL, STATS & RECONFIG ------------------- */
+ static en_stats	*
+@@ -699,17 +699,17 @@ static en_stats	*
+ static iw_stats *
+ 	wavelan_get_wireless_stats(struct net_device *);
+ /* ----------------------- PACKET RECEPTION ----------------------- */
+-static inline int
++static int
+ 	wv_start_of_frame(struct net_device *,	/* Seek beggining of current frame */
+ 			  int,	/* end of frame */
+ 			  int);	/* start of buffer */
+-static inline void
++static void
+ 	wv_packet_read(struct net_device *,	/* Read a packet from a frame */
+ 		       int,
+ 		       int),
+ 	wv_packet_rcv(struct net_device *);	/* Read all packets waiting */
+ /* --------------------- PACKET TRANSMISSION --------------------- */
+-static inline void
++static void
+ 	wv_packet_write(struct net_device *,	/* Write a packet to the Tx buffer */
+ 			void *,
+ 			short);
+@@ -717,20 +717,20 @@ static int
+ 	wavelan_packet_xmit(struct sk_buff *,	/* Send a packet */
+ 			    struct net_device *);
+ /* -------------------- HARDWARE CONFIGURATION -------------------- */
+-static inline int
++static int
+ 	wv_mmc_init(struct net_device *);	/* Initialize the modem */
+ static int
+ 	wv_ru_stop(struct net_device *),	/* Stop the i82593 receiver unit */
+ 	wv_ru_start(struct net_device *);	/* Start the i82593 receiver unit */
+ static int
+ 	wv_82593_config(struct net_device *);	/* Configure the i82593 */
+-static inline int
++static int
+ 	wv_pcmcia_reset(struct net_device *);	/* Reset the pcmcia interface */
+ static int
+ 	wv_hw_config(struct net_device *);	/* Reset & configure the whole hardware */
+-static inline void
++static void
+ 	wv_hw_reset(struct net_device *);	/* Same, + start receiver unit */
+-static inline int
++static int
+ 	wv_pcmcia_config(struct pcmcia_device *);	/* Configure the pcmcia interface */
+ static void
+ 	wv_pcmcia_release(struct pcmcia_device *);/* Remove a device */
 _
 
-Patches currently in -mm which might be from mhiramat@redhat.com are
+Patches currently in -mm which might be from vda.linux@googlemail.com are
 
-git-x86.patch
-git-ia64.patch
-listh-add-list_singleton.patch
-listh-add-list_singleton-fix.patch
-kprobes-add-unregister_kprobes-for-batch-registration.patch
-kprobes-add-unregister_kprobes-for-batch-registration-fix.patch
-kprobes-add-unregister_kretprobes-for-batch-registration.patch
-kprobes-add-unregister_jprobes-for-batch-registration.patch
-kprobes-update-document-about-batch-registration.patch
+sound-pci-rme9652-hdspmc-stop-inlining-largish-static-functions.patch
+git-net.patch
 
