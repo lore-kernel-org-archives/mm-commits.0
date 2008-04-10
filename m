@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch added to -mm tree
-Date: Wed, 09 Apr 2008 16:17:33 -0700
-Message-ID: <200804092327.m39NRlUn002612@imap1.linux-foundation.org>
+Subject: + md-close-a-livelock-window-in-handle_parity_checks5.patch added to -mm tree
+Date: Wed, 09 Apr 2008 18:15:39 -0700
+Message-ID: <200804100115.m3A1FdXm006350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60199 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753715AbYDIX2B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 19:28:01 -0400
+	by vger.kernel.org with ESMTP id S1752465AbYDJBQB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 21:16:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, rjw@sisk.pl
+Cc: dan.j.williams@intel.com, neilb@suse.de, stable@kernel.org
 
 
 The patch titled
-     pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix
+     md: close a livelock window in handle_parity_checks5
 has been added to the -mm tree.  Its filename is
-     pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch
+     md-close-a-livelock-window-in-handle_parity_checks5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,238 +33,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: md: close a livelock window in handle_parity_checks5
+From: Dan Williams <dan.j.williams@intel.com>
 
-drivers/pci/pci-driver.c: In function 'pci_pm_thaw':
-drivers/pci/pci-driver.c:520: warning: unused variable 'pci_dev'
-drivers/pci/pci-driver.c: In function 'pci_pm_poweroff':
-drivers/pci/pci-driver.c:552: warning: unused variable 'pci_dev'
+If a failure is detected after a parity check operation has been initiated,
+but before it completes handle_parity_checks5 will never quiesce operations on
+the stripe.
 
-Cc: Greg KH <greg@kroah.com>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Explicitly handle this case by "canceling" the parity check, i.e.  clear the
+STRIPE_OP_CHECK flags and queue the stripe on the handle list again to refresh
+any non-uptodate blocks.
+
+Kernel versions >= 2.6.23 are susceptible.
+
+Cc: <stable@kernel.org>
+Cc: NeilBrown <neilb@suse.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci-driver.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/md/raid5.c |   53 ++++++++++++++++++++++++-------------------
+ 1 file changed, 30 insertions(+), 23 deletions(-)
 
-diff -puN drivers/pci/pci-driver.c~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix drivers/pci/pci-driver.c
---- a/drivers/pci/pci-driver.c~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix
-+++ a/drivers/pci/pci-driver.c
-@@ -517,7 +517,6 @@ static int pci_pm_freeze_noirq(struct de
- 
- static int pci_pm_thaw(struct device *dev)
+diff -puN drivers/md/raid5.c~md-close-a-livelock-window-in-handle_parity_checks5 drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-close-a-livelock-window-in-handle_parity_checks5
++++ a/drivers/md/raid5.c
+@@ -2348,25 +2348,15 @@ static void handle_issuing_new_write_req
+ static void handle_parity_checks5(raid5_conf_t *conf, struct stripe_head *sh,
+ 				struct stripe_head_state *s, int disks)
  {
--	struct pci_dev *pci_dev = to_pci_dev(dev);
- 	struct device_driver *drv = dev->driver;
- 	int error = 0;
++	int canceled_check = 0;
++
+ 	set_bit(STRIPE_HANDLE, &sh->state);
+-	/* Take one of the following actions:
+-	 * 1/ start a check parity operation if (uptodate == disks)
+-	 * 2/ finish a check parity operation and act on the result
+-	 * 3/ skip to the writeback section if we previously
+-	 *    initiated a recovery operation
+-	 */
+-	if (s->failed == 0 &&
+-	    !test_bit(STRIPE_OP_MOD_REPAIR_PD, &sh->ops.pending)) {
+-		if (!test_and_set_bit(STRIPE_OP_CHECK, &sh->ops.pending)) {
+-			BUG_ON(s->uptodate != disks);
+-			clear_bit(R5_UPTODATE, &sh->dev[sh->pd_idx].flags);
+-			sh->ops.count++;
+-			s->uptodate--;
+-		} else if (
+-		       test_and_clear_bit(STRIPE_OP_CHECK, &sh->ops.complete)) {
+-			clear_bit(STRIPE_OP_CHECK, &sh->ops.ack);
+-			clear_bit(STRIPE_OP_CHECK, &sh->ops.pending);
  
-@@ -549,7 +548,6 @@ static int pci_pm_thaw_noirq(struct devi
++	/* complete a check operation */
++	if (test_and_clear_bit(STRIPE_OP_CHECK, &sh->ops.complete)) {
++	    clear_bit(STRIPE_OP_CHECK, &sh->ops.ack);
++	    clear_bit(STRIPE_OP_CHECK, &sh->ops.pending);
++		if (s->failed == 0) {
+ 			if (sh->ops.zero_sum_result == 0)
+ 				/* parity is correct (on disc,
+ 				 * not in buffer any more)
+@@ -2391,7 +2381,8 @@ static void handle_parity_checks5(raid5_
+ 					s->uptodate++;
+ 				}
+ 			}
+-		}
++		} else
++			canceled_check = 1; /* STRIPE_INSYNC is not set */
+ 	}
  
- static int pci_pm_poweroff(struct device *dev)
- {
--	struct pci_dev *pci_dev = to_pci_dev(dev);
- 	struct device_driver *drv = dev->driver;
- 	int error = 0;
+ 	/* check if we can clear a parity disk reconstruct */
+@@ -2404,12 +2395,28 @@ static void handle_parity_checks5(raid5_
+ 		clear_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.pending);
+ 	}
  
+-	/* Wait for check parity and compute block operations to complete
+-	 * before write-back
++	/* start a new check operation if there are no failures, the stripe is
++	 * not insync, and a repair is not in flight
+ 	 */
+-	if (!test_bit(STRIPE_INSYNC, &sh->state) &&
+-		!test_bit(STRIPE_OP_CHECK, &sh->ops.pending) &&
+-		!test_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.pending)) {
++	if (s->failed == 0 &&
++	    !test_bit(STRIPE_INSYNC, &sh->state) &&
++	    !test_bit(STRIPE_OP_MOD_REPAIR_PD, &sh->ops.pending)) {
++		if (!test_and_set_bit(STRIPE_OP_CHECK, &sh->ops.pending)) {
++			BUG_ON(s->uptodate != disks);
++			clear_bit(R5_UPTODATE, &sh->dev[sh->pd_idx].flags);
++			sh->ops.count++;
++			s->uptodate--;
++		}
++	}
++
++	/* Wait for check parity and compute block operations to complete
++	 * before write-back.  If a failure occurred while the check operation
++	 * was in flight we need to cycle this stripe through handle_stripe
++	 * since the parity block may not be uptodate
++	 */
++	if (!canceled_check && !test_bit(STRIPE_INSYNC, &sh->state) &&
++	    !test_bit(STRIPE_OP_CHECK, &sh->ops.pending) &&
++	    !test_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.pending)) {
+ 		struct r5dev *dev;
+ 		/* either failed parity check, or recovery is happening */
+ 		if (s->failed == 0)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
 origin.patch
-es1968-fix-sleep-while-holding-lock-bug.patch
-revert-x86-fix-call-to-set_cyc2ns_scale-from-time_cpufreq_notifier.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-acpi.patch
-git-acpi-revert-suspend-wakeup-code-in-c.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86.patch
-arch-x86-mm-ioremapc-fix-printk-warnings.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-git-kgdb-light.patch
-git-x86-hack-around-to-make-git-kgdb-build.patch
-git-x86-vs-git-kgdb-lite.patch
-git-alsa-tiwai.patch
-es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
-git-powerpc.patch
-pm-remove-destroy_suspended_device.patch
-scsi-add-iscsi-ibft-support.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
-pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-dlm-vs-git-gfs2-nwm.patch
-git-hid.patch
-git-hrt.patch
-time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
-arch-ia64-kernel-use-time_-macros.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-leds.patch
-git-libata-all.patch
-drivers-ata-sata_fslc-fix-warnings-small-memory-leak.patch
+md-close-a-livelock-window-in-handle_parity_checks5.patch
+git-arm.patch
+sysfs-refill-attribute-buffer-when-reading-from-offset-0.patch
 git-async-tx.patch
-git-mips.patch
-git-net.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-ehea-fix-dlpar-memory-add-support-fix.patch
-sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
-git-s390.patch
-git-sched.patch
-git-sh.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-misplaced-hunk.patch
-git-cryptodev-fix-conflict.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-semaphore-vs-git-x86.patch
-git-semaphore-git-rejects.patch
-smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+md-introduce-get_priority_stripe-to-improve-raid456-write-performance.patch
+md-raid5c-convert-simple_strtoul-to-strict_strtoul.patch
 
