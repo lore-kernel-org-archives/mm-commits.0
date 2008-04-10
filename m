@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-is-busted-on-m68k.patch added to -mm tree
-Date: Wed, 09 Apr 2008 18:42:50 -0700
-Message-ID: <200804100153.m3A1r6tC007615@imap1.linux-foundation.org>
+Subject: + git-cryptodev-fix-conflict-hack.patch added to -mm tree
+Date: Wed, 09 Apr 2008 18:52:03 -0700
+Message-ID: <200804100202.m3A22IFJ007929@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56273 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33667 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752864AbYDJBxQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 21:53:16 -0400
+	by vger.kernel.org with ESMTP id S1753153AbYDJCDa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Apr 2008 22:03:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linux-ext4@vger.kernel.org
+Cc: akpm@linux-foundation.org, herbert@gondor.apana.org.au, schwidefsky@de.ibm.com
 
 
 The patch titled
-     ext4 is busted on m68k
+     git-cryptodev-fix-conflict-hack
 has been added to the -mm tree.  Its filename is
-     ext4-is-busted-on-m68k.patch
+     git-cryptodev-fix-conflict-hack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4 is busted on m68k
+Subject: git-cryptodev-fix-conflict-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-And there appears to be little prospect of it getting fixed.
+blah.  Guys, talk to each other...
 
-Cc: <linux-ext4@vger.kernel.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/s390/crypto/sha1_s390.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~ext4-is-busted-on-m68k fs/Kconfig
---- a/fs/Kconfig~ext4-is-busted-on-m68k
-+++ a/fs/Kconfig
-@@ -139,6 +139,7 @@ config EXT3_FS_SECURITY
- config EXT4DEV_FS
- 	tristate "Ext4dev/ext4 extended fs support development (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-+	depends on !M68K
- 	select JBD2
- 	select CRC16
- 	help
+diff -puN arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict-hack arch/s390/crypto/sha1_s390.c
+--- a/arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict-hack
++++ a/arch/s390/crypto/sha1_s390.c
+@@ -57,7 +57,7 @@ static struct crypto_alg alg = {
+ 	.dia_digestsize	=	SHA1_DIGEST_SIZE,
+ 	.dia_init	=	sha1_init,
+ 	.dia_update	=	s390_sha_update,
+-	.dia_final	=	s390_sha1_final } }
++	.dia_final	=	NULL } }
+ };
+ 
+ static int __init sha1_s390_init(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -150,6 +152,7 @@ git-watchdog-git-rejects.patch
 xfs-suppress-uninitialized-var-warnings.patch
 git-cryptodev-misplaced-hunk.patch
 git-cryptodev-fix-conflict.patch
+git-cryptodev-fix-conflict-hack.patch
 git-xtensa.patch
 make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
 git-semaphore-vs-git-x86.patch
