@@ -1,113 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - arch-ia64-kernel-use-time_-macros.patch removed from -mm tree
-Date: Thu, 10 Apr 2008 13:01:25 -0700
-Message-ID: <200804102001.m3AK1Pvb014972@imap1.linux-foundation.org>
+Subject: - sctp-fix-wrong-debug-counting-of-bind_bucket.patch removed from -mm tree
+Date: Thu, 10 Apr 2008 13:01:37 -0700
+Message-ID: <200804102001.m3AK1bfL014990@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52811 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758835AbYDJUC1 (ORCPT
+	by vger.kernel.org with ESMTP id S1757189AbYDJUC3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 16:02:27 -0400
+	Thu, 10 Apr 2008 16:02:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: caglar@pardus.org.tr, kosaki.motohiro@jp.fujitsu.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, sri@us.ibm.com, vladislav.yasevich@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/ia64/kernel/: use time_* macros
+     sctp: fix wrong debug counting of bind_bucket
 has been removed from the -mm tree.  Its filename was
-     arch-ia64-kernel-use-time_-macros.patch
+     sctp-fix-wrong-debug-counting-of-bind_bucket.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/ia64/kernel/: use time_* macros
-From: S.Caglar Onur <caglar@pardus.org.tr>
+Subject: sctp: fix wrong debug counting of bind_bucket
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-The functions time_before, time_before_eq, time_after, and time_after_eq are
-more robust for comparing jiffies against other values.
+Should not count it if the allocation of the object is failed.
 
-So use the time_after() & time_before() macros, defined at linux/jiffies.h,
-which deal with wrapping correctly
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: S.Caglar Onur <caglar@pardus.org.tr>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Vlad Yasevich <vladislav.yasevich@hp.com>
+Cc: Sridhar Samudrala <sri@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/irq_ia64.c  |    2 +-
- arch/ia64/kernel/mca.c       |    4 +++-
- arch/ia64/kernel/unaligned.c |    3 ++-
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ net/sctp/socket.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/ia64/kernel/irq_ia64.c~arch-ia64-kernel-use-time_-macros arch/ia64/kernel/irq_ia64.c
---- a/arch/ia64/kernel/irq_ia64.c~arch-ia64-kernel-use-time_-macros
-+++ a/arch/ia64/kernel/irq_ia64.c
-@@ -472,7 +472,7 @@ ia64_handle_irq (ia64_vector vector, str
- 			static unsigned char count;
- 			static long last_time;
+diff -puN net/sctp/socket.c~sctp-fix-wrong-debug-counting-of-bind_bucket net/sctp/socket.c
+--- a/net/sctp/socket.c~sctp-fix-wrong-debug-counting-of-bind_bucket
++++ a/net/sctp/socket.c
+@@ -5761,8 +5761,8 @@ static struct sctp_bind_bucket *sctp_buc
+ 	struct sctp_bind_bucket *pp;
  
--			if (jiffies - last_time > 5*HZ)
-+			if (time_after(jiffies, last_time + 5 * HZ))
- 				count = 0;
- 			if (++count < 5) {
- 				last_time = jiffies;
-diff -puN arch/ia64/kernel/mca.c~arch-ia64-kernel-use-time_-macros arch/ia64/kernel/mca.c
---- a/arch/ia64/kernel/mca.c~arch-ia64-kernel-use-time_-macros
-+++ a/arch/ia64/kernel/mca.c
-@@ -69,6 +69,7 @@
-  * 2007-04-27 Russ Anderson <rja@sgi.com>
-  *	      Support multiple cpus going through OS_MCA in the same event.
-  */
-+#include <linux/jiffies.h>
- #include <linux/types.h>
- #include <linux/init.h>
- #include <linux/sched.h>
-@@ -293,7 +294,8 @@ static void ia64_mlogbuf_dump_from_init(
- 	if (mlogbuf_finished)
- 		return;
- 
--	if (mlogbuf_timestamp && (mlogbuf_timestamp + 30*HZ > jiffies)) {
-+	if (mlogbuf_timestamp &&
-+			time_before(jiffies, mlogbuf_timestamp + 30 * HZ)) {
- 		printk(KERN_ERR "INIT: mlogbuf_dump is interrupted by INIT "
- 			" and the system seems to be messed up.\n");
- 		ia64_mlogbuf_finish(0);
-diff -puN arch/ia64/kernel/unaligned.c~arch-ia64-kernel-use-time_-macros arch/ia64/kernel/unaligned.c
---- a/arch/ia64/kernel/unaligned.c~arch-ia64-kernel-use-time_-macros
-+++ a/arch/ia64/kernel/unaligned.c
-@@ -13,6 +13,7 @@
-  * 2001/08/13	Correct size of extended floats (float_fsz) from 16 to 10 bytes.
-  * 2001/01/17	Add support emulation of unaligned kernel accesses.
-  */
-+#include <linux/jiffies.h>
- #include <linux/kernel.h>
- #include <linux/sched.h>
- #include <linux/tty.h>
-@@ -1290,7 +1291,7 @@ within_logging_rate_limit (void)
- {
- 	static unsigned long count, last_time;
- 
--	if (jiffies - last_time > 5*HZ)
-+	if (time_after(jiffies, last_time + 5 * HZ))
- 		count = 0;
- 	if (count < 5) {
- 		last_time = jiffies;
+ 	pp = kmem_cache_alloc(sctp_bucket_cachep, GFP_ATOMIC);
+-	SCTP_DBG_OBJCNT_INC(bind_bucket);
+ 	if (pp) {
++		SCTP_DBG_OBJCNT_INC(bind_bucket);
+ 		pp->port = snum;
+ 		pp->fastreuse = 0;
+ 		INIT_HLIST_HEAD(&pp->owner);
 _
 
-Patches currently in -mm which might be from caglar@pardus.org.tr are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-git-powerpc.patch
+origin.patch
 git-ia64.patch
 git-net.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-fix-indentation.patch
-arch-alpha-kernel-trapsc-use-time_-macros.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-fs-binfmt_aoutc-use-printk_ratelimit.patch
+oom_kill-remove-unused-parameter-in-badness.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+cgroup-annotate-cgroup_init_subsys-with-__init.patch
+cgroup-switch-to-proc_create.patch
+cgroups-implement-device-whitelist-v6.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-doc.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+cgroups-use-a-hash-table-for-css_set-finding.patch
+cgroups-simplify-init_subsys.patch
+cgroups-remove-the-css_set-linked-list.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
 
