@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + frv-handle-update_mmu_cache-being-called-when-current-mm-is-null.patch added to -mm tree
-Date: Thu, 10 Apr 2008 13:46:16 -0700
-Message-ID: <200804102046.m3AKkGRg016689@imap1.linux-foundation.org>
+Subject: + frv-move-stack_top_max-up.patch added to -mm tree
+Date: Thu, 10 Apr 2008 13:46:18 -0700
+Message-ID: <200804102046.m3AKkIpx016692@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40367 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757575AbYDJUqi (ORCPT
+	by vger.kernel.org with ESMTP id S1757727AbYDJUqj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 16:46:38 -0400
+	Thu, 10 Apr 2008 16:46:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dhowells@redhat.com
 
 
 The patch titled
-     frv: handle update_mmu_cache() being called when current->mm is NULL
+     frv: move STACK_TOP_MAX up
 has been added to the -mm tree.  Its filename is
-     frv-handle-update_mmu_cache-being-called-when-current-mm-is-null.patch
+     frv-move-stack_top_max-up.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: handle update_mmu_cache() being called when current->mm is NULL
+Subject: frv: move STACK_TOP_MAX up
 From: David Howells <dhowells@redhat.com>
 
-Handle update_mmu_cache() being called when current->mm is NULL.
-
-We cache static TLB mappings for the current page table in DAMPR4 and DAMPR5
-on the theory that the next data lookup is likely to be in the same general
-region, and thus is likely to be mapped by the same page table.  However, we
-can't get this information if we can't access the appropriate mm_struct.
-
-If current->mm is NULL, we just clear the cache in the knowledge that the TLB
-miss handlers will load it.
+Move STACK_TOP_MAX up so that we don't try moving the stack above it as that
+causes setup_arg_pages() to malfunction.
 
 Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-frv/pgtable.h |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ include/asm-frv/mem-layout.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-frv/pgtable.h~frv-handle-update_mmu_cache-being-called-when-current-mm-is-null include/asm-frv/pgtable.h
---- a/include/asm-frv/pgtable.h~frv-handle-update_mmu_cache-being-called-when-current-mm-is-null
-+++ a/include/asm-frv/pgtable.h
-@@ -507,13 +507,22 @@ static inline int pte_file(pte_t pte)
+diff -puN include/asm-frv/mem-layout.h~frv-move-stack_top_max-up include/asm-frv/mem-layout.h
+--- a/include/asm-frv/mem-layout.h~frv-move-stack_top_max-up
++++ a/include/asm-frv/mem-layout.h
+@@ -60,7 +60,7 @@
   */
- static inline void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t pte)
- {
-+	struct mm_struct *mm;
- 	unsigned long ampr;
--	pgd_t *pge = pgd_offset(current->mm, address);
--	pud_t *pue = pud_offset(pge, address);
--	pmd_t *pme = pmd_offset(pue, address);
+ #define BRK_BASE			__UL(2 * 1024 * 1024 + PAGE_SIZE)
+ #define STACK_TOP			__UL(2 * 1024 * 1024)
+-#define STACK_TOP_MAX	STACK_TOP
++#define STACK_TOP_MAX			__UL(0xc0000000)
  
--	ampr = pme->ste[0] & 0xffffff00;
--	ampr |= xAMPRx_L | xAMPRx_SS_16Kb | xAMPRx_S | xAMPRx_C | xAMPRx_V;
-+	mm = current->mm;
-+	if (mm) {
-+		pgd_t *pge = pgd_offset(mm, address);
-+		pud_t *pue = pud_offset(pge, address);
-+		pmd_t *pme = pmd_offset(pue, address);
-+
-+		ampr = pme->ste[0] & 0xffffff00;
-+		ampr |= xAMPRx_L | xAMPRx_SS_16Kb | xAMPRx_S | xAMPRx_C |
-+			xAMPRx_V;
-+	} else {
-+		address = ULONG_MAX;
-+		ampr = 0;
-+	}
- 
- 	asm volatile("movgs %0,scr0\n"
- 		     "movgs %0,scr1\n"
+ /* userspace process size */
+ #ifdef CONFIG_MMU
 _
 
 Patches currently in -mm which might be from dhowells@redhat.com are
