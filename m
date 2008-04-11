@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + revert-include-asm-x86-i387h-checkpatch-cleanups-formatting-only.patch added to -mm tree
-Date: Thu, 10 Apr 2008 18:33:38 -0700
-Message-ID: <200804110133.m3B1XcPi026955@imap1.linux-foundation.org>
+Subject: + git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5.patch added to -mm tree
+Date: Thu, 10 Apr 2008 18:33:40 -0700
+Message-ID: <200804110133.m3B1Xeb9026958@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38727 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757862AbYDKBev (ORCPT
+	by vger.kernel.org with ESMTP id S1758183AbYDKBe4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 10 Apr 2008 21:34:51 -0400
+	Thu, 10 Apr 2008 21:34:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, arjan@linux.intel.com, joe@perches.com, mingo@elt
 
 
 The patch titled
-     revert "include/asm-x86/i387.h: checkpatch cleanups - formatting only"
+     git-x86: revert "x86, fpu: lazy allocation of FPU area - v5"
 has been added to the -mm tree.  Its filename is
-     revert-include-asm-x86-i387h-checkpatch-cleanups-formatting-only.patch
+     git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,22 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "include/asm-x86/i387.h: checkpatch cleanups - formatting only"
+Subject: git-x86: revert "x86, fpu: lazy allocation of FPU area - v5"
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Revert
 
-commit ae8be98cf0ab0ec484891fbe876d76a96a37b0ca
-Author: Joe Perches <joe@perches.com>
-Date:   Sun Mar 23 01:02:18 2008 -0700
+commit 34e43535bb289dd5a4222a4e33c3b4e75f580744
+Author: Suresh Siddha <suresh.b.siddha@intel.com>
+Date:   Mon Mar 10 15:28:05 2008 -0700
 
-    include/asm-x86/i387.h: checkpatch cleanups - formatting only
+    x86, fpu: lazy allocation of FPU area - v5
     
-    Signed-off-by: Joe Perches <joe@perches.com>
+    Only allocate the FPU area when the application actually uses FPU, i.e., in the
+    first lazy FPU trap. This could save memory for non-fpu using apps.
+    
+    for example: on my system after boot, there are around 300 processes, with
+    only 17 using FPU.
+    
+    Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+    Cc: Arjan van de Ven <arjan@linux.intel.com>
     Signed-off-by: Ingo Molnar <mingo@elte.hu>
 
-To make way for the reversion of "x86, fpu: lazy allocation of FPU area - v5"
-and "x86, fpu: split FPU state from task struct - v5".
+To make way for the reversion of "x86, fpu: split FPU state from task struct -
+v5".
 
 Cc: Suresh Siddha <suresh.b.siddha@intel.com>
 Cc: Arjan van de Ven <arjan@linux.intel.com>
@@ -59,206 +66,281 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/i387.h |   94 ++++++++++++++++++++-------------------
- 1 file changed, 50 insertions(+), 44 deletions(-)
+ arch/x86/kernel/i387.c       |   38 ++++++---------------------------
+ arch/x86/kernel/process.c    |   28 +++++++-----------------
+ arch/x86/kernel/process_32.c |    4 ---
+ arch/x86/kernel/process_64.c |    4 ---
+ arch/x86/kernel/traps_32.c   |   17 +-------------
+ arch/x86/kernel/traps_64.c   |   19 ++--------------
+ include/asm-x86/i387.h       |    2 -
+ include/asm-x86/processor.h  |    2 -
+ 8 files changed, 23 insertions(+), 91 deletions(-)
 
-diff -puN include/asm-x86/i387.h~revert-include-asm-x86-i387h-checkpatch-cleanups-formatting-only include/asm-x86/i387.h
---- a/include/asm-x86/i387.h~revert-include-asm-x86-i387h-checkpatch-cleanups-formatting-only
-+++ a/include/asm-x86/i387.h
-@@ -42,7 +42,7 @@ static inline void tolerant_fwait(void)
- {
- 	asm volatile("1: fwait\n"
- 		     "2:\n"
--		     _ASM_EXTABLE(1b, 2b));
-+		     _ASM_EXTABLE(1b,2b));
- }
+diff -puN arch/x86/kernel/i387.c~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5 arch/x86/kernel/i387.c
+--- a/arch/x86/kernel/i387.c~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5
++++ a/arch/x86/kernel/i387.c
+@@ -8,6 +8,7 @@
+ #include <linux/module.h>
+ #include <linux/regset.h>
+ #include <linux/sched.h>
++#include <linux/bootmem.h>
  
- static inline int restore_fpu_checking(struct i387_fxsave_struct *fx)
-@@ -55,7 +55,7 @@ static inline int restore_fpu_checking(s
- 		     "3:  movl $-1,%[err]\n"
- 		     "    jmp  2b\n"
- 		     ".previous\n"
--		     _ASM_EXTABLE(1b, 3b)
-+		     _ASM_EXTABLE(1b,3b)
- 		     : [err] "=r" (err)
- #if 0 /* See comment in __save_init_fpu() below. */
- 		     : [fx] "r" (fx), "m" (*fx), "0" (0));
-@@ -77,11 +77,11 @@ static inline int restore_fpu_checking(s
- static inline void clear_fpu_state(struct i387_fxsave_struct *fx)
- {
- 	if (unlikely(fx->swd & X87_FSW_ES))
--		asm volatile("fnclex");
-+		 asm volatile("fnclex");
- 	alternative_input(ASM_NOP8 ASM_NOP2,
--			  "    emms\n"		/* clear stack tags */
--			  "    fildl %%gs:0",	/* load to clear state */
--			  X86_FEATURE_FXSAVE_LEAK);
-+		     "    emms\n"		/* clear stack tags */
-+		     "    fildl %%gs:0",	/* load to clear state */
-+		     X86_FEATURE_FXSAVE_LEAK);
- }
- 
- static inline int save_i387_checking(struct i387_fxsave_struct __user *fx)
-@@ -94,15 +94,14 @@ static inline int save_i387_checking(str
- 		     "3:  movl $-1,%[err]\n"
- 		     "    jmp  2b\n"
- 		     ".previous\n"
--		     _ASM_EXTABLE(1b, 3b)
-+		     _ASM_EXTABLE(1b,3b)
- 		     : [err] "=r" (err), "=m" (*fx)
- #if 0 /* See comment in __fxsave_clear() below. */
- 		     : [fx] "r" (fx), "0" (0));
- #else
- 		     : [fx] "cdaSDb" (fx), "0" (0));
+ #include <asm/sigcontext.h>
+ #include <asm/processor.h>
+@@ -62,6 +63,7 @@ void __init init_thread_xstate(void)
+ 	else
+ 		xstate_size = sizeof(struct i387_fsave_struct);
  #endif
--	if (unlikely(err) &&
--	    __clear_user(fx, sizeof(struct i387_fxsave_struct)))
-+	if (unlikely(err) && __clear_user(fx, sizeof(struct i387_fxsave_struct)))
- 		err = -EFAULT;
- 	/* No need to clear here because the caller clears USED_MATH */
- 	return err;
-@@ -117,21 +116,21 @@ static inline void __save_init_fpu(struc
- #if 0
- 	/* Using "fxsaveq %0" would be the ideal choice, but is only supported
- 	   starting with gas 2.16. */
--	asm volatile("fxsaveq %0"
--		     : "=m" (tsk->thread.xstate->fxsave));
-+	__asm__ __volatile__("fxsaveq %0"
-+			     : "=m" (tsk->thread.xstate->fxsave));
- #elif 0
- 	/* Using, as a workaround, the properly prefixed form below isn't
- 	   accepted by any binutils version so far released, complaining that
- 	   the same type of prefix is used twice if an extended register is
- 	   needed for addressing (fix submitted to mainline 2005-11-21). */
--	asm volatile("rex64/fxsave %0"
--		     : "=m" (tsk->thread.xstate->fxsave));
-+	__asm__ __volatile__("rex64/fxsave %0"
-+			     : "=m" (tsk->thread.xstate->fxsave));
- #else
- 	/* This, however, we can work around by forcing the compiler to select
- 	   an addressing mode that doesn't require extended registers. */
--	asm volatile("rex64/fxsave (%1)"
--		     : "=m" (tsk->thread.xstate->fxsave)
--		     : "cdaSDb" (&tsk->thread.xstate->fxsave));
-+	__asm__ __volatile__("rex64/fxsave (%1)"
-+			     : "=m" (tsk->thread.xstate->fxsave)
-+			     : "cdaSDb" (&tsk->thread.xstate->fxsave));
- #endif
- 	clear_fpu_state(&tsk->thread.xstate->fxsave);
- 	task_thread_info(tsk)->status &= ~TS_USEDFPU;
-@@ -147,7 +146,7 @@ static inline int save_i387(struct _fpst
- 	int err = 0;
- 
- 	BUILD_BUG_ON(sizeof(struct user_i387_struct) !=
--		     sizeof(tsk->thread.xstate->fxsave));
-+			sizeof(tsk->thread.xstate->fxsave));
- 
- 	if ((unsigned long)buf % 16)
- 		printk("save_i387: bad fpstate %p\n", buf);
-@@ -156,10 +155,8 @@ static inline int save_i387(struct _fpst
- 		return 0;
- 	clear_used_math(); /* trigger finit */
- 	if (task_thread_info(tsk)->status & TS_USEDFPU) {
--		err = save_i387_checking((struct i387_fxsave_struct __user *)
--					 buf);
--		if (err)
--			return err;
-+		err = save_i387_checking((struct i387_fxsave_struct __user *)buf);
-+		if (err) return err;
- 		task_thread_info(tsk)->status &= ~TS_USEDFPU;
- 		stts();
- 	} else {
-@@ -193,12 +190,14 @@ static inline void tolerant_fwait(void)
- static inline void restore_fpu(struct task_struct *tsk)
- {
- 	/*
--	 * The "nop" is needed to make the instructions the same length.
-+	 * The "nop" is needed to make the instructions the same
-+	 * length.
- 	 */
--	alternative_input("nop ; frstor %1",
--			  "fxrstor %1",
--			  X86_FEATURE_FXSR,
--			  "m" (tsk->thread.xstate->fxsave));
-+	alternative_input(
-+		"nop ; frstor %1",
-+		"fxrstor %1",
-+		X86_FEATURE_FXSR,
-+		"m" (tsk->thread.xstate->fxsave));
++	init_task.thread.xstate = alloc_bootmem(xstate_size);
  }
  
- /* We need a safe address that is cheap to find and that is already
-@@ -217,21 +216,22 @@ static inline void __save_init_fpu(struc
- {
- 	/* Use more nops than strictly needed in case the compiler
- 	   varies code */
--	alternative_input("fnsave %[fx] ;fwait;" GENERIC_NOP8 GENERIC_NOP4,
--			  "fxsave %[fx]\n"
--			  "bt $7,%[fsw] ; jnc 1f ; fnclex\n1:",
--			  X86_FEATURE_FXSR,
--			  [fx] "m" (tsk->thread.xstate->fxsave),
--			  [fsw] "m" (tsk->thread.xstate->fxsave.swd)
--			  : "memory");
-+	alternative_input(
-+		"fnsave %[fx] ;fwait;" GENERIC_NOP8 GENERIC_NOP4,
-+		"fxsave %[fx]\n"
-+		"bt $7,%[fsw] ; jnc 1f ; fnclex\n1:",
-+		X86_FEATURE_FXSR,
-+		[fx] "m" (tsk->thread.xstate->fxsave),
-+		[fsw] "m" (tsk->thread.xstate->fxsave.swd) : "memory");
- 	/* AMD K7/K8 CPUs don't save/restore FDP/FIP/FOP unless an exception
- 	   is pending.  Clear the x87 state here by setting it to fixed
- 	   values. safe_address is a random variable that should be in L1 */
--	alternative_input(GENERIC_NOP8 GENERIC_NOP2,
--			  "emms\n\t"	  	/* clear stack tags */
--			  "fildl %[addr]", 	/* set F?P to defined value */
--			  X86_FEATURE_FXSAVE_LEAK,
--			  [addr] "m" (safe_address));
-+	alternative_input(
-+		GENERIC_NOP8 GENERIC_NOP2,
-+		"emms\n\t"	  	/* clear stack tags */
-+		"fildl %[addr]", 	/* set F?P to defined value */
-+		X86_FEATURE_FXSAVE_LEAK,
-+		[addr] "m" (safe_address));
- 	task_thread_info(tsk)->status &= ~TS_USEDFPU;
- }
- 
-@@ -322,23 +322,29 @@ static inline void clear_fpu(struct task
+ #ifdef CONFIG_X86_64
+@@ -91,22 +93,12 @@ void __cpuinit fpu_init(void)
+  * value at reset if we support XMM instructions and then
+  * remeber the current task has used the FPU.
   */
- static inline unsigned short get_fpu_cwd(struct task_struct *tsk)
+-int init_fpu(struct task_struct *tsk)
++void init_fpu(struct task_struct *tsk)
  {
--	if (cpu_has_fxsr)
-+	if (cpu_has_fxsr) {
- 		return tsk->thread.xstate->fxsave.cwd;
--	return (unsigned short)tsk->thread.xstate->fsave.cwd;
-+	} else {
-+		return (unsigned short) tsk->thread.xstate->fsave.cwd;
-+	}
+ 	if (tsk_used_math(tsk)) {
+ 		if (tsk == current)
+ 			unlazy_fpu(tsk);
+-		return 0;
+-	}
+-
+-	/*
+-	 * Memory allocation at the first usage of the FPU and other state.
+-	 */
+-	if (!tsk->thread.xstate) {
+-		tsk->thread.xstate = kmem_cache_alloc(task_xstate_cachep,
+-						      GFP_KERNEL);
+-		if (!tsk->thread.xstate)
+-			return -ENOMEM;
++		return;
+ 	}
+ 
+ 	if (cpu_has_fxsr) {
+@@ -128,7 +120,6 @@ int init_fpu(struct task_struct *tsk)
+ 	 * Only the device not available exception or ptrace can call init_fpu.
+ 	 */
+ 	set_stopped_child_used_math(tsk);
+-	return 0;
  }
  
- static inline unsigned short get_fpu_swd(struct task_struct *tsk)
+ int fpregs_active(struct task_struct *target, const struct user_regset *regset)
+@@ -145,14 +136,10 @@ int xfpregs_get(struct task_struct *targ
+ 		unsigned int pos, unsigned int count,
+ 		void *kbuf, void __user *ubuf)
  {
--	if (cpu_has_fxsr)
-+	if (cpu_has_fxsr) {
- 		return tsk->thread.xstate->fxsave.swd;
--	return (unsigned short)tsk->thread.xstate->fsave.swd;
-+	} else {
-+		return (unsigned short) tsk->thread.xstate->fsave.swd;
-+	}
+-	int ret;
+-
+ 	if (!cpu_has_fxsr)
+ 		return -ENODEV;
+ 
+-	ret = init_fpu(target);
+-	if (ret)
+-		return ret;
++	init_fpu(target);
+ 
+ 	return user_regset_copyout(&pos, &count, &kbuf, &ubuf,
+ 				   &target->thread.xstate->fxsave, 0, -1);
+@@ -167,10 +154,7 @@ int xfpregs_set(struct task_struct *targ
+ 	if (!cpu_has_fxsr)
+ 		return -ENODEV;
+ 
+-	ret = init_fpu(target);
+-	if (ret)
+-		return ret;
+-
++	init_fpu(target);
+ 	set_stopped_child_used_math(target);
+ 
+ 	ret = user_regset_copyin(&pos, &count, &kbuf, &ubuf,
+@@ -328,14 +312,11 @@ int fpregs_get(struct task_struct *targe
+ 	       void *kbuf, void __user *ubuf)
+ {
+ 	struct user_i387_ia32_struct env;
+-	int ret;
+ 
+ 	if (!HAVE_HWFP)
+ 		return fpregs_soft_get(target, regset, pos, count, kbuf, ubuf);
+ 
+-	ret = init_fpu(target);
+-	if (ret)
+-		return ret;
++	init_fpu(target);
+ 
+ 	if (!cpu_has_fxsr) {
+ 		return user_regset_copyout(&pos, &count, &kbuf, &ubuf,
+@@ -363,10 +344,7 @@ int fpregs_set(struct task_struct *targe
+ 	if (!HAVE_HWFP)
+ 		return fpregs_soft_set(target, regset, pos, count, kbuf, ubuf);
+ 
+-	ret = init_fpu(target);
+-	if (ret)
+-		return ret;
+-
++	init_fpu(target);
+ 	set_stopped_child_used_math(target);
+ 
+ 	if (!cpu_has_fxsr) {
+diff -puN arch/x86/kernel/process.c~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5 arch/x86/kernel/process.c
+--- a/arch/x86/kernel/process.c~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5
++++ a/arch/x86/kernel/process.c
+@@ -5,34 +5,24 @@
+ #include <linux/slab.h>
+ #include <linux/sched.h>
+ 
+-struct kmem_cache *task_xstate_cachep;
++static struct kmem_cache *task_xstate_cachep;
+ 
+ int arch_dup_task_struct(struct task_struct *dst, struct task_struct *src)
+ {
+ 	*dst = *src;
+-	if (src->thread.xstate) {
+-		dst->thread.xstate = kmem_cache_alloc(task_xstate_cachep,
+-						      GFP_KERNEL);
+-		if (!dst->thread.xstate)
+-			return -ENOMEM;
+-		WARN_ON((unsigned long)dst->thread.xstate & 15);
+-		memcpy(dst->thread.xstate, src->thread.xstate, xstate_size);
+-	}
++	dst->thread.xstate = kmem_cache_alloc(task_xstate_cachep, GFP_KERNEL);
++	if (!dst->thread.xstate)
++		return -ENOMEM;
++	WARN_ON((unsigned long)dst->thread.xstate & 15);
++	memcpy(dst->thread.xstate, src->thread.xstate, xstate_size);
+ 	return 0;
  }
  
- static inline unsigned short get_fpu_mxcsr(struct task_struct *tsk)
+-void free_thread_xstate(struct task_struct *tsk)
+-{
+-	if (tsk->thread.xstate) {
+-		kmem_cache_free(task_xstate_cachep, tsk->thread.xstate);
+-		tsk->thread.xstate = NULL;
+-	}
+-}
+-
+-
+ void free_thread_info(struct thread_info *ti)
  {
--	if (cpu_has_xmm)
-+	if (cpu_has_xmm) {
- 		return tsk->thread.xstate->fxsave.mxcsr;
--	return MXCSR_DEFAULT;
-+	} else {
-+		return MXCSR_DEFAULT;
-+	}
+-	free_thread_xstate(ti->task);
++	kmem_cache_free(task_xstate_cachep, ti->task->thread.xstate);
++	ti->task->thread.xstate = NULL;
++
+ 	free_pages((unsigned long)(ti), get_order(THREAD_SIZE));
  }
  
- #endif	/* _ASM_X86_I387_H */
+diff -puN arch/x86/kernel/process_32.c~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5 arch/x86/kernel/process_32.c
+--- a/arch/x86/kernel/process_32.c~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5
++++ a/arch/x86/kernel/process_32.c
+@@ -521,10 +521,6 @@ start_thread(struct pt_regs *regs, unsig
+ 	regs->cs		= __USER_CS;
+ 	regs->ip		= new_ip;
+ 	regs->sp		= new_sp;
+-	/*
+-	 * Free the old FP and other extended state
+-	 */
+-	free_thread_xstate(current);
+ }
+ EXPORT_SYMBOL_GPL(start_thread);
+ 
+diff -puN arch/x86/kernel/process_64.c~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5 arch/x86/kernel/process_64.c
+--- a/arch/x86/kernel/process_64.c~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5
++++ a/arch/x86/kernel/process_64.c
+@@ -544,10 +544,6 @@ start_thread(struct pt_regs *regs, unsig
+ 	regs->ss		= __USER_DS;
+ 	regs->flags		= 0x200;
+ 	set_fs(USER_DS);
+-	/*
+-	 * Free the old FP and other extended state
+-	 */
+-	free_thread_xstate(current);
+ }
+ EXPORT_SYMBOL_GPL(start_thread);
+ 
+diff -puN arch/x86/kernel/traps_32.c~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5 arch/x86/kernel/traps_32.c
+--- a/arch/x86/kernel/traps_32.c~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5
++++ a/arch/x86/kernel/traps_32.c
+@@ -1146,22 +1146,9 @@ asmlinkage void math_state_restore(void)
+ 	struct thread_info *thread = current_thread_info();
+ 	struct task_struct *tsk = thread->task;
+ 
+-	if (!tsk_used_math(tsk)) {
+-		local_irq_enable();
+-		/*
+-		 * does a slab alloc which can sleep
+-		 */
+-		if (init_fpu(tsk)) {
+-			/*
+-			 * ran out of memory!
+-			 */
+-			do_group_exit(SIGKILL);
+-			return;
+-		}
+-		local_irq_disable();
+-	}
+-
+ 	clts();				/* Allow maths ops (or we recurse) */
++	if (!tsk_used_math(tsk))
++		init_fpu(tsk);
+ 	restore_fpu(tsk);
+ 	thread->status |= TS_USEDFPU;	/* So we fnsave on switch_to() */
+ 	tsk->fpu_counter++;
+diff -puN arch/x86/kernel/traps_64.c~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5 arch/x86/kernel/traps_64.c
+--- a/arch/x86/kernel/traps_64.c~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5
++++ a/arch/x86/kernel/traps_64.c
+@@ -1116,23 +1116,10 @@ asmlinkage void __attribute__((weak)) mc
+ asmlinkage void math_state_restore(void)
+ {
+ 	struct task_struct *me = current;
+-
+-	if (!used_math()) {
+-		local_irq_enable();
+-		/*
+-		 * does a slab alloc which can sleep
+-		 */
+-		if (init_fpu(me)) {
+-			/*
+-			 * ran out of memory!
+-			 */
+-			do_group_exit(SIGKILL);
+-			return;
+-		}
+-		local_irq_disable();
+-	}
+-
+ 	clts();			/* Allow maths ops (or we recurse) */
++
++	if (!used_math())
++		init_fpu(me);
+ 	restore_fpu_checking(&me->thread.xstate->fxsave);
+ 	task_thread_info(me)->status |= TS_USEDFPU;
+ 	me->fpu_counter++;
+diff -puN include/asm-x86/i387.h~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5 include/asm-x86/i387.h
+--- a/include/asm-x86/i387.h~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5
++++ a/include/asm-x86/i387.h
+@@ -21,7 +21,7 @@
+ 
+ extern void fpu_init(void);
+ extern void mxcsr_feature_mask_init(void);
+-extern int init_fpu(struct task_struct *child);
++extern void init_fpu(struct task_struct *child);
+ extern asmlinkage void math_state_restore(void);
+ extern void init_thread_xstate(void);
+ 
+diff -puN include/asm-x86/processor.h~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5 include/asm-x86/processor.h
+--- a/include/asm-x86/processor.h~git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5
++++ a/include/asm-x86/processor.h
+@@ -366,8 +366,6 @@ DECLARE_PER_CPU(struct orig_ist, orig_is
+ 
+ extern void print_cpu_info(struct cpuinfo_x86 *);
+ extern unsigned int xstate_size;
+-extern void free_thread_xstate(struct task_struct *);
+-extern struct kmem_cache *task_xstate_cachep;
+ extern void init_scattered_cpuid_features(struct cpuinfo_x86 *c);
+ extern unsigned int init_intel_cacheinfo(struct cpuinfo_x86 *c);
+ extern unsigned short num_cache_leaves;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
