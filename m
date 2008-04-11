@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-fix-the-error-in-the-function-of-cmos_set_alarm.patch added to -mm tree
-Date: Thu, 10 Apr 2008 22:16:20 -0700
-Message-ID: <200804110516.m3B5GKpr002051@imap1.linux-foundation.org>
+Subject: + rtc-add-the-support-for-alarm-time-relative-to-current-time-in-sysfs.patch added to -mm tree
+Date: Thu, 10 Apr 2008 22:21:52 -0700
+Message-ID: <200804110521.m3B5LqY8002243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40053 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39974 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751423AbYDKFQb (ORCPT
+	by vger.kernel.org with ESMTP id S1750743AbYDKFWK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Apr 2008 01:16:31 -0400
+	Fri, 11 Apr 2008 01:22:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yakui.zhao@intel.com, dbrownell@users.sourceforge.net, rui.zhang@intel.com
+Cc: yakui.zhao@intel.com, a.zummo@towertech.it, dbrownell@users.sourceforge.net, rui.zhang@intel.com
 
 
 The patch titled
-     rtc: fix the error in the function of cmos_set_alarm
+     rtc: add the support for alarm time relative to current time in sysfs
 has been added to the -mm tree.  Its filename is
-     rtc-fix-the-error-in-the-function-of-cmos_set_alarm.patch
+     rtc-add-the-support-for-alarm-time-relative-to-current-time-in-sysfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: fix the error in the function of cmos_set_alarm
+Subject: rtc: add the support for alarm time relative to current time in sysfs
 From: Zhao Yakui <yakui.zhao@intel.com>
 
-There is a bug in the function of cmos_set_alarm.  RTC alarm time for October
-can't be set correctly.
+In current kernel if we want to set the alarm time, the absolute time the
+seconds relative to 1970-01-01 00:00:00) should be written into
+/sys/class/rtc/rtc0/wakealarm.  It is not convenient.
 
-For October: 0x0A will be written into the RTC region (MONTH_ALARM) in current
-kernel.  But in fact 0x10 should be written.  Wildcards are also not handled
-correctly.
+It is more reasonable to add the support for the alarm time relative to
+current RTC time.(the unit is second)
+
+For example:
+If the RTC is required to generate alarm after 2 minutes, the following
+will be OK.
+	echo +120 > /sys/class/rtc/rtc0/wakealarm
+or      echo +0x78 > /sys/class/rtc/rtc0/wakealarm
 
 Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
 Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-cmos.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/rtc/rtc-sysfs.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-cmos.c~rtc-fix-the-error-in-the-function-of-cmos_set_alarm drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-fix-the-error-in-the-function-of-cmos_set_alarm
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -198,9 +198,8 @@ static int cmos_set_alarm(struct device 
+diff -puN drivers/rtc/rtc-sysfs.c~rtc-add-the-support-for-alarm-time-relative-to-current-time-in-sysfs drivers/rtc/rtc-sysfs.c
+--- a/drivers/rtc/rtc-sysfs.c~rtc-add-the-support-for-alarm-time-relative-to-current-time-in-sysfs
++++ a/drivers/rtc/rtc-sysfs.c
+@@ -145,6 +145,8 @@ rtc_sysfs_set_wakealarm(struct device *d
+ 	unsigned long now, alarm;
+ 	struct rtc_wkalrm alm;
+ 	struct rtc_device *rtc = to_rtc_device(dev);
++	char *buf_ptr;
++	int adjust = 0;
  
- 	/* Writing 0xff means "don't care" or "match all".  */
+ 	/* Only request alarms that trigger in the future.  Disable them
+ 	 * by writing another time, e.g. 0 meaning Jan 1 1970 UTC.
+@@ -154,7 +156,15 @@ rtc_sysfs_set_wakealarm(struct device *d
+ 		return retval;
+ 	rtc_tm_to_time(&alm.time, &now);
  
--	mon = t->time.tm_mon;
--	mon = (mon < 12) ? BIN2BCD(mon) : 0xff;
--	mon++;
-+	mon = t->time.tm_mon + 1;
-+	mon = (mon <= 12) ? BIN2BCD(mon) : 0xff;
- 
- 	mday = t->time.tm_mday;
- 	mday = (mday >= 1 && mday <= 31) ? BIN2BCD(mday) : 0xff;
+-	alarm = simple_strtoul(buf, NULL, 0);
++	buf_ptr = (char *)buf;
++	if (*buf_ptr == '+') {
++		buf_ptr++;
++		adjust = 1;
++	}
++	alarm = simple_strtoul(buf_ptr, NULL, 0);
++	if (adjust) {
++		alarm += now;
++	}
+ 	if (alarm > now) {
+ 		/* Avoid accidentally clobbering active alarms; we can't
+ 		 * entirely prevent that here, without even the minimal
 _
 
 Patches currently in -mm which might be from yakui.zhao@intel.com are
@@ -75,4 +96,5 @@ Patches currently in -mm which might be from yakui.zhao@intel.com are
 origin.patch
 rtc-fix-the-error-in-the-function-of-cmos_set_alarm.patch
 acpi-unneccessary-to-scan-the-pci-bus-already-scanned.patch
+rtc-add-the-support-for-alarm-time-relative-to-current-time-in-sysfs.patch
 
