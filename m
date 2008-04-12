@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-add-the-support-for-alarm-time-relative-to-current-time-in-sysfs.patch added to -mm tree
-Date: Thu, 10 Apr 2008 22:21:52 -0700
-Message-ID: <200804110521.m3B5LqY8002243@imap1.linux-foundation.org>
+Subject: + slub-add-missing-slab_unlock-to-__kmem_cache_shrink.patch added to -mm tree
+Date: Fri, 11 Apr 2008 20:55:09 -0700
+Message-ID: <200804120355.m3C3t91g018251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39974 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48914 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750743AbYDKFWK (ORCPT
+	by vger.kernel.org with ESMTP id S1756844AbYDLDzV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 11 Apr 2008 01:22:10 -0400
+	Fri, 11 Apr 2008 23:55:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yakui.zhao@intel.com, a.zummo@towertech.it, dbrownell@users.sourceforge.net, rui.zhang@intel.com
+Cc: penberg@cs.helsinki.fi, adobriyan@gmail.com, clameter@sgi.com
 
 
 The patch titled
-     rtc: add the support for alarm time relative to current time in sysfs
+     slub: add missing slab_unlock() to __kmem_cache_shrink()
 has been added to the -mm tree.  Its filename is
-     rtc-add-the-support-for-alarm-time-relative-to-current-time-in-sysfs.patch
+     slub-add-missing-slab_unlock-to-__kmem_cache_shrink.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: add the support for alarm time relative to current time in sysfs
-From: Zhao Yakui <yakui.zhao@intel.com>
+Subject: slub: add missing slab_unlock() to __kmem_cache_shrink()
+From: Pekka J Enberg <penberg@cs.helsinki.fi>
 
-In current kernel if we want to set the alarm time, the absolute time the
-seconds relative to 1970-01-01 00:00:00) should be written into
-/sys/class/rtc/rtc0/wakealarm.  It is not convenient.
+If page is not kickable, remember to slab_unlock() before continuing the loop.
 
-It is more reasonable to add the support for the alarm time relative to
-current RTC time.(the unit is second)
-
-For example:
-If the RTC is required to generate alarm after 2 minutes, the following
-will be OK.
-	echo +120 > /sys/class/rtc/rtc0/wakealarm
-or      echo +0x78 > /sys/class/rtc/rtc0/wakealarm
-
-Signed-off-by: Zhao Yakui <yakui.zhao@intel.com>
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-sysfs.c |   12 +++++++++++-
- 1 file changed, 11 insertions(+), 1 deletion(-)
+ mm/slub.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-sysfs.c~rtc-add-the-support-for-alarm-time-relative-to-current-time-in-sysfs drivers/rtc/rtc-sysfs.c
---- a/drivers/rtc/rtc-sysfs.c~rtc-add-the-support-for-alarm-time-relative-to-current-time-in-sysfs
-+++ a/drivers/rtc/rtc-sysfs.c
-@@ -145,6 +145,8 @@ rtc_sysfs_set_wakealarm(struct device *d
- 	unsigned long now, alarm;
- 	struct rtc_wkalrm alm;
- 	struct rtc_device *rtc = to_rtc_device(dev);
-+	char *buf_ptr;
-+	int adjust = 0;
+diff -puN mm/slub.c~slub-add-missing-slab_unlock-to-__kmem_cache_shrink mm/slub.c
+--- a/mm/slub.c~slub-add-missing-slab_unlock-to-__kmem_cache_shrink
++++ a/mm/slub.c
+@@ -2926,8 +2926,10 @@ static unsigned long __kmem_cache_shrink
+ 			continue;
  
- 	/* Only request alarms that trigger in the future.  Disable them
- 	 * by writing another time, e.g. 0 meaning Jan 1 1970 UTC.
-@@ -154,7 +156,15 @@ rtc_sysfs_set_wakealarm(struct device *d
- 		return retval;
- 	rtc_tm_to_time(&alm.time, &now);
+ 		if (page->inuse) {
+-			if (!SlabKickable(page))
++			if (!SlabKickable(page)) {
++				slab_unlock(page);
+ 				continue;
++			}
  
--	alarm = simple_strtoul(buf, NULL, 0);
-+	buf_ptr = (char *)buf;
-+	if (*buf_ptr == '+') {
-+		buf_ptr++;
-+		adjust = 1;
-+	}
-+	alarm = simple_strtoul(buf_ptr, NULL, 0);
-+	if (adjust) {
-+		alarm += now;
-+	}
- 	if (alarm > now) {
- 		/* Avoid accidentally clobbering active alarms; we can't
- 		 * entirely prevent that here, without even the minimal
+ 			if (page->inuse * 100 >=
+ 					s->defrag_ratio * page->objects) {
 _
 
-Patches currently in -mm which might be from yakui.zhao@intel.com are
+Patches currently in -mm which might be from penberg@cs.helsinki.fi are
 
 origin.patch
-rtc-fix-the-error-in-the-function-of-cmos_set_alarm.patch
-acpi-unneccessary-to-scan-the-pci-bus-already-scanned.patch
-rtc-add-the-support-for-alarm-time-relative-to-current-time-in-sysfs.patch
+git-x86.patch
+git-unionfs.patch
+git-pekka.patch
+mm-move-cache_line_size-to-linux-cacheh.patch
+fs-coda-remove-static-inline-forward-declarations.patch
+documentation-patch-tags-one-more-time.patch
+slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
+slab-leaks3-default-y.patch
+slub-add-missing-slab_unlock-to-__kmem_cache_shrink.patch
 
