@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + leds-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
-Date: Fri, 11 Apr 2008 21:55:01 -0700
-Message-ID: <200804120455.m3C4t1a7020658@imap1.linux-foundation.org>
+Subject: + fbdev-fix-proc-fb-oops-after-module-removal.patch added to -mm tree
+Date: Sat, 12 Apr 2008 15:20:11 -0700
+Message-ID: <200804122220.m3CMKBAW023835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57653 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53345 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754069AbYDLEzU (ORCPT
+	by vger.kernel.org with ESMTP id S1755501AbYDLWU5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 00:55:20 -0400
+	Sat, 12 Apr 2008 18:20:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, rpurdie@rpsys.net
+Cc: adobriyan@gmail.com, adaplas@pol.net, stable@kernel.org
 
 
 The patch titled
-     leds: fix platform driver hotplug/coldplug
+     fbdev: fix /proc/fb oops after module removal
 has been added to the -mm tree.  Its filename is
-     leds-fix-platform-driver-hotplug-coldplug.patch
+     fbdev-fix-proc-fb-oops-after-module-removal.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,227 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: fix platform driver hotplug/coldplug
-From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: fbdev: fix /proc/fb oops after module removal
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform
-modalias is prefixed with "platform:". Add MODULE_ALIAS() to the
-hotpluggable platform LED drivers, to re-enable auto loading.
+/proc/fb is not removed during rmmod.
 
-[dbrownell@users.sourceforge.net: more drivers, registration fixes]
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Richard Purdie <rpurdie@rpsys.net>
+Steps to reproduce:
+
+	modprobe fb
+	rmmod fb
+	ls /proc
+
+BUG: unable to handle kernel paging request at ffffffffa0094370
+IP: [<ffffffff802b92a1>] proc_get_inode+0x101/0x130
+PGD 203067 PUD 207063 PMD 17e758067 PTE 0
+Oops: 0000 [1] SMP
+last sysfs file: /sys/devices/pci0000:00/0000:00:1e.0/0000:05:02.0/resource
+CPU 1
+Modules linked in: nf_conntrack_irc xt_state iptable_filter ipt_MASQUERADE iptable_nat nf_nat nf_conntrack_ipv4 nf_conntrack ip_tables x_tables vfat fat usbhid ehci_hcd uhci_hcd usbcore sr_mod cdrom [last unloaded: fb]
+Pid: 21205, comm: ls Not tainted 2.6.25-rc8-mm2 #14
+RIP: 0010:[<ffffffff802b92a1>]  [<ffffffff802b92a1>] proc_get_inode+0x101/0x130
+RSP: 0018:ffff81017c4bfc78  EFLAGS: 00010246
+RAX: 0000000000008000 RBX: ffff8101787f5470 RCX: 0000000048011ccc
+RDX: ffffffffa0094320 RSI: ffff810006ad43b0 RDI: ffff81017fc2cc00
+RBP: ffff81017e450300 R08: 0000000000000002 R09: ffff81017c5d1000
+R10: 0000000000000000 R11: 0000000000000246 R12: ffff81016b903a28
+R13: ffff81017f822020 R14: ffff81017c4bfd58 R15: ffff81017f822020
+FS:  00007f08e71696f0(0000) GS:ffff81017fc06480(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: ffffffffa0094370 CR3: 000000017e54a000 CR4: 00000000000006e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process ls (pid: 21205, threadinfo ffff81017c4be000, task ffff81017de48770)
+Stack:  ffff81017c5d1000 00000000ffffffea ffff81017e450300 ffffffff802bdd1e
+ ffff81017f802258 ffff81017c4bfe48 ffff81016b903a28 ffff81017f822020
+ ffff81017c4bfd48 ffffffff802b9ba0 ffff81016b903a28 ffff81017f802258
+Call Trace:
+ [<ffffffff802bdd1e>] ? proc_lookup_de+0x8e/0x100
+ [<ffffffff802b9ba0>] ? proc_root_lookup+0x20/0x60
+ [<ffffffff802882a7>] ? do_lookup+0x1b7/0x210
+ [<ffffffff8028883d>] ? __link_path_walk+0x53d/0x7f0
+ [<ffffffff80295eb8>] ? mntput_no_expire+0x28/0x130
+ [<ffffffff80288b4a>] ? path_walk+0x5a/0xc0
+ [<ffffffff80288dd3>] ? do_path_lookup+0x83/0x1c0
+ [<ffffffff80287785>] ? getname+0xe5/0x210
+ [<ffffffff80289adb>] ? __user_walk_fd+0x4b/0x80
+ [<ffffffff8028236c>] ? vfs_lstat_fd+0x2c/0x70
+ [<ffffffff8028bf1e>] ? filldir+0xae/0xf0
+ [<ffffffff802b92e9>] ? de_put+0x9/0x50
+ [<ffffffff8029633d>] ? mnt_want_write+0x2d/0x80
+ [<ffffffff8029339f>] ? touch_atime+0x1f/0x170
+ [<ffffffff802b9b1d>] ? proc_root_readdir+0x7d/0xa0
+ [<ffffffff802825e7>] ? sys_newlstat+0x27/0x50
+ [<ffffffff8028bffb>] ? vfs_readdir+0x9b/0xd0
+ [<ffffffff8028c0fe>] ? sys_getdents+0xce/0xe0
+ [<ffffffff8020b39b>] ? system_call_after_swapgs+0x7b/0x80
+
+Code: b7 83 b2 00 00 00 25 00 f0 00 00 3d 00 80 00 00 74 19 48 89 93 f0 00 00 00 48 89 df e8 39 9a fd ff 48 89 d8 48 83 c4 08 5b 5d c3 <48> 83 7a 50 00 48 c7 c0 60 16 45 80 48 c7 c2 40 17 45 80 48 0f
+RIP  [<ffffffff802b92a1>] proc_get_inode+0x101/0x130
+ RSP <ffff81017c4bfc78>
+CR2: ffffffffa0094370
+---[ end trace c71hiarjan8ab739 ]---
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+"Antonino A. Daplas" <adaplas@pol.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/leds/leds-ams-delta.c   |    2 ++
- drivers/leds/leds-atmel-pwm.c   |    3 +++
- drivers/leds/leds-clevo-mail.c  |    1 +
- drivers/leds/leds-cm-x270.c     |    2 ++
- drivers/leds/leds-cobalt-qube.c |    3 +++
- drivers/leds/leds-corgi.c       |    2 ++
- drivers/leds/leds-gpio.c        |    1 +
- drivers/leds/leds-h1940.c       |    2 ++
- drivers/leds/leds-hp6xx.c       |    4 ++++
- drivers/leds/leds-s3c24xx.c     |    1 +
- drivers/leds/leds-spitz.c       |    2 ++
- drivers/leds/leds-tosa.c        |    2 ++
- 12 files changed, 25 insertions(+)
+ drivers/video/fbmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/leds/leds-ams-delta.c~leds-fix-platform-driver-hotplug-coldplug drivers/leds/leds-ams-delta.c
---- a/drivers/leds/leds-ams-delta.c~leds-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/leds/leds-ams-delta.c
-@@ -140,6 +140,7 @@ static struct platform_driver ams_delta_
- 	.resume		= ams_delta_led_resume,
- 	.driver		= {
- 		.name = "ams-delta-led",
-+		.owner = THIS_MODULE,
- 	},
- };
- 
-@@ -159,3 +160,4 @@ module_exit(ams_delta_led_exit);
- MODULE_AUTHOR("Jonathan McDowell <noodles@earth.li>");
- MODULE_DESCRIPTION("Amstrad Delta LED driver");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:ams-delta-led");
-diff -puN drivers/leds/leds-atmel-pwm.c~leds-fix-platform-driver-hotplug-coldplug drivers/leds/leds-atmel-pwm.c
---- a/drivers/leds/leds-atmel-pwm.c~leds-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/leds/leds-atmel-pwm.c
-@@ -132,6 +132,9 @@ static int __exit pwmled_remove(struct p
- 	return 0;
+diff -puN drivers/video/fbmem.c~fbdev-fix-proc-fb-oops-after-module-removal drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbdev-fix-proc-fb-oops-after-module-removal
++++ a/drivers/video/fbmem.c
+@@ -1521,6 +1521,7 @@ module_init(fbmem_init);
+ static void __exit
+ fbmem_exit(void)
+ {
++	remove_proc_entry("fb", NULL);
+ 	class_destroy(fb_class);
+ 	unregister_chrdev(FB_MAJOR, "fb");
  }
- 
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:leds-atmel-pwm");
-+
- static struct platform_driver pwmled_driver = {
- 	.driver = {
- 		.name =		"leds-atmel-pwm",
-diff -puN drivers/leds/leds-clevo-mail.c~leds-fix-platform-driver-hotplug-coldplug drivers/leds/leds-clevo-mail.c
---- a/drivers/leds/leds-clevo-mail.c~leds-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/leds/leds-clevo-mail.c
-@@ -170,6 +170,7 @@ static struct platform_driver clevo_mail
- 	.resume		= clevo_mail_led_resume,
- 	.driver		= {
- 		.name		= KBUILD_MODNAME,
-+		.owner		= THIS_MODULE,
- 	},
- };
- 
-diff -puN drivers/leds/leds-cm-x270.c~leds-fix-platform-driver-hotplug-coldplug drivers/leds/leds-cm-x270.c
---- a/drivers/leds/leds-cm-x270.c~leds-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/leds/leds-cm-x270.c
-@@ -101,6 +101,7 @@ static struct platform_driver cmx270led_
- #endif
- 	.driver		= {
- 		.name		= "cm-x270-led",
-+		.owner		= THIS_MODULE,
- 	},
- };
- 
-@@ -120,3 +121,4 @@ module_exit(cmx270led_exit);
- MODULE_AUTHOR("Mike Rapoport <mike@compulab.co.il>");
- MODULE_DESCRIPTION("CM-x270 LED driver");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:cm-x270-led");
-diff -puN drivers/leds/leds-cobalt-qube.c~leds-fix-platform-driver-hotplug-coldplug drivers/leds/leds-cobalt-qube.c
---- a/drivers/leds/leds-cobalt-qube.c~leds-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/leds/leds-cobalt-qube.c
-@@ -75,6 +75,9 @@ static int __devexit cobalt_qube_led_rem
- 	return 0;
- }
- 
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:cobalt-qube-leds");
-+
- static struct platform_driver cobalt_qube_led_driver = {
- 	.probe	= cobalt_qube_led_probe,
- 	.remove	= __devexit_p(cobalt_qube_led_remove),
-diff -puN drivers/leds/leds-corgi.c~leds-fix-platform-driver-hotplug-coldplug drivers/leds/leds-corgi.c
---- a/drivers/leds/leds-corgi.c~leds-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/leds/leds-corgi.c
-@@ -99,6 +99,7 @@ static struct platform_driver corgiled_d
- #endif
- 	.driver		= {
- 		.name		= "corgi-led",
-+		.owner		= THIS_MODULE,
- 	},
- };
- 
-@@ -118,3 +119,4 @@ module_exit(corgiled_exit);
- MODULE_AUTHOR("Richard Purdie <rpurdie@openedhand.com>");
- MODULE_DESCRIPTION("Corgi LED driver");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:corgi-led");
-diff -puN drivers/leds/leds-gpio.c~leds-fix-platform-driver-hotplug-coldplug drivers/leds/leds-gpio.c
---- a/drivers/leds/leds-gpio.c~leds-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/leds/leds-gpio.c
-@@ -199,3 +199,4 @@ module_exit(gpio_led_exit);
- MODULE_AUTHOR("Raphael Assenat <raph@8d.com>");
- MODULE_DESCRIPTION("GPIO LED driver");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:leds-gpio");
-diff -puN drivers/leds/leds-h1940.c~leds-fix-platform-driver-hotplug-coldplug drivers/leds/leds-h1940.c
---- a/drivers/leds/leds-h1940.c~leds-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/leds/leds-h1940.c
-@@ -139,6 +139,7 @@ static int h1940leds_remove(struct platf
- static struct platform_driver h1940leds_driver = {
- 	.driver		= {
- 		.name	= "h1940-leds",
-+		.owner	= THIS_MODULE,
- 	},
- 	.probe		= h1940leds_probe,
- 	.remove		= h1940leds_remove,
-@@ -161,3 +162,4 @@ module_exit(h1940leds_exit);
- MODULE_AUTHOR("Arnaud Patard <arnaud.patard@rtp-net.org>");
- MODULE_DESCRIPTION("LED driver for the iPAQ H1940");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:h1940-leds");
-diff -puN drivers/leds/leds-hp6xx.c~leds-fix-platform-driver-hotplug-coldplug drivers/leds/leds-hp6xx.c
---- a/drivers/leds/leds-hp6xx.c~leds-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/leds/leds-hp6xx.c
-@@ -90,6 +90,9 @@ static int hp6xxled_remove(struct platfo
- 	return 0;
- }
- 
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:hp6xx-led");
-+
- static struct platform_driver hp6xxled_driver = {
- 	.probe		= hp6xxled_probe,
- 	.remove		= hp6xxled_remove,
-@@ -99,6 +102,7 @@ static struct platform_driver hp6xxled_d
- #endif
- 	.driver		= {
- 		.name		= "hp6xx-led",
-+		.owner		= THIS_MODULE,
- 	},
- };
- 
-diff -puN drivers/leds/leds-s3c24xx.c~leds-fix-platform-driver-hotplug-coldplug drivers/leds/leds-s3c24xx.c
---- a/drivers/leds/leds-s3c24xx.c~leds-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/leds/leds-s3c24xx.c
-@@ -160,3 +160,4 @@ module_exit(s3c24xx_led_exit);
- MODULE_AUTHOR("Ben Dooks <ben@simtec.co.uk>");
- MODULE_DESCRIPTION("S3C24XX LED driver");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:s3c24xx_led");
-diff -puN drivers/leds/leds-spitz.c~leds-fix-platform-driver-hotplug-coldplug drivers/leds/leds-spitz.c
---- a/drivers/leds/leds-spitz.c~leds-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/leds/leds-spitz.c
-@@ -105,6 +105,7 @@ static struct platform_driver spitzled_d
- #endif
- 	.driver		= {
- 		.name		= "spitz-led",
-+		.owner		= THIS_MODULE,
- 	},
- };
- 
-@@ -124,3 +125,4 @@ module_exit(spitzled_exit);
- MODULE_AUTHOR("Richard Purdie <rpurdie@openedhand.com>");
- MODULE_DESCRIPTION("Spitz LED driver");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:spitz-led");
-diff -puN drivers/leds/leds-tosa.c~leds-fix-platform-driver-hotplug-coldplug drivers/leds/leds-tosa.c
---- a/drivers/leds/leds-tosa.c~leds-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/leds/leds-tosa.c
-@@ -109,6 +109,7 @@ static struct platform_driver tosaled_dr
- 	.resume		= tosaled_resume,
- 	.driver		= {
- 		.name		= "tosa-led",
-+		.owner		= THIS_MODULE,
- 	},
- };
- 
-@@ -128,3 +129,4 @@ module_exit(tosaled_exit);
- MODULE_AUTHOR("Dirk Opfer <Dirk@Opfer-Online.de>");
- MODULE_DESCRIPTION("Tosa LED driver");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:tosa-led");
 _
 
-Patches currently in -mm which might be from kay.sievers@vrfy.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-spi-fix-platform-driver-hotplug-coldplug.patch
-usb-gadget-fix-platform-driver-hotplug-coldplug.patch
-usb-host-fix-platform-driver-hotplug-coldplug.patch
-watchdog-fix-platform-driver-hotplug-coldplug.patch
-rtc-fix-platform-driver-hotplug-coldplug.patch
-mmc-fix-platform-driver-hotplug-coldplug.patch
-leds-fix-platform-driver-hotplug-coldplug.patch
-pm-remove-destroy_suspended_device.patch
-sysfs-refill-attribute-buffer-when-reading-from-offset-0.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
-pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.patch
-pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
-i2c-fix-platform-driver-hotplug-coldplug.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
-cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
+fbdev-fix-proc-fb-oops-after-module-removal.patch
+tags-add-menuconfig-symbols-as-well.patch
+slub-add-missing-slab_unlock-to-__kmem_cache_shrink.patch
+remove-the-macro-get_personality.patch
+nv-drop-useless-module-ifdefs.patch
+nv-drop-useless-config_pci-checks.patch
+nv-fix-sparse-noise.patch
+procfs-mem-permission-cleanup.patch
+proc-simplify-locking-in-remove_proc_entry.patch
+proc-less-special-case-in-xlate-code.patch
+proc-drop-several-pde-valid-invalid-checks.patch
+proc-remove-proc_bus.patch
+proc-remove-proc_root_fs.patch
+proc-remove-proc_root_driver.patch
+proc-remove-proc_root-from-drivers.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
