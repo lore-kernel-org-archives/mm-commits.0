@@ -1,56 +1,254 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-git-rejects.patch removed from -mm tree
-Date: Sat, 12 Apr 2008 19:25:13 -0700
-Message-ID: <200804130225.m3D2PDd8031890@imap1.linux-foundation.org>
+Subject: - revert-include-asm-x86-i387h-checkpatch-cleanups-formatting-only.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:25:21 -0700
+Message-ID: <200804130225.m3D2PMi4031900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46881 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56283 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752611AbYDMCZR (ORCPT
+	by vger.kernel.org with ESMTP id S1752624AbYDMC0V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 22:25:17 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3D2PEXK009998
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 12 Apr 2008 19:25:15 -0700
+	Sat, 12 Apr 2008 22:26:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arjan@linux.intel.com, joe@perches.com, mingo@elte.hu, suresh.b.siddha@intel.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86-git-rejects
+     revert "include/asm-x86/i387.h: checkpatch cleanups - formatting only"
 has been removed from the -mm tree.  Its filename was
-     git-x86-git-rejects.patch
+     revert-include-asm-x86-i387h-checkpatch-cleanups-formatting-only.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86-git-rejects
+Subject: revert "include/asm-x86/i387.h: checkpatch cleanups - formatting only"
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Revert
+
+commit ae8be98cf0ab0ec484891fbe876d76a96a37b0ca
+Author: Joe Perches <joe@perches.com>
+Date:   Sun Mar 23 01:02:18 2008 -0700
+
+    include/asm-x86/i387.h: checkpatch cleanups - formatting only
+    
+    Signed-off-by: Joe Perches <joe@perches.com>
+    Signed-off-by: Ingo Molnar <mingo@elte.hu>
+
+To make way for the reversion of "x86, fpu: lazy allocation of FPU area - v5"
+and "x86, fpu: split FPU state from task struct - v5".
+
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Joe Perches <joe@perches.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/linkage.h |    3 ---
- 1 file changed, 3 deletions(-)
+ include/asm-x86/i387.h |   94 ++++++++++++++++++++-------------------
+ 1 file changed, 50 insertions(+), 44 deletions(-)
 
-diff -puN include/asm-x86/linkage.h~git-x86-git-rejects include/asm-x86/linkage.h
---- a/include/asm-x86/linkage.h~git-x86-git-rejects
-+++ a/include/asm-x86/linkage.h
-@@ -11,10 +11,7 @@
+diff -puN include/asm-x86/i387.h~revert-include-asm-x86-i387h-checkpatch-cleanups-formatting-only include/asm-x86/i387.h
+--- a/include/asm-x86/i387.h~revert-include-asm-x86-i387h-checkpatch-cleanups-formatting-only
++++ a/include/asm-x86/i387.h
+@@ -42,7 +42,7 @@ static inline void tolerant_fwait(void)
+ {
+ 	asm volatile("1: fwait\n"
+ 		     "2:\n"
+-		     _ASM_EXTABLE(1b, 2b));
++		     _ASM_EXTABLE(1b,2b));
+ }
  
- #ifdef CONFIG_X86_32
- #define asmlinkage CPP_ASMLINKAGE __attribute__((regparm(0)))
--<<<<<<< HEAD:include/asm-x86/linkage.h
--=======
- #define prevent_tail_call(ret) asm("" : "=r" (ret) : "0" (ret))
-->>>>>>> FETCH_HEAD:include/asm-x86/linkage.h
- /*
-  * For 32-bit UML - mark functions implemented in assembly that use
-  * regparm input parameters:
+ static inline int restore_fpu_checking(struct i387_fxsave_struct *fx)
+@@ -55,7 +55,7 @@ static inline int restore_fpu_checking(s
+ 		     "3:  movl $-1,%[err]\n"
+ 		     "    jmp  2b\n"
+ 		     ".previous\n"
+-		     _ASM_EXTABLE(1b, 3b)
++		     _ASM_EXTABLE(1b,3b)
+ 		     : [err] "=r" (err)
+ #if 0 /* See comment in __save_init_fpu() below. */
+ 		     : [fx] "r" (fx), "m" (*fx), "0" (0));
+@@ -77,11 +77,11 @@ static inline int restore_fpu_checking(s
+ static inline void clear_fpu_state(struct i387_fxsave_struct *fx)
+ {
+ 	if (unlikely(fx->swd & X87_FSW_ES))
+-		asm volatile("fnclex");
++		 asm volatile("fnclex");
+ 	alternative_input(ASM_NOP8 ASM_NOP2,
+-			  "    emms\n"		/* clear stack tags */
+-			  "    fildl %%gs:0",	/* load to clear state */
+-			  X86_FEATURE_FXSAVE_LEAK);
++		     "    emms\n"		/* clear stack tags */
++		     "    fildl %%gs:0",	/* load to clear state */
++		     X86_FEATURE_FXSAVE_LEAK);
+ }
+ 
+ static inline int save_i387_checking(struct i387_fxsave_struct __user *fx)
+@@ -94,15 +94,14 @@ static inline int save_i387_checking(str
+ 		     "3:  movl $-1,%[err]\n"
+ 		     "    jmp  2b\n"
+ 		     ".previous\n"
+-		     _ASM_EXTABLE(1b, 3b)
++		     _ASM_EXTABLE(1b,3b)
+ 		     : [err] "=r" (err), "=m" (*fx)
+ #if 0 /* See comment in __fxsave_clear() below. */
+ 		     : [fx] "r" (fx), "0" (0));
+ #else
+ 		     : [fx] "cdaSDb" (fx), "0" (0));
+ #endif
+-	if (unlikely(err) &&
+-	    __clear_user(fx, sizeof(struct i387_fxsave_struct)))
++	if (unlikely(err) && __clear_user(fx, sizeof(struct i387_fxsave_struct)))
+ 		err = -EFAULT;
+ 	/* No need to clear here because the caller clears USED_MATH */
+ 	return err;
+@@ -117,21 +116,21 @@ static inline void __save_init_fpu(struc
+ #if 0
+ 	/* Using "fxsaveq %0" would be the ideal choice, but is only supported
+ 	   starting with gas 2.16. */
+-	asm volatile("fxsaveq %0"
+-		     : "=m" (tsk->thread.xstate->fxsave));
++	__asm__ __volatile__("fxsaveq %0"
++			     : "=m" (tsk->thread.xstate->fxsave));
+ #elif 0
+ 	/* Using, as a workaround, the properly prefixed form below isn't
+ 	   accepted by any binutils version so far released, complaining that
+ 	   the same type of prefix is used twice if an extended register is
+ 	   needed for addressing (fix submitted to mainline 2005-11-21). */
+-	asm volatile("rex64/fxsave %0"
+-		     : "=m" (tsk->thread.xstate->fxsave));
++	__asm__ __volatile__("rex64/fxsave %0"
++			     : "=m" (tsk->thread.xstate->fxsave));
+ #else
+ 	/* This, however, we can work around by forcing the compiler to select
+ 	   an addressing mode that doesn't require extended registers. */
+-	asm volatile("rex64/fxsave (%1)"
+-		     : "=m" (tsk->thread.xstate->fxsave)
+-		     : "cdaSDb" (&tsk->thread.xstate->fxsave));
++	__asm__ __volatile__("rex64/fxsave (%1)"
++			     : "=m" (tsk->thread.xstate->fxsave)
++			     : "cdaSDb" (&tsk->thread.xstate->fxsave));
+ #endif
+ 	clear_fpu_state(&tsk->thread.xstate->fxsave);
+ 	task_thread_info(tsk)->status &= ~TS_USEDFPU;
+@@ -147,7 +146,7 @@ static inline int save_i387(struct _fpst
+ 	int err = 0;
+ 
+ 	BUILD_BUG_ON(sizeof(struct user_i387_struct) !=
+-		     sizeof(tsk->thread.xstate->fxsave));
++			sizeof(tsk->thread.xstate->fxsave));
+ 
+ 	if ((unsigned long)buf % 16)
+ 		printk("save_i387: bad fpstate %p\n", buf);
+@@ -156,10 +155,8 @@ static inline int save_i387(struct _fpst
+ 		return 0;
+ 	clear_used_math(); /* trigger finit */
+ 	if (task_thread_info(tsk)->status & TS_USEDFPU) {
+-		err = save_i387_checking((struct i387_fxsave_struct __user *)
+-					 buf);
+-		if (err)
+-			return err;
++		err = save_i387_checking((struct i387_fxsave_struct __user *)buf);
++		if (err) return err;
+ 		task_thread_info(tsk)->status &= ~TS_USEDFPU;
+ 		stts();
+ 	} else {
+@@ -193,12 +190,14 @@ static inline void tolerant_fwait(void)
+ static inline void restore_fpu(struct task_struct *tsk)
+ {
+ 	/*
+-	 * The "nop" is needed to make the instructions the same length.
++	 * The "nop" is needed to make the instructions the same
++	 * length.
+ 	 */
+-	alternative_input("nop ; frstor %1",
+-			  "fxrstor %1",
+-			  X86_FEATURE_FXSR,
+-			  "m" (tsk->thread.xstate->fxsave));
++	alternative_input(
++		"nop ; frstor %1",
++		"fxrstor %1",
++		X86_FEATURE_FXSR,
++		"m" (tsk->thread.xstate->fxsave));
+ }
+ 
+ /* We need a safe address that is cheap to find and that is already
+@@ -217,21 +216,22 @@ static inline void __save_init_fpu(struc
+ {
+ 	/* Use more nops than strictly needed in case the compiler
+ 	   varies code */
+-	alternative_input("fnsave %[fx] ;fwait;" GENERIC_NOP8 GENERIC_NOP4,
+-			  "fxsave %[fx]\n"
+-			  "bt $7,%[fsw] ; jnc 1f ; fnclex\n1:",
+-			  X86_FEATURE_FXSR,
+-			  [fx] "m" (tsk->thread.xstate->fxsave),
+-			  [fsw] "m" (tsk->thread.xstate->fxsave.swd)
+-			  : "memory");
++	alternative_input(
++		"fnsave %[fx] ;fwait;" GENERIC_NOP8 GENERIC_NOP4,
++		"fxsave %[fx]\n"
++		"bt $7,%[fsw] ; jnc 1f ; fnclex\n1:",
++		X86_FEATURE_FXSR,
++		[fx] "m" (tsk->thread.xstate->fxsave),
++		[fsw] "m" (tsk->thread.xstate->fxsave.swd) : "memory");
+ 	/* AMD K7/K8 CPUs don't save/restore FDP/FIP/FOP unless an exception
+ 	   is pending.  Clear the x87 state here by setting it to fixed
+ 	   values. safe_address is a random variable that should be in L1 */
+-	alternative_input(GENERIC_NOP8 GENERIC_NOP2,
+-			  "emms\n\t"	  	/* clear stack tags */
+-			  "fildl %[addr]", 	/* set F?P to defined value */
+-			  X86_FEATURE_FXSAVE_LEAK,
+-			  [addr] "m" (safe_address));
++	alternative_input(
++		GENERIC_NOP8 GENERIC_NOP2,
++		"emms\n\t"	  	/* clear stack tags */
++		"fildl %[addr]", 	/* set F?P to defined value */
++		X86_FEATURE_FXSAVE_LEAK,
++		[addr] "m" (safe_address));
+ 	task_thread_info(tsk)->status &= ~TS_USEDFPU;
+ }
+ 
+@@ -322,23 +322,29 @@ static inline void clear_fpu(struct task
+  */
+ static inline unsigned short get_fpu_cwd(struct task_struct *tsk)
+ {
+-	if (cpu_has_fxsr)
++	if (cpu_has_fxsr) {
+ 		return tsk->thread.xstate->fxsave.cwd;
+-	return (unsigned short)tsk->thread.xstate->fsave.cwd;
++	} else {
++		return (unsigned short) tsk->thread.xstate->fsave.cwd;
++	}
+ }
+ 
+ static inline unsigned short get_fpu_swd(struct task_struct *tsk)
+ {
+-	if (cpu_has_fxsr)
++	if (cpu_has_fxsr) {
+ 		return tsk->thread.xstate->fxsave.swd;
+-	return (unsigned short)tsk->thread.xstate->fsave.swd;
++	} else {
++		return (unsigned short) tsk->thread.xstate->fsave.swd;
++	}
+ }
+ 
+ static inline unsigned short get_fpu_mxcsr(struct task_struct *tsk)
+ {
+-	if (cpu_has_xmm)
++	if (cpu_has_xmm) {
+ 		return tsk->thread.xstate->fxsave.mxcsr;
+-	return MXCSR_DEFAULT;
++	} else {
++		return MXCSR_DEFAULT;
++	}
+ }
+ 
+ #endif	/* _ASM_X86_I387_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,7 +258,6 @@ git-acpi.patch
 git-acpi-revert-suspend-wakeup-code-in-c.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-x86.patch
-git-x86-git-rejects.patch
 revert-include-asm-x86-i387h-checkpatch-cleanups-formatting-only.patch
 git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5.patch
 git-x86-revert-x86-fpu-split-fpu-state-from-task-struct-v5.patch
