@@ -1,111 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - hfs-fix-unlink-of-links.patch removed from -mm tree
-Date: Sat, 12 Apr 2008 19:39:03 -0700
-Message-ID: <200804130239.m3D2d3LP032359@imap1.linux-foundation.org>
+Subject: - cfq-iosched-do-not-leak-ioc_data-across-iosched-switches.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:39:13 -0700
+Message-ID: <200804130239.m3D2dDmP032368@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60583 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55059 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757406AbYDMCja (ORCPT
+	by vger.kernel.org with ESMTP id S1757355AbYDMCj3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 22:39:30 -0400
+	Sat, 12 Apr 2008 22:39:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zippel@linux-m68k.org, rechner@vlado-do.de, stable@kernel.org, mm-commits@vger.kernel.org
+To: fchecconi@gmail.com, fabio@gandalf.sssup.it, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     HFS+: fix unlink of links
+     cfq-iosched: do not leak ioc_data across iosched switches
 has been removed from the -mm tree.  Its filename was
-     hfs-fix-unlink-of-links.patch
+     cfq-iosched-do-not-leak-ioc_data-across-iosched-switches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: HFS+: fix unlink of links
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: cfq-iosched: do not leak ioc_data across iosched switches
+From: Fabio Checconi <fchecconi@gmail.com>
 
-Some time ago while attempting to handle invalid link counts, I botched the
-unlink of links itself, so this patch fixes this now correctly, so that only
-the link count of nodes that don't point to links is ignored.  Thanks to Vlado
-Plaga for notifying me of this problem.
+When switching scheduler from cfq, cfq_exit_queue() does not clear
+ioc->ioc_data, leaving a dangling pointer that can deceive the following
+lookups when the iosched is switched back to cfq.  The pattern that can
+trigger that is the following:
 
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: Vlado Plaga <rechner@vlado-do.de> 
-Cc: <stable@kernel.org>
+    - elevator switch from cfq to something else;
+    - module unloading, with elv_unregister() that calls cfq_free_io_context()
+      on ioc freeing the cic (via the .trim op);
+    - module gets reloaded and the elevator switches back to cfq;
+    - reallocation of a cic at the same address as before (with a valid key).
+
+To fix it just assign NULL to ioc_data in __cfq_exit_single_io_context(), that
+is called from the regular exit path and from the elevator switching code. 
+The only path that frees a cic and is not covered is the error handling one,
+but cic's freed in this way are never cached in ioc_data.
+
+Signed-off-by: Fabio Checconi <fabio@gandalf.sssup.it>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/dir.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ block/cfq-iosched.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN fs/hfsplus/dir.c~hfs-fix-unlink-of-links fs/hfsplus/dir.c
---- a/fs/hfsplus/dir.c~hfs-fix-unlink-of-links
-+++ a/fs/hfsplus/dir.c
-@@ -340,16 +340,23 @@ static int hfsplus_unlink(struct inode *
+diff -puN block/cfq-iosched.c~cfq-iosched-do-not-leak-ioc_data-across-iosched-switches block/cfq-iosched.c
+--- a/block/cfq-iosched.c~cfq-iosched-do-not-leak-ioc_data-across-iosched-switches
++++ a/block/cfq-iosched.c
+@@ -1214,6 +1214,8 @@ static void cfq_exit_cfqq(struct cfq_dat
+ static void __cfq_exit_single_io_context(struct cfq_data *cfqd,
+ 					 struct cfq_io_context *cic)
+ {
++	struct io_context *ioc = cic->ioc;
++
+ 	list_del_init(&cic->queue_list);
  
- 	if (inode->i_nlink > 0)
- 		drop_nlink(inode);
--	hfsplus_delete_inode(inode);
--	if (inode->i_ino != cnid && !inode->i_nlink) {
--		if (!atomic_read(&HFSPLUS_I(inode).opencnt)) {
--			res = hfsplus_delete_cat(inode->i_ino, HFSPLUS_SB(sb).hidden_dir, NULL);
--			if (!res)
--				hfsplus_delete_inode(inode);
-+	if (inode->i_ino == cnid)
-+		clear_nlink(inode);
-+	if (!inode->i_nlink) {
-+		if (inode->i_ino != cnid) {
-+			HFSPLUS_SB(sb).file_count--;
-+			if (!atomic_read(&HFSPLUS_I(inode).opencnt)) {
-+				res = hfsplus_delete_cat(inode->i_ino,
-+							 HFSPLUS_SB(sb).hidden_dir,
-+							 NULL);
-+				if (!res)
-+					hfsplus_delete_inode(inode);
-+			} else
-+				inode->i_flags |= S_DEAD;
- 		} else
--			inode->i_flags |= S_DEAD;
-+			hfsplus_delete_inode(inode);
- 	} else
--		clear_nlink(inode);
-+		HFSPLUS_SB(sb).file_count--;
- 	inode->i_ctime = CURRENT_TIME_SEC;
- 	mark_inode_dirty(inode);
+ 	/*
+@@ -1223,6 +1225,9 @@ static void __cfq_exit_single_io_context
+ 	cic->dead_key = (unsigned long) cic->key;
+ 	cic->key = NULL;
  
++	if (ioc->ioc_data == cic)
++		rcu_assign_pointer(ioc->ioc_data, NULL);
++
+ 	if (cic->cfqq[ASYNC]) {
+ 		cfq_exit_cfqq(cfqd, cic->cfqq[ASYNC]);
+ 		cic->cfqq[ASYNC] = NULL;
+@@ -1255,7 +1260,6 @@ static void cfq_exit_single_io_context(s
+  */
+ static void cfq_exit_io_context(struct io_context *ioc)
+ {
+-	rcu_assign_pointer(ioc->ioc_data, NULL);
+ 	call_for_each_cic(ioc, cfq_exit_single_io_context);
+ }
+ 
+@@ -1478,8 +1482,7 @@ cfq_drop_dead_cic(struct cfq_data *cfqd,
+ 
+ 	spin_lock_irqsave(&ioc->lock, flags);
+ 
+-	if (ioc->ioc_data == cic)
+-		rcu_assign_pointer(ioc->ioc_data, NULL);
++	BUG_ON(ioc->ioc_data == cic);
+ 
+ 	radix_tree_delete(&ioc->radix_root, (unsigned long) cfqd);
+ 	hlist_del_rcu(&cic->cic_list);
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from fchecconi@gmail.com are
 
-git-x86.patch
-provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
-time-close-small-window-for-vsyscall-time-inconsistencies.patch
-time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
-git-watchdog.patch
-m68k-replace-remaining-__function__-occurences.patch
-fs-hfsplus-proper-externs.patch
-affs-handle-match_strdup-failure.patch
-hfs-handle-match_strdup-failure.patch
-hfsplus-handle-match_strdup-failure.patch
-fs-affs-filec-use-bug_on.patch
-proc-remove-proc-mac_iop.patch
-affs-be_add_cpu-conversion.patch
-hfs-hfsplus-be_add_cpu-conversion.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-introduce-explicit-signed-unsigned-64bit-divide.patch
-convert-a-few-do_div-user.patch
-rename-div64_64-to-div64_u64.patch
-remove-div_long_long_rem.patch
-ntp-cleanup-ntpc.patch
-ntp-ntp4-user-space-bits-update.patch
-ntp-increase-time_freq-resolution.patch
-ntp-increase-time_offset-resolution.patch
-ntp-support-for-tai.patch
-ntp-rename-tick_length_shift-to-ntp_scale_shift.patch
-ntp-remove-current_tick_length.patch
-ntp-handle-leap-second-via-timer.patch
 
