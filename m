@@ -1,281 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-fix-platform-driver-hotplug-coldplug.patch removed from -mm tree
-Date: Sat, 12 Apr 2008 19:39:49 -0700
-Message-ID: <200804130239.m3D2dnPA032425@imap1.linux-foundation.org>
+Subject: - sysfs-refill-attribute-buffer-when-reading-from-offset-0.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:40:07 -0700
+Message-ID: <200804130240.m3D2e7Jq032473@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37979 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755113AbYDMCkL (ORCPT
+	by vger.kernel.org with ESMTP id S1755347AbYDMCkN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 22:40:11 -0400
+	Sat, 12 Apr 2008 22:40:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kay.sievers@vrfy.org, a.zummo@towertech.it, dbrownell@users.sourceforge.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, greg@kroah.com, htejun@gmail.com, kay.sievers@vrfy.org, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: fix platform driver hotplug/coldplug
+     sysfs: refill attribute buffer when reading from offset 0
 has been removed from the -mm tree.  Its filename was
-     rtc-fix-platform-driver-hotplug-coldplug.patch
+     sysfs-refill-attribute-buffer-when-reading-from-offset-0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: fix platform driver hotplug/coldplug
-From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: sysfs: refill attribute buffer when reading from offset 0
+From: Dan Williams <dan.j.williams@intel.com>
 
-Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias is
-prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable RTC
-platform drivers, to re-enable module auto loading.
+Requiring userspace to close and re-open sysfs attributes has been the policy
+since before 2.6.12.  It allows userspace to get a consistent snapshot of
+kernel state and consume it with incremental reads and seeks.
 
-[dbrownell@users.sourceforge.net: more drivers, minor fix]
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Now, if the file position is zero the kernel assumes userspace wants to see
+the new value.  The application for this change is to allow a userspace RAID
+metadata handler to check the state of an array without causing any memory
+allocations.  Thus not causing writeback to a raid array that might be blocked
+waiting for userspace to take action.
+
+Cc: NeilBrown <neilb@suse.de>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-at32ap700x.c |    2 +-
- drivers/rtc/rtc-at91rm9200.c |    1 +
- drivers/rtc/rtc-bfin.c       |    1 +
- drivers/rtc/rtc-cmos.c       |    3 +++
- drivers/rtc/rtc-ds1216.c     |    1 +
- drivers/rtc/rtc-ds1511.c     |    3 +++
- drivers/rtc/rtc-ds1553.c     |    3 +++
- drivers/rtc/rtc-ds1742.c     |    1 +
- drivers/rtc/rtc-ep93xx.c     |    3 +++
- drivers/rtc/rtc-m48t59.c     |    3 +++
- drivers/rtc/rtc-m48t86.c     |    1 +
- drivers/rtc/rtc-omap.c       |    2 +-
- drivers/rtc/rtc-rs5c313.c    |    1 +
- drivers/rtc/rtc-s3c.c        |    1 +
- drivers/rtc/rtc-sa1100.c     |    1 +
- drivers/rtc/rtc-sh.c         |    1 +
- drivers/rtc/rtc-stk17ta8.c   |    3 +++
- drivers/rtc/rtc-v3020.c      |    1 +
- drivers/rtc/rtc-vr41xx.c     |    3 +++
- 19 files changed, 33 insertions(+), 2 deletions(-)
+ Documentation/filesystems/sysfs.txt |    9 +++++++--
+ fs/sysfs/file.c                     |    5 ++---
+ 2 files changed, 9 insertions(+), 5 deletions(-)
 
-diff -puN drivers/rtc/rtc-at32ap700x.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-at32ap700x.c
---- a/drivers/rtc/rtc-at32ap700x.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-at32ap700x.c
-@@ -290,7 +290,7 @@ static int __exit at32_rtc_remove(struct
- 	return 0;
- }
+diff -puN Documentation/filesystems/sysfs.txt~sysfs-refill-attribute-buffer-when-reading-from-offset-0 Documentation/filesystems/sysfs.txt
+--- a/Documentation/filesystems/sysfs.txt~sysfs-refill-attribute-buffer-when-reading-from-offset-0
++++ a/Documentation/filesystems/sysfs.txt
+@@ -176,8 +176,10 @@ implementations: 
+   Recall that an attribute should only be exporting one value, or an
+   array of similar values, so this shouldn't be that expensive. 
  
--MODULE_ALIAS("at32ap700x_rtc");
-+MODULE_ALIAS("platform:at32ap700x_rtc");
+-  This allows userspace to do partial reads and seeks arbitrarily over
+-  the entire file at will. 
++  This allows userspace to do partial reads and forward seeks
++  arbitrarily over the entire file at will. If userspace seeks back to
++  zero or does a pread(2) with an offset of '0' the show() method will
++  be called again, rearmed, to fill the buffer.
  
- static struct platform_driver at32_rtc_driver = {
- 	.remove		= __exit_p(at32_rtc_remove),
-diff -puN drivers/rtc/rtc-at91rm9200.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-at91rm9200.c
---- a/drivers/rtc/rtc-at91rm9200.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-at91rm9200.c
-@@ -407,3 +407,4 @@ module_exit(at91_rtc_exit);
- MODULE_AUTHOR("Rick Bronson");
- MODULE_DESCRIPTION("RTC driver for Atmel AT91RM9200");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:at91_rtc");
-diff -puN drivers/rtc/rtc-bfin.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-bfin.c
---- a/drivers/rtc/rtc-bfin.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-bfin.c
-@@ -470,3 +470,4 @@ module_exit(bfin_rtc_exit);
- MODULE_DESCRIPTION("Blackfin On-Chip Real Time Clock Driver");
- MODULE_AUTHOR("Mike Frysinger <vapier@gentoo.org>");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:rtc-bfin");
-diff -puN drivers/rtc/rtc-cmos.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -943,6 +943,9 @@ static void cmos_platform_shutdown(struc
- 	cmos_do_shutdown();
- }
+ - On write(2), sysfs expects the entire buffer to be passed during the
+   first write. Sysfs then passes the entire buffer to the store()
+@@ -192,6 +194,9 @@ implementations: 
  
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:rtc_cmos");
+ Other notes:
+ 
++- Writing causes the show() method to be rearmed regardless of current
++  file position.
 +
- static struct platform_driver cmos_platform_driver = {
- 	.remove		= __exit_p(cmos_platform_remove),
- 	.shutdown	= cmos_platform_shutdown,
-diff -puN drivers/rtc/rtc-ds1216.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-ds1216.c
---- a/drivers/rtc/rtc-ds1216.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-ds1216.c
-@@ -221,6 +221,7 @@ MODULE_AUTHOR("Thomas Bogendoerfer <tsbo
- MODULE_DESCRIPTION("DS1216 RTC driver");
- MODULE_LICENSE("GPL");
- MODULE_VERSION(DRV_VERSION);
-+MODULE_ALIAS("platform:rtc-ds1216");
+ - The buffer will always be PAGE_SIZE bytes in length. On i386, this
+   is 4096. 
  
- module_init(ds1216_rtc_init);
- module_exit(ds1216_rtc_exit);
-diff -puN drivers/rtc/rtc-ds1511.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-ds1511.c
---- a/drivers/rtc/rtc-ds1511.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-ds1511.c
-@@ -626,6 +626,9 @@ ds1511_rtc_remove(struct platform_device
- 	return 0;
- }
+diff -puN fs/sysfs/file.c~sysfs-refill-attribute-buffer-when-reading-from-offset-0 fs/sysfs/file.c
+--- a/fs/sysfs/file.c~sysfs-refill-attribute-buffer-when-reading-from-offset-0
++++ a/fs/sysfs/file.c
+@@ -137,7 +137,7 @@ sysfs_read_file(struct file *file, char 
+ 	ssize_t retval = 0;
  
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:ds1511");
-+
- static struct platform_driver ds1511_rtc_driver = {
- 	.probe		= ds1511_rtc_probe,
- 	.remove		= __devexit_p(ds1511_rtc_remove),
-diff -puN drivers/rtc/rtc-ds1553.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-ds1553.c
---- a/drivers/rtc/rtc-ds1553.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-ds1553.c
-@@ -391,6 +391,9 @@ static int __devexit ds1553_rtc_remove(s
- 	return 0;
- }
- 
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:rtc-ds1553");
-+
- static struct platform_driver ds1553_rtc_driver = {
- 	.probe		= ds1553_rtc_probe,
- 	.remove		= __devexit_p(ds1553_rtc_remove),
-diff -puN drivers/rtc/rtc-ds1742.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-ds1742.c
---- a/drivers/rtc/rtc-ds1742.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-ds1742.c
-@@ -276,3 +276,4 @@ MODULE_AUTHOR("Atsushi Nemoto <anemo@mba
- MODULE_DESCRIPTION("Dallas DS1742 RTC driver");
- MODULE_LICENSE("GPL");
- MODULE_VERSION(DRV_VERSION);
-+MODULE_ALIAS("platform:rtc-ds1742");
-diff -puN drivers/rtc/rtc-ep93xx.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-ep93xx.c
---- a/drivers/rtc/rtc-ep93xx.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-ep93xx.c
-@@ -132,6 +132,9 @@ static int __devexit ep93xx_rtc_remove(s
- 	return 0;
- }
- 
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:ep93xx-rtc");
-+
- static struct platform_driver ep93xx_rtc_platform_driver = {
- 	.driver		= {
- 		.name	= "ep93xx-rtc",
-diff -puN drivers/rtc/rtc-m48t59.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-m48t59.c
---- a/drivers/rtc/rtc-m48t59.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-m48t59.c
-@@ -465,6 +465,9 @@ static int __devexit m48t59_rtc_remove(s
- 	return 0;
- }
- 
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:rtc-m48t59");
-+
- static struct platform_driver m48t59_rtc_driver = {
- 	.driver		= {
- 		.name	= "rtc-m48t59",
-diff -puN drivers/rtc/rtc-m48t86.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-m48t86.c
---- a/drivers/rtc/rtc-m48t86.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-m48t86.c
-@@ -199,6 +199,7 @@ MODULE_AUTHOR("Alessandro Zummo <a.zummo
- MODULE_DESCRIPTION("M48T86 RTC driver");
- MODULE_LICENSE("GPL");
- MODULE_VERSION(DRV_VERSION);
-+MODULE_ALIAS("platform:rtc-m48t86");
- 
- module_init(m48t86_rtc_init);
- module_exit(m48t86_rtc_exit);
-diff -puN drivers/rtc/rtc-omap.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-omap.c
---- a/drivers/rtc/rtc-omap.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-omap.c
-@@ -497,7 +497,7 @@ static void omap_rtc_shutdown(struct pla
- 	rtc_write(0, OMAP_RTC_INTERRUPTS_REG);
- }
- 
--MODULE_ALIAS("omap_rtc");
-+MODULE_ALIAS("platform:omap_rtc");
- static struct platform_driver omap_rtc_driver = {
- 	.probe		= omap_rtc_probe,
- 	.remove		= __devexit_p(omap_rtc_remove),
-diff -puN drivers/rtc/rtc-rs5c313.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-rs5c313.c
---- a/drivers/rtc/rtc-rs5c313.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-rs5c313.c
-@@ -421,3 +421,4 @@ MODULE_VERSION(DRV_VERSION);
- MODULE_AUTHOR("kogiidena , Nobuhiro Iwamatsu <iwamatsu@nigauri.org>");
- MODULE_DESCRIPTION("Ricoh RS5C313 RTC device driver");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:" DRV_NAME);
-diff -puN drivers/rtc/rtc-s3c.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-s3c.c
---- a/drivers/rtc/rtc-s3c.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-s3c.c
-@@ -592,3 +592,4 @@ module_exit(s3c_rtc_exit);
- MODULE_DESCRIPTION("Samsung S3C RTC Driver");
- MODULE_AUTHOR("Ben Dooks <ben@simtec.co.uk>");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:s3c2410-rtc");
-diff -puN drivers/rtc/rtc-sa1100.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-sa1100.c
---- a/drivers/rtc/rtc-sa1100.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-sa1100.c
-@@ -399,3 +399,4 @@ module_exit(sa1100_rtc_exit);
- MODULE_AUTHOR("Richard Purdie <rpurdie@rpsys.net>");
- MODULE_DESCRIPTION("SA11x0/PXA2xx Realtime Clock Driver (RTC)");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:sa1100-rtc");
-diff -puN drivers/rtc/rtc-sh.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-sh.c
---- a/drivers/rtc/rtc-sh.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-sh.c
-@@ -664,3 +664,4 @@ MODULE_DESCRIPTION("SuperH on-chip RTC d
- MODULE_VERSION(DRV_VERSION);
- MODULE_AUTHOR("Paul Mundt <lethal@linux-sh.org>, Jamie Lenehan <lenehan@twibble.org>");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:" DRV_NAME);
-diff -puN drivers/rtc/rtc-stk17ta8.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-stk17ta8.c
---- a/drivers/rtc/rtc-stk17ta8.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-stk17ta8.c
-@@ -394,6 +394,9 @@ static int __devexit stk17ta8_rtc_remove
- 	return 0;
- }
- 
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:stk17ta8");
-+
- static struct platform_driver stk17ta8_rtc_driver = {
- 	.probe		= stk17ta8_rtc_probe,
- 	.remove		= __devexit_p(stk17ta8_rtc_remove),
-diff -puN drivers/rtc/rtc-v3020.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-v3020.c
---- a/drivers/rtc/rtc-v3020.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-v3020.c
-@@ -264,3 +264,4 @@ module_exit(v3020_exit);
- MODULE_DESCRIPTION("V3020 RTC");
- MODULE_AUTHOR("Raphael Assenat");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:v3020");
-diff -puN drivers/rtc/rtc-vr41xx.c~rtc-fix-platform-driver-hotplug-coldplug drivers/rtc/rtc-vr41xx.c
---- a/drivers/rtc/rtc-vr41xx.c~rtc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/rtc/rtc-vr41xx.c
-@@ -422,6 +422,9 @@ static int __devexit rtc_remove(struct p
- 	return 0;
- }
- 
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:RTC");
-+
- static struct platform_driver rtc_platform_driver = {
- 	.probe		= rtc_probe,
- 	.remove		= __devexit_p(rtc_remove),
+ 	mutex_lock(&buffer->mutex);
+-	if (buffer->needs_read_fill) {
++	if (buffer->needs_read_fill || *ppos == 0) {
+ 		retval = fill_read_buffer(file->f_path.dentry,buffer);
+ 		if (retval)
+ 			goto out;
+@@ -423,8 +423,7 @@ static int sysfs_release(struct inode *i
+  * return POLLERR|POLLPRI, and select will return the fd whether
+  * it is waiting for read, write, or exceptions.
+  * Once poll/select indicates that the value has changed, you
+- * need to close and re-open the file, as simply seeking and reading
+- * again will not get new data, or reset the state of 'poll'.
++ * need to close and re-open the file, or seek to 0 and read again.
+  * Reminder: this only works for attributes which actively support
+  * it, and it is not possible to test an attribute from userspace
+  * to see if it supports poll (Neither 'poll' nor 'select' return
 _
 
-Patches currently in -mm which might be from kay.sievers@vrfy.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-mmc-fix-platform-driver-hotplug-coldplug.patch
-leds-fix-platform-driver-hotplug-coldplug.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
-pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.patch
-pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
-cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
+git-arm.patch
+git-async-tx.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+md-introduce-get_priority_stripe-to-improve-raid456-write-performance.patch
+md-raid5c-convert-simple_strtoul-to-strict_strtoul.patch
 
