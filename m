@@ -1,87 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - eventfd-kaio-integration-fix.patch removed from -mm tree
-Date: Sat, 12 Apr 2008 19:39:37 -0700
-Message-ID: <200804130239.m3D2dbIS032404@imap1.linux-foundation.org>
+Subject: - pnp-increase-number-of-devices-supported-per-protocol.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:39:57 -0700
+Message-ID: <200804130239.m3D2dvpU032434@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49525 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33805 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755343AbYDMCj5 (ORCPT
+	by vger.kernel.org with ESMTP id S1753676AbYDMCkG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 22:39:57 -0400
+	Sat, 12 Apr 2008 22:40:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidel@xmailserver.org, jroberson@chesapeake.net, zach.brown@oracle.com, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eventfd/kaio integration fix
+     pnp: increase number of devices supported per protocol
 has been removed from the -mm tree.  Its filename was
-     eventfd-kaio-integration-fix.patch
+     pnp-increase-number-of-devices-supported-per-protocol.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eventfd/kaio integration fix
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: pnp: increase number of devices supported per protocol
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Jeff Roberson discovered a race when using kaio eventfd based notifications. 
-When it occurs it can lead tomissed wakeups and hung userspace.
+Increase the PNP "number of devices" limit.  We currently use an unsigned
+char, which limits us to 256 devices per protocol.  This patch changes that to
+an unsigned int.
 
-This patch fixes the race by moving the notification inside the spinlocked
-section of kaio.  The operation is safe since eventfd spinlock and kaio one
-are unrelated.
+Not all backends can take advantage of this: we limit ISAPNP to 10 devices in
+isapnp_cfg_begin(), and PNPBIOS is limited to 256 devices because the BIOS
+interfaces use a one-byte device node number.
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Cc: Zach Brown <zach.brown@oracle.com>
-Cc: Jeff Roberson <jroberson@chesapeake.net>
+But there is no limit on the number of PNPACPI devices we may have.  Large HP
+Integrity machines have more than 256, which causes the current "unsigned char
+number" to wrap around.  This causes errors like this:
+
+    pnp: PnP ACPI init
+    kobject_add failed for 00:00 with -EEXIST, don't try to register things with the same name in the same directory.
+
+    Call Trace:
+     [<a000000100010720>] show_stack+0x40/0xa0
+     [<a0000001000107b0>] dump_stack+0x30/0x60
+     [<a0000001001dbdf0>] kobject_add+0x290/0x2c0
+     [<a0000001002bfd40>] device_add+0x160/0x860
+     [<a0000001002c0470>] device_register+0x30/0x60
+     [<a00000010026ba70>] __pnp_add_device+0x130/0x180
+     [<a00000010026bb70>] pnp_add_device+0xb0/0xe0
+     [<a0000001007f2730>] pnpacpi_add_device+0x510/0x5a0
+     [<a0000001007f2810>] pnpacpi_add_device_handler+0x50/0x80
+
+This patch increases the limit to fix this PNPACPI problem.  It should not
+have any adverse effect on ISAPNP or PNPBIOS because their limits are still
+enforced in the backends.
+
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ include/linux/pnp.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/aio.c~eventfd-kaio-integration-fix fs/aio.c
---- a/fs/aio.c~eventfd-kaio-integration-fix
-+++ a/fs/aio.c
-@@ -936,14 +936,6 @@ int aio_complete(struct kiocb *iocb, lon
- 		return 1;
- 	}
+diff -puN include/linux/pnp.h~pnp-increase-number-of-devices-supported-per-protocol include/linux/pnp.h
+--- a/include/linux/pnp.h~pnp-increase-number-of-devices-supported-per-protocol
++++ a/include/linux/pnp.h
+@@ -175,7 +175,7 @@ static inline void pnp_set_card_drvdata(
+ struct pnp_dev {
+ 	struct device dev;		/* Driver Model device interface */
+ 	u64 dma_mask;
+-	unsigned char number;		/* used as an index, must be unique */
++	unsigned int number;		/* used as an index, must be unique */
+ 	int status;
  
--	/*
--	 * Check if the user asked us to deliver the result through an
--	 * eventfd. The eventfd_signal() function is safe to be called
--	 * from IRQ context.
--	 */
--	if (!IS_ERR(iocb->ki_eventfd))
--		eventfd_signal(iocb->ki_eventfd, 1);
--
- 	info = &ctx->ring_info;
- 
- 	/* add a completion event to the ring buffer.
-@@ -992,6 +984,15 @@ int aio_complete(struct kiocb *iocb, lon
- 	kunmap_atomic(ring, KM_IRQ1);
- 
- 	pr_debug("added to ring %p at [%lu]\n", iocb, tail);
-+
-+	/*
-+	 * Check if the user asked us to deliver the result through an
-+	 * eventfd. The eventfd_signal() function is safe to be called
-+	 * from IRQ context.
-+	 */
-+	if (!IS_ERR(iocb->ki_eventfd))
-+		eventfd_signal(iocb->ki_eventfd, 1);
-+
- put_rq:
- 	/* everything turned out well, dispose of the aiocb. */
- 	ret = __aio_put_req(ctx, iocb);
+ 	struct list_head global_list;	/* node in global list of devices */
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-epoll-avoid-kmemcheck-warning.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
+git-acpi.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+nsc-ircc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
+simplify-initcall_debug-output.patch
+hisax-depend-on-config_pnp-not-__isapnp__.patch
+pnp-skip-dev-protocol-null-checks.patch
+pnp-simplify-quirk-debug-output.patch
+pnp-use-dev_printk-for-quirk-messages.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+tpm-change-kconfig-dependencies-from-pnpacpi-to-pnp.patch
 
