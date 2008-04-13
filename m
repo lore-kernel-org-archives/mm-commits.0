@@ -1,106 +1,211 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-increase-number-of-devices-supported-per-protocol.patch removed from -mm tree
-Date: Sat, 12 Apr 2008 19:39:57 -0700
-Message-ID: <200804130239.m3D2dvpU032434@imap1.linux-foundation.org>
+Subject: - watchdog-fix-platform-driver-hotplug-coldplug.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:39:46 -0700
+Message-ID: <200804130239.m3D2dkZB032420@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33805 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38599 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753676AbYDMCkG (ORCPT
+	by vger.kernel.org with ESMTP id S1755343AbYDMCkG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 12 Apr 2008 22:40:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
+To: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, greg@kroah.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pnp: increase number of devices supported per protocol
+     watchdog: fix platform driver hotplug/coldplug
 has been removed from the -mm tree.  Its filename was
-     pnp-increase-number-of-devices-supported-per-protocol.patch
+     watchdog-fix-platform-driver-hotplug-coldplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: increase number of devices supported per protocol
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: watchdog: fix platform driver hotplug/coldplug
+From: Kay Sievers <kay.sievers@vrfy.org>
 
-Increase the PNP "number of devices" limit.  We currently use an unsigned
-char, which limits us to 256 devices per protocol.  This patch changes that to
-an unsigned int.
+Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias is
+prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable watchdog
+drivers, to re-enable auto loading.
 
-Not all backends can take advantage of this: we limit ISAPNP to 10 devices in
-isapnp_cfg_begin(), and PNPBIOS is limited to 256 devices because the BIOS
-interfaces use a one-byte device node number.
-
-But there is no limit on the number of PNPACPI devices we may have.  Large HP
-Integrity machines have more than 256, which causes the current "unsigned char
-number" to wrap around.  This causes errors like this:
-
-    pnp: PnP ACPI init
-    kobject_add failed for 00:00 with -EEXIST, don't try to register things with the same name in the same directory.
-
-    Call Trace:
-     [<a000000100010720>] show_stack+0x40/0xa0
-     [<a0000001000107b0>] dump_stack+0x30/0x60
-     [<a0000001001dbdf0>] kobject_add+0x290/0x2c0
-     [<a0000001002bfd40>] device_add+0x160/0x860
-     [<a0000001002c0470>] device_register+0x30/0x60
-     [<a00000010026ba70>] __pnp_add_device+0x130/0x180
-     [<a00000010026bb70>] pnp_add_device+0xb0/0xe0
-     [<a0000001007f2730>] pnpacpi_add_device+0x510/0x5a0
-     [<a0000001007f2810>] pnpacpi_add_device_handler+0x50/0x80
-
-This patch increases the limit to fix this PNPACPI problem.  It should not
-have any adverse effect on ISAPNP or PNPBIOS because their limits are still
-enforced in the backends.
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+[dbrownell@users.sourceforge.net: more drivers; registration fixes]
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pnp.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/at32ap700x_wdt.c |    3 +++
+ drivers/watchdog/at91rm9200_wdt.c |    1 +
+ drivers/watchdog/davinci_wdt.c    |    2 ++
+ drivers/watchdog/ks8695_wdt.c     |    1 +
+ drivers/watchdog/mpc83xx_wdt.c    |    2 ++
+ drivers/watchdog/mpcore_wdt.c     |    3 +++
+ drivers/watchdog/mtx-1_wdt.c      |    2 ++
+ drivers/watchdog/mv64x60_wdt.c    |    1 +
+ drivers/watchdog/omap_wdt.c       |    1 +
+ drivers/watchdog/pnx4008_wdt.c    |    2 ++
+ drivers/watchdog/s3c2410_wdt.c    |    1 +
+ drivers/watchdog/txx9wdt.c        |    1 +
+ 12 files changed, 20 insertions(+)
 
-diff -puN include/linux/pnp.h~pnp-increase-number-of-devices-supported-per-protocol include/linux/pnp.h
---- a/include/linux/pnp.h~pnp-increase-number-of-devices-supported-per-protocol
-+++ a/include/linux/pnp.h
-@@ -175,7 +175,7 @@ static inline void pnp_set_card_drvdata(
- struct pnp_dev {
- 	struct device dev;		/* Driver Model device interface */
- 	u64 dma_mask;
--	unsigned char number;		/* used as an index, must be unique */
-+	unsigned int number;		/* used as an index, must be unique */
- 	int status;
+diff -puN drivers/watchdog/at32ap700x_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/at32ap700x_wdt.c
+--- a/drivers/watchdog/at32ap700x_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
++++ a/drivers/watchdog/at32ap700x_wdt.c
+@@ -418,6 +418,9 @@ static int at32_wdt_resume(struct platfo
+ #define at32_wdt_resume NULL
+ #endif
  
- 	struct list_head global_list;	/* node in global list of devices */
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:at32_wdt");
++
+ static struct platform_driver at32_wdt_driver = {
+ 	.remove		= __exit_p(at32_wdt_remove),
+ 	.suspend	= at32_wdt_suspend,
+diff -puN drivers/watchdog/at91rm9200_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/at91rm9200_wdt.c
+--- a/drivers/watchdog/at91rm9200_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
++++ a/drivers/watchdog/at91rm9200_wdt.c
+@@ -286,3 +286,4 @@ MODULE_AUTHOR("Andrew Victor");
+ MODULE_DESCRIPTION("Watchdog driver for Atmel AT91RM9200");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
++MODULE_ALIAS("platform:at91_wdt");
+diff -puN drivers/watchdog/davinci_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/davinci_wdt.c
+--- a/drivers/watchdog/davinci_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
++++ a/drivers/watchdog/davinci_wdt.c
+@@ -248,6 +248,7 @@ static int davinci_wdt_remove(struct pla
+ static struct platform_driver platform_wdt_driver = {
+ 	.driver = {
+ 		.name = "watchdog",
++		.owner	= THIS_MODULE,
+ 	},
+ 	.probe = davinci_wdt_probe,
+ 	.remove = davinci_wdt_remove,
+@@ -277,3 +278,4 @@ MODULE_PARM_DESC(heartbeat,
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
++MODULE_ALIAS("platform:watchdog");
+diff -puN drivers/watchdog/ks8695_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/ks8695_wdt.c
+--- a/drivers/watchdog/ks8695_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
++++ a/drivers/watchdog/ks8695_wdt.c
+@@ -306,3 +306,4 @@ MODULE_AUTHOR("Andrew Victor");
+ MODULE_DESCRIPTION("Watchdog driver for KS8695");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
++MODULE_ALIAS("platform:ks8695_wdt");
+diff -puN drivers/watchdog/mpc83xx_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/mpc83xx_wdt.c
+--- a/drivers/watchdog/mpc83xx_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
++++ a/drivers/watchdog/mpc83xx_wdt.c
+@@ -206,6 +206,7 @@ static struct platform_driver mpc83xx_wd
+ 	.remove		= __devexit_p(mpc83xx_wdt_remove),
+ 	.driver		= {
+ 		.name	= "mpc83xx_wdt",
++		.owner	= THIS_MODULE,
+ 	},
+ };
+ 
+@@ -226,3 +227,4 @@ MODULE_AUTHOR("Dave Updegraff, Kumar Gal
+ MODULE_DESCRIPTION("Driver for watchdog timer in MPC83xx uProcessor");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
++MODULE_ALIAS("platform:mpc83xx_wdt");
+diff -puN drivers/watchdog/mpcore_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/mpcore_wdt.c
+--- a/drivers/watchdog/mpcore_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
++++ a/drivers/watchdog/mpcore_wdt.c
+@@ -392,6 +392,9 @@ static int __devexit mpcore_wdt_remove(s
+ 	return 0;
+ }
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:mpcore_wdt");
++
+ static struct platform_driver mpcore_wdt_driver = {
+ 	.probe		= mpcore_wdt_probe,
+ 	.remove		= __devexit_p(mpcore_wdt_remove),
+diff -puN drivers/watchdog/mtx-1_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/mtx-1_wdt.c
+--- a/drivers/watchdog/mtx-1_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
++++ a/drivers/watchdog/mtx-1_wdt.c
+@@ -243,6 +243,7 @@ static struct platform_driver mtx1_wdt =
+ 	.probe = mtx1_wdt_probe,
+ 	.remove = mtx1_wdt_remove,
+ 	.driver.name = "mtx1-wdt",
++	.driver.owner = THIS_MODULE,
+ };
+ 
+ static int __init mtx1_wdt_init(void)
+@@ -262,3 +263,4 @@ MODULE_AUTHOR("Michael Stickel, Florian 
+ MODULE_DESCRIPTION("Driver for the MTX-1 watchdog");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
++MODULE_ALIAS("platform:mtx1-wdt");
+diff -puN drivers/watchdog/mv64x60_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/mv64x60_wdt.c
+--- a/drivers/watchdog/mv64x60_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
++++ a/drivers/watchdog/mv64x60_wdt.c
+@@ -324,3 +324,4 @@ MODULE_AUTHOR("James Chapman <jchapman@k
+ MODULE_DESCRIPTION("MV64x60 watchdog driver");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
++MODULE_ALIAS("platform:" MV64x60_WDT_NAME);
+diff -puN drivers/watchdog/omap_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/omap_wdt.c
+--- a/drivers/watchdog/omap_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
++++ a/drivers/watchdog/omap_wdt.c
+@@ -387,3 +387,4 @@ module_exit(omap_wdt_exit);
+ MODULE_AUTHOR("George G. Davis");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
++MODULE_ALIAS("platform:omap_wdt");
+diff -puN drivers/watchdog/pnx4008_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/pnx4008_wdt.c
+--- a/drivers/watchdog/pnx4008_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
++++ a/drivers/watchdog/pnx4008_wdt.c
+@@ -321,6 +321,7 @@ static int pnx4008_wdt_remove(struct pla
+ static struct platform_driver platform_wdt_driver = {
+ 	.driver = {
+ 		.name = "watchdog",
++		.owner	= THIS_MODULE,
+ 	},
+ 	.probe = pnx4008_wdt_probe,
+ 	.remove = pnx4008_wdt_remove,
+@@ -354,3 +355,4 @@ MODULE_PARM_DESC(nowayout,
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
++MODULE_ALIAS("platform:watchdog");
+diff -puN drivers/watchdog/s3c2410_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/s3c2410_wdt.c
+--- a/drivers/watchdog/s3c2410_wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
++++ a/drivers/watchdog/s3c2410_wdt.c
+@@ -561,3 +561,4 @@ MODULE_AUTHOR("Ben Dooks <ben@simtec.co.
+ MODULE_DESCRIPTION("S3C2410 Watchdog Device Driver");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
++MODULE_ALIAS("platform:s3c2410-wdt");
+diff -puN drivers/watchdog/txx9wdt.c~watchdog-fix-platform-driver-hotplug-coldplug drivers/watchdog/txx9wdt.c
+--- a/drivers/watchdog/txx9wdt.c~watchdog-fix-platform-driver-hotplug-coldplug
++++ a/drivers/watchdog/txx9wdt.c
+@@ -274,3 +274,4 @@ module_exit(watchdog_exit);
+ MODULE_DESCRIPTION("TXx9 Watchdog Driver");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_MISCDEV(WATCHDOG_MINOR);
++MODULE_ALIAS("platform:txx9wdt");
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from kay.sievers@vrfy.org are
 
-git-acpi.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-nsc-ircc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-simplify-initcall_debug-output.patch
-hisax-depend-on-config_pnp-not-__isapnp__.patch
-pnp-skip-dev-protocol-null-checks.patch
-pnp-simplify-quirk-debug-output.patch
-pnp-use-dev_printk-for-quirk-messages.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-tpm-change-kconfig-dependencies-from-pnpacpi-to-pnp.patch
+mmc-fix-platform-driver-hotplug-coldplug.patch
+leds-fix-platform-driver-hotplug-coldplug.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
+pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.patch
+pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
+cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
 
