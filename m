@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + sound-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
-Date: Sun, 13 Apr 2008 11:29:44 -0700
-Message-ID: <200804131829.m3DITiDO032553@imap1.linux-foundation.org>
+Subject: + input-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
+Date: Sun, 13 Apr 2008 16:44:46 -0700
+Message-ID: <200804132344.m3DNikCP011317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53013 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752171AbYDMSac (ORCPT
+	by vger.kernel.org with ESMTP id S1752964AbYDMXqI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Apr 2008 14:30:32 -0400
+	Sun, 13 Apr 2008 19:46:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, perex@perex.cz, tiwai@suse.de
+Cc: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, dtor@mail.ru, jikos@jikos.cz
 
 
 The patch titled
-     sound: fix platform driver hotplug/coldplug
+     input: fix platform driver hotplug/coldplug
 has been added to the -mm tree.  Its filename is
-     sound-fix-platform-driver-hotplug-coldplug.patch
+     input-fix-platform-driver-hotplug-coldplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,85 +29,327 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: sound: fix platform driver hotplug/coldplug
-From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: input: fix platform driver hotplug/coldplug
+=46rom: Kay Sievers <kay.sievers@vrfy.org>
 
-Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias is
-prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable sound
+Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias i=
+s
+prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable "inp=
+ut"
 platform drivers, to re-enable auto loading.
 
 [dbrownell@users.sourceforge.net: more drivers, registration fixes]
 Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jikos@jikos.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/arm/pxa2xx-ac97.c      |    2 ++
- sound/drivers/ml403-ac97cr.c |    4 ++++
- sound/soc/soc-core.c         |    2 ++
- 3 files changed, 8 insertions(+)
+ drivers/input/keyboard/aaed2000_kbd.c     |    4 ++++
+ drivers/input/keyboard/bf54x-keys.c       |    2 ++
+ drivers/input/keyboard/corgikbd.c         |    2 ++
+ drivers/input/keyboard/gpio_keys.c        |    2 ++
+ drivers/input/keyboard/jornada680_kbd.c   |    2 ++
+ drivers/input/keyboard/jornada720_kbd.c   |    4 ++++
+ drivers/input/keyboard/omap-keypad.c      |    2 ++
+ drivers/input/keyboard/pxa27x_keypad.c    |    4 ++++
+ drivers/input/keyboard/spitzkbd.c         |    1 +
+ drivers/input/keyboard/tosakbd.c          |    2 ++
+ drivers/input/misc/cobalt_btns.c          |    3 +++
+ drivers/input/mouse/gpio_mouse.c          |    4 ++++
+ drivers/input/serio/rpckbd.c              |    2 ++
+ drivers/input/touchscreen/corgi_ts.c      |    2 ++
+ drivers/input/touchscreen/jornada720_ts.c |    4 ++++
+ 15 files changed, 40 insertions(+)
 
-diff -puN sound/arm/pxa2xx-ac97.c~sound-fix-platform-driver-hotplug-coldplug sound/arm/pxa2xx-ac97.c
---- a/sound/arm/pxa2xx-ac97.c~sound-fix-platform-driver-hotplug-coldplug
-+++ a/sound/arm/pxa2xx-ac97.c
-@@ -391,6 +391,7 @@ static struct platform_driver pxa2xx_ac9
- 	.resume		= pxa2xx_ac97_resume,
- 	.driver		= {
- 		.name	= "pxa2xx-ac97",
-+		.owner	= THIS_MODULE,
- 	},
- };
- 
-@@ -410,3 +411,4 @@ module_exit(pxa2xx_ac97_exit);
- MODULE_AUTHOR("Nicolas Pitre");
- MODULE_DESCRIPTION("AC97 driver for the Intel PXA2xx chip");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:pxa2xx-ac97");
-diff -puN sound/drivers/ml403-ac97cr.c~sound-fix-platform-driver-hotplug-coldplug sound/drivers/ml403-ac97cr.c
---- a/sound/drivers/ml403-ac97cr.c~sound-fix-platform-driver-hotplug-coldplug
-+++ a/sound/drivers/ml403-ac97cr.c
-@@ -1328,11 +1328,15 @@ static int snd_ml403_ac97cr_remove(struc
+diff -puN drivers/input/keyboard/aaed2000_kbd.c~input-fix-platform-driv=
+er-hotplug-coldplug drivers/input/keyboard/aaed2000_kbd.c
+--- a/drivers/input/keyboard/aaed2000_kbd.c~input-fix-platform-driver-h=
+otplug-coldplug
++++ a/drivers/input/keyboard/aaed2000_kbd.c
+@@ -156,11 +156,15 @@ static int __devexit aaedkbd_remove(stru
  	return 0;
  }
- 
+=20
 +/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:" SND_ML403_AC97CR_DRIVER);
++MODULE_ALIAS("platform:aaed2000-keyboard");
 +
- static struct platform_driver snd_ml403_ac97cr_driver = {
- 	.probe = snd_ml403_ac97cr_probe,
- 	.remove = snd_ml403_ac97cr_remove,
- 	.driver = {
- 		.name = SND_ML403_AC97CR_DRIVER,
-+		.owner = THIS_MODULE,
+ static struct platform_driver aaedkbd_driver =3D {
+ 	.probe		=3D aaedkbd_probe,
+ 	.remove		=3D __devexit_p(aaedkbd_remove),
+ 	.driver		=3D {
+ 		.name	=3D "aaed2000-keyboard",
++		.owner	=3D THIS_MODULE,
  	},
  };
- 
-diff -puN sound/soc/soc-core.c~sound-fix-platform-driver-hotplug-coldplug sound/soc/soc-core.c
---- a/sound/soc/soc-core.c~sound-fix-platform-driver-hotplug-coldplug
-+++ a/sound/soc/soc-core.c
-@@ -839,6 +839,7 @@ static int soc_remove(struct platform_de
- static struct platform_driver soc_driver = {
- 	.driver		= {
- 		.name		= "soc-audio",
-+		.owner		= THIS_MODULE,
- 	},
- 	.probe		= soc_probe,
- 	.remove		= soc_remove,
-@@ -1601,3 +1602,4 @@ module_exit(snd_soc_exit);
- MODULE_AUTHOR("Liam Girdwood, liam.girdwood@wolfsonmicro.com, www.wolfsonmicro.com");
- MODULE_DESCRIPTION("ALSA SoC Core");
+=20
+diff -puN drivers/input/keyboard/bf54x-keys.c~input-fix-platform-driver=
+-hotplug-coldplug drivers/input/keyboard/bf54x-keys.c
+--- a/drivers/input/keyboard/bf54x-keys.c~input-fix-platform-driver-hot=
+plug-coldplug
++++ a/drivers/input/keyboard/bf54x-keys.c
+@@ -359,6 +359,7 @@ struct platform_driver bfin_kpad_device_
+ 	.remove		=3D __devexit_p(bfin_kpad_remove),
+ 	.driver		=3D {
+ 		.name	=3D DRV_NAME,
++		.owner	=3D THIS_MODULE,
+ 	}
+ };
+=20
+@@ -378,3 +379,4 @@ module_exit(bfin_kpad_exit);
  MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:soc-audio");
+ MODULE_AUTHOR("Michael Hennerich <hennerich@blackfin.uclinux.org>");
+ MODULE_DESCRIPTION("Keypad driver for BF54x Processors");
++MODULE_ALIAS("platform:bf54x-keys");
+diff -puN drivers/input/keyboard/corgikbd.c~input-fix-platform-driver-h=
+otplug-coldplug drivers/input/keyboard/corgikbd.c
+--- a/drivers/input/keyboard/corgikbd.c~input-fix-platform-driver-hotpl=
+ug-coldplug
++++ a/drivers/input/keyboard/corgikbd.c
+@@ -393,6 +393,7 @@ static struct platform_driver corgikbd_d
+ 	.resume		=3D corgikbd_resume,
+ 	.driver		=3D {
+ 		.name	=3D "corgi-keyboard",
++		.owner	=3D THIS_MODULE,
+ 	},
+ };
+=20
+@@ -412,3 +413,4 @@ module_exit(corgikbd_exit);
+ MODULE_AUTHOR("Richard Purdie <rpurdie@rpsys.net>");
+ MODULE_DESCRIPTION("Corgi Keyboard Driver");
+ MODULE_LICENSE("GPLv2");
++MODULE_ALIAS("platform:corgi-keyboard");
+diff -puN drivers/input/keyboard/gpio_keys.c~input-fix-platform-driver-=
+hotplug-coldplug drivers/input/keyboard/gpio_keys.c
+--- a/drivers/input/keyboard/gpio_keys.c~input-fix-platform-driver-hotp=
+lug-coldplug
++++ a/drivers/input/keyboard/gpio_keys.c
+@@ -213,6 +213,7 @@ struct platform_driver gpio_keys_device_
+ 	.resume		=3D gpio_keys_resume,
+ 	.driver		=3D {
+ 		.name	=3D "gpio-keys",
++		.owner	=3D THIS_MODULE,
+ 	}
+ };
+=20
+@@ -232,3 +233,4 @@ module_exit(gpio_keys_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Phil Blundell <pb@handhelds.org>");
+ MODULE_DESCRIPTION("Keyboard driver for CPU GPIOs");
++MODULE_ALIAS("platform:gpio-keys");
+diff -puN drivers/input/keyboard/jornada680_kbd.c~input-fix-platform-dr=
+iver-hotplug-coldplug drivers/input/keyboard/jornada680_kbd.c
+--- a/drivers/input/keyboard/jornada680_kbd.c~input-fix-platform-driver=
+-hotplug-coldplug
++++ a/drivers/input/keyboard/jornada680_kbd.c
+@@ -254,6 +254,7 @@ static int __devexit jornada680kbd_remov
+ static struct platform_driver jornada680kbd_driver =3D {
+ 	.driver	=3D {
+ 		.name	=3D "jornada680_kbd",
++		.owner	=3D THIS_MODULE,
+ 	},
+ 	.probe	=3D jornada680kbd_probe,
+ 	.remove	=3D __devexit_p(jornada680kbd_remove),
+@@ -275,3 +276,4 @@ module_exit(jornada680kbd_exit);
+ MODULE_AUTHOR("Kristoffer Ericson <kristoffer.ericson@gmail.com>");
+ MODULE_DESCRIPTION("HP Jornada 620/660/680/690 Keyboard Driver");
+ MODULE_LICENSE("GPLv2");
++MODULE_ALIAS("platform:jornada680_kbd");
+diff -puN drivers/input/keyboard/jornada720_kbd.c~input-fix-platform-dr=
+iver-hotplug-coldplug drivers/input/keyboard/jornada720_kbd.c
+--- a/drivers/input/keyboard/jornada720_kbd.c~input-fix-platform-driver=
+-hotplug-coldplug
++++ a/drivers/input/keyboard/jornada720_kbd.c
+@@ -162,9 +162,13 @@ static int __devexit jornada720_kbd_remo
+ 	return 0;
+ }
+=20
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:jornada720_kbd");
++
+ static struct platform_driver jornada720_kbd_driver =3D {
+ 	.driver  =3D {
+ 		.name    =3D "jornada720_kbd",
++		.owner	=3D THIS_MODULE,
+ 	 },
+ 	.probe   =3D jornada720_kbd_probe,
+ 	.remove  =3D __devexit_p(jornada720_kbd_remove),
+diff -puN drivers/input/keyboard/omap-keypad.c~input-fix-platform-drive=
+r-hotplug-coldplug drivers/input/keyboard/omap-keypad.c
+--- a/drivers/input/keyboard/omap-keypad.c~input-fix-platform-driver-ho=
+tplug-coldplug
++++ a/drivers/input/keyboard/omap-keypad.c
+@@ -464,6 +464,7 @@ static struct platform_driver omap_kp_dr
+ 	.resume		=3D omap_kp_resume,
+ 	.driver		=3D {
+ 		.name	=3D "omap-keypad",
++		.owner	=3D THIS_MODULE,
+ 	},
+ };
+=20
+@@ -484,3 +485,4 @@ module_exit(omap_kp_exit);
+ MODULE_AUTHOR("Timo Ter=C3=A4s");
+ MODULE_DESCRIPTION("OMAP Keypad Driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:omap-keypad");
+diff -puN drivers/input/keyboard/pxa27x_keypad.c~input-fix-platform-dri=
+ver-hotplug-coldplug drivers/input/keyboard/pxa27x_keypad.c
+--- a/drivers/input/keyboard/pxa27x_keypad.c~input-fix-platform-driver-=
+hotplug-coldplug
++++ a/drivers/input/keyboard/pxa27x_keypad.c
+@@ -545,6 +545,9 @@ static int __devexit pxa27x_keypad_remov
+ 	return 0;
+ }
+=20
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:pxa27x-keypad");
++
+ static struct platform_driver pxa27x_keypad_driver =3D {
+ 	.probe		=3D pxa27x_keypad_probe,
+ 	.remove		=3D __devexit_p(pxa27x_keypad_remove),
+@@ -552,6 +555,7 @@ static struct platform_driver pxa27x_key
+ 	.resume		=3D pxa27x_keypad_resume,
+ 	.driver		=3D {
+ 		.name	=3D "pxa27x-keypad",
++		.owner	=3D THIS_MODULE,
+ 	},
+ };
+=20
+diff -puN drivers/input/keyboard/spitzkbd.c~input-fix-platform-driver-h=
+otplug-coldplug drivers/input/keyboard/spitzkbd.c
+--- a/drivers/input/keyboard/spitzkbd.c~input-fix-platform-driver-hotpl=
+ug-coldplug
++++ a/drivers/input/keyboard/spitzkbd.c
+@@ -495,3 +495,4 @@ module_exit(spitzkbd_exit);
+ MODULE_AUTHOR("Richard Purdie <rpurdie@rpsys.net>");
+ MODULE_DESCRIPTION("Spitz Keyboard Driver");
+ MODULE_LICENSE("GPLv2");
++MODULE_ALIAS("platform:spitz-keyboard");
+diff -puN drivers/input/keyboard/tosakbd.c~input-fix-platform-driver-ho=
+tplug-coldplug drivers/input/keyboard/tosakbd.c
+--- a/drivers/input/keyboard/tosakbd.c~input-fix-platform-driver-hotplu=
+g-coldplug
++++ a/drivers/input/keyboard/tosakbd.c
+@@ -409,6 +409,7 @@ static struct platform_driver tosakbd_dr
+ 	.resume		=3D tosakbd_resume,
+ 	.driver		=3D {
+ 		.name	=3D "tosa-keyboard",
++		.owner	=3D THIS_MODULE,
+ 	},
+ };
+=20
+@@ -428,3 +429,4 @@ module_exit(tosakbd_exit);
+ MODULE_AUTHOR("Dirk Opfer <Dirk@Opfer-Online.de>");
+ MODULE_DESCRIPTION("Tosa Keyboard Driver");
+ MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:tosa-keyboard");
+diff -puN drivers/input/misc/cobalt_btns.c~input-fix-platform-driver-ho=
+tplug-coldplug drivers/input/misc/cobalt_btns.c
+--- a/drivers/input/misc/cobalt_btns.c~input-fix-platform-driver-hotplu=
+g-coldplug
++++ a/drivers/input/misc/cobalt_btns.c
+@@ -148,6 +148,9 @@ static int __devexit cobalt_buttons_remo
+ 	return 0;
+ }
+=20
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:Cobalt buttons");
++
+ static struct platform_driver cobalt_buttons_driver =3D {
+ 	.probe	=3D cobalt_buttons_probe,
+ 	.remove	=3D __devexit_p(cobalt_buttons_remove),
+diff -puN drivers/input/mouse/gpio_mouse.c~input-fix-platform-driver-ho=
+tplug-coldplug drivers/input/mouse/gpio_mouse.c
+--- a/drivers/input/mouse/gpio_mouse.c~input-fix-platform-driver-hotplu=
+g-coldplug
++++ a/drivers/input/mouse/gpio_mouse.c
+@@ -171,10 +171,14 @@ static int __devexit gpio_mouse_remove(s
+ 	return 0;
+ }
+=20
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:gpio_mouse");
++
+ struct platform_driver gpio_mouse_device_driver =3D {
+ 	.remove		=3D __devexit_p(gpio_mouse_remove),
+ 	.driver		=3D {
+ 		.name	=3D "gpio_mouse",
++		.owner	=3D THIS_MODULE,
+ 	}
+ };
+=20
+diff -puN drivers/input/serio/rpckbd.c~input-fix-platform-driver-hotplu=
+g-coldplug drivers/input/serio/rpckbd.c
+--- a/drivers/input/serio/rpckbd.c~input-fix-platform-driver-hotplug-co=
+ldplug
++++ a/drivers/input/serio/rpckbd.c
+@@ -45,6 +45,7 @@
+ MODULE_AUTHOR("Vojtech Pavlik, Russell King");
+ MODULE_DESCRIPTION("Acorn RiscPC PS/2 keyboard controller driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:kart");
+=20
+ static int rpckbd_write(struct serio *port, unsigned char val)
+ {
+@@ -140,6 +141,7 @@ static struct platform_driver rpckbd_dri
+ 	.remove		=3D __devexit_p(rpckbd_remove),
+ 	.driver		=3D {
+ 		.name	=3D "kart",
++		.owner	=3D THIS_MODULE,
+ 	},
+ };
+=20
+diff -puN drivers/input/touchscreen/corgi_ts.c~input-fix-platform-drive=
+r-hotplug-coldplug drivers/input/touchscreen/corgi_ts.c
+--- a/drivers/input/touchscreen/corgi_ts.c~input-fix-platform-driver-ho=
+tplug-coldplug
++++ a/drivers/input/touchscreen/corgi_ts.c
+@@ -362,6 +362,7 @@ static struct platform_driver corgits_dr
+ 	.resume		=3D corgits_resume,
+ 	.driver		=3D {
+ 		.name	=3D "corgi-ts",
++		.owner	=3D THIS_MODULE,
+ 	},
+ };
+=20
+@@ -381,3 +382,4 @@ module_exit(corgits_exit);
+ MODULE_AUTHOR("Richard Purdie <rpurdie@rpsys.net>");
+ MODULE_DESCRIPTION("Corgi TouchScreen Driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:corgi-ts");
+diff -puN drivers/input/touchscreen/jornada720_ts.c~input-fix-platform-=
+driver-hotplug-coldplug drivers/input/touchscreen/jornada720_ts.c
+--- a/drivers/input/touchscreen/jornada720_ts.c~input-fix-platform-driv=
+er-hotplug-coldplug
++++ a/drivers/input/touchscreen/jornada720_ts.c
+@@ -160,11 +160,15 @@ static int __devexit jornada720_ts_remov
+ 	return 0;
+ }
+=20
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:jornada_ts");
++
+ static struct platform_driver jornada720_ts_driver =3D {
+ 	.probe		=3D jornada720_ts_probe,
+ 	.remove		=3D __devexit_p(jornada720_ts_remove),
+ 	.driver		=3D {
+ 		.name	=3D "jornada_ts",
++		.owner	=3D THIS_MODULE,
+ 	},
+ };
+=20
 _
 
 Patches currently in -mm which might be from kay.sievers@vrfy.org are
@@ -115,10 +360,14 @@ misc-fix-platform-driver-hotplug-coldplug.patch
 pcmcia-fix-platform-driver-hotplug-coldplug.patch
 serial-fix-platform-driver-hotplug-coldplug.patch
 sound-fix-platform-driver-hotplug-coldplug.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
-pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7.patc=
+h
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.=
+patch
+pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.pa=
+tch
 pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
+input-fix-platform-driver-hotplug-coldplug.patch
 ata-ide-fix-platform-driver-hotplug-coldplug.patch
 mtd-maps-fix-platform-driver-hotplug-coldplug.patch
 mtd-nand-fix-platform-driver-hotplug-coldplug.patch
@@ -130,3 +379,8 @@ debugobjects-add-timer-specific-object-debugging-code.patch
 add-hrtimer-specific-debugobjects-code.patch
 cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
