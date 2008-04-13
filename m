@@ -1,102 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - frv-dont-make-smp_r-w-mb-interpolate-membar-when-config_smp=n.patch removed from -mm tree
-Date: Sat, 12 Apr 2008 19:39:29 -0700
-Message-ID: <200804130239.m3D2dT7B032392@imap1.linux-foundation.org>
+Subject: - eventfd-kaio-integration-fix.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:39:37 -0700
+Message-ID: <200804130239.m3D2dbIS032404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49525 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755051AbYDMCj4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755343AbYDMCj5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 22:39:56 -0400
+	Sat, 12 Apr 2008 22:39:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: davidel@xmailserver.org, jroberson@chesapeake.net, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     frv: don't make smp_{r, w, }mb() interpolate MEMBAR when CONFIG_SMP=n
+     eventfd/kaio integration fix
 has been removed from the -mm tree.  Its filename was
-     frv-dont-make-smp_r-w-mb-interpolate-membar-when-config_smp=n.patch
+     eventfd-kaio-integration-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: don't make smp_{r, w, }mb() interpolate MEMBAR when CONFIG_SMP=n
-From: David Howells <dhowells@redhat.com>
+Subject: eventfd/kaio integration fix
+From: Davide Libenzi <davidel@xmailserver.org>
 
-Don't make smp_{r,w,}mb() interpolate a MEMBAR instruction when CONFIG_SMP=n
-as SMP memory barries on UP systems should interpolate a compiler barrier
-only.
+Jeff Roberson discovered a race when using kaio eventfd based notifications. 
+When it occurs it can lead tomissed wakeups and hung userspace.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+This patch fixes the race by moving the notification inside the spinlocked
+section of kaio.  The operation is safe since eventfd spinlock and kaio one
+are unrelated.
+
+Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Jeff Roberson <jroberson@chesapeake.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-frv/system.h |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ fs/aio.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN include/asm-frv/system.h~frv-dont-make-smp_r-w-mb-interpolate-membar-when-config_smp=n include/asm-frv/system.h
---- a/include/asm-frv/system.h~frv-dont-make-smp_r-w-mb-interpolate-membar-when-config_smp=n
-+++ a/include/asm-frv/system.h
-@@ -179,14 +179,23 @@ do {							\
- #define mb()			asm volatile ("membar" : : :"memory")
- #define rmb()			asm volatile ("membar" : : :"memory")
- #define wmb()			asm volatile ("membar" : : :"memory")
--#define set_mb(var, value)	do { var = value; mb(); } while (0)
-+#define read_barrier_depends()	barrier()
+diff -puN fs/aio.c~eventfd-kaio-integration-fix fs/aio.c
+--- a/fs/aio.c~eventfd-kaio-integration-fix
++++ a/fs/aio.c
+@@ -936,14 +936,6 @@ int aio_complete(struct kiocb *iocb, lon
+ 		return 1;
+ 	}
  
--#define smp_mb()		mb()
--#define smp_rmb()		rmb()
--#define smp_wmb()		wmb()
+-	/*
+-	 * Check if the user asked us to deliver the result through an
+-	 * eventfd. The eventfd_signal() function is safe to be called
+-	 * from IRQ context.
+-	 */
+-	if (!IS_ERR(iocb->ki_eventfd))
+-		eventfd_signal(iocb->ki_eventfd, 1);
 -
--#define read_barrier_depends()		do {} while(0)
-+#ifdef CONFIG_SMP
-+#define smp_mb()			mb()
-+#define smp_rmb()			rmb()
-+#define smp_wmb()			wmb()
- #define smp_read_barrier_depends()	read_barrier_depends()
-+#define set_mb(var, value) \
-+	do { xchg(&var, (value)); } while (0)
-+#else
-+#define smp_mb()			barrier()
-+#define smp_rmb()			barrier()
-+#define smp_wmb()			barrier()
-+#define smp_read_barrier_depends()	do {} while(0)
-+#define set_mb(var, value) \
-+	do { var = (value); barrier(); } while (0)
-+#endif
+ 	info = &ctx->ring_info;
  
- #define HARD_RESET_NOW()			\
- do {						\
+ 	/* add a completion event to the ring buffer.
+@@ -992,6 +984,15 @@ int aio_complete(struct kiocb *iocb, lon
+ 	kunmap_atomic(ring, KM_IRQ1);
+ 
+ 	pr_debug("added to ring %p at [%lu]\n", iocb, tail);
++
++	/*
++	 * Check if the user asked us to deliver the result through an
++	 * eventfd. The eventfd_signal() function is safe to be called
++	 * from IRQ context.
++	 */
++	if (!IS_ERR(iocb->ki_eventfd))
++		eventfd_signal(iocb->ki_eventfd, 1);
++
+ put_rq:
+ 	/* everything turned out well, dispose of the aiocb. */
+ 	ret = __aio_put_req(ctx, iocb);
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from davidel@xmailserver.org are
 
-git-unionfs.patch
-remove-the-macro-get_personality.patch
-xattr-add-missing-consts-to-function-arguments.patch
-keys-increase-the-payload-size-when-instantiating-a-key.patch
-keys-check-starting-keyring-as-part-of-search.patch
-keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
-keys-add-keyctl-function-to-get-a-security-label.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-keys-switch-to-proc_create.patch
-keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
-keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
-keys-make-the-keyring-quotas-controllable-through-proc-sys.patch
-keys-make-the-keyring-quotas-controllable-through-proc-sys-fix.patch
-keys-explicitly-include-required-slabh-header-file.patch
-keys-make-key_serial-a-function-if-config_keys=y.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-alloc_uid-cleanup.patch
-rename-div64_64-to-div64_u64.patch
-afs-use-the-shorter-list_head-for-brevity.patch
-afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself.patch
-afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself-try-3.patch
-mutex-subsystem-synchro-test-module.patch
+epoll-avoid-kmemcheck-warning.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+signals-send_signal-be-paranoid-about-signalfd_notify.patch
 
