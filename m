@@ -1,73 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - signalfd-fix-for-incorrect-si_queue-user-data-reporting.patch removed from -mm tree
-Date: Sat, 12 Apr 2008 19:39:59 -0700
-Message-ID: <200804130239.m3D2dxst032437@imap1.linux-foundation.org>
+Subject: - md-close-a-livelock-window-in-handle_parity_checks5.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:39:54 -0700
+Message-ID: <200804130239.m3D2dsap032431@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46192 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755397AbYDMCkQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755372AbYDMCkQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 12 Apr 2008 22:40:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: davidel@xmailserver.org, mtk.manpages@googlemail.com, stable@kernel.org, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, neilb@suse.de, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signalfd: fix for incorrect SI_QUEUE user data reporting
+     md: close a livelock window in handle_parity_checks5
 has been removed from the -mm tree.  Its filename was
-     signalfd-fix-for-incorrect-si_queue-user-data-reporting.patch
+     md-close-a-livelock-window-in-handle_parity_checks5.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signalfd: fix for incorrect SI_QUEUE user data reporting
-From: Davide Libenzi <davidel@xmailserver.org>
+Subject: md: close a livelock window in handle_parity_checks5
+From: Dan Williams <dan.j.williams@intel.com>
 
-Michael Kerrisk found out that signalfd was not reporting back user data
-pushed using sigqueue:
+If a failure is detected after a parity check operation has been initiated,
+but before it completes handle_parity_checks5 will never quiesce operations on
+the stripe.
 
-http://groups.google.com/group/linux.kernel/msg/9397cab8551e3123
+Explicitly handle this case by "canceling" the parity check, i.e.  clear the
+STRIPE_OP_CHECK flags and queue the stripe on the handle list again to refresh
+any non-uptodate blocks.
 
-The following patch makes signalfd report back the ssi_ptr and ssi_int members
-of the signalfd_siginfo structure.
+Kernel versions >= 2.6.23 are susceptible.
 
-Signed-off-by: Davide Libenzi <davidel@xmailserver.org>
-Acked-by: Michael Kerrisk <mtk.manpages@googlemail.com>
 Cc: <stable@kernel.org>
+Cc: NeilBrown <neilb@suse.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/signalfd.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/md/raid5.c |   53 ++++++++++++++++++++++++-------------------
+ 1 file changed, 30 insertions(+), 23 deletions(-)
 
-diff -puN fs/signalfd.c~signalfd-fix-for-incorrect-si_queue-user-data-reporting fs/signalfd.c
---- a/fs/signalfd.c~signalfd-fix-for-incorrect-si_queue-user-data-reporting
-+++ a/fs/signalfd.c
-@@ -111,9 +111,14 @@ static int signalfd_copyinfo(struct sign
- 		err |= __put_user(kinfo->si_uid, &uinfo->ssi_uid);
- 		err |= __put_user((long) kinfo->si_ptr, &uinfo->ssi_ptr);
- 		break;
--	default: /* this is just in case for now ... */
-+	default:
-+		/*
-+		 * This case catches also the signals queued by sigqueue().
-+		 */
- 		err |= __put_user(kinfo->si_pid, &uinfo->ssi_pid);
- 		err |= __put_user(kinfo->si_uid, &uinfo->ssi_uid);
-+		err |= __put_user((long) kinfo->si_ptr, &uinfo->ssi_ptr);
-+		err |= __put_user(kinfo->si_int, &uinfo->ssi_int);
- 		break;
+diff -puN drivers/md/raid5.c~md-close-a-livelock-window-in-handle_parity_checks5 drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-close-a-livelock-window-in-handle_parity_checks5
++++ a/drivers/md/raid5.c
+@@ -2348,25 +2348,15 @@ static void handle_issuing_new_write_req
+ static void handle_parity_checks5(raid5_conf_t *conf, struct stripe_head *sh,
+ 				struct stripe_head_state *s, int disks)
+ {
++	int canceled_check = 0;
++
+ 	set_bit(STRIPE_HANDLE, &sh->state);
+-	/* Take one of the following actions:
+-	 * 1/ start a check parity operation if (uptodate == disks)
+-	 * 2/ finish a check parity operation and act on the result
+-	 * 3/ skip to the writeback section if we previously
+-	 *    initiated a recovery operation
+-	 */
+-	if (s->failed == 0 &&
+-	    !test_bit(STRIPE_OP_MOD_REPAIR_PD, &sh->ops.pending)) {
+-		if (!test_and_set_bit(STRIPE_OP_CHECK, &sh->ops.pending)) {
+-			BUG_ON(s->uptodate != disks);
+-			clear_bit(R5_UPTODATE, &sh->dev[sh->pd_idx].flags);
+-			sh->ops.count++;
+-			s->uptodate--;
+-		} else if (
+-		       test_and_clear_bit(STRIPE_OP_CHECK, &sh->ops.complete)) {
+-			clear_bit(STRIPE_OP_CHECK, &sh->ops.ack);
+-			clear_bit(STRIPE_OP_CHECK, &sh->ops.pending);
+ 
++	/* complete a check operation */
++	if (test_and_clear_bit(STRIPE_OP_CHECK, &sh->ops.complete)) {
++	    clear_bit(STRIPE_OP_CHECK, &sh->ops.ack);
++	    clear_bit(STRIPE_OP_CHECK, &sh->ops.pending);
++		if (s->failed == 0) {
+ 			if (sh->ops.zero_sum_result == 0)
+ 				/* parity is correct (on disc,
+ 				 * not in buffer any more)
+@@ -2391,7 +2381,8 @@ static void handle_parity_checks5(raid5_
+ 					s->uptodate++;
+ 				}
+ 			}
+-		}
++		} else
++			canceled_check = 1; /* STRIPE_INSYNC is not set */
  	}
  
+ 	/* check if we can clear a parity disk reconstruct */
+@@ -2404,12 +2395,28 @@ static void handle_parity_checks5(raid5_
+ 		clear_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.pending);
+ 	}
+ 
+-	/* Wait for check parity and compute block operations to complete
+-	 * before write-back
++	/* start a new check operation if there are no failures, the stripe is
++	 * not insync, and a repair is not in flight
+ 	 */
+-	if (!test_bit(STRIPE_INSYNC, &sh->state) &&
+-		!test_bit(STRIPE_OP_CHECK, &sh->ops.pending) &&
+-		!test_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.pending)) {
++	if (s->failed == 0 &&
++	    !test_bit(STRIPE_INSYNC, &sh->state) &&
++	    !test_bit(STRIPE_OP_MOD_REPAIR_PD, &sh->ops.pending)) {
++		if (!test_and_set_bit(STRIPE_OP_CHECK, &sh->ops.pending)) {
++			BUG_ON(s->uptodate != disks);
++			clear_bit(R5_UPTODATE, &sh->dev[sh->pd_idx].flags);
++			sh->ops.count++;
++			s->uptodate--;
++		}
++	}
++
++	/* Wait for check parity and compute block operations to complete
++	 * before write-back.  If a failure occurred while the check operation
++	 * was in flight we need to cycle this stripe through handle_stripe
++	 * since the parity block may not be uptodate
++	 */
++	if (!canceled_check && !test_bit(STRIPE_INSYNC, &sh->state) &&
++	    !test_bit(STRIPE_OP_CHECK, &sh->ops.pending) &&
++	    !test_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.pending)) {
+ 		struct r5dev *dev;
+ 		/* either failed parity check, or recovery is happening */
+ 		if (s->failed == 0)
 _
 
-Patches currently in -mm which might be from davidel@xmailserver.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-epoll-avoid-kmemcheck-warning.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
+git-arm.patch
+git-async-tx.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+md-introduce-get_priority_stripe-to-improve-raid456-write-performance.patch
+md-raid5c-convert-simple_strtoul-to-strict_strtoul.patch
 
