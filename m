@@ -1,98 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - cfq-iosched-do-not-leak-ioc_data-across-iosched-switches.patch removed from -mm tree
-Date: Sat, 12 Apr 2008 19:39:13 -0700
-Message-ID: <200804130239.m3D2dDmP032368@imap1.linux-foundation.org>
+Subject: - frv-handle-update_mmu_cache-being-called-when-current-mm-is-null.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:39:20 -0700
+Message-ID: <200804130239.m3D2dKEx032378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58324 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757355AbYDMCj3 (ORCPT
+	by vger.kernel.org with ESMTP id S1753873AbYDMCjj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 22:39:29 -0400
+	Sat, 12 Apr 2008 22:39:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fchecconi@gmail.com, fabio@gandalf.sssup.it, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cfq-iosched: do not leak ioc_data across iosched switches
+     frv: handle update_mmu_cache() being called when current->mm is NULL
 has been removed from the -mm tree.  Its filename was
-     cfq-iosched-do-not-leak-ioc_data-across-iosched-switches.patch
+     frv-handle-update_mmu_cache-being-called-when-current-mm-is-null.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cfq-iosched: do not leak ioc_data across iosched switches
-From: Fabio Checconi <fchecconi@gmail.com>
+Subject: frv: handle update_mmu_cache() being called when current->mm is NULL
+From: David Howells <dhowells@redhat.com>
 
-When switching scheduler from cfq, cfq_exit_queue() does not clear
-ioc->ioc_data, leaving a dangling pointer that can deceive the following
-lookups when the iosched is switched back to cfq.  The pattern that can
-trigger that is the following:
+Handle update_mmu_cache() being called when current->mm is NULL.
 
-    - elevator switch from cfq to something else;
-    - module unloading, with elv_unregister() that calls cfq_free_io_context()
-      on ioc freeing the cic (via the .trim op);
-    - module gets reloaded and the elevator switches back to cfq;
-    - reallocation of a cic at the same address as before (with a valid key).
+We cache static TLB mappings for the current page table in DAMPR4 and DAMPR5
+on the theory that the next data lookup is likely to be in the same general
+region, and thus is likely to be mapped by the same page table.  However, we
+can't get this information if we can't access the appropriate mm_struct.
 
-To fix it just assign NULL to ioc_data in __cfq_exit_single_io_context(), that
-is called from the regular exit path and from the elevator switching code. 
-The only path that frees a cic and is not covered is the error handling one,
-but cic's freed in this way are never cached in ioc_data.
+If current->mm is NULL, we just clear the cache in the knowledge that the TLB
+miss handlers will load it.
 
-Signed-off-by: Fabio Checconi <fabio@gandalf.sssup.it>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/cfq-iosched.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/asm-frv/pgtable.h |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN block/cfq-iosched.c~cfq-iosched-do-not-leak-ioc_data-across-iosched-switches block/cfq-iosched.c
---- a/block/cfq-iosched.c~cfq-iosched-do-not-leak-ioc_data-across-iosched-switches
-+++ a/block/cfq-iosched.c
-@@ -1214,6 +1214,8 @@ static void cfq_exit_cfqq(struct cfq_dat
- static void __cfq_exit_single_io_context(struct cfq_data *cfqd,
- 					 struct cfq_io_context *cic)
- {
-+	struct io_context *ioc = cic->ioc;
-+
- 	list_del_init(&cic->queue_list);
- 
- 	/*
-@@ -1223,6 +1225,9 @@ static void __cfq_exit_single_io_context
- 	cic->dead_key = (unsigned long) cic->key;
- 	cic->key = NULL;
- 
-+	if (ioc->ioc_data == cic)
-+		rcu_assign_pointer(ioc->ioc_data, NULL);
-+
- 	if (cic->cfqq[ASYNC]) {
- 		cfq_exit_cfqq(cfqd, cic->cfqq[ASYNC]);
- 		cic->cfqq[ASYNC] = NULL;
-@@ -1255,7 +1260,6 @@ static void cfq_exit_single_io_context(s
+diff -puN include/asm-frv/pgtable.h~frv-handle-update_mmu_cache-being-called-when-current-mm-is-null include/asm-frv/pgtable.h
+--- a/include/asm-frv/pgtable.h~frv-handle-update_mmu_cache-being-called-when-current-mm-is-null
++++ a/include/asm-frv/pgtable.h
+@@ -507,13 +507,22 @@ static inline int pte_file(pte_t pte)
   */
- static void cfq_exit_io_context(struct io_context *ioc)
+ static inline void update_mmu_cache(struct vm_area_struct *vma, unsigned long address, pte_t pte)
  {
--	rcu_assign_pointer(ioc->ioc_data, NULL);
- 	call_for_each_cic(ioc, cfq_exit_single_io_context);
- }
++	struct mm_struct *mm;
+ 	unsigned long ampr;
+-	pgd_t *pge = pgd_offset(current->mm, address);
+-	pud_t *pue = pud_offset(pge, address);
+-	pmd_t *pme = pmd_offset(pue, address);
  
-@@ -1478,8 +1482,7 @@ cfq_drop_dead_cic(struct cfq_data *cfqd,
+-	ampr = pme->ste[0] & 0xffffff00;
+-	ampr |= xAMPRx_L | xAMPRx_SS_16Kb | xAMPRx_S | xAMPRx_C | xAMPRx_V;
++	mm = current->mm;
++	if (mm) {
++		pgd_t *pge = pgd_offset(mm, address);
++		pud_t *pue = pud_offset(pge, address);
++		pmd_t *pme = pmd_offset(pue, address);
++
++		ampr = pme->ste[0] & 0xffffff00;
++		ampr |= xAMPRx_L | xAMPRx_SS_16Kb | xAMPRx_S | xAMPRx_C |
++			xAMPRx_V;
++	} else {
++		address = ULONG_MAX;
++		ampr = 0;
++	}
  
- 	spin_lock_irqsave(&ioc->lock, flags);
- 
--	if (ioc->ioc_data == cic)
--		rcu_assign_pointer(ioc->ioc_data, NULL);
-+	BUG_ON(ioc->ioc_data == cic);
- 
- 	radix_tree_delete(&ioc->radix_root, (unsigned long) cfqd);
- 	hlist_del_rcu(&cic->cic_list);
+ 	asm volatile("movgs %0,scr0\n"
+ 		     "movgs %0,scr1\n"
 _
 
-Patches currently in -mm which might be from fchecconi@gmail.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
+git-unionfs.patch
+remove-the-macro-get_personality.patch
+xattr-add-missing-consts-to-function-arguments.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+keys-switch-to-proc_create.patch
+keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
+keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys-fix.patch
+keys-explicitly-include-required-slabh-header-file.patch
+keys-make-key_serial-a-function-if-config_keys=y.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+alloc_uid-cleanup.patch
+rename-div64_64-to-div64_u64.patch
+afs-use-the-shorter-list_head-for-brevity.patch
+afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself.patch
+afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself-try-3.patch
+mutex-subsystem-synchro-test-module.patch
 
