@@ -1,96 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-rtc-s35390ac-needs-the-bitreverse-library.patch removed from -mm tree
-Date: Sat, 12 Apr 2008 19:39:34 -0700
-Message-ID: <200804130239.m3D2dYW4032401@imap1.linux-foundation.org>
+Subject: - documentation-patch-tags-one-more-time.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:40:25 -0700
+Message-ID: <200804130240.m3D2eP1T032504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42502 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54089 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755474AbYDMCkb (ORCPT
+	by vger.kernel.org with ESMTP id S1755542AbYDMCkc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 22:40:31 -0400
+	Sat, 12 Apr 2008 22:40:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, a.zummo@towertech.it, mm-commits@vger.kernel.org
+To: corbet@lwn.net, penberg@cs.helsinki.fi, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc: rtc-s35390a.c needs the bitreverse library
+     Documentation/patch-tags, one more time
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc-s35390ac-needs-the-bitreverse-library.patch
+     documentation-patch-tags-one-more-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc: rtc-s35390a.c needs the bitreverse library
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Documentation/patch-tags, one more time
+From: Jonathan Corbet <corbet@lwn.net>
 
-rtc-s35390a uses BITREVERSE functions so it needs to select that config symbol
-to ensure that the functions are built.
+Add a document describing the various tags attached to patches.
 
-drivers/built-in.o: In function `s35390a_set_datetime':
-linux-2.6.25-rc8-git7/drivers/rtc/rtc-s35390a.c:144: undefined reference to `byte_rev_table'
-drivers/built-in.o: In function `s35390a_get_datetime':
-linux-2.6.25-rc8-git7/drivers/rtc/rtc-s35390a.c:163: undefined reference to `byte_rev_table'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+Cc: "Pekka Enberg" <penberg@cs.helsinki.fi>
+Reviewed-by: Paul Jackson <pj@sgi.com>
+Acked-by: Paul Jackson <pj@sgi.com>
+Tested-by: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/SubmittingPatches |   54 ++++++++++++++++++++++++++++--
+ 1 file changed, 51 insertions(+), 3 deletions(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-rtc-s35390ac-needs-the-bitreverse-library drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-rtc-s35390ac-needs-the-bitreverse-library
-+++ a/drivers/rtc/Kconfig
-@@ -252,6 +252,7 @@ config RTC_DRV_TWL92330
+diff -puN Documentation/SubmittingPatches~documentation-patch-tags-one-more-time Documentation/SubmittingPatches
+--- a/Documentation/SubmittingPatches~documentation-patch-tags-one-more-time
++++ a/Documentation/SubmittingPatches
+@@ -328,7 +328,7 @@ now, but you can do this to mark interna
+ point out some special detail about the sign-off. 
  
- config RTC_DRV_S35390A
- 	tristate "Seiko Instruments S-35390A"
-+	select BITREVERSE
- 	help
- 	  If you say yes here you will get support for the Seiko
- 	  Instruments S-35390A.
+ 
+-13) When to use Acked-by:
++13) When to use Acked-by: and Cc:
+ 
+ The Signed-off-by: tag indicates that the signer was involved in the
+ development of the patch, or that he/she was in the patch's delivery path.
+@@ -349,11 +349,59 @@ Acked-by: does not necessarily indicate 
+ For example, if a patch affects multiple subsystems and has an Acked-by: from
+ one subsystem maintainer then this usually indicates acknowledgement of just
+ the part which affects that maintainer's code.  Judgement should be used here.
+- When in doubt people should refer to the original discussion in the mailing
++When in doubt people should refer to the original discussion in the mailing
+ list archives.
+ 
++If a person has had the opportunity to comment on a patch, but has not
++provided such comments, you may optionally add a "Cc:" tag to the patch.
++This is the only tag which might be added without an explicit action by the
++person it names.  This tag documents that potentially interested parties
++have been included in the discussion
+ 
+-14) The canonical patch format
++
++14) Using Test-by: and Reviewed-by:
++
++A Tested-by: tag indicates that the patch has been successfully tested (in
++some environment) by the person named.  This tag informs maintainers that
++some testing has been performed, provides a means to locate testers for
++future patches, and ensures credit for the testers.
++
++Reviewed-by:, instead, indicates that the patch has been reviewed and found
++acceptable according to the Reviewer's Statement:
++
++	Reviewer's statement of oversight
++
++	By offering my Reviewed-by: tag, I state that:
++
++ 	 (a) I have carried out a technical review of this patch to
++	     evaluate its appropriateness and readiness for inclusion into
++	     the mainline kernel.
++
++	 (b) Any problems, concerns, or questions relating to the patch
++	     have been communicated back to the submitter.  I am satisfied
++	     with the submitter's response to my comments.
++
++	 (c) While there may be things that could be improved with this
++	     submission, I believe that it is, at this time, (1) a
++	     worthwhile modification to the kernel, and (2) free of known
++	     issues which would argue against its inclusion.
++
++	 (d) While I have reviewed the patch and believe it to be sound, I
++	     do not (unless explicitly stated elsewhere) make any
++	     warranties or guarantees that it will achieve its stated
++	     purpose or function properly in any given situation.
++
++A Reviewed-by tag is a statement of opinion that the patch is an
++appropriate modification of the kernel without any remaining serious
++technical issues.  Any interested reviewer (who has done the work) can
++offer a Reviewed-by tag for a patch.  This tag serves to give credit to
++reviewers and to inform maintainers of the degree of review which has been
++done on the patch.  Reviewed-by: tags, when supplied by reviewers known to
++understand the subject area and to perform thorough reviews, will normally
++increase the liklihood of your patch getting into the kernel.
++
++
++15) The canonical patch format
+ 
+ The canonical patch subject line is:
+ 
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from corbet@lwn.net are
 
-git-x86.patch
-rapidio-fix-docbook-references.patch
-kbuild-silence-documentation-gen-xml-messages-according-to-quiet.patch
-git-net.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-ocfs2.patch
-git-unionfs.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-let-log_buf_shift-default-to-17.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-docbook-some-kernel-locking-fixes.patch
-kernel-doc-detect-prevent-duplicate-doc-section-names.patch
-kernel-doc-detect-trailing-kernel-doc-line-trash.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-documentation-build-source-files-in-documentation-sub-dir-update.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-jbd2-fix-kernel-doc-notation.patch
-dma-add-dma_map_attrs-interfaces.patch
-dma-document-dma_map_attrs-interfaces.patch
-dma-ia64-update-ia64-machvecs-swiotlbc.patch
-ib-expand-ib_umem_get-prototype.patch
-doc-fix-dma-api-function-parameters.patch
-basic-braille-screen-reader-support-makefile-fix.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
-profile-likely-unlikely-macros.patch
+git-dvb.patch
 
