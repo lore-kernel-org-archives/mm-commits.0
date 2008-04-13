@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + git-xfs-git-rejects.patch added to -mm tree
-Date: Sat, 12 Apr 2008 19:35:09 -0700
-Message-ID: <200804130235.m3D2Z9Df032223@imap1.linux-foundation.org>
+Subject: + git-net-git-rejects.patch added to -mm tree
+Date: Sat, 12 Apr 2008 19:36:49 -0700
+Message-ID: <200804130236.m3D2ani3032242@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32973 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47903 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752624AbYDMCfQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752635AbYDMCgv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 22:35:16 -0400
+	Sat, 12 Apr 2008 22:36:51 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3D2anh0010468
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 12 Apr 2008 19:36:50 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dgc@sgi.com, lachlan@sgi.com, tes@sgi.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-xfs-git-rejects
+     git-net-git-rejects
 has been added to the -mm tree.  Its filename is
-     git-xfs-git-rejects.patch
+     git-net-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,120 +38,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-xfs-git-rejects
+Subject: git-net-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Timothy Shimmin <tes@sgi.com>
-Cc: David Chinner <dgc@sgi.com>
-Cc: Lachlan McIlroy <lachlan@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/quota/xfs_qm_syscalls.c |    4 ----
- fs/xfs/xfs_ialloc.c            |   11 +----------
- fs/xfs/xfs_mount.c             |   13 -------------
- 3 files changed, 1 insertion(+), 27 deletions(-)
+ drivers/net/wireless/iwlwifi/Kconfig  |    4 ----
+ drivers/net/wireless/rt2x00/rt61pci.c |    5 -----
+ net/ipv4/inet_timewait_sock.c         |    4 ----
+ 3 files changed, 13 deletions(-)
 
-diff -puN fs/xfs/quota/xfs_qm_syscalls.c~git-xfs-git-rejects fs/xfs/quota/xfs_qm_syscalls.c
---- a/fs/xfs/quota/xfs_qm_syscalls.c~git-xfs-git-rejects
-+++ a/fs/xfs/quota/xfs_qm_syscalls.c
-@@ -385,10 +385,6 @@ xfs_qm_scall_trunc_qfiles(
- 
- 	if (!capable(CAP_SYS_ADMIN))
- 		return XFS_ERROR(EPERM);
--<<<<<<< HEAD:fs/xfs/quota/xfs_qm_syscalls.c
--	error = 0;
+diff -puN drivers/net/wireless/iwlwifi/Kconfig~git-net-git-rejects drivers/net/wireless/iwlwifi/Kconfig
+--- a/drivers/net/wireless/iwlwifi/Kconfig~git-net-git-rejects
++++ a/drivers/net/wireless/iwlwifi/Kconfig
+@@ -42,11 +42,7 @@ config IWL4965
+ config IWL4965_HT
+ 	bool "Enable 802.11n HT features in iwl4965 driver"
+ 	depends on EXPERIMENTAL
+-<<<<<<< HEAD:drivers/net/wireless/iwlwifi/Kconfig
+ 	depends on IWL4965 && IWL4965_QOS
 -=======
-->>>>>>> FETCH_HEAD:fs/xfs/quota/xfs_qm_syscalls.c
- 	if (!xfs_sb_version_hasquota(&mp->m_sb) || flags == 0) {
- 		qdprintk("qtrunc flags=%x m_qflags=%x\n", flags, mp->m_qflags);
- 		return XFS_ERROR(EINVAL);
-diff -puN fs/xfs/xfs_ialloc.c~git-xfs-git-rejects fs/xfs/xfs_ialloc.c
---- a/fs/xfs/xfs_ialloc.c~git-xfs-git-rejects
-+++ a/fs/xfs/xfs_ialloc.c
-@@ -215,18 +215,13 @@ xfs_ialloc_ag_alloc(
- 			ASSERT(!(args.mp->m_flags & XFS_MOUNT_NOALIGN));
- 			args.alignment = args.mp->m_dalign;
- 			isaligned = 1;
--<<<<<<< HEAD:fs/xfs/xfs_ialloc.c
- 		} else if (xfs_sb_version_hasalign(&args.mp->m_sb) &&
- 			   args.mp->m_sb.sb_inoalignmt >=
- 			   XFS_B_TO_FSBT(args.mp,
- 			  	XFS_INODE_CLUSTER_SIZE(args.mp)))
- 				args.alignment = args.mp->m_sb.sb_inoalignmt;
- 		else
--			args.alignment = 1;
--=======
--		} else
- 			args.alignment = xfs_ialloc_cluster_alignment(&args);
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_ialloc.c
- 		/*
- 		 * Need to figure out where to allocate the inode blocks.
- 		 * Ideally they should be spaced out through the a.g.
-@@ -259,16 +254,12 @@ xfs_ialloc_ag_alloc(
- 		args.agbno = be32_to_cpu(agi->agi_root);
- 		args.fsbno = XFS_AGB_TO_FSB(args.mp,
- 				be32_to_cpu(agi->agi_seqno), args.agbno);
--<<<<<<< HEAD:fs/xfs/xfs_ialloc.c
- 		if (xfs_sb_version_hasalign(&args.mp->m_sb) &&
- 			args.mp->m_sb.sb_inoalignmt >=
- 			XFS_B_TO_FSBT(args.mp, XFS_INODE_CLUSTER_SIZE(args.mp)))
- 				args.alignment = args.mp->m_sb.sb_inoalignmt;
- 		else
--			args.alignment = 1;
--=======
--		args.alignment = xfs_ialloc_cluster_alignment(&args);
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_ialloc.c
-+			args.alignment = xfs_ialloc_cluster_alignment(&args);
- 		if ((error = xfs_alloc_vextent(&args)))
- 			return error;
- 	}
-diff -puN fs/xfs/xfs_mount.c~git-xfs-git-rejects fs/xfs/xfs_mount.c
---- a/fs/xfs/xfs_mount.c~git-xfs-git-rejects
-+++ a/fs/xfs/xfs_mount.c
-@@ -45,11 +45,7 @@
- #include "xfs_fsops.h"
- #include "xfs_utils.h"
- 
--<<<<<<< HEAD:fs/xfs/xfs_mount.c
--STATIC void	xfs_mount_log_sb(xfs_mount_t *, __int64_t);
--=======
- STATIC int	xfs_mount_log_sb(xfs_mount_t *, __int64_t);
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_mount.c
- STATIC int	xfs_uuid_mount(xfs_mount_t *);
- STATIC void	xfs_uuid_unmount(xfs_mount_t *mp);
- STATIC void	xfs_unmountfs_wait(xfs_mount_t *);
-@@ -1193,10 +1189,6 @@ xfs_mountfs(
- 	/*
- 	 * If fs is not mounted readonly, then update the superblock changes.
+-	depends on IWL4965
+->>>>>>> FETCH_HEAD:drivers/net/wireless/iwlwifi/Kconfig
+ 	---help---
+ 	  This option enables IEEE 802.11n High Throughput features
+ 	  for the iwl4965 driver.
+diff -puN drivers/net/wireless/rt2x00/rt61pci.c~git-net-git-rejects drivers/net/wireless/rt2x00/rt61pci.c
+--- a/drivers/net/wireless/rt2x00/rt61pci.c~git-net-git-rejects
++++ a/drivers/net/wireless/rt2x00/rt61pci.c
+@@ -2377,15 +2377,10 @@ static int rt61pci_beacon_update(struct 
+ 	 * We need to append the descriptor in front of the
+ 	 * beacon frame.
  	 */
--<<<<<<< HEAD:fs/xfs/xfs_mount.c
--	if (update_flags && !(mp->m_flags & XFS_MOUNT_RDONLY))
--		xfs_mount_log_sb(mp, update_flags);
+-<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt61pci.c
+-	if (skb_headroom(skb) < TXD_DESC_SIZE) {
+-		if (pskb_expand_head(skb, TXD_DESC_SIZE, 0, GFP_ATOMIC))
 -=======
- 	if (update_flags && !(mp->m_flags & XFS_MOUNT_RDONLY)) {
- 		error = xfs_mount_log_sb(mp, update_flags);
- 		if (error) {
-@@ -1204,7 +1196,6 @@ xfs_mountfs(
- 			goto error4;
- 		}
+ 	if (skb_headroom(skb) < intf->beacon->queue->desc_size) {
+ 		if (pskb_expand_head(skb, intf->beacon->queue->desc_size,
+ 				     0, GFP_ATOMIC)) {
+ 			dev_kfree_skb(skb);
+->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt61pci.c
+ 			return -ENOMEM;
  	}
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_mount.c
  
- 	/*
- 	 * Initialise the XFS quota management subsystem for this mount
-@@ -1927,11 +1918,7 @@ xfs_uuid_unmount(
-  * be altered by the mount options, as well as any potential sb_features2
-  * fixup. Only the first superblock is updated.
-  */
--<<<<<<< HEAD:fs/xfs/xfs_mount.c
--STATIC void
+diff -puN net/ipv4/inet_timewait_sock.c~git-net-git-rejects net/ipv4/inet_timewait_sock.c
+--- a/net/ipv4/inet_timewait_sock.c~git-net-git-rejects
++++ a/net/ipv4/inet_timewait_sock.c
+@@ -124,11 +124,7 @@ struct inet_timewait_sock *inet_twsk_all
+ 		tw->tw_hash	    = sk->sk_hash;
+ 		tw->tw_ipv6only	    = 0;
+ 		tw->tw_prot	    = sk->sk_prot_creator;
+-<<<<<<< HEAD:net/ipv4/inet_timewait_sock.c
+-		tw->tw_net          = sk->sk_net;
 -=======
- STATIC int
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_mount.c
- xfs_mount_log_sb(
- 	xfs_mount_t	*mp,
- 	__int64_t	fields)
+ 		twsk_net_set(tw, sock_net(sk));
+->>>>>>> FETCH_HEAD:net/ipv4/inet_timewait_sock.c
+ 		atomic_set(&tw->tw_refcnt, 1);
+ 		inet_twsk_dead_node_init(tw);
+ 		__module_get(tw->tw_prot->owner);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -193,6 +143,7 @@ pata_atiixp-simplex-clear-fix.patch
 git-async-tx.patch
 git-mips.patch
 git-net.patch
+git-net-git-rejects.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 ehea-fix-dlpar-memory-add-support-fix.patch
