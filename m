@@ -1,99 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-include-hierarchy-ids-in-proc-pid-cgroup.patch removed from -mm tree
-Date: Sat, 12 Apr 2008 19:39:31 -0700
-Message-ID: <200804130239.m3D2dVfx032398@imap1.linux-foundation.org>
+Subject: - frv-make-nommu-mode-work-with-base-addresses-other-than-0xc0000000.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:39:27 -0700
+Message-ID: <200804130239.m3D2dR5j032389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60783 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755265AbYDMCjt (ORCPT
+	by vger.kernel.org with ESMTP id S1755303AbYDMCjz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 22:39:49 -0400
+	Sat, 12 Apr 2008 22:39:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: include hierarchy ids in /proc/<pid>/cgroup
+     frv: make NOMMU-mode work with base addresses other than 0xC0000000
 has been removed from the -mm tree.  Its filename was
-     cgroups-include-hierarchy-ids-in-proc-pid-cgroup.patch
+     frv-make-nommu-mode-work-with-base-addresses-other-than-0xc0000000.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: include hierarchy ids in /proc/<pid>/cgroup
-From: Paul Menage <menage@google.com>
+Subject: frv: make NOMMU-mode work with base addresses other than 0xC0000000
+From: David Howells <dhowells@redhat.com>
 
-Extend the /proc/<pid>/cgroup file to include the appropriate hierarchy ID on
-each line.
+Make NOMMU-mode work with base addresses other than 0xC0000000 by:
 
-Currently this ID isn't really needed since a hierarchy can be completely
-identified by the set of subsystems bound to it, but this is likely to change
-in the near future in order to support stateless subsystems and
-merging/rebinding of subsystems.  Getting this change into 2.6.25 reduces the
-need for an API change later.
+ (1) Giving the code that sets up the protection registers the right address
+     in __sdram_base.  Rather than being hard coded to 0xC0000000, the value
+     of __page_offset is obtained from the linker script.
 
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+ (2) Eliminate the check in __switch_to() that verifies the current thread
+     info is in the 0xCxxxxxxx region.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/frv/kernel/head.inc    |    2 +-
+ arch/frv/kernel/switch_to.S |    7 -------
+ 2 files changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroups-include-hierarchy-ids-in-proc-pid-cgroup kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-include-hierarchy-ids-in-proc-pid-cgroup
-+++ a/kernel/cgroup.c
-@@ -2569,6 +2569,7 @@ static int proc_cgroup_show(struct seq_f
- 		/* Skip this hierarchy if it has no active subsystems */
- 		if (!root->actual_subsys_bits)
- 			continue;
-+		seq_printf(m, "%lu:", root->subsys_bits);
- 		for_each_subsys(root, ss)
- 			seq_printf(m, "%s%s", count++ ? "," : "", ss->name);
- 		seq_putc(m, ':');
+diff -puN arch/frv/kernel/head.inc~frv-make-nommu-mode-work-with-base-addresses-other-than-0xc0000000 arch/frv/kernel/head.inc
+--- a/arch/frv/kernel/head.inc~frv-make-nommu-mode-work-with-base-addresses-other-than-0xc0000000
++++ a/arch/frv/kernel/head.inc
+@@ -46,5 +46,5 @@
+ #ifdef CONFIG_MMU
+ __sdram_base = 0x00000000		/* base address to which SDRAM relocated */
+ #else
+-__sdram_base = 0xc0000000		/* base address to which SDRAM relocated */
++__sdram_base = __page_offset		/* base address to which SDRAM relocated */
+ #endif
+diff -puN arch/frv/kernel/switch_to.S~frv-make-nommu-mode-work-with-base-addresses-other-than-0xc0000000 arch/frv/kernel/switch_to.S
+--- a/arch/frv/kernel/switch_to.S~frv-make-nommu-mode-work-with-base-addresses-other-than-0xc0000000
++++ a/arch/frv/kernel/switch_to.S
+@@ -102,13 +102,6 @@ __switch_to:
+ 	movgs		gr14,lr
+ 	bar
+ 
+-	srli		gr15,#28,gr5
+-	subicc		gr5,#0xc,gr0,icc0
+-	beq		icc0,#0,111f
+-	break
+-	nop
+-111:
+-
+ 	# jump to __switch_back or ret_from_fork as appropriate
+ 	# - move prev to GR8
+ 	movgs		gr4,psr
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-make-cgroup_enable_task_cg_lists-static.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroups-_s64-files-add-cgroups-read_s64-write_s64-file-methods.patch
-cgroups-_s64-files-use-read_s64-write_s64-in-cfs-cgroup-for-rt_runtime-file.patch
-cgroup-annotate-cgroup_init_subsys-with-__init.patch
-cgroup-switch-to-proc_create.patch
-cgroups-add-the-trigger-callback-to-struct-cftype.patch
-cgroups-implement-device-whitelist-v6.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-doc.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-cgroups-use-a-hash-table-for-css_set-finding.patch
-cgroups-simplify-init_subsys.patch
-cgroups-remove-the-css_set-linked-list.patch
-cgroups-introduce-cft-read_seq-v2.patch
-memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
-memcgroup-use-triggers-in-force_empty-and-max_usage-files.patch
-memcgroup-implement-failcounter-reset.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-memcgroup-make-the-memory-controller-more-desktop-responsive.patch
-cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
-cpuset-hardwall-flag-add-a-mem_hardwall-flag-to-cpusets.patch
-add-a-refcount-check-in-dput.patch
+git-unionfs.patch
+remove-the-macro-get_personality.patch
+xattr-add-missing-consts-to-function-arguments.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+keys-switch-to-proc_create.patch
+keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
+keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys-fix.patch
+keys-explicitly-include-required-slabh-header-file.patch
+keys-make-key_serial-a-function-if-config_keys=y.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+alloc_uid-cleanup.patch
+rename-div64_64-to-div64_u64.patch
+afs-use-the-shorter-list_head-for-brevity.patch
+afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself.patch
+afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself-try-3.patch
+mutex-subsystem-synchro-test-module.patch
 
