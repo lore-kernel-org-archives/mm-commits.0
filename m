@@ -1,154 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - usb-gadget-fix-platform-driver-hotplug-coldplug.patch removed from -mm tree
-Date: Sat, 12 Apr 2008 19:39:42 -0700
-Message-ID: <200804130239.m3D2dgH7032412@imap1.linux-foundation.org>
+Subject: - cgroups-include-hierarchy-ids-in-proc-pid-cgroup.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:39:31 -0700
+Message-ID: <200804130239.m3D2dVfx032398@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60783 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755347AbYDMCjw (ORCPT
+	by vger.kernel.org with ESMTP id S1755265AbYDMCjt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 22:39:52 -0400
+	Sat, 12 Apr 2008 22:39:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb gadget: fix platform driver hotplug/coldplug
+     cgroups: include hierarchy ids in /proc/<pid>/cgroup
 has been removed from the -mm tree.  Its filename was
-     usb-gadget-fix-platform-driver-hotplug-coldplug.patch
+     cgroups-include-hierarchy-ids-in-proc-pid-cgroup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb gadget: fix platform driver hotplug/coldplug
-From: Kay Sievers <kay.sievers@vrfy.org>
+Subject: cgroups: include hierarchy ids in /proc/<pid>/cgroup
+From: Paul Menage <menage@google.com>
 
-Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias is
-prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable usb
-peripheral drivers, to re-eable module auto loading.
+Extend the /proc/<pid>/cgroup file to include the appropriate hierarchy ID on
+each line.
 
-[dbrownell@users.sourceforge.net: registration fixes]
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Greg KH <greg@kroah.com>
+Currently this ID isn't really needed since a hierarchy can be completely
+identified by the set of subsystems bound to it, but this is likely to change
+in the near future in order to support stateless subsystems and
+merging/rebinding of subsystems.  Getting this change into 2.6.25 reduces the
+need for an API change later.
+
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/at91_udc.c       |    1 +
- drivers/usb/gadget/atmel_usba_udc.c |    2 ++
- drivers/usb/gadget/fsl_usb2_udc.c   |    1 +
- drivers/usb/gadget/lh7a40x_udc.c    |    1 +
- drivers/usb/gadget/m66592-udc.c     |    2 ++
- drivers/usb/gadget/omap_udc.c       |    2 +-
- drivers/usb/gadget/pxa2xx_udc.c     |    2 +-
- drivers/usb/gadget/s3c2410_udc.c    |    2 ++
- 8 files changed, 11 insertions(+), 2 deletions(-)
+ kernel/cgroup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/usb/gadget/at91_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug drivers/usb/gadget/at91_udc.c
---- a/drivers/usb/gadget/at91_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/usb/gadget/at91_udc.c
-@@ -1884,3 +1884,4 @@ module_exit(udc_exit_module);
- MODULE_DESCRIPTION("AT91 udc driver");
- MODULE_AUTHOR("Thomas Rathbone, David Brownell");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:at91_udc");
-diff -puN drivers/usb/gadget/atmel_usba_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug drivers/usb/gadget/atmel_usba_udc.c
---- a/drivers/usb/gadget/atmel_usba_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/usb/gadget/atmel_usba_udc.c
-@@ -2054,6 +2054,7 @@ static struct platform_driver udc_driver
- 	.remove		= __exit_p(usba_udc_remove),
- 	.driver		= {
- 		.name		= "atmel_usba_udc",
-+		.owner		= THIS_MODULE,
- 	},
- };
- 
-@@ -2072,3 +2073,4 @@ module_exit(udc_exit);
- MODULE_DESCRIPTION("Atmel USBA UDC driver");
- MODULE_AUTHOR("Haavard Skinnemoen <hskinnemoen@atmel.com>");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:atmel_usba_udc");
-diff -puN drivers/usb/gadget/fsl_usb2_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug drivers/usb/gadget/fsl_usb2_udc.c
---- a/drivers/usb/gadget/fsl_usb2_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/usb/gadget/fsl_usb2_udc.c
-@@ -2475,3 +2475,4 @@ module_exit(udc_exit);
- MODULE_DESCRIPTION(DRIVER_DESC);
- MODULE_AUTHOR(DRIVER_AUTHOR);
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:fsl-usb2-udc");
-diff -puN drivers/usb/gadget/lh7a40x_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug drivers/usb/gadget/lh7a40x_udc.c
---- a/drivers/usb/gadget/lh7a40x_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/usb/gadget/lh7a40x_udc.c
-@@ -2146,3 +2146,4 @@ module_exit(udc_exit);
- MODULE_DESCRIPTION(DRIVER_DESC);
- MODULE_AUTHOR("Mikko Lahteenmaki, Bo Henriksen");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:lh7a40x_udc");
-diff -puN drivers/usb/gadget/m66592-udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug drivers/usb/gadget/m66592-udc.c
---- a/drivers/usb/gadget/m66592-udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/usb/gadget/m66592-udc.c
-@@ -35,6 +35,7 @@
- MODULE_DESCRIPTION("M66592 USB gadget driver");
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Yoshihiro Shimoda");
-+MODULE_ALIAS("platform:m66592_udc");
- 
- #define DRIVER_VERSION	"18 Oct 2007"
- 
-@@ -1671,6 +1672,7 @@ static struct platform_driver m66592_dri
- 	.remove =	__exit_p(m66592_remove),
- 	.driver		= {
- 		.name =	(char *) udc_name,
-+		.owner	= THIS_MODULE,
- 	},
- };
- 
-diff -puN drivers/usb/gadget/omap_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug drivers/usb/gadget/omap_udc.c
---- a/drivers/usb/gadget/omap_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/usb/gadget/omap_udc.c
-@@ -3109,4 +3109,4 @@ module_exit(udc_exit);
- 
- MODULE_DESCRIPTION(DRIVER_DESC);
- MODULE_LICENSE("GPL");
--
-+MODULE_ALIAS("platform:omap_udc");
-diff -puN drivers/usb/gadget/pxa2xx_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug drivers/usb/gadget/pxa2xx_udc.c
---- a/drivers/usb/gadget/pxa2xx_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/usb/gadget/pxa2xx_udc.c
-@@ -2380,4 +2380,4 @@ module_exit(udc_exit);
- MODULE_DESCRIPTION(DRIVER_DESC);
- MODULE_AUTHOR("Frank Becker, Robert Schwebel, David Brownell");
- MODULE_LICENSE("GPL");
--
-+MODULE_ALIAS("platform:pxa2xx-udc");
-diff -puN drivers/usb/gadget/s3c2410_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug drivers/usb/gadget/s3c2410_udc.c
---- a/drivers/usb/gadget/s3c2410_udc.c~usb-gadget-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/usb/gadget/s3c2410_udc.c
-@@ -2047,3 +2047,5 @@ MODULE_AUTHOR(DRIVER_AUTHOR);
- MODULE_DESCRIPTION(DRIVER_DESC);
- MODULE_VERSION(DRIVER_VERSION);
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:s3c2410-usbgadget");
-+MODULE_ALIAS("platform:s3c2440-usbgadget");
+diff -puN kernel/cgroup.c~cgroups-include-hierarchy-ids-in-proc-pid-cgroup kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroups-include-hierarchy-ids-in-proc-pid-cgroup
++++ a/kernel/cgroup.c
+@@ -2569,6 +2569,7 @@ static int proc_cgroup_show(struct seq_f
+ 		/* Skip this hierarchy if it has no active subsystems */
+ 		if (!root->actual_subsys_bits)
+ 			continue;
++		seq_printf(m, "%lu:", root->subsys_bits);
+ 		for_each_subsys(root, ss)
+ 			seq_printf(m, "%s%s", count++ ? "," : "", ss->name);
+ 		seq_putc(m, ':');
 _
 
-Patches currently in -mm which might be from kay.sievers@vrfy.org are
+Patches currently in -mm which might be from menage@google.com are
 
-mmc-fix-platform-driver-hotplug-coldplug.patch
-leds-fix-platform-driver-hotplug-coldplug.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
-pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.patch
-pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
-cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
+make-cgroup_enable_task_cg_lists-static.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+cgroups-_s64-files-add-cgroups-read_s64-write_s64-file-methods.patch
+cgroups-_s64-files-use-read_s64-write_s64-in-cfs-cgroup-for-rt_runtime-file.patch
+cgroup-annotate-cgroup_init_subsys-with-__init.patch
+cgroup-switch-to-proc_create.patch
+cgroups-add-the-trigger-callback-to-struct-cftype.patch
+cgroups-implement-device-whitelist-v6.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-doc.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+cgroups-use-a-hash-table-for-css_set-finding.patch
+cgroups-simplify-init_subsys.patch
+cgroups-remove-the-css_set-linked-list.patch
+cgroups-introduce-cft-read_seq-v2.patch
+memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
+memcgroup-use-triggers-in-force_empty-and-max_usage-files.patch
+memcgroup-implement-failcounter-reset.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+memcgroup-make-the-memory-controller-more-desktop-responsive.patch
+cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
+cpuset-hardwall-flag-add-a-mem_hardwall-flag-to-cpusets.patch
+add-a-refcount-check-in-dput.patch
 
