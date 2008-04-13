@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
-Date: Sun, 13 Apr 2008 11:23:15 -0700
-Message-ID: <200804131823.m3DINFtB032350@imap1.linux-foundation.org>
+Subject: + ata-ide-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
+Date: Sun, 13 Apr 2008 11:24:24 -0700
+Message-ID: <200804131824.m3DIOOXM032369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33453 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751881AbYDMSX0 (ORCPT
+	by vger.kernel.org with ESMTP id S1750876AbYDMSZQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Apr 2008 14:23:26 -0400
+	Sun, 13 Apr 2008 14:25:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net
+Cc: kay.sievers@vrfy.org, bzolnier@gmail.com, dbrownell@users.sourceforge.net, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     pcmcia: fix platform driver hotplug/coldplug
+     ATA/IDE: fix platform driver hotplug/coldplug
 has been added to the -mm tree.  Its filename is
-     pcmcia-fix-platform-driver-hotplug-coldplug.patch
+     ata-ide-fix-platform-driver-hotplug-coldplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,138 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia: fix platform driver hotplug/coldplug
+Subject: ATA/IDE: fix platform driver hotplug/coldplug
 From: Kay Sievers <kay.sievers@vrfy.org>
 
 Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias is
-prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable PCMCIA
+prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable ATA and IDE
 platform drivers, to re-enable auto loading.
 
-[dbrownell@users.sourceforge.net: registration fixes]
+NOTE: both ata/pata_platform.c and ide/legacy/ide_platform.c claim to provide
+"the" platform_pata driver, and there's no build-time mutual exclusion
+mechanism.  This means that configs which enable both drivers will make some
+trouble when hotplugging...
+
+[dbrownell@users.sourceforge.net: more drivers, registration fixes]
 Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/at91_cf.c     |    1 +
- drivers/pcmcia/omap_cf.c     |    2 ++
- drivers/pcmcia/pxa2xx_base.c |    2 ++
- 3 files changed, 5 insertions(+)
+ drivers/ata/pata_at32.c           |    3 +++
+ drivers/ata/pata_bf54x.c          |    1 +
+ drivers/ata/pata_ixp4xx_cf.c      |    1 +
+ drivers/ata/pata_platform.c       |    1 +
+ drivers/ata/pata_rb500_cf.c       |    3 +++
+ drivers/ata/sata_mv.c             |    2 +-
+ drivers/ide/arm/palm_bk3710.c     |    4 ++++
+ drivers/ide/legacy/ide_platform.c |    2 ++
+ 8 files changed, 16 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pcmcia/at91_cf.c~pcmcia-fix-platform-driver-hotplug-coldplug drivers/pcmcia/at91_cf.c
---- a/drivers/pcmcia/at91_cf.c~pcmcia-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/pcmcia/at91_cf.c
-@@ -419,3 +419,4 @@ module_exit(at91_cf_exit);
- MODULE_DESCRIPTION("AT91 Compact Flash Driver");
- MODULE_AUTHOR("David Brownell");
+diff -puN drivers/ata/pata_at32.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ata/pata_at32.c
+--- a/drivers/ata/pata_at32.c~ata-ide-fix-platform-driver-hotplug-coldplug
++++ a/drivers/ata/pata_at32.c
+@@ -381,6 +381,9 @@ static int __exit pata_at32_remove(struc
+ 	return 0;
+ }
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:at32_ide");
++
+ static struct platform_driver pata_at32_driver = {
+ 	.remove	       = __exit_p(pata_at32_remove),
+ 	.driver	       = {
+diff -puN drivers/ata/pata_bf54x.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ata/pata_bf54x.c
+--- a/drivers/ata/pata_bf54x.c~ata-ide-fix-platform-driver-hotplug-coldplug
++++ a/drivers/ata/pata_bf54x.c
+@@ -1601,3 +1601,4 @@ MODULE_AUTHOR("Sonic Zhang <sonic.zhang@
+ MODULE_DESCRIPTION("PATA driver for blackfin 54x ATAPI controller");
  MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:at91_cf");
-diff -puN drivers/pcmcia/omap_cf.c~pcmcia-fix-platform-driver-hotplug-coldplug drivers/pcmcia/omap_cf.c
---- a/drivers/pcmcia/omap_cf.c~pcmcia-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/pcmcia/omap_cf.c
-@@ -344,6 +344,7 @@ static int omap_cf_resume(struct platfor
- static struct platform_driver omap_cf_driver = {
+ MODULE_VERSION(DRV_VERSION);
++MODULE_ALIAS("platform:" DRV_NAME);
+diff -puN drivers/ata/pata_ixp4xx_cf.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ata/pata_ixp4xx_cf.c
+--- a/drivers/ata/pata_ixp4xx_cf.c~ata-ide-fix-platform-driver-hotplug-coldplug
++++ a/drivers/ata/pata_ixp4xx_cf.c
+@@ -221,6 +221,7 @@ MODULE_AUTHOR("Alessandro Zummo <a.zummo
+ MODULE_DESCRIPTION("low-level driver for ixp4xx Compact Flash PATA");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(DRV_VERSION);
++MODULE_ALIAS("platform:" DRV_NAME);
+ 
+ module_init(ixp4xx_pata_init);
+ module_exit(ixp4xx_pata_exit);
+diff -puN drivers/ata/pata_platform.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ata/pata_platform.c
+--- a/drivers/ata/pata_platform.c~ata-ide-fix-platform-driver-hotplug-coldplug
++++ a/drivers/ata/pata_platform.c
+@@ -277,3 +277,4 @@ MODULE_AUTHOR("Paul Mundt");
+ MODULE_DESCRIPTION("low-level driver for platform device ATA");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION(DRV_VERSION);
++MODULE_ALIAS("platform:" DRV_NAME);
+diff -puN drivers/ata/pata_rb500_cf.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ata/pata_rb500_cf.c
+--- a/drivers/ata/pata_rb500_cf.c~ata-ide-fix-platform-driver-hotplug-coldplug
++++ a/drivers/ata/pata_rb500_cf.c
+@@ -239,6 +239,9 @@ static __devexit int rb500_pata_driver_r
+ 	return 0;
+ }
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:" DRV_NAME);
++
+ static struct platform_driver rb500_pata_platform_driver = {
+ 	.probe		= rb500_pata_driver_probe,
+ 	.remove		= __devexit_p(rb500_pata_driver_remove),
+diff -puN drivers/ata/sata_mv.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ata/sata_mv.c
+--- a/drivers/ata/sata_mv.c~ata-ide-fix-platform-driver-hotplug-coldplug
++++ a/drivers/ata/sata_mv.c
+@@ -3122,7 +3122,7 @@ MODULE_DESCRIPTION("SCSI low-level drive
+ MODULE_LICENSE("GPL");
+ MODULE_DEVICE_TABLE(pci, mv_pci_tbl);
+ MODULE_VERSION(DRV_VERSION);
+-MODULE_ALIAS("platform:sata_mv");
++MODULE_ALIAS("platform:" DRV_NAME);
+ 
+ #ifdef CONFIG_PCI
+ module_param(msi, int, 0444);
+diff -puN drivers/ide/arm/palm_bk3710.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ide/arm/palm_bk3710.c
+--- a/drivers/ide/arm/palm_bk3710.c~ata-ide-fix-platform-driver-hotplug-coldplug
++++ a/drivers/ide/arm/palm_bk3710.c
+@@ -409,9 +409,13 @@ out:
+ 	return -ENODEV;
+ }
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:palm_bk3710");
++
+ static struct platform_driver platform_bk_driver = {
  	.driver = {
- 		.name	= (char *) driver_name,
-+		.owner	= THIS_MODULE,
+ 		.name = "palm_bk3710",
++		.owner = THIS_MODULE,
  	},
- 	.remove		= __exit_p(omap_cf_remove),
- 	.suspend	= omap_cf_suspend,
-@@ -368,3 +369,4 @@ module_exit(omap_cf_exit);
- 
- MODULE_DESCRIPTION("OMAP CF Driver");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:omap_cf");
-diff -puN drivers/pcmcia/pxa2xx_base.c~pcmcia-fix-platform-driver-hotplug-coldplug drivers/pcmcia/pxa2xx_base.c
---- a/drivers/pcmcia/pxa2xx_base.c~pcmcia-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/pcmcia/pxa2xx_base.c
-@@ -239,6 +239,7 @@ static struct platform_driver pxa2xx_pcm
- 	.resume 	= pxa2xx_drv_pcmcia_resume,
- 	.driver		= {
- 		.name	= "pxa2xx-pcmcia",
-+		.owner	= THIS_MODULE,
+ 	.probe = palm_bk3710_probe,
+ 	.remove = NULL,
+diff -puN drivers/ide/legacy/ide_platform.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ide/legacy/ide_platform.c
+--- a/drivers/ide/legacy/ide_platform.c~ata-ide-fix-platform-driver-hotplug-coldplug
++++ a/drivers/ide/legacy/ide_platform.c
+@@ -130,6 +130,7 @@ static int __devexit plat_ide_remove(str
+ static struct platform_driver platform_ide_driver = {
+ 	.driver = {
+ 		.name = "pata_platform",
++		.owner = THIS_MODULE,
  	},
- };
+ 	.probe = plat_ide_probe,
+ 	.remove = __devexit_p(plat_ide_remove),
+@@ -147,6 +148,7 @@ static void __exit platform_ide_exit(voi
  
-@@ -258,3 +259,4 @@ module_exit(pxa2xx_pcmcia_exit);
- MODULE_AUTHOR("Stefan Eletzhofer <stefan.eletzhofer@inquant.de> and Ian Molton <spyro@f2s.com>");
- MODULE_DESCRIPTION("Linux PCMCIA Card Services: PXA2xx core socket driver");
+ MODULE_DESCRIPTION("Platform IDE driver");
  MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:pxa2xx-pcmcia");
++MODULE_ALIAS("platform:pata_platform");
+ 
+ module_init(platform_ide_init);
+ module_exit(platform_ide_exit);
 _
 
 Patches currently in -mm which might be from kay.sievers@vrfy.org are
@@ -104,6 +178,7 @@ pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7.patch
 pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
 pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.patch
 pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
+ata-ide-fix-platform-driver-hotplug-coldplug.patch
 mm-bdi-export-bdi-attributes-in-sysfs.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
 infrastructure-to-debug-dynamic-objects.patch
@@ -111,5 +186,6 @@ debugobjects-add-documentation.patch
 debugobjects-add-timer-specific-object-debugging-code.patch
 add-hrtimer-specific-debugobjects-code.patch
 cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
-ata-ide-fix-platform-driver-hotplug-coldplug.patch
+mtd-maps-fix-platform-driver-hotplug-coldplug.patch
+mtd-nand-fix-platform-driver-hotplug-coldplug.patch
 
