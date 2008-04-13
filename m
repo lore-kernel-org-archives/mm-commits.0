@@ -1,202 +1,384 @@
 From: akpm@linux-foundation.org
-Subject: - generic_file_splice_read-fix-lockups.patch removed from -mm tree
-Date: Sat, 12 Apr 2008 19:39:10 -0700
-Message-ID: <200804130239.m3D2dAQC032365@imap1.linux-foundation.org>
+Subject: - frv-add-support-for-emulation-of-userspace-atomic-ops.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:39:25 -0700
+Message-ID: <200804130239.m3D2dPOa032386@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51391 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40337 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754243AbYDMCjl (ORCPT
+	by vger.kernel.org with ESMTP id S1754139AbYDMCjp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 22:39:41 -0400
+	Sat, 12 Apr 2008 22:39:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jens.axboe@oracle.com, allard@byte.nl, miklos@szeredi.hu, neilb@suse.de, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     generic_file_splice_read(): fix lockups
+     frv: add support for emulation of userspace atomic ops
 has been removed from the -mm tree.  Its filename was
-     generic_file_splice_read-fix-lockups.patch
+     frv-add-support-for-emulation-of-userspace-atomic-ops.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: generic_file_splice_read(): fix lockups
-From: Jens Axboe <jens.axboe@oracle.com>
+Subject: frv: add support for emulation of userspace atomic ops
+From: David Howells <dhowells@redhat.com>
 
-On Thu, Feb 28 2008, Andrew Morton wrote:
-> On Thu, 28 Feb 2008 15:04:12 +0100 (CET) Allard Hoeve <allard@byte.nl> wrote:
->
-> >
-> > Hello all,
-> >
-> > The last few days our trusty NFS server has experienced several soft
-> > lockups. These occur every 11 hours or so. The system does not respond
-> > afterwards. Sending sysrq commands over the serial console seems to work
-> > allthough we had to powercycle the server once.
-> >
-> > First we thought it would be an NFS problem, and now that we tried
-> > 2.6.23.17 instead of 2.6.24.2, we now have two different stacktraces that
-> > share a trace through nfsd (nfsd_direct_splice_actor):
-> >
-> > http://article.gmane.org/gmane.linux.nfs/19107
->
-> This:
->
-> BUG: soft lockup - CPU#0 stuck for 11s! [nfsd:2716]
->
-> Pid: 2716, comm: nfsd Not tainted (2.6.24.2-fwsh-byte #2)
-> EIP: 0060:[<c0140967>] EFLAGS: 00000286 CPU: 0
-> EIP is at find_get_pages_contig+0x67/0x73
-> EAX: 00000000 EBX: 00000001 ECX: c25cc520 EDX: c25cc520
-> ESI: 00000078 EDI: ca2fbdbc EBP: 00000001 ESP: dffb5c6c
->  DS: 007b ES: 007b FS: 00d8 GS: 0000 SS: 0068
-> CR0: 8005003b CR2: b7f5d000 CR3: 1fc45000 CR4: 000006f0
-> DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
-> DR6: ffff0ff0 DR7: 00000400
->  [<c017c49c>] __generic_file_splice_read+0xa2/0x41e
->  [<c0113b11>] sched_slice+0x15/0x6f
->  [<c0131291>] getnstimeofday+0x31/0x105
->  [<c0134301>] clockevents_program_event+0xbf/0x134
->  [<c012ef49>] ktime_get_ts+0x15/0x47
->  [<c01231ea>] run_timer_softirq+0x30/0x184
->  [<c012a893>] __rcu_process_callbacks+0x76/0xbb
->  [<c011f979>] tasklet_action+0x53/0x93
->  [<c011f754>] __do_softirq+0xba/0xcf
->  [<c010e20e>] smp_apic_timer_interrupt+0x2c/0x35
->  [<c01032e0>] apic_timer_interrupt+0x28/0x30
->  [<c017c88d>] generic_file_splice_read+0x75/0xc9
->  [<c017d083>] do_splice_to+0x6e/0x90
->  [<c017d144>] splice_direct_to_actor+0x9f/0x166
->  [<f8f2cf72>] nfsd_direct_splice_actor+0x0/0xa [nfsd]
->  [<c017c818>] generic_file_splice_read+0x0/0xc9
->  [<f8f2d309>] nfsd_vfs_read+0x38d/0x3b1 [nfsd]
->  [<f8f2b3b8>] nfsd_acceptable+0x0/0xd1 [nfsd]
->  [<c016014f>] dentry_open+0x34/0x64
->  [<f8f2d73c>] nfsd_read+0xee/0xfb [nfsd]
->  [<f8f33b8b>] nfsd3_proc_read+0xfe/0x186 [nfsd]
->  [<f8f354cb>] nfs3svc_decode_readargs+0x0/0xeb [nfsd]
->  [<f8f29855>] nfsd_dispatch+0xc5/0x1ac [nfsd]
->  [<c0445ab2>] svcauth_unix_set_client+0x116/0x165
->  [<c0441ad1>] svc_process+0x4e9/0x6b4
->  [<c01168e2>] default_wake_function+0x0/0x8
->  [<f8f2963d>] nfsd+0x16a/0x290 [nfsd]
->  [<f8f294d3>] nfsd+0x0/0x290 [nfsd]
->  [<c0103463>] kernel_thread_helper+0x7/0x10
->  =======================
->
-> > http://article.gmane.org/gmane.linux.nfs/19130
-> >
-> > The second however, leads me to think the (relatively new) scheduler might
-> > be involved through __check_preempt_curr_fair.
->
-> Nope, it looks like the splice code got stuck
->
-> > I'm now trying 2.6.22.19, which has a recent lockd issue with NFS fixed
-> > but hasn't had the scheduler update.
-> >
-> > How do I go about debugging this problem? What do you experts think?
->
-> This ex-expert has real worries about generic_file_splice_read().  For
-> starters, if __generic_file_splice_read() decides to return zero all the
-> time, that function will lock up.
->
-> Anyway.  Jens, I think we have a splice problem here.
+Use traps 120-126 to emulate atomic cmpxchg32, xchg32, and XOR-, OR-, AND-,
+SUB- and ADD-to-memory operations for userspace.
 
-I agree, that loop has been a point of contention before. So this is how
-I would fix it - never repeat a __generic_file_splice_read(), just pass
-back the short splice. And make __generic_file_splice_read() pass back
--EAGAIN correctly. diffstat is good, too :-)
-
-Does this work?
-
-Cc: Allard Hoeve <allard@byte.nl>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |   31 ++++++-------------------------
- 1 file changed, 6 insertions(+), 25 deletions(-)
+ arch/frv/kernel/entry-table.S |    8 -
+ arch/frv/kernel/entry.S       |   20 ++
+ arch/frv/kernel/traps.c       |  227 ++++++++++++++++++++++++++++++++
+ include/asm-frv/spr-regs.h    |   14 +
+ 4 files changed, 268 insertions(+), 1 deletion(-)
 
-diff -puN fs/splice.c~generic_file_splice_read-fix-lockups fs/splice.c
---- a/fs/splice.c~generic_file_splice_read-fix-lockups
-+++ a/fs/splice.c
-@@ -370,8 +370,10 @@ __generic_file_splice_read(struct file *
- 			 * for an in-flight io page
- 			 */
- 			if (flags & SPLICE_F_NONBLOCK) {
--				if (TestSetPageLocked(page))
-+				if (TestSetPageLocked(page)) {
-+					error = -EAGAIN;
- 					break;
-+				}
- 			} else
- 				lock_page(page);
+diff -puN arch/frv/kernel/entry-table.S~frv-add-support-for-emulation-of-userspace-atomic-ops arch/frv/kernel/entry-table.S
+--- a/arch/frv/kernel/entry-table.S~frv-add-support-for-emulation-of-userspace-atomic-ops
++++ a/arch/frv/kernel/entry-table.S
+@@ -316,8 +316,14 @@ __trap_fixup_kernel_data_tlb_miss:
+ 	.section	.trap.vector
+ 	.org		TBR_TT_TRAP0 >> 2
+ 	.long		system_call
+-	.rept		126
++	.rept		119
+ 	.long		__entry_unsupported_trap
+ 	.endr
++
++	# userspace atomic op emulation, traps 120-126
++	.rept		7
++	.long		__entry_atomic_op
++	.endr
++
+ 	.org		TBR_TT_BREAK >> 2
+ 	.long		__entry_debug_exception
+diff -puN arch/frv/kernel/entry.S~frv-add-support-for-emulation-of-userspace-atomic-ops arch/frv/kernel/entry.S
+--- a/arch/frv/kernel/entry.S~frv-add-support-for-emulation-of-userspace-atomic-ops
++++ a/arch/frv/kernel/entry.S
+@@ -656,6 +656,26 @@ __entry_debug_exception:
  
-@@ -479,9 +481,8 @@ ssize_t generic_file_splice_read(struct 
- 				 struct pipe_inode_info *pipe, size_t len,
- 				 unsigned int flags)
- {
--	ssize_t spliced;
--	int ret;
- 	loff_t isize, left;
+ ###############################################################################
+ #
++# handle atomic operation emulation for userspace
++#
++###############################################################################
++	.globl		__entry_atomic_op
++__entry_atomic_op:
++	LEDS		0x6012
++	sethi.p		%hi(atomic_operation),gr5
++	setlo		%lo(atomic_operation),gr5
++	movsg		esfr1,gr8
++	movsg		epcr0,gr9
++	movsg		esr0,gr10
++
++	# now that we've accessed the exception regs, we can enable exceptions
++	movsg		psr,gr4
++	ori		gr4,#PSR_ET,gr4
++	movgs		gr4,psr
++	jmpl		@(gr5,gr0)	; call atomic_operation(esfr1,epcr0,esr0)
++
++###############################################################################
++#
+ # handle media exception
+ #
+ ###############################################################################
+diff -puN arch/frv/kernel/traps.c~frv-add-support-for-emulation-of-userspace-atomic-ops arch/frv/kernel/traps.c
+--- a/arch/frv/kernel/traps.c~frv-add-support-for-emulation-of-userspace-atomic-ops
++++ a/arch/frv/kernel/traps.c
+@@ -102,6 +102,233 @@ asmlinkage void illegal_instruction(unsi
+ 
+ /*****************************************************************************/
+ /*
++ * handle atomic operations with errors
++ * - arguments in gr8, gr9, gr10
++ * - original memory value placed in gr5
++ * - replacement memory value placed in gr9
++ */
++asmlinkage void atomic_operation(unsigned long esfr1, unsigned long epcr0,
++				 unsigned long esr0)
++{
++	static DEFINE_SPINLOCK(atomic_op_lock);
++	unsigned long x, y, z, *p;
++	mm_segment_t oldfs;
++	siginfo_t info;
 +	int ret;
++
++	y = 0;
++	z = 0;
++
++	oldfs = get_fs();
++	if (!user_mode(__frame))
++		set_fs(KERNEL_DS);
++
++	switch (__frame->tbr & TBR_TT) {
++		/* TIRA gr0,#120
++		 * u32 __atomic_user_cmpxchg32(u32 *ptr, u32 test, u32 new)
++		 */
++	case TBR_TT_ATOMIC_CMPXCHG32:
++		p = (unsigned long *) __frame->gr8;
++		x = __frame->gr9;
++		y = __frame->gr10;
++
++		for (;;) {
++			ret = get_user(z, p);
++			if (ret < 0)
++				goto error;
++
++			if (z != x)
++				goto done;
++
++			spin_lock_irq(&atomic_op_lock);
++
++			if (__get_user(z, p) == 0) {
++				if (z != x)
++					goto done2;
++
++				if (__put_user(y, p) == 0)
++					goto done2;
++				goto error2;
++			}
++
++			spin_unlock_irq(&atomic_op_lock);
++		}
++
++		/* TIRA gr0,#121
++		 * u32 __atomic_kernel_xchg32(void *v, u32 new)
++		 */
++	case TBR_TT_ATOMIC_XCHG32:
++		p = (unsigned long *) __frame->gr8;
++		y = __frame->gr9;
++
++		for (;;) {
++			ret = get_user(z, p);
++			if (ret < 0)
++				goto error;
++
++			spin_lock_irq(&atomic_op_lock);
++
++			if (__get_user(z, p) == 0) {
++				if (__put_user(y, p) == 0)
++					goto done2;
++				goto error2;
++			}
++
++			spin_unlock_irq(&atomic_op_lock);
++		}
++
++		/* TIRA gr0,#122
++		 * ulong __atomic_kernel_XOR_return(ulong i, ulong *v)
++		 */
++	case TBR_TT_ATOMIC_XOR:
++		p = (unsigned long *) __frame->gr8;
++		x = __frame->gr9;
++
++		for (;;) {
++			ret = get_user(z, p);
++			if (ret < 0)
++				goto error;
++
++			spin_lock_irq(&atomic_op_lock);
++
++			if (__get_user(z, p) == 0) {
++				y = x ^ z;
++				if (__put_user(y, p) == 0)
++					goto done2;
++				goto error2;
++			}
++
++			spin_unlock_irq(&atomic_op_lock);
++		}
++
++		/* TIRA gr0,#123
++		 * ulong __atomic_kernel_OR_return(ulong i, ulong *v)
++		 */
++	case TBR_TT_ATOMIC_OR:
++		p = (unsigned long *) __frame->gr8;
++		x = __frame->gr9;
++
++		for (;;) {
++			ret = get_user(z, p);
++			if (ret < 0)
++				goto error;
++
++			spin_lock_irq(&atomic_op_lock);
++
++			if (__get_user(z, p) == 0) {
++				y = x ^ z;
++				if (__put_user(y, p) == 0)
++					goto done2;
++				goto error2;
++			}
++
++			spin_unlock_irq(&atomic_op_lock);
++		}
++
++		/* TIRA gr0,#124
++		 * ulong __atomic_kernel_AND_return(ulong i, ulong *v)
++		 */
++	case TBR_TT_ATOMIC_AND:
++		p = (unsigned long *) __frame->gr8;
++		x = __frame->gr9;
++
++		for (;;) {
++			ret = get_user(z, p);
++			if (ret < 0)
++				goto error;
++
++			spin_lock_irq(&atomic_op_lock);
++
++			if (__get_user(z, p) == 0) {
++				y = x & z;
++				if (__put_user(y, p) == 0)
++					goto done2;
++				goto error2;
++			}
++
++			spin_unlock_irq(&atomic_op_lock);
++		}
++
++		/* TIRA gr0,#125
++		 * int __atomic_user_sub_return(atomic_t *v, int i)
++		 */
++	case TBR_TT_ATOMIC_SUB:
++		p = (unsigned long *) __frame->gr8;
++		x = __frame->gr9;
++
++		for (;;) {
++			ret = get_user(z, p);
++			if (ret < 0)
++				goto error;
++
++			spin_lock_irq(&atomic_op_lock);
++
++			if (__get_user(z, p) == 0) {
++				y = z - x;
++				if (__put_user(y, p) == 0)
++					goto done2;
++				goto error2;
++			}
++
++			spin_unlock_irq(&atomic_op_lock);
++		}
++
++		/* TIRA gr0,#126
++		 * int __atomic_user_add_return(atomic_t *v, int i)
++		 */
++	case TBR_TT_ATOMIC_ADD:
++		p = (unsigned long *) __frame->gr8;
++		x = __frame->gr9;
++
++		for (;;) {
++			ret = get_user(z, p);
++			if (ret < 0)
++				goto error;
++
++			spin_lock_irq(&atomic_op_lock);
++
++			if (__get_user(z, p) == 0) {
++				y = z + x;
++				if (__put_user(y, p) == 0)
++					goto done2;
++				goto error2;
++			}
++
++			spin_unlock_irq(&atomic_op_lock);
++		}
++
++	default:
++		BUG();
++	}
++
++done2:
++	spin_unlock_irq(&atomic_op_lock);
++done:
++	if (!user_mode(__frame))
++		set_fs(oldfs);
++	__frame->gr5 = z;
++	__frame->gr9 = y;
++	return;
++
++error2:
++	spin_unlock_irq(&atomic_op_lock);
++error:
++	if (!user_mode(__frame))
++		set_fs(oldfs);
++	__frame->pc -= 4;
++
++	die_if_kernel("-- Atomic Op Error --\n");
++
++	info.si_signo	= SIGSEGV;
++	info.si_code	= SEGV_ACCERR;
++	info.si_errno	= 0;
++	info.si_addr	= (void *) __frame->pc;
++
++	force_sig_info(info.si_signo, &info, current);
++}
++
++/*****************************************************************************/
++/*
+  *
+  */
+ asmlinkage void media_exception(unsigned long msr0, unsigned long msr1)
+diff -puN include/asm-frv/spr-regs.h~frv-add-support-for-emulation-of-userspace-atomic-ops include/asm-frv/spr-regs.h
+--- a/include/asm-frv/spr-regs.h~frv-add-support-for-emulation-of-userspace-atomic-ops
++++ a/include/asm-frv/spr-regs.h
+@@ -99,9 +99,23 @@
+ #define TBR_TT_TRAP1		(0x81 << 4)
+ #define TBR_TT_TRAP2		(0x82 << 4)
+ #define TBR_TT_TRAP3		(0x83 << 4)
++#define TBR_TT_TRAP120		(0xf8 << 4)
++#define TBR_TT_TRAP121		(0xf9 << 4)
++#define TBR_TT_TRAP122		(0xfa << 4)
++#define TBR_TT_TRAP123		(0xfb << 4)
++#define TBR_TT_TRAP124		(0xfc << 4)
++#define TBR_TT_TRAP125		(0xfd << 4)
+ #define TBR_TT_TRAP126		(0xfe << 4)
+ #define TBR_TT_BREAK		(0xff << 4)
  
- 	isize = i_size_read(in->f_mapping->host);
- 	if (unlikely(*ppos >= isize))
-@@ -491,29 +492,9 @@ ssize_t generic_file_splice_read(struct 
- 	if (unlikely(left < len))
- 		len = left;
++#define TBR_TT_ATOMIC_CMPXCHG32	TBR_TT_TRAP120
++#define TBR_TT_ATOMIC_XCHG32	TBR_TT_TRAP121
++#define TBR_TT_ATOMIC_XOR	TBR_TT_TRAP122
++#define TBR_TT_ATOMIC_OR	TBR_TT_TRAP123
++#define TBR_TT_ATOMIC_AND	TBR_TT_TRAP124
++#define TBR_TT_ATOMIC_SUB	TBR_TT_TRAP125
++#define TBR_TT_ATOMIC_ADD	TBR_TT_TRAP126
++
+ #define __get_TBR()	({ unsigned long x; asm volatile("movsg tbr,%0" : "=r"(x)); x; })
  
--	ret = 0;
--	spliced = 0;
--	while (len && !spliced) {
--		ret = __generic_file_splice_read(in, ppos, pipe, len, flags);
--
--		if (ret < 0)
--			break;
--		else if (!ret) {
--			if (spliced)
--				break;
--			if (flags & SPLICE_F_NONBLOCK) {
--				ret = -EAGAIN;
--				break;
--			}
--		}
--
-+	ret = __generic_file_splice_read(in, ppos, pipe, len, flags);
-+	if (ret > 0)
- 		*ppos += ret;
--		len -= ret;
--		spliced += ret;
--	}
--
--	if (spliced)
--		return spliced;
- 
- 	return ret;
- }
+ /*
 _
 
-Patches currently in -mm which might be from jens.axboe@oracle.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-powerpc.patch
-git-scsi-misc.patch
-git-block.patch
-git-block-git-rejects.patch
-kconfig-cleanup-block-kconfig-help-descriptions.patch
-kconfig-cleanup-block-kconfigiosched-help-descriptions.patch
-block-replace-remaining-__function__-occurrences.patch
-block-fix-memory-hotplug-and-bouncing-in-block-layer.patch
-xen-make-blkif_getgeo-static.patch
-modify-ramdisk-brd-device-to-be-able-to-manage-partitions.patch
-block-remove-remaining-__function__-occurances.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-reiser4-specify-splice-file-operations.patch
+git-unionfs.patch
+remove-the-macro-get_personality.patch
+xattr-add-missing-consts-to-function-arguments.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+keys-switch-to-proc_create.patch
+keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
+keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys-fix.patch
+keys-explicitly-include-required-slabh-header-file.patch
+keys-make-key_serial-a-function-if-config_keys=y.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+alloc_uid-cleanup.patch
+rename-div64_64-to-div64_u64.patch
+afs-use-the-shorter-list_head-for-brevity.patch
+afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself.patch
+afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself-try-3.patch
+mutex-subsystem-synchro-test-module.patch
 
