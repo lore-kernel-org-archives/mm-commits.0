@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ata-ide-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
-Date: Sun, 13 Apr 2008 11:24:24 -0700
-Message-ID: <200804131824.m3DIOOXM032369@imap1.linux-foundation.org>
+Subject: + mtd-maps-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
+Date: Sun, 13 Apr 2008 11:25:39 -0700
+Message-ID: <200804131825.m3DIPddH032397@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33453 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36337 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750876AbYDMSZQ (ORCPT
+	by vger.kernel.org with ESMTP id S1751768AbYDMS0W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 13 Apr 2008 14:25:16 -0400
+	Sun, 13 Apr 2008 14:26:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kay.sievers@vrfy.org, bzolnier@gmail.com, dbrownell@users.sourceforge.net, htejun@gmail.com, jeff@garzik.org
+Cc: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, dwmw2@infradead.org
 
 
 The patch titled
-     ATA/IDE: fix platform driver hotplug/coldplug
+     mtd maps: fix platform driver hotplug/coldplug
 has been added to the -mm tree.  Its filename is
-     ata-ide-fix-platform-driver-hotplug-coldplug.patch
+     mtd-maps-fix-platform-driver-hotplug-coldplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,138 +34,159 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ATA/IDE: fix platform driver hotplug/coldplug
+Subject: mtd maps: fix platform driver hotplug/coldplug
 From: Kay Sievers <kay.sievers@vrfy.org>
 
 Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias is
-prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable ATA and IDE
+prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable MTD mapping
 platform drivers, to re-enable auto loading.
 
-NOTE: both ata/pata_platform.c and ide/legacy/ide_platform.c claim to provide
-"the" platform_pata driver, and there's no build-time mutual exclusion
-mechanism.  This means that configs which enable both drivers will make some
-trouble when hotplugging...
+NOTE oddness with physmap ...  it's a legacy driver in some configs, which
+means it can't always support hotplugging.  (Not that most of these mapping
+drivers would often be used as modules...)
 
-[dbrownell@users.sourceforge.net: more drivers, registration fixes]
+[dbrownell@users.sourceforge.net: bugfix, more drivers, registration fixes]
 Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_at32.c           |    3 +++
- drivers/ata/pata_bf54x.c          |    1 +
- drivers/ata/pata_ixp4xx_cf.c      |    1 +
- drivers/ata/pata_platform.c       |    1 +
- drivers/ata/pata_rb500_cf.c       |    3 +++
- drivers/ata/sata_mv.c             |    2 +-
- drivers/ide/arm/palm_bk3710.c     |    4 ++++
- drivers/ide/legacy/ide_platform.c |    2 ++
- 8 files changed, 16 insertions(+), 1 deletion(-)
+ drivers/mtd/maps/bast-flash.c       |    1 +
+ drivers/mtd/maps/integrator-flash.c |    2 ++
+ drivers/mtd/maps/ixp2000.c          |    3 ++-
+ drivers/mtd/maps/ixp4xx.c           |    2 ++
+ drivers/mtd/maps/omap_nor.c         |    3 ++-
+ drivers/mtd/maps/physmap.c          |    8 ++++++++
+ drivers/mtd/maps/plat-ram.c         |    3 +++
+ drivers/mtd/maps/sa1100-flash.c     |    2 ++
+ 8 files changed, 22 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_at32.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ata/pata_at32.c
---- a/drivers/ata/pata_at32.c~ata-ide-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/ata/pata_at32.c
-@@ -381,6 +381,9 @@ static int __exit pata_at32_remove(struc
- 	return 0;
- }
- 
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:at32_ide");
-+
- static struct platform_driver pata_at32_driver = {
- 	.remove	       = __exit_p(pata_at32_remove),
- 	.driver	       = {
-diff -puN drivers/ata/pata_bf54x.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ata/pata_bf54x.c
---- a/drivers/ata/pata_bf54x.c~ata-ide-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/ata/pata_bf54x.c
-@@ -1601,3 +1601,4 @@ MODULE_AUTHOR("Sonic Zhang <sonic.zhang@
- MODULE_DESCRIPTION("PATA driver for blackfin 54x ATAPI controller");
+diff -puN drivers/mtd/maps/bast-flash.c~mtd-maps-fix-platform-driver-hotplug-coldplug drivers/mtd/maps/bast-flash.c
+--- a/drivers/mtd/maps/bast-flash.c~mtd-maps-fix-platform-driver-hotplug-coldplug
++++ a/drivers/mtd/maps/bast-flash.c
+@@ -223,3 +223,4 @@ module_exit(bast_flash_exit);
  MODULE_LICENSE("GPL");
- MODULE_VERSION(DRV_VERSION);
-+MODULE_ALIAS("platform:" DRV_NAME);
-diff -puN drivers/ata/pata_ixp4xx_cf.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ata/pata_ixp4xx_cf.c
---- a/drivers/ata/pata_ixp4xx_cf.c~ata-ide-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/ata/pata_ixp4xx_cf.c
-@@ -221,6 +221,7 @@ MODULE_AUTHOR("Alessandro Zummo <a.zummo
- MODULE_DESCRIPTION("low-level driver for ixp4xx Compact Flash PATA");
- MODULE_LICENSE("GPL");
- MODULE_VERSION(DRV_VERSION);
-+MODULE_ALIAS("platform:" DRV_NAME);
- 
- module_init(ixp4xx_pata_init);
- module_exit(ixp4xx_pata_exit);
-diff -puN drivers/ata/pata_platform.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ata/pata_platform.c
---- a/drivers/ata/pata_platform.c~ata-ide-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/ata/pata_platform.c
-@@ -277,3 +277,4 @@ MODULE_AUTHOR("Paul Mundt");
- MODULE_DESCRIPTION("low-level driver for platform device ATA");
- MODULE_LICENSE("GPL");
- MODULE_VERSION(DRV_VERSION);
-+MODULE_ALIAS("platform:" DRV_NAME);
-diff -puN drivers/ata/pata_rb500_cf.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ata/pata_rb500_cf.c
---- a/drivers/ata/pata_rb500_cf.c~ata-ide-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/ata/pata_rb500_cf.c
-@@ -239,6 +239,9 @@ static __devexit int rb500_pata_driver_r
- 	return 0;
- }
- 
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:" DRV_NAME);
-+
- static struct platform_driver rb500_pata_platform_driver = {
- 	.probe		= rb500_pata_driver_probe,
- 	.remove		= __devexit_p(rb500_pata_driver_remove),
-diff -puN drivers/ata/sata_mv.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ata/sata_mv.c
---- a/drivers/ata/sata_mv.c~ata-ide-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/ata/sata_mv.c
-@@ -3122,7 +3122,7 @@ MODULE_DESCRIPTION("SCSI low-level drive
- MODULE_LICENSE("GPL");
- MODULE_DEVICE_TABLE(pci, mv_pci_tbl);
- MODULE_VERSION(DRV_VERSION);
--MODULE_ALIAS("platform:sata_mv");
-+MODULE_ALIAS("platform:" DRV_NAME);
- 
- #ifdef CONFIG_PCI
- module_param(msi, int, 0444);
-diff -puN drivers/ide/arm/palm_bk3710.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ide/arm/palm_bk3710.c
---- a/drivers/ide/arm/palm_bk3710.c~ata-ide-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/ide/arm/palm_bk3710.c
-@@ -409,9 +409,13 @@ out:
- 	return -ENODEV;
- }
- 
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:palm_bk3710");
-+
- static struct platform_driver platform_bk_driver = {
- 	.driver = {
- 		.name = "palm_bk3710",
-+		.owner = THIS_MODULE,
+ MODULE_AUTHOR("Ben Dooks <ben@simtec.co.uk>");
+ MODULE_DESCRIPTION("BAST MTD Map driver");
++MODULE_ALIAS("platform:bast-nor");
+diff -puN drivers/mtd/maps/integrator-flash.c~mtd-maps-fix-platform-driver-hotplug-coldplug drivers/mtd/maps/integrator-flash.c
+--- a/drivers/mtd/maps/integrator-flash.c~mtd-maps-fix-platform-driver-hotplug-coldplug
++++ a/drivers/mtd/maps/integrator-flash.c
+@@ -190,6 +190,7 @@ static struct platform_driver armflash_d
+ 	.remove		= armflash_remove,
+ 	.driver		= {
+ 		.name	= "armflash",
++		.owner	= THIS_MODULE,
  	},
- 	.probe = palm_bk3710_probe,
- 	.remove = NULL,
-diff -puN drivers/ide/legacy/ide_platform.c~ata-ide-fix-platform-driver-hotplug-coldplug drivers/ide/legacy/ide_platform.c
---- a/drivers/ide/legacy/ide_platform.c~ata-ide-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/ide/legacy/ide_platform.c
-@@ -130,6 +130,7 @@ static int __devexit plat_ide_remove(str
- static struct platform_driver platform_ide_driver = {
- 	.driver = {
- 		.name = "pata_platform",
-+		.owner = THIS_MODULE,
- 	},
- 	.probe = plat_ide_probe,
- 	.remove = __devexit_p(plat_ide_remove),
-@@ -147,6 +148,7 @@ static void __exit platform_ide_exit(voi
+ };
  
- MODULE_DESCRIPTION("Platform IDE driver");
+@@ -209,3 +210,4 @@ module_exit(armflash_exit);
+ MODULE_AUTHOR("ARM Ltd");
+ MODULE_DESCRIPTION("ARM Integrator CFI map driver");
  MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:pata_platform");
++MODULE_ALIAS("platform:armflash");
+diff -puN drivers/mtd/maps/ixp2000.c~mtd-maps-fix-platform-driver-hotplug-coldplug drivers/mtd/maps/ixp2000.c
+--- a/drivers/mtd/maps/ixp2000.c~mtd-maps-fix-platform-driver-hotplug-coldplug
++++ a/drivers/mtd/maps/ixp2000.c
+@@ -253,6 +253,7 @@ static struct platform_driver ixp2000_fl
+ 	.remove		= ixp2000_flash_remove,
+ 	.driver		= {
+ 		.name	= "IXP2000-Flash",
++		.owner	= THIS_MODULE,
+ 	},
+ };
  
- module_init(platform_ide_init);
- module_exit(platform_ide_exit);
+@@ -270,4 +271,4 @@ module_init(ixp2000_flash_init);
+ module_exit(ixp2000_flash_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Deepak Saxena <dsaxena@plexity.net>");
+-
++MODULE_ALIAS("platform:IXP2000-Flash");
+diff -puN drivers/mtd/maps/ixp4xx.c~mtd-maps-fix-platform-driver-hotplug-coldplug drivers/mtd/maps/ixp4xx.c
+--- a/drivers/mtd/maps/ixp4xx.c~mtd-maps-fix-platform-driver-hotplug-coldplug
++++ a/drivers/mtd/maps/ixp4xx.c
+@@ -275,6 +275,7 @@ static struct platform_driver ixp4xx_fla
+ 	.remove		= ixp4xx_flash_remove,
+ 	.driver		= {
+ 		.name	= "IXP4XX-Flash",
++		.owner	= THIS_MODULE,
+ 	},
+ };
+ 
+@@ -295,3 +296,4 @@ module_exit(ixp4xx_flash_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("MTD map driver for Intel IXP4xx systems");
+ MODULE_AUTHOR("Deepak Saxena");
++MODULE_ALIAS("platform:IXP4XX-Flash");
+diff -puN drivers/mtd/maps/omap_nor.c~mtd-maps-fix-platform-driver-hotplug-coldplug drivers/mtd/maps/omap_nor.c
+--- a/drivers/mtd/maps/omap_nor.c~mtd-maps-fix-platform-driver-hotplug-coldplug
++++ a/drivers/mtd/maps/omap_nor.c
+@@ -156,6 +156,7 @@ static struct platform_driver omapflash_
+ 	.remove	= __devexit_p(omapflash_remove),
+ 	.driver = {
+ 		.name	= "omapflash",
++		.owner	= THIS_MODULE,
+ 	},
+ };
+ 
+@@ -174,4 +175,4 @@ module_exit(omapflash_exit);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("MTD NOR map driver for TI OMAP boards");
+-
++MODULE_ALIAS("platform:omapflash");
+diff -puN drivers/mtd/maps/physmap.c~mtd-maps-fix-platform-driver-hotplug-coldplug drivers/mtd/maps/physmap.c
+--- a/drivers/mtd/maps/physmap.c~mtd-maps-fix-platform-driver-hotplug-coldplug
++++ a/drivers/mtd/maps/physmap.c
+@@ -242,6 +242,7 @@ static struct platform_driver physmap_fl
+ 	.shutdown	= physmap_flash_shutdown,
+ 	.driver		= {
+ 		.name	= "physmap-flash",
++		.owner	= THIS_MODULE,
+ 	},
+ };
+ 
+@@ -319,3 +320,10 @@ module_exit(physmap_exit);
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("David Woodhouse <dwmw2@infradead.org>");
+ MODULE_DESCRIPTION("Generic configurable MTD map driver");
++
++/* legacy platform drivers can't hotplug or coldplg */
++#ifndef PHYSMAP_COMPAT
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:physmap-flash");
++#endif
++
+diff -puN drivers/mtd/maps/plat-ram.c~mtd-maps-fix-platform-driver-hotplug-coldplug drivers/mtd/maps/plat-ram.c
+--- a/drivers/mtd/maps/plat-ram.c~mtd-maps-fix-platform-driver-hotplug-coldplug
++++ a/drivers/mtd/maps/plat-ram.c
+@@ -251,6 +251,9 @@ static int platram_probe(struct platform
+ 
+ /* device driver info */
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:mtd-ram");
++
+ static struct platform_driver platram_driver = {
+ 	.probe		= platram_probe,
+ 	.remove		= platram_remove,
+diff -puN drivers/mtd/maps/sa1100-flash.c~mtd-maps-fix-platform-driver-hotplug-coldplug drivers/mtd/maps/sa1100-flash.c
+--- a/drivers/mtd/maps/sa1100-flash.c~mtd-maps-fix-platform-driver-hotplug-coldplug
++++ a/drivers/mtd/maps/sa1100-flash.c
+@@ -456,6 +456,7 @@ static struct platform_driver sa1100_mtd
+ 	.shutdown	= sa1100_mtd_shutdown,
+ 	.driver		= {
+ 		.name	= "flash",
++		.owner	= THIS_MODULE,
+ 	},
+ };
+ 
+@@ -475,3 +476,4 @@ module_exit(sa1100_mtd_exit);
+ MODULE_AUTHOR("Nicolas Pitre");
+ MODULE_DESCRIPTION("SA1100 CFI map driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:flash");
 _
 
 Patches currently in -mm which might be from kay.sievers@vrfy.org are
@@ -179,6 +200,8 @@ pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
 pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.patch
 pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
 ata-ide-fix-platform-driver-hotplug-coldplug.patch
+mtd-maps-fix-platform-driver-hotplug-coldplug.patch
+mtd-nand-fix-platform-driver-hotplug-coldplug.patch
 mm-bdi-export-bdi-attributes-in-sysfs.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
 infrastructure-to-debug-dynamic-objects.patch
@@ -186,6 +209,4 @@ debugobjects-add-documentation.patch
 debugobjects-add-timer-specific-object-debugging-code.patch
 add-hrtimer-specific-debugobjects-code.patch
 cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
-mtd-maps-fix-platform-driver-hotplug-coldplug.patch
-mtd-nand-fix-platform-driver-hotplug-coldplug.patch
 
