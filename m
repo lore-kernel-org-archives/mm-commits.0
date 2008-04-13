@@ -1,122 +1,261 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-patch-tags-one-more-time.patch removed from -mm tree
-Date: Sat, 12 Apr 2008 19:40:25 -0700
-Message-ID: <200804130240.m3D2eP1T032504@imap1.linux-foundation.org>
+Subject: - i2c-fix-platform-driver-hotplug-coldplug.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:40:09 -0700
+Message-ID: <200804130240.m3D2e9Er032476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54089 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47870 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755542AbYDMCkc (ORCPT
+	by vger.kernel.org with ESMTP id S1755498AbYDMCke (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 22:40:32 -0400
+	Sat, 12 Apr 2008 22:40:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: corbet@lwn.net, penberg@cs.helsinki.fi, pj@sgi.com, mm-commits@vger.kernel.org
+To: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, greg@kroah.com, khali@linux-fr.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Documentation/patch-tags, one more time
+     i2c: fix platform driver hotplug/coldplug
 has been removed from the -mm tree.  Its filename was
-     documentation-patch-tags-one-more-time.patch
+     i2c-fix-platform-driver-hotplug-coldplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Documentation/patch-tags, one more time
-From: Jonathan Corbet <corbet@lwn.net>
+Subject: i2c: fix platform driver hotplug/coldplug
+From: Kay Sievers <kay.sievers@vrfy.org>
 
-Add a document describing the various tags attached to patches.
+Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias is
+prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable I2C
+platform drivers, to allow module auto loading.
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
-Cc: "Pekka Enberg" <penberg@cs.helsinki.fi>
-Reviewed-by: Paul Jackson <pj@sgi.com>
-Acked-by: Paul Jackson <pj@sgi.com>
-Tested-by: Paul Jackson <pj@sgi.com>
+[dbrownell@users.sourceforge.net: add some more drivers]
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jean Delvare <khali@linux-fr.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/SubmittingPatches |   54 ++++++++++++++++++++++++++++--
- 1 file changed, 51 insertions(+), 3 deletions(-)
+ drivers/i2c/busses/i2c-at91.c      |    2 +-
+ drivers/i2c/busses/i2c-au1550.c    |    1 +
+ drivers/i2c/busses/i2c-bfin-twi.c  |    1 +
+ drivers/i2c/busses/i2c-davinci.c   |    3 +++
+ drivers/i2c/busses/i2c-gpio.c      |    1 +
+ drivers/i2c/busses/i2c-iop3xx.c    |    1 +
+ drivers/i2c/busses/i2c-ixp2000.c   |    1 +
+ drivers/i2c/busses/i2c-mpc.c       |    3 +++
+ drivers/i2c/busses/i2c-ocores.c    |    3 +++
+ drivers/i2c/busses/i2c-omap.c      |    1 +
+ drivers/i2c/busses/i2c-pmcmsp.c    |    3 +++
+ drivers/i2c/busses/i2c-pnx.c       |    1 +
+ drivers/i2c/busses/i2c-powermac.c  |    3 +++
+ drivers/i2c/busses/i2c-pxa.c       |    1 +
+ drivers/i2c/busses/i2c-s3c2410.c   |    1 +
+ drivers/i2c/busses/i2c-simtec.c    |    3 +++
+ drivers/i2c/busses/i2c-versatile.c |    1 +
+ 17 files changed, 29 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/SubmittingPatches~documentation-patch-tags-one-more-time Documentation/SubmittingPatches
---- a/Documentation/SubmittingPatches~documentation-patch-tags-one-more-time
-+++ a/Documentation/SubmittingPatches
-@@ -328,7 +328,7 @@ now, but you can do this to mark interna
- point out some special detail about the sign-off. 
+diff -puN drivers/i2c/busses/i2c-at91.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-at91.c
+--- a/drivers/i2c/busses/i2c-at91.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-at91.c
+@@ -298,7 +298,7 @@ static int at91_i2c_resume(struct platfo
+ #endif
+ 
+ /* work with "modprobe at91_i2c" from hotplugging or coldplugging */
+-MODULE_ALIAS("at91_i2c");
++MODULE_ALIAS("platform:at91_i2c");
+ 
+ static struct platform_driver at91_i2c_driver = {
+ 	.probe		= at91_i2c_probe,
+diff -puN drivers/i2c/busses/i2c-au1550.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-au1550.c
+--- a/drivers/i2c/busses/i2c-au1550.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-au1550.c
+@@ -472,6 +472,7 @@ i2c_au1550_exit(void)
+ MODULE_AUTHOR("Dan Malek, Embedded Edge, LLC.");
+ MODULE_DESCRIPTION("SMBus adapter Alchemy pb1550");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:au1xpsc_smbus");
+ 
+ module_init (i2c_au1550_init);
+ module_exit (i2c_au1550_exit);
+diff -puN drivers/i2c/busses/i2c-bfin-twi.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-bfin-twi.c
+--- a/drivers/i2c/busses/i2c-bfin-twi.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-bfin-twi.c
+@@ -624,6 +624,7 @@ static void __exit i2c_bfin_twi_exit(voi
+ MODULE_AUTHOR("Sonic Zhang <sonic.zhang@analog.com>");
+ MODULE_DESCRIPTION("I2C-Bus adapter routines for Blackfin TWI");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:i2c-bfin-twi");
+ 
+ module_init(i2c_bfin_twi_init);
+ module_exit(i2c_bfin_twi_exit);
+diff -puN drivers/i2c/busses/i2c-davinci.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-davinci.c
+--- a/drivers/i2c/busses/i2c-davinci.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-davinci.c
+@@ -558,6 +558,9 @@ static int davinci_i2c_remove(struct pla
+ 	return 0;
+ }
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:i2c_davinci");
++
+ static struct platform_driver davinci_i2c_driver = {
+ 	.probe		= davinci_i2c_probe,
+ 	.remove		= davinci_i2c_remove,
+diff -puN drivers/i2c/busses/i2c-gpio.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-gpio.c
+--- a/drivers/i2c/busses/i2c-gpio.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-gpio.c
+@@ -220,3 +220,4 @@ module_exit(i2c_gpio_exit);
+ MODULE_AUTHOR("Haavard Skinnemoen <hskinnemoen@atmel.com>");
+ MODULE_DESCRIPTION("Platform-independent bitbanging I2C driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:i2c-gpio");
+diff -puN drivers/i2c/busses/i2c-iop3xx.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-iop3xx.c
+--- a/drivers/i2c/busses/i2c-iop3xx.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-iop3xx.c
+@@ -550,3 +550,4 @@ module_exit (i2c_iop3xx_exit);
+ MODULE_AUTHOR("D-TACQ Solutions Ltd <www.d-tacq.com>");
+ MODULE_DESCRIPTION("IOP3xx iic algorithm and driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:IOP3xx-I2C");
+diff -puN drivers/i2c/busses/i2c-ixp2000.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-ixp2000.c
+--- a/drivers/i2c/busses/i2c-ixp2000.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-ixp2000.c
+@@ -164,4 +164,5 @@ module_exit(ixp2000_i2c_exit);
+ MODULE_AUTHOR ("Deepak Saxena <dsaxena@plexity.net>");
+ MODULE_DESCRIPTION("IXP2000 GPIO-based I2C bus driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:IXP2000-I2C");
+ 
+diff -puN drivers/i2c/busses/i2c-mpc.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-mpc.c
+--- a/drivers/i2c/busses/i2c-mpc.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-mpc.c
+@@ -392,6 +392,9 @@ static int fsl_i2c_remove(struct platfor
+ 	return 0;
+ };
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:fsl-i2c");
++
+ /* Structure for a device driver */
+ static struct platform_driver fsl_i2c_driver = {
+ 	.probe = fsl_i2c_probe,
+diff -puN drivers/i2c/busses/i2c-ocores.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-ocores.c
+--- a/drivers/i2c/busses/i2c-ocores.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-ocores.c
+@@ -312,6 +312,9 @@ static int __devexit ocores_i2c_remove(s
+ 	return 0;
+ }
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:ocores-i2c");
++
+ static struct platform_driver ocores_i2c_driver = {
+ 	.probe  = ocores_i2c_probe,
+ 	.remove = __devexit_p(ocores_i2c_remove),
+diff -puN drivers/i2c/busses/i2c-omap.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-omap.c
+--- a/drivers/i2c/busses/i2c-omap.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-omap.c
+@@ -693,3 +693,4 @@ module_exit(omap_i2c_exit_driver);
+ MODULE_AUTHOR("MontaVista Software, Inc. (and others)");
+ MODULE_DESCRIPTION("TI OMAP I2C bus adapter");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:i2c_omap");
+diff -puN drivers/i2c/busses/i2c-pmcmsp.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-pmcmsp.c
+--- a/drivers/i2c/busses/i2c-pmcmsp.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-pmcmsp.c
+@@ -627,6 +627,9 @@ static struct i2c_adapter pmcmsptwi_adap
+ 	.name		= DRV_NAME,
+ };
+ 
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:" DRV_NAME);
++
+ static struct platform_driver pmcmsptwi_driver = {
+ 	.probe  = pmcmsptwi_probe,
+ 	.remove	= __devexit_p(pmcmsptwi_remove),
+diff -puN drivers/i2c/busses/i2c-pnx.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-pnx.c
+--- a/drivers/i2c/busses/i2c-pnx.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-pnx.c
+@@ -697,6 +697,7 @@ static void __exit i2c_adap_pnx_exit(voi
+ MODULE_AUTHOR("Vitaly Wool, Dennis Kovalev <source@mvista.com>");
+ MODULE_DESCRIPTION("I2C driver for Philips IP3204-based I2C busses");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:pnx-i2c");
+ 
+ /* We need to make sure I2C is initialized before USB */
+ subsys_initcall(i2c_adap_pnx_init);
+diff -puN drivers/i2c/busses/i2c-powermac.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-powermac.c
+--- a/drivers/i2c/busses/i2c-powermac.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-powermac.c
+@@ -263,6 +263,9 @@ static int __devexit i2c_powermac_probe(
+ }
  
  
--13) When to use Acked-by:
-+13) When to use Acked-by: and Cc:
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:i2c-powermac");
++
+ static struct platform_driver i2c_powermac_driver = {
+ 	.probe = i2c_powermac_probe,
+ 	.remove = __devexit_p(i2c_powermac_remove),
+diff -puN drivers/i2c/busses/i2c-pxa.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-pxa.c
+--- a/drivers/i2c/busses/i2c-pxa.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-pxa.c
+@@ -1131,6 +1131,7 @@ static void __exit i2c_adap_pxa_exit(voi
+ }
  
- The Signed-off-by: tag indicates that the signer was involved in the
- development of the patch, or that he/she was in the patch's delivery path.
-@@ -349,11 +349,59 @@ Acked-by: does not necessarily indicate 
- For example, if a patch affects multiple subsystems and has an Acked-by: from
- one subsystem maintainer then this usually indicates acknowledgement of just
- the part which affects that maintainer's code.  Judgement should be used here.
-- When in doubt people should refer to the original discussion in the mailing
-+When in doubt people should refer to the original discussion in the mailing
- list archives.
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:pxa2xx-i2c");
  
-+If a person has had the opportunity to comment on a patch, but has not
-+provided such comments, you may optionally add a "Cc:" tag to the patch.
-+This is the only tag which might be added without an explicit action by the
-+person it names.  This tag documents that potentially interested parties
-+have been included in the discussion
+ module_init(i2c_adap_pxa_init);
+ module_exit(i2c_adap_pxa_exit);
+diff -puN drivers/i2c/busses/i2c-s3c2410.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-s3c2410.c
+--- a/drivers/i2c/busses/i2c-s3c2410.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-s3c2410.c
+@@ -948,3 +948,4 @@ module_exit(i2c_adap_s3c_exit);
+ MODULE_DESCRIPTION("S3C24XX I2C Bus driver");
+ MODULE_AUTHOR("Ben Dooks, <ben@simtec.co.uk>");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:s3c2410-i2c");
+diff -puN drivers/i2c/busses/i2c-simtec.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-simtec.c
+--- a/drivers/i2c/busses/i2c-simtec.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-simtec.c
+@@ -159,6 +159,9 @@ static int simtec_i2c_remove(struct plat
  
--14) The canonical patch format
-+
-+14) Using Test-by: and Reviewed-by:
-+
-+A Tested-by: tag indicates that the patch has been successfully tested (in
-+some environment) by the person named.  This tag informs maintainers that
-+some testing has been performed, provides a means to locate testers for
-+future patches, and ensures credit for the testers.
-+
-+Reviewed-by:, instead, indicates that the patch has been reviewed and found
-+acceptable according to the Reviewer's Statement:
-+
-+	Reviewer's statement of oversight
-+
-+	By offering my Reviewed-by: tag, I state that:
-+
-+ 	 (a) I have carried out a technical review of this patch to
-+	     evaluate its appropriateness and readiness for inclusion into
-+	     the mainline kernel.
-+
-+	 (b) Any problems, concerns, or questions relating to the patch
-+	     have been communicated back to the submitter.  I am satisfied
-+	     with the submitter's response to my comments.
-+
-+	 (c) While there may be things that could be improved with this
-+	     submission, I believe that it is, at this time, (1) a
-+	     worthwhile modification to the kernel, and (2) free of known
-+	     issues which would argue against its inclusion.
-+
-+	 (d) While I have reviewed the patch and believe it to be sound, I
-+	     do not (unless explicitly stated elsewhere) make any
-+	     warranties or guarantees that it will achieve its stated
-+	     purpose or function properly in any given situation.
-+
-+A Reviewed-by tag is a statement of opinion that the patch is an
-+appropriate modification of the kernel without any remaining serious
-+technical issues.  Any interested reviewer (who has done the work) can
-+offer a Reviewed-by tag for a patch.  This tag serves to give credit to
-+reviewers and to inform maintainers of the degree of review which has been
-+done on the patch.  Reviewed-by: tags, when supplied by reviewers known to
-+understand the subject area and to perform thorough reviews, will normally
-+increase the liklihood of your patch getting into the kernel.
-+
-+
-+15) The canonical patch format
+ /* device driver */
  
- The canonical patch subject line is:
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:simtec-i2c");
++
+ static struct platform_driver simtec_i2c_driver = {
+ 	.driver		= {
+ 		.name		= "simtec-i2c",
+diff -puN drivers/i2c/busses/i2c-versatile.c~i2c-fix-platform-driver-hotplug-coldplug drivers/i2c/busses/i2c-versatile.c
+--- a/drivers/i2c/busses/i2c-versatile.c~i2c-fix-platform-driver-hotplug-coldplug
++++ a/drivers/i2c/busses/i2c-versatile.c
+@@ -151,3 +151,4 @@ module_exit(i2c_versatile_exit);
  
+ MODULE_DESCRIPTION("ARM Versatile I2C bus driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:versatile-i2c");
 _
 
-Patches currently in -mm which might be from corbet@lwn.net are
+Patches currently in -mm which might be from kay.sievers@vrfy.org are
 
-git-dvb.patch
+mmc-fix-platform-driver-hotplug-coldplug.patch
+leds-fix-platform-driver-hotplug-coldplug.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
+pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type-rev-3.patch
+pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
+cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
 
