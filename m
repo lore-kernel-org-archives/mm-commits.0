@@ -1,140 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-fix-proc-fb-oops-after-module-removal.patch added to -mm tree
-Date: Sat, 12 Apr 2008 15:20:11 -0700
-Message-ID: <200804122220.m3CMKBAW023835@imap1.linux-foundation.org>
+Subject: - git-x86-git-rejects.patch removed from -mm tree
+Date: Sat, 12 Apr 2008 19:25:13 -0700
+Message-ID: <200804130225.m3D2PDd8031890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53345 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755501AbYDLWU5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752611AbYDMCZR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 12 Apr 2008 18:20:57 -0400
+	Sat, 12 Apr 2008 22:25:17 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3D2PEXK009998
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 12 Apr 2008 19:25:15 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, adaplas@pol.net, stable@kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: fix /proc/fb oops after module removal
-has been added to the -mm tree.  Its filename is
-     fbdev-fix-proc-fb-oops-after-module-removal.patch
+     git-x86-git-rejects
+has been removed from the -mm tree.  Its filename was
+     git-x86-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: fix /proc/fb oops after module removal
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: git-x86-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-/proc/fb is not removed during rmmod.
-
-Steps to reproduce:
-
-	modprobe fb
-	rmmod fb
-	ls /proc
-
-BUG: unable to handle kernel paging request at ffffffffa0094370
-IP: [<ffffffff802b92a1>] proc_get_inode+0x101/0x130
-PGD 203067 PUD 207063 PMD 17e758067 PTE 0
-Oops: 0000 [1] SMP
-last sysfs file: /sys/devices/pci0000:00/0000:00:1e.0/0000:05:02.0/resource
-CPU 1
-Modules linked in: nf_conntrack_irc xt_state iptable_filter ipt_MASQUERADE iptable_nat nf_nat nf_conntrack_ipv4 nf_conntrack ip_tables x_tables vfat fat usbhid ehci_hcd uhci_hcd usbcore sr_mod cdrom [last unloaded: fb]
-Pid: 21205, comm: ls Not tainted 2.6.25-rc8-mm2 #14
-RIP: 0010:[<ffffffff802b92a1>]  [<ffffffff802b92a1>] proc_get_inode+0x101/0x130
-RSP: 0018:ffff81017c4bfc78  EFLAGS: 00010246
-RAX: 0000000000008000 RBX: ffff8101787f5470 RCX: 0000000048011ccc
-RDX: ffffffffa0094320 RSI: ffff810006ad43b0 RDI: ffff81017fc2cc00
-RBP: ffff81017e450300 R08: 0000000000000002 R09: ffff81017c5d1000
-R10: 0000000000000000 R11: 0000000000000246 R12: ffff81016b903a28
-R13: ffff81017f822020 R14: ffff81017c4bfd58 R15: ffff81017f822020
-FS:  00007f08e71696f0(0000) GS:ffff81017fc06480(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: ffffffffa0094370 CR3: 000000017e54a000 CR4: 00000000000006e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process ls (pid: 21205, threadinfo ffff81017c4be000, task ffff81017de48770)
-Stack:  ffff81017c5d1000 00000000ffffffea ffff81017e450300 ffffffff802bdd1e
- ffff81017f802258 ffff81017c4bfe48 ffff81016b903a28 ffff81017f822020
- ffff81017c4bfd48 ffffffff802b9ba0 ffff81016b903a28 ffff81017f802258
-Call Trace:
- [<ffffffff802bdd1e>] ? proc_lookup_de+0x8e/0x100
- [<ffffffff802b9ba0>] ? proc_root_lookup+0x20/0x60
- [<ffffffff802882a7>] ? do_lookup+0x1b7/0x210
- [<ffffffff8028883d>] ? __link_path_walk+0x53d/0x7f0
- [<ffffffff80295eb8>] ? mntput_no_expire+0x28/0x130
- [<ffffffff80288b4a>] ? path_walk+0x5a/0xc0
- [<ffffffff80288dd3>] ? do_path_lookup+0x83/0x1c0
- [<ffffffff80287785>] ? getname+0xe5/0x210
- [<ffffffff80289adb>] ? __user_walk_fd+0x4b/0x80
- [<ffffffff8028236c>] ? vfs_lstat_fd+0x2c/0x70
- [<ffffffff8028bf1e>] ? filldir+0xae/0xf0
- [<ffffffff802b92e9>] ? de_put+0x9/0x50
- [<ffffffff8029633d>] ? mnt_want_write+0x2d/0x80
- [<ffffffff8029339f>] ? touch_atime+0x1f/0x170
- [<ffffffff802b9b1d>] ? proc_root_readdir+0x7d/0xa0
- [<ffffffff802825e7>] ? sys_newlstat+0x27/0x50
- [<ffffffff8028bffb>] ? vfs_readdir+0x9b/0xd0
- [<ffffffff8028c0fe>] ? sys_getdents+0xce/0xe0
- [<ffffffff8020b39b>] ? system_call_after_swapgs+0x7b/0x80
-
-Code: b7 83 b2 00 00 00 25 00 f0 00 00 3d 00 80 00 00 74 19 48 89 93 f0 00 00 00 48 89 df e8 39 9a fd ff 48 89 d8 48 83 c4 08 5b 5d c3 <48> 83 7a 50 00 48 c7 c0 60 16 45 80 48 c7 c2 40 17 45 80 48 0f
-RIP  [<ffffffff802b92a1>] proc_get_inode+0x101/0x130
- RSP <ffff81017c4bfc78>
-CR2: ffffffffa0094370
----[ end trace c71hiarjan8ab739 ]---
-
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-"Antonino A. Daplas" <adaplas@pol.net>
-Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/asm-x86/linkage.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN drivers/video/fbmem.c~fbdev-fix-proc-fb-oops-after-module-removal drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fbdev-fix-proc-fb-oops-after-module-removal
-+++ a/drivers/video/fbmem.c
-@@ -1521,6 +1521,7 @@ module_init(fbmem_init);
- static void __exit
- fbmem_exit(void)
- {
-+	remove_proc_entry("fb", NULL);
- 	class_destroy(fb_class);
- 	unregister_chrdev(FB_MAJOR, "fb");
- }
+diff -puN include/asm-x86/linkage.h~git-x86-git-rejects include/asm-x86/linkage.h
+--- a/include/asm-x86/linkage.h~git-x86-git-rejects
++++ a/include/asm-x86/linkage.h
+@@ -11,10 +11,7 @@
+ 
+ #ifdef CONFIG_X86_32
+ #define asmlinkage CPP_ASMLINKAGE __attribute__((regparm(0)))
+-<<<<<<< HEAD:include/asm-x86/linkage.h
+-=======
+ #define prevent_tail_call(ret) asm("" : "=r" (ret) : "0" (ret))
+->>>>>>> FETCH_HEAD:include/asm-x86/linkage.h
+ /*
+  * For 32-bit UML - mark functions implemented in assembly that use
+  * regparm input parameters:
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fbdev-fix-proc-fb-oops-after-module-removal.patch
-tags-add-menuconfig-symbols-as-well.patch
-slub-add-missing-slab_unlock-to-__kmem_cache_shrink.patch
-remove-the-macro-get_personality.patch
-nv-drop-useless-module-ifdefs.patch
-nv-drop-useless-config_pci-checks.patch
-nv-fix-sparse-noise.patch
-procfs-mem-permission-cleanup.patch
-proc-simplify-locking-in-remove_proc_entry.patch
-proc-less-special-case-in-xlate-code.patch
-proc-drop-several-pde-valid-invalid-checks.patch
-proc-remove-proc_bus.patch
-proc-remove-proc_root_fs.patch
-proc-remove-proc_root_driver.patch
-proc-remove-proc_root-from-drivers.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+git-acpi.patch
+git-acpi-revert-suspend-wakeup-code-in-c.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86.patch
+git-x86-git-rejects.patch
+revert-include-asm-x86-i387h-checkpatch-cleanups-formatting-only.patch
+git-x86-revert-x86-fpu-lazy-allocation-of-fpu-area-v5.patch
+git-x86-revert-x86-fpu-split-fpu-state-from-task-struct-v5.patch
+arch-x86-mm-ioremapc-fix-printk-warnings.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+git-kgdb-light.patch
+git-x86-hack-around-to-make-git-kgdb-build.patch
+git-x86-vs-git-kgdb-lite.patch
+git-alsa-tiwai.patch
+es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+cifs-suppress-warning.patch
+git-powerpc.patch
+pm-remove-destroy_suspended_device.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
+pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch
+git-drm.patch
+revert-git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-dlm-vs-git-gfs2-nwm.patch
+git-hid.patch
+git-hrt.patch
+time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
+git-ia64.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-kvm.patch
+git-leds.patch
+git-libata-all.patch
+git-libata-all-unbork-drivers-ata-sata_sx4c.patch
+pata_atiixp-simplex-clear-fix.patch
+git-async-tx.patch
+git-mips.patch
+git-net.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+ehea-fix-dlpar-memory-add-support-fix.patch
+sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
+pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-introduce-pci_slot-fix-fix.patch
+pci-hotplug-introduce-pci_slot-fix-2.patch
+pci-hotplug-introduce-pci_slot-fix-99.patch
+pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
+git-s390.patch
+git-sched.patch
+git-sh.patch
+sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
+sh-export-empty_zero_page.patch
+git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+aacraid-fix-unchecked-down_interruptible.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-misplaced-hunk.patch
+git-cryptodev-fix-conflict.patch
+git-cryptodev-fix-conflict-hack.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+git-semaphore-vs-git-x86.patch
+git-semaphore-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+mm-introduce-pte_special-pte-bit-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-rcu_assign_index-if-ever-needed-fix.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
 
