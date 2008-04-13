@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + misc-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
-Date: Sun, 13 Apr 2008 11:23:13 -0700
-Message-ID: <200804131823.m3DINDiJ032347@imap1.linux-foundation.org>
+Subject: + pcmcia-fix-platform-driver-hotplug-coldplug.patch added to -mm tree
+Date: Sun, 13 Apr 2008 11:23:15 -0700
+Message-ID: <200804131823.m3DINFtB032350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41753 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751807AbYDMSX0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751881AbYDMSX0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 13 Apr 2008 14:23:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     misc: fix platform driver hotplug/coldplug
+     pcmcia: fix platform driver hotplug/coldplug
 has been added to the -mm tree.  Its filename is
-     misc-fix-platform-driver-hotplug-coldplug.patch
+     pcmcia-fix-platform-driver-hotplug-coldplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc: fix platform driver hotplug/coldplug
+Subject: pcmcia: fix platform driver hotplug/coldplug
 From: Kay Sievers <kay.sievers@vrfy.org>
 
 Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias is
-prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable 'misc'
+prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable PCMCIA
 platform drivers, to re-enable auto loading.
 
-[dbrownell@users.sourceforge.net:  bugfix, registration fixes]
+[dbrownell@users.sourceforge.net: registration fixes]
 Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/atmel-ssc.c              |    2 ++
- drivers/misc/atmel_pwm.c              |    1 +
- drivers/misc/hdpuftrs/hdpu_cpustate.c |    2 ++
- drivers/misc/hdpuftrs/hdpu_nexus.c    |    2 ++
- 4 files changed, 7 insertions(+)
+ drivers/pcmcia/at91_cf.c     |    1 +
+ drivers/pcmcia/omap_cf.c     |    2 ++
+ drivers/pcmcia/pxa2xx_base.c |    2 ++
+ 3 files changed, 5 insertions(+)
 
-diff -puN drivers/misc/atmel-ssc.c~misc-fix-platform-driver-hotplug-coldplug drivers/misc/atmel-ssc.c
---- a/drivers/misc/atmel-ssc.c~misc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/misc/atmel-ssc.c
-@@ -154,6 +154,7 @@ static struct platform_driver ssc_driver
- 	.remove		= __devexit_p(ssc_remove),
+diff -puN drivers/pcmcia/at91_cf.c~pcmcia-fix-platform-driver-hotplug-coldplug drivers/pcmcia/at91_cf.c
+--- a/drivers/pcmcia/at91_cf.c~pcmcia-fix-platform-driver-hotplug-coldplug
++++ a/drivers/pcmcia/at91_cf.c
+@@ -419,3 +419,4 @@ module_exit(at91_cf_exit);
+ MODULE_DESCRIPTION("AT91 Compact Flash Driver");
+ MODULE_AUTHOR("David Brownell");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:at91_cf");
+diff -puN drivers/pcmcia/omap_cf.c~pcmcia-fix-platform-driver-hotplug-coldplug drivers/pcmcia/omap_cf.c
+--- a/drivers/pcmcia/omap_cf.c~pcmcia-fix-platform-driver-hotplug-coldplug
++++ a/drivers/pcmcia/omap_cf.c
+@@ -344,6 +344,7 @@ static int omap_cf_resume(struct platfor
+ static struct platform_driver omap_cf_driver = {
+ 	.driver = {
+ 		.name	= (char *) driver_name,
++		.owner	= THIS_MODULE,
+ 	},
+ 	.remove		= __exit_p(omap_cf_remove),
+ 	.suspend	= omap_cf_suspend,
+@@ -368,3 +369,4 @@ module_exit(omap_cf_exit);
+ 
+ MODULE_DESCRIPTION("OMAP CF Driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:omap_cf");
+diff -puN drivers/pcmcia/pxa2xx_base.c~pcmcia-fix-platform-driver-hotplug-coldplug drivers/pcmcia/pxa2xx_base.c
+--- a/drivers/pcmcia/pxa2xx_base.c~pcmcia-fix-platform-driver-hotplug-coldplug
++++ a/drivers/pcmcia/pxa2xx_base.c
+@@ -239,6 +239,7 @@ static struct platform_driver pxa2xx_pcm
+ 	.resume 	= pxa2xx_drv_pcmcia_resume,
  	.driver		= {
- 		.name		= "ssc",
-+		.owner		= THIS_MODULE,
+ 		.name	= "pxa2xx-pcmcia",
++		.owner	= THIS_MODULE,
  	},
  };
  
-@@ -172,3 +173,4 @@ module_exit(ssc_exit);
- MODULE_AUTHOR("Hans-Christian Egtvedt <hcegtvedt@atmel.com>");
- MODULE_DESCRIPTION("SSC driver for Atmel AVR32 and AT91");
+@@ -258,3 +259,4 @@ module_exit(pxa2xx_pcmcia_exit);
+ MODULE_AUTHOR("Stefan Eletzhofer <stefan.eletzhofer@inquant.de> and Ian Molton <spyro@f2s.com>");
+ MODULE_DESCRIPTION("Linux PCMCIA Card Services: PXA2xx core socket driver");
  MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:ssc");
-diff -puN drivers/misc/atmel_pwm.c~misc-fix-platform-driver-hotplug-coldplug drivers/misc/atmel_pwm.c
---- a/drivers/misc/atmel_pwm.c~misc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/misc/atmel_pwm.c
-@@ -407,3 +407,4 @@ module_exit(pwm_exit);
- 
- MODULE_DESCRIPTION("Driver for AT32/AT91 PWM module");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:atmel_pwm");
-diff -puN drivers/misc/hdpuftrs/hdpu_cpustate.c~misc-fix-platform-driver-hotplug-coldplug drivers/misc/hdpuftrs/hdpu_cpustate.c
---- a/drivers/misc/hdpuftrs/hdpu_cpustate.c~misc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/misc/hdpuftrs/hdpu_cpustate.c
-@@ -164,6 +164,7 @@ static struct platform_driver hdpu_cpust
- 	.remove = hdpu_cpustate_remove,
- 	.driver = {
- 		.name = HDPU_CPUSTATE_NAME,
-+		.owner = THIS_MODULE,
- 	},
- };
- 
-@@ -248,3 +249,4 @@ module_exit(cpustate_exit);
- 
- MODULE_AUTHOR("Brian Waite");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:" HDPU_CPUSTATE_NAME);
-diff -puN drivers/misc/hdpuftrs/hdpu_nexus.c~misc-fix-platform-driver-hotplug-coldplug drivers/misc/hdpuftrs/hdpu_nexus.c
---- a/drivers/misc/hdpuftrs/hdpu_nexus.c~misc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/misc/hdpuftrs/hdpu_nexus.c
-@@ -55,6 +55,7 @@ static struct platform_driver hdpu_nexus
- 	.remove = hdpu_nexus_remove,
- 	.driver = {
- 		.name = HDPU_NEXUS_NAME,
-+		.owner = THIS_MODULE,
- 	},
- };
- 
-@@ -151,3 +152,4 @@ module_exit(nexus_exit);
- 
- MODULE_AUTHOR("Brian Waite");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:" HDPU_NEXUS_NAME);
++MODULE_ALIAS("platform:pxa2xx-pcmcia");
 _
 
 Patches currently in -mm which might be from kay.sievers@vrfy.org are
