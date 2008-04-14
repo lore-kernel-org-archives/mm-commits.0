@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + jffs2-fix-panics-caused-by-wrong-condition-for-hole-frag-creation-in-write_begin.patch added to -mm tree
-Date: Mon, 14 Apr 2008 13:09:58 -0700
-Message-ID: <200804142009.m3EK9wjv024700@imap1.linux-foundation.org>
+Subject: + pageflags-get-rid-of-flags_reserved-sparc64-fix.patch added to -mm tree
+Date: Mon, 14 Apr 2008 13:27:05 -0700
+Message-ID: <200804142027.m3EKR5e2025358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60170 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47961 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751062AbYDNUKG (ORCPT
+	by vger.kernel.org with ESMTP id S1751561AbYDNU1J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 16:10:06 -0400
+	Mon, 14 Apr 2008 16:27:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akorolev@infradead.org, dwmw2@infradead.org, vasiliy.leonenko@mail.ru
+Cc: clameter@sgi.com, davem@davemloft.net
 
 
 The patch titled
-     jffs2: fix panics caused by wrong condition for hole frag creation in write_begin()
+     sparc64: fix NR_PAGEFLAGS check
 has been added to the -mm tree.  Its filename is
-     jffs2-fix-panics-caused-by-wrong-condition-for-hole-frag-creation-in-write_begin.patch
+     pageflags-get-rid-of-flags_reserved-sparc64-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,139 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jffs2: fix panics caused by wrong condition for hole frag creation in write_begin()
-From: Alexey Korolev <akorolev@infradead.org>
+Subject: sparc64: fix NR_PAGEFLAGS check
+From: Christoph Lameter <clameter@sgi.com>
 
-JFFS2 in Linux 2.6.24 fails to kernel panic on random read/write/truncate
-operatons.  We investigated the issue it is caused by bug in conditions for
-hole fragment creation in write_begin function.  Offset of starting offset
-which is used to identify should we create hole frag or not is calculated
-improperly.
+Update checks to make sure that we can place the cpu number in the upper
+portion of the page flags.
 
-As a result hole frags are not created when they must be - it leads to
-internal memory corruptions and kernel panic.
+Its okay if we use less than 32 page flags.  There can only be a problem if
+the page flags grow beyond 32 bits to reach into the area reserved for the cpu
+number.
 
-The patch fixes the bug in JFFS2 write_begin hole frag conditions.
-
-Signed-off-by: Alexey Korolev <akorolev@infradead.org>
-Signed-off-by: Vasiliy Leonenko <vasiliy.leonenko@mail.ru>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: David S. Miller <davem@davemloft.net>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/file.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/sparc64/mm/init.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN fs/jffs2/file.c~jffs2-fix-panics-caused-by-wrong-condition-for-hole-frag-creation-in-write_begin fs/jffs2/file.c
---- a/fs/jffs2/file.c~jffs2-fix-panics-caused-by-wrong-condition-for-hole-frag-creation-in-write_begin
-+++ a/fs/jffs2/file.c
-@@ -129,13 +129,14 @@ static int jffs2_write_begin(struct file
- 	struct inode *inode = mapping->host;
- 	struct jffs2_inode_info *f = JFFS2_INODE_INFO(inode);
- 	pgoff_t index = pos >> PAGE_CACHE_SHIFT;
--	uint32_t pageofs = pos & (PAGE_CACHE_SIZE - 1);
-+	uint32_t pageofs;
- 	int ret = 0;
+diff -puN arch/sparc64/mm/init.c~pageflags-get-rid-of-flags_reserved-sparc64-fix arch/sparc64/mm/init.c
+--- a/arch/sparc64/mm/init.c~pageflags-get-rid-of-flags_reserved-sparc64-fix
++++ a/arch/sparc64/mm/init.c
+@@ -1300,10 +1300,21 @@ void __init paging_init(void)
+ 	 * functions like clear_dcache_dirty_cpu use the cpu mask
+ 	 * in 13-bit signed-immediate instruction fields.
+ 	 */
+-	BUILD_BUG_ON(BITS_PER_LONG - NR_PAGEFLAGS != 32);
++
++	/*
++	 * Page flags must not reach into upper 32 bits that are used
++	 * for the cpu number
++	 */
++	BUILD_BUG_ON(NR_PAGEFLAGS > 32);
++
++	/*
++	 * The bit fields placed in the high range must not reach below
++	 * the 32 bit boundary. Otherwise we cannot place the cpu field
++	 * at the 32 bit boundary.
++	 */
+ 	BUILD_BUG_ON(SECTIONS_WIDTH + NODES_WIDTH + ZONES_WIDTH +
+-		ilog2(roundup_pow_of_two(NR_CPUS)) >
+-				BITS_PER_LONG - NR_PAGEFLAGS);
++		ilog2(roundup_pow_of_two(NR_CPUS)) > 32);
++
+ 	BUILD_BUG_ON(NR_CPUS > 4096);
  
- 	pg = __grab_cache_page(mapping, index);
- 	if (!pg)
- 		return -ENOMEM;
- 	*pagep = pg;
-+	pageofs = pg->index << PAGE_CACHE_SHIFT;
- 
- 	D1(printk(KERN_DEBUG "jffs2_write_begin()\n"));
- 
+ 	kern_base = (prom_boot_mapping_phys_low >> 22UL) << 22UL;
 _
 
-Patches currently in -mm which might be from akorolev@infradead.org are
+Patches currently in -mm which might be from clameter@sgi.com are
 
-jffs2-fix-panics-caused-by-wrong-condition-for-hole-frag-creation-in-write_begin.patch
+git-x86.patch
+git-ia64.patch
+git-unionfs.patch
+git-pekka.patch
+remove-set_migrateflags.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify.patch
+mm-move-cache_line_size-to-linux-cacheh.patch
+mempolicy-convert-mpol-constants-to-enum.patch
+mempolicy-support-optional-mode-flags.patch
+mempolicy-support-optional-mode-flags-fix.patch
+mempolicy-add-mpol_f_static_nodes-flag.patch
+mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
+mempolicy-add-mpol_f_relative_nodes-flag.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-move-rebind-functions.patch
+mempolicy-create-mempolicy_operations-structure.patch
+mempolicy-create-mempolicy_operations-structure-fix.patch
+mempolicy-small-header-file-cleanup.patch
+mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
+mempolicy-fix-parsing-of-tmpfs-mpol-mount-option.patch
+mm-make-mem_map-allocation-continuous-v2.patch
+mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
+mm-offset-align-in-alloc_bootmem.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+sparsemem-vmemmap-does-not-need-section-bits.patch
+kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+pageflags-use-an-enum-for-the-flags.patch
+pageflags-get-rid-of-flags_reserved.patch
+pageflags-get-rid-of-flags_reserved-sparc64-fix.patch
+pageflags-introduce-macros-to-generate-page-flag-functions.patch
+pageflags-convert-to-the-use-of-new-macros.patch
+pageflags-use-proper-page-flag-functions-in-xen.patch
+pageflags-eliminate-pg_xxx-aliases.patch
+page-flags-handle-pg_uncached-like-all-other-flags.patch
+page-flags-add-pageflags_false-for-flags-that-are-always-false.patch
+mm-get-rid-of-__zone_count.patch
+pageflags_extended-and-separate-page-flags-for-head-and-tail.patch
+pageflags-standardize-comment-inclusion-in-asm-offsetsh-and-fix-mips.patch
+mm-remove-unused-max_nodes_shift.patch
+vmcoreinfo-add-page-flags-values.patch
+mempolicy-rename-mpol_free-to-mpol_put.patch
+mempolicy-rename-mpol_copy-to-mpol_dup.patch
+mempolicy-write-lock-mmap_sem-while-changing-task-mempolicy.patch
+mempolicy-fixup-fallback-for-default-shmem-policy.patch
+mempolicy-rename-struct-mempolicy-policy-member-to-mode.patch
+mempolicy-mark-shared-policies-for-unref.patch
+mempolicy-document-setget_policy-vm_ops-apis.patch
+mempolicy-rework-mempolicy-reference-counting.patch
+mempolicy-use-mpol_preferred-for-system-wide-default-policy.patch
+mempolicy-mpol_preferred-cleanups-for-local-allocation.patch
+mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy.patch
+mempolicy-clean-up-mpol-to-str-mempolicy-formatting.patch
+mempolicy-rework-shmem-mpol-parsing-and-display.patch
+mempolicy-support-mpol=local-tmpfs-mount-option.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+ipc-add-definitions-of-ushort_max-and-others.patch
+mm-add-nr_writeback_temp-counter.patch
+remove-div_long_long_rem.patch
+slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
 
