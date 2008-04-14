@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-usb-usb-ohci-host-controller-resumes-leave-root-hub-suspended.patch added to -mm tree
-Date: Mon, 14 Apr 2008 16:18:43 -0700
-Message-ID: <200804142318.m3ENIhKA032108@imap1.linux-foundation.org>
+Subject: + locks-fix-possible-infinite-loop-in-fcntlf_setlkw-over-nfs.patch added to -mm tree
+Date: Mon, 14 Apr 2008 16:38:33 -0700
+Message-ID: <200804142338.m3ENcYVa000386@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53439 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50339 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751926AbYDNXSs (ORCPT
+	by vger.kernel.org with ESMTP id S1755035AbYDNXkC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 19:18:48 -0400
+	Mon, 14 Apr 2008 19:40:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: tremyfr@yahoo.fr, greg@kroah.com, stern@rowland.harvard.edu
+Cc: bfields@citi.umich.edu, eshel@almaden.ibm.com, mszeredi@suse.cz, stable@kernel.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     ohci-sm501.c: fix undeclared variable `hcd'
+     locks: fix possible infinite loop in fcntl(F_SETLKW) over nfs
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-usb-usb-ohci-host-controller-resumes-leave-root-hub-suspended.patch
+     locks-fix-possible-infinite-loop-in-fcntlf_setlkw-over-nfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,128 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ohci-sm501.c: fix undeclared variable `hcd'
-From: Reynes Philippe <tremyfr@yahoo.fr>
+Subject: locks: fix possible infinite loop in fcntl(F_SETLKW) over nfs
+From: J. Bruce Fields <bfields@citi.umich.edu>
 
-The function ohci_sm501_resume in drivers/usb/host/ohci-hcd.c use the variable
-hcd, but this variable is undeclared in this function, so the compilation
-fails with this error :
+Miklos Szeredi found the bug:
 
-  CC      drivers/usb/host/ohci-hcd.o
-In file included from drivers/usb/host/ohci-hcd.c:1056:
-drivers/usb/host/ohci-sm501.c: In function `ohci_sm501_resume':
-drivers/usb/host/ohci-sm501.c:241: erreur: `hcd' undeclared (first use in this function)
-drivers/usb/host/ohci-sm501.c:241: erreur: (Each undeclared identifier is reported only once
-drivers/usb/host/ohci-sm501.c:241: erreur: for each function it appears in.)
+	"Basically what happens is that on the server nlm_fopen() calls
+	nfsd_open() which returns -EACCES, to which nlm_fopen() returns
+	NLM_LCK_DENIED.
 
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>
+	"On the client this will turn into a -EAGAIN (nlm_stat_to_errno()),
+	which in will cause fcntl_setlk() to retry forever."
+
+So, for example, opening a file on an nfs filesystem, changing permissions to
+forbid further access, then trying to lock the file, could result in an
+infinite loop.
+
+And Trond Myklebust identified the culprit, from Marc Eshel and I:
+
+	7723ec9777d9832849b76475b1a21a2872a40d20 "locks: factor out
+	generic/filesystem switch from setlock code"
+
+That commit claimed to just be reshuffling code, but actually introduced a
+behavioral change by calling the lock method repeatedly as long as it returned
+-EAGAIN.
+
+We assumed this would be safe, since we assumed a lock of type SETLKW would
+only return with either success or an error other than -EAGAIN.  However, nfs
+does can in fact return -EAGAIN in this situation, and independently of
+whether that behavior is correct or not, we don't actually need this change,
+and it seems far safer not to depend on such assumptions about the
+filesystem's ->lock method.
+
+Therefore, revert the problematic part of the original commit.  This leaves
+vfs_lock_file() and its other callers unchanged, while returning fcntl_setlk
+and fcntl_setlk64 to their former behavior.
+
+This is appropriate for 2.6.25 (as well as older stable kernels--the bug was
+introduced in 2.6.22).
+
+Signed-off-by: J. Bruce Fields <bfields@citi.umich.edu>
+Tested-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: Marc Eshel <eshel@almaden.ibm.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/ohci-sm501.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/locks.c |   48 ++++++++++++++++++++++++++++--------------------
+ 1 file changed, 28 insertions(+), 20 deletions(-)
 
-diff -puN drivers/usb/host/ohci-sm501.c~fix-gregkh-usb-usb-ohci-host-controller-resumes-leave-root-hub-suspended drivers/usb/host/ohci-sm501.c
---- a/drivers/usb/host/ohci-sm501.c~fix-gregkh-usb-usb-ohci-host-controller-resumes-leave-root-hub-suspended
-+++ a/drivers/usb/host/ohci-sm501.c
-@@ -238,7 +238,7 @@ static int ohci_sm501_resume(struct plat
- 	ohci->next_statechange = jiffies;
+diff -puN fs/locks.c~locks-fix-possible-infinite-loop-in-fcntlf_setlkw-over-nfs fs/locks.c
+--- a/fs/locks.c~locks-fix-possible-infinite-loop-in-fcntlf_setlkw-over-nfs
++++ a/fs/locks.c
+@@ -1801,17 +1801,21 @@ again:
+ 	if (error)
+ 		goto out;
  
- 	sm501_unit_power(dev->parent, SM501_GATE_USB_HOST, 1);
--	ohci_finish_controller_resume(hcd);
-+    ohci_finish_controller_resume(ohci_to_hcd(ohci));
- 	return 0;
- }
- #else
+-	for (;;) {
+-		error = vfs_lock_file(filp, cmd, file_lock, NULL);
+-		if (error != -EAGAIN || cmd == F_SETLK)
+-			break;
+-		error = wait_event_interruptible(file_lock->fl_wait,
+-				!file_lock->fl_next);
+-		if (!error)
+-			continue;
++	if (filp->f_op && filp->f_op->lock != NULL)
++		error = filp->f_op->lock(filp, cmd, file_lock);
++	else {
++		for (;;) {
++			error = posix_lock_file(filp, file_lock, NULL);
++			if (error != -EAGAIN || cmd == F_SETLK)
++				break;
++			error = wait_event_interruptible(file_lock->fl_wait,
++					!file_lock->fl_next);
++			if (!error)
++				continue;
+ 
+-		locks_delete_block(file_lock);
+-		break;
++			locks_delete_block(file_lock);
++			break;
++		}
+ 	}
+ 
+ 	/*
+@@ -1925,17 +1929,21 @@ again:
+ 	if (error)
+ 		goto out;
+ 
+-	for (;;) {
+-		error = vfs_lock_file(filp, cmd, file_lock, NULL);
+-		if (error != -EAGAIN || cmd == F_SETLK64)
+-			break;
+-		error = wait_event_interruptible(file_lock->fl_wait,
+-				!file_lock->fl_next);
+-		if (!error)
+-			continue;
++	if (filp->f_op && filp->f_op->lock != NULL)
++		error = filp->f_op->lock(filp, cmd, file_lock);
++	else {
++		for (;;) {
++			error = posix_lock_file(filp, file_lock, NULL);
++			if (error != -EAGAIN || cmd == F_SETLK64)
++				break;
++			error = wait_event_interruptible(file_lock->fl_wait,
++					!file_lock->fl_next);
++			if (!error)
++				continue;
+ 
+-		locks_delete_block(file_lock);
+-		break;
++			locks_delete_block(file_lock);
++			break;
++		}
+ 	}
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from tremyfr@yahoo.fr are
+Patches currently in -mm which might be from bfields@citi.umich.edu are
 
-git-sched.patch
-fix-gregkh-usb-usb-ohci-host-controller-resumes-leave-root-hub-suspended.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
+locks-fix-possible-infinite-loop-in-fcntlf_setlkw-over-nfs.patch
+git-nfsd.patch
+reiser4.patch
 
