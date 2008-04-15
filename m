@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xtensa-use-kbuildh-macros-instead-of-defining-them-in-asm-offsetsc.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:37:27 -0700
-Message-ID: <200804152237.m3FMbRA8019408@imap1.linux-foundation.org>
+Subject: + arm-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:37:24 -0700
+Message-ID: <200804152237.m3FMbO9A019404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53827 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36706 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752645AbYDOWlM (ORCPT
+	by vger.kernel.org with ESMTP id S1753024AbYDOWl0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:41:12 -0400
+	Tue, 15 Apr 2008 18:41:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, chris@zankel.net
+Cc: clameter@sgi.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     xtensa: use kbuild.h macros instead of defining them in asm-offsets.c
+     arm: use kbuild.h instead of macros in asm-offsets.c
 has been added to the -mm tree.  Its filename is
-     xtensa-use-kbuildh-macros-instead-of-defining-them-in-asm-offsetsc.patch
+     arm-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xtensa: use kbuild.h macros instead of defining them in asm-offsets.c
+Subject: arm: use kbuild.h instead of macros in asm-offsets.c
 From: Christoph Lameter <clameter@sgi.com>
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Chris Zankel <chris@zankel.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/asm-offsets.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ arch/arm/kernel/asm-offsets.c |    8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN arch/xtensa/kernel/asm-offsets.c~xtensa-use-kbuildh-macros-instead-of-defining-them-in-asm-offsetsc arch/xtensa/kernel/asm-offsets.c
---- a/arch/xtensa/kernel/asm-offsets.c~xtensa-use-kbuildh-macros-instead-of-defining-them-in-asm-offsetsc
-+++ a/arch/xtensa/kernel/asm-offsets.c
-@@ -19,12 +19,11 @@
- #include <linux/thread_info.h>
- #include <linux/ptrace.h>
- #include <linux/mm.h>
+diff -puN arch/arm/kernel/asm-offsets.c~arm-use-kbuildh-instead-of-macros-in-asm-offsetsc arch/arm/kernel/asm-offsets.c
+--- a/arch/arm/kernel/asm-offsets.c~arm-use-kbuildh-instead-of-macros-in-asm-offsetsc
++++ a/arch/arm/kernel/asm-offsets.c
+@@ -16,6 +16,7 @@
+ #include <asm/thread_info.h>
+ #include <asm/memory.h>
+ #include <asm/procinfo.h>
 +#include <linux/kbuild.h>
  
- #include <asm/ptrace.h>
- #include <asm/uaccess.h>
+ /*
+  * Make sure that the compiler and target are compatible.
+@@ -35,13 +36,6 @@
+ #error    Known good compilers: 3.3
+ #endif
  
--#define DEFINE(sym, val) asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+-/* Use marker if you need to separate the values later */
+-
+-#define DEFINE(sym, val) \
+-        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+-
+-#define BLANK() asm volatile("\n->" : : )
 -
  int main(void)
  {
- 	/* struct pt_regs */
+   DEFINE(TSK_ACTIVE_MM,		offsetof(struct task_struct, active_mm));
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
