@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch removed from -mm tree
-Date: Tue, 15 Apr 2008 13:44:04 -0700
-Message-ID: <200804152044.m3FKi4a2014660@imap1.linux-foundation.org>
+Subject: - revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch removed from -mm tree
+Date: Tue, 15 Apr 2008 13:44:01 -0700
+Message-ID: <200804152044.m3FKi1tG014654@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51794 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36808 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758401AbYDOUoU (ORCPT
+	by vger.kernel.org with ESMTP id S1758263AbYDOUoS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 16:44:20 -0400
+	Tue, 15 Apr 2008 16:44:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, davem@davemloft.net, greg@kroah.com, m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert gregkh-pci-pci-xtensa-use-generic-pci_enable_resources
+     revert gregkh-pci-pci-v850-use-generic-pci_enable_resources
 has been removed from the -mm tree.  Its filename was
-     revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
+     revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert gregkh-pci-pci-xtensa-use-generic-pci_enable_resources
+Subject: revert gregkh-pci-pci-v850-use-generic-pci_enable_resources
 From: Andrew Morton <akpm@linux-foundation.org>
 
 On Fri, 28 Mar 2008 16:10:11 -0700 (PDT) David Miller <davem@davemloft.net> wrote:
@@ -57,53 +57,15 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/kernel/pci.c |   57 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 56 insertions(+), 1 deletion(-)
+ arch/v850/kernel/rte_mb_a_pci.c |   25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
-diff -puN arch/xtensa/kernel/pci.c~revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources arch/xtensa/kernel/pci.c
---- a/arch/xtensa/kernel/pci.c~revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources
-+++ a/arch/xtensa/kernel/pci.c
-@@ -91,6 +91,37 @@ pcibios_align_resource(void *data, struc
- 	}
- }
- 
-+int
-+pcibios_enable_resources(struct pci_dev *dev, int mask)
-+{
-+	u16 cmd, old_cmd;
-+	int idx;
-+	struct resource *r;
-+
-+	pci_read_config_word(dev, PCI_COMMAND, &cmd);
-+	old_cmd = cmd;
-+	for(idx=0; idx<6; idx++) {
-+		r = &dev->resource[idx];
-+		if (!r->start && r->end) {
-+			printk (KERN_ERR "PCI: Device %s not available because "
-+				"of resource collisions\n", pci_name(dev));
-+			return -EINVAL;
-+		}
-+		if (r->flags & IORESOURCE_IO)
-+			cmd |= PCI_COMMAND_IO;
-+		if (r->flags & IORESOURCE_MEM)
-+			cmd |= PCI_COMMAND_MEMORY;
-+	}
-+	if (dev->resource[PCI_ROM_RESOURCE].start)
-+		cmd |= PCI_COMMAND_MEMORY;
-+	if (cmd != old_cmd) {
-+		printk("PCI: Enabling device %s (%04x -> %04x)\n",
-+			pci_name(dev), old_cmd, cmd);
-+		pci_write_config_word(dev, PCI_COMMAND, cmd);
-+	}
-+	return 0;
-+}
-+
- struct pci_controller * __init pcibios_alloc_controller(void)
- {
- 	struct pci_controller *pci_ctrl;
-@@ -207,7 +238,31 @@ pcibios_update_irq(struct pci_dev *dev, 
- 
- int pcibios_enable_device(struct pci_dev *dev, int mask)
+diff -puN arch/v850/kernel/rte_mb_a_pci.c~revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources arch/v850/kernel/rte_mb_a_pci.c
+--- a/arch/v850/kernel/rte_mb_a_pci.c~revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources
++++ a/arch/v850/kernel/rte_mb_a_pci.c
+@@ -219,7 +219,30 @@ char __devinit *pcibios_setup (char *opt
+ 
+ int __nomods_init pcibios_enable_device (struct pci_dev *dev, int mask)
  {
 -	return pci_enable_resources(dev, mask);
 +	u16 cmd, old_cmd;
@@ -112,7 +74,7 @@ diff -puN arch/xtensa/kernel/pci.c~revert-gregkh-pci-pci-xtensa-use-generic-pci_
 +
 +	pci_read_config_word(dev, PCI_COMMAND, &cmd);
 +	old_cmd = cmd;
-+	for (idx=0; idx<6; idx++) {
++	for (idx = 0; idx < 6; idx++) {
 +		r = &dev->resource[idx];
 +		if (!r->start && r->end) {
 +			printk(KERN_ERR "PCI: Device %s not available because "
@@ -129,11 +91,10 @@ diff -puN arch/xtensa/kernel/pci.c~revert-gregkh-pci-pci-xtensa-use-generic-pci_
 +		       pci_name(dev), old_cmd, cmd);
 +		pci_write_config_word(dev, PCI_COMMAND, cmd);
 +	}
-+
 +	return 0;
  }
  
- #ifdef CONFIG_PROC_FS
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
