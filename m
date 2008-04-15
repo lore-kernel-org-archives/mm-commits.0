@@ -1,92 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: - es1968-fix-jitter-on-some-maestro-cards.patch removed from -mm tree
-Date: Tue, 15 Apr 2008 02:10:24 -0700
-Message-ID: <200804150910.m3F9AOgQ020621@imap1.linux-foundation.org>
+Subject: - sound-fix-platform-driver-hotplug-coldplug.patch removed from -mm tree
+Date: Tue, 15 Apr 2008 02:10:31 -0700
+Message-ID: <200804150910.m3F9AV7x020636@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58602 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42074 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756514AbYDOJLP (ORCPT
+	by vger.kernel.org with ESMTP id S1756043AbYDOJLU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 05:11:15 -0400
+	Tue, 15 Apr 2008 05:11:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreas@stapelspeicher.org, perex@suse.cz, rene.herman@keyaccess.nl, tiwai@suse.de, mm-commits@vger.kernel.org
+To: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, perex@perex.cz, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     es1968: fix jitter on some maestro cards
+     sound: fix platform driver hotplug/coldplug
 has been removed from the -mm tree.  Its filename was
-     es1968-fix-jitter-on-some-maestro-cards.patch
+     sound-fix-platform-driver-hotplug-coldplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: es1968: fix jitter on some maestro cards
-From: Andreas Mueller <andreas@stapelspeicher.org>
+Subject: sound: fix platform driver hotplug/coldplug
+From: Kay Sievers <kay.sievers@vrfy.org>
 
-This patch suppresses jitter on several Maestro cards in stereo mode (ALSA of
-course).
+Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias is
+prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable sound
+platform drivers, to re-enable auto loading.
 
-The patch is also incorporated in the *BSD drivers where I "ported" it from. 
-
-Without this patch most of the stereo audio gets out of sync and really
-distorted (oss-emulation with mplayer at 48000khz worked somehow).
-
-Cc: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Jaroslav Kysela <perex@suse.cz>
+[dbrownell@users.sourceforge.net: more drivers, registration fixes]
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Jaroslav Kysela <perex@perex.cz>
 Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/es1968.c |   22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+ sound/arm/pxa2xx-ac97.c      |    2 ++
+ sound/drivers/ml403-ac97cr.c |    4 ++++
+ sound/soc/soc-core.c         |    2 ++
+ 3 files changed, 8 insertions(+)
 
-diff -puN sound/pci/es1968.c~es1968-fix-jitter-on-some-maestro-cards sound/pci/es1968.c
---- a/sound/pci/es1968.c~es1968-fix-jitter-on-some-maestro-cards
-+++ a/sound/pci/es1968.c
-@@ -1827,6 +1827,23 @@ snd_es1968_pcm(struct es1968 *chip, int 
+diff -puN sound/arm/pxa2xx-ac97.c~sound-fix-platform-driver-hotplug-coldplug sound/arm/pxa2xx-ac97.c
+--- a/sound/arm/pxa2xx-ac97.c~sound-fix-platform-driver-hotplug-coldplug
++++ a/sound/arm/pxa2xx-ac97.c
+@@ -391,6 +391,7 @@ static struct platform_driver pxa2xx_ac9
+ 	.resume		= pxa2xx_ac97_resume,
+ 	.driver		= {
+ 		.name	= "pxa2xx-ac97",
++		.owner	= THIS_MODULE,
+ 	},
+ };
  
+@@ -410,3 +411,4 @@ module_exit(pxa2xx_ac97_exit);
+ MODULE_AUTHOR("Nicolas Pitre");
+ MODULE_DESCRIPTION("AC97 driver for the Intel PXA2xx chip");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:pxa2xx-ac97");
+diff -puN sound/drivers/ml403-ac97cr.c~sound-fix-platform-driver-hotplug-coldplug sound/drivers/ml403-ac97cr.c
+--- a/sound/drivers/ml403-ac97cr.c~sound-fix-platform-driver-hotplug-coldplug
++++ a/sound/drivers/ml403-ac97cr.c
+@@ -1328,11 +1328,15 @@ static int snd_ml403_ac97cr_remove(struc
  	return 0;
  }
-+/*
-+ * suppress jitter on some maestros when playing stereo
-+ */
-+static void snd_es1968_suppress_jitter(struct es1968 *chip, struct esschan *es)
-+{
-+	unsigned int cp1;
-+	unsigned int cp2;
-+	unsigned int diff;
-+
-+	cp1 = __apu_get_register(chip, 0, 5);
-+	cp2 = __apu_get_register(chip, 1, 5);
-+	diff = (cp1 > cp2 ? cp1 - cp2 : cp2 - cp1);
-+
-+	if (diff > 1) {
-+		__maestro_write(chip, IDR0_DATA_PORT, cp1);
-+	}
-+}
  
- /*
-  * update pointer
-@@ -1948,8 +1965,11 @@ static irqreturn_t snd_es1968_interrupt(
- 		struct esschan *es;
- 		spin_lock(&chip->substream_lock);
- 		list_for_each_entry(es, &chip->substream_list, list) {
--			if (es->running)
-+			if (es->running) {
- 				snd_es1968_update_pcm(chip, es);
-+				if (es->fmt & ESS_FMT_STEREO)
-+					snd_es1968_suppress_jitter(chip, es);
-+			}
- 		}
- 		spin_unlock(&chip->substream_lock);
- 		if (chip->in_measurement) {
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:" SND_ML403_AC97CR_DRIVER);
++
+ static struct platform_driver snd_ml403_ac97cr_driver = {
+ 	.probe = snd_ml403_ac97cr_probe,
+ 	.remove = snd_ml403_ac97cr_remove,
+ 	.driver = {
+ 		.name = SND_ML403_AC97CR_DRIVER,
++		.owner = THIS_MODULE,
+ 	},
+ };
+ 
+diff -puN sound/soc/soc-core.c~sound-fix-platform-driver-hotplug-coldplug sound/soc/soc-core.c
+--- a/sound/soc/soc-core.c~sound-fix-platform-driver-hotplug-coldplug
++++ a/sound/soc/soc-core.c
+@@ -839,6 +839,7 @@ static int soc_remove(struct platform_de
+ static struct platform_driver soc_driver = {
+ 	.driver		= {
+ 		.name		= "soc-audio",
++		.owner		= THIS_MODULE,
+ 	},
+ 	.probe		= soc_probe,
+ 	.remove		= soc_remove,
+@@ -1601,3 +1602,4 @@ module_exit(snd_soc_exit);
+ MODULE_AUTHOR("Liam Girdwood, liam.girdwood@wolfsonmicro.com, www.wolfsonmicro.com");
+ MODULE_DESCRIPTION("ALSA SoC Core");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:soc-audio");
 _
 
-Patches currently in -mm which might be from andreas@stapelspeicher.org are
+Patches currently in -mm which might be from kay.sievers@vrfy.org are
 
+mmc-fix-platform-driver-hotplug-coldplug.patch
+leds-fix-platform-driver-hotplug-coldplug.patch
+misc-fix-platform-driver-hotplug-coldplug.patch
+pcmcia-fix-platform-driver-hotplug-coldplug.patch
+serial-fix-platform-driver-hotplug-coldplug.patch
 git-alsa-tiwai.patch
+macintosh-windfarm-fix-platform-driver-hotplug-coldplug.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks.patch
+pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type.patch
+pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type.patch
+sysfs-add-sys-dev-charblock-to-lookup-sysfs-path-by-major-minor.patch
+input-fix-platform-driver-hotplug-coldplug.patch
+ata-ide-fix-platform-driver-hotplug-coldplug.patch
+mtd-maps-fix-platform-driver-hotplug-coldplug.patch
+mtd-nand-fix-platform-driver-hotplug-coldplug.patch
+net-drivers-fix-platform-driver-hotplug-coldplug.patch
+scsi-fix-platform-driver-hotplug-coldplug.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
+cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
 
