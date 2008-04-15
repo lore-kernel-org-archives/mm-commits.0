@@ -1,92 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - git-alsa-tiwai-hda_codec-fix-locking.patch removed from -mm tree
-Date: Tue, 15 Apr 2008 02:10:17 -0700
-Message-ID: <200804150910.m3F9AHHK020605@imap1.linux-foundation.org>
+Subject: - frv-correctly-determine-the-address-of-an-illegal-instruction.patch removed from -mm tree
+Date: Tue, 15 Apr 2008 02:10:14 -0700
+Message-ID: <200804150910.m3F9AE3g020601@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33144 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57598 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756112AbYDOJLI (ORCPT
+	by vger.kernel.org with ESMTP id S1756080AbYDOJLK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 05:11:08 -0400
+	Tue, 15 Apr 2008 05:11:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: deweerdt@free.fr, miles.lane@gmail.com, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-alsa-tiwai: hda_codec: fix locking
+     frv: correctly determine the address of an illegal instruction
 has been removed from the -mm tree.  Its filename was
-     git-alsa-tiwai-hda_codec-fix-locking.patch
+     frv-correctly-determine-the-address-of-an-illegal-instruction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-alsa-tiwai: hda_codec: fix locking
-From: Frederik Deweerdt <deweerdt@free.fr>
+Subject: frv: correctly determine the address of an illegal instruction
+From: David Howells <dhowells@redhat.com>
 
-On Wed, Apr 02, 2008 at 08:19:29AM -0400, Miles Lane wrote:
-> [   48.765906] [ BUG: bad unlock balance detected! ]
-> [   48.765912] -------------------------------------
-> [   48.765918] pulseaudio/4277 is trying to release lock
-> (&codec->spdif_mutex) at:
-> [   48.765930] [<c03031b7>] mutex_unlock+0x8/0xa
-> [   48.765945] but there are no more locks to release!
-> [   48.765950]
-> [   48.765952] other info that might help us debug this:
-> [   48.765959] 2 locks held by pulseaudio/4277:
-> [   48.765965]  #0:  (&pcm->open_mutex){--..}, at: [<f89f134b>]
-> snd_pcm_open+0xc1/0x1ba [snd_pcm]
-> [   48.766003]  #1:  (&chip->open_mutex){--..}, at: [<f8b4f13d>]
-> azx_pcm_open+0x36/0x184 [snd_hda_intel]
-> [   48.766057]
-> [   48.766059] stack backtrace:
-> [   48.766066] Pid: 4277, comm: pulseaudio Not tainted 2.6.25-rc8-mm1 #12
-> [   48.766086]  [<c013afc6>] print_unlock_inbalance_bug+0xce/0xd8
-> [   48.766107]  [<c0109e1c>] ? save_stack_trace+0x1d/0x3b
-> [   48.766130]  [<c012f54e>] ? __kernel_text_address+0x1b/0x27
-> [   48.766146]  [<c0104533>] ? dump_trace+0xcd/0xd9
-> [   48.766160]  [<c0109d9e>] ? save_stack_address+0x0/0x2c
-> [   48.766176]  [<c013b80a>] ? find_usage_backwards+0xa4/0xc3
-> [   48.766193]  [<c013cfb5>] lock_release_non_nested+0x84/0x120
-> [   48.766209]  [<c03031b7>] ? mutex_unlock+0x8/0xa
-> [   48.766222]  [<c013d1bb>] lock_release+0x16a/0x199
-> [   48.766238]  [<c0303137>] __mutex_unlock_slowpath+0xa9/0x121
-> [   48.766252]  [<c03031b7>] mutex_unlock+0x8/0xa
-> [   48.766263]  [<f8b4ffd8>] snd_hda_multi_out_analog_open+0xd3/0xef
-> [snd_hda_intel]
+Correctly determine the address of an illegal instruction.  The EPCR0 register
+holds this value (masked by EPCR0_PC) if the validity bit is set (masked by
+EPCR0_V).  So the test as to whether the contents of the register are usable
+should be involve checking the _V bit, not the _PC bits.
 
-The following patch should fix it.
-
-Cc: "Miles Lane" <miles.lane@gmail.com>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/pci/hda/hda_codec.c |    2 +-
+ arch/frv/kernel/traps.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN sound/pci/hda/hda_codec.c~git-alsa-tiwai-hda_codec-fix-locking sound/pci/hda/hda_codec.c
---- a/sound/pci/hda/hda_codec.c~git-alsa-tiwai-hda_codec-fix-locking
-+++ a/sound/pci/hda/hda_codec.c
-@@ -2665,8 +2665,8 @@ int snd_hda_multi_out_analog_open(struct
- 			if (mout->spdif_maxbps < hinfo->maxbps)
- 				hinfo->maxbps = mout->spdif_maxbps;
- 		}
-+		mutex_unlock(&codec->spdif_mutex);
- 	}
--	mutex_unlock(&codec->spdif_mutex);
- 	return snd_pcm_hw_constraint_step(substream->runtime, 0,
- 					  SNDRV_PCM_HW_PARAM_CHANNELS, 2);
- }
+diff -puN arch/frv/kernel/traps.c~frv-correctly-determine-the-address-of-an-illegal-instruction arch/frv/kernel/traps.c
+--- a/arch/frv/kernel/traps.c~frv-correctly-determine-the-address-of-an-illegal-instruction
++++ a/arch/frv/kernel/traps.c
+@@ -73,7 +73,7 @@ asmlinkage void illegal_instruction(unsi
+ 		      epcr0, esr0, esfr1);
+ 
+ 	info.si_errno	= 0;
+-	info.si_addr	= (void *) ((epcr0 & EPCR0_PC) ? (epcr0 & EPCR0_PC) : __frame->pc);
++	info.si_addr	= (void *) ((epcr0 & EPCR0_V) ? (epcr0 & EPCR0_PC) : __frame->pc);
+ 
+ 	switch (__frame->tbr & TBR_TT) {
+ 	case TBR_TT_ILLEGAL_INSTR:
 _
 
-Patches currently in -mm which might be from deweerdt@free.fr are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-git-alsa-tiwai.patch
-reiser4-sb_sync_inodes.patch
-getblk-handle-2tb-devices-fix.patch
+origin.patch
+git-unionfs.patch
+remove-the-macro-get_personality.patch
+xattr-add-missing-consts-to-function-arguments.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+keys-switch-to-proc_create.patch
+keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
+keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys-fix.patch
+keys-explicitly-include-required-slabh-header-file.patch
+keys-make-key_serial-a-function-if-config_keys=y.patch
+procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix.patch
+procfs-task-exe-symlink-fix-2.patch
+alloc_uid-cleanup.patch
+rename-div64_64-to-div64_u64.patch
+afs-use-the-shorter-list_head-for-brevity.patch
+afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself.patch
+afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself-try-3.patch
+mutex-subsystem-synchro-test-module.patch
 
