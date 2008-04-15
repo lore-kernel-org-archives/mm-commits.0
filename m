@@ -1,264 +1,494 @@
 From: akpm@linux-foundation.org
-Subject: - pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch removed from -mm tree
-Date: Mon, 14 Apr 2008 23:18:07 -0700
-Message-ID: <200804150618.m3F6I772014287@imap1.linux-foundation.org>
+Subject: - pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch removed from -mm tree
+Date: Mon, 14 Apr 2008 23:18:02 -0700
+Message-ID: <200804150618.m3F6I3rv014284@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45588 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49204 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754113AbYDOGSU (ORCPT
+	by vger.kernel.org with ESMTP id S1753414AbYDOGS3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 02:18:20 -0400
+	Tue, 15 Apr 2008 02:18:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: rjw@sisk.pl, david-b@pacbell.net, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org, lenb@kernel.org, pavel@ucw.cz, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix
+     pm: new suspend and hibernation callbacks for PCI bus type
 has been removed from the -mm tree.  Its filename was
-     pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch
+     pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pm: new suspend and hibernation callbacks for PCI bus type
+From: Rafael J. Wysocki <rjw@sisk.pl>
 
-drivers/pci/pci-driver.c: In function 'pci_pm_thaw':
-drivers/pci/pci-driver.c:520: warning: unused variable 'pci_dev'
-drivers/pci/pci-driver.c: In function 'pci_pm_poweroff':
-drivers/pci/pci-driver.c:552: warning: unused variable 'pci_dev'
+Implement new suspend and hibernation callbacks for the PCI bus type.
 
+Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
 Cc: Greg KH <greg@kroah.com>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci-driver.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/pci/pci-driver.c |  374 +++++++++++++++++++++++++++++++++----
+ include/linux/pci.h      |    2 
+ 2 files changed, 337 insertions(+), 39 deletions(-)
 
-diff -puN drivers/pci/pci-driver.c~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix drivers/pci/pci-driver.c
---- a/drivers/pci/pci-driver.c~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix
+diff -puN drivers/pci/pci-driver.c~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3 drivers/pci/pci-driver.c
+--- a/drivers/pci/pci-driver.c~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3
 +++ a/drivers/pci/pci-driver.c
-@@ -517,7 +517,6 @@ static int pci_pm_freeze_noirq(struct de
+@@ -271,7 +271,55 @@ static int pci_device_remove(struct devi
+ 	return 0;
+ }
  
- static int pci_pm_thaw(struct device *dev)
+-static int pci_device_suspend(struct device * dev, pm_message_t state)
++static void pci_device_shutdown(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct pci_driver *drv = pci_dev->driver;
++
++	if (drv && drv->shutdown)
++		drv->shutdown(pci_dev);
++}
++
++#ifdef CONFIG_PM_SLEEP
++
++/*
++ * Default "suspend" method for devices that have no driver provided suspend,
++ * or not even a driver at all.
++ */
++static void pci_default_pm_suspend(struct pci_dev *pci_dev)
++{
++	pci_save_state(pci_dev);
++	/*
++	 * mark its power state as "unknown", since we don't know if
++	 * e.g. the BIOS will change its device state when we suspend.
++	 */
++	if (pci_dev->current_state == PCI_D0)
++		pci_dev->current_state = PCI_UNKNOWN;
++}
++
++/*
++ * Default "resume" method for devices that have no driver provided resume,
++ * or not even a driver at all.
++ */
++static int pci_default_pm_resume(struct pci_dev *pci_dev)
++{
++	int retval = 0;
++
++	/* restore the PCI config space */
++	pci_restore_state(pci_dev);
++	/* if the device was enabled before suspend, reenable */
++	retval = pci_reenable_device(pci_dev);
++	/*
++	 * if the device was busmaster before the suspend, make it busmaster
++	 * again
++	 */
++	if (pci_dev->is_busmaster)
++		pci_set_master(pci_dev);
++
++	return retval;
++}
++
++static int pci_legacy_suspend(struct device *dev, pm_message_t state)
  {
--	struct pci_dev *pci_dev = to_pci_dev(dev);
- 	struct device_driver *drv = dev->driver;
- 	int error = 0;
+ 	struct pci_dev * pci_dev = to_pci_dev(dev);
+ 	struct pci_driver * drv = pci_dev->driver;
+@@ -281,18 +329,12 @@ static int pci_device_suspend(struct dev
+ 		i = drv->suspend(pci_dev, state);
+ 		suspend_report_result(drv->suspend, i);
+ 	} else {
+-		pci_save_state(pci_dev);
+-		/*
+-		 * mark its power state as "unknown", since we don't know if
+-		 * e.g. the BIOS will change its device state when we suspend.
+-		 */
+-		if (pci_dev->current_state == PCI_D0)
+-			pci_dev->current_state = PCI_UNKNOWN;
++		pci_default_pm_suspend(pci_dev);
+ 	}
+ 	return i;
+ }
  
-@@ -549,7 +548,6 @@ static int pci_pm_thaw_noirq(struct devi
- 
- static int pci_pm_poweroff(struct device *dev)
+-static int pci_device_suspend_late(struct device * dev, pm_message_t state)
++static int pci_legacy_suspend_late(struct device *dev, pm_message_t state)
  {
--	struct pci_dev *pci_dev = to_pci_dev(dev);
- 	struct device_driver *drv = dev->driver;
- 	int error = 0;
+ 	struct pci_dev * pci_dev = to_pci_dev(dev);
+ 	struct pci_driver * drv = pci_dev->driver;
+@@ -305,26 +347,7 @@ static int pci_device_suspend_late(struc
+ 	return i;
+ }
  
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-acpi.patch
-git-acpi-revert-suspend-wakeup-code-in-c.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86.patch
-arch-x86-mm-ioremapc-fix-printk-warnings.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-git-kgdb-light.patch
-git-x86-hack-around-to-make-git-kgdb-build.patch
-git-x86-vs-git-kgdb-lite.patch
-git-alsa-tiwai.patch
-es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
-git-powerpc.patch
-pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch
-git-drm.patch
-revert-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-dlm-vs-git-gfs2-nwm.patch
-git-hid.patch
-git-hrt.patch
-time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
-git-ia64.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-leds.patch
-git-libata-all.patch
-pata_atiixp-simplex-clear-fix.patch
-git-async-tx.patch
-git-mips.patch
-git-net.patch
-git-net-git-rejects.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-ehea-fix-dlpar-memory-add-support-fix.patch
-sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
-git-s390.patch
-git-sched.patch
-add-rcu_assign_index-if-ever-needed.patch
-git-sh.patch
-sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
-sh-export-empty_zero_page.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-misplaced-hunk.patch
-git-cryptodev-fix-conflict.patch
-git-cryptodev-fix-conflict-hack.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-semaphore-git-rejects.patch
-ext4-is-busted-on-m68k.patch
-smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-drivers-video-uvesafbc-fix-error-path-memory-leak.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
-
+-/*
+- * Default resume method for devices that have no driver provided resume,
+- * or not even a driver at all.
+- */
+-static int pci_default_resume(struct pci_dev *pci_dev)
+-{
+-	int retval = 0;
+-
+-	/* restore the PCI config space */
+-	pci_restore_state(pci_dev);
+-	/* if the device was enabled before suspend, reenable */
+-	retval = pci_reenable_device(pci_dev);
+-	/* if the device was busmaster before the suspend, make it busmaster again */
+-	if (pci_dev->is_busmaster)
+-		pci_set_master(pci_dev);
+-
+-	return retval;
+-}
+-
+-static int pci_device_resume(struct device * dev)
++static int pci_legacy_resume(struct device *dev)
+ {
+ 	int error;
+ 	struct pci_dev * pci_dev = to_pci_dev(dev);
+@@ -333,11 +356,11 @@ static int pci_device_resume(struct devi
+ 	if (drv && drv->resume)
+ 		error = drv->resume(pci_dev);
+ 	else
+-		error = pci_default_resume(pci_dev);
++		error = pci_default_pm_resume(pci_dev);
+ 	return error;
+ }
+ 
+-static int pci_device_resume_early(struct device * dev)
++static int pci_legacy_resume_early(struct device *dev)
+ {
+ 	int error = 0;
+ 	struct pci_dev * pci_dev = to_pci_dev(dev);
+@@ -350,15 +373,290 @@ static int pci_device_resume_early(struc
+ 	return error;
+ }
+ 
+-static void pci_device_shutdown(struct device *dev)
++static int pci_pm_prepare(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm && drv->pm->prepare)
++		error = drv->pm->prepare(dev);
++
++	return error;
++}
++
++static void pci_pm_complete(struct device *dev)
++{
++	struct device_driver *drv = dev->driver;
++
++	if (drv && drv->pm && drv->pm->complete)
++		drv->pm->complete(dev);
++}
++
++#ifdef CONFIG_SUSPEND
++
++static int pci_pm_suspend(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct device_driver *drv = dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->suspend) {
++			error = drv->pm->suspend(dev);
++			suspend_report_result(drv->pm->suspend, error);
++		} else {
++			pci_default_pm_suspend(pci_dev);
++		}
++	} else {
++		error = pci_legacy_suspend(dev, PMSG_SUSPEND);
++	}
++
++	return error;
++}
++
++static int pci_pm_suspend_noirq(struct device *dev)
+ {
+ 	struct pci_dev *pci_dev = to_pci_dev(dev);
+ 	struct pci_driver *drv = pci_dev->driver;
++	int error = 0;
+ 
+-	if (drv && drv->shutdown)
+-		drv->shutdown(pci_dev);
++	if (drv && drv->pm) {
++		if (drv->pm->suspend_noirq) {
++			error = drv->pm->suspend_noirq(dev);
++			suspend_report_result(drv->pm->suspend_noirq, error);
++		}
++	} else {
++		error = pci_legacy_suspend_late(dev, PMSG_SUSPEND);
++	}
++
++	return error;
++}
++
++static int pci_pm_resume(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct device_driver *drv = dev->driver;
++	int error;
++
++	if (drv && drv->pm) {
++		error = drv->pm->resume ? drv->pm->resume(dev) :
++			pci_default_pm_resume(pci_dev);
++	} else {
++		error = pci_legacy_resume(dev);
++	}
++
++	return error;
+ }
+ 
++static int pci_pm_resume_noirq(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct pci_driver *drv = pci_dev->driver;
++	int error = 0;
++
++	pci_fixup_device(pci_fixup_resume, pci_dev);
++
++	if (drv && drv->pm) {
++		if (drv->pm->resume_noirq)
++			error = drv->pm->resume_noirq(dev);
++	} else {
++		error = pci_legacy_resume_early(dev);
++	}
++
++	return error;
++}
++
++#else /* !CONFIG_SUSPEND */
++
++#define pci_pm_suspend		NULL
++#define pci_pm_suspend_noirq	NULL
++#define pci_pm_resume		NULL
++#define pci_pm_resume_noirq	NULL
++
++#endif /* !CONFIG_SUSPEND */
++
++#ifdef CONFIG_HIBERNATION
++
++static int pci_pm_freeze(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct device_driver *drv = dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->freeze) {
++			error = drv->pm->freeze(dev);
++			suspend_report_result(drv->pm->freeze, error);
++		} else {
++			pci_default_pm_suspend(pci_dev);
++		}
++	} else {
++		error = pci_legacy_suspend(dev, PMSG_FREEZE);
++	}
++
++	return error;
++}
++
++static int pci_pm_freeze_noirq(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct pci_driver *drv = pci_dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->freeze_noirq) {
++			error = drv->pm->freeze_noirq(dev);
++			suspend_report_result(drv->pm->freeze_noirq, error);
++		}
++	} else {
++		error = pci_legacy_suspend_late(dev, PMSG_FREEZE);
++	}
++
++	return error;
++}
++
++static int pci_pm_thaw(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct device_driver *drv = dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->thaw)
++			error =  drv->pm->thaw(dev);
++	} else {
++		error = pci_legacy_resume(dev);
++	}
++
++	return error;
++}
++
++static int pci_pm_thaw_noirq(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct pci_driver *drv = pci_dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->thaw_noirq)
++			error = drv->pm->thaw_noirq(dev);
++	} else {
++		error = pci_legacy_resume_early(dev);
++	}
++
++	return error;
++}
++
++static int pci_pm_poweroff(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct device_driver *drv = dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->poweroff) {
++			error = drv->pm->poweroff(dev);
++			suspend_report_result(drv->pm->poweroff, error);
++		}
++	} else {
++		error = pci_legacy_suspend(dev, PMSG_HIBERNATE);
++	}
++
++	return error;
++}
++
++static int pci_pm_poweroff_noirq(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct pci_driver *drv = pci_dev->driver;
++	int error = 0;
++
++	if (drv && drv->pm) {
++		if (drv->pm->poweroff_noirq) {
++			error = drv->pm->poweroff_noirq(dev);
++			suspend_report_result(drv->pm->poweroff_noirq, error);
++		}
++	} else {
++		error = pci_legacy_suspend_late(dev, PMSG_HIBERNATE);
++	}
++
++	return error;
++}
++
++static int pci_pm_restore(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct device_driver *drv = dev->driver;
++	int error;
++
++	if (drv && drv->pm) {
++		error = drv->pm->restore ? drv->pm->restore(dev) :
++			pci_default_pm_resume(pci_dev);
++	} else {
++		error = pci_legacy_resume(dev);
++	}
++
++	return error;
++}
++
++static int pci_pm_restore_noirq(struct device *dev)
++{
++	struct pci_dev *pci_dev = to_pci_dev(dev);
++	struct pci_driver *drv = pci_dev->driver;
++	int error = 0;
++
++	pci_fixup_device(pci_fixup_resume, pci_dev);
++
++	if (drv && drv->pm) {
++		if (drv->pm->restore_noirq)
++			error = drv->pm->restore_noirq(dev);
++	} else {
++		error = pci_legacy_resume_early(dev);
++	}
++
++	return error;
++}
++
++#else /* !CONFIG_HIBERNATION */
++
++#define pci_pm_freeze		NULL
++#define pci_pm_freeze_noirq	NULL
++#define pci_pm_thaw		NULL
++#define pci_pm_thaw_noirq	NULL
++#define pci_pm_poweroff		NULL
++#define pci_pm_poweroff_noirq	NULL
++#define pci_pm_restore		NULL
++#define pci_pm_restore_noirq	NULL
++
++#endif /* !CONFIG_HIBERNATION */
++
++struct pm_ext_ops pci_pm_ops = {
++	.base = {
++		.prepare = pci_pm_prepare,
++		.complete = pci_pm_complete,
++		.suspend = pci_pm_suspend,
++		.resume = pci_pm_resume,
++		.freeze = pci_pm_freeze,
++		.thaw = pci_pm_thaw,
++		.poweroff = pci_pm_poweroff,
++		.restore = pci_pm_restore,
++	},
++	.suspend_noirq = pci_pm_suspend_noirq,
++	.resume_noirq = pci_pm_resume_noirq,
++	.freeze_noirq = pci_pm_freeze_noirq,
++	.thaw_noirq = pci_pm_thaw_noirq,
++	.poweroff_noirq = pci_pm_poweroff_noirq,
++	.restore_noirq = pci_pm_restore_noirq,
++};
++
++#define PCI_PM_OPS_PTR	&pci_pm_ops
++
++#else /* !CONFIG_PM_SLEEP */
++
++#define PCI_PM_OPS_PTR	NULL
++
++#endif /* !CONFIG_PM_SLEEP */
++
+ /**
+  * __pci_register_driver - register a new pci driver
+  * @drv: the driver structure to register
+@@ -381,6 +679,9 @@ int __pci_register_driver(struct pci_dri
+ 	drv->driver.owner = owner;
+ 	drv->driver.mod_name = mod_name;
+ 
++	if (drv->pm)
++		drv->driver.pm = &drv->pm->base;
++
+ 	spin_lock_init(&drv->dynids.lock);
+ 	INIT_LIST_HEAD(&drv->dynids.list);
+ 
+@@ -506,12 +807,9 @@ struct bus_type pci_bus_type = {
+ 	.uevent		= pci_uevent,
+ 	.probe		= pci_device_probe,
+ 	.remove		= pci_device_remove,
+-	.suspend	= pci_device_suspend,
+-	.suspend_late	= pci_device_suspend_late,
+-	.resume_early	= pci_device_resume_early,
+-	.resume		= pci_device_resume,
+ 	.shutdown	= pci_device_shutdown,
+ 	.dev_attrs	= pci_dev_attrs,
++	.pm		= PCI_PM_OPS_PTR,
+ };
+ 
+ static int __init pci_driver_init(void)
+diff -puN include/linux/pci.h~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3 include/linux/pci.h
+--- a/include/linux/pci.h~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3
++++ a/include/linux/pci.h
+@@ -381,7 +381,7 @@ struct pci_driver {
+ 	int  (*resume_early) (struct pci_dev *dev);
+ 	int  (*resume) (struct pci_dev *dev);	                /* Device woken up */
+ 	void (*shutdown) (struct pci_dev *dev);
