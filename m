@@ -1,24 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch added to -mm tree
-Date: Tue, 15 Apr 2008 01:19:48 -0700
-Message-ID: <200804150819.m3F8Jmc4018794@imap1.linux-foundation.org>
+Subject: + fbdev-intelfb-add-support-for-the-intel-integrated-graphics-controller-965g-965gm.patch added to -mm tree
+Date: Tue, 15 Apr 2008 01:29:08 -0700
+Message-ID: <200804150829.m3F8T80S019148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57700 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761734AbYDOIZU (ORCPT
+	by vger.kernel.org with ESMTP id S1754636AbYDOIae (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 04:25:20 -0400
+	Tue, 15 Apr 2008 04:30:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com
+Cc: mbroemme@plusserver.de, Geert.Uytterhoeven@sonycom.com, adaplas@pol.net, airlied@linux.ie, khc@pm.waw.pl
 
 
 The patch titled
-     ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo
+     fbdev: intelfb: add support for the Intel Integrated Graphics Cont=
+roller 965G/965GM
 has been added to the -mm tree.  Its filename is
-     ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+     fbdev-intelfb-add-support-for-the-intel-integrated-graphics-contro=
+ller-965g-965gm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,253 +31,254 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fbdev: intelfb: add support for the Intel Integrated Graphics =
+Controller 965G/965GM
+=46rom: Maik Broemme <mbroemme@plusserver.de>
 
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Add support for the 965G and 965GM graphic chipsets to the intelfb driv=
+er.  I
+have a notebook with an Intel Mobile GM965/GL960 Integrated Graphics
+Controller and with the attached patch the framebuffer comes up.  I hav=
+e
+tested it a bit with DirectFB to make sure it is working stable.
+
+I also have an Intel Mobile GM945 and I compared the results, the progr=
+amming
+interface of the 9xx series from Intel is mostly the same, so I think t=
+he
+patch should add all the functionality which the 945GM has.
+
+Signed-off-by: Maik Broemme <mbroemme@plusserver.de>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Antonino Daplas <adaplas@pol.net>
+Cc: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+Cc: Krzysztof Halasa <khc@pm.waw.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/balloc.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ Documentation/fb/intelfb.txt        |    2 ++
+ drivers/video/Kconfig               |    4 ++--
+ drivers/video/intelfb/intelfb.h     |   12 +++++++++---
+ drivers/video/intelfb/intelfb_i2c.c |    2 ++
+ drivers/video/intelfb/intelfbdrv.c  |   12 ++++++++++--
+ drivers/video/intelfb/intelfbhw.c   |   16 +++++++++++++++-
+ 6 files changed, 40 insertions(+), 8 deletions(-)
 
-diff -puN fs/ext3/balloc.c~ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo fs/ext3/balloc.c
---- a/fs/ext3/balloc.c~ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo
-+++ a/fs/ext3/balloc.c
-@@ -166,8 +166,8 @@ read_block_bitmap(struct super_block *sb
+diff -puN Documentation/fb/intelfb.txt~fbdev-intelfb-add-support-for-th=
+e-intel-integrated-graphics-controller-965g-965gm Documentation/fb/inte=
+lfb.txt
+--- a/Documentation/fb/intelfb.txt~fbdev-intelfb-add-support-for-the-in=
+tel-integrated-graphics-controller-965g-965gm
++++ a/Documentation/fb/intelfb.txt
+@@ -14,6 +14,8 @@ graphics devices.  These would include:
+ 	Intel 915GM
+ 	Intel 945G
+ 	Intel 945GM
++	Intel 965G
++	Intel 965GM
+=20
+ B.  List of available options
+=20
+diff -puN drivers/video/Kconfig~fbdev-intelfb-add-support-for-the-intel=
+-integrated-graphics-controller-965g-965gm drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-intelfb-add-support-for-the-intel-int=
+egrated-graphics-controller-965g-965gm
++++ a/drivers/video/Kconfig
+@@ -1120,7 +1120,7 @@ config FB_CARILLO_RANCH
+ 	  This driver supports the LE80578 (Carillo Ranch) board
+=20
+ config FB_INTEL
+-	tristate "Intel 830M/845G/852GM/855GM/865G/915G/945G support (EXPERIM=
+ENTAL)"
++	tristate "Intel 830M/845G/852GM/855GM/865G/915G/945G/945GM/965G/965GM=
+ support (EXPERIMENTAL)"
+ 	depends on FB && EXPERIMENTAL && PCI && X86
+ 	select AGP
+ 	select AGP_INTEL
+@@ -1130,7 +1130,7 @@ config FB_INTEL
+ 	select FB_CFB_IMAGEBLIT
+ 	help
+ 	  This driver supports the on-board graphics built in to the Intel
+-          830M/845G/852GM/855GM/865G/915G/915GM/945G/945GM chipsets.
++          830M/845G/852GM/855GM/865G/915G/915GM/945G/945GM/965G/965GM =
+chipsets.
+           Say Y if you have and plan to use such a board.
+=20
+ 	  If you say Y here and want DDC/I2C support you must first say Y to
+diff -puN drivers/video/intelfb/intelfb.h~fbdev-intelfb-add-support-for=
+-the-intel-integrated-graphics-controller-965g-965gm drivers/video/inte=
+lfb/intelfb.h
+--- a/drivers/video/intelfb/intelfb.h~fbdev-intelfb-add-support-for-the=
+-intel-integrated-graphics-controller-965g-965gm
++++ a/drivers/video/intelfb/intelfb.h
+@@ -12,9 +12,9 @@
+ #endif
+=20
+ /*** Version/name ***/
+-#define INTELFB_VERSION			"0.9.4"
++#define INTELFB_VERSION			"0.9.5"
+ #define INTELFB_MODULE_NAME		"intelfb"
+-#define SUPPORTED_CHIPSETS		"830M/845G/852GM/855GM/865G/915G/915GM/945=
+G/945GM"
++#define SUPPORTED_CHIPSETS		"830M/845G/852GM/855GM/865G/915G/915GM/945=
+G/945GM/965G/965GM"
+=20
+=20
+ /*** Debug/feature defines ***/
+@@ -58,6 +58,8 @@
+ #define PCI_DEVICE_ID_INTEL_915GM	0x2592
+ #define PCI_DEVICE_ID_INTEL_945G	0x2772
+ #define PCI_DEVICE_ID_INTEL_945GM	0x27A2
++#define PCI_DEVICE_ID_INTEL_965G	0x29A2
++#define PCI_DEVICE_ID_INTEL_965GM	0x2A02
+=20
+ /* Size of MMIO region */
+ #define INTEL_REG_SIZE			0x80000
+@@ -158,6 +160,8 @@ enum intel_chips {
+ 	INTEL_915GM,
+ 	INTEL_945G,
+ 	INTEL_945GM,
++	INTEL_965G,
++	INTEL_965GM,
+ };
+=20
+ struct intelfb_hwstate {
+@@ -358,7 +362,9 @@ struct intelfb_info {
+ #define IS_I9XX(dinfo) (((dinfo)->chipset =3D=3D INTEL_915G) ||	\
+ 			((dinfo)->chipset =3D=3D INTEL_915GM) ||	\
+ 			((dinfo)->chipset =3D=3D INTEL_945G) ||	\
+-			((dinfo)->chipset=3D=3DINTEL_945GM))
++			((dinfo)->chipset =3D=3D INTEL_945GM) ||	\
++			((dinfo)->chipset =3D=3D INTEL_965G) ||	\
++			((dinfo)->chipset =3D=3D INTEL_965GM))
+=20
+ #ifndef FBIO_WAITFORVSYNC
+ #define FBIO_WAITFORVSYNC	_IOW('F', 0x20, __u32)
+diff -puN drivers/video/intelfb/intelfb_i2c.c~fbdev-intelfb-add-support=
+-for-the-intel-integrated-graphics-controller-965g-965gm drivers/video/=
+intelfb/intelfb_i2c.c
+--- a/drivers/video/intelfb/intelfb_i2c.c~fbdev-intelfb-add-support-for=
+-the-intel-integrated-graphics-controller-965g-965gm
++++ a/drivers/video/intelfb/intelfb_i2c.c
+@@ -169,6 +169,8 @@ void intelfb_create_i2c_busses(struct in
+ 		/* has some LVDS + tv-out */
+ 	case INTEL_945G:
+ 	case INTEL_945GM:
++	case INTEL_965G:
++	case INTEL_965GM:
+ 		/* SDVO ports have a single control bus - 2 devices */
+ 		dinfo->output[i].type =3D INTELFB_OUTPUT_SDVO;
+ 		intelfb_setup_i2c_bus(dinfo, &dinfo->output[i].i2c_bus,
+diff -puN drivers/video/intelfb/intelfbdrv.c~fbdev-intelfb-add-support-=
+for-the-intel-integrated-graphics-controller-965g-965gm drivers/video/i=
+ntelfb/intelfbdrv.c
+--- a/drivers/video/intelfb/intelfbdrv.c~fbdev-intelfb-add-support-for-=
+the-intel-integrated-graphics-controller-965g-965gm
++++ a/drivers/video/intelfb/intelfbdrv.c
+@@ -2,7 +2,7 @@
+  * intelfb
+  *
+  * Linux framebuffer driver for Intel(R) 830M/845G/852GM/855GM/865G/91=
+5G/915GM/
+- * 945G/945GM integrated graphics chips.
++ * 945G/945GM/965G/965GM integrated graphics chips.
+  *
+  * Copyright =C2=A9 2002, 2003 David Dawes <dawes@xfree86.org>
+  *                   2004 Sylvain Meyer
+@@ -99,6 +99,9 @@
+  *              Add vram option to reserve more memory than stolen by =
+BIOS
+  *              Fix intelfbhw_pan_display typo
+  *              Add __initdata annotations
++ *
++ *    04/2008 - Version 0.9.5
++ *              Add support for 965G/965GM. (Maik Broemme <mbroemme@pl=
+usserver.de>)
+  */
+=20
+ #include <linux/module.h>
+@@ -180,6 +183,8 @@ static struct pci_device_id intelfb_pci_
+ 	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_915GM, PCI_ANY_ID, PCI_ANY=
+_ID, PCI_CLASS_DISPLAY_VGA << 8, INTELFB_CLASS_MASK, INTEL_915GM },
+ 	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_945G, PCI_ANY_ID, PCI_ANY_=
+ID, PCI_CLASS_DISPLAY_VGA << 8, INTELFB_CLASS_MASK, INTEL_945G },
+ 	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_945GM, PCI_ANY_ID, PCI_ANY=
+_ID, PCI_CLASS_DISPLAY_VGA << 8, INTELFB_CLASS_MASK, INTEL_945GM },
++	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_965G, PCI_ANY_ID, PCI_ANY_=
+ID, PCI_CLASS_DISPLAY_VGA << 8, INTELFB_CLASS_MASK, INTEL_965G },
++	{ PCI_VENDOR_ID_INTEL, PCI_DEVICE_ID_INTEL_965GM, PCI_ANY_ID, PCI_ANY=
+_ID, PCI_CLASS_DISPLAY_VGA << 8, INTELFB_CLASS_MASK, INTEL_965GM },
+ 	{ 0, }
+ };
+=20
+@@ -549,7 +554,10 @@ static int __devinit intelfb_pci_registe
+ 	if ((ent->device =3D=3D PCI_DEVICE_ID_INTEL_915G) ||
+ 	    (ent->device =3D=3D PCI_DEVICE_ID_INTEL_915GM) ||
+ 	    (ent->device =3D=3D PCI_DEVICE_ID_INTEL_945G)  ||
+-	    (ent->device =3D=3D PCI_DEVICE_ID_INTEL_945GM)) {
++	    (ent->device =3D=3D PCI_DEVICE_ID_INTEL_945GM) ||
++	    (ent->device =3D=3D PCI_DEVICE_ID_INTEL_965G) ||
++	    (ent->device =3D=3D PCI_DEVICE_ID_INTEL_965GM)) {
++
+ 		aperture_bar =3D 2;
+ 		mmio_bar =3D 0;
  	}
- 	ext3_valid_block_bitmap(sb, desc, block_group, bh);
- 	/*
--	 * file system mounted not to panic on error,
--	 * continue with corrput bitmap
-+	 * file system mounted not to panic on error, continue with corrupt
-+	 * bitmap
- 	 */
- 	return bh;
- }
-@@ -1643,9 +1643,8 @@ allocated:
- 			    "blocks from "E3FSBLK", length %lu",
- 			     ret_block, num);
- 		/*
--		 * claim_block marked the blocks we allocated
--		 * as in use. So we may want to selectively
--		 * mark some of the blocks as free
-+		 * claim_block() marked the blocks we allocated as in use. So we
-+		 * may want to selectively mark some of the blocks as free.
- 		 */
- 		goto retry_alloc;
+diff -puN drivers/video/intelfb/intelfbhw.c~fbdev-intelfb-add-support-f=
+or-the-intel-integrated-graphics-controller-965g-965gm drivers/video/in=
+telfb/intelfbhw.c
+--- a/drivers/video/intelfb/intelfbhw.c~fbdev-intelfb-add-support-for-t=
+he-intel-integrated-graphics-controller-965g-965gm
++++ a/drivers/video/intelfb/intelfbhw.c
+@@ -143,6 +143,18 @@ int intelfbhw_get_chipset(struct pci_dev
+ 		dinfo->mobile =3D 1;
+ 		dinfo->pll_index =3D PLLS_I9xx;
+ 		return 0;
++	case PCI_DEVICE_ID_INTEL_965G:
++		dinfo->name =3D "Intel(R) 965G";
++		dinfo->chipset =3D INTEL_965G;
++		dinfo->mobile =3D 0;
++		dinfo->pll_index =3D PLLS_I9xx;
++		return 0;
++	case PCI_DEVICE_ID_INTEL_965GM:
++		dinfo->name =3D "Intel(R) 965GM";
++		dinfo->chipset =3D INTEL_965GM;
++		dinfo->mobile =3D 1;
++		dinfo->pll_index =3D PLLS_I9xx;
++		return 0;
+ 	default:
+ 		return 1;
  	}
+@@ -174,7 +186,9 @@ int intelfbhw_get_memory(struct pci_dev=20
+ 	case PCI_DEVICE_ID_INTEL_915GM:
+ 	case PCI_DEVICE_ID_INTEL_945G:
+ 	case PCI_DEVICE_ID_INTEL_945GM:
+-		/* 915 and 945 chipsets support a 256MB aperture.
++	case PCI_DEVICE_ID_INTEL_965G:
++	case PCI_DEVICE_ID_INTEL_965GM:
++		/* 915, 945 and 965 chipsets support a 256MB aperture.
+ 		   Aperture size is determined by inspected the
+ 		   base address of the aperture. */
+ 		if (pci_resource_start(pdev, 2) & 0x08000000)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mbroemme@plusserver.de are
 
-hotplug-memory-make-online_page-common-fix.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-acpi.patch
-git-acpi-revert-suspend-wakeup-code-in-c.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86.patch
-arch-x86-mm-ioremapc-fix-printk-warnings.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-git-kgdb-light.patch
-git-x86-hack-around-to-make-git-kgdb-build.patch
-git-x86-vs-git-kgdb-lite.patch
-git-alsa-tiwai.patch
-es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
-git-powerpc.patch
-git-drm.patch
-revert-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-dlm-vs-git-gfs2-nwm.patch
-git-hid.patch
-git-hrt.patch
-time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
-git-ia64.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-leds.patch
-git-libata-all.patch
-pata_atiixp-simplex-clear-fix.patch
-git-async-tx.patch
-git-mips.patch
-git-net.patch
-git-net-git-rejects.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-ehea-fix-dlpar-memory-add-support-fix.patch
-sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
-git-s390.patch
-git-sched.patch
-add-rcu_assign_index-if-ever-needed.patch
-git-sh.patch
-sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
-sh-export-empty_zero_page.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-misplaced-hunk.patch
-git-cryptodev-fix-conflict.patch
-git-cryptodev-fix-conflict-hack.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-semaphore-git-rejects.patch
-ext4-is-busted-on-m68k.patch
-smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-drivers-video-uvesafbc-fix-error-path-memory-leak.patch
-fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+fbdev-intelfb-add-support-for-the-intel-integrated-graphics-controller-=
+965g-965gm.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
