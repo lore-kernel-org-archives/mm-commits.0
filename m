@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pc300-update-to-tty_set_operations.patch added to -mm tree
-Date: Mon, 14 Apr 2008 19:04:44 -0700
-Message-ID: <200804150204.m3F24iS4005642@imap1.linux-foundation.org>
+Subject: + consoles-switch-to-int-put_char-method.patch added to -mm tree
+Date: Mon, 14 Apr 2008 19:04:38 -0700
+Message-ID: <200804150204.m3F24cpg005633@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57336 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59362 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760469AbYDOCFT (ORCPT
+	by vger.kernel.org with ESMTP id S1760518AbYDOCFg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 22:05:19 -0400
+	Mon, 14 Apr 2008 22:05:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+Cc: alan@lxorguk.ukuu.org.uk, adaplas@pol.net, alan@redhat.com, jirislaby@gmail.com, kelly@au.ibm.com, paulus@samba.org, samuel.thibault@ens-lyon.org, sfr@canb.auug.org.au
 
 
 The patch titled
-     pc300: Update to tty_set_operations
+     consoles: switch to int put_char method
 has been added to the -mm tree.  Its filename is
-     pc300-update-to-tty_set_operations.patch
+     consoles-switch-to-int-put_char-method.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pc300: Update to tty_set_operations
+Subject: consoles: switch to int put_char method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-This driver somehow escaped the tty operations changes way back when.  Update
-it so that we can switch to tty->ops shortly.
-
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Antonino Daplas <adaplas@pol.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Kelly Daly <kelly@au.ibm.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wan/pc300_tty.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ drivers/char/viocons.c |    5 +++--
+ drivers/char/vt.c      |    6 +++---
+ 2 files changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/wan/pc300_tty.c~pc300-update-to-tty_set_operations drivers/net/wan/pc300_tty.c
---- a/drivers/net/wan/pc300_tty.c~pc300-update-to-tty_set_operations
-+++ a/drivers/net/wan/pc300_tty.c
-@@ -178,6 +178,20 @@ static void cpc_tty_signal_on(pc300dev_t
- 	CPC_TTY_UNLOCK(card,flags); 
+diff -puN drivers/char/viocons.c~consoles-switch-to-int-put_char-method drivers/char/viocons.c
+--- a/drivers/char/viocons.c~consoles-switch-to-int-put_char-method
++++ a/drivers/char/viocons.c
+@@ -628,13 +628,13 @@ static int viotty_write(struct tty_struc
+ /*
+  * TTY put_char method
+  */
+-static void viotty_put_char(struct tty_struct *tty, unsigned char ch)
++static int viotty_put_char(struct tty_struct *tty, unsigned char ch)
+ {
+ 	struct port_info *pi;
+ 
+ 	pi = get_port_data(tty);
+ 	if (pi == NULL)
+-		return;
++		return 0;
+ 
+ 	/* This will append '\r' as well if the char is '\n' */
+ 	if (viochar_is_console(pi))
+@@ -642,6 +642,7 @@ static void viotty_put_char(struct tty_s
+ 
+ 	if (viopath_isactive(pi->lp))
+ 		internal_write(pi, &ch, 1);
++	return 1;
  }
  
-+
-+static const struct tty_operations pc300_ops = {
-+	.open = cpc_tty_open,
-+	.close = cpc_tty_close,
-+	.write = cpc_tty_write,
-+	.write_room = cpc_tty_write_room,
-+	.chars_in_buffer = cpc_tty_chars_in_buffer,
-+	.tiocmset = pc300_tiocmset,
-+	.tiocmget = pc300_tiocmget,
-+	.flush_buffer = cpc_tty_flush_buffer,
-+	.hangup = cpc_tty_hangup,
-+};
-+
-+
  /*
-  * PC300 TTY initialization routine
-  *
-@@ -225,15 +239,7 @@ void cpc_tty_init(pc300dev_t *pc300dev)
- 		serial_drv.flags = TTY_DRIVER_REAL_RAW;
+diff -puN drivers/char/vt.c~consoles-switch-to-int-put_char-method drivers/char/vt.c
+--- a/drivers/char/vt.c~consoles-switch-to-int-put_char-method
++++ a/drivers/char/vt.c
+@@ -2641,11 +2641,11 @@ static int con_write(struct tty_struct *
+ 	return retval;
+ }
  
- 		/* interface routines from the upper tty layer to the tty driver */
--		serial_drv.open = cpc_tty_open;
--		serial_drv.close = cpc_tty_close;
--		serial_drv.write = cpc_tty_write; 
--		serial_drv.write_room = cpc_tty_write_room; 
--		serial_drv.chars_in_buffer = cpc_tty_chars_in_buffer; 
--		serial_drv.tiocmset = pc300_tiocmset;
--		serial_drv.tiocmget = pc300_tiocmget;
--		serial_drv.flush_buffer = cpc_tty_flush_buffer; 
--		serial_drv.hangup = cpc_tty_hangup;
-+		tty_set_operations(&serial_drv, &pc300_ops);
+-static void con_put_char(struct tty_struct *tty, unsigned char ch)
++static int con_put_char(struct tty_struct *tty, unsigned char ch)
+ {
+ 	if (in_interrupt())
+-		return;	/* n_r3964 calls put_char() from interrupt context */
+-	do_con_write(tty, &ch, 1);
++		return 0;	/* n_r3964 calls put_char() from interrupt context */
++	return do_con_write(tty, &ch, 1);
+ }
  
- 		/* register the TTY driver */
- 		if (tty_register_driver(&serial_drv)) { 
+ static int con_write_room(struct tty_struct *tty)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
