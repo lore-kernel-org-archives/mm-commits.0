@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fat-use-get-put_unaligned_-helpers.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:22:28 -0700
-Message-ID: <200804152222.m3FMMS2U018818@imap1.linux-foundation.org>
+Subject: + isofs-use-get-put_unaligned_-helpers.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:22:33 -0700
+Message-ID: <200804152222.m3FMMXBW018824@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56932 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46059 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756412AbYDOWWc (ORCPT
+	by vger.kernel.org with ESMTP id S1756918AbYDOWWi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:22:32 -0400
+	Tue, 15 Apr 2008 18:22:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, hirofumi@mail.parknet.co.jp, viro@zeniv.linux.org.uk
+Cc: harvey.harrison@gmail.com, jack@suse.cz, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     fat: use get/put_unaligned_* helpers
+     isofs: use get/put_unaligned_* helpers
 has been added to the -mm tree.  Its filename is
-     fat-use-get-put_unaligned_-helpers.patch
+     isofs-use-get-put_unaligned_-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,49 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: use get/put_unaligned_* helpers
+Subject: isofs: use get/put_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/isofs/isofs.h |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/fat/inode.c~fat-use-get-put_unaligned_-helpers fs/fat/inode.c
---- a/fs/fat/inode.c~fat-use-get-put_unaligned_-helpers
-+++ a/fs/fat/inode.c
-@@ -1215,8 +1215,7 @@ int fat_fill_super(struct super_block *s
- 		brelse(bh);
- 		goto out_invalid;
- 	}
--	logical_sector_size =
--		le16_to_cpu(get_unaligned((__le16 *)&b->sector_size));
-+	logical_sector_size = get_unaligned_le16(&b->sector_size);
- 	if (!is_power_of_2(logical_sector_size)
- 	    || (logical_sector_size < 512)
- 	    || (logical_sector_size > 4096)) {
-@@ -1314,8 +1313,7 @@ int fat_fill_super(struct super_block *s
- 	sbi->dir_per_block_bits = ffs(sbi->dir_per_block) - 1;
- 
- 	sbi->dir_start = sbi->fat_start + sbi->fats * sbi->fat_length;
--	sbi->dir_entries =
--		le16_to_cpu(get_unaligned((__le16 *)&b->dir_entries));
-+	sbi->dir_entries = get_unaligned_le16(&b->dir_entries);
- 	if (sbi->dir_entries & (sbi->dir_per_block - 1)) {
- 		if (!silent)
- 			printk(KERN_ERR "FAT: bogus directroy-entries per block"
-@@ -1327,7 +1325,7 @@ int fat_fill_super(struct super_block *s
- 	rootdir_sectors = sbi->dir_entries
- 		* sizeof(struct msdos_dir_entry) / sb->s_blocksize;
- 	sbi->data_start = sbi->dir_start + rootdir_sectors;
--	total_sectors = le16_to_cpu(get_unaligned((__le16 *)&b->sectors));
-+	total_sectors = get_unaligned_le16(&b->sectors);
- 	if (total_sectors == 0)
- 		total_sectors = le32_to_cpu(b->total_sect);
+diff -puN fs/isofs/isofs.h~isofs-use-get-put_unaligned_-helpers fs/isofs/isofs.h
+--- a/fs/isofs/isofs.h~isofs-use-get-put_unaligned_-helpers
++++ a/fs/isofs/isofs.h
+@@ -78,29 +78,29 @@ static inline int isonum_712(char *p)
+ }
+ static inline unsigned int isonum_721(char *p)
+ {
+-	return le16_to_cpu(get_unaligned((__le16 *)p));
++	return get_unaligned_le16(p);
+ }
+ static inline unsigned int isonum_722(char *p)
+ {
+-	return be16_to_cpu(get_unaligned((__le16 *)p));
++	return get_unaligned_be16(p);
+ }
+ static inline unsigned int isonum_723(char *p)
+ {
+ 	/* Ignore bigendian datum due to broken mastering programs */
+-	return le16_to_cpu(get_unaligned((__le16 *)p));
++	return get_unaligned_le16(p);
+ }
+ static inline unsigned int isonum_731(char *p)
+ {
+-	return le32_to_cpu(get_unaligned((__le32 *)p));
++	return get_unaligned_le32(p);
+ }
+ static inline unsigned int isonum_732(char *p)
+ {
+-	return be32_to_cpu(get_unaligned((__le32 *)p));
++	return get_unaligned_be32(p);
+ }
+ static inline unsigned int isonum_733(char *p)
+ {
+ 	/* Ignore bigendian datum due to broken mastering programs */
+-	return le32_to_cpu(get_unaligned((__le32 *)p));
++	return get_unaligned_le32(p);
+ }
+ extern int iso_date(char *, int);
  
 _
 
