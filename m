@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hid-core-use-get_unaligned_-helpers.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:22:04 -0700
-Message-ID: <200804152222.m3FMM4hR018784@imap1.linux-foundation.org>
+Subject: + pcmcia-use-get-put_unaligned_-helpers.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:22:21 -0700
+Message-ID: <200804152222.m3FMMLqD018809@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49336 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753583AbYDOWWJ (ORCPT
+	by vger.kernel.org with ESMTP id S1756445AbYDOWWc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:22:09 -0400
+	Tue, 15 Apr 2008 18:22:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jkosina@suse.cz, viro@zeniv.linux.org.uk
+Cc: harvey.harrison@gmail.com, daniel.ritz@gmx.ch, linux@dominikbrodowski.net, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     hid-core: use get_unaligned_* helpers
+     pcmcia: use get/put_unaligned_* helpers
 has been added to the -mm tree.  Its filename is
-     hid-core-use-get_unaligned_-helpers.patch
+     pcmcia-use-get-put_unaligned_-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,144 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hid-core: use get_unaligned_* helpers
+Subject: pcmcia: use get/put_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Daniel Ritz <daniel.ritz@gmx.ch>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-core.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/pcmcia/cistpl.c |   39 ++++++++++++++------------------------
+ 1 file changed, 15 insertions(+), 24 deletions(-)
 
-diff -puN drivers/hid/hid-core.c~hid-core-use-get_unaligned_-helpers drivers/hid/hid-core.c
---- a/drivers/hid/hid-core.c~hid-core-use-get_unaligned_-helpers
-+++ a/drivers/hid/hid-core.c
-@@ -606,7 +606,7 @@ static u8 *fetch_item(__u8 *start, __u8 
- 		case 2:
- 			if ((end - start) < 2)
- 				return NULL;
--			item->data.u16 = le16_to_cpu(get_unaligned((__le16*)start));
-+			item->data.u16 = get_unaligned_le16(start);
- 			start = (__u8 *)((__le16 *)start + 1);
- 			return start;
+diff -puN drivers/pcmcia/cistpl.c~pcmcia-use-get-put_unaligned_-helpers drivers/pcmcia/cistpl.c
+--- a/drivers/pcmcia/cistpl.c~pcmcia-use-get-put_unaligned_-helpers
++++ a/drivers/pcmcia/cistpl.c
+@@ -402,15 +402,6 @@ EXPORT_SYMBOL(pcmcia_replace_cis);
+     
+ ======================================================================*/
  
-@@ -614,7 +614,7 @@ static u8 *fetch_item(__u8 *start, __u8 
- 			item->size++;
- 			if ((end - start) < 4)
- 				return NULL;
--			item->data.u32 = le32_to_cpu(get_unaligned((__le32*)start));
-+			item->data.u32 = get_unaligned_le32(start);
- 			start = (__u8 *)((__le32 *)start + 1);
- 			return start;
- 	}
-@@ -765,7 +765,7 @@ static __inline__ __u32 extract(__u8 *re
+-static inline u16 cis_get_u16(void *ptr)
+-{
+-	return le16_to_cpu(get_unaligned((__le16 *) ptr));
+-}
+-static inline u32 cis_get_u32(void *ptr)
+-{
+-	return le32_to_cpu(get_unaligned((__le32 *) ptr));
+-}
+-
+ typedef struct tuple_flags {
+     u_int		link_space:4;
+     u_int		has_link:1;
+@@ -471,7 +462,7 @@ static int follow_link(struct pcmcia_soc
+ 	/* Get indirect link from the MFC tuple */
+ 	read_cis_cache(s, LINK_SPACE(tuple->Flags),
+ 		       tuple->LinkOffset, 5, link);
+-	ofs = cis_get_u32(link + 1);
++	ofs = get_unaligned_le32(link + 1);
+ 	SPACE(tuple->Flags) = (link[0] == CISTPL_MFC_ATTR);
+ 	/* Move to the next indirect link */
+ 	tuple->LinkOffset += 5;
+@@ -679,8 +670,8 @@ static int parse_checksum(tuple_t *tuple
+     if (tuple->TupleDataLen < 5)
+ 	return CS_BAD_TUPLE;
+     p = (u_char *) tuple->TupleData;
+-    csum->addr = tuple->CISOffset + cis_get_u16(p) - 2;
+-    csum->len = cis_get_u16(p + 2);
++    csum->addr = tuple->CISOffset + get_unaligned_le16(p) - 2;
++    csum->len = get_unaligned_le16(p + 2);
+     csum->sum = *(p + 4);
+     return CS_SUCCESS;
+ }
+@@ -691,7 +682,7 @@ static int parse_longlink(tuple_t *tuple
+ {
+     if (tuple->TupleDataLen < 4)
+ 	return CS_BAD_TUPLE;
+-    link->addr = cis_get_u32(tuple->TupleData);
++    link->addr = get_unaligned_le32(tuple->TupleData);
+     return CS_SUCCESS;
+ }
  
- 	report += offset >> 3;  /* adjust byte index */
- 	offset &= 7;            /* now only need bit offset into one byte */
--	x = le64_to_cpu(get_unaligned((__le64 *) report));
-+	x = get_unaligned_le64(report);
- 	x = (x >> offset) & ((1ULL << n) - 1);  /* extract bit field */
- 	return (u32) x;
+@@ -710,7 +701,7 @@ static int parse_longlink_mfc(tuple_t *t
+ 	return CS_BAD_TUPLE;
+     for (i = 0; i < link->nfn; i++) {
+ 	link->fn[i].space = *p; p++;
+-	link->fn[i].addr = cis_get_u32(p);
++	link->fn[i].addr = get_unaligned_le32(p);
+ 	p += 4;
+     }
+     return CS_SUCCESS;
+@@ -800,8 +791,8 @@ static int parse_manfid(tuple_t *tuple, 
+ {
+     if (tuple->TupleDataLen < 4)
+ 	return CS_BAD_TUPLE;
+-    m->manf = cis_get_u16(tuple->TupleData);
+-    m->card = cis_get_u16(tuple->TupleData + 2);
++    m->manf = get_unaligned_le16(tuple->TupleData);
++    m->card = get_unaligned_le16(tuple->TupleData + 2);
+     return CS_SUCCESS;
+ }
+ 
+@@ -1100,7 +1091,7 @@ static int parse_cftable_entry(tuple_t *
+ 	break;
+     case 0x20:
+ 	entry->mem.nwin = 1;
+-	entry->mem.win[0].len = cis_get_u16(p) << 8;
++	entry->mem.win[0].len = get_unaligned_le16(p) << 8;
+ 	entry->mem.win[0].card_addr = 0;
+ 	entry->mem.win[0].host_addr = 0;
+ 	p += 2;
+@@ -1108,8 +1099,8 @@ static int parse_cftable_entry(tuple_t *
+ 	break;
+     case 0x40:
+ 	entry->mem.nwin = 1;
+-	entry->mem.win[0].len = cis_get_u16(p) << 8;
+-	entry->mem.win[0].card_addr = cis_get_u16(p + 2) << 8;
++	entry->mem.win[0].len = get_unaligned_le16(p) << 8;
++	entry->mem.win[0].card_addr = get_unaligned_le16(p + 2) << 8;
+ 	entry->mem.win[0].host_addr = 0;
+ 	p += 4;
+ 	if (p > q) return CS_BAD_TUPLE;
+@@ -1146,7 +1137,7 @@ static int parse_bar(tuple_t *tuple, cis
+     p = (u_char *)tuple->TupleData;
+     bar->attr = *p;
+     p += 2;
+-    bar->size = cis_get_u32(p);
++    bar->size = get_unaligned_le32(p);
+     return CS_SUCCESS;
+ }
+ 
+@@ -1159,7 +1150,7 @@ static int parse_config_cb(tuple_t *tupl
+ 	return CS_BAD_TUPLE;
+     config->last_idx = *(++p);
+     p++;
+-    config->base = cis_get_u32(p);
++    config->base = get_unaligned_le32(p);
+     config->subtuples = tuple->TupleDataLen - 6;
+     return CS_SUCCESS;
+ }
+@@ -1275,7 +1266,7 @@ static int parse_vers_2(tuple_t *tuple, 
+ 
+     v2->vers = p[0];
+     v2->comply = p[1];
+-    v2->dindex = cis_get_u16(p +2 );
++    v2->dindex = get_unaligned_le16(p +2 );
+     v2->vspec8 = p[6];
+     v2->vspec9 = p[7];
+     v2->nhdr = p[8];
+@@ -1316,8 +1307,8 @@ static int parse_format(tuple_t *tuple, 
+ 
+     fmt->type = p[0];
+     fmt->edc = p[1];
+-    fmt->offset = cis_get_u32(p + 2);
+-    fmt->length = cis_get_u32(p + 6);
++    fmt->offset = get_unaligned_le32(p + 2);
++    fmt->length = get_unaligned_le32(p + 6);
+ 
+     return CS_SUCCESS;
  }
 _
 
