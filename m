@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + page-allcoator-smarter-retry-of-costly-order-allocations.patch added to -mm tree
-Date: Tue, 15 Apr 2008 00:08:25 -0700
-Message-ID: <200804150708.m3F78Pft016156@imap1.linux-foundation.org>
+Subject: + hotplug-memory-make-online_page-common-fix.patch added to -mm tree
+Date: Tue, 15 Apr 2008 00:22:15 -0700
+Message-ID: <200804150722.m3F7MFCW016652@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39666 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42084 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753210AbYDOHTQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753475AbYDOHWp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 03:19:16 -0400
+	Tue, 15 Apr 2008 03:22:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nacc@us.ibm.com, apw@shadowen.org, clameter@sgi.com, haveblue@us.ibm.com, mel@csn.ul.ie
+Cc: akpm@linux-foundation.org, clameter@sgi.com, dave@linux.vnet.ibm.com, jeremy.fitzhardinge@citrix.com, jeremy@goop.org, mingo@elte.hu, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     page allcoator: smarter retry of costly-order allocations
+     hotplug-memory-make-online_page-common-fix
 has been added to the -mm tree.  Its filename is
-     page-allcoator-smarter-retry-of-costly-order-allocations.patch
+     hotplug-memory-make-online_page-common-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,119 +34,233 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: page allcoator: smarter retry of costly-order allocations
-From: Nishanth Aravamudan <nacc@us.ibm.com>
+Subject: hotplug-memory-make-online_page-common-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Because of page order checks in __alloc_pages(), hugepage (and similarly large
-order) allocations will not retry unless explicitly marked __GFP_REPEAT. 
-However, the current retry logic is nearly an infinite loop (or until reclaim
-does no progress whatsoever).  For these costly allocations, that seems like
-overkill and could potentially never terminate.
-
-Modify try_to_free_pages() to indicate how many pages were reclaimed.  Use
-that information in __alloc_pages() to eventually fail a large __GFP_REPEAT
-allocation when we've reclaimed an order of pages equal to or greater than the
-allocation's order.  This relies on lumpy reclaim functioning as advertised. 
-Due to fragmentation, lumpy reclaim may not be able to free up the order
-needed in one invocation, so multiple iterations may be requred.  In other
-words, the more fragmented memory is, the more retry attempts __GFP_REPEAT
-will make (particularly for higher order allocations).
-
-Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Dave Hansen <haveblue@us.ibm.com>
 Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Dave Hansen <dave@linux.vnet.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   22 +++++++++++++++++-----
- mm/vmscan.c     |    7 +++++--
- 2 files changed, 22 insertions(+), 7 deletions(-)
+ mm/memory_hotplug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~page-allcoator-smarter-retry-of-costly-order-allocations mm/page_alloc.c
---- a/mm/page_alloc.c~page-allcoator-smarter-retry-of-costly-order-allocations
-+++ a/mm/page_alloc.c
-@@ -1461,7 +1461,8 @@ __alloc_pages_internal(gfp_t gfp_mask, u
- 	struct task_struct *p = current;
- 	int do_retry;
- 	int alloc_flags;
--	int did_some_progress;
-+	unsigned long did_some_progress;
-+	unsigned long pages_reclaimed = 0;
+diff -puN mm/memory_hotplug.c~hotplug-memory-make-online_page-common-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~hotplug-memory-make-online_page-common-fix
++++ a/mm/memory_hotplug.c
+@@ -226,7 +226,7 @@ void online_page(struct page *page)
  
- 	might_sleep_if(wait);
+ #ifdef CONFIG_HIGHMEM
+ 	if (PageHighMem(page))
+-	    totalhigh_pages++;
++		totalhigh_pages++;
+ #endif
  
-@@ -1611,15 +1612,26 @@ nofail_alloc:
- 	 * Don't let big-order allocations loop unless the caller explicitly
- 	 * requests that.  Wait for some write requests to complete then retry.
- 	 *
--	 * In this implementation, either order <= PAGE_ALLOC_COSTLY_ORDER or
--	 * __GFP_REPEAT mean __GFP_NOFAIL, but that may not be true in other
-+	 * In this implementation, order <= PAGE_ALLOC_COSTLY_ORDER
-+	 * means __GFP_NOFAIL, but that may not be true in other
- 	 * implementations.
-+	 *
-+	 * For order > PAGE_ALLOC_COSTLY_ORDER, if __GFP_REPEAT is
-+	 * specified, then we retry until we no longer reclaim any pages
-+	 * (above), or we've reclaimed an order of pages at least as
-+	 * large as the allocation's order. In both cases, if the
-+	 * allocation still fails, we stop retrying.
- 	 */
-+	pages_reclaimed += did_some_progress;
- 	do_retry = 0;
- 	if (!(gfp_mask & __GFP_NORETRY)) {
--		if ((order <= PAGE_ALLOC_COSTLY_ORDER) ||
--						(gfp_mask & __GFP_REPEAT))
-+		if (order <= PAGE_ALLOC_COSTLY_ORDER) {
- 			do_retry = 1;
-+		} else {
-+			if (gfp_mask & __GFP_REPEAT &&
-+				pages_reclaimed < (1 << order))
-+					do_retry = 1;
-+		}
- 		if (gfp_mask & __GFP_NOFAIL)
- 			do_retry = 1;
- 	}
-diff -puN mm/vmscan.c~page-allcoator-smarter-retry-of-costly-order-allocations mm/vmscan.c
---- a/mm/vmscan.c~page-allcoator-smarter-retry-of-costly-order-allocations
-+++ a/mm/vmscan.c
-@@ -1309,6 +1309,9 @@ static unsigned long shrink_zones(int pr
-  * hope that some of these pages can be written.  But if the allocating task
-  * holds filesystem locks which prevent writeout this might not work, and the
-  * allocation attempt will fail.
-+ *
-+ * returns:	0, if no pages reclaimed
-+ * 		else, the number of pages reclaimed
-  */
- static unsigned long do_try_to_free_pages(struct zonelist *zonelist,
- 					struct scan_control *sc)
-@@ -1358,7 +1361,7 @@ static unsigned long do_try_to_free_page
- 		}
- 		total_scanned += sc->nr_scanned;
- 		if (nr_reclaimed >= sc->swap_cluster_max) {
--			ret = 1;
-+			ret = nr_reclaimed;
- 			goto out;
- 		}
- 
-@@ -1381,7 +1384,7 @@ static unsigned long do_try_to_free_page
- 	}
- 	/* top priority shrink_caches still had more to do? don't OOM, then */
- 	if (!sc->all_unreclaimable && scan_global_lru(sc))
--		ret = 1;
-+		ret = nr_reclaimed;
- out:
- 	/*
- 	 * Now that we've scanned all the zones at this priority level, note
+ #ifdef CONFIG_FLATMEM
 _
 
-Patches currently in -mm which might be from nacc@us.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-documentation-correct-overcommit-caveat-in-hugetlbpagetxt.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
-mm-fix-misleading-__gfp_repeat-related-comments.patch
-page-allcoator-smarter-retry-of-costly-order-allocations.patch
-explicitly-retry-hugepage-allocations.patch
+hotplug-memory-make-online_page-common-fix.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+git-acpi.patch
+git-acpi-revert-suspend-wakeup-code-in-c.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86.patch
+arch-x86-mm-ioremapc-fix-printk-warnings.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+git-kgdb-light.patch
+git-x86-hack-around-to-make-git-kgdb-build.patch
+git-x86-vs-git-kgdb-lite.patch
+git-alsa-tiwai.patch
+es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+cifs-suppress-warning.patch
+git-powerpc.patch
+git-drm.patch
+revert-git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-dlm-vs-git-gfs2-nwm.patch
+git-hid.patch
+git-hrt.patch
+time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
+git-ia64.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-leds.patch
+git-libata-all.patch
+pata_atiixp-simplex-clear-fix.patch
+git-async-tx.patch
+git-mips.patch
+git-net.patch
+git-net-git-rejects.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+ehea-fix-dlpar-memory-add-support-fix.patch
+sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
+pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-introduce-pci_slot-fix-fix.patch
+pci-hotplug-introduce-pci_slot-fix-2.patch
+pci-hotplug-introduce-pci_slot-fix-99.patch
+pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
+git-s390.patch
+git-sched.patch
+add-rcu_assign_index-if-ever-needed.patch
+git-sh.patch
+sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
+sh-export-empty_zero_page.patch
+git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-misplaced-hunk.patch
+git-cryptodev-fix-conflict.patch
+git-cryptodev-fix-conflict-hack.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+git-semaphore-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+mm-introduce-pte_special-pte-bit-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+drivers-video-uvesafbc-fix-error-path-memory-leak.patch
+fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+fat_valid_media-remove-pointless-test.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
 
