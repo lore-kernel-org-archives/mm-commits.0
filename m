@@ -1,58 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: + use-vmalloc-for-mem_cgroup-allocation-v3.patch added to -mm tree
-Date: Mon, 14 Apr 2008 22:22:32 -0700
-Message-ID: <200804150522.m3F5MWvC012445@imap1.linux-foundation.org>
+Subject: - use-vmalloc-for-mem_cgroup-allocation-v2.patch removed from -mm tree
+Date: Mon, 14 Apr 2008 22:22:38 -0700
+Message-ID: <200804150522.m3F5Mc84012448@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52509 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58214 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753332AbYDOFW4 (ORCPT
+	by vger.kernel.org with ESMTP id S1753428AbYDOFXP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 01:22:56 -0400
+	Tue, 15 Apr 2008 01:23:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, lizf@cn.fujitsu.com, xemul@openvz.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcgroup: use vmalloc for mem_cgroup allocation
-has been added to the -mm tree.  Its filename is
-     use-vmalloc-for-mem_cgroup-allocation-v3.patch
+     memcg: use vmalloc for mem_cgroup allocation
+has been removed from the -mm tree.  Its filename was
+     use-vmalloc-for-mem_cgroup-allocation-v2.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcgroup: use vmalloc for mem_cgroup allocation
+Subject: memcg: use vmalloc for mem_cgroup allocation
 From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-On ia64, this kmalloc() requires order-4 pages.  But this is not necessary to
-be physically contiguous.  For big mem_cgroup, vmalloc is better.  For small
-ones, kmalloc is used.
+On ia64, this kmalloc() requires order-4 pages.  But this need not be
+physically contiguous.  (and x86-32, which has a small vmalloc area, a has
+small mem_cgroup struct.)
+
+For here, vmalloc is better.
 
 Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   37 +++++++++++++++++++++++++++++++------
- 1 file changed, 31 insertions(+), 6 deletions(-)
+ mm/memcontrol.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~use-vmalloc-for-mem_cgroup-allocation-v3 mm/memcontrol.c
---- a/mm/memcontrol.c~use-vmalloc-for-mem_cgroup-allocation-v3
+diff -puN mm/memcontrol.c~use-vmalloc-for-mem_cgroup-allocation-v2 mm/memcontrol.c
+--- a/mm/memcontrol.c~use-vmalloc-for-mem_cgroup-allocation-v2
 +++ a/mm/memcontrol.c
 @@ -31,6 +31,7 @@
  #include <linux/spinlock.h>
@@ -62,69 +53,31 @@ diff -puN mm/memcontrol.c~use-vmalloc-for-mem_cgroup-allocation-v3 mm/memcontrol
  
  #include <asm/uaccess.h>
  
-@@ -983,6 +984,31 @@ static void free_mem_cgroup_per_zone_inf
- 	kfree(mem->info.nodeinfo[node]);
- }
- 
-+static struct mem_cgroup *mem_cgroup_alloc(void)
-+{
-+	struct mem_cgroup *mem;
-+
-+	if (sizeof(*mem) < PAGE_SIZE)
-+		mem = kmalloc(sizeof(*mem), GFP_KERNEL);
-+	else
-+		mem = vmalloc(sizeof(*mem));
-+
-+	if (!mem)
-+		return NULL;
-+
-+	memset(mem, 0, sizeof(*mem));
-+	return mem;
-+}
-+
-+static void mem_cgroup_free(struct mem_cgroup *mem)
-+{
-+	if (sizeof(*mem) < PAGE_SIZE)
-+		kfree(mem);
-+	else
-+		vfree(mem);
-+}
-+
-+
- static struct cgroup_subsys_state *
- mem_cgroup_create(struct cgroup_subsys *ss, struct cgroup *cont)
- {
-@@ -993,12 +1019,11 @@ mem_cgroup_create(struct cgroup_subsys *
+@@ -993,7 +994,8 @@ mem_cgroup_create(struct cgroup_subsys *
  		mem = &init_mem_cgroup;
  		page_cgroup_cache = KMEM_CACHE(page_cgroup, SLAB_PANIC);
  	} else {
 -		mem = kzalloc(sizeof(struct mem_cgroup), GFP_KERNEL);
-+		mem = mem_cgroup_alloc();
-+		if (!mem)
-+			return ERR_PTR(-ENOMEM);
++		mem = vmalloc(sizeof(struct mem_cgroup));
++		memset(mem, 0, sizeof(*mem));
  	}
  
--	if (mem == NULL)
--		return ERR_PTR(-ENOMEM);
--
- 	res_counter_init(&mem->res);
- 
- 	memset(&mem->info, 0, sizeof(mem->info));
-@@ -1012,7 +1037,7 @@ free_out:
+ 	if (mem == NULL)
+@@ -1012,7 +1014,7 @@ free_out:
  	for_each_node_state(node, N_POSSIBLE)
  		free_mem_cgroup_per_zone_info(mem, node);
  	if (cont->parent != NULL)
 -		kfree(mem);
-+		mem_cgroup_free(mem);
++		vfree(mem);
  	return ERR_PTR(-ENOMEM);
  }
  
-@@ -1032,7 +1057,7 @@ static void mem_cgroup_destroy(struct cg
+@@ -1032,7 +1034,7 @@ static void mem_cgroup_destroy(struct cg
  	for_each_node_state(node, N_POSSIBLE)
  		free_mem_cgroup_per_zone_info(mem, node);
  
 -	kfree(mem_cgroup_from_cont(cont));
-+	mem_cgroup_free(mem_cgroup_from_cont(cont));
++	vfree(mem_cgroup_from_cont(cont));
  }
  
  static int mem_cgroup_populate(struct cgroup_subsys *ss,
