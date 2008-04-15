@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext3-fix-mount-messages-when-quota-disabled.patch added to -mm tree
-Date: Tue, 15 Apr 2008 14:46:22 -0700
-Message-ID: <200804152146.m3FLkM36017408@imap1.linux-foundation.org>
+Subject: + hrtimer-reduce-calls-to-hrtimer_get_softirq_time.patch added to -mm tree
+Date: Tue, 15 Apr 2008 14:50:16 -0700
+Message-ID: <200804152150.m3FLoG3F017504@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38953 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49584 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759949AbYDOVqz (ORCPT
+	by vger.kernel.org with ESMTP id S1753642AbYDOVvS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 17:46:55 -0400
+	Tue, 15 Apr 2008 17:51:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz
+Cc: sivanich@sgi.com, a.p.zijlstra@chello.nl, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     ext3: fix mount messages when quota disabled
+     hrtimer: reduce calls to hrtimer_get_softirq_time()
 has been added to the -mm tree.  Its filename is
-     ext3-fix-mount-messages-when-quota-disabled.patch
+     hrtimer-reduce-calls-to-hrtimer_get_softirq_time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,123 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: fix mount messages when quota disabled
-From: Jan Kara <jack@suse.cz>
+Subject: hrtimer: reduce calls to hrtimer_get_softirq_time()
+From: Dimitri Sivanich <sivanich@sgi.com>
 
-When quota is disabled, we should not print 'journaled quota not supported'
-when user tried to mount non-journaled quota.  Also fix typo in the message.
+It seems that hrtimer_run_queues() is calling hrtimer_get_softirq_time() more
+often than it needs to.  This can cause frequent contention on systems with
+large numbers of processors/cores.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+With this patch, hrtimer_run_queues only calls hrtimer_get_softirq_time() if
+there is a pending timer in one of the hrtimer bases, and only once.
+
+This also combines hrtimer_run_queues() and the inline run_hrtimer_queue()
+into one function.
+
+Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ kernel/hrtimer.c |   65 ++++++++++++++++++++++-----------------------
+ 1 file changed, 33 insertions(+), 32 deletions(-)
 
-diff -puN fs/ext3/super.c~ext3-fix-mount-messages-when-quota-disabled fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-fix-mount-messages-when-quota-disabled
-+++ a/fs/ext3/super.c
-@@ -1096,6 +1096,9 @@ clear_qf_name:
- 		case Opt_quota:
- 		case Opt_usrquota:
- 		case Opt_grpquota:
-+			printk(KERN_ERR
-+				"EXT3-fs: quota options not supported.\n");
-+			break;
- 		case Opt_usrjquota:
- 		case Opt_grpjquota:
- 		case Opt_offusrjquota:
-@@ -1103,7 +1106,7 @@ clear_qf_name:
- 		case Opt_jqfmt_vfsold:
- 		case Opt_jqfmt_vfsv0:
- 			printk(KERN_ERR
--				"EXT3-fs: journalled quota options not "
-+				"EXT3-fs: journaled quota options not "
- 				"supported.\n");
- 			break;
- 		case Opt_noquota:
+diff -puN kernel/hrtimer.c~hrtimer-reduce-calls-to-hrtimer_get_softirq_time kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimer-reduce-calls-to-hrtimer_get_softirq_time
++++ a/kernel/hrtimer.c
+@@ -1238,51 +1238,52 @@ void hrtimer_run_pending(void)
+ /*
+  * Called from hardirq context every jiffy
+  */
+-static inline void run_hrtimer_queue(struct hrtimer_cpu_base *cpu_base,
+-				     int index)
++void hrtimer_run_queues(void)
+ {
+ 	struct rb_node *node;
+-	struct hrtimer_clock_base *base = &cpu_base->clock_base[index];
++	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
++	struct hrtimer_clock_base *base;
++	int index;
++	int gst = 1;
+ 
+-	if (!base->first)
++	if (hrtimer_hres_active())
+ 		return;
+ 
+-	if (base->get_softirq_time)
+-		base->softirq_time = base->get_softirq_time();
++	for (index = 0; index < HRTIMER_MAX_CLOCK_BASES; index++) {
++		base = &cpu_base->clock_base[index];
+ 
+-	spin_lock(&cpu_base->lock);
+-
+-	while ((node = base->first)) {
+-		struct hrtimer *timer;
+-
+-		timer = rb_entry(node, struct hrtimer, node);
+-		if (base->softirq_time.tv64 <= timer->expires.tv64)
+-			break;
+-
+-		if (timer->cb_mode == HRTIMER_CB_SOFTIRQ) {
+-			__remove_hrtimer(timer, base, HRTIMER_STATE_PENDING, 0);
+-			list_add_tail(&timer->cb_entry,
+-					&base->cpu_base->cb_pending);
++		if (!base->first)
+ 			continue;
++
++		if (gst) {
++			hrtimer_get_softirq_time(cpu_base);
++			gst = 0;
+ 		}
+ 
+-		__run_hrtimer(timer);
+-	}
+-	spin_unlock(&cpu_base->lock);
+-}
++		if (base->get_softirq_time)
++			base->softirq_time = base->get_softirq_time();
+ 
+-void hrtimer_run_queues(void)
+-{
+-	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
+-	int i;
++		spin_lock(&cpu_base->lock);
+ 
+-	if (hrtimer_hres_active())
+-		return;
++		while ((node = base->first)) {
++			struct hrtimer *timer;
+ 
+-	hrtimer_get_softirq_time(cpu_base);
++			timer = rb_entry(node, struct hrtimer, node);
++			if (base->softirq_time.tv64 <= timer->expires.tv64)
++				break;
++
++			if (timer->cb_mode == HRTIMER_CB_SOFTIRQ) {
++				__remove_hrtimer(timer, base,
++					HRTIMER_STATE_PENDING, 0);
++				list_add_tail(&timer->cb_entry,
++					&base->cpu_base->cb_pending);
++				continue;
++			}
+ 
+-	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++)
+-		run_hrtimer_queue(cpu_base, i);
++			__run_hrtimer(timer);
++		}
++		spin_unlock(&cpu_base->lock);
++	}
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from sivanich@sgi.com are
 
-vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs.patch
-git-dvb.patch
-git-udf.patch
-git-ocfs2.patch
-vfs-fix-lock-inversion-in-drop_pagecache_sb.patch
-vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb.patch
-quota-do-not-allow-setting-of-quota-limits-to-too-high-values.patch
-quota-remove-superfluous-dquot_off-in-fs-namespacec.patch
-quota-various-style-cleanups.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-reiserfs-make-reiserfs-handle-quotaon-on-remount.patch
-ext3-fdatasync-should-skip-metadata-writeout-when-overwriting.patch
-ext3-fix-update-of-mtime-and-ctime-on-rename.patch
-ext3-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
-ext3-fix-mount-messages-when-quota-disabled.patch
-reiserfs-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
-ext4-fix-update-of-mtime-and-ctime-on-rename.patch
-ext4-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
-quota-le_add_cpu-conversion.patch
-ext4-fix-mount-messages-when-quota-disabled.patch
+hrtimer-reduce-calls-to-hrtimer_get_softirq_time.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 
