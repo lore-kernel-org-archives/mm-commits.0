@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isofs-use-get-put_unaligned_-helpers.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:22:33 -0700
-Message-ID: <200804152222.m3FMMXBW018824@imap1.linux-foundation.org>
+Subject: + mmc-use-get-put_unaligned_-helpers.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:22:13 -0700
+Message-ID: <200804152222.m3FMMDIb018800@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38252 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756918AbYDOWWi (ORCPT
+	by vger.kernel.org with ESMTP id S1755921AbYDOWWb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:22:38 -0400
+	Tue, 15 Apr 2008 18:22:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jack@suse.cz, viro@zeniv.linux.org.uk
+Cc: harvey.harrison@gmail.com, dbrownell@users.sourceforge.net, drzeus@drzeus.cx, tonyj@suse.de, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     isofs: use get/put_unaligned_* helpers
+     mmc: use get/put_unaligned_* helpers
 has been added to the -mm tree.  Its filename is
-     isofs-use-get-put_unaligned_-helpers.patch
+     mmc-use-get-put_unaligned_-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,57 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isofs: use get/put_unaligned_* helpers
+Subject: mmc: use get/put_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Tony Jones <tonyj@suse.de>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/isofs.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/mmc/host/mmc_spi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/isofs/isofs.h~isofs-use-get-put_unaligned_-helpers fs/isofs/isofs.h
---- a/fs/isofs/isofs.h~isofs-use-get-put_unaligned_-helpers
-+++ a/fs/isofs/isofs.h
-@@ -78,29 +78,29 @@ static inline int isonum_712(char *p)
- }
- static inline unsigned int isonum_721(char *p)
- {
--	return le16_to_cpu(get_unaligned((__le16 *)p));
-+	return get_unaligned_le16(p);
- }
- static inline unsigned int isonum_722(char *p)
- {
--	return be16_to_cpu(get_unaligned((__le16 *)p));
-+	return get_unaligned_be16(p);
- }
- static inline unsigned int isonum_723(char *p)
- {
- 	/* Ignore bigendian datum due to broken mastering programs */
--	return le16_to_cpu(get_unaligned((__le16 *)p));
-+	return get_unaligned_le16(p);
- }
- static inline unsigned int isonum_731(char *p)
- {
--	return le32_to_cpu(get_unaligned((__le32 *)p));
-+	return get_unaligned_le32(p);
- }
- static inline unsigned int isonum_732(char *p)
- {
--	return be32_to_cpu(get_unaligned((__le32 *)p));
-+	return get_unaligned_be32(p);
- }
- static inline unsigned int isonum_733(char *p)
- {
- 	/* Ignore bigendian datum due to broken mastering programs */
--	return le32_to_cpu(get_unaligned((__le32 *)p));
-+	return get_unaligned_le32(p);
- }
- extern int iso_date(char *, int);
+diff -puN drivers/mmc/host/mmc_spi.c~mmc-use-get-put_unaligned_-helpers drivers/mmc/host/mmc_spi.c
+--- a/drivers/mmc/host/mmc_spi.c~mmc-use-get-put_unaligned_-helpers
++++ a/drivers/mmc/host/mmc_spi.c
+@@ -340,7 +340,7 @@ checkstatus:
  
+ 	/* SPI R3, R4, or R7 == R1 + 4 bytes */
+ 	case MMC_RSP_SPI_R3:
+-		cmd->resp[1] = be32_to_cpu(get_unaligned((u32 *)cp));
++		cmd->resp[1] = get_unaligned_be32(cp);
+ 		break;
+ 
+ 	/* SPI R1 == just one status byte */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
