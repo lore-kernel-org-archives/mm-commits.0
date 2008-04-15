@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + hrtimer-reduce-calls-to-hrtimer_get_softirq_time.patch added to -mm tree
-Date: Tue, 15 Apr 2008 14:50:16 -0700
-Message-ID: <200804152150.m3FLoG3F017504@imap1.linux-foundation.org>
+Subject: + relayfs-support-larger-relay-buffer.patch added to -mm tree
+Date: Tue, 15 Apr 2008 14:51:49 -0700
+Message-ID: <200804152151.m3FLpnX3017590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49584 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44065 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753642AbYDOVvS (ORCPT
+	by vger.kernel.org with ESMTP id S1754405AbYDOVw6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 17:51:18 -0400
+	Tue, 15 Apr 2008 17:52:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sivanich@sgi.com, a.p.zijlstra@chello.nl, mingo@elte.hu, tglx@linutronix.de
+Cc: mhiramat@redhat.com, dwilder@us.ibm.com, zanussi@comcast.net
 
 
 The patch titled
-     hrtimer: reduce calls to hrtimer_get_softirq_time()
+     relayfs: support larger relay buffer
 has been added to the -mm tree.  Its filename is
-     hrtimer-reduce-calls-to-hrtimer_get_softirq_time.patch
+     relayfs-support-larger-relay-buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,123 +34,87 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hrtimer: reduce calls to hrtimer_get_softirq_time()
-From: Dimitri Sivanich <sivanich@sgi.com>
+Subject: relayfs: support larger relay buffer
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-It seems that hrtimer_run_queues() is calling hrtimer_get_softirq_time() more
-often than it needs to.  This can cause frequent contention on systems with
-large numbers of processors/cores.
+Use vmalloc() and memset() instead of kcalloc() to allocate a page* array when
+the array size is bigger than one page.  This enables relayfs to support
+bigger relay buffers than 64MB on 4k-page system, 512MB on 16k-page system.
 
-With this patch, hrtimer_run_queues only calls hrtimer_get_softirq_time() if
-there is a pending timer in one of the hrtimer bases, and only once.
+This is useful for a 64-bit system which has a plenty of memory (tens of giga
+bytes) and a large kernel memory space.
 
-This also combines hrtimer_run_queues() and the inline run_hrtimer_queue()
-into one function.
-
-Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: David Wilder <dwilder@us.ibm.com>
+Cc: Tom Zanussi <zanussi@comcast.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hrtimer.c |   65 ++++++++++++++++++++++-----------------------
- 1 file changed, 33 insertions(+), 32 deletions(-)
+ kernel/relay.c |   22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
 
-diff -puN kernel/hrtimer.c~hrtimer-reduce-calls-to-hrtimer_get_softirq_time kernel/hrtimer.c
---- a/kernel/hrtimer.c~hrtimer-reduce-calls-to-hrtimer_get_softirq_time
-+++ a/kernel/hrtimer.c
-@@ -1238,51 +1238,52 @@ void hrtimer_run_pending(void)
- /*
-  * Called from hardirq context every jiffy
-  */
--static inline void run_hrtimer_queue(struct hrtimer_cpu_base *cpu_base,
--				     int index)
-+void hrtimer_run_queues(void)
+diff -puN kernel/relay.c~relayfs-support-larger-relay-buffer kernel/relay.c
+--- a/kernel/relay.c~relayfs-support-larger-relay-buffer
++++ a/kernel/relay.c
+@@ -104,12 +104,20 @@ static int relay_mmap_buf(struct rchan_b
+ static void *relay_alloc_buf(struct rchan_buf *buf, size_t *size)
  {
- 	struct rb_node *node;
--	struct hrtimer_clock_base *base = &cpu_base->clock_base[index];
-+	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
-+	struct hrtimer_clock_base *base;
-+	int index;
-+	int gst = 1;
+ 	void *mem;
+-	unsigned int i, j, n_pages;
++	unsigned int i, j, n_pages, pa_size;
  
--	if (!base->first)
-+	if (hrtimer_hres_active())
- 		return;
+ 	*size = PAGE_ALIGN(*size);
+ 	n_pages = *size >> PAGE_SHIFT;
++	pa_size = n_pages * sizeof(struct page *);
  
--	if (base->get_softirq_time)
--		base->softirq_time = base->get_softirq_time();
-+	for (index = 0; index < HRTIMER_MAX_CLOCK_BASES; index++) {
-+		base = &cpu_base->clock_base[index];
- 
--	spin_lock(&cpu_base->lock);
--
--	while ((node = base->first)) {
--		struct hrtimer *timer;
--
--		timer = rb_entry(node, struct hrtimer, node);
--		if (base->softirq_time.tv64 <= timer->expires.tv64)
--			break;
--
--		if (timer->cb_mode == HRTIMER_CB_SOFTIRQ) {
--			__remove_hrtimer(timer, base, HRTIMER_STATE_PENDING, 0);
--			list_add_tail(&timer->cb_entry,
--					&base->cpu_base->cb_pending);
-+		if (!base->first)
- 			continue;
-+
-+		if (gst) {
-+			hrtimer_get_softirq_time(cpu_base);
-+			gst = 0;
- 		}
- 
--		__run_hrtimer(timer);
--	}
--	spin_unlock(&cpu_base->lock);
--}
-+		if (base->get_softirq_time)
-+			base->softirq_time = base->get_softirq_time();
- 
--void hrtimer_run_queues(void)
--{
--	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
--	int i;
-+		spin_lock(&cpu_base->lock);
- 
--	if (hrtimer_hres_active())
--		return;
-+		while ((node = base->first)) {
-+			struct hrtimer *timer;
- 
--	hrtimer_get_softirq_time(cpu_base);
-+			timer = rb_entry(node, struct hrtimer, node);
-+			if (base->softirq_time.tv64 <= timer->expires.tv64)
-+				break;
-+
-+			if (timer->cb_mode == HRTIMER_CB_SOFTIRQ) {
-+				__remove_hrtimer(timer, base,
-+					HRTIMER_STATE_PENDING, 0);
-+				list_add_tail(&timer->cb_entry,
-+					&base->cpu_base->cb_pending);
-+				continue;
-+			}
- 
--	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++)
--		run_hrtimer_queue(cpu_base, i);
-+			__run_hrtimer(timer);
-+		}
-+		spin_unlock(&cpu_base->lock);
+-	buf->page_array = kcalloc(n_pages, sizeof(struct page *), GFP_KERNEL);
++	if (pa_size > PAGE_SIZE) {
++		buf->page_array = vmalloc(pa_size);
++		if (buf->page_array)
++			memset(buf->page_array, 0, pa_size);
++	} else {
++		buf->page_array = kcalloc(n_pages, sizeof(struct page *),
++					  GFP_KERNEL);
 +	}
+ 	if (!buf->page_array)
+ 		return NULL;
+ 
+@@ -130,7 +138,10 @@ static void *relay_alloc_buf(struct rcha
+ depopulate:
+ 	for (j = 0; j < i; j++)
+ 		__free_page(buf->page_array[j]);
+-	kfree(buf->page_array);
++	if (pa_size > PAGE_SIZE)
++		vfree(buf->page_array);
++	else
++		kfree(buf->page_array);
+ 	return NULL;
  }
  
- /*
+@@ -189,7 +200,10 @@ static void relay_destroy_buf(struct rch
+ 		vunmap(buf->start);
+ 		for (i = 0; i < buf->page_count; i++)
+ 			__free_page(buf->page_array[i]);
+-		kfree(buf->page_array);
++		if (buf->page_count * sizeof(struct page *) > PAGE_SIZE)
++			vfree(buf->page_array);
++		else
++			kfree(buf->page_array);
+ 	}
+ 	chan->buf[buf->cpu] = NULL;
+ 	kfree(buf->padding);
 _
 
-Patches currently in -mm which might be from sivanich@sgi.com are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
-hrtimer-reduce-calls-to-hrtimer_get_softirq_time.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+git-x86.patch
+git-ia64.patch
+listh-add-list_singleton.patch
+listh-add-list_singleton-fix.patch
+kprobes-add-unregister_kprobes-for-batch-registration.patch
+kprobes-add-unregister_kprobes-for-batch-registration-fix.patch
+kprobes-add-unregister_kretprobes-for-batch-registration.patch
+kprobes-add-unregister_jprobes-for-batch-registration.patch
+kprobes-update-document-about-batch-registration.patch
+relayfs-support-larger-relay-buffer.patch
 
