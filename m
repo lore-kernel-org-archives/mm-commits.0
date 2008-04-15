@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + nfsd-use-proc_create-to-setup-de-proc_fops.patch added to -mm tree
-Date: Tue, 15 Apr 2008 16:55:57 -0700
-Message-ID: <200804152355.m3FNtv3O022485@imap1.linux-foundation.org>
+Subject: + jbd2-use-non-racy-method-for-proc-entries-creation.patch added to -mm tree
+Date: Tue, 15 Apr 2008 16:56:07 -0700
+Message-ID: <200804152356.m3FNu7Lf022506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33467 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59426 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752717AbYDOX4P (ORCPT
+	by vger.kernel.org with ESMTP id S1751911AbYDOX4L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 19:56:15 -0400
+	Tue, 15 Apr 2008 19:56:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, adobriyan@gmail.com, bfields@fieldses.org, ebiederm@xmission.com, neilb@suse.de
+Cc: den@openvz.org, adobriyan@gmail.com, ebiederm@xmission.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     nfsd: use proc_create to setup de->proc_fops
+     jbd2: use non-racy method for proc entries creation
 has been added to the -mm tree.  Its filename is
-     nfsd-use-proc_create-to-setup-de-proc_fops.patch
+     jbd2-use-non-racy-method-for-proc-entries-creation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfsd: use proc_create to setup de->proc_fops
+Subject: jbd2: use non-racy method for proc entries creation
 From: "Denis V. Lunev" <den@openvz.org>
 
-Use proc_create() to make sure that ->proc_fops be setup before gluing PDE to
-main tree.
+Use proc_create()/proc_create_data() to make sure that ->proc_fops and ->data
+be setup before gluing PDE to main tree.
 
 Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: <linux-ext4@vger.kernel.org>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfsctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/jbd2/journal.c |   17 ++++-------------
+ 1 file changed, 4 insertions(+), 13 deletions(-)
 
-diff -puN fs/nfsd/nfsctl.c~nfsd-use-proc_create-to-setup-de-proc_fops fs/nfsd/nfsctl.c
---- a/fs/nfsd/nfsctl.c~nfsd-use-proc_create-to-setup-de-proc_fops
-+++ a/fs/nfsd/nfsctl.c
-@@ -160,6 +160,7 @@ static const struct file_operations expo
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
- 	.release	= seq_release,
-+	.owner		= THIS_MODULE,
- };
- 
- /*----------------------------------------------------------------------------*/
-@@ -736,10 +737,9 @@ static int create_proc_exports_entry(voi
- 	entry = proc_mkdir("fs/nfs", NULL);
- 	if (!entry)
- 		return -ENOMEM;
--	entry = create_proc_entry("fs/nfs/exports", 0, NULL);
-+	entry = proc_create("exports", 0, entry, &exports_operations);
- 	if (!entry)
- 		return -ENOMEM;
--	entry->proc_fops =  &exports_operations;
- 	return 0;
+diff -puN fs/jbd2/journal.c~jbd2-use-non-racy-method-for-proc-entries-creation fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~jbd2-use-non-racy-method-for-proc-entries-creation
++++ a/fs/jbd2/journal.c
+@@ -904,19 +904,10 @@ static void jbd2_stats_proc_init(journal
+ 	snprintf(name, sizeof(name) - 1, "%s", bdevname(journal->j_dev, name));
+ 	journal->j_proc_entry = proc_mkdir(name, proc_jbd2_stats);
+ 	if (journal->j_proc_entry) {
+-		struct proc_dir_entry *p;
+-		p = create_proc_entry("history", S_IRUGO,
+-				journal->j_proc_entry);
+-		if (p) {
+-			p->proc_fops = &jbd2_seq_history_fops;
+-			p->data = journal;
+-			p = create_proc_entry("info", S_IRUGO,
+-						journal->j_proc_entry);
+-			if (p) {
+-				p->proc_fops = &jbd2_seq_info_fops;
+-				p->data = journal;
+-			}
+-		}
++		proc_create_data("history", S_IRUGO, journal->j_proc_entry,
++				 &jbd2_seq_history_fops, journal);
++		proc_create_data("info", S_IRUGO, journal->j_proc_entry,
++				 &jbd2_seq_info_fops, journal);
+ 	}
  }
- #else /* CONFIG_PROC_FS */
+ 
 _
 
 Patches currently in -mm which might be from den@openvz.org are
