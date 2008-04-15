@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_allocc-remove-hand-coded-get_order.patch added to -mm tree
-Date: Tue, 15 Apr 2008 02:35:22 -0700
-Message-ID: <200804150935.m3F9ZMap021548@imap1.linux-foundation.org>
+Subject: + vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs.patch added to -mm tree
+Date: Tue, 15 Apr 2008 11:04:21 -0700
+Message-ID: <200804151804.m3FI4LYW007948__27369.8308774785$1208283418$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36353 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50072 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763567AbYDOJf2 (ORCPT
+	by vger.kernel.org with ESMTP id S1752176AbYDOSEy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 05:35:28 -0400
+	Tue, 15 Apr 2008 14:04:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pavel@ucw.cz, pavel@suse.cz
+Cc: jack@suse.cz, davej@redhat.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     mm/page_alloc.c: remove hand-coded get_order()
+     vfs: fix possible deadlock in ext2, ext3, ext4 when using xattrs
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-remove-hand-coded-get_order.patch
+     vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/page_alloc.c: remove hand-coded get_order()
-From: Pavel Machek <pavel@ucw.cz>
+Subject: vfs: fix possible deadlock in ext2, ext3, ext4 when using xattrs
+From: Jan Kara <jack@suse.cz>
 
-Remove hand-coded get_order() from page_alloc.c.
+mb_cache_entry_alloc() was allocating cache entries with GFP_KERNEL.  But
+filesystems are calling this function while holding xattr_sem so possible
+recursion into the fs violates locking ordering of xattr_sem and transaction
+start / i_mutex for ext2-4.  Change mb_cache_entry_alloc() so that filesystems
+can specify desired gfp mask and use GFP_NOFS from all of them.
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Dave Jones <davej@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/ext2/xattr.c         |    2 +-
+ fs/ext3/xattr.c         |    2 +-
+ fs/ext4/xattr.c         |    2 +-
+ fs/mbcache.c            |    4 ++--
+ include/linux/mbcache.h |    2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-remove-hand-coded-get_order mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-remove-hand-coded-get_order
-+++ a/mm/page_alloc.c
-@@ -4345,9 +4345,7 @@ void *__init alloc_large_system_hash(con
- 		else if (hashdist)
- 			table = __vmalloc(size, GFP_ATOMIC, PAGE_KERNEL);
- 		else {
--			unsigned long order;
--			for (order = 0; ((1UL << order) << PAGE_SHIFT) < size; order++)
--				;
-+			unsigned long order = get_order(size);
- 			table = (void*) __get_free_pages(GFP_ATOMIC, order);
- 			/*
- 			 * If bucketsize is not a power-of-two, we may free
+diff -puN fs/ext2/xattr.c~vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs fs/ext2/xattr.c
+--- a/fs/ext2/xattr.c~vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs
++++ a/fs/ext2/xattr.c
+@@ -835,7 +835,7 @@ ext2_xattr_cache_insert(struct buffer_he
+ 	struct mb_cache_entry *ce;
+ 	int error;
+ 
+-	ce = mb_cache_entry_alloc(ext2_xattr_cache);
++	ce = mb_cache_entry_alloc(ext2_xattr_cache, GFP_NOFS);
+ 	if (!ce)
+ 		return -ENOMEM;
+ 	error = mb_cache_entry_insert(ce, bh->b_bdev, bh->b_blocknr, &hash);
+diff -puN fs/ext3/xattr.c~vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs fs/ext3/xattr.c
+--- a/fs/ext3/xattr.c~vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs
++++ a/fs/ext3/xattr.c
+@@ -1126,7 +1126,7 @@ ext3_xattr_cache_insert(struct buffer_he
+ 	struct mb_cache_entry *ce;
+ 	int error;
+ 
+-	ce = mb_cache_entry_alloc(ext3_xattr_cache);
++	ce = mb_cache_entry_alloc(ext3_xattr_cache, GFP_NOFS);
+ 	if (!ce) {
+ 		ea_bdebug(bh, "out of memory");
+ 		return;
+diff -puN fs/ext4/xattr.c~vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs fs/ext4/xattr.c
+--- a/fs/ext4/xattr.c~vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs
++++ a/fs/ext4/xattr.c
+@@ -1386,7 +1386,7 @@ ext4_xattr_cache_insert(struct buffer_he
+ 	struct mb_cache_entry *ce;
+ 	int error;
+ 
+-	ce = mb_cache_entry_alloc(ext4_xattr_cache);
++	ce = mb_cache_entry_alloc(ext4_xattr_cache, GFP_NOFS);
+ 	if (!ce) {
+ 		ea_bdebug(bh, "out of memory");
+ 		return;
+diff -puN fs/mbcache.c~vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs fs/mbcache.c
+--- a/fs/mbcache.c~vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs
++++ a/fs/mbcache.c
+@@ -399,11 +399,11 @@ mb_cache_destroy(struct mb_cache *cache)
+  * if no more memory was available.
+  */
+ struct mb_cache_entry *
+-mb_cache_entry_alloc(struct mb_cache *cache)
++mb_cache_entry_alloc(struct mb_cache *cache, gfp_t gfp_flags)
+ {
+ 	struct mb_cache_entry *ce;
+ 
+-	ce = kmem_cache_alloc(cache->c_entry_cache, GFP_KERNEL);
++	ce = kmem_cache_alloc(cache->c_entry_cache, gfp_flags);
+ 	if (ce) {
+ 		atomic_inc(&cache->c_entry_count);
+ 		INIT_LIST_HEAD(&ce->e_lru_list);
+diff -puN include/linux/mbcache.h~vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs include/linux/mbcache.h
+--- a/include/linux/mbcache.h~vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs
++++ a/include/linux/mbcache.h
+@@ -34,7 +34,7 @@ void mb_cache_destroy(struct mb_cache *)
+ 
+ /* Functions on cache entries */
+ 
+-struct mb_cache_entry *mb_cache_entry_alloc(struct mb_cache *);
++struct mb_cache_entry *mb_cache_entry_alloc(struct mb_cache *, gfp_t);
+ int mb_cache_entry_insert(struct mb_cache_entry *, struct block_device *,
+ 			  sector_t, unsigned int[]);
+ void mb_cache_entry_release(struct mb_cache_entry *);
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from jack@suse.cz are
 
-git-acpi.patch
-git-x86.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks.patch
-pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type.patch
-pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type.patch
-s2ram-warn-when-interrupts-should-be-disabled-but-are-not.patch
-git-hrt.patch
-git-net.patch
-hci_usb-do-not-initialize-static-variables-to-0.patch
-hci_usb-remove-code-obfuscation.patch
-hci_usbh-fix-hard-to-trigger-race.patch
-mm-page_allocc-remove-hand-coded-get_order.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+vfs-fix-possible-deadlock-in-ext2-ext3-ext4-when-using-xattrs.patch
+v4l-fix-concurrent-read-from-proc-videocodecs.patch
+git-udf.patch
+git-ocfs2.patch
+vfs-fix-lock-inversion-in-drop_pagecache_sb.patch
+vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb.patch
+quota-do-not-allow-setting-of-quota-limits-to-too-high-values.patch
+quota-remove-superfluous-dquot_off-in-fs-namespacec.patch
+quota-various-style-cleanups.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-reiserfs-make-reiserfs-handle-quotaon-on-remount.patch
+ext3-fdatasync-should-skip-metadata-writeout-when-overwriting.patch
+ext3-fix-update-of-mtime-and-ctime-on-rename.patch
+ext3-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
+reiserfs-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
+ext4-fix-update-of-mtime-and-ctime-on-rename.patch
+ext4-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
+quota-le_add_cpu-conversion.patch
 
