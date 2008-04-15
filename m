@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + disable-the-memory-controller-by-default-v3.patch added to -mm tree
-Date: Tue, 15 Apr 2008 16:32:15 -0700
-Message-ID: <200804152332.m3FNWFXA021607@imap1.linux-foundation.org>
+Subject: + smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt.patch added to -mm tree
+Date: Tue, 15 Apr 2008 16:06:47 -0700
+Message-ID: <200804152306.m3FN6lqS020604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60181 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753183AbYDOXcm (ORCPT
+	by vger.kernel.org with ESMTP id S1751022AbYDOXHz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 19:32:42 -0400
+	Tue, 15 Apr 2008 19:07:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: 12o3l@tiscali.nl, jacmet@sunsite.dk, jeff@garzik.org
 
 
 The patch titled
-     memcg: disable the memory controller by default
+     smc911x: test after postfix decrement fails in smc911x_{reset,drop_pkt}
 has been added to the -mm tree.  Its filename is
-     disable-the-memory-controller-by-default-v3.patch
+     smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,102 +34,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: disable the memory controller by default
-From: Balbir Singh <balbir@linux.vnet.ibm.com>
+Subject: smc911x: test after postfix decrement fails in smc911x_{reset,drop_pkt}
+From: Roel Kluin <12o3l@tiscali.nl>
 
-Due to the overhead of the memory controller the memory controller is now
-disabled by default.  This patch adds cgroup_enable.
+When timeout reaches 0 the postfix decrement still subtracts, so the test
+fails.
 
-Signed-off-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: AMAMOTO Takashi <yamamoto@valinux.co.jp>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    3 +++
- kernel/cgroup.c                     |   17 +++++++++++++----
- mm/memcontrol.c                     |    1 +
- 3 files changed, 17 insertions(+), 4 deletions(-)
+ drivers/net/smc911x.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~disable-the-memory-controller-by-default-v3 Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~disable-the-memory-controller-by-default-v3
-+++ a/Documentation/kernel-parameters.txt
-@@ -376,8 +376,11 @@ and is between 256 and 4096 characters. 
- 			See Documentation/s390/CommonIO for details.
- 
- 	cgroup_disable= [KNL] Disable a particular controller
-+	cgroup_enable=  [KNL] Enable a particular controller
-+			For both cgroup_enable and cgroup_enable
- 			Format: {name of the controller(s) to disable}
- 				{Currently supported controllers - "memory"}
-+				{Memory controller is disabled by default}
- 
- 	checkreqprot	[SELINUX] Set initial checkreqprot flag value.
- 			Format: { "0" | "1" }
-diff -puN kernel/cgroup.c~disable-the-memory-controller-by-default-v3 kernel/cgroup.c
---- a/kernel/cgroup.c~disable-the-memory-controller-by-default-v3
-+++ a/kernel/cgroup.c
-@@ -3020,7 +3020,7 @@ static void cgroup_release_agent(struct 
- 	mutex_unlock(&cgroup_mutex);
- }
- 
--static int __init cgroup_disable(char *str)
-+static inline int __init cgroup_turnonoff(char *str, int disable)
- {
- 	int i;
- 	char *token;
-@@ -3033,13 +3033,22 @@ static int __init cgroup_disable(char *s
- 			struct cgroup_subsys *ss = subsys[i];
- 
- 			if (!strcmp(token, ss->name)) {
--				ss->disabled = 1;
--				printk(KERN_INFO "Disabling %s control group"
--					" subsystem\n", ss->name);
-+				ss->disabled = disable;
+diff -puN drivers/net/smc911x.c~smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt drivers/net/smc911x.c
+--- a/drivers/net/smc911x.c~smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt
++++ a/drivers/net/smc911x.c
+@@ -244,7 +244,7 @@ static void smc911x_reset(struct net_dev
+ 		do {
+ 			udelay(10);
+ 			reg = SMC_GET_PMT_CTRL() & PMT_CTRL_READY_;
+-		} while ( timeout-- && !reg);
++		} while ( --timeout && !reg);
+ 		if (timeout == 0) {
+ 			PRINTK("%s: smc911x_reset timeout waiting for PM restore\n", dev->name);
+ 			return;
+@@ -268,7 +268,7 @@ static void smc911x_reset(struct net_dev
+ 				resets++;
  				break;
  			}
- 		}
+-		} while ( timeout-- && (reg & HW_CFG_SRST_));
++		} while ( --timeout && (reg & HW_CFG_SRST_));
  	}
- 	return 1;
- }
-+
-+static int __init cgroup_disable(char *str)
-+{
-+	return cgroup_turnonoff(str, 1);
-+}
- __setup("cgroup_disable=", cgroup_disable);
-+
-+static int __init cgroup_enable(char *str)
-+{
-+	return cgroup_turnonoff(str, 0);
-+}
-+__setup("cgroup_enable=", cgroup_enable);
-diff -puN mm/memcontrol.c~disable-the-memory-controller-by-default-v3 mm/memcontrol.c
---- a/mm/memcontrol.c~disable-the-memory-controller-by-default-v3
-+++ a/mm/memcontrol.c
-@@ -1115,4 +1115,5 @@ struct cgroup_subsys mem_cgroup_subsys =
- 	.populate = mem_cgroup_populate,
- 	.attach = mem_cgroup_move_task,
- 	.early_init = 0,
-+	.disabled = 1,
- };
+ 	if (timeout == 0) {
+ 		PRINTK("%s: smc911x_reset timeout waiting for reset\n", dev->name);
+@@ -414,7 +414,7 @@ static inline void smc911x_drop_pkt(stru
+ 		do {
+ 			udelay(10);
+ 			reg = SMC_GET_RX_DP_CTRL() & RX_DP_CTRL_FFWD_BUSY_;
+-		} while ( timeout-- && reg);
++		} while ( --timeout && reg);
+ 		if (timeout == 0) {
+ 			PRINTK("%s: timeout waiting for RX fast forward\n", dev->name);
+ 		}
 _
 
-Patches currently in -mm which might be from balbir@linux.vnet.ibm.com are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
-memcg-fix-oops-in-oom-handling.patch
-disable-the-memory-controller-by-default-v3.patch
-git-sched.patch
-oom_kill-remove-unused-parameter-in-badness.patch
-cgroups-use-a-hash-table-for-css_set-finding.patch
-cgroups-simplify-init_subsys.patch
-cgroups-remove-the-css_set-linked-list.patch
-cgroups-add-an-owner-to-the-mm_struct.patch
-memcgroup-add-the-max_usage-member-on-the-res_counter.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
-memcgroup-make-the-memory-controller-more-desktop-responsive.patch
+mm-fix-possible-off-by-one-in-walk_pte_range.patch
+dz-test-after-postfix-decrement-fails-in-dz_console_putchar.patch
+git-powerpc.patch
+git-dvb.patch
+adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
+git-net.patch
+git-scsi-misc.patch
+block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn.patch
+git-cryptodev.patch
+free-when-fb-cant-be-registered-in-video-aty-atyfb_basec.patch
+drivers-video-aty-aty128fbc-fix-incorrect-usage-of-strncat-in-aty128_init.patch
+drivers-video-imsttfbc-add-missing-curly-brackets.patch
+likeliness-accounting-change-and-cleanup.patch
+likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
+smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt.patch
 
