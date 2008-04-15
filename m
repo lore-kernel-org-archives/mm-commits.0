@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysfs-add-sys-dev-charblock-to-lookup-sysfs-path-by-major-minor-update.patch added to -mm tree
-Date: Tue, 15 Apr 2008 17:06:07 -0700
-Message-ID: <200804160006.m3G067kb022952@imap1.linux-foundation.org>
+Subject: + avr32-proc-use-non-racy-method-for-proc-tlb-creation.patch added to -mm tree
+Date: Tue, 15 Apr 2008 16:56:27 -0700
+Message-ID: <200804152356.m3FNuRlP022542@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32954 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753868AbYDPAGs (ORCPT
+	by vger.kernel.org with ESMTP id S1753662AbYDPAAf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 20:06:48 -0400
+	Tue, 15 Apr 2008 20:00:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dan.j.williams@intel.com, gregkh@suse.de, hpa@zytor.com, htejun@gmail.com, kay.sievers@vrfy.org, lkml@rtr.ca, neilb@suse.de, steve@xemacs.org
+Cc: den@openvz.org, adobriyan@gmail.com, ebiederm@xmission.com, hskinnemoen@atmel.com
 
 
 The patch titled
-     sysfs: add /sys/dev/{char,block} to lookup sysfs path by major:minor (update)
+     avr32: proc: use non-racy method for /proc/tlb creation
 has been added to the -mm tree.  Its filename is
-     sysfs-add-sys-dev-charblock-to-lookup-sysfs-path-by-major-minor-update.patch
+     avr32-proc-use-non-racy-method-for-proc-tlb-creation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs: add /sys/dev/{char,block} to lookup sysfs path by major:minor (update)
-From: Dan Williams <dan.j.williams@intel.com>
+Subject: avr32: proc: use non-racy method for /proc/tlb creation
+From: "Denis V. Lunev" <den@openvz.org>
 
-* fixed up ENOMEM handling in devices_init()
-* added a short blurb in Documentation/filesystems/sysfs.txt
-* dropped the size of the buffer passed to format_dev_t a bit
+Use proc_create() to make sure that ->proc_fops be setup before gluing PDE to
+main tree.
 
-Cc: NeilBrown <neilb@suse.de>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <gregkh@suse.de>
-Acked-by: Mark Lord <lkml@rtr.ca>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
-Reviewed-by: SL Baur <steve@xemacs.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/sysfs.txt |    6 ++++++
- drivers/base/core.c                 |   19 ++++++++++++++-----
- 2 files changed, 20 insertions(+), 5 deletions(-)
+ arch/avr32/mm/tlb.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN Documentation/filesystems/sysfs.txt~sysfs-add-sys-dev-charblock-to-lookup-sysfs-path-by-major-minor-update Documentation/filesystems/sysfs.txt
---- a/Documentation/filesystems/sysfs.txt~sysfs-add-sys-dev-charblock-to-lookup-sysfs-path-by-major-minor-update
-+++ a/Documentation/filesystems/sysfs.txt
-@@ -248,6 +248,7 @@ The top level sysfs directory looks like
- block/
- bus/
- class/
-+dev/
- devices/
- firmware/
- net/
-@@ -274,6 +275,11 @@ fs/ contains a directory for some filesy
- filesystem wanting to export attributes must create its own hierarchy
- below fs/ (see ./fuse.txt for an example).
+diff -puN arch/avr32/mm/tlb.c~avr32-proc-use-non-racy-method-for-proc-tlb-creation arch/avr32/mm/tlb.c
+--- a/arch/avr32/mm/tlb.c~avr32-proc-use-non-racy-method-for-proc-tlb-creation
++++ a/arch/avr32/mm/tlb.c
+@@ -369,11 +369,7 @@ static const struct file_operations proc
  
-+dev/ contains two directories char/ and block/. Inside these two
-+directories there are symlinks named <major>:<minor>.  These symlinks
-+point to the sysfs directory for the given device.  /sys/dev provides a
-+quick way to lookup the sysfs interface for a device from the result of
-+a stat(2) operation.
- 
- More information can driver-model specific features can be found in
- Documentation/driver-model/. 
-diff -puN drivers/base/core.c~sysfs-add-sys-dev-charblock-to-lookup-sysfs-path-by-major-minor-update drivers/base/core.c
---- a/drivers/base/core.c~sysfs-add-sys-dev-charblock-to-lookup-sysfs-path-by-major-minor-update
-+++ a/drivers/base/core.c
-@@ -784,7 +784,7 @@ int device_add(struct device *dev)
- 	struct device *parent = NULL;
- 	struct class_interface *class_intf;
- 	int error;
--	char devt_str[25];
-+	char devt_str[15];
- 
- 	dev = get_device(dev);
- 	if (!dev || !strlen(dev->bus_id)) {
-@@ -944,7 +944,7 @@ void device_del(struct device *dev)
+ static int __init proctlb_init(void)
  {
- 	struct device *parent = dev->parent;
- 	struct class_interface *class_intf;
--	char devt_str[25];
-+	char devt_str[15];
- 
- 	device_pm_remove(dev);
- 	if (parent)
-@@ -1080,14 +1080,23 @@ int __init devices_init(void)
- 		return -ENOMEM;
- 	dev_kobj = kobject_create_and_add("dev", NULL);
- 	if (!dev_kobj)
--		return -ENOMEM;
-+		goto dev_kobj_err;
- 	block_kobj = kobject_create_and_add("block", dev_kobj);
- 	if (!block_kobj)
--		return -ENOMEM;
-+		goto block_kobj_err;
- 	char_kobj = kobject_create_and_add("char", dev_kobj);
- 	if (!char_kobj)
--		return -ENOMEM;
-+		goto char_kobj_err;
-+
+-	struct proc_dir_entry *entry;
+-
+-	entry = create_proc_entry("tlb", 0, NULL);
+-	if (entry)
+-		entry->proc_fops = &proc_tlb_operations;
++	proc_create("tlb", 0, NULL, &proc_tlb_operations);
  	return 0;
-+
-+ char_kobj_err:
-+	kobject_put(block_kobj);
-+ block_kobj_err:
-+	kobject_put(dev_kobj);
-+ dev_kobj_err:
-+	kset_unregister(devices_kset);
-+	return -ENOMEM;
  }
- 
- EXPORT_SYMBOL_GPL(device_for_each_child);
+ late_initcall(proctlb_init);
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from den@openvz.org are
 
-git-arm.patch
-sysfs-add-sys-dev-charblock-to-lookup-sysfs-path-by-major-minor.patch
-sysfs-add-sys-dev-charblock-to-lookup-sysfs-path-by-major-minor-update.patch
-git-async-tx.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-md-introduce-get_priority_stripe-to-improve-raid456-write-performance.patch
-md-raid5c-convert-simple_strtoul-to-strict_strtoul.patch
+git-net.patch
+proc-introduce-proc_create_data-to-setup-de-data.patch
+nfsd-use-proc_create-to-setup-de-proc_fops.patch
+nfs-use-proc_create-to-setup-de-proc_fops.patch
+afs-use-non-racy-method-for-proc-entries-creation.patch
+ext4-use-non-racy-method-for-proc-entries-creation.patch
+reiserfs-use-non-racy-method-for-proc-entries-creation.patch
+jbd2-use-non-racy-method-for-proc-entries-creation.patch
+sysvipc-use-non-racy-method-for-proc-entries-creation.patch
+mm-use-non-racy-method-for-proc-swaps-creation.patch
+sound-use-non-racy-method-for-proc-driver-snd-page-alloc-creation.patch
+zorro-use-non-racy-method-for-proc-entries-creation.patch
+samples-use-non-racy-method-for-proc-marker-example-creation.patch
+scsi-use-non-racy-method-for-proc-entries-creation.patch
+usb-use-non-racy-method-for-proc-entries-creation.patch
+s390-use-non-racy-method-for-proc-entries-creation.patch
+arm-use-non-racy-method-for-proc-davinci_clocks-creation.patch
+avr32-proc-use-non-racy-method-for-proc-tlb-creation.patch
+cris-use-non-racy-method-for-proc-system_profile-creation.patch
+ia64-use-non-racy-method-for-proc-entries-creation.patch
+parisc-use-non-racy-method-for-proc-pcxl_dma-creation.patch
+powerpc-use-non-racy-method-for-proc-entries-creation.patch
+acpi-use-non-racy-method-for-proc-entries-creation.patch
+netdev-use-non-racy-method-for-proc-entries-creation.patch
+isdn-use-non-racy-method-for-proc-entries-creation.patch
+kernel-use-non-racy-method-for-proc-entries-creation.patch
+parisc-use-non-racy-method-for-proc-entries-creation.patch
+drivers-use-non-racy-method-for-proc-entries-creation.patch
+drivers-use-non-racy-method-for-proc-entries-creation-2.patch
+sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
+sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
+sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
 
