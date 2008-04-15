@@ -1,82 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - usb-audio-fix-another-dallas-quirk.patch removed from -mm tree
-Date: Tue, 15 Apr 2008 02:10:20 -0700
-Message-ID: <200804150910.m3F9AKTW020611@imap1.linux-foundation.org>
+Subject: + smbh-uses-struct-timespec-but-didnt-include-linux-timeh.patch added to -mm tree
+Date: Tue, 15 Apr 2008 02:11:28 -0700
+Message-ID: <200804150911.m3F9BSkD020688@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51489 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51761 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760746AbYDOJK4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756798AbYDOJLi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 05:10:56 -0400
+	Tue, 15 Apr 2008 05:11:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@suse.cz, perex@suse.cz, tiwai@suse.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: ilpo.jarvinen@helsinki.fi
 
 
 The patch titled
-     usb audio: fix another Dallas quirk
-has been removed from the -mm tree.  Its filename was
-     usb-audio-fix-another-dallas-quirk.patch
+     smb.h: uses struct timespec but didn't include linux/time.h
+has been added to the -mm tree.  Its filename is
+     smbh-uses-struct-timespec-but-didnt-include-linux-timeh.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
+out what to do about this
+
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: usb audio: fix another Dallas quirk
-From: Pavel Machek <pavel@suse.cz>
+Subject: smb.h: uses struct timespec but didn't include linux/time.h
+=46rom: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
 
-Dallas USB speakers are buggy in more than one way. One of configs
-they offer does not work at all.
-
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: Jaroslav Kysela <perex@suse.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/usb/usbaudio.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ include/linux/smb.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN sound/usb/usbaudio.c~usb-audio-fix-another-dallas-quirk sound/usb/usbaudio.c
---- a/sound/usb/usbaudio.c~usb-audio-fix-another-dallas-quirk
-+++ a/sound/usb/usbaudio.c
-@@ -2676,12 +2676,23 @@ static int parse_audio_endpoints(struct 
- 	int format;
- 	struct audioformat *fp;
- 	unsigned char *fmt, *csep;
-+	int num;
- 
- 	dev = chip->dev;
- 
- 	/* parse the interface's altsettings */
- 	iface = usb_ifnum_to_if(dev, iface_no);
--	for (i = 0; i < iface->num_altsetting; i++) {
-+
-+	num = iface->num_altsetting;
-+
-+	/*
-+	 * Dallas DS4201 workaround: It presents 5 altsettings, but the last
-+	 * one misses syncpipe, and does not produce any sound.
-+	 */
-+	if (chip->usb_id == USB_ID(0x04fa, 0x4201))
-+		num = 4;
-+
-+	for (i = 0; i < num; i++) {
- 		alts = &iface->altsetting[i];
- 		altsd = get_iface_desc(alts);
- 		/* skip invalid one */
+diff -puN include/linux/smb.h~smbh-uses-struct-timespec-but-didnt-inclu=
+de-linux-timeh include/linux/smb.h
+--- a/include/linux/smb.h~smbh-uses-struct-timespec-but-didnt-include-l=
+inux-timeh
++++ a/include/linux/smb.h
+@@ -11,6 +11,7 @@
+=20
+ #include <linux/types.h>
+ #include <linux/magic.h>
++#include <linux/time.h>
+=20
+ enum smb_protocol {=20
+ 	SMB_PROTOCOL_NONE,=20
 _
 
-Patches currently in -mm which might be from pavel@suse.cz are
+Patches currently in -mm which might be from ilpo.jarvinen@helsinki.fi =
+are
 
-git-acpi.patch
-git-x86.patch
-git-alsa-tiwai.patch
-s2ram-warn-when-interrupts-should-be-disabled-but-are-not.patch
 git-net.patch
-hci_usb-do-not-initialize-static-variables-to-0.patch
-hci_usb-remove-code-obfuscation.patch
-hci_usbh-fix-hard-to-trigger-race.patch
+fs-coda-remove-static-inline-forward-declarations.patch
+i2o-remove-static-inline-forward-declarations.patch
+smbh-uses-struct-timespec-but-didnt-include-linux-timeh.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
