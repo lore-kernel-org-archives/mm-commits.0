@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + parisc-use-non-racy-method-for-proc-entries-creation.patch added to -mm tree
-Date: Tue, 15 Apr 2008 16:56:46 -0700
-Message-ID: <200804152356.m3FNukhg022572@imap1.linux-foundation.org>
+Subject: + proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch added to -mm tree
+Date: Tue, 15 Apr 2008 16:57:22 -0700
+Message-ID: <200804152357.m3FNvM9q022598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48847 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52608 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756089AbYDOX5Z (ORCPT
+	by vger.kernel.org with ESMTP id S1756136AbYDOX50 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 19:57:25 -0400
+	Tue, 15 Apr 2008 19:57:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, adobriyan@gmail.com, ebiederm@xmission.com, grundler@parisc-linux.org, kyle@parisc-linux.org, matthew@wil.cx
+Cc: den@openvz.org, adobriyan@gmail.com, ebiederm@xmission.com
 
 
 The patch titled
-     parisc: use non-racy method for proc entries creation
+     proc: use non-racy method for /proc/page_owner creation
 has been added to the -mm tree.  Its filename is
-     parisc-use-non-racy-method-for-proc-entries-creation.patch
+     proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parisc: use non-racy method for proc entries creation
+Subject: proc: use non-racy method for /proc/page_owner creation
 From: "Denis V. Lunev" <den@openvz.org>
 
-Use proc_create() to make sure that ->proc_fops be setup before gluing PDE to
-main tree.
+Use proc_create()/proc_create_data() to make sure that ->proc_fops and ->data
+be setup before gluing PDE to main tree.
 
 Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Kyle McMartin <kyle@parisc-linux.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Grant Grundler <grundler@parisc-linux.org>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parisc/ccio-dma.c  |   14 +++++---------
- drivers/parisc/sba_iommu.c |   14 +++++---------
- 2 files changed, 10 insertions(+), 18 deletions(-)
+ fs/proc/proc_misc.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/parisc/ccio-dma.c~parisc-use-non-racy-method-for-proc-entries-creation drivers/parisc/ccio-dma.c
---- a/drivers/parisc/ccio-dma.c~parisc-use-non-racy-method-for-proc-entries-creation
-+++ a/drivers/parisc/ccio-dma.c
-@@ -1551,8 +1551,7 @@ static int __init ccio_probe(struct pari
- {
- 	int i;
- 	struct ioc *ioc, **ioc_p = &ioc_list;
--	struct proc_dir_entry *info_entry, *bitmap_entry;
--	
-+
- 	ioc = kzalloc(sizeof(struct ioc), GFP_KERNEL);
- 	if (ioc == NULL) {
- 		printk(KERN_ERR MODULE_NAME ": memory allocation failure\n");
-@@ -1580,13 +1579,10 @@ static int __init ccio_probe(struct pari
- 	HBA_DATA(dev->dev.platform_data)->iommu = ioc;
- 	
- 	if (ioc_count == 0) {
--		info_entry = create_proc_entry(MODULE_NAME, 0, proc_runway_root);
--		if (info_entry)
--			info_entry->proc_fops = &ccio_proc_info_fops;
--
--		bitmap_entry = create_proc_entry(MODULE_NAME"-bitmap", 0, proc_runway_root);
--		if (bitmap_entry)
--			bitmap_entry->proc_fops = &ccio_proc_bitmap_fops;
-+		proc_create(MODULE_NAME, 0, proc_runway_root,
-+			    &ccio_proc_info_fops);
-+		proc_create(MODULE_NAME"-bitmap", 0, proc_runway_root,
-+			    &ccio_proc_bitmap_fops);
+diff -puN fs/proc/proc_misc.c~proc-use-non-racy-method-for-proc-page_owner-creation-page_owner fs/proc/proc_misc.c
+--- a/fs/proc/proc_misc.c~proc-use-non-racy-method-for-proc-page_owner-creation-page_owner
++++ a/fs/proc/proc_misc.c
+@@ -1041,12 +1041,10 @@ void __init proc_misc_init(void)
+ #ifdef CONFIG_PAGE_OWNER
+ 	{
+ 		struct proc_dir_entry *entry;
+-		entry = create_proc_entry("page_owner",
+-			S_IWUSR | S_IRUGO, NULL);
+-		if (entry) {
+-			entry->proc_fops = &proc_page_owner_operations;
++		entry = proc_create("page_owner",
++			S_IWUSR | S_IRUGO, NULL, &proc_page_owner_operations);
++		if (entry)
+ 			entry->size = 1024;
+-		}
  	}
- 
- 	ioc_count++;
-diff -puN drivers/parisc/sba_iommu.c~parisc-use-non-racy-method-for-proc-entries-creation drivers/parisc/sba_iommu.c
---- a/drivers/parisc/sba_iommu.c~parisc-use-non-racy-method-for-proc-entries-creation
-+++ a/drivers/parisc/sba_iommu.c
-@@ -1895,7 +1895,9 @@ sba_driver_callback(struct parisc_device
- 	int i;
- 	char *version;
- 	void __iomem *sba_addr = ioremap_nocache(dev->hpa.start, SBA_FUNC_SIZE);
--	struct proc_dir_entry *info_entry, *bitmap_entry, *root;
-+#ifdef CONFIG_PROC_FS
-+	struct proc_dir_entry *root;
-+#endif
- 
- 	sba_dump_ranges(sba_addr);
- 
-@@ -1973,14 +1975,8 @@ sba_driver_callback(struct parisc_device
- 		break;
- 	}
- 
--	info_entry = create_proc_entry("sba_iommu", 0, root);
--	bitmap_entry = create_proc_entry("sba_iommu-bitmap", 0, root);
--
--	if (info_entry)
--		info_entry->proc_fops = &sba_proc_fops;
--
--	if (bitmap_entry)
--		bitmap_entry->proc_fops = &sba_proc_bitmap_fops;
-+	proc_create("sba_iommu", 0, root, &sba_proc_fops);
-+	proc_create("sba_iommu-bitmap", 0, root, &sba_proc_bitmap_fops);
  #endif
- 
- 	parisc_vmerge_boundary = IOVP_SIZE;
+ }
 _
 
 Patches currently in -mm which might be from den@openvz.org are
