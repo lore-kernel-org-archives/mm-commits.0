@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + riscom-rocket-switch-to-int-put_char-method.patch added to -mm tree
-Date: Mon, 14 Apr 2008 19:04:30 -0700
-Message-ID: <200804150204.m3F24UUY005621@imap1.linux-foundation.org>
+Subject: + specialix-switch-to-int-put_char-method.patch added to -mm tree
+Date: Mon, 14 Apr 2008 19:04:34 -0700
+Message-ID: <200804150204.m3F24YKo005627@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35754 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759652AbYDOCFE (ORCPT
+	by vger.kernel.org with ESMTP id S1759657AbYDOCFF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 22:05:04 -0400
+	Mon, 14 Apr 2008 22:05:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
 
 
 The patch titled
-     riscom/rocket: switch to int put_char method
+     specialix: Switch to int put_char method
 has been added to the -mm tree.  Its filename is
-     riscom-rocket-switch-to-int-put_char-method.patch
+     specialix-switch-to-int-put_char-method.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: riscom/rocket: switch to int put_char method
+Subject: specialix: Switch to int put_char method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -42,74 +42,53 @@ Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/riscom8.c |    9 ++++++---
- drivers/char/rocket.c  |    5 +++--
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ drivers/char/specialix.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/riscom8.c~riscom-rocket-switch-to-int-put_char-method drivers/char/riscom8.c
---- a/drivers/char/riscom8.c~riscom-rocket-switch-to-int-put_char-method
-+++ a/drivers/char/riscom8.c
-@@ -1161,16 +1161,17 @@ static int rc_write(struct tty_struct * 
- 	return total;
+diff -puN drivers/char/specialix.c~specialix-switch-to-int-put_char-method drivers/char/specialix.c
+--- a/drivers/char/specialix.c~specialix-switch-to-int-put_char-method
++++ a/drivers/char/specialix.c
+@@ -1692,7 +1692,7 @@ static int sx_write(struct tty_struct * 
  }
  
--static void rc_put_char(struct tty_struct * tty, unsigned char ch)
-+static int rc_put_char(struct tty_struct * tty, unsigned char ch)
+ 
+-static void sx_put_char(struct tty_struct * tty, unsigned char ch)
++static int sx_put_char(struct tty_struct * tty, unsigned char ch)
  {
- 	struct riscom_port *port = (struct riscom_port *)tty->driver_data;
+ 	struct specialix_port *port = (struct specialix_port *)tty->driver_data;
  	unsigned long flags;
-+	int ret = 0;
+@@ -1702,12 +1702,12 @@ static void sx_put_char(struct tty_struc
  
- 	if (rc_paranoia_check(port, tty->name, "rc_put_char"))
+ 	if (sx_paranoia_check(port, tty->name, "sx_put_char")) {
+ 		func_exit();
 -		return;
 +		return 0;
- 
- 	if (!tty || !port->xmit_buf)
--		return;
-+		return 0;
- 
- 	spin_lock_irqsave(&riscom_lock, flags);
- 	
-@@ -1180,9 +1181,11 @@ static void rc_put_char(struct tty_struc
- 	port->xmit_buf[port->xmit_head++] = ch;
- 	port->xmit_head &= SERIAL_XMIT_SIZE - 1;
- 	port->xmit_cnt++;
-+	ret = 1;
- 
- out:
- 	spin_unlock_irqrestore(&riscom_lock, flags);
-+	return ret;
- }
- 
- static void rc_flush_chars(struct tty_struct * tty)
-diff -puN drivers/char/rocket.c~riscom-rocket-switch-to-int-put_char-method drivers/char/rocket.c
---- a/drivers/char/rocket.c~riscom-rocket-switch-to-int-put_char-method
-+++ a/drivers/char/rocket.c
-@@ -1663,14 +1663,14 @@ static void rp_hangup(struct tty_struct 
-  *  writing routines will write directly to transmit FIFO.
-  *  Write buffer and counters protected by spinlocks
-  */
--static void rp_put_char(struct tty_struct *tty, unsigned char ch)
-+static int rp_put_char(struct tty_struct *tty, unsigned char ch)
- {
- 	struct r_port *info = (struct r_port *) tty->driver_data;
- 	CHANNEL_t *cp;
- 	unsigned long flags;
- 
- 	if (rocket_paranoia_check(info, "rp_put_char"))
--		return;
-+		return 0;
- 
- 	/*
- 	 * Grab the port write mutex, locking out other processes that try to
-@@ -1699,6 +1699,7 @@ static void rp_put_char(struct tty_struc
  	}
- 	spin_unlock_irqrestore(&info->slock, flags);
- 	mutex_unlock(&info->write_mtx);
+ 	dprintk (SX_DEBUG_TX, "check tty: %p %p\n", tty, port->xmit_buf);
+ 	if (!port->xmit_buf) {
+ 		func_exit();
+-		return;
++		return 0;
+ 	}
+ 	bp = port_Board(port);
+ 	spin_lock_irqsave(&port->lock, flags);
+@@ -1717,7 +1717,7 @@ static void sx_put_char(struct tty_struc
+ 		spin_unlock_irqrestore(&port->lock, flags);
+ 		dprintk (SX_DEBUG_TX, "Exit size\n");
+ 		func_exit();
+-		return;
++		return 0;
+ 	}
+ 	dprintk (SX_DEBUG_TX, "Handle xmit: %p %p\n", port, port->xmit_buf);
+ 	port->xmit_buf[port->xmit_head++] = ch;
+@@ -1726,6 +1726,7 @@ static void sx_put_char(struct tty_struc
+ 	spin_unlock_irqrestore(&port->lock, flags);
+ 
+ 	func_exit();
 +	return 1;
  }
  
- /*
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
