@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wireless-use-get-put_unaligned_-helpers.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:22:18 -0700
-Message-ID: <200804152222.m3FMMJSe018806@imap1.linux-foundation.org>
+Subject: + v850-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:37:53 -0700
+Message-ID: <200804152237.m3FMbrq6019449@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57666 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47617 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932313AbYDOW1w (ORCPT
+	by vger.kernel.org with ESMTP id S1757761AbYDOWh7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:27:52 -0400
+	Tue, 15 Apr 2008 18:37:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dsd@gentoo.org, linville@tuxdriver.com, mb@bu3sch.de, viro@zeniv.linux.org.uk
+Cc: clameter@sgi.com, miles@gnu.org
 
 
 The patch titled
-     wireless: use get/put_unaligned_* helpers
+     v850: use kbuild.h instead of defining macros in asm-offsets.c
 has been added to the -mm tree.  Its filename is
-     wireless-use-get-put_unaligned_-helpers.patch
+     v850-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,303 +34,147 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wireless: use get/put_unaligned_* helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: v850: use kbuild.h instead of defining macros in asm-offsets.c
+From: Christoph Lameter <clameter@sgi.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Daniel Drake <dsd@gentoo.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Miles Bader <miles@gnu.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/airo.c             |    2 -
- drivers/net/wireless/ath5k/base.c       |    8 +----
- drivers/net/wireless/b43/main.c         |    2 -
- drivers/net/wireless/b43legacy/main.c   |    2 -
- drivers/net/wireless/iwlwifi/iwl-3945.c |   32 +++++++++-------------
- drivers/net/wireless/libertas/scan.c    |    2 -
- drivers/net/wireless/zd1211rw/zd_usb.c  |    4 +-
- 7 files changed, 22 insertions(+), 30 deletions(-)
+ arch/v850/kernel/asm-offsets.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/wireless/airo.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/airo.c
---- a/drivers/net/wireless/airo.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/airo.c
-@@ -3657,7 +3657,7 @@ void mpi_receive_802_11 (struct airo_inf
- 	ptr += hdrlen;
- 	if (hdrlen == 24)
- 		ptr += 6;
--	gap = le16_to_cpu(get_unaligned((__le16 *)ptr));
-+	gap = get_unaligned_le16(ptr);
- 	ptr += sizeof(__le16);
- 	if (gap) {
- 		if (gap <= 8)
-diff -puN drivers/net/wireless/ath5k/base.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/ath5k/base.c
-@@ -58,10 +58,6 @@
- #include "reg.h"
- #include "debug.h"
+diff -puN arch/v850/kernel/asm-offsets.c~v850-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/v850/kernel/asm-offsets.c
+--- a/arch/v850/kernel/asm-offsets.c~v850-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
++++ a/arch/v850/kernel/asm-offsets.c
+@@ -13,14 +13,11 @@
+ #include <linux/kernel_stat.h>
+ #include <linux/ptrace.h>
+ #include <linux/hardirq.h>
++#include <linux/kbuild.h>
++
+ #include <asm/irq.h>
+ #include <asm/errno.h>
  
--/* unaligned little endian access */
--#define LE_READ_2(_p) (le16_to_cpu(get_unaligned((__le16 *)(_p))))
--#define LE_READ_4(_p) (le32_to_cpu(get_unaligned((__le32 *)(_p))))
+-#define DEFINE(sym, val) \
+-	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
 -
- enum {
- 	ATH_LED_TX,
- 	ATH_LED_RX,
-@@ -2903,9 +2899,9 @@ static void ath5k_configure_filter(struc
- 			if (!mclist)
- 				break;
- 			/* calculate XOR of eight 6-bit values */
--			val = LE_READ_4(mclist->dmi_addr + 0);
-+			val = get_unaligned_le32(mclist->dmi_addr + 0);
- 			pos = (val >> 18) ^ (val >> 12) ^ (val >> 6) ^ val;
--			val = LE_READ_4(mclist->dmi_addr + 3);
-+			val = get_unaligned_le32(mclist->dmi_addr + 3);
- 			pos ^= (val >> 18) ^ (val >> 12) ^ (val >> 6) ^ val;
- 			pos &= 0x3f;
- 			mfilt[pos / 32] |= (1 << (pos % 32));
-diff -puN drivers/net/wireless/b43/main.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/b43/main.c
---- a/drivers/net/wireless/b43/main.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/b43/main.c
-@@ -2167,7 +2167,7 @@ static int b43_write_initvals(struct b43
- 				goto err_format;
- 			array_size -= sizeof(iv->data.d32);
- 
--			value = be32_to_cpu(get_unaligned(&iv->data.d32));
-+			value = get_unaligned_be32(&iv->data.d32);
- 			b43_write32(dev, offset, value);
- 
- 			iv = (const struct b43_iv *)((const uint8_t *)iv +
-diff -puN drivers/net/wireless/b43legacy/main.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/b43legacy/main.c
---- a/drivers/net/wireless/b43legacy/main.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/b43legacy/main.c
-@@ -1718,7 +1718,7 @@ static int b43legacy_write_initvals(stru
- 				goto err_format;
- 			array_size -= sizeof(iv->data.d32);
- 
--			value = be32_to_cpu(get_unaligned(&iv->data.d32));
-+			value = get_unaligned_be32(&iv->data.d32);
- 			b43legacy_write32(dev, offset, value);
- 
- 			iv = (const struct b43legacy_iv *)((const uint8_t *)iv +
-diff -puN drivers/net/wireless/iwlwifi/iwl-3945.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/iwlwifi/iwl-3945.c
---- a/drivers/net/wireless/iwlwifi/iwl-3945.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/iwlwifi/iwl-3945.c
-@@ -554,40 +554,36 @@ static void iwl3945_add_radiotap(struct 
- 	iwl3945_rt->rt_hdr.it_pad = 0;
- 
- 	/* total header + data */
--	put_unaligned(cpu_to_le16(sizeof(*iwl3945_rt)),
--		      &iwl3945_rt->rt_hdr.it_len);
-+	put_unaligned_le16(sizeof(*iwl3945_rt), &iwl3945_rt->rt_hdr.it_len);
- 
- 	/* Indicate all the fields we add to the radiotap header */
--	put_unaligned(cpu_to_le32((1 << IEEE80211_RADIOTAP_TSFT) |
--				  (1 << IEEE80211_RADIOTAP_FLAGS) |
--				  (1 << IEEE80211_RADIOTAP_RATE) |
--				  (1 << IEEE80211_RADIOTAP_CHANNEL) |
--				  (1 << IEEE80211_RADIOTAP_DBM_ANTSIGNAL) |
--				  (1 << IEEE80211_RADIOTAP_DBM_ANTNOISE) |
--				  (1 << IEEE80211_RADIOTAP_ANTENNA)),
--		      &iwl3945_rt->rt_hdr.it_present);
-+	put_unaligned_le32((1 << IEEE80211_RADIOTAP_TSFT) |
-+			   (1 << IEEE80211_RADIOTAP_FLAGS) |
-+			   (1 << IEEE80211_RADIOTAP_RATE) |
-+			   (1 << IEEE80211_RADIOTAP_CHANNEL) |
-+			   (1 << IEEE80211_RADIOTAP_DBM_ANTSIGNAL) |
-+			   (1 << IEEE80211_RADIOTAP_DBM_ANTNOISE) |
-+			   (1 << IEEE80211_RADIOTAP_ANTENNA)),
-+			&iwl3945_rt->rt_hdr.it_present);
- 
- 	/* Zero the flags, we'll add to them as we go */
- 	iwl3945_rt->rt_flags = 0;
- 
--	put_unaligned(cpu_to_le64(tsf), &iwl3945_rt->rt_tsf);
-+	put_unaligned_le64(tsf, &iwl3945_rt->rt_tsf);
- 
- 	iwl3945_rt->rt_dbmsignal = signal;
- 	iwl3945_rt->rt_dbmnoise = noise;
- 
- 	/* Convert the channel frequency and set the flags */
--	put_unaligned(cpu_to_le16(stats->freq), &iwl3945_rt->rt_channelMHz);
-+	put_unaligned_le16(stats->freq, &iwl3945_rt->rt_channelMHz);
- 	if (!(phy_flags_hw & RX_RES_PHY_FLAGS_BAND_24_MSK))
--		put_unaligned(cpu_to_le16(IEEE80211_CHAN_OFDM |
--					  IEEE80211_CHAN_5GHZ),
-+		put_unaligned_le16(IEEE80211_CHAN_OFDM | IEEE80211_CHAN_5GHZ,
- 			      &iwl3945_rt->rt_chbitmask);
- 	else if (phy_flags_hw & RX_RES_PHY_FLAGS_MOD_CCK_MSK)
--		put_unaligned(cpu_to_le16(IEEE80211_CHAN_CCK |
--					  IEEE80211_CHAN_2GHZ),
-+		put_unaligned_le16(IEEE80211_CHAN_CCK | IEEE80211_CHAN_2GHZ,
- 			      &iwl3945_rt->rt_chbitmask);
- 	else	/* 802.11g */
--		put_unaligned(cpu_to_le16(IEEE80211_CHAN_OFDM |
--					  IEEE80211_CHAN_2GHZ),
-+		put_unaligned_le16(IEEE80211_CHAN_OFDM | IEEE80211_CHAN_2GHZ,
- 			      &iwl3945_rt->rt_chbitmask);
- 
- 	if (rate == -1)
-diff -puN drivers/net/wireless/libertas/scan.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/libertas/scan.c
---- a/drivers/net/wireless/libertas/scan.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/libertas/scan.c
-@@ -522,7 +522,7 @@ static int lbs_process_bss(struct bss_de
- 
- 	if (*bytesleft >= sizeof(beaconsize)) {
- 		/* Extract & convert beacon size from the command buffer */
--		beaconsize = le16_to_cpu(get_unaligned((__le16 *)*pbeaconinfo));
-+		beaconsize = get_unaligned_le16(*pbeaconinfo);
- 		*bytesleft -= sizeof(beaconsize);
- 		*pbeaconinfo += sizeof(beaconsize);
- 	}
-diff -puN drivers/net/wireless/zd1211rw/zd_usb.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/zd1211rw/zd_usb.c
---- a/drivers/net/wireless/zd1211rw/zd_usb.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/zd1211rw/zd_usb.c
-@@ -545,11 +545,11 @@ static void handle_rx_packet(struct zd_u
- 	 * be padded. Unaligned access might also happen if the length_info
- 	 * structure is not present.
- 	 */
--	if (get_unaligned(&length_info->tag) == cpu_to_le16(RX_LENGTH_INFO_TAG))
-+	if (get_unaligned_le16(&length_info->tag) == RX_LENGTH_INFO_TAG)
- 	{
- 		unsigned int l, k, n;
- 		for (i = 0, l = 0;; i++) {
--			k = le16_to_cpu(get_unaligned(&length_info->length[i]));
-+			k = get_unaligned_le16(&length_info->length[i]);
- 			if (k == 0)
- 				return;
- 			n = l+k;
+-#define BLANK() asm volatile("\n->" : : )
+-
+ int main (void)
+ {
+ 	/* offsets into the task struct */
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
+hotplug-memory-make-online_page-common.patch
+hotplug-memory-make-online_page-common-fix.patch
 git-x86.patch
-git-alsa-tiwai.patch
-agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
-cifs-remove-global_extern-macro.patch
-git-powerpc.patch
-power-replace-remaining-__function__-occurrences.patch
-git-dvb.patch
-git-dlm.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-jfs.patch
-git-libata-all.patch
-git-mips.patch
-jffs2-include-function-prototype-for-jffs2_ioctl.patch
-jffs2-fix-sparse-warning-in-nodemgmtc.patch
-jffs2-fix-sparse-warning-in-writec.patch
-jffs2-fix-sparse-warnings-in-gcc.patch
-mtd-replace-remaining-__function__-occurrences.patch
-git-net.patch
-blackfin-replace-remaining-__function__-occurences.patch
-git-nfsd.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-git-selinux.patch
-git-s390.patch
-git-scsi-misc.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-block-replace-remaining-__function__-occurrences.patch
-git-watchdog.patch
-mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
-mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
-mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
-mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
-mac80211-michaelc-replace-macro-with-function.patch
-mac80211-michaelc-use-unaligned-byteorder-helpers.patch
-mac80211-michaelc-fold-initial-xor-into-block-helper.patch
-xtensa-replace-remaining-__function__-occurences.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-input-replace-remaining-__function__-occurrences.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
-alpha-replace-__inline-with-inline.patch
-m68k-replace-remaining-__function__-occurences.patch
-uml-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-firmware-replace-remaining-__function__-occurrences.patch
-drivers-misc-replace-remaining-__function__-occurrences.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-char-make-functions-static-in-synclinkmpc.patch
-spi-replace-remaining-__function__-occurrences.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-isdn-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-rtc-replace-remaining-__function__-occurrences.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-video-replace-remaining-__function__-occurrences.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-md-replace-remaining-__function__-occurrences.patch
-ext2-replace-remaining-__function__-occurrences.patch
-ext3-replace-remaining-__function__-occurrences.patch
-jbd-replace-remaining-__function__-occurrences.patch
-ufs-replace-remaining-__function__-occurrences.patch
-ufs-replace-__inline-with-inline.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-reiserfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-kernel-add-common-infrastructure-for-unaligned-access.patch
-kernel-move-arches-to-use-common-unaligned-access.patch
-drivers-block-use-get_unaligned_-helpers.patch
-hid-core-use-get_unaligned_-helpers.patch
-char-use-get_unaligned_-helpers.patch
-input-use-get_unaligned_-helpers.patch
-radio-use-get-put_unaligned_-helpers.patch
-mmc-use-get-put_unaligned_-helpers.patch
-net-use-get-put_unaligned_-helpers.patch
-wireless-use-get-put_unaligned_-helpers.patch
-pcmcia-use-get-put_unaligned_-helpers.patch
-usb-use-get-put_unaligned_-helpers.patch
-video-use-get-put_unaligned_-helpers.patch
-fat-use-get-put_unaligned_-helpers.patch
-hfsplus-use-get-put_unaligned_-helpers.patch
-isofs-use-get-put_unaligned_-helpers.patch
-ncpfs-use-get-put_unaligned_-helpers.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
+git-ia64.patch
+git-unionfs.patch
+git-pekka.patch
+remove-set_migrateflags.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify.patch
+mm-move-cache_line_size-to-linux-cacheh.patch
+mempolicy-convert-mpol-constants-to-enum.patch
+mempolicy-support-optional-mode-flags.patch
+mempolicy-support-optional-mode-flags-fix.patch
+mempolicy-add-mpol_f_static_nodes-flag.patch
+mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
+mempolicy-add-mpol_f_relative_nodes-flag.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-move-rebind-functions.patch
+mempolicy-create-mempolicy_operations-structure.patch
+mempolicy-create-mempolicy_operations-structure-fix.patch
+mempolicy-small-header-file-cleanup.patch
+mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
+mempolicy-fix-parsing-of-tmpfs-mpol-mount-option.patch
+mm-make-mem_map-allocation-continuous-v2.patch
+mm-fix-alloc_bootmem_core-to-use-fast-searching-for-all-nodes.patch
+mm-offset-align-in-alloc_bootmem.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+sparsemem-vmemmap-does-not-need-section-bits.patch
+kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+pageflags-standardize-comment-inclusion-in-asm-offsetsh-and-fix-mips.patch
+pageflags-use-an-enum-for-the-flags.patch
+pageflags-get-rid-of-flags_reserved.patch
+pageflags-get-rid-of-flags_reserved-sparc64-fix.patch
+pageflags-introduce-macros-to-generate-page-flag-functions.patch
+pageflags-convert-to-the-use-of-new-macros.patch
+pageflags-use-proper-page-flag-functions-in-xen.patch
+pageflags-eliminate-pg_xxx-aliases.patch
+page-flags-handle-pg_uncached-like-all-other-flags.patch
+page-flags-add-pageflags_false-for-flags-that-are-always-false.patch
+mm-get-rid-of-__zone_count.patch
+pageflags_extended-and-separate-page-flags-for-head-and-tail.patch
+mm-remove-unused-max_nodes_shift.patch
+vmcoreinfo-add-page-flags-values.patch
+mempolicy-rename-mpol_free-to-mpol_put.patch
+mempolicy-rename-mpol_copy-to-mpol_dup.patch
+mempolicy-write-lock-mmap_sem-while-changing-task-mempolicy.patch
+mempolicy-fixup-fallback-for-default-shmem-policy.patch
+mempolicy-rename-struct-mempolicy-policy-member-to-mode.patch
+mempolicy-mark-shared-policies-for-unref.patch
+mempolicy-document-setget_policy-vm_ops-apis.patch
+mempolicy-rework-mempolicy-reference-counting.patch
+mempolicy-use-mpol_preferred-for-system-wide-default-policy.patch
+mempolicy-mpol_preferred-cleanups-for-local-allocation.patch
+mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy.patch
+mempolicy-clean-up-mpol-to-str-mempolicy-formatting.patch
+mempolicy-rework-shmem-mpol-parsing-and-display.patch
+mempolicy-support-mpol=local-tmpfs-mount-option.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+page-allcoator-smarter-retry-of-costly-order-allocations.patch
+page-allocator-explicitly-retry-hugepage-allocations.patch
+ipc-add-definitions-of-ushort_max-and-others.patch
+mm-add-nr_writeback_temp-counter.patch
+remove-div_long_long_rem.patch
+slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
+add-kbuildh-that-contains-common-definitions-for-kbuild-users.patch
+x86-use-kbuildh.patch
+mips-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
+alpha-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
+ia64-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch
+arm-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
+xtensa-use-kbuildh-macros-instead-of-defining-them-in-asm-offsetsc.patch
+sparc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+avr32-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch
+blackfin-use-kbuildh-instead-of-defining-macros-in-asm-macrosc.patch
+frv-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+h8300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+m68k-m68kmmu-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+mn10300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+parisc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+s390-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+sh-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+v850-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
 
