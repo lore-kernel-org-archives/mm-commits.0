@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ncpfs-use-get-put_unaligned_-helpers.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:22:35 -0700
-Message-ID: <200804152222.m3FMMZjK018827@imap1.linux-foundation.org>
+Subject: + fat-use-get-put_unaligned_-helpers.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:22:28 -0700
+Message-ID: <200804152222.m3FMMS2U018818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37550 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56932 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756653AbYDOWWi (ORCPT
+	by vger.kernel.org with ESMTP id S1756412AbYDOWWc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:22:38 -0400
+	Tue, 15 Apr 2008 18:22:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, viro@zeniv.linux.org.uk
+Cc: harvey.harrison@gmail.com, hirofumi@mail.parknet.co.jp, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     ncpfs: use get/put_unaligned_* helpers
+     fat: use get/put_unaligned_* helpers
 has been added to the -mm tree.  Its filename is
-     ncpfs-use-get-put_unaligned_-helpers.patch
+     fat-use-get-put_unaligned_-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ncpfs: use get/put_unaligned_* helpers
+Subject: fat: use get/put_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ncplib_kernel.c |   39 ++++++++++++++++++-------------------
- 1 file changed, 19 insertions(+), 20 deletions(-)
+ fs/fat/inode.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/ncpfs/ncplib_kernel.c~ncpfs-use-get-put_unaligned_-helpers fs/ncpfs/ncplib_kernel.c
---- a/fs/ncpfs/ncplib_kernel.c~ncpfs-use-get-put_unaligned_-helpers
-+++ a/fs/ncpfs/ncplib_kernel.c
-@@ -102,48 +102,47 @@ static inline void ncp_init_request_s(st
- }
+diff -puN fs/fat/inode.c~fat-use-get-put_unaligned_-helpers fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-use-get-put_unaligned_-helpers
++++ a/fs/fat/inode.c
+@@ -1215,8 +1215,7 @@ int fat_fill_super(struct super_block *s
+ 		brelse(bh);
+ 		goto out_invalid;
+ 	}
+-	logical_sector_size =
+-		le16_to_cpu(get_unaligned((__le16 *)&b->sector_size));
++	logical_sector_size = get_unaligned_le16(&b->sector_size);
+ 	if (!is_power_of_2(logical_sector_size)
+ 	    || (logical_sector_size < 512)
+ 	    || (logical_sector_size > 4096)) {
+@@ -1314,8 +1313,7 @@ int fat_fill_super(struct super_block *s
+ 	sbi->dir_per_block_bits = ffs(sbi->dir_per_block) - 1;
  
- static inline char *
-- ncp_reply_data(struct ncp_server *server, int offset)
-+ncp_reply_data(struct ncp_server *server, int offset)
- {
- 	return &(server->packet[sizeof(struct ncp_reply_header) + offset]);
- }
+ 	sbi->dir_start = sbi->fat_start + sbi->fats * sbi->fat_length;
+-	sbi->dir_entries =
+-		le16_to_cpu(get_unaligned((__le16 *)&b->dir_entries));
++	sbi->dir_entries = get_unaligned_le16(&b->dir_entries);
+ 	if (sbi->dir_entries & (sbi->dir_per_block - 1)) {
+ 		if (!silent)
+ 			printk(KERN_ERR "FAT: bogus directroy-entries per block"
+@@ -1327,7 +1325,7 @@ int fat_fill_super(struct super_block *s
+ 	rootdir_sectors = sbi->dir_entries
+ 		* sizeof(struct msdos_dir_entry) / sb->s_blocksize;
+ 	sbi->data_start = sbi->dir_start + rootdir_sectors;
+-	total_sectors = le16_to_cpu(get_unaligned((__le16 *)&b->sectors));
++	total_sectors = get_unaligned_le16(&b->sectors);
+ 	if (total_sectors == 0)
+ 		total_sectors = le32_to_cpu(b->total_sect);
  
--static inline __u8 BVAL(void* data)
-+static inline u8 BVAL(void *data)
- {
--	return get_unaligned((__u8*)data);
-+	return *(u8 *)data;
- }
- 
--static __u8
-- ncp_reply_byte(struct ncp_server *server, int offset)
-+static u8 ncp_reply_byte(struct ncp_server *server, int offset)
- {
--	return get_unaligned((__u8 *) ncp_reply_data(server, offset));
-+	return *(u8 *)ncp_reply_data(server, offset);
- }
- 
--static inline __u16 WVAL_LH(void* data)
-+static inline u16 WVAL_LH(void* data)
- {
--	return le16_to_cpu(get_unaligned((__le16*)data));
-+	return get_unaligned_le16(data);
- }
- 
--static __u16
-- ncp_reply_le16(struct ncp_server *server, int offset)
-+static u16
-+ncp_reply_le16(struct ncp_server *server, int offset)
- {
--	return le16_to_cpu(get_unaligned((__le16 *) ncp_reply_data(server, offset)));
-+	return get_unaligned_le16(ncp_reply_data(server, offset));
- }
- 
--static __u16
-- ncp_reply_be16(struct ncp_server *server, int offset)
-+static u16
-+ncp_reply_be16(struct ncp_server *server, int offset)
- {
--	return be16_to_cpu(get_unaligned((__be16 *) ncp_reply_data(server, offset)));
-+	return get_unaligned_be16(ncp_reply_data(server, offset));
- }
- 
--static inline __u32 DVAL_LH(void* data)
-+static inline u32 DVAL_LH(void *data)
- {
--	return le32_to_cpu(get_unaligned((__le32*)data));
-+	return get_unaligned_le32(data);
- }
- 
- static __le32
-- ncp_reply_dword(struct ncp_server *server, int offset)
-+ncp_reply_dword(struct ncp_server *server, int offset)
- {
--	return get_unaligned((__le32 *) ncp_reply_data(server, offset));
-+	return get_unaligned((__le32 *)ncp_reply_data(server, offset));
- }
- 
- static inline __u32 ncp_reply_dword_lh(struct ncp_server* server, int offset) {
-@@ -1006,8 +1005,8 @@ ncp_read_bounce(struct ncp_server *serve
- 	result = ncp_request2(server, 72, bounce, bufsize);
- 	ncp_unlock_server(server);
- 	if (!result) {
--		int len = be16_to_cpu(get_unaligned((__be16*)((char*)bounce + 
--			  sizeof(struct ncp_reply_header))));
-+		int len = get_unaligned_be16((char *)bounce +
-+			  sizeof(struct ncp_reply_header));
- 		result = -EIO;
- 		if (len <= to_read) {
- 			char* source;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
