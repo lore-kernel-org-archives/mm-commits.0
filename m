@@ -1,53 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: - sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch removed from -mm tree
-Date: Tue, 15 Apr 2008 13:44:07 -0700
-Message-ID: <200804152044.m3FKi7Ln014665@imap1.linux-foundation.org>
+Subject: - revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch removed from -mm tree
+Date: Tue, 15 Apr 2008 13:43:40 -0700
+Message-ID: <200804152043.m3FKhe7Z014611@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55026 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58776 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756467AbYDOUoM (ORCPT
+	by vger.kernel.org with ESMTP id S1756044AbYDOUn7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 16:44:12 -0400
+	Tue, 15 Apr 2008 16:43:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, davem@davemloft.net, greg@kroah.com, m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sh: arch/sh/kernel/traps_32.c needs asm/fpu.h
+     revert gregkh-pci-pci-arm-use-generic-pci_enable_resources
 has been removed from the -mm tree.  Its filename was
-     sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
+     revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh: arch/sh/kernel/traps_32.c needs asm/fpu.h
+Subject: revert gregkh-pci-pci-arm-use-generic-pci_enable_resources
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/sh/kernel/traps_32.c: In function `do_reserved_inst':
-arch/sh/kernel/traps_32.c:667: error: implicit declaration of function `do_fpu_inst'
+On Fri, 28 Mar 2008 16:10:11 -0700 (PDT) David Miller <davem@davemloft.net> wrote:
 
-Cc: Paul Mundt <lethal@linux-sh.org>
+> From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+> Date: Fri, 28 Mar 2008 23:52:10 +0100
+> 
+> > 	The gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch which
+> > replaces arch-specific code with generic pci_enable_resources() makes my sparc64
+> > box unable to boot (that's what quilt bisection says). At first I see these messages:
+> 
+> Yes, that generic code won't work because of the NULL
+> r->parent check.
+> 
+> Alpha, ARM, V32, FRV, IA64, MIPS, MN10300, PARISC, PPC,
+> SH, V850, X86, and Xtensa are all likely to run into
+> problems because of this change.
+> 
+> The only platform that did the check as a test of r->parent
+> being NULL is Powerpc.
+> 
+> The rest either didn't check (like sparc64), or tested it by going:
+> 
+> 	if (!r->start && r->end)
+> 
+> So the amount of potential breakage from this change is enormous.
+
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/traps_32.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/kernel/bios32.c |   27 ++++++++++++++++++++-------
+ 1 file changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN arch/sh/kernel/traps_32.c~sh-arch-sh-kernel-traps_32c-needs-asm-fpuh arch/sh/kernel/traps_32.c
---- a/arch/sh/kernel/traps_32.c~sh-arch-sh-kernel-traps_32c-needs-asm-fpuh
-+++ a/arch/sh/kernel/traps_32.c
-@@ -25,6 +25,7 @@
- #include <linux/limits.h>
- #include <asm/system.h>
- #include <asm/uaccess.h>
-+#include <asm/fpu.h>
+diff -puN arch/arm/kernel/bios32.c~revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources arch/arm/kernel/bios32.c
+--- a/arch/arm/kernel/bios32.c~revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources
++++ a/arch/arm/kernel/bios32.c
+@@ -660,15 +660,28 @@ void pcibios_align_resource(void *data, 
+  */
+ int pcibios_enable_device(struct pci_dev *dev, int mask)
+ {
+-	int err;
+ 	u16 cmd, old_cmd;
+-
+-	err = pci_enable_resources(dev, mask);
+-	if (err < 0)
+-		return err;
++	int idx;
++	struct resource *r;
  
- #ifdef CONFIG_SH_KGDB
- #include <asm/kgdb.h>
+ 	pci_read_config_word(dev, PCI_COMMAND, &cmd);
+ 	old_cmd = cmd;
++	for (idx = 0; idx < 6; idx++) {
++		/* Only set up the requested stuff */
++		if (!(mask & (1 << idx)))
++			continue;
++
++		r = dev->resource + idx;
++		if (!r->start && r->end) {
++			printk(KERN_ERR "PCI: Device %s not available because"
++			       " of resource collisions\n", pci_name(dev));
++			return -EINVAL;
++		}
++		if (r->flags & IORESOURCE_IO)
++			cmd |= PCI_COMMAND_IO;
++		if (r->flags & IORESOURCE_MEM)
++			cmd |= PCI_COMMAND_MEMORY;
++	}
+ 
+ 	/*
+ 	 * Bridges (eg, cardbus bridges) need to be fully enabled
+@@ -677,8 +690,8 @@ int pcibios_enable_device(struct pci_dev
+ 		cmd |= PCI_COMMAND_IO | PCI_COMMAND_MEMORY;
+ 
+ 	if (cmd != old_cmd) {
+-		dev_info(&dev->dev, "enabling bridge device (%04x -> %04x)\n",
+-		       old_cmd, cmd);
++		printk("PCI: enabling device %s (%04x -> %04x)\n",
++		       pci_name(dev), old_cmd, cmd);
+ 		pci_write_config_word(dev, PCI_COMMAND, cmd);
+ 	}
+ 	return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
