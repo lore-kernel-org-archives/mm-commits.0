@@ -1,311 +1,222 @@
 From: akpm@linux-foundation.org
-Subject: - revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch removed from -mm tree
-Date: Tue, 15 Apr 2008 13:43:49 -0700
-Message-ID: <200804152043.m3FKhnrG014624@imap1.linux-foundation.org>
+Subject: - lmb-add-lmb_alloc_nid.patch removed from -mm tree
+Date: Tue, 15 Apr 2008 13:43:35 -0700
+Message-ID: <200804152043.m3FKhZvE014605@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40795 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756301AbYDOUoD (ORCPT
+	by vger.kernel.org with ESMTP id S1756264AbYDOUn7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 16:44:03 -0400
+	Tue, 15 Apr 2008 16:43:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, davem@davemloft.net, greg@kroah.com, m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: davem@davemloft.net, benh@kernel.crashing.org, mingo@elte.hu, paulus@samba.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert gregkh-pci-pci-mips-use-generic-pci_enable_resources
+     lmb: add lmb_alloc_nid()
 has been removed from the -mm tree.  Its filename was
-     revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
+     lmb-add-lmb_alloc_nid.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert gregkh-pci-pci-mips-use-generic-pci_enable_resources
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lmb: add lmb_alloc_nid()
+From: David Miller <davem@davemloft.net>
 
-On Fri, 28 Mar 2008 16:10:11 -0700 (PDT) David Miller <davem@davemloft.net> wrote:
+A variant of lmb_alloc() that tries to allocate memory on a specified NUMA
+node 'nid' but falls back to normal lmb_alloc() if that fails.
 
-> From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-> Date: Fri, 28 Mar 2008 23:52:10 +0100
-> 
-> > 	The gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch which
-> > replaces arch-specific code with generic pci_enable_resources() makes my sparc64
-> > box unable to boot (that's what quilt bisection says). At first I see these messages:
-> 
-> Yes, that generic code won't work because of the NULL
-> r->parent check.
-> 
-> Alpha, ARM, V32, FRV, IA64, MIPS, MN10300, PARISC, PPC,
-> SH, V850, X86, and Xtensa are all likely to run into
-> problems because of this change.
-> 
-> The only platform that did the check as a test of r->parent
-> being NULL is Powerpc.
-> 
-> The rest either didn't check (like sparc64), or tested it by going:
-> 
-> 	if (!r->start && r->end)
-> 
-> So the amount of potential breakage from this change is enormous.
+The caller provides a 'nid_range' function pointer which assists the
+allocator.  It is given args 'start', 'end', and pointer to integer
+'this_nid'.
 
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Greg KH <greg@kroah.com>
+It places at 'this_nid' the NUMA node id that corresponds to 'start', and
+returns the end address within 'start' to 'end' at which memory assosciated
+with 'nid' ends.
+
+This callback allows a platform to use lmb_alloc_nid() in just about any
+context, even ones in which early_pfn_to_nid() might not be working yet.
+
+
+
+This function will be used by the NUMA setup code on sparc64, and also it can
+be used by powerpc, replacing it's hand crafted "careful_allocation()"
+function in arch/powerpc/mm/numa.c
+
+If x86 ever converts its NUMA support over to using the LMB helpers, it can
+use this too as it has something entirely similar.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/pci/pci.c |   40 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 39 insertions(+), 1 deletion(-)
+ include/linux/lmb.h |    2 
+ lib/lmb.c           |   86 +++++++++++++++++++++++++++++++++++++-----
+ 2 files changed, 78 insertions(+), 10 deletions(-)
 
-diff -puN arch/mips/pci/pci.c~revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources arch/mips/pci/pci.c
---- a/arch/mips/pci/pci.c~revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources
-+++ a/arch/mips/pci/pci.c
-@@ -163,6 +163,44 @@ static int __init pcibios_init(void)
+diff -puN include/linux/lmb.h~lmb-add-lmb_alloc_nid include/linux/lmb.h
+--- a/include/linux/lmb.h~lmb-add-lmb_alloc_nid
++++ a/include/linux/lmb.h
+@@ -42,6 +42,8 @@ extern void __init lmb_init(void);
+ extern void __init lmb_analyze(void);
+ extern long __init lmb_add(u64 base, u64 size);
+ extern long __init lmb_reserve(u64 base, u64 size);
++extern u64 __init lmb_alloc_nid(u64 size, u64 align, int nid,
++				u64 (*nid_range)(u64, u64, int *));
+ extern u64 __init lmb_alloc(u64 size, u64 align);
+ extern u64 __init lmb_alloc_base(u64 size,
+ 		u64, u64 max_addr);
+diff -puN lib/lmb.c~lmb-add-lmb_alloc_nid lib/lmb.c
+--- a/lib/lmb.c~lmb-add-lmb_alloc_nid
++++ a/lib/lmb.c
+@@ -232,6 +232,82 @@ long __init lmb_overlaps_region(struct l
+ 	return (i < rgn->cnt) ? i : -1;
+ }
  
- subsys_initcall(pcibios_init);
- 
-+static int pcibios_enable_resources(struct pci_dev *dev, int mask)
++static u64 lmb_align_down(u64 addr, u64 size)
 +{
-+	u16 cmd, old_cmd;
-+	int idx;
-+	struct resource *r;
-+
-+	pci_read_config_word(dev, PCI_COMMAND, &cmd);
-+	old_cmd = cmd;
-+	for (idx=0; idx < PCI_NUM_RESOURCES; idx++) {
-+		/* Only set up the requested stuff */
-+		if (!(mask & (1<<idx)))
-+			continue;
-+
-+		r = &dev->resource[idx];
-+		if (!(r->flags & (IORESOURCE_IO | IORESOURCE_MEM)))
-+			continue;
-+		if ((idx == PCI_ROM_RESOURCE) &&
-+				(!(r->flags & IORESOURCE_ROM_ENABLE)))
-+			continue;
-+		if (!r->start && r->end) {
-+			printk(KERN_ERR "PCI: Device %s not available "
-+			       "because of resource collisions\n",
-+			       pci_name(dev));
-+			return -EINVAL;
-+		}
-+		if (r->flags & IORESOURCE_IO)
-+			cmd |= PCI_COMMAND_IO;
-+		if (r->flags & IORESOURCE_MEM)
-+			cmd |= PCI_COMMAND_MEMORY;
-+	}
-+	if (cmd != old_cmd) {
-+		printk("PCI: Enabling device %s (%04x -> %04x)\n",
-+		       pci_name(dev), old_cmd, cmd);
-+		pci_write_config_word(dev, PCI_COMMAND, cmd);
-+	}
-+	return 0;
++	return addr & ~(size - 1);
 +}
 +
- /*
-  *  If we set up a device for bus mastering, we need to check the latency
-  *  timer as certain crappy BIOSes forget to set it properly.
-@@ -193,7 +231,7 @@ int pcibios_enable_device(struct pci_dev
++static u64 lmb_align_up(u64 addr, u64 size)
++{
++	return (addr + (size - 1)) & ~(size - 1);
++}
++
++static u64 __init lmb_alloc_nid_unreserved(u64 start, u64 end,
++					   u64 size, u64 align)
++{
++	u64 base;
++	long j;
++
++	base = lmb_align_down((end - size), align);
++	while (start <= base &&
++	       ((j = lmb_overlaps_region(&lmb.reserved, base, size)) >= 0))
++		base = lmb_align_down(lmb.reserved.region[j].base - size,
++				      align);
++
++	if (base != 0 && start <= base) {
++		if (lmb_add_region(&lmb.reserved, base,
++				   lmb_align_up(size, align)) < 0)
++			base = ~(u64)0;
++		return base;
++	}
++
++	return ~(u64)0;
++}
++
++static u64 __init lmb_alloc_nid_region(struct lmb_property *mp,
++				       u64 (*nid_range)(u64, u64, int *),
++				       u64 size, u64 align, int nid)
++{
++	u64 start, end;
++
++	start = mp->base;
++	end = start + mp->size;
++
++	start = lmb_align_up(start, align);
++	while (start < end) {
++		u64 this_end;
++		int this_nid;
++
++		this_end = nid_range(start, end, &this_nid);
++		if (this_nid == nid) {
++			u64 ret = lmb_alloc_nid_unreserved(start, this_end,
++							   size, align);
++			if (ret != ~(u64)0)
++				return ret;
++		}
++		start = this_end;
++	}
++
++	return ~(u64)0;
++}
++
++u64 __init lmb_alloc_nid(u64 size, u64 align, int nid,
++			 u64 (*nid_range)(u64 start, u64 end, int *nid))
++{
++	struct lmb_region *mem = &lmb.memory;
++	int i;
++
++	for (i = 0; i < mem->cnt; i++) {
++		u64 ret = lmb_alloc_nid_region(&mem->region[i],
++					       nid_range,
++					       size, align, nid);
++		if (ret != ~(u64)0)
++			return ret;
++	}
++
++	return lmb_alloc(size, align);
++}
++
+ u64 __init lmb_alloc(u64 size, u64 align)
  {
- 	int err;
+ 	return lmb_alloc_base(size, align, LMB_ALLOC_ANYWHERE);
+@@ -250,16 +326,6 @@ u64 __init lmb_alloc_base(u64 size, u64 
+ 	return alloc;
+ }
  
--	if ((err = pci_enable_resources(dev, mask)) < 0)
-+	if ((err = pcibios_enable_resources(dev, mask)) < 0)
- 		return err;
- 
- 	return pcibios_plat_dev_init(dev);
+-static u64 lmb_align_down(u64 addr, u64 size)
+-{
+-	return addr & ~(size - 1);
+-}
+-
+-static u64 lmb_align_up(u64 addr, u64 size)
+-{
+-	return (addr + (size - 1)) & ~(size - 1);
+-}
+-
+ u64 __init __lmb_alloc_base(u64 size, u64 align, u64 max_addr)
+ {
+ 	long i, j;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from davem@davemloft.net are
 
 origin.patch
-hotplug-memory-make-online_page-common-fix.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86.patch
-arch-x86-mm-ioremapc-fix-printk-warnings.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-git-kgdb-light.patch
-git-x86-hack-around-to-make-git-kgdb-build.patch
-git-x86-vs-git-kgdb-lite.patch
-git-alsa-tiwai.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
 git-powerpc.patch
-git-drm.patch
-revert-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-dlm-vs-git-gfs2-nwm.patch
-git-hid.patch
-git-hrt.patch
-time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
-git-ia64.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
-git-input.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-leds.patch
-git-libata-all.patch
-pata_atiixp-simplex-clear-fix.patch
-git-async-tx.patch
-git-mips.patch
+powerpc-update-lmb-for-hotplug-memory-add-remove.patch
 git-net.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-ehea-fix-dlpar-memory-add-support-fix.patch
-sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
-git-s390.patch
+git-security-testing.patch
 git-sched.patch
-git-sched-git-rejects.patch
-add-rcu_assign_index-if-ever-needed.patch
-git-sh.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
 sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-misplaced-hunk.patch
-git-cryptodev-fix-conflict.patch
-git-cryptodev-fix-conflict-hack.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-semaphore-git-rejects.patch
-ext4-is-busted-on-m68k.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+git-cryptodev.patch
+pageflags-get-rid-of-flags_reserved.patch
+pageflags-get-rid-of-flags_reserved-sparc64-fix.patch
+hugetlbfs-architecture-header-cleanup.patch
+hugetlbfs-add-missing-tlb-flush-to-hugetlb_cow.patch
+hugetlbfs-common-code-update-for-s390.patch
 kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-drivers-video-uvesafbc-fix-error-path-memory-leak.patch
-fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+kprobes-add-unregister_kprobes-for-batch-registration.patch
+kprobes-add-unregister_kretprobes-for-batch-registration.patch
+kprobes-add-unregister_jprobes-for-batch-registration.patch
+kprobes-update-document-about-batch-registration.patch
+dma-add-dma_map_attrs-interfaces.patch
+dma-document-dma_map_attrs-interfaces.patch
+dma-ia64-update-ia64-machvecs-swiotlbc.patch
+ib-expand-ib_umem_get-prototype.patch
+strip-fix-up-strip-for-the-new-order.patch
+proc-switch-proc-driver-ray_cs-ray_cs-to-seq_file-interface.patch
+proc-switch-proc-irda-irnet-to-seq_file-interface.patch
+sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
+sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
+sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
+asm-futexh-should-include-linux-uaccessh.patch
+remove-duplicated-unlikely-in-is_err.patch
+rename-div64_64-to-div64_u64.patch
+introduce-a-generic-__fls-implementation.patch
+implement-__fls-on-all-64-bit-archs.patch
+use-__fls-for-fls64-on-64-bit-archs.patch
+net-remove-nr_cpus-arrays-in-net-core-devc-v2.patch
 
