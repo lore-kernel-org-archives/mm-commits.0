@@ -1,252 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - add-rcu_assign_index-if-ever-needed-fix.patch removed from -mm tree
-Date: Mon, 14 Apr 2008 18:25:00 -0700
-Message-ID: <200804150125.m3F1P0gE004119@imap1.linux-foundation.org>
+Subject: + rcu-add-rcu_barrier_sched-and-rcu_barrier_bh.patch added to -mm tree
+Date: Mon, 14 Apr 2008 18:35:50 -0700
+Message-ID: <200804150135.m3F1Zovr004515@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49925 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758197AbYDOBao (ORCPT
+	by vger.kernel.org with ESMTP id S1758303AbYDOBgz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 21:30:44 -0400
+	Mon, 14 Apr 2008 21:36:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ego@in.ibm.com, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: paulmck@linux.vnet.ibm.com, josh@kernel.org, mathieu.desnoyers@polymtl.ca, mingo@elte.hu
 
 
 The patch titled
-     add-rcu_assign_index-if-ever-needed-fix
-has been removed from the -mm tree.  Its filename was
-     add-rcu_assign_index-if-ever-needed-fix.patch
+     rcu: add rcu_barrier_sched() and rcu_barrier_bh()
+has been added to the -mm tree.  Its filename is
+     rcu-add-rcu_barrier_sched-and-rcu_barrier_bh.patch
 
-This patch was dropped because it was folded into add-rcu_assign_index-if-ever-needed.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-rcu_assign_index-if-ever-needed-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: rcu: add rcu_barrier_sched() and rcu_barrier_bh()
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Gautham R Shenoy <ego@in.ibm.com>
+Add rcu_barrier_sched() and rcu_barrier_bh().  With these in place, rcutorture
+no longer gives the occasional oops when repeatedly starting and stopping
+torturing rcu_bh.  Also adds the API needed to flush out pre-existing
+call_rcu_sched() callbacks.
+
+Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Josh Triplett <josh@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rcupdate.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/rcupdate.h |    2 +
+ kernel/rcupdate.c        |   55 ++++++++++++++++++++++++++++++++-----
+ 2 files changed, 51 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/rcupdate.h~add-rcu_assign_index-if-ever-needed-fix include/linux/rcupdate.h
---- a/include/linux/rcupdate.h~add-rcu_assign_index-if-ever-needed-fix
+diff -puN include/linux/rcupdate.h~rcu-add-rcu_barrier_sched-and-rcu_barrier_bh include/linux/rcupdate.h
+--- a/include/linux/rcupdate.h~rcu-add-rcu_barrier_sched-and-rcu_barrier_bh
 +++ a/include/linux/rcupdate.h
-@@ -184,7 +184,7 @@ struct rcu_head {
+@@ -278,6 +278,8 @@ extern void call_rcu_bh(struct rcu_head 
+ /* Exported common interfaces */
+ extern void synchronize_rcu(void);
+ extern void rcu_barrier(void);
++extern void rcu_barrier_bh(void);
++extern void rcu_barrier_sched(void);
  
- /**
-  * rcu_assign_index - assign (publicize) a index of a newly
-- * initialized array elementg that will be dereferenced by RCU
-+ * initialized array element that will be dereferenced by RCU
-  * read-side critical sections.  Returns the value assigned.
-  *
-  * Inserts memory barriers on architectures that require them
+ /* Internal to kernel */
+ extern void rcu_init(void);
+diff -puN kernel/rcupdate.c~rcu-add-rcu_barrier_sched-and-rcu_barrier_bh kernel/rcupdate.c
+--- a/kernel/rcupdate.c~rcu-add-rcu_barrier_sched-and-rcu_barrier_bh
++++ a/kernel/rcupdate.c
+@@ -45,6 +45,12 @@
+ #include <linux/mutex.h>
+ #include <linux/module.h>
+ 
++enum rcu_barrier {
++	RCU_BARRIER_STD,
++	RCU_BARRIER_BH,
++	RCU_BARRIER_SCHED,
++};
++
+ static DEFINE_PER_CPU(struct rcu_head, rcu_barrier_head) = {NULL};
+ static atomic_t rcu_barrier_cpu_count;
+ static DEFINE_MUTEX(rcu_barrier_mutex);
+@@ -83,19 +89,30 @@ static void rcu_barrier_callback(struct 
+ /*
+  * Called with preemption disabled, and from cross-cpu IRQ context.
+  */
+-static void rcu_barrier_func(void *notused)
++static void rcu_barrier_func(void *type)
+ {
+ 	int cpu = smp_processor_id();
+ 	struct rcu_head *head = &per_cpu(rcu_barrier_head, cpu);
+ 
+ 	atomic_inc(&rcu_barrier_cpu_count);
+-	call_rcu(head, rcu_barrier_callback);
++	switch ((enum rcu_barrier)type) {
++	case RCU_BARRIER_STD:
++		call_rcu(head, rcu_barrier_callback);
++		break;
++	case RCU_BARRIER_BH:
++		call_rcu_bh(head, rcu_barrier_callback);
++		break;
++	case RCU_BARRIER_SCHED:
++		call_rcu_sched(head, rcu_barrier_callback);
++		break;
++	}
+ }
+ 
+-/**
+- * rcu_barrier - Wait until all the in-flight RCUs are complete.
++/*
++ * Orchestrate the specified type of RCU barrier, waiting for all
++ * RCU callbacks of the specified type to complete.
+  */
+-void rcu_barrier(void)
++static void _rcu_barrier(enum rcu_barrier type)
+ {
+ 	BUG_ON(in_interrupt());
+ 	/* Take cpucontrol mutex to protect against CPU hotplug */
+@@ -111,13 +128,39 @@ void rcu_barrier(void)
+ 	 * until all the callbacks are queued.
+ 	 */
+ 	rcu_read_lock();
+-	on_each_cpu(rcu_barrier_func, NULL, 0, 1);
++	on_each_cpu(rcu_barrier_func, (void *)type, 0, 1);
+ 	rcu_read_unlock();
+ 	wait_for_completion(&rcu_barrier_completion);
+ 	mutex_unlock(&rcu_barrier_mutex);
+ }
++
++/**
++ * rcu_barrier - Wait until all in-flight call_rcu() callbacks complete.
++ */
++void rcu_barrier(void)
++{
++	_rcu_barrier(RCU_BARRIER_STD);
++}
+ EXPORT_SYMBOL_GPL(rcu_barrier);
+ 
++/**
++ * rcu_barrier_bh - Wait until all in-flight call_rcu_bh() callbacks complete.
++ */
++void rcu_barrier_bh(void)
++{
++	_rcu_barrier(RCU_BARRIER_BH);
++}
++EXPORT_SYMBOL_GPL(rcu_barrier_bh);
++
++/**
++ * rcu_barrier_sched - Wait for in-flight call_rcu_sched() callbacks.
++ */
++void rcu_barrier_sched(void)
++{
++	_rcu_barrier(RCU_BARRIER_SCHED);
++}
++EXPORT_SYMBOL_GPL(rcu_barrier_sched);
++
+ void __init rcu_init(void)
+ {
+ 	__rcu_init();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
 
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-acpi.patch
-git-acpi-revert-suspend-wakeup-code-in-c.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86.patch
-arch-x86-mm-ioremapc-fix-printk-warnings.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-git-kgdb-light.patch
-git-x86-hack-around-to-make-git-kgdb-build.patch
-git-x86-vs-git-kgdb-lite.patch
-git-alsa-tiwai.patch
-es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
-git-powerpc.patch
-pm-introduce-new-top-level-suspend-and-hibernation-callbacks-rev-7-fix.patch
-pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type-rev-3-fix.patch
-git-drm.patch
-revert-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-dlm-vs-git-gfs2-nwm.patch
-git-hid.patch
-git-hrt.patch
-time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
-git-ia64.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-leds.patch
-git-libata-all.patch
-pata_atiixp-simplex-clear-fix.patch
-git-async-tx.patch
-git-mips.patch
-git-net.patch
-git-net-git-rejects.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-ehea-fix-dlpar-memory-add-support-fix.patch
-sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
-git-s390.patch
-git-sched.patch
-git-sh.patch
-sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
-sh-export-empty_zero_page.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-misplaced-hunk.patch
-git-cryptodev-fix-conflict.patch
-git-cryptodev-fix-conflict-hack.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-semaphore-git-rejects.patch
-ext4-is-busted-on-m68k.patch
-smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
 add-rcu_assign_index-if-ever-needed.patch
-add-rcu_assign_index-if-ever-needed-fix.patch
+rcu-split-listh-and-move-rcu-protected-lists-into-rculisth.patch
+rcu-fix-rcu_try_flip_waitack_needed-to-prevent-grace-period-stall.patch
+rcu-add-call_rcu_sched.patch
+rcu-add-memory-barriers-and-comments-to-rcu_check_callbacks.patch
+rcu-add-rcu_barrier_sched-and-rcu_barrier_bh.patch
+rcu-add-call_rcu_sched-and-friends-to-rcutorture.patch
+rcu-1q08-rcu-doc-update-add-call_rcu_sched.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+isolate-ratelimit-from-printkc-for-other-use.patch
+add-warn_on_secs-macro.patch
+add-warn_on_secs-macro-simplification.patch
 add-warn_on_secs-macro-simplification-fix.patch
 add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+use-warn_on_secs-in-rcupreempth.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
 
