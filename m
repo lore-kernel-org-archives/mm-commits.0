@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + char-switch-gs-cyclades-and-esp-to-return-int-for-put_char.patch added to -mm tree
-Date: Mon, 14 Apr 2008 19:04:24 -0700
-Message-ID: <200804150204.m3F24Ow7005612@imap1.linux-foundation.org>
+Subject: + pc300-update-to-tty_set_operations.patch added to -mm tree
+Date: Mon, 14 Apr 2008 19:04:44 -0700
+Message-ID: <200804150204.m3F24iS4005642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58970 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57336 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759781AbYDOCFF (ORCPT
+	by vger.kernel.org with ESMTP id S1760469AbYDOCFT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 22:05:05 -0400
+	Mon, 14 Apr 2008 22:05:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     char: switch gs, cyclades and esp to return int for put_char
+     pc300: Update to tty_set_operations
 has been added to the -mm tree.  Its filename is
-     char-switch-gs-cyclades-and-esp-to-return-int-for-put_char.patch
+     pc300-update-to-tty_set_operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,149 +34,60 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char: switch gs, cyclades and esp to return int for put_char
+Subject: pc300: Update to tty_set_operations
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+This driver somehow escaped the tty operations changes way back when.  Update
+it so that we can switch to tty->ops shortly.
+
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c        |    9 +++++----
- drivers/char/esp.c             |    9 ++++++---
- drivers/char/generic_serial.c  |   11 ++++++-----
- include/linux/generic_serial.h |    2 +-
- 4 files changed, 18 insertions(+), 13 deletions(-)
+ drivers/net/wan/pc300_tty.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN drivers/char/cyclades.c~char-switch-gs-cyclades-and-esp-to-return-int-for-put_char drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~char-switch-gs-cyclades-and-esp-to-return-int-for-put_char
-+++ a/drivers/char/cyclades.c
-@@ -2815,7 +2815,7 @@ static int cy_write(struct tty_struct *t
-  * done stuffing characters into the driver.  If there is no room
-  * in the queue, the character is ignored.
-  */
--static void cy_put_char(struct tty_struct *tty, unsigned char ch)
-+static int cy_put_char(struct tty_struct *tty, unsigned char ch)
- {
- 	struct cyclades_port *info = tty->driver_data;
- 	unsigned long flags;
-@@ -2825,15 +2825,15 @@ static void cy_put_char(struct tty_struc
- #endif
+diff -puN drivers/net/wan/pc300_tty.c~pc300-update-to-tty_set_operations drivers/net/wan/pc300_tty.c
+--- a/drivers/net/wan/pc300_tty.c~pc300-update-to-tty_set_operations
++++ a/drivers/net/wan/pc300_tty.c
+@@ -178,6 +178,20 @@ static void cpc_tty_signal_on(pc300dev_t
+ 	CPC_TTY_UNLOCK(card,flags); 
+ }
  
- 	if (serial_paranoia_check(info, tty->name, "cy_put_char"))
--		return;
-+		return 0;
- 
- 	if (!info->xmit_buf)
--		return;
-+		return 0;
- 
- 	spin_lock_irqsave(&info->card->card_lock, flags);
- 	if (info->xmit_cnt >= (int)(SERIAL_XMIT_SIZE - 1)) {
- 		spin_unlock_irqrestore(&info->card->card_lock, flags);
--		return;
-+		return 0;
- 	}
- 
- 	info->xmit_buf[info->xmit_head++] = ch;
-@@ -2842,6 +2842,7 @@ static void cy_put_char(struct tty_struc
- 	info->idle_stats.xmit_bytes++;
- 	info->idle_stats.xmit_idle = jiffies;
- 	spin_unlock_irqrestore(&info->card->card_lock, flags);
-+	return 1;
- }				/* cy_put_char */
- 
++
++static const struct tty_operations pc300_ops = {
++	.open = cpc_tty_open,
++	.close = cpc_tty_close,
++	.write = cpc_tty_write,
++	.write_room = cpc_tty_write_room,
++	.chars_in_buffer = cpc_tty_chars_in_buffer,
++	.tiocmset = pc300_tiocmset,
++	.tiocmget = pc300_tiocmget,
++	.flush_buffer = cpc_tty_flush_buffer,
++	.hangup = cpc_tty_hangup,
++};
++
++
  /*
-diff -puN drivers/char/esp.c~char-switch-gs-cyclades-and-esp-to-return-int-for-put_char drivers/char/esp.c
---- a/drivers/char/esp.c~char-switch-gs-cyclades-and-esp-to-return-int-for-put_char
-+++ a/drivers/char/esp.c
-@@ -1156,24 +1156,27 @@ static void change_speed(struct esp_stru
- 	spin_unlock_irqrestore(&info->lock, flags);
- }
+  * PC300 TTY initialization routine
+  *
+@@ -225,15 +239,7 @@ void cpc_tty_init(pc300dev_t *pc300dev)
+ 		serial_drv.flags = TTY_DRIVER_REAL_RAW;
  
--static void rs_put_char(struct tty_struct *tty, unsigned char ch)
-+static int rs_put_char(struct tty_struct *tty, unsigned char ch)
- {
- 	struct esp_struct *info = (struct esp_struct *)tty->driver_data;
- 	unsigned long flags;
-+	int ret = 0;
+ 		/* interface routines from the upper tty layer to the tty driver */
+-		serial_drv.open = cpc_tty_open;
+-		serial_drv.close = cpc_tty_close;
+-		serial_drv.write = cpc_tty_write; 
+-		serial_drv.write_room = cpc_tty_write_room; 
+-		serial_drv.chars_in_buffer = cpc_tty_chars_in_buffer; 
+-		serial_drv.tiocmset = pc300_tiocmset;
+-		serial_drv.tiocmget = pc300_tiocmget;
+-		serial_drv.flush_buffer = cpc_tty_flush_buffer; 
+-		serial_drv.hangup = cpc_tty_hangup;
++		tty_set_operations(&serial_drv, &pc300_ops);
  
- 	if (serial_paranoia_check(info, tty->name, "rs_put_char"))
--		return;
-+		return 0;
- 
- 	if (!info->xmit_buf)
--		return;
-+		return 0;
- 
- 	spin_lock_irqsave(&info->lock, flags);
- 	if (info->xmit_cnt < ESP_XMIT_SIZE - 1) {
- 		info->xmit_buf[info->xmit_head++] = ch;
- 		info->xmit_head &= ESP_XMIT_SIZE-1;
- 		info->xmit_cnt++;
-+		ret = 1;
- 	}
- 	spin_unlock_irqrestore(&info->lock, flags);
-+	return ret;
- }
- 
- static void rs_flush_chars(struct tty_struct *tty)
-diff -puN drivers/char/generic_serial.c~char-switch-gs-cyclades-and-esp-to-return-int-for-put_char drivers/char/generic_serial.c
---- a/drivers/char/generic_serial.c~char-switch-gs-cyclades-and-esp-to-return-int-for-put_char
-+++ a/drivers/char/generic_serial.c
-@@ -49,19 +49,19 @@ static int gs_debug;
- module_param(gs_debug, int, 0644);
- 
- 
--void gs_put_char(struct tty_struct * tty, unsigned char ch)
-+int gs_put_char(struct tty_struct * tty, unsigned char ch)
- {
- 	struct gs_port *port;
- 
- 	func_enter (); 
- 
--	if (!tty) return;
-+	if (!tty) return 0;
- 
- 	port = tty->driver_data;
- 
--	if (!port) return;
-+	if (!port) return 0;
- 
--	if (! (port->flags & ASYNC_INITIALIZED)) return;
-+	if (! (port->flags & ASYNC_INITIALIZED)) return 0;
- 
- 	/* Take a lock on the serial tranmit buffer! */
- 	mutex_lock(& port->port_write_mutex);
-@@ -69,7 +69,7 @@ void gs_put_char(struct tty_struct * tty
- 	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1) {
- 		/* Sorry, buffer is full, drop character. Update statistics???? -- REW */
- 		mutex_unlock(&port->port_write_mutex);
--		return;
-+		return 0;
- 	}
- 
- 	port->xmit_buf[port->xmit_head++] = ch;
-@@ -78,6 +78,7 @@ void gs_put_char(struct tty_struct * tty
- 
- 	mutex_unlock(&port->port_write_mutex);
- 	func_exit ();
-+	return 1;
- }
- 
- 
-diff -puN include/linux/generic_serial.h~char-switch-gs-cyclades-and-esp-to-return-int-for-put_char include/linux/generic_serial.h
---- a/include/linux/generic_serial.h~char-switch-gs-cyclades-and-esp-to-return-int-for-put_char
-+++ a/include/linux/generic_serial.h
-@@ -78,7 +78,7 @@ struct gs_port {
- #define GS_DEBUG_WRITE   0x00000040
- 
- #ifdef __KERNEL__
--void gs_put_char(struct tty_struct *tty, unsigned char ch);
-+int gs_put_char(struct tty_struct *tty, unsigned char ch);
- int  gs_write(struct tty_struct *tty, 
-              const unsigned char *buf, int count);
- int  gs_write_room(struct tty_struct *tty);
+ 		/* register the TTY driver */
+ 		if (tty_register_driver(&serial_drv)) { 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
