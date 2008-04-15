@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-reserve_bootmem-can-crossed-the-nodes.patch added to -mm tree
-Date: Tue, 15 Apr 2008 00:35:13 -0700
-Message-ID: <200804150735.m3F7ZD9L017161@imap1.linux-foundation.org>
+Subject: + update-checkpatchpl-to-version-018.patch added to -mm tree
+Date: Tue, 15 Apr 2008 00:39:10 -0700
+Message-ID: <200804150739.m3F7dAC2017333@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58732 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48441 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753173AbYDOHfl (ORCPT
+	by vger.kernel.org with ESMTP id S1753970AbYDOHje (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 03:35:41 -0400
+	Tue, 15 Apr 2008 03:39:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: yhlu.kernel.send@gmail.com, ak@suse.de, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mingo@elte.hu, y-goto@jp.fujitsu.com, yhlu.kernel@gmail.com
+Cc: apw@shadowen.org, mingo@elte.hu
 
 
 The patch titled
-     mm: make reserve_bootmem can crossed the nodes
+     update checkpatch.pl to version 0.18
 has been added to the -mm tree.  Its filename is
-     mm-make-reserve_bootmem-can-crossed-the-nodes.patch
+     update-checkpatchpl-to-version-018.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,161 +34,133 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: make reserve_bootmem can crossed the nodes
-From: Yinghai Lu <yhlu.kernel.send@gmail.com>
+Subject: update checkpatch.pl to version 0.18
+From: Andy Whitcroft <apw@shadowen.org>
 
-Split reserve_bootmem_core to two function, one check conflicts, and one set
-bits.
+This version brings a few fixes for the extern checks, and a couple of
+new checks.
 
-And make reserve_bootmem to loop bdata_list to cross the nodes.
+Of note:
+ - false is now recognised as a 0 assignment in static/external
+   assignments,
+ - printf format strings including %L are reported,
+ - a number of fixes for the extern in .c file detector which had
+   temporarily lost its ability to detect variables; undetected due to
+   the loss of its test.
 
-User could be crashkernel and ramdisk..., in case the range crosses the nodes
+Andy Whitcroft (8):
+      Version: 0.18
+      false should trip 0 assignment checks
+      tests: reinstate missing tests
+      tests: allow specification of the file extension for a test
+      fix extern checks for variables
+      check for and report %Lu, %Ld, and %Li
+      ensure we only start a statement on lines with some content
+      extern spacing
 
-Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Signed-off-by: Andy Whitcroft <apw@shadowen.org>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   85 ++++++++++++++++++++++++++++++++++++-------------
- 1 file changed, 63 insertions(+), 22 deletions(-)
+ scripts/checkpatch.pl |   25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
-diff -puN mm/bootmem.c~mm-make-reserve_bootmem-can-crossed-the-nodes mm/bootmem.c
---- a/mm/bootmem.c~mm-make-reserve_bootmem-can-crossed-the-nodes
-+++ a/mm/bootmem.c
-@@ -111,44 +111,71 @@ static unsigned long __init init_bootmem
-  * might be used for boot-time allocations - or it might get added
-  * to the free page pool later on.
-  */
--static int __init reserve_bootmem_core(bootmem_data_t *bdata,
-+static int __init can_reserve_bootmem_core(bootmem_data_t *bdata,
- 			unsigned long addr, unsigned long size, int flags)
- {
- 	unsigned long sidx, eidx;
- 	unsigned long i;
--	int ret;
-+
-+	BUG_ON(!size);
-+
-+	/* out of range, don't hold other */
-+	if (addr + size < bdata->node_boot_start ||
-+		PFN_DOWN(addr) > bdata->node_low_pfn)
-+		return 0;
+diff -puN scripts/checkpatch.pl~update-checkpatchpl-to-version-018 scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~update-checkpatchpl-to-version-018
++++ a/scripts/checkpatch.pl
+@@ -9,7 +9,7 @@ use strict;
+ my $P = $0;
+ $P =~ s@.*/@@g;
  
- 	/*
--	 * round up, partially reserved pages are considered
--	 * fully reserved.
-+	 * Round up to index to the range.
- 	 */
-+	if (addr > bdata->node_boot_start)
-+		sidx= PFN_DOWN(addr - bdata->node_boot_start);
-+	else
-+		sidx = 0;
-+
-+	eidx = PFN_UP(addr + size - bdata->node_boot_start);
-+	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
-+		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
-+
-+	for (i = sidx; i < eidx; i++)
-+		if (test_bit(i, bdata->node_bootmem_map)) {
-+			if (flags & BOOTMEM_EXCLUSIVE)
-+				return -EBUSY;
-+		}
-+
-+	return 0;
-+
-+}
-+static void __init reserve_bootmem_core(bootmem_data_t *bdata,
-+			unsigned long addr, unsigned long size, int flags)
-+{
-+	unsigned long sidx, eidx;
-+	unsigned long i;
-+
- 	BUG_ON(!size);
--	BUG_ON(PFN_DOWN(addr) >= bdata->node_low_pfn);
--	BUG_ON(PFN_UP(addr + size) > bdata->node_low_pfn);
--	BUG_ON(addr < bdata->node_boot_start);
+-my $V = '0.17';
++my $V = '0.18';
  
--	sidx = PFN_DOWN(addr - bdata->node_boot_start);
-+	/* out of range */
-+	if (addr + size < bdata->node_boot_start ||
-+		PFN_DOWN(addr) > bdata->node_low_pfn)
-+		return;
-+
-+	/*
-+	 * Round up to index to the range.
-+	 */
-+	if (addr > bdata->node_boot_start)
-+		sidx= PFN_DOWN(addr - bdata->node_boot_start);
-+	else
-+		sidx = 0;
-+
- 	eidx = PFN_UP(addr + size - bdata->node_boot_start);
-+	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
-+		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
+ use Getopt::Long qw(:config no_auto_abbrev);
  
- 	for (i = sidx; i < eidx; i++)
- 		if (test_and_set_bit(i, bdata->node_bootmem_map)) {
- #ifdef CONFIG_DEBUG_BOOTMEM
- 			printk("hm, page %08lx reserved twice.\n", i*PAGE_SIZE);
- #endif
--			if (flags & BOOTMEM_EXCLUSIVE) {
--				ret = -EBUSY;
--				goto err;
--			}
+@@ -1144,7 +1144,7 @@ sub process {
+ 
+ # Check for potential 'bare' types
+ 		my ($stat, $cond);
+-		if ($realcnt) {
++		if ($realcnt && $line =~ /.\s*\S/) {
+ 			($stat, $cond) = ctx_statement_block($linenr,
+ 								$realcnt, 0);
+ 			$stat =~ s/\n./\n /g;
+@@ -1316,12 +1316,12 @@ sub process {
  		}
--
--	return 0;
--
--err:
--	/* unreserve memory we accidentally reserved */
--	for (i--; i >= sidx; i--)
--		clear_bit(i, bdata->node_bootmem_map);
--
--	return ret;
- }
  
- static void __init free_bootmem_core(bootmem_data_t *bdata, unsigned long addr,
-@@ -415,6 +442,11 @@ unsigned long __init init_bootmem_node(p
- void __init reserve_bootmem_node(pg_data_t *pgdat, unsigned long physaddr,
- 				 unsigned long size, int flags)
- {
-+	int ret;
+ # check for external initialisers.
+-		if ($line =~ /^.$Type\s*$Ident\s*=\s*(0|NULL);/) {
++		if ($line =~ /^.$Type\s*$Ident\s*=\s*(0|NULL|false)\s*;/) {
+ 			ERROR("do not initialise externals to 0 or NULL\n" .
+ 				$herecurr);
+ 		}
+ # check for static initialisers.
+-		if ($line =~ /\s*static\s.*=\s*(0|NULL);/) {
++		if ($line =~ /\s*static\s.*=\s*(0|NULL|false)\s*;/) {
+ 			ERROR("do not initialise statics to 0 or NULL\n" .
+ 				$herecurr);
+ 		}
+@@ -1966,7 +1966,7 @@ sub process {
+ 
+ # check for new externs in .c files.
+ 		if ($realfile =~ /\.c$/ && defined $stat &&
+-		    $stat =~ /^.(?:extern\s+)?$Type\s+$Ident(\s*)\(/s)
++		    $stat =~ /^.\s*(?:extern\s+)?$Type\s+$Ident(\s*)\(/s)
+ 		{
+ 			my $paren_space = $1;
+ 
+@@ -1981,6 +1981,11 @@ sub process {
+ 			if ($paren_space =~ /\n/) {
+ 				WARN("arguments for function declarations should follow identifier\n" . $herecurr);
+ 			}
 +
-+	ret = can_reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
-+	if (ret < 0)
-+		return;
- 	reserve_bootmem_core(pgdat->bdata, physaddr, size, flags);
- }
++		} elsif ($realfile =~ /\.c$/ && defined $stat &&
++		    $stat =~ /^.\s*extern\s+/)
++		{
++			WARN("externs should be avoided in .c files\n" .  $herecurr);
+ 		}
  
-@@ -440,7 +472,16 @@ unsigned long __init init_bootmem(unsign
- int __init reserve_bootmem(unsigned long addr, unsigned long size,
- 			    int flags)
- {
--	return reserve_bootmem_core(NODE_DATA(0)->bdata, addr, size, flags);
-+	int ret;
-+	bootmem_data_t *bdata;
-+	list_for_each_entry(bdata, &bdata_list, list) {
-+		ret = can_reserve_bootmem_core(bdata, addr, size, flags);
-+		if (ret < 0)
-+			return ret;
-+	}
-+	list_for_each_entry(bdata, &bdata_list, list)
-+		reserve_bootmem_core(bdata, addr, size, flags);
-+	return 0;
- }
- #endif /* !CONFIG_HAVE_ARCH_BOOTMEM_NODE */
+ # checks for new __setup's
+@@ -2026,6 +2031,16 @@ sub process {
+ 		{
+ 			WARN("usage of NR_CPUS is often wrong - consider using cpu_possible(), num_possible_cpus(), for_each_possible_cpu(), etc\n" . $herecurr);
+ 		}
++
++# check for %L{u,d,i} in strings
++		my $string;
++		while ($line =~ /(?:^|")([X\t]*)(?:"|$)/g) {
++			$string = substr($rawline, $-[1], $+[1] - $-[1]);
++			if ($string =~ /(?<!%)%L[udi]/) {
++				WARN("\%Ld/%Lu are not-standard C, use %lld/%llu\n" . $herecurr);
++				last;
++			}
++		}
+ 	}
  
+ 	# If we have no input at all, then there is nothing to report on
 _
 
-Patches currently in -mm which might be from yhlu.kernel.send@gmail.com are
+Patches currently in -mm which might be from apw@shadowen.org are
 
-git-x86.patch
+documentation-correct-overcommit-caveat-in-hugetlbpagetxt.patch
+hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages.patch
 mm-make-mem_map-allocation-continuous-v2.patch
-mm-offset-align-in-alloc_bootmem.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+sparsemem-vmemmap-does-not-need-section-bits.patch
+kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
+pageflags-use-an-enum-for-the-flags.patch
+pageflags-get-rid-of-flags_reserved.patch
+pageflags-introduce-macros-to-generate-page-flag-functions.patch
+pageflags-convert-to-the-use-of-new-macros.patch
+pageflags-use-proper-page-flag-functions-in-xen.patch
+pageflags-eliminate-pg_xxx-aliases.patch
+hugetlb-vmstat-events-for-huge-page-allocations.patch
+page-allcoator-smarter-retry-of-costly-order-allocations.patch
+page-allocator-explicitly-retry-hugepage-allocations.patch
+kthread-call-wake_up_process-without-the-lock-being-held.patch
+update-checkpatchpl-to-version-017.patch
+update-checkpatchpl-to-version-018.patch
+page-owner-tracking-leak-detector.patch
 
