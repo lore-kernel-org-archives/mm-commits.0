@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-check-a-return-value-correctly-in-acpi_power_get_context.patch added to -mm tree
-Date: Tue, 15 Apr 2008 20:51:07 -0700
-Message-ID: <200804160351.m3G3p7bG030806@imap1.linux-foundation.org>
+Subject: + parisc-use-non-racy-method-for-proc-entries-creation.patch added to -mm tree
+Date: Tue, 15 Apr 2008 16:56:46 -0700
+Message-ID: <200804152356.m3FNukhg022572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60142 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48847 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754575AbYDPDvd (ORCPT
+	by vger.kernel.org with ESMTP id S1756089AbYDOX5Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 23:51:33 -0400
+	Tue, 15 Apr 2008 19:57:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, lenb@kernel.org, yakui.zhao@intel.com
+Cc: den@openvz.org, adobriyan@gmail.com, ebiederm@xmission.com, grundler@parisc-linux.org, kyle@parisc-linux.org, matthew@wil.cx
 
 
 The patch titled
-     acpi: check a return value correctly in acpi_power_get_context()
+     parisc: use non-racy method for proc entries creation
 has been added to the -mm tree.  Its filename is
-     acpi-check-a-return-value-correctly-in-acpi_power_get_context.patch
+     parisc-use-non-racy-method-for-proc-entries-creation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,122 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: check a return value correctly in acpi_power_get_context()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: parisc: use non-racy method for proc entries creation
+From: "Denis V. Lunev" <den@openvz.org>
 
-We should check *resource != NULL rather than resource != NULL, which will be
-always true.
+Use proc_create() to make sure that ->proc_fops be setup before gluing PDE to
+main tree.
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Zhao Yakui <yakui.zhao@intel.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: Kyle McMartin <kyle@parisc-linux.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/power.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/parisc/ccio-dma.c  |   14 +++++---------
+ drivers/parisc/sba_iommu.c |   14 +++++---------
+ 2 files changed, 10 insertions(+), 18 deletions(-)
 
-diff -puN drivers/acpi/power.c~acpi-check-a-return-value-correctly-in-acpi_power_get_context drivers/acpi/power.c
---- a/drivers/acpi/power.c~acpi-check-a-return-value-correctly-in-acpi_power_get_context
-+++ a/drivers/acpi/power.c
-@@ -121,7 +121,7 @@ acpi_power_get_context(acpi_handle handl
+diff -puN drivers/parisc/ccio-dma.c~parisc-use-non-racy-method-for-proc-entries-creation drivers/parisc/ccio-dma.c
+--- a/drivers/parisc/ccio-dma.c~parisc-use-non-racy-method-for-proc-entries-creation
++++ a/drivers/parisc/ccio-dma.c
+@@ -1551,8 +1551,7 @@ static int __init ccio_probe(struct pari
+ {
+ 	int i;
+ 	struct ioc *ioc, **ioc_p = &ioc_list;
+-	struct proc_dir_entry *info_entry, *bitmap_entry;
+-	
++
+ 	ioc = kzalloc(sizeof(struct ioc), GFP_KERNEL);
+ 	if (ioc == NULL) {
+ 		printk(KERN_ERR MODULE_NAME ": memory allocation failure\n");
+@@ -1580,13 +1579,10 @@ static int __init ccio_probe(struct pari
+ 	HBA_DATA(dev->dev.platform_data)->iommu = ioc;
+ 	
+ 	if (ioc_count == 0) {
+-		info_entry = create_proc_entry(MODULE_NAME, 0, proc_runway_root);
+-		if (info_entry)
+-			info_entry->proc_fops = &ccio_proc_info_fops;
+-
+-		bitmap_entry = create_proc_entry(MODULE_NAME"-bitmap", 0, proc_runway_root);
+-		if (bitmap_entry)
+-			bitmap_entry->proc_fops = &ccio_proc_bitmap_fops;
++		proc_create(MODULE_NAME, 0, proc_runway_root,
++			    &ccio_proc_info_fops);
++		proc_create(MODULE_NAME"-bitmap", 0, proc_runway_root,
++			    &ccio_proc_bitmap_fops);
  	}
  
- 	*resource = acpi_driver_data(device);
--	if (!resource)
-+	if (!*resource)
- 		return -ENODEV;
+ 	ioc_count++;
+diff -puN drivers/parisc/sba_iommu.c~parisc-use-non-racy-method-for-proc-entries-creation drivers/parisc/sba_iommu.c
+--- a/drivers/parisc/sba_iommu.c~parisc-use-non-racy-method-for-proc-entries-creation
++++ a/drivers/parisc/sba_iommu.c
+@@ -1895,7 +1895,9 @@ sba_driver_callback(struct parisc_device
+ 	int i;
+ 	char *version;
+ 	void __iomem *sba_addr = ioremap_nocache(dev->hpa.start, SBA_FUNC_SIZE);
+-	struct proc_dir_entry *info_entry, *bitmap_entry, *root;
++#ifdef CONFIG_PROC_FS
++	struct proc_dir_entry *root;
++#endif
  
- 	return 0;
+ 	sba_dump_ranges(sba_addr);
+ 
+@@ -1973,14 +1975,8 @@ sba_driver_callback(struct parisc_device
+ 		break;
+ 	}
+ 
+-	info_entry = create_proc_entry("sba_iommu", 0, root);
+-	bitmap_entry = create_proc_entry("sba_iommu-bitmap", 0, root);
+-
+-	if (info_entry)
+-		info_entry->proc_fops = &sba_proc_fops;
+-
+-	if (bitmap_entry)
+-		bitmap_entry->proc_fops = &sba_proc_bitmap_fops;
++	proc_create("sba_iommu", 0, root, &sba_proc_fops);
++	proc_create("sba_iommu-bitmap", 0, root, &sba_proc_bitmap_fops);
+ #endif
+ 
+ 	parisc_vmerge_boundary = IOVP_SIZE;
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from den@openvz.org are
 
-memcg-fix-oops-in-oom-handling.patch
-acpi-check-a-return-value-correctly-in-acpi_power_get_context.patch
-git-ia64.patch
 git-net.patch
-oom_kill-remove-unused-parameter-in-badness.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroup-annotate-cgroup_init_subsys-with-__init.patch
-cgroup-switch-to-proc_create.patch
-cgroups-implement-device-whitelist-v6.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-doc.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-cgroups-use-a-hash-table-for-css_set-finding.patch
-cgroups-simplify-init_subsys.patch
-cgroups-remove-the-css_set-linked-list.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-use-vmalloc-for-mem_cgroup-allocation-v3.patch
-use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
-cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
+proc-introduce-proc_create_data-to-setup-de-data.patch
+nfsd-use-proc_create-to-setup-de-proc_fops.patch
+nfs-use-proc_create-to-setup-de-proc_fops.patch
+afs-use-non-racy-method-for-proc-entries-creation.patch
+ext4-use-non-racy-method-for-proc-entries-creation.patch
+reiserfs-use-non-racy-method-for-proc-entries-creation.patch
+jbd2-use-non-racy-method-for-proc-entries-creation.patch
+sysvipc-use-non-racy-method-for-proc-entries-creation.patch
+mm-use-non-racy-method-for-proc-swaps-creation.patch
+sound-use-non-racy-method-for-proc-driver-snd-page-alloc-creation.patch
+zorro-use-non-racy-method-for-proc-entries-creation.patch
+samples-use-non-racy-method-for-proc-marker-example-creation.patch
+scsi-use-non-racy-method-for-proc-entries-creation.patch
+usb-use-non-racy-method-for-proc-entries-creation.patch
+s390-use-non-racy-method-for-proc-entries-creation.patch
+arm-use-non-racy-method-for-proc-davinci_clocks-creation.patch
+avr32-proc-use-non-racy-method-for-proc-tlb-creation.patch
+cris-use-non-racy-method-for-proc-system_profile-creation.patch
+ia64-use-non-racy-method-for-proc-entries-creation.patch
+parisc-use-non-racy-method-for-proc-pcxl_dma-creation.patch
+powerpc-use-non-racy-method-for-proc-entries-creation.patch
+acpi-use-non-racy-method-for-proc-entries-creation.patch
+netdev-use-non-racy-method-for-proc-entries-creation.patch
+isdn-use-non-racy-method-for-proc-entries-creation.patch
+kernel-use-non-racy-method-for-proc-entries-creation.patch
+parisc-use-non-racy-method-for-proc-entries-creation.patch
+drivers-use-non-racy-method-for-proc-entries-creation.patch
+drivers-use-non-racy-method-for-proc-entries-creation-2.patch
+sysctl-merge-equal-proc_sys_read-and-proc_sys_write.patch
+sysctl-clean-from-unneeded-extern-and-forward-declarations.patch
+sysctl-add-the-permissions-callback-on-the-ctl_table_root.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
 
