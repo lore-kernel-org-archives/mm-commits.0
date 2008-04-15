@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + olpc-add-one-laptop-per-child-architecture-support.patch added to -mm tree
-Date: Tue, 15 Apr 2008 12:45:27 -0700
-Message-ID: <200804151945.m3FJjRH4012137@imap1.linux-foundation.org>
+Subject: + x86-olpc-add-one-laptop-per-child-architecture-support.patch added to -mm tree
+Date: Tue, 15 Apr 2008 12:46:48 -0700
+Message-ID: <200804151946.m3FJkm5W012160@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52620 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53487 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757378AbYDOTqC (ORCPT
+	by vger.kernel.org with ESMTP id S1755963AbYDOTrb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 15:46:02 -0400
+	Tue, 15 Apr 2008 15:47:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, ak@suse.de, dilinger@debian.org, mingo@elte.hu, tglx@linutronix.de
+Cc: dilinger@queued.net, ak@suse.de, dilinger@debian.org, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
      x86: olpc: add One Laptop Per Child architecture support
 has been added to the -mm tree.  Its filename is
-     olpc-add-one-laptop-per-child-architecture-support.patch
+     x86-olpc-add-one-laptop-per-child-architecture-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -57,6 +57,7 @@ Signed-off-by: Andres Salomon <dilinger@debian.org>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Andi Kleen <ak@suse.de>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -71,10 +72,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  include/asm-x86/olpc.h              |  135 +++++++++++
  9 files changed, 735 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/kernel-parameters.txt~olpc-add-one-laptop-per-c=
-hild-architecture-support Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~olpc-add-one-laptop-per-child=
--architecture-support
+diff -puN Documentation/kernel-parameters.txt~x86-olpc-add-one-laptop-p=
+er-child-architecture-support Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~x86-olpc-add-one-laptop-per-c=
+hild-architecture-support
 +++ a/Documentation/kernel-parameters.txt
 @@ -1364,6 +1364,13 @@ and is between 256 and 4096 characters.=20
 =20
@@ -90,10 +91,10 @@ hild-architecture-support Documentation/kernel-parameters.txt
  	opl3=3D		[HW,OSS]
  			Format: <io>
 =20
-diff -puN arch/x86/Kconfig~olpc-add-one-laptop-per-child-architecture-s=
-upport arch/x86/Kconfig
---- a/arch/x86/Kconfig~olpc-add-one-laptop-per-child-architecture-suppo=
-rt
+diff -puN arch/x86/Kconfig~x86-olpc-add-one-laptop-per-child-architectu=
+re-support arch/x86/Kconfig
+--- a/arch/x86/Kconfig~x86-olpc-add-one-laptop-per-child-architecture-s=
+upport
 +++ a/arch/x86/Kconfig
 @@ -1465,6 +1465,10 @@ config PCI_GODIRECT
  config PCI_GOANY
@@ -142,10 +143,10 @@ irect.
  endif # X86_32
 =20
  config K8_NB
-diff -puN arch/x86/kernel/Makefile~olpc-add-one-laptop-per-child-archit=
-ecture-support arch/x86/kernel/Makefile
---- a/arch/x86/kernel/Makefile~olpc-add-one-laptop-per-child-architectu=
-re-support
+diff -puN arch/x86/kernel/Makefile~x86-olpc-add-one-laptop-per-child-ar=
+chitecture-support arch/x86/kernel/Makefile
+--- a/arch/x86/kernel/Makefile~x86-olpc-add-one-laptop-per-child-archit=
+ecture-support
 +++ a/arch/x86/kernel/Makefile
 @@ -89,6 +89,8 @@ endif
  obj-$(CONFIG_SCx200)		+=3D scx200.o
@@ -423,10 +424,10 @@ the
 +}
 +
 +postcore_initcall(olpc_init);
-diff -puN arch/x86/pci/Makefile_32~olpc-add-one-laptop-per-child-archit=
-ecture-support arch/x86/pci/Makefile_32
---- a/arch/x86/pci/Makefile_32~olpc-add-one-laptop-per-child-architectu=
-re-support
+diff -puN arch/x86/pci/Makefile_32~x86-olpc-add-one-laptop-per-child-ar=
+chitecture-support arch/x86/pci/Makefile_32
+--- a/arch/x86/pci/Makefile_32~x86-olpc-add-one-laptop-per-child-archit=
+ecture-support
 +++ a/arch/x86/pci/Makefile_32
 @@ -3,6 +3,7 @@ obj-y				:=3D i386.o init.o
  obj-$(CONFIG_PCI_BIOS)		+=3D pcbios.o
@@ -437,10 +438,10 @@ re-support
 =20
  pci-y				:=3D fixup.o
  pci-$(CONFIG_ACPI)		+=3D acpi.o
-diff -puN arch/x86/pci/init.c~olpc-add-one-laptop-per-child-architectur=
-e-support arch/x86/pci/init.c
---- a/arch/x86/pci/init.c~olpc-add-one-laptop-per-child-architecture-su=
-pport
+diff -puN arch/x86/pci/init.c~x86-olpc-add-one-laptop-per-child-archite=
+cture-support arch/x86/pci/init.c
+--- a/arch/x86/pci/init.c~x86-olpc-add-one-laptop-per-child-architectur=
+e-support
 +++ a/arch/x86/pci/init.c
 @@ -14,6 +14,9 @@ static __init int pci_access_init(void)
  #ifdef CONFIG_PCI_MMCONFIG
@@ -791,10 +792,10 @@ ookup.
 +	raw_pci_ops =3D &pci_olpc_conf;
 +	is_lx =3D is_geode_lx();
 +}
-diff -puN arch/x86/pci/pci.h~olpc-add-one-laptop-per-child-architecture=
--support arch/x86/pci/pci.h
---- a/arch/x86/pci/pci.h~olpc-add-one-laptop-per-child-architecture-sup=
-port
+diff -puN arch/x86/pci/pci.h~x86-olpc-add-one-laptop-per-child-architec=
+ture-support arch/x86/pci/pci.h
+--- a/arch/x86/pci/pci.h~x86-olpc-add-one-laptop-per-child-architecture=
+-support
 +++ a/arch/x86/pci/pci.h
 @@ -101,6 +101,7 @@ extern int pci_direct_probe(void);
  extern void pci_direct_init(int type);
@@ -955,7 +956,7 @@ _
 
 Patches currently in -mm which might be from dilinger@queued.net are
 
-olpc-add-one-laptop-per-child-architecture-support.patch
+x86-olpc-add-one-laptop-per-child-architecture-support.patch
 x86-geode-msr-cleanup.patch
 x86-geode-add-virtual-systems-architecture-detection.patch
 gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
