@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:37:22 -0700
-Message-ID: <200804152237.m3FMbM7W019401@imap1.linux-foundation.org>
+Subject: + frv-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:37:37 -0700
+Message-ID: <200804152237.m3FMbbIg019422@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42873 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36693 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752802AbYDOWlN (ORCPT
+	by vger.kernel.org with ESMTP id S1752951AbYDOWlc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:41:13 -0400
+	Tue, 15 Apr 2008 18:41:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, tony.luck@intel.com
+Cc: clameter@sgi.com, dhowells@redhat.com
 
 
 The patch titled
-     ia64: use kbuild.h macros instead of defining macros in asm-offsets.c
+     frv: use kbuild.h instead of defining macros in asm-offsets.c
 has been added to the -mm tree.  Its filename is
-     ia64-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch
+     frv-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64: use kbuild.h macros instead of defining macros in asm-offsets.c
+Subject: frv: use kbuild.h instead of defining macros in asm-offsets.c
 From: Christoph Lameter <clameter@sgi.com>
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/asm-offsets.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ arch/frv/kernel/asm-offsets.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN arch/ia64/kernel/asm-offsets.c~ia64-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc arch/ia64/kernel/asm-offsets.c
---- a/arch/ia64/kernel/asm-offsets.c~ia64-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc
-+++ a/arch/ia64/kernel/asm-offsets.c
-@@ -9,7 +9,7 @@
+diff -puN arch/frv/kernel/asm-offsets.c~frv-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/frv/kernel/asm-offsets.c
+--- a/arch/frv/kernel/asm-offsets.c~frv-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
++++ a/arch/frv/kernel/asm-offsets.c
+@@ -7,15 +7,13 @@
  #include <linux/sched.h>
- #include <linux/pid.h>
- #include <linux/clocksource.h>
--
+ #include <linux/signal.h>
+ #include <linux/personality.h>
 +#include <linux/kbuild.h>
- #include <asm-ia64/processor.h>
- #include <asm-ia64/ptrace.h>
- #include <asm-ia64/siginfo.h>
-@@ -19,11 +19,6 @@
- #include "../kernel/sigframe.h"
- #include "../kernel/fsyscall_gtod_data.h"
+ #include <asm/registers.h>
+ #include <asm/ucontext.h>
+ #include <asm/processor.h>
+ #include <asm/thread_info.h>
+ #include <asm/gdb-stub.h>
  
 -#define DEFINE(sym, val) \
 -        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
 -
+ #define DEF_PTREG(sym, reg) \
+         asm volatile("\n->" #sym " %0 offsetof(struct pt_regs, " #reg ")" \
+ 		     : : "i" (offsetof(struct pt_regs, reg)))
+@@ -32,11 +30,6 @@
+         asm volatile("\n->" #sym " %0 offsetof(struct frv_frame0, " #reg ")" \
+ 		     : : "i" (offsetof(struct frv_frame0, reg)))
+ 
 -#define BLANK() asm volatile("\n->" : : )
+-
+-#define OFFSET(sym, str, mem) \
+-	DEFINE(sym, offsetof(struct str, mem));
 -
  void foo(void)
  {
- 	DEFINE(IA64_TASK_SIZE, sizeof (struct task_struct));
+ 	/* offsets into the thread_info structure */
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
