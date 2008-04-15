@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + add-kbuildh-that-contains-common-definitions-for-kbuild-users.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:37:09 -0700
-Message-ID: <200804152237.m3FMb9KH019383@imap1.linux-foundation.org>
+Subject: + s390-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:37:49 -0700
+Message-ID: <200804152237.m3FMbnxK019441@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39770 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34625 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761460AbYDOWkJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752812AbYDOWlW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:40:09 -0400
+	Tue, 15 Apr 2008 18:41:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, benh@kernel.crashing.org, bryan.wu@analog.com, chris@zankel.net, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, grundler@parisc-linux.org, heiko.carstens@de.ibm.com, hskinnemoen@atmel.com, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, kyle@mcmartin.ca, lethal@linux-sh.org, matthew@wil.cx, miles@gnu.org, mingo@elte.hu, paulus@samba.org, ralf@linux-mips.org, rmk@arm.linux.org.uk, rth@twiddle.net, sam@ravnborg.org, schwidefsky@de.ibm.com, tglx@linutronix.de, tony.luck@intel.com, vapier.adi@gmail.com, ysato@users.sourceforge.jp, zippel@linux-m68k.org
+Cc: clameter@sgi.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     Add kbuild.h that contains common definitions for kbuild users
+     s390: use kbuild.h instead of defining macros in asm-offsets.c
 has been added to the -mm tree.  Its filename is
-     add-kbuildh-that-contains-common-definitions-for-kbuild-users.patch
+     s390-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add kbuild.h that contains common definitions for kbuild users
+Subject: s390: use kbuild.h instead of defining macros in asm-offsets.c
 From: Christoph Lameter <clameter@sgi.com>
 
-The same definitions are used for the bounds logic and the asm-offsets.h
-generation by kbuild.  Put them into include/linux/kbuild.h file.
+s390 has a strange marker in DEFINE.  Undefine the DEFINE from kbuild.h and
+define it the way s390 wants it to preserve things as they were.
 
-Also add a new feature
+May be good if the arch maintainer could go over this and check if this
+workaround is really necessary.
 
-	COMMENT("text")
-
-which can be used to insert lines of ocmments into asm-offsets.h and
-bounds.h.
-
-Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Jay Estabrook <jay.estabrook@hp.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: "Luck, Tony" <tony.luck@intel.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Cc: Mike Frysinger <vapier.adi@gmail.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
-Cc: Greg Ungerer <gerg@uclinux.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: Miles Bader <miles@gnu.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kbuild.h |   15 +++++++++++++++
- kernel/bounds.c        |    6 +-----
- 2 files changed, 16 insertions(+), 5 deletions(-)
+ arch/s390/kernel/asm-offsets.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN /dev/null include/linux/kbuild.h
---- /dev/null
-+++ a/include/linux/kbuild.h
-@@ -0,0 +1,15 @@
-+#ifndef __LINUX_KBUILD_H
-+#define __LINUX_KBUILD_H
-+
-+#define DEFINE(sym, val) \
-+        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
-+
-+#define BLANK() asm volatile("\n->" : : )
-+
-+#define OFFSET(sym, str, mem) \
-+	DEFINE(sym, offsetof(struct str, mem))
-+
-+#define COMMENT(x) \
-+	asm volatile("\n->#" x)
-+
-+#endif
-diff -puN kernel/bounds.c~add-kbuildh-that-contains-common-definitions-for-kbuild-users kernel/bounds.c
---- a/kernel/bounds.c~add-kbuildh-that-contains-common-definitions-for-kbuild-users
-+++ a/kernel/bounds.c
-@@ -8,11 +8,7 @@
- /* Include headers that define the enum constants of interest */
- #include <linux/page-flags.h>
- #include <linux/mmzone.h>
--
--#define DEFINE(sym, val) \
--        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
--
--#define BLANK() asm volatile("\n->" : : )
+diff -puN arch/s390/kernel/asm-offsets.c~s390-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/s390/kernel/asm-offsets.c
+--- a/arch/s390/kernel/asm-offsets.c~s390-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
++++ a/arch/s390/kernel/asm-offsets.c
+@@ -5,14 +5,13 @@
+  */
+ 
+ #include <linux/sched.h>
 +#include <linux/kbuild.h>
  
- void foo(void)
+ /* Use marker if you need to separate the values later */
+-
++#undef DEFINE
+ #define DEFINE(sym, val, marker) \
+ 	asm volatile("\n->" #sym " %0 " #val " " #marker : : "i" (val))
+ 
+-#define BLANK() asm volatile("\n->" : : )
+-
+ int main(void)
  {
+ 	DEFINE(__THREAD_info, offsetof(struct task_struct, stack),);
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
