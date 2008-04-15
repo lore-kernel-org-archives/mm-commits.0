@@ -1,66 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - use-vmalloc-for-mem_cgroup-allocation-v2-fix.patch removed from -mm tree
-Date: Mon, 14 Apr 2008 22:22:47 -0700
-Message-ID: <200804150522.m3F5MmIb012454@imap1.linux-foundation.org>
+Subject: + use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch added to -mm tree
+Date: Mon, 14 Apr 2008 22:23:43 -0700
+Message-ID: <200804150523.m3F5NhpF012484@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59126 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45727 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753432AbYDOFXN (ORCPT
+	by vger.kernel.org with ESMTP id S1753433AbYDOFYJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 01:23:13 -0400
+	Tue, 15 Apr 2008 01:24:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, xemul@openvz.org
 
 
 The patch titled
-     use-vmalloc-for-mem_cgroup-allocation-v2-fix
-has been removed from the -mm tree.  Its filename was
-     use-vmalloc-for-mem_cgroup-allocation-v2-fix.patch
+     use-vmalloc-for-mem_cgroup-allocation-v3-simplification
+has been added to the -mm tree.  Its filename is
+     use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: use-vmalloc-for-mem_cgroup-allocation-v2-fix
+Subject: use-vmalloc-for-mem_cgroup-allocation-v3-simplification
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~use-vmalloc-for-mem_cgroup-allocation-v2-fix mm/memcontrol.c
---- a/mm/memcontrol.c~use-vmalloc-for-mem_cgroup-allocation-v2-fix
+diff -puN mm/memcontrol.c~use-vmalloc-for-mem_cgroup-allocation-v3-simplification mm/memcontrol.c
+--- a/mm/memcontrol.c~use-vmalloc-for-mem_cgroup-allocation-v3-simplification
 +++ a/mm/memcontrol.c
-@@ -990,17 +990,16 @@ mem_cgroup_create(struct cgroup_subsys *
- 	struct mem_cgroup *mem;
- 	int node;
+@@ -993,10 +993,8 @@ static struct mem_cgroup *mem_cgroup_all
+ 	else
+ 		mem = vmalloc(sizeof(*mem));
  
--	if (unlikely((cont->parent) == NULL)) {
-+	if (unlikely(cont->parent == NULL)) {
- 		mem = &init_mem_cgroup;
- 		page_cgroup_cache = KMEM_CACHE(page_cgroup, SLAB_PANIC);
- 	} else {
- 		mem = vmalloc(sizeof(struct mem_cgroup));
-+		if (mem == NULL)
-+			return ERR_PTR(-ENOMEM);
- 		memset(mem, 0, sizeof(*mem));
- 	}
- 
--	if (mem == NULL)
--		return ERR_PTR(-ENOMEM);
+-	if (!mem)
+-		return NULL;
 -
- 	res_counter_init(&mem->res);
+-	memset(mem, 0, sizeof(*mem));
++	if (mem)
++		memset(mem, 0, sizeof(*mem));
+ 	return mem;
+ }
  
- 	memset(&mem->info, 0, sizeof(mem->info));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -225,7 +227,7 @@ cgroups-implement-device-whitelist-v6-cleanups.patch
 cgroups-implement-device-whitelist-v6-fix.patch
 add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
 memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-use-vmalloc-for-mem_cgroup-allocation-v2-fix.patch
+use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
 workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
 ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
