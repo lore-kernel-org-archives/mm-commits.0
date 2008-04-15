@@ -1,263 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: - bootmem-node-setup-agnostic-free_bootmem-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 15 Apr 2008 00:16:15 -0700
-Message-ID: <200804150716.m3F7GFmZ016393@imap1.linux-foundation.org>
+Subject: - bootmem-revert-mm-fix-boundary-checking-in-free_bootmem_core.patch removed from -mm tree
+Date: Tue, 15 Apr 2008 00:16:10 -0700
+Message-ID: <200804150716.m3F7GATI016387@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60554 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33280 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753114AbYDOHQt (ORCPT
+	by vger.kernel.org with ESMTP id S1753098AbYDOHRD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 03:16:49 -0400
+	Tue, 15 Apr 2008 03:17:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@saeurebad.de, mm-commits@vger.kernel.org
+To: hannes@saeurebad.de, ak@suse.de, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, mingo@elte.hu, y-goto@jp.fujitsu.com, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     bootmem-node-setup-agnostic-free_bootmem-checkpatch-fixes
+     bootmem: revert "mm: fix boundary checking in free_bootmem_core"
 has been removed from the -mm tree.  Its filename was
-     bootmem-node-setup-agnostic-free_bootmem-checkpatch-fixes.patch
+     bootmem-revert-mm-fix-boundary-checking-in-free_bootmem_core.patch
 
 This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem-node-setup-agnostic-free_bootmem-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: bootmem: revert "mm: fix boundary checking in free_bootmem_core"
+From: Johannes Weiner <hannes@saeurebad.de>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#29: FILE: mm/bootmem.c:426:
-+	list_for_each_entry (bdata, &bdata_list, list) {
+As I was doing some clean-ups in the bootmem allocator, I noticed the patch
 
-total: 0 errors, 1 warnings, 16 lines checked
+    5a982cbc7b3fe6cf72266f319286f29963c71b9e
+    mm: fix boundary checking in free_bootmem_core
 
-./patches/bootmem-node-setup-agnostic-free_bootmem.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Which seems to implement the opposite of what the subject promises.
 
-Please run checkpatch prior to sending patches
+It makes input arguments acceptable if they are `a bit wrong' and
+silently aborts if they are completely off the whack.
 
-Cc: Johannes Weiner <hannes@saeurebad.de>
+Please have a look at the two patches I propose: one to revert the
+original and the other one to reimplement what the whole thing was
+really about: having free_bootmem() itself look up the node holding
+the specified address range.
+
+Note also that the reverted patch changed a helper function and
+therefore also affected free_bootmem_node(), making the latter paper
+over bugs as well.
+
+
+This patch:
+
+This reverts commit 5a982cbc7b3fe6cf72266f319286f29963c71b9e.
+
+The intention behind this patch was to make the free_bootmem() interface more
+robust with regards to the specified range and to let it operate on multiple
+node setups as well.
+
+However, it made free_bootmem_core()
+
+  1. handle bogus node/memory-range combination input by just
+     returning early without informing the callsite or screaming BUG()
+     as it did before
+  2. round slightly out of node-range values to the node boundaries
+     instead of treating them as the invalid parameters they are
+
+This was partially done to abuse free_bootmem_core() for node iteration in
+free_bootmem (just feeding it every node on the box and let it figure out what
+it wants to do with it) instead of looking up the proper node before the call
+to free_bootmem_core().
+
+It also affects free_bootmem_node() which relies on
+free_bootmem_core() and on its sanity checks now removed.
+
+Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/bootmem.c |   25 ++++++-------------------
+ 1 file changed, 6 insertions(+), 19 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-node-setup-agnostic-free_bootmem-checkpatch-fixes mm/bootmem.c
---- a/mm/bootmem.c~bootmem-node-setup-agnostic-free_bootmem-checkpatch-fixes
+diff -puN mm/bootmem.c~bootmem-revert-mm-fix-boundary-checking-in-free_bootmem_core mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-revert-mm-fix-boundary-checking-in-free_bootmem_core
 +++ a/mm/bootmem.c
-@@ -423,7 +423,7 @@ void __init free_bootmem(unsigned long a
- {
- 	bootmem_data_t *bdata;
+@@ -125,7 +125,6 @@ static int __init reserve_bootmem_core(b
+ 	BUG_ON(!size);
+ 	BUG_ON(PFN_DOWN(addr) >= bdata->node_low_pfn);
+ 	BUG_ON(PFN_UP(addr + size) > bdata->node_low_pfn);
+-	BUG_ON(addr < bdata->node_boot_start);
  
--	list_for_each_entry (bdata, &bdata_list, list) {
-+	list_for_each_entry(bdata, &bdata_list, list) {
- 		if (addr < bdata->node_boot_start)
- 			continue;
- 		free_bootmem_core(bdata, addr, size);
+ 	sidx = PFN_DOWN(addr - bdata->node_boot_start);
+ 	eidx = PFN_UP(addr + size - bdata->node_boot_start);
+@@ -157,31 +156,21 @@ static void __init free_bootmem_core(boo
+ 	unsigned long sidx, eidx;
+ 	unsigned long i;
+ 
+-	BUG_ON(!size);
+-
+-	/* out range */
+-	if (addr + size < bdata->node_boot_start ||
+-		PFN_DOWN(addr) > bdata->node_low_pfn)
+-		return;
+ 	/*
+ 	 * round down end of usable mem, partially free pages are
+ 	 * considered reserved.
+ 	 */
++	BUG_ON(!size);
++	BUG_ON(PFN_DOWN(addr + size) > bdata->node_low_pfn);
+ 
+-	if (addr >= bdata->node_boot_start && addr < bdata->last_success)
++	if (addr < bdata->last_success)
+ 		bdata->last_success = addr;
+ 
+ 	/*
+-	 * Round up to index to the range.
++	 * Round up the beginning of the address.
+ 	 */
+-	if (PFN_UP(addr) > PFN_DOWN(bdata->node_boot_start))
+-		sidx = PFN_UP(addr) - PFN_DOWN(bdata->node_boot_start);
+-	else
+-		sidx = 0;
+-
++	sidx = PFN_UP(addr) - PFN_DOWN(bdata->node_boot_start);
+ 	eidx = PFN_DOWN(addr + size - bdata->node_boot_start);
+-	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
+-		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
+ 
+ 	for (i = sidx; i < eidx; i++) {
+ 		if (unlikely(!test_and_clear_bit(i, bdata->node_bootmem_map)))
+@@ -432,9 +421,7 @@ int __init reserve_bootmem(unsigned long
+ 
+ void __init free_bootmem(unsigned long addr, unsigned long size)
+ {
+-	bootmem_data_t *bdata;
+-	list_for_each_entry(bdata, &bdata_list, list)
+-		free_bootmem_core(bdata, addr, size);
++	free_bootmem_core(NODE_DATA(0)->bdata, addr, size);
+ }
+ 
+ unsigned long __init free_all_bootmem(void)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hannes@saeurebad.de are
 
+bootmem-revert-mm-fix-boundary-checking-in-free_bootmem_core.patch
+bootmem-node-setup-agnostic-free_bootmem.patch
 bootmem-node-setup-agnostic-free_bootmem-checkpatch-fixes.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-acpi.patch
-git-acpi-revert-suspend-wakeup-code-in-c.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-x86.patch
-arch-x86-mm-ioremapc-fix-printk-warnings.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-git-kgdb-light.patch
-git-x86-hack-around-to-make-git-kgdb-build.patch
-git-x86-vs-git-kgdb-lite.patch
-git-alsa-tiwai.patch
-es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
+arm-remove-redundant-display-of-free-swap-space-in-show_mem.patch
 git-powerpc.patch
-git-drm.patch
-revert-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-dlm-vs-git-gfs2-nwm.patch
-git-hid.patch
-git-hrt.patch
-time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
 git-ia64.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-leds.patch
-git-libata-all.patch
-pata_atiixp-simplex-clear-fix.patch
-git-async-tx.patch
 git-mips.patch
-git-net.patch
-git-net-git-rejects.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-ehea-fix-dlpar-memory-add-support-fix.patch
-sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
+parisc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
 git-s390.patch
-git-sched.patch
-add-rcu_assign_index-if-ever-needed.patch
-git-sh.patch
-sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
-sh-export-empty_zero_page.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-misplaced-hunk.patch
-git-cryptodev-fix-conflict.patch
-git-cryptodev-fix-conflict-hack.patch
 git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-semaphore-git-rejects.patch
-ext4-is-busted-on-m68k.patch
-smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+mm-remove-unused-max_nodes_shift.patch
+m68k-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+cris-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+add-warn_on_secs-macro-simplification.patch
 add-warn_on_secs-macro-simplification-fix.patch
 add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-drivers-video-uvesafbc-fix-error-path-memory-leak.patch
-fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
 
