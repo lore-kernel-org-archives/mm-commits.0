@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-use-kbuildh.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:37:16 -0700
-Message-ID: <200804152237.m3FMbGlC019392@imap1.linux-foundation.org>
+Subject: + alpha-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:37:20 -0700
+Message-ID: <200804152237.m3FMbKZd019398@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42764 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48787 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757374AbYDOWiY (ORCPT
+	by vger.kernel.org with ESMTP id S1757374AbYDOWiJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:38:24 -0400
+	Tue, 15 Apr 2008 18:38:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, mingo@elte.hu, sam@ravnborg.org, tglx@linutronix.de
+Cc: clameter@sgi.com, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, rth@twiddle.net
 
 
 The patch titled
-     x86: use kbuild.h
+     alpha: use kbuild.h instead of macros in asm-offsets.c
 has been added to the -mm tree.  Its filename is
-     x86-use-kbuildh.patch
+     alpha-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: use kbuild.h
+Subject: alpha: use kbuild.h instead of macros in asm-offsets.c
 From: Christoph Lameter <clameter@sgi.com>
 
-Drop the macro definitions in asm-offsets_*.c and use kbuild.h
+Use the macros in kbuild.h
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jay Estabrook <jay.estabrook@hp.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/asm-offsets_32.c |    9 +--------
- arch/x86/kernel/asm-offsets_64.c |    9 +--------
- 2 files changed, 2 insertions(+), 16 deletions(-)
+ arch/alpha/kernel/asm-offsets.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN arch/x86/kernel/asm-offsets_32.c~x86-use-kbuildh arch/x86/kernel/asm-offsets_32.c
---- a/arch/x86/kernel/asm-offsets_32.c~x86-use-kbuildh
-+++ a/arch/x86/kernel/asm-offsets_32.c
-@@ -9,6 +9,7 @@
- #include <linux/signal.h>
- #include <linux/personality.h>
- #include <linux/suspend.h>
+diff -puN arch/alpha/kernel/asm-offsets.c~alpha-use-kbuildh-instead-of-macros-in-asm-offsetsc arch/alpha/kernel/asm-offsets.c
+--- a/arch/alpha/kernel/asm-offsets.c~alpha-use-kbuildh-instead-of-macros-in-asm-offsetsc
++++ a/arch/alpha/kernel/asm-offsets.c
+@@ -8,13 +8,9 @@
+ #include <linux/stddef.h>
+ #include <linux/sched.h>
+ #include <linux/ptrace.h>
 +#include <linux/kbuild.h>
- #include <asm/ucontext.h>
- #include "sigframe.h"
- #include <asm/pgtable.h>
-@@ -23,14 +24,6 @@
- #include <linux/lguest.h>
- #include "../../../drivers/lguest/lg.h"
+ #include <asm/io.h>
  
 -#define DEFINE(sym, val) \
 -        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
 -
 -#define BLANK() asm volatile("\n->" : : )
 -
--#define OFFSET(sym, str, mem) \
--	DEFINE(sym, offsetof(struct str, mem));
--
- /* workaround for a warning with -Wmissing-prototypes */
- void foo(void);
- 
-diff -puN arch/x86/kernel/asm-offsets_64.c~x86-use-kbuildh arch/x86/kernel/asm-offsets_64.c
---- a/arch/x86/kernel/asm-offsets_64.c~x86-use-kbuildh
-+++ a/arch/x86/kernel/asm-offsets_64.c
-@@ -10,6 +10,7 @@
- #include <linux/errno.h> 
- #include <linux/hardirq.h>
- #include <linux/suspend.h>
-+#include <linux/kbuild.h>
- #include <asm/pda.h>
- #include <asm/processor.h>
- #include <asm/segment.h>
-@@ -17,14 +18,6 @@
- #include <asm/ia32.h>
- #include <asm/bootparam.h>
- 
--#define DEFINE(sym, val) \
--        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
--
--#define BLANK() asm volatile("\n->" : : )
--
--#define OFFSET(sym, str, mem) \
--	DEFINE(sym, offsetof(struct str, mem))
--
- #define __NO_STUBS 1
- #undef __SYSCALL
- #undef _ASM_X86_64_UNISTD_H_
+ void foo(void)
+ {
+ 	DEFINE(TI_TASK, offsetof(struct thread_info, task));
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
