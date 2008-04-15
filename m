@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + bootmem-node-setup-agnostic-free_bootmem.patch added to -mm tree
-Date: Mon, 14 Apr 2008 23:23:18 -0700
-Message-ID: <200804150623.m3F6NInZ014509@imap1.linux-foundation.org>
+Subject: + bootmem-revert-mm-fix-boundary-checking-in-free_bootmem_core.patch added to -mm tree
+Date: Mon, 14 Apr 2008 23:23:16 -0700
+Message-ID: <200804150623.m3F6NG2t014506@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52002 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43987 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752346AbYDOGYD (ORCPT
+	by vger.kernel.org with ESMTP id S1752318AbYDOGYB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 02:24:03 -0400
+	Tue, 15 Apr 2008 02:24:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hannes@saeurebad.de, ak@suse.de, clameter@sgi.com, kamezawa.hiroyu@jp.fujits
 
 
 The patch titled
-     bootmem: node-setup agnostic free_bootmem()
+     bootmem: revert "mm: fix boundary checking in free_bootmem_core"
 has been added to the -mm tree.  Its filename is
-     bootmem-node-setup-agnostic-free_bootmem.patch
+     bootmem-revert-mm-fix-boundary-checking-in-free_bootmem_core.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bootmem: node-setup agnostic free_bootmem()
+Subject: bootmem: revert "mm: fix boundary checking in free_bootmem_core"
 From: Johannes Weiner <hannes@saeurebad.de>
 
-Make free_bootmem() look up the node holding the specified address range which
-lets it work transparently on single-node and multi-node configurations.
+As I was doing some clean-ups in the bootmem allocator, I noticed the patch
+
+    5a982cbc7b3fe6cf72266f319286f29963c71b9e
+    mm: fix boundary checking in free_bootmem_core
+
+Which seems to implement the opposite of what the subject promises.
+
+It makes input arguments acceptable if they are `a bit wrong' and
+silently aborts if they are completely off the whack.
+
+Please have a look at the two patches I propose: one to revert the
+original and the other one to reimplement what the whole thing was
+really about: having free_bootmem() itself look up the node holding
+the specified address range.
+
+Note also that the reverted patch changed a helper function and
+therefore also affected free_bootmem_node(), making the latter paper
+over bugs as well.
+
+
+This patch:
+
+This reverts commit 5a982cbc7b3fe6cf72266f319286f29963c71b9e.
+
+The intention behind this patch was to make the free_bootmem() interface more
+robust with regards to the specified range and to let it operate on multiple
+node setups as well.
+
+However, it made free_bootmem_core()
+
+  1. handle bogus node/memory-range combination input by just
+     returning early without informing the callsite or screaming BUG()
+     as it did before
+  2. round slightly out of node-range values to the node boundaries
+     instead of treating them as the invalid parameters they are
+
+This was partially done to abuse free_bootmem_core() for node iteration in
+free_bootmem (just feeding it every node on the box and let it figure out what
+it wants to do with it) instead of looking up the proper node before the call
+to free_bootmem_core().
+
+It also affects free_bootmem_node() which relies on
+free_bootmem_core() and on its sanity checks now removed.
 
 Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
 Cc: Yinghai Lu <yhlu.kernel@gmail.com>
-Acked-by: Andi Kleen <ak@suse.de>
+Cc: Andi Kleen <ak@suse.de>
 Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -50,26 +91,65 @@ Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ mm/bootmem.c |   25 ++++++-------------------
+ 1 file changed, 6 insertions(+), 19 deletions(-)
 
-diff -puN mm/bootmem.c~bootmem-node-setup-agnostic-free_bootmem mm/bootmem.c
---- a/mm/bootmem.c~bootmem-node-setup-agnostic-free_bootmem
+diff -puN mm/bootmem.c~bootmem-revert-mm-fix-boundary-checking-in-free_bootmem_core mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-revert-mm-fix-boundary-checking-in-free_bootmem_core
 +++ a/mm/bootmem.c
-@@ -421,7 +421,15 @@ int __init reserve_bootmem(unsigned long
+@@ -125,7 +125,6 @@ static int __init reserve_bootmem_core(b
+ 	BUG_ON(!size);
+ 	BUG_ON(PFN_DOWN(addr) >= bdata->node_low_pfn);
+ 	BUG_ON(PFN_UP(addr + size) > bdata->node_low_pfn);
+-	BUG_ON(addr < bdata->node_boot_start);
+ 
+ 	sidx = PFN_DOWN(addr - bdata->node_boot_start);
+ 	eidx = PFN_UP(addr + size - bdata->node_boot_start);
+@@ -157,31 +156,21 @@ static void __init free_bootmem_core(boo
+ 	unsigned long sidx, eidx;
+ 	unsigned long i;
+ 
+-	BUG_ON(!size);
+-
+-	/* out range */
+-	if (addr + size < bdata->node_boot_start ||
+-		PFN_DOWN(addr) > bdata->node_low_pfn)
+-		return;
+ 	/*
+ 	 * round down end of usable mem, partially free pages are
+ 	 * considered reserved.
+ 	 */
++	BUG_ON(!size);
++	BUG_ON(PFN_DOWN(addr + size) > bdata->node_low_pfn);
+ 
+-	if (addr >= bdata->node_boot_start && addr < bdata->last_success)
++	if (addr < bdata->last_success)
+ 		bdata->last_success = addr;
+ 
+ 	/*
+-	 * Round up to index to the range.
++	 * Round up the beginning of the address.
+ 	 */
+-	if (PFN_UP(addr) > PFN_DOWN(bdata->node_boot_start))
+-		sidx = PFN_UP(addr) - PFN_DOWN(bdata->node_boot_start);
+-	else
+-		sidx = 0;
+-
++	sidx = PFN_UP(addr) - PFN_DOWN(bdata->node_boot_start);
+ 	eidx = PFN_DOWN(addr + size - bdata->node_boot_start);
+-	if (eidx > bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start))
+-		eidx = bdata->node_low_pfn - PFN_DOWN(bdata->node_boot_start);
+ 
+ 	for (i = sidx; i < eidx; i++) {
+ 		if (unlikely(!test_and_clear_bit(i, bdata->node_bootmem_map)))
+@@ -432,9 +421,7 @@ int __init reserve_bootmem(unsigned long
  
  void __init free_bootmem(unsigned long addr, unsigned long size)
  {
--	free_bootmem_core(NODE_DATA(0)->bdata, addr, size);
-+	bootmem_data_t *bdata;
-+
-+	list_for_each_entry (bdata, &bdata_list, list) {
-+		if (addr < bdata->node_boot_start)
-+			continue;
-+		free_bootmem_core(bdata, addr, size);
-+		return;
-+	}
-+	BUG();
+-	bootmem_data_t *bdata;
+-	list_for_each_entry(bdata, &bdata_list, list)
+-		free_bootmem_core(bdata, addr, size);
++	free_bootmem_core(NODE_DATA(0)->bdata, addr, size);
  }
  
  unsigned long __init free_all_bootmem(void)
