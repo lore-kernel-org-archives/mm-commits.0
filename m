@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-switch-to-int-put_char-method.patch added to -mm tree
-Date: Mon, 14 Apr 2008 19:04:40 -0700
-Message-ID: <200804150204.m3F24em3005636@imap1.linux-foundation.org>
+Subject: + pcmcia-serial-to-int-put_char-method.patch added to -mm tree
+Date: Mon, 14 Apr 2008 19:04:28 -0700
+Message-ID: <200804150204.m3F24SgY005618@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44238 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48390 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760513AbYDOCFV (ORCPT
+	by vger.kernel.org with ESMTP id S1760310AbYDOCFS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 22:05:21 -0400
+	Mon, 14 Apr 2008 22:05:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, kkeil@suse.de
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, linux@dominikbrodowski.net, paulkf@microgate.com
 
 
 The patch titled
-     isdn: switch to int put_char method
+     pcmcia: serial to int put_char method
 has been added to the -mm tree.  Its filename is
-     isdn-switch-to-int-put_char-method.patch
+     pcmcia-serial-to-int-put_char-method.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,63 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: switch to int put_char method
+Subject: pcmcia: serial to int put_char method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Paul Fulghum <paulkf@microgate.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/capi.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/char/pcmcia/synclink_cs.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/isdn/capi/capi.c~isdn-switch-to-int-put_char-method drivers/isdn/capi/capi.c
---- a/drivers/isdn/capi/capi.c~isdn-switch-to-int-put_char-method
-+++ a/drivers/isdn/capi/capi.c
-@@ -1111,11 +1111,12 @@ static int capinc_tty_write(struct tty_s
- 	return count;
- }
+diff -puN drivers/char/pcmcia/synclink_cs.c~pcmcia-serial-to-int-put_char-method drivers/char/pcmcia/synclink_cs.c
+--- a/drivers/char/pcmcia/synclink_cs.c~pcmcia-serial-to-int-put_char-method
++++ a/drivers/char/pcmcia/synclink_cs.c
+@@ -1547,7 +1547,7 @@ static void mgslpc_change_params(MGSLPC_
  
--static void capinc_tty_put_char(struct tty_struct *tty, unsigned char ch)
-+static int capinc_tty_put_char(struct tty_struct *tty, unsigned char ch)
+ /* Add a character to the transmit buffer
+  */
+-static void mgslpc_put_char(struct tty_struct *tty, unsigned char ch)
++static int mgslpc_put_char(struct tty_struct *tty, unsigned char ch)
  {
- 	struct capiminor *mp = (struct capiminor *)tty->driver_data;
- 	struct sk_buff *skb;
+ 	MGSLPC_INFO *info = (MGSLPC_INFO *)tty->driver_data;
  	unsigned long flags;
-+	int ret = 1;
+@@ -1558,10 +1558,10 @@ static void mgslpc_put_char(struct tty_s
+ 	}
  
- #ifdef _DEBUG_TTYFUNCS
- 	printk(KERN_DEBUG "capinc_put_char(%u)\n", ch);
-@@ -1125,7 +1126,7 @@ static void capinc_tty_put_char(struct t
- #ifdef _DEBUG_TTYFUNCS
- 		printk(KERN_DEBUG "capinc_tty_put_char: mp or mp->ncci NULL\n");
- #endif
+ 	if (mgslpc_paranoia_check(info, tty->name, "mgslpc_put_char"))
 -		return;
 +		return 0;
+ 
+ 	if (!info->tx_buf)
+-		return;
++		return 0;
+ 
+ 	spin_lock_irqsave(&info->lock,flags);
+ 
+@@ -1574,6 +1574,7 @@ static void mgslpc_put_char(struct tty_s
  	}
  
- 	spin_lock_irqsave(&workaround_lock, flags);
-@@ -1134,7 +1135,7 @@ static void capinc_tty_put_char(struct t
- 		if (skb_tailroom(skb) > 0) {
- 			*(skb_put(skb, 1)) = ch;
- 			spin_unlock_irqrestore(&workaround_lock, flags);
--			return;
-+			return 1;
- 		}
- 		mp->ttyskb = NULL;
- 		skb_queue_tail(&mp->outqueue, skb);
-@@ -1148,8 +1149,10 @@ static void capinc_tty_put_char(struct t
- 		mp->ttyskb = skb;
- 	} else {
- 		printk(KERN_ERR "capinc_put_char: char %u lost\n", ch);
-+		ret = 0;
- 	}
- 	spin_unlock_irqrestore(&workaround_lock, flags);
-+	return ret;
+ 	spin_unlock_irqrestore(&info->lock,flags);
++	return 1;
  }
  
- static void capinc_tty_flush_chars(struct tty_struct *tty)
+ /* Enable transmitter so remaining characters in the
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
