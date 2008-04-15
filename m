@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + alpha-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:37:20 -0700
-Message-ID: <200804152237.m3FMbKZd019398@imap1.linux-foundation.org>
+Subject: + ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:37:47 -0700
+Message-ID: <200804152237.m3FMbmgs019438@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48787 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53312 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757374AbYDOWiJ (ORCPT
+	by vger.kernel.org with ESMTP id S1758545AbYDOWiB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:38:09 -0400
+	Tue, 15 Apr 2008 18:38:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, rth@twiddle.net
+Cc: clameter@sgi.com, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     alpha: use kbuild.h instead of macros in asm-offsets.c
+     ppc/powerpc: use kbuild.h instead of defining macros in asm-offsets.c
 has been added to the -mm tree.  Its filename is
-     alpha-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
+     ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: alpha: use kbuild.h instead of macros in asm-offsets.c
+Subject: ppc/powerpc: use kbuild.h instead of defining macros in asm-offsets.c
 From: Christoph Lameter <clameter@sgi.com>
 
-Use the macros in kbuild.h
-
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Jay Estabrook <jay.estabrook@hp.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/asm-offsets.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ arch/powerpc/kernel/asm-offsets.c |    6 +-----
+ arch/ppc/kernel/asm-offsets.c     |    7 ++-----
+ 2 files changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN arch/alpha/kernel/asm-offsets.c~alpha-use-kbuildh-instead-of-macros-in-asm-offsetsc arch/alpha/kernel/asm-offsets.c
---- a/arch/alpha/kernel/asm-offsets.c~alpha-use-kbuildh-instead-of-macros-in-asm-offsetsc
-+++ a/arch/alpha/kernel/asm-offsets.c
-@@ -8,13 +8,9 @@
- #include <linux/stddef.h>
- #include <linux/sched.h>
- #include <linux/ptrace.h>
+diff -puN arch/powerpc/kernel/asm-offsets.c~ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/powerpc/kernel/asm-offsets.c
+--- a/arch/powerpc/kernel/asm-offsets.c~ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
++++ a/arch/powerpc/kernel/asm-offsets.c
+@@ -27,6 +27,7 @@
+ #include <linux/time.h>
+ #include <linux/hardirq.h>
+ #endif
 +#include <linux/kbuild.h>
+ 
  #include <asm/io.h>
+ #include <asm/page.h>
+@@ -48,11 +49,6 @@
+ #include <asm/iseries/alpaca.h>
+ #endif
  
 -#define DEFINE(sym, val) \
--        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+-	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
 -
 -#define BLANK() asm volatile("\n->" : : )
 -
- void foo(void)
+ int main(void)
  {
- 	DEFINE(TI_TASK, offsetof(struct thread_info, task));
+ 	DEFINE(THREAD, offsetof(struct task_struct, thread));
+diff -puN arch/ppc/kernel/asm-offsets.c~ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/ppc/kernel/asm-offsets.c
+--- a/arch/ppc/kernel/asm-offsets.c~ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
++++ a/arch/ppc/kernel/asm-offsets.c
+@@ -18,6 +18,8 @@
+ #include <linux/suspend.h>
+ #include <linux/mman.h>
+ #include <linux/mm.h>
++#include <linux/kbuild.h>
++
+ #include <asm/io.h>
+ #include <asm/page.h>
+ #include <asm/pgtable.h>
+@@ -26,11 +28,6 @@
+ #include <asm/thread_info.h>
+ #include <asm/vdso_datapage.h>
+ 
+-#define DEFINE(sym, val) \
+-	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+-
+-#define BLANK() asm volatile("\n->" : : )
+-
+ int
+ main(void)
+ {
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
