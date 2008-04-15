@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 14 Apr 2008 23:32:40 -0700
-Message-ID: <200804150632.m3F6WeWo014804@imap1.linux-foundation.org>
+Subject: + proc-convert-proc-tty-ldiscs-to-seq_file-interface.patch added to -mm tree
+Date: Mon, 14 Apr 2008 23:38:22 -0700
+Message-ID: <200804150638.m3F6cMq9015084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34414 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48694 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751798AbYDOGdM (ORCPT
+	by vger.kernel.org with ESMTP id S1752436AbYDOGjF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 02:33:12 -0400
+	Tue, 15 Apr 2008 02:39:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adaplas@pol.net, adobriyan@gmail.com
+Cc: adobriyan@gmail.com, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes
+     proc: convert /proc/tty/ldiscs to seq_file interface
 has been added to the -mm tree.  Its filename is
-     fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
+     proc-convert-proc-tty-ldiscs-to-seq_file-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,251 +34,150 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: proc: convert /proc/tty/ldiscs to seq_file interface
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-ERROR: "foo * bar" should be "foo *bar"
-#32: FILE: drivers/video/fbmem.c:636:
-+static void * fb_seq_start(struct seq_file *m, loff_t *pos)
+Note: THIS_MODULE and header addition aren't technically needed because
+      this code is not modular, but let's keep it anyway because people
+      can copy this code into modular code.
 
-ERROR: "foo * bar" should be "foo *bar"
-#52: FILE: drivers/video/fbmem.c:641:
-+static void * fb_seq_next(struct seq_file *m, void *v, loff_t *pos)
-
-total: 2 errors, 0 warnings, 83 lines checked
-
-./patches/fb-convert-proc-fb-to-seq_file-interface.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fbmem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/proc_tty.c |   76 +++++++++++++++++++++++++------------------
+ 1 file changed, 45 insertions(+), 31 deletions(-)
 
-diff -puN drivers/video/fbmem.c~fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes
-+++ a/drivers/video/fbmem.c
-@@ -633,12 +633,12 @@ int fb_prepare_logo(struct fb_info *info
- int fb_show_logo(struct fb_info *info, int rotate) { return 0; }
- #endif /* CONFIG_LOGO */
+diff -puN fs/proc/proc_tty.c~proc-convert-proc-tty-ldiscs-to-seq_file-interface fs/proc/proc_tty.c
+--- a/fs/proc/proc_tty.c~proc-convert-proc-tty-ldiscs-to-seq_file-interface
++++ a/fs/proc/proc_tty.c
+@@ -5,7 +5,7 @@
+  */
  
--static void * fb_seq_start(struct seq_file *m, loff_t *pos)
-+static void *fb_seq_start(struct seq_file *m, loff_t *pos)
+ #include <asm/uaccess.h>
+-
++#include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/errno.h>
+ #include <linux/time.h>
+@@ -136,39 +136,54 @@ static const struct file_operations proc
+ 	.release	= seq_release,
+ };
+ 
+-/*
+- * This is the handler for /proc/tty/ldiscs
+- */
+-static int tty_ldiscs_read_proc(char *page, char **start, off_t off,
+-				int count, int *eof, void *data)
++static void * tty_ldiscs_seq_start(struct seq_file *m, loff_t *pos)
  {
- 	return (*pos < FB_MAX) ? pos : NULL;
+-	int	i;
+-	int	len = 0;
+-	off_t	begin = 0;
++	return (*pos < NR_LDISCS) ? pos : NULL;
++}
++
++static void * tty_ldiscs_seq_next(struct seq_file *m, void *v, loff_t *pos)
++{
++	(*pos)++;
++	return (*pos < NR_LDISCS) ? pos : NULL;
++}
++
++static void tty_ldiscs_seq_stop(struct seq_file *m, void *v)
++{
++}
++
++static int tty_ldiscs_seq_show(struct seq_file *m, void *v)
++{
++	int i = *(loff_t *)v;
+ 	struct tty_ldisc *ld;
+ 	
+-	for (i=0; i < NR_LDISCS; i++) {
+-		ld = tty_ldisc_get(i);
+-		if (ld == NULL)
+-			continue;
+-		len += sprintf(page+len, "%-10s %2d\n",
+-			       ld->name ? ld->name : "???", i);
+-		tty_ldisc_put(i);
+-		if (len+begin > off+count)
+-			break;
+-		if (len+begin < off) {
+-			begin += len;
+-			len = 0;
+-		}
+-	}
+-	if (i >= NR_LDISCS)
+-		*eof = 1;
+-	if (off >= len+begin)
++	ld = tty_ldisc_get(i);
++	if (ld == NULL)
+ 		return 0;
+-	*start = page + (off-begin);
+-	return ((count < begin+len-off) ? count : begin+len-off);
++	seq_printf(m, "%-10s %2d\n", ld->name ? ld->name : "???", i);
++	tty_ldisc_put(i);
++	return 0;
++}
++
++static const struct seq_operations tty_ldiscs_seq_ops = {
++	.start	= tty_ldiscs_seq_start,
++	.next	= tty_ldiscs_seq_next,
++	.stop	= tty_ldiscs_seq_stop,
++	.show	= tty_ldiscs_seq_show,
++};
++
++static int proc_tty_ldiscs_open(struct inode *inode, struct file *file)
++{
++	return seq_open(file, &tty_ldiscs_seq_ops);
  }
  
--static void * fb_seq_next(struct seq_file *m, void *v, loff_t *pos)
-+static void *fb_seq_next(struct seq_file *m, void *v, loff_t *pos)
- {
- 	(*pos)++;
- 	return (*pos < FB_MAX) ? pos : NULL;
++static const struct file_operations tty_ldiscs_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= proc_tty_ldiscs_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= seq_release,
++};
++
+ /*
+  * This function is called by tty_register_driver() to handle
+  * registering the driver's /proc handler into /proc/tty/driver/<foo>
+@@ -221,8 +236,7 @@ void __init proc_tty_init(void)
+ 	 * password lengths and inter-keystroke timings during password
+ 	 * entry.
+ 	 */
+-	proc_tty_driver = proc_mkdir_mode("tty/driver", S_IRUSR | S_IXUSR, NULL);
+-
+-	create_proc_read_entry("tty/ldiscs", 0, NULL, tty_ldiscs_read_proc, NULL);
++	proc_tty_driver = proc_mkdir_mode("tty/driver", S_IRUSR|S_IXUSR, NULL);
++	proc_create("tty/ldiscs", 0, NULL, &tty_ldiscs_proc_fops);
+ 	proc_create("tty/drivers", 0, NULL, &proc_tty_drivers_operations);
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-bootmem-node-setup-agnostic-free_bootmem-checkpatch-fixes.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-acpi.patch
-git-acpi-revert-suspend-wakeup-code-in-c.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86.patch
-arch-x86-mm-ioremapc-fix-printk-warnings.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-git-kgdb-light.patch
-git-x86-hack-around-to-make-git-kgdb-build.patch
-git-x86-vs-git-kgdb-lite.patch
-git-alsa-tiwai.patch
-es1968-fix-jitter-on-some-maestro-cards-checkpatch-fixes.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-cifs-suppress-warning.patch
-git-powerpc.patch
-git-drm.patch
-revert-git-drm.patch
-git-dvb.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-dlm-vs-git-gfs2-nwm.patch
-git-hid.patch
-git-hrt.patch
-time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
-git-ia64.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
-maple-add-driver-for-sega-dreamcast-controller.patch
-touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
-git-leds.patch
-git-libata-all.patch
-pata_atiixp-simplex-clear-fix.patch
-git-async-tx.patch
-git-mips.patch
-git-net.patch
-git-net-git-rejects.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-ehea-fix-dlpar-memory-add-support-fix.patch
-sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-nfsd.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
-revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
-revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
-pci-hotplug-introduce-pci_slot-fix.patch
-pci-hotplug-introduce-pci_slot-fix-fix.patch
-pci-hotplug-introduce-pci_slot-fix-2.patch
-pci-hotplug-introduce-pci_slot-fix-99.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
-drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
-git-s390.patch
-git-sched.patch
-add-rcu_assign_index-if-ever-needed.patch
-git-sh.patch
-sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
-sh-export-empty_zero_page.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-misplaced-hunk.patch
-git-cryptodev-fix-conflict.patch
-git-cryptodev-fix-conflict-hack.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-semaphore-git-rejects.patch
-ext4-is-busted-on-m68k.patch
-smc91x-driver-fix-bug-print-warning-only-in-interrupt-mode.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-drivers-video-uvesafbc-fix-error-path-memory-leak.patch
+fbdev-fix-proc-fb-oops-after-module-removal.patch
+v4l-fix-concurrent-read-from-proc-videocodecs.patch
+tags-add-menuconfig-symbols-as-well.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+remove-the-macro-get_personality.patch
+nv-drop-useless-module-ifdefs.patch
+nv-drop-useless-config_pci-checks.patch
+nv-fix-sparse-noise.patch
+fb-convert-proc-fb-to-seq_file-interface.patch
 fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-w1-build-fix.patch
+ipmi-remove-write_proc-code.patch
+procfs-mem-permission-cleanup.patch
+proc-simplify-locking-in-remove_proc_entry.patch
+proc-less-special-case-in-xlate-code.patch
+proc-drop-several-pde-valid-invalid-checks.patch
+proc-remove-proc_bus.patch
+proc-remove-proc_root_fs.patch
+proc-remove-proc_root_driver.patch
+proc-remove-proc_root-from-drivers.patch
+proc-convert-proc-tty-ldiscs-to-seq_file-interface.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
