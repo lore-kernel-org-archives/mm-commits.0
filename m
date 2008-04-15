@@ -1,123 +1,225 @@
 From: akpm@linux-foundation.org
-Subject: - ehea-fix-dlpar-memory-add-support.patch removed from -mm tree
-Date: Tue, 15 Apr 2008 02:10:49 -0700
-Message-ID: <200804150910.m3F9Antw020656@imap1.linux-foundation.org>
+Subject: - v4l-common-replace-remaining-__function__-occurences.patch removed from -mm tree
+Date: Tue, 15 Apr 2008 02:10:34 -0700
+Message-ID: <200804150910.m3F9AYnZ020639@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54898 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54308 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756684AbYDOJL0 (ORCPT
+	by vger.kernel.org with ESMTP id S1756362AbYDOJLM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 05:11:26 -0400
+	Tue, 15 Apr 2008 05:11:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: osstklei@de.ibm.com, jeff@garzik.org, tklein@de.ibm.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ehea: fix DLPAR memory add support
+     v4l: common/ replace remaining __FUNCTION__ occurences
 has been removed from the -mm tree.  Its filename was
-     ehea-fix-dlpar-memory-add-support.patch
+     v4l-common-replace-remaining-__function__-occurences.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ehea: fix DLPAR memory add support
-From: Thomas Klein <osstklei@de.ibm.com>
+Subject: v4l: common/ replace remaining __FUNCTION__ occurences
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Fix two weaknesses in send/receive packet handling which may lead to kernel
-panics during DLPAR memory add operations.
+__FUNCTION__ is gcc-specific, use __func__
 
-Signed-off-by: Thomas Klein <tklein@de.ibm.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ehea/ehea.h      |    3 ++-
- drivers/net/ehea/ehea_main.c |   24 ++++++++++++++++++++++--
- 2 files changed, 24 insertions(+), 3 deletions(-)
+ drivers/media/common/saa7146_core.c |    8 ++++----
+ drivers/media/common/saa7146_i2c.c  |    6 +++---
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/net/ehea/ehea.h~ehea-fix-dlpar-memory-add-support drivers/net/ehea/ehea.h
---- a/drivers/net/ehea/ehea.h~ehea-fix-dlpar-memory-add-support
-+++ a/drivers/net/ehea/ehea.h
-@@ -40,7 +40,7 @@
- #include <asm/io.h>
+diff -puN drivers/media/common/saa7146_core.c~v4l-common-replace-remaining-__function__-occurences drivers/media/common/saa7146_core.c
+--- a/drivers/media/common/saa7146_core.c~v4l-common-replace-remaining-__function__-occurences
++++ a/drivers/media/common/saa7146_core.c
+@@ -74,7 +74,7 @@ static inline int saa7146_wait_for_debi_
+ 		if (err) {
+ 			printk(KERN_ERR "%s: %s timed out while waiting for "
+ 					"registers getting programmed\n",
+-					dev->name, __FUNCTION__);
++					dev->name, __func__);
+ 			return -ETIMEDOUT;
+ 		}
+ 		msleep(1);
+@@ -89,7 +89,7 @@ static inline int saa7146_wait_for_debi_
+ 		saa7146_read(dev, MC2);
+ 		if (err) {
+ 			DEB_S(("%s: %s timed out while waiting for transfer "
+-				"completion\n",	dev->name, __FUNCTION__));
++				"completion\n",	dev->name, __func__));
+ 			return -ETIMEDOUT;
+ 		}
+ 		msleep(1);
+@@ -111,7 +111,7 @@ static inline int saa7146_wait_for_debi_
+ 		if (!loops--) {
+ 			printk(KERN_ERR "%s: %s timed out while waiting for "
+ 					"registers getting programmed\n",
+-					dev->name, __FUNCTION__);
++					dev->name, __func__);
+ 			return -ETIMEDOUT;
+ 		}
+ 		udelay(1);
+@@ -125,7 +125,7 @@ static inline int saa7146_wait_for_debi_
+ 		saa7146_read(dev, MC2);
+ 		if (!loops--) {
+ 			DEB_S(("%s: %s timed out while waiting for transfer "
+-				"completion\n", dev->name, __FUNCTION__));
++				"completion\n", dev->name, __func__));
+ 			return -ETIMEDOUT;
+ 		}
+ 		udelay(5);
+diff -puN drivers/media/common/saa7146_i2c.c~v4l-common-replace-remaining-__function__-occurences drivers/media/common/saa7146_i2c.c
+--- a/drivers/media/common/saa7146_i2c.c~v4l-common-replace-remaining-__function__-occurences
++++ a/drivers/media/common/saa7146_i2c.c
+@@ -203,7 +203,7 @@ static int saa7146_i2c_writeout(struct s
+ 				return -ERESTARTSYS;
  
- #define DRV_NAME	"ehea"
--#define DRV_VERSION	"EHEA_0089"
-+#define DRV_VERSION	"EHEA_0090"
- 
- /* eHEA capability flags */
- #define DLPAR_PORT_ADD_REM 1
-@@ -371,6 +371,7 @@ struct ehea_port_res {
- 	struct ehea_q_skb_arr rq2_skba;
- 	struct ehea_q_skb_arr rq3_skba;
- 	struct ehea_q_skb_arr sq_skba;
-+	int sq_skba_size;
- 	spinlock_t netif_queue;
- 	int queue_stopped;
- 	int swqe_refill_th;
-diff -puN drivers/net/ehea/ehea_main.c~ehea-fix-dlpar-memory-add-support drivers/net/ehea/ehea_main.c
---- a/drivers/net/ehea/ehea_main.c~ehea-fix-dlpar-memory-add-support
-+++ a/drivers/net/ehea/ehea_main.c
-@@ -350,7 +350,8 @@ static void ehea_refill_rq1(struct ehea_
- 	pr->rq1_skba.os_skbs = 0;
- 
- 	if (unlikely(test_bit(__EHEA_STOP_XFER, &ehea_driver_flags))) {
--		pr->rq1_skba.index = index;
-+		if (nr_of_wqes > 0)
-+			pr->rq1_skba.index = index;
- 		pr->rq1_skba.os_skbs = fill_wqes;
- 		return;
- 	}
-@@ -1465,7 +1466,9 @@ static int ehea_init_port_res(struct ehe
- 			  init_attr->act_nr_rwqes_rq2,
- 			  init_attr->act_nr_rwqes_rq3);
- 
--	ret = ehea_init_q_skba(&pr->sq_skba, init_attr->act_nr_send_wqes + 1);
-+	pr->sq_skba_size = init_attr->act_nr_send_wqes + 1;
-+
-+	ret = ehea_init_q_skba(&pr->sq_skba, pr->sq_skba_size);
- 	ret |= ehea_init_q_skba(&pr->rq1_skba, init_attr->act_nr_rwqes_rq1 + 1);
- 	ret |= ehea_init_q_skba(&pr->rq2_skba, init_attr->act_nr_rwqes_rq2 + 1);
- 	ret |= ehea_init_q_skba(&pr->rq3_skba, init_attr->act_nr_rwqes_rq3 + 1);
-@@ -2622,6 +2625,22 @@ void ehea_purge_sq(struct ehea_qp *orig_
- 	}
- }
- 
-+void ehea_flush_sq(struct ehea_port *port)
-+{
-+	int i;
-+
-+	for (i = 0; i < port->num_def_qps + port->num_add_tx_qps; i++) {
-+		struct ehea_port_res *pr = &port->port_res[i];
-+		int swqe_max = pr->sq_skba_size - 2 - pr->swqe_ll_count;
-+		int k = 0;
-+		while (atomic_read(&pr->swqe_avail) < swqe_max) {
-+			msleep(5);
-+			if (++k == 20)
-+				break;
-+		}
-+	}
-+}
-+
- int ehea_stop_qps(struct net_device *dev)
- {
- 	struct ehea_port *port = netdev_priv(dev);
-@@ -2849,6 +2868,7 @@ static void ehea_rereg_mrs(struct work_s
- 				if (dev->flags & IFF_UP) {
- 					mutex_lock(&port->port_lock);
- 					netif_stop_queue(dev);
-+					ehea_flush_sq(port);
- 					ret = ehea_stop_qps(dev);
- 					if (ret) {
- 						mutex_unlock(&port->port_lock);
+ 			printk(KERN_WARNING "%s %s [irq]: timed out waiting for end of xfer\n",
+-				dev->name, __FUNCTION__);
++				dev->name, __func__);
+ 			return -EIO;
+ 		}
+ 		status = saa7146_read(dev, I2C_STATUS);
+@@ -221,7 +221,7 @@ static int saa7146_i2c_writeout(struct s
+ 			}
+ 			if (time_after(jiffies,timeout)) {
+ 				printk(KERN_WARNING "%s %s: timed out waiting for MC2\n",
+-					dev->name, __FUNCTION__);
++					dev->name, __func__);
+ 				return -EIO;
+ 			}
+ 		}
+@@ -238,7 +238,7 @@ static int saa7146_i2c_writeout(struct s
+ 				 * (no answer from nonexisistant device...)
+ 				 */
+ 				printk(KERN_WARNING "%s %s [poll]: timed out waiting for end of xfer\n",
+-					dev->name, __FUNCTION__);
++					dev->name, __func__);
+ 				return -EIO;
+ 			}
+ 			if (++trial < 50 && short_delay)
 _
 
-Patches currently in -mm which might be from osstklei@de.ibm.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-origin.patch
-ehea-fix-dlpar-memory-add-support-fix.patch
+git-x86.patch
+git-alsa-tiwai.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+cifs-remove-global_extern-macro.patch
+git-powerpc.patch
+power-replace-remaining-__function__-occurrences.patch
+git-dvb.patch
+git-dlm.patch
+git-ieee1394.patch
+git-infiniband.patch
+input-replace-remaining-__function__-occurrences.patch
+git-jfs.patch
+git-libata-all.patch
+git-mips.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+mtd-replace-remaining-__function__-occurrences.patch
+git-net.patch
+blackfin-replace-remaining-__function__-occurences.patch
+git-nfsd.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+git-selinux.patch
+git-s390.patch
+git-scsi-misc.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+block-replace-remaining-__function__-occurrences.patch
+git-watchdog.patch
+mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
+mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
+mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
+mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
+mac80211-michaelc-replace-macro-with-function.patch
+mac80211-michaelc-use-unaligned-byteorder-helpers.patch
+mac80211-michaelc-fold-initial-xor-into-block-helper.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+char-make-functions-static-in-synclinkmpc.patch
+spi-replace-remaining-__function__-occurrences.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+video-replace-remaining-__function__-occurrences.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+md-replace-remaining-__function__-occurrences.patch
+ext2-replace-remaining-__function__-occurrences.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+ufs-replace-__inline-with-inline.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+drivers-replace-remaining-__function__-occurrences.patch
+kernel-add-common-infrastructure-for-unaligned-access.patch
+kernel-move-arches-to-use-common-unaligned-access.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
