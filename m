@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + input-use-get_unaligned_-helpers.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:22:08 -0700
-Message-ID: <200804152222.m3FMM8Yf018790@imap1.linux-foundation.org>
+Subject: + hid-core-use-get_unaligned_-helpers.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:22:04 -0700
+Message-ID: <200804152222.m3FMM4hR018784@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49336 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752119AbYDOWWQ (ORCPT
+	by vger.kernel.org with ESMTP id S1753583AbYDOWWJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:22:16 -0400
+	Tue, 15 Apr 2008 18:22:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dtor@mail.ru, jirislaby@gmail.com, viro@zeniv.linux.org.uk
+Cc: harvey.harrison@gmail.com, jkosina@suse.cz, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     input: use get_unaligned_* helpers
+     hid-core: use get_unaligned_* helpers
 has been added to the -mm tree.  Its filename is
-     input-use-get_unaligned_-helpers.patch
+     hid-core-use-get_unaligned_-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,141 +34,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: use get_unaligned_* helpers
+Subject: hid-core: use get_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/tablet/aiptek.c |   16 ++++++++--------
- drivers/input/tablet/gtco.c   |   14 +++++++-------
- drivers/input/tablet/kbtab.c  |    4 ++--
- 3 files changed, 17 insertions(+), 17 deletions(-)
+ drivers/hid/hid-core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/input/tablet/aiptek.c~input-use-get_unaligned_-helpers drivers/input/tablet/aiptek.c
---- a/drivers/input/tablet/aiptek.c~input-use-get_unaligned_-helpers
-+++ a/drivers/input/tablet/aiptek.c
-@@ -528,9 +528,9 @@ static void aiptek_irq(struct urb *urb)
- 			    (aiptek->curSetting.pointerMode)) {
- 				aiptek->diagnostic = AIPTEK_DIAGNOSTIC_TOOL_DISALLOWED;
- 		} else {
--			x = le16_to_cpu(get_unaligned((__le16 *) (data + 1)));
--			y = le16_to_cpu(get_unaligned((__le16 *) (data + 3)));
--			z = le16_to_cpu(get_unaligned((__le16 *) (data + 6)));
-+			x = get_unaligned_le16(data + 1);
-+			y = get_unaligned_le16(data + 3);
-+			z = get_unaligned_le16(data + 6);
- 
- 			dv = (data[5] & 0x01) != 0 ? 1 : 0;
- 			p = (data[5] & 0x02) != 0 ? 1 : 0;
-@@ -613,8 +613,8 @@ static void aiptek_irq(struct urb *urb)
- 			(aiptek->curSetting.pointerMode)) {
- 			aiptek->diagnostic = AIPTEK_DIAGNOSTIC_TOOL_DISALLOWED;
- 		} else {
--			x = le16_to_cpu(get_unaligned((__le16 *) (data + 1)));
--			y = le16_to_cpu(get_unaligned((__le16 *) (data + 3)));
-+			x = get_unaligned_le16(data + 1);
-+			y = get_unaligned_le16(data + 3);
- 
- 			jitterable = data[5] & 0x1c;
- 
-@@ -679,7 +679,7 @@ static void aiptek_irq(struct urb *urb)
- 		pck = (data[1] & aiptek->curSetting.stylusButtonUpper) != 0 ? 1 : 0;
- 
- 		macro = dv && p && tip && !(data[3] & 1) ? (data[3] >> 1) : -1;
--		z = le16_to_cpu(get_unaligned((__le16 *) (data + 4)));
-+		z = get_unaligned_le16(data + 4);
- 
- 		if (dv) {
- 		        /* If the selected tool changed, reset the old
-@@ -757,7 +757,7 @@ static void aiptek_irq(struct urb *urb)
- 	 * hat switches (which just so happen to be the macroKeys.)
- 	 */
- 	else if (data[0] == 6) {
--		macro = le16_to_cpu(get_unaligned((__le16 *) (data + 1)));
-+		macro = get_unaligned_le16(data + 1);
- 		if (macro > 0) {
- 			input_report_key(inputdev, macroKeyEvents[macro - 1],
- 					 0);
-@@ -952,7 +952,7 @@ aiptek_query(struct aiptek *aiptek, unsi
- 		    buf[0], buf[1], buf[2]);
- 		ret = -EIO;
- 	} else {
--		ret = le16_to_cpu(get_unaligned((__le16 *) (buf + 1)));
-+		ret = get_unaligned_le16(buf + 1);
- 	}
- 	kfree(buf);
- 	return ret;
-diff -puN drivers/input/tablet/gtco.c~input-use-get_unaligned_-helpers drivers/input/tablet/gtco.c
---- a/drivers/input/tablet/gtco.c~input-use-get_unaligned_-helpers
-+++ a/drivers/input/tablet/gtco.c
-@@ -245,11 +245,11 @@ static void parse_hid_report_descriptor(
- 			data = report[i];
- 			break;
+diff -puN drivers/hid/hid-core.c~hid-core-use-get_unaligned_-helpers drivers/hid/hid-core.c
+--- a/drivers/hid/hid-core.c~hid-core-use-get_unaligned_-helpers
++++ a/drivers/hid/hid-core.c
+@@ -606,7 +606,7 @@ static u8 *fetch_item(__u8 *start, __u8 
  		case 2:
--			data16 = le16_to_cpu(get_unaligned((__le16 *)&report[i]));
-+			data16 = get_unaligned_le16(&report[i]);
- 			break;
- 		case 3:
- 			size = 4;
--			data32 = le32_to_cpu(get_unaligned((__le32 *)&report[i]));
-+			data32 = get_unaligned_le32(&report[i]);
- 			break;
- 		}
+ 			if ((end - start) < 2)
+ 				return NULL;
+-			item->data.u16 = le16_to_cpu(get_unaligned((__le16*)start));
++			item->data.u16 = get_unaligned_le16(start);
+ 			start = (__u8 *)((__le16 *)start + 1);
+ 			return start;
  
-@@ -695,10 +695,10 @@ static void gtco_urb_callback(struct urb
- 			/*  Fall thru */
- 		case 1:
- 			/* All reports have X and Y coords in the same place */
--			val = le16_to_cpu(get_unaligned((__le16 *)&device->buffer[1]));
-+			val = get_unaligned_le16(&device->buffer[1]);
- 			input_report_abs(inputdev, ABS_X, val);
- 
--			val = le16_to_cpu(get_unaligned((__le16 *)&device->buffer[3]));
-+			val = get_unaligned_le16(&device->buffer[3]);
- 			input_report_abs(inputdev, ABS_Y, val);
- 
- 			/* Ditto for proximity bit */
-@@ -762,7 +762,7 @@ static void gtco_urb_callback(struct urb
- 				le_buffer[1]  = (u8)(device->buffer[4] >> 1);
- 				le_buffer[1] |= (u8)((device->buffer[5] & 0x1) << 7);
- 
--				val = le16_to_cpu(get_unaligned((__le16 *)le_buffer));
-+				val = get_unaligned_le16(le_buffer);
- 				input_report_abs(inputdev, ABS_Y, val);
- 
- 				/*
-@@ -772,10 +772,10 @@ static void gtco_urb_callback(struct urb
- 				buttonbyte = device->buffer[5] >> 1;
- 			} else {
- 
--				val = le16_to_cpu(get_unaligned((__le16 *)&device->buffer[1]));
-+				val = get_unaligned_le16(&device->buffer[1]);
- 				input_report_abs(inputdev, ABS_X, val);
- 
--				val = le16_to_cpu(get_unaligned((__le16 *)&device->buffer[3]));
-+				val = get_unaligned_le16(&device->buffer[3]);
- 				input_report_abs(inputdev, ABS_Y, val);
- 
- 				buttonbyte = device->buffer[5];
-diff -puN drivers/input/tablet/kbtab.c~input-use-get_unaligned_-helpers drivers/input/tablet/kbtab.c
---- a/drivers/input/tablet/kbtab.c~input-use-get_unaligned_-helpers
-+++ a/drivers/input/tablet/kbtab.c
-@@ -63,8 +63,8 @@ static void kbtab_irq(struct urb *urb)
- 		goto exit;
+@@ -614,7 +614,7 @@ static u8 *fetch_item(__u8 *start, __u8 
+ 			item->size++;
+ 			if ((end - start) < 4)
+ 				return NULL;
+-			item->data.u32 = le32_to_cpu(get_unaligned((__le32*)start));
++			item->data.u32 = get_unaligned_le32(start);
+ 			start = (__u8 *)((__le32 *)start + 1);
+ 			return start;
  	}
+@@ -765,7 +765,7 @@ static __inline__ __u32 extract(__u8 *re
  
--	kbtab->x = le16_to_cpu(get_unaligned((__le16 *) &data[1]));
--	kbtab->y = le16_to_cpu(get_unaligned((__le16 *) &data[3]));
-+	kbtab->x = get_unaligned_le16(&data[1]);
-+	kbtab->y = get_unaligned_le16(&data[3]);
- 
- 	kbtab->pressure = (data[5]);
- 
+ 	report += offset >> 3;  /* adjust byte index */
+ 	offset &= 7;            /* now only need bit offset into one byte */
+-	x = le64_to_cpu(get_unaligned((__le64 *) report));
++	x = get_unaligned_le64(report);
+ 	x = (x >> offset) & ((1ULL << n) - 1);  /* extract bit field */
+ 	return (u32) x;
+ }
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
