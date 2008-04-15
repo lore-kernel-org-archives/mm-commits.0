@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-m68k-put_char-returns.patch added to -mm tree
-Date: Mon, 14 Apr 2008 19:04:18 -0700
-Message-ID: <200804150204.m3F24Isg005603@imap1.linux-foundation.org>
+Subject: + mxser-switch-to-put_char-being-int.patch added to -mm tree
+Date: Mon, 14 Apr 2008 19:04:26 -0700
+Message-ID: <200804150204.m3F24Q8F005615@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48973 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44414 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760120AbYDOCFL (ORCPT
+	by vger.kernel.org with ESMTP id S1759662AbYDOCFF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 22:05:11 -0400
+	Mon, 14 Apr 2008 22:05:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, gerg@uclinux.org
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
 
 
 The patch titled
-     serial m68k: put_char returns
+     mxser: switch to put_char being int
 has been added to the -mm tree.  Its filename is
-     serial-m68k-put_char-returns.patch
+     mxser-switch-to-put_char-being-int.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,80 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial m68k: put_char returns
+Subject: mxser: switch to put_char being int
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/68328serial.c |    3 ++-
- drivers/serial/68360serial.c |    5 +++--
- drivers/serial/mcfserial.c   |    4 ++--
- 3 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/char/mxser.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/serial/68328serial.c~serial-m68k-put_char-returns drivers/serial/68328serial.c
---- a/drivers/serial/68328serial.c~serial-m68k-put_char-returns
-+++ a/drivers/serial/68328serial.c
-@@ -200,7 +200,7 @@ static void rs_stop(struct tty_struct *t
- 	local_irq_restore(flags);
+diff -puN drivers/char/mxser.c~mxser-switch-to-put_char-being-int drivers/char/mxser.c
+--- a/drivers/char/mxser.c~mxser-switch-to-put_char-being-int
++++ a/drivers/char/mxser.c
+@@ -1091,16 +1091,16 @@ static int mxser_write(struct tty_struct
+ 	return total;
  }
  
--static void rs_put_char(char ch)
-+static int rs_put_char(char ch)
+-static void mxser_put_char(struct tty_struct *tty, unsigned char ch)
++static int mxser_put_char(struct tty_struct *tty, unsigned char ch)
  {
-         int flags, loops = 0;
+ 	struct mxser_port *info = tty->driver_data;
+ 	unsigned long flags;
  
-@@ -214,6 +214,7 @@ static void rs_put_char(char ch)
- 	UTX_TXDATA = ch;
-         udelay(5);
-         local_irq_restore(flags);
-+        return 1;
- }
- 
- static void rs_start(struct tty_struct *tty)
-diff -puN drivers/serial/68360serial.c~serial-m68k-put_char-returns drivers/serial/68360serial.c
---- a/drivers/serial/68360serial.c~serial-m68k-put_char-returns
-+++ a/drivers/serial/68360serial.c
-@@ -994,10 +994,10 @@ static void rs_360_put_char(struct tty_s
- 	volatile QUICC_BD	*bdp;
- 
- 	if (serial_paranoia_check(info, tty->name, "rs_put_char"))
+ 	if (!info->xmit_buf)
 -		return;
 +		return 0;
  
- 	if (!tty)
+ 	if (info->xmit_cnt >= SERIAL_XMIT_SIZE - 1)
 -		return;
 +		return 0;
  
- 	bdp = info->tx_cur;
- 	while (bdp->status & BD_SC_READY);
-@@ -1015,6 +1015,7 @@ static void rs_360_put_char(struct tty_s
- 		bdp++;
- 
- 	info->tx_cur = (QUICC_BD *)bdp;
-+	return 1;
- 
- }
- 
-diff -puN drivers/serial/mcfserial.c~serial-m68k-put_char-returns drivers/serial/mcfserial.c
---- a/drivers/serial/mcfserial.c~serial-m68k-put_char-returns
-+++ a/drivers/serial/mcfserial.c
-@@ -1898,7 +1898,7 @@ static struct tty_driver *mcfrs_console_
-  *	This is used for console output.
-  */
- 
--void mcfrs_put_char(char ch)
-+int mcfrs_put_char(char ch)
- {
- 	volatile unsigned char	*uartp;
- 	unsigned long		flags;
-@@ -1922,7 +1922,7 @@ void mcfrs_put_char(char ch)
- 		mcfrs_init_console(); /* try and get it back */
- 	local_irq_restore(flags);
- 
--	return;
+ 	spin_lock_irqsave(&info->slock, flags);
+ 	info->xmit_buf[info->xmit_head++] = ch;
+@@ -1118,6 +1118,7 @@ static void mxser_put_char(struct tty_st
+ 			spin_unlock_irqrestore(&info->slock, flags);
+ 		}
+ 	}
 +	return 1;
  }
  
