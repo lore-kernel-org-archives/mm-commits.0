@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + h8300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:37:39 -0700
-Message-ID: <200804152237.m3FMbdOw019425@imap1.linux-foundation.org>
+Subject: + m68k-m68kmmu-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:37:41 -0700
+Message-ID: <200804152237.m3FMbfgQ019428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33057 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44659 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752917AbYDOWl0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751854AbYDOWlZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:41:26 -0400
+	Tue, 15 Apr 2008 18:41:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, ysato@users.sourceforge.jp
+Cc: clameter@sgi.com, geert@linux-m68k.org, gerg@uclinux.org, zippel@linux-m68k.org
 
 
 The patch titled
-     h8300: use kbuild.h instead of defining macros in asm-offsets.c
+     m68k/m68kmmu: use kbuild.h instead of defining macros in asm-offsets.c
 has been added to the -mm tree.  Its filename is
-     h8300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+     m68k-m68kmmu-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: h8300: use kbuild.h instead of defining macros in asm-offsets.c
+Subject: m68k/m68kmmu: use kbuild.h instead of defining macros in asm-offsets.c
 From: Christoph Lameter <clameter@sgi.com>
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/kernel/asm-offsets.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ arch/m68k/kernel/asm-offsets.c      |    4 +---
+ arch/m68knommu/kernel/asm-offsets.c |    6 +-----
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN arch/h8300/kernel/asm-offsets.c~h8300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/h8300/kernel/asm-offsets.c
---- a/arch/h8300/kernel/asm-offsets.c~h8300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
-+++ a/arch/h8300/kernel/asm-offsets.c
+diff -puN arch/m68k/kernel/asm-offsets.c~m68k-m68kmmu-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/m68k/kernel/asm-offsets.c
+--- a/arch/m68k/kernel/asm-offsets.c~m68k-m68kmmu-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
++++ a/arch/m68k/kernel/asm-offsets.c
+@@ -11,14 +11,12 @@
+ #include <linux/stddef.h>
+ #include <linux/sched.h>
+ #include <linux/kernel_stat.h>
++#include <linux/kbuild.h>
+ #include <asm/bootinfo.h>
+ #include <asm/irq.h>
+ #include <asm/amigahw.h>
+ #include <linux/font.h>
+ 
+-#define DEFINE(sym, val) \
+-	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+-
+ int main(void)
+ {
+ 	/* offsets into the task struct */
+diff -puN arch/m68knommu/kernel/asm-offsets.c~m68k-m68kmmu-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/m68knommu/kernel/asm-offsets.c
+--- a/arch/m68knommu/kernel/asm-offsets.c~m68k-m68kmmu-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
++++ a/arch/m68knommu/kernel/asm-offsets.c
 @@ -13,15 +13,11 @@
  #include <linux/kernel_stat.h>
  #include <linux/ptrace.h>
@@ -55,7 +77,7 @@ diff -puN arch/h8300/kernel/asm-offsets.c~h8300-use-kbuildh-instead-of-defining-
 +#include <linux/kbuild.h>
  #include <asm/bootinfo.h>
  #include <asm/irq.h>
- #include <asm/ptrace.h>
+ #include <asm/thread_info.h>
  
 -#define DEFINE(sym, val) \
 -        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
