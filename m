@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + s390-tty-prepare-for-put_char-to-return-success-fail.patch added to -mm tree
-Date: Mon, 14 Apr 2008 19:04:16 -0700
-Message-ID: <200804150204.m3F24GdU005600@imap1.linux-foundation.org>
+Subject: + serial-m68k-put_char-returns.patch added to -mm tree
+Date: Mon, 14 Apr 2008 19:04:18 -0700
+Message-ID: <200804150204.m3F24Isg005603@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41120 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759633AbYDOCFE (ORCPT
+	by vger.kernel.org with ESMTP id S1760120AbYDOCFL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 22:05:04 -0400
+	Mon, 14 Apr 2008 22:05:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, peter.oberparleiter@de.ibm.com, schwidefsky@de.ibm.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, gerg@uclinux.org
 
 
 The patch titled
-     s390 tty: Prepare for put_char to return success/fail
+     serial m68k: put_char returns
 has been added to the -mm tree.  Its filename is
-     s390-tty-prepare-for-put_char-to-return-success-fail.patch
+     serial-m68k-put_char-returns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,108 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s390 tty: Prepare for put_char to return success/fail
+Subject: serial m68k: put_char returns
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Put the changes into the drivers first.  This will still compile/work but
-produce a warning if bisected so can still be debugged
-
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Peter Oberparleiter <peter.oberparleiter@de.ibm.com>
+Cc: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/char/con3215.c    |    5 +++--
- drivers/s390/char/sclp_tty.c   |    4 ++--
- drivers/s390/char/sclp_vt220.c |    6 +++++-
- drivers/s390/char/tty3270.c    |    3 ++-
- 4 files changed, 12 insertions(+), 6 deletions(-)
+ drivers/serial/68328serial.c |    3 ++-
+ drivers/serial/68360serial.c |    5 +++--
+ drivers/serial/mcfserial.c   |    4 ++--
+ 3 files changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN drivers/s390/char/con3215.c~s390-tty-prepare-for-put_char-to-return-success-fail drivers/s390/char/con3215.c
---- a/drivers/s390/char/con3215.c~s390-tty-prepare-for-put_char-to-return-success-fail
-+++ a/drivers/s390/char/con3215.c
-@@ -982,15 +982,16 @@ tty3215_write(struct tty_struct * tty,
- /*
-  * Put character routine for 3215 ttys
-  */
--static void
-+static int
- tty3215_put_char(struct tty_struct *tty, unsigned char ch)
+diff -puN drivers/serial/68328serial.c~serial-m68k-put_char-returns drivers/serial/68328serial.c
+--- a/drivers/serial/68328serial.c~serial-m68k-put_char-returns
++++ a/drivers/serial/68328serial.c
+@@ -200,7 +200,7 @@ static void rs_stop(struct tty_struct *t
+ 	local_irq_restore(flags);
+ }
+ 
+-static void rs_put_char(char ch)
++static int rs_put_char(char ch)
  {
- 	struct raw3215_info *raw;
+         int flags, loops = 0;
+ 
+@@ -214,6 +214,7 @@ static void rs_put_char(char ch)
+ 	UTX_TXDATA = ch;
+         udelay(5);
+         local_irq_restore(flags);
++        return 1;
+ }
+ 
+ static void rs_start(struct tty_struct *tty)
+diff -puN drivers/serial/68360serial.c~serial-m68k-put_char-returns drivers/serial/68360serial.c
+--- a/drivers/serial/68360serial.c~serial-m68k-put_char-returns
++++ a/drivers/serial/68360serial.c
+@@ -994,10 +994,10 @@ static void rs_360_put_char(struct tty_s
+ 	volatile QUICC_BD	*bdp;
+ 
+ 	if (serial_paranoia_check(info, tty->name, "rs_put_char"))
+-		return;
++		return 0;
  
  	if (!tty)
 -		return;
 +		return 0;
- 	raw = (struct raw3215_info *) tty->driver_data;
- 	raw3215_putchar(raw, ch);
+ 
+ 	bdp = info->tx_cur;
+ 	while (bdp->status & BD_SC_READY);
+@@ -1015,6 +1015,7 @@ static void rs_360_put_char(struct tty_s
+ 		bdp++;
+ 
+ 	info->tx_cur = (QUICC_BD *)bdp;
++	return 1;
+ 
+ }
+ 
+diff -puN drivers/serial/mcfserial.c~serial-m68k-put_char-returns drivers/serial/mcfserial.c
+--- a/drivers/serial/mcfserial.c~serial-m68k-put_char-returns
++++ a/drivers/serial/mcfserial.c
+@@ -1898,7 +1898,7 @@ static struct tty_driver *mcfrs_console_
+  *	This is used for console output.
+  */
+ 
+-void mcfrs_put_char(char ch)
++int mcfrs_put_char(char ch)
+ {
+ 	volatile unsigned char	*uartp;
+ 	unsigned long		flags;
+@@ -1922,7 +1922,7 @@ void mcfrs_put_char(char ch)
+ 		mcfrs_init_console(); /* try and get it back */
+ 	local_irq_restore(flags);
+ 
+-	return;
 +	return 1;
  }
  
- static void
-diff -puN drivers/s390/char/sclp_tty.c~s390-tty-prepare-for-put_char-to-return-success-fail drivers/s390/char/sclp_tty.c
---- a/drivers/s390/char/sclp_tty.c~s390-tty-prepare-for-put_char-to-return-success-fail
-+++ a/drivers/s390/char/sclp_tty.c
-@@ -412,14 +412,14 @@ sclp_tty_write(struct tty_struct *tty, c
-  * - including previous characters from sclp_tty_put_char() and strings from
-  * sclp_write() without final '\n' - will be written.
-  */
--static void
-+static int
- sclp_tty_put_char(struct tty_struct *tty, unsigned char ch)
- {
- 	sclp_tty_chars[sclp_tty_chars_count++] = ch;
- 	if (ch == '\n' || sclp_tty_chars_count >= SCLP_TTY_BUF_SIZE) {
- 		sclp_tty_write_string(sclp_tty_chars, sclp_tty_chars_count);
- 		sclp_tty_chars_count = 0;
--	}
-+	} return 1;
- }
  
- /*
-diff -puN drivers/s390/char/sclp_vt220.c~s390-tty-prepare-for-put_char-to-return-success-fail drivers/s390/char/sclp_vt220.c
---- a/drivers/s390/char/sclp_vt220.c~s390-tty-prepare-for-put_char-to-return-success-fail
-+++ a/drivers/s390/char/sclp_vt220.c
-@@ -524,11 +524,15 @@ sclp_vt220_close(struct tty_struct *tty,
-  * NOTE: include/linux/tty_driver.h specifies that a character should be
-  * ignored if there is no room in the queue. This driver implements a different
-  * semantic in that it will block when there is no more room left.
-+ *
-+ * FIXME: putchar can currently be called from BH and other non blocking
-+ * handlers so  this semantic isn't a good idea.
-  */
--static void
-+static int
- sclp_vt220_put_char(struct tty_struct *tty, unsigned char ch)
- {
- 	__sclp_vt220_write(&ch, 1, 0, 0, 1);
-+	return 1;
- }
- 
- /*
-diff -puN drivers/s390/char/tty3270.c~s390-tty-prepare-for-put_char-to-return-success-fail drivers/s390/char/tty3270.c
---- a/drivers/s390/char/tty3270.c~s390-tty-prepare-for-put_char-to-return-success-fail
-+++ a/drivers/s390/char/tty3270.c
-@@ -965,7 +965,7 @@ tty3270_write_room(struct tty_struct *tt
-  * Insert character into the screen at the current position with the
-  * current color and highlight. This function does NOT do cursor movement.
-  */
--static void
-+static int
- tty3270_put_character(struct tty3270 *tp, char ch)
- {
- 	struct tty3270_line *line;
-@@ -986,6 +986,7 @@ tty3270_put_character(struct tty3270 *tp
- 	cell->character = tp->view.ascebc[(unsigned int) ch];
- 	cell->highlight = tp->highlight;
- 	cell->f_color = tp->f_color;
-+	return 1;
- }
- 
- /*
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
