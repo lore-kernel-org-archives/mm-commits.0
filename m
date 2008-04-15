@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + omap_rng-minor-updates.patch added to -mm tree
-Date: Tue, 15 Apr 2008 01:07:20 -0700
-Message-ID: <200804150807.m3F87KTY018288@imap1.linux-foundation.org>
+Subject: + x86_64-restore-mask_bits-in-msi-shutdown.patch added to -mm tree
+Date: Tue, 15 Apr 2008 01:11:18 -0700
+Message-ID: <200804150811.m3F8BICi018433@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48598 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50893 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752984AbYDOIIY (ORCPT
+	by vger.kernel.org with ESMTP id S1759841AbYDOIME (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 04:08:24 -0400
+	Tue, 15 Apr 2008 04:12:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: david-b@pacbell.net, Uwe_Zeisberger@digi.com, dbrownell@users.sourceforge.net, herbert@gondor.apana.org.au, mb@bu3sch.de
+Cc: yhlu.kernel.send@gmail.com, aabdulla@nvidia.com, ebiederm@xmission.com, jeff@garzik.org, mingo@elte.hu, tglx@linutronix.de, yhlu.kernel@gmail.com
 
 
 The patch titled
-     omap_rng: minor updates
+     x86_64: restore mask_bits in msi shutdown
 has been added to the -mm tree.  Its filename is
-     omap_rng-minor-updates.patch
+     x86_64-restore-mask_bits-in-msi-shutdown.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,146 +34,152 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omap_rng: minor updates
-From: David Brownell <david-b@pacbell.net>
+Subject: x86_64: restore mask_bits in msi shutdown
+From: Yinghai Lu <yhlu.kernel.send@gmail.com>
 
-Minor cleanups to the OMAP RNG:
+I can not kexec RHEL 5.1 from 2.6.25-rc3 later
 
- - Comment update re RNG status:
-     * yes, it works on 16xx; "rngtest" is quite happy
-     * it's fast enough that polling vs IRQ is a non-issue
- - Get rid of BUG_ON
- - Help GCC not be stupid about inlining (object code shrink)
- - Remove "sparse" warning
- - Cope with new hotplug rule requiring "platform:" modalias
+caused by:
+commit 89d694b9dbe769ca1004e01db0ca43964806a611
+Author: Thomas Gleixner <tglx@linutronix.de>
+Date:   Mon Feb 18 18:25:17 2008 +0100
 
-And make the file header match kernel conventions.
+    genirq: do not leave interupts enabled on free_irq
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Uwe Zeisberger <Uwe_Zeisberger@digi.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
+    The default_disable() function was changed in commit:
+
+     76d2160147f43f982dfe881404cfde9fd0a9da21
+     genirq: do not mask interrupts by default
+
+    It removed the mask function in favour of the default delayed
+    interrupt disabling. Unfortunately this also broke the shutdown in
+    free_irq() when the last handler is removed from the interrupt for
+    those architectures which rely on the default implementations. Now we
+    can end up with a enabled interrupt line after the last handler was
+    removed, which can result in spurious interrupts.
+
+    Fix this by adding a default_shutdown function, which is only
+    installed, when the irqchip implementation does provide neither a
+    shutdown nor a disable function.
+
+    [@stable: affected versions: .21 - .24 ]
+
+for MSI, default_shutdown will call mask_bit for msi device.  so all mask bits
+will left disabled after free_irq.  then if kexec next kernel that only can
+use msi_enable bit.  all device's MSI can not be used.
+
+So try to restore MSI mask bits that is saved before using msi in first
+kernel.
+
+Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Ayaz Abdulla <aabdulla@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hw_random/omap-rng.c |   26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ arch/x86/kernel/io_apic_64.c |    9 +++++++++
+ drivers/pci/msi.c            |   26 ++++++++++++++++++++++++++
+ include/linux/msi.h          |    2 ++
+ 3 files changed, 37 insertions(+)
 
-diff -puN drivers/char/hw_random/omap-rng.c~omap_rng-minor-updates drivers/char/hw_random/omap-rng.c
---- a/drivers/char/hw_random/omap-rng.c~omap_rng-minor-updates
-+++ a/drivers/char/hw_random/omap-rng.c
-@@ -1,7 +1,5 @@
+diff -puN arch/x86/kernel/io_apic_64.c~x86_64-restore-mask_bits-in-msi-shutdown arch/x86/kernel/io_apic_64.c
+--- a/arch/x86/kernel/io_apic_64.c~x86_64-restore-mask_bits-in-msi-shutdown
++++ a/arch/x86/kernel/io_apic_64.c
+@@ -2001,6 +2001,14 @@ static void set_msi_irq_affinity(unsigne
+ }
+ #endif /* CONFIG_SMP */
+ 
++static void msi_shutdown(unsigned int irq)
++{
++	struct irq_desc *desc = irq_desc + irq;
++
++	msi_restore_mask_bits(irq);
++	desc->status |= IRQ_MASKED;
++}
++
  /*
-- * drivers/char/hw_random/omap-rng.c
-- *
-- * RNG driver for TI OMAP CPU family
-+ * omap-rng.c - RNG driver for TI OMAP CPU family
-  *
-  * Author: Deepak Saxena <dsaxena@plexity.net>
-  *
-@@ -15,11 +13,6 @@
-  * This file is licensed under  the terms of the GNU General Public
-  * License version 2. This program is licensed "as is" without any
-  * warranty of any kind, whether express or implied.
-- *
-- * TODO:
-- *
-- * - Make status updated be interrupt driven so we don't poll
-- *
-  */
- 
- #include <linux/module.h>
-@@ -55,17 +48,16 @@ static void __iomem *rng_base;
- static struct clk *rng_ick;
- static struct platform_device *rng_dev;
- 
--static u32 omap_rng_read_reg(int reg)
-+static inline u32 omap_rng_read_reg(int reg)
- {
- 	return __raw_readl(rng_base + reg);
- }
- 
--static void omap_rng_write_reg(int reg, u32 val)
-+static inline void omap_rng_write_reg(int reg, u32 val)
- {
- 	__raw_writel(val, rng_base + reg);
- }
- 
--/* REVISIT: Does the status bit really work on 16xx? */
- static int omap_rng_data_present(struct hwrng *rng, int wait)
- {
- 	int data, i;
-@@ -74,6 +66,11 @@ static int omap_rng_data_present(struct 
- 		data = omap_rng_read_reg(RNG_STAT_REG) ? 0 : 1;
- 		if (data || !wait)
- 			break;
-+		/* RNG produces data fast enough (2+ MBit/sec, even
-+		 * during "rngtest" loads, that these delays don't
-+		 * seem to trigger.  We *could* use the RNG IRQ, but
-+		 * that'd be higher overhead ... so why bother?
-+		 */
- 		udelay(10);
- 	}
- 	return data;
-@@ -101,7 +98,8 @@ static int __init omap_rng_probe(struct 
- 	 * A bit ugly, and it will never actually happen but there can
- 	 * be only one RNG and this catches any bork
- 	 */
--	BUG_ON(rng_dev);
-+	if (rng_dev)
-+		return -EBUSY;
- 
- 	if (cpu_is_omap24xx()) {
- 		rng_ick = clk_get(NULL, "rng_ick");
-@@ -124,7 +122,7 @@ static int __init omap_rng_probe(struct 
- 		return -EBUSY;
- 
- 	dev_set_drvdata(&pdev->dev, mem);
--	rng_base = (u32 __iomem *)io_p2v(res->start);
-+	rng_base = (u32 __force __iomem *)io_p2v(res->start);
- 
- 	ret = hwrng_register(&omap_rng_ops);
- 	if (ret) {
-@@ -182,6 +180,8 @@ static int omap_rng_resume(struct platfo
- 
+  * IRQ Chip for MSI PCI/PCI-X/PCI-Express Devices,
+  * which implement the MSI or MSI-X Capability Structure.
+@@ -2010,6 +2018,7 @@ static struct irq_chip msi_chip = {
+ 	.unmask		= unmask_msi_irq,
+ 	.mask		= mask_msi_irq,
+ 	.ack		= ack_apic_edge,
++	.shutdown	= msi_shutdown,
+ #ifdef CONFIG_SMP
+ 	.set_affinity	= set_msi_irq_affinity,
  #endif
+diff -puN drivers/pci/msi.c~x86_64-restore-mask_bits-in-msi-shutdown drivers/pci/msi.c
+--- a/drivers/pci/msi.c~x86_64-restore-mask_bits-in-msi-shutdown
++++ a/drivers/pci/msi.c
+@@ -123,6 +123,31 @@ static void msix_flush_writes(unsigned i
+ 	}
+ }
  
-+/* work with hotplug and coldplug */
-+MODULE_ALIAS("platform:omap_rng");
++void msi_restore_mask_bits(unsigned int irq)
++{
++	struct msi_desc *entry;
++
++	entry = get_irq_msi(irq);
++	BUG_ON(!entry || !entry->dev);
++	switch (entry->msi_attrib.type) {
++	case PCI_CAP_ID_MSI:
++		if (entry->msi_attrib.maskbit) {
++			int pos;
++			u32 mask_bits;
++
++			pos = (long)entry->mask_base;
++			mask_bits = entry->orig_mask_bits;
++			pci_write_config_dword(entry->dev, pos, mask_bits);
++		}
++		break;
++	case PCI_CAP_ID_MSIX:
++		break;
++	default:
++		BUG();
++		break;
++	}
++}
++
+ static void msi_set_mask_bit(unsigned int irq, int flag)
+ {
+ 	struct msi_desc *entry;
+@@ -376,6 +401,7 @@ static int msi_capability_init(struct pc
+ 		pci_read_config_dword(dev,
+ 			msi_mask_bits_reg(pos, is_64bit_address(control)),
+ 			&maskbits);
++		entry->orig_mask_bits = maskbits;
+ 		temp = (1 << multi_msi_capable(control));
+ 		temp = ((temp - 1) & ~temp);
+ 		maskbits |= temp;
+diff -puN include/linux/msi.h~x86_64-restore-mask_bits-in-msi-shutdown include/linux/msi.h
+--- a/include/linux/msi.h~x86_64-restore-mask_bits-in-msi-shutdown
++++ a/include/linux/msi.h
+@@ -14,6 +14,7 @@ extern void mask_msi_irq(unsigned int ir
+ extern void unmask_msi_irq(unsigned int irq);
+ extern void read_msi_msg(unsigned int irq, struct msi_msg *msg);
+ extern void write_msi_msg(unsigned int irq, struct msi_msg *msg);
++extern void msi_restore_mask_bits(unsigned int irq);
  
- static struct platform_driver omap_rng_driver = {
- 	.driver = {
+ struct msi_desc {
+ 	struct {
+@@ -30,6 +31,7 @@ struct msi_desc {
+ 	struct list_head list;
+ 
+ 	void __iomem *mask_base;
++	u32 orig_mask_bits;  /* restoring it for freeing */
+ 	struct pci_dev *dev;
+ 
+ 	/* Last set MSI message */
 _
 
-Patches currently in -mm which might be from david-b@pacbell.net are
+Patches currently in -mm which might be from yhlu.kernel.send@gmail.com are
 
-git-acpi.patch
-git-arm.patch
-git-avr32.patch
-git-input.patch
-input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
-jffs2-summary-allocation-dont-use-vmalloc.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-spi-pxa2xx_spi-sparse-fixes.patch
-atmel_spi-support-zero-length-transfer.patch
-rtc-avoid-legacy-drivers-with-generic-framework.patch
-rtc-avoid-legacy-drivers-with-generic-framework-update.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-rtc-silence-section-mismatch-warning-in-rtc-test.patch
-make-ds1511_rtc_readset_time-static.patch
-kerneldoc-for-linux-clkh.patch
-kerneldoc-for-linux-clkh-fix.patch
-rtc-rtc-rs5c372-fix-up-null-name-in-transfer-error-path.patch
-rtc-rtc-rs5c372-smbus-conversion-support.patch
-rtc-rtc-rs5c732-add-support-for-ricoh-r2025s-d-rtc.patch
-rtc-replace-remaining-__function__-occurrences.patch
-gpiochip_reserve-fix-2.patch
-remove-duplicated-unlikely-in-is_err.patch
-omap_rng-minor-updates.patch
+git-x86.patch
+x86_64-restore-mask_bits-in-msi-shutdown.patch
+mm-make-mem_map-allocation-continuous-v2.patch
+mm-offset-align-in-alloc_bootmem.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes.patch
 
