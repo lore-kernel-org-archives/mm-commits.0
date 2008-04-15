@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + amiserial-switch-put-char-to-return-success-fail.patch added to -mm tree
-Date: Mon, 14 Apr 2008 19:04:22 -0700
-Message-ID: <200804150204.m3F24MDB005609@imap1.linux-foundation.org>
+Subject: + usb-gadget-switch-to-put_char-returning-int.patch added to -mm tree
+Date: Mon, 14 Apr 2008 19:04:20 -0700
+Message-ID: <200804150204.m3F24KaE005606@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34895 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43170 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759599AbYDOCFE (ORCPT
+	by vger.kernel.org with ESMTP id S1759749AbYDOCFM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 22:05:04 -0400
+	Mon, 14 Apr 2008 22:05:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, dbrownell@users.sourceforge.net, gregkh@suse.de
 
 
 The patch titled
-     amiserial: Switch put char to return success/fail
+     usb gadget: switch to put_char returning int
 has been added to the -mm tree.  Its filename is
-     amiserial-switch-put-char-to-return-success-fail.patch
+     usb-gadget-switch-to-put_char-returning-int.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,60 +34,61 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: amiserial: Switch put char to return success/fail
+Subject: usb gadget: switch to put_char returning int
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/amiserial.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ drivers/usb/gadget/serial.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/amiserial.c~amiserial-switch-put-char-to-return-success-fail drivers/char/amiserial.c
---- a/drivers/char/amiserial.c~amiserial-switch-put-char-to-return-success-fail
-+++ a/drivers/char/amiserial.c
-@@ -832,33 +832,34 @@ static void change_speed(struct async_st
- 	local_irq_restore(flags);
- }
- 
--static void rs_put_char(struct tty_struct *tty, unsigned char ch)
-+static int rs_put_char(struct tty_struct *tty, unsigned char ch)
+diff -puN drivers/usb/gadget/serial.c~usb-gadget-switch-to-put_char-returning-int drivers/usb/gadget/serial.c
+--- a/drivers/usb/gadget/serial.c~usb-gadget-switch-to-put_char-returning-int
++++ a/drivers/usb/gadget/serial.c
+@@ -170,7 +170,7 @@ static int gs_open(struct tty_struct *tt
+ static void gs_close(struct tty_struct *tty, struct file *file);
+ static int gs_write(struct tty_struct *tty,
+ 	const unsigned char *buf, int count);
+-static void gs_put_char(struct tty_struct *tty, unsigned char ch);
++static int gs_put_char(struct tty_struct *tty, unsigned char ch);
+ static void gs_flush_chars(struct tty_struct *tty);
+ static int gs_write_room(struct tty_struct *tty);
+ static int gs_chars_in_buffer(struct tty_struct *tty);
+@@ -883,14 +883,15 @@ exit:
+ /*
+  * gs_put_char
+  */
+-static void gs_put_char(struct tty_struct *tty, unsigned char ch)
++static int gs_put_char(struct tty_struct *tty, unsigned char ch)
  {
- 	struct async_struct *info;
  	unsigned long flags;
+ 	struct gs_port *port = tty->driver_data;
++	int ret = 0;
  
- 	if (!tty)
--		return;
-+		return 0;
- 
- 	info = tty->driver_data;
- 
- 	if (serial_paranoia_check(info, tty->name, "rs_put_char"))
--		return;
-+		return 0;
- 
- 	if (!info->xmit.buf)
--		return;
-+		return 0;
- 
- 	local_irq_save(flags);
- 	if (CIRC_SPACE(info->xmit.head,
- 		       info->xmit.tail,
- 		       SERIAL_XMIT_SIZE) == 0) {
- 		local_irq_restore(flags);
+ 	if (port == NULL) {
+ 		pr_err("gs_put_char: NULL port pointer\n");
 -		return;
 +		return 0;
  	}
  
- 	info->xmit.buf[info->xmit.head++] = ch;
- 	info->xmit.head &= SERIAL_XMIT_SIZE-1;
- 	local_irq_restore(flags);
-+	return 1;
+ 	gs_debug("gs_put_char: (%d,%p) char=0x%x, called from %p\n",
+@@ -910,10 +911,11 @@ static void gs_put_char(struct tty_struc
+ 		goto exit;
+ 	}
+ 
+-	gs_buf_put(port->port_write_buf, &ch, 1);
++	ret = gs_buf_put(port->port_write_buf, &ch, 1);
+ 
+ exit:
+ 	spin_unlock_irqrestore(&port->port_lock, flags);
++	return ret;
  }
  
- static void rs_flush_chars(struct tty_struct *tty)
+ /*
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
