@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-fix-max_order-config-problem.patch added to -mm tree
-Date: Mon, 14 Apr 2008 18:05:39 -0700
-Message-ID: <200804150105.m3F15dE9003409@imap1.linux-foundation.org>
+Subject: + x86-geode-add-virtual-systems-architecture-detection.patch added to -mm tree
+Date: Mon, 14 Apr 2008 18:12:56 -0700
+Message-ID: <200804150112.m3F1Cupn003700@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48110 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43118 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752127AbYDOBFu (ORCPT
+	by vger.kernel.org with ESMTP id S1753570AbYDOBOE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 21:05:50 -0400
+	Mon, 14 Apr 2008 21:14:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sfr@canb.auug.org.au, benh@kernel.crashing.org, paulus@samba.org
+Cc: dilinger@queued.net, alan@lxorguk.ukuu.org.uk, dilinger@debian.org, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     powerpc: fix MAX_ORDER config problem
+     x86: GEODE: add Virtual Systems Architecture detection
 has been added to the -mm tree.  Its filename is
-     powerpc-fix-max_order-config-problem.patch
+     x86-geode-add-virtual-systems-architecture-detection.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: fix MAX_ORDER config problem
-From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: x86: GEODE: add Virtual Systems Architecture detection
+From: Andres Salomon <dilinger@queued.net>
 
-The allyesconfig (among others) build was giving this:
+This is generic VSA2 detection.  It's used by OLPC to determine whether or not
+the BIOS contains VSA2, but since other BIOSes are coming out that don't use
+the VSA (ie, tinybios), it might end up being useful for others.
 
-In file included from include/linux/gfp.h:4,
-                 from include/linux/slab.h:14,
-                 from include/linux/percpu.h:5,
-                 from include2/asm/time.h:18,
-                 from include2/asm/cputime.h:26,
-                 from include/linux/sched.h:67,
-                 from
-arch/powerpc/kernel/asm-offsets.c:17:
-include/linux/mmzone.h:791:2: error: #error Allocator MAX_ORDER exceeds SECTION_SIZE
-
-Kconfig options are order depenendent, so move the setting of
-FORCE_MAX_ZONEORDER to after the setting of PPC_64K_PAGES.  Also add an
-explicit !PPC_64K_PAGES.
-
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |   40 ++++++++++++++++++++--------------------
- 1 file changed, 20 insertions(+), 20 deletions(-)
+ include/asm-x86/geode.h |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff -puN arch/powerpc/Kconfig~powerpc-fix-max_order-config-problem arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~powerpc-fix-max_order-config-problem
-+++ a/arch/powerpc/Kconfig
-@@ -211,26 +211,6 @@ source kernel/Kconfig.hz
- source kernel/Kconfig.preempt
- source "fs/Kconfig.binfmt"
+diff -puN include/asm-x86/geode.h~x86-geode-add-virtual-systems-architecture-detection include/asm-x86/geode.h
+--- a/include/asm-x86/geode.h~x86-geode-add-virtual-systems-architecture-detection
++++ a/include/asm-x86/geode.h
+@@ -103,6 +103,14 @@ extern int geode_get_dev_base(unsigned i
+ #define PM_AWKD			0x50
+ #define PM_SSC			0x54
  
--config FORCE_MAX_ZONEORDER
--	int "Maximum zone order"
--	default "9" if PPC_64K_PAGES
--	default "13" if PPC64
--	default "11"
--	help
--	  The kernel memory allocator divides physically contiguous memory
--	  blocks into "zones", where each zone is a power of two number of
--	  pages.  This option selects the largest power of two that the kernel
--	  keeps in the memory allocator.  If you need to allocate very large
--	  blocks of physically contiguous memory, then you may need to
--	  increase this value.
--
--	  This config option is actually maximum order plus one. For example,
--	  a value of 11 means that the largest free memory block is 2^10 pages.
--
--	  The page size is not necessarily 4KB.  For example, on 64-bit
--	  systems, 64KB pages can be enabled via CONFIG_PPC_64K_PAGES.  Keep
--	  this in mind when choosing a value for this option.
--
- config HUGETLB_PAGE_SIZE_VARIABLE
- 	bool
- 	depends on HUGETLB_PAGE
-@@ -403,6 +383,26 @@ config PPC_64K_PAGES
- 	  while on hardware with such support, it will be used to map
- 	  normal application pages.
++/* VSA2 magic values */
++
++#define VSA_VRC_INDEX		0xAC1C
++#define VSA_VRC_DATA		0xAC1E
++#define VSA_VR_UNLOCK		0xFC53	/* unlock virtual register */
++#define VSA_VR_SIGNATURE	0x0003
++#define VSA_SIG			0x4132	/* signature is ascii 'VSA2' */
++
+ /* GPIO */
  
-+config FORCE_MAX_ZONEORDER
-+	int "Maximum zone order"
-+	default "9" if PPC_64K_PAGES
-+	default "13" if PPC64 && !PPC_64K_PAGES
-+	default "11"
-+	help
-+	  The kernel memory allocator divides physically contiguous memory
-+	  blocks into "zones", where each zone is a power of two number of
-+	  pages.  This option selects the largest power of two that the kernel
-+	  keeps in the memory allocator.  If you need to allocate very large
-+	  blocks of physically contiguous memory, then you may need to
-+	  increase this value.
+ #define GPIO_OUTPUT_VAL		0x00
+@@ -174,6 +182,17 @@ static inline int is_geode(void)
+ 	return (is_geode_gx() || is_geode_lx());
+ }
+ 
++/*
++ * The VSA has virtual registers that we can query for a signature.
++ */
++static inline int geode_has_vsa2(void)
++{
++	outw(VSA_VR_UNLOCK, VSA_VRC_INDEX);
++	outw(VSA_VR_SIGNATURE, VSA_VRC_INDEX);
 +
-+	  This config option is actually maximum order plus one. For example,
-+	  a value of 11 means that the largest free memory block is 2^10 pages.
++	return (inw(VSA_VRC_DATA) == VSA_SIG);
++}
 +
-+	  The page size is not necessarily 4KB.  For example, on 64-bit
-+	  systems, 64KB pages can be enabled via CONFIG_PPC_64K_PAGES.  Keep
-+	  this in mind when choosing a value for this option.
-+
- config PPC_SUBPAGE_PROT
- 	bool "Support setting protections for 4k subpages"
- 	depends on PPC_64K_PAGES
+ /* MFGPTs */
+ 
+ #define MFGPT_MAX_TIMERS	8
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-git-x86.patch
-git-powerpc.patch
-powerpc-fix-max_order-config-problem.patch
-git-libata-all.patch
-git-async-tx.patch
-smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-nsc-ircc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-drivers-video-imsttfbc-add-missing-curly-brackets.patch
-viocons-bkl-locking.patch
+x86-geode-msr-cleanup.patch
+x86-geode-add-virtual-systems-architecture-detection.patch
+gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
+gxfb-replace-fbsize-config-option-with-a-module-parameter.patch
+gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
+gxfb-clean-up-register-definitions.patch
+gxfb-move-msr-bit-fields-into-gxfbh.patch
+gxfb-stop-sharing-code-with-gx1fb.patch
+gxfb-add-power-management-functionality.patch
+gxfb-add-power-management-functionality-fix.patch
+gxfb-add-power-management-functionality-update.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-create-gp-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
+lxfb-clean-up-register-definitions.patch
+lxfb-clean-up-final-bits-of-df_regs.patch
+lxfb-rearrange-rename-msr-bitfields.patch
+lxfb-add-power-management-functionality.patch
+lxfb-add-power-management-functionality-fix.patch
+lxfb-add-power-management-functionality-update.patch
+lxfb-rename-kernel-arg-fbsize-to-vram.patch
+lxfb-disable-suspend-vt-switch-by-default.patch
+lxfb-gxfb-when-blanking-with-fb_blank_powerdown-also-turn-off-the-crt.patch
 
