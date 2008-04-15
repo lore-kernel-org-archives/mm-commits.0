@@ -1,82 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - input-put-ledstate-in-the-keyboard-notifier.patch removed from -mm tree
-Date: Tue, 15 Apr 2008 02:10:42 -0700
-Message-ID: <200804150910.m3F9Ag6k020650@imap1.linux-foundation.org>
+Subject: + mm-page_allocc-remove-hand-coded-get_order.patch added to -mm tree
+Date: Tue, 15 Apr 2008 02:35:22 -0700
+Message-ID: <200804150935.m3F9ZMap021548@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49493 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36353 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756822AbYDOJMs (ORCPT
+	by vger.kernel.org with ESMTP id S1763567AbYDOJf2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 05:12:48 -0400
+	Tue, 15 Apr 2008 05:35:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: eklhad@comcast.net, dtor@mail.ru, jikos@jikos.cz, samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: pavel@ucw.cz, pavel@suse.cz
 
 
 The patch titled
-     input: put ledstate in the keyboard notifier
-has been removed from the -mm tree.  Its filename was
-     input-put-ledstate-in-the-keyboard-notifier.patch
+     mm/page_alloc.c: remove hand-coded get_order()
+has been added to the -mm tree.  Its filename is
+     mm-page_allocc-remove-hand-coded-get_order.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: put ledstate in the keyboard notifier
-From: Karl Dahlke <eklhad@comcast.net>
+Subject: mm/page_alloc.c: remove hand-coded get_order()
+From: Pavel Machek <pavel@ucw.cz>
 
-I think there is general agreement, including myself, that led state should
-be part of the key event, like shiftstate, and not grabbed asynchronously
-after the fact.
+Remove hand-coded get_order() from page_alloc.c.
 
-[samuel.thibault@ens-lyon.org: various fixes]
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jiri Kosina <jikos@jikos.cz>
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Signed-off-by: Pavel Machek <pavel@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/keyboard.c  |    2 ++
- include/linux/keyboard.h |    1 +
- 2 files changed, 3 insertions(+)
+ mm/page_alloc.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/char/keyboard.c~input-put-ledstate-in-the-keyboard-notifier drivers/char/keyboard.c
---- a/drivers/char/keyboard.c~input-put-ledstate-in-the-keyboard-notifier
-+++ a/drivers/char/keyboard.c
-@@ -1238,6 +1238,7 @@ static void kbd_keycode(unsigned int key
- 	}
- 
- 	param.shift = shift_final = (shift_state | kbd->slockstate) ^ kbd->lockstate;
-+	param.ledstate = kbd->ledflagstate;
- 	key_map = key_maps[shift_final];
- 
- 	if (atomic_notifier_call_chain(&keyboard_notifier_list, KBD_KEYCODE, &param) == NOTIFY_STOP || !key_map) {
-@@ -1286,6 +1287,7 @@ static void kbd_keycode(unsigned int key
- 
- 	(*k_handler[type])(vc, keysym & 0xff, !down);
- 
-+	param.ledstate = kbd->ledflagstate;
- 	atomic_notifier_call_chain(&keyboard_notifier_list, KBD_POST_KEYSYM, &param);
- 
- 	if (type != KT_SLOCK)
-diff -puN include/linux/keyboard.h~input-put-ledstate-in-the-keyboard-notifier include/linux/keyboard.h
---- a/include/linux/keyboard.h~input-put-ledstate-in-the-keyboard-notifier
-+++ a/include/linux/keyboard.h
-@@ -33,6 +33,7 @@ struct keyboard_notifier_param {
- 	struct vc_data *vc;	/* VC on which the keyboard press was done */
- 	int down;		/* Pressure of the key? */
- 	int shift;		/* Current shift mask */
-+	int ledstate;		/* Current led state */
- 	unsigned int value;	/* keycode, unicode value or keysym */
- };
- 
+diff -puN mm/page_alloc.c~mm-page_allocc-remove-hand-coded-get_order mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-remove-hand-coded-get_order
++++ a/mm/page_alloc.c
+@@ -4345,9 +4345,7 @@ void *__init alloc_large_system_hash(con
+ 		else if (hashdist)
+ 			table = __vmalloc(size, GFP_ATOMIC, PAGE_KERNEL);
+ 		else {
+-			unsigned long order;
+-			for (order = 0; ((1UL << order) << PAGE_SHIFT) < size; order++)
+-				;
++			unsigned long order = get_order(size);
+ 			table = (void*) __get_free_pages(GFP_ATOMIC, order);
+ 			/*
+ 			 * If bucketsize is not a power-of-two, we may free
 _
 
-Patches currently in -mm which might be from eklhad@comcast.net are
+Patches currently in -mm which might be from pavel@ucw.cz are
 
-git-input.patch
-vt-notifier-extension-for-accessibility.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+git-acpi.patch
+git-x86.patch
+pm-introduce-new-top-level-suspend-and-hibernation-callbacks.patch
+pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type.patch
+pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type.patch
+s2ram-warn-when-interrupts-should-be-disabled-but-are-not.patch
+git-hrt.patch
+git-net.patch
+hci_usb-do-not-initialize-static-variables-to-0.patch
+hci_usb-remove-code-obfuscation.patch
+hci_usbh-fix-hard-to-trigger-race.patch
+mm-page_allocc-remove-hand-coded-get_order.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
 
