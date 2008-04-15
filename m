@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:37:47 -0700
-Message-ID: <200804152237.m3FMbmgs019438@imap1.linux-foundation.org>
+Subject: + add-kbuildh-that-contains-common-definitions-for-kbuild-users.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:37:09 -0700
+Message-ID: <200804152237.m3FMb9KH019383@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53312 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39770 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758545AbYDOWiB (ORCPT
+	by vger.kernel.org with ESMTP id S1761460AbYDOWkJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:38:01 -0400
+	Tue, 15 Apr 2008 18:40:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, benh@kernel.crashing.org, paulus@samba.org
+Cc: clameter@sgi.com, benh@kernel.crashing.org, bryan.wu@analog.com, chris@zankel.net, davem@davemloft.net, dhowells@redhat.com, geert@linux-m68k.org, gerg@uclinux.org, grundler@parisc-linux.org, heiko.carstens@de.ibm.com, hskinnemoen@atmel.com, ink@jurassic.park.msu.ru, jay.estabrook@hp.com, kyle@mcmartin.ca, lethal@linux-sh.org, matthew@wil.cx, miles@gnu.org, mingo@elte.hu, paulus@samba.org, ralf@linux-mips.org, rmk@arm.linux.org.uk, rth@twiddle.net, sam@ravnborg.org, schwidefsky@de.ibm.com, tglx@linutronix.de, tony.luck@intel.com, vapier.adi@gmail.com, ysato@users.sourceforge.jp, zippel@linux-m68k.org
 
 
 The patch titled
-     ppc/powerpc: use kbuild.h instead of defining macros in asm-offsets.c
+     Add kbuild.h that contains common definitions for kbuild users
 has been added to the -mm tree.  Its filename is
-     ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+     add-kbuildh-that-contains-common-definitions-for-kbuild-users.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,65 +34,89 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ppc/powerpc: use kbuild.h instead of defining macros in asm-offsets.c
+Subject: Add kbuild.h that contains common definitions for kbuild users
 From: Christoph Lameter <clameter@sgi.com>
 
+The same definitions are used for the bounds logic and the asm-offsets.h
+generation by kbuild.  Put them into include/linux/kbuild.h file.
+
+Also add a new feature
+
+	COMMENT("text")
+
+which can be used to insert lines of ocmments into asm-offsets.h and
+bounds.h.
+
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Jay Estabrook <jay.estabrook@hp.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: "Luck, Tony" <tony.luck@intel.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Cc: Bryan Wu <bryan.wu@analog.com>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Greg Ungerer <gerg@uclinux.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Miles Bader <miles@gnu.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/asm-offsets.c |    6 +-----
- arch/ppc/kernel/asm-offsets.c     |    7 ++-----
- 2 files changed, 3 insertions(+), 10 deletions(-)
+ include/linux/kbuild.h |   15 +++++++++++++++
+ kernel/bounds.c        |    6 +-----
+ 2 files changed, 16 insertions(+), 5 deletions(-)
 
-diff -puN arch/powerpc/kernel/asm-offsets.c~ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/powerpc/kernel/asm-offsets.c
---- a/arch/powerpc/kernel/asm-offsets.c~ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
-+++ a/arch/powerpc/kernel/asm-offsets.c
-@@ -27,6 +27,7 @@
- #include <linux/time.h>
- #include <linux/hardirq.h>
- #endif
-+#include <linux/kbuild.h>
- 
- #include <asm/io.h>
- #include <asm/page.h>
-@@ -48,11 +49,6 @@
- #include <asm/iseries/alpaca.h>
- #endif
- 
--#define DEFINE(sym, val) \
--	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
--
--#define BLANK() asm volatile("\n->" : : )
--
- int main(void)
- {
- 	DEFINE(THREAD, offsetof(struct task_struct, thread));
-diff -puN arch/ppc/kernel/asm-offsets.c~ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/ppc/kernel/asm-offsets.c
---- a/arch/ppc/kernel/asm-offsets.c~ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
-+++ a/arch/ppc/kernel/asm-offsets.c
-@@ -18,6 +18,8 @@
- #include <linux/suspend.h>
- #include <linux/mman.h>
- #include <linux/mm.h>
-+#include <linux/kbuild.h>
+diff -puN /dev/null include/linux/kbuild.h
+--- /dev/null
++++ a/include/linux/kbuild.h
+@@ -0,0 +1,15 @@
++#ifndef __LINUX_KBUILD_H
++#define __LINUX_KBUILD_H
 +
- #include <asm/io.h>
- #include <asm/page.h>
- #include <asm/pgtable.h>
-@@ -26,11 +28,6 @@
- #include <asm/thread_info.h>
- #include <asm/vdso_datapage.h>
- 
++#define DEFINE(sym, val) \
++        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
++
++#define BLANK() asm volatile("\n->" : : )
++
++#define OFFSET(sym, str, mem) \
++	DEFINE(sym, offsetof(struct str, mem))
++
++#define COMMENT(x) \
++	asm volatile("\n->#" x)
++
++#endif
+diff -puN kernel/bounds.c~add-kbuildh-that-contains-common-definitions-for-kbuild-users kernel/bounds.c
+--- a/kernel/bounds.c~add-kbuildh-that-contains-common-definitions-for-kbuild-users
++++ a/kernel/bounds.c
+@@ -8,11 +8,7 @@
+ /* Include headers that define the enum constants of interest */
+ #include <linux/page-flags.h>
+ #include <linux/mmzone.h>
+-
 -#define DEFINE(sym, val) \
--	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+-        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
 -
 -#define BLANK() asm volatile("\n->" : : )
--
- int
- main(void)
++#include <linux/kbuild.h>
+ 
+ void foo(void)
  {
 _
 
