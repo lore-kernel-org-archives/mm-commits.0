@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: - revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch removed from -mm tree
-Date: Tue, 15 Apr 2008 13:43:55 -0700
-Message-ID: <200804152043.m3FKhtwt014639@imap1.linux-foundation.org>
+Subject: - revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch removed from -mm tree
+Date: Tue, 15 Apr 2008 13:43:52 -0700
+Message-ID: <200804152043.m3FKhqZa014631@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56070 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41527 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756376AbYDOUoI (ORCPT
+	by vger.kernel.org with ESMTP id S1757754AbYDOUoN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 16:44:08 -0400
+	Tue, 15 Apr 2008 16:44:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, davem@davemloft.net, greg@kroah.com, m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert gregkh-pci-pci-sh-use-generic-pci_enable_resources
+     revert gregkh-pci-pci-mn10300-use-generic-pci_enable_resources
 has been removed from the -mm tree.  Its filename was
-     revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
+     revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert gregkh-pci-pci-sh-use-generic-pci_enable_resources
+Subject: revert gregkh-pci-pci-mn10300-use-generic-pci_enable_resources
 From: Andrew Morton <akpm@linux-foundation.org>
 
 On Fri, 28 Mar 2008 16:10:11 -0700 (PDT) David Miller <davem@davemloft.net> wrote:
@@ -57,48 +57,83 @@ Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/drivers/pci/pci.c |   29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+ arch/mn10300/unit-asb2305/pci-asb2305.c |   39 ++++++++++++++++++++++
+ arch/mn10300/unit-asb2305/pci-asb2305.h |    1 
+ arch/mn10300/unit-asb2305/pci.c         |    2 -
+ 3 files changed, 41 insertions(+), 1 deletion(-)
 
-diff -puN arch/sh/drivers/pci/pci.c~revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources arch/sh/drivers/pci/pci.c
---- a/arch/sh/drivers/pci/pci.c~revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources
-+++ a/arch/sh/drivers/pci/pci.c
-@@ -133,7 +133,34 @@ void pcibios_align_resource(void *data, 
+diff -puN arch/mn10300/unit-asb2305/pci-asb2305.c~revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources arch/mn10300/unit-asb2305/pci-asb2305.c
+--- a/arch/mn10300/unit-asb2305/pci-asb2305.c~revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources
++++ a/arch/mn10300/unit-asb2305/pci-asb2305.c
+@@ -218,6 +218,45 @@ void __init pcibios_resource_survey(void
+ 	pcibios_allocate_resources(1);
+ }
  
- int pcibios_enable_device(struct pci_dev *dev, int mask)
- {
--	return pci_enable_resources(dev, mask);
++int pcibios_enable_resources(struct pci_dev *dev, int mask)
++{
 +	u16 cmd, old_cmd;
 +	int idx;
 +	struct resource *r;
 +
 +	pci_read_config_word(dev, PCI_COMMAND, &cmd);
 +	old_cmd = cmd;
-+	for(idx=0; idx<6; idx++) {
++
++	for (idx = 0; idx < 6; idx++) {
++		/* Only set up the requested stuff */
 +		if (!(mask & (1 << idx)))
 +			continue;
++
 +		r = &dev->resource[idx];
++
 +		if (!r->start && r->end) {
-+			printk(KERN_ERR "PCI: Device %s not available because "
-+			       "of resource collisions\n", pci_name(dev));
++			printk(KERN_ERR
++			       "PCI: Device %s not available because of"
++			       " resource collisions\n",
++			       pci_name(dev));
 +			return -EINVAL;
 +		}
++
 +		if (r->flags & IORESOURCE_IO)
 +			cmd |= PCI_COMMAND_IO;
 +		if (r->flags & IORESOURCE_MEM)
 +			cmd |= PCI_COMMAND_MEMORY;
 +	}
++
 +	if (dev->resource[PCI_ROM_RESOURCE].start)
 +		cmd |= PCI_COMMAND_MEMORY;
-+	if (cmd != old_cmd) {
-+		printk(KERN_INFO "PCI: Enabling device %s (%04x -> %04x)\n",
-+		       pci_name(dev), old_cmd, cmd);
++
++	if (cmd != old_cmd)
 +		pci_write_config_word(dev, PCI_COMMAND, cmd);
-+	}
++
 +	return 0;
- }
- 
++}
++
  /*
+  *  If we set up a device for bus mastering, we need to check the latency
+  *  timer as certain crappy BIOSes forget to set it properly.
+diff -puN arch/mn10300/unit-asb2305/pci-asb2305.h~revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources arch/mn10300/unit-asb2305/pci-asb2305.h
+--- a/arch/mn10300/unit-asb2305/pci-asb2305.h~revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources
++++ a/arch/mn10300/unit-asb2305/pci-asb2305.h
+@@ -34,6 +34,7 @@ extern unsigned int pci_probe;
+ extern unsigned int pcibios_max_latency;
+ 
+ extern void pcibios_resource_survey(void);
++extern int pcibios_enable_resources(struct pci_dev *dev, int mask);
+ 
+ /* pci.c */
+ 
+diff -puN arch/mn10300/unit-asb2305/pci.c~revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources arch/mn10300/unit-asb2305/pci.c
+--- a/arch/mn10300/unit-asb2305/pci.c~revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources
++++ a/arch/mn10300/unit-asb2305/pci.c
+@@ -440,7 +440,7 @@ int pcibios_enable_device(struct pci_dev
+ {
+ 	int err;
+ 
+-	err = pci_enable_resources(dev, mask);
++	err = pcibios_enable_resources(dev, mask);
+ 	if (err == 0)
+ 		pcibios_enable_irq(dev);
+ 	return err;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
