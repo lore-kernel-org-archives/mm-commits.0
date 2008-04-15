@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mn10300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:37:43 -0700
-Message-ID: <200804152237.m3FMbhqK019431@imap1.linux-foundation.org>
+Subject: + ia64-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:37:22 -0700
+Message-ID: <200804152237.m3FMbM7W019401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47079 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753165AbYDOWld (ORCPT
+	by vger.kernel.org with ESMTP id S1752802AbYDOWlN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:41:33 -0400
+	Tue, 15 Apr 2008 18:41:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, dhowells@redhat.com
+Cc: clameter@sgi.com, tony.luck@intel.com
 
 
 The patch titled
-     mn10300: use kbuild.h instead of defining macros in asm-offsets.c
+     ia64: use kbuild.h macros instead of defining macros in asm-offsets.c
 has been added to the -mm tree.  Its filename is
-     mn10300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+     ia64-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,43 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: use kbuild.h instead of defining macros in asm-offsets.c
+Subject: ia64: use kbuild.h macros instead of defining macros in asm-offsets.c
 From: Christoph Lameter <clameter@sgi.com>
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/kernel/asm-offsets.c |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ arch/ia64/kernel/asm-offsets.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-diff -puN arch/mn10300/kernel/asm-offsets.c~mn10300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/mn10300/kernel/asm-offsets.c
---- a/arch/mn10300/kernel/asm-offsets.c~mn10300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
-+++ a/arch/mn10300/kernel/asm-offsets.c
-@@ -7,6 +7,7 @@
+diff -puN arch/ia64/kernel/asm-offsets.c~ia64-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc arch/ia64/kernel/asm-offsets.c
+--- a/arch/ia64/kernel/asm-offsets.c~ia64-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc
++++ a/arch/ia64/kernel/asm-offsets.c
+@@ -9,7 +9,7 @@
  #include <linux/sched.h>
- #include <linux/signal.h>
- #include <linux/personality.h>
+ #include <linux/pid.h>
+ #include <linux/clocksource.h>
+-
 +#include <linux/kbuild.h>
- #include <asm/ucontext.h>
- #include <asm/processor.h>
- #include <asm/thread_info.h>
-@@ -14,14 +15,6 @@
- #include "sigframe.h"
- #include "mn10300-serial.h"
+ #include <asm-ia64/processor.h>
+ #include <asm-ia64/ptrace.h>
+ #include <asm-ia64/siginfo.h>
+@@ -19,11 +19,6 @@
+ #include "../kernel/sigframe.h"
+ #include "../kernel/fsyscall_gtod_data.h"
  
 -#define DEFINE(sym, val) \
--	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+-        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
 -
--#define BLANK() asm volatile("\n->")
--
--#define OFFSET(sym, str, mem) \
--	DEFINE(sym, offsetof(struct str, mem));
+-#define BLANK() asm volatile("\n->" : : )
 -
  void foo(void)
  {
- 	OFFSET(SIGCONTEXT_d0, sigcontext, d0);
+ 	DEFINE(IA64_TASK_SIZE, sizeof (struct task_struct));
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
