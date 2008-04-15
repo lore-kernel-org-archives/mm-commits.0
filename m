@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + specialix-switch-to-int-put_char-method.patch added to -mm tree
-Date: Mon, 14 Apr 2008 19:04:34 -0700
-Message-ID: <200804150204.m3F24YKo005627@imap1.linux-foundation.org>
+Subject: + amiserial-switch-put-char-to-return-success-fail.patch added to -mm tree
+Date: Mon, 14 Apr 2008 19:04:22 -0700
+Message-ID: <200804150204.m3F24MDB005609@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35754 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759657AbYDOCFF (ORCPT
+	by vger.kernel.org with ESMTP id S1759599AbYDOCFE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 22:05:05 -0400
+	Mon, 14 Apr 2008 22:05:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
 
 
 The patch titled
-     specialix: Switch to int put_char method
+     amiserial: Switch put char to return success/fail
 has been added to the -mm tree.  Its filename is
-     specialix-switch-to-int-put_char-method.patch
+     amiserial-switch-put-char-to-return-success-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: specialix: Switch to int put_char method
+Subject: amiserial: Switch put char to return success/fail
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
@@ -42,53 +42,52 @@ Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/specialix.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/char/amiserial.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/specialix.c~specialix-switch-to-int-put_char-method drivers/char/specialix.c
---- a/drivers/char/specialix.c~specialix-switch-to-int-put_char-method
-+++ a/drivers/char/specialix.c
-@@ -1692,7 +1692,7 @@ static int sx_write(struct tty_struct * 
+diff -puN drivers/char/amiserial.c~amiserial-switch-put-char-to-return-success-fail drivers/char/amiserial.c
+--- a/drivers/char/amiserial.c~amiserial-switch-put-char-to-return-success-fail
++++ a/drivers/char/amiserial.c
+@@ -832,33 +832,34 @@ static void change_speed(struct async_st
+ 	local_irq_restore(flags);
  }
  
- 
--static void sx_put_char(struct tty_struct * tty, unsigned char ch)
-+static int sx_put_char(struct tty_struct * tty, unsigned char ch)
+-static void rs_put_char(struct tty_struct *tty, unsigned char ch)
++static int rs_put_char(struct tty_struct *tty, unsigned char ch)
  {
- 	struct specialix_port *port = (struct specialix_port *)tty->driver_data;
+ 	struct async_struct *info;
  	unsigned long flags;
-@@ -1702,12 +1702,12 @@ static void sx_put_char(struct tty_struc
  
- 	if (sx_paranoia_check(port, tty->name, "sx_put_char")) {
- 		func_exit();
+ 	if (!tty)
 -		return;
 +		return 0;
- 	}
- 	dprintk (SX_DEBUG_TX, "check tty: %p %p\n", tty, port->xmit_buf);
- 	if (!port->xmit_buf) {
- 		func_exit();
--		return;
-+		return 0;
- 	}
- 	bp = port_Board(port);
- 	spin_lock_irqsave(&port->lock, flags);
-@@ -1717,7 +1717,7 @@ static void sx_put_char(struct tty_struc
- 		spin_unlock_irqrestore(&port->lock, flags);
- 		dprintk (SX_DEBUG_TX, "Exit size\n");
- 		func_exit();
--		return;
-+		return 0;
- 	}
- 	dprintk (SX_DEBUG_TX, "Handle xmit: %p %p\n", port, port->xmit_buf);
- 	port->xmit_buf[port->xmit_head++] = ch;
-@@ -1726,6 +1726,7 @@ static void sx_put_char(struct tty_struc
- 	spin_unlock_irqrestore(&port->lock, flags);
  
- 	func_exit();
+ 	info = tty->driver_data;
+ 
+ 	if (serial_paranoia_check(info, tty->name, "rs_put_char"))
+-		return;
++		return 0;
+ 
+ 	if (!info->xmit.buf)
+-		return;
++		return 0;
+ 
+ 	local_irq_save(flags);
+ 	if (CIRC_SPACE(info->xmit.head,
+ 		       info->xmit.tail,
+ 		       SERIAL_XMIT_SIZE) == 0) {
+ 		local_irq_restore(flags);
+-		return;
++		return 0;
+ 	}
+ 
+ 	info->xmit.buf[info->xmit.head++] = ch;
+ 	info->xmit.head &= SERIAL_XMIT_SIZE-1;
+ 	local_irq_restore(flags);
 +	return 1;
  }
  
- 
+ static void rs_flush_chars(struct tty_struct *tty)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
