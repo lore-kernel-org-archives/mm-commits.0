@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tty-fix-routine-name-in-ptmx_open.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:01:47 -0700
-Message-ID: <200804152201.m3FM1lD8018018@imap1.linux-foundation.org>
+Subject: + char-use-get_unaligned_-helpers.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:22:06 -0700
+Message-ID: <200804152222.m3FMM7Gv018787@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60457 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48632 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765482AbYDOWCj (ORCPT
+	by vger.kernel.org with ESMTP id S1754546AbYDOWWJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:02:39 -0400
+	Tue, 15 Apr 2008 18:22:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: h-shimamoto@ct.jp.nec.com, alan@redhat.com
+Cc: harvey.harrison@gmail.com, jirislaby@gmail.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     tty: fix routine name in ptmx_open()
+     char: use get_unaligned_* helpers
 has been added to the -mm tree.  Its filename is
-     tty-fix-routine-name-in-ptmx_open.patch
+     char-use-get_unaligned_-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,193 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty: fix routine name in ptmx_open()
-From: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
+Subject: char: use get_unaligned_* helpers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-At ptmx_open(), the 2nd parameter for check_tty_count() should
-be "ptmx_open".
+Remove unnecessary temp variable from_buf in snsc_event.c
 
-Signed-off-by: Hiroshi Shimamoto <h-shimamoto@ct.jp.nec.com>
-Acked-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/rocket_int.h |    2 +-
+ drivers/char/snsc_event.c |   10 +++-------
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-fix-routine-name-in-ptmx_open drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-fix-routine-name-in-ptmx_open
-+++ a/drivers/char/tty_io.c
-@@ -2843,7 +2843,7 @@ static int ptmx_open(struct inode *inode
- 	if (devpts_pty_new(tty->link))
- 		goto out1;
+diff -puN drivers/char/rocket_int.h~char-use-get_unaligned_-helpers drivers/char/rocket_int.h
+--- a/drivers/char/rocket_int.h~char-use-get_unaligned_-helpers
++++ a/drivers/char/rocket_int.h
+@@ -55,7 +55,7 @@ static inline void sOutW(unsigned short 
  
--	check_tty_count(tty, "tty_open");
-+	check_tty_count(tty, "ptmx_open");
- 	retval = ptm_driver->ops->open(tty, filp);
- 	if (!retval)
- 		return 0;
+ static inline void out32(unsigned short port, Byte_t *p)
+ {
+-	u32 value = le32_to_cpu(get_unaligned((__le32 *)p));
++	u32 value = get_unaligned_le32(p);
+ #ifdef ROCKET_DEBUG_IO
+ 	printk(KERN_DEBUG "out32(%x, %lx)...\n", port, value);
+ #endif
+diff -puN drivers/char/snsc_event.c~char-use-get_unaligned_-helpers drivers/char/snsc_event.c
+--- a/drivers/char/snsc_event.c~char-use-get_unaligned_-helpers
++++ a/drivers/char/snsc_event.c
+@@ -63,16 +63,13 @@ static int
+ scdrv_parse_event(char *event, int *src, int *code, int *esp_code, char *desc)
+ {
+ 	char *desc_end;
+-	__be32 from_buf;
+ 
+ 	/* record event source address */
+-	from_buf = get_unaligned((__be32 *)event);
+-	*src = be32_to_cpup(&from_buf);
++	*src = get_unaligned_be32(event);
+ 	event += 4; 			/* move on to event code */
+ 
+ 	/* record the system controller's event code */
+-	from_buf = get_unaligned((__be32 *)event);
+-	*code = be32_to_cpup(&from_buf);
++	*code = get_unaligned_be32(event);
+ 	event += 4;			/* move on to event arguments */
+ 
+ 	/* how many arguments are in the packet? */
+@@ -86,8 +83,7 @@ scdrv_parse_event(char *event, int *src,
+ 		/* not an integer argument, so give up */
+ 		return -1;
+ 	}
+-	from_buf = get_unaligned((__be32 *)event);
+-	*esp_code = be32_to_cpup(&from_buf);
++	*esp_code = get_unaligned_be32(event);
+ 	event += 4;
+ 
+ 	/* parse out the event description */
 _
 
-Patches currently in -mm which might be from h-shimamoto@ct.jp.nec.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 git-x86.patch
-tty-fix-routine-name-in-ptmx_open.patch
+git-alsa-tiwai.patch
+agp-fix-shadowed-variable-warning-in-amd-k7-agpc.patch
+cifs-remove-global_extern-macro.patch
+git-powerpc.patch
+power-replace-remaining-__function__-occurrences.patch
+git-dvb.patch
+git-dlm.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-jfs.patch
+git-libata-all.patch
+git-mips.patch
+jffs2-include-function-prototype-for-jffs2_ioctl.patch
+jffs2-fix-sparse-warning-in-nodemgmtc.patch
+jffs2-fix-sparse-warning-in-writec.patch
+jffs2-fix-sparse-warnings-in-gcc.patch
+mtd-replace-remaining-__function__-occurrences.patch
+git-net.patch
+blackfin-replace-remaining-__function__-occurences.patch
+git-nfsd.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+git-selinux.patch
+git-s390.patch
+git-scsi-misc.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+block-replace-remaining-__function__-occurrences.patch
+git-watchdog.patch
+mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
+mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
+mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
+mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
+mac80211-michaelc-replace-macro-with-function.patch
+mac80211-michaelc-use-unaligned-byteorder-helpers.patch
+mac80211-michaelc-fold-initial-xor-into-block-helper.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+input-replace-remaining-__function__-occurrences.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+char-make-functions-static-in-synclinkmpc.patch
+spi-replace-remaining-__function__-occurrences.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+video-replace-remaining-__function__-occurrences.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+md-replace-remaining-__function__-occurrences.patch
+ext2-replace-remaining-__function__-occurrences.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+ufs-replace-__inline-with-inline.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+drivers-replace-remaining-__function__-occurrences.patch
+kernel-add-common-infrastructure-for-unaligned-access.patch
+kernel-move-arches-to-use-common-unaligned-access.patch
+drivers-block-use-get_unaligned_-helpers.patch
+hid-core-use-get_unaligned_-helpers.patch
+char-use-get_unaligned_-helpers.patch
+input-use-get_unaligned_-helpers.patch
+radio-use-get-put_unaligned_-helpers.patch
+mmc-use-get-put_unaligned_-helpers.patch
+net-use-get-put_unaligned_-helpers.patch
+wireless-use-get-put_unaligned_-helpers.patch
+pcmcia-use-get-put_unaligned_-helpers.patch
+usb-use-get-put_unaligned_-helpers.patch
+video-use-get-put_unaligned_-helpers.patch
+fat-use-get-put_unaligned_-helpers.patch
+hfsplus-use-get-put_unaligned_-helpers.patch
+isofs-use-get-put_unaligned_-helpers.patch
+ncpfs-use-get-put_unaligned_-helpers.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
