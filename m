@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + spi-spi_s3c24xx-must-initialize-bus_num.patch added to -mm tree
-Date: Tue, 15 Apr 2008 12:21:32 -0700
-Message-ID: <200804151921.m3FJLWag011118@imap1.linux-foundation.org>
+Subject: + topologyc-revert-git-s390-changes.patch added to -mm tree
+Date: Tue, 15 Apr 2008 12:42:21 -0700
+Message-ID: <200804151942.m3FJgL4g011964@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57521 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40734 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755265AbYDOTcs (ORCPT
+	by vger.kernel.org with ESMTP id S1755512AbYDOTmn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 15:32:48 -0400
+	Tue, 15 Apr 2008 15:42:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ben-linux@fluff.org, dbrownell@users.sourceforge.net
+Cc: akpm@linux-foundation.org, bhutchings@solarflare.com, heiko.carstens@de.ibm.com, mingo@elte.hu, schwidefsky@de.ibm.com
 
 
 The patch titled
-     spi: spi_s3c24xx must initialize bus_num
+     topology.c: revert git-s390 changes
 has been added to the -mm tree.  Its filename is
-     spi-spi_s3c24xx-must-initialize-bus_num.patch
+     topologyc-revert-git-s390-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,71 +34,254 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: spi_s3c24xx must initialize bus_num
-From: Ben Dooks <ben-linux@fluff.org>
+Subject: topology.c: revert git-s390 changes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Pass the bus number we expect the S3C24XX SPI driver to attach to via the
-platform data.
+Revert git-s390 diddlings to make way for
+add-default-cpu-topology-information.patch, which contains an equivalent
+change anyway.
 
-Signed-off-by: Ben Dooks <ben-linux@fluff.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Ben Hutchings <bhutchings@solarflare.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_s3c24xx.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/base/topology.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff -puN drivers/spi/spi_s3c24xx.c~spi-spi_s3c24xx-must-initialize-bus_num drivers/spi/spi_s3c24xx.c
---- a/drivers/spi/spi_s3c24xx.c~spi-spi_s3c24xx-must-initialize-bus_num
-+++ a/drivers/spi/spi_s3c24xx.c
-@@ -238,6 +238,7 @@ static irqreturn_t s3c24xx_spi_irq(int i
+diff -puN drivers/base/topology.c~topologyc-revert-git-s390-changes drivers/base/topology.c
+--- a/drivers/base/topology.c~topologyc-revert-git-s390-changes
++++ a/drivers/base/topology.c
+@@ -40,16 +40,13 @@ static ssize_t show_##name(struct sys_de
+ 	return sprintf(buf, "%d\n", topology_##name(cpu));	\
+ }
  
- static int __init s3c24xx_spi_probe(struct platform_device *pdev)
- {
-+	struct s3c2410_spi_info *pdata;
- 	struct s3c24xx_spi *hw;
- 	struct spi_master *master;
- 	struct resource *res;
-@@ -254,10 +255,10 @@ static int __init s3c24xx_spi_probe(stru
- 	memset(hw, 0, sizeof(struct s3c24xx_spi));
+-#define define_siblings_show_func(name)				\
+-static ssize_t show_##name(struct sys_device *dev, char *buf)	\
+-{								\
+-	ssize_t len = -1;					\
+-	unsigned int cpu = dev->id;				\
+-	cpumask_t mask; 					\
+-								\
+-	mask = topology_##name(cpu);				\
+-	len = cpumask_scnprintf(buf, NR_CPUS + 1, mask);	\
+-	return len + sprintf(buf + len, "\n");			\
++#define define_siblings_show_func(name)					\
++static ssize_t show_##name(struct sys_device *dev, char *buf)		\
++{									\
++	ssize_t len = -1;						\
++	unsigned int cpu = dev->id;					\
++	len = cpumask_scnprintf(buf, NR_CPUS+1, topology_##name(cpu));	\
++	return (len + sprintf(buf + len, "\n"));			\
+ }
  
- 	hw->master = spi_master_get(master);
--	hw->pdata = pdev->dev.platform_data;
-+	hw->pdata = pdata = pdev->dev.platform_data;
- 	hw->dev = &pdev->dev;
- 
--	if (hw->pdata == NULL) {
-+	if (pdata == NULL) {
- 		dev_err(&pdev->dev, "No platform data supplied\n");
- 		err = -ENOENT;
- 		goto err_no_pdata;
-@@ -333,13 +334,13 @@ static int __init s3c24xx_spi_probe(stru
- 
- 	/* setup any gpio we can */
- 
--	if (!hw->pdata->set_cs) {
-+	if (!pdata->set_cs) {
- 		hw->set_cs = s3c24xx_spi_gpiocs;
- 
--		s3c2410_gpio_setpin(hw->pdata->pin_cs, 1);
--		s3c2410_gpio_cfgpin(hw->pdata->pin_cs, S3C2410_GPIO_OUTPUT);
-+		s3c2410_gpio_setpin(pdata->pin_cs, 1);
-+		s3c2410_gpio_cfgpin(pdata->pin_cs, S3C2410_GPIO_OUTPUT);
- 	} else
--		hw->set_cs = hw->pdata->set_cs;
-+		hw->set_cs = pdata->set_cs;
- 
- 	/* register our spi controller */
- 
+ #ifdef	topology_physical_package_id
 _
 
-Patches currently in -mm which might be from ben-linux@fluff.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-spi-spi_s3c24xx-must-initialize-num_chipselect.patch
-spi-spi_s3c24xx-must-initialize-bus_num.patch
-spi-spi_s3c24xx-driver-must-init-completion.patch
-net-drivers-fix-platform-driver-hotplug-coldplug.patch
-sm501-add-uart-support.patch
-video-replace-remaining-__function__-occurrences.patch
-drivers-replace-remaining-__function__-occurrences.patch
+origin.patch
+hotplug-memory-make-online_page-common-fix.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86.patch
+arch-x86-mm-ioremapc-fix-printk-warnings.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+git-kgdb-light.patch
+git-x86-hack-around-to-make-git-kgdb-build.patch
+git-x86-vs-git-kgdb-lite.patch
+git-alsa-tiwai.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+cifs-suppress-warning.patch
+git-powerpc.patch
+git-drm.patch
+revert-git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-dlm-vs-git-gfs2-nwm.patch
+git-hid.patch
+git-hrt.patch
+time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
+git-ia64.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
+git-input.patch
+maple-add-driver-for-sega-dreamcast-controller.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-leds.patch
+git-libata-all.patch
+pata_atiixp-simplex-clear-fix.patch
+git-async-tx.patch
+git-mips.patch
+git-net.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+ehea-fix-dlpar-memory-add-support-fix.patch
+sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-nfsd.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+revert-gregkh-pci-pci-arm-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-cris-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-frv-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mips-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-mn10300-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-parisc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-ppc-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sh-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-v850-use-generic-pci_enable_resources.patch
+revert-gregkh-pci-pci-xtensa-use-generic-pci_enable_resources.patch
+pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-introduce-pci_slot-fix-fix.patch
+pci-hotplug-introduce-pci_slot-fix-2.patch
+pci-hotplug-introduce-pci_slot-fix-99.patch
+pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
+git-s390.patch
+git-sched.patch
+git-sched-git-rejects.patch
+add-rcu_assign_index-if-ever-needed.patch
+git-sh.patch
+sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
+sh-export-empty_zero_page.patch
+git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-misplaced-hunk.patch
+git-cryptodev-fix-conflict.patch
+git-cryptodev-fix-conflict-hack.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+git-semaphore-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+mm-introduce-pte_special-pte-bit-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+topologyc-revert-git-s390-changes.patch
+topologyc-revert-git-s390-changes-fix.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+drivers-video-uvesafbc-fix-error-path-memory-leak.patch
+fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+fat_valid_media-remove-pointless-test.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
 
