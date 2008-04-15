@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mxser-switch-to-put_char-being-int.patch added to -mm tree
-Date: Mon, 14 Apr 2008 19:04:26 -0700
-Message-ID: <200804150204.m3F24Q8F005615@imap1.linux-foundation.org>
+Subject: + synclink-series-switch-to-int-put_char-method.patch added to -mm tree
+Date: Mon, 14 Apr 2008 19:04:36 -0700
+Message-ID: <200804150204.m3F24aUv005630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44414 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60767 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759662AbYDOCFF (ORCPT
+	by vger.kernel.org with ESMTP id S1760320AbYDOCFS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 22:05:05 -0400
+	Mon, 14 Apr 2008 22:05:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, paulkf@microgate.com
 
 
 The patch titled
-     mxser: switch to put_char being int
+     synclink series: switch to int put_char method
 has been added to the -mm tree.  Its filename is
-     mxser-switch-to-put_char-being-int.patch
+     synclink-series-switch-to-int-put_char-method.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,156 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mxser: switch to put_char being int
+Subject: synclink series: switch to int put_char method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Paul Fulghum <paulkf@microgate.com>
 Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mxser.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/char/synclink.c    |   11 ++++++-----
+ drivers/char/synclink_gt.c |   14 +++++++++-----
+ drivers/char/synclinkmp.c  |   11 +++++++----
+ 3 files changed, 22 insertions(+), 14 deletions(-)
 
-diff -puN drivers/char/mxser.c~mxser-switch-to-put_char-being-int drivers/char/mxser.c
---- a/drivers/char/mxser.c~mxser-switch-to-put_char-being-int
-+++ a/drivers/char/mxser.c
-@@ -1091,16 +1091,16 @@ static int mxser_write(struct tty_struct
- 	return total;
- }
- 
--static void mxser_put_char(struct tty_struct *tty, unsigned char ch)
-+static int mxser_put_char(struct tty_struct *tty, unsigned char ch)
+diff -puN drivers/char/synclink.c~synclink-series-switch-to-int-put_char-method drivers/char/synclink.c
+--- a/drivers/char/synclink.c~synclink-series-switch-to-int-put_char-method
++++ a/drivers/char/synclink.c
+@@ -2029,10 +2029,11 @@ static void mgsl_change_params(struct mg
+  * 		
+  * Return Value:	None
+  */
+-static void mgsl_put_char(struct tty_struct *tty, unsigned char ch)
++static int mgsl_put_char(struct tty_struct *tty, unsigned char ch)
  {
- 	struct mxser_port *info = tty->driver_data;
+ 	struct mgsl_struct *info = (struct mgsl_struct *)tty->driver_data;
  	unsigned long flags;
++	int ret;
  
- 	if (!info->xmit_buf)
+ 	if ( debug_level >= DEBUG_LEVEL_INFO ) {
+ 		printk( "%s(%d):mgsl_put_char(%d) on %s\n",
+@@ -2040,23 +2041,23 @@ static void mgsl_put_char(struct tty_str
+ 	}		
+ 	
+ 	if (mgsl_paranoia_check(info, tty->name, "mgsl_put_char"))
 -		return;
 +		return 0;
  
- 	if (info->xmit_cnt >= SERIAL_XMIT_SIZE - 1)
+ 	if (!tty || !info->xmit_buf)
 -		return;
 +		return 0;
  
- 	spin_lock_irqsave(&info->slock, flags);
- 	info->xmit_buf[info->xmit_head++] = ch;
-@@ -1118,6 +1118,7 @@ static void mxser_put_char(struct tty_st
- 			spin_unlock_irqrestore(&info->slock, flags);
+ 	spin_lock_irqsave(&info->irq_spinlock,flags);
+ 	
+ 	if ( (info->params.mode == MGSL_MODE_ASYNC ) || !info->tx_active ) {
+-	
+ 		if (info->xmit_cnt < SERIAL_XMIT_SIZE - 1) {
+ 			info->xmit_buf[info->xmit_head++] = ch;
+ 			info->xmit_head &= SERIAL_XMIT_SIZE-1;
+ 			info->xmit_cnt++;
++			ret = 1;
  		}
  	}
-+	return 1;
+-	
+ 	spin_unlock_irqrestore(&info->irq_spinlock,flags);
++	return ret;
+ 	
+ }	/* end of mgsl_put_char() */
+ 
+diff -puN drivers/char/synclink_gt.c~synclink-series-switch-to-int-put_char-method drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink-series-switch-to-int-put_char-method
++++ a/drivers/char/synclink_gt.c
+@@ -151,7 +151,7 @@ static void hangup(struct tty_struct *tt
+ static void set_termios(struct tty_struct *tty, struct ktermios *old_termios);
+ 
+ static int  write(struct tty_struct *tty, const unsigned char *buf, int count);
+-static void put_char(struct tty_struct *tty, unsigned char ch);
++static int put_char(struct tty_struct *tty, unsigned char ch);
+ static void send_xchar(struct tty_struct *tty, char ch);
+ static void wait_until_sent(struct tty_struct *tty, int timeout);
+ static int  write_room(struct tty_struct *tty);
+@@ -913,20 +913,24 @@ cleanup:
+ 	return ret;
  }
  
+-static void put_char(struct tty_struct *tty, unsigned char ch)
++static int put_char(struct tty_struct *tty, unsigned char ch)
+ {
+ 	struct slgt_info *info = tty->driver_data;
+ 	unsigned long flags;
++	int ret;
  
+ 	if (sanity_check(info, tty->name, "put_char"))
+-		return;
++		return 0;
+ 	DBGINFO(("%s put_char(%d)\n", info->device_name, ch));
+ 	if (!info->tx_buf)
+-		return;
++		return 0;
+ 	spin_lock_irqsave(&info->lock,flags);
+-	if (!info->tx_active && (info->tx_count < info->max_frame_size))
++	if (!info->tx_active && (info->tx_count < info->max_frame_size)) {
+ 		info->tx_buf[info->tx_count++] = ch;
++		ret = 1;
++	}
+ 	spin_unlock_irqrestore(&info->lock,flags);
++	return ret;
+ }
+ 
+ static void send_xchar(struct tty_struct *tty, char ch)
+diff -puN drivers/char/synclinkmp.c~synclink-series-switch-to-int-put_char-method drivers/char/synclinkmp.c
+--- a/drivers/char/synclinkmp.c~synclink-series-switch-to-int-put_char-method
++++ a/drivers/char/synclinkmp.c
+@@ -519,7 +519,7 @@ static void hangup(struct tty_struct *tt
+ static void set_termios(struct tty_struct *tty, struct ktermios *old_termios);
+ 
+ static int  write(struct tty_struct *tty, const unsigned char *buf, int count);
+-static void put_char(struct tty_struct *tty, unsigned char ch);
++static int put_char(struct tty_struct *tty, unsigned char ch);
+ static void send_xchar(struct tty_struct *tty, char ch);
+ static void wait_until_sent(struct tty_struct *tty, int timeout);
+ static int  write_room(struct tty_struct *tty);
+@@ -1045,10 +1045,11 @@ cleanup:
+ 
+ /* Add a character to the transmit buffer.
+  */
+-static void put_char(struct tty_struct *tty, unsigned char ch)
++static int put_char(struct tty_struct *tty, unsigned char ch)
+ {
+ 	SLMP_INFO *info = (SLMP_INFO *)tty->driver_data;
+ 	unsigned long flags;
++	int ret = 0;
+ 
+ 	if ( debug_level >= DEBUG_LEVEL_INFO ) {
+ 		printk( "%s(%d):%s put_char(%d)\n",
+@@ -1056,10 +1057,10 @@ static void put_char(struct tty_struct *
+ 	}
+ 
+ 	if (sanity_check(info, tty->name, "put_char"))
+-		return;
++		return 0;
+ 
+ 	if (!info->tx_buf)
+-		return;
++		return 0;
+ 
+ 	spin_lock_irqsave(&info->lock,flags);
+ 
+@@ -1071,10 +1072,12 @@ static void put_char(struct tty_struct *
+ 			if (info->tx_put >= info->max_frame_size)
+ 				info->tx_put -= info->max_frame_size;
+ 			info->tx_count++;
++			ret = 1;
+ 		}
+ 	}
+ 
+ 	spin_unlock_irqrestore(&info->lock,flags);
++	return ret;
+ }
+ 
+ /* Send a high-priority XON/XOFF character
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
