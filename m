@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + raid-remove-trailing-space-from-printk-line.patch added to -mm tree
-Date: Tue, 15 Apr 2008 00:40:39 -0700
-Message-ID: <200804150740.m3F7edar017385@imap1.linux-foundation.org>
+Subject: + raid-remove-leading-tab-on-printk-messages.patch added to -mm tree
+Date: Tue, 15 Apr 2008 00:40:36 -0700
+Message-ID: <200804150740.m3F7ea7Q017382@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57400 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44512 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759546AbYDOHlB (ORCPT
+	by vger.kernel.org with ESMTP id S1757208AbYDOHlD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 03:41:01 -0400
+	Tue, 15 Apr 2008 03:41:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: nick@nick-andrew.net, neilb@suse.de
 
 
 The patch titled
-     raid: remove trailing space from printk line
+     raid: remove leading TAB on printk messages
 has been added to the -mm tree.  Its filename is
-     raid-remove-trailing-space-from-printk-line.patch
+     raid-remove-leading-tab-on-printk-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: raid: remove trailing space from printk line
+Subject: raid: remove leading TAB on printk messages
 From: Nick Andrew <nick@nick-andrew.net>
 
-drivers/md/*.[ch] contains only one more printk line with a trailing space. 
-Remove it.
+MD drivers use one printk() call to print 2 log messages and the second line
+may be prefixed by a TAB character.  It may also output a trailing space
+before newline.  klogd (I think) turns the TAB character into the 2 characters
+'^I' when logging to a file.  This looks ugly.
+
+Instead of a leading TAB to indicate continuation, prefix both output lines
+with 'raid:' or similar.  Also remove any trailing space in the vicinity of
+the affected code and consistently end the sentences with a period.
 
 Signed-off-by: Nick Andrew <nick@nick-andrew.net>
 Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/md.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/multipath.c |    3 ++-
+ drivers/md/raid1.c     |    4 ++--
+ drivers/md/raid10.c    |    4 ++--
+ drivers/md/raid5.c     |    4 ++--
+ 4 files changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/md/md.c~raid-remove-trailing-space-from-printk-line drivers/md/md.c
---- a/drivers/md/md.c~raid-remove-trailing-space-from-printk-line
-+++ a/drivers/md/md.c
-@@ -4152,7 +4152,7 @@ static int hot_remove_disk(mddev_t * mdd
+diff -puN drivers/md/multipath.c~raid-remove-leading-tab-on-printk-messages drivers/md/multipath.c
+--- a/drivers/md/multipath.c~raid-remove-leading-tab-on-printk-messages
++++ a/drivers/md/multipath.c
+@@ -244,7 +244,8 @@ static void multipath_error (mddev_t *md
+ 			conf->working_disks--;
+ 			mddev->degraded++;
+ 			printk(KERN_ALERT "multipath: IO failure on %s,"
+-				" disabling IO path. \n	Operation continuing"
++				" disabling IO path.\n"
++				"multipath: Operation continuing"
+ 				" on %d IO paths.\n",
+ 				bdevname (rdev->bdev,b),
+ 				conf->working_disks);
+diff -puN drivers/md/raid1.c~raid-remove-leading-tab-on-printk-messages drivers/md/raid1.c
+--- a/drivers/md/raid1.c~raid-remove-leading-tab-on-printk-messages
++++ a/drivers/md/raid1.c
+@@ -1008,8 +1008,8 @@ static void error(mddev_t *mddev, mdk_rd
+ 	} else
+ 		set_bit(Faulty, &rdev->flags);
+ 	set_bit(MD_CHANGE_DEVS, &mddev->flags);
+-	printk(KERN_ALERT "raid1: Disk failure on %s, disabling device. \n"
+-		"	Operation continuing on %d devices\n",
++	printk(KERN_ALERT "raid1: Disk failure on %s, disabling device.\n"
++		"raid1: Operation continuing on %d devices.\n",
+ 		bdevname(rdev->bdev,b), conf->raid_disks - mddev->degraded);
+ }
  
- 	return 0;
- busy:
--	printk(KERN_WARNING "md: cannot remove active disk %s from %s ... \n",
-+	printk(KERN_WARNING "md: cannot remove active disk %s from %s ...\n",
- 		bdevname(rdev->bdev,b), mdname(mddev));
- 	return -EBUSY;
+diff -puN drivers/md/raid10.c~raid-remove-leading-tab-on-printk-messages drivers/md/raid10.c
+--- a/drivers/md/raid10.c~raid-remove-leading-tab-on-printk-messages
++++ a/drivers/md/raid10.c
+@@ -1001,8 +1001,8 @@ static void error(mddev_t *mddev, mdk_rd
+ 	}
+ 	set_bit(Faulty, &rdev->flags);
+ 	set_bit(MD_CHANGE_DEVS, &mddev->flags);
+-	printk(KERN_ALERT "raid10: Disk failure on %s, disabling device. \n"
+-		"	Operation continuing on %d devices\n",
++	printk(KERN_ALERT "raid10: Disk failure on %s, disabling device.\n"
++		"raid10: Operation continuing on %d devices.\n",
+ 		bdevname(rdev->bdev,b), conf->raid_disks - mddev->degraded);
+ }
+ 
+diff -puN drivers/md/raid5.c~raid-remove-leading-tab-on-printk-messages drivers/md/raid5.c
+--- a/drivers/md/raid5.c~raid-remove-leading-tab-on-printk-messages
++++ a/drivers/md/raid5.c
+@@ -1262,8 +1262,8 @@ static void error(mddev_t *mddev, mdk_rd
+ 		}
+ 		set_bit(Faulty, &rdev->flags);
+ 		printk (KERN_ALERT
+-			"raid5: Disk failure on %s, disabling device."
+-			" Operation continuing on %d devices\n",
++			"raid5: Disk failure on %s, disabling device.\n"
++			"raid5: Operation continuing on %d devices.\n",
+ 			bdevname(rdev->bdev,b), conf->raid_disks - mddev->degraded);
+ 	}
  }
 _
 
