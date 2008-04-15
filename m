@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-use-non-racy-method-for-proc-entries-creation.patch added to -mm tree
-Date: Tue, 15 Apr 2008 16:56:21 -0700
-Message-ID: <200804152356.m3FNuL3e022528@imap1.linux-foundation.org>
+Subject: + reiserfs-use-non-racy-method-for-proc-entries-creation.patch added to -mm tree
+Date: Tue, 15 Apr 2008 16:56:05 -0700
+Message-ID: <200804152356.m3FNu5Ln022503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59895 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43344 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753270AbYDOX42 (ORCPT
+	by vger.kernel.org with ESMTP id S1752810AbYDOX42 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 15 Apr 2008 19:56:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, adobriyan@gmail.com, ebiederm@xmission.com, gregkh@suse.de
+Cc: den@openvz.org, adobriyan@gmail.com, chris.mason@oracle.com, ebiederm@xmission.com, jeffm@suse.com
 
 
 The patch titled
-     usb: use non-racy method for proc entries creation
+     reiserfs: use non-racy method for proc entries creation
 has been added to the -mm tree.  Its filename is
-     usb-use-non-racy-method-for-proc-entries-creation.patch
+     reiserfs-use-non-racy-method-for-proc-entries-creation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: use non-racy method for proc entries creation
+Subject: reiserfs: use non-racy method for proc entries creation
 From: "Denis V. Lunev" <den@openvz.org>
 
 Use proc_create()/proc_create_data() to make sure that ->proc_fops and ->data
 be setup before gluing PDE to main tree.
 
+/proc entry owner is also added.
+
 Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Chris Mason <chris.mason@oracle.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/at91_udc.c |   11 ++---------
- drivers/usb/gadget/omap_udc.c |    7 ++-----
- drivers/usb/host/sl811-hcd.c  |   10 +---------
- 3 files changed, 5 insertions(+), 23 deletions(-)
+ fs/reiserfs/procfs.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN drivers/usb/gadget/at91_udc.c~usb-use-non-racy-method-for-proc-entries-creation drivers/usb/gadget/at91_udc.c
---- a/drivers/usb/gadget/at91_udc.c~usb-use-non-racy-method-for-proc-entries-creation
-+++ a/drivers/usb/gadget/at91_udc.c
-@@ -231,6 +231,7 @@ static int proc_udc_open(struct inode *i
- }
+diff -puN fs/reiserfs/procfs.c~reiserfs-use-non-racy-method-for-proc-entries-creation fs/reiserfs/procfs.c
+--- a/fs/reiserfs/procfs.c~reiserfs-use-non-racy-method-for-proc-entries-creation
++++ a/fs/reiserfs/procfs.c
+@@ -467,6 +467,7 @@ static const struct file_operations r_fi
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
+ 	.release = seq_release,
++	.owner = THIS_MODULE,
+ };
  
- static const struct file_operations proc_ops = {
-+	.owner		= THIS_MODULE,
- 	.open		= proc_udc_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-@@ -239,15 +240,7 @@ static const struct file_operations proc
- 
- static void create_debug_file(struct at91_udc *udc)
+ static struct proc_dir_entry *proc_info_root = NULL;
+@@ -475,12 +476,8 @@ static const char proc_info_root_name[] 
+ static void add_file(struct super_block *sb, char *name,
+ 		     int (*func) (struct seq_file *, struct super_block *))
  {
--	struct proc_dir_entry *pde;
--
--	pde = create_proc_entry (debug_filename, 0, NULL);
--	udc->pde = pde;
--	if (pde == NULL)
--		return;
--
--	pde->proc_fops = &proc_ops;
--	pde->data = udc;
-+	udc->pde = proc_create_data(debug_filename, 0, NULL, &proc_ops, udc);
+-	struct proc_dir_entry *de;
+-	de = create_proc_entry(name, 0, REISERFS_SB(sb)->procdir);
+-	if (de) {
+-		de->data = func;
+-		de->proc_fops = &r_file_operations;
+-	}
++	proc_create_data(name, 0, REISERFS_SB(sb)->procdir,
++			 &r_file_operations, func);
  }
  
- static void remove_debug_file(struct at91_udc *udc)
-diff -puN drivers/usb/gadget/omap_udc.c~usb-use-non-racy-method-for-proc-entries-creation drivers/usb/gadget/omap_udc.c
---- a/drivers/usb/gadget/omap_udc.c~usb-use-non-racy-method-for-proc-entries-creation
-+++ a/drivers/usb/gadget/omap_udc.c
-@@ -2504,6 +2504,7 @@ static int proc_udc_open(struct inode *i
- }
- 
- static const struct file_operations proc_ops = {
-+	.owner		= THIS_MODULE,
- 	.open		= proc_udc_open,
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
-@@ -2512,11 +2513,7 @@ static const struct file_operations proc
- 
- static void create_proc_file(void)
- {
--	struct proc_dir_entry *pde;
--
--	pde = create_proc_entry (proc_filename, 0, NULL);
--	if (pde)
--		pde->proc_fops = &proc_ops;
-+	proc_create(proc_filename, 0, NULL, &proc_ops);
- }
- 
- static void remove_proc_file(void)
-diff -puN drivers/usb/host/sl811-hcd.c~usb-use-non-racy-method-for-proc-entries-creation drivers/usb/host/sl811-hcd.c
---- a/drivers/usb/host/sl811-hcd.c~usb-use-non-racy-method-for-proc-entries-creation
-+++ a/drivers/usb/host/sl811-hcd.c
-@@ -1506,15 +1506,7 @@ static const char proc_filename[] = "dri
- 
- static void create_debug_file(struct sl811 *sl811)
- {
--	struct proc_dir_entry *pde;
--
--	pde = create_proc_entry(proc_filename, 0, NULL);
--	if (pde == NULL)
--		return;
--
--	pde->proc_fops = &proc_ops;
--	pde->data = sl811;
--	sl811->pde = pde;
-+	sl811->pde = proc_create_data(proc_filename, 0, NULL, &proc_ops, sl811);
- }
- 
- static void remove_debug_file(struct sl811 *sl811)
+ int reiserfs_proc_info_init(struct super_block *sb)
 _
 
 Patches currently in -mm which might be from den@openvz.org are
