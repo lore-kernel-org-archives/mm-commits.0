@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + arm-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:37:24 -0700
-Message-ID: <200804152237.m3FMbO9A019404@imap1.linux-foundation.org>
+Subject: + blackfin-use-kbuildh-instead-of-defining-macros-in-asm-macrosc.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:37:35 -0700
+Message-ID: <200804152237.m3FMbZIc019419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36706 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43049 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753024AbYDOWl0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752802AbYDOWlP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:41:26 -0400
+	Tue, 15 Apr 2008 18:41:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, rmk@arm.linux.org.uk
+Cc: clameter@sgi.com, bryan.wu@analog.com, vapier.adi@gmail.com
 
 
 The patch titled
-     arm: use kbuild.h instead of macros in asm-offsets.c
+     blackfin: use kbuild.h instead of defining macros in asm-macros.c
 has been added to the -mm tree.  Its filename is
-     arm-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
+     blackfin-use-kbuildh-instead-of-defining-macros-in-asm-macrosc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: use kbuild.h instead of macros in asm-offsets.c
+Subject: blackfin: use kbuild.h instead of defining macros in asm-macros.c
 From: Christoph Lameter <clameter@sgi.com>
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Bryan Wu <bryan.wu@analog.com>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/asm-offsets.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ arch/blackfin/kernel/asm-offsets.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/arm/kernel/asm-offsets.c~arm-use-kbuildh-instead-of-macros-in-asm-offsetsc arch/arm/kernel/asm-offsets.c
---- a/arch/arm/kernel/asm-offsets.c~arm-use-kbuildh-instead-of-macros-in-asm-offsetsc
-+++ a/arch/arm/kernel/asm-offsets.c
-@@ -16,6 +16,7 @@
- #include <asm/thread_info.h>
- #include <asm/memory.h>
- #include <asm/procinfo.h>
+diff -puN arch/blackfin/kernel/asm-offsets.c~blackfin-use-kbuildh-instead-of-defining-macros-in-asm-macrosc arch/blackfin/kernel/asm-offsets.c
+--- a/arch/blackfin/kernel/asm-offsets.c~blackfin-use-kbuildh-instead-of-defining-macros-in-asm-macrosc
++++ a/arch/blackfin/kernel/asm-offsets.c
+@@ -34,8 +34,7 @@
+ #include <linux/hardirq.h>
+ #include <linux/irq.h>
+ #include <linux/thread_info.h>
+-
+-#define DEFINE(sym, val) asm volatile("\n->" #sym " %0 " #val : : "i" (val))
 +#include <linux/kbuild.h>
  
- /*
-  * Make sure that the compiler and target are compatible.
-@@ -35,13 +36,6 @@
- #error    Known good compilers: 3.3
- #endif
- 
--/* Use marker if you need to separate the values later */
--
--#define DEFINE(sym, val) \
--        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
--
--#define BLANK() asm volatile("\n->" : : )
--
  int main(void)
  {
-   DEFINE(TSK_ACTIVE_MM,		offsetof(struct task_struct, active_mm));
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
