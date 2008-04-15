@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + gxfb-lxfb-detect-framebuffer-size-using-an-msr-if-vsa2-isnt-available.patch added to -mm tree
-Date: Mon, 14 Apr 2008 18:16:44 -0700
-Message-ID: <200804150116.m3F1GiUb003778@imap1.linux-foundation.org>
+Subject: + olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers.patch added to -mm tree
+Date: Mon, 14 Apr 2008 18:21:18 -0700
+Message-ID: <200804150121.m3F1LI8K003970@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53715 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35238 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755575AbYDOBRC (ORCPT
+	by vger.kernel.org with ESMTP id S1760606AbYDOBWG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 14 Apr 2008 21:17:02 -0400
+	Mon, 14 Apr 2008 21:22:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd
 
 
 The patch titled
-     gxfb/lxfb: detect framebuffer size using an MSR if VSA2 isn't available
+     OLPC: gxfb/lxfb: add DCON panel modes to framebuffer drivers
 has been added to the -mm tree.  Its filename is
-     gxfb-lxfb-detect-framebuffer-size-using-an-msr-if-vsa2-isnt-available.patch
+     olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,15 +34,17 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gxfb/lxfb: detect framebuffer size using an MSR if VSA2 isn't available
+Subject: OLPC: gxfb/lxfb: add DCON panel modes to framebuffer drivers
 From: Andres Salomon <dilinger@queued.net>
 
-If there's no VSA2 (ie, if we're using tinybios or OpenFirmware), use the
-GLIU's P2D Range Offset Descriptor to determine how much memory we have
-available for the framebuffer.
+Since there's no way to autodetect panel modes, we're forced to hardcode them
+in the driver and add a big fat #ifdef.  The OLPC DCON needs a specific mode
+line (at 1200x900).  This adds it to both gxfb and lxfb.
 
-Originally based on a patch by Jordan Crouse.  Tested with OpenFirmware;
-Pascal informs me that tinybios has a stub that fills in P2D_RO0.
+(Jordan said: We could probably detect the panel mode, but there isn't any
+reason to since the panel timings are well known and won't change.  While OFW
+detection would be good computer science fu, it would be a wasted effort since
+its so easy to hard code them into the table.)
 
 Signed-off-by: Andres Salomon <dilinger@debian.org>
 Cc: Jordan Crouse <jordan.crouse@amd.com>
@@ -50,77 +52,129 @@ Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/display_gx.c |   18 +++++++++++++++++-
- drivers/video/geode/lxfb_ops.c   |   16 ++++++++++++++++
- include/asm-x86/geode.h          |    2 ++
- 3 files changed, 35 insertions(+), 1 deletion(-)
+ drivers/video/geode/gxfb_core.c |   35 +++++++++++++++++++++++++++++-
+ drivers/video/geode/lxfb_core.c |   35 ++++++++++++++++++++++++++----
+ 2 files changed, 65 insertions(+), 5 deletions(-)
 
-diff -puN drivers/video/geode/display_gx.c~gxfb-lxfb-detect-framebuffer-size-using-an-msr-if-vsa2-isnt-available drivers/video/geode/display_gx.c
---- a/drivers/video/geode/display_gx.c~gxfb-lxfb-detect-framebuffer-size-using-an-msr-if-vsa2-isnt-available
-+++ a/drivers/video/geode/display_gx.c
-@@ -25,7 +25,23 @@ unsigned int gx_frame_buffer_size(void)
- {
- 	unsigned int val;
+diff -puN drivers/video/geode/gxfb_core.c~olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers drivers/video/geode/gxfb_core.c
+--- a/drivers/video/geode/gxfb_core.c~olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers
++++ a/drivers/video/geode/gxfb_core.c
+@@ -108,6 +108,35 @@ static const struct fb_videomode gx_mode
+ 	  FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+ };
  
--	/* FB size is reported by a virtual register */
-+	if (!geode_has_vsa2()) {
-+		uint32_t hi, lo;
++#ifdef CONFIG_OLPC
++#include <asm/olpc.h>
 +
-+		/* The number of pages is (PMAX - PMIN)+1 */
-+		rdmsr(MSR_GLIU_P2D_RO0, lo, hi);
++static const struct fb_videomode gx_dcon_modedb[] __initdata = {
++	/* The only mode the DCON has is 1200x900 */
++	{ NULL, 50, 1200, 900, 17460, 24, 8, 4, 5, 8, 3,
++	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
++	  FB_VMODE_NONINTERLACED, 0 }
++};
 +
-+		/* PMAX */
-+		val = ((hi & 0xff) << 12) | ((lo & 0xfff00000) >> 20);
-+		/* PMIN */
-+		val -= (lo & 0x000fffff);
-+		val += 1;
-+
-+		/* The page size is 4k */
-+		return (val << 12);
++static void get_modedb(struct fb_videomode **modedb, unsigned int *size)
++{
++	if (olpc_has_dcon()) {
++		*modedb = (struct fb_videomode *) gx_dcon_modedb;
++		*size = ARRAY_SIZE(gx_dcon_modedb);
++	} else {
++		*modedb = (struct fb_videomode *) gx_modedb;
++		*size = ARRAY_SIZE(gx_modedb);
 +	}
++}
 +
-+	/* FB size can be obtained from the VSA II */
- 	/* Virtual register class = 0x02 */
- 	/* VG_MEM_SIZE(512Kb units) = 0x00 */
- 
-diff -puN drivers/video/geode/lxfb_ops.c~gxfb-lxfb-detect-framebuffer-size-using-an-msr-if-vsa2-isnt-available drivers/video/geode/lxfb_ops.c
---- a/drivers/video/geode/lxfb_ops.c~gxfb-lxfb-detect-framebuffer-size-using-an-msr-if-vsa2-isnt-available
-+++ a/drivers/video/geode/lxfb_ops.c
-@@ -329,6 +329,22 @@ unsigned int lx_framebuffer_size(void)
++#else
++static void get_modedb(struct fb_videomode **modedb, unsigned int *size)
++{
++	*modedb = (struct fb_videomode *) gx_modedb;
++	*size = ARRAY_SIZE(gx_modedb);
++}
++#endif
++
+ static int gxfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
  {
- 	unsigned int val;
+ 	if (var->xres > 1600 || var->yres > 1200)
+@@ -350,6 +379,9 @@ static int __init gxfb_probe(struct pci_
+ 	int ret;
+ 	unsigned long val;
  
-+	if (!geode_has_vsa2()) {
-+		uint32_t hi, lo;
++	struct fb_videomode *modedb_ptr;
++	unsigned int modedb_size;
 +
-+		/* The number of pages is (PMAX - PMIN)+1 */
-+		rdmsr(MSR_GLIU_P2D_RO0, lo, hi);
+ 	info = gxfb_init_fbinfo(&pdev->dev);
+ 	if (!info)
+ 		return -ENOMEM;
+@@ -369,8 +401,9 @@ static int __init gxfb_probe(struct pci_
+ 	else
+ 		par->enable_crt = 1;
+ 
++	get_modedb(&modedb_ptr, &modedb_size);
+ 	ret = fb_find_mode(&info->var, info, mode_option,
+-			   gx_modedb, ARRAY_SIZE(gx_modedb), NULL, 16);
++			   modedb_ptr, modedb_size, NULL, 16);
+ 	if (ret == 0 || ret == 4) {
+ 		dev_err(&pdev->dev, "could not find valid video mode\n");
+ 		ret = -EINVAL;
+diff -puN drivers/video/geode/lxfb_core.c~olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers drivers/video/geode/lxfb_core.c
+--- a/drivers/video/geode/lxfb_core.c~olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers
++++ a/drivers/video/geode/lxfb_core.c
+@@ -217,6 +217,35 @@ static const struct fb_videomode geode_m
+ 	  0, FB_VMODE_NONINTERLACED, 0 },
+ };
+ 
++#ifdef CONFIG_OLPC
++#include <asm/olpc.h>
 +
-+		/* PMAX */
-+		val = ((hi & 0xff) << 12) | ((lo & 0xfff00000) >> 20);
-+		/* PMIN */
-+		val -= (lo & 0x000fffff);
-+		val += 1;
++const struct fb_videomode olpc_dcon_modedb[] __initdata = {
++	/* The only mode the DCON has is 1200x900 */
++	{ NULL, 50, 1200, 900, 17460, 24, 8, 4, 5, 8, 3,
++	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
++	  FB_VMODE_NONINTERLACED, 0 }
++};
 +
-+		/* The page size is 4k */
-+		return (val << 12);
++static void get_modedb(struct fb_videomode **modedb, unsigned int *size)
++{
++	if (olpc_has_dcon()) {
++		*modedb = (struct fb_videomode *) olpc_dcon_modedb;
++		*size = ARRAY_SIZE(olpc_dcon_modedb);
++	} else {
++		*modedb = (struct fb_videomode *) geode_modedb;
++		*size = ARRAY_SIZE(geode_modedb);
 +	}
++}
 +
- 	/* The frame buffer size is reported by a VSM in VSA II */
- 	/* Virtual Register Class    = 0x02                     */
- 	/* VG_MEM_SIZE (1MB units)   = 0x00                     */
-diff -puN include/asm-x86/geode.h~gxfb-lxfb-detect-framebuffer-size-using-an-msr-if-vsa2-isnt-available include/asm-x86/geode.h
---- a/include/asm-x86/geode.h~gxfb-lxfb-detect-framebuffer-size-using-an-msr-if-vsa2-isnt-available
-+++ a/include/asm-x86/geode.h
-@@ -30,6 +30,8 @@ extern int geode_get_dev_base(unsigned i
- 
- /* MSRS */
- 
-+#define MSR_GLIU_P2D_RO0	0x10000029
++#else
++static void get_modedb(struct fb_videomode **modedb, unsigned int *size)
++{
++	*modedb = (struct fb_videomode *) geode_modedb;
++	*size = ARRAY_SIZE(geode_modedb);
++}
++#endif
 +
- #define MSR_LX_GLD_MSR_CONFIG	0x48002001
- #define MSR_LX_MSR_PADSEL	0x48002011	/* NOT 0x48000011; the data
- 						 * sheet has the wrong value */
+ static int lxfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
+ {
+ 	if (var->xres > 1920 || var->yres > 1440)
+@@ -477,7 +506,7 @@ static int __init lxfb_probe(struct pci_
+ 	int ret;
+ 
+ 	struct fb_videomode *modedb_ptr;
+-	int modedb_size;
++	unsigned int modedb_size;
+ 
+ 	info = lxfb_init_fbinfo(&pdev->dev);
+ 
+@@ -502,9 +531,7 @@ static int __init lxfb_probe(struct pci_
+ 
+ 	/* Set up the mode database */
+ 
+-	modedb_ptr = (struct fb_videomode *) geode_modedb;
+-	modedb_size = ARRAY_SIZE(geode_modedb);
+-
++	get_modedb(&modedb_ptr, &modedb_size);
+ 	ret = fb_find_mode(&info->var, info, mode_option,
+ 			   modedb_ptr, modedb_size, NULL, 16);
+ 
 _
 
 Patches currently in -mm which might be from dilinger@queued.net are
