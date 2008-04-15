@@ -1,102 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch removed from -mm tree
-Date: Tue, 15 Apr 2008 13:43:58 -0700
-Message-ID: <200804152043.m3FKhwYU014644@imap1.linux-foundation.org>
+Subject: - sh-export-empty_zero_page.patch removed from -mm tree
+Date: Tue, 15 Apr 2008 13:44:09 -0700
+Message-ID: <200804152044.m3FKi9QY014668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53051 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57256 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757570AbYDOUoO (ORCPT
+	by vger.kernel.org with ESMTP id S1757551AbYDOUoN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 16:44:14 -0400
+	Tue, 15 Apr 2008 16:44:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, davem@davemloft.net, greg@kroah.com, m.kozlowski@tuxland.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert gregkh-pci-pci-sparc64-use-generic-pci_enable_resources
+     sh: export empty_zero_page
 has been removed from the -mm tree.  Its filename was
-     revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch
+     sh-export-empty_zero_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert gregkh-pci-pci-sparc64-use-generic-pci_enable_resources
+Subject: sh: export empty_zero_page
 From: Andrew Morton <akpm@linux-foundation.org>
 
-On Fri, 28 Mar 2008 16:10:11 -0700 (PDT) David Miller <davem@davemloft.net> wrote:
+ERROR: "empty_zero_page" [fs/ext4/ext4dev.ko] undefined!
 
-> From: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
-> Date: Fri, 28 Mar 2008 23:52:10 +0100
-> 
-> > 	The gregkh-pci-pci-sparc64-use-generic-pci_enable_resources.patch which
-> > replaces arch-specific code with generic pci_enable_resources() makes my sparc64
-> > box unable to boot (that's what quilt bisection says). At first I see these messages:
-> 
-> Yes, that generic code won't work because of the NULL
-> r->parent check.
-> 
-> Alpha, ARM, V32, FRV, IA64, MIPS, MN10300, PARISC, PPC,
-> SH, V850, X86, and Xtensa are all likely to run into
-> problems because of this change.
-> 
-> The only platform that did the check as a test of r->parent
-> being NULL is Powerpc.
-> 
-> The rest either didn't check (like sparc64), or tested it by going:
-> 
-> 	if (!r->start && r->end)
-> 
-> So the amount of potential breakage from this change is enormous.
+Might be wrong, dunno.
 
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Greg KH <greg@kroah.com>
+These:
+
+ERROR: "__raw_readsl" [drivers/net/smc91x.ko] undefined!
+ERROR: "__raw_writesl" [drivers/net/smc91x.ko] undefined!
+
+remain unfixed..
+
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc64/kernel/pci.c |   27 ++++++++++++++++++++++++++-
- 1 file changed, 26 insertions(+), 1 deletion(-)
+ arch/sh/kernel/sh_ksyms_32.c |    1 +
+ arch/sh/kernel/sh_ksyms_64.c |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff -puN arch/sparc64/kernel/pci.c~revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources arch/sparc64/kernel/pci.c
---- a/arch/sparc64/kernel/pci.c~revert-gregkh-pci-pci-sparc64-use-generic-pci_enable_resources
-+++ a/arch/sparc64/kernel/pci.c
-@@ -927,7 +927,32 @@ void pcibios_align_resource(void *data, 
- 
- int pcibios_enable_device(struct pci_dev *dev, int mask)
- {
--	return pci_enable_resources(dev, mask);
-+	u16 cmd, oldcmd;
-+	int i;
-+
-+	pci_read_config_word(dev, PCI_COMMAND, &cmd);
-+	oldcmd = cmd;
-+
-+	for (i = 0; i < PCI_NUM_RESOURCES; i++) {
-+		struct resource *res = &dev->resource[i];
-+
-+		/* Only set up the requested stuff */
-+		if (!(mask & (1<<i)))
-+			continue;
-+
-+		if (res->flags & IORESOURCE_IO)
-+			cmd |= PCI_COMMAND_IO;
-+		if (res->flags & IORESOURCE_MEM)
-+			cmd |= PCI_COMMAND_MEMORY;
-+	}
-+
-+	if (cmd != oldcmd) {
-+		printk(KERN_DEBUG "PCI: Enabling device: (%s), cmd %x\n",
-+		       pci_name(dev), cmd);
-+                /* Enable the appropriate bits in the PCI command register.  */
-+		pci_write_config_word(dev, PCI_COMMAND, cmd);
-+	}
-+	return 0;
- }
- 
- void pcibios_resource_to_bus(struct pci_dev *pdev, struct pci_bus_region *region,
+diff -puN arch/sh/kernel/sh_ksyms_32.c~sh-export-empty_zero_page arch/sh/kernel/sh_ksyms_32.c
+--- a/arch/sh/kernel/sh_ksyms_32.c~sh-export-empty_zero_page
++++ a/arch/sh/kernel/sh_ksyms_32.c
+@@ -149,3 +149,4 @@ EXPORT_SYMBOL(clear_page);
+ EXPORT_SYMBOL(copy_page);
+ EXPORT_SYMBOL(__clear_user);
+ EXPORT_SYMBOL(_ebss);
++EXPORT_SYMBOL(empty_zero_page);
+diff -puN arch/sh/kernel/sh_ksyms_64.c~sh-export-empty_zero_page arch/sh/kernel/sh_ksyms_64.c
+--- a/arch/sh/kernel/sh_ksyms_64.c~sh-export-empty_zero_page
++++ a/arch/sh/kernel/sh_ksyms_64.c
+@@ -44,6 +44,7 @@ EXPORT_SYMBOL(__put_user_asm_l);
+ EXPORT_SYMBOL(__get_user_asm_l);
+ EXPORT_SYMBOL(copy_page);
+ EXPORT_SYMBOL(__copy_user);
++EXPORT_SYMBOL(empty_zero_page);
+ EXPORT_SYMBOL(memcpy);
+ EXPORT_SYMBOL(__udelay);
+ EXPORT_SYMBOL(__ndelay);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
