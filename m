@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + parisc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch added to -mm tree
-Date: Tue, 15 Apr 2008 15:37:45 -0700
-Message-ID: <200804152237.m3FMbjLP019435@imap1.linux-foundation.org>
+Subject: + avr32-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch added to -mm tree
+Date: Tue, 15 Apr 2008 15:37:33 -0700
+Message-ID: <200804152237.m3FMbXlf019416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38780 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49035 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759526AbYDOWiI (ORCPT
+	by vger.kernel.org with ESMTP id S1756671AbYDOWh6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 18:38:08 -0400
+	Tue, 15 Apr 2008 18:37:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: clameter@sgi.com, grundler@parisc-linux.org, kyle@mcmartin.ca, matthew@wil.cx
+Cc: clameter@sgi.com, hskinnemoen@atmel.com
 
 
 The patch titled
-     parisc: use kbuild.h instead of defining macros in asm-offsets.c
+     avr32: use kbuild.h macros instead of defining macros in asm-offsets.c
 has been added to the -mm tree.  Its filename is
-     parisc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+     avr32-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parisc: use kbuild.h instead of defining macros in asm-offsets.c
+Subject: avr32: use kbuild.h macros instead of defining macros in asm-offsets.c
 From: Christoph Lameter <clameter@sgi.com>
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Kyle McMartin <kyle@mcmartin.ca>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/kernel/asm-offsets.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ arch/avr32/kernel/asm-offsets.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN arch/parisc/kernel/asm-offsets.c~parisc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/parisc/kernel/asm-offsets.c
---- a/arch/parisc/kernel/asm-offsets.c~parisc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
-+++ a/arch/parisc/kernel/asm-offsets.c
-@@ -32,6 +32,7 @@
+diff -puN arch/avr32/kernel/asm-offsets.c~avr32-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc arch/avr32/kernel/asm-offsets.c
+--- a/arch/avr32/kernel/asm-offsets.c~avr32-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc
++++ a/arch/avr32/kernel/asm-offsets.c
+@@ -5,14 +5,7 @@
+  */
+ 
  #include <linux/thread_info.h>
- #include <linux/ptrace.h>
- #include <linux/hardirq.h>
-+#include <linux/kbuild.h>
- 
- #include <asm/pgtable.h>
- #include <asm/ptrace.h>
-@@ -39,11 +40,6 @@
- #include <asm/pdc.h>
- #include <asm/uaccess.h>
- 
+-
 -#define DEFINE(sym, val) \
--	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+-        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
 -
 -#define BLANK() asm volatile("\n->" : : )
 -
- #ifdef CONFIG_64BIT
- #define FRAME_SIZE	128
- #else
+-#define OFFSET(sym, str, mem) \
+-        DEFINE(sym, offsetof(struct str, mem));
++#include <linux/kbuild.h>
+ 
+ void foo(void)
+ {
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
