@@ -1,95 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - git-net-git-rejects.patch removed from -mm tree
-Date: Tue, 15 Apr 2008 01:52:55 -0700
-Message-ID: <200804150852.m3F8qtTD019939@imap1.linux-foundation.org>
+Subject: + git-sched-git-rejects.patch added to -mm tree
+Date: Tue, 15 Apr 2008 01:57:06 -0700
+Message-ID: <200804150857.m3F8v6IW020091@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45156 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39948 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754435AbYDOIw5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754496AbYDOI5I (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 04:52:57 -0400
+	Tue, 15 Apr 2008 04:57:08 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3F8qt9d007271
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3F8v6BE007488
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 15 Apr 2008 01:52:57 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 15 Apr 2008 01:57:07 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     git-net-git-rejects
-has been removed from the -mm tree.  Its filename was
-     git-net-git-rejects.patch
+     git-sched-git-rejects
+has been added to the -mm tree.  Its filename is
+     git-sched-git-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-net-git-rejects
+Subject: git-sched-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/Kconfig  |    4 ----
- drivers/net/wireless/rt2x00/rt61pci.c |    6 +-----
- net/ipv4/inet_timewait_sock.c         |    4 ----
- 3 files changed, 1 insertion(+), 13 deletions(-)
+ kernel/sched_fair.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN drivers/net/wireless/iwlwifi/Kconfig~git-net-git-rejects drivers/net/wireless/iwlwifi/Kconfig
---- a/drivers/net/wireless/iwlwifi/Kconfig~git-net-git-rejects
-+++ a/drivers/net/wireless/iwlwifi/Kconfig
-@@ -42,11 +42,7 @@ config IWL4965
- config IWL4965_HT
- 	bool "Enable 802.11n HT features in iwl4965 driver"
- 	depends on EXPERIMENTAL
--<<<<<<< HEAD:drivers/net/wireless/iwlwifi/Kconfig
--	depends on IWL4965 && IWL4965_QOS
--=======
- 	depends on IWL4965
-->>>>>>> FETCH_HEAD:drivers/net/wireless/iwlwifi/Kconfig
- 	---help---
- 	  This option enables IEEE 802.11n High Throughput features
- 	  for the iwl4965 driver.
-diff -puN drivers/net/wireless/rt2x00/rt61pci.c~git-net-git-rejects drivers/net/wireless/rt2x00/rt61pci.c
---- a/drivers/net/wireless/rt2x00/rt61pci.c~git-net-git-rejects
-+++ a/drivers/net/wireless/rt2x00/rt61pci.c
-@@ -2377,16 +2377,12 @@ static int rt61pci_beacon_update(struct 
- 	 * We need to append the descriptor in front of the
- 	 * beacon frame.
- 	 */
--<<<<<<< HEAD:drivers/net/wireless/rt2x00/rt61pci.c
--	if (skb_headroom(skb) < TXD_DESC_SIZE) {
--		if (pskb_expand_head(skb, TXD_DESC_SIZE, 0, GFP_ATOMIC))
--=======
- 	if (skb_headroom(skb) < intf->beacon->queue->desc_size) {
- 		if (pskb_expand_head(skb, intf->beacon->queue->desc_size,
- 				     0, GFP_ATOMIC)) {
- 			dev_kfree_skb(skb);
-->>>>>>> FETCH_HEAD:drivers/net/wireless/rt2x00/rt61pci.c
- 			return -ENOMEM;
-+		}
- 	}
+diff -puN kernel/sched_fair.c~git-sched-git-rejects kernel/sched_fair.c
+--- a/kernel/sched_fair.c~git-sched-git-rejects
++++ a/kernel/sched_fair.c
+@@ -500,10 +500,6 @@ place_entity(struct cfs_rq *cfs_rq, stru
  
- 	/*
-diff -puN net/ipv4/inet_timewait_sock.c~git-net-git-rejects net/ipv4/inet_timewait_sock.c
---- a/net/ipv4/inet_timewait_sock.c~git-net-git-rejects
-+++ a/net/ipv4/inet_timewait_sock.c
-@@ -124,11 +124,7 @@ struct inet_timewait_sock *inet_twsk_all
- 		tw->tw_hash	    = sk->sk_hash;
- 		tw->tw_ipv6only	    = 0;
- 		tw->tw_prot	    = sk->sk_prot_creator;
--<<<<<<< HEAD:net/ipv4/inet_timewait_sock.c
--		tw->tw_net          = sk->sk_net;
+ 	if (!initial) {
+ 		/* sleeps upto a single latency don't count. */
+-<<<<<<< HEAD:kernel/sched_fair.c
+-		if (sched_feat(NEW_FAIR_SLEEPERS))
+-			vruntime -= sysctl_sched_latency;
 -=======
- 		twsk_net_set(tw, sock_net(sk));
-->>>>>>> FETCH_HEAD:net/ipv4/inet_timewait_sock.c
- 		atomic_set(&tw->tw_refcnt, 1);
- 		inet_twsk_dead_node_init(tw);
- 		__module_get(tw->tw_prot->owner);
+ 		if (sched_feat(NEW_FAIR_SLEEPERS)) {
+ 			if (sched_feat(NORMALIZED_SLEEPER))
+ 				vruntime -= calc_delta_fair(sysctl_sched_latency,
+@@ -511,7 +507,6 @@ place_entity(struct cfs_rq *cfs_rq, stru
+ 			else
+ 				vruntime -= sysctl_sched_latency;
+ 		}
+->>>>>>> FETCH_HEAD:kernel/sched_fair.c
+ 
+ 		/* ensure we never gain time by being placed backwards. */
+ 		vruntime = max_vruntime(se->vruntime, vruntime);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -134,7 +113,6 @@ pata_atiixp-simplex-clear-fix.patch
 git-async-tx.patch
 git-mips.patch
 git-net.patch
-git-net-git-rejects.patch
 drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 ehea-fix-dlpar-memory-add-support-fix.patch
@@ -165,6 +143,7 @@ pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
 drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
 git-s390.patch
 git-sched.patch
+git-sched-git-rejects.patch
 add-rcu_assign_index-if-ever-needed.patch
 git-sh.patch
 sh-arch-sh-kernel-traps_32c-needs-asm-fpuh.patch
