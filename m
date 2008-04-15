@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-non-racy-method-for-proc-swaps-creation.patch added to -mm tree
-Date: Tue, 15 Apr 2008 16:56:11 -0700
-Message-ID: <200804152356.m3FNuBFp022512@imap1.linux-foundation.org>
+Subject: + sound-use-non-racy-method-for-proc-driver-snd-page-alloc-creation.patch added to -mm tree
+Date: Tue, 15 Apr 2008 16:56:13 -0700
+Message-ID: <200804152356.m3FNuDow022515@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60182 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40179 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752810AbYDOX4P (ORCPT
+	by vger.kernel.org with ESMTP id S1752810AbYDOX4Z (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 19:56:15 -0400
+	Tue, 15 Apr 2008 19:56:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, adobriyan@gmail.com, ebiederm@xmission.com
+Cc: den@openvz.org, adobriyan@gmail.com, ebiederm@xmission.com, perex@suse.cz, tiwai@suse.de
 
 
 The patch titled
-     mm: use non-racy method for /proc/swaps creation
+     sound: use non-racy method for /proc/driver/snd-page-alloc creation
 has been added to the -mm tree.  Its filename is
-     mm-use-non-racy-method-for-proc-swaps-creation.patch
+     sound-use-non-racy-method-for-proc-driver-snd-page-alloc-creation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: use non-racy method for /proc/swaps creation
+Subject: sound: use non-racy method for /proc/driver/snd-page-alloc creation
 From: "Denis V. Lunev" <den@openvz.org>
 
 Use proc_create() to make sure that ->proc_fops be setup before gluing PDE to
@@ -43,28 +43,29 @@ main tree.
 Signed-off-by: Denis V. Lunev <den@openvz.org>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Jaroslav Kysela <perex@suse.cz>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ sound/core/memalloc.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/swapfile.c~mm-use-non-racy-method-for-proc-swaps-creation mm/swapfile.c
---- a/mm/swapfile.c~mm-use-non-racy-method-for-proc-swaps-creation
-+++ a/mm/swapfile.c
-@@ -1426,11 +1426,7 @@ static const struct file_operations proc
- 
- static int __init procswaps_init(void)
+diff -puN sound/core/memalloc.c~sound-use-non-racy-method-for-proc-driver-snd-page-alloc-creation sound/core/memalloc.c
+--- a/sound/core/memalloc.c~sound-use-non-racy-method-for-proc-driver-snd-page-alloc-creation
++++ a/sound/core/memalloc.c
+@@ -629,9 +629,8 @@ static const struct file_operations snd_
+ static int __init snd_mem_init(void)
  {
--	struct proc_dir_entry *entry;
--
--	entry = create_proc_entry("swaps", 0, NULL);
--	if (entry)
--		entry->proc_fops = &proc_swaps_operations;
-+	proc_create("swaps", 0, NULL, &proc_swaps_operations);
+ #ifdef CONFIG_PROC_FS
+-	snd_mem_proc = create_proc_entry(SND_MEM_PROC_FILE, 0644, NULL);
+-	if (snd_mem_proc)
+-		snd_mem_proc->proc_fops = &snd_mem_proc_fops;
++	snd_mem_proc = proc_create(SND_MEM_PROC_FILE, 0644, NULL,
++				   &snd_mem_proc_fops);
+ #endif
  	return 0;
  }
- __initcall(procswaps_init);
 _
 
 Patches currently in -mm which might be from den@openvz.org are
