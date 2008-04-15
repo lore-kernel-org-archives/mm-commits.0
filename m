@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-use-non-racy-method-for-proc-entries-creation.patch added to -mm tree
-Date: Tue, 15 Apr 2008 16:56:05 -0700
-Message-ID: <200804152356.m3FNu5Ln022503@imap1.linux-foundation.org>
+Subject: + nfs-use-proc_create-to-setup-de-proc_fops.patch added to -mm tree
+Date: Tue, 15 Apr 2008 16:55:59 -0700
+Message-ID: <200804152355.m3FNtx9A022488@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43344 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57620 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752810AbYDOX42 (ORCPT
+	by vger.kernel.org with ESMTP id S1753120AbYDOX4V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 19:56:28 -0400
+	Tue, 15 Apr 2008 19:56:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, adobriyan@gmail.com, chris.mason@oracle.com, ebiederm@xmission.com, jeffm@suse.com
+Cc: den@openvz.org, adobriyan@gmail.com, bfields@fieldses.org, ebiederm@xmission.com, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     reiserfs: use non-racy method for proc entries creation
+     nfs: use proc_create to setup de->proc_fops
 has been added to the -mm tree.  Its filename is
-     reiserfs-use-non-racy-method-for-proc-entries-creation.patch
+     nfs-use-proc_create-to-setup-de-proc_fops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: use non-racy method for proc entries creation
+Subject: nfs: use proc_create to setup de->proc_fops
 From: "Denis V. Lunev" <den@openvz.org>
 
-Use proc_create()/proc_create_data() to make sure that ->proc_fops and ->data
-be setup before gluing PDE to main tree.
-
-/proc entry owner is also added.
+Use proc_create() to make sure that ->proc_fops be setup before gluing PDE to
+main tree.
 
 Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Chris Mason <chris.mason@oracle.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/procfs.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ fs/nfs/client.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN fs/reiserfs/procfs.c~reiserfs-use-non-racy-method-for-proc-entries-creation fs/reiserfs/procfs.c
---- a/fs/reiserfs/procfs.c~reiserfs-use-non-racy-method-for-proc-entries-creation
-+++ a/fs/reiserfs/procfs.c
-@@ -467,6 +467,7 @@ static const struct file_operations r_fi
- 	.read = seq_read,
- 	.llseek = seq_lseek,
- 	.release = seq_release,
-+	.owner = THIS_MODULE,
+diff -puN fs/nfs/client.c~nfs-use-proc_create-to-setup-de-proc_fops fs/nfs/client.c
+--- a/fs/nfs/client.c~nfs-use-proc_create-to-setup-de-proc_fops
++++ a/fs/nfs/client.c
+@@ -1314,6 +1314,7 @@ static const struct file_operations nfs_
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+ 	.release	= seq_release,
++	.owner		= THIS_MODULE,
  };
  
- static struct proc_dir_entry *proc_info_root = NULL;
-@@ -475,12 +476,8 @@ static const char proc_info_root_name[] 
- static void add_file(struct super_block *sb, char *name,
- 		     int (*func) (struct seq_file *, struct super_block *))
- {
--	struct proc_dir_entry *de;
--	de = create_proc_entry(name, 0, REISERFS_SB(sb)->procdir);
--	if (de) {
--		de->data = func;
--		de->proc_fops = &r_file_operations;
--	}
-+	proc_create_data(name, 0, REISERFS_SB(sb)->procdir,
-+			 &r_file_operations, func);
- }
+ static int nfs_volume_list_open(struct inode *inode, struct file *file);
+@@ -1334,6 +1335,7 @@ static const struct file_operations nfs_
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+ 	.release	= seq_release,
++	.owner		= THIS_MODULE,
+ };
  
- int reiserfs_proc_info_init(struct super_block *sb)
+ /*
+@@ -1500,20 +1502,16 @@ int __init nfs_fs_proc_init(void)
+ 	proc_fs_nfs->owner = THIS_MODULE;
+ 
+ 	/* a file of servers with which we're dealing */
+-	p = create_proc_entry("servers", S_IFREG|S_IRUGO, proc_fs_nfs);
++	p = proc_create("servers", S_IFREG|S_IRUGO,
++			proc_fs_nfs, &nfs_server_list_fops);
+ 	if (!p)
+ 		goto error_1;
+ 
+-	p->proc_fops = &nfs_server_list_fops;
+-	p->owner = THIS_MODULE;
+-
+ 	/* a file of volumes that we have mounted */
+-	p = create_proc_entry("volumes", S_IFREG|S_IRUGO, proc_fs_nfs);
++	p = proc_create("volumes", S_IFREG|S_IRUGO,
++			proc_fs_nfs, &nfs_volume_list_fops);
+ 	if (!p)
+ 		goto error_2;
+-
+-	p->proc_fops = &nfs_volume_list_fops;
+-	p->owner = THIS_MODULE;
+ 	return 0;
+ 
+ error_2:
 _
 
 Patches currently in -mm which might be from den@openvz.org are
