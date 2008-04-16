@@ -1,126 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-unneccessary-to-scan-the-pci-bus-already-scanned.patch removed from -mm tree
-Date: Wed, 16 Apr 2008 15:55:27 -0700
-Message-ID: <200804162255.m3GMtRAO011125@imap1.linux-foundation.org>
+Subject: - uml-compile-error-fix.patch removed from -mm tree
+Date: Wed, 16 Apr 2008 15:55:01 -0700
+Message-ID: <200804162255.m3GMt1Jj011073@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59999 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752758AbYDPW4n (ORCPT
+	by vger.kernel.org with ESMTP id S1756895AbYDPWze (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 18:56:43 -0400
+	Wed, 16 Apr 2008 18:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yakui.zhao@intel.com, greg@kroah.com, lenb@kernel.org, mingo@elte.hu, muli@il.ibm.com, stian@jordet.net, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, jdike@addtoit.com, wangcong@zeuux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: unneccessary to scan the PCI bus already scanned
+     uml: compile error fix
 has been removed from the -mm tree.  Its filename was
-     acpi-unneccessary-to-scan-the-pci-bus-already-scanned.patch
+     uml-compile-error-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: unneccessary to scan the PCI bus already scanned
-From: <yakui.zhao@intel.com>
+Subject: uml: compile error fix
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
+This patch fixes this error:
 
-http://bugzilla.kernel.org/show_bug.cgi?id=10124
+In file included from /home/wangcong/projects/linux-2.6/arch/um/kernel/smp.c:9:
+include2/asm/tlb.h: In function `tlb_remove_page':
+include2/asm/tlb.h:101: error: implicit declaration of function `page_cache_release'
 
-this change:
+And since including <linux/pagemap.h> in <linux/swap.h> will break sparc,
+we add this #include in uml's own header.
 
-      commit 08f1c192c3c32797068bfe97738babb3295bbf42
-      Author: Muli Ben-Yehuda <muli@il.ibm.com>
-      Date:   Sun Jul 22 00:23:39 2007 +0300
-
-         x86-64: introduce struct pci_sysdata to facilitate sharing of ->sysdata
-
-         This patch introduces struct pci_sysdata to x86 and x86-64, and
-         converts the existing two users (NUMA, Calgary) to use it.
-
-         This lays the groundwork for having other users of sysdata, such as
-         the PCI domains work.
-
-         The Calgary bits are tested, the NUMA bits just look ok.
-
-replaces pcibios_scan_root by pci_scan_bus_parented...
-
-but in pcibios_scan_root we have a check about scanned busses.
-
-Cc: <yakui.zhao@intel.com>
-Cc: Stian Jordet <stian@jordet.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "Yinghai Lu" <yhlu.kernel@gmail.com>
+Acked-by: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: WANG Cong <wangcong@zeuux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/pci/pci.c |    7 ++++++-
- arch/x86/pci/acpi.c |   17 +++++++++++++++--
- 2 files changed, 21 insertions(+), 3 deletions(-)
+ include/asm-um/tlb.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/ia64/pci/pci.c~acpi-unneccessary-to-scan-the-pci-bus-already-scanned arch/ia64/pci/pci.c
---- a/arch/ia64/pci/pci.c~acpi-unneccessary-to-scan-the-pci-bus-already-scanned
-+++ a/arch/ia64/pci/pci.c
-@@ -362,7 +362,12 @@ pci_acpi_scan_root(struct acpi_device *d
- 	info.name = name;
- 	acpi_walk_resources(device->handle, METHOD_NAME__CRS, add_window,
- 			&info);
--
-+	/*
-+	 * See arch/x86/pci/acpi.c.
-+	 * The desired pci bus might already be scanned in a quirk. We
-+	 * should handle the case here, but it appears that IA64 hasn't
-+	 * such quirk. So we just ignore the case now.
-+	 */
- 	pbus = pci_scan_bus_parented(NULL, bus, &pci_root_ops, controller);
- 	if (pbus)
- 		pcibios_setup_root_windows(pbus, controller);
-diff -puN arch/x86/pci/acpi.c~acpi-unneccessary-to-scan-the-pci-bus-already-scanned arch/x86/pci/acpi.c
---- a/arch/x86/pci/acpi.c~acpi-unneccessary-to-scan-the-pci-bus-already-scanned
-+++ a/arch/x86/pci/acpi.c
-@@ -219,8 +219,21 @@ struct pci_bus * __devinit pci_acpi_scan
- 	if (pxm >= 0)
- 		sd->node = pxm_to_node(pxm);
- #endif
-+	/*
-+	 * Maybe the desired pci bus has been already scanned. In such case
-+	 * it is unnecessary to scan the pci bus with the given domain,busnum.
-+	 */
-+	bus = pci_find_bus(domain, busnum);
-+	if (bus) {
-+		/*
-+		 * If the desired bus exits, the content of bus->sysdata will
-+		 * be replaced by sd.
-+		 */
-+		memcpy(bus->sysdata, sd, sizeof(*sd));
-+		kfree(sd);
-+	} else
-+		bus = pci_scan_bus_parented(NULL, busnum, &pci_root_ops, sd);
+diff -puN include/asm-um/tlb.h~uml-compile-error-fix include/asm-um/tlb.h
+--- a/include/asm-um/tlb.h~uml-compile-error-fix
++++ a/include/asm-um/tlb.h
+@@ -1,6 +1,7 @@
+ #ifndef __UM_TLB_H
+ #define __UM_TLB_H
  
--	bus = pci_scan_bus_parented(NULL, busnum, &pci_root_ops, sd);
- 	if (!bus)
- 		kfree(sd);
- 
-@@ -228,7 +241,7 @@ struct pci_bus * __devinit pci_acpi_scan
- 	if (bus != NULL) {
- 		if (pxm >= 0) {
- 			printk("bus %d -> pxm %d -> node %d\n",
--				busnum, pxm, sd->node);
-+				busnum, pxm, pxm_to_node(pxm));
- 		}
- 	}
- #endif
++#include <linux/pagemap.h>
+ #include <linux/swap.h>
+ #include <asm/percpu.h>
+ #include <asm/pgalloc.h>
 _
 
-Patches currently in -mm which might be from yakui.zhao@intel.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
-git-acpi.patch
-acpi-check-a-return-value-correctly-in-acpi_power_get_context.patch
-rtc-add-the-support-for-alarm-time-relative-to-current-time-in-sysfs.patch
+git-hrt.patch
+arch-um-kernel-um_archc-some-small-improvements.patch
+arch-um-os-linux-start_upc-various-improvements.patch
+uml-make-a-function-static.patch
+uml-remove-a-useless-function.patch
+uml-make-three-functions-static.patch
+uml-make-several-things-static.patch
+arch-um-os-linux-sys-i386-task_sizec-improve-a-bit.patch
+remove-the-macro-get_personality.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 
