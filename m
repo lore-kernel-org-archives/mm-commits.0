@@ -1,239 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - pci-hotplug-introduce-pci_slot-fix.patch removed from -mm tree
-Date: Wed, 16 Apr 2008 12:49:49 -0700
-Message-ID: <200804161949.m3GJnou1003747@imap1.linux-foundation.org>
+Subject: - pci-hotplug-acpi-pci-slot-detection-driver-fix.patch removed from -mm tree
+Date: Wed, 16 Apr 2008 12:52:18 -0700
+Message-ID: <200804161952.m3GJqIMX003858@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44240 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751406AbYDPTuP (ORCPT
+	by vger.kernel.org with ESMTP id S1751584AbYDPTwk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 15:50:15 -0400
+	Wed, 16 Apr 2008 15:52:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org, matthew@wil.cx, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci-hotplug-introduce-pci_slot-fix
+     pci-hotplug-acpi-pci-slot-detection-driver-fix
 has been removed from the -mm tree.  Its filename was
-     pci-hotplug-introduce-pci_slot-fix.patch
+     pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
 
-This patch was dropped because it was folded into pci-hotplug-introduce-pci_slot.patch
+This patch was dropped because it was folded into pci-hotplug-acpi-pci-slot-detection-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-hotplug-introduce-pci_slot-fix
+Subject: pci-hotplug-acpi-pci-slot-detection-driver-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Please, see Documentation/SubmitChecklist?
-
-In file included from arch/x86/kernel/quirks.c:4:
-include/linux/pci.h:28: error: field 'list' has incomplete type
-include/linux/pci.h:31: error: field 'kobj' has incomplete type
+drivers/acpi/pci_slot.c: In function 'register_slot':
+drivers/acpi/pci_slot.c:168: warning: cast from pointer to integer of different size
+drivers/acpi/pci_slot.c:168: warning: format '%#lx' expects type 'long unsigned int', but argument 3 has type 'long long unsigned int'
 
 Cc: Alex Chiang <achiang@hp.com>
 Cc: Greg KH <greg@kroah.com>
 Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
-DESC
-pci-hotplug-introduce-pci_slot-fix-fix
-EDESC
-
-make headers_check happy.
-
-Cc: Alex Chiang <achiang@hp.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
-DESC
-pci-hotplug-introduce-pci_slot-fix-2
-EDESC
-
-drivers/pci/slot.c: In function 'pci_create_slot':
-drivers/pci/slot.c:90: error: implicit declaration of function 'ERR_PTR'
-drivers/pci/slot.c:90: warning: assignment makes pointer from integer without a cast
-drivers/pci/slot.c:116: warning: assignment makes pointer from integer without a cast
-
-Cc: Alex Chiang <achiang@hp.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
-DESC
-pci-hotplug-introduce-pci_slot-fix-99
-EDESC
-
-this patch was a bit of a fiasco.
-
-Cc: Alex Chiang <achiang@hp.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
-DESC
-remove rpaphp 'address_read_file'
-EDESC
-
-Physical pci_slot removed ->get_address methods from individual
-PCI hotplug drivers, but overlooked rpaphp, causing build errors.
-
-Remove rpaphp's 'address_read_file' as well.
-
-Signed-off-by: Alex Chiang <achiang@hp.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
-Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/hotplug/rpadlpar_sysfs.c |    2 -
- drivers/pci/hotplug/rpaphp_slot.c    |   37 -------------------------
- drivers/pci/slot.c                   |    1 
- include/linux/pci.h                  |   22 +++++++-------
- 4 files changed, 13 insertions(+), 49 deletions(-)
+ drivers/acpi/pci_slot.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/pci.h~pci-hotplug-introduce-pci_slot-fix include/linux/pci.h
---- a/include/linux/pci.h~pci-hotplug-introduce-pci_slot-fix
-+++ a/include/linux/pci.h
-@@ -17,20 +17,10 @@
- #ifndef LINUX_PCI_H
- #define LINUX_PCI_H
+diff -puN drivers/acpi/pci_slot.c~pci-hotplug-acpi-pci-slot-detection-driver-fix drivers/acpi/pci_slot.c
+--- a/drivers/acpi/pci_slot.c~pci-hotplug-acpi-pci-slot-detection-driver-fix
++++ a/drivers/acpi/pci_slot.c
+@@ -165,8 +165,8 @@ register_slot(acpi_handle handle, u32 lv
+ 	list_add(&slot->list, &slot_list);
+ 	mutex_unlock(&slot_list_lock);
  
--/* Include the pci register defines */
--#include <linux/pci_regs.h>
-+#include <linux/pci_regs.h>	/* The pci register defines */
+-	dbg("pci_slot: %#lx, pci_bus: %x, device: %d, name: %s\n",
+-		(uint64_t)pci_slot, pci_bus->number, device, name);
++	dbg("pci_slot: %p, pci_bus: %x, device: %d, name: %s\n",
++		pci_slot, pci_bus->number, device, name);
  
- struct pci_vpd;
- 
--/* pci_slot represents a physical slot */
--struct pci_slot {
--	struct pci_bus *bus;		/* The bus this slot is on */
--	struct list_head list;		/* node in list of slots on this bus */
--	struct hotplug_slot *hotplug;	/* Hotplug info (migrate over time) */
--	unsigned char number;		/* PCI_SLOT(pci_dev->devfn) */
--	struct kobject kobj;
--};
--
- /*
-  * The PCI interface treats multi-function devices as independent
-  * devices.  The slot/function address of each device is encoded
-@@ -59,12 +49,22 @@ struct pci_slot {
- #include <linux/list.h>
- #include <linux/compiler.h>
- #include <linux/errno.h>
-+#include <linux/kobject.h>
- #include <asm/atomic.h>
- #include <linux/device.h>
- 
- /* Include the ID list */
- #include <linux/pci_ids.h>
- 
-+/* pci_slot represents a physical slot */
-+struct pci_slot {
-+	struct pci_bus *bus;		/* The bus this slot is on */
-+	struct list_head list;		/* node in list of slots on this bus */
-+	struct hotplug_slot *hotplug;	/* Hotplug info (migrate over time) */
-+	unsigned char number;		/* PCI_SLOT(pci_dev->devfn) */
-+	struct kobject kobj;
-+};
-+
- /* File state for mmap()s on /proc/bus/pci/X/Y */
- enum pci_mmap_state {
- 	pci_mmap_io,
-diff -puN drivers/pci/slot.c~pci-hotplug-introduce-pci_slot-fix drivers/pci/slot.c
---- a/drivers/pci/slot.c~pci-hotplug-introduce-pci_slot-fix
-+++ a/drivers/pci/slot.c
-@@ -7,6 +7,7 @@
- 
- #include <linux/kobject.h>
- #include <linux/pci.h>
-+#include <linux/err.h>
- #include "pci.h"
- 
- struct kset *pci_slots_kset;
-diff -puN drivers/pci/hotplug/rpadlpar_sysfs.c~pci-hotplug-introduce-pci_slot-fix drivers/pci/hotplug/rpadlpar_sysfs.c
---- a/drivers/pci/hotplug/rpadlpar_sysfs.c~pci-hotplug-introduce-pci_slot-fix
-+++ a/drivers/pci/hotplug/rpadlpar_sysfs.c
-@@ -17,7 +17,7 @@
- #include <linux/pci.h>
- #include <linux/pci_hotplug.h>
- #include "rpadlpar.h"
--#include "../pcih."
-+#include "../pci.h"
- 
- #define DLPAR_KOBJ_NAME       "control"
- #define ADD_SLOT_ATTR_NAME    "add_slot"
-diff -puN drivers/pci/hotplug/rpaphp_slot.c~pci-hotplug-introduce-pci_slot-fix drivers/pci/hotplug/rpaphp_slot.c
---- a/drivers/pci/hotplug/rpaphp_slot.c~pci-hotplug-introduce-pci_slot-fix
-+++ a/drivers/pci/hotplug/rpaphp_slot.c
-@@ -33,33 +33,6 @@
- #include <asm/rtas.h>
- #include "rpaphp.h"
- 
--static ssize_t address_read_file (struct hotplug_slot *php_slot, char *buf)
--{
--	int retval;
--	struct slot *slot = (struct slot *)php_slot->private;
--	struct pci_bus *bus;
--
--	if (!slot)
--		return -ENOENT;
--
--	bus = slot->bus;
--	if (!bus)
--		return -ENOENT;
--
--	if (bus->self)
--		retval = sprintf(buf, pci_name(bus->self));
--	else
--		retval = sprintf(buf, "%04x:%02x:00.0",
--		        pci_domain_nr(bus), bus->number);
--
--	return retval;
--}
--
--static struct hotplug_slot_attribute php_attr_address = {
--	.attr = {.name = "address", .mode = S_IFREG | S_IRUGO},
--	.show = address_read_file,
--};
--
- /* free up the memory used by a slot */
- static void rpaphp_release_slot(struct hotplug_slot *hotplug_slot)
- {
-@@ -135,9 +108,6 @@ int rpaphp_deregister_slot(struct slot *
- 
- 	list_del(&slot->rpaphp_slot_list);
- 	
--	/* remove "address" file */
--	sysfs_remove_file(&php_slot->kobj, &php_attr_address.attr);
--
- 	retval = pci_hp_deregister(php_slot);
- 	if (retval)
- 		err("Problem unregistering a slot %s\n", slot->name);
-@@ -169,13 +139,6 @@ int rpaphp_register_slot(struct slot *sl
- 		return retval;
- 	}
- 
--	/* create "address" file */
--	retval = sysfs_create_file(&php_slot->kobj, &php_attr_address.attr);
--	if (retval) {
--		err("sysfs_create_file failed with error %d\n", retval);
--		goto sysfs_fail;
--	}
--
- 	/* add slot to our internal list */
- 	list_add(&slot->rpaphp_slot_list, &rpaphp_slot_head);
- 	info("Slot [%s] registered\n", slot->name);
+ 	return AE_OK;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -293,7 +115,7 @@ arch-parisc-kernel-unalignedc-use-time_-macros.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
 git-selinux.patch
 pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-introduce-pci_slot-fix.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
 pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
 drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
 git-s390.patch
