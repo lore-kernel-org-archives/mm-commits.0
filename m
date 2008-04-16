@@ -1,415 +1,318 @@
 From: akpm@linux-foundation.org
-Subject: - pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type.patch removed from -mm tree
-Date: Wed, 16 Apr 2008 15:55:34 -0700
-Message-ID: <200804162255.m3GMtYHY011134@imap1.linux-foundation.org>
+Subject: - serial-fix-platform-driver-hotplug-coldplug.patch removed from -mm tree
+Date: Wed, 16 Apr 2008 15:54:55 -0700
+Message-ID: <200804162254.m3GMsttU011066@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48076 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36753 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753334AbYDPXBf (ORCPT
+	by vger.kernel.org with ESMTP id S1758868AbYDPXB2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 19:01:35 -0400
+	Wed, 16 Apr 2008 19:01:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org, lenb@kernel.org, pavel@ucw.cz, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, jacmet@sunsite.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm: new suspend and hibernation callbacks for platform bus type
+     serial: fix platform driver hotplug/coldplug
 has been removed from the -mm tree.  Its filename was
-     pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type.patch
+     serial-fix-platform-driver-hotplug-coldplug.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: pm: new suspend and hibernation callbacks for platform bus type
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: serial: fix platform driver hotplug/coldplug
+=46rom: Kay Sievers <kay.sievers@vrfy.org>
 
-Implement new suspend and hibernation callbacks for the platform bus type.
+Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias i=
+s
+prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable seri=
+al
+platform drivers, to re-enable auto loading.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Len Brown <lenb@kernel.org>
+NOTE that Kconfig for some of these drivers doesn't allow modular build=
+s, and
+thus doesn't match the driver source's unload support.  Presumably thei=
+r
+unload code is buggy and/or weakly tested...
+
+[dbrownell@users.sourceforge.net: more drivers, registration fixes]
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/platform.c         |  296 +++++++++++++++++++++++++++++-
- include/linux/platform_device.h |    1 
- 2 files changed, 289 insertions(+), 8 deletions(-)
+ drivers/serial/atmel_serial.c |    1 +
+ drivers/serial/bfin_5xx.c     |    2 ++
+ drivers/serial/imx.c          |    2 ++
+ drivers/serial/mcf.c          |    1 +
+ drivers/serial/mpc52xx_uart.c |    2 ++
+ drivers/serial/mpsc.c         |    2 ++
+ drivers/serial/netx-serial.c  |    2 ++
+ drivers/serial/pnx8xxx_uart.c |    1 +
+ drivers/serial/pxa.c          |    3 ++-
+ drivers/serial/s3c2410.c      |    4 ++++
+ drivers/serial/sa1100.c       |    2 ++
+ drivers/serial/sc26xx.c       |    2 ++
+ drivers/serial/sh-sci.c       |    1 +
+ drivers/serial/uartlite.c     |    3 +++
+ drivers/serial/vr41xx_siu.c   |    3 +++
+ 15 files changed, 30 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/platform.c~pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type drivers/base/platform.c
---- a/drivers/base/platform.c~pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type
-+++ a/drivers/base/platform.c
-@@ -453,6 +453,8 @@ int platform_driver_register(struct plat
- 		drv->driver.suspend = platform_drv_suspend;
- 	if (drv->resume)
- 		drv->driver.resume = platform_drv_resume;
-+	if (drv->pm)
-+		drv->driver.pm = &drv->pm->base;
- 	return driver_register(&drv->driver);
- }
- EXPORT_SYMBOL_GPL(platform_driver_register);
-@@ -560,7 +562,9 @@ static int platform_match(struct device 
- 	return (strncmp(pdev->name, drv->name, BUS_ID_SIZE) == 0);
- }
- 
--static int platform_suspend(struct device *dev, pm_message_t mesg)
-+#ifdef CONFIG_PM_SLEEP
-+
-+static int platform_legacy_suspend(struct device *dev, pm_message_t mesg)
- {
- 	int ret = 0;
- 
-@@ -570,7 +574,7 @@ static int platform_suspend(struct devic
- 	return ret;
- }
- 
--static int platform_suspend_late(struct device *dev, pm_message_t mesg)
-+static int platform_legacy_suspend_late(struct device *dev, pm_message_t mesg)
- {
- 	struct platform_driver *drv = to_platform_driver(dev->driver);
- 	struct platform_device *pdev;
-@@ -583,7 +587,7 @@ static int platform_suspend_late(struct 
- 	return ret;
- }
- 
--static int platform_resume_early(struct device *dev)
-+static int platform_legacy_resume_early(struct device *dev)
- {
- 	struct platform_driver *drv = to_platform_driver(dev->driver);
- 	struct platform_device *pdev;
-@@ -596,7 +600,7 @@ static int platform_resume_early(struct 
- 	return ret;
- }
- 
--static int platform_resume(struct device *dev)
-+static int platform_legacy_resume(struct device *dev)
- {
- 	int ret = 0;
- 
-@@ -606,15 +610,291 @@ static int platform_resume(struct device
- 	return ret;
- }
- 
-+static int platform_pm_prepare(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (drv && drv->pm && drv->pm->prepare)
-+		ret = drv->pm->prepare(dev);
-+
-+	return ret;
-+}
-+
-+static void platform_pm_complete(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+
-+	if (drv && drv->pm && drv->pm->complete)
-+		drv->pm->complete(dev);
-+}
-+
-+#ifdef CONFIG_SUSPEND
-+
-+static int platform_pm_suspend(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->suspend)
-+			ret = drv->pm->suspend(dev);
-+	} else {
-+		ret = platform_legacy_suspend(dev, PMSG_SUSPEND);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_suspend_noirq(struct device *dev)
-+{
-+	struct platform_driver *pdrv;
-+	int ret = 0;
-+
-+	if (!dev->driver)
-+		return 0;
-+
-+	pdrv = to_platform_driver(dev->driver);
-+	if (pdrv->pm) {
-+		if (pdrv->pm->suspend_noirq)
-+			ret = pdrv->pm->suspend_noirq(dev);
-+	} else {
-+		ret = platform_legacy_suspend_late(dev, PMSG_SUSPEND);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_resume(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->resume)
-+			ret = drv->pm->resume(dev);
-+	} else {
-+		ret = platform_legacy_resume(dev);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_resume_noirq(struct device *dev)
-+{
-+	struct platform_driver *pdrv;
-+	int ret = 0;
-+
-+	if (!dev->driver)
-+		return 0;
-+
-+	pdrv = to_platform_driver(dev->driver);
-+	if (pdrv->pm) {
-+		if (pdrv->pm->resume_noirq)
-+			ret = pdrv->pm->resume_noirq(dev);
-+	} else {
-+		ret = platform_legacy_resume_early(dev);
-+	}
-+
-+	return ret;
-+}
-+
-+#else /* !CONFIG_SUSPEND */
-+
-+#define platform_pm_suspend		NULL
-+#define platform_pm_resume		NULL
-+#define platform_pm_suspend_noirq	NULL
-+#define platform_pm_resume_noirq	NULL
-+
-+#endif /* !CONFIG_SUSPEND */
-+
-+#ifdef CONFIG_HIBERNATION
-+
-+static int platform_pm_freeze(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (!drv)
-+		return 0;
-+
-+	if (drv->pm) {
-+		if (drv->pm->freeze)
-+			ret = drv->pm->freeze(dev);
-+	} else {
-+		ret = platform_legacy_suspend(dev, PMSG_FREEZE);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_freeze_noirq(struct device *dev)
-+{
-+	struct platform_driver *pdrv;
-+	int ret = 0;
-+
-+	if (!dev->driver)
-+		return 0;
-+
-+	pdrv = to_platform_driver(dev->driver);
-+	if (pdrv->pm) {
-+		if (pdrv->pm->freeze_noirq)
-+			ret = pdrv->pm->freeze_noirq(dev);
-+	} else {
-+		ret = platform_legacy_suspend_late(dev, PMSG_FREEZE);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_thaw(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->thaw)
-+			ret = drv->pm->thaw(dev);
-+	} else {
-+		ret = platform_legacy_resume(dev);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_thaw_noirq(struct device *dev)
-+{
-+	struct platform_driver *pdrv;
-+	int ret = 0;
-+
-+	if (!dev->driver)
-+		return 0;
-+
-+	pdrv = to_platform_driver(dev->driver);
-+	if (pdrv->pm) {
-+		if (pdrv->pm->thaw_noirq)
-+			ret = pdrv->pm->thaw_noirq(dev);
-+	} else {
-+		ret = platform_legacy_resume_early(dev);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_poweroff(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->poweroff)
-+			ret = drv->pm->poweroff(dev);
-+	} else {
-+		ret = platform_legacy_suspend(dev, PMSG_HIBERNATE);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_poweroff_noirq(struct device *dev)
-+{
-+	struct platform_driver *pdrv;
-+	int ret = 0;
-+
-+	if (!dev->driver)
-+		return 0;
-+
-+	pdrv = to_platform_driver(dev->driver);
-+	if (pdrv->pm) {
-+		if (pdrv->pm->poweroff_noirq)
-+			ret = pdrv->pm->poweroff_noirq(dev);
-+	} else {
-+		ret = platform_legacy_suspend_late(dev, PMSG_HIBERNATE);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_restore(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int ret = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->restore)
-+			ret = drv->pm->restore(dev);
-+	} else {
-+		ret = platform_legacy_resume(dev);
-+	}
-+
-+	return ret;
-+}
-+
-+static int platform_pm_restore_noirq(struct device *dev)
-+{
-+	struct platform_driver *pdrv;
-+	int ret = 0;
-+
-+	if (!dev->driver)
-+		return 0;
-+
-+	pdrv = to_platform_driver(dev->driver);
-+	if (pdrv->pm) {
-+		if (pdrv->pm->restore_noirq)
-+			ret = pdrv->pm->restore_noirq(dev);
-+	} else {
-+		ret = platform_legacy_resume_early(dev);
-+	}
-+
-+	return ret;
-+}
-+
-+#else /* !CONFIG_HIBERNATION */
-+
-+#define platform_pm_freeze		NULL
-+#define platform_pm_thaw		NULL
-+#define platform_pm_poweroff		NULL
-+#define platform_pm_restore		NULL
-+#define platform_pm_freeze_noirq	NULL
-+#define platform_pm_thaw_noirq		NULL
-+#define platform_pm_poweroff_noirq	NULL
-+#define platform_pm_restore_noirq	NULL
-+
-+#endif /* !CONFIG_HIBERNATION */
-+
-+struct pm_ext_ops platform_pm_ops = {
-+	.base = {
-+		.prepare = platform_pm_prepare,
-+		.complete = platform_pm_complete,
-+		.suspend = platform_pm_suspend,
-+		.resume = platform_pm_resume,
-+		.freeze = platform_pm_freeze,
-+		.thaw = platform_pm_thaw,
-+		.poweroff = platform_pm_poweroff,
-+		.restore = platform_pm_restore,
-+	},
-+	.suspend_noirq = platform_pm_suspend_noirq,
-+	.resume_noirq = platform_pm_resume_noirq,
-+	.freeze_noirq = platform_pm_freeze_noirq,
-+	.thaw_noirq = platform_pm_thaw_noirq,
-+	.poweroff_noirq = platform_pm_poweroff_noirq,
-+	.restore_noirq = platform_pm_restore_noirq,
-+};
-+
-+#define PLATFORM_PM_OPS_PTR	&platform_pm_ops
-+
-+#else /* !CONFIG_PM_SLEEP */
-+
-+#define PLATFORM_PM_OPS_PTR	NULL
-+
-+#endif /* !CONFIG_PM_SLEEP */
-+
- struct bus_type platform_bus_type = {
- 	.name		= "platform",
- 	.dev_attrs	= platform_dev_attrs,
- 	.match		= platform_match,
- 	.uevent		= platform_uevent,
--	.suspend	= platform_suspend,
--	.suspend_late	= platform_suspend_late,
--	.resume_early	= platform_resume_early,
--	.resume		= platform_resume,
-+	.pm		= PLATFORM_PM_OPS_PTR,
+diff -puN drivers/serial/atmel_serial.c~serial-fix-platform-driver-hotp=
+lug-coldplug drivers/serial/atmel_serial.c
+--- a/drivers/serial/atmel_serial.c~serial-fix-platform-driver-hotplug-=
+coldplug
++++ a/drivers/serial/atmel_serial.c
+@@ -1577,3 +1577,4 @@ module_exit(atmel_serial_exit);
+ MODULE_AUTHOR("Rick Bronson");
+ MODULE_DESCRIPTION("Atmel AT91 / AT32 serial port driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:atmel_usart");
+diff -puN drivers/serial/bfin_5xx.c~serial-fix-platform-driver-hotplug-=
+coldplug drivers/serial/bfin_5xx.c
+--- a/drivers/serial/bfin_5xx.c~serial-fix-platform-driver-hotplug-cold=
+plug
++++ a/drivers/serial/bfin_5xx.c
+@@ -1243,6 +1243,7 @@ static struct platform_driver bfin_seria
+ 	.resume		=3D bfin_serial_resume,
+ 	.driver		=3D {
+ 		.name	=3D "bfin-uart",
++		.owner	=3D THIS_MODULE,
+ 	},
  };
- EXPORT_SYMBOL_GPL(platform_bus_type);
- 
-diff -puN include/linux/platform_device.h~pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type include/linux/platform_device.h
---- a/include/linux/platform_device.h~pm-new-suspend-and-hibernation-callbacks-for-platform-bus-type
-+++ a/include/linux/platform_device.h
-@@ -53,6 +53,7 @@ struct platform_driver {
- 	int (*suspend_late)(struct platform_device *, pm_message_t state);
- 	int (*resume_early)(struct platform_device *);
- 	int (*resume)(struct platform_device *);
-+	struct pm_ext_ops *pm;
- 	struct device_driver driver;
+=20
+@@ -1301,3 +1302,4 @@ MODULE_AUTHOR("Aubrey.Li <aubrey.li@anal
+ MODULE_DESCRIPTION("Blackfin generic serial port driver");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_CHARDEV_MAJOR(BFIN_SERIAL_MAJOR);
++MODULE_ALIAS("platform:bfin-uart");
+diff -puN drivers/serial/imx.c~serial-fix-platform-driver-hotplug-coldp=
+lug drivers/serial/imx.c
+--- a/drivers/serial/imx.c~serial-fix-platform-driver-hotplug-coldplug
++++ a/drivers/serial/imx.c
+@@ -1090,6 +1090,7 @@ static struct platform_driver serial_imx
+ 	.resume		=3D serial_imx_resume,
+ 	.driver		=3D {
+ 	        .name	=3D "imx-uart",
++		.owner	=3D THIS_MODULE,
+ 	},
  };
- 
+=20
+@@ -1124,3 +1125,4 @@ module_exit(imx_serial_exit);
+ MODULE_AUTHOR("Sascha Hauer");
+ MODULE_DESCRIPTION("IMX generic serial port driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:imx-uart");
+diff -puN drivers/serial/mcf.c~serial-fix-platform-driver-hotplug-coldp=
+lug drivers/serial/mcf.c
+--- a/drivers/serial/mcf.c~serial-fix-platform-driver-hotplug-coldplug
++++ a/drivers/serial/mcf.c
+@@ -649,5 +649,6 @@ module_exit(mcf_exit);
+ MODULE_AUTHOR("Greg Ungerer <gerg@snapgear.com>");
+ MODULE_DESCRIPTION("Freescale ColdFire UART driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:mcfuart");
+=20
+ /*********************************************************************=
+*******/
+diff -puN drivers/serial/mpc52xx_uart.c~serial-fix-platform-driver-hotp=
+lug-coldplug drivers/serial/mpc52xx_uart.c
+--- a/drivers/serial/mpc52xx_uart.c~serial-fix-platform-driver-hotplug-=
+coldplug
++++ a/drivers/serial/mpc52xx_uart.c
+@@ -1188,6 +1188,8 @@ mpc52xx_uart_resume(struct platform_devi
+ }
+ #endif
+=20
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:mpc52xx-psc");
+=20
+ static struct platform_driver mpc52xx_uart_platform_driver =3D {
+ 	.probe		=3D mpc52xx_uart_probe,
+diff -puN drivers/serial/mpsc.c~serial-fix-platform-driver-hotplug-cold=
+plug drivers/serial/mpsc.c
+--- a/drivers/serial/mpsc.c~serial-fix-platform-driver-hotplug-coldplug
++++ a/drivers/serial/mpsc.c
+@@ -1964,6 +1964,7 @@ static struct platform_driver mpsc_drive
+ 	.remove	=3D mpsc_drv_remove,
+ 	.driver	=3D {
+ 		.name	=3D MPSC_CTLR_NAME,
++		.owner	=3D THIS_MODULE,
+ 	},
+ };
+=20
+@@ -2007,3 +2008,4 @@ MODULE_DESCRIPTION("Generic Marvell MPSC
+ MODULE_VERSION(MPSC_VERSION);
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_CHARDEV_MAJOR(MPSC_MAJOR);
++MODULE_ALIAS("platform:" MPSC_CTLR_NAME);
+diff -puN drivers/serial/netx-serial.c~serial-fix-platform-driver-hotpl=
+ug-coldplug drivers/serial/netx-serial.c
+--- a/drivers/serial/netx-serial.c~serial-fix-platform-driver-hotplug-c=
+oldplug
++++ a/drivers/serial/netx-serial.c
+@@ -713,6 +713,7 @@ static struct platform_driver serial_net
+=20
+ 	.driver		=3D {
+ 		.name   =3D DRIVER_NAME,
++		.owner	=3D THIS_MODULE,
+ 	},
+ };
+=20
+@@ -745,3 +746,4 @@ module_exit(netx_serial_exit);
+ MODULE_AUTHOR("Sascha Hauer");
+ MODULE_DESCRIPTION("NetX serial port driver");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:" DRIVER_NAME);
+diff -puN drivers/serial/pnx8xxx_uart.c~serial-fix-platform-driver-hotp=
+lug-coldplug drivers/serial/pnx8xxx_uart.c
+--- a/drivers/serial/pnx8xxx_uart.c~serial-fix-platform-driver-hotplug-=
+coldplug
++++ a/drivers/serial/pnx8xxx_uart.c
+@@ -850,3 +850,4 @@ MODULE_AUTHOR("Embedded Alley Solutions,
+ MODULE_DESCRIPTION("PNX8XXX SoCs serial port driver");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_CHARDEV_MAJOR(SERIAL_PNX8XXX_MAJOR);
++MODULE_ALIAS("platform:pnx8xxx-uart");
+diff -puN drivers/serial/pxa.c~serial-fix-platform-driver-hotplug-coldp=
+lug drivers/serial/pxa.c
+--- a/drivers/serial/pxa.c~serial-fix-platform-driver-hotplug-coldplug
++++ a/drivers/serial/pxa.c
+@@ -833,6 +833,7 @@ static struct platform_driver serial_pxa
+ 	.resume		=3D serial_pxa_resume,
+ 	.driver		=3D {
+ 	        .name	=3D "pxa2xx-uart",
++		.owner	=3D THIS_MODULE,
+ 	},
+ };
+=20
+@@ -861,4 +862,4 @@ module_init(serial_pxa_init);
+ module_exit(serial_pxa_exit);
+=20
+ MODULE_LICENSE("GPL");
+-
++MODULE_ALIAS("platform:pxa2xx-uart");
+diff -puN drivers/serial/s3c2410.c~serial-fix-platform-driver-hotplug-c=
+oldplug drivers/serial/s3c2410.c
+--- a/drivers/serial/s3c2410.c~serial-fix-platform-driver-hotplug-coldp=
+lug
++++ a/drivers/serial/s3c2410.c
+@@ -1935,3 +1935,7 @@ console_initcall(s3c24xx_serial_initcons
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Ben Dooks <ben@simtec.co.uk>");
+ MODULE_DESCRIPTION("Samsung S3C2410/S3C2440/S3C2412 Serial port driver=
+");
++MODULE_ALIAS("platform:s3c2400-uart");
++MODULE_ALIAS("platform:s3c2410-uart");
++MODULE_ALIAS("platform:s3c2412-uart");
++MODULE_ALIAS("platform:s3c2440-uart");
+diff -puN drivers/serial/sa1100.c~serial-fix-platform-driver-hotplug-co=
+ldplug drivers/serial/sa1100.c
+--- a/drivers/serial/sa1100.c~serial-fix-platform-driver-hotplug-coldpl=
+ug
++++ a/drivers/serial/sa1100.c
+@@ -884,6 +884,7 @@ static struct platform_driver sa11x0_ser
+ 	.resume		=3D sa1100_serial_resume,
+ 	.driver		=3D {
+ 		.name	=3D "sa11x0-uart",
++		.owner	=3D THIS_MODULE,
+ 	},
+ };
+=20
+@@ -917,3 +918,4 @@ MODULE_AUTHOR("Deep Blue Solutions Ltd")
+ MODULE_DESCRIPTION("SA1100 generic serial port driver $Revision: 1.50 =
+$");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS_CHARDEV_MAJOR(SERIAL_SA1100_MAJOR);
++MODULE_ALIAS("platform:sa11x0-uart");
+diff -puN drivers/serial/sc26xx.c~serial-fix-platform-driver-hotplug-co=
+ldplug drivers/serial/sc26xx.c
+--- a/drivers/serial/sc26xx.c~serial-fix-platform-driver-hotplug-coldpl=
+ug
++++ a/drivers/serial/sc26xx.c
+@@ -732,6 +732,7 @@ static struct platform_driver sc26xx_dri
+ 	.remove	=3D __devexit_p(sc26xx_driver_remove),
+ 	.driver	=3D {
+ 		.name	=3D "SC26xx",
++		.owner	=3D THIS_MODULE,
+ 	},
+ };
+=20
+@@ -753,3 +754,4 @@ MODULE_AUTHOR("Thomas Bogend=C3=B6rfer");
+ MODULE_DESCRIPTION("SC681/SC2692 serial driver");
+ MODULE_VERSION("1.0");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:SC26xx");
+diff -puN drivers/serial/sh-sci.c~serial-fix-platform-driver-hotplug-co=
+ldplug drivers/serial/sh-sci.c
+--- a/drivers/serial/sh-sci.c~serial-fix-platform-driver-hotplug-coldpl=
+ug
++++ a/drivers/serial/sh-sci.c
+@@ -1552,3 +1552,4 @@ module_init(sci_init);
+ module_exit(sci_exit);
+=20
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:sh-sci");
+diff -puN drivers/serial/uartlite.c~serial-fix-platform-driver-hotplug-=
+coldplug drivers/serial/uartlite.c
+--- a/drivers/serial/uartlite.c~serial-fix-platform-driver-hotplug-cold=
+plug
++++ a/drivers/serial/uartlite.c
+@@ -561,6 +561,9 @@ static int __devexit ulite_remove(struct
+ 	return ulite_release(&pdev->dev);
+ }
+=20
++/* work with hotplug and coldplug */
++MODULE_ALIAS("platform:uartlite");
++
+ static struct platform_driver ulite_platform_driver =3D {
+ 	.probe	=3D ulite_probe,
+ 	.remove	=3D __devexit_p(ulite_remove),
+diff -puN drivers/serial/vr41xx_siu.c~serial-fix-platform-driver-hotplu=
+g-coldplug drivers/serial/vr41xx_siu.c
+--- a/drivers/serial/vr41xx_siu.c~serial-fix-platform-driver-hotplug-co=
+ldplug
++++ a/drivers/serial/vr41xx_siu.c
+@@ -960,3 +960,6 @@ static void __exit vr41xx_siu_exit(void)
+=20
+ module_init(vr41xx_siu_init);
+ module_exit(vr41xx_siu_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:SIU");
 _
 
-Patches currently in -mm which might be from rjw@sisk.pl are
+Patches currently in -mm which might be from kay.sievers@vrfy.org are
 
 origin.patch
-git-acpi.patch
-power-replace-remaining-__function__-occurrences.patch
-s2ram-warn-when-interrupts-should-be-disabled-but-are-not.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-proc-switch-proc-apm-to-seq_file-interface.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-alsa-tiwai.patch
+macintosh-windfarm-fix-platform-driver-hotplug-coldplug.patch
+input-fix-platform-driver-hotplug-coldplug.patch
+ata-ide-fix-platform-driver-hotplug-coldplug.patch
+mtd-maps-fix-platform-driver-hotplug-coldplug.patch
+mtd-nand-fix-platform-driver-hotplug-coldplug.patch
+net-drivers-fix-platform-driver-hotplug-coldplug.patch
+scsi-fix-platform-driver-hotplug-coldplug.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
+cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
