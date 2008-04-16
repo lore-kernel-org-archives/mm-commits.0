@@ -1,71 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: + relayfs-support-larger-relay-buffer-take-3-cleanup.patch added to -mm tree
-Date: Wed, 16 Apr 2008 13:48:20 -0700
-Message-ID: <200804162048.m3GKmKh0006171@imap1.linux-foundation.org>
+Subject: - git-sched-git-rejects.patch removed from -mm tree
+Date: Wed, 16 Apr 2008 15:42:18 -0700
+Message-ID: <200804162242.m3GMgIc9010647@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43541 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758721AbYDPUy3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751023AbYDPWmv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 16:54:29 -0400
+	Wed, 16 Apr 2008 18:42:51 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3GMgIe0006183
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Wed, 16 Apr 2008 15:42:19 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dwilder@us.ibm.com, mhiramat@redhat.com, zanussi@comcast.net
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     relayfs-support-larger-relay-buffer-take-3-cleanup
-has been added to the -mm tree.  Its filename is
-     relayfs-support-larger-relay-buffer-take-3-cleanup.patch
+     git-sched-git-rejects
+has been removed from the -mm tree.  Its filename was
+     git-sched-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: relayfs-support-larger-relay-buffer-take-3-cleanup
+Subject: git-sched-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Wilder <dwilder@us.ibm.com>
-Cc: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Tom Zanussi <zanussi@comcast.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sched_fair.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN kernel/relay.c~relayfs-support-larger-relay-buffer-take-3-cleanup kernel/relay.c
---- a/kernel/relay.c~relayfs-support-larger-relay-buffer-take-3-cleanup
-+++ a/kernel/relay.c
-@@ -71,14 +71,14 @@ static struct vm_operations_struct relay
- static struct page **relay_alloc_page_array(unsigned int n_pages)
- {
- 	struct page **array;
--	unsigned int pa_size = n_pages * sizeof(struct page *);
-+	size_t pa_size = n_pages * sizeof(struct page *);
+diff -puN kernel/sched_fair.c~git-sched-git-rejects kernel/sched_fair.c
+--- a/kernel/sched_fair.c~git-sched-git-rejects
++++ a/kernel/sched_fair.c
+@@ -500,10 +500,6 @@ place_entity(struct cfs_rq *cfs_rq, stru
  
- 	if (pa_size > PAGE_SIZE) {
- 		array = vmalloc(pa_size);
- 		if (array)
- 			memset(array, 0, pa_size);
- 	} else {
--		array = kcalloc(n_pages, sizeof(struct page *), GFP_KERNEL);
-+		array = kzalloc(pa_size, GFP_KERNEL);
- 	}
- 	return array;
- }
+ 	if (!initial) {
+ 		/* sleeps upto a single latency don't count. */
+-<<<<<<< HEAD:kernel/sched_fair.c
+-		if (sched_feat(NEW_FAIR_SLEEPERS))
+-			vruntime -= sysctl_sched_latency;
+-=======
+ 		if (sched_feat(NEW_FAIR_SLEEPERS)) {
+ 			if (sched_feat(NORMALIZED_SLEEPER))
+ 				vruntime -= calc_delta_fair(sysctl_sched_latency,
+@@ -511,7 +507,6 @@ place_entity(struct cfs_rq *cfs_rq, stru
+ 			else
+ 				vruntime -= sysctl_sched_latency;
+ 		}
+->>>>>>> FETCH_HEAD:kernel/sched_fair.c
+ 
+ 		/* ensure we never gain time by being placed backwards. */
+ 		vruntime = max_vruntime(se->vruntime, vruntime);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
