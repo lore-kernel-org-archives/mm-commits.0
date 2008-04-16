@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-ptrace-pebs-support-warning-fix.patch added to -mm tree
-Date: Wed, 16 Apr 2008 16:40:17 -0700
-Message-ID: <200804162350.m3GNoh7x013140@imap1.linux-foundation.org>
+Subject: + tty-the-big-operations-rework-vs-git-kgdb-light.patch added to -mm tree
+Date: Wed, 16 Apr 2008 16:55:45 -0700
+Message-ID: <200804170006.m3H06AmW013665@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34081 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41880 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755742AbYDPXvn (ORCPT
+	by vger.kernel.org with ESMTP id S1757732AbYDQAHN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 19:51:43 -0400
+	Wed, 16 Apr 2008 20:07:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, eranian@googlemail.com, hpa@zytor.com, jason.wessel@windriver.com, juan.villacis@intel.com, markus.t.metzger@intel.com, mingo@elte.hu, mtk.manpages@googlemail.com, roland@redhat.com, suresh.b.siddha@intel.com, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jason.wessel@windriver.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     x86-ptrace-pebs-support warning fix
+     tty-the-big-operations-rework vs git-kgdb-light
 has been added to the -mm tree.  Its filename is
-     x86-ptrace-pebs-support-warning-fix.patch
+     tty-the-big-operations-rework-vs-git-kgdb-light.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,88 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-ptrace-pebs-support warning fix
+Subject: tty-the-big-operations-rework vs git-kgdb-light
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/process_32.c: In function '__switch_to_xtra':
-arch/x86/kernel/process_32.c:566: warning: unused variable 'ds_next'
-arch/x86/kernel/process_32.c:566: warning: unused variable 'ds_prev'
-
-Cc: Markus Metzger <markus.t.metzger@intel.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Siddha, Suresh B" <suresh.b.siddha@intel.com>
-Cc: Roland McGrath <roland@redhat.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: <juan.villacis@intel.com>
-Cc: stephane eranian <eranian@googlemail.com>
-Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/process_32.c |   37 ++++++++++++++++++++++-----------
- 1 file changed, 25 insertions(+), 12 deletions(-)
+ drivers/char/tty_io.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/process_32.c~x86-ptrace-pebs-support-warning-fix arch/x86/kernel/process_32.c
---- a/arch/x86/kernel/process_32.c~x86-ptrace-pebs-support-warning-fix
-+++ a/arch/x86/kernel/process_32.c
-@@ -554,20 +554,13 @@ static void hard_enable_TSC(void)
- }
- #endif /* CONFIG_SECCOMP */
+diff -puN drivers/char/tty_io.c~tty-the-big-operations-rework-vs-git-kgdb-light drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty-the-big-operations-rework-vs-git-kgdb-light
++++ a/drivers/char/tty_io.c
+@@ -1181,9 +1181,8 @@ struct tty_driver *tty_find_polling_driv
+ 		if (*str == '\0')
+ 			str = 0;
  
--static noinline void
--__switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
--		 struct tss_struct *tss)
-+#ifdef CONFIG_X86_DS
-+static int update_debugctl(struct thread_struct *prev,
-+			struct thread_struct *next, unsigned long debugctl)
- {
--	struct thread_struct *prev, *next;
--	unsigned long debugctl;
--	unsigned long ds_prev = 0, ds_next = 0;
-+	unsigned long ds_prev = 0;
-+	unsigned long ds_next = 0;
- 
--	prev = &prev_p->thread;
--	next = &next_p->thread;
+-		if (tty_line >= 0 && tty_line <= p->num && p->poll_init &&
+-				!p->poll_init(p, tty_line, str)) {
 -
--	debugctl = prev->debugctlmsr;
--
--#ifdef CONFIG_X86_DS
- 	if (prev->ds_ctx)
- 		ds_prev = (unsigned long)prev->ds_ctx->ds;
- 	if (next->ds_ctx)
-@@ -580,8 +573,28 @@ __switch_to_xtra(struct task_struct *pre
- 		update_debugctlmsr(0);
- 		wrmsr(MSR_IA32_DS_AREA, ds_next, 0);
- 	}
-+	return debugctl;
-+}
-+#else
-+static int update_debugctl(struct thread_struct *prev,
-+			struct thread_struct *next, unsigned long debugctl)
-+{
-+	return debugctl;
-+}
- #endif /* CONFIG_X86_DS */
- 
-+static noinline void
-+__switch_to_xtra(struct task_struct *prev_p, struct task_struct *next_p,
-+		 struct tss_struct *tss)
-+{
-+	struct thread_struct *prev, *next;
-+	unsigned long debugctl;
-+
-+	prev = &prev_p->thread;
-+	next = &next_p->thread;
-+
-+	debugctl = update_debugctl(prev, next, prev->debugctlmsr);
-+
- 	if (next->debugctlmsr != debugctl)
- 		update_debugctlmsr(next->debugctlmsr);
- 
++		if (tty_line >= 0 && tty_line <= p->num && p->ops &&
++		    p->ops->poll_init && !p->ops->poll_init(p, tty_line, str)) {
+ 			res = p;
+ 			*line = tty_line;
+ 			break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -282,6 +228,7 @@ elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+tty-the-big-operations-rework-vs-git-kgdb-light.patch
 keys-add-keyctl-function-to-get-a-security-label-fix.patch
 procfs-task-exe-symlink-fix.patch
 proc-switch-to-proc_create.patch
