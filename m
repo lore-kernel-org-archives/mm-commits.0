@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aio-remove-misleading-comment-from-ioctx_lookup.patch added to -mm tree
-Date: Tue, 15 Apr 2008 18:53:41 -0700
-Message-ID: <200804160153.m3G1rffe026780@imap1.linux-foundation.org>
+Subject: + drivers-char-rtcc-use-time_before-time_before_eq-etc.patch added to -mm tree
+Date: Tue, 15 Apr 2008 21:46:28 -0700
+Message-ID: <200804160446.m3G4kS8b032643@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45144 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45511 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752011AbYDPByu (ORCPT
+	by vger.kernel.org with ESMTP id S1751101AbYDPErN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 21:54:50 -0400
+	Wed, 16 Apr 2008 00:47:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jmoyer@redhat.com, shen@cn.fujitsu.com, zach.brown@oracle.com
+Cc: julia@diku.dk, a.zummo@towertech.it, david-b@pacbell.net, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     aio: fix misleading comments
+     drivers/char/rtc.c: use time_before, time_before_eq, etc
 has been added to the -mm tree.  Its filename is
-     aio-remove-misleading-comment-from-ioctx_lookup.patch
+     drivers-char-rtcc-use-time_before-time_before_eq-etc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,47 +34,98 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aio: fix misleading comments
-From: Jeff Moyer <jmoyer@redhat.com>
+Subject: drivers/char/rtc.c: use time_before, time_before_eq, etc
+From: Julia Lawall <julia@diku.dk>
 
-The FIXME comments are inaccurate.
-The locking comment over lookup_ioctx() is wrong.
 
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by: Zach Brown <zach.brown@oracle.com>
-Signed-off-by: Shen Feng <shen@cn.fujitsu.com>
+The functions time_before, time_before_eq, time_after, and time_after_eq
+are more robust for comparing jiffies against other values.
+
+A simplified version of the semantic patch making this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@ change_compare_np @
+expression E;
+@@
+
+(
+- jiffies <= E
++ time_before_eq(jiffies,E)
+|
+- jiffies >= E
++ time_after_eq(jiffies,E)
+|
+- jiffies < E
++ time_before(jiffies,E)
+|
+- jiffies > E
++ time_after(jiffies,E)
+)
+
+@ include depends on change_compare_np @
+@@
+
+#include <linux/jiffies.h>
+
+@ no_include depends on !include && change_compare_np @
+@@
+
+  #include <linux/...>
++ #include <linux/jiffies.h>
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/char/rtc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/aio.c~aio-remove-misleading-comment-from-ioctx_lookup fs/aio.c
---- a/fs/aio.c~aio-remove-misleading-comment-from-ioctx_lookup
-+++ a/fs/aio.c
-@@ -240,7 +240,7 @@ static struct kioctx *ioctx_alloc(unsign
- 	if (ctx->max_reqs == 0)
- 		goto out_cleanup;
+diff -puN drivers/char/rtc.c~drivers-char-rtcc-use-time_before-time_before_eq-etc drivers/char/rtc.c
+--- a/drivers/char/rtc.c~drivers-char-rtcc-use-time_before-time_before_eq-etc
++++ a/drivers/char/rtc.c
+@@ -88,6 +88,7 @@
  
--	/* now link into global list.  kludge.  FIXME */
-+	/* now link into global list. */
- 	write_lock(&mm->ioctx_list_lock);
- 	ctx->next = mm->ioctx_list;
- 	mm->ioctx_list = ctx;
-@@ -542,9 +542,6 @@ int aio_put_req(struct kiocb *req)
- 	return ret;
- }
+ #ifdef CONFIG_SPARC32
+ #include <linux/pci.h>
++#include <linux/jiffies.h>
+ #include <asm/ebus.h>
  
--/*	Lookup an ioctx id.  ioctx_list is lockless for reads.
-- *	FIXME: this is O(n) and is only suitable for development.
-- */
- struct kioctx *lookup_ioctx(unsigned long ctx_id)
- {
- 	struct kioctx *ioctx;
+ static unsigned long rtc_port;
+@@ -1316,7 +1317,8 @@ void rtc_get_rtc_time(struct rtc_time *r
+ 	 * Once the read clears, read the RTC time (again via ioctl). Easy.
+ 	 */
+ 
+-	while (rtc_is_updating() != 0 && jiffies - uip_watchdog < 2*HZ/100)
++	while (rtc_is_updating() != 0 &&
++	       time_before(jiffies, uip_watchdog + 2*HZ/100))
+ 		cpu_relax();
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-aio-io_getevents-should-return-if-io_destroy-is-invoked.patch
-aio-remove-misleading-comment-from-ioctx_lookup.patch
+git-alsa-tiwai.patch
+git-powerpc.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+drivers-char-keyboardc-use-time_before-time_before_eq-etc.patch
+git-udf.patch
+git-net.patch
+drivers-atm-use-time_before-time_before_eq-etc.patch
+git-ocfs2.patch
+fs-affs-filec-use-bug_on.patch
+drivers-misc-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
+drivers-char-rtcc-use-time_before-time_before_eq-etc.patch
+fbdev-use-div_round_up-or-roundup.patch
+fs-ext2-use-bug_on.patch
+fs-ext3-use-bug_on.patch
+fs-ext4-use-bug_on.patch
+drivers-char-ds1286c-use-time_before-time_before_eq-etc.patch
 
