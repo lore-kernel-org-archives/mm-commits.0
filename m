@@ -1,175 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - sysfs-add-sys-dev-charblock-to-lookup-sysfs-path-by-major-minor.patch removed from -mm tree
-Date: Wed, 16 Apr 2008 15:55:38 -0700
-Message-ID: <200804162255.m3GMtcO8011140@imap1.linux-foundation.org>
+Subject: - fix-typos-in-documentation-filesystems-seq_filetxt.patch removed from -mm tree
+Date: Wed, 16 Apr 2008 15:55:04 -0700
+Message-ID: <200804162255.m3GMt4am011082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48730 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757745AbYDPXBY (ORCPT
+	by vger.kernel.org with ESMTP id S1753800AbYDPXBP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 19:01:24 -0400
+	Wed, 16 Apr 2008 19:01:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, gregkh@suse.de, hpa@zytor.com, htejun@gmail.com, kay.sievers@vrfy.org, lkml@rtr.ca, neilb@suse.de, steve@xemacs.org, mm-commits@vger.kernel.org
+To: dmitri.vorobiev@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs: add /sys/dev/{char,block} to lookup sysfs path by major:minor
+     Fix typos in Documentation/filesystems/seq_file.txt
 has been removed from the -mm tree.  Its filename was
-     sysfs-add-sys-dev-charblock-to-lookup-sysfs-path-by-major-minor.patch
+     fix-typos-in-documentation-filesystems-seq_filetxt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs: add /sys/dev/{char,block} to lookup sysfs path by major:minor
-From: Dan Williams <dan.j.williams@intel.com>
+Subject: Fix typos in Documentation/filesystems/seq_file.txt
+From: Dmitri Vorobiev <dmitri.vorobiev@gmail.com>
 
-Why?:
+A couple of typos crept into the newly added document about the seq_file
+interface.  This patch corrects those typos and simultaneously deletes
+unnecessary trailing spaces.
 
-There are occasions where userspace would like to access sysfs attributes for
-a device but it may not know how sysfs has named the device or the path.  For
-example what is the sysfs path for /dev/disk/by-id/ata-ST3160827AS_5MT004CK? 
-With this change a call to stat(2) returns the major:minor then userspace can
-see that /sys/dev/block/8:32 links to /sys/block/sdc.
-
-What are the alternatives?:
-
-1/ Add an ioctl to return the path: Doable, but sysfs is meant to reduce
-   the need to proliferate ioctl interfaces into the kernel, so this
-   seems counter productive.
-
-2/ Use udev to create these symlinks: Also doable, but it adds a
-   udev dependency to utilities that might be running in a limited
-   environment like an initramfs.
-
-3/ Do a full-tree search of sysfs.
-
-Cc: NeilBrown <neilb@suse.de>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <gregkh@suse.de>
-Acked-by: Mark Lord <lkml@rtr.ca>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
-Reviewed-by: SL Baur <steve@xemacs.org>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Dmitri Vorobiev <dmitri.vorobiev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c |   37 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 36 insertions(+), 1 deletion(-)
+ Documentation/filesystems/seq_file.txt |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/core.c~sysfs-add-sys-dev-charblock-to-lookup-sysfs-path-by-major-minor drivers/base/core.c
---- a/drivers/base/core.c~sysfs-add-sys-dev-charblock-to-lookup-sysfs-path-by-major-minor
-+++ a/drivers/base/core.c
-@@ -27,6 +27,9 @@
+diff -puN Documentation/filesystems/seq_file.txt~fix-typos-in-documentation-filesystems-seq_filetxt Documentation/filesystems/seq_file.txt
+--- a/Documentation/filesystems/seq_file.txt~fix-typos-in-documentation-filesystems-seq_filetxt
++++ a/Documentation/filesystems/seq_file.txt
+@@ -92,7 +92,7 @@ implementations; in most cases the start
+ "past end of file" condition and return NULL if need be.
  
- int (*platform_notify)(struct device *dev) = NULL;
- int (*platform_notify_remove)(struct device *dev) = NULL;
-+static struct kobject *dev_kobj;
-+static struct kobject *char_kobj;
-+static struct kobject *block_kobj;
+ For more complicated applications, the private field of the seq_file
+-structure can be used. There is also a special value whch can be returned
++structure can be used. There is also a special value which can be returned
+ by the start() function called SEQ_START_TOKEN; it can be used if you wish
+ to instruct your show() function (described below) to print a header at the
+ top of the output. SEQ_START_TOKEN should only be used if the offset is
+@@ -146,7 +146,7 @@ the four functions we have just defined:
+ This structure will be needed to tie our iterator to the /proc file in
+ a little bit.
  
- #ifdef CONFIG_BLOCK
- static inline int device_is_not_partition(struct device *dev)
-@@ -760,6 +763,11 @@ static void device_remove_class_symlinks
- 	sysfs_remove_link(&dev->kobj, "subsystem");
- }
+-It's worth noting that the interator value returned by start() and
++It's worth noting that the iterator value returned by start() and
+ manipulated by the other functions is considered to be completely opaque by
+ the seq_file code. It can thus be anything that is useful in stepping
+ through the data to be output. Counters can be useful, but it could also be
+@@ -262,7 +262,7 @@ routines useful:
  
-+static struct kobject *device_to_dev_kobj(struct device *dev)
-+{
-+	return dev->class == &block_class ? block_kobj : char_kobj;
-+}
-+
- /**
-  * device_add - add device to device hierarchy.
-  * @dev: device.
-@@ -776,6 +784,7 @@ int device_add(struct device *dev)
- 	struct device *parent = NULL;
- 	struct class_interface *class_intf;
- 	int error;
-+	char devt_str[25];
+ These helpers will interpret pos as a position within the list and iterate
+ accordingly.  Your start() and next() functions need only invoke the
+-seq_list_* helpers with a pointer to the appropriate list_head structure.  
++seq_list_* helpers with a pointer to the appropriate list_head structure.
  
- 	dev = get_device(dev);
- 	if (!dev || !strlen(dev->bus_id)) {
-@@ -807,9 +816,16 @@ int device_add(struct device *dev)
- 		goto attrError;
  
- 	if (MAJOR(dev->devt)) {
-+		struct kobject *kobj = device_to_dev_kobj(dev);
-+
- 		error = device_create_file(dev, &devt_attr);
- 		if (error)
- 			goto ueventattrError;
-+
-+		format_dev_t(devt_str, dev->devt);
-+		error = sysfs_create_link(kobj, &dev->kobj, devt_str);
-+		if (error)
-+			goto devtattrError;
- 	}
- 
- 	error = device_add_class_symlinks(dev);
-@@ -854,6 +870,9 @@ int device_add(struct device *dev)
- 	device_remove_class_symlinks(dev);
-  SymlinkError:
- 	if (MAJOR(dev->devt))
-+		sysfs_remove_link(device_to_dev_kobj(dev), devt_str);
-+ devtattrError:
-+	if (MAJOR(dev->devt))
- 		device_remove_file(dev, &devt_attr);
-  ueventattrError:
- 	device_remove_file(dev, &uevent_attr);
-@@ -925,12 +944,16 @@ void device_del(struct device *dev)
- {
- 	struct device *parent = dev->parent;
- 	struct class_interface *class_intf;
-+	char devt_str[25];
- 
- 	device_pm_remove(dev);
- 	if (parent)
- 		klist_del(&dev->knode_parent);
--	if (MAJOR(dev->devt))
-+	if (MAJOR(dev->devt)) {
-+		format_dev_t(devt_str, dev->devt);
-+		sysfs_remove_link(device_to_dev_kobj(dev), devt_str);
- 		device_remove_file(dev, &devt_attr);
-+	}
- 	if (dev->class) {
- 		device_remove_class_symlinks(dev);
- 
-@@ -1055,6 +1078,15 @@ int __init devices_init(void)
- 	devices_kset = kset_create_and_add("devices", &device_uevent_ops, NULL);
- 	if (!devices_kset)
- 		return -ENOMEM;
-+	dev_kobj = kobject_create_and_add("dev", NULL);
-+	if (!dev_kobj)
-+		return -ENOMEM;
-+	block_kobj = kobject_create_and_add("block", dev_kobj);
-+	if (!block_kobj)
-+		return -ENOMEM;
-+	char_kobj = kobject_create_and_add("char", dev_kobj);
-+	if (!char_kobj)
-+		return -ENOMEM;
- 	return 0;
- }
- 
-@@ -1351,4 +1383,7 @@ void device_shutdown(void)
- 			dev->driver->shutdown(dev);
- 		}
- 	}
-+	kobject_put(char_kobj);
-+	kobject_put(block_kobj);
-+	kobject_put(dev_kobj);
- }
+ The extra-simple version
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from dmitri.vorobiev@gmail.com are
 
-git-arm.patch
-git-async-tx.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
-md-introduce-get_priority_stripe-to-improve-raid456-write-performance.patch
-md-raid5c-convert-simple_strtoul-to-strict_strtoul.patch
+origin.patch
+git-mips.patch
 
