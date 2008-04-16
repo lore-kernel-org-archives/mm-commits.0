@@ -1,180 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - mmc-fix-platform-driver-hotplug-coldplug.patch removed from -mm tree
-Date: Wed, 16 Apr 2008 15:54:39 -0700
-Message-ID: <200804162254.m3GMsd9s011045@imap1.linux-foundation.org>
+Subject: - fbdev-fix-proc-fb-oops-after-module-removal.patch removed from -mm tree
+Date: Wed, 16 Apr 2008 15:54:48 -0700
+Message-ID: <200804162254.m3GMsmCM011054@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52529 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52409 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753585AbYDPWzZ (ORCPT
+	by vger.kernel.org with ESMTP id S1755247AbYDPWzh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 18:55:25 -0400
+	Wed, 16 Apr 2008 18:55:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kay.sievers@vrfy.org, dbrownell@users.sourceforge.net, drzeus@drzeus.cx, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, adaplas@pol.net, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: fix platform driver hotplug/coldplug
+     fbdev: fix /proc/fb oops after module removal
 has been removed from the -mm tree.  Its filename was
-     mmc-fix-platform-driver-hotplug-coldplug.patch
+     fbdev-fix-proc-fb-oops-after-module-removal.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: fix platform driver hotplug/coldplug
-=46rom: Kay Sievers <kay.sievers@vrfy.org>
+Subject: fbdev: fix /proc/fb oops after module removal
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias i=
-s
-prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable MMC =
-host
-platform drivers, to re-enable auto loading.
+/proc/fb is not removed during rmmod.
 
-Also, add missing owner declarations in driver init.
+Steps to reproduce:
 
-[dbrownell@users.sourceforge.net: registration fixes]
-Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Acked-by: Pierre Ossman <drzeus@drzeus.cx>
+	modprobe fb
+	rmmod fb
+	ls /proc
+
+BUG: unable to handle kernel paging request at ffffffffa0094370
+IP: [<ffffffff802b92a1>] proc_get_inode+0x101/0x130
+PGD 203067 PUD 207063 PMD 17e758067 PTE 0
+Oops: 0000 [1] SMP
+last sysfs file: /sys/devices/pci0000:00/0000:00:1e.0/0000:05:02.0/resource
+CPU 1
+Modules linked in: nf_conntrack_irc xt_state iptable_filter ipt_MASQUERADE iptable_nat nf_nat nf_conntrack_ipv4 nf_conntrack ip_tables x_tables vfat fat usbhid ehci_hcd uhci_hcd usbcore sr_mod cdrom [last unloaded: fb]
+Pid: 21205, comm: ls Not tainted 2.6.25-rc8-mm2 #14
+RIP: 0010:[<ffffffff802b92a1>]  [<ffffffff802b92a1>] proc_get_inode+0x101/0x130
+RSP: 0018:ffff81017c4bfc78  EFLAGS: 00010246
+RAX: 0000000000008000 RBX: ffff8101787f5470 RCX: 0000000048011ccc
+RDX: ffffffffa0094320 RSI: ffff810006ad43b0 RDI: ffff81017fc2cc00
+RBP: ffff81017e450300 R08: 0000000000000002 R09: ffff81017c5d1000
+R10: 0000000000000000 R11: 0000000000000246 R12: ffff81016b903a28
+R13: ffff81017f822020 R14: ffff81017c4bfd58 R15: ffff81017f822020
+FS:  00007f08e71696f0(0000) GS:ffff81017fc06480(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: ffffffffa0094370 CR3: 000000017e54a000 CR4: 00000000000006e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process ls (pid: 21205, threadinfo ffff81017c4be000, task ffff81017de48770)
+Stack:  ffff81017c5d1000 00000000ffffffea ffff81017e450300 ffffffff802bdd1e
+ ffff81017f802258 ffff81017c4bfe48 ffff81016b903a28 ffff81017f822020
+ ffff81017c4bfd48 ffffffff802b9ba0 ffff81016b903a28 ffff81017f802258
+Call Trace:
+ [<ffffffff802bdd1e>] ? proc_lookup_de+0x8e/0x100
+ [<ffffffff802b9ba0>] ? proc_root_lookup+0x20/0x60
+ [<ffffffff802882a7>] ? do_lookup+0x1b7/0x210
+ [<ffffffff8028883d>] ? __link_path_walk+0x53d/0x7f0
+ [<ffffffff80295eb8>] ? mntput_no_expire+0x28/0x130
+ [<ffffffff80288b4a>] ? path_walk+0x5a/0xc0
+ [<ffffffff80288dd3>] ? do_path_lookup+0x83/0x1c0
+ [<ffffffff80287785>] ? getname+0xe5/0x210
+ [<ffffffff80289adb>] ? __user_walk_fd+0x4b/0x80
+ [<ffffffff8028236c>] ? vfs_lstat_fd+0x2c/0x70
+ [<ffffffff8028bf1e>] ? filldir+0xae/0xf0
+ [<ffffffff802b92e9>] ? de_put+0x9/0x50
+ [<ffffffff8029633d>] ? mnt_want_write+0x2d/0x80
+ [<ffffffff8029339f>] ? touch_atime+0x1f/0x170
+ [<ffffffff802b9b1d>] ? proc_root_readdir+0x7d/0xa0
+ [<ffffffff802825e7>] ? sys_newlstat+0x27/0x50
+ [<ffffffff8028bffb>] ? vfs_readdir+0x9b/0xd0
+ [<ffffffff8028c0fe>] ? sys_getdents+0xce/0xe0
+ [<ffffffff8020b39b>] ? system_call_after_swapgs+0x7b/0x80
+
+Code: b7 83 b2 00 00 00 25 00 f0 00 00 3d 00 80 00 00 74 19 48 89 93 f0 00 00 00 48 89 df e8 39 9a fd ff 48 89 d8 48 83 c4 08 5b 5d c3 <48> 83 7a 50 00 48 c7 c0 60 16 45 80 48 c7 c2 40 17 45 80 48 0f
+RIP  [<ffffffff802b92a1>] proc_get_inode+0x101/0x130
+ RSP <ffff81017c4bfc78>
+CR2: ffffffffa0094370
+---[ end trace c71hiarjan8ab739 ]---
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+"Antonino A. Daplas" <adaplas@pol.net>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/at91_mci.c |    1 +
- drivers/mmc/host/au1xmmc.c  |    2 ++
- drivers/mmc/host/imxmmc.c   |    2 ++
- drivers/mmc/host/omap.c     |    3 ++-
- drivers/mmc/host/pxamci.c   |    2 ++
- drivers/mmc/host/wbsd.c     |    1 +
- 6 files changed, 10 insertions(+), 1 deletion(-)
+ drivers/video/fbmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/mmc/host/at91_mci.c~mmc-fix-platform-driver-hotplug-c=
-oldplug drivers/mmc/host/at91_mci.c
---- a/drivers/mmc/host/at91_mci.c~mmc-fix-platform-driver-hotplug-coldp=
-lug
-+++ a/drivers/mmc/host/at91_mci.c
-@@ -1075,3 +1075,4 @@ module_exit(at91_mci_exit);
- MODULE_DESCRIPTION("AT91 Multimedia Card Interface driver");
- MODULE_AUTHOR("Nick Randell");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:at91_mci");
-diff -puN drivers/mmc/host/au1xmmc.c~mmc-fix-platform-driver-hotplug-co=
-ldplug drivers/mmc/host/au1xmmc.c
---- a/drivers/mmc/host/au1xmmc.c~mmc-fix-platform-driver-hotplug-coldpl=
-ug
-+++ a/drivers/mmc/host/au1xmmc.c
-@@ -998,6 +998,7 @@ static struct platform_driver au1xmmc_dr
- 	.resume        =3D NULL,
- 	.driver        =3D {
- 		.name  =3D DRIVER_NAME,
-+		.owner =3D THIS_MODULE,
- 	},
- };
-=20
-@@ -1018,5 +1019,6 @@ module_exit(au1xmmc_exit);
- MODULE_AUTHOR("Advanced Micro Devices, Inc");
- MODULE_DESCRIPTION("MMC/SD driver for the Alchemy Au1XXX");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:au1xxx-mmc");
- #endif
-=20
-diff -puN drivers/mmc/host/imxmmc.c~mmc-fix-platform-driver-hotplug-col=
-dplug drivers/mmc/host/imxmmc.c
---- a/drivers/mmc/host/imxmmc.c~mmc-fix-platform-driver-hotplug-coldplu=
-g
-+++ a/drivers/mmc/host/imxmmc.c
-@@ -1128,6 +1128,7 @@ static struct platform_driver imxmci_dri
- 	.resume		=3D imxmci_resume,
- 	.driver		=3D {
- 		.name		=3D DRIVER_NAME,
-+		.owner		=3D THIS_MODULE,
- 	}
- };
-=20
-@@ -1147,3 +1148,4 @@ module_exit(imxmci_exit);
- MODULE_DESCRIPTION("i.MX Multimedia Card Interface Driver");
- MODULE_AUTHOR("Sascha Hauer, Pengutronix");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:imx-mmc");
-diff -puN drivers/mmc/host/omap.c~mmc-fix-platform-driver-hotplug-coldp=
-lug drivers/mmc/host/omap.c
---- a/drivers/mmc/host/omap.c~mmc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/mmc/host/omap.c
-@@ -1255,6 +1255,7 @@ static struct platform_driver mmc_omap_d
- 	.resume		=3D mmc_omap_resume,
- 	.driver		=3D {
- 		.name	=3D DRIVER_NAME,
-+		.owner	=3D THIS_MODULE,
- 	},
- };
-=20
-@@ -1273,5 +1274,5 @@ module_exit(mmc_omap_exit);
-=20
- MODULE_DESCRIPTION("OMAP Multimedia Card driver");
- MODULE_LICENSE("GPL");
--MODULE_ALIAS(DRIVER_NAME);
-+MODULE_ALIAS("platform:" DRIVER_NAME);
- MODULE_AUTHOR("Juha Yrj=F6l=E4");
-diff -puN drivers/mmc/host/pxamci.c~mmc-fix-platform-driver-hotplug-col=
-dplug drivers/mmc/host/pxamci.c
---- a/drivers/mmc/host/pxamci.c~mmc-fix-platform-driver-hotplug-coldplu=
-g
-+++ a/drivers/mmc/host/pxamci.c
-@@ -693,6 +693,7 @@ static struct platform_driver pxamci_dri
- 	.resume		=3D pxamci_resume,
- 	.driver		=3D {
- 		.name	=3D DRIVER_NAME,
-+		.owner	=3D THIS_MODULE,
- 	},
- };
-=20
-@@ -711,3 +712,4 @@ module_exit(pxamci_exit);
-=20
- MODULE_DESCRIPTION("PXA Multimedia Card Interface Driver");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("platform:pxa2xx-mci");
-diff -puN drivers/mmc/host/wbsd.c~mmc-fix-platform-driver-hotplug-coldp=
-lug drivers/mmc/host/wbsd.c
---- a/drivers/mmc/host/wbsd.c~mmc-fix-platform-driver-hotplug-coldplug
-+++ a/drivers/mmc/host/wbsd.c
-@@ -1948,6 +1948,7 @@ static struct platform_driver wbsd_drive
- 	.resume		=3D wbsd_platform_resume,
- 	.driver		=3D {
- 		.name	=3D DRIVER_NAME,
-+		.owner	=3D THIS_MODULE,
- 	},
- };
-=20
+diff -puN drivers/video/fbmem.c~fbdev-fix-proc-fb-oops-after-module-removal drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fbdev-fix-proc-fb-oops-after-module-removal
++++ a/drivers/video/fbmem.c
+@@ -1521,6 +1521,7 @@ module_init(fbmem_init);
+ static void __exit
+ fbmem_exit(void)
+ {
++	remove_proc_entry("fb", NULL);
+ 	class_destroy(fb_class);
+ 	unregister_chrdev(FB_MAJOR, "fb");
+ }
 _
 
-Patches currently in -mm which might be from kay.sievers@vrfy.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-git-alsa-tiwai.patch
-macintosh-windfarm-fix-platform-driver-hotplug-coldplug.patch
-input-fix-platform-driver-hotplug-coldplug.patch
-ata-ide-fix-platform-driver-hotplug-coldplug.patch
-mtd-maps-fix-platform-driver-hotplug-coldplug.patch
-mtd-nand-fix-platform-driver-hotplug-coldplug.patch
-net-drivers-fix-platform-driver-hotplug-coldplug.patch
-scsi-fix-platform-driver-hotplug-coldplug.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
-cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
+git-dvb.patch
+tags-add-menuconfig-symbols-as-well.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+remove-the-macro-get_personality.patch
+nv-drop-useless-module-ifdefs.patch
+nv-drop-useless-config_pci-checks.patch
+nv-fix-sparse-noise.patch
+fb-convert-proc-fb-to-seq_file-interface.patch
+fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
+ipmi-remove-write_proc-code.patch
+procfs-mem-permission-cleanup.patch
+proc-simplify-locking-in-remove_proc_entry.patch
+proc-less-special-case-in-xlate-code.patch
+proc-drop-several-pde-valid-invalid-checks.patch
+proc-remove-proc_bus.patch
+proc-remove-proc_root_fs.patch
+proc-remove-proc_root_driver.patch
+proc-remove-proc_root-from-drivers.patch
+proc-convert-proc-tty-ldiscs-to-seq_file-interface.patch
+proc-introduce-proc_create_data-to-setup-de-data.patch
+nfsd-use-proc_create-to-setup-de-proc_fops.patch
+nfs-use-proc_create-to-setup-de-proc_fops.patch
+afs-use-non-racy-method-for-proc-entries-creation.patch
+ext4-use-non-racy-method-for-proc-entries-creation.patch
+reiserfs-use-non-racy-method-for-proc-entries-creation.patch
+jbd2-use-non-racy-method-for-proc-entries-creation.patch
+sysvipc-use-non-racy-method-for-proc-entries-creation.patch
+mm-use-non-racy-method-for-proc-swaps-creation.patch
+sound-use-non-racy-method-for-proc-driver-snd-page-alloc-creation.patch
+zorro-use-non-racy-method-for-proc-entries-creation.patch
+samples-use-non-racy-method-for-proc-marker-example-creation.patch
+scsi-use-non-racy-method-for-proc-entries-creation.patch
+usb-use-non-racy-method-for-proc-entries-creation.patch
+s390-use-non-racy-method-for-proc-entries-creation.patch
+arm-use-non-racy-method-for-proc-davinci_clocks-creation.patch
+avr32-proc-use-non-racy-method-for-proc-tlb-creation.patch
+cris-use-non-racy-method-for-proc-system_profile-creation.patch
+ia64-use-non-racy-method-for-proc-entries-creation.patch
+parisc-use-non-racy-method-for-proc-pcxl_dma-creation.patch
+powerpc-use-non-racy-method-for-proc-entries-creation.patch
+acpi-use-non-racy-method-for-proc-entries-creation.patch
+netdev-use-non-racy-method-for-proc-entries-creation.patch
+isdn-use-non-racy-method-for-proc-entries-creation.patch
+kernel-use-non-racy-method-for-proc-entries-creation.patch
+parisc-use-non-racy-method-for-proc-entries-creation.patch
+drivers-use-non-racy-method-for-proc-entries-creation.patch
+drivers-use-non-racy-method-for-proc-entries-creation-2.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
