@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 15 Apr 2008 21:49:54 -0700
-Message-ID: <200804160449.m3G4nswU032712@imap1.linux-foundation.org>
+Subject: + drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch added to -mm tree
+Date: Tue, 15 Apr 2008 21:42:34 -0700
+Message-ID: <200804160442.m3G4gYen032481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44842 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32947 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751050AbYDPEub (ORCPT
+	by vger.kernel.org with ESMTP id S1750900AbYDPEnG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 00:50:31 -0400
+	Wed, 16 Apr 2008 00:43:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, julia@diku.dk, neilb@suse.de
+Cc: akpm@linux-foundation.org, adaplas@pol.net, marciobuss@gmail.com, xinzhou.sjtu@gmail.com
 
 
 The patch titled
-     drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes
+     drivers/video/w100fb.c: avoid a couple of error-path NULL derefs
 has been added to the -mm tree.  Its filename is
-     drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
+     drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes
+Subject: drivers/video/w100fb.c: avoid a couple of error-path NULL derefs
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space prohibited after that open parenthesis '('
-#58: FILE: drivers/md/raid6algos.c:124:
-+			while ( time_before(jiffies,
+Fix a couple of error-patch oopses identified by Marcio Buss in
+http://bugzilla.kernel.org/show_bug.cgi?id=9567.
 
-WARNING: line over 80 characters
-#59: FILE: drivers/md/raid6algos.c:125:
-+					    j1 + (1<<RAID6_TIME_JIFFIES_LG2)) ) {
-
-ERROR: space prohibited before that close parenthesis ')'
-#59: FILE: drivers/md/raid6algos.c:125:
-+					    j1 + (1<<RAID6_TIME_JIFFIES_LG2)) ) {
-
-total: 2 errors, 1 warnings, 9 lines checked
-
-./patches/drivers-md-use-time_before-time_before_eq-etc.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Julia Lawall <julia@diku.dk>
-Cc: Neil Brown <neilb@suse.de>
+Cc: Marcio Buss <marciobuss@gmail.com>
+Cc: Jeff Zhou <xinzhou.sjtu@gmail.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid6algos.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/video/w100fb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/raid6algos.c~drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes drivers/md/raid6algos.c
---- a/drivers/md/raid6algos.c~drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes
-+++ a/drivers/md/raid6algos.c
-@@ -121,8 +121,8 @@ int __init raid6_select_algo(void)
- 			j0 = jiffies;
- 			while ( (j1 = jiffies) == j0 )
- 				cpu_relax();
--			while ( time_before(jiffies,
--					    j1 + (1<<RAID6_TIME_JIFFIES_LG2)) ) {
-+			while (time_before(jiffies,
-+					    j1 + (1<<RAID6_TIME_JIFFIES_LG2))) {
- 				(*algo)->gen_syndrome(disks, PAGE_SIZE, dptrs);
- 				perf++;
- 			}
+diff -puN drivers/video/w100fb.c~drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs drivers/video/w100fb.c
+--- a/drivers/video/w100fb.c~drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs
++++ a/drivers/video/w100fb.c
+@@ -765,8 +765,10 @@ int __init w100fb_probe(struct platform_
+ 	printk(KERN_INFO "fb%d: %s frame buffer device\n", info->node, info->fix.id);
+ 	return 0;
+ out:
+-	fb_dealloc_cmap(&info->cmap);
+-	kfree(info->pseudo_palette);
++	if (info) {
++		fb_dealloc_cmap(&info->cmap);
++		kfree(info->pseudo_palette);
++	}
+ 	if (remapped_fbuf != NULL)
+ 		iounmap(remapped_fbuf);
+ 	if (remapped_regs != NULL)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -226,7 +212,6 @@ lxfb-add-power-management-functionality-fix.patch
 drivers-video-uvesafbc-fix-error-path-memory-leak.patch
 fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
 drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
-drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
 pnp-use-dev_printk-for-quirk-messages-fix.patch
 ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
 ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
