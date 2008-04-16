@@ -1,151 +1,206 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-fix-oops-in-oom-handling.patch removed from -mm tree
-Date: Wed, 16 Apr 2008 15:54:58 -0700
-Message-ID: <200804162254.m3GMswDA011069@imap1.linux-foundation.org>
+Subject: - drivers-media-video-use-time_before-time_before_eq-etc.patch removed from -mm tree
+Date: Wed, 16 Apr 2008 15:55:46 -0700
+Message-ID: <200804162255.m3GMtkQd011149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45188 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36626 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759558AbYDPXB4 (ORCPT
+	by vger.kernel.org with ESMTP id S1757910AbYDPXBX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 19:01:56 -0400
+	Wed, 16 Apr 2008 19:01:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.comlizf@cn.fujitsu, menage@google.com, oleg@tv-sign.ru, rientjes@cs.washington.edu, xemul@openvz.org, mm-c
+To: julia@diku.dk, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: fix oops in oom handling
+     drivers/media/video: use time_before, time_before_eq, etc
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-oops-in-oom-handling.patch
+     drivers-media-video-use-time_before-time_before_eq-etc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: fix oops in oom handling
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: drivers/media/video: use time_before, time_before_eq, etc
+From: Julia Lawall <julia@diku.dk>
 
-When I used a test program to fork mass processes and immediately move them to
-a cgroup where the memory limit is low enough to trigger oom kill, I got oops:
 
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000808
-IP: [<ffffffff8045c47f>] _spin_lock_irqsave+0x8/0x18
-PGD 4c95f067 PUD 4406c067 PMD 0
-Oops: 0002 [1] SMP
-CPU 2
-Modules linked in:
+The functions time_before, time_before_eq, time_after, and time_after_eq
+are more robust for comparing jiffies against other values.
 
-Pid: 11973, comm: a.out Not tainted 2.6.25-rc7 #5
-RIP: 0010:[<ffffffff8045c47f>]  [<ffffffff8045c47f>] _spin_lock_irqsave+0x8/0x18
-RSP: 0018:ffff8100448c7c30  EFLAGS: 00010002
-RAX: 0000000000000202 RBX: 0000000000000009 RCX: 000000000001c9f3
-RDX: 0000000000000100 RSI: 0000000000000001 RDI: 0000000000000808
-RBP: ffff81007e444080 R08: 0000000000000000 R09: ffff8100448c7900
-R10: ffff81000105f480 R11: 00000100ffffffff R12: ffff810067c84140
-R13: 0000000000000001 R14: ffff8100441d0018 R15: ffff81007da56200
-FS:  00007f70eb1856f0(0000) GS:ffff81007fbad3c0(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 0000000000000808 CR3: 000000004498a000 CR4: 00000000000006e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process a.out (pid: 11973, threadinfo ffff8100448c6000, task ffff81007da533e0)
-Stack:  ffffffff8023ef5a 00000000000000d0 ffffffff80548dc0 00000000000000d0
- ffff810067c84140 ffff81007e444080 ffffffff8026cef9 00000000000000d0
- ffff8100441d0000 00000000000000d0 ffff8100441d0000 ffff8100505445c0
-Call Trace:
- [<ffffffff8023ef5a>] ? force_sig_info+0x25/0xb9
- [<ffffffff8026cef9>] ? oom_kill_task+0x77/0xe2
- [<ffffffff8026d696>] ? mem_cgroup_out_of_memory+0x55/0x67
- [<ffffffff802910ad>] ? mem_cgroup_charge_common+0xec/0x202
- [<ffffffff8027997b>] ? handle_mm_fault+0x24e/0x77f
- [<ffffffff8022c4af>] ? default_wake_function+0x0/0xe
- [<ffffffff8027a17a>] ? get_user_pages+0x2ce/0x3af
- [<ffffffff80290fee>] ? mem_cgroup_charge_common+0x2d/0x202
- [<ffffffff8027a441>] ? make_pages_present+0x8e/0xa4
- [<ffffffff8027d1ab>] ? mmap_region+0x373/0x429
- [<ffffffff8027d7eb>] ? do_mmap_pgoff+0x2ff/0x364
- [<ffffffff80210471>] ? sys_mmap+0xe5/0x111
- [<ffffffff8020bfc9>] ? tracesys+0xdc/0xe1
+A simplified version of the semantic patch making this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
-Code: 00 00 01 48 8b 3c 24 e9 46 d4 dd ff f0 ff 07 48 8b 3c 24 e9 3a d4 dd ff fe 07 48 8b 3c 24 e9 2f d4 dd ff 9c 58 fa ba 00 01 00 00 <f0> 66 0f c1 17 38 f2 74 06 f3 90 8a 17 eb f6 c3 fa b8 00 01 00
-RIP  [<ffffffff8045c47f>] _spin_lock_irqsave+0x8/0x18
- RSP <ffff8100448c7c30>
-CR2: 0000000000000808
----[ end trace c3702fa668021ea4 ]---
+// <smpl>
+@ change_compare_np @
+expression E;
+@@
 
-It's reproducable in a x86_64 box, but doesn't happen in x86_32.
+(
+- jiffies <= E
++ time_before_eq(jiffies,E)
+|
+- jiffies >= E
++ time_after_eq(jiffies,E)
+|
+- jiffies < E
++ time_before(jiffies,E)
+|
+- jiffies > E
++ time_after(jiffies,E)
+)
 
-This is because tsk->sighand is not guarded by RCU, so we have to
-hold tasklist_lock, just as what out_of_memory() does.
+@ include depends on change_compare_np @
+@@
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelianov <xemul@openvz.org>
-Cc: Paul Menage <menage@google.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: David Rientjes <rientjes@cs.washington.edu>
+#include <linux/jiffies.h>
+
+@ no_include depends on !include && change_compare_np @
+@@
+
+  #include <linux/...>
++ #include <linux/jiffies.h>
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/c-qcam.c            |    7 +++++--
+ drivers/media/video/ivtv/ivtv-fileops.c |    4 +++-
+ drivers/media/video/ivtv/ivtv-mailbox.c |   11 +++++++----
+ drivers/media/video/ivtv/ivtv-streams.c |    3 ++-
+ 4 files changed, 17 insertions(+), 8 deletions(-)
 
-diff -puN mm/oom_kill.c~memcg-fix-oops-in-oom-handling mm/oom_kill.c
---- a/mm/oom_kill.c~memcg-fix-oops-in-oom-handling
-+++ a/mm/oom_kill.c
-@@ -423,7 +423,7 @@ void mem_cgroup_out_of_memory(struct mem
- 	struct task_struct *p;
+diff -puN drivers/media/video/c-qcam.c~drivers-media-video-use-time_before-time_before_eq-etc drivers/media/video/c-qcam.c
+--- a/drivers/media/video/c-qcam.c~drivers-media-video-use-time_before-time_before_eq-etc
++++ a/drivers/media/video/c-qcam.c
+@@ -36,6 +36,7 @@
+ #include <linux/videodev.h>
+ #include <media/v4l2-common.h>
+ #include <linux/mutex.h>
++#include <linux/jiffies.h>
  
- 	cgroup_lock();
--	rcu_read_lock();
-+	read_lock(&tasklist_lock);
- retry:
- 	p = select_bad_process(&points, mem);
- 	if (PTR_ERR(p) == -1UL)
-@@ -436,7 +436,7 @@ retry:
- 				"Memory cgroup out of memory"))
- 		goto retry;
- out:
--	rcu_read_unlock();
-+	read_unlock(&tasklist_lock);
- 	cgroup_unlock();
- }
- #endif
+ #include <asm/uaccess.h>
+ 
+@@ -95,7 +96,8 @@ static unsigned int qcam_await_ready1(st
+ 	unsigned long oldjiffies = jiffies;
+ 	unsigned int i;
+ 
+-	for (oldjiffies = jiffies; (jiffies - oldjiffies) < msecs_to_jiffies(40); )
++	for (oldjiffies = jiffies;
++	     time_before(jiffies, oldjiffies + msecs_to_jiffies(40)); )
+ 		if (qcam_ready1(qcam) == value)
+ 			return 0;
+ 
+@@ -120,7 +122,8 @@ static unsigned int qcam_await_ready2(st
+ 	unsigned long oldjiffies = jiffies;
+ 	unsigned int i;
+ 
+-	for (oldjiffies = jiffies; (jiffies - oldjiffies) < msecs_to_jiffies(40); )
++	for (oldjiffies = jiffies;
++	     time_before(jiffies, oldjiffies + msecs_to_jiffies(40)); )
+ 		if (qcam_ready2(qcam) == value)
+ 			return 0;
+ 
+diff -puN drivers/media/video/ivtv/ivtv-fileops.c~drivers-media-video-use-time_before-time_before_eq-etc drivers/media/video/ivtv/ivtv-fileops.c
+--- a/drivers/media/video/ivtv/ivtv-fileops.c~drivers-media-video-use-time_before-time_before_eq-etc
++++ a/drivers/media/video/ivtv/ivtv-fileops.c
+@@ -219,7 +219,9 @@ static struct ivtv_buffer *ivtv_get_buff
+ 			/* Process pending program info updates and pending VBI data */
+ 			ivtv_update_pgm_info(itv);
+ 
+-			if (jiffies - itv->dualwatch_jiffies > msecs_to_jiffies(1000)) {
++			if (time_after(jiffies,
++				       itv->dualwatch_jiffies +
++				       msecs_to_jiffies(1000))) {
+ 				itv->dualwatch_jiffies = jiffies;
+ 				ivtv_dualwatch(itv);
+ 			}
+diff -puN drivers/media/video/ivtv/ivtv-mailbox.c~drivers-media-video-use-time_before-time_before_eq-etc drivers/media/video/ivtv/ivtv-mailbox.c
+--- a/drivers/media/video/ivtv/ivtv-mailbox.c~drivers-media-video-use-time_before-time_before_eq-etc
++++ a/drivers/media/video/ivtv/ivtv-mailbox.c
+@@ -177,7 +177,8 @@ static int get_mailbox(struct ivtv *itv,
+ 
+ 		/* Sleep before a retry, if not atomic */
+ 		if (!(flags & API_NO_WAIT_MB)) {
+-			if (jiffies - then > msecs_to_jiffies(10*retries))
++			if (time_after(jiffies,
++				       then + msecs_to_jiffies(10*retries)))
+ 			       break;
+ 			ivtv_msleep_timeout(10, 0);
+ 		}
+@@ -244,7 +245,9 @@ static int ivtv_api_call(struct ivtv *it
+ 	   data, then just return 0 as there is no need to issue this command again.
+ 	   Just an optimization to prevent unnecessary use of mailboxes. */
+ 	if (itv->api_cache[cmd].last_jiffies &&
+-	    jiffies - itv->api_cache[cmd].last_jiffies < msecs_to_jiffies(1800000) &&
++	    time_before(jiffies,
++			itv->api_cache[cmd].last_jiffies +
++			msecs_to_jiffies(1800000)) &&
+ 	    !memcmp(data, itv->api_cache[cmd].data, sizeof(itv->api_cache[cmd].data))) {
+ 		itv->api_cache[cmd].last_jiffies = jiffies;
+ 		return 0;
+@@ -299,7 +302,7 @@ static int ivtv_api_call(struct ivtv *it
+ 		}
+ 	}
+ 	while (!(readl(&mbox->flags) & IVTV_MBOX_FIRMWARE_DONE)) {
+-		if (jiffies - then > api_timeout) {
++		if (time_after(jiffies, then + api_timeout)) {
+ 			IVTV_DEBUG_WARN("Could not get result (%s)\n", api_info[cmd].name);
+ 			/* reset the mailbox, but it is likely too late already */
+ 			write_sync(0, &mbox->flags);
+@@ -311,7 +314,7 @@ static int ivtv_api_call(struct ivtv *it
+ 		else
+ 			ivtv_msleep_timeout(1, 0);
+ 	}
+-	if (jiffies - then > msecs_to_jiffies(100))
++	if (time_after(jiffies, then + msecs_to_jiffies(100)))
+ 		IVTV_DEBUG_WARN("%s took %u jiffies\n",
+ 				api_info[cmd].name,
+ 				jiffies_to_msecs(jiffies - then));
+diff -puN drivers/media/video/ivtv/ivtv-streams.c~drivers-media-video-use-time_before-time_before_eq-etc drivers/media/video/ivtv/ivtv-streams.c
+--- a/drivers/media/video/ivtv/ivtv-streams.c~drivers-media-video-use-time_before-time_before_eq-etc
++++ a/drivers/media/video/ivtv/ivtv-streams.c
+@@ -768,7 +768,8 @@ int ivtv_stop_v4l2_encode_stream(struct 
+ 
+ 			/* wait 2s for EOS interrupt */
+ 			while (!test_bit(IVTV_F_I_EOS, &itv->i_flags) &&
+-				jiffies < then + msecs_to_jiffies (2000)) {
++				time_before(jiffies,
++					    then + msecs_to_jiffies(2000))) {
+ 				schedule_timeout(msecs_to_jiffies(10));
+ 			}
+ 
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from julia@diku.dk are
 
-origin.patch
-acpi-check-a-return-value-correctly-in-acpi_power_get_context.patch
-git-ia64.patch
+git-alsa-tiwai.patch
+git-powerpc.patch
+git-dvb.patch
+git-gfs2-nmw.patch
+git-infiniband.patch
+drivers-char-keyboardc-use-time_before-time_before_eq-etc.patch
+git-udf.patch
 git-net.patch
-oom_kill-remove-unused-parameter-in-badness.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroup-annotate-cgroup_init_subsys-with-__init.patch
-cgroup-switch-to-proc_create.patch
-cgroups-implement-device-whitelist-v6.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-doc.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-cgroups-use-a-hash-table-for-css_set-finding.patch
-cgroups-simplify-init_subsys.patch
-cgroups-remove-the-css_set-linked-list.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-use-vmalloc-for-mem_cgroup-allocation-v3.patch
-use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
-cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
+drivers-atm-use-time_before-time_before_eq-etc.patch
+drivers-net-appletalk-use-time_before-time_before_eq-etc.patch
+git-ocfs2.patch
+drivers-scsi-use-time_before-time_before_eq-etc.patch
+fs-affs-filec-use-bug_on.patch
+drivers-misc-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
+serial-use-time_before-time_before_eq-etc.patch
+drivers-char-rtcc-use-time_before-time_before_eq-etc.patch
+fbdev-use-div_round_up-or-roundup.patch
+drivers-md-use-time_before-time_before_eq-etc.patch
+drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
+fs-ext2-use-bug_on.patch
+fs-ext3-use-bug_on.patch
+fs-ext4-use-bug_on.patch
+drivers-char-ds1286c-use-time_before-time_before_eq-etc.patch
 
