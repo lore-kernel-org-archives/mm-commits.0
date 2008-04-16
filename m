@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + pxafb-introduce-lcd_readwritel-to-wrap-the-__raw_readwritel.patch added to -mm tree
-Date: Tue, 15 Apr 2008 17:12:22 -0700
-Message-ID: <200804160012.m3G0CMEj023154@imap1.linux-foundation.org>
+Subject: - pxafb-introduce-lcd_readwritel-to-wrap-the-__raw_readwritel.patch removed from -mm tree
+Date: Tue, 15 Apr 2008 17:10:12 -0700
+Message-ID: <200804160010.m3G0ACOi023035@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43208 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753453AbYDPANJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753972AbYDPALB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 15 Apr 2008 20:13:09 -0400
+	Tue, 15 Apr 2008 20:11:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: eric.miao@marvell.com, adaplas@pol.net, rmk@arm.linux.org.uk
+To: eric.miao@marvell.com, adaplas@pol.net, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
      pxafb: introduce lcd_{read,write}l() to wrap the __raw_{read,write}l()
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      pxafb-introduce-lcd_readwritel-to-wrap-the-__raw_readwritel.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -37,7 +27,7 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 Subject: pxafb: introduce lcd_{read,write}l() to wrap the __raw_{read,write}l()
 From: Eric Miao <eric.miao@marvell.com>
 
-using __raw_{read,write}l() everywhere looks messy, introduce
+Using __raw_{read,write}l() everywhere looks messy, introduce
 lcd_{read,write}l() to get this cleaned up a bit
 
 Signed-off-by: eric miao <eric.miao@marvell.com>
@@ -46,32 +36,23 @@ Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pxafb.c |   59 +++++++++++++++++++++++-----------------
- 1 file changed, 35 insertions(+), 24 deletions(-)
+ drivers/video/pxafb.c |   50 ++++++++++++++++++++--------------------
+ 1 file changed, 26 insertions(+), 24 deletions(-)
 
 diff -puN drivers/video/pxafb.c~pxafb-introduce-lcd_readwritel-to-wrap-the-__raw_readwritel drivers/video/pxafb.c
 --- a/drivers/video/pxafb.c~pxafb-introduce-lcd_readwritel-to-wrap-the-__raw_readwritel
 +++ a/drivers/video/pxafb.c
-@@ -71,6 +71,18 @@ static int pxafb_activate_var(struct fb_
- 				struct pxafb_info *);
- static void set_ctrlr_state(struct pxafb_info *fbi, u_int state);
+@@ -64,6 +64,9 @@
+ #define LCCR3_INVALID_CONFIG_MASK	(LCCR3_HSP | LCCR3_VSP |\
+ 					 LCCR3_PCD | LCCR3_BPP)
  
-+static inline unsigned long
-+lcd_readl(struct pxafb_info *fbi, unsigned int off)
-+{
-+	return __raw_readl(fbi->mmio_base + off);
-+}
++#define lcd_readl(f, off)	__raw_readl((f)->mmio_base + (off))
++#define lcd_writel(f, off, v)	__raw_writel((v), (f)->mmio_base + (off))
 +
-+static inline void
-+lcd_writel(struct pxafb_info *fbi, unsigned int off, unsigned long val)
-+{
-+	__raw_writel(val, fbi->mmio_base + off);
-+}
-+
- static inline void pxafb_schedule_work(struct pxafb_info *fbi, u_int state)
- {
- 	unsigned long flags;
-@@ -684,8 +696,7 @@ static int pxafb_activate_var(struct fb_
+ static void (*pxafb_backlight_power)(int);
+ static void (*pxafb_lcd_power)(int, struct fb_var_screeninfo *);
+ 
+@@ -684,8 +687,7 @@ static int pxafb_activate_var(struct fb_
  	fbi->reg_lccr1 = new_regs.lccr1;
  	fbi->reg_lccr2 = new_regs.lccr2;
  	fbi->reg_lccr3 = new_regs.lccr3;
@@ -81,7 +62,7 @@ diff -puN drivers/video/pxafb.c~pxafb-introduce-lcd_readwritel-to-wrap-the-__raw
  	fbi->reg_lccr4 |= (fbi->lccr4 & LCCR4_PAL_FOR_MASK);
  	set_hsync_time(fbi, pcd);
  	local_irq_restore(flags);
-@@ -694,12 +705,12 @@ static int pxafb_activate_var(struct fb_
+@@ -694,12 +696,12 @@ static int pxafb_activate_var(struct fb_
  	 * Only update the registers if the controller is enabled
  	 * and something has changed.
  	 */
@@ -100,7 +81,7 @@ diff -puN drivers/video/pxafb.c~pxafb-introduce-lcd_readwritel-to-wrap-the-__raw
  		pxafb_schedule_work(fbi, C_REENABLE);
  
  	return 0;
-@@ -785,14 +796,14 @@ static void pxafb_enable_controller(stru
+@@ -785,14 +787,14 @@ static void pxafb_enable_controller(stru
  	clk_enable(fbi->clk);
  
  	/* Sequence from 11.7.10 */
@@ -123,7 +104,7 @@ diff -puN drivers/video/pxafb.c~pxafb-introduce-lcd_readwritel-to-wrap-the-__raw
  }
  
  static void pxafb_disable_controller(struct pxafb_info *fbi)
-@@ -805,11 +816,11 @@ static void pxafb_disable_controller(str
+@@ -805,11 +807,11 @@ static void pxafb_disable_controller(str
  	add_wait_queue(&fbi->ctrlr_wait, &wait);
  
  	/* Clear LCD Status Register */
@@ -139,7 +120,7 @@ diff -puN drivers/video/pxafb.c~pxafb-introduce-lcd_readwritel-to-wrap-the-__raw
  
  	schedule_timeout(200 * HZ / 1000);
  	remove_wait_queue(&fbi->ctrlr_wait, &wait);
-@@ -824,15 +835,15 @@ static void pxafb_disable_controller(str
+@@ -824,15 +826,15 @@ static void pxafb_disable_controller(str
  static irqreturn_t pxafb_handle_irq(int irq, void *dev_id)
  {
  	struct pxafb_info *fbi = dev_id;
