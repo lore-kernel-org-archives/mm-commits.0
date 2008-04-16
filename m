@@ -1,491 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type.patch removed from -mm tree
-Date: Wed, 16 Apr 2008 15:55:36 -0700
-Message-ID: <200804162255.m3GMtaIF011137@imap1.linux-foundation.org>
+Subject: - ibmcam-improve-support-for-the-ibm-pc-camera-pro.patch removed from -mm tree
+Date: Wed, 16 Apr 2008 15:55:44 -0700
+Message-ID: <200804162255.m3GMtiuH011146@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56990 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753381AbYDPXBk (ORCPT
+	by vger.kernel.org with ESMTP id S1757032AbYDPXBU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 19:01:40 -0400
+	Wed, 16 Apr 2008 19:01:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rjw@sisk.pl, greg@kroah.com, jbarnes@virtuousgeek.org, kay.sievers@vrfy.org, lenb@kernel.org, pavel@ucw.cz, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: dhilvert@gmail.com, greg@kroah.com, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm: new suspend and hibernation callbacks for PCI bus type
+     ibmcam: improve support for the IBM PC Camera Pro
 has been removed from the -mm tree.  Its filename was
-     pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type.patch
+     ibmcam-improve-support-for-the-ibm-pc-camera-pro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm: new suspend and hibernation callbacks for PCI bus type
-From: Rafael J. Wysocki <rjw@sisk.pl>
+Subject: ibmcam: improve support for the IBM PC Camera Pro
+From: David Hilvert <dhilvert@gmail.com>
 
-Implement new suspend and hibernation callbacks for the PCI bus type.
+This patch modifies Dmitri's original ibmcam driver for Linux to improve
+support for the IBM PC Camera Pro.  It may also offer improved support for
+other models classified by the driver as 'Model 3', such as the IBM PC Camera
+Pro Max.
 
-Signed-off-by: Rafael J. Wysocki <rjw@sisk.pl>
-Acked-by: Pavel Machek <pavel@ucw.cz>
-Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+See http://auricle.dyndns.org/xvp610/
+
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Cc: Greg KH <greg@kroah.com>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci-driver.c |  372 +++++++++++++++++++++++++++++++++----
- include/linux/pci.h      |    2 
- 2 files changed, 335 insertions(+), 39 deletions(-)
+ drivers/media/video/usbvideo/ibmcam.c |   62 ++++++++++++++++++------
+ 1 file changed, 47 insertions(+), 15 deletions(-)
 
-diff -puN drivers/pci/pci-driver.c~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type drivers/pci/pci-driver.c
---- a/drivers/pci/pci-driver.c~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type
-+++ a/drivers/pci/pci-driver.c
-@@ -271,7 +271,55 @@ static int pci_device_remove(struct devi
- 	return 0;
+diff -puN drivers/media/video/usbvideo/ibmcam.c~ibmcam-improve-support-for-the-ibm-pc-camera-pro drivers/media/video/usbvideo/ibmcam.c
+--- a/drivers/media/video/usbvideo/ibmcam.c~ibmcam-improve-support-for-the-ibm-pc-camera-pro
++++ a/drivers/media/video/usbvideo/ibmcam.c
+@@ -802,6 +802,21 @@ static enum ParseState ibmcam_model2_320
+ 		return scan_Continue;
  }
  
--static int pci_device_suspend(struct device * dev, pm_message_t state)
-+static void pci_device_shutdown(struct device *dev)
-+{
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
-+	struct pci_driver *drv = pci_dev->driver;
-+
-+	if (drv && drv->shutdown)
-+		drv->shutdown(pci_dev);
-+}
-+
-+#ifdef CONFIG_PM_SLEEP
-+
 +/*
-+ * Default "suspend" method for devices that have no driver provided suspend,
-+ * or not even a driver at all.
++ * ibmcam_model3_parse_lines()
++ *
++ * | Even lines |     Odd Lines       |
++ * -----------------------------------|
++ * |YYY........Y|UYVYUYVY.........UYVY|
++ * |YYY........Y|UYVYUYVY.........UYVY|
++ * |............|.....................|
++ * |YYY........Y|UYVYUYVY.........UYVY|
++ * |------------+---------------------|
++ *
++ * There is one (U, V) chroma pair for every four luma (Y) values.  This
++ * function reads a pair of lines at a time and obtains missing chroma values
++ * from adjacent pixels.
 + */
-+static void pci_default_pm_suspend(struct pci_dev *pci_dev)
-+{
-+	pci_save_state(pci_dev);
-+	/*
-+	 * mark its power state as "unknown", since we don't know if
-+	 * e.g. the BIOS will change its device state when we suspend.
-+	 */
-+	if (pci_dev->current_state == PCI_D0)
-+		pci_dev->current_state = PCI_UNKNOWN;
-+}
-+
-+/*
-+ * Default "resume" method for devices that have no driver provided resume,
-+ * or not even a driver at all.
-+ */
-+static int pci_default_pm_resume(struct pci_dev *pci_dev)
-+{
-+	int retval = 0;
-+
-+	/* restore the PCI config space */
-+	pci_restore_state(pci_dev);
-+	/* if the device was enabled before suspend, reenable */
-+	retval = pci_reenable_device(pci_dev);
-+	/*
-+	 * if the device was busmaster before the suspend, make it busmaster
-+	 * again
-+	 */
-+	if (pci_dev->is_busmaster)
-+		pci_set_master(pci_dev);
-+
-+	return retval;
-+}
-+
-+static int pci_legacy_suspend(struct device *dev, pm_message_t state)
- {
- 	struct pci_dev * pci_dev = to_pci_dev(dev);
- 	struct pci_driver * drv = pci_dev->driver;
-@@ -281,18 +329,12 @@ static int pci_device_suspend(struct dev
- 		i = drv->suspend(pci_dev, state);
- 		suspend_report_result(drv->suspend, i);
- 	} else {
--		pci_save_state(pci_dev);
--		/*
--		 * mark its power state as "unknown", since we don't know if
--		 * e.g. the BIOS will change its device state when we suspend.
--		 */
--		if (pci_dev->current_state == PCI_D0)
--			pci_dev->current_state = PCI_UNKNOWN;
-+		pci_default_pm_suspend(pci_dev);
+ static enum ParseState ibmcam_model3_parse_lines(
+ 	struct uvd *uvd,
+ 	struct usbvideo_frame *frame,
+@@ -816,6 +831,7 @@ static enum ParseState ibmcam_model3_par
+ 	const int ccm = 128; /* Color correction median - see below */
+ 	int i, u, v, rw, data_w=0, data_h=0, color_corr;
+ 	static unsigned char lineBuffer[640*3];
++	int line;
+ 
+ 	color_corr = (uvd->vpic.colour - 0x8000) >> 8; /* -128..+127 = -ccm..+(ccm-1)*/
+ 	RESTRICT_TO_RANGE(color_corr, -ccm, ccm+1);
+@@ -869,15 +885,15 @@ static enum ParseState ibmcam_model3_par
+ 		return scan_NextFrame;
  	}
- 	return i;
- }
  
--static int pci_device_suspend_late(struct device * dev, pm_message_t state)
-+static int pci_legacy_suspend_late(struct device *dev, pm_message_t state)
- {
- 	struct pci_dev * pci_dev = to_pci_dev(dev);
- 	struct pci_driver * drv = pci_dev->driver;
-@@ -305,26 +347,7 @@ static int pci_device_suspend_late(struc
- 	return i;
- }
+-	/* Make sure there's enough data for the entire line */
+-	len = 3 * data_w; /* <y-data> <uv-data> */
++	/* Make sure that lineBuffer can store two lines of data */
++	len = 3 * data_w; /* <y-data> <uyvy-data> */
+ 	assert(len <= sizeof(lineBuffer));
  
--/*
-- * Default resume method for devices that have no driver provided resume,
-- * or not even a driver at all.
-- */
--static int pci_default_resume(struct pci_dev *pci_dev)
--{
--	int retval = 0;
--
--	/* restore the PCI config space */
--	pci_restore_state(pci_dev);
--	/* if the device was enabled before suspend, reenable */
--	retval = pci_reenable_device(pci_dev);
--	/* if the device was busmaster before the suspend, make it busmaster again */
--	if (pci_dev->is_busmaster)
--		pci_set_master(pci_dev);
--
--	return retval;
--}
--
--static int pci_device_resume(struct device * dev)
-+static int pci_legacy_resume(struct device *dev)
- {
- 	int error;
- 	struct pci_dev * pci_dev = to_pci_dev(dev);
-@@ -333,11 +356,11 @@ static int pci_device_resume(struct devi
- 	if (drv && drv->resume)
- 		error = drv->resume(pci_dev);
- 	else
--		error = pci_default_resume(pci_dev);
-+		error = pci_default_pm_resume(pci_dev);
- 	return error;
- }
+-	/* Make sure there's enough data for the entire line */
++	/* Make sure there's enough data for two lines */
+ 	if (RingQueue_GetLength(&uvd->dp) < len)
+ 		return scan_Out;
  
--static int pci_device_resume_early(struct device * dev)
-+static int pci_legacy_resume_early(struct device *dev)
- {
- 	int error = 0;
- 	struct pci_dev * pci_dev = to_pci_dev(dev);
-@@ -350,15 +373,288 @@ static int pci_device_resume_early(struc
- 	return error;
- }
+-	/* Suck one line out of the ring queue */
++	/* Suck two lines of data out of the ring queue */
+ 	RingQueue_Dequeue(&uvd->dp, lineBuffer, len);
  
--static void pci_device_shutdown(struct device *dev)
-+static int pci_pm_prepare(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int error = 0;
+ 	data = lineBuffer;
+@@ -887,15 +903,23 @@ static enum ParseState ibmcam_model3_par
+ 	rw = (int)VIDEOSIZE_Y(frame->request) - (int)(frame->curline) - 1;
+ 	RESTRICT_TO_RANGE(rw, 0, VIDEOSIZE_Y(frame->request)-1);
+ 
+-	for (i = 0; i < VIDEOSIZE_X(frame->request); i++) {
+-		int y, rv, gv, bv;	/* RGB components */
++	/* Iterate over two lines. */
++	for (line = 0; line < 2; line++) {
++		for (i = 0; i < VIDEOSIZE_X(frame->request); i++) {
++			int y;
++			int rv, gv, bv;	/* RGB components */
 +
-+	if (drv && drv->pm && drv->pm->prepare)
-+		error = drv->pm->prepare(dev);
++			if (i >= data_w) {
++				RGB24_PUTPIXEL(frame, i, rw, 0, 0, 0);
++				continue;
++			}
+ 
+-		if (i < data_w) {
+-			y = data[i];	/* Luminosity is the first line */
++			/* first line is YYY...Y; second is UYVY...UYVY */
++			y = data[(line == 0) ? i : (i*2 + 1)];
+ 
+ 			/* Apply static color correction */
+-			u = color[i*2] + hue_corr;
+-			v = color[i*2 + 1] + hue2_corr;
++			u = color[(i/2)*4] + hue_corr;
++			v = color[(i/2)*4 + 2] + hue2_corr;
+ 
+ 			/* Apply color correction */
+ 			if (color_corr != 0) {
+@@ -903,13 +927,21 @@ static enum ParseState ibmcam_model3_par
+ 				u = 128 + ((ccm + color_corr) * (u - 128)) / ccm;
+ 				v = 128 + ((ccm + color_corr) * (v - 128)) / ccm;
+ 			}
+-		} else
+-			y = 0, u = v = 128;
+ 
+-		YUV_TO_RGB_BY_THE_BOOK(y, u, v, rv, gv, bv);
+-		RGB24_PUTPIXEL(frame, i, rw, rv, gv, bv); /* Done by deinterlacing now */
 +
-+	return error;
-+}
-+
-+static void pci_pm_complete(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+
-+	if (drv && drv->pm && drv->pm->complete)
-+		drv->pm->complete(dev);
-+}
-+
-+#ifdef CONFIG_SUSPEND
-+
-+static int pci_pm_suspend(struct device *dev)
-+{
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
-+	struct device_driver *drv = dev->driver;
-+	int error = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->suspend) {
-+			error = drv->pm->suspend(dev);
-+			suspend_report_result(drv->pm->suspend, error);
-+		} else {
-+			pci_default_pm_suspend(pci_dev);
++			YUV_TO_RGB_BY_THE_BOOK(y, u, v, rv, gv, bv);
++			RGB24_PUTPIXEL(frame, i, rw, rv, gv, bv);  /* No deinterlacing */
 +		}
-+	} else {
-+		error = pci_legacy_suspend(dev, PMSG_SUSPEND);
-+	}
 +
-+	return error;
-+}
++		/* Check for the end of requested data */
++		if (rw == 0)
++			break;
 +
-+static int pci_pm_suspend_noirq(struct device *dev)
- {
- 	struct pci_dev *pci_dev = to_pci_dev(dev);
- 	struct pci_driver *drv = pci_dev->driver;
-+	int error = 0;
++		/* Prepare for the second line */
++		rw--;
++		data = lineBuffer + data_w;
+ 	}
+-	frame->deinterlace = Deinterlace_FillEvenLines;
++	frame->deinterlace = Deinterlace_None;
  
--	if (drv && drv->shutdown)
--		drv->shutdown(pci_dev);
-+	if (drv && drv->pm) {
-+		if (drv->pm->suspend_noirq) {
-+			error = drv->pm->suspend_noirq(dev);
-+			suspend_report_result(drv->pm->suspend_noirq, error);
-+		}
-+	} else {
-+		error = pci_legacy_suspend_late(dev, PMSG_SUSPEND);
-+	}
-+
-+	return error;
-+}
-+
-+static int pci_pm_resume(struct device *dev)
-+{
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
-+	struct device_driver *drv = dev->driver;
-+	int error;
-+
-+	if (drv && drv->pm) {
-+		error = drv->pm->resume ? drv->pm->resume(dev) :
-+			pci_default_pm_resume(pci_dev);
-+	} else {
-+		error = pci_legacy_resume(dev);
-+	}
-+
-+	return error;
- }
- 
-+static int pci_pm_resume_noirq(struct device *dev)
-+{
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
-+	struct pci_driver *drv = pci_dev->driver;
-+	int error = 0;
-+
-+	pci_fixup_device(pci_fixup_resume, pci_dev);
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->resume_noirq)
-+			error = drv->pm->resume_noirq(dev);
-+	} else {
-+		error = pci_legacy_resume_early(dev);
-+	}
-+
-+	return error;
-+}
-+
-+#else /* !CONFIG_SUSPEND */
-+
-+#define pci_pm_suspend		NULL
-+#define pci_pm_suspend_noirq	NULL
-+#define pci_pm_resume		NULL
-+#define pci_pm_resume_noirq	NULL
-+
-+#endif /* !CONFIG_SUSPEND */
-+
-+#ifdef CONFIG_HIBERNATION
-+
-+static int pci_pm_freeze(struct device *dev)
-+{
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
-+	struct device_driver *drv = dev->driver;
-+	int error = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->freeze) {
-+			error = drv->pm->freeze(dev);
-+			suspend_report_result(drv->pm->freeze, error);
-+		} else {
-+			pci_default_pm_suspend(pci_dev);
-+		}
-+	} else {
-+		error = pci_legacy_suspend(dev, PMSG_FREEZE);
-+	}
-+
-+	return error;
-+}
-+
-+static int pci_pm_freeze_noirq(struct device *dev)
-+{
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
-+	struct pci_driver *drv = pci_dev->driver;
-+	int error = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->freeze_noirq) {
-+			error = drv->pm->freeze_noirq(dev);
-+			suspend_report_result(drv->pm->freeze_noirq, error);
-+		}
-+	} else {
-+		error = pci_legacy_suspend_late(dev, PMSG_FREEZE);
-+	}
-+
-+	return error;
-+}
-+
-+static int pci_pm_thaw(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int error = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->thaw)
-+			error =  drv->pm->thaw(dev);
-+	} else {
-+		error = pci_legacy_resume(dev);
-+	}
-+
-+	return error;
-+}
-+
-+static int pci_pm_thaw_noirq(struct device *dev)
-+{
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
-+	struct pci_driver *drv = pci_dev->driver;
-+	int error = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->thaw_noirq)
-+			error = drv->pm->thaw_noirq(dev);
-+	} else {
-+		error = pci_legacy_resume_early(dev);
-+	}
-+
-+	return error;
-+}
-+
-+static int pci_pm_poweroff(struct device *dev)
-+{
-+	struct device_driver *drv = dev->driver;
-+	int error = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->poweroff) {
-+			error = drv->pm->poweroff(dev);
-+			suspend_report_result(drv->pm->poweroff, error);
-+		}
-+	} else {
-+		error = pci_legacy_suspend(dev, PMSG_HIBERNATE);
-+	}
-+
-+	return error;
-+}
-+
-+static int pci_pm_poweroff_noirq(struct device *dev)
-+{
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
-+	struct pci_driver *drv = pci_dev->driver;
-+	int error = 0;
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->poweroff_noirq) {
-+			error = drv->pm->poweroff_noirq(dev);
-+			suspend_report_result(drv->pm->poweroff_noirq, error);
-+		}
-+	} else {
-+		error = pci_legacy_suspend_late(dev, PMSG_HIBERNATE);
-+	}
-+
-+	return error;
-+}
-+
-+static int pci_pm_restore(struct device *dev)
-+{
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
-+	struct device_driver *drv = dev->driver;
-+	int error;
-+
-+	if (drv && drv->pm) {
-+		error = drv->pm->restore ? drv->pm->restore(dev) :
-+			pci_default_pm_resume(pci_dev);
-+	} else {
-+		error = pci_legacy_resume(dev);
-+	}
-+
-+	return error;
-+}
-+
-+static int pci_pm_restore_noirq(struct device *dev)
-+{
-+	struct pci_dev *pci_dev = to_pci_dev(dev);
-+	struct pci_driver *drv = pci_dev->driver;
-+	int error = 0;
-+
-+	pci_fixup_device(pci_fixup_resume, pci_dev);
-+
-+	if (drv && drv->pm) {
-+		if (drv->pm->restore_noirq)
-+			error = drv->pm->restore_noirq(dev);
-+	} else {
-+		error = pci_legacy_resume_early(dev);
-+	}
-+
-+	return error;
-+}
-+
-+#else /* !CONFIG_HIBERNATION */
-+
-+#define pci_pm_freeze		NULL
-+#define pci_pm_freeze_noirq	NULL
-+#define pci_pm_thaw		NULL
-+#define pci_pm_thaw_noirq	NULL
-+#define pci_pm_poweroff		NULL
-+#define pci_pm_poweroff_noirq	NULL
-+#define pci_pm_restore		NULL
-+#define pci_pm_restore_noirq	NULL
-+
-+#endif /* !CONFIG_HIBERNATION */
-+
-+struct pm_ext_ops pci_pm_ops = {
-+	.base = {
-+		.prepare = pci_pm_prepare,
-+		.complete = pci_pm_complete,
-+		.suspend = pci_pm_suspend,
-+		.resume = pci_pm_resume,
-+		.freeze = pci_pm_freeze,
-+		.thaw = pci_pm_thaw,
-+		.poweroff = pci_pm_poweroff,
-+		.restore = pci_pm_restore,
-+	},
-+	.suspend_noirq = pci_pm_suspend_noirq,
-+	.resume_noirq = pci_pm_resume_noirq,
-+	.freeze_noirq = pci_pm_freeze_noirq,
-+	.thaw_noirq = pci_pm_thaw_noirq,
-+	.poweroff_noirq = pci_pm_poweroff_noirq,
-+	.restore_noirq = pci_pm_restore_noirq,
-+};
-+
-+#define PCI_PM_OPS_PTR	&pci_pm_ops
-+
-+#else /* !CONFIG_PM_SLEEP */
-+
-+#define PCI_PM_OPS_PTR	NULL
-+
-+#endif /* !CONFIG_PM_SLEEP */
-+
- /**
-  * __pci_register_driver - register a new pci driver
-  * @drv: the driver structure to register
-@@ -381,6 +677,9 @@ int __pci_register_driver(struct pci_dri
- 	drv->driver.owner = owner;
- 	drv->driver.mod_name = mod_name;
- 
-+	if (drv->pm)
-+		drv->driver.pm = &drv->pm->base;
-+
- 	spin_lock_init(&drv->dynids.lock);
- 	INIT_LIST_HEAD(&drv->dynids.list);
- 
-@@ -506,12 +805,9 @@ struct bus_type pci_bus_type = {
- 	.uevent		= pci_uevent,
- 	.probe		= pci_device_probe,
- 	.remove		= pci_device_remove,
--	.suspend	= pci_device_suspend,
--	.suspend_late	= pci_device_suspend_late,
--	.resume_early	= pci_device_resume_early,
--	.resume		= pci_device_resume,
- 	.shutdown	= pci_device_shutdown,
- 	.dev_attrs	= pci_dev_attrs,
-+	.pm		= PCI_PM_OPS_PTR,
- };
- 
- static int __init pci_driver_init(void)
-diff -puN include/linux/pci.h~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type include/linux/pci.h
---- a/include/linux/pci.h~pm-new-suspend-and-hibernation-callbacks-for-pci-bus-type
-+++ a/include/linux/pci.h
-@@ -381,7 +381,7 @@ struct pci_driver {
- 	int  (*resume_early) (struct pci_dev *dev);
- 	int  (*resume) (struct pci_dev *dev);	                /* Device woken up */
- 	void (*shutdown) (struct pci_dev *dev);
+ 	/*
+ 	 * Account for number of bytes that we wrote into output V4L frame.
+_
+
+Patches currently in -mm which might be from dhilvert@gmail.com are
+
+git-dvb.patch
+
