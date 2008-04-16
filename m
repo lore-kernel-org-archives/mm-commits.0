@@ -1,61 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - pci-hotplug-acpi-pci-slot-detection-driver-fix.patch removed from -mm tree
-Date: Wed, 16 Apr 2008 12:52:18 -0700
-Message-ID: <200804161952.m3GJqIMX003858@imap1.linux-foundation.org>
+Subject: - drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch removed from -mm tree
+Date: Wed, 16 Apr 2008 12:56:30 -0700
+Message-ID: <200804161956.m3GJuUY9003987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33881 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751584AbYDPTwk (ORCPT
+	by vger.kernel.org with ESMTP id S1751619AbYDPT5Y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 15:52:40 -0400
+	Wed, 16 Apr 2008 15:57:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, achiang@hp.com, greg@kroah.com, kaneshige.kenji@jp.fujitsu.com, kristen.c.accardi@intel.com, lenb@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci-hotplug-acpi-pci-slot-detection-driver-fix
+     drivers/acpi/pci_slot.c: fix build with CONFIG_DMI=n
 has been removed from the -mm tree.  Its filename was
-     pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
+     drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
 
 This patch was dropped because it was folded into pci-hotplug-acpi-pci-slot-detection-driver.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-hotplug-acpi-pci-slot-detection-driver-fix
+Subject: drivers/acpi/pci_slot.c: fix build with CONFIG_DMI=n
 From: Andrew Morton <akpm@linux-foundation.org>
-
-drivers/acpi/pci_slot.c: In function 'register_slot':
-drivers/acpi/pci_slot.c:168: warning: cast from pointer to integer of different size
-drivers/acpi/pci_slot.c:168: warning: format '%#lx' expects type 'long unsigned int', but argument 3 has type 'long long unsigned int'
 
 Cc: Alex Chiang <achiang@hp.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 Cc: Kristen Carlson Accardi <kristen.c.accardi@intel.com>
 Cc: Len Brown <lenb@kernel.org>
+Cc: Kenji Kaneshige <kaneshige.kenji@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/pci_slot.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/pci_slot.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/acpi/pci_slot.c~pci-hotplug-acpi-pci-slot-detection-driver-fix drivers/acpi/pci_slot.c
---- a/drivers/acpi/pci_slot.c~pci-hotplug-acpi-pci-slot-detection-driver-fix
+diff -puN drivers/acpi/pci_slot.c~drivers-acpi-pci_slotc-fix-build-with-config_dmi=n drivers/acpi/pci_slot.c
+--- a/drivers/acpi/pci_slot.c~drivers-acpi-pci_slotc-fix-build-with-config_dmi=n
 +++ a/drivers/acpi/pci_slot.c
-@@ -165,8 +165,8 @@ register_slot(acpi_handle handle, u32 lv
- 	list_add(&slot->list, &slot_list);
+@@ -325,7 +325,6 @@ acpi_pci_slot_remove(acpi_handle handle)
  	mutex_unlock(&slot_list_lock);
- 
--	dbg("pci_slot: %#lx, pci_bus: %x, device: %d, name: %s\n",
--		(uint64_t)pci_slot, pci_bus->number, device, name);
-+	dbg("pci_slot: %p, pci_bus: %x, device: %d, name: %s\n",
-+		pci_slot, pci_bus->number, device, name);
- 
- 	return AE_OK;
  }
+ 
+-#ifdef CONFIG_DMI
+ static int do_sta_before_sun(const struct dmi_system_id *d)
+ {
+ 	info("%s detected: will evaluate _STA before calling _SUN\n", d->ident);
+@@ -350,7 +349,6 @@ static struct dmi_system_id acpi_pci_slo
+ 	},
+ 	{}
+ };
+-#endif /* CONFIG_DMI */
+ 
+ static int __init
+ acpi_pci_slot_init(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -116,7 +117,6 @@ drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make
 git-selinux.patch
 pci-hotplug-introduce-pci_slot.patch
 pci-hotplug-acpi-pci-slot-detection-driver.patch
-pci-hotplug-acpi-pci-slot-detection-driver-fix.patch
 drivers-acpi-pci_slotc-fix-build-with-config_dmi=n.patch
 git-s390.patch
 git-sched.patch
