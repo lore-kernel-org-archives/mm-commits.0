@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-atm-use-time_before-time_before_eq-etc.patch added to -mm tree
-Date: Tue, 15 Apr 2008 21:35:53 -0700
-Message-ID: <200804160435.m3G4Zrx8032273@imap1.linux-foundation.org>
+Subject: + drivers-md-use-time_before-time_before_eq-etc.patch added to -mm tree
+Date: Tue, 15 Apr 2008 21:49:26 -0700
+Message-ID: <200804160449.m3G4nQQU032706@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46220 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750724AbYDPEg3 (ORCPT
+	by vger.kernel.org with ESMTP id S1750917AbYDPEuE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 00:36:29 -0400
+	Wed, 16 Apr 2008 00:50:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk
+Cc: julia@diku.dk, neilb@suse.de
 
 
 The patch titled
-     drivers/atm: use time_before, time_before_eq, etc
+     drivers/md: use time_before, time_before_eq, etc
 has been added to the -mm tree.  Its filename is
-     drivers-atm-use-time_before-time_before_eq-etc.patch
+     drivers-md-use-time_before-time_before_eq-etc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/atm: use time_before, time_before_eq, etc
+Subject: drivers/md: use time_before, time_before_eq, etc
 From: Julia Lawall <julia@diku.dk>
 
 
@@ -76,43 +76,26 @@ expression E;
 // </smpl>
 
 Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/atm/iphase.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/md/raid6algos.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/atm/iphase.c~drivers-atm-use-time_before-time_before_eq-etc drivers/atm/iphase.c
---- a/drivers/atm/iphase.c~drivers-atm-use-time_before-time_before_eq-etc
-+++ a/drivers/atm/iphase.c
-@@ -60,7 +60,8 @@
- #include <asm/uaccess.h>  
- #include <asm/string.h>  
- #include <asm/byteorder.h>  
--#include <linux/vmalloc.h>  
-+#include <linux/vmalloc.h>
-+#include <linux/jiffies.h>
- #include "iphase.h"		  
- #include "suni.h"		  
- #define swap(x) (((x & 0xff) << 8) | ((x & 0xff00) >> 8))  
-@@ -189,7 +190,7 @@ static u16 get_desc (IADEV *dev, struct 
-   int ltimeout;
- 
-   ia_hack_tcq (dev);
--  if(((jiffies - timer)>50)||((dev->ffL.tcq_rd==dev->host_tcq_wr))){      
-+  if((time_after(jiffies,timer+50)) || ((dev->ffL.tcq_rd==dev->host_tcq_wr))) {
-      timer = jiffies; 
-      i=0;
-      while (i < dev->num_tx_desc) {
-@@ -1225,7 +1226,7 @@ static void rx_intr(struct atm_dev *dev)
-         iadev->rx_tmp_jif = jiffies; 
-         iadev->rxing = 0;
-      } 
--     else if (((jiffies - iadev->rx_tmp_jif) > 50) && 
-+     else if ((time_after(jiffies, iadev->rx_tmp_jif + 50)) &&
-                ((iadev->rx_pkt_cnt - iadev->rx_tmp_cnt) == 0)) {
-         for (i = 1; i <= iadev->num_rx_desc; i++)
-                free_desc(dev, i);
+diff -puN drivers/md/raid6algos.c~drivers-md-use-time_before-time_before_eq-etc drivers/md/raid6algos.c
+--- a/drivers/md/raid6algos.c~drivers-md-use-time_before-time_before_eq-etc
++++ a/drivers/md/raid6algos.c
+@@ -121,7 +121,8 @@ int __init raid6_select_algo(void)
+ 			j0 = jiffies;
+ 			while ( (j1 = jiffies) == j0 )
+ 				cpu_relax();
+-			while ( (jiffies-j1) < (1 << RAID6_TIME_JIFFIES_LG2) ) {
++			while ( time_before(jiffies,
++					    j1 + (1<<RAID6_TIME_JIFFIES_LG2)) ) {
+ 				(*algo)->gen_syndrome(disks, PAGE_SIZE, dptrs);
+ 				perf++;
+ 			}
 _
 
 Patches currently in -mm which might be from julia@diku.dk are
@@ -121,14 +104,18 @@ git-alsa-tiwai.patch
 git-powerpc.patch
 git-gfs2-nmw.patch
 git-infiniband.patch
+drivers-char-keyboardc-use-time_before-time_before_eq-etc.patch
 git-udf.patch
 git-net.patch
 drivers-atm-use-time_before-time_before_eq-etc.patch
 git-ocfs2.patch
 fs-affs-filec-use-bug_on.patch
 drivers-misc-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
+drivers-char-rtcc-use-time_before-time_before_eq-etc.patch
 fbdev-use-div_round_up-or-roundup.patch
+drivers-md-use-time_before-time_before_eq-etc.patch
 fs-ext2-use-bug_on.patch
 fs-ext3-use-bug_on.patch
 fs-ext4-use-bug_on.patch
+drivers-char-ds1286c-use-time_before-time_before_eq-etc.patch
 
