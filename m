@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-sysvsem-implement-sys_unshareclone_sysvsem.patch added to -mm tree
-Date: Thu, 17 Apr 2008 14:57:16 -0700
-Message-ID: <200804172157.m3HLvHXL029829@imap1.linux-foundation.org>
+Subject: + ipc-sysvsem-force-unshareclone_sysvsem-when-clone_newipc.patch added to -mm tree
+Date: Thu, 17 Apr 2008 14:57:19 -0700
+Message-ID: <200804172157.m3HLvKCB029832@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33745 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753372AbYDQV5a (ORCPT
+	by vger.kernel.org with ESMTP id S1753295AbYDQV53 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 17:57:30 -0400
+	Thu, 17 Apr 2008 17:57:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: manfred@colorfullife.com, ebiederm@xmission.com, mtk.manpages@googlemail.com
 
 
 The patch titled
-     ipc: sysvsem: implement sys_unshare(CLONE_SYSVSEM)
+     ipc: sysvsem: force unshare(CLONE_SYSVSEM) when CLONE_NEWIPC
 has been added to the -mm tree.  Its filename is
-     ipc-sysvsem-implement-sys_unshareclone_sysvsem.patch
+     ipc-sysvsem-force-unshareclone_sysvsem-when-clone_newipc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,28 +34,20 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: sysvsem: implement sys_unshare(CLONE_SYSVSEM)
+Subject: ipc: sysvsem: force unshare(CLONE_SYSVSEM) when CLONE_NEWIPC
 From: Manfred Spraul <manfred@colorfullife.com>
 
 sys_unshare(CLONE_NEWIPC) doesn't handle the undo lists properly, this can
 cause a kernel memory corruption.  CLONE_NEWIPC must detach from the existing
 undo lists.
 
-Fix, part 1: add support for sys_unshare(CLONE_SYSVSEM)
+Fix, part 2: perform an implicit CLONE_SYSVSEM in CLONE_NEWIPC.  CLONE_NEWIPC
+creates a new IPC namespace, the task cannot access the existing semaphore
+arrays after the unshare syscall.  Thus the task can/must detach from the
+existing undo list entries, too.
 
-The original reason to not support it was the potential (inevitable?)
-confusion due to the fact that sys_unshare(CLONE_SYSVSEM) has the
-inverse meaning of clone(CLONE_SYSVSEM).
-
-Our two most reasonable options then appear to be (1) fully support
-CLONE_SYSVSEM, or (2) continue to refuse explicit CLONE_SYSVSEM,
-but always do it anyway on unshare(CLONE_SYSVSEM).  This patch does
-(1).
-
-Changelog:
-	Apr 16: SEH: switch to Manfred's alternative patch which
-		removes the unshare_semundo() function which
-		always refused CLONE_SYSVSEM.
+This fixes the kernel corruption, because it makes it impossible that
+undo records from two different namespaces are in sysvsem.undo_list.
 
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
@@ -66,92 +58,26 @@ Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c     |    1 +
- kernel/fork.c |   29 +++++++++++------------------
- 2 files changed, 12 insertions(+), 18 deletions(-)
+ kernel/fork.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN ipc/sem.c~ipc-sysvsem-implement-sys_unshareclone_sysvsem ipc/sem.c
---- a/ipc/sem.c~ipc-sysvsem-implement-sys_unshareclone_sysvsem
-+++ a/ipc/sem.c
-@@ -1250,6 +1250,7 @@ void exit_sem(struct task_struct *tsk)
- 	undo_list = tsk->sysvsem.undo_list;
- 	if (!undo_list)
- 		return;
-+	tsk->sysvsem.undo_list = NULL;
- 
- 	if (!atomic_dec_and_test(&undo_list->refcnt))
- 		return;
-diff -puN kernel/fork.c~ipc-sysvsem-implement-sys_unshareclone_sysvsem kernel/fork.c
---- a/kernel/fork.c~ipc-sysvsem-implement-sys_unshareclone_sysvsem
+diff -puN kernel/fork.c~ipc-sysvsem-force-unshareclone_sysvsem-when-clone_newipc kernel/fork.c
+--- a/kernel/fork.c~ipc-sysvsem-force-unshareclone_sysvsem-when-clone_newipc
 +++ a/kernel/fork.c
-@@ -1680,18 +1680,6 @@ static int unshare_fd(unsigned long unsh
- }
- 
- /*
-- * Unsharing of semundo for tasks created with CLONE_SYSVSEM is not
-- * supported yet
-- */
--static int unshare_semundo(unsigned long unshare_flags, struct sem_undo_list **new_ulistp)
--{
--	if (unshare_flags & CLONE_SYSVSEM)
--		return -EINVAL;
--
--	return 0;
--}
--
--/*
-  * unshare allows a process to 'unshare' part of the process
-  * context which was originally shared using clone.  copy_*
-  * functions used by do_fork() cannot be used here directly
-@@ -1706,8 +1694,8 @@ asmlinkage long sys_unshare(unsigned lon
- 	struct sighand_struct *new_sigh = NULL;
- 	struct mm_struct *mm, *new_mm = NULL, *active_mm = NULL;
- 	struct files_struct *fd, *new_fd = NULL;
--	struct sem_undo_list *new_ulist = NULL;
- 	struct nsproxy *new_nsproxy = NULL;
-+	int do_sysvsem = 0;
- 
- 	check_unshare_flags(&unshare_flags);
- 
-@@ -1719,6 +1707,8 @@ asmlinkage long sys_unshare(unsigned lon
+@@ -1707,7 +1707,12 @@ asmlinkage long sys_unshare(unsigned lon
  				CLONE_NEWNET))
  		goto bad_unshare_out;
  
-+	if (unshare_flags & CLONE_SYSVSEM)
-+		do_sysvsem = 1;
+-	if (unshare_flags & CLONE_SYSVSEM)
++	/*
++	 * CLONE_NEWIPC must also detach from the undolist: after switching
++	 * to a new ipc namespace, the semaphore arrays from the old
++	 * namespace are unreachable.
++	 */
++	if (unshare_flags & (CLONE_NEWIPC|CLONE_SYSVSEM))
+ 		do_sysvsem = 1;
  	if ((err = unshare_thread(unshare_flags)))
  		goto bad_unshare_out;
- 	if ((err = unshare_fs(unshare_flags, &new_fs)))
-@@ -1729,13 +1719,17 @@ asmlinkage long sys_unshare(unsigned lon
- 		goto bad_unshare_cleanup_sigh;
- 	if ((err = unshare_fd(unshare_flags, &new_fd)))
- 		goto bad_unshare_cleanup_vm;
--	if ((err = unshare_semundo(unshare_flags, &new_ulist)))
--		goto bad_unshare_cleanup_fd;
- 	if ((err = unshare_nsproxy_namespaces(unshare_flags, &new_nsproxy,
- 			new_fs)))
--		goto bad_unshare_cleanup_semundo;
-+		goto bad_unshare_cleanup_fd;
- 
--	if (new_fs ||  new_mm || new_fd || new_ulist || new_nsproxy) {
-+	if (new_fs ||  new_mm || new_fd || do_sysvsem || new_nsproxy) {
-+		if (do_sysvsem) {
-+			/*
-+			 * CLONE_SYSVSEM is equivalent to sys_exit().
-+			 */
-+			exit_sem(current);
-+		}
- 
- 		if (new_nsproxy) {
- 			switch_task_namespaces(current, new_nsproxy);
-@@ -1771,7 +1765,6 @@ asmlinkage long sys_unshare(unsigned lon
- 	if (new_nsproxy)
- 		put_nsproxy(new_nsproxy);
- 
--bad_unshare_cleanup_semundo:
- bad_unshare_cleanup_fd:
- 	if (new_fd)
- 		put_files_struct(new_fd);
 _
 
 Patches currently in -mm which might be from manfred@colorfullife.com are
