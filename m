@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tty-the-big-operations-rework-vs-git-kgdb-light.patch added to -mm tree
-Date: Wed, 16 Apr 2008 16:55:45 -0700
-Message-ID: <200804170006.m3H06AmW013665@imap1.linux-foundation.org>
+Subject: + x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch added to -mm tree
+Date: Wed, 16 Apr 2008 17:01:31 -0700
+Message-ID: <200804170011.m3H0BvqD013885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41880 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58603 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757732AbYDQAHN (ORCPT
+	by vger.kernel.org with ESMTP id S1750793AbYDQANH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 20:07:13 -0400
+	Wed, 16 Apr 2008 20:13:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jason.wessel@windriver.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, ak@suse.de, dilinger@debian.org, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     tty-the-big-operations-rework vs git-kgdb-light
+     x86-olpc-add-one-laptop-per-child-architecture-support fix
 has been added to the -mm tree.  Its filename is
-     tty-the-big-operations-rework-vs-git-kgdb-light.patch
+     x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty-the-big-operations-rework vs git-kgdb-light
+Subject: x86-olpc-add-one-laptop-per-child-architecture-support fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+arch/x86/kernel/olpc.c: In function 'olpc_init':
+arch/x86/kernel/olpc.c:243: error: implicit declaration of function 'geode_has_vsa'
+
+Is this right?
+
+Cc: Andres Salomon <dilinger@debian.org>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/x86/kernel/olpc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tty_io.c~tty-the-big-operations-rework-vs-git-kgdb-light drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-the-big-operations-rework-vs-git-kgdb-light
-+++ a/drivers/char/tty_io.c
-@@ -1181,9 +1181,8 @@ struct tty_driver *tty_find_polling_driv
- 		if (*str == '\0')
- 			str = 0;
+diff -puN arch/x86/kernel/olpc.c~x86-olpc-add-one-laptop-per-child-architecture-support-fix arch/x86/kernel/olpc.c
+--- a/arch/x86/kernel/olpc.c~x86-olpc-add-one-laptop-per-child-architecture-support-fix
++++ a/arch/x86/kernel/olpc.c
+@@ -240,7 +240,7 @@ static int __init olpc_init(void)
+ 			(unsigned char *) &olpc_platform_info.ecver, 1);
  
--		if (tty_line >= 0 && tty_line <= p->num && p->poll_init &&
--				!p->poll_init(p, tty_line, str)) {
--
-+		if (tty_line >= 0 && tty_line <= p->num && p->ops &&
-+		    p->ops->poll_init && !p->ops->poll_init(p, tty_line, str)) {
- 			res = p;
- 			*line = tty_line;
- 			break;
+ 	/* check to see if the VSA exists */
+-	if (geode_has_vsa())
++	if (geode_has_vsa2())
+ 		olpc_platform_info.flags |= OLPC_F_VSA;
+ 
+ 	printk(KERN_INFO "OLPC board revision %s%X (EC=%x)\n",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -205,6 +208,7 @@ lxfb-add-power-management-functionality-fix.patch
 drivers-video-uvesafbc-fix-error-path-memory-leak.patch
 fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
 drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
+x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
 drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
 pnp-use-dev_printk-for-quirk-messages-fix.patch
 ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
