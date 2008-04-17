@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch added to -mm tree
-Date: Wed, 16 Apr 2008 17:01:31 -0700
-Message-ID: <200804170011.m3H0BvqD013885@imap1.linux-foundation.org>
+Subject: + git-arm-drivers-mfd-htc-pasic3c-is-arm-specific.patch added to -mm tree
+Date: Wed, 16 Apr 2008 17:15:38 -0700
+Message-ID: <200804170026.m3H0Q301014390@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58603 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52938 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750793AbYDQANH (ORCPT
+	by vger.kernel.org with ESMTP id S1750853AbYDQA0X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 20:13:07 -0400
+	Wed, 16 Apr 2008 20:26:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ak@suse.de, dilinger@debian.org, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     x86-olpc-add-one-laptop-per-child-architecture-support fix
+     git-arm: drivers/mfd/htc-pasic3.c is arm-specific
 has been added to the -mm tree.  Its filename is
-     x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
+     git-arm-drivers-mfd-htc-pasic3c-is-arm-specific.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-olpc-add-one-laptop-per-child-architecture-support fix
+Subject: git-arm: drivers/mfd/htc-pasic3.c is arm-specific
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/olpc.c: In function 'olpc_init':
-arch/x86/kernel/olpc.c:243: error: implicit declaration of function 'geode_has_vsa'
+drivers/mfd/htc-pasic3.c:22:31: error: asm/arch/pxa-regs.h: No such file or directory
 
-Is this right?
-
-Cc: Andres Salomon <dilinger@debian.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/olpc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mfd/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/kernel/olpc.c~x86-olpc-add-one-laptop-per-child-architecture-support-fix arch/x86/kernel/olpc.c
---- a/arch/x86/kernel/olpc.c~x86-olpc-add-one-laptop-per-child-architecture-support-fix
-+++ a/arch/x86/kernel/olpc.c
-@@ -240,7 +240,7 @@ static int __init olpc_init(void)
- 			(unsigned char *) &olpc_platform_info.ecver, 1);
+diff -puN drivers/mfd/Kconfig~git-arm-drivers-mfd-htc-pasic3c-is-arm-specific drivers/mfd/Kconfig
+--- a/drivers/mfd/Kconfig~git-arm-drivers-mfd-htc-pasic3c-is-arm-specific
++++ a/drivers/mfd/Kconfig
+@@ -32,6 +32,7 @@ config HTC_EGPIO
  
- 	/* check to see if the VSA exists */
--	if (geode_has_vsa())
-+	if (geode_has_vsa2())
- 		olpc_platform_info.flags |= OLPC_F_VSA;
- 
- 	printk(KERN_INFO "OLPC board revision %s%X (EC=%x)\n",
+ config HTC_PASIC3
+ 	tristate "HTC PASIC3 LED/DS1WM chip support"
++	depends on ARM
+ 	help
+ 	  This core driver provides register access for the LED/DS1WM
+ 	  chips labeled "AIC2" and "AIC3", found on HTC Blueangel and
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -263,4 +255,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
+git-arm-drivers-mfd-htc-pasic3c-is-arm-specific.patch
 
