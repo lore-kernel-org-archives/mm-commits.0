@@ -1,143 +1,327 @@
 From: akpm@linux-foundation.org
-Subject: - git-xfs-git-rejects.patch removed from -mm tree
-Date: Thu, 17 Apr 2008 13:17:09 -0700
-Message-ID: <200804172017.m3HKH9TW026134@imap1.linux-foundation.org>
+Subject: + git-xfs-fixups.patch added to -mm tree
+Date: Thu, 17 Apr 2008 13:17:02 -0700
+Message-ID: <200804172017.m3HKH2p3026131@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57010 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33565 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753238AbYDQURl (ORCPT
+	by vger.kernel.org with ESMTP id S1753367AbYDQURi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 16:17:41 -0400
+	Thu, 17 Apr 2008 16:17:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dgc@sgi.com, lachlan@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, dgc@sgi.com, lachlan@sgi.com, tes@sgi.com, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     git-xfs-git-rejects
-has been removed from the -mm tree.  Its filename was
-     git-xfs-git-rejects.patch
+     git-xfs-fixups
+has been added to the -mm tree.  Its filename is
+     git-xfs-fixups.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-xfs-git-rejects
+Subject: git-xfs-fixups
 From: Andrew Morton <akpm@linux-foundation.org>
+
+attempt to repair forthcoming git-vfs vs git-xfs smashup.
 
 Cc: Timothy Shimmin <tes@sgi.com>
 Cc: David Chinner <dgc@sgi.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Lachlan McIlroy <lachlan@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/quota/xfs_qm_syscalls.c |    4 ----
- fs/xfs/xfs_ialloc.c            |   11 +----------
- fs/xfs/xfs_mount.c             |   13 -------------
- 3 files changed, 1 insertion(+), 27 deletions(-)
+ fs/xfs/linux-2.6/xfs_ioctl.c |  256 ---------------------------------
+ 1 file changed, 1 insertion(+), 255 deletions(-)
 
-diff -puN fs/xfs/quota/xfs_qm_syscalls.c~git-xfs-git-rejects fs/xfs/quota/xfs_qm_syscalls.c
---- a/fs/xfs/quota/xfs_qm_syscalls.c~git-xfs-git-rejects
-+++ a/fs/xfs/quota/xfs_qm_syscalls.c
-@@ -385,10 +385,6 @@ xfs_qm_scall_trunc_qfiles(
+diff -puN fs/xfs/linux-2.6/xfs_ioctl.c~git-xfs-fixups fs/xfs/linux-2.6/xfs_ioctl.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl.c~git-xfs-fixups
++++ a/fs/xfs/linux-2.6/xfs_ioctl.c
+@@ -1095,260 +1095,6 @@ xfs_ioctl(
+ 		return xfs_ioc_fsgetxattr(ip, 0, arg);
+ 	case XFS_IOC_FSGETXATTRA:
+ 		return xfs_ioc_fsgetxattr(ip, 1, arg);
+-	case XFS_IOC_GETXFLAGS:
+-	case XFS_IOC_SETXFLAGS:
+-	case XFS_IOC_FSSETXATTR:
+-		return xfs_ioc_xattr(ip, filp, cmd, arg);
+-
+-	case XFS_IOC_FSSETDM: {
+-		struct fsdmidata	dmi;
+-
+-		if (copy_from_user(&dmi, arg, sizeof(dmi)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		error = xfs_set_dmattrs(ip, dmi.fsd_dmevmask,
+-				dmi.fsd_dmstate);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_GETBMAP:
+-	case XFS_IOC_GETBMAPA:
+-		return xfs_ioc_getbmap(ip, ioflags, cmd, arg);
+-
+-	case XFS_IOC_GETBMAPX:
+-		return xfs_ioc_getbmapx(ip, arg);
+-
+-	case XFS_IOC_FD_TO_HANDLE:
+-	case XFS_IOC_PATH_TO_HANDLE:
+-	case XFS_IOC_PATH_TO_FSHANDLE:
+-		return xfs_find_handle(cmd, arg);
+-
+-	case XFS_IOC_OPEN_BY_HANDLE:
+-		return xfs_open_by_handle(mp, arg, filp, inode);
+-
+-	case XFS_IOC_FSSETDM_BY_HANDLE:
+-		return xfs_fssetdm_by_handle(mp, arg, inode);
+-
+-	case XFS_IOC_READLINK_BY_HANDLE:
+-		return xfs_readlink_by_handle(mp, arg, inode);
+-
+-	case XFS_IOC_ATTRLIST_BY_HANDLE:
+-		return xfs_attrlist_by_handle(mp, arg, inode);
+-
+-	case XFS_IOC_ATTRMULTI_BY_HANDLE:
+-		return xfs_attrmulti_by_handle(mp, arg, filp, inode);
+-
+-	case XFS_IOC_SWAPEXT: {
+-		error = xfs_swapext((struct xfs_swapext __user *)arg);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_FSCOUNTS: {
+-		xfs_fsop_counts_t out;
+-
+-		error = xfs_fs_counts(mp, &out);
+-		if (error)
+-			return -error;
+-
+-		if (copy_to_user(arg, &out, sizeof(out)))
+-			return -XFS_ERROR(EFAULT);
+-		return 0;
+-	}
+-
+-	case XFS_IOC_SET_RESBLKS: {
+-		xfs_fsop_resblks_t inout;
+-		__uint64_t	   in;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (copy_from_user(&inout, arg, sizeof(inout)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		/* input parameter is passed in resblks field of structure */
+-		in = inout.resblks;
+-		error = xfs_reserve_blocks(mp, &in, &inout);
+-		if (error)
+-			return -error;
+-
+-		if (copy_to_user(arg, &inout, sizeof(inout)))
+-			return -XFS_ERROR(EFAULT);
+-		return 0;
+-	}
+-
+-	case XFS_IOC_GET_RESBLKS: {
+-		xfs_fsop_resblks_t out;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		error = xfs_reserve_blocks(mp, NULL, &out);
+-		if (error)
+-			return -error;
+-
+-		if (copy_to_user(arg, &out, sizeof(out)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		return 0;
+-	}
+-
+-	case XFS_IOC_FSGROWFSDATA: {
+-		xfs_growfs_data_t in;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (copy_from_user(&in, arg, sizeof(in)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		error = xfs_growfs_data(mp, &in);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_FSGROWFSLOG: {
+-		xfs_growfs_log_t in;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (copy_from_user(&in, arg, sizeof(in)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		error = xfs_growfs_log(mp, &in);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_FSGROWFSRT: {
+-		xfs_growfs_rt_t in;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (copy_from_user(&in, arg, sizeof(in)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		error = xfs_growfs_rt(mp, &in);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_FREEZE:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (inode->i_sb->s_frozen == SB_UNFROZEN)
+-			freeze_bdev(inode->i_sb->s_bdev);
+-		return 0;
+-
+-	case XFS_IOC_THAW:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-		if (inode->i_sb->s_frozen != SB_UNFROZEN)
+-			thaw_bdev(inode->i_sb->s_bdev, inode->i_sb);
+-		return 0;
+-
+-	case XFS_IOC_GOINGDOWN: {
+-		__uint32_t in;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (get_user(in, (__uint32_t __user *)arg))
+-			return -XFS_ERROR(EFAULT);
+-
+-		error = xfs_fs_goingdown(mp, in);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_ERROR_INJECTION: {
+-		xfs_error_injection_t in;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (copy_from_user(&in, arg, sizeof(in)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		error = xfs_errortag_add(in.errtag, mp);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_ERROR_CLEARALL:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		error = xfs_errortag_clearall(mp, 1);
+-		return -error;
+-
+-	default:
+-		return -ENOTTY;
+-	}
+-}
+-
+-int
+-xfs_ioctl(
+-	xfs_inode_t		*ip,
+-	struct file		*filp,
+-	int			ioflags,
+-	unsigned int		cmd,
+-	void			__user *arg)
+-{
+-	struct inode		*inode = filp->f_path.dentry->d_inode;
+-	xfs_mount_t		*mp = ip->i_mount;
+-	int			error;
+-
+-	xfs_itrace_entry(XFS_I(inode));
+-	switch (cmd) {
+-
+-	case XFS_IOC_ALLOCSP:
+-	case XFS_IOC_FREESP:
+-	case XFS_IOC_RESVSP:
+-	case XFS_IOC_UNRESVSP:
+-	case XFS_IOC_ALLOCSP64:
+-	case XFS_IOC_FREESP64:
+-	case XFS_IOC_RESVSP64:
+-	case XFS_IOC_UNRESVSP64:
+-		/*
+-		 * Only allow the sys admin to reserve space unless
+-		 * unwritten extents are enabled.
+-		 */
+-		if (!xfs_sb_version_hasextflgbit(&mp->m_sb) &&
+-		    !capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		return xfs_ioc_space(ip, inode, filp, ioflags, cmd, arg);
+-
+-	case XFS_IOC_DIOINFO: {
+-		struct dioattr	da;
+-		xfs_buftarg_t	*target =
+-			XFS_IS_REALTIME_INODE(ip) ?
+-			mp->m_rtdev_targp : mp->m_ddev_targp;
+-
+-		da.d_mem = da.d_miniosz = 1 << target->bt_sshift;
+-		da.d_maxiosz = INT_MAX & ~(da.d_miniosz - 1);
+-
+-		if (copy_to_user(arg, &da, sizeof(da)))
+-			return -XFS_ERROR(EFAULT);
+-		return 0;
+-	}
+-
+-	case XFS_IOC_FSBULKSTAT_SINGLE:
+-	case XFS_IOC_FSBULKSTAT:
+-	case XFS_IOC_FSINUMBERS:
+-		return xfs_ioc_bulkstat(mp, cmd, arg);
+-
+-	case XFS_IOC_FSGEOMETRY_V1:
+-		return xfs_ioc_fsgeometry_v1(mp, arg);
+-
+-	case XFS_IOC_FSGEOMETRY:
+-		return xfs_ioc_fsgeometry(mp, arg);
+-
+-	case XFS_IOC_GETVERSION:
+-		return put_user(inode->i_generation, (int __user *)arg);
+-
+-	case XFS_IOC_FSGETXATTR:
+-		return xfs_ioc_fsgetxattr(ip, 0, arg);
+-	case XFS_IOC_FSGETXATTRA:
+-		return xfs_ioc_fsgetxattr(ip, 1, arg);
+ 	case XFS_IOC_FSSETXATTR:
+ 		return xfs_ioc_fssetxattr(ip, filp, arg);
+ 	case XFS_IOC_GETXFLAGS:
+@@ -1392,7 +1138,7 @@ xfs_ioctl(
+ 		return xfs_attrlist_by_handle(mp, arg, inode);
  
- 	if (!capable(CAP_SYS_ADMIN))
- 		return XFS_ERROR(EPERM);
--<<<<<<< HEAD:fs/xfs/quota/xfs_qm_syscalls.c
--	error = 0;
--=======
-->>>>>>> FETCH_HEAD:fs/xfs/quota/xfs_qm_syscalls.c
- 	if (!xfs_sb_version_hasquota(&mp->m_sb) || flags == 0) {
- 		qdprintk("qtrunc flags=%x m_qflags=%x\n", flags, mp->m_qflags);
- 		return XFS_ERROR(EINVAL);
-diff -puN fs/xfs/xfs_ialloc.c~git-xfs-git-rejects fs/xfs/xfs_ialloc.c
---- a/fs/xfs/xfs_ialloc.c~git-xfs-git-rejects
-+++ a/fs/xfs/xfs_ialloc.c
-@@ -215,18 +215,13 @@ xfs_ialloc_ag_alloc(
- 			ASSERT(!(args.mp->m_flags & XFS_MOUNT_NOALIGN));
- 			args.alignment = args.mp->m_dalign;
- 			isaligned = 1;
--<<<<<<< HEAD:fs/xfs/xfs_ialloc.c
- 		} else if (xfs_sb_version_hasalign(&args.mp->m_sb) &&
- 			   args.mp->m_sb.sb_inoalignmt >=
- 			   XFS_B_TO_FSBT(args.mp,
- 			  	XFS_INODE_CLUSTER_SIZE(args.mp)))
- 				args.alignment = args.mp->m_sb.sb_inoalignmt;
- 		else
--			args.alignment = 1;
--=======
--		} else
- 			args.alignment = xfs_ialloc_cluster_alignment(&args);
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_ialloc.c
- 		/*
- 		 * Need to figure out where to allocate the inode blocks.
- 		 * Ideally they should be spaced out through the a.g.
-@@ -259,16 +254,12 @@ xfs_ialloc_ag_alloc(
- 		args.agbno = be32_to_cpu(agi->agi_root);
- 		args.fsbno = XFS_AGB_TO_FSB(args.mp,
- 				be32_to_cpu(agi->agi_seqno), args.agbno);
--<<<<<<< HEAD:fs/xfs/xfs_ialloc.c
- 		if (xfs_sb_version_hasalign(&args.mp->m_sb) &&
- 			args.mp->m_sb.sb_inoalignmt >=
- 			XFS_B_TO_FSBT(args.mp, XFS_INODE_CLUSTER_SIZE(args.mp)))
- 				args.alignment = args.mp->m_sb.sb_inoalignmt;
- 		else
--			args.alignment = 1;
--=======
--		args.alignment = xfs_ialloc_cluster_alignment(&args);
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_ialloc.c
-+			args.alignment = xfs_ialloc_cluster_alignment(&args);
- 		if ((error = xfs_alloc_vextent(&args)))
- 			return error;
- 	}
-diff -puN fs/xfs/xfs_mount.c~git-xfs-git-rejects fs/xfs/xfs_mount.c
---- a/fs/xfs/xfs_mount.c~git-xfs-git-rejects
-+++ a/fs/xfs/xfs_mount.c
-@@ -45,11 +45,7 @@
- #include "xfs_fsops.h"
- #include "xfs_utils.h"
+ 	case XFS_IOC_ATTRMULTI_BY_HANDLE:
+-		return xfs_attrmulti_by_handle(mp, arg, inode);
++		return xfs_attrmulti_by_handle(mp, arg, filp, inode);
  
--<<<<<<< HEAD:fs/xfs/xfs_mount.c
--STATIC void	xfs_mount_log_sb(xfs_mount_t *, __int64_t);
--=======
- STATIC int	xfs_mount_log_sb(xfs_mount_t *, __int64_t);
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_mount.c
- STATIC int	xfs_uuid_mount(xfs_mount_t *);
- STATIC void	xfs_uuid_unmount(xfs_mount_t *mp);
- STATIC void	xfs_unmountfs_wait(xfs_mount_t *);
-@@ -1193,10 +1189,6 @@ xfs_mountfs(
- 	/*
- 	 * If fs is not mounted readonly, then update the superblock changes.
- 	 */
--<<<<<<< HEAD:fs/xfs/xfs_mount.c
--	if (update_flags && !(mp->m_flags & XFS_MOUNT_RDONLY))
--		xfs_mount_log_sb(mp, update_flags);
--=======
- 	if (update_flags && !(mp->m_flags & XFS_MOUNT_RDONLY)) {
- 		error = xfs_mount_log_sb(mp, update_flags);
- 		if (error) {
-@@ -1204,7 +1196,6 @@ xfs_mountfs(
- 			goto error4;
- 		}
- 	}
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_mount.c
- 
- 	/*
- 	 * Initialise the XFS quota management subsystem for this mount
-@@ -1927,11 +1918,7 @@ xfs_uuid_unmount(
-  * be altered by the mount options, as well as any potential sb_features2
-  * fixup. Only the first superblock is updated.
-  */
--<<<<<<< HEAD:fs/xfs/xfs_mount.c
--STATIC void
--=======
- STATIC int
-->>>>>>> FETCH_HEAD:fs/xfs/xfs_mount.c
- xfs_mount_log_sb(
- 	xfs_mount_t	*mp,
- 	__int64_t	fields)
+ 	case XFS_IOC_SWAPEXT: {
+ 		error = xfs_swapext((struct xfs_swapext __user *)arg);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
