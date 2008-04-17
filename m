@@ -1,54 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - git-xfs-fixup.patch removed from -mm tree
-Date: Thu, 17 Apr 2008 13:17:11 -0700
-Message-ID: <200804172017.m3HKHBRZ026138@imap1.linux-foundation.org>
+Subject: - git-xfs-git-rejects.patch removed from -mm tree
+Date: Thu, 17 Apr 2008 13:17:09 -0700
+Message-ID: <200804172017.m3HKH9TW026134@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48841 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57010 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753376AbYDQURn (ORCPT
+	by vger.kernel.org with ESMTP id S1753238AbYDQURl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 16:17:43 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3HKHBB4025575
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 17 Apr 2008 13:17:12 -0700
+	Thu, 17 Apr 2008 16:17:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dgc@sgi.com, lachlan@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-xfs-fixup
+     git-xfs-git-rejects
 has been removed from the -mm tree.  Its filename was
-     git-xfs-fixup.patch
+     git-xfs-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-xfs-fixup
+Subject: git-xfs-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Lachlan McIlroy <lachlan@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/linux-2.6/xfs_ioctl.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/xfs/quota/xfs_qm_syscalls.c |    4 ----
+ fs/xfs/xfs_ialloc.c            |   11 +----------
+ fs/xfs/xfs_mount.c             |   13 -------------
+ 3 files changed, 1 insertion(+), 27 deletions(-)
 
-diff -puN fs/xfs/linux-2.6/xfs_ioctl.c~git-xfs-fixup fs/xfs/linux-2.6/xfs_ioctl.c
---- a/fs/xfs/linux-2.6/xfs_ioctl.c~git-xfs-fixup
-+++ a/fs/xfs/linux-2.6/xfs_ioctl.c
-@@ -656,8 +656,6 @@ xfs_attrmulti_by_handle(
- 	return -error;
- }
+diff -puN fs/xfs/quota/xfs_qm_syscalls.c~git-xfs-git-rejects fs/xfs/quota/xfs_qm_syscalls.c
+--- a/fs/xfs/quota/xfs_qm_syscalls.c~git-xfs-git-rejects
++++ a/fs/xfs/quota/xfs_qm_syscalls.c
+@@ -385,10 +385,6 @@ xfs_qm_scall_trunc_qfiles(
  
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return XFS_ERROR(EPERM);
+-<<<<<<< HEAD:fs/xfs/quota/xfs_qm_syscalls.c
+-	error = 0;
 -=======
-->>>>>>> FETCH_HEAD:fs/xfs/linux-2.6/xfs_ioctl.c
+->>>>>>> FETCH_HEAD:fs/xfs/quota/xfs_qm_syscalls.c
+ 	if (!xfs_sb_version_hasquota(&mp->m_sb) || flags == 0) {
+ 		qdprintk("qtrunc flags=%x m_qflags=%x\n", flags, mp->m_qflags);
+ 		return XFS_ERROR(EINVAL);
+diff -puN fs/xfs/xfs_ialloc.c~git-xfs-git-rejects fs/xfs/xfs_ialloc.c
+--- a/fs/xfs/xfs_ialloc.c~git-xfs-git-rejects
++++ a/fs/xfs/xfs_ialloc.c
+@@ -215,18 +215,13 @@ xfs_ialloc_ag_alloc(
+ 			ASSERT(!(args.mp->m_flags & XFS_MOUNT_NOALIGN));
+ 			args.alignment = args.mp->m_dalign;
+ 			isaligned = 1;
+-<<<<<<< HEAD:fs/xfs/xfs_ialloc.c
+ 		} else if (xfs_sb_version_hasalign(&args.mp->m_sb) &&
+ 			   args.mp->m_sb.sb_inoalignmt >=
+ 			   XFS_B_TO_FSBT(args.mp,
+ 			  	XFS_INODE_CLUSTER_SIZE(args.mp)))
+ 				args.alignment = args.mp->m_sb.sb_inoalignmt;
+ 		else
+-			args.alignment = 1;
+-=======
+-		} else
+ 			args.alignment = xfs_ialloc_cluster_alignment(&args);
+->>>>>>> FETCH_HEAD:fs/xfs/xfs_ialloc.c
+ 		/*
+ 		 * Need to figure out where to allocate the inode blocks.
+ 		 * Ideally they should be spaced out through the a.g.
+@@ -259,16 +254,12 @@ xfs_ialloc_ag_alloc(
+ 		args.agbno = be32_to_cpu(agi->agi_root);
+ 		args.fsbno = XFS_AGB_TO_FSB(args.mp,
+ 				be32_to_cpu(agi->agi_seqno), args.agbno);
+-<<<<<<< HEAD:fs/xfs/xfs_ialloc.c
+ 		if (xfs_sb_version_hasalign(&args.mp->m_sb) &&
+ 			args.mp->m_sb.sb_inoalignmt >=
+ 			XFS_B_TO_FSBT(args.mp, XFS_INODE_CLUSTER_SIZE(args.mp)))
+ 				args.alignment = args.mp->m_sb.sb_inoalignmt;
+ 		else
+-			args.alignment = 1;
+-=======
+-		args.alignment = xfs_ialloc_cluster_alignment(&args);
+->>>>>>> FETCH_HEAD:fs/xfs/xfs_ialloc.c
++			args.alignment = xfs_ialloc_cluster_alignment(&args);
+ 		if ((error = xfs_alloc_vextent(&args)))
+ 			return error;
+ 	}
+diff -puN fs/xfs/xfs_mount.c~git-xfs-git-rejects fs/xfs/xfs_mount.c
+--- a/fs/xfs/xfs_mount.c~git-xfs-git-rejects
++++ a/fs/xfs/xfs_mount.c
+@@ -45,11 +45,7 @@
+ #include "xfs_fsops.h"
+ #include "xfs_utils.h"
+ 
+-<<<<<<< HEAD:fs/xfs/xfs_mount.c
+-STATIC void	xfs_mount_log_sb(xfs_mount_t *, __int64_t);
+-=======
+ STATIC int	xfs_mount_log_sb(xfs_mount_t *, __int64_t);
+->>>>>>> FETCH_HEAD:fs/xfs/xfs_mount.c
+ STATIC int	xfs_uuid_mount(xfs_mount_t *);
+ STATIC void	xfs_uuid_unmount(xfs_mount_t *mp);
+ STATIC void	xfs_unmountfs_wait(xfs_mount_t *);
+@@ -1193,10 +1189,6 @@ xfs_mountfs(
+ 	/*
+ 	 * If fs is not mounted readonly, then update the superblock changes.
+ 	 */
+-<<<<<<< HEAD:fs/xfs/xfs_mount.c
+-	if (update_flags && !(mp->m_flags & XFS_MOUNT_RDONLY))
+-		xfs_mount_log_sb(mp, update_flags);
+-=======
+ 	if (update_flags && !(mp->m_flags & XFS_MOUNT_RDONLY)) {
+ 		error = xfs_mount_log_sb(mp, update_flags);
+ 		if (error) {
+@@ -1204,7 +1196,6 @@ xfs_mountfs(
+ 			goto error4;
+ 		}
+ 	}
+->>>>>>> FETCH_HEAD:fs/xfs/xfs_mount.c
+ 
+ 	/*
+ 	 * Initialise the XFS quota management subsystem for this mount
+@@ -1927,11 +1918,7 @@ xfs_uuid_unmount(
+  * be altered by the mount options, as well as any potential sb_features2
+  * fixup. Only the first superblock is updated.
+  */
+-<<<<<<< HEAD:fs/xfs/xfs_mount.c
+-STATIC void
+-=======
  STATIC int
- xfs_ioc_space(
- 	struct xfs_inode	*ip,
+->>>>>>> FETCH_HEAD:fs/xfs/xfs_mount.c
+ xfs_mount_log_sb(
+ 	xfs_mount_t	*mp,
+ 	__int64_t	fields)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
