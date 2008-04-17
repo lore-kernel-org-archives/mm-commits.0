@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch added to -mm tree
-Date: Thu, 17 Apr 2008 14:57:24 -0700
-Message-ID: <200804172157.m3HLvOoE029840@imap1.linux-foundation.org>
+Subject: + git-dvb-kconfig-fix.patch added to -mm tree
+Date: Thu, 17 Apr 2008 15:16:31 -0700
+Message-ID: <200804172226.m3HMQxFT030911@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44318 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56817 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754012AbYDQWIC (ORCPT
+	by vger.kernel.org with ESMTP id S1756250AbYDQW1P (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 18:08:02 -0400
+	Thu, 17 Apr 2008 18:27:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, serue@us.ibm.com
+Cc: akpm@linux-foundation.org, mchehab@infradead.org
 
 
 The patch titled
-     ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup
+     git-dvb: Kconfig fix
 has been added to the -mm tree.  Its filename is
-     ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
+     git-dvb-kconfig-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup
+Subject: git-dvb: Kconfig fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-eww, my eyes!
+ERROR: "videobuf_to_vmalloc" [drivers/media/video/em28xx/em28xx.ko] undefined!
+ERROR: "videobuf_queue_vmalloc_init" [drivers/media/video/em28xx/em28xx.ko] undefined!
+ERROR: "videobuf_vmalloc_free" [drivers/media/video/em28xx/em28xx.ko] undefined!
 
-Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/nsproxy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/video/em28xx/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/nsproxy.c~ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup kernel/nsproxy.c
---- a/kernel/nsproxy.c~ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup
-+++ a/kernel/nsproxy.c
-@@ -146,7 +146,7 @@ int copy_namespaces(unsigned long flags,
- 	 * means share undolist with parent, so we must forbid using
- 	 * it along with CLONE_NEWIPC.
- 	 */
--	if ((flags&CLONE_NEWIPC) && (flags&CLONE_SYSVSEM)) {
-+	if ((flags & CLONE_NEWIPC) && (flags & CLONE_SYSVSEM)) {
- 		err = -EINVAL;
- 		goto out;
- 	}
+diff -puN drivers/media/video/em28xx/Kconfig~git-dvb-kconfig-fix drivers/media/video/em28xx/Kconfig
+--- a/drivers/media/video/em28xx/Kconfig~git-dvb-kconfig-fix
++++ a/drivers/media/video/em28xx/Kconfig
+@@ -4,6 +4,7 @@ config VIDEO_EM28XX
+ 	select VIDEO_TUNER
+ 	select VIDEO_TVEEPROM
+ 	select VIDEO_IR
++	select VIDEOBUF_VMALLOC
+ 	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
+ 	select VIDEO_TVP5150 if VIDEO_HELPER_CHIPS_AUTO
+ 	---help---
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -262,4 +263,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
+git-dvb-kconfig-fix.patch
 
