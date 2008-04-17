@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-integrate-ecryptfs-device-handle-into-the-module-printk-fixes.patch added to -mm tree
-Date: Thu, 17 Apr 2008 10:43:34 -0700
-Message-ID: <200804171743.m3HHhYYg020264@imap1.linux-foundation.org>
+Subject: + mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy-fix.patch added to -mm tree
+Date: Thu, 17 Apr 2008 11:29:51 -0700
+Message-ID: <200804171829.m3HITpOd022004@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50714 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53573 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756373AbYDQRtk (ORCPT
+	by vger.kernel.org with ESMTP id S1757275AbYDQSaP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 13:49:40 -0400
+	Thu, 17 Apr 2008 14:30:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mhalcrow@us.ibm.com
+Cc: Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, rientjes@google.com
 
 
 The patch titled
-     ecryptfs printk fixes
+     Mempolicy: fix mpol_to_str() to handle ignore mode flags
 has been added to the -mm tree.  Its filename is
-     ecryptfs-integrate-ecryptfs-device-handle-into-the-module-printk-fixes.patch
+     mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs printk fixes
-From: Michael Halcrow <mhalcrow@us.ibm.com>
+Subject: Mempolicy: fix mpol_to_str() to handle ignore mode flags
+From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-On Thu, Apr 17, 2008 at 03:54:24AM -0700, Andrew Morton wrote:
-> fs/ecryptfs/messaging.c: In function 'ecryptfs_spawn_daemon':
-> fs/ecryptfs/messaging.c:205: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
-> fs/ecryptfs/miscdev.c: In function 'ecryptfs_send_miscdev':
-> fs/ecryptfs/miscdev.c:200: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
-> fs/ecryptfs/miscdev.c: At top level:
-> fs/ecryptfs/miscdev.c:534: warning: initialization from incompatible pointer type
+Fixes problem introduced by my previous patch:
+  mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy.patch
 
-Fix types for 64-bit build.
+Eliminate display of bogus '=' flag indicator in presence of
+internal mode flags.
 
-Signed-off-by: Michael Halcrow <mhalcrow@us.ibm.com>
+Without this fix, on 25-rc8-mm1, a display of a process' numa_maps
+will show, e.g., default policy as "default=".  Worse, if the maps
+include longer policies, such as "interleave:0-3", this problem will
+lose the string terminator after the "<mode>=" and display subsequent
+default policies as "default=ve:0-3".
+
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/keystore.c  |    6 +++---
- fs/ecryptfs/messaging.c |    2 +-
- fs/ecryptfs/miscdev.c   |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
+ mm/mempolicy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ecryptfs/keystore.c~ecryptfs-integrate-ecryptfs-device-handle-into-the-module-printk-fixes fs/ecryptfs/keystore.c
---- a/fs/ecryptfs/keystore.c~ecryptfs-integrate-ecryptfs-device-handle-into-the-module-printk-fixes
-+++ a/fs/ecryptfs/keystore.c
-@@ -358,7 +358,7 @@ parse_tag_67_packet(struct ecryptfs_key_
- 	/* verify that everything through the encrypted FEK size is present */
- 	if (message_len < 4) {
- 		rc = -EIO;
--		printk(KERN_ERR "%s: message_len is [%d]; minimum acceptable "
-+		printk(KERN_ERR "%s: message_len is [%Zd]; minimum acceptable "
- 		       "message length is [%d]\n", __func__, message_len, 4);
- 		goto out;
- 	}
-@@ -385,13 +385,13 @@ parse_tag_67_packet(struct ecryptfs_key_
- 	i += data_len;
- 	if (message_len < (i + key_rec->enc_key_size)) {
- 		rc = -EIO;
--		printk(KERN_ERR "%s: message_len [%d]; max len is [%d]\n",
-+		printk(KERN_ERR "%s: message_len [%Zd]; max len is [%Zd]\n",
- 		       __func__, message_len, (i + key_rec->enc_key_size));
- 		goto out;
- 	}
- 	if (key_rec->enc_key_size > ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES) {
- 		rc = -EIO;
--		printk(KERN_ERR "%s: Encrypted key_size [%d] larger than "
-+		printk(KERN_ERR "%s: Encrypted key_size [%Zd] larger than "
- 		       "the maximum key size [%d]\n", __func__,
- 		       key_rec->enc_key_size,
- 		       ECRYPTFS_MAX_ENCRYPTED_KEY_BYTES);
-diff -puN fs/ecryptfs/messaging.c~ecryptfs-integrate-ecryptfs-device-handle-into-the-module-printk-fixes fs/ecryptfs/messaging.c
---- a/fs/ecryptfs/messaging.c~ecryptfs-integrate-ecryptfs-device-handle-into-the-module-printk-fixes
-+++ a/fs/ecryptfs/messaging.c
-@@ -201,7 +201,7 @@ ecryptfs_spawn_daemon(struct ecryptfs_da
- 	(*daemon) = kzalloc(sizeof(**daemon), GFP_KERNEL);
- 	if (!(*daemon)) {
- 		rc = -ENOMEM;
--		printk(KERN_ERR "%s: Failed to allocate [%d] bytes of "
-+		printk(KERN_ERR "%s: Failed to allocate [%Zd] bytes of "
- 		       "GFP_KERNEL memory\n", __func__, sizeof(**daemon));
- 		goto out;
- 	}
-diff -puN fs/ecryptfs/miscdev.c~ecryptfs-integrate-ecryptfs-device-handle-into-the-module-printk-fixes fs/ecryptfs/miscdev.c
---- a/fs/ecryptfs/miscdev.c~ecryptfs-integrate-ecryptfs-device-handle-into-the-module-printk-fixes
-+++ a/fs/ecryptfs/miscdev.c
-@@ -196,7 +196,7 @@ int ecryptfs_send_miscdev(char *data, si
- 		if (!msg_ctx->msg) {
- 			rc = -ENOMEM;
- 			printk(KERN_ERR "%s: Out of memory whilst attempting "
--			       "to kmalloc(%d, GFP_KERNEL)\n", __func__,
-+			       "to kmalloc(%Zd, GFP_KERNEL)\n", __func__,
- 			       (sizeof(*msg_ctx->msg) + data_size));
- 			goto out_unlock;
- 		}
-@@ -232,7 +232,7 @@ out_unlock:
-  *
-  * Returns the number of bytes copied into the user buffer
-  */
--static int
-+static ssize_t
- ecryptfs_miscdev_read(struct file *file, char __user *buf, size_t count,
- 		      loff_t *ppos)
- {
+diff -puN mm/mempolicy.c~mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy-fix
++++ a/mm/mempolicy.c
+@@ -2002,7 +2002,7 @@ static inline int mpol_to_str(char *buff
+ 	strcpy(p, policy_types[mode]);
+ 	p += l;
+ 
+-	if (flags) {
++	if (flags & MPOL_MODE_FLAGS) {
+ 		int need_bar = 0;
+ 
+ 		if (buffer + maxlen < p + 2)
 _
 
-Patches currently in -mm which might be from mhalcrow@us.ibm.com are
+Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
-git-unionfs.patch
-remove-ecryptfs_header_cache_0.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-ecryptfs-add-missing-lock-around-notify_change.patch
-ecryptfs-introduce-device-handle-for-userspace-daemon-communications.patch
-ecryptfs-integrate-ecryptfs-device-handle-into-the-module.patch
-ecryptfs-integrate-ecryptfs-device-handle-into-the-module-printk-fixes.patch
-remove-duplicated-unlikely-in-is_err.patch
-notify_change-callers-must-hold-i_mutex.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mempolicy-convert-mpol-constants-to-enum.patch
+mempolicy-support-optional-mode-flags.patch
+mempolicy-support-optional-mode-flags-fix.patch
+mempolicy-add-mpol_f_static_nodes-flag.patch
+mempolicy-add-mpol_f_relative_nodes-flag.patch
+mempolicy-update-numa-memory-policy-documentation.patch
+mempolicy-move-rebind-functions.patch
+mempolicy-create-mempolicy_operations-structure.patch
+mempolicy-create-mempolicy_operations-structure-fix.patch
+mempolicy-small-header-file-cleanup.patch
+mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
+mempolicy-fix-parsing-of-tmpfs-mpol-mount-option.patch
+fix-indentation.patch
+mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy-fix.patch
 
