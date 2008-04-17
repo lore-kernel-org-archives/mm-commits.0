@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tty-the-big-operations-rework-broke-wan.patch added to -mm tree
-Date: Wed, 16 Apr 2008 17:32:14 -0700
-Message-ID: <200804170042.m3H0gdcj015055@imap1.linux-foundation.org>
+Subject: + tty-the-big-operations-rework-vs-kgdb-2.patch added to -mm tree
+Date: Wed, 16 Apr 2008 17:34:05 -0700
+Message-ID: <200804170044.m3H0iU2u015105@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36103 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34832 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750724AbYDQAmt (ORCPT
+	by vger.kernel.org with ESMTP id S1753511AbYDQApX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 20:42:49 -0400
+	Wed, 16 Apr 2008 20:45:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jason.wessel@windriver.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     tty-the-big-operations-rework broke WAN
+     tty-the-big-operations-rework vs kgdb (2)
 has been added to the -mm tree.  Its filename is
-     tty-the-big-operations-rework-broke-wan.patch
+     tty-the-big-operations-rework-vs-kgdb-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty-the-big-operations-rework broke WAN
+Subject: tty-the-big-operations-rework vs kgdb (2)
 From: Andrew Morton <akpm@linux-foundation.org>
 
-too lazy to fix it.
-
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wan/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/serial/kgdboc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/wan/Kconfig~tty-the-big-operations-rework-broke-wan drivers/net/wan/Kconfig
---- a/drivers/net/wan/Kconfig~tty-the-big-operations-rework-broke-wan
-+++ a/drivers/net/wan/Kconfig
-@@ -458,6 +458,7 @@ config LAPBETHER
- config X25_ASY
- 	tristate "X.25 async driver (EXPERIMENTAL)"
- 	depends on LAPB && X25
-+	depends on BROKEN
- 	---help---
- 	  Send and receive X.25 frames over regular asynchronous serial
- 	  lines such as telephone lines equipped with ordinary modems.
+diff -puN drivers/serial/kgdboc.c~tty-the-big-operations-rework-vs-kgdb-2 drivers/serial/kgdboc.c
+--- a/drivers/serial/kgdboc.c~tty-the-big-operations-rework-vs-kgdb-2
++++ a/drivers/serial/kgdboc.c
+@@ -96,12 +96,14 @@ static void cleanup_kgdboc(void)
+ 
+ static int kgdboc_get_char(void)
+ {
+-	return kgdb_tty_driver->poll_get_char(kgdb_tty_driver, kgdb_tty_line);
++	return kgdb_tty_driver->ops->poll_get_char(kgdb_tty_driver,
++						kgdb_tty_line);
+ }
+ 
+ static void kgdboc_put_char(u8 chr)
+ {
+-	kgdb_tty_driver->poll_put_char(kgdb_tty_driver, kgdb_tty_line, chr);
++	kgdb_tty_driver->ops->poll_put_char(kgdb_tty_driver,
++					kgdb_tty_line, chr);
+ }
+ 
+ static int param_set_kgdboc_var(const char *kmessage, struct kernel_param *kp)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -225,6 +235,7 @@ elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+tty-the-big-operations-rework-broke-wan.patch
 tty-the-big-operations-rework-vs-git-kgdb-light.patch
 keys-add-keyctl-function-to-get-a-security-label-fix.patch
 procfs-task-exe-symlink-fix.patch
@@ -256,5 +267,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-tty-the-big-operations-rework-broke-wan.patch
+tty-the-big-operations-rework-vs-kgdb-2.patch
 
