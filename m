@@ -1,52 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - git-arm-drivers-mfd-htc-pasic3c-is-arm-specific.patch removed from -mm tree
-Date: Thu, 17 Apr 2008 02:04:35 -0700
-Message-ID: <200804170904.m3H94Zsd032685@imap1.linux-foundation.org>
+Subject: + tty-the-big-operations-rework-fix-2.patch added to -mm tree
+Date: Thu, 17 Apr 2008 03:26:11 -0700
+Message-ID: <200804171036.m3HAacNk004119@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42995 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756240AbYDQJFV (ORCPT
+	by vger.kernel.org with ESMTP id S1757523AbYDQKhZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 05:05:21 -0400
+	Thu, 17 Apr 2008 06:37:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     git-arm: drivers/mfd/htc-pasic3.c is arm-specific
-has been removed from the -mm tree.  Its filename was
-     git-arm-drivers-mfd-htc-pasic3c-is-arm-specific.patch
+     tty-the-big-operations-rework-fix-2
+has been added to the -mm tree.  Its filename is
+     tty-the-big-operations-rework-fix-2.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-arm: drivers/mfd/htc-pasic3.c is arm-specific
+Subject: tty-the-big-operations-rework-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mfd/htc-pasic3.c:22:31: error: asm/arch/pxa-regs.h: No such file or directory
+fs/compat_ioctl.c: In function 'vt_check':
+fs/compat_ioctl.c:1056: error: 'struct tty_driver' has no member named 'ioctl'
 
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/compat_ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mfd/Kconfig~git-arm-drivers-mfd-htc-pasic3c-is-arm-specific drivers/mfd/Kconfig
---- a/drivers/mfd/Kconfig~git-arm-drivers-mfd-htc-pasic3c-is-arm-specific
-+++ a/drivers/mfd/Kconfig
-@@ -32,6 +32,7 @@ config HTC_EGPIO
+diff -puN fs/compat_ioctl.c~tty-the-big-operations-rework-fix-2 fs/compat_ioctl.c
+--- a/fs/compat_ioctl.c~tty-the-big-operations-rework-fix-2
++++ a/fs/compat_ioctl.c
+@@ -1053,7 +1053,7 @@ static int vt_check(struct file *file)
+ 	if (tty_paranoia_check(tty, inode, "tty_ioctl"))
+ 		return -EINVAL;
+ 	                                                
+-	if (tty->driver->ioctl != vt_ioctl)
++	if (tty->driver->ops->ioctl != vt_ioctl)
+ 		return -EINVAL;
  
- config HTC_PASIC3
- 	tristate "HTC PASIC3 LED/DS1WM chip support"
-+	depends on ARM
- 	help
- 	  This core driver provides register access for the LED/DS1WM
- 	  chips labeled "AIC2" and "AIC3", found on HTC Blueangel and
+ 	vc = (struct vc_data *)tty->driver_data;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,7 +80,7 @@ git-alsa-tiwai.patch
 git-agpgart-export-agp_generic_alloc_pages.patch
 git-agpgart-fix-type-confusion.patch
 git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-git-arm-drivers-mfd-htc-pasic3c-is-arm-specific.patch
+git-arm-fix.patch
 cifs-suppress-warning.patch
 git-powerpc.patch
 git-drm.patch
@@ -217,6 +229,7 @@ elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+tty-the-big-operations-rework-fix-2.patch
 tty-the-big-operations-rework-vs-git-kgdb-light.patch
 tty-the-big-operations-rework-vs-kgdb-2.patch
 tty-the-big-operations-rework-broke-wan.patch
