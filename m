@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-mballoc-fix-hot-spins-after-err_freebuddy-and-err_freemeta.patch added to -mm tree
-Date: Thu, 17 Apr 2008 14:03:08 -0700
-Message-ID: <200804172103.m3HL381m027842@imap1.linux-foundation.org>
+Subject: + miscacpibacklight-compal-laptop-extras-add-entry-to-maintainers.patch added to -mm tree
+Date: Thu, 17 Apr 2008 14:33:25 -0700
+Message-ID: <200804172133.m3HLXPP0028976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47079 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57701 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751424AbYDQVTM (ORCPT
+	by vger.kernel.org with ESMTP id S1753684AbYDQVeR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 17:19:12 -0400
+	Thu, 17 Apr 2008 17:34:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl, aneesh.kumar@linux.vnet.ibm.com, cmm@us.ibm.com, tytso@mit.edu
+Cc: cezary.jackiewicz@gmail.com, aystarik@gmail.com, hmh@hmh.eng.br, lenb@kernel.org, rpurdie@rpsys.net
 
 
 The patch titled
-     ext4: mballoc: fix hot spins after err_freebuddy and err_freemeta
+     misc,acpi,backlight: Compal Laptop Extras - add entry to MAINTAINERS
 has been added to the -mm tree.  Its filename is
-     ext4-mballoc-fix-hot-spins-after-err_freebuddy-and-err_freemeta.patch
+     miscacpibacklight-compal-laptop-extras-add-entry-to-maintainers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,85 +34,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: mballoc: fix hot spins after err_freebuddy and err_freemeta
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: misc,acpi,backlight: Compal Laptop Extras - add entry to MAINTAINERS
+From: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
 
-ext4_mb_init_backend() has a variable i of type ext4_group_t.  which is
-typedefined in include/linux/ext4_fs_i.h:34 to unsigned long.  Since unsigned,
-i >= 0 is always true, so fix hot spins after err_freebuddy and err_freemeta. 
+Add me to MAINTAINERS
 
-Also when meta_group_info cannot be allocated prevent a decrement of i when
-zero.
-
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Mingming Cao <cmm@us.ibm.com>
+Signed-off-by: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/mballoc.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ MAINTAINERS |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN fs/ext4/mballoc.c~ext4-mballoc-fix-hot-spins-after-err_freebuddy-and-err_freemeta fs/ext4/mballoc.c
---- a/fs/ext4/mballoc.c~ext4-mballoc-fix-hot-spins-after-err_freebuddy-and-err_freemeta
-+++ a/fs/ext4/mballoc.c
-@@ -2572,8 +2572,13 @@ static int ext4_mb_init_backend(struct s
- 		meta_group_info[j] = kzalloc(len, GFP_KERNEL);
- 		if (meta_group_info[j] == NULL) {
- 			printk(KERN_ERR "EXT4-fs: can't allocate buddy mem\n");
--			i--;
--			goto err_freebuddy;
-+			if (i != 0) {
-+				i--;
-+				goto err_freebuddy;
-+			} else {
-+				i = num_meta_group_infos - 1;
-+				goto err_freemeta;
-+			}
- 		}
- 		desc = ext4_get_group_desc(sb, i, NULL);
- 		if (desc == NULL) {
-@@ -2618,14 +2623,14 @@ static int ext4_mb_init_backend(struct s
- 	return 0;
+diff -puN MAINTAINERS~miscacpibacklight-compal-laptop-extras-add-entry-to-maintainers MAINTAINERS
+--- a/MAINTAINERS~miscacpibacklight-compal-laptop-extras-add-entry-to-maintainers
++++ a/MAINTAINERS
+@@ -1140,6 +1140,11 @@ M:	scott@spiteful.org
+ L:	pcihpd-discuss@lists.sourceforge.net
+ S:	Supported
  
- err_freebuddy:
--	while (i >= 0) {
-+	do {
- 		kfree(ext4_get_group_info(sb, i));
--		i--;
--	}
--	i = num_meta_group_infos;
-+	} while (i-- != 0);
-+	i = num_meta_group_infos - 1;
- err_freemeta:
--	while (--i >= 0)
-+	do {
- 		kfree(sbi->s_group_info[i]);
-+	} while (i-- != 0);
- 	iput(sbi->s_buddy_cache);
- err_freesgi:
- 	kfree(sbi->s_group_info);
++COMPAL LAPTOP SUPPORT
++P:	Cezary Jackiewicz
++M:	cezary.jackiewicz@gmail.com
++S:	Maintained
++
+ COMPUTONE INTELLIPORT MULTIPORT CARD
+ P:	Michael H. Warfield
+ M:	mhw@wittsend.com
 _
 
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
+Patches currently in -mm which might be from cezary.jackiewicz@gmail.com are
 
-mm-fix-possible-off-by-one-in-walk_pte_range.patch
-dz-test-after-postfix-decrement-fails-in-dz_console_putchar.patch
-git-alsa-tiwai.patch
-git-powerpc.patch
-git-dvb.patch
-adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
-git-net.patch
-smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt.patch
-smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes.patch
-git-scsi-misc.patch
-block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn.patch
-git-cryptodev.patch
-free-when-fb-cant-be-registered-in-video-aty-atyfb_basec.patch
-drivers-video-aty-aty128fbc-fix-incorrect-usage-of-strncat-in-aty128_init.patch
-drivers-video-imsttfbc-add-missing-curly-brackets.patch
-likeliness-accounting-change-and-cleanup.patch
-likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
-ext4-mballoc-fix-hot-spins-after-err_freebuddy-and-err_freemeta.patch
+miscacpibacklight-compal-laptop-extras-3rd-try.patch
+miscacpibacklight-compal-laptop-extras-add-entry-to-maintainers.patch
+miscacpibacklight-compal-laptop-extras-use-bitmask-not-hex.patch
+miscacpibacklight-compal-laptop-extras-add-support-for-new-laptops.patch
 
