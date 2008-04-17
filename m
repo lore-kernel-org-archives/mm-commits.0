@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uml-clean-up-arch-um-drivers-ubd_kernc.patch added to -mm tree
-Date: Thu, 17 Apr 2008 14:59:14 -0700
-Message-ID: <200804172159.m3HLxEk1029910@imap1.linux-foundation.org>
+Subject: + ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch added to -mm tree
+Date: Thu, 17 Apr 2008 14:57:24 -0700
+Message-ID: <200804172157.m3HLvOoE029840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48095 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44318 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753777AbYDQV7U (ORCPT
+	by vger.kernel.org with ESMTP id S1754012AbYDQWIC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 17:59:20 -0400
+	Thu, 17 Apr 2008 18:08:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: wangcong@zeuux.org, jdike@addtoit.com
+Cc: akpm@linux-foundation.org, serue@us.ibm.com
 
 
 The patch titled
-     uml: clean up arch/um/drivers/ubd_kern.c
+     ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup
 has been added to the -mm tree.  Its filename is
-     uml-clean-up-arch-um-drivers-ubd_kernc.patch
+     ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,444 +34,232 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: clean up arch/um/drivers/ubd_kern.c
-From: WANG Cong <wangcong@zeuux.org>
+Subject: ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make some global functions and variables static.
+eww, my eyes!
 
-And remove some useless declarations for local functions, since we just need
-to move their definitions ahead.
-
-[jdike@addtoit.com: checkpatch cleanups]
-Signed-off-by: WANG Cong <wangcong@zeuux.org>
-Signed-off-by: Jeff Dike <jdike@addtoit.com>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/ubd_kern.c |  385 +++++++++++++++++------------------
- 1 file changed, 190 insertions(+), 195 deletions(-)
+ kernel/nsproxy.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/drivers/ubd_kern.c~uml-clean-up-arch-um-drivers-ubd_kernc arch/um/drivers/ubd_kern.c
---- a/arch/um/drivers/ubd_kern.c~uml-clean-up-arch-um-drivers-ubd_kernc
-+++ a/arch/um/drivers/ubd_kern.c
-@@ -72,18 +72,6 @@ struct io_thread_req {
- 	int error;
- };
- 
--extern int open_ubd_file(char *file, struct openflags *openflags, int shared,
--			 char **backing_file_out, int *bitmap_offset_out,
--			 unsigned long *bitmap_len_out, int *data_offset_out,
--			 int *create_cow_out);
--extern int create_cow_file(char *cow_file, char *backing_file,
--			   struct openflags flags, int sectorsize,
--			   int alignment, int *bitmap_offset_out,
--			   unsigned long *bitmap_len_out,
--			   int *data_offset_out);
--extern int read_cow_bitmap(int fd, void *buf, int offset, int len);
--extern void do_io(struct io_thread_req *req);
--
- static inline int ubd_test_bit(__u64 bit, unsigned char *data)
- {
- 	__u64 n;
-@@ -200,7 +188,7 @@ struct ubd {
- }
- 
- /* Protected by ubd_lock */
--struct ubd ubd_devs[MAX_DEV] = { [ 0 ... MAX_DEV - 1 ] = DEFAULT_UBD };
-+static struct ubd ubd_devs[MAX_DEV] = { [0 ... MAX_DEV - 1] = DEFAULT_UBD };
- 
- /* Only changed by fake_ide_setup which is a setup */
- static int fake_ide = 0;
-@@ -463,7 +451,7 @@ __uml_help(udb_setup,
- static void do_ubd_request(struct request_queue * q);
- 
- /* Only changed by ubd_init, which is an initcall. */
--int thread_fd = -1;
-+static int thread_fd = -1;
- 
- static void ubd_end_request(struct request *req, int bytes, int error)
- {
-@@ -531,7 +519,7 @@ static irqreturn_t ubd_intr(int irq, voi
- /* Only changed by ubd_init, which is an initcall. */
- static int io_pid = -1;
- 
--void kill_io_thread(void)
-+static void kill_io_thread(void)
- {
- 	if(io_pid != -1)
- 		os_kill_process(io_pid, 1);
-@@ -547,6 +535,192 @@ static inline int ubd_file_size(struct u
- 	return os_file_size(file, size_out);
- }
- 
-+static int read_cow_bitmap(int fd, void *buf, int offset, int len)
-+{
-+	int err;
-+
-+	err = os_seek_file(fd, offset);
-+	if (err < 0)
-+		return err;
-+
-+	err = os_read_file(fd, buf, len);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
-+}
-+
-+static int backing_file_mismatch(char *file, __u64 size, time_t mtime)
-+{
-+	unsigned long modtime;
-+	unsigned long long actual;
-+	int err;
-+
-+	err = os_file_modtime(file, &modtime);
-+	if (err < 0) {
-+		printk(KERN_ERR "Failed to get modification time of backing "
-+		       "file \"%s\", err = %d\n", file, -err);
-+		return err;
-+	}
-+
-+	err = os_file_size(file, &actual);
-+	if (err < 0) {
-+		printk(KERN_ERR "Failed to get size of backing file \"%s\", "
-+		       "err = %d\n", file, -err);
-+		return err;
-+	}
-+
-+	if (actual != size) {
-+		/*__u64 can be a long on AMD64 and with %lu GCC complains; so
-+		 * the typecast.*/
-+		printk(KERN_ERR "Size mismatch (%llu vs %llu) of COW header "
-+		       "vs backing file\n", (unsigned long long) size, actual);
-+		return -EINVAL;
-+	}
-+	if (modtime != mtime) {
-+		printk(KERN_ERR "mtime mismatch (%ld vs %ld) of COW header vs "
-+		       "backing file\n", mtime, modtime);
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static int path_requires_switch(char *from_cmdline, char *from_cow, char *cow)
-+{
-+	struct uml_stat buf1, buf2;
-+	int err;
-+
-+	if (from_cmdline == NULL)
-+		return 0;
-+	if (!strcmp(from_cmdline, from_cow))
-+		return 0;
-+
-+	err = os_stat_file(from_cmdline, &buf1);
-+	if (err < 0) {
-+		printk(KERN_ERR "Couldn't stat '%s', err = %d\n", from_cmdline,
-+		       -err);
-+		return 0;
-+	}
-+	err = os_stat_file(from_cow, &buf2);
-+	if (err < 0) {
-+		printk(KERN_ERR "Couldn't stat '%s', err = %d\n", from_cow,
-+		       -err);
-+		return 1;
-+	}
-+	if ((buf1.ust_dev == buf2.ust_dev) && (buf1.ust_ino == buf2.ust_ino))
-+		return 0;
-+
-+	printk(KERN_ERR "Backing file mismatch - \"%s\" requested, "
-+	       "\"%s\" specified in COW header of \"%s\"\n",
-+	       from_cmdline, from_cow, cow);
-+	return 1;
-+}
-+
-+static int open_ubd_file(char *file, struct openflags *openflags, int shared,
-+		  char **backing_file_out, int *bitmap_offset_out,
-+		  unsigned long *bitmap_len_out, int *data_offset_out,
-+		  int *create_cow_out)
-+{
-+	time_t mtime;
-+	unsigned long long size;
-+	__u32 version, align;
-+	char *backing_file;
-+	int fd, err, sectorsize, asked_switch, mode = 0644;
-+
-+	fd = os_open_file(file, *openflags, mode);
-+	if (fd < 0) {
-+		if ((fd == -ENOENT) && (create_cow_out != NULL))
-+			*create_cow_out = 1;
-+		if (!openflags->w ||
-+		    ((fd != -EROFS) && (fd != -EACCES)))
-+			return fd;
-+		openflags->w = 0;
-+		fd = os_open_file(file, *openflags, mode);
-+		if (fd < 0)
-+			return fd;
-+	}
-+
-+	if (shared)
-+		printk(KERN_INFO "Not locking \"%s\" on the host\n", file);
-+	else {
-+		err = os_lock_file(fd, openflags->w);
-+		if (err < 0) {
-+			printk(KERN_ERR "Failed to lock '%s', err = %d\n",
-+			       file, -err);
-+			goto out_close;
-+		}
-+	}
-+
-+	/* Successful return case! */
-+	if (backing_file_out == NULL)
-+		return fd;
-+
-+	err = read_cow_header(file_reader, &fd, &version, &backing_file, &mtime,
-+			      &size, &sectorsize, &align, bitmap_offset_out);
-+	if (err && (*backing_file_out != NULL)) {
-+		printk(KERN_ERR "Failed to read COW header from COW file "
-+		       "\"%s\", errno = %d\n", file, -err);
-+		goto out_close;
-+	}
-+	if (err)
-+		return fd;
-+
-+	asked_switch = path_requires_switch(*backing_file_out, backing_file,
-+					    file);
-+
-+	/* Allow switching only if no mismatch. */
-+	if (asked_switch && !backing_file_mismatch(*backing_file_out, size,
-+						   mtime)) {
-+		printk(KERN_ERR "Switching backing file to '%s'\n",
-+		       *backing_file_out);
-+		err = write_cow_header(file, fd, *backing_file_out,
-+				       sectorsize, align, &size);
-+		if (err) {
-+			printk(KERN_ERR "Switch failed, errno = %d\n", -err);
-+			goto out_close;
-+		}
-+	} else {
-+		*backing_file_out = backing_file;
-+		err = backing_file_mismatch(*backing_file_out, size, mtime);
-+		if (err)
-+			goto out_close;
-+	}
-+
-+	cow_sizes(version, size, sectorsize, align, *bitmap_offset_out,
-+		  bitmap_len_out, data_offset_out);
-+
-+	return fd;
-+ out_close:
-+	os_close_file(fd);
-+	return err;
-+}
-+
-+static int create_cow_file(char *cow_file, char *backing_file,
-+		    struct openflags flags,
-+		    int sectorsize, int alignment, int *bitmap_offset_out,
-+		    unsigned long *bitmap_len_out, int *data_offset_out)
-+{
-+	int err, fd;
-+
-+	flags.c = 1;
-+	fd = open_ubd_file(cow_file, &flags, 0, NULL, NULL, NULL, NULL, NULL);
-+	if (fd < 0) {
-+		err = fd;
-+		printk(KERN_ERR "Open of COW file '%s' failed, errno = %d\n",
-+		       cow_file, -err);
-+		goto out;
-+	}
-+
-+	err = init_cow_file(fd, cow_file, backing_file, sectorsize, alignment,
-+			    bitmap_offset_out, bitmap_len_out,
-+			    data_offset_out);
-+	if (!err)
-+		return fd;
-+	os_close_file(fd);
-+ out:
-+	return err;
-+}
-+
- static void ubd_close_dev(struct ubd *ubd_dev)
- {
- 	os_close_file(ubd_dev->fd);
-@@ -1166,185 +1340,6 @@ static int ubd_ioctl(struct inode * inod
- 	return -EINVAL;
- }
- 
--static int path_requires_switch(char *from_cmdline, char *from_cow, char *cow)
--{
--	struct uml_stat buf1, buf2;
--	int err;
--
--	if(from_cmdline == NULL)
--		return 0;
--	if(!strcmp(from_cmdline, from_cow))
--		return 0;
--
--	err = os_stat_file(from_cmdline, &buf1);
--	if(err < 0){
--		printk("Couldn't stat '%s', err = %d\n", from_cmdline, -err);
--		return 0;
--	}
--	err = os_stat_file(from_cow, &buf2);
--	if(err < 0){
--		printk("Couldn't stat '%s', err = %d\n", from_cow, -err);
--		return 1;
--	}
--	if((buf1.ust_dev == buf2.ust_dev) && (buf1.ust_ino == buf2.ust_ino))
--		return 0;
--
--	printk("Backing file mismatch - \"%s\" requested,\n"
--	       "\"%s\" specified in COW header of \"%s\"\n",
--	       from_cmdline, from_cow, cow);
--	return 1;
--}
--
--static int backing_file_mismatch(char *file, __u64 size, time_t mtime)
--{
--	unsigned long modtime;
--	unsigned long long actual;
--	int err;
--
--	err = os_file_modtime(file, &modtime);
--	if(err < 0){
--		printk("Failed to get modification time of backing file "
--		       "\"%s\", err = %d\n", file, -err);
--		return err;
--	}
--
--	err = os_file_size(file, &actual);
--	if(err < 0){
--		printk("Failed to get size of backing file \"%s\", "
--		       "err = %d\n", file, -err);
--		return err;
--	}
--
--	if(actual != size){
--		/*__u64 can be a long on AMD64 and with %lu GCC complains; so
--		 * the typecast.*/
--		printk("Size mismatch (%llu vs %llu) of COW header vs backing "
--		       "file\n", (unsigned long long) size, actual);
--		return -EINVAL;
--	}
--	if(modtime != mtime){
--		printk("mtime mismatch (%ld vs %ld) of COW header vs backing "
--		       "file\n", mtime, modtime);
--		return -EINVAL;
--	}
--	return 0;
--}
--
--int read_cow_bitmap(int fd, void *buf, int offset, int len)
--{
--	int err;
--
--	err = os_seek_file(fd, offset);
--	if(err < 0)
--		return err;
--
--	err = os_read_file(fd, buf, len);
--	if(err < 0)
--		return err;
--
--	return 0;
--}
--
--int open_ubd_file(char *file, struct openflags *openflags, int shared,
--		  char **backing_file_out, int *bitmap_offset_out,
--		  unsigned long *bitmap_len_out, int *data_offset_out,
--		  int *create_cow_out)
--{
--	time_t mtime;
--	unsigned long long size;
--	__u32 version, align;
--	char *backing_file;
--	int fd, err, sectorsize, asked_switch, mode = 0644;
--
--	fd = os_open_file(file, *openflags, mode);
--	if (fd < 0) {
--		if ((fd == -ENOENT) && (create_cow_out != NULL))
--			*create_cow_out = 1;
--		if (!openflags->w ||
--		    ((fd != -EROFS) && (fd != -EACCES)))
--			return fd;
--		openflags->w = 0;
--		fd = os_open_file(file, *openflags, mode);
--		if (fd < 0)
--			return fd;
--	}
--
--	if(shared)
--		printk("Not locking \"%s\" on the host\n", file);
--	else {
--		err = os_lock_file(fd, openflags->w);
--		if(err < 0){
--			printk("Failed to lock '%s', err = %d\n", file, -err);
--			goto out_close;
--		}
--	}
--
--	/* Successful return case! */
--	if(backing_file_out == NULL)
--		return fd;
--
--	err = read_cow_header(file_reader, &fd, &version, &backing_file, &mtime,
--			      &size, &sectorsize, &align, bitmap_offset_out);
--	if(err && (*backing_file_out != NULL)){
--		printk("Failed to read COW header from COW file \"%s\", "
--		       "errno = %d\n", file, -err);
--		goto out_close;
--	}
--	if(err)
--		return fd;
--
--	asked_switch = path_requires_switch(*backing_file_out, backing_file, file);
--
--	/* Allow switching only if no mismatch. */
--	if (asked_switch && !backing_file_mismatch(*backing_file_out, size, mtime)) {
--		printk("Switching backing file to '%s'\n", *backing_file_out);
--		err = write_cow_header(file, fd, *backing_file_out,
--				       sectorsize, align, &size);
--		if (err) {
--			printk("Switch failed, errno = %d\n", -err);
--			goto out_close;
--		}
--	} else {
--		*backing_file_out = backing_file;
--		err = backing_file_mismatch(*backing_file_out, size, mtime);
--		if (err)
--			goto out_close;
--	}
--
--	cow_sizes(version, size, sectorsize, align, *bitmap_offset_out,
--		  bitmap_len_out, data_offset_out);
--
--	return fd;
-- out_close:
--	os_close_file(fd);
--	return err;
--}
--
--int create_cow_file(char *cow_file, char *backing_file, struct openflags flags,
--		    int sectorsize, int alignment, int *bitmap_offset_out,
--		    unsigned long *bitmap_len_out, int *data_offset_out)
--{
--	int err, fd;
--
--	flags.c = 1;
--	fd = open_ubd_file(cow_file, &flags, 0, NULL, NULL, NULL, NULL, NULL);
--	if(fd < 0){
--		err = fd;
--		printk("Open of COW file '%s' failed, errno = %d\n", cow_file,
--		       -err);
--		goto out;
--	}
--
--	err = init_cow_file(fd, cow_file, backing_file, sectorsize, alignment,
--			    bitmap_offset_out, bitmap_len_out,
--			    data_offset_out);
--	if(!err)
--		return fd;
--	os_close_file(fd);
-- out:
--	return err;
--}
+diff -puN kernel/nsproxy.c~ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup kernel/nsproxy.c
+--- a/kernel/nsproxy.c~ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup
++++ a/kernel/nsproxy.c
+@@ -146,7 +146,7 @@ int copy_namespaces(unsigned long flags,
+ 	 * means share undolist with parent, so we must forbid using
+ 	 * it along with CLONE_NEWIPC.
+ 	 */
+-	if ((flags&CLONE_NEWIPC) && (flags&CLONE_SYSVSEM)) {
++	if ((flags & CLONE_NEWIPC) && (flags & CLONE_SYSVSEM)) {
+ 		err = -EINVAL;
+ 		goto out;
+ 	}
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+disable-the-memory-controller-by-default-v3-fix.patch
+hotplug-memory-make-online_page-common-fix.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86.patch
+arch-x86-mm-ioremapc-fix-printk-warnings.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+x86-ptrace-pebs-support-warning-fix.patch
+arch-x86-video-fbdevc-add-module_license.patch
+git-kgdb-light.patch
+git-x86-hack-around-to-make-git-kgdb-build.patch
+git-x86-vs-git-kgdb-lite.patch
+git-alsa-tiwai.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+git-arm-fix.patch
+cifs-suppress-warning.patch
+git-powerpc.patch
+git-drm.patch
+revert-git-drm.patch
+git-dvb.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-dlm-vs-git-gfs2-nwm.patch
+git-hid.patch
+git-hrt.patch
+time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
+git-ia64.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
+git-input.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-leds.patch
+git-libata-all.patch
+pata_atiixp-simplex-clear-fix.patch
+git-async-tx.patch
+git-mips.patch
+git-net.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+ehea-fix-dlpar-memory-add-support-fix.patch
+sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
+smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+git-selinux.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-s390.patch
+git-sched.patch
+add-rcu_assign_index-if-ever-needed.patch
+git-sh.patch
+git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+git-xfs-fixups.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-misplaced-hunk.patch
+git-cryptodev-fix-conflict.patch
+git-cryptodev-fix-conflict-hack.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+git-semaphore-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+mm-introduce-pte_special-pte-bit-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+add-default-cpu-topology-information-cleanup.patch
+utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+drivers-video-uvesafbc-fix-error-path-memory-leak.patch
+fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
+drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
+x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
+x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
+drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+fat_valid_media-remove-pointless-test.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+tty-the-big-operations-rework-fix-2.patch
+tty-the-big-operations-rework-vs-git-kgdb-light.patch
+tty-the-big-operations-rework-vs-kgdb-2.patch
+tty-the-big-operations-rework-broke-wan.patch
+devpts-factor-out-pty-index-allocation-fix.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
+relayfs-support-larger-relay-buffer-take-3-cleanup.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
+
