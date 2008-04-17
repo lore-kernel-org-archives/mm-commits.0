@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-arm-drivers-mfd-htc-pasic3c-is-arm-specific.patch added to -mm tree
-Date: Wed, 16 Apr 2008 17:15:38 -0700
-Message-ID: <200804170026.m3H0Q301014390@imap1.linux-foundation.org>
+Subject: + tty-the-big-operations-rework-broke-wan.patch added to -mm tree
+Date: Wed, 16 Apr 2008 17:32:14 -0700
+Message-ID: <200804170042.m3H0gdcj015055@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52938 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36103 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750853AbYDQA0X (ORCPT
+	by vger.kernel.org with ESMTP id S1750724AbYDQAmt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 20:26:23 -0400
+	Wed, 16 Apr 2008 20:42:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rmk@arm.linux.org.uk
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     git-arm: drivers/mfd/htc-pasic3.c is arm-specific
+     tty-the-big-operations-rework broke WAN
 has been added to the -mm tree.  Its filename is
-     git-arm-drivers-mfd-htc-pasic3c-is-arm-specific.patch
+     tty-the-big-operations-rework-broke-wan.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,29 +34,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-arm: drivers/mfd/htc-pasic3.c is arm-specific
+Subject: tty-the-big-operations-rework broke WAN
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/mfd/htc-pasic3.c:22:31: error: asm/arch/pxa-regs.h: No such file or directory
+too lazy to fix it.
 
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/Kconfig |    1 +
+ drivers/net/wan/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/mfd/Kconfig~git-arm-drivers-mfd-htc-pasic3c-is-arm-specific drivers/mfd/Kconfig
---- a/drivers/mfd/Kconfig~git-arm-drivers-mfd-htc-pasic3c-is-arm-specific
-+++ a/drivers/mfd/Kconfig
-@@ -32,6 +32,7 @@ config HTC_EGPIO
- 
- config HTC_PASIC3
- 	tristate "HTC PASIC3 LED/DS1WM chip support"
-+	depends on ARM
- 	help
- 	  This core driver provides register access for the LED/DS1WM
- 	  chips labeled "AIC2" and "AIC3", found on HTC Blueangel and
+diff -puN drivers/net/wan/Kconfig~tty-the-big-operations-rework-broke-wan drivers/net/wan/Kconfig
+--- a/drivers/net/wan/Kconfig~tty-the-big-operations-rework-broke-wan
++++ a/drivers/net/wan/Kconfig
+@@ -458,6 +458,7 @@ config LAPBETHER
+ config X25_ASY
+ 	tristate "X.25 async driver (EXPERIMENTAL)"
+ 	depends on LAPB && X25
++	depends on BROKEN
+ 	---help---
+ 	  Send and receive X.25 frames over regular asynchronous serial
+ 	  lines such as telephone lines equipped with ordinary modems.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +79,7 @@ git-alsa-tiwai.patch
 git-agpgart-export-agp_generic_alloc_pages.patch
 git-agpgart-fix-type-confusion.patch
 git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+git-arm-drivers-mfd-htc-pasic3c-is-arm-specific.patch
 cifs-suppress-warning.patch
 git-powerpc.patch
 git-drm.patch
@@ -255,5 +256,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-git-arm-drivers-mfd-htc-pasic3c-is-arm-specific.patch
+tty-the-big-operations-rework-broke-wan.patch
 
