@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tty-the-big-operations-rework-vs-kgdb-2.patch added to -mm tree
-Date: Wed, 16 Apr 2008 17:34:05 -0700
-Message-ID: <200804170044.m3H0iU2u015105@imap1.linux-foundation.org>
+Subject: + usb-fix-general-borkage.patch added to -mm tree
+Date: Wed, 16 Apr 2008 17:36:50 -0700
+Message-ID: <200804170047.m3H0lGZ7015221@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34832 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35137 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753511AbYDQApX (ORCPT
+	by vger.kernel.org with ESMTP id S1754029AbYDQArh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 16 Apr 2008 20:45:23 -0400
+	Wed, 16 Apr 2008 20:47:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jason.wessel@windriver.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     tty-the-big-operations-rework vs kgdb (2)
+     usb-fix-general-borkage
 has been added to the -mm tree.  Its filename is
-     tty-the-big-operations-rework-vs-kgdb-2.patch
+     usb-fix-general-borkage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty-the-big-operations-rework vs kgdb (2)
+Subject: usb-fix-general-borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jason Wessel <jason.wessel@windriver.com>
+In file included from drivers/usb/serial/io_edgeport.c:243:
+drivers/usb/serial/io_tables.h:114: error: unknown field 'num_interrupt_in' specified in initializer
+drivers/usb/serial/io_tables.h:115: error: unknown field 'num_bulk_in' specified in initializer
+drivers/usb/serial/io_tables.h:115: warning: missing braces around initializer
+drivers/usb/serial/io_tables.h:115: warning: (near initialization for 'edgeport_2port_device.driver_list')
+drivers/usb/serial/io_tables.h:115: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:116: error: unknown field 'num_bulk_out' specified in initializer
+drivers/usb/serial/io_tables.h:116: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:145: error: unknown field 'num_interrupt_in' specified in initializer
+drivers/usb/serial/io_tables.h:146: error: unknown field 'num_bulk_in' specified in initializer
+drivers/usb/serial/io_tables.h:146: warning: missing braces around initializer
+drivers/usb/serial/io_tables.h:146: warning: (near initialization for 'edgeport_4port_device.driver_list')
+drivers/usb/serial/io_tables.h:146: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:147: error: unknown field 'num_bulk_out' specified in initializer
+drivers/usb/serial/io_tables.h:147: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:176: error: unknown field 'num_interrupt_in' specified in initializer
+drivers/usb/serial/io_tables.h:177: error: unknown field 'num_bulk_in' specified in initializer
+drivers/usb/serial/io_tables.h:177: warning: missing braces around initializer
+drivers/usb/serial/io_tables.h:177: warning: (near initialization for 'edgeport_8port_device.driver_list')
+drivers/usb/serial/io_tables.h:177: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:178: error: unknown field 'num_bulk_out' specified in initializer
+drivers/usb/serial/io_tables.h:178: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:206: error: unknown field 'num_interrupt_in' specified in initializer
+drivers/usb/serial/io_tables.h:207: error: unknown field 'num_bulk_in' specified in initializer
+drivers/usb/serial/io_tables.h:207: warning: missing braces around initializer
+drivers/usb/serial/io_tables.h:207: warning: (near initialization for 'epic_device.driver_list')
+drivers/usb/serial/io_tables.h:207: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:208: error: unknown field 'num_bulk_out' specified in initializer
+drivers/usb/serial/io_tables.h:208: warning: initialization makes pointer from integer without a cast
+
+nfi what happened here.
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/kgdboc.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/usb/serial/io_tables.h |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff -puN drivers/serial/kgdboc.c~tty-the-big-operations-rework-vs-kgdb-2 drivers/serial/kgdboc.c
---- a/drivers/serial/kgdboc.c~tty-the-big-operations-rework-vs-kgdb-2
-+++ a/drivers/serial/kgdboc.c
-@@ -96,12 +96,14 @@ static void cleanup_kgdboc(void)
- 
- static int kgdboc_get_char(void)
- {
--	return kgdb_tty_driver->poll_get_char(kgdb_tty_driver, kgdb_tty_line);
-+	return kgdb_tty_driver->ops->poll_get_char(kgdb_tty_driver,
-+						kgdb_tty_line);
- }
- 
- static void kgdboc_put_char(u8 chr)
- {
--	kgdb_tty_driver->poll_put_char(kgdb_tty_driver, kgdb_tty_line, chr);
-+	kgdb_tty_driver->ops->poll_put_char(kgdb_tty_driver,
-+					kgdb_tty_line, chr);
- }
- 
- static int param_set_kgdboc_var(const char *kmessage, struct kernel_param *kp)
+diff -puN drivers/usb/serial/io_tables.h~usb-fix-general-borkage drivers/usb/serial/io_tables.h
+--- a/drivers/usb/serial/io_tables.h~usb-fix-general-borkage
++++ a/drivers/usb/serial/io_tables.h
+@@ -111,9 +111,6 @@ static struct usb_serial_driver edgeport
+ 	.description		= "Edgeport 2 port adapter",
+ 	.usb_driver		= &io_driver,
+ 	.id_table		= edgeport_2port_id_table,
+-	.num_interrupt_in	= 1,
+-	.num_bulk_in		= 1,
+-	.num_bulk_out		= 1,
+ 	.num_ports		= 2,
+ 	.open			= edge_open,
+ 	.close			= edge_close,
+@@ -142,9 +139,6 @@ static struct usb_serial_driver edgeport
+ 	.description		= "Edgeport 4 port adapter",
+ 	.usb_driver		= &io_driver,
+ 	.id_table		= edgeport_4port_id_table,
+-	.num_interrupt_in	= 1,
+-	.num_bulk_in		= 1,
+-	.num_bulk_out		= 1,
+ 	.num_ports		= 4,
+ 	.open			= edge_open,
+ 	.close			= edge_close,
+@@ -173,9 +167,6 @@ static struct usb_serial_driver edgeport
+ 	.description		= "Edgeport 8 port adapter",
+ 	.usb_driver		= &io_driver,
+ 	.id_table		= edgeport_8port_id_table,
+-	.num_interrupt_in	= 1,
+-	.num_bulk_in		= 1,
+-	.num_bulk_out		= 1,
+ 	.num_ports		= 8,
+ 	.open			= edge_open,
+ 	.close			= edge_close,
+@@ -203,9 +194,6 @@ static struct usb_serial_driver epic_dev
+ 	},
+ 	.description		= "EPiC device",
+ 	.id_table		= Epic_port_id_table,
+-	.num_interrupt_in	= 1,
+-	.num_bulk_in		= 1,
+-	.num_bulk_out		= 1,
+ 	.num_ports		= 1,
+ 	.open			= edge_open,
+ 	.close			= edge_close,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -141,6 +193,7 @@ drivers-scsi-mvsasc-fix-build-warnings.patch
 git-block-git-rejects.patch
 sparc32-export-empty_zero_page.patch
 git-unionfs.patch
+usb-fix-general-borkage.patch
 fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
 git-v9fs.patch
 git-vfs.patch
@@ -235,8 +288,9 @@ elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-tty-the-big-operations-rework-broke-wan.patch
 tty-the-big-operations-rework-vs-git-kgdb-light.patch
+tty-the-big-operations-rework-vs-kgdb-2.patch
+tty-the-big-operations-rework-broke-wan.patch
 keys-add-keyctl-function-to-get-a-security-label-fix.patch
 procfs-task-exe-symlink-fix.patch
 proc-switch-to-proc_create.patch
@@ -267,5 +321,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-tty-the-big-operations-rework-vs-kgdb-2.patch
 
