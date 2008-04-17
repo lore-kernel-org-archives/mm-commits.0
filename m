@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + tty-the-big-operations-rework-fix-2.patch added to -mm tree
-Date: Thu, 17 Apr 2008 03:26:11 -0700
-Message-ID: <200804171036.m3HAacNk004119@imap1.linux-foundation.org>
+Date: Thu, 17 Apr 2008 09:55:44 -0700
+Message-ID: <200804171655.m3HGtie3018334@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42995 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39363 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757523AbYDQKhZ (ORCPT
+	by vger.kernel.org with ESMTP id S932584AbYDQQzy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 06:37:25 -0400
+	Thu, 17 Apr 2008 12:55:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -55,7 +55,7 @@ diff -puN fs/compat_ioctl.c~tty-the-big-operations-rework-fix-2 fs/compat_ioctl.
  		return -EINVAL;
  	                                                
 -	if (tty->driver->ioctl != vt_ioctl)
-+	if (tty->driver->ops->ioctl != vt_ioctl)
++	if (tty->ops->ioctl != vt_ioctl)
  		return -EINVAL;
  
  	vc = (struct vc_data *)tty->driver_data;
