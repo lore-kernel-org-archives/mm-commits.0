@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tty-the-big-operations-rework-simserial-fix.patch added to -mm tree
-Date: Thu, 17 Apr 2008 21:43:51 -0700
-Message-ID: <200804180454.m3I4sJfQ011825@imap1.linux-foundation.org>
+Subject: + uwb-seems-to-need-pci.patch added to -mm tree
+Date: Thu, 17 Apr 2008 22:12:26 -0700
+Message-ID: <200804180522.m3I5MsZK012789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45890 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50997 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751415AbYDREy3 (ORCPT
+	by vger.kernel.org with ESMTP id S1751567AbYDRFW6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 00:54:29 -0400
+	Fri, 18 Apr 2008 01:22:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
+Cc: akpm@linux-foundation.org, greg@kroah.com, inaky.perez-gonzalez@intel.com
 
 
 The patch titled
-     tty-the-big-operations-rework-simserial-fix
+     uwb: seems to need PCI
 has been added to the -mm tree.  Its filename is
-     tty-the-big-operations-rework-simserial-fix.patch
+     uwb-seems-to-need-pci.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,66 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty-the-big-operations-rework-simserial-fix
+Subject: uwb: seems to need PCI
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ia64:
-
-arch/ia64/hp/sim/simserial.c: In function `rs_close':
-arch/ia64/hp/sim/simserial.c:624: error: structure has no member named `flush_buffer'
-arch/ia64/hp/sim/simserial.c:624: error: structure has no member named `flush_buffer'
-arch/ia64/hp/sim/simserial.c: At top level:
-arch/ia64/hp/sim/simserial.c:942: warning: initialization from incompatible pointer type
-
-and oh dear, I seem to have accidentally fixed the coding style too.
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/hp/sim/simserial.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ drivers/uwb/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/ia64/hp/sim/simserial.c~tty-the-big-operations-rework-simserial-fix arch/ia64/hp/sim/simserial.c
---- a/arch/ia64/hp/sim/simserial.c~tty-the-big-operations-rework-simserial-fix
-+++ a/arch/ia64/hp/sim/simserial.c
-@@ -210,21 +210,23 @@ static void do_softint(struct work_struc
- 	printk(KERN_ERR "simserial: do_softint called\n");
- }
+diff -puN drivers/uwb/Kconfig~uwb-seems-to-need-pci drivers/uwb/Kconfig
+--- a/drivers/uwb/Kconfig~uwb-seems-to-need-pci
++++ a/drivers/uwb/Kconfig
+@@ -4,6 +4,7 @@
  
--static void rs_put_char(struct tty_struct *tty, unsigned char ch)
-+static int rs_put_char(struct tty_struct *tty, unsigned char ch)
- {
- 	struct async_struct *info = (struct async_struct *)tty->driver_data;
- 	unsigned long flags;
- 
--	if (!tty || !info->xmit.buf) return;
-+	if (!tty || !info->xmit.buf)
-+		return 0;
- 
- 	local_irq_save(flags);
- 	if (CIRC_SPACE(info->xmit.head, info->xmit.tail, SERIAL_XMIT_SIZE) == 0) {
- 		local_irq_restore(flags);
--		return;
-+		return 0;
- 	}
- 	info->xmit.buf[info->xmit.head] = ch;
- 	info->xmit.head = (info->xmit.head + 1) & (SERIAL_XMIT_SIZE-1);
- 	local_irq_restore(flags);
-+	return 1;
- }
- 
- static void transmit_chars(struct async_struct *info, int *intr_done)
-@@ -621,7 +623,8 @@ static void rs_close(struct tty_struct *
- 	 * the line discipline to only process XON/XOFF characters.
- 	 */
- 	shutdown(info);
--	if (tty->driver->flush_buffer) tty->driver->flush_buffer(tty);
-+	if (tty->ops->flush_buffer)
-+		tty->ops->flush_buffer(tty);
- 	if (tty->ldisc.flush_buffer) tty->ldisc.flush_buffer(tty);
- 	info->event = 0;
- 	info->tty = NULL;
+ menuconfig UWB
+ 	tristate "Ultra Wide Band devices"
++	depends on PCI
+ 	default n
+ 	help
+ 	  UWB is a high-bandwidth, low-power, point-to-point radio
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -170,6 +132,7 @@ git-unionfs.patch
 fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
 fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
 fix-gregkh-usb-usb-hcds-use-the-do_remote_wakeup-flag.patch
+uwb-seems-to-need-pci.patch
 git-v9fs.patch
 git-vfs.patch
 git-watchdog.patch
