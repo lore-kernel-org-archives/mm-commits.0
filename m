@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch added to -mm tree
-Date: Thu, 17 Apr 2008 20:32:36 -0700
-Message-ID: <200804180332.m3I3WajF009112@imap1.linux-foundation.org>
+Subject: + fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch added to -mm tree
+Date: Thu, 17 Apr 2008 21:04:36 -0700
+Message-ID: <200804180415.m3I4F505010490@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757193AbYDRDdK (ORCPT
+	by vger.kernel.org with ESMTP id S1750722AbYDREPT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 23:33:10 -0400
+	Fri, 18 Apr 2008 00:15:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, greg@kroah.com, kay.sievers@vrfy.org
+Cc: akpm@linux-foundation.org, gregkh@suse.de, inaky.perez-gonzalez@intel.com
 
 
 The patch titled
-     sysfs: provide a clue about the effects of CONFIG_USB_DEVICE_CLASS=y
+     fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux
 has been added to the -mm tree.  Its filename is
-     sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+     fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,53 +34,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs: provide a clue about the effects of CONFIG_USB_DEVICE_CLASS=y
+Subject: fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux
 From: Andrew Morton <akpm@linux-foundation.org>
 
-With CONFIG_USB_DEVICE_CLASS=y we get lots of warnings like
+drivers/uwb/umc-dev.c: In function 'umc_device_register':
+drivers/uwb/umc-dev.c:61: warning: format '%016Lx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
+drivers/uwb/umc-dev.c:61: warning: format '%016Lx' expects type 'long long unsigned int', but argument 5 has type 'resource_size_t'
 
-	sysfs: duplicate filename '189:0' can not be created
+We do not know what type was used for u64 hence we cannot pass it to printk.
 
-According to Kay "They have the same dev_t as usb_device and would be a reason
-for the duplicates".
-
-So let's emit a helpful message explaining that.
-
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/sysfs/dir.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ drivers/uwb/umc-dev.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/sysfs/dir.c~sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y fs/sysfs/dir.c
---- a/fs/sysfs/dir.c~sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y
-+++ a/fs/sysfs/dir.c
-@@ -17,6 +17,8 @@
- #include <linux/module.h>
- #include <linux/kobject.h>
- #include <linux/namei.h>
-+#include <linux/ctype.h>
-+#include <linux/string.h>
- #include <linux/idr.h>
- #include <linux/completion.h>
- #include <linux/mutex.h>
-@@ -423,6 +425,13 @@ int sysfs_add_one(struct sysfs_addrm_cxt
- 		printk(KERN_WARNING "sysfs: duplicate filename '%s' "
- 		       "can not be created\n", sd->s_name);
- 		WARN_ON(1);
-+#ifdef CONFIG_USB_DEVICE_CLASS
-+		if (isdigit(sd->s_name[0]) && strchr(sd->s_name, ':')) {
-+			/* Looks like "189:0" or similar */
-+			printk(KERN_WARNING "disabling CONFIG_USB_DEVICE_CLASS"
-+					" might fix this\n");
-+		}
-+#endif
- 		return -EEXIST;
+diff -puN drivers/uwb/umc-dev.c~fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux drivers/uwb/umc-dev.c
+--- a/drivers/uwb/umc-dev.c~fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux
++++ a/drivers/uwb/umc-dev.c
+@@ -60,7 +60,8 @@ int umc_device_register(struct umc_dev *
+ 	if (err < 0) {
+ 		dev_err(&umc->dev, "can't allocate resource range "
+ 			"%016Lx to %016Lx: %d\n",
+-			(u64) umc->resource.start, (u64) umc->resource.end,
++			(unsigned long long)umc->resource.start,
++			(unsigned long long)umc->resource.end,
+ 			err);
+ 		goto error_request_resource;
  	}
- 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -287,4 +270,6 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
+fix-gregkh-usb-usb-hcds-use-the-do_remote_wakeup-flag.patch
+fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
 
