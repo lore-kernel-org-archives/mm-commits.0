@@ -1,63 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 14:19:52 -0700
-Message-ID: <200804182119.m3ILJqqI016667@imap1.linux-foundation.org>
+Subject: - mac80211-michaelc-fold-initial-xor-into-block-helper.patch removed from -mm tree
+Date: Fri, 18 Apr 2008 14:20:04 -0700
+Message-ID: <200804182120.m3ILK4dx016708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42705 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35233 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753549AbYDRVWK (ORCPT
+	by vger.kernel.org with ESMTP id S1750760AbYDRVU7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 17:22:10 -0400
+	Fri, 18 Apr 2008 17:20:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, jbenc@suse.cz, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, jbenc@suse.cz, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mac80211: tkip.c remove opencoded swab16 in tkip_S
+     mac80211: michael.c fold initial xor into block helper
 has been removed from the -mm tree.  Its filename was
-     mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
+     mac80211-michaelc-fold-initial-xor-into-block-helper.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: tkip.c remove opencoded swab16 in tkip_S
+Subject: mac80211: michael.c fold initial xor into block helper
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Opencode the Hi8/Lo8 and eliminate the temporary variable in tkip_S().
-
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Johannes Berg <johannes@sipsolutions.net>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Joe Perches <joe@perches.com>
 Cc: Jiri Benc <jbenc@suse.cz>
+Cc: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/tkip.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ net/mac80211/michael.c |   27 ++++++++++-----------------
+ 1 file changed, 10 insertions(+), 17 deletions(-)
 
-diff -puN net/mac80211/tkip.c~mac80211-tkipc-remove-opencoded-swab16-in-tkip_s net/mac80211/tkip.c
---- a/net/mac80211/tkip.c~mac80211-tkipc-remove-opencoded-swab16-in-tkip_s
-+++ a/net/mac80211/tkip.c
-@@ -94,13 +94,9 @@ static inline u16 Lo16(u32 v)
+diff -puN net/mac80211/michael.c~mac80211-michaelc-fold-initial-xor-into-block-helper net/mac80211/michael.c
+--- a/net/mac80211/michael.c~mac80211-michaelc-fold-initial-xor-into-block-helper
++++ a/net/mac80211/michael.c
+@@ -14,8 +14,9 @@
  
- static inline u16 tkip_S(u16 val)
+ #include "michael.h"
+ 
+-static void michael_block(u32 *l, u32 *r)
++static void michael_block(u32 val, u32 *l, u32 *r)
  {
--	u16 a = tkip_sbox[Hi8(val)];
--
--	return tkip_sbox[Lo8(val)] ^ Hi8(a) ^ (Lo8(a) << 8);
-+	return tkip_sbox[val & 0xff] ^ swab16(tkip_sbox[val >> 8]);
- }
++	*l ^= val;
+ 	*r ^= rol32(*l, 17);
+ 	*l += *r;
+ 	*r ^= ((*l & 0xff00ff00) >> 8) | ((*l & 0x00ff00ff) << 8);
+@@ -52,23 +53,17 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
  
--
--
- /* P1K := Phase1(TA, TK, TSC)
-  * TA = transmitter address (48 bits)
-  * TK = dot11DefaultKeyValue or dot11KeyMappingValue (128 bits)
+ 	/* A pseudo header (DA, SA, Priority, 0, 0, 0) is used in Michael MIC
+ 	 * calculation, but it is _not_ transmitted */
+-	l ^= michael_get32(da);
+-	michael_block(&l, &r);
+-	l ^= michael_get16(da) | (michael_get16(sa) << 16);
+-	michael_block(&l, &r);
+-	l ^= michael_get32(&sa[2]);
+-	michael_block(&l, &r);
+-	l ^= priority;
+-	michael_block(&l, &r);
++	michael_block(michael_get32(da), &l, &r);
++	michael_block(michael_get16(da) | (michael_get16(sa) << 16), &l, &r);
++	michael_block(michael_get32(&sa[2]), &l, &r);
++	michael_block(priority, &l, &r);
+ 
+ 	/* Real data */
+ 	blocks = data_len / 4;
+ 	left = data_len % 4;
+ 
+-	for (block = 0; block < blocks; block++) {
+-		l ^= michael_get32(&data[block * 4]);
+-		michael_block(&l, &r);
+-	}
++	for (block = 0; block < blocks; block++)
++		michael_block(michael_get32(&data[block * 4]), &l, &r);
+ 
+ 	/* Partial block of 0..3 bytes and padding: 0x5a + 4..7 zeros to make
+ 	 * total length a multiple of 4. */
+@@ -78,10 +73,8 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
+ 		left--;
+ 		val |= data[blocks * 4 + left];
+ 	}
+-	l ^= val;
+-	michael_block(&l, &r);
+-	/* last block is zero, so l ^ 0 = l */
+-	michael_block(&l, &r);
++	michael_block(val, &l, &r);
++	michael_block(0, &l, &r);
+ 
+ 	michael_put32(l, mic);
+ 	michael_put32(r, mic + 4);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -94,11 +129,6 @@ fusion-replace-remaining-__function__-occurrences.patch
 scsi-replace-__inline-with-inline.patch
 block-replace-remaining-__function__-occurrences.patch
 git-watchdog.patch
-mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
-mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
-mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
-mac80211-michaelc-replace-macro-with-function.patch
-mac80211-michaelc-use-unaligned-byteorder-helpers.patch
 mac80211-michaelc-fold-initial-xor-into-block-helper.patch
 git-xfs.patch
 xtensa-replace-remaining-__function__-occurences.patch
