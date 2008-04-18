@@ -1,54 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - add-default-cpu-topology-information-cleanup.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 00:32:46 -0700
-Message-ID: <200804180732.m3I7WkTk017288@imap1.linux-foundation.org>
+Subject: - add-default-cpu-topology-information-powerpc-hack.patch removed from -mm tree
+Date: Fri, 18 Apr 2008 00:32:43 -0700
+Message-ID: <200804180732.m3I7WhwR017285@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39646 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752225AbYDRHdR (ORCPT
+	by vger.kernel.org with ESMTP id S1753922AbYDRHdR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Fri, 18 Apr 2008 03:33:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bhutchings@solarflare.com, heiko.carstens@de.ibm.com, mingo@elte.hu, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, bhutchings@solarflare.com, heiko.carstens@de.ibm.com, mingo@elte.hu, paulus@samba.org, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-default-cpu-topology-information cleanup
+     add-default-cpu-topology-information-powerpc-hack
 has been removed from the -mm tree.  Its filename was
-     add-default-cpu-topology-information-cleanup.patch
+     add-default-cpu-topology-information-powerpc-hack.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-default-cpu-topology-information cleanup
+Subject: add-default-cpu-topology-information-powerpc-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Ben Hutchings <bhutchings@solarflare.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/topology.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-powerpc/topology.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/base/topology.c~add-default-cpu-topology-information-cleanup drivers/base/topology.c
---- a/drivers/base/topology.c~add-default-cpu-topology-information-cleanup
-+++ a/drivers/base/topology.c
-@@ -47,7 +47,7 @@ static ssize_t show_##name(struct sys_de
- 	unsigned int cpu = dev->id;					\
- 	cpumask_t siblings = topology_##name(cpu);			\
- 	len = cpumask_scnprintf(buf, NR_CPUS+1, siblings);		\
--	return (len + sprintf(buf + len, "\n"));			\
-+	return len + sprintf(buf + len, "\n");				\
- }
+diff -puN include/asm-powerpc/topology.h~add-default-cpu-topology-information-powerpc-hack include/asm-powerpc/topology.h
+--- a/include/asm-powerpc/topology.h~add-default-cpu-topology-information-powerpc-hack
++++ a/include/asm-powerpc/topology.h
+@@ -109,6 +109,8 @@ static inline void sysfs_remove_device_f
+ #endif
+ #endif
  
- define_id_show_func(physical_package_id);
++#define pcibus_to_node pcibus_to_node
++
+ #include <asm-generic/topology.h>
+ 
+ #endif /* __KERNEL__ */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -170,6 +172,7 @@ sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
 codafs-fix-build-warning.patch
 lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+add-default-cpu-topology-information-powerpc-hack.patch
 add-default-cpu-topology-information-cleanup.patch
 utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
 lib-swiotlbc-cleanups.patch
