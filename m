@@ -1,300 +1,137 @@
 From: akpm@linux-foundation.org
-Subject: - smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 13:49:14 -0700
-Message-ID: <200804182049.m3IKnEEO014787@imap1.linux-foundation.org>
+Subject: - miscacpibacklight-compal-laptop-extras-use-bitmask-not-hex.patch removed from -mm tree
+Date: Fri, 18 Apr 2008 13:26:10 -0700
+Message-ID: <200804182026.m3IKQA7L013511@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40941 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755848AbYDRUuF (ORCPT
+	by vger.kernel.org with ESMTP id S1752645AbYDRU0g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 16:50:05 -0400
+	Fri, 18 Apr 2008 16:26:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, 12o3l@tiscali.nl, jacmet@sunsite.dk, jeff@garzik.org, mm-commits@vger.kernel.org
+To: cezary.jackiewicz@gmail.com, aystarik@gmail.com, hmh@hmh.eng.br, lenb@kernel.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes
+     misc,acpi,backlight: Compal Laptop Extras - use bitmask, not hex
 has been removed from the -mm tree.  Its filename was
-     smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes.patch
+     miscacpibacklight-compal-laptop-extras-use-bitmask-not-hex.patch
 
-This patch was dropped because it was folded into smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt.patch
+This patch was dropped because it was folded into miscacpibacklight-compal-laptop-extras-3rd-try.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: misc,acpi,backlight: Compal Laptop Extras - use bitmask, not hex
+From: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
 
-ERROR: space prohibited after that open parenthesis '('
-#23: FILE: drivers/net/smc911x.c:247:
-+		} while ( --timeout && !reg);
+Clean up code. Use bitmask for operations.
 
-ERROR: space prohibited after that open parenthesis '('
-#32: FILE: drivers/net/smc911x.c:271:
-+		} while ( --timeout && (reg & HW_CFG_SRST_));
-
-ERROR: space prohibited after that open parenthesis '('
-#41: FILE: drivers/net/smc911x.c:417:
-+		} while ( --timeout && reg);
-
-total: 3 errors, 0 warnings, 24 lines checked
-
-./patches/smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Peter Korsgaard <jacmet@sunsite.dk>
-Cc: Roel Kluin <12o3l@tiscali.nl>
+Signed-off-by: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
+Cc: Richard Purdie <rpurdie@rpsys.net>
+Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Alexey Starikovskiy <aystarik@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc911x.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/misc/compal-laptop.c |   28 ++++++++++++++++------------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
 
-diff -puN drivers/net/smc911x.c~smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes drivers/net/smc911x.c
---- a/drivers/net/smc911x.c~smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes
-+++ a/drivers/net/smc911x.c
-@@ -244,7 +244,7 @@ static void smc911x_reset(struct net_dev
- 		do {
- 			udelay(10);
- 			reg = SMC_GET_PMT_CTRL() & PMT_CTRL_READY_;
--		} while ( --timeout && !reg);
-+		} while (--timeout && !reg);
- 		if (timeout == 0) {
- 			PRINTK("%s: smc911x_reset timeout waiting for PM restore\n", dev->name);
- 			return;
-@@ -268,7 +268,7 @@ static void smc911x_reset(struct net_dev
- 				resets++;
- 				break;
- 			}
--		} while ( --timeout && (reg & HW_CFG_SRST_));
-+		} while (--timeout && (reg & HW_CFG_SRST_));
+diff -puN drivers/misc/compal-laptop.c~miscacpibacklight-compal-laptop-extras-use-bitmask-not-hex drivers/misc/compal-laptop.c
+--- a/drivers/misc/compal-laptop.c~miscacpibacklight-compal-laptop-extras-use-bitmask-not-hex
++++ a/drivers/misc/compal-laptop.c
+@@ -1,7 +1,7 @@
+ /*-*-linux-c-*-*/
+ 
+ /*
+-  Copyright (C) 2008 Cezary Jackiewicz <cezary.Jackiewicz (at) gmail.com>
++  Copyright (C) 2008 Cezary Jackiewicz <cezary.jackiewicz (at) gmail.com>
+ 
+   based on MSI driver
+ 
+@@ -56,13 +56,17 @@
+ #include <linux/platform_device.h>
+ #include <linux/autoconf.h>
+ 
+-#define COMPAL_DRIVER_VERSION "0.2.2"
++#define COMPAL_DRIVER_VERSION "0.2.5"
+ 
+ #define COMPAL_LCD_LEVEL_MAX 8
+ 
+ #define COMPAL_EC_COMMAND_WIRELESS 0xBB
+ #define COMPAL_EC_COMMAND_LCD_LEVEL 0xB9
+ 
++#define KILLSWITCH_MASK	0x10
++#define WLAN_MASK	0x01
++#define BT_MASK		0x02
++
+ static int force;
+ module_param(force, bool, 0);
+ MODULE_PARM_DESC(force, "Force driver load, ignore DMI data");
+@@ -94,13 +98,13 @@ static int set_wlan_state(int state)
+ 
+ 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
+ 
+-	if ((result & 0x10) == 0)
++	if ((result & KILLSWITCH_MASK) == 0)
+ 		return -EINVAL;
+ 	else {
+ 		if (state)
+-			value = (u8) (result | 0x01);
++			value = (u8) (result | WLAN_MASK);
+ 		else
+-			value = (u8) (result & 0xFE);
++			value = (u8) (result & ~WLAN_MASK);
+ 		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
  	}
- 	if (timeout == 0) {
- 		PRINTK("%s: smc911x_reset timeout waiting for reset\n", dev->name);
-@@ -414,7 +414,7 @@ static inline void smc911x_drop_pkt(stru
- 		do {
- 			udelay(10);
- 			reg = SMC_GET_RX_DP_CTRL() & RX_DP_CTRL_FFWD_BUSY_;
--		} while ( --timeout && reg);
-+		} while (--timeout && reg);
- 		if (timeout == 0) {
- 			PRINTK("%s: timeout waiting for RX fast forward\n", dev->name);
- 		}
+ 
+@@ -113,13 +117,13 @@ static int set_bluetooth_state(int state
+ 
+ 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
+ 
+-	if ((result & 0x10) == 0)
++	if ((result & KILLSWITCH_MASK) == 0)
+ 		return -EINVAL;
+ 	else {
+ 		if (state)
+-			value = (u8) (result | 0x02);
++			value = (u8) (result | BT_MASK);
+ 		else
+-			value = (u8) (result & 0xFD);
++			value = (u8) (result & ~BT_MASK);
+ 		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
+ 	}
+ 
+@@ -133,17 +137,17 @@ static int get_wireless_state(int *wlan,
+ 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
+ 
+ 	if (wlan) {
+-		if ((result & 0x10) == 0)
++		if ((result & KILLSWITCH_MASK) == 0)
+ 			*wlan = 0;
+ 		else
+-			*wlan = result & 0x01;
++			*wlan = result & WLAN_MASK;
+ 	}
+ 
+ 	if (bluetooth) {
+-		if ((result & 0x10) == 0)
++		if ((result & KILLSWITCH_MASK) == 0)
+ 			*bluetooth = 0;
+ 		else
+-			*bluetooth = (result >> 1) & 0x01;
++			*bluetooth = (result & BT_MASK) >> 1;
+ 	}
+ 
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cezary.jackiewicz@gmail.com are
 
-disable-the-memory-controller-by-default-v3-fix.patch
-hotplug-memory-make-online_page-common-fix.patch
-revert-set-relay-file-can-not-be-read-by-pread2.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86.patch
-arch-x86-mm-ioremapc-fix-printk-warnings.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-arch-x86-video-fbdevc-add-module_license.patch
-x86-ptrace-pebs-support-warning-fix.patch
-git-kgdb-light.patch
-git-x86-hack-around-to-make-git-kgdb-build.patch
-git-x86-vs-git-kgdb-lite.patch
-git-alsa-tiwai.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-git-arm-fix.patch
-cifs-suppress-warning.patch
-git-powerpc.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-git-drm.patch
-revert-git-drm.patch
-git-dvb.patch
-git-dvb-kconfig-fix.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-dlm-vs-git-gfs2-nwm.patch
-git-hid.patch
-git-hrt.patch
-time-close-small-window-for-vsyscall-time-inconsistencies.patch
-git-ia64.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
-git-input.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-leds.patch
-git-libata-all.patch
-pata_atiixp-simplex-clear.patch
-git-async-tx.patch
-git-mips.patch
-git-net.patch
-ehea-fix-dlpar-memory-add-support-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-net-drivers-fix-platform-driver-hotplug-coldplug.patch
-smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt.patch
-smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-s390.patch
-git-sched.patch
-add-rcu_assign_index-if-ever-needed.patch
-git-sh.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-platform-driver-hotplug-coldplug-sgiwd93-fix.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
-uwb-seems-to-need-pci.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-git-xfs-fixups.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-misplaced-hunk.patch
-git-cryptodev-fix-conflict.patch
-git-cryptodev-fix-conflict-hack.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-semaphore-git-rejects.patch
-ext4-is-busted-on-m68k.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-drivers-video-uvesafbc-fix-error-path-memory-leak.patch
-fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
-drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
-x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
-x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
-drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework-fix-2.patch
-tty-the-big-operations-rework-isicom-fix.patch
-tty-the-big-operations-rework-simserial-fix.patch
-tty-the-big-operations-rework-vs-git-kgdb-light.patch
-tty-the-big-operations-rework-vs-kgdb-2.patch
-devpts-factor-out-pty-index-allocation-fix.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
-relayfs-support-larger-relay-buffer-take-3-cleanup.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+miscacpibacklight-compal-laptop-extras-3rd-try.patch
+miscacpibacklight-compal-laptop-extras-use-bitmask-not-hex.patch
+miscacpibacklight-compal-laptop-extras-add-support-for-new-laptops.patch
 
