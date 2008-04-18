@@ -1,711 +1,263 @@
 From: akpm@linux-foundation.org
-Subject: + tty-the-big-operations-rework-broke-wan-x25_asy-fix.patch added to -mm tree
-Date: Fri, 18 Apr 2008 03:55:15 -0700
-Message-ID: <200804181055.m3IAtFcn024427@imap1.linux-foundation.org>
+Subject: - tty-the-big-operations-rework-broke-wan.patch removed from -mm tree
+Date: Fri, 18 Apr 2008 03:55:02 -0700
+Message-ID: <200804181055.m3IAt28E024424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50185 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54306 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751227AbYDRKzo (ORCPT
+	by vger.kernel.org with ESMTP id S1751071AbYDRKzL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 06:55:44 -0400
+	Fri, 18 Apr 2008 06:55:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty-the-big-operations-rework-broke-wan x25_asy fix
-has been added to the -mm tree.  Its filename is
-     tty-the-big-operations-rework-broke-wan-x25_asy-fix.patch
+     tty-the-big-operations-rework broke WAN
+has been removed from the -mm tree.  Its filename was
+     tty-the-big-operations-rework-broke-wan.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty-the-big-operations-rework-broke-wan x25_asy fix
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: tty-the-big-operations-rework broke WAN
+From: Andrew Morton <akpm@linux-foundation.org>
 
-- Coding Style
-- Correct printks
-- Printk levels
-- Switch to ->ops
+too lazy to fix it.
 
-Replaces Andrews && BROKEN quick fix
-
-Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wan/x25_asy.c |  277 +++++++++++++++++-------------------
- 1 file changed, 134 insertions(+), 143 deletions(-)
+ drivers/net/wan/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/wan/x25_asy.c~tty-the-big-operations-rework-broke-wan-x25_asy-fix drivers/net/wan/x25_asy.c
---- a/drivers/net/wan/x25_asy.c~tty-the-big-operations-rework-broke-wan-x25_asy-fix
-+++ a/drivers/net/wan/x25_asy.c
-@@ -17,7 +17,7 @@
- #include <linux/module.h>
- 
- #include <asm/system.h>
--#include <asm/uaccess.h>
-+#include <linux/uaccess.h>
- #include <linux/bitops.h>
- #include <linux/string.h>
- #include <linux/mm.h>
-@@ -95,7 +95,7 @@ static struct x25_asy *x25_asy_alloc(voi
- 			x25_asy_devs[i] = dev;
- 			return sl;
- 		} else {
--			printk("x25_asy_alloc() - register_netdev() failure.\n");
-+			printk(KERN_WARNING "x25_asy_alloc() - register_netdev() failure.\n");
- 			free_netdev(dev);
- 		}
- 	}
-@@ -112,23 +112,22 @@ static void x25_asy_free(struct x25_asy 
- 	kfree(sl->xbuff);
- 	sl->xbuff = NULL;
- 
--	if (!test_and_clear_bit(SLF_INUSE, &sl->flags)) {
--		printk("%s: x25_asy_free for already free unit.\n", sl->dev->name);
--	}
-+	if (!test_and_clear_bit(SLF_INUSE, &sl->flags))
-+		printk(KERN_ERR "%s: x25_asy_free for already free unit.\n",
-+			sl->dev->name);
- }
- 
- static int x25_asy_change_mtu(struct net_device *dev, int newmtu)
- {
- 	struct x25_asy *sl = dev->priv;
- 	unsigned char *xbuff, *rbuff;
--	int len = 2* newmtu;
-+	int len = 2 * newmtu;
- 
- 	xbuff = kmalloc(len + 4, GFP_ATOMIC);
- 	rbuff = kmalloc(len + 4, GFP_ATOMIC);
- 
--	if (xbuff == NULL || rbuff == NULL)  
--	{
--		printk("%s: unable to grow X.25 buffers, MTU change cancelled.\n",
-+	if (xbuff == NULL || rbuff == NULL) {
-+		printk(KERN_WARNING "%s: unable to grow X.25 buffers, MTU change cancelled.\n",
- 		       dev->name);
- 		kfree(xbuff);
- 		kfree(rbuff);
-@@ -193,25 +192,23 @@ static void x25_asy_bump(struct x25_asy 
- 	int err;
- 
- 	count = sl->rcount;
--	sl->stats.rx_bytes+=count;
--	
-+	sl->stats.rx_bytes += count;
-+
- 	skb = dev_alloc_skb(count+1);
--	if (skb == NULL)  
--	{
--		printk("%s: memory squeeze, dropping packet.\n", sl->dev->name);
-+	if (skb == NULL) {
-+		printk(KERN_WARNING "%s: memory squeeze, dropping packet.\n",
-+			sl->dev->name);
- 		sl->stats.rx_dropped++;
- 		return;
- 	}
--	skb_push(skb,1);	/* LAPB internal control */
--	memcpy(skb_put(skb,count), sl->rbuff, count);
-+	skb_push(skb, 1);	/* LAPB internal control */
-+	memcpy(skb_put(skb, count), sl->rbuff, count);
- 	skb->protocol = x25_type_trans(skb, sl->dev);
--	if((err=lapb_data_received(skb->dev, skb))!=LAPB_OK)
--	{
-+	err = lapb_data_received(skb->dev, skb);
-+	if (err != LAPB_OK) {
- 		kfree_skb(skb);
--		printk(KERN_DEBUG "x25_asy: data received err - %d\n",err);
--	}
--	else
--	{
-+		printk(KERN_DEBUG "x25_asy: data received err - %d\n", err);
-+	} else {
- 		netif_rx(skb);
- 		sl->dev->last_rx = jiffies;
- 		sl->stats.rx_packets++;
-@@ -224,10 +221,11 @@ static void x25_asy_encaps(struct x25_as
- 	unsigned char *p;
- 	int actual, count, mtu = sl->dev->mtu;
- 
--	if (len > mtu) 
--	{		/* Sigh, shouldn't occur BUT ... */
-+	if (len > mtu) {
-+		/* Sigh, shouldn't occur BUT ... */
- 		len = mtu;
--		printk ("%s: truncating oversized transmit packet!\n", sl->dev->name);
-+		printk(KERN_DEBUG "%s: truncating oversized transmit packet!\n",
-+					sl->dev->name);
- 		sl->stats.tx_dropped++;
- 		x25_asy_unlock(sl);
- 		return;
-@@ -245,7 +243,7 @@ static void x25_asy_encaps(struct x25_as
- 	 *       14 Oct 1994  Dmitry Gorodchanin.
- 	 */
- 	sl->tty->flags |= (1 << TTY_DO_WRITE_WAKEUP);
--	actual = sl->tty->driver->write(sl->tty, sl->xbuff, count);
-+	actual = sl->tty->ops->write(sl->tty, sl->xbuff, count);
- 	sl->xleft = count - actual;
- 	sl->xhead = sl->xbuff + actual;
- 	/* VSV */
-@@ -265,8 +263,7 @@ static void x25_asy_write_wakeup(struct 
- 	if (!sl || sl->magic != X25_ASY_MAGIC || !netif_running(sl->dev))
- 		return;
- 
--	if (sl->xleft <= 0)  
--	{
-+	if (sl->xleft <= 0) {
- 		/* Now serial buffer is almost free & we can start
- 		 * transmission of another packet */
- 		sl->stats.tx_packets++;
-@@ -275,14 +272,14 @@ static void x25_asy_write_wakeup(struct 
- 		return;
- 	}
- 
--	actual = tty->driver->write(tty, sl->xhead, sl->xleft);
-+	actual = tty->ops->write(tty, sl->xhead, sl->xleft);
- 	sl->xleft -= actual;
- 	sl->xhead += actual;
- }
- 
- static void x25_asy_timeout(struct net_device *dev)
- {
--	struct x25_asy *sl = (struct x25_asy*)(dev->priv);
-+	struct x25_asy *sl = dev->priv;
- 
- 	spin_lock(&sl->lock);
- 	if (netif_queue_stopped(dev)) {
-@@ -290,7 +287,7 @@ static void x25_asy_timeout(struct net_d
- 		 *      14 Oct 1994 Dmitry Gorodchanin.
- 		 */
- 		printk(KERN_WARNING "%s: transmit timed out, %s?\n", dev->name,
--		       (sl->tty->driver->chars_in_buffer(sl->tty) || sl->xleft) ?
-+		       (tty_chars_in_buffer(sl->tty) || sl->xleft) ?
- 		       "bad line quality" : "driver error");
- 		sl->xleft = 0;
- 		sl->tty->flags &= ~(1 << TTY_DO_WRITE_WAKEUP);
-@@ -303,31 +300,34 @@ static void x25_asy_timeout(struct net_d
- 
- static int x25_asy_xmit(struct sk_buff *skb, struct net_device *dev)
- {
--	struct x25_asy *sl = (struct x25_asy*)(dev->priv);
-+	struct x25_asy *sl = dev->priv;
- 	int err;
- 
- 	if (!netif_running(sl->dev)) {
--		printk("%s: xmit call when iface is down\n", dev->name);
-+		printk(KERN_ERR "%s: xmit call when iface is down\n",
-+			dev->name);
- 		kfree_skb(skb);
- 		return 0;
- 	}
--	
--	switch(skb->data[0])
--	{
--		case 0x00:break;
--		case 0x01: /* Connection request .. do nothing */
--			if((err=lapb_connect_request(dev))!=LAPB_OK)
--				printk(KERN_ERR "x25_asy: lapb_connect_request error - %d\n", err);
--			kfree_skb(skb);
--			return 0;
--		case 0x02: /* Disconnect request .. do nothing - hang up ?? */
--			if((err=lapb_disconnect_request(dev))!=LAPB_OK)
--				printk(KERN_ERR "x25_asy: lapb_disconnect_request error - %d\n", err);
--		default:
--			kfree_skb(skb);
--			return  0;
-+
-+	switch (skb->data[0]) {
-+	case 0x00:
-+		break;
-+	case 0x01: /* Connection request .. do nothing */
-+		err = lapb_connect_request(dev);
-+		if (err != LAPB_OK)
-+			printk(KERN_ERR "x25_asy: lapb_connect_request error - %d\n", err);
-+		kfree_skb(skb);
-+		return 0;
-+	case 0x02: /* Disconnect request .. do nothing - hang up ?? */
-+		err = lapb_disconnect_request(dev);
-+		if (err != LAPB_OK)
-+			printk(KERN_ERR "x25_asy: lapb_disconnect_request error - %d\n", err);
-+	default:
-+		kfree_skb(skb);
-+		return  0;
- 	}
--	skb_pull(skb,1);	/* Remove control byte */
-+	skb_pull(skb, 1);	/* Remove control byte */
- 	/*
- 	 * If we are busy already- too bad.  We ought to be able
- 	 * to queue things at this point, to allow for a little
-@@ -338,10 +338,10 @@ static int x25_asy_xmit(struct sk_buff *
- 	 * So, no queues !
- 	 *        14 Oct 1994  Dmitry Gorodchanin.
- 	 */
--	
--	if((err=lapb_data_request(dev,skb))!=LAPB_OK)
--	{
--		printk(KERN_ERR "lapbeth: lapb_data_request error - %d\n", err);
-+
-+	err = lapb_data_request(dev, skb);
-+	if (err != LAPB_OK) {
-+		printk(KERN_ERR "x25_asy: lapb_data_request error - %d\n", err);
- 		kfree_skb(skb);
- 		return 0;
- 	}
-@@ -357,7 +357,7 @@ static int x25_asy_xmit(struct sk_buff *
-  *	Called when I frame data arrives. We did the work above - throw it
-  *	at the net layer.
-  */
--  
-+
- static int x25_asy_data_indication(struct net_device *dev, struct sk_buff *skb)
- {
- 	skb->dev->last_rx = jiffies;
-@@ -369,24 +369,22 @@ static int x25_asy_data_indication(struc
-  *	busy cases too well. Its tricky to see how to do this nicely -
-  *	perhaps lapb should allow us to bounce this ?
-  */
-- 
-+
- static void x25_asy_data_transmit(struct net_device *dev, struct sk_buff *skb)
- {
--	struct x25_asy *sl=dev->priv;
--	
-+	struct x25_asy *sl = dev->priv;
-+
- 	spin_lock(&sl->lock);
--	if (netif_queue_stopped(sl->dev) || sl->tty == NULL)
--	{
-+	if (netif_queue_stopped(sl->dev) || sl->tty == NULL) {
- 		spin_unlock(&sl->lock);
- 		printk(KERN_ERR "x25_asy: tbusy drop\n");
- 		kfree_skb(skb);
- 		return;
- 	}
- 	/* We were not busy, so we are now... :-) */
--	if (skb != NULL) 
--	{
-+	if (skb != NULL) {
- 		x25_asy_lock(sl);
--		sl->stats.tx_bytes+=skb->len;
-+		sl->stats.tx_bytes += skb->len;
- 		x25_asy_encaps(sl, skb->data, skb->len);
- 		dev_kfree_skb(skb);
- 	}
-@@ -396,15 +394,16 @@ static void x25_asy_data_transmit(struct
- /*
-  *	LAPB connection establish/down information.
-  */
-- 
-+
- static void x25_asy_connected(struct net_device *dev, int reason)
- {
- 	struct x25_asy *sl = dev->priv;
- 	struct sk_buff *skb;
- 	unsigned char *ptr;
- 
--	if ((skb = dev_alloc_skb(1)) == NULL) {
--		printk(KERN_ERR "lapbeth: out of memory\n");
-+	skb = dev_alloc_skb(1);
-+	if (skb == NULL) {
-+		printk(KERN_ERR "x25_asy: out of memory\n");
- 		return;
- 	}
- 
-@@ -422,7 +421,8 @@ static void x25_asy_disconnected(struct 
- 	struct sk_buff *skb;
- 	unsigned char *ptr;
- 
--	if ((skb = dev_alloc_skb(1)) == NULL) {
-+	skb = dev_alloc_skb(1);
-+	if (skb == NULL) {
- 		printk(KERN_ERR "x25_asy: out of memory\n");
- 		return;
- 	}
-@@ -449,7 +449,7 @@ static struct lapb_register_struct x25_a
- /* Open the low-level part of the X.25 channel. Easy! */
- static int x25_asy_open(struct net_device *dev)
- {
--	struct x25_asy *sl = (struct x25_asy*)(dev->priv);
-+	struct x25_asy *sl = dev->priv;
- 	unsigned long len;
- 	int err;
- 
-@@ -466,13 +466,11 @@ static int x25_asy_open(struct net_devic
- 	len = dev->mtu * 2;
- 
- 	sl->rbuff = kmalloc(len + 4, GFP_KERNEL);
--	if (sl->rbuff == NULL)   {
-+	if (sl->rbuff == NULL)
- 		goto norbuff;
--	}
- 	sl->xbuff = kmalloc(len + 4, GFP_KERNEL);
--	if (sl->xbuff == NULL)   {
-+	if (sl->xbuff == NULL)
- 		goto noxbuff;
--	}
- 
- 	sl->buffsize = len;
- 	sl->rcount   = 0;
-@@ -480,11 +478,12 @@ static int x25_asy_open(struct net_devic
- 	sl->flags   &= (1 << SLF_INUSE);      /* Clear ESCAPE & ERROR flags */
- 
- 	netif_start_queue(dev);
--			
-+
- 	/*
- 	 *	Now attach LAPB
- 	 */
--	if((err=lapb_register(dev, &x25_asy_callbacks))==LAPB_OK)
-+	err = lapb_register(dev, &x25_asy_callbacks);
-+	if (err == LAPB_OK)
- 		return 0;
- 
- 	/* Cleanup */
-@@ -499,18 +498,20 @@ norbuff:
- /* Close the low-level part of the X.25 channel. Easy! */
- static int x25_asy_close(struct net_device *dev)
- {
--	struct x25_asy *sl = (struct x25_asy*)(dev->priv);
-+	struct x25_asy *sl = dev->priv;
- 	int err;
- 
- 	spin_lock(&sl->lock);
--	if (sl->tty) 
-+	if (sl->tty)
- 		sl->tty->flags &= ~(1 << TTY_DO_WRITE_WAKEUP);
- 
- 	netif_stop_queue(dev);
- 	sl->rcount = 0;
- 	sl->xleft  = 0;
--	if((err=lapb_unregister(dev))!=LAPB_OK)
--		printk(KERN_ERR "x25_asy_close: lapb_unregister error -%d\n",err);
-+	err = lapb_unregister(dev);
-+	if (err != LAPB_OK)
-+		printk(KERN_ERR "x25_asy_close: lapb_unregister error -%d\n",
-+			err);
- 	spin_unlock(&sl->lock);
- 	return 0;
- }
-@@ -521,8 +522,9 @@ static int x25_asy_close(struct net_devi
-  * a block of X.25 data has been received, which can now be decapsulated
-  * and sent on to some IP layer for further processing.
-  */
-- 
--static void x25_asy_receive_buf(struct tty_struct *tty, const unsigned char *cp, char *fp, int count)
-+
-+static void x25_asy_receive_buf(struct tty_struct *tty,
-+				const unsigned char *cp, char *fp, int count)
- {
- 	struct x25_asy *sl = (struct x25_asy *) tty->disc_data;
- 
-@@ -533,9 +535,8 @@ static void x25_asy_receive_buf(struct t
- 	/* Read the characters out of the buffer */
- 	while (count--) {
- 		if (fp && *fp++) {
--			if (!test_and_set_bit(SLF_ERROR, &sl->flags))  {
-+			if (!test_and_set_bit(SLF_ERROR, &sl->flags))
- 				sl->stats.rx_errors++;
--			}
- 			cp++;
- 			continue;
- 		}
-@@ -556,31 +557,31 @@ static int x25_asy_open_tty(struct tty_s
- 	struct x25_asy *sl = (struct x25_asy *) tty->disc_data;
- 	int err;
- 
-+	if (tty->ops->write == NULL)
-+		return -EOPNOTSUPP;
-+
- 	/* First make sure we're not already connected. */
--	if (sl && sl->magic == X25_ASY_MAGIC) {
-+	if (sl && sl->magic == X25_ASY_MAGIC)
- 		return -EEXIST;
--	}
- 
- 	/* OK.  Find a free X.25 channel to use. */
--	if ((sl = x25_asy_alloc()) == NULL) {
-+	sl = x25_asy_alloc();
-+	if (sl == NULL)
- 		return -ENFILE;
--	}
- 
- 	sl->tty = tty;
- 	tty->disc_data = sl;
- 	tty->receive_room = 65536;
--	if (tty->driver->flush_buffer)  {
--		tty->driver->flush_buffer(tty);
--	}
-+	tty_driver_flush_buffer(tty);
- 	tty_ldisc_flush(tty);
- 
- 	/* Restore default settings */
- 	sl->dev->type = ARPHRD_X25;
--	
-+
- 	/* Perform the low-level X.25 async init */
--	if ((err = x25_asy_open(sl->dev)))
-+	err = x25_asy_open(sl->dev);
-+	if (err)
- 		return err;
--
- 	/* Done.  We have linked the TTY line to a channel. */
- 	return sl->dev->base_addr;
- }
-@@ -601,9 +602,7 @@ static void x25_asy_close_tty(struct tty
- 		return;
- 
- 	if (sl->dev->flags & IFF_UP)
--	{
--		(void) dev_close(sl->dev);
--	}
-+		dev_close(sl->dev);
- 
- 	tty->disc_data = NULL;
- 	sl->tty = NULL;
-@@ -613,8 +612,7 @@ static void x25_asy_close_tty(struct tty
- 
- static struct net_device_stats *x25_asy_get_stats(struct net_device *dev)
- {
--	struct x25_asy *sl = (struct x25_asy*)(dev->priv);
--
-+	struct x25_asy *sl = dev->priv;
- 	return &sl->stats;
- }
- 
-@@ -641,21 +639,19 @@ int x25_asy_esc(unsigned char *s, unsign
- 	 * character sequence, according to the X.25 protocol.
- 	 */
- 
--	while (len-- > 0) 
--	{
--		switch(c = *s++) 
--		{
--			case X25_END:
--				*ptr++ = X25_ESC;
--				*ptr++ = X25_ESCAPE(X25_END);
--				break;
--			case X25_ESC:
--				*ptr++ = X25_ESC;
--				*ptr++ = X25_ESCAPE(X25_ESC);
--				break;
--			 default:
--				*ptr++ = c;
--				break;
-+	while (len-- > 0) {
-+		switch (c = *s++) {
-+		case X25_END:
-+			*ptr++ = X25_ESC;
-+			*ptr++ = X25_ESCAPE(X25_END);
-+			break;
-+		case X25_ESC:
-+			*ptr++ = X25_ESC;
-+			*ptr++ = X25_ESCAPE(X25_ESC);
-+			break;
-+		default:
-+			*ptr++ = c;
-+			break;
- 		}
- 	}
- 	*ptr++ = X25_END;
-@@ -665,31 +661,25 @@ int x25_asy_esc(unsigned char *s, unsign
- static void x25_asy_unesc(struct x25_asy *sl, unsigned char s)
- {
- 
--	switch(s) 
--	{
--		case X25_END:
--			if (!test_and_clear_bit(SLF_ERROR, &sl->flags) && (sl->rcount > 2))  
--			{
--				x25_asy_bump(sl);
--			}
--			clear_bit(SLF_ESCAPE, &sl->flags);
--			sl->rcount = 0;
--			return;
--
--		case X25_ESC:
--			set_bit(SLF_ESCAPE, &sl->flags);
--			return;
--			
--		case X25_ESCAPE(X25_ESC):
--		case X25_ESCAPE(X25_END):
--			if (test_and_clear_bit(SLF_ESCAPE, &sl->flags))
--				s = X25_UNESCAPE(s);
--			break;
-+	switch (s) {
-+	case X25_END:
-+		if (!test_and_clear_bit(SLF_ERROR, &sl->flags)
-+			&& sl->rcount > 2)
-+			x25_asy_bump(sl);
-+		clear_bit(SLF_ESCAPE, &sl->flags);
-+		sl->rcount = 0;
-+		return;
-+	case X25_ESC:
-+		set_bit(SLF_ESCAPE, &sl->flags);
-+		return;
-+	case X25_ESCAPE(X25_ESC):
-+	case X25_ESCAPE(X25_END):
-+		if (test_and_clear_bit(SLF_ESCAPE, &sl->flags))
-+			s = X25_UNESCAPE(s);
-+		break;
- 	}
--	if (!test_bit(SLF_ERROR, &sl->flags))  
--	{
--		if (sl->rcount < sl->buffsize)  
--		{
-+	if (!test_bit(SLF_ERROR, &sl->flags)) {
-+		if (sl->rcount < sl->buffsize) {
- 			sl->rbuff[sl->rcount++] = s;
- 			return;
- 		}
-@@ -709,7 +699,7 @@ static int x25_asy_ioctl(struct tty_stru
- 	if (!sl || sl->magic != X25_ASY_MAGIC)
- 		return -EINVAL;
- 
--	switch(cmd) {
-+	switch (cmd) {
- 	case SIOCGIFNAME:
- 		if (copy_to_user((void __user *)arg, sl->dev->name,
- 					strlen(sl->dev->name) + 1))
-@@ -724,8 +714,8 @@ static int x25_asy_ioctl(struct tty_stru
- 
- static int x25_asy_open_dev(struct net_device *dev)
- {
--	struct x25_asy *sl = (struct x25_asy*)(dev->priv);
--	if(sl->tty==NULL)
-+	struct x25_asy *sl = dev->priv;
-+	if (sl->tty == NULL)
- 		return -ENODEV;
- 	return 0;
- }
-@@ -741,9 +731,9 @@ static void x25_asy_setup(struct net_dev
- 	set_bit(SLF_INUSE, &sl->flags);
- 
- 	/*
--	 *	Finish setting up the DEVICE info. 
-+	 *	Finish setting up the DEVICE info.
- 	 */
--	 
-+
- 	dev->mtu		= SL_MTU;
- 	dev->hard_start_xmit	= x25_asy_xmit;
- 	dev->tx_timeout		= x25_asy_timeout;
-@@ -778,9 +768,10 @@ static int __init init_x25_asy(void)
- 		x25_asy_maxdev = 4; /* Sanity */
- 
- 	printk(KERN_INFO "X.25 async: version 0.00 ALPHA "
--			"(dynamic channels, max=%d).\n", x25_asy_maxdev );
-+			"(dynamic channels, max=%d).\n", x25_asy_maxdev);
- 
--	x25_asy_devs = kcalloc(x25_asy_maxdev, sizeof(struct net_device*), GFP_KERNEL);
-+	x25_asy_devs = kcalloc(x25_asy_maxdev, sizeof(struct net_device *),
-+				GFP_KERNEL);
- 	if (!x25_asy_devs) {
- 		printk(KERN_WARNING "X25 async: Can't allocate x25_asy_ctrls[] "
- 				"array! Uaargh! (-> No X.25 available)\n");
-@@ -802,7 +793,7 @@ static void __exit exit_x25_asy(void)
- 			struct x25_asy *sl = dev->priv;
- 
- 			spin_lock_bh(&sl->lock);
--			if (sl->tty) 
-+			if (sl->tty)
- 				tty_hangup(sl->tty);
- 
- 			spin_unlock_bh(&sl->lock);
+diff -puN drivers/net/wan/Kconfig~tty-the-big-operations-rework-broke-wan drivers/net/wan/Kconfig
+--- a/drivers/net/wan/Kconfig~tty-the-big-operations-rework-broke-wan
++++ a/drivers/net/wan/Kconfig
+@@ -458,6 +458,7 @@ config LAPBETHER
+ config X25_ASY
+ 	tristate "X.25 async driver (EXPERIMENTAL)"
+ 	depends on LAPB && X25
++	depends on BROKEN
+ 	---help---
+ 	  Send and receive X.25 frames over regular asynchronous serial
+ 	  lines such as telephone lines equipped with ordinary modems.
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+disable-the-memory-controller-by-default-v3-fix.patch
+hotplug-memory-make-online_page-common-fix.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86.patch
+arch-x86-mm-ioremapc-fix-printk-warnings.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+x86-ptrace-pebs-support-warning-fix.patch
+arch-x86-video-fbdevc-add-module_license.patch
+git-kgdb-light.patch
+git-x86-hack-around-to-make-git-kgdb-build.patch
+git-x86-vs-git-kgdb-lite.patch
+git-alsa-tiwai.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+git-arm-fix.patch
+cifs-suppress-warning.patch
+git-powerpc.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+git-drm.patch
+revert-git-drm.patch
+git-dvb.patch
+git-dvb-kconfig-fix.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-dlm-vs-git-gfs2-nwm.patch
+git-hid.patch
+git-hrt.patch
+time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
+git-ia64.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
+git-input.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-leds.patch
 git-libata-all.patch
-pata_atiixp-simplex-clear.patch
 pata_atiixp-simplex-clear-fix.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core-fix.patch
-parisc-new-termios-definitions.patch
-crisv10-prepare-for-bkl-push-down.patch
-fix-tty-speed-handling-on-8250.patch
-uart_get_baud_rate-stop-mangling-termios.patch
-serial-8250-tighten-test-for-using-backup-timer.patch
-x86-geode-add-virtual-systems-architecture-detection.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-amiserial-prepare-for-locking-relaxation-in-caller.patch
-cyclades-prepare-for-relaxed-locking-in-callers.patch
-epca-lock_kernel-push-down.patch
-esp-lock_kernel-push-down.patch
-isicom-prepare-for-lock_kernel-push-down.patch
-isicom-istallion-prepare-for-lock_kernel-pushdown.patch
-mxser-prepare-for-bkl-pushdown.patch
-riscom8-prepare-for-bkl-pushdown.patch
-rocket-prepare-for-bkl-pushdown.patch
-serial167-prepare-to-push-bkl-down-into-drivers.patch
-specialix-prepare-for-bkl-pushdown.patch
-stallion-prepare-for-bkl-push-down.patch
-sx-prepare-for-bkl-pushdown.patch
-synclink-series-prepare-for-bkl-pushdown.patch
-viocons-bkl-locking.patch
-vt_ioctl-prepare-for-bkl-push-down.patch
-isdn_tty-prepare-for-bkl-push-down.patch
-68360serial-note-that-there-isnt-any-info-mcr-locking.patch
-serial_core-prepare-for-bkl-push-down.patch
-tty-bkl-pushdown.patch
-tty-bkl-pushdown-fix1.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-tty_ioctl-locking-for-tty_wait_until_sent.patch
-tty_ioctl-soft-carrier-handling.patch
-tty-drop-the-bkl-for-driver-ldisc-ioctl-methods.patch
+git-async-tx.patch
+git-mips.patch
+git-net.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+ehea-fix-dlpar-memory-add-support-fix.patch
+sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
+net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix.patch
+smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-s390.patch
+git-sched.patch
+add-rcu_assign_index-if-ever-needed.patch
+git-sh.patch
+git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-fix-platform-driver-hotplug-coldplug-sgiwd93-fix.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
+fix-gregkh-usb-usb-hcds-use-the-do_remote_wakeup-flag.patch
+uwb-seems-to-need-pci.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+git-xfs-fixups.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-misplaced-hunk.patch
+git-cryptodev-fix-conflict.patch
+git-cryptodev-fix-conflict-hack.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+git-semaphore-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+mm-introduce-pte_special-pte-bit-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+drivers-video-uvesafbc-fix-error-path-memory-leak.patch
+fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
+drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
+x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
+x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
+drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+fat_valid_media-remove-pointless-test.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
 sxc-fix-printk-warnings-on-sparc32.patch
-istallion-tiocg-ssoftcar-handling-removal.patch
-tty-serial-lay-the-foundations-for-the-next-set-of-reworks.patch
-s390-tty-prepare-for-put_char-to-return-success-fail.patch
-serial-m68k-put_char-returns.patch
-usb-gadget-switch-to-put_char-returning-int.patch
-amiserial-switch-put-char-to-return-success-fail.patch
-char-switch-gs-cyclades-and-esp-to-return-int-for-put_char.patch
-mxser-switch-to-put_char-being-int.patch
-pcmcia-serial-to-int-put_char-method.patch
-riscom-rocket-switch-to-int-put_char-method.patch
-serial167-switch-to-int-put_char-method.patch
-specialix-switch-to-int-put_char-method.patch
-synclink-series-switch-to-int-put_char-method.patch
-consoles-switch-to-int-put_char-method.patch
-isdn-switch-to-int-put_char-method.patch
-pty-prepare-for-tty-ops-changes.patch
-pc300-update-to-tty_set_operations.patch
-serial-switch-the-serial-core-to-int-put_char-methods.patch
-isicom-bring-into-coding-style.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
 isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework.patch
-tty-the-big-operations-rework-broke-wan-x25_asy-fix.patch
 tty-the-big-operations-rework-fix-2.patch
 tty-the-big-operations-rework-isicom-fix.patch
 tty-the-big-operations-rework-simserial-fix.patch
-strip-fix-up-strip-for-the-new-order.patch
 tty-the-big-operations-rework-vs-git-kgdb-light.patch
 tty-the-big-operations-rework-vs-kgdb-2.patch
-proc-convert-proc-tty-ldiscs-to-seq_file-interface.patch
-edac-new-support-for-intel-3100-chipset.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection.patch
+tty-the-big-operations-rework-broke-wan.patch
+devpts-factor-out-pty-index-allocation-fix.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
 edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-edac-remove-unneeded-functions-and-add-static-accessor.patch
-edac-fix-module-initialization-on-several-modules-2nd-time.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
+relayfs-support-larger-relay-buffer-take-3-cleanup.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
 
