@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-fix-platform-driver-hotplug-coldplug-sgiwd93-fix.patch added to -mm tree
-Date: Thu, 17 Apr 2008 22:26:30 -0700
-Message-ID: <200804180536.m3I5axEo013237@imap1.linux-foundation.org>
+Subject: + net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix.patch added to -mm tree
+Date: Thu, 17 Apr 2008 22:27:34 -0700
+Message-ID: <200804180538.m3I5c3YB013259@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47581 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35274 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751375AbYDRFhl (ORCPT
+	by vger.kernel.org with ESMTP id S1751440AbYDRFis (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 01:37:41 -0400
+	Fri, 18 Apr 2008 01:38:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, dbrownell@users.sourceforge.net, kay.sievers@vrfy.org
+Cc: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, jeff@garzik.org, kay.sievers@vrfy.org
 
 
 The patch titled
-     scsi-fix-platform-driver-hotplug-coldplug-sgiwd93-fix
+     net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix
 has been added to the -mm tree.  Its filename is
-     scsi-fix-platform-driver-hotplug-coldplug-sgiwd93-fix.patch
+     net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,27 +34,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi-fix-platform-driver-hotplug-coldplug-sgiwd93-fix
+Subject: net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sgiwd93.c |    2 +-
+ drivers/net/sgiseeq.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/sgiwd93.c~scsi-fix-platform-driver-hotplug-coldplug-sgiwd93-fix drivers/scsi/sgiwd93.c
---- a/drivers/scsi/sgiwd93.c~scsi-fix-platform-driver-hotplug-coldplug-sgiwd93-fix
-+++ a/drivers/scsi/sgiwd93.c
-@@ -313,7 +313,7 @@ static struct platform_driver sgiwd93_dr
- 	.probe  = sgiwd93_probe,
- 	.remove = __devexit_p(sgiwd93_remove),
+diff -puN drivers/net/sgiseeq.c~net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix drivers/net/sgiseeq.c
+--- a/drivers/net/sgiseeq.c~net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix
++++ a/drivers/net/sgiseeq.c
+@@ -825,7 +825,7 @@ static struct platform_driver sgiseeq_dr
+ 	.probe	= sgiseeq_probe,
+ 	.remove	= __devexit_p(sgiseeq_remove),
  	.driver = {
--		.name   = "sgiwd93"
-+		.name   = "sgiwd93",
+-		.name	= "sgiseeq"
++		.name	= "sgiseeq",
  		.owner	= THIS_MODULE,
  	}
  };
@@ -110,6 +110,7 @@ drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 ehea-fix-dlpar-memory-add-support-fix.patch
 sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
+net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix.patch
 smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
