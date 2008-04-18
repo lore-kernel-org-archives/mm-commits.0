@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch added to -mm tree
-Date: Thu, 17 Apr 2008 21:04:36 -0700
-Message-ID: <200804180415.m3I4F505010490@imap1.linux-foundation.org>
+Subject: + fix-gregkh-usb-usb-hcds-use-the-do_remote_wakeup-flag.patch added to -mm tree
+Date: Thu, 17 Apr 2008 21:05:18 -0700
+Message-ID: <200804180415.m3I4FkkD010503@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48427 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33549 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750722AbYDREPT (ORCPT
+	by vger.kernel.org with ESMTP id S1750773AbYDREPw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 00:15:19 -0400
+	Fri, 18 Apr 2008 00:15:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, gregkh@suse.de, inaky.perez-gonzalez@intel.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, stern@rowland.harvard.edu
 
 
 The patch titled
-     fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux
+     fix gregkh-usb-usb-hcds-use-the-do_remote_wakeup-flag
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
+     fix-gregkh-usb-usb-hcds-use-the-do_remote_wakeup-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux
+Subject: fix gregkh-usb-usb-hcds-use-the-do_remote_wakeup-flag
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/uwb/umc-dev.c: In function 'umc_device_register':
-drivers/uwb/umc-dev.c:61: warning: format '%016Lx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
-drivers/uwb/umc-dev.c:61: warning: format '%016Lx' expects type 'long long unsigned int', but argument 5 has type 'resource_size_t'
+CONFIG_PM=n:
 
-We do not know what type was used for u64 hence we cannot pass it to printk.
+drivers/usb/host/ehci-hub.c:604: error: 'PORT_WAKE_BITS' undeclared (first use in this function)
+drivers/usb/host/ehci-hub.c:604: error: (Each undeclared identifier is reported only once
+drivers/usb/host/ehci-hub.c:604: error: for each function it appears in.)
 
-Cc: Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uwb/umc-dev.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/usb/host/ehci-hub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/uwb/umc-dev.c~fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux drivers/uwb/umc-dev.c
---- a/drivers/uwb/umc-dev.c~fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux
-+++ a/drivers/uwb/umc-dev.c
-@@ -60,7 +60,8 @@ int umc_device_register(struct umc_dev *
- 	if (err < 0) {
- 		dev_err(&umc->dev, "can't allocate resource range "
- 			"%016Lx to %016Lx: %d\n",
--			(u64) umc->resource.start, (u64) umc->resource.end,
-+			(unsigned long long)umc->resource.start,
-+			(unsigned long long)umc->resource.end,
- 			err);
- 		goto error_request_resource;
- 	}
+diff -puN drivers/usb/host/ehci-hub.c~fix-gregkh-usb-usb-hcds-use-the-do_remote_wakeup-flag drivers/usb/host/ehci-hub.c
+--- a/drivers/usb/host/ehci-hub.c~fix-gregkh-usb-usb-hcds-use-the-do_remote_wakeup-flag
++++ a/drivers/usb/host/ehci-hub.c
+@@ -281,6 +281,7 @@ static int ehci_bus_resume (struct usb_h
+ 
+ #define ehci_bus_suspend	NULL
+ #define ehci_bus_resume		NULL
++#define PORT_WAKE_BITS		0
+ 
+ #endif	/* CONFIG_PM */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,6 +136,7 @@ git-block-git-rejects.patch
 sparc32-export-empty_zero_page.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
 git-v9fs.patch
 git-vfs.patch
 git-watchdog.patch
@@ -271,5 +270,4 @@ profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
 fix-gregkh-usb-usb-hcds-use-the-do_remote_wakeup-flag.patch
-fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
 
