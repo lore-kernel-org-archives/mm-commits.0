@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ptrace_signal-subroutine.patch added to -mm tree
-Date: Thu, 17 Apr 2008 19:01:36 -0700
-Message-ID: <200804180201.m3I21aq8006114@imap1.linux-foundation.org>
+Subject: + sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y.patch added to -mm tree
+Date: Thu, 17 Apr 2008 19:59:22 -0700
+Message-ID: <200804180259.m3I2xMoR007908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48291 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753140AbYDRCCk (ORCPT
+	by vger.kernel.org with ESMTP id S1751302AbYDRC7y (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 22:02:40 -0400
+	Thu, 17 Apr 2008 22:59:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: roland@redhat.com, oleg@tv-sign.ru
+Cc: dan.j.williams@intel.com, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     ptrace_signal() subroutine
+     sysfs: add /sys/dev/usb to handle CONFIG_USB_DEVICE_CLASS=y
 has been added to the -mm tree.  Its filename is
-     ptrace_signal-subroutine.patch
+     sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,186 +34,103 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace_signal() subroutine
-From: Roland McGrath <roland@redhat.com>
+Subject: sysfs: add /sys/dev/usb to handle CONFIG_USB_DEVICE_CLASS=y
+From: Dan Williams <dan.j.williams@intel.com>
 
-This breaks out the ptrace handling from get_signal_to_deliver into a new
-subroutine.  The actual code there doesn't change, and it gets inlined into
-nearly identical compiled code.  This makes the function substantially shorter
-and thus easier to read, and it nicely isolates the ptrace magic.
+The deprecated config option CONFIG_USB_DEVICE_CLASS causes class devices with
+duplicate major:minor numbers to be registered.  In effect they represent a
+usb specific address space for major:minor numbers so add 'usb' as a directory
+along side 'block' and 'char'.
 
-Signed-off-by: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   71 +++++++++++++++++++++++++++-------------------
- 1 file changed, 42 insertions(+), 29 deletions(-)
+ drivers/base/core.c      |   25 +++++++++++++++++++++++--
+ drivers/usb/core/devio.c |    2 +-
+ 2 files changed, 24 insertions(+), 3 deletions(-)
 
-diff -puN kernel/signal.c~ptrace_signal-subroutine kernel/signal.c
---- a/kernel/signal.c~ptrace_signal-subroutine
-+++ a/kernel/signal.c
-@@ -1654,6 +1654,45 @@ static int do_signal_stop(int signr)
- 	return 1;
+diff -puN drivers/base/core.c~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y drivers/base/core.c
+--- a/drivers/base/core.c~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y
++++ a/drivers/base/core.c
+@@ -30,6 +30,10 @@ int (*platform_notify_remove)(struct dev
+ static struct kobject *dev_kobj;
+ static struct kobject *char_kobj;
+ static struct kobject *block_kobj;
++#ifdef CONFIG_USB_DEVICE_CLASS
++extern struct class *usb_classdev_class;
++static struct kobject *usb_kobj;
++#endif
+ 
+ #ifdef CONFIG_BLOCK
+ static inline int device_is_not_partition(struct device *dev)
+@@ -765,7 +769,13 @@ static void device_remove_class_symlinks
+ 
+ static struct kobject *device_to_dev_kobj(struct device *dev)
+ {
+-	return dev->class == &block_class ? block_kobj : char_kobj;
++	if (dev->class == &block_class)
++		return block_kobj;
++#ifdef CONFIG_USB_DEVICE_CLASS
++	if (usb_classdev_class && dev->class == usb_classdev_class)
++		return usb_kobj;
++#endif
++	return char_kobj;
  }
  
-+static int ptrace_signal(int signr, siginfo_t *info,
-+			 struct pt_regs *regs, void *cookie)
-+{
-+	if (!(current->ptrace & PT_PTRACED))
-+		return signr;
-+
-+	ptrace_signal_deliver(regs, cookie);
-+
-+	/* Let the debugger run.  */
-+	ptrace_stop(signr, 0, info);
-+
-+	/* We're back.  Did the debugger cancel the sig?  */
-+	signr = current->exit_code;
-+	if (signr == 0)
-+		return signr;
-+
-+	current->exit_code = 0;
-+
-+	/* Update the siginfo structure if the signal has
-+	   changed.  If the debugger wanted something
-+	   specific in the siginfo structure then it should
-+	   have updated *info via PTRACE_SETSIGINFO.  */
-+	if (signr != info->si_signo) {
-+		info->si_signo = signr;
-+		info->si_errno = 0;
-+		info->si_code = SI_USER;
-+		info->si_pid = task_pid_vnr(current->parent);
-+		info->si_uid = current->parent->uid;
-+	}
-+
-+	/* If the (new) signal is now blocked, requeue it.  */
-+	if (sigismember(&current->blocked, signr)) {
-+		specific_send_sig_info(signr, info, current);
-+		signr = 0;
-+	}
-+
-+	return signr;
-+}
-+
- int get_signal_to_deliver(siginfo_t *info, struct k_sigaction *return_ka,
- 			  struct pt_regs *regs, void *cookie)
- {
-@@ -1699,36 +1738,10 @@ relock:
- 		if (!signr)
- 			break; /* will return 0 */
+ /**
+@@ -1087,9 +1097,17 @@ int __init devices_init(void)
+ 	char_kobj = kobject_create_and_add("char", dev_kobj);
+ 	if (!char_kobj)
+ 		goto char_kobj_err;
+-
++#ifdef CONFIG_USB_DEVICE_CLASS
++	usb_kobj = kobject_create_and_add("usb", dev_kobj);
++	if (!usb_kobj)
++		goto usb_kobj_err;
++#endif
+ 	return 0;
  
--		if ((current->ptrace & PT_PTRACED) && signr != SIGKILL) {
--			ptrace_signal_deliver(regs, cookie);
--
--			/* Let the debugger run.  */
--			ptrace_stop(signr, 0, info);
--
--			/* We're back.  Did the debugger cancel the sig?  */
--			signr = current->exit_code;
--			if (signr == 0)
--				continue;
--
--			current->exit_code = 0;
--
--			/* Update the siginfo structure if the signal has
--			   changed.  If the debugger wanted something
--			   specific in the siginfo structure then it should
--			   have updated *info via PTRACE_SETSIGINFO.  */
--			if (signr != info->si_signo) {
--				info->si_signo = signr;
--				info->si_errno = 0;
--				info->si_code = SI_USER;
--				info->si_pid = task_pid_vnr(current->parent);
--				info->si_uid = current->parent->uid;
--			}
--
--			/* If the (new) signal is now blocked, requeue it.  */
--			if (sigismember(&current->blocked, signr)) {
--				specific_send_sig_info(signr, info, current);
-+		if (signr != SIGKILL) {
-+			signr = ptrace_signal(signr, info, regs, cookie);
-+			if (!signr)
- 				continue;
--			}
++#ifdef CONFIG_USB_DEVICE_CLASS
++ usb_kobj_err:
++	kobject_put(char_kobj);
++#endif
+  char_kobj_err:
+ 	kobject_put(block_kobj);
+  block_kobj_err:
+@@ -1392,6 +1410,9 @@ void device_shutdown(void)
+ 			dev->driver->shutdown(dev);
  		}
+ 	}
++#ifdef CONFIG_USB_DEVICE_CLASS
++	kobject_put(usb_kobj);
++#endif
+ 	kobject_put(char_kobj);
+ 	kobject_put(block_kobj);
+ 	kobject_put(dev_kobj);
+diff -puN drivers/usb/core/devio.c~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y drivers/usb/core/devio.c
+--- a/drivers/usb/core/devio.c~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y
++++ a/drivers/usb/core/devio.c
+@@ -1660,7 +1660,7 @@ const struct file_operations usbdev_file
+ };
  
- 		ka = &sighand->action[signr-1];
+ #ifdef CONFIG_USB_DEVICE_CLASS
+-static struct class *usb_classdev_class;
++struct class *usb_classdev_class;
+ 
+ static int usb_classdev_add(struct usb_device *dev)
+ {
 _
 
-Patches currently in -mm which might be from roland@redhat.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-git-x86.patch
-x86-ptrace-pebs-support.patch
-x86-ptrace-pebs-support-warning-fix.patch
-git-powerpc.patch
-add-rusage_thread.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-document-cld_continued-notification-mechanics-more.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-signals-check_kill_permission-remove-tasklist_lock.patch
-signals-fix-sbin-init-protection-from-unwanted-signals.patch
-signals-de_thread-simplify-the-child_reaper-switching.patch
-signals-allow-the-kernel-to-actually-kill-sbin-init.patch
-signals-add-set_restore_sigmask.patch
-signals-set_restore_sigmask-tif_sigpending.patch
-signals-s390-renumber-tif_restore_sigmask.patch
-signals-ia64-renumber-tif_restore_sigmask.patch
-signals-use-have_set_restore_sigmask.patch
-signals-x86-ts_restore_sigmask.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
-ptrace-allow-to-ptrace-sbin-init.patch
-ptrace_signal-subroutine.patch
-procfs-mem-permission-cleanup.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
-pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+git-arm.patch
+sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+git-async-tx.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+md-introduce-get_priority_stripe-to-improve-raid456-write-performance.patch
+md-raid5c-convert-simple_strtoul-to-strict_strtoul.patch
 
