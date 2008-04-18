@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix.patch added to -mm tree
-Date: Thu, 17 Apr 2008 21:22:10 -0700
-Message-ID: <200804180422.m3I4MA3t010788@imap1.linux-foundation.org>
+Subject: + isicom-bring-into-coding-style-fix.patch added to -mm tree
+Date: Thu, 17 Apr 2008 21:27:37 -0700
+Message-ID: <200804180438.m3I4c6w0011269@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34753 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750771AbYDREWa (ORCPT
+	by vger.kernel.org with ESMTP id S1750825AbYDREiR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 00:22:30 -0400
+	Fri, 18 Apr 2008 00:38:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com
 
 
 The patch titled
-     lxfb/gxfb: fix up __init and __initdata fields for modedb-related stuff
+     isicom-bring-into-coding-style-fix
 has been added to the -mm tree.  Its filename is
-     olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix.patch
+     isicom-bring-into-coding-style-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,130 +34,297 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lxfb/gxfb: fix up __init and __initdata fields for modedb-related stuff
-From: Andres Salomon <dilinger@queued.net>
+Subject: isicom-bring-into-coding-style-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-A couple things were wrong here:
- - a struct in lxfb should've been static.
- - 'const' and '__initdata' don't mix, so the consts have been dropped
- - get_modedb() in both drivers should've been marked w/ __init
+arm:
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+drivers/char/isicom.c:817: warning: comparison between pointer and integer
+drivers/char/isicom.c: At top level:
+
+- We expect a variable called `page' to be `struct page *'.  Rename it.
+
+- Fix warning there.
+
+drivers/char/isicom.c:1473: warning: initialization from incompatible pointer type
+
+- Fix that too.
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/gxfb_core.c |    8 ++++----
- drivers/video/geode/lxfb_core.c |    8 ++++----
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ drivers/char/isicom.c |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN drivers/video/geode/gxfb_core.c~olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix drivers/video/geode/gxfb_core.c
---- a/drivers/video/geode/gxfb_core.c~olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix
-+++ a/drivers/video/geode/gxfb_core.c
-@@ -41,7 +41,7 @@ static int vram;
- static int vt_switch;
+diff -puN drivers/char/isicom.c~isicom-bring-into-coding-style-fix drivers/char/isicom.c
+--- a/drivers/char/isicom.c~isicom-bring-into-coding-style-fix
++++ a/drivers/char/isicom.c
+@@ -813,14 +813,15 @@ static int isicom_setup_port(struct isi_
+ 		return 0;
+ 	if (!port->xmit_buf) {
+ 		/* Relies on BKL */
+-		unsigned long page  = get_zeroed_page(GFP_KERNEL);
+-		if (page == NULL)
++		void *xmit_buf = (void *)get_zeroed_page(GFP_KERNEL);
++
++		if (xmit_buf == NULL)
+ 			return -ENOMEM;
+ 		if (port->xmit_buf) {
+-			free_page(page);
++			free_page((unsigned long)xmit_buf);
+ 			return -ERESTARTSYS;
+ 		}
+-		port->xmit_buf = (unsigned char *) page;
++		port->xmit_buf = xmit_buf;
+ 	}
  
- /* Modes relevant to the GX (taken from modedb.c) */
--static const struct fb_videomode gx_modedb[] __initdata = {
-+static struct fb_videomode gx_modedb[] __initdata = {
- 	/* 640x480-60 VESA */
- 	{ NULL, 60, 640, 480, 39682,  48, 16, 33, 10, 96, 2,
- 	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
-@@ -111,14 +111,14 @@ static const struct fb_videomode gx_mode
- #ifdef CONFIG_OLPC
- #include <asm/olpc.h>
- 
--static const struct fb_videomode gx_dcon_modedb[] __initdata = {
-+static struct fb_videomode gx_dcon_modedb[] __initdata = {
- 	/* The only mode the DCON has is 1200x900 */
- 	{ NULL, 50, 1200, 900, 17460, 24, 8, 4, 5, 8, 3,
- 	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
- 	  FB_VMODE_NONINTERLACED, 0 }
- };
- 
--static void get_modedb(struct fb_videomode **modedb, unsigned int *size)
-+static void __init get_modedb(struct fb_videomode **modedb, unsigned int *size)
- {
- 	if (olpc_has_dcon()) {
- 		*modedb = (struct fb_videomode *) gx_dcon_modedb;
-@@ -130,7 +130,7 @@ static void get_modedb(struct fb_videomo
+ 	spin_lock_irqsave(&card->card_lock, flags);
+@@ -1139,29 +1140,28 @@ static int isicom_write(struct tty_struc
  }
  
- #else
--static void get_modedb(struct fb_videomode **modedb, unsigned int *size)
-+static void __init get_modedb(struct fb_videomode **modedb, unsigned int *size)
+ /* put_char et all */
+-static int isicom_put_char(struct tty_struct *tty, unsigned char ch)
++static void isicom_put_char(struct tty_struct *tty, unsigned char ch)
  {
- 	*modedb = (struct fb_videomode *) gx_modedb;
- 	*size = ARRAY_SIZE(gx_modedb);
-diff -puN drivers/video/geode/lxfb_core.c~olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix drivers/video/geode/lxfb_core.c
---- a/drivers/video/geode/lxfb_core.c~olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix
-+++ a/drivers/video/geode/lxfb_core.c
-@@ -36,7 +36,7 @@ static int vt_switch;
-  * we try to make it something sane - 640x480-60 is sane
-  */
+ 	struct isi_port *port = tty->driver_data;
+ 	struct isi_board *card = port->card;
+ 	unsigned long flags;
  
--static const struct fb_videomode geode_modedb[] __initdata = {
-+static struct fb_videomode geode_modedb[] __initdata = {
- 	/* 640x480-60 */
- 	{ NULL, 60, 640, 480, 39682, 48, 8, 25, 2, 88, 2,
- 	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
-@@ -220,14 +220,14 @@ static const struct fb_videomode geode_m
- #ifdef CONFIG_OLPC
- #include <asm/olpc.h>
+ 	if (isicom_paranoia_check(port, tty->name, "isicom_put_char"))
+-		return 0;
++		return;
  
--const struct fb_videomode olpc_dcon_modedb[] __initdata = {
-+static struct fb_videomode olpc_dcon_modedb[] __initdata = {
- 	/* The only mode the DCON has is 1200x900 */
- 	{ NULL, 50, 1200, 900, 17460, 24, 8, 4, 5, 8, 3,
- 	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
- 	  FB_VMODE_NONINTERLACED, 0 }
- };
+ 	if (!port->xmit_buf)
+-		return 0;
++		return;
  
--static void get_modedb(struct fb_videomode **modedb, unsigned int *size)
-+static void __init get_modedb(struct fb_videomode **modedb, unsigned int *size)
- {
- 	if (olpc_has_dcon()) {
- 		*modedb = (struct fb_videomode *) olpc_dcon_modedb;
-@@ -239,7 +239,7 @@ static void get_modedb(struct fb_videomo
+ 	spin_lock_irqsave(&card->card_lock, flags);
+-	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1) {
+-		spin_unlock_irqrestore(&card->card_lock, flags);
+-		return 0;
+-	}
++	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1)
++		goto out;
+ 
+ 	port->xmit_buf[port->xmit_head++] = ch;
+ 	port->xmit_head &= (SERIAL_XMIT_SIZE - 1);
+ 	port->xmit_cnt++;
+ 	spin_unlock_irqrestore(&card->card_lock, flags);
+-	return 1;
++out:
++	return;
  }
  
- #else
--static void get_modedb(struct fb_videomode **modedb, unsigned int *size)
-+static void __init get_modedb(struct fb_videomode **modedb, unsigned int *size)
- {
- 	*modedb = (struct fb_videomode *) geode_modedb;
- 	*size = ARRAY_SIZE(geode_modedb);
+ /* flush_chars et all */
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-geode-msr-cleanup.patch
-x86-geode-add-virtual-systems-architecture-detection.patch
-gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
-gxfb-replace-fbsize-config-option-with-a-module-parameter.patch
-gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
-gxfb-clean-up-register-definitions.patch
-gxfb-move-msr-bit-fields-into-gxfbh.patch
-gxfb-stop-sharing-code-with-gx1fb.patch
-gxfb-add-power-management-functionality.patch
-gxfb-add-power-management-functionality-fix.patch
-gxfb-add-power-management-functionality-update.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+disable-the-memory-controller-by-default-v3-fix.patch
+hotplug-memory-make-online_page-common-fix.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86.patch
+arch-x86-mm-ioremapc-fix-printk-warnings.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+x86-ptrace-pebs-support-warning-fix.patch
+arch-x86-video-fbdevc-add-module_license.patch
+git-kgdb-light.patch
+git-x86-hack-around-to-make-git-kgdb-build.patch
+git-x86-vs-git-kgdb-lite.patch
+git-alsa-tiwai.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+git-arm-fix.patch
+cifs-suppress-warning.patch
+git-powerpc.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+git-drm.patch
+revert-git-drm.patch
+git-dvb.patch
+git-dvb-kconfig-fix.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-dlm-vs-git-gfs2-nwm.patch
+git-hid.patch
+git-hrt.patch
+time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
+git-ia64.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
+git-input.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-leds.patch
+git-libata-all.patch
+pata_atiixp-simplex-clear-fix.patch
+git-async-tx.patch
+git-mips.patch
+git-net.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+ehea-fix-dlpar-memory-add-support-fix.patch
+sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
+smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-s390.patch
+git-sched.patch
+add-rcu_assign_index-if-ever-needed.patch
+git-sh.patch
+git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
+fix-gregkh-usb-usb-hcds-use-the-do_remote_wakeup-flag.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+git-xfs-fixups.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-misplaced-hunk.patch
+git-cryptodev-fix-conflict.patch
+git-cryptodev-fix-conflict-hack.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+git-semaphore-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+mm-introduce-pte_special-pte-bit-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+add-default-cpu-topology-information-cleanup.patch
+utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
 pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-create-gp-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
-lxfb-clean-up-register-definitions.patch
-lxfb-clean-up-final-bits-of-df_regs.patch
-lxfb-rearrange-rename-msr-bitfields.patch
-lxfb-add-power-management-functionality.patch
 lxfb-add-power-management-functionality-fix.patch
-lxfb-add-power-management-functionality-update.patch
-lxfb-rename-kernel-arg-fbsize-to-vram.patch
-lxfb-disable-suspend-vt-switch-by-default.patch
-lxfb-gxfb-when-blanking-with-fb_blank_powerdown-also-turn-off-the-crt.patch
-gxfb-lxfb-use-vsa-definitions-when-fetching-framebuffer-size.patch
-gxfb-lxfb-detect-framebuffer-size-using-an-msr-if-vsa2-isnt-available.patch
-olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers.patch
-olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix.patch
-x86-olpc-add-one-laptop-per-child-architecture-support.patch
+drivers-video-uvesafbc-fix-error-path-memory-leak.patch
+fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
+drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
+x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
+x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
+drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+fat_valid_media-remove-pointless-test.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+isicom-bring-into-coding-style-fix.patch
+tty-the-big-operations-rework-fix-2.patch
+tty-the-big-operations-rework-vs-git-kgdb-light.patch
+tty-the-big-operations-rework-vs-kgdb-2.patch
+tty-the-big-operations-rework-broke-wan.patch
+devpts-factor-out-pty-index-allocation-fix.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
+relayfs-support-larger-relay-buffer-take-3-cleanup.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
 
