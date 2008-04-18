@@ -1,67 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 13:39:20 -0700
-Message-ID: <200804182039.m3IKdKMY014265@imap1.linux-foundation.org>
+Subject: - smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 18 Apr 2008 13:49:14 -0700
+Message-ID: <200804182049.m3IKnEEO014787@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51465 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57483 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752025AbYDRUjh (ORCPT
+	by vger.kernel.org with ESMTP id S1755848AbYDRUuF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 16:39:37 -0400
+	Fri, 18 Apr 2008 16:50:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, damm@igel.co.jp, dtor@mail.ru, lethal@linux-sh.org, magnus.damm@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, 12o3l@tiscali.nl, jacmet@sunsite.dk, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes
+     smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+     smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into touch-screen-driver-for-the-superh-migor-board.patch
+This patch was dropped because it was folded into smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes
+Subject: smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: Use #include <linux/io.h> instead of <asm/io.h>
-#84: FILE: drivers/input/touchscreen/migor_ts.c:26:
-+#include <asm/io.h>
+ERROR: space prohibited after that open parenthesis '('
+#23: FILE: drivers/net/smc911x.c:247:
++		} while ( --timeout && !reg);
 
-total: 0 errors, 1 warnings, 238 lines checked
+ERROR: space prohibited after that open parenthesis '('
+#32: FILE: drivers/net/smc911x.c:271:
++		} while ( --timeout && (reg & HW_CFG_SRST_));
 
-./patches/touch-screen-driver-for-the-superh-migor-board.patch has style problems, please review.  If any of these errors
+ERROR: space prohibited after that open parenthesis '('
+#41: FILE: drivers/net/smc911x.c:417:
++		} while ( --timeout && reg);
+
+total: 3 errors, 0 warnings, 24 lines checked
+
+./patches/smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Magnus Damm <damm@igel.co.jp>
-Cc: Magnus Damm <magnus.damm@gmail.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Peter Korsgaard <jacmet@sunsite.dk>
+Cc: Roel Kluin <12o3l@tiscali.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/touchscreen/migor_ts.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/smc911x.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/input/touchscreen/migor_ts.c~touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes drivers/input/touchscreen/migor_ts.c
---- a/drivers/input/touchscreen/migor_ts.c~touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes
-+++ a/drivers/input/touchscreen/migor_ts.c
-@@ -23,7 +23,7 @@
- #include <linux/kernel.h>
- #include <linux/input.h>
- #include <linux/interrupt.h>
--#include <asm/io.h>
-+#include <linux/io.h>
- #include <linux/i2c.h>
- #include <linux/timer.h>
- 
+diff -puN drivers/net/smc911x.c~smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes drivers/net/smc911x.c
+--- a/drivers/net/smc911x.c~smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes
++++ a/drivers/net/smc911x.c
+@@ -244,7 +244,7 @@ static void smc911x_reset(struct net_dev
+ 		do {
+ 			udelay(10);
+ 			reg = SMC_GET_PMT_CTRL() & PMT_CTRL_READY_;
+-		} while ( --timeout && !reg);
++		} while (--timeout && !reg);
+ 		if (timeout == 0) {
+ 			PRINTK("%s: smc911x_reset timeout waiting for PM restore\n", dev->name);
+ 			return;
+@@ -268,7 +268,7 @@ static void smc911x_reset(struct net_dev
+ 				resets++;
+ 				break;
+ 			}
+-		} while ( --timeout && (reg & HW_CFG_SRST_));
++		} while (--timeout && (reg & HW_CFG_SRST_));
+ 	}
+ 	if (timeout == 0) {
+ 		PRINTK("%s: smc911x_reset timeout waiting for reset\n", dev->name);
+@@ -414,7 +414,7 @@ static inline void smc911x_drop_pkt(stru
+ 		do {
+ 			udelay(10);
+ 			reg = SMC_GET_RX_DP_CTRL() & RX_DP_CTRL_FFWD_BUSY_;
+-		} while ( --timeout && reg);
++		} while (--timeout && reg);
+ 		if (timeout == 0) {
+ 			PRINTK("%s: timeout waiting for RX fast forward\n", dev->name);
+ 		}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,18 +128,16 @@ git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.
 gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
 git-input.patch
 touch-screen-driver-for-the-superh-migor-board.patch
-touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
 git-leds.patch
 git-libata-all.patch
-pata_atiixp-simplex-clear-fix.patch
+pata_atiixp-simplex-clear.patch
 git-async-tx.patch
 git-mips.patch
 git-net.patch
-drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 ehea-fix-dlpar-memory-add-support-fix.patch
-sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
-net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix.patch
+sundance-set-carrier-status-on-link-change-events.patch
+net-drivers-fix-platform-driver-hotplug-coldplug.patch
+smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt.patch
 smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
@@ -273,5 +295,6 @@ undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
 
