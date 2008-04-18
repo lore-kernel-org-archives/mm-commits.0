@@ -1,54 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - pata_atiixp-simplex-clear-fix.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 13:40:50 -0700
-Message-ID: <200804182040.m3IKeoIO014353@imap1.linux-foundation.org>
+Subject: - time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 18 Apr 2008 13:37:58 -0700
+Message-ID: <200804182037.m3IKbwXj014129@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58215 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53894 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752205AbYDRUk7 (ORCPT
+	by vger.kernel.org with ESMTP id S1750969AbYDRUib (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 16:40:59 -0400
+	Fri, 18 Apr 2008 16:38:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, johnstul@us.ibm.com, mingo@elte.hu, paulus@samba.org, tglx@linutronix.de, tony.luck@intel.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pata_atiixp-simplex-clear-fix
+     time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     pata_atiixp-simplex-clear-fix.patch
+     time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into pata_atiixp-simplex-clear.patch
+This patch was dropped because it was folded into time-close-small-window-for-vsyscall-time-inconsistencies.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_atiixp-simplex-clear-fix
+Subject: time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-stop renaming stuff
+ERROR: use tabs not spaces
+#66: FILE: arch/ia64/kernel/time.c:357:
++        write_seqlock_irqsave(&fsyscall_gtod_data.lock, *flags);$
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jeff Garzik <jeff@garzik.org>
+ERROR: use tabs not spaces
+#72: FILE: arch/ia64/kernel/time.c:362:
++        write_sequnlock_irqrestore(&fsyscall_gtod_data.lock, *flags);$
+
+total: 2 errors, 0 warnings, 168 lines checked
+
+./patches/time-close-small-window-for-vsyscall-time-inconsistencies.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: John Stultz <johnstul@us.ibm.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_atiixp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/kernel/time.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ata/pata_atiixp.c~pata_atiixp-simplex-clear-fix drivers/ata/pata_atiixp.c
---- a/drivers/ata/pata_atiixp.c~pata_atiixp-simplex-clear-fix
-+++ a/drivers/ata/pata_atiixp.c
-@@ -245,7 +245,7 @@ static int atiixp_init_one(struct pci_de
- 	const struct ata_port_info *ppi[] = { &info, NULL };
- 	/* Some of the quirk reconfiguration messes up the simplex flag, so
- 	   clear it again */
--	ata_pci_clear_simplex(dev);
-+	ata_pci_bmdma_clear_simplex(dev);
- 	return ata_pci_sff_init_one(dev, ppi, &atiixp_sht, NULL);
+diff -puN arch/ia64/kernel/time.c~time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes arch/ia64/kernel/time.c
+--- a/arch/ia64/kernel/time.c~time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes
++++ a/arch/ia64/kernel/time.c
+@@ -354,12 +354,12 @@ void update_vsyscall_tz(void)
+  */
+ void update_vsyscall_lock(unsigned long *flags)
+ {
+-        write_seqlock_irqsave(&fsyscall_gtod_data.lock, *flags);
++	write_seqlock_irqsave(&fsyscall_gtod_data.lock, *flags);
  }
  
+ void update_vsyscall_unlock(unsigned long *flags)
+ {
+-        write_sequnlock_irqrestore(&fsyscall_gtod_data.lock, *flags);
++	write_sequnlock_irqrestore(&fsyscall_gtod_data.lock, *flags);
+ }
+ 
+ /* Assumes fsyscall_gtod_data.lock has been taken via update_vsyscall_lock() */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,16 +109,16 @@ git-dlm-vs-git-gfs2-nwm.patch
 git-hid.patch
 git-hrt.patch
 time-close-small-window-for-vsyscall-time-inconsistencies.patch
+time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
 git-ia64.patch
 git-ieee1394.patch
 git-infiniband.patch
 git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
 gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
 git-input.patch
-touch-screen-driver-for-the-superh-migor-board.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
 git-leds.patch
 git-libata-all.patch
-pata_atiixp-simplex-clear.patch
 pata_atiixp-simplex-clear-fix.patch
 git-async-tx.patch
 git-mips.patch
