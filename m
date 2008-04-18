@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 14:19:49 -0700
-Message-ID: <200804182119.m3ILJofx016663@imap1.linux-foundation.org>
+Subject: - mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch removed from -mm tree
+Date: Fri, 18 Apr 2008 14:19:52 -0700
+Message-ID: <200804182119.m3ILJqqI016667@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60973 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42705 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751100AbYDRVWD (ORCPT
+	by vger.kernel.org with ESMTP id S1753549AbYDRVWK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 17:22:03 -0400
+	Fri, 18 Apr 2008 17:22:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, jbenc@suse.cz, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mac80211: tkipc.c michael.c use kernel bit rotation helpers
+     mac80211: tkip.c remove opencoded swab16 in tkip_S
 has been removed from the -mm tree.  Its filename was
-     mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
+     mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: tkipc.c michael.c use kernel bit rotation helpers
+Subject: mac80211: tkip.c remove opencoded swab16 in tkip_S
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Use ror16, ror32, rol32 instead of a private helper.
+Opencode the Hi8/Lo8 and eliminate the temporary variable in tkip_S().
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Johannes Berg <johannes@sipsolutions.net>
@@ -37,98 +37,27 @@ Cc: Jiri Benc <jbenc@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/michael.c |   20 ++++----------------
- net/mac80211/tkip.c    |   20 +++++++-------------
- 2 files changed, 11 insertions(+), 29 deletions(-)
+ net/mac80211/tkip.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN net/mac80211/michael.c~mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers net/mac80211/michael.c
---- a/net/mac80211/michael.c~mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers
-+++ a/net/mac80211/michael.c
-@@ -8,36 +8,24 @@
-  */
- 
- #include <linux/types.h>
-+#include <linux/bitops.h>
- 
- #include "michael.h"
- 
--static inline u32 rotr(u32 val, int bits)
--{
--	return (val >> bits) | (val << (32 - bits));
--}
--
--
--static inline u32 rotl(u32 val, int bits)
--{
--	return (val << bits) | (val >> (32 - bits));
--}
--
--
- static inline u32 xswap(u32 val)
- {
- 	return ((val & 0xff00ff00) >> 8) | ((val & 0x00ff00ff) << 8);
- }
- 
--
- #define michael_block(l, r) \
- do { \
--	r ^= rotl(l, 17); \
-+	r ^= rol32(l, 17); \
- 	l += r; \
- 	r ^= xswap(l); \
- 	l += r; \
--	r ^= rotl(l, 3); \
-+	r ^= rol32(l, 3); \
- 	l += r; \
--	r ^= rotr(l, 2); \
-+	r ^= ror32(l, 2); \
- 	l += r; \
- } while (0)
- 
-diff -puN net/mac80211/tkip.c~mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers net/mac80211/tkip.c
---- a/net/mac80211/tkip.c~mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers
+diff -puN net/mac80211/tkip.c~mac80211-tkipc-remove-opencoded-swab16-in-tkip_s net/mac80211/tkip.c
+--- a/net/mac80211/tkip.c~mac80211-tkipc-remove-opencoded-swab16-in-tkip_s
 +++ a/net/mac80211/tkip.c
-@@ -8,6 +8,7 @@
-  */
+@@ -94,13 +94,9 @@ static inline u16 Lo16(u32 v)
  
- #include <linux/kernel.h>
-+#include <linux/bitops.h>
- #include <linux/types.h>
- #include <linux/netdevice.h>
- 
-@@ -91,13 +92,6 @@ static inline u16 Lo16(u32 v)
- 	return v & 0xffff;
- }
- 
--
--static inline u16 RotR1(u16 v)
--{
--	return (v >> 1) | ((v & 0x0001) << 15);
--}
--
--
  static inline u16 tkip_S(u16 val)
  {
- 	u16 a = tkip_sbox[Hi8(val)];
-@@ -154,12 +148,12 @@ static void tkip_mixing_phase2(const u16
- 	ppk[3] += tkip_S(ppk[2] ^ Mk16(tk[ 7], tk[ 6]));
- 	ppk[4] += tkip_S(ppk[3] ^ Mk16(tk[ 9], tk[ 8]));
- 	ppk[5] += tkip_S(ppk[4] ^ Mk16(tk[11], tk[10]));
--	ppk[0] +=  RotR1(ppk[5] ^ Mk16(tk[13], tk[12]));
--	ppk[1] +=  RotR1(ppk[0] ^ Mk16(tk[15], tk[14]));
--	ppk[2] +=  RotR1(ppk[1]);
--	ppk[3] +=  RotR1(ppk[2]);
--	ppk[4] +=  RotR1(ppk[3]);
--	ppk[5] +=  RotR1(ppk[4]);
-+	ppk[0] +=  ror16(ppk[5] ^ Mk16(tk[13], tk[12]), 1);
-+	ppk[1] +=  ror16(ppk[0] ^ Mk16(tk[15], tk[14]), 1);
-+	ppk[2] +=  ror16(ppk[1], 1);
-+	ppk[3] +=  ror16(ppk[2], 1);
-+	ppk[4] +=  ror16(ppk[3], 1);
-+	ppk[5] +=  ror16(ppk[4], 1);
+-	u16 a = tkip_sbox[Hi8(val)];
+-
+-	return tkip_sbox[Lo8(val)] ^ Hi8(a) ^ (Lo8(a) << 8);
++	return tkip_sbox[val & 0xff] ^ swab16(tkip_sbox[val >> 8]);
+ }
  
- 	rc4key[0] = Hi8(tsc_IV16);
- 	rc4key[1] = (Hi8(tsc_IV16) | 0x20) & 0x7f;
+-
+-
+ /* P1K := Phase1(TA, TK, TSC)
+  * TA = transmitter address (48 bits)
+  * TK = dot11DefaultKeyValue or dot11KeyMappingValue (128 bits)
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -165,7 +94,6 @@ fusion-replace-remaining-__function__-occurrences.patch
 scsi-replace-__inline-with-inline.patch
 block-replace-remaining-__function__-occurrences.patch
 git-watchdog.patch
-mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
 mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
 mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
 mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
