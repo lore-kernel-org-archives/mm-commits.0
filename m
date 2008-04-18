@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix.patch added to -mm tree
-Date: Thu, 17 Apr 2008 22:27:34 -0700
-Message-ID: <200804180538.m3I5c3YB013259@imap1.linux-foundation.org>
+Subject: + add-default-cpu-topology-information-powerpc-hack.patch added to -mm tree
+Date: Thu, 17 Apr 2008 23:34:51 -0700
+Message-ID: <200804180645.m3I6jKM4015590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35274 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49704 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751440AbYDRFis (ORCPT
+	by vger.kernel.org with ESMTP id S1754408AbYDRGp5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 01:38:48 -0400
+	Fri, 18 Apr 2008 02:45:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dbrownell@users.sourceforge.net, jeff@garzik.org, kay.sievers@vrfy.org
+Cc: akpm@linux-foundation.org, benh@kernel.crashing.org, bhutchings@solarflare.com, heiko.carstens@de.ibm.com, mingo@elte.hu, paulus@samba.org, schwidefsky@de.ibm.com
 
 
 The patch titled
-     net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix
+     add-default-cpu-topology-information-powerpc-hack
 has been added to the -mm tree.  Its filename is
-     net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix.patch
+     add-default-cpu-topology-information-powerpc-hack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix
+Subject: add-default-cpu-topology-information-powerpc-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Ben Hutchings <bhutchings@solarflare.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sgiseeq.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-powerpc/topology.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/net/sgiseeq.c~net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix drivers/net/sgiseeq.c
---- a/drivers/net/sgiseeq.c~net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix
-+++ a/drivers/net/sgiseeq.c
-@@ -825,7 +825,7 @@ static struct platform_driver sgiseeq_dr
- 	.probe	= sgiseeq_probe,
- 	.remove	= __devexit_p(sgiseeq_remove),
- 	.driver = {
--		.name	= "sgiseeq"
-+		.name	= "sgiseeq",
- 		.owner	= THIS_MODULE,
- 	}
- };
+diff -puN include/asm-powerpc/topology.h~add-default-cpu-topology-information-powerpc-hack include/asm-powerpc/topology.h
+--- a/include/asm-powerpc/topology.h~add-default-cpu-topology-information-powerpc-hack
++++ a/include/asm-powerpc/topology.h
+@@ -109,6 +109,8 @@ static inline void sysfs_remove_device_f
+ #endif
+ #endif
+ 
++#define pcibus_to_node pcibus_to_node
++
+ #include <asm-generic/topology.h>
+ 
+ #endif /* __KERNEL__ */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -179,6 +182,7 @@ sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
 codafs-fix-build-warning.patch
 lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+add-default-cpu-topology-information-powerpc-hack.patch
 add-default-cpu-topology-information-cleanup.patch
 utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
 lib-swiotlbc-cleanups.patch
