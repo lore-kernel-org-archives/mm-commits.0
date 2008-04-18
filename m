@@ -1,35 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 14:19:56 -0700
-Message-ID: <200804182119.m3ILJuln016675@imap1.linux-foundation.org>
+Subject: - mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch removed from -mm tree
+Date: Fri, 18 Apr 2008 14:19:49 -0700
+Message-ID: <200804182119.m3ILJofx016663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48864 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753642AbYDRVWM (ORCPT
+	by vger.kernel.org with ESMTP id S1751100AbYDRVWD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 17:22:12 -0400
+	Fri, 18 Apr 2008 17:22:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, jbenc@suse.cz, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mac80211: tkip.c remove Mk16, Hi8, Lo8 helpers
+     mac80211: tkipc.c michael.c use kernel bit rotation helpers
 has been removed from the -mm tree.  Its filename was
-     mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
+     mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: tkip.c remove Mk16, Hi8, Lo8 helpers
+Subject: mac80211: tkipc.c michael.c use kernel bit rotation helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Create a new getle16 helper to replace Mk16 that deals with unaligned access. 
-Also, use put_unaligned when writing out the rc4key result.  Opencode the few
-remaining Hi8/Lo8 calls and remove the helpers.
+Use ror16, ror32, rol32 instead of a private helper.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Johannes Berg <johannes@sipsolutions.net>
@@ -39,119 +37,98 @@ Cc: Jiri Benc <jbenc@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/tkip.c |   70 ++++++++++++++++++------------------------
- 1 file changed, 31 insertions(+), 39 deletions(-)
+ net/mac80211/michael.c |   20 ++++----------------
+ net/mac80211/tkip.c    |   20 +++++++-------------
+ 2 files changed, 11 insertions(+), 29 deletions(-)
 
-diff -puN net/mac80211/tkip.c~mac80211-tkipc-remove-mk16-hi8-lo8-helpers net/mac80211/tkip.c
---- a/net/mac80211/tkip.c~mac80211-tkipc-remove-mk16-hi8-lo8-helpers
+diff -puN net/mac80211/michael.c~mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers net/mac80211/michael.c
+--- a/net/mac80211/michael.c~mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers
++++ a/net/mac80211/michael.c
+@@ -8,36 +8,24 @@
+  */
+ 
+ #include <linux/types.h>
++#include <linux/bitops.h>
+ 
+ #include "michael.h"
+ 
+-static inline u32 rotr(u32 val, int bits)
+-{
+-	return (val >> bits) | (val << (32 - bits));
+-}
+-
+-
+-static inline u32 rotl(u32 val, int bits)
+-{
+-	return (val << bits) | (val >> (32 - bits));
+-}
+-
+-
+ static inline u32 xswap(u32 val)
+ {
+ 	return ((val & 0xff00ff00) >> 8) | ((val & 0x00ff00ff) << 8);
+ }
+ 
+-
+ #define michael_block(l, r) \
+ do { \
+-	r ^= rotl(l, 17); \
++	r ^= rol32(l, 17); \
+ 	l += r; \
+ 	r ^= xswap(l); \
+ 	l += r; \
+-	r ^= rotl(l, 3); \
++	r ^= rol32(l, 3); \
+ 	l += r; \
+-	r ^= rotr(l, 2); \
++	r ^= ror32(l, 2); \
+ 	l += r; \
+ } while (0)
+ 
+diff -puN net/mac80211/tkip.c~mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers net/mac80211/tkip.c
+--- a/net/mac80211/tkip.c~mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers
 +++ a/net/mac80211/tkip.c
-@@ -11,6 +11,7 @@
- #include <linux/bitops.h>
+@@ -8,6 +8,7 @@
+  */
+ 
+ #include <linux/kernel.h>
++#include <linux/bitops.h>
  #include <linux/types.h>
  #include <linux/netdevice.h>
-+#include <asm/unaligned.h>
  
- #include <net/mac80211.h>
- #include "key.h"
-@@ -63,21 +64,13 @@ static const u16 tkip_sbox[256] =
- };
- 
- 
--static inline u16 Mk16(u8 x, u8 y)
--{
--	return ((u16) x << 8) | (u16) y;
--}
--
--
--static inline u8 Hi8(u16 v)
--{
--	return v >> 8;
--}
--
--
--static inline u8 Lo8(u16 v)
-+/*
-+ * Get a cpu-byteorder u16 from a u8 pointer fixing up possible unaligned
-+ * accesses.
-+ */
-+static inline u16 getle16(const u8 *x)
- {
--	return v & 0xff;
-+	return le16_to_cpu(get_unaligned((__le16 *)x));
+@@ -91,13 +92,6 @@ static inline u16 Lo16(u32 v)
+ 	return v & 0xffff;
  }
  
+-
+-static inline u16 RotR1(u16 v)
+-{
+-	return (v >> 1) | ((v & 0x0001) << 15);
+-}
+-
+-
  static inline u16 tkip_S(u16 val)
-@@ -98,17 +91,17 @@ static void tkip_mixing_phase1(const u8 
+ {
+ 	u16 a = tkip_sbox[Hi8(val)];
+@@ -154,12 +148,12 @@ static void tkip_mixing_phase2(const u16
+ 	ppk[3] += tkip_S(ppk[2] ^ Mk16(tk[ 7], tk[ 6]));
+ 	ppk[4] += tkip_S(ppk[3] ^ Mk16(tk[ 9], tk[ 8]));
+ 	ppk[5] += tkip_S(ppk[4] ^ Mk16(tk[11], tk[10]));
+-	ppk[0] +=  RotR1(ppk[5] ^ Mk16(tk[13], tk[12]));
+-	ppk[1] +=  RotR1(ppk[0] ^ Mk16(tk[15], tk[14]));
+-	ppk[2] +=  RotR1(ppk[1]);
+-	ppk[3] +=  RotR1(ppk[2]);
+-	ppk[4] +=  RotR1(ppk[3]);
+-	ppk[5] +=  RotR1(ppk[4]);
++	ppk[0] +=  ror16(ppk[5] ^ Mk16(tk[13], tk[12]), 1);
++	ppk[1] +=  ror16(ppk[0] ^ Mk16(tk[15], tk[14]), 1);
++	ppk[2] +=  ror16(ppk[1], 1);
++	ppk[3] +=  ror16(ppk[2], 1);
++	ppk[4] +=  ror16(ppk[3], 1);
++	ppk[5] +=  ror16(ppk[4], 1);
  
- 	p1k[0] = tsc_IV32 & 0xFFFF;
- 	p1k[1] = tsc_IV32 >> 16;
--	p1k[2] = Mk16(ta[1], ta[0]);
--	p1k[3] = Mk16(ta[3], ta[2]);
--	p1k[4] = Mk16(ta[5], ta[4]);
-+	p1k[2] = getle16(ta + 0);
-+	p1k[3] = getle16(ta + 2);
-+	p1k[4] = getle16(ta + 4);
- 
- 	for (i = 0; i < PHASE1_LOOP_COUNT; i++) {
- 		j = 2 * (i & 1);
--		p1k[0] += tkip_S(p1k[4] ^ Mk16(tk[ 1 + j], tk[ 0 + j]));
--		p1k[1] += tkip_S(p1k[0] ^ Mk16(tk[ 5 + j], tk[ 4 + j]));
--		p1k[2] += tkip_S(p1k[1] ^ Mk16(tk[ 9 + j], tk[ 8 + j]));
--		p1k[3] += tkip_S(p1k[2] ^ Mk16(tk[13 + j], tk[12 + j]));
--		p1k[4] += tkip_S(p1k[3] ^ Mk16(tk[ 1 + j], tk[ 0 + j])) + i;
-+		p1k[0] += tkip_S(p1k[4] ^ getle16(tk + 0 + j));
-+		p1k[1] += tkip_S(p1k[0] ^ getle16(tk + 4 + j));
-+		p1k[2] += tkip_S(p1k[1] ^ getle16(tk + 8 + j));
-+		p1k[3] += tkip_S(p1k[2] ^ getle16(tk + 12 + j));
-+		p1k[4] += tkip_S(p1k[3] ^ getle16(tk + 0 + j)) + i;
- 	}
- }
- 
-@@ -126,28 +119,27 @@ static void tkip_mixing_phase2(const u16
- 	ppk[4] = p1k[4];
- 	ppk[5] = p1k[4] + tsc_IV16;
- 
--	ppk[0] += tkip_S(ppk[5] ^ Mk16(tk[ 1], tk[ 0]));
--	ppk[1] += tkip_S(ppk[0] ^ Mk16(tk[ 3], tk[ 2]));
--	ppk[2] += tkip_S(ppk[1] ^ Mk16(tk[ 5], tk[ 4]));
--	ppk[3] += tkip_S(ppk[2] ^ Mk16(tk[ 7], tk[ 6]));
--	ppk[4] += tkip_S(ppk[3] ^ Mk16(tk[ 9], tk[ 8]));
--	ppk[5] += tkip_S(ppk[4] ^ Mk16(tk[11], tk[10]));
--	ppk[0] +=  ror16(ppk[5] ^ Mk16(tk[13], tk[12]), 1);
--	ppk[1] +=  ror16(ppk[0] ^ Mk16(tk[15], tk[14]), 1);
-+	ppk[0] += tkip_S(ppk[5] ^ getle16(tk + 0));
-+	ppk[1] += tkip_S(ppk[0] ^ getle16(tk + 2));
-+	ppk[2] += tkip_S(ppk[1] ^ getle16(tk + 4));
-+	ppk[3] += tkip_S(ppk[2] ^ getle16(tk + 6));
-+	ppk[4] += tkip_S(ppk[3] ^ getle16(tk + 8));
-+	ppk[5] += tkip_S(ppk[4] ^ getle16(tk + 10));
-+	ppk[0] +=  ror16(ppk[5] ^ getle16(tk + 12), 1);
-+	ppk[1] +=  ror16(ppk[0] ^ getle16(tk + 14), 1);
- 	ppk[2] +=  ror16(ppk[1], 1);
- 	ppk[3] +=  ror16(ppk[2], 1);
- 	ppk[4] +=  ror16(ppk[3], 1);
- 	ppk[5] +=  ror16(ppk[4], 1);
- 
--	rc4key[0] = Hi8(tsc_IV16);
--	rc4key[1] = (Hi8(tsc_IV16) | 0x20) & 0x7f;
--	rc4key[2] = Lo8(tsc_IV16);
--	rc4key[3] = Lo8((ppk[5] ^ Mk16(tk[1], tk[0])) >> 1);
--
--	for (i = 0; i < 6; i++) {
--		rc4key[4 + 2 * i] = Lo8(ppk[i]);
--		rc4key[5 + 2 * i] = Hi8(ppk[i]);
--	}
-+	rc4key[0] = tsc_IV16 >> 8;
-+	rc4key[1] = ((tsc_IV16 >> 8) | 0x20) & 0x7f;
-+	rc4key[2] = tsc_IV16 & 0xFF;
-+	rc4key[3] = ((ppk[5] ^ getle16(tk)) >> 1) & 0xFF;
-+
-+	rc4key += 4;
-+	for (i = 0; i < 6; i++)
-+		put_unaligned(cpu_to_le16(ppk[i]), (__le16 *)rc4key + i);
- }
- 
- 
+ 	rc4key[0] = Hi8(tsc_IV16);
+ 	rc4key[1] = (Hi8(tsc_IV16) | 0x20) & 0x7f;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -188,6 +165,9 @@ fusion-replace-remaining-__function__-occurrences.patch
 scsi-replace-__inline-with-inline.patch
 block-replace-remaining-__function__-occurrences.patch
 git-watchdog.patch
+mac80211-tkipcc-michaelc-use-kernel-bit-rotation-helpers.patch
+mac80211-tkipc-remove-opencoded-swab16-in-tkip_s.patch
+mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
 mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
 mac80211-michaelc-replace-macro-with-function.patch
 mac80211-michaelc-use-unaligned-byteorder-helpers.patch
