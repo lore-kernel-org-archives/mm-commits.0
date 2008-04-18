@@ -1,85 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: + sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y-fix.patch added to -mm tree
-Date: Thu, 17 Apr 2008 20:08:58 -0700
-Message-ID: <200804180308.m3I38wt0008263@imap1.linux-foundation.org>
+Subject: - sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch removed from -mm tree
+Date: Thu, 17 Apr 2008 20:09:07 -0700
+Message-ID: <200804180309.m3I397T7008274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36966 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35025 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756861AbYDRDJB (ORCPT
+	by vger.kernel.org with ESMTP id S1756868AbYDRDJK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 23:09:01 -0400
+	Thu, 17 Apr 2008 23:09:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, greg@kroah.com, kay.sievers@vrfy.org
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y-fix
-has been added to the -mm tree.  Its filename is
-     sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y-fix.patch
+     sysfs: provide a clue about the effects of CONFIG_USB_DEVICE_CLASS=y
+has been removed from the -mm tree.  Its filename was
+     sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y-fix
+Subject: sysfs: provide a clue about the effects of CONFIG_USB_DEVICE_CLASS=y
 From: Andrew Morton <akpm@linux-foundation.org>
 
+With CONFIG_USB_DEVICE_CLASS=y we get lots of warnings like
+
+	sysfs: duplicate filename '189:0' can not be created
+
+According to Kay "They have the same dev_t as usb_device and would be a reason
+for the duplicates".
+
+So let's emit a helpful message explaining that.
+
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/core.c      |    1 -
- drivers/usb/core/devio.c |    1 +
- include/linux/device.h   |    2 ++
- 3 files changed, 3 insertions(+), 1 deletion(-)
+ fs/sysfs/dir.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/base/core.c~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y-fix drivers/base/core.c
---- a/drivers/base/core.c~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y-fix
-+++ a/drivers/base/core.c
-@@ -31,7 +31,6 @@ static struct kobject *dev_kobj;
- static struct kobject *char_kobj;
- static struct kobject *block_kobj;
- #ifdef CONFIG_USB_DEVICE_CLASS
--extern struct class *usb_classdev_class;
- static struct kobject *usb_kobj;
- #endif
- 
-diff -puN drivers/usb/core/devio.c~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y-fix drivers/usb/core/devio.c
---- a/drivers/usb/core/devio.c~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y-fix
-+++ a/drivers/usb/core/devio.c
-@@ -43,6 +43,7 @@
- #include <linux/signal.h>
- #include <linux/poll.h>
+diff -puN fs/sysfs/dir.c~sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y fs/sysfs/dir.c
+--- a/fs/sysfs/dir.c~sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y
++++ a/fs/sysfs/dir.c
+@@ -17,6 +17,8 @@
  #include <linux/module.h>
-+#include <linux/device.h>
- #include <linux/usb.h>
- #include <linux/usbdevice_fs.h>
- #include <linux/cdev.h>
-diff -puN include/linux/device.h~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y-fix include/linux/device.h
---- a/include/linux/device.h~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y-fix
-+++ a/include/linux/device.h
-@@ -623,4 +623,6 @@ extern const char *dev_driver_string(str
- #define MODULE_ALIAS_CHARDEV_MAJOR(major) \
- 	MODULE_ALIAS("char-major-" __stringify(major) "-*")
+ #include <linux/kobject.h>
+ #include <linux/namei.h>
++#include <linux/ctype.h>
++#include <linux/string.h>
+ #include <linux/idr.h>
+ #include <linux/completion.h>
+ #include <linux/mutex.h>
+@@ -423,6 +425,13 @@ int sysfs_add_one(struct sysfs_addrm_cxt
+ 		printk(KERN_WARNING "sysfs: duplicate filename '%s' "
+ 		       "can not be created\n", sd->s_name);
+ 		WARN_ON(1);
++#ifdef CONFIG_USB_DEVICE_CLASS
++		if (isdigit(sd->s_name[0]) && strchr(sd->s_name, ':')) {
++			/* Looks like "189:0" or similar */
++			printk(KERN_WARNING "disabling CONFIG_USB_DEVICE_CLASS"
++					" might fix this\n");
++		}
++#endif
+ 		return -EEXIST;
+ 	}
  
-+extern struct class *usb_classdev_class;
-+
- #endif /* _DEVICE_H_ */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
