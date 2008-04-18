@@ -1,245 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 13:47:45 -0700
-Message-ID: <200804182047.m3IKlkYM014659@imap1.linux-foundation.org>
+Subject: - pata_atiixp-simplex-clear-fix.patch removed from -mm tree
+Date: Fri, 18 Apr 2008 13:40:50 -0700
+Message-ID: <200804182040.m3IKeoIO014353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58260 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58215 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754608AbYDRUsX (ORCPT
+	by vger.kernel.org with ESMTP id S1752205AbYDRUk7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 16:48:23 -0400
+	Fri, 18 Apr 2008 16:40:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dbn.lists@gmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sundance-set-carrier-status-on-link-change-events-checkpatch-fixes
+     pata_atiixp-simplex-clear-fix
 has been removed from the -mm tree.  Its filename was
-     sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
+     pata_atiixp-simplex-clear-fix.patch
 
-This patch was dropped because it was folded into sundance-set-carrier-status-on-link-change-events.patch
+This patch was dropped because it was folded into pata_atiixp-simplex-clear.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sundance-set-carrier-status-on-link-change-events-checkpatch-fixes
+Subject: pata_atiixp-simplex-clear-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#25: FILE: drivers/net/sundance.c:412:
-+static int  mdio_wait_link (struct net_device *dev, int wait);
+stop renaming stuff
 
-WARNING: space prohibited between function name and open parenthesis '('
-#33: FILE: drivers/net/sundance.c:789:
-+static int mdio_wait_link (struct net_device *dev, int wait)
-
-WARNING: space prohibited between function name and open parenthesis '('
-#43: FILE: drivers/net/sundance.c:799:
-+		bmsr = mdio_read (dev, phy_id, MII_BMSR);
-
-WARNING: space prohibited between function name and open parenthesis '('
-#46: FILE: drivers/net/sundance.c:802:
-+		mdelay (1);
-
-WARNING: space prohibited between function name and open parenthesis '('
-#77: FILE: drivers/net/sundance.c:1415:
-+		if (mdio_wait_link (dev, 10) == 0) {
-
-WARNING: space prohibited between function name and open parenthesis '('
-#78: FILE: drivers/net/sundance.c:1416:
-+			printk (KERN_INFO "%s: Link up\n", dev->name);
-
-WARNING: space prohibited between function name and open parenthesis '('
-#80: FILE: drivers/net/sundance.c:1418:
-+				mii_advertise = mdio_read (dev, np->phys[0],
-
-WARNING: space prohibited between function name and open parenthesis '('
-#82: FILE: drivers/net/sundance.c:1420:
-+				mii_lpa= mdio_read (dev, np->phys[0], MII_LPA);
-
-ERROR: spaces required around that '=' (ctx:VxW)
-#82: FILE: drivers/net/sundance.c:1420:
-+				mii_lpa= mdio_read (dev, np->phys[0], MII_LPA);
- 				       ^
-
-WARNING: space prohibited between function name and open parenthesis '('
-#84: FILE: drivers/net/sundance.c:1422:
-+				printk (KERN_INFO "%s: Link changed: ",
-
-WARNING: space prohibited between function name and open parenthesis '('
-#88: FILE: drivers/net/sundance.c:1426:
-+					printk ("100Mbps, full duplex\n");
-
-WARNING: space prohibited between function name and open parenthesis '('
-#91: FILE: drivers/net/sundance.c:1429:
-+					printk ("100Mbps, half duplex\n");
-
-WARNING: space prohibited between function name and open parenthesis '('
-#94: FILE: drivers/net/sundance.c:1432:
-+					printk ("10Mbps, full duplex\n");
-
-WARNING: space prohibited between function name and open parenthesis '('
-#97: FILE: drivers/net/sundance.c:1435:
-+					printk ("10Mbps, half duplex\n");
-
-WARNING: space prohibited between function name and open parenthesis '('
-#99: FILE: drivers/net/sundance.c:1437:
-+					printk ("\n");
-
-WARNING: line over 80 characters
-#102: FILE: drivers/net/sundance.c:1440:
-+				mii_ctl = mdio_read (dev, np->phys[0], MII_BMCR);
-
-WARNING: space prohibited between function name and open parenthesis '('
-#102: FILE: drivers/net/sundance.c:1440:
-+				mii_ctl = mdio_read (dev, np->phys[0], MII_BMCR);
-
-WARNING: space prohibited between function name and open parenthesis '('
-#105: FILE: drivers/net/sundance.c:1443:
-+				printk (KERN_INFO "%s: Link changed: %dMbps ,",
-
-WARNING: line over 80 characters
-#107: FILE: drivers/net/sundance.c:1445:
-+				printk ("%s duplex.\n", (mii_ctl & BMCR_FULLDPLX) ?
-
-WARNING: space prohibited between function name and open parenthesis '('
-#107: FILE: drivers/net/sundance.c:1445:
-+				printk ("%s duplex.\n", (mii_ctl & BMCR_FULLDPLX) ?
-
-WARNING: space prohibited between function name and open parenthesis '('
-#110: FILE: drivers/net/sundance.c:1448:
-+			check_duplex (dev);
-
-WARNING: line over 80 characters
-#112: FILE: drivers/net/sundance.c:1450:
-+				iowrite16(ioread16(ioaddr + MulticastFilter1+2) | 0x0200,
-
-WARNING: line over 80 characters
-#114: FILE: drivers/net/sundance.c:1452:
-+				iowrite16(ioread16(ioaddr + MACCtrl0) | EnbFlowCtrl,
-
-WARNING: space prohibited between function name and open parenthesis '('
-#133: FILE: drivers/net/sundance.c:1457:
-+			printk (KERN_INFO "%s: Link down\n", dev->name);
-
-total: 1 errors, 23 warnings, 114 lines checked
-
-./patches/sundance-set-carrier-status-on-link-change-events.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Dan Nicholson <dbn.lists@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/sundance.c |   41 +++++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 20 deletions(-)
+ drivers/ata/pata_atiixp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/sundance.c~sundance-set-carrier-status-on-link-change-events-checkpatch-fixes drivers/net/sundance.c
---- a/drivers/net/sundance.c~sundance-set-carrier-status-on-link-change-events-checkpatch-fixes
-+++ a/drivers/net/sundance.c
-@@ -409,7 +409,7 @@ static int  change_mtu(struct net_device
- static int  eeprom_read(void __iomem *ioaddr, int location);
- static int  mdio_read(struct net_device *dev, int phy_id, int location);
- static void mdio_write(struct net_device *dev, int phy_id, int location, int value);
--static int  mdio_wait_link (struct net_device *dev, int wait);
-+static int  mdio_wait_link(struct net_device *dev, int wait);
- static int  netdev_open(struct net_device *dev);
- static void check_duplex(struct net_device *dev);
- static void netdev_timer(unsigned long data);
-@@ -786,7 +786,7 @@ static void mdio_write(struct net_device
- 	return;
+diff -puN drivers/ata/pata_atiixp.c~pata_atiixp-simplex-clear-fix drivers/ata/pata_atiixp.c
+--- a/drivers/ata/pata_atiixp.c~pata_atiixp-simplex-clear-fix
++++ a/drivers/ata/pata_atiixp.c
+@@ -245,7 +245,7 @@ static int atiixp_init_one(struct pci_de
+ 	const struct ata_port_info *ppi[] = { &info, NULL };
+ 	/* Some of the quirk reconfiguration messes up the simplex flag, so
+ 	   clear it again */
+-	ata_pci_clear_simplex(dev);
++	ata_pci_bmdma_clear_simplex(dev);
+ 	return ata_pci_sff_init_one(dev, ppi, &atiixp_sht, NULL);
  }
  
--static int mdio_wait_link (struct net_device *dev, int wait)
-+static int mdio_wait_link(struct net_device *dev, int wait)
- {
- 	int bmsr;
- 	int phy_id;
-@@ -796,10 +796,10 @@ static int mdio_wait_link (struct net_de
- 	phy_id = np->phys[0];
- 
- 	do {
--		bmsr = mdio_read (dev, phy_id, MII_BMSR);
-+		bmsr = mdio_read(dev, phy_id, MII_BMSR);
- 		if (bmsr & 0x0004)
- 			return 0;
--		mdelay (1);
-+		mdelay(1);
- 	} while (--wait > 0);
- 	return -1;
- }
-@@ -1412,40 +1412,41 @@ static void netdev_error(struct net_devi
- 	int speed;
- 
- 	if (intr_status & LinkChange) {
--		if (mdio_wait_link (dev, 10) == 0) {
--			printk (KERN_INFO "%s: Link up\n", dev->name);
-+		if (mdio_wait_link(dev, 10) == 0) {
-+			printk(KERN_INFO "%s: Link up\n", dev->name);
- 			if (np->an_enable) {
--				mii_advertise = mdio_read (dev, np->phys[0],
-+				mii_advertise = mdio_read(dev, np->phys[0],
- 							   MII_ADVERTISE);
--				mii_lpa= mdio_read (dev, np->phys[0], MII_LPA);
-+				mii_lpa = mdio_read(dev, np->phys[0], MII_LPA);
- 				mii_advertise &= mii_lpa;
--				printk (KERN_INFO "%s: Link changed: ",
-+				printk(KERN_INFO "%s: Link changed: ",
- 					dev->name);
- 				if (mii_advertise & ADVERTISE_100FULL) {
- 					np->speed = 100;
--					printk ("100Mbps, full duplex\n");
-+					printk("100Mbps, full duplex\n");
- 				} else if (mii_advertise & ADVERTISE_100HALF) {
- 					np->speed = 100;
--					printk ("100Mbps, half duplex\n");
-+					printk("100Mbps, half duplex\n");
- 				} else if (mii_advertise & ADVERTISE_10FULL) {
- 					np->speed = 10;
--					printk ("10Mbps, full duplex\n");
-+					printk("10Mbps, full duplex\n");
- 				} else if (mii_advertise & ADVERTISE_10HALF) {
- 					np->speed = 10;
--					printk ("10Mbps, half duplex\n");
-+					printk("10Mbps, half duplex\n");
- 				} else
--					printk ("\n");
-+					printk("\n");
- 
- 			} else {
--				mii_ctl = mdio_read (dev, np->phys[0], MII_BMCR);
-+				mii_ctl = mdio_read(dev, np->phys[0], MII_BMCR);
- 				speed = (mii_ctl & BMCR_SPEED100) ? 100 : 10;
- 				np->speed = speed;
--				printk (KERN_INFO "%s: Link changed: %dMbps ,",
-+				printk(KERN_INFO "%s: Link changed: %dMbps ,",
- 					dev->name, speed);
--				printk ("%s duplex.\n", (mii_ctl & BMCR_FULLDPLX) ?
--					"full" : "half");
-+				printk("%s duplex.\n",
-+					(mii_ctl & BMCR_FULLDPLX) ?
-+						"full" : "half");
- 			}
--			check_duplex (dev);
-+			check_duplex(dev);
- 			if (np->flowctrl && np->mii_if.full_duplex) {
- 				iowrite16(ioread16(ioaddr + MulticastFilter1+2) | 0x0200,
- 					ioaddr + MulticastFilter1+2);
-@@ -1454,7 +1455,7 @@ static void netdev_error(struct net_devi
- 			}
- 			netif_carrier_on(dev);
- 		} else {
--			printk (KERN_INFO "%s: Link down\n", dev->name);
-+			printk(KERN_INFO "%s: Link down\n", dev->name);
- 			netif_carrier_off(dev);
- 		}
- 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -285,11 +94,13 @@ touch-screen-driver-for-the-superh-migor-board.patch
 git-leds.patch
 git-libata-all.patch
 pata_atiixp-simplex-clear.patch
+pata_atiixp-simplex-clear-fix.patch
 git-async-tx.patch
 git-mips.patch
 git-net.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 ehea-fix-dlpar-memory-add-support-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
 sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
 net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix.patch
 smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes.patch
@@ -449,6 +260,5 @@ undeprecate-pci_find_device.patch
 notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
 
