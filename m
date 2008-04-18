@@ -1,109 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: + memcgroup-check-and-initialize-page-cgroup-in-memmap_init_zone.patch added to -mm tree
-Date: Thu, 17 Apr 2008 20:19:56 -0700
-Message-ID: <200804180319.m3I3JueI008651@imap1.linux-foundation.org>
+Subject: - sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y.patch removed from -mm tree
+Date: Thu, 17 Apr 2008 20:23:21 -0700
+Message-ID: <200804180323.m3I3NLZI008810@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56274 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60499 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754075AbYDRDU1 (ORCPT
+	by vger.kernel.org with ESMTP id S1754327AbYDRDXx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 23:20:27 -0400
+	Thu, 17 Apr 2008 23:23:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: shiwh@cn.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org, xemul@openvz.org
+To: dan.j.williams@intel.com, greg@kroah.com, kay.sievers@vrfy.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcgroup: check and initialize page->cgroup in memmap_init_zone
-has been added to the -mm tree.  Its filename is
-     memcgroup-check-and-initialize-page-cgroup-in-memmap_init_zone.patch
+     sysfs: add /sys/dev/usb to handle CONFIG_USB_DEVICE_CLASS=y
+has been removed from the -mm tree.  Its filename was
+     sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because head is spinning
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcgroup: check and initialize page->cgroup in memmap_init_zone
-From: Shi Weihua <shiwh@cn.fujitsu.com>
+Subject: sysfs: add /sys/dev/usb to handle CONFIG_USB_DEVICE_CLASS=y
+From: Dan Williams <dan.j.williams@intel.com>
 
-When we test memory controller in Fujitsu PrimeQuest(arch: ia64),
-the compiled kernel boots failed, the following message occured on
-the telnet terminal.
+The deprecated config option CONFIG_USB_DEVICE_CLASS causes class devices with
+duplicate major:minor numbers to be registered.  In effect they represent a
+usb specific address space for major:minor numbers so add 'usb' as a directory
+along side 'block' and 'char'.
 
--------------------------------------
-..........
-ELILO boot: Uncompressing Linux... done
-Loading file initrd-2.6.25-rc9-00067-gb87e81e.img...done
-_ (system freezed)
--------------------------------------
-
-We found commit 9442ec9df40d952b0de185ae5638a74970388e01
-causes this boot failure by git-bisect.
-
-And, we found the following change caused the boot failure.
-
--------------------------------------
-                set_page_links(page, zone, nid, pfn);
-                init_page_count(page);
-                reset_page_mapcount(page);
--               page_assign_page_cgroup(page, NULL);
-                SetPageReserved(page);
-
-                /*
--------------------------------------
-
-In this patch, the Author Hugh Dickins said "...memmap_init_zone doesn't need
-it either, ...  Linux assumes pointers in zeroed structures are NULL
-pointers." But it seems it's not always the case, so we should check and
-initialize page->cgroup anyways.
-
-Signed-off-by: Shi Weihua <shiwh@cn.fujitsu.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: <stable@kernel.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/base/core.c      |   25 +++++++++++++++++++++++--
+ drivers/usb/core/devio.c |    2 +-
+ 2 files changed, 24 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~memcgroup-check-and-initialize-page-cgroup-in-memmap_init_zone mm/page_alloc.c
---- a/mm/page_alloc.c~memcgroup-check-and-initialize-page-cgroup-in-memmap_init_zone
-+++ a/mm/page_alloc.c
-@@ -2518,6 +2518,7 @@ void __meminit memmap_init_zone(unsigned
- 	struct page *page;
- 	unsigned long end_pfn = start_pfn + size;
- 	unsigned long pfn;
-+	void *pc;
+diff -puN drivers/base/core.c~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y drivers/base/core.c
+--- a/drivers/base/core.c~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y
++++ a/drivers/base/core.c
+@@ -30,6 +30,10 @@ int (*platform_notify_remove)(struct dev
+ static struct kobject *dev_kobj;
+ static struct kobject *char_kobj;
+ static struct kobject *block_kobj;
++#ifdef CONFIG_USB_DEVICE_CLASS
++extern struct class *usb_classdev_class;
++static struct kobject *usb_kobj;
++#endif
  
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
- 		/*
-@@ -2535,6 +2536,9 @@ void __meminit memmap_init_zone(unsigned
- 		set_page_links(page, zone, nid, pfn);
- 		init_page_count(page);
- 		reset_page_mapcount(page);
-+		pc = page_get_page_cgroup(page);
-+		if (pc)
-+			page_reset_bad_cgroup(page);
- 		SetPageReserved(page);
+ #ifdef CONFIG_BLOCK
+ static inline int device_is_not_partition(struct device *dev)
+@@ -765,7 +769,13 @@ static void device_remove_class_symlinks
  
- 		/*
+ static struct kobject *device_to_dev_kobj(struct device *dev)
+ {
+-	return dev->class == &block_class ? block_kobj : char_kobj;
++	if (dev->class == &block_class)
++		return block_kobj;
++#ifdef CONFIG_USB_DEVICE_CLASS
++	if (usb_classdev_class && dev->class == usb_classdev_class)
++		return usb_kobj;
++#endif
++	return char_kobj;
+ }
+ 
+ /**
+@@ -1087,9 +1097,17 @@ int __init devices_init(void)
+ 	char_kobj = kobject_create_and_add("char", dev_kobj);
+ 	if (!char_kobj)
+ 		goto char_kobj_err;
+-
++#ifdef CONFIG_USB_DEVICE_CLASS
++	usb_kobj = kobject_create_and_add("usb", dev_kobj);
++	if (!usb_kobj)
++		goto usb_kobj_err;
++#endif
+ 	return 0;
+ 
++#ifdef CONFIG_USB_DEVICE_CLASS
++ usb_kobj_err:
++	kobject_put(char_kobj);
++#endif
+  char_kobj_err:
+ 	kobject_put(block_kobj);
+  block_kobj_err:
+@@ -1392,6 +1410,9 @@ void device_shutdown(void)
+ 			dev->driver->shutdown(dev);
+ 		}
+ 	}
++#ifdef CONFIG_USB_DEVICE_CLASS
++	kobject_put(usb_kobj);
++#endif
+ 	kobject_put(char_kobj);
+ 	kobject_put(block_kobj);
+ 	kobject_put(dev_kobj);
+diff -puN drivers/usb/core/devio.c~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y drivers/usb/core/devio.c
+--- a/drivers/usb/core/devio.c~sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y
++++ a/drivers/usb/core/devio.c
+@@ -1660,7 +1660,7 @@ const struct file_operations usbdev_file
+ };
+ 
+ #ifdef CONFIG_USB_DEVICE_CLASS
+-static struct class *usb_classdev_class;
++struct class *usb_classdev_class;
+ 
+ static int usb_classdev_add(struct usb_device *dev)
+ {
 _
 
-Patches currently in -mm which might be from shiwh@cn.fujitsu.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-memcgroup-check-and-initialize-page-cgroup-in-memmap_init_zone.patch
+git-arm.patch
+sysfs-add-sys-dev-usb-to-handle-config_usb_device_class=y.patch
+git-async-tx.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+md-introduce-get_priority_stripe-to-improve-raid456-write-performance.patch
+md-raid5c-convert-simple_strtoul-to-strict_strtoul.patch
 
