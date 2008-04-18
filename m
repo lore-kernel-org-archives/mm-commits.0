@@ -1,269 +1,266 @@
 From: akpm@linux-foundation.org
-Subject: - add-default-cpu-topology-information.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 00:32:40 -0700
-Message-ID: <200804180732.m3I7WeNh017282@imap1.linux-foundation.org>
+Subject: - add-default-cpu-topology-information-cleanup.patch removed from -mm tree
+Date: Fri, 18 Apr 2008 00:32:46 -0700
+Message-ID: <200804180732.m3I7WkTk017288@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39808 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39646 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752342AbYDRHdH (ORCPT
+	by vger.kernel.org with ESMTP id S1752225AbYDRHdR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 03:33:07 -0400
+	Fri, 18 Apr 2008 03:33:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhutchings@solarflare.com, heiko.carstens@de.ibm.com, mingo@elte.hu, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, bhutchings@solarflare.com, heiko.carstens@de.ibm.com, mingo@elte.hu, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Add default CPU topology information
+     add-default-cpu-topology-information cleanup
 has been removed from the -mm tree.  Its filename was
-     add-default-cpu-topology-information.patch
+     add-default-cpu-topology-information-cleanup.patch
 
 This patch was dropped because it had testing failures
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add default CPU topology information
-From: Ben Hutchings <bhutchings@solarflare.com>
+Subject: add-default-cpu-topology-information cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Not all architectures and configurations define CPU topology information. 
-This can result in an empty topology directory in sysfs, and requires
-in-kernel users to protect all uses with #ifdef - see
-<http://marc.info/?l=linux-netdev&m=120639033904472&w=2>.
-
-The documentation of CPU topology specifies what the defaults should be
-if only partial information is available from the hardware.  So we can
-provide these defaults as a fallback.
-
-This patch:
-
-- Adds default definitions of the 4 topology macros to
-  include/asm-generic/topology.h.
-- Changes include/asm-*/topology.h to include <asm-generic/topology.h>
-  unconditionally.
-- Changes drivers/base/topology.c to use the topology macros unconditionally
-  and to cope with definitions that aren't lvalues.
-- Updates documentation accordingly.
-
-Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
+Cc: Ben Hutchings <bhutchings@solarflare.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cputopology.txt  |   26 +++++++++-----------------
- drivers/base/topology.c        |   31 ++++++-------------------------
- include/asm-alpha/topology.h   |    6 +++---
- include/asm-frv/topology.h     |    4 +---
- include/asm-generic/topology.h |   15 +++++++++++++++
- include/asm-mips/topology.h    |    4 ++--
- include/asm-powerpc/topology.h |    5 ++---
- include/asm-x86/topology.h     |    8 +++-----
- 8 files changed, 41 insertions(+), 58 deletions(-)
+ drivers/base/topology.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/cputopology.txt~add-default-cpu-topology-information Documentation/cputopology.txt
---- a/Documentation/cputopology.txt~add-default-cpu-topology-information
-+++ a/Documentation/cputopology.txt
-@@ -14,9 +14,8 @@ represent the thread siblings to cpu X i
- To implement it in an architecture-neutral way, a new source file,
- drivers/base/topology.c, is to export the 4 attributes.
- 
--If one architecture wants to support this feature, it just needs to
--implement 4 defines, typically in file include/asm-XXX/topology.h.
--The 4 defines are:
-+If one architecture wants to support this feature, it must define
-+some of these macros in include/asm-XXX/topology.h:
- #define topology_physical_package_id(cpu)
- #define topology_core_id(cpu)
- #define topology_thread_siblings(cpu)
-@@ -25,17 +24,10 @@ The 4 defines are:
- The type of **_id is int.
- The type of siblings is cpumask_t.
- 
--To be consistent on all architectures, the 4 attributes should have
--default values if their values are unavailable. Below is the rule.
--1) physical_package_id: If cpu has no physical package id, -1 is the
--default value.
--2) core_id: If cpu doesn't support multi-core, its core id is 0.
--3) thread_siblings: Just include itself, if the cpu doesn't support
--HT/multi-thread.
--4) core_siblings: Just include itself, if the cpu doesn't support
--multi-core and HT/Multi-thread.
--
--So be careful when declaring the 4 defines in include/asm-XXX/topology.h.
--
--If an attribute isn't defined on an architecture, it won't be exported.
--
-+To be consistent on all architectures, include/asm-generic/topology.h
-+provides default definitions for any of the above macros that are
-+not already defined:
-+1) physical_package_id: -1
-+2) core_id: 0
-+3) thread_siblings: just the given CPU
-+4) core_siblings: just the given CPU
-diff -puN drivers/base/topology.c~add-default-cpu-topology-information drivers/base/topology.c
---- a/drivers/base/topology.c~add-default-cpu-topology-information
+diff -puN drivers/base/topology.c~add-default-cpu-topology-information-cleanup drivers/base/topology.c
+--- a/drivers/base/topology.c~add-default-cpu-topology-information-cleanup
 +++ a/drivers/base/topology.c
-@@ -45,47 +45,28 @@ static ssize_t show_##name(struct sys_de
- {									\
- 	ssize_t len = -1;						\
+@@ -47,7 +47,7 @@ static ssize_t show_##name(struct sys_de
  	unsigned int cpu = dev->id;					\
--	len = cpumask_scnprintf(buf, NR_CPUS+1, topology_##name(cpu));	\
-+	cpumask_t siblings = topology_##name(cpu);			\
-+	len = cpumask_scnprintf(buf, NR_CPUS+1, siblings);		\
- 	return (len + sprintf(buf + len, "\n"));			\
+ 	cpumask_t siblings = topology_##name(cpu);			\
+ 	len = cpumask_scnprintf(buf, NR_CPUS+1, siblings);		\
+-	return (len + sprintf(buf + len, "\n"));			\
++	return len + sprintf(buf + len, "\n");				\
  }
  
--#ifdef	topology_physical_package_id
  define_id_show_func(physical_package_id);
- define_one_ro(physical_package_id);
--#define ref_physical_package_id_attr	&attr_physical_package_id.attr,
--#else
--#define ref_physical_package_id_attr
--#endif
- 
--#ifdef topology_core_id
- define_id_show_func(core_id);
- define_one_ro(core_id);
--#define ref_core_id_attr		&attr_core_id.attr,
--#else
--#define ref_core_id_attr
--#endif
- 
--#ifdef topology_thread_siblings
- define_siblings_show_func(thread_siblings);
- define_one_ro(thread_siblings);
--#define ref_thread_siblings_attr	&attr_thread_siblings.attr,
--#else
--#define ref_thread_siblings_attr
--#endif
- 
--#ifdef topology_core_siblings
- define_siblings_show_func(core_siblings);
- define_one_ro(core_siblings);
--#define ref_core_siblings_attr		&attr_core_siblings.attr,
--#else
--#define ref_core_siblings_attr
--#endif
- 
- static struct attribute *default_attrs[] = {
--	ref_physical_package_id_attr
--	ref_core_id_attr
--	ref_thread_siblings_attr
--	ref_core_siblings_attr
-+	&attr_physical_package_id.attr,
-+	&attr_core_id.attr,
-+	&attr_thread_siblings.attr,
-+	&attr_core_siblings.attr,
- 	NULL
- };
- 
-diff -puN include/asm-alpha/topology.h~add-default-cpu-topology-information include/asm-alpha/topology.h
---- a/include/asm-alpha/topology.h~add-default-cpu-topology-information
-+++ a/include/asm-alpha/topology.h
-@@ -41,8 +41,8 @@ static inline cpumask_t node_to_cpumask(
- 
- #define pcibus_to_cpumask(bus)	(cpu_online_map)
- 
--#else /* CONFIG_NUMA */
--# include <asm-generic/topology.h>
--#endif /* !CONFIG_NUMA */
-+#endif /* CONFIG_NUMA */
-+
-+#include <asm-generic/topology.h>
- 
- #endif /* _ASM_ALPHA_TOPOLOGY_H */
-diff -puN include/asm-frv/topology.h~add-default-cpu-topology-information include/asm-frv/topology.h
---- a/include/asm-frv/topology.h~add-default-cpu-topology-information
-+++ a/include/asm-frv/topology.h
-@@ -5,10 +5,8 @@
- 
- #error NUMA not supported yet
- 
--#else /* !CONFIG_NUMA */
-+#endif /* CONFIG_NUMA */
- 
- #include <asm-generic/topology.h>
- 
--#endif /* CONFIG_NUMA */
--
- #endif /* _ASM_TOPOLOGY_H */
-diff -puN include/asm-generic/topology.h~add-default-cpu-topology-information include/asm-generic/topology.h
---- a/include/asm-generic/topology.h~add-default-cpu-topology-information
-+++ a/include/asm-generic/topology.h
-@@ -27,6 +27,8 @@
- #ifndef _ASM_GENERIC_TOPOLOGY_H
- #define _ASM_GENERIC_TOPOLOGY_H
- 
-+#include <linux/cpumask.h>
-+
- /* Other architectures wishing to use this simple topology API should fill
-    in the below functions as appropriate in their own <asm/topology.h> file. */
- #ifndef cpu_to_node
-@@ -52,4 +54,17 @@
- 				)
- #endif
- 
-+#ifndef topology_physical_package_id
-+#define topology_physical_package_id(cpu)	((void)(cpu), -1)
-+#endif
-+#ifndef topology_core_id
-+#define topology_core_id(cpu)			((void)(cpu), 0)
-+#endif
-+#ifndef topology_thread_siblings
-+#define topology_thread_siblings(cpu)		cpumask_of_cpu(cpu)
-+#endif
-+#ifndef topology_core_siblings
-+#define topology_core_siblings(cpu)		cpumask_of_cpu(cpu)
-+#endif
-+
- #endif /* _ASM_GENERIC_TOPOLOGY_H */
-diff -puN include/asm-mips/topology.h~add-default-cpu-topology-information include/asm-mips/topology.h
---- a/include/asm-mips/topology.h~add-default-cpu-topology-information
-+++ a/include/asm-mips/topology.h
-@@ -8,10 +8,10 @@
- #ifndef __ASM_TOPOLOGY_H
- #define __ASM_TOPOLOGY_H
- 
--#include <topology.h>
--
- #ifdef CONFIG_SMP
- #define smt_capable()   (smp_num_siblings > 1)
- #endif
- 
-+#include <asm-generic/topology.h>
-+
- #endif /* __ASM_TOPOLOGY_H */
-diff -puN include/asm-powerpc/topology.h~add-default-cpu-topology-information include/asm-powerpc/topology.h
---- a/include/asm-powerpc/topology.h~add-default-cpu-topology-information
-+++ a/include/asm-powerpc/topology.h
-@@ -96,9 +96,6 @@ static inline void sysfs_remove_device_f
- {
- }
- 
--
--#include <asm-generic/topology.h>
--
- #endif /* CONFIG_NUMA */
- 
- #ifdef CONFIG_SMP
-@@ -112,5 +109,7 @@ static inline void sysfs_remove_device_f
- #endif
- #endif
- 
-+#include <asm-generic/topology.h>
-+
- #endif /* __KERNEL__ */
- #endif	/* _ASM_POWERPC_TOPOLOGY_H */
-diff -puN include/asm-x86/topology.h~add-default-cpu-topology-information include/asm-x86/topology.h
---- a/include/asm-x86/topology.h~add-default-cpu-topology-information
-+++ a/include/asm-x86/topology.h
-@@ -172,11 +172,7 @@ extern int __node_distance(int, int);
- #define node_distance(a, b) __node_distance(a, b)
- #endif
- 
--#else /* CONFIG_NUMA */
--
--#include <asm-generic/topology.h>
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+disable-the-memory-controller-by-default-v3-fix.patch
+hotplug-memory-make-online_page-common-fix.patch
+revert-set-relay-file-can-not-be-read-by-pread2.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86.patch
+arch-x86-mm-ioremapc-fix-printk-warnings.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+x86-ptrace-pebs-support-warning-fix.patch
+arch-x86-video-fbdevc-add-module_license.patch
+git-kgdb-light.patch
+git-x86-hack-around-to-make-git-kgdb-build.patch
+git-x86-vs-git-kgdb-lite.patch
+git-alsa-tiwai.patch
+git-agpgart-export-agp_generic_alloc_pages.patch
+git-agpgart-fix-type-confusion.patch
+git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+git-arm-fix.patch
+cifs-suppress-warning.patch
+git-powerpc.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+git-drm.patch
+revert-git-drm.patch
+git-dvb.patch
+git-dvb-kconfig-fix.patch
+git-hwmon.patch
+git-gfs2-nmw.patch
+git-dlm-vs-git-gfs2-nwm.patch
+git-hid.patch
+git-hrt.patch
+time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
+git-ia64.patch
+git-ieee1394.patch
+git-infiniband.patch
+git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
+git-input.patch
+touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
+git-leds.patch
+git-libata-all.patch
+pata_atiixp-simplex-clear-fix.patch
+git-async-tx.patch
+git-mips.patch
+git-net.patch
+drivers-atm-firestreamc-suppress-uninitialized-var-warning.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+ehea-fix-dlpar-memory-add-support-fix.patch
+sundance-set-carrier-status-on-link-change-events-checkpatch-fixes.patch
+net-drivers-fix-platform-driver-hotplug-coldplug-sgiseeq-fix.patch
+smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt-checkpatch-fixes.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+git-ocfs2.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-s390.patch
+git-sched.patch
+add-rcu_assign_index-if-ever-needed.patch
+git-sh.patch
+git-scsi-misc.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
+git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
+scsi-fix-platform-driver-hotplug-coldplug-sgiwd93-fix.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
+fix-gregkh-usb-usb-hcds-use-the-do_remote_wakeup-flag.patch
+uwb-seems-to-need-pci.patch
+git-v9fs.patch
+git-vfs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+git-xfs-fixups.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-cryptodev-misplaced-hunk.patch
+git-cryptodev-fix-conflict.patch
+git-cryptodev-fix-conflict-hack.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+git-semaphore-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+mm-introduce-pte_special-pte-bit-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+add-default-cpu-topology-information-cleanup.patch
+utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+drivers-video-uvesafbc-fix-error-path-memory-leak.patch
+fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
+drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
+x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
+x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
+drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+fat_valid_media-remove-pointless-test.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+isicom-bring-into-coding-style-fix.patch
+tty-the-big-operations-rework-fix-2.patch
+tty-the-big-operations-rework-isicom-fix.patch
+tty-the-big-operations-rework-simserial-fix.patch
+tty-the-big-operations-rework-vs-git-kgdb-light.patch
+tty-the-big-operations-rework-vs-kgdb-2.patch
+tty-the-big-operations-rework-broke-wan.patch
+devpts-factor-out-pty-index-allocation-fix.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
+relayfs-support-larger-relay-buffer-take-3-cleanup.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+w1-build-fix.patch
+
