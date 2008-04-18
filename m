@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + isicom-bring-into-coding-style-fix.patch added to -mm tree
-Date: Thu, 17 Apr 2008 21:27:37 -0700
-Message-ID: <200804180438.m3I4c6w0011269@imap1.linux-foundation.org>
+Subject: + tty-the-big-operations-rework-isicom-fix.patch added to -mm tree
+Date: Thu, 17 Apr 2008 21:33:04 -0700
+Message-ID: <200804180443.m3I4hX62011477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43335 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59135 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750825AbYDREiR (ORCPT
+	by vger.kernel.org with ESMTP id S1757736AbYDREnm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 00:38:17 -0400
+	Fri, 18 Apr 2008 00:43:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com
 
 
 The patch titled
-     isicom-bring-into-coding-style-fix
+     tty-the-big-operations-rework-isicom-fix
 has been added to the -mm tree.  Its filename is
-     isicom-bring-into-coding-style-fix.patch
+     tty-the-big-operations-rework-isicom-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,87 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isicom-bring-into-coding-style-fix
+Subject: tty-the-big-operations-rework-isicom-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arm:
-
-drivers/char/isicom.c:817: warning: comparison between pointer and integer
-drivers/char/isicom.c: At top level:
-
-- We expect a variable called `page' to be `struct page *'.  Rename it.
-
-- Fix warning there.
-
-drivers/char/isicom.c:1473: warning: initialization from incompatible pointer type
-
-- Fix that too.
+Now undo what we did to get everything nice.
 
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/isicom.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/char/isicom.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/isicom.c~isicom-bring-into-coding-style-fix drivers/char/isicom.c
---- a/drivers/char/isicom.c~isicom-bring-into-coding-style-fix
+diff -puN drivers/char/isicom.c~tty-the-big-operations-rework-isicom-fix drivers/char/isicom.c
+--- a/drivers/char/isicom.c~tty-the-big-operations-rework-isicom-fix
 +++ a/drivers/char/isicom.c
-@@ -813,14 +813,15 @@ static int isicom_setup_port(struct isi_
- 		return 0;
- 	if (!port->xmit_buf) {
- 		/* Relies on BKL */
--		unsigned long page  = get_zeroed_page(GFP_KERNEL);
--		if (page == NULL)
-+		void *xmit_buf = (void *)get_zeroed_page(GFP_KERNEL);
-+
-+		if (xmit_buf == NULL)
- 			return -ENOMEM;
- 		if (port->xmit_buf) {
--			free_page(page);
-+			free_page((unsigned long)xmit_buf);
- 			return -ERESTARTSYS;
- 		}
--		port->xmit_buf = (unsigned char *) page;
-+		port->xmit_buf = xmit_buf;
- 	}
- 
- 	spin_lock_irqsave(&card->card_lock, flags);
-@@ -1139,29 +1140,28 @@ static int isicom_write(struct tty_struc
+@@ -1140,28 +1140,29 @@ static int isicom_write(struct tty_struc
  }
  
  /* put_char et all */
--static int isicom_put_char(struct tty_struct *tty, unsigned char ch)
-+static void isicom_put_char(struct tty_struct *tty, unsigned char ch)
+-static void isicom_put_char(struct tty_struct *tty, unsigned char ch)
++static int isicom_put_char(struct tty_struct *tty, unsigned char ch)
  {
  	struct isi_port *port = tty->driver_data;
  	struct isi_board *card = port->card;
  	unsigned long flags;
  
  	if (isicom_paranoia_check(port, tty->name, "isicom_put_char"))
--		return 0;
-+		return;
+-		return;
++		return 0;
  
  	if (!port->xmit_buf)
--		return 0;
-+		return;
+-		return;
++		return 0;
  
  	spin_lock_irqsave(&card->card_lock, flags);
--	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1) {
--		spin_unlock_irqrestore(&card->card_lock, flags);
--		return 0;
--	}
-+	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1)
-+		goto out;
+-	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1)
+-		goto out;
++	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1) {
++		spin_unlock_irqrestore(&card->card_lock, flags);
++		return 0;
++	}
  
  	port->xmit_buf[port->xmit_head++] = ch;
  	port->xmit_head &= (SERIAL_XMIT_SIZE - 1);
  	port->xmit_cnt++;
  	spin_unlock_irqrestore(&card->card_lock, flags);
--	return 1;
-+out:
-+	return;
+-out:
+-	return;
++	return 1;
  }
  
  /* flush_chars et all */
@@ -293,6 +262,7 @@ sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
 isicom-bring-into-coding-style-fix.patch
 tty-the-big-operations-rework-fix-2.patch
+tty-the-big-operations-rework-isicom-fix.patch
 tty-the-big-operations-rework-vs-git-kgdb-light.patch
 tty-the-big-operations-rework-vs-kgdb-2.patch
 tty-the-big-operations-rework-broke-wan.patch
