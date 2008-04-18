@@ -1,137 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - miscacpibacklight-compal-laptop-extras-use-bitmask-not-hex.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 13:26:10 -0700
-Message-ID: <200804182026.m3IKQA7L013511@imap1.linux-foundation.org>
+Subject: + rtc-pcf8563-add-device-ids-table.patch added to -mm tree
+Date: Fri, 18 Apr 2008 16:36:19 -0700
+Message-ID: <200804182336.m3INaJgD022272@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40941 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44943 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752645AbYDRU0g (ORCPT
+	by vger.kernel.org with ESMTP id S1752315AbYDRXgc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 16:26:36 -0400
+	Fri, 18 Apr 2008 19:36:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cezary.jackiewicz@gmail.com, aystarik@gmail.com, hmh@hmh.eng.br, lenb@kernel.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: laurentp@cse-semaphore.com, a.zummo@towertech.it, david-b@pacbell.net
 
 
 The patch titled
-     misc,acpi,backlight: Compal Laptop Extras - use bitmask, not hex
-has been removed from the -mm tree.  Its filename was
-     miscacpibacklight-compal-laptop-extras-use-bitmask-not-hex.patch
+     rtc-pcf8563: add device ids table
+has been added to the -mm tree.  Its filename is
+     rtc-pcf8563-add-device-ids-table.patch
 
-This patch was dropped because it was folded into miscacpibacklight-compal-laptop-extras-3rd-try.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc,acpi,backlight: Compal Laptop Extras - use bitmask, not hex
-From: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
+Subject: rtc-pcf8563: add device ids table
+From: Laurent Pinchart <laurentp@cse-semaphore.com>
 
-Clean up code. Use bitmask for operations.
+This patch adds support for device tree names via the i2c mod alias mechanism
+to the rtc-pcf8563 driver.
 
-Signed-off-by: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>
+Signed-off-by: Laurent Pinchart <laurentp@cse-semaphore.com>
+Signed-off-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/compal-laptop.c |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ drivers/rtc/rtc-pcf8563.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN drivers/misc/compal-laptop.c~miscacpibacklight-compal-laptop-extras-use-bitmask-not-hex drivers/misc/compal-laptop.c
---- a/drivers/misc/compal-laptop.c~miscacpibacklight-compal-laptop-extras-use-bitmask-not-hex
-+++ a/drivers/misc/compal-laptop.c
-@@ -1,7 +1,7 @@
- /*-*-linux-c-*-*/
- 
- /*
--  Copyright (C) 2008 Cezary Jackiewicz <cezary.Jackiewicz (at) gmail.com>
-+  Copyright (C) 2008 Cezary Jackiewicz <cezary.jackiewicz (at) gmail.com>
- 
-   based on MSI driver
- 
-@@ -56,13 +56,17 @@
- #include <linux/platform_device.h>
- #include <linux/autoconf.h>
- 
--#define COMPAL_DRIVER_VERSION "0.2.2"
-+#define COMPAL_DRIVER_VERSION "0.2.5"
- 
- #define COMPAL_LCD_LEVEL_MAX 8
- 
- #define COMPAL_EC_COMMAND_WIRELESS 0xBB
- #define COMPAL_EC_COMMAND_LCD_LEVEL 0xB9
- 
-+#define KILLSWITCH_MASK	0x10
-+#define WLAN_MASK	0x01
-+#define BT_MASK		0x02
-+
- static int force;
- module_param(force, bool, 0);
- MODULE_PARM_DESC(force, "Force driver load, ignore DMI data");
-@@ -94,13 +98,13 @@ static int set_wlan_state(int state)
- 
- 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
- 
--	if ((result & 0x10) == 0)
-+	if ((result & KILLSWITCH_MASK) == 0)
- 		return -EINVAL;
- 	else {
- 		if (state)
--			value = (u8) (result | 0x01);
-+			value = (u8) (result | WLAN_MASK);
- 		else
--			value = (u8) (result & 0xFE);
-+			value = (u8) (result & ~WLAN_MASK);
- 		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
- 	}
- 
-@@ -113,13 +117,13 @@ static int set_bluetooth_state(int state
- 
- 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
- 
--	if ((result & 0x10) == 0)
-+	if ((result & KILLSWITCH_MASK) == 0)
- 		return -EINVAL;
- 	else {
- 		if (state)
--			value = (u8) (result | 0x02);
-+			value = (u8) (result | BT_MASK);
- 		else
--			value = (u8) (result & 0xFD);
-+			value = (u8) (result & ~BT_MASK);
- 		ec_write(COMPAL_EC_COMMAND_WIRELESS, value);
- 	}
- 
-@@ -133,17 +137,17 @@ static int get_wireless_state(int *wlan,
- 	ec_read(COMPAL_EC_COMMAND_WIRELESS, &result);
- 
- 	if (wlan) {
--		if ((result & 0x10) == 0)
-+		if ((result & KILLSWITCH_MASK) == 0)
- 			*wlan = 0;
- 		else
--			*wlan = result & 0x01;
-+			*wlan = result & WLAN_MASK;
- 	}
- 
- 	if (bluetooth) {
--		if ((result & 0x10) == 0)
-+		if ((result & KILLSWITCH_MASK) == 0)
- 			*bluetooth = 0;
- 		else
--			*bluetooth = (result >> 1) & 0x01;
-+			*bluetooth = (result & BT_MASK) >> 1;
- 	}
- 
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-add-device-ids-table drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-add-device-ids-table
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -299,12 +299,20 @@ static int pcf8563_remove(struct i2c_cli
  	return 0;
+ }
+ 
++static struct i2c_device_id pcf8563_id[] = {
++	{ "pcf8563", 0 },
++	{ "rtc8564", 0 },
++	{},
++};
++MODULE_DEVICE_TABLE(i2c, pcf8563_id);
++
+ static struct i2c_driver pcf8563_driver = {
+ 	.driver		= {
+ 		.name	= "rtc-pcf8563",
+ 	},
+ 	.probe		= pcf8563_probe,
+ 	.remove		= pcf8563_remove,
++	.id_table	= pcf8563_id,
+ };
+ 
+ static int __init pcf8563_init(void)
 _
 
-Patches currently in -mm which might be from cezary.jackiewicz@gmail.com are
+Patches currently in -mm which might be from laurentp@cse-semaphore.com are
 
-miscacpibacklight-compal-laptop-extras-3rd-try.patch
-miscacpibacklight-compal-laptop-extras-use-bitmask-not-hex.patch
-miscacpibacklight-compal-laptop-extras-add-support-for-new-laptops.patch
+rtc-pcf8563-add-device-ids-table.patch
 
