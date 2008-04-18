@@ -1,52 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - tty-the-big-operations-rework-broke-wan.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 03:55:02 -0700
-Message-ID: <200804181055.m3IAt28E024424@imap1.linux-foundation.org>
+Subject: - touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 18 Apr 2008 13:39:20 -0700
+Message-ID: <200804182039.m3IKdKMY014265@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54306 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51465 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751071AbYDRKzL (ORCPT
+	by vger.kernel.org with ESMTP id S1752025AbYDRUjh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 06:55:11 -0400
+	Fri, 18 Apr 2008 16:39:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, broonie@opensource.wolfsonmicro.com, damm@igel.co.jp, dtor@mail.ru, lethal@linux-sh.org, magnus.damm@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty-the-big-operations-rework broke WAN
+     touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     tty-the-big-operations-rework-broke-wan.patch
+     touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into touch-screen-driver-for-the-superh-migor-board.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty-the-big-operations-rework broke WAN
+Subject: touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-too lazy to fix it.
+WARNING: Use #include <linux/io.h> instead of <asm/io.h>
+#84: FILE: drivers/input/touchscreen/migor_ts.c:26:
++#include <asm/io.h>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+total: 0 errors, 1 warnings, 238 lines checked
+
+./patches/touch-screen-driver-for-the-superh-migor-board.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Magnus Damm <damm@igel.co.jp>
+Cc: Magnus Damm <magnus.damm@gmail.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wan/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/input/touchscreen/migor_ts.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/wan/Kconfig~tty-the-big-operations-rework-broke-wan drivers/net/wan/Kconfig
---- a/drivers/net/wan/Kconfig~tty-the-big-operations-rework-broke-wan
-+++ a/drivers/net/wan/Kconfig
-@@ -458,6 +458,7 @@ config LAPBETHER
- config X25_ASY
- 	tristate "X.25 async driver (EXPERIMENTAL)"
- 	depends on LAPB && X25
-+	depends on BROKEN
- 	---help---
- 	  Send and receive X.25 frames over regular asynchronous serial
- 	  lines such as telephone lines equipped with ordinary modems.
+diff -puN drivers/input/touchscreen/migor_ts.c~touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes drivers/input/touchscreen/migor_ts.c
+--- a/drivers/input/touchscreen/migor_ts.c~touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes
++++ a/drivers/input/touchscreen/migor_ts.c
+@@ -23,7 +23,7 @@
+ #include <linux/kernel.h>
+ #include <linux/input.h>
+ #include <linux/interrupt.h>
+-#include <asm/io.h>
++#include <linux/io.h>
+ #include <linux/i2c.h>
+ #include <linux/timer.h>
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -59,8 +74,8 @@ acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 git-x86.patch
 arch-x86-mm-ioremapc-fix-printk-warnings.patch
 git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-x86-ptrace-pebs-support-warning-fix.patch
 arch-x86-video-fbdevc-add-module_license.patch
+x86-ptrace-pebs-support-warning-fix.patch
 git-kgdb-light.patch
 git-x86-hack-around-to-make-git-kgdb-build.patch
 git-x86-vs-git-kgdb-lite.patch
@@ -81,13 +96,14 @@ git-gfs2-nmw.patch
 git-dlm-vs-git-gfs2-nwm.patch
 git-hid.patch
 git-hrt.patch
-time-close-small-window-for-vsyscall-time-inconsistencies-checkpatch-fixes.patch
+time-close-small-window-for-vsyscall-time-inconsistencies.patch
 git-ia64.patch
 git-ieee1394.patch
 git-infiniband.patch
 git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
 gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
 git-input.patch
+touch-screen-driver-for-the-superh-migor-board.patch
 touch-screen-driver-for-the-superh-migor-board-checkpatch-fixes.patch
 git-leds.patch
 git-libata-all.patch
@@ -124,7 +140,6 @@ sparc32-export-empty_zero_page.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
 fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
-fix-gregkh-usb-usb-hcds-use-the-do_remote_wakeup-flag.patch
 uwb-seems-to-need-pci.patch
 git-v9fs.patch
 git-vfs.patch
@@ -228,7 +243,6 @@ tty-the-big-operations-rework-isicom-fix.patch
 tty-the-big-operations-rework-simserial-fix.patch
 tty-the-big-operations-rework-vs-git-kgdb-light.patch
 tty-the-big-operations-rework-vs-kgdb-2.patch
-tty-the-big-operations-rework-broke-wan.patch
 devpts-factor-out-pty-index-allocation-fix.patch
 keys-add-keyctl-function-to-get-a-security-label-fix.patch
 procfs-task-exe-symlink-fix.patch
