@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tty-the-big-operations-rework-isicom-fix.patch added to -mm tree
-Date: Thu, 17 Apr 2008 21:33:04 -0700
-Message-ID: <200804180443.m3I4hX62011477@imap1.linux-foundation.org>
+Subject: + tty-the-big-operations-rework-simserial-fix.patch added to -mm tree
+Date: Thu, 17 Apr 2008 21:43:51 -0700
+Message-ID: <200804180454.m3I4sJfQ011825@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59135 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45890 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757736AbYDREnm (ORCPT
+	by vger.kernel.org with ESMTP id S1751415AbYDREy3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 00:43:42 -0400
+	Fri, 18 Apr 2008 00:54:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk
 
 
 The patch titled
-     tty-the-big-operations-rework-isicom-fix
+     tty-the-big-operations-rework-simserial-fix
 has been added to the -mm tree.  Its filename is
-     tty-the-big-operations-rework-isicom-fix.patch
+     tty-the-big-operations-rework-simserial-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,59 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty-the-big-operations-rework-isicom-fix
+Subject: tty-the-big-operations-rework-simserial-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Now undo what we did to get everything nice.
+ia64:
+
+arch/ia64/hp/sim/simserial.c: In function `rs_close':
+arch/ia64/hp/sim/simserial.c:624: error: structure has no member named `flush_buffer'
+arch/ia64/hp/sim/simserial.c:624: error: structure has no member named `flush_buffer'
+arch/ia64/hp/sim/simserial.c: At top level:
+arch/ia64/hp/sim/simserial.c:942: warning: initialization from incompatible pointer type
+
+and oh dear, I seem to have accidentally fixed the coding style too.
 
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/isicom.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ arch/ia64/hp/sim/simserial.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/isicom.c~tty-the-big-operations-rework-isicom-fix drivers/char/isicom.c
---- a/drivers/char/isicom.c~tty-the-big-operations-rework-isicom-fix
-+++ a/drivers/char/isicom.c
-@@ -1140,28 +1140,29 @@ static int isicom_write(struct tty_struc
+diff -puN arch/ia64/hp/sim/simserial.c~tty-the-big-operations-rework-simserial-fix arch/ia64/hp/sim/simserial.c
+--- a/arch/ia64/hp/sim/simserial.c~tty-the-big-operations-rework-simserial-fix
++++ a/arch/ia64/hp/sim/simserial.c
+@@ -210,21 +210,23 @@ static void do_softint(struct work_struc
+ 	printk(KERN_ERR "simserial: do_softint called\n");
  }
  
- /* put_char et all */
--static void isicom_put_char(struct tty_struct *tty, unsigned char ch)
-+static int isicom_put_char(struct tty_struct *tty, unsigned char ch)
+-static void rs_put_char(struct tty_struct *tty, unsigned char ch)
++static int rs_put_char(struct tty_struct *tty, unsigned char ch)
  {
- 	struct isi_port *port = tty->driver_data;
- 	struct isi_board *card = port->card;
+ 	struct async_struct *info = (struct async_struct *)tty->driver_data;
  	unsigned long flags;
  
- 	if (isicom_paranoia_check(port, tty->name, "isicom_put_char"))
+-	if (!tty || !info->xmit.buf) return;
++	if (!tty || !info->xmit.buf)
++		return 0;
+ 
+ 	local_irq_save(flags);
+ 	if (CIRC_SPACE(info->xmit.head, info->xmit.tail, SERIAL_XMIT_SIZE) == 0) {
+ 		local_irq_restore(flags);
 -		return;
 +		return 0;
- 
- 	if (!port->xmit_buf)
--		return;
-+		return 0;
- 
- 	spin_lock_irqsave(&card->card_lock, flags);
--	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1)
--		goto out;
-+	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1) {
-+		spin_unlock_irqrestore(&card->card_lock, flags);
-+		return 0;
-+	}
- 
- 	port->xmit_buf[port->xmit_head++] = ch;
- 	port->xmit_head &= (SERIAL_XMIT_SIZE - 1);
- 	port->xmit_cnt++;
- 	spin_unlock_irqrestore(&card->card_lock, flags);
--out:
--	return;
+ 	}
+ 	info->xmit.buf[info->xmit.head] = ch;
+ 	info->xmit.head = (info->xmit.head + 1) & (SERIAL_XMIT_SIZE-1);
+ 	local_irq_restore(flags);
 +	return 1;
  }
  
- /* flush_chars et all */
+ static void transmit_chars(struct async_struct *info, int *intr_done)
+@@ -621,7 +623,8 @@ static void rs_close(struct tty_struct *
+ 	 * the line discipline to only process XON/XOFF characters.
+ 	 */
+ 	shutdown(info);
+-	if (tty->driver->flush_buffer) tty->driver->flush_buffer(tty);
++	if (tty->ops->flush_buffer)
++		tty->ops->flush_buffer(tty);
+ 	if (tty->ldisc.flush_buffer) tty->ldisc.flush_buffer(tty);
+ 	info->event = 0;
+ 	info->tty = NULL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -263,6 +270,7 @@ epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
 isicom-bring-into-coding-style-fix.patch
 tty-the-big-operations-rework-fix-2.patch
 tty-the-big-operations-rework-isicom-fix.patch
+tty-the-big-operations-rework-simserial-fix.patch
 tty-the-big-operations-rework-vs-git-kgdb-light.patch
 tty-the-big-operations-rework-vs-kgdb-2.patch
 tty-the-big-operations-rework-broke-wan.patch
