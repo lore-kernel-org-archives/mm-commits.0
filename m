@@ -1,31 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: - mac80211-michaelc-fold-initial-xor-into-block-helper.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 14:20:04 -0700
-Message-ID: <200804182120.m3ILK4dx016708@imap1.linux-foundation.org>
+Subject: - mac80211-michaelc-replace-macro-with-function.patch removed from -mm tree
+Date: Fri, 18 Apr 2008 14:19:59 -0700
+Message-ID: <200804182119.m3ILJx6Z016678@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35233 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41044 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750760AbYDRVU7 (ORCPT
+	by vger.kernel.org with ESMTP id S1751314AbYDRVU6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 17:20:59 -0400
+	Fri, 18 Apr 2008 17:20:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, jbenc@suse.cz, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mac80211: michael.c fold initial xor into block helper
+     mac80211: michael.c replace macro with function
 has been removed from the -mm tree.  Its filename was
-     mac80211-michaelc-fold-initial-xor-into-block-helper.patch
+     mac80211-michaelc-replace-macro-with-function.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: michael.c fold initial xor into block helper
+Subject: mac80211: michael.c replace macro with function
 From: Harvey Harrison <harvey.harrison@gmail.com>
+
+This series cuts the size of michael.o from 0x280 to 0x125 on X86_32
+and cuts lines from michael.c.
+
+
+This patch:
+
+Make michael_block a function to avoid it being unrolled everywhere, cuts a
+third off of the michael.o size.
+
+Fold xswap into michael_block and remove xswap.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Jiri Benc <jbenc@suse.cz>
@@ -33,63 +44,81 @@ Cc: John W. Linville <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/michael.c |   27 ++++++++++-----------------
- 1 file changed, 10 insertions(+), 17 deletions(-)
+ net/mac80211/michael.c |   37 ++++++++++++++++---------------------
+ 1 file changed, 16 insertions(+), 21 deletions(-)
 
-diff -puN net/mac80211/michael.c~mac80211-michaelc-fold-initial-xor-into-block-helper net/mac80211/michael.c
---- a/net/mac80211/michael.c~mac80211-michaelc-fold-initial-xor-into-block-helper
+diff -puN net/mac80211/michael.c~mac80211-michaelc-replace-macro-with-function net/mac80211/michael.c
+--- a/net/mac80211/michael.c~mac80211-michaelc-replace-macro-with-function
 +++ a/net/mac80211/michael.c
-@@ -14,8 +14,9 @@
+@@ -12,23 +12,18 @@
  
  #include "michael.h"
  
--static void michael_block(u32 *l, u32 *r)
-+static void michael_block(u32 val, u32 *l, u32 *r)
+-static inline u32 xswap(u32 val)
++static void michael_block(u32 *l, u32 *r)
  {
-+	*l ^= val;
- 	*r ^= rol32(*l, 17);
- 	*l += *r;
- 	*r ^= ((*l & 0xff00ff00) >> 8) | ((*l & 0x00ff00ff) << 8);
-@@ -52,23 +53,17 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
+-	return ((val & 0xff00ff00) >> 8) | ((val & 0x00ff00ff) << 8);
++	*r ^= rol32(*l, 17);
++	*l += *r;
++	*r ^= ((*l & 0xff00ff00) >> 8) | ((*l & 0x00ff00ff) << 8);
++	*l += *r;
++	*r ^= rol32(*l, 3);
++	*l += *r;
++	*r ^= ror32(*l, 2);
++	*l += *r;
+ }
  
+-#define michael_block(l, r) \
+-do { \
+-	r ^= rol32(l, 17); \
+-	l += r; \
+-	r ^= xswap(l); \
+-	l += r; \
+-	r ^= rol32(l, 3); \
+-	l += r; \
+-	r ^= ror32(l, 2); \
+-	l += r; \
+-} while (0)
+-
+ 
+ static inline u32 michael_get32(u8 *data)
+ {
+@@ -57,13 +52,13 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
  	/* A pseudo header (DA, SA, Priority, 0, 0, 0) is used in Michael MIC
  	 * calculation, but it is _not_ transmitted */
--	l ^= michael_get32(da);
--	michael_block(&l, &r);
--	l ^= michael_get16(da) | (michael_get16(sa) << 16);
--	michael_block(&l, &r);
--	l ^= michael_get32(&sa[2]);
--	michael_block(&l, &r);
--	l ^= priority;
--	michael_block(&l, &r);
-+	michael_block(michael_get32(da), &l, &r);
-+	michael_block(michael_get16(da) | (michael_get16(sa) << 16), &l, &r);
-+	michael_block(michael_get32(&sa[2]), &l, &r);
-+	michael_block(priority, &l, &r);
+ 	l ^= michael_get32(da);
+-	michael_block(l, r);
++	michael_block(&l, &r);
+ 	l ^= da[4] | (da[5] << 8) | (sa[0] << 16) | (sa[1] << 24);
+-	michael_block(l, r);
++	michael_block(&l, &r);
+ 	l ^= michael_get32(&sa[2]);
+-	michael_block(l, r);
++	michael_block(&l, &r);
+ 	l ^= priority;
+-	michael_block(l, r);
++	michael_block(&l, &r);
  
  	/* Real data */
  	blocks = data_len / 4;
- 	left = data_len % 4;
+@@ -71,7 +66,7 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
  
--	for (block = 0; block < blocks; block++) {
--		l ^= michael_get32(&data[block * 4]);
--		michael_block(&l, &r);
--	}
-+	for (block = 0; block < blocks; block++)
-+		michael_block(michael_get32(&data[block * 4]), &l, &r);
+ 	for (block = 0; block < blocks; block++) {
+ 		l ^= michael_get32(&data[block * 4]);
+-		michael_block(l, r);
++		michael_block(&l, &r);
+ 	}
  
  	/* Partial block of 0..3 bytes and padding: 0x5a + 4..7 zeros to make
- 	 * total length a multiple of 4. */
-@@ -78,10 +73,8 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
- 		left--;
+@@ -83,9 +78,9 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
  		val |= data[blocks * 4 + left];
  	}
--	l ^= val;
--	michael_block(&l, &r);
--	/* last block is zero, so l ^ 0 = l */
--	michael_block(&l, &r);
-+	michael_block(val, &l, &r);
-+	michael_block(0, &l, &r);
+ 	l ^= val;
+-	michael_block(l, r);
++	michael_block(&l, &r);
+ 	/* last block is zero, so l ^ 0 = l */
+-	michael_block(l, r);
++	michael_block(&l, &r);
  
  	michael_put32(l, mic);
  	michael_put32(r, mic + 4);
@@ -129,6 +158,8 @@ fusion-replace-remaining-__function__-occurrences.patch
 scsi-replace-__inline-with-inline.patch
 block-replace-remaining-__function__-occurrences.patch
 git-watchdog.patch
+mac80211-michaelc-replace-macro-with-function.patch
+mac80211-michaelc-use-unaligned-byteorder-helpers.patch
 mac80211-michaelc-fold-initial-xor-into-block-helper.patch
 git-xfs.patch
 xtensa-replace-remaining-__function__-occurences.patch
