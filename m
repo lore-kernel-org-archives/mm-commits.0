@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch added to -mm tree
-Date: Thu, 17 Apr 2008 18:31:38 -0700
-Message-ID: <200804180142.m3I1g7l3005448@imap1.linux-foundation.org>
+Subject: + sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch added to -mm tree
+Date: Thu, 17 Apr 2008 18:41:58 -0700
+Message-ID: <200804180152.m3I1qQMU005773@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58026 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49844 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752333AbYDRBmt (ORCPT
+	by vger.kernel.org with ESMTP id S1752864AbYDRBw6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 21:42:49 -0400
+	Thu, 17 Apr 2008 21:52:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, mhalcrow@us.ibm.com, serue@us.ibm.com, xemul@openvz.org
+Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix
+     sysfs: provide a clue about the effects of CONFIG_USB_DEVICE_CLASS=y
 has been added to the -mm tree.  Its filename is
-     ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
+     sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix
+Subject: sysfs: provide a clue about the effects of CONFIG_USB_DEVICE_CLASS=y
 From: Andrew Morton <akpm@linux-foundation.org>
 
-put_user_ns() from a module...
+With CONFIG_USB_DEVICE_CLASS=y we get lots of warnings like
 
-Should this be EXPORT_SYMBOL_GPL()?
+	sysfs: duplicate filename '189:0' can not be created
 
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+According to Kay "They have the same dev_t as usb_device and would be a reason
+for the duplicates".
+
+So let's emit a helpful message explaining that.
+
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user_namespace.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/sysfs/dir.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN kernel/user_namespace.c~ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix kernel/user_namespace.c
---- a/kernel/user_namespace.c~ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix
-+++ a/kernel/user_namespace.c
-@@ -74,3 +74,4 @@ void free_user_ns(struct kref *kref)
- 	release_uids(ns);
- 	kfree(ns);
- }
-+EXPORT_SYMBOL(free_user_ns);
+diff -puN fs/sysfs/dir.c~sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y fs/sysfs/dir.c
+--- a/fs/sysfs/dir.c~sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y
++++ a/fs/sysfs/dir.c
+@@ -17,6 +17,8 @@
+ #include <linux/module.h>
+ #include <linux/kobject.h>
+ #include <linux/namei.h>
++#include <linux/ctype.h>
++#include <linux/string.h>
+ #include <linux/idr.h>
+ #include <linux/completion.h>
+ #include <linux/mutex.h>
+@@ -423,6 +425,13 @@ int sysfs_add_one(struct sysfs_addrm_cxt
+ 		printk(KERN_WARNING "sysfs: duplicate filename '%s' "
+ 		       "can not be created\n", sd->s_name);
+ 		WARN_ON(1);
++#ifdef CONFIG_USB_DEVICE_CLASS
++		if (isdigit(sd->s_name[0]) && strchr(sd->s_name, ':')) {
++			/* Looks like "189:0" or similar */
++			printk(KERN_WARNING "disabling CONFIG_USB_DEVICE_CLASS"
++					" might fix this\n");
++		}
++#endif
+ 		return -EEXIST;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -190,6 +212,7 @@ quota-various-style-cleanups-checkpatch-fixes.patch
 quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
 quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
 quota-convert-stub-functions-from-macros-into-inlines.patch
+ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
 rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
 rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
 rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
@@ -263,5 +286,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
 
