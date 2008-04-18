@@ -1,95 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - mac80211-michaelc-use-unaligned-byteorder-helpers.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 14:20:01 -0700
-Message-ID: <200804182120.m3ILK1Qd016705@imap1.linux-foundation.org>
+Subject: - mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch removed from -mm tree
+Date: Fri, 18 Apr 2008 14:19:54 -0700
+Message-ID: <200804182119.m3ILJsvJ016670@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35315 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59792 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750804AbYDRVZs (ORCPT
+	by vger.kernel.org with ESMTP id S1760633AbYDRVWF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 17:25:48 -0400
+	Fri, 18 Apr 2008 17:22:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, jbenc@suse.cz, linville@tuxdriver.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, jbenc@suse.cz, joe@perches.com, johannes@sipsolutions.net, linville@tuxdriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mac80211: michael.c use unaligned/byteorder helpers
+     mac80211: tkip.c eliminate the Hi16, Lo16 functions
 has been removed from the -mm tree.  Its filename was
-     mac80211-michaelc-use-unaligned-byteorder-helpers.patch
+     mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: michael.c use unaligned/byteorder helpers
+Subject: mac80211: tkip.c eliminate the Hi16, Lo16 functions
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Rather than open-coding the get/put of little endian values, use
-get/put_unaligned and the byteorder helpers.
+Opencode them at their one callsite.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Jiri Benc <jbenc@suse.cz>
+Cc: Johannes Berg <johannes@sipsolutions.net>
 Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Jiri Benc <jbenc@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/michael.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ net/mac80211/tkip.c |   16 ++--------------
+ 1 file changed, 2 insertions(+), 14 deletions(-)
 
-diff -puN net/mac80211/michael.c~mac80211-michaelc-use-unaligned-byteorder-helpers net/mac80211/michael.c
---- a/net/mac80211/michael.c~mac80211-michaelc-use-unaligned-byteorder-helpers
-+++ a/net/mac80211/michael.c
-@@ -9,6 +9,8 @@
- 
- #include <linux/types.h>
- #include <linux/bitops.h>
-+#include <asm/byteorder.h>
-+#include <asm/unaligned.h>
- 
- #include "michael.h"
- 
-@@ -24,21 +26,20 @@ static void michael_block(u32 *l, u32 *r
- 	*l += *r;
+diff -puN net/mac80211/tkip.c~mac80211-tkipc-eliminate-the-hi16-lo16-functions net/mac80211/tkip.c
+--- a/net/mac80211/tkip.c~mac80211-tkipc-eliminate-the-hi16-lo16-functions
++++ a/net/mac80211/tkip.c
+@@ -80,18 +80,6 @@ static inline u8 Lo8(u16 v)
+ 	return v & 0xff;
  }
  
 -
--static inline u32 michael_get32(u8 *data)
-+static u32 michael_get16(u8 *data)
- {
--	return data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
-+	return le16_to_cpu(get_unaligned((__le16 *)data));
- }
- 
+-static inline u16 Hi16(u32 v)
+-{
+-	return v >> 16;
+-}
 -
--static inline void michael_put32(u32 val, u8 *data)
-+static u32 michael_get32(u8 *data)
+-
+-static inline u16 Lo16(u32 v)
+-{
+-	return v & 0xffff;
+-}
+-
+ static inline u16 tkip_S(u16 val)
  {
--	data[0] = val & 0xff;
--	data[1] = (val >> 8) & 0xff;
--	data[2] = (val >> 16) & 0xff;
--	data[3] = (val >> 24) & 0xff;
-+	return le32_to_cpu(get_unaligned((__le32 *)data));
- }
+ 	return tkip_sbox[val & 0xff] ^ swab16(tkip_sbox[val >> 8]);
+@@ -108,8 +96,8 @@ static void tkip_mixing_phase1(const u8 
+ {
+ 	int i, j;
  
-+static void michael_put32(u32 val, u8 *data)
-+{
-+	put_unaligned(cpu_to_le32(val), (__le32 *)data);
-+}
- 
- void michael_mic(u8 *key, u8 *da, u8 *sa, u8 priority,
- 		 u8 *data, size_t data_len, u8 *mic)
-@@ -53,7 +54,7 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
- 	 * calculation, but it is _not_ transmitted */
- 	l ^= michael_get32(da);
- 	michael_block(&l, &r);
--	l ^= da[4] | (da[5] << 8) | (sa[0] << 16) | (sa[1] << 24);
-+	l ^= michael_get16(da) | (michael_get16(sa) << 16);
- 	michael_block(&l, &r);
- 	l ^= michael_get32(&sa[2]);
- 	michael_block(&l, &r);
+-	p1k[0] = Lo16(tsc_IV32);
+-	p1k[1] = Hi16(tsc_IV32);
++	p1k[0] = tsc_IV32 & 0xFFFF;
++	p1k[1] = tsc_IV32 >> 16;
+ 	p1k[2] = Mk16(ta[1], ta[0]);
+ 	p1k[3] = Mk16(ta[3], ta[2]);
+ 	p1k[4] = Mk16(ta[5], ta[4]);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -126,6 +109,9 @@ fusion-replace-remaining-__function__-occurrences.patch
 scsi-replace-__inline-with-inline.patch
 block-replace-remaining-__function__-occurrences.patch
 git-watchdog.patch
+mac80211-tkipc-eliminate-the-hi16-lo16-functions.patch
+mac80211-tkipc-remove-mk16-hi8-lo8-helpers.patch
+mac80211-michaelc-replace-macro-with-function.patch
 mac80211-michaelc-use-unaligned-byteorder-helpers.patch
 mac80211-michaelc-fold-initial-xor-into-block-helper.patch
 git-xfs.patch
