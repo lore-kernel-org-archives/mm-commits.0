@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-dvb-kconfig-fix.patch added to -mm tree
-Date: Thu, 17 Apr 2008 15:16:31 -0700
-Message-ID: <200804172226.m3HMQxFT030911@imap1.linux-foundation.org>
+Subject: + ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch added to -mm tree
+Date: Thu, 17 Apr 2008 18:31:38 -0700
+Message-ID: <200804180142.m3I1g7l3005448@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56817 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58026 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756250AbYDQW1P (ORCPT
+	by vger.kernel.org with ESMTP id S1752333AbYDRBmt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 17 Apr 2008 18:27:15 -0400
+	Thu, 17 Apr 2008 21:42:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, mhalcrow@us.ibm.com, serue@us.ibm.com, xemul@openvz.org
 
 
 The patch titled
-     git-dvb: Kconfig fix
+     ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix
 has been added to the -mm tree.  Its filename is
-     git-dvb-kconfig-fix.patch
+     ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-dvb: Kconfig fix
+Subject: ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "videobuf_to_vmalloc" [drivers/media/video/em28xx/em28xx.ko] undefined!
-ERROR: "videobuf_queue_vmalloc_init" [drivers/media/video/em28xx/em28xx.ko] undefined!
-ERROR: "videobuf_vmalloc_free" [drivers/media/video/em28xx/em28xx.ko] undefined!
+put_user_ns() from a module...
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Should this be EXPORT_SYMBOL_GPL()?
+
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/em28xx/Kconfig |    1 +
+ kernel/user_namespace.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/video/em28xx/Kconfig~git-dvb-kconfig-fix drivers/media/video/em28xx/Kconfig
---- a/drivers/media/video/em28xx/Kconfig~git-dvb-kconfig-fix
-+++ a/drivers/media/video/em28xx/Kconfig
-@@ -4,6 +4,7 @@ config VIDEO_EM28XX
- 	select VIDEO_TUNER
- 	select VIDEO_TVEEPROM
- 	select VIDEO_IR
-+	select VIDEOBUF_VMALLOC
- 	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
- 	select VIDEO_TVP5150 if VIDEO_HELPER_CHIPS_AUTO
- 	---help---
+diff -puN kernel/user_namespace.c~ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix kernel/user_namespace.c
+--- a/kernel/user_namespace.c~ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix
++++ a/kernel/user_namespace.c
+@@ -74,3 +74,4 @@ void free_user_ns(struct kref *kref)
+ 	release_uids(ns);
+ 	kfree(ns);
+ }
++EXPORT_SYMBOL(free_user_ns);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,6 +86,7 @@ git-powerpc.patch
 git-drm.patch
 revert-git-drm.patch
 git-dvb.patch
+git-dvb-kconfig-fix.patch
 git-hwmon.patch
 git-gfs2-nmw.patch
 git-dlm-vs-git-gfs2-nwm.patch
@@ -116,7 +117,6 @@ fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 git-ocfs2.patch
 arch-parisc-kernel-unalignedc-use-time_-macros.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-git-selinux.patch
 pci-hotplug-introduce-pci_slot.patch
 pci-hotplug-acpi-pci-slot-detection-driver.patch
 git-s390.patch
@@ -263,5 +263,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 profile-likely-unlikely-macros-fix.patch
 w1-build-fix.patch
-git-dvb-kconfig-fix.patch
+ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
 
