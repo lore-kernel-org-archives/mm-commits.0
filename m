@@ -1,122 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - miscacpibacklight-compal-laptop-extras-add-support-for-new-laptops.patch removed from -mm tree
-Date: Fri, 18 Apr 2008 13:26:14 -0700
-Message-ID: <200804182026.m3IKQFei013514@imap1.linux-foundation.org>
+Subject: - memcgroup-check-and-initialize-page-cgroup-in-memmap_init_zone.patch removed from -mm tree
+Date: Sun, 20 Apr 2008 23:29:23 -0700
+Message-ID: <200804210629.m3L6T8pT005133@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34093 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45317 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752785AbYDRU0j (ORCPT
+	by vger.kernel.org with ESMTP id S1750792AbYDUGad (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Fri, 18 Apr 2008 16:26:39 -0400
+	Mon, 21 Apr 2008 02:30:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cezary.jackiewicz@gmail.com, aystarik@gmail.com, hmh@hmh.eng.br, lenb@kernel.org, rpurdie@rpsys.net, mm-commits@vger.kernel.org
+To: shiwh@cn.fujitsu.com, balbir@in.ibm.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     misc,acpi,backlight: Compal Laptop Extras - add support for new laptops
+     memcgroup: check and initialize page->cgroup in memmap_init_zone
 has been removed from the -mm tree.  Its filename was
-     miscacpibacklight-compal-laptop-extras-add-support-for-new-laptops.patch
+     memcgroup-check-and-initialize-page-cgroup-in-memmap_init_zone.patch
 
-This patch was dropped because it was folded into miscacpibacklight-compal-laptop-extras-3rd-try.patch
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc,acpi,backlight: Compal Laptop Extras - add support for new laptops
-From: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
+Subject: memcgroup: check and initialize page->cgroup in memmap_init_zone
+From: Shi Weihua <shiwh@cn.fujitsu.com>
 
-Compal-laptop: add support for new laptops:
+When we test memory controller in Fujitsu PrimeQuest(arch: ia64),
+the compiled kernel boots failed, the following message occured on
+the telnet terminal.
 
-FL91/IFL91
-FL92/JFL92
-FT00/IFT00
+-------------------------------------
+..........
+ELILO boot: Uncompressing Linux... done
+Loading file initrd-2.6.25-rc9-00067-gb87e81e.img...done
+_ (system freezed)
+-------------------------------------
 
-Signed-off-by: Cezary Jackiewicz <cezary.jackiewicz@gmail.com>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Alexey Starikovskiy <aystarik@gmail.com>
+We found commit 9442ec9df40d952b0de185ae5638a74970388e01
+causes this boot failure by git-bisect.
+
+And, we found the following change caused the boot failure.
+
+-------------------------------------
+                set_page_links(page, zone, nid, pfn);
+                init_page_count(page);
+                reset_page_mapcount(page);
+-               page_assign_page_cgroup(page, NULL);
+                SetPageReserved(page);
+
+                /*
+-------------------------------------
+
+In this patch, the Author Hugh Dickins said "...memmap_init_zone doesn't need
+it either, ...  Linux assumes pointers in zeroed structures are NULL
+pointers." But it seems it's not always the case, so we should check and
+initialize page->cgroup anyways.
+
+Signed-off-by: Shi Weihua <shiwh@cn.fujitsu.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig         |    5 ++++-
- drivers/misc/compal-laptop.c |   29 ++++++++++++++++++++++++++++-
- 2 files changed, 32 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/misc/Kconfig~miscacpibacklight-compal-laptop-extras-add-support-for-new-laptops drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~miscacpibacklight-compal-laptop-extras-add-support-for-new-laptops
-+++ a/drivers/misc/Kconfig
-@@ -193,10 +193,13 @@ config COMPAL_LAPTOP
- 	  This is a driver for laptops built by Compal:
+diff -puN mm/page_alloc.c~memcgroup-check-and-initialize-page-cgroup-in-memmap_init_zone mm/page_alloc.c
+--- a/mm/page_alloc.c~memcgroup-check-and-initialize-page-cgroup-in-memmap_init_zone
++++ a/mm/page_alloc.c
+@@ -2518,6 +2518,7 @@ void __meminit memmap_init_zone(unsigned
+ 	struct page *page;
+ 	unsigned long end_pfn = start_pfn + size;
+ 	unsigned long pfn;
++	void *pc;
  
- 	  Compal FL90/IFL90
-+	  Compal FL91/IFL91
-+	  Compal FL92/JFL92
-+	  Compal FT00/IFT00
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+ 		/*
+@@ -2535,6 +2536,9 @@ void __meminit memmap_init_zone(unsigned
+ 		set_page_links(page, zone, nid, pfn);
+ 		init_page_count(page);
+ 		reset_page_mapcount(page);
++		pc = page_get_page_cgroup(page);
++		if (pc)
++			page_reset_bad_cgroup(page);
+ 		SetPageReserved(page);
  
- 	  It adds support for Bluetooth, WLAN and LCD brightness control.
- 
--	  If you have an Compal FL90/IFL90 laptop, say Y or M here.
-+	  If you have an Compal FL9x/IFL9x/FT00 laptop, say Y or M here.
- 
- config SONY_LAPTOP
- 	tristate "Sony Laptop Extras"
-diff -puN drivers/misc/compal-laptop.c~miscacpibacklight-compal-laptop-extras-add-support-for-new-laptops drivers/misc/compal-laptop.c
---- a/drivers/misc/compal-laptop.c~miscacpibacklight-compal-laptop-extras-add-support-for-new-laptops
-+++ a/drivers/misc/compal-laptop.c
-@@ -24,7 +24,7 @@
-  */
- 
- /*
-- * comapl-laptop.c - Compal FL90/IFL90 laptop support.
-+ * comapl-laptop.c - Compal laptop support.
-  *
-  * This driver exports a few files in /sys/devices/platform/compal-laptop/:
-  *
-@@ -320,6 +320,30 @@ static struct dmi_system_id __initdata c
- 		},
- 		.callback = dmi_check_cb
- 	},
-+	{
-+		.ident = "FL91/IFL91",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "IFL91"),
-+			DMI_MATCH(DMI_BOARD_VERSION, "IFT00"),
-+		},
-+		.callback = dmi_check_cb
-+	},
-+	{
-+		.ident = "FL92/JFL92",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "JFL92"),
-+			DMI_MATCH(DMI_BOARD_VERSION, "IFT00"),
-+		},
-+		.callback = dmi_check_cb
-+	},
-+	{
-+		.ident = "FT00/IFT00",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "IFT00"),
-+			DMI_MATCH(DMI_BOARD_VERSION, "IFT00"),
-+		},
-+		.callback = dmi_check_cb
-+	},
- 	{ }
- };
- 
-@@ -408,3 +432,6 @@ MODULE_LICENSE("GPL");
- 
- MODULE_ALIAS("dmi:*:rnIFL90:rvrIFT00:*");
- MODULE_ALIAS("dmi:*:rnIFL90:rvrREFERENCE:*");
-+MODULE_ALIAS("dmi:*:rnIFL91:rvrIFT00:*");
-+MODULE_ALIAS("dmi:*:rnJFL92:rvrIFT00:*");
-+MODULE_ALIAS("dmi:*:rnIFT00:rvrIFT00:*");
+ 		/*
 _
 
-Patches currently in -mm which might be from cezary.jackiewicz@gmail.com are
+Patches currently in -mm which might be from shiwh@cn.fujitsu.com are
 
-miscacpibacklight-compal-laptop-extras-3rd-try.patch
-miscacpibacklight-compal-laptop-extras-add-support-for-new-laptops.patch
+memcgroup-check-and-initialize-page-cgroup-in-memmap_init_zone.patch
 
