@@ -1,268 +1,232 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-hack-around-to-make-git-kgdb-build.patch removed from -mm tree
-Date: Mon, 21 Apr 2008 21:49:09 -0700
-Message-ID: <200804220448.m3M4msBn022810@imap1.linux-foundation.org>
+Subject: - mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1.patch removed from -mm tree
+Date: Thu, 24 Apr 2008 21:47:13 -0700
+Message-ID: <200804250447.m3P4l7OA018737@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44137 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49356 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751337AbYDVEtx (ORCPT
+	by vger.kernel.org with ESMTP id S1756818AbYDYEr1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 22 Apr 2008 00:49:53 -0400
+	Fri, 25 Apr 2008 00:47:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: gordonfarquharson@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86: hack around to make git-kgdb build
+     mtd: prevent physmap from causing "request_module: runaway loop modprobe net-pf-1"
 has been removed from the -mm tree.  Its filename was
-     git-x86-hack-around-to-make-git-kgdb-build.patch
+     mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86: hack around to make git-kgdb build
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mtd: prevent physmap from causing "request_module: runaway loop modprobe net-pf-1"
+From: "Gordon Farquharson" <gordonfarquharson@gmail.com>
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+On machines that register a physmap flash platform device (e.g.  many arm
+machines), parse_mtd_partitions() in drivers/mtd/mtdpart.c can cause the
+following output in the boot log:
+
+request_module: runaway loop modprobe net-pf-1
+modprobe: FATAL: Could not load
+/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+
+modprobe: FATAL: Could not load
+/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+
+modprobe: FATAL: Could not load
+/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+...
+
+To illustrate how this can occur, I'll use the example where CONFIG_KMOD=y,
+CONFIG_MTD_PARTITIONS=y, CONFIG_MTD_REDBOOT_PARTS=y, and CONFIG_CMDLINE_PARTS
+is not set.  I'll also refer to the following code segment which is in
+drivers/mtd/mtdpart.c:parse_mtd_partitions():
+
+	for ( ; ret <= 0 && *types; types++) {
+		parser = get_partition_parser(*types);
+#ifdef CONFIG_KMOD
+		if (!parser && !request_module("%s", *types))
+				parser = get_partition_parser(*types);
+#endif
+		if (!parser) {
+			printk(KERN_NOTICE "%s partition parsing not available\n",
+			       *types);
+			continue;
+		}
+		ret = (*parser->parse_fn)(master, pparts, origin);
+		if (ret > 0) {
+			printk(KERN_NOTICE "%d %s partitions found on MTD device %s\n",
+			       ret, parser->name, master->name);
+		}
+		put_partition_parser(parser);
+
+I should note that I am assuming (because I don't understand how) that
+request_module() requires net-pf-1 to succeed.  This assumption is based on my
+observation of the request_module message ("request_module: runaway loop
+modprobe net-pf-1"), and that af_unix_init() (net-pf-1 initialization) is
+called only after the call to request_module() in this example.
+
+Based on the configuration and assumptions described above, the sequence of
+events that cause the boot log messages above are:
+
+1. the first call to get_partition_parser() in parse_mtd_partitions() does
+   not find the parser in the the list of registered parsers, i.e. 
+   get_partition_parser() returns a NULL pointer.  In this example, the only
+   registered parser in the list is called Redboot;
+
+2. parse_mtd_partitions() calls request_module() with (in this example)
+   the parameter "cmdlinepart";
+
+3. request_module() complains (request_module: runaway loop modprobe
+   net-pf-1, etc.) because af_unix_init() has not been called.  The boot log
+   shows that af_unix_init() is called only after parse_mtd_partitions()
+   finishes.
+
+register_mtd_parser: RedBoot
+physmap platform flash device: 00080000 at f0000000
+Found: ST M29W400DB
+physmap-flash.0: Found 1 x16 devices at 0x0 in 16-bit bank
+number of JEDEC chips: 1
+cfi_cmdset_0002: Disabling erase-suspend-program due to code brokenness.
+parse_mtd_partitions:
+get_partition_parser: name=cmdlinepart
+get_partition_parser: p->name=RedBoot
+get_partition_parser: p->owner=00000000
+get_partition_parser: ret=00000000
+parse_mtd_partitions: cmdlinepart
+request_module: runaway loop modprobe net-pf-1
+modprobe: FATAL: Could not load
+/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+
+modprobe: FATAL: Could not load
+/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+
+modprobe: FATAL: Could not load
+/lib/modules/2.6.25-rc4-iop32x/modules.dep: No such file or directory
+
+<--- 47 repeated modprobe messages deleted --->
+parse_mtd_partitions: request_module called
+cmdlinepart partition parsing not available
+get_partition_parser: name=RedBoot
+get_partition_parser: p->name=RedBoot
+get_partition_parser: p->owner=00000000
+get_partition_parser: ret->name=RedBoot
+get_partition_parser: ret=c02b0f8c
+parse_mtd_partitions: RedBoot
+parse_mtd_partitions: request_module called
+Searching for RedBoot partition table in physmap-flash.0 at offset 0x70000
+No RedBoot partition table detected in physmap-flash.0
+parse_mtd_partitions: end of function
+mice: PS/2 mouse device common for all mice
+i2c /dev entries driver
+rtc-rs5c372 0-0032: rs5c372a found, 24hr, driver version 0.5
+rtc-rs5c372 0-0032: rtc core: registered rtc-rs5c372 as rtc0
+iop-adma iop-adma.0: Intel(R) IOP: ( cpy intr )
+iop-adma iop-adma.1: Intel(R) IOP: ( cpy intr )
+NET: Registered protocol family 26
+TCP bic registered
+af_unix_init:
+NET: Registered protocol family 1
+NET: Registered protocol family 17
+XScale DSP coprocessor detected.
+registered taskstats version 1
+rtc-rs5c372 0-0032: setting system clock to 2008-03-11 03:16:46 UTC (1205205406)
+
+The reason parse_mtd_partitions() tries to use cmdlinepart, even though it is
+not a registered parsing scheme when CONFIG_CMDLINE_PARTS is not set, is
+because cmdlinepart is hard coded in drivers/mtd/maps/physmap.c:
+
+#ifdef CONFIG_MTD_PARTITIONS
+static const char *part_probe_types[] = { "cmdlinepart", "RedBoot", NULL };
+#endif
+
+The patch below changes CONFIG_MTD_REDBOOT_PARTS, CONFIG_MTD_AFS_PARTS, and
+CONFIG_MTD_OF_PARTS from tristate to bool, and removes the call to
+request_module() in drivers/mtd/mtdpart.c:parse_mtd_partitions().  The changes
+to the definitions of the configuration variables ensure that MTD parsers
+compiled into the kernel are registered before parse_mtd_partitions() is
+called, which negates the need to have parse_mtd_partitions() call
+request_module(), and thereby eliminating the call to request_module() before
+af_unix_init().  The patch also changes the setting of
+CONFIG_MTD_REDBOOT_PARTS in arch/mips/configs/mtx1_defconfig from 'm' to 'y'. 
+This defconfig is the only one that set any of the partitioning schemes to be
+compiled as a module.
+
+Signed-off-by: Gordon Farquharson <gordonfarquharson@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kgdb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/configs/mtx1_defconfig |    2 +-
+ drivers/mtd/Kconfig              |    6 +++---
+ drivers/mtd/mtdpart.c            |    4 ----
+ 3 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/kernel/kgdb.c~git-x86-hack-around-to-make-git-kgdb-build arch/x86/kernel/kgdb.c
---- a/arch/x86/kernel/kgdb.c~git-x86-hack-around-to-make-git-kgdb-build
-+++ a/arch/x86/kernel/kgdb.c
-@@ -49,7 +49,7 @@
- #ifdef CONFIG_X86_32
- # include <mach_ipi.h>
- #else
--# include <asm/mach_apic.h>
-+//# include <asm/mach_apic.h>
- #endif
+diff -puN arch/mips/configs/mtx1_defconfig~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1 arch/mips/configs/mtx1_defconfig
+--- a/arch/mips/configs/mtx1_defconfig~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1
++++ a/arch/mips/configs/mtx1_defconfig
+@@ -743,7 +743,7 @@ CONFIG_MTD=m
+ # CONFIG_MTD_DEBUG is not set
+ CONFIG_MTD_CONCAT=m
+ CONFIG_MTD_PARTITIONS=y
+-CONFIG_MTD_REDBOOT_PARTS=m
++CONFIG_MTD_REDBOOT_PARTS=y
+ CONFIG_MTD_REDBOOT_DIRECTORY_BLOCK=-1
+ # CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED is not set
+ # CONFIG_MTD_REDBOOT_PARTS_READONLY is not set
+diff -puN drivers/mtd/Kconfig~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1 drivers/mtd/Kconfig
+--- a/drivers/mtd/Kconfig~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1
++++ a/drivers/mtd/Kconfig
+@@ -48,7 +48,7 @@ config MTD_PARTITIONS
+ 	  'normal' form of partitioning used on a block device.
  
- /*
-@@ -334,7 +334,7 @@ void kgdb_post_primary_code(struct pt_re
-  */
- void kgdb_roundup_cpus(unsigned long flags)
- {
--	send_IPI_allbutself(APIC_DM_NMI);
-+//	send_IPI_allbutself(APIC_DM_NMI);
- }
- #endif
+ config MTD_REDBOOT_PARTS
+-	tristate "RedBoot partition table parsing"
++	bool "RedBoot partition table parsing"
+ 	depends on MTD_PARTITIONS
+ 	---help---
+ 	  RedBoot is a ROM monitor and bootloader which deals with multiple
+@@ -135,7 +135,7 @@ config MTD_CMDLINE_PARTS
+ 	  If unsure, say 'N'.
  
+ config MTD_AFS_PARTS
+-	tristate "ARM Firmware Suite partition parsing"
++	bool "ARM Firmware Suite partition parsing"
+ 	depends on ARM && MTD_PARTITIONS
+ 	---help---
+ 	  The ARM Firmware Suite allows the user to divide flash devices into
+@@ -151,7 +151,7 @@ config MTD_AFS_PARTS
+ 	  'armflash' map driver (CONFIG_MTD_ARMFLASH) does this, for example.
+ 
+ config MTD_OF_PARTS
+-	tristate "Flash partition map based on OF description"
++	bool "Flash partition map based on OF description"
+ 	depends on PPC_OF && MTD_PARTITIONS
+ 	help
+ 	  This provides a partition parsing function which derives
+diff -puN drivers/mtd/mtdpart.c~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1 drivers/mtd/mtdpart.c
+--- a/drivers/mtd/mtdpart.c~mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1
++++ a/drivers/mtd/mtdpart.c
+@@ -555,10 +555,6 @@ int parse_mtd_partitions(struct mtd_info
+ 
+ 	for ( ; ret <= 0 && *types; types++) {
+ 		parser = get_partition_parser(*types);
+-#ifdef CONFIG_KMOD
+-		if (!parser && !request_module("%s", *types))
+-				parser = get_partition_parser(*types);
+-#endif
+ 		if (!parser) {
+ 			printk(KERN_NOTICE "%s partition parsing not available\n",
+ 			       *types);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gordonfarquharson@gmail.com are
 
-hotplug-memory-make-online_page-common-fix.patch
-disable-the-memory-controller-by-default-v3-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86.patch
-arch-x86-mm-ioremapc-fix-printk-warnings.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-arch-x86-video-fbdevc-add-module_license.patch
-x86-ptrace-pebs-support-warning-fix.patch
-git-kgdb-light.patch
-git-x86-hack-around-to-make-git-kgdb-build.patch
-git-x86-vs-git-kgdb-lite.patch
-git-alsa-tiwai.patch
-git-agpgart-export-agp_generic_alloc_pages.patch
-git-agpgart-fix-type-confusion.patch
-git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
-git-arm-fix.patch
-cifs-suppress-warning.patch
-git-powerpc.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-git-drm.patch
-revert-git-drm.patch
-git-dvb.patch
-git-dvb-kconfig-fix.patch
-git-hwmon.patch
-git-gfs2-nmw.patch
-git-dlm-vs-git-gfs2-nwm.patch
-git-hid.patch
-git-hrt.patch
-time-close-small-window-for-vsyscall-time-inconsistencies.patch
-git-ia64.patch
-git-ieee1394.patch
-git-infiniband.patch
-git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
-gregkh-driver-ib-convert-struct-class_device-to-struct-device-vs-git-infiniband.patch
-git-input.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-leds.patch
-git-libata-all.patch
-pata_atiixp-simplex-clear.patch
-git-async-tx.patch
-git-mips.patch
-git-net.patch
-ehea-fix-dlpar-memory-add-support-fix.patch
-sundance-set-carrier-status-on-link-change-events.patch
-net-drivers-fix-platform-driver-hotplug-coldplug.patch
-smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-git-ocfs2.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-s390.patch
-git-sched.patch
-add-rcu_assign_index-if-ever-needed.patch
-git-sh.patch
-git-scsi-misc.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device.patch
-git-scsi-misc-vs-gregkh-driver-driver-core-remove-no-longer-used-struct-class_device-fix.patch
-scsi-fix-platform-driver-hotplug-coldplug.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
-uwb-seems-to-need-pci.patch
-git-v9fs.patch
-git-vfs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-git-xfs-fixups.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-misplaced-hunk.patch
-git-cryptodev-fix-conflict.patch
-git-cryptodev-fix-conflict-hack.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-semaphore-git-rejects.patch
-ext4-is-busted-on-m68k.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-drivers-video-uvesafbc-fix-error-path-memory-leak.patch
-fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
-drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
-x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
-x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
-drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework-fix-2.patch
-tty-the-big-operations-rework-isicom-fix.patch
-tty-the-big-operations-rework-simserial-fix.patch
-tty-the-big-operations-rework-vs-git-kgdb-light.patch
-tty-the-big-operations-rework-vs-kgdb-2.patch
-devpts-factor-out-pty-index-allocation-fix.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
-relayfs-support-larger-relay-buffer-take-3-cleanup.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mtd-nor-add-support-for-the-st-m29w400db-flash-chip.patch
+mtd-prevent-physmap-from-causing-request_module-runaway-loop-modprobe-net-pf-1.patch
 
