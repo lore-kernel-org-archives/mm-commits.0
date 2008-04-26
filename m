@@ -1,53 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - jffs2-include-function-prototype-for-jffs2_ioctl.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:41:07 -0700
-Message-ID: <200804261641.m3QGf7ju031093@imap1.linux-foundation.org>
+Subject: - jffs2-fix-sparse-warning-in-writec.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:41:11 -0700
+Message-ID: <200804261641.m3QGfBTE031106@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59143 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60491 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755231AbYDZQll (ORCPT
+	by vger.kernel.org with ESMTP id S1756234AbYDZQlt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:41:41 -0400
+	Sat, 26 Apr 2008 12:41:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jffs2: include function prototype for jffs2_ioctl
+     jffs2: fix sparse warning in write.c
 has been removed from the -mm tree.  Its filename was
-     jffs2-include-function-prototype-for-jffs2_ioctl.patch
+     jffs2-fix-sparse-warning-in-writec.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jffs2: include function prototype for jffs2_ioctl
+Subject: jffs2: fix sparse warning in write.c
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-fs/jffs2/ioctl.c:14:5: warning: symbol 'jffs2_ioctl' was not declared.
+fs/jffs2/write.c:585:28: warning: symbol 'fd' shadows an earlier one
+fs/jffs2/write.c:536:27: originally declared here
+
+No need to redeclare fd, use the original one, after this point,
+fd is always reassigned before it used again.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/ioctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/jffs2/write.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jffs2/ioctl.c~jffs2-include-function-prototype-for-jffs2_ioctl fs/jffs2/ioctl.c
---- a/fs/jffs2/ioctl.c~jffs2-include-function-prototype-for-jffs2_ioctl
-+++ a/fs/jffs2/ioctl.c
-@@ -10,6 +10,7 @@
-  */
+diff -puN fs/jffs2/write.c~jffs2-fix-sparse-warning-in-writec fs/jffs2/write.c
+--- a/fs/jffs2/write.c~jffs2-fix-sparse-warning-in-writec
++++ a/fs/jffs2/write.c
+@@ -582,9 +582,9 @@ int jffs2_do_unlink(struct jffs2_sb_info
+ 		jffs2_add_fd_to_list(c, fd, &dir_f->dents);
+ 		up(&dir_f->sem);
+ 	} else {
+-		struct jffs2_full_dirent *fd = dir_f->dents;
+ 		uint32_t nhash = full_name_hash(name, namelen);
  
- #include <linux/fs.h>
-+#include "nodelist.h"
- 
- int jffs2_ioctl(struct inode *inode, struct file *filp, unsigned int cmd,
- 		unsigned long arg)
++		fd = dir_f->dents;
+ 		/* We don't actually want to reserve any space, but we do
+ 		   want to be holding the alloc_sem when we write to flash */
+ 		down(&c->alloc_sem);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
