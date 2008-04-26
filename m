@@ -1,66 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - mm-remove-unused-max_nodes_shift.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:42:36 -0700
-Message-ID: <200804261642.m3QGgaNM031208@imap1.linux-foundation.org>
+Subject: - block-fix-memory-hotplug-and-bouncing-in-block-layer.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:42:28 -0700
+Message-ID: <200804261642.m3QGgS9Q031202@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53192 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34619 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757705AbYDZQmk (ORCPT
+	by vger.kernel.org with ESMTP id S1757888AbYDZQmw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:42:40 -0400
+	Sat, 26 Apr 2008 12:42:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@saeurebad.de, clameter@sgi.com, mm-commits@vger.kernel.org
+To: andi@firstfloor.org, ak@suse.de, jens.axboe@oracle.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: remove unused MAX_NODES_SHIFT
+     block: fix memory hotplug and bouncing in block layer
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unused-max_nodes_shift.patch
+     block-fix-memory-hotplug-and-bouncing-in-block-layer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove unused MAX_NODES_SHIFT
-From: Johannes Weiner <hannes@saeurebad.de>
+Subject: block: fix memory hotplug and bouncing in block layer
+From: Andi Kleen <andi@firstfloor.org>
 
-MAX_NODES_SHIFT is not referenced anywhere in the tree, so dump it.
+Only noticed this while hacking something else, no test case.
 
-Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Cc: Christoph Lameter <clameter@sgi.com>
+blk_max_low_pfn is initialized once at bootup by the block layer from
+max_low_pfn.  But max_low_pfn is not necessarily constant over the runtime of
+the system when you consider memory hotplug.  What could happen if that
+someone adds memory later the block layer wouldn't get updated and then start
+bouncing memory unnecessarily.
+
+Also on 64bit blk_max_low_pfn actually isn't needed because it just disables
+bouncing essentially and there is no highmem.  And nobody can pass pfns >
+max_low_pfn to the block layer, because those wouldn't have a struct page and
+I suspect block layer wouldn't be very happy without that.
+
+So set BLK_BOUNCE_HIGH to infinity (-1ULL) on 64bit.  That avoids the problem
+of having to update it on memory hotadd.
+
+On 32bit I kept the same behaviour because at least on i386
+memory hotadd only adds HIGHMEM, never lowmem.
+
+BLK_BOUNCE_ANY is always set to infinity on both 32 and 64bit.
+
+Signed-off-by: Andi Kleen <ak@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/blkdev.h |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~mm-remove-unused-max_nodes_shift include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-remove-unused-max_nodes_shift
-+++ a/include/linux/mmzone.h
-@@ -691,7 +691,6 @@ extern char numa_zonelist_order[];
- extern struct pglist_data contig_page_data;
- #define NODE_DATA(nid)		(&contig_page_data)
- #define NODE_MEM_MAP(nid)	mem_map
--#define MAX_NODES_SHIFT		1
+diff -puN include/linux/blkdev.h~block-fix-memory-hotplug-and-bouncing-in-block-layer include/linux/blkdev.h
+--- a/include/linux/blkdev.h~block-fix-memory-hotplug-and-bouncing-in-block-layer
++++ a/include/linux/blkdev.h
+@@ -535,8 +535,13 @@ extern unsigned long blk_max_low_pfn, bl
+  * BLK_BOUNCE_ANY	: don't bounce anything
+  * BLK_BOUNCE_ISA	: bounce pages above ISA DMA boundary
+  */
++
++#if BITS_PER_LONG == 32
+ #define BLK_BOUNCE_HIGH		((u64)blk_max_low_pfn << PAGE_SHIFT)
+-#define BLK_BOUNCE_ANY		((u64)blk_max_pfn << PAGE_SHIFT)
++#else
++#define BLK_BOUNCE_HIGH		-1ULL
++#endif
++#define BLK_BOUNCE_ANY		(-1ULL)
+ #define BLK_BOUNCE_ISA		(ISA_DMA_THRESHOLD)
  
- #else /* CONFIG_NEED_MULTIPLE_NODES */
- 
+ /*
 _
 
-Patches currently in -mm which might be from hannes@saeurebad.de are
+Patches currently in -mm which might be from andi@firstfloor.org are
 
 origin.patch
-mm-fix-possible-off-by-one-in-walk_pte_range.patch
-dz-test-after-postfix-decrement-fails-in-dz_console_putchar.patch
-git-mips.patch
-parisc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-git-xtensa.patch
-m68k-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-cris-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-add-warn_on_secs-macro-simplification.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
 
