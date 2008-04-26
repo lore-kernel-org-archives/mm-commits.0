@@ -1,59 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 08:01:30 -0700
-Message-ID: <200804261501.m3QF1UEj027351@imap1.linux-foundation.org>
+Subject: - git-block-git-rejects.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 08:00:56 -0700
+Message-ID: <200804261500.m3QF0vdZ027329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37317 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753341AbYDZPBj (ORCPT
+	by vger.kernel.org with ESMTP id S1756352AbYDZPBJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 11:01:39 -0400
+	Sat, 26 Apr 2008 11:01:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gregkh@suse.de, inaky.perez-gonzalez@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux
+     git-block-git-rejects
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
+     git-block-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux
+Subject: git-block-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/uwb/umc-dev.c: In function 'umc_device_register':
-drivers/uwb/umc-dev.c:61: warning: format '%016Lx' expects type 'long long unsigned int', but argument 4 has type 'resource_size_t'
-drivers/uwb/umc-dev.c:61: warning: format '%016Lx' expects type 'long long unsigned int', but argument 5 has type 'resource_size_t'
-
-We do not know what type was used for u64 hence we cannot pass it to printk.
-
-Cc: Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uwb/umc-dev.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/ide/ide-cd.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/uwb/umc-dev.c~fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux drivers/uwb/umc-dev.c
---- a/drivers/uwb/umc-dev.c~fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux
-+++ a/drivers/uwb/umc-dev.c
-@@ -60,7 +60,8 @@ int umc_device_register(struct umc_dev *
- 	if (err < 0) {
- 		dev_err(&umc->dev, "can't allocate resource range "
- 			"%016Lx to %016Lx: %d\n",
--			(u64) umc->resource.start, (u64) umc->resource.end,
-+			(unsigned long long)umc->resource.start,
-+			(unsigned long long)umc->resource.end,
- 			err);
- 		goto error_request_resource;
- 	}
+diff -puN drivers/ide/ide-cd.c~git-block-git-rejects drivers/ide/ide-cd.c
+--- a/drivers/ide/ide-cd.c~git-block-git-rejects
++++ a/drivers/ide/ide-cd.c
+@@ -1933,9 +1933,8 @@ static void ide_cd_release(struct kref *
+ 	struct gendisk *g = info->disk;
+ 
+ 	kfree(info->toc);
+-	if (devinfo->handle == drive && unregister_cdrom(devinfo))
+-		printk(KERN_ERR "%s: %s failed to unregister device from the"
+-				" cdrom driver.\n", drive->name, __func__);
++	if (devinfo->handle == drive)
++		unregister_cdrom(devinfo);
+ 	drive->dsc_overlap = 0;
+ 	drive->driver_data = NULL;
+ 	blk_queue_prep_rq(drive->queue, NULL);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,6 +85,7 @@ add-rcu_assign_index-if-ever-needed.patch
 scsi-fix-platform-driver-hotplug-coldplug.patch
 scsi-fix-section-mismatch-in-aic94xx.patch
 drivers-scsi-mvsasc-fix-build-warnings.patch
+git-block-git-rejects.patch
 sparc32-export-empty_zero_page.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
