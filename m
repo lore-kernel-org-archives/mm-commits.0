@@ -1,101 +1,171 @@
 From: akpm@linux-foundation.org
-Subject: - hci_usb-remove-code-obfuscation.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:41:35 -0700
-Message-ID: <200804261641.m3QGfZUl031136@imap1.linux-foundation.org>
+Subject: - block-replace-remaining-__function__-occurrences.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:42:26 -0700
+Message-ID: <200804261642.m3QGgQO7031199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38075 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40689 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757421AbYDZQmf (ORCPT
+	by vger.kernel.org with ESMTP id S1757566AbYDZQmh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:42:35 -0400
+	Sat, 26 Apr 2008 12:42:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, hidave.darkstar@gmail.com, marcel@holtmann.org, pavel@suse.cz, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hci_usb: remove code obfuscation
+     block: replace remaining __FUNCTION__ occurrences
 has been removed from the -mm tree.  Its filename was
-     hci_usb-remove-code-obfuscation.patch
+     block-replace-remaining-__function__-occurrences.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hci_usb: remove code obfuscation
-From: Pavel Machek <pavel@ucw.cz>
+Subject: block: replace remaining __FUNCTION__ occurrences
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-_urb_free is an alias for kfree... making code longer & harder to
-read. Remove it.
+__FUNCTION__ is gcc-specific, use __func__
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Acked-by: Marcel Holtmann <marcel@holtmann.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/hci_usb.c |   10 +++++-----
- drivers/bluetooth/hci_usb.h |    5 -----
- 2 files changed, 5 insertions(+), 10 deletions(-)
+ drivers/block/sx8.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/bluetooth/hci_usb.c~hci_usb-remove-code-obfuscation drivers/bluetooth/hci_usb.c
---- a/drivers/bluetooth/hci_usb.c~hci_usb-remove-code-obfuscation
-+++ a/drivers/bluetooth/hci_usb.c
-@@ -265,7 +265,7 @@ static int hci_usb_intr_rx_submit(struct
- 		BT_ERR("%s intr rx submit failed urb %p err %d",
- 				husb->hdev->name, urb, err);
- 		_urb_unlink(_urb);
--		_urb_free(_urb);
-+		kfree(_urb);
- 		kfree(buf);
- 	}
- 	return err;
-@@ -302,7 +302,7 @@ static int hci_usb_bulk_rx_submit(struct
- 		BT_ERR("%s bulk rx submit failed urb %p err %d",
- 				husb->hdev->name, urb, err);
- 		_urb_unlink(_urb);
--		_urb_free(_urb);
-+		kfree(_urb);
- 		kfree(buf);
- 	}
- 	return err;
-@@ -353,7 +353,7 @@ static int hci_usb_isoc_rx_submit(struct
- 		BT_ERR("%s isoc rx submit failed urb %p err %d",
- 				husb->hdev->name, urb, err);
- 		_urb_unlink(_urb);
--		_urb_free(_urb);
-+		kfree(_urb);
- 		kfree(buf);
- 	}
- 	return err;
-@@ -431,7 +431,7 @@ static void hci_usb_unlink_urbs(struct h
- 					husb->hdev->name, _urb, _urb->type, urb);
- 			kfree(urb->setup_packet);
- 			kfree(urb->transfer_buffer);
--			_urb_free(_urb);
-+			kfree(_urb);
- 		}
- 	}
- }
-@@ -490,7 +490,7 @@ static inline int hci_usb_send_ctrl(stru
+diff -puN drivers/block/sx8.c~block-replace-remaining-__function__-occurrences drivers/block/sx8.c
+--- a/drivers/block/sx8.c~block-replace-remaining-__function__-occurrences
++++ a/drivers/block/sx8.c
+@@ -79,9 +79,9 @@ MODULE_PARM_DESC(max_queue, "Maximum num
  
- 		dr = kmalloc(sizeof(*dr), GFP_ATOMIC);
- 		if (!dr) {
--			_urb_free(_urb);
-+			kfree(_urb);
- 			return -ENOMEM;
- 		}
- 	} else
-diff -puN drivers/bluetooth/hci_usb.h~hci_usb-remove-code-obfuscation drivers/bluetooth/hci_usb.h
---- a/drivers/bluetooth/hci_usb.h~hci_usb-remove-code-obfuscation
-+++ a/drivers/bluetooth/hci_usb.h
-@@ -60,11 +60,6 @@ struct _urb {
- 	struct urb        urb;
- };
+ /* note: prints function name for you */
+ #ifdef CARM_DEBUG
+-#define DPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __FUNCTION__, ## args)
++#define DPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ## args)
+ #ifdef CARM_VERBOSE_DEBUG
+-#define VPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __FUNCTION__, ## args)
++#define VPRINTK(fmt, args...) printk(KERN_ERR "%s: " fmt, __func__, ## args)
+ #else
+ #define VPRINTK(fmt, args...)
+ #endif	/* CARM_VERBOSE_DEBUG */
+@@ -96,7 +96,7 @@ MODULE_PARM_DESC(max_queue, "Maximum num
+ #define assert(expr) \
+         if(unlikely(!(expr))) {                                   \
+         printk(KERN_ERR "Assertion failed! %s,%s,%s,line=%d\n", \
+-        #expr,__FILE__,__FUNCTION__,__LINE__);          \
++	#expr, __FILE__, __func__, __LINE__);          \
+         }
+ #endif
  
--static inline void _urb_free(struct _urb *_urb)
--{
--	kfree(_urb);
--}
+_
+
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
+
+origin.patch
+git-agpgart.patch
+cifs-remove-global_extern-macro.patch
+git-dvb.patch
+git-kvm.patch
+git-mips.patch
+git-nfsd.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+git-watchdog.patch
+git-xfs.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+input-replace-remaining-__function__-occurrences.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+power-replace-remaining-__function__-occurrences.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+char-make-functions-static-in-synclinkmpc.patch
+spi-replace-remaining-__function__-occurrences.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+video-replace-remaining-__function__-occurrences.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+md-replace-remaining-__function__-occurrences.patch
+ext2-replace-remaining-__function__-occurrences.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+ufs-replace-__inline-with-inline.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+drivers-replace-remaining-__function__-occurrences.patch
+kernel-add-common-infrastructure-for-unaligned-access.patch
+kernel-move-arches-to-use-common-unaligned-access.patch
+drivers-block-use-get_unaligned_-helpers.patch
+hid-core-use-get_unaligned_-helpers.patch
+char-use-get_unaligned_-helpers.patch
+input-use-get_unaligned_-helpers.patch
+mmc-use-get-put_unaligned_-helpers.patch
+net-use-get-put_unaligned_-helpers.patch
+wireless-use-get-put_unaligned_-helpers.patch
+pcmcia-use-get-put_unaligned_-helpers.patch
+usb-use-get-put_unaligned_-helpers.patch
+video-use-get-put_unaligned_-helpers.patch
+fat-use-get-put_unaligned_-helpers.patch
+hfsplus-use-get-put_unaligned_-helpers.patch
+isofs-use-get-put_unaligned_-helpers.patch
+ncpfs-use-get-put_unaligned_-helpers.patch
+ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
+
