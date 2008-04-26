@@ -1,54 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-git-rejects.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 08:00:56 -0700
-Message-ID: <200804261500.m3QF0vdZ027329@imap1.linux-foundation.org>
+Subject: - uwb-seems-to-need-pci.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 08:01:36 -0700
+Message-ID: <200804261501.m3QF1aZ2027359@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44922 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54836 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756352AbYDZPBJ (ORCPT
+	by vger.kernel.org with ESMTP id S1753603AbYDZPBm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 11:01:09 -0400
+	Sat, 26 Apr 2008 11:01:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, inaky.perez-gonzalez@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block-git-rejects
+     uwb: seems to need PCI
 has been removed from the -mm tree.  Its filename was
-     git-block-git-rejects.patch
+     uwb-seems-to-need-pci.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block-git-rejects
+Subject: uwb: seems to need PCI
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+that should do it.
+
+Please remove all the Kconfig `select' statements from this code.  select is
+crap and you don't have a chance of getting all this to work right.
+
+Cc: Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-cd.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/usb/host/Kconfig     |    1 +
+ drivers/usb/wusbcore/Kconfig |    1 +
+ drivers/uwb/Kconfig          |    1 +
+ 3 files changed, 3 insertions(+)
 
-diff -puN drivers/ide/ide-cd.c~git-block-git-rejects drivers/ide/ide-cd.c
---- a/drivers/ide/ide-cd.c~git-block-git-rejects
-+++ a/drivers/ide/ide-cd.c
-@@ -1933,9 +1933,8 @@ static void ide_cd_release(struct kref *
- 	struct gendisk *g = info->disk;
+diff -puN drivers/usb/host/Kconfig~uwb-seems-to-need-pci drivers/usb/host/Kconfig
+--- a/drivers/usb/host/Kconfig~uwb-seems-to-need-pci
++++ a/drivers/usb/host/Kconfig
+@@ -270,6 +270,7 @@ config SUPERH_ON_CHIP_R8A66597
+ config USB_HWA_HCD
+ 	tristate "Wireless USB host controller driver for WUSB-compliant USB dongles (HWA)"
+ 	depends on USB
++	depends on PCI
+ 	select USB_WUSB
+ 	select UWB_HWA
+ 	help
+diff -puN drivers/usb/wusbcore/Kconfig~uwb-seems-to-need-pci drivers/usb/wusbcore/Kconfig
+--- a/drivers/usb/wusbcore/Kconfig~uwb-seems-to-need-pci
++++ a/drivers/usb/wusbcore/Kconfig
+@@ -4,6 +4,7 @@
+ config USB_WUSB
+ 	tristate "Enable Wireless USB extensions"
+ 	depends on USB
++	depends on PCI
+         select UWB
+         select CRYPTO
+         select CRYPTO_BLKCIPHER
+diff -puN drivers/uwb/Kconfig~uwb-seems-to-need-pci drivers/uwb/Kconfig
+--- a/drivers/uwb/Kconfig~uwb-seems-to-need-pci
++++ a/drivers/uwb/Kconfig
+@@ -4,6 +4,7 @@
  
- 	kfree(info->toc);
--	if (devinfo->handle == drive && unregister_cdrom(devinfo))
--		printk(KERN_ERR "%s: %s failed to unregister device from the"
--				" cdrom driver.\n", drive->name, __func__);
-+	if (devinfo->handle == drive)
-+		unregister_cdrom(devinfo);
- 	drive->dsc_overlap = 0;
- 	drive->driver_data = NULL;
- 	blk_queue_prep_rq(drive->queue, NULL);
+ menuconfig UWB
+ 	tristate "Ultra Wide Band devices"
++	depends on PCI
+ 	default n
+ 	help
+ 	  UWB is a high-bandwidth, low-power, point-to-point radio
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,11 +111,9 @@ add-rcu_assign_index-if-ever-needed.patch
 scsi-fix-platform-driver-hotplug-coldplug.patch
 scsi-fix-section-mismatch-in-aic94xx.patch
 drivers-scsi-mvsasc-fix-build-warnings.patch
-git-block-git-rejects.patch
 sparc32-export-empty_zero_page.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-fix-gregkh-usb-wusb-add-the-wireless-usb-stack-to-linux.patch
 uwb-seems-to-need-pci.patch
 git-v9fs.patch
 git-watchdog.patch
