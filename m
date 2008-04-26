@@ -1,61 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - git-cryptodev-fix-conflict.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 08:06:03 -0700
-Message-ID: <200804261506.m3QF63Ax027544@imap1.linux-foundation.org>
+Subject: + aic79xx_core-remove-ascii-art.patch added to -mm tree
+Date: Sat, 26 Apr 2008 08:09:38 -0700
+Message-ID: <200804261509.m3QF9cg4027690@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33588 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752781AbYDZPHX (ORCPT
+	by vger.kernel.org with ESMTP id S1752846AbYDZPJm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 11:07:23 -0400
+	Sat, 26 Apr 2008 11:09:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, herbert@gondor.apana.org.au, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     git-cryptodev vs git-s390
-has been removed from the -mm tree.  Its filename was
-     git-cryptodev-fix-conflict.patch
+     aic79xx_core: remove ascii art
+has been added to the -mm tree.  Its filename is
+     aic79xx_core-remove-ascii-art.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-cryptodev vs git-s390
+Subject: aic79xx_core: remove ascii art
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Those '<<<<<<<' lines keep on emitting false-positives when I'm grepping for
+git conflicts.  Replace them with '='.
+
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/crypto/sha1_s390.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/scsi/aic7xxx/aic79xx_core.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict arch/s390/crypto/sha1_s390.c
---- a/arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict
-+++ a/arch/s390/crypto/sha1_s390.c
-@@ -50,14 +50,14 @@ static struct crypto_alg alg = {
- 	.cra_priority	=	CRYPT_S390_PRIORITY,
- 	.cra_flags	=	CRYPTO_ALG_TYPE_DIGEST,
- 	.cra_blocksize	=	SHA1_BLOCK_SIZE,
--	.cra_ctxsize	=	sizeof(struct s390_sha1_ctx),
-+	.cra_ctxsize	=	sizeof(struct s390_sha_ctx),
- 	.cra_module	=	THIS_MODULE,
- 	.cra_list	=	LIST_HEAD_INIT(alg.cra_list),
- 	.cra_u		=	{ .digest = {
- 	.dia_digestsize	=	SHA1_DIGEST_SIZE,
- 	.dia_init	=	sha1_init,
--	.dia_update	=	sha1_update,
--	.dia_final	=	sha1_final } }
-+	.dia_update	=	s390_sha_update,
-+	.dia_final	=	s390_sha1_final } }
- };
- 
- static int __init sha1_s390_init(void)
+diff -puN drivers/scsi/aic7xxx/aic79xx_core.c~aic79xx_core-remove-ascii-art drivers/scsi/aic7xxx/aic79xx_core.c
+--- a/drivers/scsi/aic7xxx/aic79xx_core.c~aic79xx_core-remove-ascii-art
++++ a/drivers/scsi/aic7xxx/aic79xx_core.c
+@@ -9723,7 +9723,7 @@ ahd_dump_card_state(struct ahd_softc *ah
+ 	}
+ 	saved_modes = ahd_save_modes(ahd);
+ 	ahd_set_modes(ahd, AHD_MODE_SCSI, AHD_MODE_SCSI);
+-	printf(">>>>>>>>>>>>>>>>>> Dump Card State Begins <<<<<<<<<<<<<<<<<\n"
++	printf("================== Dump Card State Begins =================\n"
+ 	       "%s: Dumping Card State at program address 0x%x Mode 0x%x\n",
+ 	       ahd_name(ahd), 
+ 	       ahd_inw(ahd, CURADDR),
+@@ -9959,7 +9959,7 @@ ahd_dump_card_state(struct ahd_softc *ah
+ 		ahd_outb(ahd, STACK, ahd->saved_stack[i] & 0xFF);
+ 		ahd_outb(ahd, STACK, (ahd->saved_stack[i] >> 8) & 0xFF);
+ 	}
+-	printf("\n<<<<<<<<<<<<<<<<< Dump Card State Ends >>>>>>>>>>>>>>>>>>\n");
++	printf("\n================= Dump Card State Ends ==================\n");
+ 	ahd_restore_modes(ahd, saved_modes);
+ 	if (paused == 0)
+ 		ahd_unpause(ahd);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,6 +104,7 @@ add-rcu_assign_index-if-ever-needed.patch
 scsi-fix-platform-driver-hotplug-coldplug.patch
 scsi-fix-section-mismatch-in-aic94xx.patch
 drivers-scsi-mvsasc-fix-build-warnings.patch
+aic79xx_core-remove-ascii-art.patch
 sparc32-export-empty_zero_page.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
@@ -100,11 +113,8 @@ git-vfs-vs-git-kvm.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
 xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-fix-conflict.patch
-git-cryptodev-fix-conflict-hack.patch
 git-xtensa.patch
 make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-git-semaphore-git-rejects.patch
 ext4-is-busted-on-m68k.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
