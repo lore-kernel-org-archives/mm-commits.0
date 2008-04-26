@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + aic79xx_core-remove-ascii-art.patch added to -mm tree
-Date: Sat, 26 Apr 2008 08:09:38 -0700
-Message-ID: <200804261509.m3QF9cg4027690@imap1.linux-foundation.org>
+Subject: + git-mips-git-rejects.patch added to -mm tree
+Date: Sat, 26 Apr 2008 08:12:09 -0700
+Message-ID: <200804261512.m3QFC9M4027724@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52210 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55555 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752846AbYDZPJm (ORCPT
+	by vger.kernel.org with ESMTP id S1753383AbYDZPMV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 11:09:42 -0400
+	Sat, 26 Apr 2008 11:12:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com
+Cc: akpm@linux-foundation.org, ralf@linux-mips.org
 
 
 The patch titled
-     aic79xx_core: remove ascii art
+     git-mips-git-rejects
 has been added to the -mm tree.  Its filename is
-     aic79xx_core-remove-ascii-art.patch
+     git-mips-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aic79xx_core: remove ascii art
+Subject: git-mips-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Those '<<<<<<<' lines keep on emitting false-positives when I'm grepping for
-git conflicts.  Replace them with '='.
+Probably wrong...
 
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aic7xxx/aic79xx_core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/mips/kernel/Makefile |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN drivers/scsi/aic7xxx/aic79xx_core.c~aic79xx_core-remove-ascii-art drivers/scsi/aic7xxx/aic79xx_core.c
---- a/drivers/scsi/aic7xxx/aic79xx_core.c~aic79xx_core-remove-ascii-art
-+++ a/drivers/scsi/aic7xxx/aic79xx_core.c
-@@ -9723,7 +9723,7 @@ ahd_dump_card_state(struct ahd_softc *ah
- 	}
- 	saved_modes = ahd_save_modes(ahd);
- 	ahd_set_modes(ahd, AHD_MODE_SCSI, AHD_MODE_SCSI);
--	printf(">>>>>>>>>>>>>>>>>> Dump Card State Begins <<<<<<<<<<<<<<<<<\n"
-+	printf("================== Dump Card State Begins =================\n"
- 	       "%s: Dumping Card State at program address 0x%x Mode 0x%x\n",
- 	       ahd_name(ahd), 
- 	       ahd_inw(ahd, CURADDR),
-@@ -9959,7 +9959,7 @@ ahd_dump_card_state(struct ahd_softc *ah
- 		ahd_outb(ahd, STACK, ahd->saved_stack[i] & 0xFF);
- 		ahd_outb(ahd, STACK, (ahd->saved_stack[i] >> 8) & 0xFF);
- 	}
--	printf("\n<<<<<<<<<<<<<<<<< Dump Card State Ends >>>>>>>>>>>>>>>>>>\n");
-+	printf("\n================= Dump Card State Ends ==================\n");
- 	ahd_restore_modes(ahd, saved_modes);
- 	if (paused == 0)
- 		ahd_unpause(ahd);
+diff -puN arch/mips/kernel/Makefile~git-mips-git-rejects arch/mips/kernel/Makefile
+--- a/arch/mips/kernel/Makefile~git-mips-git-rejects
++++ a/arch/mips/kernel/Makefile
+@@ -4,15 +4,9 @@
+ 
+ extra-y		:= head.o init_task.o vmlinux.lds
+ 
+-<<<<<<< HEAD:arch/mips/kernel/Makefile
+-obj-y		+= cpu-probe.o branch.o entry.o genex.o irq.o process.o \
+-		   ptrace.o reset.o setup.o signal.o syscall.o \
+-		   time.o topology.o traps.o unaligned.o
+-=======
+ obj-y		+= cpu-probe.o branch.o entry.o genex.o irq.o irq-gic.o \
+ 		   process.o ptrace.o reset.o semaphore.o setup.o signal.o \
+ 		   syscall.o time.o topology.o traps.o unaligned.o
+->>>>>>> FETCH_HEAD:arch/mips/kernel/Makefile
+ 
+ obj-$(CONFIG_CEVT_BCM1480)	+= cevt-bcm1480.o
+ obj-$(CONFIG_CEVT_R4K)		+= cevt-r4k.o
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,6 +87,7 @@ git-kvm.patch
 pata_atiixp-simplex-clear.patch
 git-m32r.patch
 git-mips.patch
+git-mips-git-rejects.patch
 git-mmc.patch
 sundance-set-carrier-status-on-link-change-events.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
