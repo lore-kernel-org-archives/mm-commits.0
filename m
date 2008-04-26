@@ -1,99 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: + revert-rusty-misc-timer-typesafe.patch added to -mm tree
-Date: Sat, 26 Apr 2008 09:30:24 -0700
-Message-ID: <200804261630.m3QGUOQE030607@imap1.linux-foundation.org>
+Subject: - usb-fix-general-borkage.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:39:58 -0700
+Message-ID: <200804261639.m3QGdwKD030967@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36104 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755341AbYDZQai (ORCPT
+	by vger.kernel.org with ESMTP id S1754791AbYDZQkd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:30:38 -0400
+	Sat, 26 Apr 2008 12:40:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au, tglx@linutronix.de
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert rusty-misc-timer-typesafe
-has been added to the -mm tree.  Its filename is
-     revert-rusty-misc-timer-typesafe.patch
+     usb-fix-general-borkage
+has been removed from the -mm tree.  Its filename was
+     usb-fix-general-borkage.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert rusty-misc-timer-typesafe
+Subject: usb-fix-general-borkage
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Clear the way for debugobjects-add-timer-specific-object-debugging-code.patch
+In file included from drivers/usb/serial/io_edgeport.c:243:
+drivers/usb/serial/io_tables.h:114: error: unknown field 'num_interrupt_in' specified in initializer
+drivers/usb/serial/io_tables.h:115: error: unknown field 'num_bulk_in' specified in initializer
+drivers/usb/serial/io_tables.h:115: warning: missing braces around initializer
+drivers/usb/serial/io_tables.h:115: warning: (near initialization for 'edgeport_2port_device.driver_list')
+drivers/usb/serial/io_tables.h:115: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:116: error: unknown field 'num_bulk_out' specified in initializer
+drivers/usb/serial/io_tables.h:116: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:145: error: unknown field 'num_interrupt_in' specified in initializer
+drivers/usb/serial/io_tables.h:146: error: unknown field 'num_bulk_in' specified in initializer
+drivers/usb/serial/io_tables.h:146: warning: missing braces around initializer
+drivers/usb/serial/io_tables.h:146: warning: (near initialization for 'edgeport_4port_device.driver_list')
+drivers/usb/serial/io_tables.h:146: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:147: error: unknown field 'num_bulk_out' specified in initializer
+drivers/usb/serial/io_tables.h:147: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:176: error: unknown field 'num_interrupt_in' specified in initializer
+drivers/usb/serial/io_tables.h:177: error: unknown field 'num_bulk_in' specified in initializer
+drivers/usb/serial/io_tables.h:177: warning: missing braces around initializer
+drivers/usb/serial/io_tables.h:177: warning: (near initialization for 'edgeport_8port_device.driver_list')
+drivers/usb/serial/io_tables.h:177: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:178: error: unknown field 'num_bulk_out' specified in initializer
+drivers/usb/serial/io_tables.h:178: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:206: error: unknown field 'num_interrupt_in' specified in initializer
+drivers/usb/serial/io_tables.h:207: error: unknown field 'num_bulk_in' specified in initializer
+drivers/usb/serial/io_tables.h:207: warning: missing braces around initializer
+drivers/usb/serial/io_tables.h:207: warning: (near initialization for 'epic_device.driver_list')
+drivers/usb/serial/io_tables.h:207: warning: initialization makes pointer from integer without a cast
+drivers/usb/serial/io_tables.h:208: error: unknown field 'num_bulk_out' specified in initializer
+drivers/usb/serial/io_tables.h:208: warning: initialization makes pointer from integer without a cast
 
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+nfi what happened here.
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/timer.h |   30 ++++++++----------------------
- 1 file changed, 8 insertions(+), 22 deletions(-)
+ drivers/usb/serial/io_tables.h |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff -puN include/linux/timer.h~revert-rusty-misc-timer-typesafe include/linux/timer.h
---- a/include/linux/timer.h~revert-rusty-misc-timer-typesafe
-+++ a/include/linux/timer.h
-@@ -24,21 +24,11 @@ struct timer_list {
- 
- extern struct tvec_base boot_tvec_bases;
- 
--/*
-- * For historic reasons the timer function takes an unsigned long, so
-- * we use this variant of typesafe_cb.  data is converted to an unsigned long
-- * if it is another integer type, by adding 0UL.
-- */
--#define typesafe_timerfn(fn, data)				\
--	__typesafe_cb(void (*)(unsigned long), (fn),		\
--		      void (*)(const typeof((data)+0UL)),	\
--		      void (*)(typeof((data)+0UL)))
--
--#define TIMER_INITIALIZER(_function, _expires, _data) {			\
--		.function = typesafe_timerfn((_function), (_data)),	\
--		.expires = (_expires),					\
--		.data = (unsigned long)(_data),				\
--		.base = &boot_tvec_bases,				\
-+#define TIMER_INITIALIZER(_function, _expires, _data) {		\
-+		.function = (_function),			\
-+		.expires = (_expires),				\
-+		.data = (_data),				\
-+		.base = &boot_tvec_bases,			\
- 	}
- 
- #define DEFINE_TIMER(_name, _function, _expires, _data)		\
-@@ -48,13 +38,9 @@ extern struct tvec_base boot_tvec_bases;
- void init_timer(struct timer_list *timer);
- void init_timer_deferrable(struct timer_list *timer);
- 
--#define setup_timer(timer, function, data)				\
--	__setup_timer((timer), typesafe_timerfn((function), (data)),	\
--		      (unsigned long)(data))
--
--static inline void __setup_timer(struct timer_list *timer,
--				 void (*function)(unsigned long),
--				 unsigned long data)
-+static inline void setup_timer(struct timer_list * timer,
-+				void (*function)(unsigned long),
-+				unsigned long data)
- {
- 	timer->function = function;
- 	timer->data = data;
+diff -puN drivers/usb/serial/io_tables.h~usb-fix-general-borkage drivers/usb/serial/io_tables.h
+--- a/drivers/usb/serial/io_tables.h~usb-fix-general-borkage
++++ a/drivers/usb/serial/io_tables.h
+@@ -111,9 +111,6 @@ static struct usb_serial_driver edgeport
+ 	.description		= "Edgeport 2 port adapter",
+ 	.usb_driver		= &io_driver,
+ 	.id_table		= edgeport_2port_id_table,
+-	.num_interrupt_in	= 1,
+-	.num_bulk_in		= 1,
+-	.num_bulk_out		= 1,
+ 	.num_ports		= 2,
+ 	.open			= edge_open,
+ 	.close			= edge_close,
+@@ -142,9 +139,6 @@ static struct usb_serial_driver edgeport
+ 	.description		= "Edgeport 4 port adapter",
+ 	.usb_driver		= &io_driver,
+ 	.id_table		= edgeport_4port_id_table,
+-	.num_interrupt_in	= 1,
+-	.num_bulk_in		= 1,
+-	.num_bulk_out		= 1,
+ 	.num_ports		= 4,
+ 	.open			= edge_open,
+ 	.close			= edge_close,
+@@ -173,9 +167,6 @@ static struct usb_serial_driver edgeport
+ 	.description		= "Edgeport 8 port adapter",
+ 	.usb_driver		= &io_driver,
+ 	.id_table		= edgeport_8port_id_table,
+-	.num_interrupt_in	= 1,
+-	.num_bulk_in		= 1,
+-	.num_bulk_out		= 1,
+ 	.num_ports		= 8,
+ 	.open			= edge_open,
+ 	.close			= edge_close,
+@@ -203,9 +194,6 @@ static struct usb_serial_driver epic_dev
+ 	},
+ 	.description		= "EPiC device",
+ 	.id_table		= Epic_port_id_table,
+-	.num_interrupt_in	= 1,
+-	.num_bulk_in		= 1,
+-	.num_bulk_out		= 1,
+ 	.num_ports		= 1,
+ 	.open			= edge_open,
+ 	.close			= edge_close,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
