@@ -1,71 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: - arch-x86-mm-ioremapc-fix-printk-warnings.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:40:06 -0700
-Message-ID: <200804261640.m3QGe6e0031000@imap1.linux-foundation.org>
+Subject: - git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:40:39 -0700
+Message-ID: <200804261640.m3QGeduM031051@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60137 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51265 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755544AbYDZQlF (ORCPT
+	by vger.kernel.org with ESMTP id S1755868AbYDZQlI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:41:05 -0400
+	Sat, 26 Apr 2008 12:41:08 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3QGedVQ022781
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 26 Apr 2008 09:40:40 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/x86/mm/ioremap.c: fix printk warnings
+     git-infiniband vs gregkh-driver-ib-convert-struct-class_device-to-struct-device
 has been removed from the -mm tree.  Its filename was
-     arch-x86-mm-ioremapc-fix-printk-warnings.patch
+     git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/mm/ioremap.c: fix printk warnings
+Subject: git-infiniband vs gregkh-driver-ib-convert-struct-class_device-to-struct-device
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/mm/ioremap.c: In function '__ioremap_caller':
-arch/x86/mm/ioremap.c:137: warning: format '%llx' expects type 'long long unsigned int', but argument 2 has type 'resource_size_t'
-arch/x86/mm/ioremap.c:188: warning: format '%llx' expects type 'long long unsigned int', but argument 2 has type 'resource_size_t'
-arch/x86/mm/ioremap.c:188: warning: format '%llx' expects type 'long long unsigned int', but argument 3 has type 'long unsigned int'
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/ioremap.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/amso1100/c2_provider.c |    8 ++++----
+ drivers/infiniband/hw/cxgb3/iwch_provider.c  |    8 ++++----
+ drivers/infiniband/hw/nes/nes_verbs.c        |    3 ---
+ 3 files changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN arch/x86/mm/ioremap.c~arch-x86-mm-ioremapc-fix-printk-warnings arch/x86/mm/ioremap.c
---- a/arch/x86/mm/ioremap.c~arch-x86-mm-ioremapc-fix-printk-warnings
-+++ a/arch/x86/mm/ioremap.c
-@@ -134,7 +134,7 @@ static void __iomem *__ioremap(resource_
+diff -puN drivers/infiniband/hw/amso1100/c2_provider.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device drivers/infiniband/hw/amso1100/c2_provider.c
+--- a/drivers/infiniband/hw/amso1100/c2_provider.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device
++++ a/drivers/infiniband/hw/amso1100/c2_provider.c
+@@ -527,7 +527,7 @@ static ssize_t show_rev(struct device *d
+ 			char *buf)
+ {
+ 	struct c2_dev *c2dev = container_of(dev, struct c2_dev, ibdev.dev);
+-	pr_debug("%s:%u\n", __FUNCTION__, __LINE__);
++	pr_debug("%s:%u\n", __func__, __LINE__);
+ 	return sprintf(buf, "%x\n", c2dev->props.hw_ver);
+ }
  
- 	if (!phys_addr_valid(phys_addr)) {
- 		printk(KERN_WARNING "ioremap: invalid physical address %llx\n",
--		       phys_addr);
-+		       (unsigned long long)phys_addr);
- 		WARN_ON_ONCE(1);
- 		return NULL;
+@@ -535,7 +535,7 @@ static ssize_t show_fw_ver(struct device
+ 			   char *buf)
+ {
+ 	struct c2_dev *c2dev = container_of(dev, struct c2_dev, ibdev.dev);
+-	pr_debug("%s:%u\n", __FUNCTION__, __LINE__);
++	pr_debug("%s:%u\n", __func__, __LINE__);
+ 	return sprintf(buf, "%x.%x.%x\n",
+ 		       (int) (c2dev->props.fw_ver >> 32),
+ 		       (int) (c2dev->props.fw_ver >> 16) & 0xffff,
+@@ -545,14 +545,14 @@ static ssize_t show_fw_ver(struct device
+ static ssize_t show_hca(struct device *dev, struct device_attribute *attr,
+ 			char *buf)
+ {
+-	pr_debug("%s:%u\n", __FUNCTION__, __LINE__);
++	pr_debug("%s:%u\n", __func__, __LINE__);
+ 	return sprintf(buf, "AMSO1100\n");
+ }
+ 
+ static ssize_t show_board(struct device *dev, struct device_attribute *attr,
+ 			  char *buf)
+ {
+-	pr_debug("%s:%u\n", __FUNCTION__, __LINE__);
++	pr_debug("%s:%u\n", __func__, __LINE__);
+ 	return sprintf(buf, "%.*s\n", 32, "AMSO1100 Board ID");
+ }
+ 
+diff -puN drivers/infiniband/hw/cxgb3/iwch_provider.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device drivers/infiniband/hw/cxgb3/iwch_provider.c
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device
++++ a/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -1046,7 +1046,7 @@ static ssize_t show_rev(struct device *d
+ {
+ 	struct iwch_dev *iwch_dev = container_of(dev, struct iwch_dev,
+ 						 ibdev.dev);
+-	PDBG("%s dev 0x%p\n", __FUNCTION__, dev);
++	PDBG("%s dev 0x%p\n", __func__, dev);
+ 	return sprintf(buf, "%d\n", iwch_dev->rdev.t3cdev_p->type);
+ }
+ 
+@@ -1057,7 +1057,7 @@ static ssize_t show_fw_ver(struct device
+ 	struct ethtool_drvinfo info;
+ 	struct net_device *lldev = iwch_dev->rdev.t3cdev_p->lldev;
+ 
+-	PDBG("%s dev 0x%p\n", __FUNCTION__, dev);
++	PDBG("%s dev 0x%p\n", __func__, dev);
+ 	lldev->ethtool_ops->get_drvinfo(lldev, &info);
+ 	return sprintf(buf, "%s\n", info.fw_version);
+ }
+@@ -1070,7 +1070,7 @@ static ssize_t show_hca(struct device *d
+ 	struct ethtool_drvinfo info;
+ 	struct net_device *lldev = iwch_dev->rdev.t3cdev_p->lldev;
+ 
+-	PDBG("%s dev 0x%p\n", __FUNCTION__, dev);
++	PDBG("%s dev 0x%p\n", __func__, dev);
+ 	lldev->ethtool_ops->get_drvinfo(lldev, &info);
+ 	return sprintf(buf, "%s\n", info.driver);
+ }
+@@ -1080,7 +1080,7 @@ static ssize_t show_board(struct device 
+ {
+ 	struct iwch_dev *iwch_dev = container_of(dev, struct iwch_dev,
+ 						 ibdev.dev);
+-	PDBG("%s dev 0x%p\n", __FUNCTION__, dev);
++	PDBG("%s dev 0x%p\n", __func__, dev);
+ 	return sprintf(buf, "%x.%x\n", iwch_dev->rdev.rnic_info.pdev->vendor,
+ 		       iwch_dev->rdev.rnic_info.pdev->device);
+ }
+diff -puN drivers/infiniband/hw/nes/nes_verbs.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device drivers/infiniband/hw/nes/nes_verbs.c
+--- a/drivers/infiniband/hw/nes/nes_verbs.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device
++++ a/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -3908,9 +3908,6 @@ void nes_unregister_ofa_device(struct ne
+ 	struct nes_vnic *nesvnic = nesibdev->nesvnic;
+ 	int i;
+ 
+-	if (nesibdev == NULL)
+-		return;
+-
+ 	for (i = 0; i < ARRAY_SIZE(nes_dev_attributes); ++i) {
+ 		device_remove_file(&nesibdev->ibdev.dev, nes_dev_attributes[i]);
  	}
-@@ -185,9 +185,10 @@ static void __iomem *__ioremap(resource_
- 		      new_prot_val == _PAGE_CACHE_WC)) ||
- 		    (prot_val == _PAGE_CACHE_WC &&
- 		     new_prot_val == _PAGE_CACHE_WB)) {
--			pr_debug(
--		"ioremap error for 0x%llx-0x%llx, requested 0x%lx, got 0x%lx\n",
--				phys_addr, phys_addr + size,
-+			pr_debug("ioremap error for 0x%llx-0x%llx, "
-+					"requested 0x%lx, got 0x%lx\n",
-+				(unsigned long long)phys_addr,
-+				(unsigned long long)phys_addr + size,
- 				prot_val, new_prot_val);
- 			free_memtype(phys_addr, phys_addr + size);
- 			return NULL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
