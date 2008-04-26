@@ -1,246 +1,473 @@
 From: akpm@linux-foundation.org
-Subject: - git-agpgart-drivers-char-agp-i460-agpc-hacks.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:40:10 -0700
-Message-ID: <200804261640.m3QGeAsU031006@imap1.linux-foundation.org>
+Subject: - mtd-replace-remaining-__function__-occurrences.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:41:21 -0700
+Message-ID: <200804261641.m3QGfLR3031118@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55926 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47941 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758365AbYDZQth (ORCPT
+	by vger.kernel.org with ESMTP id S1757689AbYDZQtf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:49:37 -0400
+	Sat, 26 Apr 2008 12:49:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, airlied@linux.ie, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-agpgart: drivers/char/agp/i460-agp.c hacks
+     mtd: replace remaining __FUNCTION__ occurrences
 has been removed from the -mm tree.  Its filename was
-     git-agpgart-drivers-char-agp-i460-agpc-hacks.patch
+     mtd-replace-remaining-__function__-occurrences.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-agpgart: drivers/char/agp/i460-agp.c hacks
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mtd: replace remaining __FUNCTION__ occurrences
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Cc: Dave Airlie <airlied@linux.ie>
+__FUNCTION__ is gcc-specific, use __func__
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/agp/i460-agp.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ drivers/mtd/chips/cfi_cmdset_0001.c |   12 ++++++------
+ drivers/mtd/chips/cfi_cmdset_0020.c |   12 ++++++------
+ drivers/mtd/devices/lart.c          |   16 ++++++++--------
+ drivers/mtd/devices/m25p80.c        |    8 ++++----
+ drivers/mtd/maps/bast-flash.c       |    4 ++--
+ drivers/mtd/maps/pcmciamtd.c        |    2 +-
+ drivers/mtd/maps/pmcmsp-flash.c     |    2 +-
+ drivers/mtd/maps/tqm8xxl.c          |    6 +++---
+ drivers/mtd/ubi/debug.h             |    2 +-
+ drivers/mtd/ubi/ubi.h               |    4 ++--
+ 10 files changed, 34 insertions(+), 34 deletions(-)
 
-diff -puN drivers/char/agp/i460-agp.c~git-agpgart-drivers-char-agp-i460-agpc-hacks drivers/char/agp/i460-agp.c
---- a/drivers/char/agp/i460-agp.c~git-agpgart-drivers-char-agp-i460-agpc-hacks
-+++ a/drivers/char/agp/i460-agp.c
-@@ -296,8 +296,8 @@ static int i460_insert_memory_small_io_p
- 	int i, j, k, num_entries;
- 	void *temp;
+diff -puN drivers/mtd/chips/cfi_cmdset_0001.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/chips/cfi_cmdset_0001.c
+--- a/drivers/mtd/chips/cfi_cmdset_0001.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/chips/cfi_cmdset_0001.c
+@@ -384,7 +384,7 @@ read_pri_intelext(struct map_info *map, 
+ 			if (extp_size > 4096) {
+ 				printk(KERN_ERR
+ 					"%s: cfi_pri_intelext is too fat\n",
+-					__FUNCTION__);
++					__func__);
+ 				return NULL;
+ 			}
+ 			goto again;
+@@ -641,7 +641,7 @@ static int cfi_intelext_partition_fixup(
+ 		if ((1 << partshift) < mtd->erasesize) {
+ 			printk( KERN_ERR
+ 				"%s: bad number of hw partitions (%d)\n",
+-				__FUNCTION__, numparts);
++				__func__, numparts);
+ 			return -EINVAL;
+ 		}
  
--	pr_debug("i460_insert_memory_small_io_page(mem=%p, pg_start=%ld, type=%d, paddr0=0x%lx)\n",
--		 mem, pg_start, type, mem->memory[0]);
-+//	pr_debug("i460_insert_memory_small_io_page(mem=%p, pg_start=%ld, type=%d, paddr0=0x%lx)\n",
-+//		 mem, pg_start, type, mem->memory[0]);
+@@ -2013,7 +2013,7 @@ static int cfi_intelext_lock(struct mtd_
  
- 	if (type >= AGP_USER_TYPES || mem->type >= AGP_USER_TYPES)
- 		return -EINVAL;
-@@ -324,7 +324,7 @@ static int i460_insert_memory_small_io_p
+ #ifdef DEBUG_LOCK_BITS
+ 	printk(KERN_DEBUG "%s: lock status before, ofs=0x%08llx, len=0x%08X\n",
+-	       __FUNCTION__, ofs, len);
++	       __func__, ofs, len);
+ 	cfi_varsize_frob(mtd, do_printlockstatus_oneblock,
+ 		ofs, len, NULL);
+ #endif
+@@ -2023,7 +2023,7 @@ static int cfi_intelext_lock(struct mtd_
  
- 	io_page_size = 1UL << I460_IO_PAGE_SHIFT;
- 	for (i = 0, j = io_pg_start; i < mem->page_count; i++) {
--		paddr = mem->memory[i];
-+//		paddr = mem->memory[i];
- 		for (k = 0; k < I460_IOPAGES_PER_KPAGE; k++, j++, paddr += io_page_size)
- 			WR_GATT(j, i460_mask_memory(agp_bridge, paddr, mem->type));
- 	}
-@@ -554,10 +554,9 @@ static unsigned long i460_mask_memory (s
- }
+ #ifdef DEBUG_LOCK_BITS
+ 	printk(KERN_DEBUG "%s: lock status after, ret=%d\n",
+-	       __FUNCTION__, ret);
++	       __func__, ret);
+ 	cfi_varsize_frob(mtd, do_printlockstatus_oneblock,
+ 		ofs, len, NULL);
+ #endif
+@@ -2037,7 +2037,7 @@ static int cfi_intelext_unlock(struct mt
  
- static unsigned long i460_page_mask_memory(struct agp_bridge_data *bridge,
--					   sturct page *page, int type)
-+					   struct page *page, int type)
+ #ifdef DEBUG_LOCK_BITS
+ 	printk(KERN_DEBUG "%s: lock status before, ofs=0x%08llx, len=0x%08X\n",
+-	       __FUNCTION__, ofs, len);
++	       __func__, ofs, len);
+ 	cfi_varsize_frob(mtd, do_printlockstatus_oneblock,
+ 		ofs, len, NULL);
+ #endif
+@@ -2047,7 +2047,7 @@ static int cfi_intelext_unlock(struct mt
+ 
+ #ifdef DEBUG_LOCK_BITS
+ 	printk(KERN_DEBUG "%s: lock status after, ret=%d\n",
+-	       __FUNCTION__, ret);
++	       __func__, ret);
+ 	cfi_varsize_frob(mtd, do_printlockstatus_oneblock,
+ 		ofs, len, NULL);
+ #endif
+diff -puN drivers/mtd/chips/cfi_cmdset_0020.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/chips/cfi_cmdset_0020.c
+--- a/drivers/mtd/chips/cfi_cmdset_0020.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/chips/cfi_cmdset_0020.c
+@@ -445,7 +445,7 @@ static inline int do_write_buffer(struct
+  retry:
+ 
+ #ifdef DEBUG_CFI_FEATURES
+-       printk("%s: chip->state[%d]\n", __FUNCTION__, chip->state);
++       printk("%s: chip->state[%d]\n", __func__, chip->state);
+ #endif
+ 	spin_lock_bh(chip->mutex);
+ 
+@@ -463,7 +463,7 @@ static inline int do_write_buffer(struct
+ 		map_write(map, CMD(0x70), cmd_adr);
+                 chip->state = FL_STATUS;
+ #ifdef DEBUG_CFI_FEATURES
+-        printk("%s: 1 status[%x]\n", __FUNCTION__, map_read(map, cmd_adr));
++	printk("%s: 1 status[%x]\n", __func__, map_read(map, cmd_adr));
+ #endif
+ 
+ 	case FL_STATUS:
+@@ -591,7 +591,7 @@ static inline int do_write_buffer(struct
+         /* check for errors: 'lock bit', 'VPP', 'dead cell'/'unerased cell' or 'incorrect cmd' -- saw */
+         if (map_word_bitsset(map, status, CMD(0x3a))) {
+ #ifdef DEBUG_CFI_FEATURES
+-		printk("%s: 2 status[%lx]\n", __FUNCTION__, status.x[0]);
++		printk("%s: 2 status[%lx]\n", __func__, status.x[0]);
+ #endif
+ 		/* clear status */
+ 		map_write(map, CMD(0x50), cmd_adr);
+@@ -625,9 +625,9 @@ static int cfi_staa_write_buffers (struc
+ 	ofs = to  - (chipnum << cfi->chipshift);
+ 
+ #ifdef DEBUG_CFI_FEATURES
+-        printk("%s: map_bankwidth(map)[%x]\n", __FUNCTION__, map_bankwidth(map));
+-        printk("%s: chipnum[%x] wbufsize[%x]\n", __FUNCTION__, chipnum, wbufsize);
+-        printk("%s: ofs[%x] len[%x]\n", __FUNCTION__, ofs, len);
++	printk("%s: map_bankwidth(map)[%x]\n", __func__, map_bankwidth(map));
++	printk("%s: chipnum[%x] wbufsize[%x]\n", __func__, chipnum, wbufsize);
++	printk("%s: ofs[%x] len[%x]\n", __func__, ofs, len);
+ #endif
+ 
+         /* Write buffer is worth it only if more than one word to write... */
+diff -puN drivers/mtd/devices/lart.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/devices/lart.c
+--- a/drivers/mtd/devices/lart.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/devices/lart.c
+@@ -275,7 +275,7 @@ static __u8 read8 (__u32 offset)
  {
--
--
-+	return 0;
+    volatile __u8 *data = (__u8 *) (FLASH_OFFSET + offset);
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(): 0x%.8x -> 0x%.2x\n",__FUNCTION__,offset,*data);
++   printk (KERN_DEBUG "%s(): 0x%.8x -> 0x%.2x\n", __func__, offset, *data);
+ #endif
+    return (*data);
+ }
+@@ -284,7 +284,7 @@ static __u32 read32 (__u32 offset)
+ {
+    volatile __u32 *data = (__u32 *) (FLASH_OFFSET + offset);
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(): 0x%.8x -> 0x%.8x\n",__FUNCTION__,offset,*data);
++   printk (KERN_DEBUG "%s(): 0x%.8x -> 0x%.8x\n", __func__, offset, *data);
+ #endif
+    return (*data);
+ }
+@@ -294,7 +294,7 @@ static void write32 (__u32 x,__u32 offse
+    volatile __u32 *data = (__u32 *) (FLASH_OFFSET + offset);
+    *data = x;
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(): 0x%.8x <- 0x%.8x\n",__FUNCTION__,offset,*data);
++   printk (KERN_DEBUG "%s(): 0x%.8x <- 0x%.8x\n", __func__, offset, *data);
+ #endif
  }
  
- const struct agp_bridge_driver intel_i460_driver = {
+@@ -337,7 +337,7 @@ static inline int erase_block (__u32 off
+    __u32 status;
+ 
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(): 0x%.8x\n",__FUNCTION__,offset);
++   printk (KERN_DEBUG "%s(): 0x%.8x\n", __func__, offset);
+ #endif
+ 
+    /* erase and confirm */
+@@ -371,7 +371,7 @@ static int flash_erase (struct mtd_info 
+    int i,first;
+ 
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(addr = 0x%.8x, len = %d)\n",__FUNCTION__,instr->addr,instr->len);
++   printk (KERN_DEBUG "%s(addr = 0x%.8x, len = %d)\n", __func__, instr->addr, instr->len);
+ #endif
+ 
+    /* sanity checks */
+@@ -442,7 +442,7 @@ static int flash_erase (struct mtd_info 
+ static int flash_read (struct mtd_info *mtd,loff_t from,size_t len,size_t *retlen,u_char *buf)
+ {
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(from = 0x%.8x, len = %d)\n",__FUNCTION__,(__u32) from,len);
++   printk (KERN_DEBUG "%s(from = 0x%.8x, len = %d)\n", __func__, (__u32)from, len);
+ #endif
+ 
+    /* sanity checks */
+@@ -488,7 +488,7 @@ static inline int write_dword (__u32 off
+    __u32 status;
+ 
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(): 0x%.8x <- 0x%.8x\n",__FUNCTION__,offset,x);
++   printk (KERN_DEBUG "%s(): 0x%.8x <- 0x%.8x\n", __func__, offset, x);
+ #endif
+ 
+    /* setup writing */
+@@ -524,7 +524,7 @@ static int flash_write (struct mtd_info 
+    int i,n;
+ 
+ #ifdef LART_DEBUG
+-   printk (KERN_DEBUG "%s(to = 0x%.8x, len = %d)\n",__FUNCTION__,(__u32) to,len);
++   printk (KERN_DEBUG "%s(to = 0x%.8x, len = %d)\n", __func__, (__u32)to, len);
+ #endif
+ 
+    *retlen = 0;
+diff -puN drivers/mtd/devices/m25p80.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/devices/m25p80.c
+--- a/drivers/mtd/devices/m25p80.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/devices/m25p80.c
+@@ -151,7 +151,7 @@ static int wait_till_ready(struct m25p *
+ static int erase_sector(struct m25p *flash, u32 offset)
+ {
+ 	DEBUG(MTD_DEBUG_LEVEL3, "%s: %s %dKiB at 0x%08x\n",
+-			flash->spi->dev.bus_id, __FUNCTION__,
++			flash->spi->dev.bus_id, __func__,
+ 			flash->mtd.erasesize / 1024, offset);
+ 
+ 	/* Wait until finished previous write command. */
+@@ -188,7 +188,7 @@ static int m25p80_erase(struct mtd_info 
+ 	u32 addr,len;
+ 
+ 	DEBUG(MTD_DEBUG_LEVEL2, "%s: %s %s 0x%08x, len %d\n",
+-			flash->spi->dev.bus_id, __FUNCTION__, "at",
++			flash->spi->dev.bus_id, __func__, "at",
+ 			(u32)instr->addr, instr->len);
+ 
+ 	/* sanity checks */
+@@ -240,7 +240,7 @@ static int m25p80_read(struct mtd_info *
+ 	struct spi_message m;
+ 
+ 	DEBUG(MTD_DEBUG_LEVEL2, "%s: %s %s 0x%08x, len %zd\n",
+-			flash->spi->dev.bus_id, __FUNCTION__, "from",
++			flash->spi->dev.bus_id, __func__, "from",
+ 			(u32)from, len);
+ 
+ 	/* sanity checks */
+@@ -308,7 +308,7 @@ static int m25p80_write(struct mtd_info 
+ 	struct spi_message m;
+ 
+ 	DEBUG(MTD_DEBUG_LEVEL2, "%s: %s %s 0x%08x, len %zd\n",
+-			flash->spi->dev.bus_id, __FUNCTION__, "to",
++			flash->spi->dev.bus_id, __func__, "to",
+ 			(u32)to, len);
+ 
+ 	if (retlen)
+diff -puN drivers/mtd/maps/bast-flash.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/maps/bast-flash.c
+--- a/drivers/mtd/maps/bast-flash.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/maps/bast-flash.c
+@@ -137,7 +137,7 @@ static int bast_flash_probe(struct platf
+ 	if (info->map.size > AREA_MAXSIZE)
+ 		info->map.size = AREA_MAXSIZE;
+ 
+-	pr_debug("%s: area %08lx, size %ld\n", __FUNCTION__,
++	pr_debug("%s: area %08lx, size %ld\n", __func__,
+ 		 info->map.phys, info->map.size);
+ 
+ 	info->area = request_mem_region(res->start, info->map.size,
+@@ -149,7 +149,7 @@ static int bast_flash_probe(struct platf
+ 	}
+ 
+ 	info->map.virt = ioremap(res->start, info->map.size);
+-	pr_debug("%s: virt at %08x\n", __FUNCTION__, (int)info->map.virt);
++	pr_debug("%s: virt at %08x\n", __func__, (int)info->map.virt);
+ 
+ 	if (info->map.virt == 0) {
+ 		printk(KERN_ERR PFX "failed to ioremap() region\n");
+diff -puN drivers/mtd/maps/pcmciamtd.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/maps/pcmciamtd.c
+--- a/drivers/mtd/maps/pcmciamtd.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/maps/pcmciamtd.c
+@@ -33,7 +33,7 @@ MODULE_PARM_DESC(debug, "Set Debug Level
+ #undef DEBUG
+ #define DEBUG(n, format, arg...) \
+ 	if (n <= debug) {	 \
+-		printk(KERN_DEBUG __FILE__ ":%s(): " format "\n", __FUNCTION__ , ## arg); \
++		printk(KERN_DEBUG __FILE__ ":%s(): " format "\n", __func__ , ## arg); \
+ 	}
+ 
+ #else
+diff -puN drivers/mtd/maps/pmcmsp-flash.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/maps/pmcmsp-flash.c
+--- a/drivers/mtd/maps/pmcmsp-flash.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/maps/pmcmsp-flash.c
+@@ -46,7 +46,7 @@ static struct mtd_partition **msp_parts;
+ static struct map_info *msp_maps;
+ static int fcnt;
+ 
+-#define DEBUG_MARKER printk(KERN_NOTICE "%s[%d]\n",__FUNCTION__,__LINE__)
++#define DEBUG_MARKER printk(KERN_NOTICE "%s[%d]\n", __func__, __LINE__)
+ 
+ int __init init_msp_flash(void)
+ {
+diff -puN drivers/mtd/maps/tqm8xxl.c~mtd-replace-remaining-__function__-occurrences drivers/mtd/maps/tqm8xxl.c
+--- a/drivers/mtd/maps/tqm8xxl.c~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/maps/tqm8xxl.c
+@@ -124,7 +124,7 @@ int __init init_tqm_mtd(void)
+ 	//request maximum flash size address space
+ 	start_scan_addr = ioremap(flash_addr, flash_size);
+ 	if (!start_scan_addr) {
+-		printk(KERN_WARNING "%s:Failed to ioremap address:0x%x\n", __FUNCTION__, flash_addr);
++		printk(KERN_WARNING "%s:Failed to ioremap address:0x%x\n", __func__, flash_addr);
+ 		return -EIO;
+ 	}
+ 
+@@ -132,7 +132,7 @@ int __init init_tqm_mtd(void)
+ 		if(mtd_size >= flash_size)
+ 			break;
+ 
+-		printk(KERN_INFO "%s: chip probing count %d\n", __FUNCTION__, idx);
++		printk(KERN_INFO "%s: chip probing count %d\n", __func__, idx);
+ 
+ 		map_banks[idx] = kzalloc(sizeof(struct map_info), GFP_KERNEL);
+ 		if(map_banks[idx] == NULL) {
+@@ -178,7 +178,7 @@ int __init init_tqm_mtd(void)
+ 			mtd_size += mtd_banks[idx]->size;
+ 			num_banks++;
+ 
+-			printk(KERN_INFO "%s: bank%d, name:%s, size:%dbytes \n", __FUNCTION__, num_banks,
++			printk(KERN_INFO "%s: bank%d, name:%s, size:%dbytes \n", __func__, num_banks,
+ 			mtd_banks[idx]->name, mtd_banks[idx]->size);
+ 		}
+ 	}
+diff -puN drivers/mtd/ubi/debug.h~mtd-replace-remaining-__function__-occurrences drivers/mtd/ubi/debug.h
+--- a/drivers/mtd/ubi/debug.h~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/ubi/debug.h
+@@ -41,7 +41,7 @@
+ /* Generic debugging message */
+ #define dbg_msg(fmt, ...)                                    \
+ 	printk(KERN_DEBUG "UBI DBG (pid %d): %s: " fmt "\n", \
+-	       current->pid, __FUNCTION__, ##__VA_ARGS__)
++	       current->pid, __func__, ##__VA_ARGS__)
+ 
+ #define ubi_dbg_dump_stack() dump_stack()
+ 
+diff -puN drivers/mtd/ubi/ubi.h~mtd-replace-remaining-__function__-occurrences drivers/mtd/ubi/ubi.h
+--- a/drivers/mtd/ubi/ubi.h~mtd-replace-remaining-__function__-occurrences
++++ a/drivers/mtd/ubi/ubi.h
+@@ -54,10 +54,10 @@
+ #define ubi_msg(fmt, ...) printk(KERN_NOTICE "UBI: " fmt "\n", ##__VA_ARGS__)
+ /* UBI warning messages */
+ #define ubi_warn(fmt, ...) printk(KERN_WARNING "UBI warning: %s: " fmt "\n", \
+-				  __FUNCTION__, ##__VA_ARGS__)
++				  __func__, ##__VA_ARGS__)
+ /* UBI error messages */
+ #define ubi_err(fmt, ...) printk(KERN_ERR "UBI error: %s: " fmt "\n", \
+-				 __FUNCTION__, ##__VA_ARGS__)
++				 __func__, ##__VA_ARGS__)
+ 
+ /* Lowest number PEBs reserved for bad PEB handling */
+ #define MIN_RESEVED_PEBS 2
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-hotplug-memory-make-online_page-common-fix.patch
-disable-the-memory-controller-by-default-v3-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-x86-ptrace-pebs-support-warning-fix.patch
 git-agpgart.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-hwmon.patch
-git-hrt.patch
-touch-screen-driver-for-the-superh-migor-board.patch
+cifs-remove-global_extern-macro.patch
+git-dvb.patch
 git-kvm.patch
-pata_atiixp-simplex-clear.patch
-git-m32r.patch
 git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
 git-nfsd.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-sched.patch
-add-rcu_assign_index-if-ever-needed.patch
-scsi-fix-platform-driver-hotplug-coldplug.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-aic79xx_core-remove-ascii-art.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs-vs-git-kvm.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
 git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-revert-rusty-misc-timer-typesafe.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-ext4-is-busted-on-m68k.patch
+git-xfs.patch
+xtensa-replace-remaining-__function__-occurences.patch
+remove-sparse-warning-for-mmzoneh.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
+input-replace-remaining-__function__-occurrences.patch
+smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+alpha-remove-remaining-__function__-occurences.patch
+alpha-replace-__inline-with-inline.patch
+power-replace-remaining-__function__-occurrences.patch
+m68k-replace-remaining-__function__-occurences.patch
+uml-replace-remaining-__function__-occurences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+ncpfs-add-prototypes-to-ncp_fsh.patch
+ncpfs-fix-sparse-warnings-in-ioctlc.patch
+ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
+char-make-functions-static-in-synclinkmpc.patch
+spi-replace-remaining-__function__-occurrences.patch
+capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
+avm-fix-sparse-warning-using-integer-as-null-pointer.patch
+eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+isdn-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+rtc-replace-remaining-__function__-occurrences.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-drivers-video-uvesafbc-fix-error-path-memory-leak.patch
-fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
-drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
-x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
-x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
-drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-revert-part-of-sched-cpuset-customize-sched-domains-core.patch
-reapply-sched-cpuset-customize-sched-domains-core-bits.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+video-replace-remaining-__function__-occurrences.patch
+md-fix-integer-as-null-pointer-warnings-in-mdc.patch
+md-replace-remaining-__function__-occurrences.patch
+ext2-replace-remaining-__function__-occurrences.patch
+ext3-replace-remaining-__function__-occurrences.patch
+jbd-replace-remaining-__function__-occurrences.patch
+ufs-replace-remaining-__function__-occurrences.patch
+ufs-replace-__inline-with-inline.patch
+udf-fix-sparse-warning-in-nameic.patch
+reiserfs-fix-sparse-warning-in-journalc.patch
+reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
+reiserfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework-fix-2.patch
-tty-the-big-operations-rework-isicom-fix.patch
-tty-the-big-operations-rework-simserial-fix.patch
-tty-the-big-operations-rework-vs-git-kgdb-light.patch
-tty-the-big-operations-rework-vs-kgdb-2.patch
-devpts-factor-out-pty-index-allocation-fix.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
 add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+drivers-replace-remaining-__function__-occurrences.patch
+kernel-add-common-infrastructure-for-unaligned-access.patch
+kernel-move-arches-to-use-common-unaligned-access.patch
+drivers-block-use-get_unaligned_-helpers.patch
+hid-core-use-get_unaligned_-helpers.patch
+char-use-get_unaligned_-helpers.patch
+input-use-get_unaligned_-helpers.patch
+mmc-use-get-put_unaligned_-helpers.patch
+net-use-get-put_unaligned_-helpers.patch
+wireless-use-get-put_unaligned_-helpers.patch
+pcmcia-use-get-put_unaligned_-helpers.patch
+usb-use-get-put_unaligned_-helpers.patch
+video-use-get-put_unaligned_-helpers.patch
+fat-use-get-put_unaligned_-helpers.patch
+hfsplus-use-get-put_unaligned_-helpers.patch
+isofs-use-get-put_unaligned_-helpers.patch
+ncpfs-use-get-put_unaligned_-helpers.patch
 ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
-relayfs-support-larger-relay-buffer-take-3-cleanup.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
