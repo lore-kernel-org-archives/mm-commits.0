@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: - pci_bus_size_cardbus-mustnt-be-__devinit.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:42:04 -0700
-Message-ID: <200804261642.m3QGg4ak031178@imap1.linux-foundation.org>
+Subject: - pci_setup_bridge-mustnt-be-__devinit.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:42:06 -0700
+Message-ID: <200804261642.m3QGg66X031181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54694 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36203 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757339AbYDZQmW (ORCPT
+	by vger.kernel.org with ESMTP id S1757285AbYDZQm0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:42:22 -0400
+	Sat, 26 Apr 2008 12:42:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@kernel.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci_bus_size_cardbus() mustn't be __devinit
+     pci_setup_bridge() mustn't be __devinit
 has been removed from the -mm tree.  Its filename was
-     pci_bus_size_cardbus-mustnt-be-__devinit.patch
+     pci_setup_bridge-mustnt-be-__devinit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci_bus_size_cardbus() mustn't be __devinit
+Subject: pci_setup_bridge() mustn't be __devinit
 From: Adrian Bunk <bunk@kernel.org>
 
-WARNING: drivers/pci/built-in.o(.text+0x28e1f): Section mismatch in reference from the function pci_bus_size_bridges() to the function .devinit.text:pci_bus_size_cardbus()
+WARNING: drivers/pci/built-in.o(.text+0x28ee9): Section mismatch in reference from the function pci_bus_assign_resources() to the function .devinit.text:pci_setup_bridge()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Greg KH <greg@kroah.com>
@@ -37,19 +37,19 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/pci/setup-bus.c |    3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/pci/setup-bus.c~pci_bus_size_cardbus-mustnt-be-__devinit drivers/pci/setup-bus.c
---- a/drivers/pci/setup-bus.c~pci_bus_size_cardbus-mustnt-be-__devinit
+diff -puN drivers/pci/setup-bus.c~pci_setup_bridge-mustnt-be-__devinit drivers/pci/setup-bus.c
+--- a/drivers/pci/setup-bus.c~pci_setup_bridge-mustnt-be-__devinit
 +++ a/drivers/pci/setup-bus.c
-@@ -407,8 +407,7 @@ static int pbus_size_mem(struct pci_bus 
- 	return 1;
- }
- 
+@@ -145,8 +145,7 @@ EXPORT_SYMBOL(pci_setup_cardbus);
+    config space writes, so it's quite possible that an I/O window of
+    the bridge will have some undesirable address (e.g. 0) after the
+    first write. Ditto 64-bit prefetchable MMIO.  */
 -static void __devinit
--pci_bus_size_cardbus(struct pci_bus *bus)
-+static void pci_bus_size_cardbus(struct pci_bus *bus)
+-pci_setup_bridge(struct pci_bus *bus)
++static void pci_setup_bridge(struct pci_bus *bus)
  {
  	struct pci_dev *bridge = bus->self;
- 	struct resource *b_res = &bridge->resource[PCI_BRIDGE_RESOURCES];
+ 	struct pci_bus_region region;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
