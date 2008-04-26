@@ -1,307 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:40:39 -0700
-Message-ID: <200804261640.m3QGeduM031051@imap1.linux-foundation.org>
+Subject: - macintosh-windfarm-fix-platform-driver-hotplug-coldplug.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:40:23 -0700
+Message-ID: <200804261640.m3QGeN9n031025@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51265 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33829 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755868AbYDZQlI (ORCPT
+	by vger.kernel.org with ESMTP id S1755770AbYDZQlT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:41:08 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3QGedVQ022781
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 26 Apr 2008 09:40:40 -0700
+	Sat, 26 Apr 2008 12:41:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: kay.sievers@vrfy.org, benh@kernel.crashing.org, dbrownell@users.sourceforge.net, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-infiniband vs gregkh-driver-ib-convert-struct-class_device-to-struct-device
+     macintosh/windfarm: fix platform driver hotplug/coldplug
 has been removed from the -mm tree.  Its filename was
-     git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device.patch
+     macintosh-windfarm-fix-platform-driver-hotplug-coldplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-infiniband vs gregkh-driver-ib-convert-struct-class_device-to-struct-device
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: macintosh/windfarm: fix platform driver hotplug/coldplug
+From: Kay Sievers <kay.sievers@vrfy.org>
 
+Since 43cc71eed1250755986da4c0f9898f9a635cb3bf, the platform modalias is
+prefixed with "platform:".  Add MODULE_ALIAS() to the hotpluggable "macintosh"
+platform drivers, to re-enable auto loading.
 
-
+[dbrownell@users.sourceforge.net: registration fixes]
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/hw/amso1100/c2_provider.c |    8 ++++----
- drivers/infiniband/hw/cxgb3/iwch_provider.c  |    8 ++++----
- drivers/infiniband/hw/nes/nes_verbs.c        |    3 ---
- 3 files changed, 8 insertions(+), 11 deletions(-)
+ drivers/macintosh/windfarm_pm112.c |    3 ++-
+ drivers/macintosh/windfarm_pm81.c  |    4 ++--
+ drivers/macintosh/windfarm_pm91.c  |    3 ++-
+ 3 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/infiniband/hw/amso1100/c2_provider.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device drivers/infiniband/hw/amso1100/c2_provider.c
---- a/drivers/infiniband/hw/amso1100/c2_provider.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device
-+++ a/drivers/infiniband/hw/amso1100/c2_provider.c
-@@ -527,7 +527,7 @@ static ssize_t show_rev(struct device *d
- 			char *buf)
- {
- 	struct c2_dev *c2dev = container_of(dev, struct c2_dev, ibdev.dev);
--	pr_debug("%s:%u\n", __FUNCTION__, __LINE__);
-+	pr_debug("%s:%u\n", __func__, __LINE__);
- 	return sprintf(buf, "%x\n", c2dev->props.hw_ver);
- }
+diff -puN drivers/macintosh/windfarm_pm112.c~macintosh-windfarm-fix-platform-driver-hotplug-coldplug drivers/macintosh/windfarm_pm112.c
+--- a/drivers/macintosh/windfarm_pm112.c~macintosh-windfarm-fix-platform-driver-hotplug-coldplug
++++ a/drivers/macintosh/windfarm_pm112.c
+@@ -668,7 +668,7 @@ static struct platform_driver wf_pm112_d
+ 	.remove = __devexit_p(wf_pm112_remove),
+ 	.driver = {
+ 		.name = "windfarm",
+-		.bus = &platform_bus_type,
++		.owner	= THIS_MODULE,
+ 	},
+ };
  
-@@ -535,7 +535,7 @@ static ssize_t show_fw_ver(struct device
- 			   char *buf)
- {
- 	struct c2_dev *c2dev = container_of(dev, struct c2_dev, ibdev.dev);
--	pr_debug("%s:%u\n", __FUNCTION__, __LINE__);
-+	pr_debug("%s:%u\n", __func__, __LINE__);
- 	return sprintf(buf, "%x.%x.%x\n",
- 		       (int) (c2dev->props.fw_ver >> 32),
- 		       (int) (c2dev->props.fw_ver >> 16) & 0xffff,
-@@ -545,14 +545,14 @@ static ssize_t show_fw_ver(struct device
- static ssize_t show_hca(struct device *dev, struct device_attribute *attr,
- 			char *buf)
- {
--	pr_debug("%s:%u\n", __FUNCTION__, __LINE__);
-+	pr_debug("%s:%u\n", __func__, __LINE__);
- 	return sprintf(buf, "AMSO1100\n");
- }
+@@ -711,3 +711,4 @@ module_exit(wf_pm112_exit);
+ MODULE_AUTHOR("Paul Mackerras <paulus@samba.org>");
+ MODULE_DESCRIPTION("Thermal control for PowerMac11,2");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:windfarm");
+diff -puN drivers/macintosh/windfarm_pm81.c~macintosh-windfarm-fix-platform-driver-hotplug-coldplug drivers/macintosh/windfarm_pm81.c
+--- a/drivers/macintosh/windfarm_pm81.c~macintosh-windfarm-fix-platform-driver-hotplug-coldplug
++++ a/drivers/macintosh/windfarm_pm81.c
+@@ -770,7 +770,7 @@ static struct platform_driver wf_smu_dri
+         .remove = __devexit_p(wf_smu_remove),
+ 	.driver = {
+ 		.name = "windfarm",
+-		.bus = &platform_bus_type,
++		.owner	= THIS_MODULE,
+ 	},
+ };
  
- static ssize_t show_board(struct device *dev, struct device_attribute *attr,
- 			  char *buf)
- {
--	pr_debug("%s:%u\n", __FUNCTION__, __LINE__);
-+	pr_debug("%s:%u\n", __func__, __LINE__);
- 	return sprintf(buf, "%.*s\n", 32, "AMSO1100 Board ID");
- }
- 
-diff -puN drivers/infiniband/hw/cxgb3/iwch_provider.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device drivers/infiniband/hw/cxgb3/iwch_provider.c
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device
-+++ a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -1046,7 +1046,7 @@ static ssize_t show_rev(struct device *d
- {
- 	struct iwch_dev *iwch_dev = container_of(dev, struct iwch_dev,
- 						 ibdev.dev);
--	PDBG("%s dev 0x%p\n", __FUNCTION__, dev);
-+	PDBG("%s dev 0x%p\n", __func__, dev);
- 	return sprintf(buf, "%d\n", iwch_dev->rdev.t3cdev_p->type);
- }
- 
-@@ -1057,7 +1057,7 @@ static ssize_t show_fw_ver(struct device
- 	struct ethtool_drvinfo info;
- 	struct net_device *lldev = iwch_dev->rdev.t3cdev_p->lldev;
- 
--	PDBG("%s dev 0x%p\n", __FUNCTION__, dev);
-+	PDBG("%s dev 0x%p\n", __func__, dev);
- 	lldev->ethtool_ops->get_drvinfo(lldev, &info);
- 	return sprintf(buf, "%s\n", info.fw_version);
- }
-@@ -1070,7 +1070,7 @@ static ssize_t show_hca(struct device *d
- 	struct ethtool_drvinfo info;
- 	struct net_device *lldev = iwch_dev->rdev.t3cdev_p->lldev;
- 
--	PDBG("%s dev 0x%p\n", __FUNCTION__, dev);
-+	PDBG("%s dev 0x%p\n", __func__, dev);
- 	lldev->ethtool_ops->get_drvinfo(lldev, &info);
- 	return sprintf(buf, "%s\n", info.driver);
- }
-@@ -1080,7 +1080,7 @@ static ssize_t show_board(struct device 
- {
- 	struct iwch_dev *iwch_dev = container_of(dev, struct iwch_dev,
- 						 ibdev.dev);
--	PDBG("%s dev 0x%p\n", __FUNCTION__, dev);
-+	PDBG("%s dev 0x%p\n", __func__, dev);
- 	return sprintf(buf, "%x.%x\n", iwch_dev->rdev.rnic_info.pdev->vendor,
- 		       iwch_dev->rdev.rnic_info.pdev->device);
- }
-diff -puN drivers/infiniband/hw/nes/nes_verbs.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device drivers/infiniband/hw/nes/nes_verbs.c
---- a/drivers/infiniband/hw/nes/nes_verbs.c~git-infiniband-vs-gregkh-driver-ib-convert-struct-class_device-to-struct-device
-+++ a/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -3908,9 +3908,6 @@ void nes_unregister_ofa_device(struct ne
- 	struct nes_vnic *nesvnic = nesibdev->nesvnic;
- 	int i;
- 
--	if (nesibdev == NULL)
--		return;
+@@ -810,4 +810,4 @@ module_exit(wf_smu_exit);
+ MODULE_AUTHOR("Benjamin Herrenschmidt <benh@kernel.crashing.org>");
+ MODULE_DESCRIPTION("Thermal control logic for iMac G5");
+ MODULE_LICENSE("GPL");
 -
- 	for (i = 0; i < ARRAY_SIZE(nes_dev_attributes); ++i) {
- 		device_remove_file(&nesibdev->ibdev.dev, nes_dev_attributes[i]);
- 	}
++MODULE_ALIAS("platform:windfarm");
+diff -puN drivers/macintosh/windfarm_pm91.c~macintosh-windfarm-fix-platform-driver-hotplug-coldplug drivers/macintosh/windfarm_pm91.c
+--- a/drivers/macintosh/windfarm_pm91.c~macintosh-windfarm-fix-platform-driver-hotplug-coldplug
++++ a/drivers/macintosh/windfarm_pm91.c
+@@ -702,7 +702,7 @@ static struct platform_driver wf_smu_dri
+         .remove = __devexit_p(wf_smu_remove),
+ 	.driver = {
+ 		.name = "windfarm",
+-		.bus = &platform_bus_type,
++		.owner	= THIS_MODULE,
+ 	},
+ };
+ 
+@@ -742,3 +742,4 @@ MODULE_AUTHOR("Benjamin Herrenschmidt <b
+ MODULE_DESCRIPTION("Thermal control logic for PowerMac9,1");
+ MODULE_LICENSE("GPL");
+ 
++MODULE_ALIAS("platform:windfarm");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kay.sievers@vrfy.org are
 
 origin.patch
-hotplug-memory-make-online_page-common-fix.patch
-disable-the-memory-controller-by-default-v3-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-x86-ptrace-pebs-support-warning-fix.patch
-git-agpgart.patch
-cifs-suppress-warning.patch
 sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-hwmon.patch
-git-hrt.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-kvm.patch
-pata_atiixp-simplex-clear.patch
-git-m32r.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-sched.patch
-add-rcu_assign_index-if-ever-needed.patch
+git-scsi-misc.patch
 scsi-fix-platform-driver-hotplug-coldplug.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-aic79xx_core-remove-ascii-art.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs-vs-git-kvm.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-revert-rusty-misc-timer-typesafe.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-ext4-is-busted-on-m68k.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-drivers-video-uvesafbc-fix-error-path-memory-leak.patch
-fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
-drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
-x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
-x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
-drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-revert-part-of-sched-cpuset-customize-sched-domains-core.patch
-reapply-sched-cpuset-customize-sched-domains-core-bits.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework-fix-2.patch
-tty-the-big-operations-rework-isicom-fix.patch
-tty-the-big-operations-rework-simserial-fix.patch
-tty-the-big-operations-rework-vs-git-kgdb-light.patch
-tty-the-big-operations-rework-vs-kgdb-2.patch
-devpts-factor-out-pty-index-allocation-fix.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
-relayfs-support-larger-relay-buffer-take-3-cleanup.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
+cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
 
