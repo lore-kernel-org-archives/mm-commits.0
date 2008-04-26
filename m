@@ -1,99 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: + git-vfs-vs-git-kvm.patch added to -mm tree
-Date: Sat, 26 Apr 2008 08:05:36 -0700
-Message-ID: <200804261505.m3QF5am5027529@imap1.linux-foundation.org>
+Subject: - git-cryptodev-misplaced-hunk.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 08:05:55 -0700
+Message-ID: <200804261505.m3QF5tDb027535@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44434 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45536 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753030AbYDZPFj (ORCPT
+	by vger.kernel.org with ESMTP id S1753529AbYDZPF5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 11:05:39 -0400
+	Sat, 26 Apr 2008 11:05:57 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3QF5tJx016454
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Sat, 26 Apr 2008 08:05:57 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com, viro@zeniv.linux.org.uk
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-vfs-vs-git-kvm
-has been added to the -mm tree.  Its filename is
-     git-vfs-vs-git-kvm.patch
+     git-cryptodev-misplaced-hunk
+has been removed from the -mm tree.  Its filename was
+     git-cryptodev-misplaced-hunk.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-vfs-vs-git-kvm
+Subject: git-cryptodev-misplaced-hunk
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- virt/kvm/kvm_main.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ drivers/char/hw_random/core.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN virt/kvm/kvm_main.c~git-vfs-vs-git-kvm virt/kvm/kvm_main.c
---- a/virt/kvm/kvm_main.c~git-vfs-vs-git-kvm
-+++ a/virt/kvm/kvm_main.c
-@@ -835,15 +835,13 @@ static const struct file_operations kvm_
- static int create_vcpu_fd(struct kvm_vcpu *vcpu)
- {
- 	int fd, r;
--	struct inode *inode;
--	struct file *file;
+diff -puN drivers/char/hw_random/core.c~git-cryptodev-misplaced-hunk drivers/char/hw_random/core.c
+--- a/drivers/char/hw_random/core.c~git-cryptodev-misplaced-hunk
++++ a/drivers/char/hw_random/core.c
+@@ -279,10 +279,6 @@ int hwrng_register(struct hwrng *rng)
+ 	if (rng->name == NULL ||
+ 	    rng->data_read == NULL)
+ 		goto out;
+-		if (bytes_read < 0) {
+-			err = bytes_read;
+-			goto out;
+-		}
  
--	r = anon_inode_getfd(&fd, &inode, &file,
--			     "kvm-vcpu", &kvm_vcpu_fops, vcpu);
-+	r = anon_inode_getfd(&fd, "kvm-vcpu", &kvm_vcpu_fops, vcpu);
- 	if (r) {
- 		kvm_put_kvm(vcpu->kvm);
- 		return r;
- 	}
-+	get_file(vcpu->kvm->filp);
- 	return fd;
- }
- 
-@@ -1169,19 +1167,26 @@ static const struct file_operations kvm_
- static int kvm_dev_ioctl_create_vm(void)
- {
- 	int fd, r;
--	struct inode *inode;
- 	struct file *file;
- 	struct kvm *kvm;
- 
- 	kvm = kvm_create_vm();
- 	if (IS_ERR(kvm))
- 		return PTR_ERR(kvm);
--	r = anon_inode_getfd(&fd, &inode, &file, "kvm-vm", &kvm_vm_fops, kvm);
-+	r = __anon_inode_getfd(&fd, &file, "kvm-vm", &kvm_vm_fops, kvm);
- 	if (r) {
- 		kvm_put_kvm(kvm);
- 		return r;
- 	}
- 
-+	/*
-+	 * Drop the temporary reference pinned for us by __anon_inode_getfd().
-+	 * If we'd raced with close() from another thread, that could free kvm,
-+	 * but by that point we don't care - from here on it could be reached
-+	 * only via file->private_data.
-+	 */
-+	fput(file);
-+
- 	return fd;
- }
+ 	mutex_lock(&rng_mutex);
  
 _
 
@@ -138,7 +94,6 @@ git-v9fs.patch
 git-vfs-vs-git-kvm.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
-git-xfs-fixups.patch
 xfs-suppress-uninitialized-var-warnings.patch
 git-cryptodev-misplaced-hunk.patch
 git-cryptodev-fix-conflict.patch
