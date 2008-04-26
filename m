@@ -1,165 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - jffs2-fix-sparse-warning-in-writec.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:41:11 -0700
-Message-ID: <200804261641.m3QGfBTE031106@imap1.linux-foundation.org>
+Subject: - hrtimer-reduce-calls-to-hrtimer_get_softirq_time.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:40:36 -0700
+Message-ID: <200804261640.m3QGea3o031048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60491 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41463 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756234AbYDZQlt (ORCPT
+	by vger.kernel.org with ESMTP id S1756234AbYDZQlb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:41:49 -0400
+	Sat, 26 Apr 2008 12:41:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: sivanich@sgi.com, a.p.zijlstra@chello.nl, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jffs2: fix sparse warning in write.c
+     hrtimer: reduce calls to hrtimer_get_softirq_time()
 has been removed from the -mm tree.  Its filename was
-     jffs2-fix-sparse-warning-in-writec.patch
+     hrtimer-reduce-calls-to-hrtimer_get_softirq_time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jffs2: fix sparse warning in write.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: hrtimer: reduce calls to hrtimer_get_softirq_time()
+From: Dimitri Sivanich <sivanich@sgi.com>
 
-fs/jffs2/write.c:585:28: warning: symbol 'fd' shadows an earlier one
-fs/jffs2/write.c:536:27: originally declared here
+It seems that hrtimer_run_queues() is calling hrtimer_get_softirq_time() more
+often than it needs to.  This can cause frequent contention on systems with
+large numbers of processors/cores.
 
-No need to redeclare fd, use the original one, after this point,
-fd is always reassigned before it used again.
+With this patch, hrtimer_run_queues only calls hrtimer_get_softirq_time() if
+there is a pending timer in one of the hrtimer bases, and only once.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+This also combines hrtimer_run_queues() and the inline run_hrtimer_queue()
+into one function.
+
+Signed-off-by: Dimitri Sivanich <sivanich@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/write.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/hrtimer.c |   65 ++++++++++++++++++++++-----------------------
+ 1 file changed, 33 insertions(+), 32 deletions(-)
 
-diff -puN fs/jffs2/write.c~jffs2-fix-sparse-warning-in-writec fs/jffs2/write.c
---- a/fs/jffs2/write.c~jffs2-fix-sparse-warning-in-writec
-+++ a/fs/jffs2/write.c
-@@ -582,9 +582,9 @@ int jffs2_do_unlink(struct jffs2_sb_info
- 		jffs2_add_fd_to_list(c, fd, &dir_f->dents);
- 		up(&dir_f->sem);
- 	} else {
--		struct jffs2_full_dirent *fd = dir_f->dents;
- 		uint32_t nhash = full_name_hash(name, namelen);
+diff -puN kernel/hrtimer.c~hrtimer-reduce-calls-to-hrtimer_get_softirq_time kernel/hrtimer.c
+--- a/kernel/hrtimer.c~hrtimer-reduce-calls-to-hrtimer_get_softirq_time
++++ a/kernel/hrtimer.c
+@@ -1238,51 +1238,52 @@ void hrtimer_run_pending(void)
+ /*
+  * Called from hardirq context every jiffy
+  */
+-static inline void run_hrtimer_queue(struct hrtimer_cpu_base *cpu_base,
+-				     int index)
++void hrtimer_run_queues(void)
+ {
+ 	struct rb_node *node;
+-	struct hrtimer_clock_base *base = &cpu_base->clock_base[index];
++	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
++	struct hrtimer_clock_base *base;
++	int index;
++	int gst = 1;
  
-+		fd = dir_f->dents;
- 		/* We don't actually want to reserve any space, but we do
- 		   want to be holding the alloc_sem when we write to flash */
- 		down(&c->alloc_sem);
+-	if (!base->first)
++	if (hrtimer_hres_active())
+ 		return;
+ 
+-	if (base->get_softirq_time)
+-		base->softirq_time = base->get_softirq_time();
++	for (index = 0; index < HRTIMER_MAX_CLOCK_BASES; index++) {
++		base = &cpu_base->clock_base[index];
+ 
+-	spin_lock(&cpu_base->lock);
+-
+-	while ((node = base->first)) {
+-		struct hrtimer *timer;
+-
+-		timer = rb_entry(node, struct hrtimer, node);
+-		if (base->softirq_time.tv64 <= timer->expires.tv64)
+-			break;
+-
+-		if (timer->cb_mode == HRTIMER_CB_SOFTIRQ) {
+-			__remove_hrtimer(timer, base, HRTIMER_STATE_PENDING, 0);
+-			list_add_tail(&timer->cb_entry,
+-					&base->cpu_base->cb_pending);
++		if (!base->first)
+ 			continue;
++
++		if (gst) {
++			hrtimer_get_softirq_time(cpu_base);
++			gst = 0;
+ 		}
+ 
+-		__run_hrtimer(timer);
+-	}
+-	spin_unlock(&cpu_base->lock);
+-}
++		if (base->get_softirq_time)
++			base->softirq_time = base->get_softirq_time();
+ 
+-void hrtimer_run_queues(void)
+-{
+-	struct hrtimer_cpu_base *cpu_base = &__get_cpu_var(hrtimer_bases);
+-	int i;
++		spin_lock(&cpu_base->lock);
+ 
+-	if (hrtimer_hres_active())
+-		return;
++		while ((node = base->first)) {
++			struct hrtimer *timer;
+ 
+-	hrtimer_get_softirq_time(cpu_base);
++			timer = rb_entry(node, struct hrtimer, node);
++			if (base->softirq_time.tv64 <= timer->expires.tv64)
++				break;
++
++			if (timer->cb_mode == HRTIMER_CB_SOFTIRQ) {
++				__remove_hrtimer(timer, base,
++					HRTIMER_STATE_PENDING, 0);
++				list_add_tail(&timer->cb_entry,
++					&base->cpu_base->cb_pending);
++				continue;
++			}
+ 
+-	for (i = 0; i < HRTIMER_MAX_CLOCK_BASES; i++)
+-		run_hrtimer_queue(cpu_base, i);
++			__run_hrtimer(timer);
++		}
++		spin_unlock(&cpu_base->lock);
++	}
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from sivanich@sgi.com are
 
 origin.patch
-git-agpgart.patch
-cifs-remove-global_extern-macro.patch
-git-dvb.patch
-git-kvm.patch
-git-mips.patch
-git-nfsd.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-git-watchdog.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-input-replace-remaining-__function__-occurrences.patch
-smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
-alpha-remove-remaining-__function__-occurences.patch
-alpha-replace-__inline-with-inline.patch
-power-replace-remaining-__function__-occurrences.patch
-m68k-replace-remaining-__function__-occurences.patch
-uml-replace-remaining-__function__-occurences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-firmware-replace-remaining-__function__-occurrences.patch
-drivers-misc-replace-remaining-__function__-occurrences.patch
-ncpfs-add-prototypes-to-ncp_fsh.patch
-ncpfs-fix-sparse-warnings-in-ioctlc.patch
-ncpfs-fix-sparse-warning-in-ncpsign_kernelc.patch
-char-make-functions-static-in-synclinkmpc.patch
-spi-replace-remaining-__function__-occurrences.patch
-capi-fix-sparse-warnings-using-integer-as-null-pointer.patch
-avm-fix-sparse-warning-using-integer-as-null-pointer.patch
-eicon-fix-sparse-integer-as-null-pointer-warnings.patch
-isdn-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-rtc-replace-remaining-__function__-occurrences.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-video-replace-remaining-__function__-occurrences.patch
-md-fix-integer-as-null-pointer-warnings-in-mdc.patch
-md-replace-remaining-__function__-occurrences.patch
-ext2-replace-remaining-__function__-occurrences.patch
-ext3-replace-remaining-__function__-occurrences.patch
-jbd-replace-remaining-__function__-occurrences.patch
-ufs-replace-remaining-__function__-occurrences.patch
-ufs-replace-__inline-with-inline.patch
-udf-fix-sparse-warning-in-nameic.patch
-reiserfs-fix-sparse-warning-in-journalc.patch
-reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
-reiserfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-kernel-add-common-infrastructure-for-unaligned-access.patch
-kernel-move-arches-to-use-common-unaligned-access.patch
-drivers-block-use-get_unaligned_-helpers.patch
-hid-core-use-get_unaligned_-helpers.patch
-char-use-get_unaligned_-helpers.patch
-input-use-get_unaligned_-helpers.patch
-mmc-use-get-put_unaligned_-helpers.patch
-net-use-get-put_unaligned_-helpers.patch
-wireless-use-get-put_unaligned_-helpers.patch
-pcmcia-use-get-put_unaligned_-helpers.patch
-usb-use-get-put_unaligned_-helpers.patch
-video-use-get-put_unaligned_-helpers.patch
-fat-use-get-put_unaligned_-helpers.patch
-hfsplus-use-get-put_unaligned_-helpers.patch
-isofs-use-get-put_unaligned_-helpers.patch
-ncpfs-use-get-put_unaligned_-helpers.patch
-ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
+git-hrt.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 
