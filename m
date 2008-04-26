@@ -1,114 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - usb-fix-general-borkage.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:39:58 -0700
-Message-ID: <200804261639.m3QGdwKD030967@imap1.linux-foundation.org>
+Subject: - usb-fix-general-borkage-2.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:40:01 -0700
+Message-ID: <200804261640.m3QGe1wR030972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49679 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754791AbYDZQkd (ORCPT
+	by vger.kernel.org with ESMTP id S1755486AbYDZQkf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:40:33 -0400
+	Sat, 26 Apr 2008 12:40:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb-fix-general-borkage
+     usb-fix-general-borkage-2
 has been removed from the -mm tree.  Its filename was
-     usb-fix-general-borkage.patch
+     usb-fix-general-borkage-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-fix-general-borkage
+Subject: usb-fix-general-borkage-2
 From: Andrew Morton <akpm@linux-foundation.org>
-
-In file included from drivers/usb/serial/io_edgeport.c:243:
-drivers/usb/serial/io_tables.h:114: error: unknown field 'num_interrupt_in' specified in initializer
-drivers/usb/serial/io_tables.h:115: error: unknown field 'num_bulk_in' specified in initializer
-drivers/usb/serial/io_tables.h:115: warning: missing braces around initializer
-drivers/usb/serial/io_tables.h:115: warning: (near initialization for 'edgeport_2port_device.driver_list')
-drivers/usb/serial/io_tables.h:115: warning: initialization makes pointer from integer without a cast
-drivers/usb/serial/io_tables.h:116: error: unknown field 'num_bulk_out' specified in initializer
-drivers/usb/serial/io_tables.h:116: warning: initialization makes pointer from integer without a cast
-drivers/usb/serial/io_tables.h:145: error: unknown field 'num_interrupt_in' specified in initializer
-drivers/usb/serial/io_tables.h:146: error: unknown field 'num_bulk_in' specified in initializer
-drivers/usb/serial/io_tables.h:146: warning: missing braces around initializer
-drivers/usb/serial/io_tables.h:146: warning: (near initialization for 'edgeport_4port_device.driver_list')
-drivers/usb/serial/io_tables.h:146: warning: initialization makes pointer from integer without a cast
-drivers/usb/serial/io_tables.h:147: error: unknown field 'num_bulk_out' specified in initializer
-drivers/usb/serial/io_tables.h:147: warning: initialization makes pointer from integer without a cast
-drivers/usb/serial/io_tables.h:176: error: unknown field 'num_interrupt_in' specified in initializer
-drivers/usb/serial/io_tables.h:177: error: unknown field 'num_bulk_in' specified in initializer
-drivers/usb/serial/io_tables.h:177: warning: missing braces around initializer
-drivers/usb/serial/io_tables.h:177: warning: (near initialization for 'edgeport_8port_device.driver_list')
-drivers/usb/serial/io_tables.h:177: warning: initialization makes pointer from integer without a cast
-drivers/usb/serial/io_tables.h:178: error: unknown field 'num_bulk_out' specified in initializer
-drivers/usb/serial/io_tables.h:178: warning: initialization makes pointer from integer without a cast
-drivers/usb/serial/io_tables.h:206: error: unknown field 'num_interrupt_in' specified in initializer
-drivers/usb/serial/io_tables.h:207: error: unknown field 'num_bulk_in' specified in initializer
-drivers/usb/serial/io_tables.h:207: warning: missing braces around initializer
-drivers/usb/serial/io_tables.h:207: warning: (near initialization for 'epic_device.driver_list')
-drivers/usb/serial/io_tables.h:207: warning: initialization makes pointer from integer without a cast
-drivers/usb/serial/io_tables.h:208: error: unknown field 'num_bulk_out' specified in initializer
-drivers/usb/serial/io_tables.h:208: warning: initialization makes pointer from integer without a cast
-
-nfi what happened here.
 
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/io_tables.h |   12 ------------
- 1 file changed, 12 deletions(-)
+ drivers/usb/serial/keyspan.h |   16 ----------------
+ 1 file changed, 16 deletions(-)
 
-diff -puN drivers/usb/serial/io_tables.h~usb-fix-general-borkage drivers/usb/serial/io_tables.h
---- a/drivers/usb/serial/io_tables.h~usb-fix-general-borkage
-+++ a/drivers/usb/serial/io_tables.h
-@@ -111,9 +111,6 @@ static struct usb_serial_driver edgeport
- 	.description		= "Edgeport 2 port adapter",
- 	.usb_driver		= &io_driver,
- 	.id_table		= edgeport_2port_id_table,
--	.num_interrupt_in	= 1,
--	.num_bulk_in		= 1,
--	.num_bulk_out		= 1,
- 	.num_ports		= 2,
- 	.open			= edge_open,
- 	.close			= edge_close,
-@@ -142,9 +139,6 @@ static struct usb_serial_driver edgeport
- 	.description		= "Edgeport 4 port adapter",
- 	.usb_driver		= &io_driver,
- 	.id_table		= edgeport_4port_id_table,
--	.num_interrupt_in	= 1,
--	.num_bulk_in		= 1,
--	.num_bulk_out		= 1,
- 	.num_ports		= 4,
- 	.open			= edge_open,
- 	.close			= edge_close,
-@@ -173,9 +167,6 @@ static struct usb_serial_driver edgeport
- 	.description		= "Edgeport 8 port adapter",
- 	.usb_driver		= &io_driver,
- 	.id_table		= edgeport_8port_id_table,
--	.num_interrupt_in	= 1,
--	.num_bulk_in		= 1,
--	.num_bulk_out		= 1,
- 	.num_ports		= 8,
- 	.open			= edge_open,
- 	.close			= edge_close,
-@@ -203,9 +194,6 @@ static struct usb_serial_driver epic_dev
+diff -puN drivers/usb/serial/keyspan.h~usb-fix-general-borkage-2 drivers/usb/serial/keyspan.h
+--- a/drivers/usb/serial/keyspan.h~usb-fix-general-borkage-2
++++ a/drivers/usb/serial/keyspan.h
+@@ -636,10 +636,6 @@ static struct usb_serial_driver keyspan_
  	},
- 	.description		= "EPiC device",
- 	.id_table		= Epic_port_id_table,
--	.num_interrupt_in	= 1,
--	.num_bulk_in		= 1,
--	.num_bulk_out		= 1,
+ 	.description		= "Keyspan - (without firmware)",
+ 	.id_table		= keyspan_pre_ids,
+-	.num_interrupt_in	= NUM_DONT_CARE,
+-	.num_interrupt_out	= NUM_DONT_CARE,
+-	.num_bulk_in		= NUM_DONT_CARE,
+-	.num_bulk_out		= NUM_DONT_CARE,
  	.num_ports		= 1,
- 	.open			= edge_open,
- 	.close			= edge_close,
+ 	.attach			= keyspan_fake_startup,
+ };
+@@ -651,10 +647,6 @@ static struct usb_serial_driver keyspan_
+ 	},
+ 	.description		= "Keyspan 1 port adapter",
+ 	.id_table		= keyspan_1port_ids,
+-	.num_interrupt_in	= NUM_DONT_CARE,
+-	.num_interrupt_out	= NUM_DONT_CARE,
+-	.num_bulk_in		= NUM_DONT_CARE,
+-	.num_bulk_out		= NUM_DONT_CARE,
+ 	.num_ports		= 1,
+ 	.open			= keyspan_open,
+ 	.close			= keyspan_close,
+@@ -679,10 +671,6 @@ static struct usb_serial_driver keyspan_
+ 	},
+ 	.description		= "Keyspan 2 port adapter",
+ 	.id_table		= keyspan_2port_ids,
+-	.num_interrupt_in	= NUM_DONT_CARE,
+-	.num_interrupt_out	= NUM_DONT_CARE,
+-	.num_bulk_in		= NUM_DONT_CARE,
+-	.num_bulk_out		= NUM_DONT_CARE,
+ 	.num_ports		= 2,
+ 	.open			= keyspan_open,
+ 	.close			= keyspan_close,
+@@ -707,10 +695,6 @@ static struct usb_serial_driver keyspan_
+ 	},
+ 	.description		= "Keyspan 4 port adapter",
+ 	.id_table		= keyspan_4port_ids,
+-	.num_interrupt_in	= NUM_DONT_CARE,
+-	.num_interrupt_out	= NUM_DONT_CARE,
+-	.num_bulk_in		= NUM_DONT_CARE,
+-	.num_bulk_out		= NUM_DONT_CARE,
+ 	.num_ports		= 4,
+ 	.open			= keyspan_open,
+ 	.close			= keyspan_close,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
