@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-mips-git-rejects.patch added to -mm tree
-Date: Sat, 26 Apr 2008 08:12:09 -0700
-Message-ID: <200804261512.m3QFC9M4027724@imap1.linux-foundation.org>
+Subject: + revert-part-of-sched-cpuset-customize-sched-domains-core.patch added to -mm tree
+Date: Sat, 26 Apr 2008 08:36:32 -0700
+Message-ID: <200804261536.m3QFaWPH028596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35439 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753383AbYDZPMV (ORCPT
+	by vger.kernel.org with ESMTP id S1753623AbYDZPhh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 11:12:21 -0400
+	Sat, 26 Apr 2008 11:37:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ralf@linux-mips.org
+Cc: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mingo@elte.hu, pj@sgi.com, seto.hidetoshi@jp.fujitsu.com, xemul@openvz.org, yamamoto@valinux.co.jp
 
 
 The patch titled
-     git-mips-git-rejects
+     revert part of "sched, cpuset: customize sched domains, core"
 has been added to the -mm tree.  Its filename is
-     git-mips-git-rejects.patch
+     revert-part-of-sched-cpuset-customize-sched-domains-core.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,218 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-mips-git-rejects
+Subject: revert part of "sched, cpuset: customize sched domains, core"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Probably wrong...
+Need to revert this to get
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch to
+apply.
 
-Cc: Ralf Baechle <ralf@linux-mips.org>
+I don't like having crap like this forced on us in the merge window.
+
+Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Paul Menage <menage@google.com>
+Cc: "Li Zefan" <lizf@cn.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "YAMAMOTO Takashi" <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/Makefile |    6 ------
- 1 file changed, 6 deletions(-)
+ kernel/cpuset.c |   61 ----------------------------------------------
+ 1 file changed, 1 insertion(+), 60 deletions(-)
 
-diff -puN arch/mips/kernel/Makefile~git-mips-git-rejects arch/mips/kernel/Makefile
---- a/arch/mips/kernel/Makefile~git-mips-git-rejects
-+++ a/arch/mips/kernel/Makefile
-@@ -4,15 +4,9 @@
+diff -puN kernel/cpuset.c~revert-part-of-sched-cpuset-customize-sched-domains-core kernel/cpuset.c
+--- a/kernel/cpuset.c~revert-part-of-sched-cpuset-customize-sched-domains-core
++++ a/kernel/cpuset.c
+@@ -98,9 +98,6 @@ struct cpuset {
+ 	/* partition number for rebuild_sched_domains() */
+ 	int pn;
  
- extra-y		:= head.o init_task.o vmlinux.lds
+-	/* for custom sched domain */
+-	int relax_domain_level;
+-
+ 	/* used for walking a cpuset heirarchy */
+ 	struct list_head stack_list;
+ };
+@@ -481,16 +478,6 @@ static int cpusets_overlap(struct cpuset
+ 	return cpus_intersects(a->cpus_allowed, b->cpus_allowed);
+ }
  
--<<<<<<< HEAD:arch/mips/kernel/Makefile
--obj-y		+= cpu-probe.o branch.o entry.o genex.o irq.o process.o \
--		   ptrace.o reset.o setup.o signal.o syscall.o \
--		   time.o topology.o traps.o unaligned.o
--=======
- obj-y		+= cpu-probe.o branch.o entry.o genex.o irq.o irq-gic.o \
- 		   process.o ptrace.o reset.o semaphore.o setup.o signal.o \
- 		   syscall.o time.o topology.o traps.o unaligned.o
-->>>>>>> FETCH_HEAD:arch/mips/kernel/Makefile
+-static void
+-update_domain_attr(struct sched_domain_attr *dattr, struct cpuset *c)
+-{
+-	if (!dattr)
+-		return;
+-	if (dattr->relax_domain_level < c->relax_domain_level)
+-		dattr->relax_domain_level = c->relax_domain_level;
+-	return;
+-}
+-
+ /*
+  * rebuild_sched_domains()
+  *
+@@ -566,14 +553,12 @@ static void rebuild_sched_domains(void)
+ 	int csn;		/* how many cpuset ptrs in csa so far */
+ 	int i, j, k;		/* indices for partition finding loops */
+ 	cpumask_t *doms;	/* resulting partition; i.e. sched domains */
+-	struct sched_domain_attr *dattr;  /* attributes for custom domains */
+ 	int ndoms;		/* number of sched domains in result */
+ 	int nslot;		/* next empty doms[] cpumask_t slot */
  
- obj-$(CONFIG_CEVT_BCM1480)	+= cevt-bcm1480.o
- obj-$(CONFIG_CEVT_R4K)		+= cevt-r4k.o
+ 	q = NULL;
+ 	csa = NULL;
+ 	doms = NULL;
+-	dattr = NULL;
+ 
+ 	/* Special case for the 99% of systems with one, full, sched domain */
+ 	if (is_sched_load_balance(&top_cpuset)) {
+@@ -581,11 +566,6 @@ static void rebuild_sched_domains(void)
+ 		doms = kmalloc(sizeof(cpumask_t), GFP_KERNEL);
+ 		if (!doms)
+ 			goto rebuild;
+-		dattr = kmalloc(sizeof(struct sched_domain_attr), GFP_KERNEL);
+-		if (dattr) {
+-			*dattr = SD_ATTR_INIT;
+-			update_domain_attr(dattr, &top_cpuset);
+-		}
+ 		*doms = top_cpuset.cpus_allowed;
+ 		goto rebuild;
+ 	}
+@@ -642,7 +622,6 @@ restart:
+ 	doms = kmalloc(ndoms * sizeof(cpumask_t), GFP_KERNEL);
+ 	if (!doms)
+ 		goto rebuild;
+-	dattr = kmalloc(ndoms * sizeof(struct sched_domain_attr), GFP_KERNEL);
+ 
+ 	for (nslot = 0, i = 0; i < csn; i++) {
+ 		struct cpuset *a = csa[i];
+@@ -665,15 +644,12 @@ restart:
+ 			}
+ 
+ 			cpus_clear(*dp);
+-			if (dattr)
+-				*(dattr + nslot) = SD_ATTR_INIT;
+ 			for (j = i; j < csn; j++) {
+ 				struct cpuset *b = csa[j];
+ 
+ 				if (apn == b->pn) {
+ 					cpus_or(*dp, *dp, b->cpus_allowed);
+ 					b->pn = -1;
+-					update_domain_attr(dattr, b);
+ 				}
+ 			}
+ 			nslot++;
+@@ -684,7 +660,7 @@ restart:
+ rebuild:
+ 	/* Have scheduler rebuild sched domains */
+ 	get_online_cpus();
+-	partition_sched_domains(ndoms, doms, dattr);
++	partition_sched_domains(ndoms, doms);
+ 	put_online_cpus();
+ 
+ done:
+@@ -692,7 +668,6 @@ done:
+ 		kfifo_free(q);
+ 	kfree(csa);
+ 	/* Don't kfree(doms) -- partition_sched_domains() does that. */
+-	/* Don't kfree(dattr) -- partition_sched_domains() does that. */
+ }
+ 
+ static inline int started_after_time(struct task_struct *t1,
+@@ -1036,21 +1011,6 @@ static int update_memory_pressure_enable
+ 	return 0;
+ }
+ 
+-static int update_relax_domain_level(struct cpuset *cs, char *buf)
+-{
+-	int val = simple_strtol(buf, NULL, 10);
+-
+-	if (val < 0)
+-		val = -1;
+-
+-	if (val != cs->relax_domain_level) {
+-		cs->relax_domain_level = val;
+-		rebuild_sched_domains();
+-	}
+-
+-	return 0;
+-}
+-
+ /*
+  * update_flag - read a 0 or a 1 in a file and update associated flag
+  * bit:	the bit to update (CS_CPU_EXCLUSIVE, CS_MEM_EXCLUSIVE,
+@@ -1242,7 +1202,6 @@ typedef enum {
+ 	FILE_CPU_EXCLUSIVE,
+ 	FILE_MEM_EXCLUSIVE,
+ 	FILE_SCHED_LOAD_BALANCE,
+-	FILE_SCHED_RELAX_DOMAIN_LEVEL,
+ 	FILE_MEMORY_PRESSURE_ENABLED,
+ 	FILE_MEMORY_PRESSURE,
+ 	FILE_SPREAD_PAGE,
+@@ -1297,9 +1256,6 @@ static ssize_t cpuset_common_file_write(
+ 	case FILE_SCHED_LOAD_BALANCE:
+ 		retval = update_flag(CS_SCHED_LOAD_BALANCE, cs, buffer);
+ 		break;
+-	case FILE_SCHED_RELAX_DOMAIN_LEVEL:
+-		retval = update_relax_domain_level(cs, buffer);
+-		break;
+ 	case FILE_MEMORY_MIGRATE:
+ 		retval = update_flag(CS_MEMORY_MIGRATE, cs, buffer);
+ 		break;
+@@ -1398,9 +1354,6 @@ static ssize_t cpuset_common_file_read(s
+ 	case FILE_SCHED_LOAD_BALANCE:
+ 		*s++ = is_sched_load_balance(cs) ? '1' : '0';
+ 		break;
+-	case FILE_SCHED_RELAX_DOMAIN_LEVEL:
+-		s += sprintf(s, "%d", cs->relax_domain_level);
+-		break;
+ 	case FILE_MEMORY_MIGRATE:
+ 		*s++ = is_memory_migrate(cs) ? '1' : '0';
+ 		break;
+@@ -1471,13 +1424,6 @@ static struct cftype cft_sched_load_bala
+ 	.private = FILE_SCHED_LOAD_BALANCE,
+ };
+ 
+-static struct cftype cft_sched_relax_domain_level = {
+-	.name = "sched_relax_domain_level",
+-	.read = cpuset_common_file_read,
+-	.write = cpuset_common_file_write,
+-	.private = FILE_SCHED_RELAX_DOMAIN_LEVEL,
+-};
+-
+ static struct cftype cft_memory_migrate = {
+ 	.name = "memory_migrate",
+ 	.read = cpuset_common_file_read,
+@@ -1529,9 +1475,6 @@ static int cpuset_populate(struct cgroup
+ 		return err;
+ 	if ((err = cgroup_add_file(cont, ss, &cft_sched_load_balance)) < 0)
+ 		return err;
+-	if ((err = cgroup_add_file(cont, ss,
+-					&cft_sched_relax_domain_level)) < 0)
+-		return err;
+ 	if ((err = cgroup_add_file(cont, ss, &cft_memory_pressure)) < 0)
+ 		return err;
+ 	if ((err = cgroup_add_file(cont, ss, &cft_spread_page)) < 0)
+@@ -1616,7 +1559,6 @@ static struct cgroup_subsys_state *cpuse
+ 	nodes_clear(cs->mems_allowed);
+ 	cs->mems_generation = cpuset_mems_generation++;
+ 	fmeter_init(&cs->fmeter);
+-	cs->relax_domain_level = -1;
+ 
+ 	cs->parent = parent;
+ 	number_of_cpusets++;
+@@ -1689,7 +1631,6 @@ int __init cpuset_init(void)
+ 	fmeter_init(&top_cpuset.fmeter);
+ 	top_cpuset.mems_generation = cpuset_mems_generation++;
+ 	set_bit(CS_SCHED_LOAD_BALANCE, &top_cpuset.flags);
+-	top_cpuset.relax_domain_level = -1;
+ 
+ 	err = register_filesystem(&cpuset_fs_type);
+ 	if (err < 0)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -179,6 +360,8 @@ ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment
 ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
 fat_valid_media-remove-pointless-test.patch
 documentation-build-source-files-in-documentation-sub-dir-disable.patch
+revert-part-of-sched-cpuset-customize-sched-domains-core.patch
+revert-revert-1.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
 cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
 cgroups-implement-device-whitelist-v6-cleanups.patch
