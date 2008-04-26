@@ -1,55 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - pci_scan_device-mustnt-be-__devinit.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:42:02 -0700
-Message-ID: <200804261642.m3QGg2AB031175@imap1.linux-foundation.org>
+Subject: - pci_alloc_child_bus-mustnt-be-__devinit.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:42:00 -0700
+Message-ID: <200804261642.m3QGg0t5031166@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44289 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46636 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757276AbYDZQmU (ORCPT
+	by vger.kernel.org with ESMTP id S1757276AbYDZQmS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:42:20 -0400
+	Sat, 26 Apr 2008 12:42:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bunk@kernel.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci_scan_device() mustn't be __devinit
+     pci_alloc_child_bus() mustn't be __devinit
 has been removed from the -mm tree.  Its filename was
-     pci_scan_device-mustnt-be-__devinit.patch
+     pci_alloc_child_bus-mustnt-be-__devinit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci_scan_device() mustn't be __devinit
+Subject: pci_alloc_child_bus() mustn't be __devinit
 From: Adrian Bunk <bunk@kernel.org>
 
-WARNING: drivers/pci/built-in.o(.text+0x150f): Section mismatch in reference from the function pci_scan_single_device() to the function .devinit.text:pci_scan_device()
+WARNING: drivers/pci/built-in.o(.text+0xc4c): Section mismatch in reference from the function pci_add_new_bus() to the function .devinit.text:pci_alloc_child_bus()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/probe.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/pci/probe.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pci/probe.c~pci_scan_device-mustnt-be-__devinit drivers/pci/probe.c
---- a/drivers/pci/probe.c~pci_scan_device-mustnt-be-__devinit
+diff -puN drivers/pci/probe.c~pci_alloc_child_bus-mustnt-be-__devinit drivers/pci/probe.c
+--- a/drivers/pci/probe.c~pci_alloc_child_bus-mustnt-be-__devinit
 +++ a/drivers/pci/probe.c
-@@ -875,8 +875,7 @@ EXPORT_SYMBOL(alloc_pci_dev);
-  * Read the config data for a PCI device, sanity-check it
-  * and fill in the dev structure...
-  */
--static struct pci_dev * __devinit
--pci_scan_device(struct pci_bus *bus, int devfn)
-+static struct pci_dev *pci_scan_device(struct pci_bus *bus, int devfn)
+@@ -399,8 +399,8 @@ static struct pci_bus * pci_alloc_bus(vo
+ 	return b;
+ }
+ 
+-static struct pci_bus * __devinit
+-pci_alloc_child_bus(struct pci_bus *parent, struct pci_dev *bridge, int busnr)
++static struct pci_bus *pci_alloc_child_bus(struct pci_bus *parent,
++					   struct pci_dev *bridge, int busnr)
  {
- 	struct pci_dev *dev;
- 	u32 l;
+ 	struct pci_bus *child;
+ 	int i;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
