@@ -1,257 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - usb-fix-general-borkage-2.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:40:01 -0700
-Message-ID: <200804261640.m3QGe1wR030972@imap1.linux-foundation.org>
+Subject: - aiptekc-add-support-for-genius-g-pen-560-tablet.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:39:52 -0700
+Message-ID: <200804261639.m3QGdqwe030961@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35229 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41827 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755486AbYDZQkf (ORCPT
+	by vger.kernel.org with ESMTP id S1753936AbYDZQkc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:40:35 -0400
+	Sat, 26 Apr 2008 12:40:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
+To: guryanov@dgap.mipt.ru, jkosina@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb-fix-general-borkage-2
+     aiptek.c: add support for Genius G-PEN 560 tablet (fwd)
 has been removed from the -mm tree.  Its filename was
-     usb-fix-general-borkage-2.patch
+     aiptekc-add-support-for-genius-g-pen-560-tablet.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb-fix-general-borkage-2
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: aiptek.c: add support for Genius G-PEN 560 tablet (fwd)
+From: Guryanov Dmitry <guryanov@dgap.mipt.ru>
 
-Cc: Greg KH <greg@kroah.com>
+Now this tablet works with usbhid driver in relative mode only, which is
+useless for tablet.  It works well with aiptek.c, so add its support to aiptek
+driver.
+
+Signed-off-by: Dmitry Guryanov <guryanov@dgap.mipt.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/keyspan.h |   16 ----------------
- 1 file changed, 16 deletions(-)
+ drivers/hid/usbhid/hid-quirks.c |    4 ++++
+ drivers/input/tablet/Kconfig    |   10 +++++-----
+ drivers/input/tablet/aiptek.c   |    2 ++
+ 3 files changed, 11 insertions(+), 5 deletions(-)
 
-diff -puN drivers/usb/serial/keyspan.h~usb-fix-general-borkage-2 drivers/usb/serial/keyspan.h
---- a/drivers/usb/serial/keyspan.h~usb-fix-general-borkage-2
-+++ a/drivers/usb/serial/keyspan.h
-@@ -636,10 +636,6 @@ static struct usb_serial_driver keyspan_
- 	},
- 	.description		= "Keyspan - (without firmware)",
- 	.id_table		= keyspan_pre_ids,
--	.num_interrupt_in	= NUM_DONT_CARE,
--	.num_interrupt_out	= NUM_DONT_CARE,
--	.num_bulk_in		= NUM_DONT_CARE,
--	.num_bulk_out		= NUM_DONT_CARE,
- 	.num_ports		= 1,
- 	.attach			= keyspan_fake_startup,
+diff -puN drivers/hid/usbhid/hid-quirks.c~aiptekc-add-support-for-genius-g-pen-560-tablet drivers/hid/usbhid/hid-quirks.c
+--- a/drivers/hid/usbhid/hid-quirks.c~aiptekc-add-support-for-genius-g-pen-560-tablet
++++ a/drivers/hid/usbhid/hid-quirks.c
+@@ -405,6 +405,9 @@
+ #define USB_VENDOR_ID_YEALINK		0x6993
+ #define USB_DEVICE_ID_YEALINK_P1K_P4K_B2K	0xb001
+ 
++#define USB_VENDOR_ID_KYE		0x0458
++#define USB_DEVICE_ID_KYE_GPEN_560	0x5003
++
+ /*
+  * Alphabetically sorted blacklist by quirk type.
+  */
+@@ -698,6 +701,7 @@ static const struct hid_blacklist {
+ 	{ USB_VENDOR_ID_LOGITECH, USB_DEVICE_ID_LOGITECH_HARMONY_63, HID_QUIRK_IGNORE },
+ 	{ USB_VENDOR_ID_LOGITECH, USB_DEVICE_ID_LOGITECH_HARMONY_64, HID_QUIRK_IGNORE },
+ 	{ USB_VENDOR_ID_NATIONAL_SEMICONDUCTOR, USB_DEVICE_ID_N_S_HARMONY, HID_QUIRK_IGNORE },
++	{ USB_VENDOR_ID_KYE, USB_DEVICE_ID_KYE_GPEN_560, HID_QUIRK_IGNORE },
+ 
+ 	{ 0, 0 }
  };
-@@ -651,10 +647,6 @@ static struct usb_serial_driver keyspan_
- 	},
- 	.description		= "Keyspan 1 port adapter",
- 	.id_table		= keyspan_1port_ids,
--	.num_interrupt_in	= NUM_DONT_CARE,
--	.num_interrupt_out	= NUM_DONT_CARE,
--	.num_bulk_in		= NUM_DONT_CARE,
--	.num_bulk_out		= NUM_DONT_CARE,
- 	.num_ports		= 1,
- 	.open			= keyspan_open,
- 	.close			= keyspan_close,
-@@ -679,10 +671,6 @@ static struct usb_serial_driver keyspan_
- 	},
- 	.description		= "Keyspan 2 port adapter",
- 	.id_table		= keyspan_2port_ids,
--	.num_interrupt_in	= NUM_DONT_CARE,
--	.num_interrupt_out	= NUM_DONT_CARE,
--	.num_bulk_in		= NUM_DONT_CARE,
--	.num_bulk_out		= NUM_DONT_CARE,
- 	.num_ports		= 2,
- 	.open			= keyspan_open,
- 	.close			= keyspan_close,
-@@ -707,10 +695,6 @@ static struct usb_serial_driver keyspan_
- 	},
- 	.description		= "Keyspan 4 port adapter",
- 	.id_table		= keyspan_4port_ids,
--	.num_interrupt_in	= NUM_DONT_CARE,
--	.num_interrupt_out	= NUM_DONT_CARE,
--	.num_bulk_in		= NUM_DONT_CARE,
--	.num_bulk_out		= NUM_DONT_CARE,
- 	.num_ports		= 4,
- 	.open			= keyspan_open,
- 	.close			= keyspan_close,
+diff -puN drivers/input/tablet/Kconfig~aiptekc-add-support-for-genius-g-pen-560-tablet drivers/input/tablet/Kconfig
+--- a/drivers/input/tablet/Kconfig~aiptekc-add-support-for-genius-g-pen-560-tablet
++++ a/drivers/input/tablet/Kconfig
+@@ -25,14 +25,14 @@ config TABLET_USB_ACECAD
+ 	  module will be called acecad.
+ 
+ config TABLET_USB_AIPTEK
+-	tristate "Aiptek 6000U/8000U tablet support (USB)"
++	tristate "Aiptek 6000U/8000U and Genius G_PEN tablet support (USB)"
+ 	depends on USB_ARCH_HAS_HCD
+ 	select USB
+ 	help
+-	  Say Y here if you want to use the USB version of the Aiptek 6000U
+-	  or Aiptek 8000U tablet.  Make sure to say Y to "Mouse support"
+-	  (CONFIG_INPUT_MOUSEDEV) and/or "Event interface support"
+-	  (CONFIG_INPUT_EVDEV) as well.
++	  Say Y here if you want to use the USB version of the Aiptek 6000U,
++	  Aiptek 8000U or Genius G-PEN 560 tablet.  Make sure to say Y to
++	  "Mouse support" (CONFIG_INPUT_MOUSEDEV) and/or "Event interface
++	  support" (CONFIG_INPUT_EVDEV) as well.
+ 
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called aiptek.
+diff -puN drivers/input/tablet/aiptek.c~aiptekc-add-support-for-genius-g-pen-560-tablet drivers/input/tablet/aiptek.c
+--- a/drivers/input/tablet/aiptek.c~aiptekc-add-support-for-genius-g-pen-560-tablet
++++ a/drivers/input/tablet/aiptek.c
+@@ -184,6 +184,7 @@
+  */
+ 
+ #define USB_VENDOR_ID_AIPTEK				0x08ca
++#define USB_VENDOR_ID_KYE				0x0458
+ #define USB_REQ_GET_REPORT				0x01
+ #define USB_REQ_SET_REPORT				0x09
+ 
+@@ -832,6 +833,7 @@ static const struct usb_device_id aiptek
+ 	{USB_DEVICE(USB_VENDOR_ID_AIPTEK, 0x22)},
+ 	{USB_DEVICE(USB_VENDOR_ID_AIPTEK, 0x23)},
+ 	{USB_DEVICE(USB_VENDOR_ID_AIPTEK, 0x24)},
++	{USB_DEVICE(USB_VENDOR_ID_KYE, 0x5003)},
+ 	{}
+ };
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from guryanov@dgap.mipt.ru are
 
 origin.patch
-hotplug-memory-make-online_page-common-fix.patch
-disable-the-memory-controller-by-default-v3-fix.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-x86-ptrace-pebs-support-warning-fix.patch
-git-agpgart.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-hwmon.patch
-git-hrt.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-kvm.patch
-pata_atiixp-simplex-clear.patch
-git-m32r.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-sched.patch
-add-rcu_assign_index-if-ever-needed.patch
-scsi-fix-platform-driver-hotplug-coldplug.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-aic79xx_core-remove-ascii-art.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-vfs-vs-git-kvm.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-revert-rusty-misc-timer-typesafe.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-ext4-is-busted-on-m68k.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
-vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
-rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
-rtc-x1205-new-style-conversion-checkpatch-fixes.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-drivers-video-uvesafbc-fix-error-path-memory-leak.patch
-fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
-drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
-x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
-x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
-drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-revert-part-of-sched-cpuset-customize-sched-domains-core.patch
-reapply-sched-cpuset-customize-sched-domains-core-bits.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework-fix-2.patch
-tty-the-big-operations-rework-isicom-fix.patch
-tty-the-big-operations-rework-simserial-fix.patch
-tty-the-big-operations-rework-vs-git-kgdb-light.patch
-tty-the-big-operations-rework-vs-kgdb-2.patch
-devpts-factor-out-pty-index-allocation-fix.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
-relayfs-support-larger-relay-buffer-take-3-cleanup.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
