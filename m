@@ -1,309 +1,228 @@
 From: akpm@linux-foundation.org
-Subject: - maple-add-driver-for-sega-dreamcast-controller.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:39:48 -0700
-Message-ID: <200804261639.m3QGdmwx030956@imap1.linux-foundation.org>
+Subject: - git-x86-vs-git-kgdb-lite.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:40:08 -0700
+Message-ID: <200804261640.m3QGe8hg031003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41071 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54309 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755412AbYDZQkj (ORCPT
+	by vger.kernel.org with ESMTP id S1755464AbYDZQk4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:40:39 -0400
+	Sat, 26 Apr 2008 12:40:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adrian@newgolddream.dyndns.info, adrian@mcmen.demon.co.uk, dtor@mail.ru, lethal@linux-sh.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     maple: add driver for Sega Dreamcast controller
+     git-x86 vs git-kgdb-lite
 has been removed from the -mm tree.  Its filename was
-     maple-add-driver-for-sega-dreamcast-controller.patch
+     git-x86-vs-git-kgdb-lite.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: maple: add driver for Sega Dreamcast controller
-From: Adrian McMenamin <adrian@newgolddream.dyndns.info>
+Subject: git-x86 vs git-kgdb-lite
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Add support for the SEGA Dreamcast controller as a joystick device.  Based on
-Yaegashi Takeshi's old 2.4 driver (never in mainline) with the addition of
-functioning removal (and reinsertion) code.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Adrian McMenamin <adrian@mcmen.demon.co.uk>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/joystick/Kconfig        |   13 +
- drivers/input/joystick/Makefile       |    1 
- drivers/input/joystick/maplecontrol.c |  223 ++++++++++++++++++++++++
- 3 files changed, 237 insertions(+)
+ arch/x86/kernel/kgdb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/joystick/Kconfig~maple-add-driver-for-sega-dreamcast-controller drivers/input/joystick/Kconfig
---- a/drivers/input/joystick/Kconfig~maple-add-driver-for-sega-dreamcast-controller
-+++ a/drivers/input/joystick/Kconfig
-@@ -282,4 +282,17 @@ config JOYSTICK_XPAD_LEDS
- 	  This option enables support for the LED which surrounds the Big X on
- 	  XBox 360 controller.
+diff -puN arch/x86/kernel/kgdb.c~git-x86-vs-git-kgdb-lite arch/x86/kernel/kgdb.c
+--- a/arch/x86/kernel/kgdb.c~git-x86-vs-git-kgdb-lite
++++ a/arch/x86/kernel/kgdb.c
+@@ -375,12 +375,12 @@ int kgdb_arch_handle_exception(int e_vec
+ 		newPC = linux_regs->ip;
  
-+config JOYSTICK_MAPLE
-+	tristate "Dreamcast control pad"
-+	depends on SH_DREAMCAST
-+	select MAPLE
-+	help
-+	  Say Y here if you have a SEGA Dreamcast and want to use your
-+	  controller.
-+
-+	  Most Dreamcast users will say Y.
-+
-+	  To compile this as a module choose M here: the
-+	  module will be called maplecontrol.
-+
- endif
-diff -puN drivers/input/joystick/Makefile~maple-add-driver-for-sega-dreamcast-controller drivers/input/joystick/Makefile
---- a/drivers/input/joystick/Makefile~maple-add-driver-for-sega-dreamcast-controller
-+++ a/drivers/input/joystick/Makefile
-@@ -27,5 +27,6 @@ obj-$(CONFIG_JOYSTICK_TURBOGRAFX)	+= tur
- obj-$(CONFIG_JOYSTICK_TWIDJOY)		+= twidjoy.o
- obj-$(CONFIG_JOYSTICK_WARRIOR)		+= warrior.o
- obj-$(CONFIG_JOYSTICK_XPAD)		+= xpad.o
-+obj-$(CONFIG_JOYSTICK_MAPLE)		+= maplecontrol.o
+ 		/* clear the trace bit */
+-		linux_regs->flags &= ~TF_MASK;
++		linux_regs->flags &= ~X86_EFLAGS_TF;
+ 		atomic_set(&kgdb_cpu_doing_single_step, -1);
  
- obj-$(CONFIG_JOYSTICK_IFORCE)		+= iforce/
-diff -puN /dev/null drivers/input/joystick/maplecontrol.c
---- /dev/null
-+++ a/drivers/input/joystick/maplecontrol.c
-@@ -0,0 +1,223 @@
-+/*
-+ * 	SEGA Dreamcast controller driver
-+ *	Based on drivers/usb/iforce.c
-+ *
-+ * 	Copyright Yaegashi Takeshi, 2001
-+ *	Porting to 2.6 by Adrian McMenamin, copyright 2008
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/slab.h>
-+#include <linux/input.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/timer.h>
-+#include <linux/maple.h>
-+#include <asm/mach/maple.h>
-+
-+MODULE_AUTHOR("YAEGASHI Takeshi <t@keshi.org>");
-+MODULE_DESCRIPTION("SEGA Dreamcast controller driver");
-+MODULE_LICENSE("GPL");
-+
-+struct dc_pad {
-+	struct input_dev *dev;
-+	struct maple_device *mdev;
-+	int open;
-+};
-+
-+static void dc_pad_callback(struct mapleq *mq)
-+{
-+	unsigned short buttons;
-+	struct maple_device *mapledev = mq->dev;
-+	struct dc_pad *pad = mapledev->private_data;
-+	struct input_dev *dev = pad->dev;
-+	unsigned char *res = mq->recvbuf;
-+
-+	buttons = ~cpu_to_le16(*(unsigned short *)(res + 8));
-+
-+	input_report_abs(dev, ABS_HAT0Y,
-+			 (buttons & 0x0010 ? -1:0) + (buttons & 0x0020 ? 1:0));
-+	input_report_abs(dev, ABS_HAT0X,
-+			 (buttons & 0x0040 ? -1:0) + (buttons & 0x0080 ? 1:0));
-+	input_report_abs(dev, ABS_HAT1Y,
-+			 (buttons & 0x1000 ? -1:0) + (buttons & 0x2000 ? 1:0));
-+	input_report_abs(dev, ABS_HAT1X,
-+			 (buttons & 0x4000 ? -1:0) + (buttons & 0x8000 ? 1:0));
-+
-+	input_report_key(dev, BTN_C,      buttons & 0x0001);
-+	input_report_key(dev, BTN_B,      buttons & 0x0002);
-+	input_report_key(dev, BTN_A,      buttons & 0x0004);
-+	input_report_key(dev, BTN_START,  buttons & 0x0008);
-+	input_report_key(dev, BTN_Z,      buttons & 0x0100);
-+	input_report_key(dev, BTN_Y,      buttons & 0x0200);
-+	input_report_key(dev, BTN_X,      buttons & 0x0400);
-+	input_report_key(dev, BTN_SELECT, buttons & 0x0800);
-+
-+	input_report_abs(dev, ABS_GAS,   res[10]);
-+	input_report_abs(dev, ABS_BRAKE, res[11]);
-+	input_report_abs(dev, ABS_X,     res[12]);
-+	input_report_abs(dev, ABS_Y,     res[13]);
-+	input_report_abs(dev, ABS_RX,    res[14]);
-+	input_report_abs(dev, ABS_RY,    res[15]);
-+}
-+
-+static int dc_pad_connect(struct maple_device *mdev)
-+{
-+	int i, error;
-+	unsigned long data = be32_to_cpu(mdev->devinfo.function_data[0]);
-+	struct dc_pad *pad;
-+	struct input_dev *dev;
-+
-+	const short btn_bit[32] = {
-+		BTN_C, BTN_B, BTN_A, BTN_START, -1, -1, -1, -1,
-+		BTN_Z, BTN_Y, BTN_X, BTN_SELECT, -1, -1, -1, -1,
-+		-1, -1, -1, -1, -1, -1, -1, -1,
-+		-1, -1, -1, -1, -1, -1, -1, -1,
-+	};
-+
-+	const short abs_bit[32] = {
-+		-1, -1, -1, -1, ABS_HAT0Y, ABS_HAT0Y, ABS_HAT0X, ABS_HAT0X,
-+		-1, -1, -1, -1, ABS_HAT1Y, ABS_HAT1Y, ABS_HAT1X, ABS_HAT1X,
-+		ABS_GAS, ABS_BRAKE, ABS_X, ABS_Y, ABS_RX, ABS_RY, -1, -1,
-+		-1, -1, -1, -1, -1, -1, -1, -1,
-+	};
-+
-+	pad = kzalloc(sizeof(struct dc_pad), GFP_KERNEL);
-+	if (!pad) {
-+		error = ENOMEM;
-+		goto fail_nomem_1;
-+	}
-+
-+	dev = input_allocate_device();
-+	if (!dev) {
-+		error = ENOMEM;
-+		goto fail_nomem_2;
-+	}
-+
-+	pad->dev = dev;
-+	pad->mdev = mdev;
-+	mdev->private_data = pad;
-+
-+	for (i = 0; i < 32; i++)
-+		if (data & (1<<i) && btn_bit[i] >= 0)
-+			pad->dev->keybit[BIT_WORD(BTN_JOYSTICK)] |=
-+					BIT_MASK(btn_bit[i]);
-+
-+	if (pad->dev->keybit[BTN_JOYSTICK/32])
-+		pad->dev->evbit[0] |= BIT_MASK(EV_KEY);
-+
-+	for (i = 0; i < 32; i++)
-+		if (data & (1<<i) && abs_bit[i] >= 0)
-+			pad->dev->absbit[0] |= BIT_MASK(abs_bit[i]);
-+
-+	if (pad->dev->absbit[0])
-+		pad->dev->evbit[0] |= BIT_MASK(EV_ABS);
-+
-+	for (i = ABS_X; i <= ABS_BRAKE; i++) {
-+		pad->dev->absmax[i] = 255;
-+		pad->dev->absmin[i] = 0;
-+		pad->dev->absfuzz[i] = 0;
-+		pad->dev->absflat[i] = 0;
-+	}
-+
-+	for (i = ABS_HAT0X; i <= ABS_HAT3Y; i++) {
-+		pad->dev->absmax[i] = 1;
-+		pad->dev->absmin[i] = -1;
-+		pad->dev->absfuzz[i] = 0;
-+		pad->dev->absflat[i] = 0;
-+	}
-+
-+	pad->dev->private = pad;
-+	pad->dev->event = NULL;
-+	pad->dev->dev.parent = &mdev->dev;
-+	pad->dev->name = mdev->product_name;
-+	pad->dev->id.bustype = BUS_HOST;
-+	input_set_drvdata(dev, pad);
-+
-+	error = input_register_device(pad->dev);
-+	if (error)
-+		goto fail_register;
-+
-+	maple_getcond_callback(mdev, dc_pad_callback, HZ/10,
-+		MAPLE_FUNC_CONTROLLER);
-+
-+	return error;
-+
-+fail_register:
-+	input_free_device(pad->dev);
-+fail_nomem_2:
-+	kfree(pad);
-+fail_nomem_1:
-+	return -error;
-+}
-+
-+static void dc_pad_disconnect(struct maple_device *mdev)
-+{
-+	struct dc_pad *pad = mdev->private_data;
-+
-+	mdev->callback = NULL;
-+	input_unregister_device(pad->dev);
-+	kfree(pad);
-+}
-+
-+/* allow the controller to be used */
-+static int probe_maple_controller(struct device *dev)
-+{
-+	struct maple_device *mdev = to_maple_dev(dev);
-+	struct maple_driver *mdrv = to_maple_driver(dev->driver);
-+	int error;
-+
-+	error = dc_pad_connect(mdev);
-+	if (error)
-+		return error;
-+
-+	mdev->driver = mdrv;
-+
-+	return 0;
-+}
-+
-+static int remove_maple_controller(struct device *dev)
-+{
-+	struct maple_device *mdev = to_maple_dev(dev);
-+
-+	dc_pad_disconnect(mdev);
-+	return 0;
-+}
-+
-+static struct maple_driver dc_pad_driver = {
-+	.function =	MAPLE_FUNC_CONTROLLER,
-+	.connect =	dc_pad_connect,
-+	.disconnect =	dc_pad_disconnect,
-+	.drv = {
-+		.name = "Dreamcast_controller",
-+		.probe = probe_maple_controller,
-+		.remove = remove_maple_controller,
-+	},
-+};
-+
-+static int unplug_maple_control(struct device *dev, void *ignored)
-+{
-+	/* Please DO NOT really unplug your controller */
-+	struct maple_device *mdev;
-+
-+	mdev = to_maple_dev(dev);
-+	if ((mdev->function & MAPLE_FUNC_CONTROLLER)
-+		&& (mdev->driver == &dc_pad_driver))
-+		remove_maple_controller(dev);
-+
-+	return 0;
-+}
-+
-+static int __init dc_pad_init(void)
-+{
-+	return 	maple_driver_register(&dc_pad_driver.drv);
-+}
-+
-+static void __exit dc_pad_exit(void)
-+{
-+	bus_for_each_dev(&maple_bus_type, NULL, NULL, unplug_maple_control);
-+	driver_unregister(&dc_pad_driver.drv);
-+}
-+
-+module_init(dc_pad_init);
-+module_exit(dc_pad_exit);
+ 		/* set the trace bit if we're stepping */
+ 		if (remcomInBuffer[0] == 's') {
+-			linux_regs->flags |= TF_MASK;
++			linux_regs->flags |= X86_EFLAGS_TF;
+ 			kgdb_single_step = 1;
+ 			if (kgdb_contthread) {
+ 				atomic_set(&kgdb_cpu_doing_single_step,
 _
 
-Patches currently in -mm which might be from adrian@newgolddream.dyndns.info are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-maple-allow-removal-and-reinsertion-of-keyboard-driver-module.patch
+origin.patch
+hotplug-memory-make-online_page-common-fix.patch
+disable-the-memory-controller-by-default-v3-fix.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+x86-ptrace-pebs-support-warning-fix.patch
+git-agpgart.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-hwmon.patch
+git-hrt.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-kvm.patch
+pata_atiixp-simplex-clear.patch
+git-m32r.patch
+git-mips.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-sched.patch
+add-rcu_assign_index-if-ever-needed.patch
+scsi-fix-platform-driver-hotplug-coldplug.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+aic79xx_core-remove-ascii-art.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-vfs-vs-git-kvm.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+revert-rusty-misc-timer-typesafe.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+ext4-is-busted-on-m68k.patch
+remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information-checkpatch-fixes.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+mm-introduce-pte_special-pte-bit-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
+kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+quota-various-style-cleanups-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
+rtc-x1205-new-style-conversion-checkpatch-fixes.patch
+gpiochip_reserve-fix.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+drivers-video-uvesafbc-fix-error-path-memory-leak.patch
+fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
+drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
+x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
+x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
+drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+fat_valid_media-remove-pointless-test.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+revert-part-of-sched-cpuset-customize-sched-domains-core.patch
+reapply-sched-cpuset-customize-sched-domains-core-bits.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+isicom-bring-into-coding-style-fix.patch
+tty-the-big-operations-rework-fix-2.patch
+tty-the-big-operations-rework-isicom-fix.patch
+tty-the-big-operations-rework-simserial-fix.patch
+tty-the-big-operations-rework-vs-git-kgdb-light.patch
+tty-the-big-operations-rework-vs-kgdb-2.patch
+devpts-factor-out-pty-index-allocation-fix.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
+relayfs-support-larger-relay-buffer-take-3-cleanup.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
