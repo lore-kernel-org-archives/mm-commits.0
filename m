@@ -1,227 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: - pci-iommu-iotlb-flushing-speedup.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:42:08 -0700
-Message-ID: <200804261642.m3QGg8Yo031184@imap1.linux-foundation.org>
+Subject: - kconfig-cleanup-block-kconfig-help-descriptions.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:42:23 -0700
+Message-ID: <200804261642.m3QGgNQT031196@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50493 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41960 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757782AbYDZQmy (ORCPT
+	by vger.kernel.org with ESMTP id S1757892AbYDZQmy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sat, 26 Apr 2008 12:42:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgross@linux.intel.com, greg@kroah.com, grundler@parisc-linux.org, mm-commits@vger.kernel.org
+To: nick@nick-andrew.net, jens.axboe@oracle.com, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci-iommu-iotlb-flushing-speedup
+     Kconfig: clean up block/Kconfig help descriptions
 has been removed from the -mm tree.  Its filename was
-     pci-iommu-iotlb-flushing-speedup.patch
+     kconfig-cleanup-block-kconfig-help-descriptions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci-iommu-iotlb-flushing-speedup
-From: mark gross <mgross@linux.intel.com>
+Subject: Kconfig: clean up block/Kconfig help descriptions
+From: Nick Andrew <nick@nick-andrew.net>
 
-The following patch is an update to use an array instead of a list of
-IOVA's in the implementation of defered iotlb flushes.  It takes
-inspiration from sba_iommu.c
+Modify the help descriptions of block/Kconfig for clarity, accuracy and
+consistency.
 
-I like this implementation better as it encapsulates the batch process
-within intel-iommu.c, and no longer touches iova.h (which is shared)
+Refactor the BLOCK description a bit.  The wording "This permits ...  to be
+removed" isn't quite right; the block layer is removed when the option is
+disabled, whereas most descriptions talk about what happens when the option is
+enabled.  Reformat the list of what is affected by disabling the block layer.
 
-Performance data:  Netperf 32byte UDP streaming
-2.6.25-rc3-mm1:
-IOMMU-strict : 58Mps @ 62% cpu
-NO-IOMMU : 71Mbs @ 41% cpu
-List-based IOMMU-default-batched-IOTLB flush: 66Mbps @ 57% cpu
+Add more examples of large block devices to LBD and strive for technical
+accuracy; block devices of size _exactly_ 2TB require CONFIG_LBD, not only
+"bigger than 2TB".  Also try to say (perhaps not very clearly) that the config
+option is only needed when you want to have individual block devices of size
+>= 2TB, for example if you had 3 x 1TB disks in your computer you'd have a
+total storage size of 3TB but you wouldn't need the option unless you want to
+aggregate those disks into a RAID or LVM.
 
-with this patch:
-IOMMU-strict : 73Mps @ 75% cpu
-NO-IOMMU : 74Mbs @ 42% cpu
-Array-based IOMMU-default-batched-IOTLB flush: 72Mbps @ 62% cpu
+Improve terminology and grammar on BLK_DEV_IO_TRACE.
 
-Signed-off-by: <mgross@linux.intel.com>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Greg KH <greg@kroah.com>
+I also added the boilerplate "If unsure, say N" to most options.
+
+Precisely say "2TB and larger" for LSF.
+
+Indent the help text for BLK_DEV_BSG by 2 spaces in accordance with the
+standard.
+
+Signed-off-by: Nick Andrew <nick@nick-andrew.net>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/intel-iommu.c |   76 ++++++++++++++++++------------------
- drivers/pci/iova.h        |    2 
- 2 files changed, 40 insertions(+), 38 deletions(-)
+ block/Kconfig |   65 +++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 42 insertions(+), 23 deletions(-)
 
-diff -puN drivers/pci/intel-iommu.c~pci-iommu-iotlb-flushing-speedup drivers/pci/intel-iommu.c
---- a/drivers/pci/intel-iommu.c~pci-iommu-iotlb-flushing-speedup
-+++ a/drivers/pci/intel-iommu.c
-@@ -59,8 +59,17 @@ static void flush_unmaps_timeout(unsigne
- DEFINE_TIMER(unmap_timer,  flush_unmaps_timeout, 0, 0);
- 
- static struct intel_iommu *g_iommus;
-+
-+#define HIGH_WATER_MARK 250
-+struct deferred_flush_tables {
-+	int next;
-+	struct iova *iova[HIGH_WATER_MARK];
-+	struct dmar_domain *domain[HIGH_WATER_MARK];
-+};
-+
-+static struct deferred_flush_tables *deferred_flush;
-+
- /* bitmap for indexing intel_iommus */
--static unsigned long 	*g_iommus_to_flush;
- static int g_num_of_iommus;
- 
- static DEFINE_SPINLOCK(async_umap_flush_lock);
-@@ -68,10 +77,6 @@ static LIST_HEAD(unmaps_to_do);
- 
- static int timer_on;
- static long list_size;
--static int high_watermark;
+diff -puN block/Kconfig~kconfig-cleanup-block-kconfig-help-descriptions block/Kconfig
+--- a/block/Kconfig~kconfig-cleanup-block-kconfig-help-descriptions
++++ a/block/Kconfig
+@@ -5,14 +5,18 @@ menuconfig BLOCK
+        bool "Enable the block layer" if EMBEDDED
+        default y
+        help
+-	 This permits the block layer to be removed from the kernel if it's not
+-	 needed (on some embedded devices for example).  If this option is
+-	 disabled, then blockdev files will become unusable and some
+-	 filesystems (such as ext3) will become unavailable.
 -
--static struct dentry *intel_iommu_debug, *debug;
--
- 
- static void domain_remove_dev_info(struct dmar_domain *domain);
- 
-@@ -1692,7 +1697,7 @@ int __init init_dmars(void)
- 	struct dmar_rmrr_unit *rmrr;
- 	struct pci_dev *pdev;
- 	struct intel_iommu *iommu;
--	int nlongs, i, ret, unit = 0;
-+	int i, ret, unit = 0;
- 
- 	/*
- 	 * for each drhd
-@@ -1711,17 +1716,16 @@ int __init init_dmars(void)
- 		 */
- 	}
- 
--	nlongs = BITS_TO_LONGS(g_num_of_iommus);
--	g_iommus_to_flush = kzalloc(nlongs * sizeof(unsigned long), GFP_KERNEL);
--	if (!g_iommus_to_flush) {
--		printk(KERN_ERR "Intel-IOMMU: "
--			"Allocating bitmap array failed\n");
--		return -ENOMEM;
--	}
--
- 	g_iommus = kzalloc(g_num_of_iommus * sizeof(*iommu), GFP_KERNEL);
- 	if (!g_iommus) {
--		kfree(g_iommus_to_flush);
-+		ret = -ENOMEM;
-+		goto error;
-+	}
+-	 This option will also disable SCSI character devices and USB storage
+-	 since they make use of various block layer definitions and
+-	 facilities.
++	 Provide block layer support for the kernel.
 +
-+	deferred_flush = kzalloc(g_num_of_iommus *
-+		sizeof(struct deferred_flush_tables), GFP_KERNEL);
-+	if (!deferred_flush) {
-+		kfree(g_iommus);
- 		ret = -ENOMEM;
- 		goto error;
- 	}
-@@ -1970,42 +1974,48 @@ error:
- 
- static void flush_unmaps(void)
- {
--	struct iova *node, *n;
--	unsigned long flags;
--	int i;
-+	int i, j;
- 
--	spin_lock_irqsave(&async_umap_flush_lock, flags);
- 	timer_on = 0;
- 
- 	/* just flush them all */
- 	for (i = 0; i < g_num_of_iommus; i++) {
--		if (test_and_clear_bit(i, g_iommus_to_flush))
-+		if (deferred_flush[i].next) {
- 			iommu_flush_iotlb_global(&g_iommus[i], 0);
-+			for (j = 0; j < deferred_flush[i].next; j++) {
-+				__free_iova(&deferred_flush[i].domain[j]->iovad,
-+						deferred_flush[i].iova[j]);
-+			}
-+			deferred_flush[i].next = 0;
-+		}
- 	}
- 
--	list_for_each_entry_safe(node, n, &unmaps_to_do, list) {
--		/* free iova */
--		list_del(&node->list);
--		__free_iova(&((struct dmar_domain *)node->dmar)->iovad, node);
--
--	}
- 	list_size = 0;
--	spin_unlock_irqrestore(&async_umap_flush_lock, flags);
- }
- 
- static void flush_unmaps_timeout(unsigned long data)
- {
-+	unsigned long flags;
++	 Disable this option to remove the block layer support from the
++	 kernel. This may be useful for embedded devices.
 +
-+	spin_lock_irqsave(&async_umap_flush_lock, flags);
- 	flush_unmaps();
-+	spin_unlock_irqrestore(&async_umap_flush_lock, flags);
- }
- 
- static void add_unmap(struct dmar_domain *dom, struct iova *iova)
- {
- 	unsigned long flags;
-+	int next, iommu_id;
- 
- 	spin_lock_irqsave(&async_umap_flush_lock, flags);
--	iova->dmar = dom;
--	list_add(&iova->list, &unmaps_to_do);
--	set_bit((dom->iommu - g_iommus), g_iommus_to_flush);
-+	if (list_size == HIGH_WATER_MARK)
-+		flush_unmaps();
++	 If this option is disabled:
 +
-+	iommu_id = dom->iommu - g_iommus;
-+	next = deferred_flush[iommu_id].next;
-+	deferred_flush[iommu_id].domain[next] = dom;
-+	deferred_flush[iommu_id].iova[next] = iova;
-+	deferred_flush[iommu_id].next++;
++	   - block device files will become unusable
++	   - some filesystems (such as ext3) will become unavailable.
++
++	 Also, SCSI character devices and USB storage will be disabled since
++	 they make use of various block layer definitions and facilities.
  
- 	if (!timer_on) {
- 		mod_timer(&unmap_timer, jiffies + msecs_to_jiffies(10));
-@@ -2054,8 +2064,6 @@ static void intel_unmap_single(struct de
- 		 * queue up the release of the unmap to save the 1/6th of the
- 		 * cpu used up by the iotlb flush operation...
- 		 */
--		if (list_size > high_watermark)
--			flush_unmaps();
- 	}
- }
+ 	 Say Y here unless you know you really don't want to mount disks and
+ 	 suchlike.
+@@ -23,9 +27,20 @@ config LBD
+ 	bool "Support for Large Block Devices"
+ 	depends on !64BIT
+ 	help
+-	  Say Y here if you want to attach large (bigger than 2TB) discs to
+-	  your machine, or if you want to have a raid or loopback device
+-	  bigger than 2TB.  Otherwise say N.
++	  Enable block devices of size 2TB and larger.
++
++	  This option is required to support the full capacity of large
++	  (2TB+) block devices, including RAID, disk, Network Block Device,
++	  Logical Volume Manager (LVM) and loopback.
++
++	  For example, RAID devices are frequently bigger than the capacity
++	  of the largest individual hard drive.
++
++	  This option is not required if you have individual disk drives
++	  which total 2TB+ and you are not aggregating the capacity into
++	  a large block device (e.g. using RAID or LVM).
++
++	  If unsure, say N.
  
-@@ -2380,10 +2388,6 @@ int __init intel_iommu_init(void)
- 	if (dmar_table_init())
- 		return 	-ENODEV;
+ config BLK_DEV_IO_TRACE
+ 	bool "Support for tracing block io actions"
+@@ -33,19 +48,21 @@ config BLK_DEV_IO_TRACE
+ 	select RELAY
+ 	select DEBUG_FS
+ 	help
+-	  Say Y here, if you want to be able to trace the block layer actions
++	  Say Y here if you want to be able to trace the block layer actions
+ 	  on a given queue. Tracing allows you to see any traffic happening
+-	  on a block device queue. For more information (and the user space
+-	  support tools needed), fetch the blktrace app from:
++	  on a block device queue. For more information (and the userspace
++	  support tools needed), fetch the blktrace tools from:
  
--	high_watermark = 250;
--	intel_iommu_debug = debugfs_create_dir("intel_iommu", NULL);
--	debug = debugfs_create_u32("high_watermark", S_IWUGO | S_IRUGO,
--					intel_iommu_debug, &high_watermark);
- 	iommu_init_mempool();
- 	dmar_init_reserved_ranges();
+ 	  git://git.kernel.dk/blktrace.git
  
-diff -puN drivers/pci/iova.h~pci-iommu-iotlb-flushing-speedup drivers/pci/iova.h
---- a/drivers/pci/iova.h~pci-iommu-iotlb-flushing-speedup
-+++ a/drivers/pci/iova.h
-@@ -24,8 +24,6 @@ struct iova {
- 	struct rb_node	node;
- 	unsigned long	pfn_hi; /* IOMMU dish out addr hi */
- 	unsigned long	pfn_lo; /* IOMMU dish out addr lo */
--	struct list_head list;
--	void *dmar;
- };
++	  If unsure, say N.
++
+ config LSF
+ 	bool "Support for Large Single Files"
+ 	depends on !64BIT
+ 	help
+-	  Say Y here if you want to be able to handle very large files (bigger
+-	  than 2TB), otherwise say N.
++	  Say Y here if you want to be able to handle very large files (2TB
++	  and larger), otherwise say N.
  
- /* holds all the iova translations for a domain */
+ 	  If unsure, say Y.
+ 
+@@ -53,14 +70,16 @@ config BLK_DEV_BSG
+ 	bool "Block layer SG support v4 (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
+ 	---help---
+-	Saying Y here will enable generic SG (SCSI generic) v4 support
+-	for any block device.
++	  Saying Y here will enable generic SG (SCSI generic) v4 support
++	  for any block device.
++
++	  Unlike SG v3 (aka block/scsi_ioctl.c drivers/scsi/sg.c), SG v4
++	  can handle complicated SCSI commands: tagged variable length cdbs
++	  with bidirectional data transfers and generic request/response
++	  protocols (e.g. Task Management Functions and SMP in Serial
++	  Attached SCSI).
+ 
+-	Unlike SG v3 (aka block/scsi_ioctl.c drivers/scsi/sg.c), SG v4
+-	can handle complicated SCSI commands: tagged variable length cdbs
+-	with bidirectional data transfers and generic request/response
+-	protocols (e.g. Task Management Functions and SMP in Serial
+-	Attached SCSI).
++	  If unsure, say N.
+ 
+ endif # BLOCK
+ 
 _
 
-Patches currently in -mm which might be from mgross@linux.intel.com are
+Patches currently in -mm which might be from nick@nick-andrew.net are
 
 origin.patch
+raid-remove-leading-tab-on-printk-messages.patch
 
