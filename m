@@ -1,56 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - git-cryptodev-misplaced-hunk.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 08:05:55 -0700
-Message-ID: <200804261505.m3QF5tDb027535@imap1.linux-foundation.org>
+Subject: - git-cryptodev-fix-conflict-hack.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 08:06:08 -0700
+Message-ID: <200804261506.m3QF68mN027549@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45536 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753529AbYDZPF5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752529AbYDZPG6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 11:05:57 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3QF5tJx016454
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Sat, 26 Apr 2008 08:05:57 -0700
+	Sat, 26 Apr 2008 11:06:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, herbert@gondor.apana.org.au, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-cryptodev-misplaced-hunk
+     git-cryptodev-fix-conflict-hack
 has been removed from the -mm tree.  Its filename was
-     git-cryptodev-misplaced-hunk.patch
+     git-cryptodev-fix-conflict-hack.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-cryptodev-misplaced-hunk
+Subject: git-cryptodev-fix-conflict-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
+blah.  Guys, talk to each other...
+
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hw_random/core.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/s390/crypto/sha1_s390.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/hw_random/core.c~git-cryptodev-misplaced-hunk drivers/char/hw_random/core.c
---- a/drivers/char/hw_random/core.c~git-cryptodev-misplaced-hunk
-+++ a/drivers/char/hw_random/core.c
-@@ -279,10 +279,6 @@ int hwrng_register(struct hwrng *rng)
- 	if (rng->name == NULL ||
- 	    rng->data_read == NULL)
- 		goto out;
--		if (bytes_read < 0) {
--			err = bytes_read;
--			goto out;
--		}
+diff -puN arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict-hack arch/s390/crypto/sha1_s390.c
+--- a/arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict-hack
++++ a/arch/s390/crypto/sha1_s390.c
+@@ -57,7 +57,7 @@ static struct crypto_alg alg = {
+ 	.dia_digestsize	=	SHA1_DIGEST_SIZE,
+ 	.dia_init	=	sha1_init,
+ 	.dia_update	=	s390_sha_update,
+-	.dia_final	=	s390_sha1_final } }
++	.dia_final	=	NULL } }
+ };
  
- 	mutex_lock(&rng_mutex);
- 
+ static int __init sha1_s390_init(void)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,8 +93,6 @@ git-vfs-vs-git-kvm.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
 xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-misplaced-hunk.patch
-git-cryptodev-fix-conflict.patch
 git-cryptodev-fix-conflict-hack.patch
 git-xtensa.patch
 make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
