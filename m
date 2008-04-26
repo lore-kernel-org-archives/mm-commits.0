@@ -1,112 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: - aiptekc-add-support-for-genius-g-pen-560-tablet.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:39:52 -0700
-Message-ID: <200804261639.m3QGdqwe030961@imap1.linux-foundation.org>
+Subject: - drivers-char-keyboardc-use-time_before-time_before_eq-etc.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:39:55 -0700
+Message-ID: <200804261639.m3QGdtsG030964@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41827 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753936AbYDZQkc (ORCPT
+	by vger.kernel.org with ESMTP id S1755026AbYDZQkd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:40:32 -0400
+	Sat, 26 Apr 2008 12:40:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guryanov@dgap.mipt.ru, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: julia@diku.dk, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     aiptek.c: add support for Genius G-PEN 560 tablet (fwd)
+     drivers/char/keyboard.c: use time_before, time_before_eq, etc
 has been removed from the -mm tree.  Its filename was
-     aiptekc-add-support-for-genius-g-pen-560-tablet.patch
+     drivers-char-keyboardc-use-time_before-time_before_eq-etc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aiptek.c: add support for Genius G-PEN 560 tablet (fwd)
-From: Guryanov Dmitry <guryanov@dgap.mipt.ru>
+Subject: drivers/char/keyboard.c: use time_before, time_before_eq, etc
+From: Julia Lawall <julia@diku.dk>
 
-Now this tablet works with usbhid driver in relative mode only, which is
-useless for tablet.  It works well with aiptek.c, so add its support to aiptek
-driver.
 
-Signed-off-by: Dmitry Guryanov <guryanov@dgap.mipt.ru>
-Cc: Jiri Kosina <jkosina@suse.cz>
+The functions time_before, time_before_eq, time_after, and time_after_eq
+are more robust for comparing jiffies against other values.
+
+A simplified version of the semantic patch making this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@ change_compare_np @
+expression E;
+@@
+
+(
+- jiffies <= E
++ time_before_eq(jiffies,E)
+|
+- jiffies >= E
++ time_after_eq(jiffies,E)
+|
+- jiffies < E
++ time_before(jiffies,E)
+|
+- jiffies > E
++ time_after(jiffies,E)
+)
+
+@ include depends on change_compare_np @
+@@
+
+#include <linux/jiffies.h>
+
+@ no_include depends on !include && change_compare_np @
+@@
+
+  #include <linux/...>
++ #include <linux/jiffies.h>
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/usbhid/hid-quirks.c |    4 ++++
- drivers/input/tablet/Kconfig    |   10 +++++-----
- drivers/input/tablet/aiptek.c   |    2 ++
- 3 files changed, 11 insertions(+), 5 deletions(-)
+ drivers/char/keyboard.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/hid/usbhid/hid-quirks.c~aiptekc-add-support-for-genius-g-pen-560-tablet drivers/hid/usbhid/hid-quirks.c
---- a/drivers/hid/usbhid/hid-quirks.c~aiptekc-add-support-for-genius-g-pen-560-tablet
-+++ a/drivers/hid/usbhid/hid-quirks.c
-@@ -405,6 +405,9 @@
- #define USB_VENDOR_ID_YEALINK		0x6993
- #define USB_DEVICE_ID_YEALINK_P1K_P4K_B2K	0xb001
+diff -puN drivers/char/keyboard.c~drivers-char-keyboardc-use-time_before-time_before_eq-etc drivers/char/keyboard.c
+--- a/drivers/char/keyboard.c~drivers-char-keyboardc-use-time_before-time_before_eq-etc
++++ a/drivers/char/keyboard.c
+@@ -42,6 +42,7 @@
+ #include <linux/input.h>
+ #include <linux/reboot.h>
+ #include <linux/notifier.h>
++#include <linux/jiffies.h>
  
-+#define USB_VENDOR_ID_KYE		0x0458
-+#define USB_DEVICE_ID_KYE_GPEN_560	0x5003
-+
- /*
-  * Alphabetically sorted blacklist by quirk type.
-  */
-@@ -698,6 +701,7 @@ static const struct hid_blacklist {
- 	{ USB_VENDOR_ID_LOGITECH, USB_DEVICE_ID_LOGITECH_HARMONY_63, HID_QUIRK_IGNORE },
- 	{ USB_VENDOR_ID_LOGITECH, USB_DEVICE_ID_LOGITECH_HARMONY_64, HID_QUIRK_IGNORE },
- 	{ USB_VENDOR_ID_NATIONAL_SEMICONDUCTOR, USB_DEVICE_ID_N_S_HARMONY, HID_QUIRK_IGNORE },
-+	{ USB_VENDOR_ID_KYE, USB_DEVICE_ID_KYE_GPEN_560, HID_QUIRK_IGNORE },
+ extern void ctrl_alt_del(void);
  
- 	{ 0, 0 }
- };
-diff -puN drivers/input/tablet/Kconfig~aiptekc-add-support-for-genius-g-pen-560-tablet drivers/input/tablet/Kconfig
---- a/drivers/input/tablet/Kconfig~aiptekc-add-support-for-genius-g-pen-560-tablet
-+++ a/drivers/input/tablet/Kconfig
-@@ -25,14 +25,14 @@ config TABLET_USB_ACECAD
- 	  module will be called acecad.
- 
- config TABLET_USB_AIPTEK
--	tristate "Aiptek 6000U/8000U tablet support (USB)"
-+	tristate "Aiptek 6000U/8000U and Genius G_PEN tablet support (USB)"
- 	depends on USB_ARCH_HAS_HCD
- 	select USB
- 	help
--	  Say Y here if you want to use the USB version of the Aiptek 6000U
--	  or Aiptek 8000U tablet.  Make sure to say Y to "Mouse support"
--	  (CONFIG_INPUT_MOUSEDEV) and/or "Event interface support"
--	  (CONFIG_INPUT_EVDEV) as well.
-+	  Say Y here if you want to use the USB version of the Aiptek 6000U,
-+	  Aiptek 8000U or Genius G-PEN 560 tablet.  Make sure to say Y to
-+	  "Mouse support" (CONFIG_INPUT_MOUSEDEV) and/or "Event interface
-+	  support" (CONFIG_INPUT_EVDEV) as well.
- 
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called aiptek.
-diff -puN drivers/input/tablet/aiptek.c~aiptekc-add-support-for-genius-g-pen-560-tablet drivers/input/tablet/aiptek.c
---- a/drivers/input/tablet/aiptek.c~aiptekc-add-support-for-genius-g-pen-560-tablet
-+++ a/drivers/input/tablet/aiptek.c
-@@ -184,6 +184,7 @@
-  */
- 
- #define USB_VENDOR_ID_AIPTEK				0x08ca
-+#define USB_VENDOR_ID_KYE				0x0458
- #define USB_REQ_GET_REPORT				0x01
- #define USB_REQ_SET_REPORT				0x09
- 
-@@ -832,6 +833,7 @@ static const struct usb_device_id aiptek
- 	{USB_DEVICE(USB_VENDOR_ID_AIPTEK, 0x22)},
- 	{USB_DEVICE(USB_VENDOR_ID_AIPTEK, 0x23)},
- 	{USB_DEVICE(USB_VENDOR_ID_AIPTEK, 0x24)},
-+	{USB_DEVICE(USB_VENDOR_ID_KYE, 0x5003)},
- 	{}
- };
- 
+@@ -928,7 +929,8 @@ static void k_brl(struct vc_data *vc, un
+ 	if (up_flag) {
+ 		if (brl_timeout) {
+ 			if (!committing ||
+-			    jiffies - releasestart > (brl_timeout * HZ) / 1000) {
++			    time_after(jiffies,
++				       releasestart + (brl_timeout*HZ)/1000)) {
+ 				committing = pressed;
+ 				releasestart = jiffies;
+ 			}
 _
 
-Patches currently in -mm which might be from guryanov@dgap.mipt.ru are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
+drivers-scsi-use-time_before-time_before_eq-etc.patch
+fs-affs-filec-use-bug_on.patch
+drivers-misc-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
+serial-use-time_before-time_before_eq-etc.patch
+drivers-char-rtcc-use-time_before-time_before_eq-etc.patch
+fbdev-use-div_round_up-or-roundup.patch
+drivers-md-use-time_before-time_before_eq-etc.patch
+drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
+fs-ext2-use-bug_on.patch
+fs-ext3-use-bug_on.patch
+fs-ext4-use-bug_on.patch
+drivers-char-ds1286c-use-time_before-time_before_eq-etc.patch
 
