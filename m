@@ -1,80 +1,317 @@
 From: akpm@linux-foundation.org
-Subject: - uwb-seems-to-need-pci.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 08:01:36 -0700
-Message-ID: <200804261501.m3QF1aZ2027359@imap1.linux-foundation.org>
+Subject: - git-xfs-fixups.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 08:05:44 -0700
+Message-ID: <200804261505.m3QF5iKW027532@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54836 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48484 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753603AbYDZPBm (ORCPT
+	by vger.kernel.org with ESMTP id S1753529AbYDZPFs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 11:01:42 -0400
+	Sat, 26 Apr 2008 11:05:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, inaky.perez-gonzalez@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dgc@sgi.com, lachlan@sgi.com, tes@sgi.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uwb: seems to need PCI
+     git-xfs-fixups
 has been removed from the -mm tree.  Its filename was
-     uwb-seems-to-need-pci.patch
+     git-xfs-fixups.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uwb: seems to need PCI
+Subject: git-xfs-fixups
 From: Andrew Morton <akpm@linux-foundation.org>
 
-that should do it.
+attempt to repair forthcoming git-vfs vs git-xfs smashup.
 
-Please remove all the Kconfig `select' statements from this code.  select is
-crap and you don't have a chance of getting all this to work right.
-
-Cc: Inaky Perez-Gonzalez <inaky.perez-gonzalez@intel.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Lachlan McIlroy <lachlan@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/Kconfig     |    1 +
- drivers/usb/wusbcore/Kconfig |    1 +
- drivers/uwb/Kconfig          |    1 +
- 3 files changed, 3 insertions(+)
+ fs/xfs/linux-2.6/xfs_ioctl.c |  256 ---------------------------------
+ 1 file changed, 1 insertion(+), 255 deletions(-)
 
-diff -puN drivers/usb/host/Kconfig~uwb-seems-to-need-pci drivers/usb/host/Kconfig
---- a/drivers/usb/host/Kconfig~uwb-seems-to-need-pci
-+++ a/drivers/usb/host/Kconfig
-@@ -270,6 +270,7 @@ config SUPERH_ON_CHIP_R8A66597
- config USB_HWA_HCD
- 	tristate "Wireless USB host controller driver for WUSB-compliant USB dongles (HWA)"
- 	depends on USB
-+	depends on PCI
- 	select USB_WUSB
- 	select UWB_HWA
- 	help
-diff -puN drivers/usb/wusbcore/Kconfig~uwb-seems-to-need-pci drivers/usb/wusbcore/Kconfig
---- a/drivers/usb/wusbcore/Kconfig~uwb-seems-to-need-pci
-+++ a/drivers/usb/wusbcore/Kconfig
-@@ -4,6 +4,7 @@
- config USB_WUSB
- 	tristate "Enable Wireless USB extensions"
- 	depends on USB
-+	depends on PCI
-         select UWB
-         select CRYPTO
-         select CRYPTO_BLKCIPHER
-diff -puN drivers/uwb/Kconfig~uwb-seems-to-need-pci drivers/uwb/Kconfig
---- a/drivers/uwb/Kconfig~uwb-seems-to-need-pci
-+++ a/drivers/uwb/Kconfig
-@@ -4,6 +4,7 @@
+diff -puN fs/xfs/linux-2.6/xfs_ioctl.c~git-xfs-fixups fs/xfs/linux-2.6/xfs_ioctl.c
+--- a/fs/xfs/linux-2.6/xfs_ioctl.c~git-xfs-fixups
++++ a/fs/xfs/linux-2.6/xfs_ioctl.c
+@@ -1095,260 +1095,6 @@ xfs_ioctl(
+ 		return xfs_ioc_fsgetxattr(ip, 0, arg);
+ 	case XFS_IOC_FSGETXATTRA:
+ 		return xfs_ioc_fsgetxattr(ip, 1, arg);
+-	case XFS_IOC_GETXFLAGS:
+-	case XFS_IOC_SETXFLAGS:
+-	case XFS_IOC_FSSETXATTR:
+-		return xfs_ioc_xattr(ip, filp, cmd, arg);
+-
+-	case XFS_IOC_FSSETDM: {
+-		struct fsdmidata	dmi;
+-
+-		if (copy_from_user(&dmi, arg, sizeof(dmi)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		error = xfs_set_dmattrs(ip, dmi.fsd_dmevmask,
+-				dmi.fsd_dmstate);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_GETBMAP:
+-	case XFS_IOC_GETBMAPA:
+-		return xfs_ioc_getbmap(ip, ioflags, cmd, arg);
+-
+-	case XFS_IOC_GETBMAPX:
+-		return xfs_ioc_getbmapx(ip, arg);
+-
+-	case XFS_IOC_FD_TO_HANDLE:
+-	case XFS_IOC_PATH_TO_HANDLE:
+-	case XFS_IOC_PATH_TO_FSHANDLE:
+-		return xfs_find_handle(cmd, arg);
+-
+-	case XFS_IOC_OPEN_BY_HANDLE:
+-		return xfs_open_by_handle(mp, arg, filp, inode);
+-
+-	case XFS_IOC_FSSETDM_BY_HANDLE:
+-		return xfs_fssetdm_by_handle(mp, arg, inode);
+-
+-	case XFS_IOC_READLINK_BY_HANDLE:
+-		return xfs_readlink_by_handle(mp, arg, inode);
+-
+-	case XFS_IOC_ATTRLIST_BY_HANDLE:
+-		return xfs_attrlist_by_handle(mp, arg, inode);
+-
+-	case XFS_IOC_ATTRMULTI_BY_HANDLE:
+-		return xfs_attrmulti_by_handle(mp, arg, filp, inode);
+-
+-	case XFS_IOC_SWAPEXT: {
+-		error = xfs_swapext((struct xfs_swapext __user *)arg);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_FSCOUNTS: {
+-		xfs_fsop_counts_t out;
+-
+-		error = xfs_fs_counts(mp, &out);
+-		if (error)
+-			return -error;
+-
+-		if (copy_to_user(arg, &out, sizeof(out)))
+-			return -XFS_ERROR(EFAULT);
+-		return 0;
+-	}
+-
+-	case XFS_IOC_SET_RESBLKS: {
+-		xfs_fsop_resblks_t inout;
+-		__uint64_t	   in;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (copy_from_user(&inout, arg, sizeof(inout)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		/* input parameter is passed in resblks field of structure */
+-		in = inout.resblks;
+-		error = xfs_reserve_blocks(mp, &in, &inout);
+-		if (error)
+-			return -error;
+-
+-		if (copy_to_user(arg, &inout, sizeof(inout)))
+-			return -XFS_ERROR(EFAULT);
+-		return 0;
+-	}
+-
+-	case XFS_IOC_GET_RESBLKS: {
+-		xfs_fsop_resblks_t out;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		error = xfs_reserve_blocks(mp, NULL, &out);
+-		if (error)
+-			return -error;
+-
+-		if (copy_to_user(arg, &out, sizeof(out)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		return 0;
+-	}
+-
+-	case XFS_IOC_FSGROWFSDATA: {
+-		xfs_growfs_data_t in;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (copy_from_user(&in, arg, sizeof(in)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		error = xfs_growfs_data(mp, &in);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_FSGROWFSLOG: {
+-		xfs_growfs_log_t in;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (copy_from_user(&in, arg, sizeof(in)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		error = xfs_growfs_log(mp, &in);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_FSGROWFSRT: {
+-		xfs_growfs_rt_t in;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (copy_from_user(&in, arg, sizeof(in)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		error = xfs_growfs_rt(mp, &in);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_FREEZE:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (inode->i_sb->s_frozen == SB_UNFROZEN)
+-			freeze_bdev(inode->i_sb->s_bdev);
+-		return 0;
+-
+-	case XFS_IOC_THAW:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-		if (inode->i_sb->s_frozen != SB_UNFROZEN)
+-			thaw_bdev(inode->i_sb->s_bdev, inode->i_sb);
+-		return 0;
+-
+-	case XFS_IOC_GOINGDOWN: {
+-		__uint32_t in;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (get_user(in, (__uint32_t __user *)arg))
+-			return -XFS_ERROR(EFAULT);
+-
+-		error = xfs_fs_goingdown(mp, in);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_ERROR_INJECTION: {
+-		xfs_error_injection_t in;
+-
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		if (copy_from_user(&in, arg, sizeof(in)))
+-			return -XFS_ERROR(EFAULT);
+-
+-		error = xfs_errortag_add(in.errtag, mp);
+-		return -error;
+-	}
+-
+-	case XFS_IOC_ERROR_CLEARALL:
+-		if (!capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		error = xfs_errortag_clearall(mp, 1);
+-		return -error;
+-
+-	default:
+-		return -ENOTTY;
+-	}
+-}
+-
+-int
+-xfs_ioctl(
+-	xfs_inode_t		*ip,
+-	struct file		*filp,
+-	int			ioflags,
+-	unsigned int		cmd,
+-	void			__user *arg)
+-{
+-	struct inode		*inode = filp->f_path.dentry->d_inode;
+-	xfs_mount_t		*mp = ip->i_mount;
+-	int			error;
+-
+-	xfs_itrace_entry(XFS_I(inode));
+-	switch (cmd) {
+-
+-	case XFS_IOC_ALLOCSP:
+-	case XFS_IOC_FREESP:
+-	case XFS_IOC_RESVSP:
+-	case XFS_IOC_UNRESVSP:
+-	case XFS_IOC_ALLOCSP64:
+-	case XFS_IOC_FREESP64:
+-	case XFS_IOC_RESVSP64:
+-	case XFS_IOC_UNRESVSP64:
+-		/*
+-		 * Only allow the sys admin to reserve space unless
+-		 * unwritten extents are enabled.
+-		 */
+-		if (!xfs_sb_version_hasextflgbit(&mp->m_sb) &&
+-		    !capable(CAP_SYS_ADMIN))
+-			return -EPERM;
+-
+-		return xfs_ioc_space(ip, inode, filp, ioflags, cmd, arg);
+-
+-	case XFS_IOC_DIOINFO: {
+-		struct dioattr	da;
+-		xfs_buftarg_t	*target =
+-			XFS_IS_REALTIME_INODE(ip) ?
+-			mp->m_rtdev_targp : mp->m_ddev_targp;
+-
+-		da.d_mem = da.d_miniosz = 1 << target->bt_sshift;
+-		da.d_maxiosz = INT_MAX & ~(da.d_miniosz - 1);
+-
+-		if (copy_to_user(arg, &da, sizeof(da)))
+-			return -XFS_ERROR(EFAULT);
+-		return 0;
+-	}
+-
+-	case XFS_IOC_FSBULKSTAT_SINGLE:
+-	case XFS_IOC_FSBULKSTAT:
+-	case XFS_IOC_FSINUMBERS:
+-		return xfs_ioc_bulkstat(mp, cmd, arg);
+-
+-	case XFS_IOC_FSGEOMETRY_V1:
+-		return xfs_ioc_fsgeometry_v1(mp, arg);
+-
+-	case XFS_IOC_FSGEOMETRY:
+-		return xfs_ioc_fsgeometry(mp, arg);
+-
+-	case XFS_IOC_GETVERSION:
+-		return put_user(inode->i_generation, (int __user *)arg);
+-
+-	case XFS_IOC_FSGETXATTR:
+-		return xfs_ioc_fsgetxattr(ip, 0, arg);
+-	case XFS_IOC_FSGETXATTRA:
+-		return xfs_ioc_fsgetxattr(ip, 1, arg);
+ 	case XFS_IOC_FSSETXATTR:
+ 		return xfs_ioc_fssetxattr(ip, filp, arg);
+ 	case XFS_IOC_GETXFLAGS:
+@@ -1392,7 +1138,7 @@ xfs_ioctl(
+ 		return xfs_attrlist_by_handle(mp, arg, inode);
  
- menuconfig UWB
- 	tristate "Ultra Wide Band devices"
-+	depends on PCI
- 	default n
- 	help
- 	  UWB is a high-bandwidth, low-power, point-to-point radio
+ 	case XFS_IOC_ATTRMULTI_BY_HANDLE:
+-		return xfs_attrmulti_by_handle(mp, arg, inode);
++		return xfs_attrmulti_by_handle(mp, arg, filp, inode);
+ 
+ 	case XFS_IOC_SWAPEXT: {
+ 		error = xfs_swapext((struct xfs_swapext __user *)arg);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,8 +351,8 @@ drivers-scsi-mvsasc-fix-build-warnings.patch
 sparc32-export-empty_zero_page.patch
 git-unionfs.patch
 fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-uwb-seems-to-need-pci.patch
 git-v9fs.patch
+git-vfs-vs-git-kvm.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
 git-xfs-fixups.patch
