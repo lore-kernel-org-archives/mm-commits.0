@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reapply-sched-cpuset-customize-sched-domains-core-bits.patch added to -mm tree
-Date: Sat, 26 Apr 2008 08:37:34 -0700
-Message-ID: <200804261537.m3QFbYOo028608@imap1.linux-foundation.org>
+Subject: + revert-rusty-misc-timer-typesafe.patch added to -mm tree
+Date: Sat, 26 Apr 2008 09:30:24 -0700
+Message-ID: <200804261630.m3QGUOQE030607@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36104 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753921AbYDZPiS (ORCPT
+	by vger.kernel.org with ESMTP id S1755341AbYDZQai (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 11:38:18 -0400
+	Sat, 26 Apr 2008 12:30:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mingo@elte.hu, pj@sgi.com, seto.hidetoshi@jp.fujitsu.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: akpm@linux-foundation.org, rusty@rustcorp.com.au, tglx@linutronix.de
 
 
 The patch titled
-     reapply "sched, cpuset: customize sched domains, core" bits
+     revert rusty-misc-timer-typesafe
 has been added to the -mm tree.  Its filename is
-     reapply-sched-cpuset-customize-sched-domains-core-bits.patch
+     revert-rusty-misc-timer-typesafe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,214 +34,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reapply "sched, cpuset: customize sched domains, core" bits
+Subject: revert rusty-misc-timer-typesafe
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Attempt to reapply the 1d3504fcf5606579d60b649d19f44b3871c1ddae and convert
-them to the new regime.
+Clear the way for debugobjects-add-timer-specific-object-debugging-code.patch
 
-Please review carefully.
-
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Paul Menage <menage@google.com>
-Cc: "Li Zefan" <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "YAMAMOTO Takashi" <yamamoto@valinux.co.jp>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   51 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 50 insertions(+), 1 deletion(-)
+ include/linux/timer.h |   30 ++++++++----------------------
+ 1 file changed, 8 insertions(+), 22 deletions(-)
 
-diff -puN kernel/cpuset.c~reapply-sched-cpuset-customize-sched-domains-core-bits kernel/cpuset.c
---- a/kernel/cpuset.c~reapply-sched-cpuset-customize-sched-domains-core-bits
-+++ a/kernel/cpuset.c
-@@ -98,6 +98,9 @@ struct cpuset {
- 	/* partition number for rebuild_sched_domains() */
- 	int pn;
+diff -puN include/linux/timer.h~revert-rusty-misc-timer-typesafe include/linux/timer.h
+--- a/include/linux/timer.h~revert-rusty-misc-timer-typesafe
++++ a/include/linux/timer.h
+@@ -24,21 +24,11 @@ struct timer_list {
  
-+	/* for custom sched domain */
-+	int relax_domain_level;
-+
- 	/* used for walking a cpuset heirarchy */
- 	struct list_head stack_list;
- };
-@@ -126,6 +129,7 @@ typedef enum {
- 	CS_MEM_EXCLUSIVE,
- 	CS_MEMORY_MIGRATE,
- 	CS_SCHED_LOAD_BALANCE,
-+	CS_SCHED_RELAX_DOMAIN_LEVEL,
- 	CS_SPREAD_PAGE,
- 	CS_SPREAD_SLAB,
- } cpuset_flagbits_t;
-@@ -146,6 +150,11 @@ static inline int is_sched_load_balance(
- 	return test_bit(CS_SCHED_LOAD_BALANCE, &cs->flags);
- }
+ extern struct tvec_base boot_tvec_bases;
  
-+static inline int is_sched_relax_domain_level(const struct cpuset *cs)
-+{
-+	return test_bit(CS_SCHED_RELAX_DOMAIN_LEVEL, &cs->flags);
-+}
-+
- static inline int is_memory_migrate(const struct cpuset *cs)
- {
- 	return test_bit(CS_MEMORY_MIGRATE, &cs->flags);
-@@ -478,6 +487,16 @@ static int cpusets_overlap(struct cpuset
- 	return cpus_intersects(a->cpus_allowed, b->cpus_allowed);
- }
- 
-+static void
-+update_domain_attr(struct sched_domain_attr *dattr, struct cpuset *c)
-+{
-+	if (!dattr)
-+		return;
-+	if (dattr->relax_domain_level < c->relax_domain_level)
-+		dattr->relax_domain_level = c->relax_domain_level;
-+	return;
-+}
-+
- /*
-  * rebuild_sched_domains()
-  *
-@@ -553,12 +572,14 @@ static void rebuild_sched_domains(void)
- 	int csn;		/* how many cpuset ptrs in csa so far */
- 	int i, j, k;		/* indices for partition finding loops */
- 	cpumask_t *doms;	/* resulting partition; i.e. sched domains */
-+	struct sched_domain_attr *dattr;  /* attributes for custom domains */
- 	int ndoms;		/* number of sched domains in result */
- 	int nslot;		/* next empty doms[] cpumask_t slot */
- 
- 	q = NULL;
- 	csa = NULL;
- 	doms = NULL;
-+	dattr = NULL;
- 
- 	/* Special case for the 99% of systems with one, full, sched domain */
- 	if (is_sched_load_balance(&top_cpuset)) {
-@@ -566,6 +587,11 @@ static void rebuild_sched_domains(void)
- 		doms = kmalloc(sizeof(cpumask_t), GFP_KERNEL);
- 		if (!doms)
- 			goto rebuild;
-+		dattr = kmalloc(sizeof(struct sched_domain_attr), GFP_KERNEL);
-+		if (dattr) {
-+			*dattr = SD_ATTR_INIT;
-+			update_domain_attr(dattr, &top_cpuset);
-+		}
- 		*doms = top_cpuset.cpus_allowed;
- 		goto rebuild;
+-/*
+- * For historic reasons the timer function takes an unsigned long, so
+- * we use this variant of typesafe_cb.  data is converted to an unsigned long
+- * if it is another integer type, by adding 0UL.
+- */
+-#define typesafe_timerfn(fn, data)				\
+-	__typesafe_cb(void (*)(unsigned long), (fn),		\
+-		      void (*)(const typeof((data)+0UL)),	\
+-		      void (*)(typeof((data)+0UL)))
+-
+-#define TIMER_INITIALIZER(_function, _expires, _data) {			\
+-		.function = typesafe_timerfn((_function), (_data)),	\
+-		.expires = (_expires),					\
+-		.data = (unsigned long)(_data),				\
+-		.base = &boot_tvec_bases,				\
++#define TIMER_INITIALIZER(_function, _expires, _data) {		\
++		.function = (_function),			\
++		.expires = (_expires),				\
++		.data = (_data),				\
++		.base = &boot_tvec_bases,			\
  	}
-@@ -622,6 +648,7 @@ restart:
- 	doms = kmalloc(ndoms * sizeof(cpumask_t), GFP_KERNEL);
- 	if (!doms)
- 		goto rebuild;
-+	dattr = kmalloc(ndoms * sizeof(struct sched_domain_attr), GFP_KERNEL);
  
- 	for (nslot = 0, i = 0; i < csn; i++) {
- 		struct cpuset *a = csa[i];
-@@ -644,12 +671,15 @@ restart:
- 			}
+ #define DEFINE_TIMER(_name, _function, _expires, _data)		\
+@@ -48,13 +38,9 @@ extern struct tvec_base boot_tvec_bases;
+ void init_timer(struct timer_list *timer);
+ void init_timer_deferrable(struct timer_list *timer);
  
- 			cpus_clear(*dp);
-+			if (dattr)
-+				*(dattr + nslot) = SD_ATTR_INIT;
- 			for (j = i; j < csn; j++) {
- 				struct cpuset *b = csa[j];
- 
- 				if (apn == b->pn) {
- 					cpus_or(*dp, *dp, b->cpus_allowed);
- 					b->pn = -1;
-+					update_domain_attr(dattr, b);
- 				}
- 			}
- 			nslot++;
-@@ -660,7 +690,7 @@ restart:
- rebuild:
- 	/* Have scheduler rebuild sched domains */
- 	get_online_cpus();
--	partition_sched_domains(ndoms, doms);
-+	partition_sched_domains(ndoms, doms, dattr);
- 	put_online_cpus();
- 
- done:
-@@ -668,6 +698,7 @@ done:
- 		kfifo_free(q);
- 	kfree(csa);
- 	/* Don't kfree(doms) -- partition_sched_domains() does that. */
-+	/* Don't kfree(dattr) -- partition_sched_domains() does that. */
- }
- 
- static inline int started_after_time(struct task_struct *t1,
-@@ -1187,6 +1218,7 @@ typedef enum {
- 	FILE_CPU_EXCLUSIVE,
- 	FILE_MEM_EXCLUSIVE,
- 	FILE_SCHED_LOAD_BALANCE,
-+	FILE_SCHED_RELAX_DOMAIN_LEVEL,
- 	FILE_MEMORY_PRESSURE_ENABLED,
- 	FILE_MEMORY_PRESSURE,
- 	FILE_SPREAD_PAGE,
-@@ -1269,6 +1301,9 @@ static int cpuset_write_u64(struct cgrou
- 	case FILE_SCHED_LOAD_BALANCE:
- 		retval = update_flag(CS_SCHED_LOAD_BALANCE, cs, val);
- 		break;
-+	case FILE_SCHED_RELAX_DOMAIN_LEVEL:
-+		retval = update_flag(CS_SCHED_RELAX_DOMAIN_LEVEL, cs, val);
-+		break;
- 	case FILE_MEMORY_MIGRATE:
- 		retval = update_flag(CS_MEMORY_MIGRATE, cs, val);
- 		break;
-@@ -1375,6 +1410,8 @@ static u64 cpuset_read_u64(struct cgroup
- 		return is_mem_exclusive(cs);
- 	case FILE_SCHED_LOAD_BALANCE:
- 		return is_sched_load_balance(cs);
-+	case FILE_SCHED_RELAX_DOMAIN_LEVEL:
-+		return is_sched_relax_domain_level(cs);
- 	case FILE_MEMORY_MIGRATE:
- 		return is_memory_migrate(cs);
- 	case FILE_MEMORY_PRESSURE_ENABLED:
-@@ -1431,6 +1468,13 @@ static struct cftype cft_sched_load_bala
- 	.private = FILE_SCHED_LOAD_BALANCE,
- };
- 
-+static struct cftype cft_sched_relax_domain_level = {
-+	.name = "sched_relax_domain_level",
-+	.read = cpuset_common_file_read,
-+	.write = cpuset_common_file_write,
-+	.private = FILE_SCHED_RELAX_DOMAIN_LEVEL,
-+};
-+
- static struct cftype cft_memory_migrate = {
- 	.name = "memory_migrate",
- 	.read_u64 = cpuset_read_u64,
-@@ -1482,6 +1526,9 @@ static int cpuset_populate(struct cgroup
- 		return err;
- 	if ((err = cgroup_add_file(cont, ss, &cft_sched_load_balance)) < 0)
- 		return err;
-+	if ((err = cgroup_add_file(cont, ss,
-+					&cft_sched_relax_domain_level)) < 0)
-+		return err;
- 	if ((err = cgroup_add_file(cont, ss, &cft_memory_pressure)) < 0)
- 		return err;
- 	if ((err = cgroup_add_file(cont, ss, &cft_spread_page)) < 0)
-@@ -1566,6 +1613,7 @@ static struct cgroup_subsys_state *cpuse
- 	nodes_clear(cs->mems_allowed);
- 	cs->mems_generation = cpuset_mems_generation++;
- 	fmeter_init(&cs->fmeter);
-+	cs->relax_domain_level = -1;
- 
- 	cs->parent = parent;
- 	number_of_cpusets++;
-@@ -1638,6 +1686,7 @@ int __init cpuset_init(void)
- 	fmeter_init(&top_cpuset.fmeter);
- 	top_cpuset.mems_generation = cpuset_mems_generation++;
- 	set_bit(CS_SCHED_LOAD_BALANCE, &top_cpuset.flags);
-+	top_cpuset.relax_domain_level = -1;
- 
- 	err = register_filesystem(&cpuset_fs_type);
- 	if (err < 0)
+-#define setup_timer(timer, function, data)				\
+-	__setup_timer((timer), typesafe_timerfn((function), (data)),	\
+-		      (unsigned long)(data))
+-
+-static inline void __setup_timer(struct timer_list *timer,
+-				 void (*function)(unsigned long),
+-				 unsigned long data)
++static inline void setup_timer(struct timer_list * timer,
++				void (*function)(unsigned long),
++				unsigned long data)
+ {
+ 	timer->function = function;
+ 	timer->data = data;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -289,6 +141,7 @@ git-watchdog.patch
 git-watchdog-git-rejects.patch
 xfs-suppress-uninitialized-var-warnings.patch
 git-xtensa.patch
+revert-rusty-misc-timer-typesafe.patch
 make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
 ext4-is-busted-on-m68k.patch
 remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
