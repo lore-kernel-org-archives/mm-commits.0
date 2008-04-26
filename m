@@ -1,138 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - mtd-nand-fix-possible-ooops-in-rfc_from4.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:41:23 -0700
-Message-ID: <200804261641.m3QGfNF6031121@imap1.linux-foundation.org>
+Subject: - mtd-nor-add-support-for-the-st-m29w400db-flash-chip.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:41:19 -0700
+Message-ID: <200804261641.m3QGfJwm031115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38481 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40770 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758400AbYDZQth (ORCPT
+	by vger.kernel.org with ESMTP id S1758273AbYDZQtg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:49:37 -0400
+	Sat, 26 Apr 2008 12:49:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bigeasy@tglx.de, bigeasy@linutronix.de, dwmw2@infradead.org, joern@wohnheim.fh-wedel.de, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: gordonfarquharson@gmail.com, dwmw2@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mtd: nand: fix possible Ooops in rfc_from4
+     mtd: nor: add support for the ST M29W400DB flash chip
 has been removed from the -mm tree.  Its filename was
-     mtd-nand-fix-possible-ooops-in-rfc_from4.patch
+     mtd-nor-add-support-for-the-st-m29w400db-flash-chip.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mtd: nand: fix possible Ooops in rfc_from4
-From: Sebastian Siewior <bigeasy@tglx.de>
+Subject: mtd: nor: add support for the ST M29W400DB flash chip
+From: "Gordon Farquharson" <gordonfarquharson@gmail.com>
 
-I found this while I was looking how the rs_lib is working.  The rs_decoder is
-initialized _after_ the nand core code read the BBT table and _after_ the
-partition table has been added.  The driver has a private BBT description
-which is in located in flash data so we Ooops if there is a bit flip _or_ if a
-bit flips while reading the partition table.
+Add support for the ST M29W400DB flash chip.  which is used on the GLAN Tank
+NAS.
 
-This patch moves the initialization of the rs_lib before the first possible
-access by nand core.
-
-Signed-off-by: Sebastian Siewior <bigeasy@linutronix.de>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Gordon Farquharson <gordonfarquharson@gmail.com>
 Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Joern Engel <joern@wh.fh-wedel.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/rtc_from4.c |   50 +++++++++++++++++++--------------
- 1 file changed, 29 insertions(+), 21 deletions(-)
+ drivers/mtd/chips/jedec_probe.c |   42 ++++++++++++++++++++++++++----
+ 1 file changed, 37 insertions(+), 5 deletions(-)
 
-diff -puN drivers/mtd/nand/rtc_from4.c~mtd-nand-fix-possible-ooops-in-rfc_from4 drivers/mtd/nand/rtc_from4.c
---- a/drivers/mtd/nand/rtc_from4.c~mtd-nand-fix-possible-ooops-in-rfc_from4
-+++ a/drivers/mtd/nand/rtc_from4.c
-@@ -478,6 +478,7 @@ static int __init rtc_from4_init(void)
- 	struct nand_chip *this;
- 	unsigned short bcr1, bcr2, wcr2;
- 	int i;
-+	int ret;
- 
- 	/* Allocate memory for MTD device structure and private data */
- 	rtc_from4_mtd = kmalloc(sizeof(struct mtd_info) + sizeof(struct nand_chip), GFP_KERNEL);
-@@ -537,6 +538,22 @@ static int __init rtc_from4_init(void)
- 	this->ecc.hwctl = rtc_from4_enable_hwecc;
- 	this->ecc.calculate = rtc_from4_calculate_ecc;
- 	this->ecc.correct = rtc_from4_correct_data;
-+
-+	/* We could create the decoder on demand, if memory is a concern.
-+	 * This way we have it handy, if an error happens
-+	 *
-+	 * Symbolsize is 10 (bits)
-+	 * Primitve polynomial is x^10+x^3+1
-+	 * first consecutive root is 0
-+	 * primitve element to generate roots = 1
-+	 * generator polinomial degree = 6
-+	 */
-+	rs_decoder = init_rs(10, 0x409, 0, 1, 6);
-+	if (!rs_decoder) {
-+		printk(KERN_ERR "Could not create a RS decoder\n");
-+		ret = -ENOMEM;
-+		goto err_1;
-+	}
- #else
- 	printk(KERN_INFO "rtc_from4_init: using software ECC detection.\n");
- 
-@@ -549,8 +566,8 @@ static int __init rtc_from4_init(void)
- 
- 	/* Scan to find existence of the device */
- 	if (nand_scan(rtc_from4_mtd, RTC_FROM4_MAX_CHIPS)) {
--		kfree(rtc_from4_mtd);
--		return -ENXIO;
-+		ret = -ENXIO;
-+		goto err_2;
- 	}
- 
- 	/* Perform 'device recovery' for each chip in case there was a power loss. */
-@@ -566,28 +583,19 @@ static int __init rtc_from4_init(void)
- #endif
- 
- 	/* Register the partitions */
--	add_mtd_partitions(rtc_from4_mtd, partition_info, NUM_PARTITIONS);
-+	ret = add_mtd_partitions(rtc_from4_mtd, partition_info, NUM_PARTITIONS);
-+	if (ret)
-+		goto err_3;
- 
--#ifdef RTC_FROM4_HWECC
--	/* We could create the decoder on demand, if memory is a concern.
--	 * This way we have it handy, if an error happens
--	 *
--	 * Symbolsize is 10 (bits)
--	 * Primitve polynomial is x^10+x^3+1
--	 * first consecutive root is 0
--	 * primitve element to generate roots = 1
--	 * generator polinomial degree = 6
--	 */
--	rs_decoder = init_rs(10, 0x409, 0, 1, 6);
--	if (!rs_decoder) {
--		printk(KERN_ERR "Could not create a RS decoder\n");
--		nand_release(rtc_from4_mtd);
--		kfree(rtc_from4_mtd);
--		return -ENOMEM;
--	}
--#endif
- 	/* Return happy */
- 	return 0;
-+err_3:
-+	nand_release(rtc_from4_mtd);
-+err_2:
-+	free_rs(rs_decoder);
-+err_1:
-+	kfree(rtc_from4_mtd);
-+	return ret;
- }
- 
- module_init(rtc_from4_init);
+diff -puN drivers/mtd/chips/jedec_probe.c~mtd-nor-add-support-for-the-st-m29w400db-flash-chip drivers/mtd/chips/jedec_probe.c
+--- a/drivers/mtd/chips/jedec_probe.c~mtd-nor-add-support-for-the-st-m29w400db-flash-chip
++++ a/drivers/mtd/chips/jedec_probe.c
+@@ -132,6 +132,8 @@
+ #define M29F800AB	0x0058
+ #define M29W800DT	0x00D7
+ #define M29W800DB	0x005B
++#define M29W400DT	0x00EE
++#define M29W400DB	0x00EF
+ #define M29W160DT	0x22C4
+ #define M29W160DB	0x2249
+ #define M29W040B	0x00E3
+@@ -1426,7 +1428,7 @@ static const struct amd_flash_info jedec
+ 			ERASEINFO(0x08000,1),
+ 			ERASEINFO(0x10000,15),
+ 		}
+-       }, {
++	}, {
+ 		.mfr_id		= MANUFACTURER_ST,	/* FIXME - CFI device? */
+ 		.dev_id		= M29W800DT,
+ 		.name		= "ST M29W800DT",
+@@ -1456,6 +1458,36 @@ static const struct amd_flash_info jedec
+ 			ERASEINFO(0x08000,1),
+ 			ERASEINFO(0x10000,15)
+ 		}
++	},  {
++		.mfr_id         = MANUFACTURER_ST,
++		.dev_id         = M29W400DT,
++		.name           = "ST M29W400DT",
++		.devtypes       = CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
++		.uaddr          = MTD_UADDR_0x0AAA_0x0555,
++		.dev_size       = SIZE_512KiB,
++		.cmd_set        = P_ID_AMD_STD,
++		.nr_regions     = 4,
++		.regions        = {
++			ERASEINFO(0x04000,7),
++			ERASEINFO(0x02000,1),
++			ERASEINFO(0x08000,2),
++			ERASEINFO(0x10000,1)
++		}
++	}, {
++		.mfr_id         = MANUFACTURER_ST,
++		.dev_id         = M29W400DB,
++		.name           = "ST M29W400DB",
++		.devtypes       = CFI_DEVICETYPE_X16|CFI_DEVICETYPE_X8,
++		.uaddr          = MTD_UADDR_0x0AAA_0x0555,
++		.dev_size       = SIZE_512KiB,
++		.cmd_set        = P_ID_AMD_STD,
++		.nr_regions     = 4,
++		.regions        = {
++			ERASEINFO(0x04000,1),
++			ERASEINFO(0x02000,2),
++			ERASEINFO(0x08000,1),
++			ERASEINFO(0x10000,7)
++		}
+ 	}, {
+ 		.mfr_id		= MANUFACTURER_ST,	/* FIXME - CFI device? */
+ 		.dev_id		= M29W160DT,
+@@ -1486,7 +1518,7 @@ static const struct amd_flash_info jedec
+ 			ERASEINFO(0x08000,1),
+ 			ERASEINFO(0x10000,31)
+ 		}
+-        }, {
++	}, {
+ 		.mfr_id		= MANUFACTURER_ST,
+ 		.dev_id		= M29W040B,
+ 		.name		= "ST M29W040B",
+@@ -1498,7 +1530,7 @@ static const struct amd_flash_info jedec
+ 		.regions	= {
+ 			ERASEINFO(0x10000,8),
+ 		}
+-        }, {
++	}, {
+ 		.mfr_id		= MANUFACTURER_ST,
+ 		.dev_id		= M50FW040,
+ 		.name		= "ST M50FW040",
+@@ -1510,7 +1542,7 @@ static const struct amd_flash_info jedec
+ 		.regions	= {
+ 			ERASEINFO(0x10000,8),
+ 		}
+-        }, {
++	}, {
+ 		.mfr_id		= MANUFACTURER_ST,
+ 		.dev_id		= M50FW080,
+ 		.name		= "ST M50FW080",
+@@ -1522,7 +1554,7 @@ static const struct amd_flash_info jedec
+ 		.regions	= {
+ 			ERASEINFO(0x10000,16),
+ 		}
+-        }, {
++	}, {
+ 		.mfr_id		= MANUFACTURER_ST,
+ 		.dev_id		= M50FW016,
+ 		.name		= "ST M50FW016",
 _
 
-Patches currently in -mm which might be from bigeasy@tglx.de are
+Patches currently in -mm which might be from gordonfarquharson@gmail.com are
 
 origin.patch
 
