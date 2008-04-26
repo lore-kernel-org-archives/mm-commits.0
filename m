@@ -1,54 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - git-cryptodev-fix-conflict-hack.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 08:06:08 -0700
-Message-ID: <200804261506.m3QF68mN027549@imap1.linux-foundation.org>
+Subject: - git-semaphore-git-rejects.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 08:06:34 -0700
+Message-ID: <200804261506.m3QF6YCM027558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39168 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47507 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752529AbYDZPG6 (ORCPT
+	by vger.kernel.org with ESMTP id S1752702AbYDZPHF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 11:06:58 -0400
+	Sat, 26 Apr 2008 11:07:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, herbert@gondor.apana.org.au, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, willy@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-cryptodev-fix-conflict-hack
+     git-semaphore-git-rejects
 has been removed from the -mm tree.  Its filename was
-     git-cryptodev-fix-conflict-hack.patch
+     git-semaphore-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-cryptodev-fix-conflict-hack
+Subject: git-semaphore-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
-blah.  Guys, talk to each other...
+argh - don't slavishly append to lists of things!  It's the guaranteed way of
+maximising conflicts.  Do random insertions...
 
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matthew Wilcox <willy@debian.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/crypto/sha1_s390.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/feature-removal-schedule.txt |    8 ++++++++
+ arch/mips/kernel/Makefile                  |    2 +-
+ drivers/base/core.c                        |    2 +-
+ drivers/firewire/fw-device.c               |    2 +-
+ 4 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict-hack arch/s390/crypto/sha1_s390.c
---- a/arch/s390/crypto/sha1_s390.c~git-cryptodev-fix-conflict-hack
-+++ a/arch/s390/crypto/sha1_s390.c
-@@ -57,7 +57,7 @@ static struct crypto_alg alg = {
- 	.dia_digestsize	=	SHA1_DIGEST_SIZE,
- 	.dia_init	=	sha1_init,
- 	.dia_update	=	s390_sha_update,
--	.dia_final	=	s390_sha1_final } }
-+	.dia_final	=	NULL } }
- };
+diff -puN Documentation/feature-removal-schedule.txt~git-semaphore-git-rejects Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~git-semaphore-git-rejects
++++ a/Documentation/feature-removal-schedule.txt
+@@ -155,6 +155,14 @@ Who:	Len Brown <len.brown@intel.com>
  
- static int __init sha1_s390_init(void)
+ ---------------------------
+ 
++What:	asm/semaphore.h
++When:	2.6.26
++Why:	Implementation became generic; users should now include
++	linux/semaphore.h instead.
++Who:	Matthew Wilcox <willy@linux.intel.com>
++
++---------------------------
++
+ What: libata spindown skipping and warning
+ When: Dec 2008
+ Why:  Some halt(8) implementations synchronize caches for and spin
+diff -puN arch/mips/kernel/Makefile~git-semaphore-git-rejects arch/mips/kernel/Makefile
+--- a/arch/mips/kernel/Makefile~git-semaphore-git-rejects
++++ a/arch/mips/kernel/Makefile
+@@ -5,7 +5,7 @@
+ extra-y		:= head.o init_task.o vmlinux.lds
+ 
+ obj-y		+= cpu-probe.o branch.o entry.o genex.o irq.o irq-gic.o \
+-		   process.o ptrace.o reset.o semaphore.o setup.o signal.o \
++		   process.o ptrace.o reset.o setup.o signal.o \
+ 		   syscall.o time.o topology.o traps.o unaligned.o
+ 
+ obj-$(CONFIG_CEVT_BCM1480)	+= cevt-bcm1480.o
+diff -puN drivers/base/core.c~git-semaphore-git-rejects drivers/base/core.c
+--- a/drivers/base/core.c~git-semaphore-git-rejects
++++ a/drivers/base/core.c
+@@ -20,7 +20,7 @@
+ #include <linux/notifier.h>
+ #include <linux/genhd.h>
+ #include <linux/kallsyms.h>
+-#include <asm/semaphore.h>
++#include <linux/semaphore.h>
+ 
+ #include "base.h"
+ #include "power/power.h"
+diff -puN drivers/firewire/fw-device.c~git-semaphore-git-rejects drivers/firewire/fw-device.c
+--- a/drivers/firewire/fw-device.c~git-semaphore-git-rejects
++++ a/drivers/firewire/fw-device.c
+@@ -26,7 +26,7 @@
+ #include <linux/delay.h>
+ #include <linux/idr.h>
+ #include <linux/string.h>
+-#include <asm/semaphore.h>
++#include <linux/semaphore.h>
+ #include <asm/system.h>
+ #include <linux/ctype.h>
+ #include "fw-transaction.h"
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -93,7 +140,6 @@ git-vfs-vs-git-kvm.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
 xfs-suppress-uninitialized-var-warnings.patch
-git-cryptodev-fix-conflict-hack.patch
 git-xtensa.patch
 make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
 git-semaphore-git-rejects.patch
