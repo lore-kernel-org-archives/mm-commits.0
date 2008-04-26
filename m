@@ -1,57 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - git-x86-vs-git-kgdb-lite.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:40:08 -0700
-Message-ID: <200804261640.m3QGe8hg031003@imap1.linux-foundation.org>
+Subject: - git-dvb-kconfig-fix.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:40:26 -0700
+Message-ID: <200804261640.m3QGeQcn031031@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54309 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47448 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755464AbYDZQk4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755475AbYDZQk6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:40:56 -0400
+	Sat, 26 Apr 2008 12:40:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-x86 vs git-kgdb-lite
+     git-dvb: Kconfig fix
 has been removed from the -mm tree.  Its filename was
-     git-x86-vs-git-kgdb-lite.patch
+     git-dvb-kconfig-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-x86 vs git-kgdb-lite
+Subject: git-dvb: Kconfig fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
+ERROR: "videobuf_to_vmalloc" [drivers/media/video/em28xx/em28xx.ko] undefined!
+ERROR: "videobuf_queue_vmalloc_init" [drivers/media/video/em28xx/em28xx.ko] undefined!
+ERROR: "videobuf_vmalloc_free" [drivers/media/video/em28xx/em28xx.ko] undefined!
+
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/kgdb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/em28xx/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/kernel/kgdb.c~git-x86-vs-git-kgdb-lite arch/x86/kernel/kgdb.c
---- a/arch/x86/kernel/kgdb.c~git-x86-vs-git-kgdb-lite
-+++ a/arch/x86/kernel/kgdb.c
-@@ -375,12 +375,12 @@ int kgdb_arch_handle_exception(int e_vec
- 		newPC = linux_regs->ip;
- 
- 		/* clear the trace bit */
--		linux_regs->flags &= ~TF_MASK;
-+		linux_regs->flags &= ~X86_EFLAGS_TF;
- 		atomic_set(&kgdb_cpu_doing_single_step, -1);
- 
- 		/* set the trace bit if we're stepping */
- 		if (remcomInBuffer[0] == 's') {
--			linux_regs->flags |= TF_MASK;
-+			linux_regs->flags |= X86_EFLAGS_TF;
- 			kgdb_single_step = 1;
- 			if (kgdb_contthread) {
- 				atomic_set(&kgdb_cpu_doing_single_step,
+diff -puN drivers/media/video/em28xx/Kconfig~git-dvb-kconfig-fix drivers/media/video/em28xx/Kconfig
+--- a/drivers/media/video/em28xx/Kconfig~git-dvb-kconfig-fix
++++ a/drivers/media/video/em28xx/Kconfig
+@@ -4,6 +4,7 @@ config VIDEO_EM28XX
+ 	select VIDEO_TUNER
+ 	select VIDEO_TVEEPROM
+ 	select VIDEO_IR
++	select VIDEOBUF_VMALLOC
+ 	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
+ 	select VIDEO_TVP5150 if VIDEO_HELPER_CHIPS_AUTO
+ 	---help---
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
