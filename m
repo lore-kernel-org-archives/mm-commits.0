@@ -1,88 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt.patch removed from -mm tree
-Date: Sat, 26 Apr 2008 09:41:50 -0700
-Message-ID: <200804261641.m3QGfo7W031152@imap1.linux-foundation.org>
+Subject: - raid-remove-trailing-space-from-printk-line.patch removed from -mm tree
+Date: Sat, 26 Apr 2008 09:42:38 -0700
+Message-ID: <200804261642.m3QGgcOW031211@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33499 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757888AbYDZQmo (ORCPT
+	by vger.kernel.org with ESMTP id S1757889AbYDZQnA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 26 Apr 2008 12:42:44 -0400
+	Sat, 26 Apr 2008 12:43:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 12o3l@tiscali.nl, jacmet@sunsite.dk, jeff@garzik.org, mm-commits@vger.kernel.org
+To: nick@nick-andrew.net, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smc911x: test after postfix decrement fails in smc911x_{reset,drop_pkt}
+     raid: remove trailing space from printk line
 has been removed from the -mm tree.  Its filename was
-     smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt.patch
+     raid-remove-trailing-space-from-printk-line.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smc911x: test after postfix decrement fails in smc911x_{reset,drop_pkt}
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: raid: remove trailing space from printk line
+From: Nick Andrew <nick@nick-andrew.net>
 
-When timeout reaches 0 the postfix decrement still subtracts, so the test
-fails.
+drivers/md/*.[ch] contains only one more printk line with a trailing space. 
+Remove it.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Acked-by: Peter Korsgaard <jacmet@sunsite.dk>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Nick Andrew <nick@nick-andrew.net>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/smc911x.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/md/md.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/smc911x.c~smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt drivers/net/smc911x.c
---- a/drivers/net/smc911x.c~smc911x-test-after-postfix-decrement-fails-in-smc911x_resetdrop_pkt
-+++ a/drivers/net/smc911x.c
-@@ -244,7 +244,7 @@ static void smc911x_reset(struct net_dev
- 		do {
- 			udelay(10);
- 			reg = SMC_GET_PMT_CTRL() & PMT_CTRL_READY_;
--		} while ( timeout-- && !reg);
-+		} while (--timeout && !reg);
- 		if (timeout == 0) {
- 			PRINTK("%s: smc911x_reset timeout waiting for PM restore\n", dev->name);
- 			return;
-@@ -268,7 +268,7 @@ static void smc911x_reset(struct net_dev
- 				resets++;
- 				break;
- 			}
--		} while ( timeout-- && (reg & HW_CFG_SRST_));
-+		} while (--timeout && (reg & HW_CFG_SRST_));
- 	}
- 	if (timeout == 0) {
- 		PRINTK("%s: smc911x_reset timeout waiting for reset\n", dev->name);
-@@ -414,7 +414,7 @@ static inline void smc911x_drop_pkt(stru
- 		do {
- 			udelay(10);
- 			reg = SMC_GET_RX_DP_CTRL() & RX_DP_CTRL_FFWD_BUSY_;
--		} while ( timeout-- && reg);
-+		} while (--timeout && reg);
- 		if (timeout == 0) {
- 			PRINTK("%s: timeout waiting for RX fast forward\n", dev->name);
- 		}
+diff -puN drivers/md/md.c~raid-remove-trailing-space-from-printk-line drivers/md/md.c
+--- a/drivers/md/md.c~raid-remove-trailing-space-from-printk-line
++++ a/drivers/md/md.c
+@@ -4152,7 +4152,7 @@ static int hot_remove_disk(mddev_t * mdd
+ 
+ 	return 0;
+ busy:
+-	printk(KERN_WARNING "md: cannot remove active disk %s from %s ... \n",
++	printk(KERN_WARNING "md: cannot remove active disk %s from %s ...\n",
+ 		bdevname(rdev->bdev,b), mdname(mddev));
+ 	return -EBUSY;
+ }
 _
 
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
+Patches currently in -mm which might be from nick@nick-andrew.net are
 
 origin.patch
-mm-fix-possible-off-by-one-in-walk_pte_range.patch
-dz-test-after-postfix-decrement-fails-in-dz_console_putchar.patch
-git-dvb.patch
-adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
-block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn.patch
-free-when-fb-cant-be-registered-in-video-aty-atyfb_basec.patch
-drivers-video-aty-aty128fbc-fix-incorrect-usage-of-strncat-in-aty128_init.patch
-drivers-video-imsttfbc-add-missing-curly-brackets.patch
-likeliness-accounting-change-and-cleanup.patch
-likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
+raid-remove-leading-tab-on-printk-messages.patch
 
