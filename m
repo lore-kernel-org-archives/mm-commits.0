@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-make-alloc_recv_msg-static.patch added to -mm tree
-Date: Sun, 27 Apr 2008 12:29:19 -0700
-Message-ID: <200804271929.m3RJTJj8021188@imap1.linux-foundation.org>
+Subject: + vfat-bug-fix-for-vfat-cannot-handle-filename-with-255.patch added to -mm tree
+Date: Sun, 27 Apr 2008 12:50:08 -0700
+Message-ID: <200804271950.m3RJo8VF021952@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37259 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763282AbYD0Tay (ORCPT
+	by vger.kernel.org with ESMTP id S1763325AbYD0TuM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Apr 2008 15:30:54 -0400
+	Sun, 27 Apr 2008 15:50:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, cminyard@mvista.com
+Cc: ek9852@gmail.com, hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     ipmi: make alloc_recv_msg static
+     vfat: bug fix for vfat cannot handle filename with 255
 has been added to the -mm tree.  Its filename is
-     ipmi-make-alloc_recv_msg-static.patch
+     vfat-bug-fix-for-vfat-cannot-handle-filename-with-255.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,78 +34,231 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi: make alloc_recv_msg static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: vfat: bug fix for vfat cannot handle filename with 255
+From: Keith Mok <ek9852@gmail.com>
 
-Make the needlessly global ipmi_alloc_recv_msg() static.
+This patch fix the problem that the buffer allocated for convert of unicode to
+utf8 in fat/dir.c is too small.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
+And cannot handle filename with 255 asian characters when mounted with utf8
+options.
+
+Also it fix the filename length limitation checking in vfat/namei.c that the
+filename length should be checked against the number of converted unicode
+characters.
+
+Not the length before NLS/UTF8 converted.
+
+Signed-off-by: Keith Mok <ek9852@gmail.com>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_msghandler.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/fat/dir.c    |   44 ++++++++++++++++++++++++++++----------------
+ fs/vfat/namei.c |   25 +++++++++++--------------
+ 2 files changed, 39 insertions(+), 30 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-make-alloc_recv_msg-static drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-make-alloc_recv_msg-static
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -3932,7 +3932,7 @@ static void free_recv_msg(struct ipmi_re
- 	kfree(msg);
+diff -puN fs/fat/dir.c~vfat-bug-fix-for-vfat-cannot-handle-filename-with-255 fs/fat/dir.c
+--- a/fs/fat/dir.c~vfat-bug-fix-for-vfat-cannot-handle-filename-with-255
++++ a/fs/fat/dir.c
+@@ -124,8 +124,8 @@ static inline int fat_get_entry(struct i
+  * but ignore that right now.
+  * Ahem... Stack smashing in ring 0 isn't fun. Fixed.
+  */
+-static int uni16_to_x8(unsigned char *ascii, wchar_t *uni, int uni_xlate,
+-		       struct nls_table *nls)
++static int uni16_to_x8(unsigned char *ascii, wchar_t *uni, int len,
++		       int uni_xlate, struct nls_table *nls)
+ {
+ 	wchar_t *ip, ec;
+ 	unsigned char *op, nc;
+@@ -135,10 +135,11 @@ static int uni16_to_x8(unsigned char *as
+ 	ip = uni;
+ 	op = ascii;
+ 
+-	while (*ip) {
++	while (*ip && ((len - NLS_MAX_CHARSET_SIZE) > 0)) {
+ 		ec = *ip++;
+ 		if ( (charlen = nls->uni2char(ec, op, NLS_MAX_CHARSET_SIZE)) > 0) {
+ 			op += charlen;
++			len -= charlen;
+ 		} else {
+ 			if (uni_xlate == 1) {
+ 				*op = ':';
+@@ -149,16 +150,19 @@ static int uni16_to_x8(unsigned char *as
+ 					ec >>= 4;
+ 				}
+ 				op += 5;
++				len -= 5;
+ 			} else {
+ 				*op++ = '?';
++				len--;
+ 			}
+ 		}
+-		/* We have some slack there, so it's OK */
+-		if (op>ascii+256) {
+-			op = ascii + 256;
+-			break;
+-		}
+ 	}
++
++	if (unlikely(*ip)) {
++		printk(KERN_WARNING "FAT: filename was truncated while "
++		       "converting.");
++	}
++
+ 	*op = 0;
+ 	return (op - ascii);
+ }
+@@ -311,9 +315,11 @@ int fat_search_long(struct inode *inode,
+ 	struct nls_table *nls_io = sbi->nls_io;
+ 	struct nls_table *nls_disk = sbi->nls_disk;
+ 	wchar_t bufuname[14];
+-	unsigned char xlate_len, nr_slots;
++	unsigned char nr_slots;
++	int xlate_len;
+ 	wchar_t *unicode = NULL;
+-	unsigned char work[MSDOS_NAME], bufname[260];	/* 256 + 4 */
++	unsigned char work[MSDOS_NAME];
++	unsigned char *bufname = NULL;
+ 	int uni_xlate = sbi->options.unicode_xlate;
+ 	int utf8 = sbi->options.utf8;
+ 	int anycase = (sbi->options.name_check != 's');
+@@ -321,6 +327,10 @@ int fat_search_long(struct inode *inode,
+ 	loff_t cpos = 0;
+ 	int chl, i, j, last_u, err;
+ 
++	bufname = (unsigned char*)__get_free_page(GFP_KERNEL);
++	if (!bufname)
++		return -ENOMEM;
++
+ 	err = -ENOENT;
+ 	while(1) {
+ 		if (fat_get_entry(inode, &cpos, &bh, &de) == -1)
+@@ -386,8 +396,8 @@ parse_record:
+ 
+ 		bufuname[last_u] = 0x0000;
+ 		xlate_len = utf8
+-			?utf8_wcstombs(bufname, bufuname, sizeof(bufname))
+-			:uni16_to_x8(bufname, bufuname, uni_xlate, nls_io);
++			?utf8_wcstombs(bufname, bufuname, PAGE_SIZE)
++			:uni16_to_x8(bufname, bufuname, PAGE_SIZE, uni_xlate, nls_io);
+ 		if (xlate_len == name_len)
+ 			if ((!anycase && !memcmp(name, bufname, xlate_len)) ||
+ 			    (anycase && !nls_strnicmp(nls_io, name, bufname,
+@@ -396,8 +406,8 @@ parse_record:
+ 
+ 		if (nr_slots) {
+ 			xlate_len = utf8
+-				?utf8_wcstombs(bufname, unicode, sizeof(bufname))
+-				:uni16_to_x8(bufname, unicode, uni_xlate, nls_io);
++				?utf8_wcstombs(bufname, unicode, PAGE_SIZE)
++				:uni16_to_x8(bufname, unicode, PAGE_SIZE, uni_xlate, nls_io);
+ 			if (xlate_len != name_len)
+ 				continue;
+ 			if ((!anycase && !memcmp(name, bufname, xlate_len)) ||
+@@ -416,6 +426,8 @@ Found:
+ 	sinfo->i_pos = fat_make_i_pos(sb, sinfo->bh, sinfo->de);
+ 	err = 0;
+ EODir:
++	if (bufname)
++		free_page((unsigned long)bufname);
+ 	if (unicode)
+ 		free_page((unsigned long)unicode);
+ 
+@@ -598,7 +610,7 @@ parse_record:
+ 	if (isvfat) {
+ 		bufuname[j] = 0x0000;
+ 		i = utf8 ? utf8_wcstombs(bufname, bufuname, sizeof(bufname))
+-			 : uni16_to_x8(bufname, bufuname, uni_xlate, nls_io);
++			 : uni16_to_x8(bufname, bufuname, sizeof(bufname), uni_xlate, nls_io);
+ 	}
+ 
+ 	fill_name = bufname;
+@@ -610,7 +622,7 @@ parse_record:
+ 		int buf_size = PAGE_SIZE - (261 * sizeof(unicode[0]));
+ 		int long_len = utf8
+ 			? utf8_wcstombs(longname, unicode, buf_size)
+-			: uni16_to_x8(longname, unicode, uni_xlate, nls_io);
++			: uni16_to_x8(longname, unicode, buf_size, uni_xlate, nls_io);
+ 
+ 		if (!both) {
+ 			fill_name = longname;
+diff -puN fs/vfat/namei.c~vfat-bug-fix-for-vfat-cannot-handle-filename-with-255 fs/vfat/namei.c
+--- a/fs/vfat/namei.c~vfat-bug-fix-for-vfat-cannot-handle-filename-with-255
++++ a/fs/vfat/namei.c
+@@ -176,15 +176,10 @@ static inline int vfat_is_used_badchars(
+ 	for (i = 0; i < len; i++)
+ 		if (vfat_bad_char(s[i]))
+ 			return -EINVAL;
+-	return 0;
+-}
+ 
+-static int vfat_valid_longname(const unsigned char *name, unsigned int len)
+-{
+-	if (name[len - 1] == ' ')
++	if (s[i - 1] == ' ') /* last character cannot be space */
+ 		return -EINVAL;
+-	if (len >= 256)
+-		return -ENAMETOOLONG;
++
+ 	return 0;
  }
  
--struct ipmi_recv_msg *ipmi_alloc_recv_msg(void)
-+static struct ipmi_recv_msg *ipmi_alloc_recv_msg(void)
- {
- 	struct ipmi_recv_msg *rv;
+@@ -485,11 +480,14 @@ xlate_to_uni(const unsigned char *name, 
+ 		 */
+ 		*outlen -= (name_len - len);
  
++		if (*outlen > 255)
++			return -ENAMETOOLONG;
++
+ 		op = &outname[*outlen * sizeof(wchar_t)];
+ 	} else {
+ 		if (nls) {
+ 			for (i = 0, ip = name, op = outname, *outlen = 0;
+-			     i < len && *outlen <= 260;
++			     i < len && *outlen <= 255;
+ 			     *outlen += 1)
+ 			{
+ 				if (escape && (*ip == ':')) {
+@@ -525,18 +523,20 @@ xlate_to_uni(const unsigned char *name, 
+ 					op += 2;
+ 				}
+ 			}
++			if (i < len)
++				return -ENAMETOOLONG;
+ 		} else {
+ 			for (i = 0, ip = name, op = outname, *outlen = 0;
+-			     i < len && *outlen <= 260;
++			     i < len && *outlen <= 255;
+ 			     i++, *outlen += 1)
+ 			{
+ 				*op++ = *ip++;
+ 				*op++ = 0;
+ 			}
++			if (i < len)
++				return -ENAMETOOLONG;
+ 		}
+ 	}
+-	if (*outlen > 260)
+-		return -ENAMETOOLONG;
+ 
+ 	*longlen = *outlen;
+ 	if (*outlen % 13) {
+@@ -574,9 +574,6 @@ static int vfat_build_slots(struct inode
+ 	loff_t offset;
+ 
+ 	*nr_slots = 0;
+-	err = vfat_valid_longname(name, len);
+-	if (err)
+-		return err;
+ 
+ 	page = __get_free_page(GFP_KERNEL);
+ 	if (!page)
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from ek9852@gmail.com are
 
-origin.patch
-rtc-pcf8583-build-fix.patch
-git-acpi.patch
-arch-x86-video-fbdevc-add-module_license.patch
-git-m32r.patch
-git-nfsd.patch
-git-ocfs2.patch
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch
-git-pci.patch
-git-sh.patch
-git-scsi-misc.patch
-if-0-ses_match_host.patch
-git-watchdog.patch
-make-swap_pte_to_pagemap_entry-static.patch
-fs-ramfs-extern-cleanup.patch
-fs-hfsplus-proper-externs.patch
-fs-freevxfs-proper-externs.patch
-make-__put_super-static.patch
-make-vfs_ioctl-static.patch
-fs-fs-writeback-make-2-functions-static.patch
-fs-drop_cachesc-make-2-functions-static.patch
-fs-aioc-make-3-functions-static.patch
-let-log_buf_shift-default-to-17.patch
-fs-timerfdc-should-include-linux-syscallsh.patch
-remove-generic_commit_write.patch
-make-fs-bufferccont_expand_zero-static.patch
-make-binfmt_flat-a-bool.patch
-remove-mca_is_adapter_used.patch
-ipwireless-remove-dead-code.patch
-proper-__do_softirq-prototype.patch
-proper-extern-for-late_time_init.patch
-remove-ecryptfs_header_cache_0.patch
-make-ds1511_rtc_readset_time-static.patch
-pnp-skip-dev-protocol-null-checks.patch
-make-ext3_xattr_list-static.patch
-make-cgroup_enable_task_cg_lists-static.patch
-cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh.patch
-kernel-cpusetc-make-3-functions-static.patch
-ipmi-make-alloc_recv_msg-static.patch
-ipmi-fix-return-from-atca_oem_poweroff_hook.patch
-include-linux-sysctlh-remove-empty-else.patch
-remove-aoedev_isbusy.patch
-make-marker_debug-static.patch
-edac-remove-unneeded-functions-and-add-static-accessor.patch
-reiser4.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
+vfat-bug-fix-for-vfat-cannot-handle-filename-with-255.patch
 
