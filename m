@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-fix-return-from-atca_oem_poweroff_hook.patch added to -mm tree
-Date: Sun, 27 Apr 2008 12:29:21 -0700
-Message-ID: <200804271929.m3RJTLVR021192@imap1.linux-foundation.org>
+Subject: + ipmi-make-alloc_recv_msg-static.patch added to -mm tree
+Date: Sun, 27 Apr 2008 12:29:19 -0700
+Message-ID: <200804271929.m3RJTJj8021188@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36316 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762962AbYD0Taw (ORCPT
+	by vger.kernel.org with ESMTP id S1763282AbYD0Tay (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Apr 2008 15:30:52 -0400
+	Sun, 27 Apr 2008 15:30:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@kernel.org, cminyard@mvista.com
 
 
 The patch titled
-     ipmi: fix return from atca_oem_poweroff_hook
+     ipmi: make alloc_recv_msg static
 has been added to the -mm tree.  Its filename is
-     ipmi-fix-return-from-atca_oem_poweroff_hook.patch
+     ipmi-make-alloc_recv_msg-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi: fix return from atca_oem_poweroff_hook
+Subject: ipmi: make alloc_recv_msg static
 From: Adrian Bunk <bunk@kernel.org>
 
-A void returning function returned the return value of another void
-returning function...
-
-Spotted by sparse.
+Make the needlessly global ipmi_alloc_recv_msg() static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_poweroff.c |    2 +-
+ drivers/char/ipmi/ipmi_msghandler.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/ipmi/ipmi_poweroff.c~ipmi-fix-return-from-atca_oem_poweroff_hook drivers/char/ipmi/ipmi_poweroff.c
---- a/drivers/char/ipmi/ipmi_poweroff.c~ipmi-fix-return-from-atca_oem_poweroff_hook
-+++ a/drivers/char/ipmi/ipmi_poweroff.c
-@@ -308,7 +308,7 @@ static void ipmi_poweroff_atca(ipmi_user
- 	}
- 
- 	if (atca_oem_poweroff_hook)
--		return atca_oem_poweroff_hook(user);
-+		atca_oem_poweroff_hook(user);
-  out:
- 	return;
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-make-alloc_recv_msg-static drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-make-alloc_recv_msg-static
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -3932,7 +3932,7 @@ static void free_recv_msg(struct ipmi_re
+ 	kfree(msg);
  }
+ 
+-struct ipmi_recv_msg *ipmi_alloc_recv_msg(void)
++static struct ipmi_recv_msg *ipmi_alloc_recv_msg(void)
+ {
+ 	struct ipmi_recv_msg *rv;
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
