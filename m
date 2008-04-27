@@ -1,63 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - hotplug-memory-make-online_page-common-fix.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 11:43:13 -0700
-Message-ID: <200804271843.m3RIhDER019602@imap1.linux-foundation.org>
+Subject: - disable-the-memory-controller-by-default-v3-fix.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 11:43:58 -0700
+Message-ID: <200804271843.m3RIhwNA019638@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34248 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41061 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758064AbYD0SoI (ORCPT
+	by vger.kernel.org with ESMTP id S1758107AbYD0Sol (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Apr 2008 14:44:08 -0400
+	Sun, 27 Apr 2008 14:44:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, clameter@sgi.com, dave@linux.vnet.ibm.com, jeremy.fitzhardinge@citrix.com, jeremy@goop.org, mingo@elte.hu, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, stable@kernel.org, xemul@openvz.org, yamamoto@valinux.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hotplug-memory-make-online_page-common-fix
+     disable-the-memory-controller-by-default-v3-fix
 has been removed from the -mm tree.  Its filename was
-     hotplug-memory-make-online_page-common-fix.patch
+     disable-the-memory-controller-by-default-v3-fix.patch
 
-This patch was dropped because it was folded into hotplug-memory-make-online_page-common.patch
+This patch was dropped because it was folded into disable-the-memory-controller-by-default-v3.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hotplug-memory-make-online_page-common-fix
+Subject: disable-the-memory-controller-by-default-v3-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+`inline __init' doesn't make sense.
+
+Cc: AMAMOTO Takashi <yamamoto@valinux.co.jp>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
+Cc: Pavel Emelianov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    2 +-
+ kernel/cgroup.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~hotplug-memory-make-online_page-common-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~hotplug-memory-make-online_page-common-fix
-+++ a/mm/memory_hotplug.c
-@@ -226,7 +226,7 @@ void online_page(struct page *page)
+diff -puN kernel/cgroup.c~disable-the-memory-controller-by-default-v3-fix kernel/cgroup.c
+--- a/kernel/cgroup.c~disable-the-memory-controller-by-default-v3-fix
++++ a/kernel/cgroup.c
+@@ -3020,7 +3020,7 @@ static void cgroup_release_agent(struct 
+ 	mutex_unlock(&cgroup_mutex);
+ }
  
- #ifdef CONFIG_HIGHMEM
- 	if (PageHighMem(page))
--	    totalhigh_pages++;
-+		totalhigh_pages++;
- #endif
- 
- #ifdef CONFIG_FLATMEM
+-static inline int __init cgroup_turnonoff(char *str, int disable)
++static int __init cgroup_turnonoff(char *str, int disable)
+ {
+ 	int i;
+ 	char *token;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 hotplug-memory-make-online_page-common.patch
-hotplug-memory-make-online_page-common-fix.patch
+disable-the-memory-controller-by-default-v3.patch
 disable-the-memory-controller-by-default-v3-fix.patch
 git-acpi.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
