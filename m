@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - use-__fls-for-fls64-on-64-bit-archs.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 11:36:52 -0700
-Message-ID: <200804271836.m3RIaqfw019368@imap1.linux-foundation.org>
+Subject: - introduce-a-generic-__fls-implementation.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 11:36:41 -0700
+Message-ID: <200804271836.m3RIafZT019362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58232 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44518 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758107AbYD0Sje (ORCPT
+	by vger.kernel.org with ESMTP id S1759528AbYD0Sje (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Sun, 27 Apr 2008 14:39:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,20 +15,34 @@ To: heukelum@mailshack.com, benh@kernel.crashing.org, davem@davemloft.net, grund
 
 
 The patch titled
-     Use __fls for fls64 on 64-bit archs
+     Introduce a generic __fls implementation
 has been removed from the -mm tree.  Its filename was
-     use-__fls-for-fls64-on-64-bit-archs.patch
+     introduce-a-generic-__fls-implementation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Use __fls for fls64 on 64-bit archs
+Subject: Introduce a generic __fls implementation
 From: Alexander van Heukelum <heukelum@mailshack.com>
 
-Use __fls for fls64 on 64-bit archs.  The implementation for 64-bit archs is
-moved from x86_64 to asm-generic.
+This series of patches:
+
+[1/3] adds __fls.h to asm-generic
+[2/3] modifies asm-*/bitops.h for 64-bit archs to implement __fls
+[3/3] modifies asm-generic/fls64.h to make use of __fls
+
+I have compiled i386 and x86_64, and they generate the same code as before the
+change.  These patches make one tiny bit of the x86-unification a tiny bit
+cleaner.
+
+
+
+This patch:
+
+Add a generic __fls implementation in the same spirit as the generic __ffs
+one.  It finds the last (most significant) set bit in the given long value.
 
 Signed-off-by: Alexander van Heukelum <heukelum@fastmail.fm>
 Cc: Richard Henderson <rth@twiddle.net>
@@ -49,63 +63,59 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/fls64.h |   22 ++++++++++++++++++++++
- include/asm-x86/bitops_64.h        |   15 ++-------------
- 2 files changed, 24 insertions(+), 13 deletions(-)
+ include/asm-generic/bitops/__fls.h |   43 +++++++++++++++++++++++++++
+ 1 file changed, 43 insertions(+)
 
-diff -puN include/asm-generic/bitops/fls64.h~use-__fls-for-fls64-on-64-bit-archs include/asm-generic/bitops/fls64.h
---- a/include/asm-generic/bitops/fls64.h~use-__fls-for-fls64-on-64-bit-archs
-+++ a/include/asm-generic/bitops/fls64.h
-@@ -3,6 +3,18 @@
- 
- #include <asm/types.h>
- 
+diff -puN /dev/null include/asm-generic/bitops/__fls.h
+--- /dev/null
++++ a/include/asm-generic/bitops/__fls.h
+@@ -0,0 +1,43 @@
++#ifndef _ASM_GENERIC_BITOPS___FLS_H_
++#define _ASM_GENERIC_BITOPS___FLS_H_
++
++#include <asm/types.h>
++
 +/**
-+ * fls64 - find last set bit in a 64-bit word
-+ * @x: the word to search
++ * __fls - find last (most-significant) set bit in a long word
++ * @word: the word to search
 + *
-+ * This is defined in a similar way as the libc and compiler builtin
-+ * ffsll, but returns the position of the most significant set bit.
-+ *
-+ * fls64(value) returns 0 if value is 0 or the position of the last
-+ * set bit if value is nonzero. The last (most significant) bit is
-+ * at position 64.
++ * Undefined if no set bit exists, so code should check against 0 first.
 + */
-+#if BITS_PER_LONG == 32
- static inline int fls64(__u64 x)
- {
- 	__u32 h = x >> 32;
-@@ -10,5 +22,15 @@ static inline int fls64(__u64 x)
- 		return fls(h) + 32;
- 	return fls(x);
- }
-+#elif BITS_PER_LONG == 64
-+static inline int fls64(__u64 x)
++static inline unsigned long __fls(unsigned long word)
 +{
-+	if (x == 0)
-+		return 0;
-+	return __fls(x) + 1;
-+}
-+#else
-+#error BITS_PER_LONG not 32 or 64
++	int num = BITS_PER_LONG - 1;
++
++#if BITS_PER_LONG == 64
++	if (!(word & (~0ul << 32))) {
++		num -= 32;
++		word <<= 32;
++	}
 +#endif
- 
- #endif /* _ASM_GENERIC_BITOPS_FLS64_H_ */
-diff -puN include/asm-x86/bitops_64.h~use-__fls-for-fls64-on-64-bit-archs include/asm-x86/bitops_64.h
---- a/include/asm-x86/bitops_64.h~use-__fls-for-fls64-on-64-bit-archs
-+++ a/include/asm-x86/bitops_64.h
-@@ -112,19 +112,6 @@ static inline int ffs(int x)
- }
- 
- /**
-- * fls64 - find last bit set in 64 bit word
-- * @x: the word to search
-- *
-- * This is defined the same way as fls.
-- */
--static inline int fls64(__u64 x)
--{
--	if (x == 0)
--		return 0;
--	return __fls(x) + 1;
--}
++	if (!(word & (~0ul << (BITS_PER_LONG-16)))) {
++		num -= 16;
++		word <<= 16;
++	}
++	if (!(word & (~0ul << (BITS_PER_LONG-8)))) {
++		num -= 8;
++		word <<= 8;
++	}
++	if (!(word & (~0ul << (BITS_PER_LONG-4)))) {
++		num -= 4;
++		word <<= 4;
++	}
++	if (!(word & (~0ul << (BITS_PER_LONG-2)))) {
++		num -= 2;
++		word <<= 2;
++	}
++	if (!(word & (~0ul << (BITS_PER_LONG-1))))
++		num -= 1;
++	return num;
++}
++
++#endif /* _ASM_GENERIC_BITOPS___FLS_H_ */
+_
+
+Patches currently in -mm which might be from heukelum@mailshack.com are
+
+origin.patch
+
