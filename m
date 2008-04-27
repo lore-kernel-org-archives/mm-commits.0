@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fdpic-check-that-the-size-returned-by-kernel_read-is-what-we-asked-for.patch added to -mm tree
-Date: Sun, 27 Apr 2008 11:57:21 -0700
-Message-ID: <200804271857.m3RIvLji020072@imap1.linux-foundation.org>
+Subject: + cris-add-constfy-to-pgd_offset.patch added to -mm tree
+Date: Sun, 27 Apr 2008 11:58:50 -0700
+Message-ID: <200804271858.m3RIwoB8020121@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40716 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56004 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750751AbYD0S5n (ORCPT
+	by vger.kernel.org with ESMTP id S1751023AbYD0S7L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Apr 2008 14:57:43 -0400
+	Sun, 27 Apr 2008 14:59:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dhowells@redhat.com
+Cc: kosaki.motohiro@jp.fujitsu.com, jesper.nilsson@axis.com, mpm@selenic.com, starvik@axis.com, vegard.nossum@gmail.com
 
 
 The patch titled
-     fdpic: check that the size returned by kernel_read() is what we asked for
+     cris: add constfy to pgd_offset()
 has been added to the -mm tree.  Its filename is
-     fdpic-check-that-the-size-returned-by-kernel_read-is-what-we-asked-for.patch
+     cris-add-constfy-to-pgd_offset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,92 +34,58 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fdpic: check that the size returned by kernel_read() is what we asked for
-From: David Howells <dhowells@redhat.com>
+Subject: cris: add constfy to pgd_offset()
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Check that the size of the read returned by kernel_read() is what we asked
-for.  If it isn't, then reject the binary as being a badly formatted.
+add constfy to pgd_offset() for avoid following warnings.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+  CC      mm/pagewalk.o
+mm/pagewalk.c: In function 'walk_page_range':
+mm/pagewalk.c:111: warning: passing argument 1 of 'pgd_offset' discards qualifiers from p\
+ointer target type
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: "Vegard Nossum" <vegard.nossum@gmail.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ include/asm-cris/pgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf_fdpic.c~fdpic-check-that-the-size-returned-by-kernel_read-is-what-we-asked-for fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~fdpic-check-that-the-size-returned-by-kernel_read-is-what-we-asked-for
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -136,8 +136,8 @@ static int elf_fdpic_fetch_phdrs(struct 
+diff -puN include/asm-cris/pgtable.h~cris-add-constfy-to-pgd_offset include/asm-cris/pgtable.h
+--- a/include/asm-cris/pgtable.h~cris-add-constfy-to-pgd_offset
++++ a/include/asm-cris/pgtable.h
+@@ -231,7 +231,7 @@ static inline void pmd_set(pmd_t * pmdp,
+ #define pgd_index(address) (((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
  
- 	retval = kernel_read(file, params->hdr.e_phoff,
- 			     (char *) params->phdrs, size);
--	if (retval < 0)
--		return retval;
-+	if (unlikely(retval != size))
-+		return retval < 0 ? retval : -ENOEXEC;
- 
- 	/* determine stack size for this binary */
- 	phdr = params->phdrs;
-@@ -218,8 +218,11 @@ static int load_elf_fdpic_binary(struct 
- 					     phdr->p_offset,
- 					     interpreter_name,
- 					     phdr->p_filesz);
--			if (retval < 0)
-+			if (unlikely(retval != phdr->p_filesz)) {
-+				if (retval >= 0)
-+					retval = -ENOEXEC;
- 				goto error;
-+			}
- 
- 			retval = -ENOENT;
- 			if (interpreter_name[phdr->p_filesz - 1] != '\0')
-@@ -245,8 +248,11 @@ static int load_elf_fdpic_binary(struct 
- 
- 			retval = kernel_read(interpreter, 0, bprm->buf,
- 					     BINPRM_BUF_SIZE);
--			if (retval < 0)
-+			if (unlikely(retval != BINPRM_BUF_SIZE)) {
-+				if (retval >= 0)
-+					retval = -ENOEXEC;
- 				goto error;
-+			}
- 
- 			interp_params.hdr = *((struct elfhdr *) bprm->buf);
- 			break;
+ /* to find an entry in a page-table-directory */
+-static inline pgd_t * pgd_offset(struct mm_struct * mm, unsigned long address)
++static inline pgd_t * pgd_offset(const struct mm_struct *mm, unsigned long address)
+ {
+ 	return mm->pgd + pgd_index(address);
+ }
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
 origin.patch
-git-unionfs.patch
-remove-the-macro-get_personality.patch
-fdpic-check-that-the-size-returned-by-kernel_read-is-what-we-asked-for.patch
-xattr-add-missing-consts-to-function-arguments.patch
-keys-increase-the-payload-size-when-instantiating-a-key.patch
-keys-check-starting-keyring-as-part-of-search.patch
-keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
-keys-add-keyctl-function-to-get-a-security-label.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-keys-switch-to-proc_create.patch
-keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
-keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
-keys-make-the-keyring-quotas-controllable-through-proc-sys.patch
-keys-make-the-keyring-quotas-controllable-through-proc-sys-fix.patch
-keys-explicitly-include-required-slabh-header-file.patch
-keys-make-key_serial-a-function-if-config_keys=y.patch
-procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
-procfs-task-exe-symlink-fix-2.patch
-proc-introduce-proc_create_data-to-setup-de-data.patch
-afs-use-non-racy-method-for-proc-entries-creation.patch
-alloc_uid-cleanup.patch
-rename-div64_64-to-div64_u64.patch
-afs-use-the-shorter-list_head-for-brevity.patch
-afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself.patch
-afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself-try-3.patch
-add-kbuildh-that-contains-common-definitions-for-kbuild-users.patch
-frv-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
-mn10300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
-mutex-subsystem-synchro-test-module.patch
+mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
+vmallocinfo-add-caller-information.patch
+sparsemem-vmemmap-does-not-need-section-bits.patch
+kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
+pageflags-use-an-enum-for-the-flags.patch
+pageflags-get-rid-of-flags_reserved.patch
+pageflags-introduce-macros-to-generate-page-flag-functions.patch
+pageflags-convert-to-the-use-of-new-macros.patch
+pageflags-use-proper-page-flag-functions-in-xen.patch
+pageflags-eliminate-pg_xxx-aliases.patch
+smaps-account-swap-entries.patch
+smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+hugetlb-vmstat-events-for-huge-page-allocations.patch
+memcgroup-make-the-memory-controller-more-desktop-responsive.patch
+cris-add-constfy-to-pgd_offset.patch
 
