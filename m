@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cris-add-constfy-to-pgd_offset.patch added to -mm tree
-Date: Sun, 27 Apr 2008 11:58:50 -0700
-Message-ID: <200804271858.m3RIwoB8020121@imap1.linux-foundation.org>
+Subject: + maintainers-clarify-status-of-mn10300-mailing-list-as-moderated.patch added to -mm tree
+Date: Sun, 27 Apr 2008 12:05:02 -0700
+Message-ID: <200804271905.m3RJ52d7020329@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56004 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42321 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751023AbYD0S7L (ORCPT
+	by vger.kernel.org with ESMTP id S1762306AbYD0TFx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Apr 2008 14:59:11 -0400
+	Sun, 27 Apr 2008 15:05:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kosaki.motohiro@jp.fujitsu.com, jesper.nilsson@axis.com, mpm@selenic.com, starvik@axis.com, vegard.nossum@gmail.com
+Cc: rpjday@crashcourse.ca, dhowells@redhat.com
 
 
 The patch titled
-     cris: add constfy to pgd_offset()
+     MAINTAINERS: clarify status of MN10300 mailing list as moderated
 has been added to the -mm tree.  Its filename is
-     cris-add-constfy-to-pgd_offset.patch
+     maintainers-clarify-status-of-mn10300-mailing-list-as-moderated.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris: add constfy to pgd_offset()
-From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Subject: MAINTAINERS: clarify status of MN10300 mailing list as moderated
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-add constfy to pgd_offset() for avoid following warnings.
-
-  CC      mm/pagewalk.o
-mm/pagewalk.c: In function 'walk_page_range':
-mm/pagewalk.c:111: warning: passing argument 1 of 'pgd_offset' discards qualifiers from p\
-ointer target type
-
-Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: "Vegard Nossum" <vegard.nossum@gmail.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-cris/pgtable.h |    2 +-
+ MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-cris/pgtable.h~cris-add-constfy-to-pgd_offset include/asm-cris/pgtable.h
---- a/include/asm-cris/pgtable.h~cris-add-constfy-to-pgd_offset
-+++ a/include/asm-cris/pgtable.h
-@@ -231,7 +231,7 @@ static inline void pmd_set(pmd_t * pmdp,
- #define pgd_index(address) (((address) >> PGDIR_SHIFT) & (PTRS_PER_PGD-1))
+diff -puN MAINTAINERS~maintainers-clarify-status-of-mn10300-mailing-list-as-moderated MAINTAINERS
+--- a/MAINTAINERS~maintainers-clarify-status-of-mn10300-mailing-list-as-moderated
++++ a/MAINTAINERS
+@@ -2701,7 +2701,7 @@ P:	David Howells
+ M:	dhowells@redhat.com
+ P:	Koichi Yasutake
+ M:	yasutake.koichi@jp.panasonic.com
+-L:	linux-am33-list@redhat.com
++L:	linux-am33-list@redhat.com (moderated for non-subscribers)
+ W:	ftp://ftp.redhat.com/pub/redhat/gnupro/AM33/
+ S:	Maintained
  
- /* to find an entry in a page-table-directory */
--static inline pgd_t * pgd_offset(struct mm_struct * mm, unsigned long address)
-+static inline pgd_t * pgd_offset(const struct mm_struct *mm, unsigned long address)
- {
- 	return mm->pgd + pgd_index(address);
- }
 _
 
-Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
 origin.patch
-mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
-vmallocinfo-add-caller-information.patch
-sparsemem-vmemmap-does-not-need-section-bits.patch
-kbuild-create-a-way-to-create-preprocessor-constants-from-c-expressions.patch
-pageflags-use-an-enum-for-the-flags.patch
-pageflags-get-rid-of-flags_reserved.patch
-pageflags-introduce-macros-to-generate-page-flag-functions.patch
-pageflags-convert-to-the-use-of-new-macros.patch
-pageflags-use-proper-page-flag-functions-in-xen.patch
-pageflags-eliminate-pg_xxx-aliases.patch
-smaps-account-swap-entries.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations.patch
-memcgroup-make-the-memory-controller-more-desktop-responsive.patch
-cris-add-constfy-to-pgd_offset.patch
+git-mtd.patch
+git-nfsd.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
+kernel-explicitly-include-required-header-files-under-kernel.patch
+remove-superfluous-include-of-stringh-from-percpuh.patch
+kbuild-remove-duplicate-conflicting-entry-for-oomh.patch
+kbuild-move-files-that-dont-check-__kernel__.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+maintainers-clarify-status-of-mn10300-mailing-list-as-moderated.patch
+mfd-use-shorter-set_current_state.patch
+isdn-fix-obvious-cut-and-paste-error-in-st5481_usbc.patch
+keys-explicitly-include-required-slabh-header-file.patch
+nbd-delete-superfluous-test-for-__gnuc__.patch
+generalize-asm-generic-ioctlh-to-allow-overriding-values.patch
+edac-use-the-shorter-list_head-for-brevity.patch
+afs-use-the-shorter-list_head-for-brevity.patch
+sysv-fs-remove-superfluous-check-for-__gnuc__-compiler.patch
+remove-ifdef-__kernel__-checks-from-unexported-headers.patch
+remove-__kernel__-tests-of-unexported-headers-under-asm-generic.patch
+drop-the-exporting-of-empty-linux-byteorder-generich.patch
 
