@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + add-balance_dirty_pages_ratelimited-to-cont_expand_zero.patch added to -mm tree
-Date: Sun, 27 Apr 2008 12:07:51 -0700
-Message-ID: <200804271907.m3RJ7pZF020438@imap1.linux-foundation.org>
+Subject: + fat-use-__getname.patch added to -mm tree
+Date: Sun, 27 Apr 2008 12:08:29 -0700
+Message-ID: <200804271908.m3RJ8TQx020451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51538 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762989AbYD0THy (ORCPT
+	by vger.kernel.org with ESMTP id S1763155AbYD0TIc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Apr 2008 15:07:54 -0400
+	Sun, 27 Apr 2008 15:08:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: hirofumi@mail.parknet.co.jp
 
 
 The patch titled
-     Add balance_dirty_pages_ratelimited() to cont_expand_zero()
+     fat: use __getname()
 has been added to the -mm tree.  Its filename is
-     add-balance_dirty_pages_ratelimited-to-cont_expand_zero.patch
+     fat-use-__getname.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,36 +34,135 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add balance_dirty_pages_ratelimited() to cont_expand_zero()
+Subject: fat: use __getname()
 From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-On the systems, ftruncate() which expand size for FAT became the cause
-of OOM.  The cont_expand_zero() filled all memory with dirty pages,
-and since disk is very slow, limit of page scanning was exceeded, then
-it triggered OOM.
-
-This adds balance_dirty_pages_ratelimited() to avoid filling memory
-with dirty pages.
+__getname() is faster than __get_free_page(). Use it.
 
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/fat/dir.c    |   20 ++++++++++----------
+ fs/vfat/namei.c |   10 ++++------
+ 2 files changed, 14 insertions(+), 16 deletions(-)
 
-diff -puN fs/buffer.c~add-balance_dirty_pages_ratelimited-to-cont_expand_zero fs/buffer.c
---- a/fs/buffer.c~add-balance_dirty_pages_ratelimited-to-cont_expand_zero
-+++ a/fs/buffer.c
-@@ -2245,6 +2245,8 @@ static int cont_expand_zero(struct file 
- 			goto out;
- 		BUG_ON(err != len);
- 		err = 0;
-+
-+		balance_dirty_pages_ratelimited(mapping);
- 	}
+diff -puN fs/fat/dir.c~fat-use-__getname fs/fat/dir.c
+--- a/fs/fat/dir.c~fat-use-__getname
++++ a/fs/fat/dir.c
+@@ -247,7 +247,7 @@ static int fat_parse_long(struct inode *
+ 	unsigned char id, slot, slots, alias_checksum;
  
- 	/* page covers the boundary, find the boundary offset */
+ 	if (!*unicode) {
+-		*unicode = (wchar_t *)__get_free_page(GFP_KERNEL);
++		*unicode = __getname();
+ 		if (!*unicode) {
+ 			brelse(*bh);
+ 			return -ENOMEM;
+@@ -327,7 +327,7 @@ int fat_search_long(struct inode *inode,
+ 	loff_t cpos = 0;
+ 	int chl, i, j, last_u, err;
+ 
+-	bufname = (unsigned char*)__get_free_page(GFP_KERNEL);
++	bufname = __getname();
+ 	if (!bufname)
+ 		return -ENOMEM;
+ 
+@@ -396,8 +396,8 @@ parse_record:
+ 
+ 		bufuname[last_u] = 0x0000;
+ 		xlate_len = utf8
+-			?utf8_wcstombs(bufname, bufuname, PAGE_SIZE)
+-			:uni16_to_x8(bufname, bufuname, PAGE_SIZE, uni_xlate, nls_io);
++			?utf8_wcstombs(bufname, bufuname, PATH_MAX)
++			:uni16_to_x8(bufname, bufuname, PATH_MAX, uni_xlate, nls_io);
+ 		if (xlate_len == name_len)
+ 			if ((!anycase && !memcmp(name, bufname, xlate_len)) ||
+ 			    (anycase && !nls_strnicmp(nls_io, name, bufname,
+@@ -406,8 +406,8 @@ parse_record:
+ 
+ 		if (nr_slots) {
+ 			xlate_len = utf8
+-				?utf8_wcstombs(bufname, unicode, PAGE_SIZE)
+-				:uni16_to_x8(bufname, unicode, PAGE_SIZE, uni_xlate, nls_io);
++				?utf8_wcstombs(bufname, unicode, PATH_MAX)
++				:uni16_to_x8(bufname, unicode, PATH_MAX, uni_xlate, nls_io);
+ 			if (xlate_len != name_len)
+ 				continue;
+ 			if ((!anycase && !memcmp(name, bufname, xlate_len)) ||
+@@ -427,9 +427,9 @@ Found:
+ 	err = 0;
+ EODir:
+ 	if (bufname)
+-		free_page((unsigned long)bufname);
++		__putname(bufname);
+ 	if (unicode)
+-		free_page((unsigned long)unicode);
++		__putname(unicode);
+ 
+ 	return err;
+ }
+@@ -619,7 +619,7 @@ parse_record:
+ 		/* convert the unicode long name. 261 is maximum size
+ 		 * of unicode buffer. (13 * slots + nul) */
+ 		void *longname = unicode + 261;
+-		int buf_size = PAGE_SIZE - (261 * sizeof(unicode[0]));
++		int buf_size = PATH_MAX - (261 * sizeof(unicode[0]));
+ 		int long_len = utf8
+ 			? utf8_wcstombs(longname, unicode, buf_size)
+ 			: uni16_to_x8(longname, unicode, buf_size, uni_xlate, nls_io);
+@@ -652,7 +652,7 @@ EODir:
+ FillFailed:
+ 	brelse(bh);
+ 	if (unicode)
+-		free_page((unsigned long)unicode);
++		__putname(unicode);
+ out:
+ 	unlock_kernel();
+ 	return ret;
+diff -puN fs/vfat/namei.c~fat-use-__getname fs/vfat/namei.c
+--- a/fs/vfat/namei.c~fat-use-__getname
++++ a/fs/vfat/namei.c
+@@ -472,7 +472,7 @@ xlate_to_uni(const unsigned char *name, 
+ 	if (utf8) {
+ 		int name_len = strlen(name);
+ 
+-		*outlen = utf8_mbstowcs((wchar_t *)outname, name, PAGE_SIZE);
++		*outlen = utf8_mbstowcs((wchar_t *)outname, name, PATH_MAX);
+ 
+ 		/*
+ 		 * We stripped '.'s before and set len appropriately,
+@@ -565,7 +565,6 @@ static int vfat_build_slots(struct inode
+ 	struct fat_mount_options *opts = &sbi->options;
+ 	struct msdos_dir_slot *ps;
+ 	struct msdos_dir_entry *de;
+-	unsigned long page;
+ 	unsigned char cksum, lcase;
+ 	unsigned char msdos_name[MSDOS_NAME];
+ 	wchar_t *uname;
+@@ -575,11 +574,10 @@ static int vfat_build_slots(struct inode
+ 
+ 	*nr_slots = 0;
+ 
+-	page = __get_free_page(GFP_KERNEL);
+-	if (!page)
++	uname = __getname();
++	if (!uname)
+ 		return -ENOMEM;
+ 
+-	uname = (wchar_t *)page;
+ 	err = xlate_to_uni(name, len, (unsigned char *)uname, &ulen, &usize,
+ 			   opts->unicode_xlate, opts->utf8, sbi->nls_io);
+ 	if (err)
+@@ -631,7 +629,7 @@ shortname:
+ 	de->starthi = cpu_to_le16(cluster >> 16);
+ 	de->size = 0;
+ out_free:
+-	free_page(page);
++	__putname(uname);
+ 	return err;
+ }
+ 
 _
 
 Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
