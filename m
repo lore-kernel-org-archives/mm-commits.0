@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + bitmap-fix-calculation-of-bitmap_scnprintf_len.patch added to -mm tree
-Date: Sun, 27 Apr 2008 13:51:15 -0700
-Message-ID: <200804272051.m3RKpFvu024271@imap1.linux-foundation.org>
+Subject: + metronomefb-dont-free-firmware-twice-in-error-path.patch added to -mm tree
+Date: Sun, 27 Apr 2008 13:58:22 -0700
+Message-ID: <200804272058.m3RKwMSd024487@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54768 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36715 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764443AbYD0Uvk (ORCPT
+	by vger.kernel.org with ESMTP id S1750970AbYD0U65 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Apr 2008 16:51:40 -0400
+	Sun, 27 Apr 2008 16:58:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bert.wesarg@googlemail.com, mingo@elte.hu, pj@sgi.com, travis@sgi.com
+Cc: frame+buffer@ml.breakpoint.cc, adaplas@pol.net, jayakumar.lkml@gmail.com, sebastian@breakpoint.cc
 
 
 The patch titled
-     bitmap: Fix calculation of bitmap_scnprintf_len()
+     metronomefb: don't free firmware twice in error path
 has been added to the -mm tree.  Its filename is
-     bitmap-fix-calculation-of-bitmap_scnprintf_len.patch
+     metronomefb-dont-free-firmware-twice-in-error-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bitmap: Fix calculation of bitmap_scnprintf_len()
-From: Bert Wesarg <bert.wesarg@googlemail.com>
+Subject: metronomefb: don't free firmware twice in error path
+From: Sebastian Siewior <frame+buffer@ml.breakpoint.cc>
 
-The function bitmap_scnprintf_len() is currently not used, but the returned
-value is 4 times larger than needed.  This value is also only a good upper
-bound.  Which should be mentioned in the comment.
+Right now, if request_irq or anthing after it fails than we free the firmware
+for the second time what might end bad :)
 
-The correct number of chars needed for the buffer, exluding any new line and
-terminating zero is:
-
-int bitmap_scnprintf_len(int len)
-{
-	return  /* complete hunks with commas */
-	          ((len / CHUNKSZ) * 9)
-	        /* partial hunk, 4 bits in one char */
-	       + (((len % CHUNKSZ) + 3) / 4)
-	        /* one less comma, if no partial hunk */
-	       -  !(len % CHUNKSZ);
-}
-
-Signed-off-by: Bert Wesarg <bert.wesarg@googlemail.com>
-Cc: Mike Travis <travis@sgi.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Sebastian Siewior <sebastian@breakpoint.cc>
+Acked-by: Jaya Kumar <jayakumar.lkml@gmail.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/metronomefb.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN lib/bitmap.c~bitmap-fix-calculation-of-bitmap_scnprintf_len lib/bitmap.c
---- a/lib/bitmap.c~bitmap-fix-calculation-of-bitmap_scnprintf_len
-+++ a/lib/bitmap.c
-@@ -325,7 +325,7 @@ int bitmap_scnprintf_len(unsigned int le
- 	/* we need 9 chars per word for 32 bit words (8 hexdigits + sep/null) */
- 	int bitslen = ALIGN(len, CHUNKSZ);
- 	int wordlen = CHUNKSZ / 4;
--	int buflen = (bitslen / wordlen) * (wordlen + 1) * sizeof(char);
-+	int buflen = (bitslen / CHUNKSZ) * (wordlen + 1);
+diff -puN drivers/video/metronomefb.c~metronomefb-dont-free-firmware-twice-in-error-path drivers/video/metronomefb.c
+--- a/drivers/video/metronomefb.c~metronomefb-dont-free-firmware-twice-in-error-path
++++ a/drivers/video/metronomefb.c
+@@ -671,14 +671,14 @@ static int __devinit metronomefb_probe(s
  
- 	return buflen;
- }
+ 	retval = load_waveform((u8 *) fw_entry->data, fw_entry->size,
+ 				par->metromem_wfm, 3, 31, &par->frame_count);
++	release_firmware(fw_entry);
+ 	if (retval < 0) {
+ 		printk(KERN_ERR "metronomefb: couldn't process waveform\n");
+-		goto err_ld_wfm;
++		goto err_dma_free;
+ 	}
+-	release_firmware(fw_entry);
+ 
+ 	if (board->setup_irq(info))
+-		goto err_ld_wfm;
++		goto err_dma_free;
+ 
+ 	retval = metronome_init_regs(par);
+ 	if (retval < 0)
+@@ -719,8 +719,6 @@ err_fb_rel:
+ 	framebuffer_release(info);
+ err_free_irq:
+ 	board->free_irq(info);
+-err_ld_wfm:
+-	release_firmware(fw_entry);
+ err_dma_free:
+ 	dma_free_writecombine(&dev->dev, par->metromemsize, par->metromem,
+ 				par->metromem_dma);
 _
 
-Patches currently in -mm which might be from bert.wesarg@googlemail.com are
+Patches currently in -mm which might be from frame+buffer@ml.breakpoint.cc are
 
-bitmap-fix-calculation-of-bitmap_scnprintf_len.patch
+metronomefb-dont-free-firmware-twice-in-error-path.patch
 
