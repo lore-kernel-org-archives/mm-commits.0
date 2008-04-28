@@ -1,125 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-fix-sparse-warning-in-journalc.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:01:17 -0700
-Message-ID: <200804282201.m3SM1HDa018843@imap1.linux-foundation.org>
+Subject: - reiserfs-le_add_cpu-conversion.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:01:14 -0700
+Message-ID: <200804282201.m3SM1EAG018832@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51749 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56558 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965762AbYD1WBa (ORCPT
+	by vger.kernel.org with ESMTP id S965684AbYD1WB2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:01:30 -0400
+	Mon, 28 Apr 2008 18:01:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, chris.mason@oracle.com, jeffm@suse.com, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, chris.mason@oracle.com, jeffm@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: fix sparse warning in journal.c
+     reiserfs: le*_add_cpu conversion
 has been removed from the -mm tree.  Its filename was
-     reiserfs-fix-sparse-warning-in-journalc.patch
+     reiserfs-le_add_cpu-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: fix sparse warning in journal.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: reiserfs: le*_add_cpu conversion
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-fs/reiserfs/journal.c:4319:2: warning: returning void-valued expression
+replace all:
+little_endian_variable = cpu_to_leX(leX_to_cpu(little_endian_variable) +
+					expression_in_cpu_byteorder);
+with:
+	leX_add_cpu(&little_endian_variable, expression_in_cpu_byteorder);
+generated with semantic patch
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Chris Mason <chris.mason@oracle.com>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
 Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Chris Mason <chris.mason@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/reiserfs/objectid.c |    5 ++---
+ fs/reiserfs/stree.c    |    3 +--
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/reiserfs/journal.c~reiserfs-fix-sparse-warning-in-journalc fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-fix-sparse-warning-in-journalc
-+++ a/fs/reiserfs/journal.c
-@@ -4316,5 +4316,5 @@ static void __reiserfs_journal_abort_sof
+diff -puN fs/reiserfs/objectid.c~reiserfs-le_add_cpu-conversion fs/reiserfs/objectid.c
+--- a/fs/reiserfs/objectid.c~reiserfs-le_add_cpu-conversion
++++ a/fs/reiserfs/objectid.c
+@@ -114,7 +114,7 @@ void reiserfs_release_objectid(struct re
+ 		if (objectid_to_release == le32_to_cpu(map[i])) {
+ 			/* This incrementation unallocates the objectid. */
+ 			//map[i]++;
+-			map[i] = cpu_to_le32(le32_to_cpu(map[i]) + 1);
++			le32_add_cpu(&map[i], 1);
  
- void reiserfs_journal_abort(struct super_block *sb, int errno)
- {
--	return __reiserfs_journal_abort_soft(sb, errno);
-+	__reiserfs_journal_abort_soft(sb, errno);
- }
+ 			/* Did we unallocate the last member of an odd sequence, and can shrink oids? */
+ 			if (map[i] == map[i + 1]) {
+@@ -138,8 +138,7 @@ void reiserfs_release_objectid(struct re
+ 			/* size of objectid map is not changed */
+ 			if (objectid_to_release + 1 == le32_to_cpu(map[i + 1])) {
+ 				//objectid_map[i+1]--;
+-				map[i + 1] =
+-				    cpu_to_le32(le32_to_cpu(map[i + 1]) - 1);
++				le32_add_cpu(&map[i + 1], -1);
+ 				return;
+ 			}
+ 
+diff -puN fs/reiserfs/stree.c~reiserfs-le_add_cpu-conversion fs/reiserfs/stree.c
+--- a/fs/reiserfs/stree.c~reiserfs-le_add_cpu-conversion
++++ a/fs/reiserfs/stree.c
+@@ -1419,8 +1419,7 @@ int reiserfs_delete_object(struct reiser
+ 
+ 		inode_generation =
+ 		    &REISERFS_SB(th->t_super)->s_rs->s_inode_generation;
+-		*inode_generation =
+-		    cpu_to_le32(le32_to_cpu(*inode_generation) + 1);
++		le32_add_cpu(inode_generation, 1);
+ 	}
+ /* USE_INODE_GENERATION_COUNTER */
+ #endif
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-git-kvm.patch
-git-mips.patch
-git-nfsd.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-git-watchdog.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-power-replace-remaining-__function__-occurrences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-firmware-replace-remaining-__function__-occurrences.patch
-drivers-misc-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-kernel-add-common-infrastructure-for-unaligned-access.patch
-kernel-move-arches-to-use-common-unaligned-access.patch
-drivers-block-use-get_unaligned_-helpers.patch
-hid-core-use-get_unaligned_-helpers.patch
-char-use-get_unaligned_-helpers.patch
-input-use-get_unaligned_-helpers.patch
-mmc-use-get-put_unaligned_-helpers.patch
-net-use-get-put_unaligned_-helpers.patch
-wireless-use-get-put_unaligned_-helpers.patch
-pcmcia-use-get-put_unaligned_-helpers.patch
-usb-use-get-put_unaligned_-helpers.patch
-video-use-get-put_unaligned_-helpers.patch
-fat-use-get-put_unaligned_-helpers.patch
-hfsplus-use-get-put_unaligned_-helpers.patch
-isofs-use-get-put_unaligned_-helpers.patch
-ncpfs-use-get-put_unaligned_-helpers.patch
-ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
+ntfs-le_add_cpu-conversion.patch
+affs-be_add_cpu-conversion.patch
+hfs-hfsplus-be_add_cpu-conversion.patch
+quota-le_add_cpu-conversion.patch
+sysv-e_add_cpu-conversion.patch
 
