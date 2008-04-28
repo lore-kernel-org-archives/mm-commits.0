@@ -1,144 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: - gpiochip_reserve.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:57:09 -0700
-Message-ID: <200804282157.m3SLv9EC018377@imap1.linux-foundation.org>
+Subject: - kprobes-add-unregister_jprobes-for-batch-registration.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:56:19 -0700
+Message-ID: <200804282156.m3SLuJcf018215@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43525 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54556 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966002AbYD1WDj (ORCPT
+	by vger.kernel.org with ESMTP id S965415AbYD1WHi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:03:39 -0400
+	Mon, 28 Apr 2008 18:07:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: mhiramat@redhat.com, ananth@in.ibm.com, davem@davemloft.net, fche@redhat.com, jkenisto@us.ibm.com, prasanna@in.ibm.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpiochip_reserve()
+     kprobes: add (un)register_jprobes for batch registration
 has been removed from the -mm tree.  Its filename was
-     gpiochip_reserve.patch
+     kprobes-add-unregister_jprobes-for-batch-registration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiochip_reserve()
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: kprobes: add (un)register_jprobes for batch registration
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-Add a new function gpiochip_reserve() to reserve ranges of gpios that platform
-code has pre-allocated.  That is, this marks gpio numbers which will be
-claimed by drivers that haven't yet been loaded, and thus are not available
-for dynamic gpio number allocation.
+Introduce unregister_/register_jprobes() for jprobe batch registration.
 
-[akpm@linux-foundation.org: remove unneeded __must_check]
-[david-b@pacbell.net: don't export gpiochip_reserve (section fix)]
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Jim Keniston <jkenisto@us.ibm.com>
+Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: "Frank Ch. Eigler" <fche@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c     |   50 ++++++++++++++++++++++++++++++++---
- include/asm-generic/gpio.h |    1 
- 2 files changed, 48 insertions(+), 3 deletions(-)
+ include/linux/kprobes.h |    9 +++++
+ kernel/kprobes.c        |   65 ++++++++++++++++++++++++++++++++------
+ 2 files changed, 65 insertions(+), 9 deletions(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpiochip_reserve drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiochip_reserve
-+++ a/drivers/gpio/gpiolib.c
-@@ -43,6 +43,7 @@ struct gpio_desc {
- /* flag symbols are bit numbers */
- #define FLAG_REQUESTED	0
- #define FLAG_IS_OUT	1
-+#define FLAG_RESERVED	2
+diff -puN include/linux/kprobes.h~kprobes-add-unregister_jprobes-for-batch-registration include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-add-unregister_jprobes-for-batch-registration
++++ a/include/linux/kprobes.h
+@@ -240,6 +240,8 @@ int setjmp_pre_handler(struct kprobe *, 
+ int longjmp_break_handler(struct kprobe *, struct pt_regs *);
+ int register_jprobe(struct jprobe *p);
+ void unregister_jprobe(struct jprobe *p);
++int register_jprobes(struct jprobe **jps, int num);
++void unregister_jprobes(struct jprobe **jps, int num);
+ void jprobe_return(void);
+ unsigned long arch_deref_entry_point(void *);
  
- #ifdef CONFIG_DEBUG_FS
- 	const char		*label;
-@@ -88,9 +89,10 @@ static int gpiochip_find_base(int ngpio)
- 	int base = -ENOSPC;
- 
- 	for (i = ARCH_NR_GPIOS - 1; i >= 0 ; i--) {
--		struct gpio_chip *chip = gpio_desc[i].chip;
-+		struct gpio_desc *desc = &gpio_desc[i];
-+		struct gpio_chip *chip = desc->chip;
- 
--		if (!chip) {
-+		if (!chip && !test_bit(FLAG_RESERVED, &desc->flags)) {
- 			spare++;
- 			if (spare == ngpio) {
- 				base = i;
-@@ -98,7 +100,8 @@ static int gpiochip_find_base(int ngpio)
- 			}
- 		} else {
- 			spare = 0;
--			i -= chip->ngpio - 1;
-+			if (chip)
-+				i -= chip->ngpio - 1;
- 		}
- 	}
- 
-@@ -108,6 +111,47 @@ static int gpiochip_find_base(int ngpio)
+@@ -279,9 +281,16 @@ static inline int register_jprobe(struct
+ {
+ 	return -ENOSYS;
+ }
++static inline int register_jprobes(struct jprobe **jps, int num)
++{
++	return -ENOSYS;
++}
+ static inline void unregister_jprobe(struct jprobe *p)
+ {
+ }
++static inline void unregister_jprobes(struct jprobe **jps, int num)
++{
++}
+ static inline void jprobe_return(void)
+ {
+ }
+diff -puN kernel/kprobes.c~kprobes-add-unregister_jprobes-for-batch-registration kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-add-unregister_jprobes-for-batch-registration
++++ a/kernel/kprobes.c
+@@ -755,24 +755,69 @@ unsigned long __weak arch_deref_entry_po
+ 	return (unsigned long)entry;
  }
  
- /**
-+ * gpiochip_reserve() - reserve range of gpios to use with platform code only
-+ * @start: starting gpio number
-+ * @ngpio: number of gpios to reserve
-+ * Context: platform init, potentially before irqs or kmalloc will work
-+ *
-+ * Returns a negative errno if any gpio within the range is already reserved
-+ * or registered, else returns zero as a success code.  Use this function
-+ * to mark a range of gpios as unavailable for dynamic gpio number allocation,
-+ * for example because its driver support is not yet loaded.
-+ */
-+int __init gpiochip_reserve(int start, int ngpio)
-+{
-+	int ret = 0;
-+	unsigned long flags;
-+	int i;
+-int __kprobes register_jprobe(struct jprobe *jp)
++static int __register_jprobes(struct jprobe **jps, int num,
++	unsigned long called_from)
+ {
+-	unsigned long addr = arch_deref_entry_point(jp->entry);
++	struct jprobe *jp;
++	int ret = 0, i;
+ 
+-	if (!kernel_text_address(addr))
++	if (num <= 0)
+ 		return -EINVAL;
++	for (i = 0; i < num; i++) {
++		unsigned long addr;
++		jp = jps[i];
++		addr = arch_deref_entry_point(jp->entry);
 +
-+	if (!gpio_is_valid(start) || !gpio_is_valid(start + ngpio))
-+		return -EINVAL;
-+
-+	spin_lock_irqsave(&gpio_lock, flags);
-+
-+	for (i = start; i < start + ngpio; i++) {
-+		struct gpio_desc *desc = &gpio_desc[i];
-+
-+		if (desc->chip || test_bit(FLAG_RESERVED, &desc->flags)) {
-+			ret = -EBUSY;
-+			goto err;
++		if (!kernel_text_address(addr))
++			ret = -EINVAL;
++		else {
++			/* Todo: Verify probepoint is a function entry point */
++			jp->kp.pre_handler = setjmp_pre_handler;
++			jp->kp.break_handler = longjmp_break_handler;
++			ret = __register_kprobe(&jp->kp, called_from);
 +		}
-+
-+		set_bit(FLAG_RESERVED, &desc->flags);
++		if (ret < 0 && i > 0) {
++			unregister_jprobes(jps, i);
++			break;
++		}
 +	}
-+
-+	pr_debug("%s: reserved gpios from %d to %d\n",
-+		 __func__, start, start + ngpio - 1);
-+err:
-+	spin_unlock_irqrestore(&gpio_lock, flags);
-+
 +	return ret;
 +}
+ 
+-	/* Todo: Verify probepoint is a function entry point */
+-	jp->kp.pre_handler = setjmp_pre_handler;
+-	jp->kp.break_handler = longjmp_break_handler;
+-
+-	return __register_kprobe(&jp->kp,
++int __kprobes register_jprobe(struct jprobe *jp)
++{
++	return __register_jprobes(&jp, 1,
+ 		(unsigned long)__builtin_return_address(0));
+ }
+ 
+ void __kprobes unregister_jprobe(struct jprobe *jp)
+ {
+-	unregister_kprobe(&jp->kp);
++	unregister_jprobes(&jp, 1);
++}
 +
-+/**
-  * gpiochip_add() - register a gpio_chip
-  * @chip: the chip to register, with chip->base initialized
-  * Context: potentially before irqs or kmalloc will work
-diff -puN include/asm-generic/gpio.h~gpiochip_reserve include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpiochip_reserve
-+++ a/include/asm-generic/gpio.h
-@@ -74,6 +74,7 @@ struct gpio_chip {
++int __kprobes register_jprobes(struct jprobe **jps, int num)
++{
++	return __register_jprobes(jps, num,
++		(unsigned long)__builtin_return_address(0));
++}
++
++void __kprobes unregister_jprobes(struct jprobe **jps, int num)
++{
++	int i;
++
++	if (num <= 0)
++		return;
++	mutex_lock(&kprobe_mutex);
++	for (i = 0; i < num; i++)
++		if (__unregister_kprobe_top(&jps[i]->kp) < 0)
++			jps[i]->kp.addr = NULL;
++	mutex_unlock(&kprobe_mutex);
++
++	synchronize_sched();
++	for (i = 0; i < num; i++) {
++		if (jps[i]->kp.addr)
++			__unregister_kprobe_bottom(&jps[i]->kp);
++	}
+ }
  
- extern const char *gpiochip_is_requested(struct gpio_chip *chip,
- 			unsigned offset);
-+extern int __init __must_check gpiochip_reserve(int start, int ngpio);
- 
- /* add/remove chips */
- extern int gpiochip_add(struct gpio_chip *chip);
+ #ifdef CONFIG_KRETPROBES
+@@ -1236,6 +1281,8 @@ EXPORT_SYMBOL_GPL(register_kprobes);
+ EXPORT_SYMBOL_GPL(unregister_kprobes);
+ EXPORT_SYMBOL_GPL(register_jprobe);
+ EXPORT_SYMBOL_GPL(unregister_jprobe);
++EXPORT_SYMBOL_GPL(register_jprobes);
++EXPORT_SYMBOL_GPL(unregister_jprobes);
+ #ifdef CONFIG_KPROBES
+ EXPORT_SYMBOL_GPL(jprobe_return);
+ #endif
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
 origin.patch
+relayfs-support-larger-relay-buffer-take-3.patch
+relayfs-support-larger-relay-buffer-take-3-cleanup.patch
 
