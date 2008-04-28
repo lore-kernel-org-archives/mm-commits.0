@@ -1,156 +1,108 @@
 From: akpm@linux-foundation.org
-Subject: - quota-do-not-allow-setting-of-quota-limits-to-too-high-values.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:56:23 -0700
-Message-ID: <200804282156.m3SLuNvO018221@imap1.linux-foundation.org>
+Subject: - quota-quota-core-changes-for-quotaon-on-remount-quota-reiserfs-make-reiserfs-handle-quotaon-on-remount.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:56:35 -0700
+Message-ID: <200804282156.m3SLuZS1018243@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44249 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936796AbYD1V42 (ORCPT
+	by vger.kernel.org with ESMTP id S937266AbYD1V4j (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:56:28 -0400
+	Mon, 28 Apr 2008 17:56:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andrew.perepechko@sun.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota: do not allow setting of quota limits to too high values
+     quota: reiserfs: make reiserfs handle quotaon on remount
 has been removed from the -mm tree.  Its filename was
-     quota-do-not-allow-setting-of-quota-limits-to-too-high-values.patch
+     quota-quota-core-changes-for-quotaon-on-remount-quota-reiserfs-make-reiserfs-handle-quotaon-on-remount.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: do not allow setting of quota limits to too high values
-From: Andrew Perepechko <andrew.perepechko@sun.com>
+Subject: quota: reiserfs: make reiserfs handle quotaon on remount
+From: Jan Kara <jack@suse.cz>
 
-We should check whether quota limits set via Q_SETQUOTA are not exceeding
-limits which quota format is able to handle.
+Update reiserfs to handle quotaon on remount RW.
 
-Signed-off-by: Andrew Perepechko <andrew.perepechko@sun.com>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c            |   22 +++++++++++++++++-----
- fs/quota_v1.c         |    3 +++
- fs/quota_v2.c         |    3 +++
- include/linux/quota.h |    2 ++
- 4 files changed, 25 insertions(+), 5 deletions(-)
+ fs/reiserfs/super.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN fs/dquot.c~quota-do-not-allow-setting-of-quota-limits-to-too-high-values fs/dquot.c
---- a/fs/dquot.c~quota-do-not-allow-setting-of-quota-limits-to-too-high-values
-+++ a/fs/dquot.c
-@@ -1709,10 +1709,19 @@ int vfs_get_dqblk(struct super_block *sb
- }
+diff -puN fs/reiserfs/super.c~quota-quota-core-changes-for-quotaon-on-remount-quota-reiserfs-make-reiserfs-handle-quotaon-on-remount fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~quota-quota-core-changes-for-quotaon-on-remount-quota-reiserfs-make-reiserfs-handle-quotaon-on-remount
++++ a/fs/reiserfs/super.c
+@@ -304,7 +304,7 @@ static int finish_unfinished(struct supe
+ 	/* Turn quotas off */
+ 	for (i = 0; i < MAXQUOTAS; i++) {
+ 		if (sb_dqopt(s)->files[i])
+-			vfs_quota_off(s, i);
++			vfs_quota_off(s, i, 0);
+ 	}
+ 	if (ms_active_set)
+ 		/* Restore the flag back */
+@@ -634,7 +634,7 @@ static int reiserfs_acquire_dquot(struct
+ static int reiserfs_release_dquot(struct dquot *);
+ static int reiserfs_mark_dquot_dirty(struct dquot *);
+ static int reiserfs_write_info(struct super_block *, int);
+-static int reiserfs_quota_on(struct super_block *, int, int, char *);
++static int reiserfs_quota_on(struct super_block *, int, int, char *, int);
  
- /* Generic routine for setting common part of quota structure */
--static void do_set_dqblk(struct dquot *dquot, struct if_dqblk *di)
-+static int do_set_dqblk(struct dquot *dquot, struct if_dqblk *di)
+ static struct dquot_operations reiserfs_quota_operations = {
+ 	.initialize = reiserfs_dquot_initialize,
+@@ -2015,13 +2015,16 @@ static int reiserfs_quota_on_mount(struc
+  * Standard function to be called on quota_on
+  */
+ static int reiserfs_quota_on(struct super_block *sb, int type, int format_id,
+-			     char *path)
++			     char *path, int remount)
  {
- 	struct mem_dqblk *dm = &dquot->dq_dqb;
- 	int check_blim = 0, check_ilim = 0;
-+	struct mem_dqinfo *dqi = &sb_dqopt(dquot->dq_sb)->info[dquot->dq_type];
-+
-+	if ((di->dqb_valid & QIF_BLIMITS &&
-+	     (di->dqb_bhardlimit > dqi->dqi_maxblimit ||
-+	      di->dqb_bsoftlimit > dqi->dqi_maxblimit)) ||
-+	    (di->dqb_valid & QIF_ILIMITS &&
-+	     (di->dqb_ihardlimit > dqi->dqi_maxilimit ||
-+	      di->dqb_isoftlimit > dqi->dqi_maxilimit)))
-+		return -ERANGE;
+ 	int err;
+ 	struct nameidata nd;
  
- 	spin_lock(&dq_data_lock);
- 	if (di->dqb_valid & QIF_SPACE) {
-@@ -1744,7 +1753,7 @@ static void do_set_dqblk(struct dquot *d
- 			clear_bit(DQ_BLKS_B, &dquot->dq_flags);
- 		}
- 		else if (!(di->dqb_valid & QIF_BTIME))	/* Set grace only if user hasn't provided his own... */
--			dm->dqb_btime = get_seconds() + sb_dqopt(dquot->dq_sb)->info[dquot->dq_type].dqi_bgrace;
-+			dm->dqb_btime = get_seconds() + dqi->dqi_bgrace;
+ 	if (!(REISERFS_SB(sb)->s_mount_opt & (1 << REISERFS_QUOTA)))
+ 		return -EINVAL;
++	/* No more checks needed? Path and format_id are bogus anyway... */
++	if (remount)
++		return vfs_quota_on(sb, type, format_id, path, 1);
+ 	err = path_lookup(path, LOOKUP_FOLLOW, &nd);
+ 	if (err)
+ 		return err;
+@@ -2041,7 +2044,7 @@ static int reiserfs_quota_on(struct supe
+ 	if (!REISERFS_SB(sb)->s_qf_names[USRQUOTA] &&
+ 	    !REISERFS_SB(sb)->s_qf_names[GRPQUOTA]) {
+ 		path_put(&nd.path);
+-		return vfs_quota_on(sb, type, format_id, path);
++		return vfs_quota_on(sb, type, format_id, path, 0);
  	}
- 	if (check_ilim) {
- 		if (!dm->dqb_isoftlimit || dm->dqb_curinodes < dm->dqb_isoftlimit) {
-@@ -1752,7 +1761,7 @@ static void do_set_dqblk(struct dquot *d
- 			clear_bit(DQ_INODES_B, &dquot->dq_flags);
- 		}
- 		else if (!(di->dqb_valid & QIF_ITIME))	/* Set grace only if user hasn't provided his own... */
--			dm->dqb_itime = get_seconds() + sb_dqopt(dquot->dq_sb)->info[dquot->dq_type].dqi_igrace;
-+			dm->dqb_itime = get_seconds() + dqi->dqi_igrace;
- 	}
- 	if (dm->dqb_bhardlimit || dm->dqb_bsoftlimit || dm->dqb_ihardlimit || dm->dqb_isoftlimit)
- 		clear_bit(DQ_FAKE_B, &dquot->dq_flags);
-@@ -1760,21 +1769,24 @@ static void do_set_dqblk(struct dquot *d
- 		set_bit(DQ_FAKE_B, &dquot->dq_flags);
- 	spin_unlock(&dq_data_lock);
- 	mark_dquot_dirty(dquot);
-+
-+	return 0;
+ 	/* Quotafile not of fs root? */
+ 	if (nd.path.dentry->d_parent->d_inode != sb->s_root->d_inode)
+@@ -2049,7 +2052,7 @@ static int reiserfs_quota_on(struct supe
+ 				 "reiserfs: Quota file not on filesystem root. "
+ 				 "Journalled quota will not work.");
+ 	path_put(&nd.path);
+-	return vfs_quota_on(sb, type, format_id, path);
++	return vfs_quota_on(sb, type, format_id, path, 0);
  }
  
- int vfs_set_dqblk(struct super_block *sb, int type, qid_t id, struct if_dqblk *di)
- {
- 	struct dquot *dquot;
-+	int rc;
- 
- 	mutex_lock(&sb_dqopt(sb)->dqonoff_mutex);
- 	if (!(dquot = dqget(sb, id, type))) {
- 		mutex_unlock(&sb_dqopt(sb)->dqonoff_mutex);
- 		return -ESRCH;
- 	}
--	do_set_dqblk(dquot, di);
-+	rc = do_set_dqblk(dquot, di);
- 	dqput(dquot);
- 	mutex_unlock(&sb_dqopt(sb)->dqonoff_mutex);
--	return 0;
-+	return rc;
- }
- 
- /* Generic routine for getting common part of quota file information */
-diff -puN fs/quota_v1.c~quota-do-not-allow-setting-of-quota-limits-to-too-high-values fs/quota_v1.c
---- a/fs/quota_v1.c~quota-do-not-allow-setting-of-quota-limits-to-too-high-values
-+++ a/fs/quota_v1.c
-@@ -139,6 +139,9 @@ static int v1_read_file_info(struct supe
- 		goto out;
- 	}
- 	ret = 0;
-+	/* limits are stored as unsigned 32-bit data */
-+	dqopt->info[type].dqi_maxblimit = 0xffffffff;
-+	dqopt->info[type].dqi_maxilimit = 0xffffffff;
- 	dqopt->info[type].dqi_igrace = dqblk.dqb_itime ? dqblk.dqb_itime : MAX_IQ_TIME;
- 	dqopt->info[type].dqi_bgrace = dqblk.dqb_btime ? dqblk.dqb_btime : MAX_DQ_TIME;
- out:
-diff -puN fs/quota_v2.c~quota-do-not-allow-setting-of-quota-limits-to-too-high-values fs/quota_v2.c
---- a/fs/quota_v2.c~quota-do-not-allow-setting-of-quota-limits-to-too-high-values
-+++ a/fs/quota_v2.c
-@@ -59,6 +59,9 @@ static int v2_read_file_info(struct supe
- 			sb->s_id);
- 		return -1;
- 	}
-+	/* limits are stored as unsigned 32-bit data */
-+	info->dqi_maxblimit = 0xffffffff;
-+	info->dqi_maxilimit = 0xffffffff;
- 	info->dqi_bgrace = le32_to_cpu(dinfo.dqi_bgrace);
- 	info->dqi_igrace = le32_to_cpu(dinfo.dqi_igrace);
- 	info->dqi_flags = le32_to_cpu(dinfo.dqi_flags);
-diff -puN include/linux/quota.h~quota-do-not-allow-setting-of-quota-limits-to-too-high-values include/linux/quota.h
---- a/include/linux/quota.h~quota-do-not-allow-setting-of-quota-limits-to-too-high-values
-+++ a/include/linux/quota.h
-@@ -206,6 +206,8 @@ struct mem_dqinfo {
- 	unsigned long dqi_flags;
- 	unsigned int dqi_bgrace;
- 	unsigned int dqi_igrace;
-+	qsize_t dqi_maxblimit;
-+	qsize_t dqi_maxilimit;
- 	union {
- 		struct v1_mem_dqinfo v1_i;
- 		struct v2_mem_dqinfo v2_i;
+ /* Read data from quotafile - avoid pagecache and such because we cannot afford
 _
 
-Patches currently in -mm which might be from andrew.perepechko@sun.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
+vfs-fix-lock-inversion-in-drop_pagecache_sb.patch
+vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb.patch
+ext4-fix-update-of-mtime-and-ctime-on-rename.patch
+ext4-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
+ext4-fix-mount-messages-when-quota-disabled.patch
+quota-le_add_cpu-conversion.patch
+isofs-use-get-put_unaligned_-helpers.patch
 
