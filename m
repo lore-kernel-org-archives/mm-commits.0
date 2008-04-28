@@ -1,105 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - documentation-build-source-files-in-documentation-sub-dir-update.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 00:04:10 -0700
-Message-ID: <200804280704.m3S74AS6013192@imap1.linux-foundation.org>
+Subject: - atmel_lcdfb-adjust-fifo-size-for-at91sam9rl-fix.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 00:01:44 -0700
+Message-ID: <200804280701.m3S71iXX013095@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38554 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49585 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765235AbYD1HE3 (ORCPT
+	by vger.kernel.org with ESMTP id S1765164AbYD1HEW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 03:04:29 -0400
+	Mon, 28 Apr 2008 03:04:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: bn@niasdigital.com, adaplas@pol.net, andrew@sanpeople.com, nicolas.ferre@atmel.com, nicolas.ferre@rfo.atmel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     documentation: build source files in Documentation sub-dir (update)
+     Fix build breakage in atmel_lcdfb
 has been removed from the -mm tree.  Its filename was
-     documentation-build-source-files-in-documentation-sub-dir-update.patch
+     atmel_lcdfb-adjust-fifo-size-for-at91sam9rl-fix.patch
 
-This patch was dropped because it was folded into documentation-build-source-files-in-documentation-sub-dir.patch
+This patch was dropped because it was folded into atmel_lcdfb-adjust-fifo-size-for-at91sam9rl.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: documentation: build source files in Documentation sub-dir (update)
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Fix build breakage in atmel_lcdfb
+From: Ben Nizette <bn@niasdigital.com>
 
-Change all -I$(srctree) in Makefiles to -I$(objtree).
-New (full) patch file with only that change is below.
+mm patch atmel_lcdfb-adjust-fifo-size-for-at91sam9rl.patch introduces a
+build breakage; someone forgot to release shift ;-)
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Ben Nizette <bn@niasdigital.com>
+Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Nicolas FERRE <nicolas.ferre@rfo.atmel.com>
+Cc: Andrew Victor <andrew@sanpeople.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/accounting/Makefile |    2 +-
- Documentation/auxdisplay/Makefile |    2 +-
- Documentation/connector/Makefile  |    2 +-
- Documentation/pcmcia/Makefile     |    2 +-
- Documentation/spi/Makefile        |    4 ++--
- 5 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/video/atmel_lcdfb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/accounting/Makefile~documentation-build-source-files-in-documentation-sub-dir-update Documentation/accounting/Makefile
---- a/Documentation/accounting/Makefile~documentation-build-source-files-in-documentation-sub-dir-update
-+++ a/Documentation/accounting/Makefile
-@@ -7,4 +7,4 @@ hostprogs-y := getdelays
- # Tell kbuild to always build the programs
- always := $(hostprogs-y)
+diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-adjust-fifo-size-for-at91sam9rl-fix drivers/video/atmel_lcdfb.c
+--- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-adjust-fifo-size-for-at91sam9rl-fix
++++ a/drivers/video/atmel_lcdfb.c
+@@ -31,7 +31,7 @@
+ #define ATMEL_LCDC_CVAL_DEFAULT		0xc8
+ #define ATMEL_LCDC_DMA_BURST_LEN	8
  
--HOSTCFLAGS_getdelays.o += -I$(srctree)/usr/include
-+HOSTCFLAGS_getdelays.o += -I$(objtree)/usr/include
-diff -puN Documentation/auxdisplay/Makefile~documentation-build-source-files-in-documentation-sub-dir-update Documentation/auxdisplay/Makefile
---- a/Documentation/auxdisplay/Makefile~documentation-build-source-files-in-documentation-sub-dir-update
-+++ a/Documentation/auxdisplay/Makefile
-@@ -7,4 +7,4 @@ hostprogs-y := cfag12864b-example
- # Tell kbuild to always build the programs
- always := $(hostprogs-y)
- 
--HOSTCFLAGS_cfag12864b-example.o += -I$(srctree)/usr/include
-+HOSTCFLAGS_cfag12864b-example.o += -I$(objtree)/usr/include
-diff -puN Documentation/connector/Makefile~documentation-build-source-files-in-documentation-sub-dir-update Documentation/connector/Makefile
---- a/Documentation/connector/Makefile~documentation-build-source-files-in-documentation-sub-dir-update
-+++ a/Documentation/connector/Makefile
-@@ -6,4 +6,4 @@ hostprogs-y := ucon
- # Tell kbuild to always build the programs
- always := $(hostprogs-y)
- 
--HOSTCFLAGS_ucon.o += -I$(srctree)/usr/include
-+HOSTCFLAGS_ucon.o += -I$(objtree)/usr/include
-diff -puN Documentation/pcmcia/Makefile~documentation-build-source-files-in-documentation-sub-dir-update Documentation/pcmcia/Makefile
---- a/Documentation/pcmcia/Makefile~documentation-build-source-files-in-documentation-sub-dir-update
-+++ a/Documentation/pcmcia/Makefile
-@@ -7,4 +7,4 @@ hostprogs-y := crc32hash
- # Tell kbuild to always build the programs
- always := $(hostprogs-y)
- 
--HOSTCFLAGS_crc32hash.o += -I$(srctree)/usr/include
-+HOSTCFLAGS_crc32hash.o += -I$(objtree)/usr/include
-diff -puN Documentation/spi/Makefile~documentation-build-source-files-in-documentation-sub-dir-update Documentation/spi/Makefile
---- a/Documentation/spi/Makefile~documentation-build-source-files-in-documentation-sub-dir-update
-+++ a/Documentation/spi/Makefile
-@@ -7,5 +7,5 @@ hostprogs-y := spidev_test spidev_fdx
- # Tell kbuild to always build the programs
- always := $(hostprogs-y)
- 
--HOSTCFLAGS_spidev_test.o += -I$(srctree)/usr/include
--HOSTCFLAGS_spidev_fdx.o += -I$(srctree)/usr/include
-+HOSTCFLAGS_spidev_test.o += -I$(objtree)/usr/include
-+HOSTCFLAGS_spidev_fdx.o += -I$(objtree)/usr/include
+-#if defined(CONFIG_ARCH_AT91SAM9263) || defined(CONFIG_ARCH_AT91CAP9) || |
++#if defined(CONFIG_ARCH_AT91SAM9263) || defined(CONFIG_ARCH_AT91CAP9) || \
+ 	defined(CONFIG_ARCH_AT91SAM9RL)
+ #define ATMEL_LCDC_FIFO_SIZE		2048
+ #else
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bn@niasdigital.com are
 
 origin.patch
-mempolicy-update-numa-memory-policy-documentation.patch
-mempolicy-disallow-static-or-relative-flags-for-local-preferred-mode.patch
-documentation-move-spidev_fdx-example-to-its-own-source-file.patch
-kernel-doc-detect-prevent-duplicate-doc-section-names.patch
-kernel-doc-detect-trailing-kernel-doc-line-trash.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-documentation-build-source-files-in-documentation-sub-dir-update.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
+atmel_lcdfb-adjust-fifo-size-for-at91sam9rl.patch
+atmel_lcdfb-adjust-fifo-size-for-at91sam9rl-fix.patch
 
