@@ -1,120 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 23:51:54 -0700
-Message-ID: <200804280651.m3S6pssP012596@imap1.linux-foundation.org>
+Subject: - mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 23:52:19 -0700
+Message-ID: <200804280652.m3S6qJJR012612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51978 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45281 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753858AbYD1Gw2 (ORCPT
+	by vger.kernel.org with ESMTP id S1753943AbYD1Gx3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 02:52:28 -0400
+	Mon, 28 Apr 2008 02:53:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hifumi.hisashi@oss.ntt.co.jp, mm-commits@vger.kernel.org
+To: hugh@veritas.com, balbir@in.ibm.com, clameter@sgi.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, nickpiggin@yahoo.com.au, rientjes@google.com, xemul@open
 
 
 The patch titled
-     fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes
+     mm-have-zonelist: fix memcg ooms
 has been removed from the -mm tree.  Its filename was
-     fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
+     mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
 
-This patch was dropped because it was folded into fix-invalidate_inode_pages2_range-to-not-clear-ret.patch
+This patch was dropped because it was folded into mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-have-zonelist: fix memcg ooms
+From: Hugh Dickins <hugh@veritas.com>
 
-WARNING: line over 80 characters
-#47: FILE: mm/truncate.c:444:
-+			if (ret2 == 0 && !invalidate_complete_page2(mapping, page))
+Memcgroups up against their limit were OOMing unjustifiably on x86_32 with
+highmem: pages ripe for freeing were not being found.
 
-total: 0 errors, 1 warnings, 21 lines checked
+It's because the zonelist changes in vmscan.c now derive zone from gfp_mask,
+and the gfp mask being passed into try_to_free_mem_cgroup_pages is atuned to
+allocating a struct page_cgroup (__GFP_HIGHMEM masked off), whereas here we
+need to be scanning highmem zones.
 
-./patches/fix-invalidate_inode_pages2_range-to-not-clear-ret.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+Frankenstein a gfp_mask from GFP_HIGHUSER_MOVABLE and the mask passed in.
 
-Please run checkpatch prior to sending patches
-
-Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/truncate.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/truncate.c~fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes mm/truncate.c
---- a/mm/truncate.c~fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes
-+++ a/mm/truncate.c
-@@ -440,8 +440,10 @@ int invalidate_inode_pages2_range(struct
- 			}
- 			BUG_ON(page_mapped(page));
- 			ret2 = do_launder_page(mapping, page);
--			if (ret2 == 0 && !invalidate_complete_page2(mapping, page))
--				ret2 = -EIO;
-+			if (ret2 == 0) {
-+				if (!invalidate_complete_page2(mapping, page))
-+					ret2 = -EIO;
-+			}
- 			if (ret2 < 0)
- 				ret = ret2;
- 			unlock_page(page);
+diff -puN mm/vmscan.c~mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms mm/vmscan.c
+--- a/mm/vmscan.c~mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms
++++ a/mm/vmscan.c
+@@ -1419,7 +1419,6 @@ unsigned long try_to_free_mem_cgroup_pag
+ 						gfp_t gfp_mask)
+ {
+ 	struct scan_control sc = {
+-		.gfp_mask = gfp_mask,
+ 		.may_writepage = !laptop_mode,
+ 		.may_swap = 1,
+ 		.swap_cluster_max = SWAP_CLUSTER_MAX,
+@@ -1429,9 +1428,10 @@ unsigned long try_to_free_mem_cgroup_pag
+ 		.isolate_pages = mem_cgroup_isolate_pages,
+ 	};
+ 	struct zonelist *zonelist;
+-	int target_zone = gfp_zonelist(GFP_HIGHUSER_MOVABLE);
+ 
+-	zonelist = &NODE_DATA(numa_node_id())->node_zonelists[target_zone];
++	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
++			(GFP_HIGHUSER_MOVABLE & ~GFP_RECLAIM_MASK);
++	zonelist = NODE_DATA(numa_node_id())->node_zonelists;
+ 	if (do_try_to_free_pages(zonelist, sc.gfp_mask, &sc))
+ 		return 1;
+ 	return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hugh@veritas.com are
 
 origin.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
-rtc-pcf8563-new-style-conversion.patch
-rtc-x1205-new-style-conversion.patch
-hotplug-memory-make-online_page-common.patch
-remove-sparse-warning-for-mmzoneh.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
+mmap_region-cleanup-the-final-vma_merge-related-code.patch
+mm-use-zonelists-instead-of-zones-when-direct-reclaiming-pages.patch
+mm-introduce-node_zonelist-for-accessing-the-zonelist-for-a-gfp-mask.patch
+mm-remember-what-the-preferred-zone-is-for-zone_statistics.patch
+mm-use-two-zonelist-that-are-filtered-by-gfp-mask.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-fix-memcg-ooms.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages.patch
+mm-have-zonelist-contains-structs-with-both-a-zone-pointer-and-zone_idx-just-return-do_try_to_free_pages-do_try_to_free_pages-gfp_mask-redundant.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-doc-fixes.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-deporkify.patch
+mm-try-both-endianess-when-checking-for-endianess.patch
+mempolicy-support-optional-mode-flags-fix.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
 vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-checkpatch-fixes.patch
 vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information.patch
 vmallocinfo-add-caller-information-checkpatch-fixes.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
-mm-introduce-pte_special-pte-bit-fix.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
-drivers-video-uvesafbc-fix-error-path-memory-leak.patch
-fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
-drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
-drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
 
