@@ -1,65 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-use-dev_printk-for-quirk-messages-fix.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 00:03:14 -0700
-Message-ID: <200804280703.m3S73Ejd013144@imap1.linux-foundation.org>
+Subject: - ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 00:03:26 -0700
+Message-ID: <200804280703.m3S73QPK013147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58956 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34612 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1766014AbYD1HD0 (ORCPT
+	by vger.kernel.org with ESMTP id S932210AbYD1HDa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 03:03:26 -0400
+	Mon, 28 Apr 2008 03:03:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ambx1@neo.rr.com, bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pnp-use-dev_printk-for-quirk-messages-fix
+     ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo
 has been removed from the -mm tree.  Its filename was
-     pnp-use-dev_printk-for-quirk-messages-fix.patch
+     ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
 
-This patch was dropped because it was folded into pnp-use-dev_printk-for-quirk-messages.patch
+This patch was dropped because it was folded into ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp-use-dev_printk-for-quirk-messages-fix
+Subject: ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix this:
-
-drivers/pnp/quirks.c: In function 'quirk_awe32_resources':
-drivers/pnp/quirks.c:25: warning: 'port3' may be used uninitialized in this function
-drivers/pnp/quirks.c:25: warning: 'port2' may be used uninitialized in this function
-
-and make the output more accurate.
-
-Cc: Adam Belay <ambx1@neo.rr.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/ext2/balloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/pnp/quirks.c~pnp-use-dev_printk-for-quirk-messages-fix drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-use-dev_printk-for-quirk-messages-fix
-+++ a/drivers/pnp/quirks.c
-@@ -49,9 +49,11 @@ static void quirk_awe32_resources(struct
- 		port2->max += 0x400;
- 		port3->min += 0x800;
- 		port3->max += 0x800;
-+		dev_info(&dev->dev,
-+			"AWE32 quirk - added ioports 0x%lx and 0x%lx\n",
-+			(unsigned long)port2->min,
-+			(unsigned long)port3->min);
- 	}
--	dev_info(&dev->dev, "AWE32 quirk - added ioports 0x%lx and 0x%lx\n",
--		(unsigned long) port2->min, (unsigned long) port3->min);
- }
+diff -puN fs/ext2/balloc.c~ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo fs/ext2/balloc.c
+--- a/fs/ext2/balloc.c~ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo
++++ a/fs/ext2/balloc.c
+@@ -152,8 +152,8 @@ read_block_bitmap(struct super_block *sb
  
- static void quirk_cmi8330_resources(struct pnp_dev *dev)
+ 	ext2_valid_block_bitmap(sb, desc, block_group, bh);
+ 	/*
+-	 * file system mounted not to panic on error,
+-	 * continue with corrput bitmap
++	 * file system mounted not to panic on error, continue with corrupt
++	 * bitmap
+ 	 */
+ 	return bh;
+ }
+@@ -1382,9 +1382,9 @@ allocated:
+ 			    "blocks from "E2FSBLK", length %lu",
+ 			    ret_block, num);
+ 		/*
+-		 * ext2_try_to_allocate marked the blocks we allocated
+-		 * as in use. So we may want to selectively
+-		 * mark some of the blocks as free
++		 * ext2_try_to_allocate marked the blocks we allocated as in
++		 * use.  So we may want to selectively mark some of the blocks
++		 * as free
+ 		 */
+ 		goto retry_alloc;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -105,7 +106,7 @@ fb-convert-proc-fb-to-seq_file-interface.patch
 drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
 drivers-md-use-time_before-time_before_eq-etc.patch
 pnp-use-dev_printk-for-quirk-messages.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
+ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone.patch
 ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
 ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
 fat_valid_media-remove-pointless-test.patch
