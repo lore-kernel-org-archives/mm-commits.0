@@ -1,55 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - fb-add-support-for-foreign-endianness-force-it-on.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 00:00:25 -0700
-Message-ID: <200804280700.m3S70Pt6012979@imap1.linux-foundation.org>
+Subject: - fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 00:02:30 -0700
+Message-ID: <200804280702.m3S72U5X013122@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37175 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39393 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763526AbYD1HCV (ORCPT
+	by vger.kernel.org with ESMTP id S1764831AbYD1HCd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 03:02:21 -0400
+	Mon, 28 Apr 2008 03:02:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, avorontsov@ru.mvista.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adaplas@pol.net, adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fb-add-support-for-foreign-endianness-force-it-on
+     fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     fb-add-support-for-foreign-endianness-force-it-on.patch
+     fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into fb-convert-proc-fb-to-seq_file-interface.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb-add-support-for-foreign-endianness-force-it-on
+Subject: fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-for testing.
+ERROR: "foo * bar" should be "foo *bar"
+#32: FILE: drivers/video/fbmem.c:636:
++static void * fb_seq_start(struct seq_file *m, loff_t *pos)
+
+ERROR: "foo * bar" should be "foo *bar"
+#52: FILE: drivers/video/fbmem.c:641:
++static void * fb_seq_next(struct seq_file *m, void *v, loff_t *pos)
+
+total: 2 errors, 0 warnings, 83 lines checked
+
+./patches/fb-convert-proc-fb-to-seq_file-interface.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/video/fbmem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/Kconfig~fb-add-support-for-foreign-endianness-force-it-on drivers/video/Kconfig
---- a/drivers/video/Kconfig~fb-add-support-for-foreign-endianness-force-it-on
-+++ a/drivers/video/Kconfig
-@@ -142,6 +142,7 @@ config FB_SYS_IMAGEBLIT
- menuconfig FB_FOREIGN_ENDIAN
- 	bool "Framebuffer foreign endianness support"
- 	depends on FB
-+	default y
- 	---help---
- 	  This menu will let you enable support for the framebuffers with
- 	  non-native endianness (e.g. Little-Endian framebuffer on a
+diff -puN drivers/video/fbmem.c~fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes drivers/video/fbmem.c
+--- a/drivers/video/fbmem.c~fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes
++++ a/drivers/video/fbmem.c
+@@ -633,12 +633,12 @@ int fb_prepare_logo(struct fb_info *info
+ int fb_show_logo(struct fb_info *info, int rotate) { return 0; }
+ #endif /* CONFIG_LOGO */
+ 
+-static void * fb_seq_start(struct seq_file *m, loff_t *pos)
++static void *fb_seq_start(struct seq_file *m, loff_t *pos)
+ {
+ 	return (*pos < FB_MAX) ? pos : NULL;
+ }
+ 
+-static void * fb_seq_next(struct seq_file *m, void *v, loff_t *pos)
++static void *fb_seq_next(struct seq_file *m, void *v, loff_t *pos)
+ {
+ 	(*pos)++;
+ 	return (*pos < FB_MAX) ? pos : NULL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,11 +106,11 @@ quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quot
 quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch
 quota-convert-stub-functions-from-macros-into-inlines.patch
 gpiochip_reserve.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-add-power-management-functionality-fix.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+lxfb-add-power-management-functionality.patch
 drivers-video-uvesafbc-fix-error-path-memory-leak.patch
+fb-convert-proc-fb-to-seq_file-interface.patch
 fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
 drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
 drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
