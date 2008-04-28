@@ -1,211 +1,618 @@
 From: akpm@linux-foundation.org
-Subject: - return-pfn-from-direct_access-for-xip.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:52:49 -0700
-Message-ID: <200804282152.m3SLqnTp017804@imap1.linux-foundation.org>
+Subject: - xip-support-non-struct-page-backed-memory.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:52:51 -0700
+Message-ID: <200804282152.m3SLqpah017807@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52972 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43897 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934832AbYD1VxC (ORCPT
+	by vger.kernel.org with ESMTP id S934860AbYD1VxF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:53:02 -0400
+	Mon, 28 Apr 2008 17:53:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jaredeh@gmail.com, cotte@de.ibm.com, heiko.carstens@de.ibm.com, npiggin@suse.de, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: npiggin@suse.de, cotte@de.ibm.com, heiko.carstens@de.ibm.com, jaredeh@gmail.com, schwidefsky@de.ibm.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     return pfn from direct_access, for XIP
+     xip: support non-struct page backed memory
 has been removed from the -mm tree.  Its filename was
-     return-pfn-from-direct_access-for-xip.patch
+     xip-support-non-struct-page-backed-memory.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: return pfn from direct_access, for XIP
-From: Jared Hulbert <jaredeh@gmail.com>
+Subject: xip: support non-struct page backed memory
+From: Nick Piggin <npiggin@suse.de>
 
-Alter the block device ->direct_access() API to work with the new
-get_xip_mem() API (that requires both kaddr and pfn are returned).
+Convert XIP to support non-struct page backed memory, using VM_MIXEDMAP for
+the user mappings.
 
-Some architectures will not do the right thing in their virt_to_page() for use
-by XIP (to translate from the kernel virtual address returned by
-direct_access(), to a user mappable pfn in XIP's page fault handler.
+This requires the get_xip_page API to be changed to an address based one. 
+Improve the API layering a little bit too, while we're here.
 
-However, we can't switch it to just return the pfn and not the kaddr, because
-we have no good way to get a kva from a pfn, and XIP requires the kva for its
-read(2) and write(2) handlers.  So we have to return both.
+This is required in order to support XIP filesystems on memory that isn't
+backed with struct page (but memory with struct page is still supported too).
 
-Signed-off-by: Jared Hulbert <jaredeh@gmail.com>
 Signed-off-by: Nick Piggin <npiggin@suse.de>
-Cc: Carsten Otte <cotte@de.ibm.com>
+Acked-by: Carsten Otte <cotte@de.ibm.com>
+Cc: Jared Hulbert <jaredeh@gmail.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: linux-mm@kvack.org
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/axonram.c |    5 +++--
- drivers/block/brd.c           |    5 +++--
- drivers/s390/block/dcssblk.c  |    8 +++++---
- fs/ext2/xip.c                 |   24 ++++++++++++++----------
- include/linux/fs.h            |    3 ++-
- 5 files changed, 27 insertions(+), 18 deletions(-)
+ fs/ext2/inode.c    |    2 
+ fs/ext2/xip.c      |   37 +++----
+ fs/ext2/xip.h      |    9 +
+ fs/open.c          |    2 
+ include/linux/fs.h |    4 
+ mm/fadvise.c       |    2 
+ mm/filemap_xip.c   |  200 +++++++++++++++++++++----------------------
+ mm/madvise.c       |    2 
+ 8 files changed, 126 insertions(+), 132 deletions(-)
 
-diff -puN arch/powerpc/sysdev/axonram.c~return-pfn-from-direct_access-for-xip arch/powerpc/sysdev/axonram.c
---- a/arch/powerpc/sysdev/axonram.c~return-pfn-from-direct_access-for-xip
-+++ a/arch/powerpc/sysdev/axonram.c
-@@ -143,7 +143,7 @@ axon_ram_make_request(struct request_que
-  */
- static int
- axon_ram_direct_access(struct block_device *device, sector_t sector,
--		       unsigned long *data)
-+		       void **kaddr, unsigned long *pfn)
- {
- 	struct axon_ram_bank *bank = device->bd_disk->private_data;
- 	loff_t offset;
-@@ -154,7 +154,8 @@ axon_ram_direct_access(struct block_devi
- 		return -ERANGE;
- 	}
+diff -puN fs/ext2/inode.c~xip-support-non-struct-page-backed-memory fs/ext2/inode.c
+--- a/fs/ext2/inode.c~xip-support-non-struct-page-backed-memory
++++ a/fs/ext2/inode.c
+@@ -796,7 +796,7 @@ const struct address_space_operations ex
  
--	*data = bank->ph_addr + offset;
-+	*kaddr = (void *)(bank->ph_addr + offset);
-+	*pfn = virt_to_phys(kaddr) >> PAGE_SHIFT;
+ const struct address_space_operations ext2_aops_xip = {
+ 	.bmap			= ext2_bmap,
+-	.get_xip_page		= ext2_get_xip_page,
++	.get_xip_mem		= ext2_get_xip_mem,
+ };
  
- 	return 0;
- }
-diff -puN drivers/block/brd.c~return-pfn-from-direct_access-for-xip drivers/block/brd.c
---- a/drivers/block/brd.c~return-pfn-from-direct_access-for-xip
-+++ a/drivers/block/brd.c
-@@ -319,7 +319,7 @@ out:
- 
- #ifdef CONFIG_BLK_DEV_XIP
- static int brd_direct_access (struct block_device *bdev, sector_t sector,
--			unsigned long *data)
-+			void **kaddr, unsigned long *pfn)
- {
- 	struct brd_device *brd = bdev->bd_disk->private_data;
- 	struct page *page;
-@@ -333,7 +333,8 @@ static int brd_direct_access (struct blo
- 	page = brd_insert_page(brd, sector);
- 	if (!page)
- 		return -ENOMEM;
--	*data = (unsigned long)page_address(page);
-+	*kaddr = page_address(page);
-+	*pfn = page_to_pfn(page);
- 
- 	return 0;
- }
-diff -puN drivers/s390/block/dcssblk.c~return-pfn-from-direct_access-for-xip drivers/s390/block/dcssblk.c
---- a/drivers/s390/block/dcssblk.c~return-pfn-from-direct_access-for-xip
-+++ a/drivers/s390/block/dcssblk.c
-@@ -36,7 +36,7 @@ static int dcssblk_open(struct inode *in
- static int dcssblk_release(struct inode *inode, struct file *filp);
- static int dcssblk_make_request(struct request_queue *q, struct bio *bio);
- static int dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
--				 unsigned long *data);
-+				 void **kaddr, unsigned long *pfn);
- 
- static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
- 
-@@ -636,7 +636,7 @@ fail:
- 
- static int
- dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
--			unsigned long *data)
-+			void **kaddr, unsigned long *pfn)
- {
- 	struct dcssblk_dev_info *dev_info;
- 	unsigned long pgoff;
-@@ -649,7 +649,9 @@ dcssblk_direct_access (struct block_devi
- 	pgoff = secnum / (PAGE_SIZE / 512);
- 	if ((pgoff+1)*PAGE_SIZE-1 > dev_info->end - dev_info->start)
- 		return -ERANGE;
--	*data = (unsigned long) (dev_info->start+pgoff*PAGE_SIZE);
-+	*kaddr = (void *) (dev_info->start+pgoff*PAGE_SIZE);
-+	*pfn = virt_to_phys(*kaddr) >> PAGE_SHIFT;
-+
- 	return 0;
- }
- 
-diff -puN fs/ext2/xip.c~return-pfn-from-direct_access-for-xip fs/ext2/xip.c
---- a/fs/ext2/xip.c~return-pfn-from-direct_access-for-xip
+ const struct address_space_operations ext2_nobh_aops = {
+diff -puN fs/ext2/xip.c~xip-support-non-struct-page-backed-memory fs/ext2/xip.c
+--- a/fs/ext2/xip.c~xip-support-non-struct-page-backed-memory
 +++ a/fs/ext2/xip.c
-@@ -16,11 +16,13 @@
+@@ -15,26 +15,28 @@
+ #include "xip.h"
  
  static inline int
- __inode_direct_access(struct inode *inode, sector_t sector,
--		      unsigned long *data)
-+		      void **kaddr, unsigned long *pfn)
+-__inode_direct_access(struct inode *inode, sector_t sector,
++__inode_direct_access(struct inode *inode, sector_t block,
+ 		      void **kaddr, unsigned long *pfn)
  {
--	BUG_ON(!inode->i_sb->s_bdev->bd_disk->fops->direct_access);
--	return inode->i_sb->s_bdev->bd_disk->fops
--		->direct_access(inode->i_sb->s_bdev,sector,data);
-+	struct block_device *bdev = inode->i_sb->s_bdev;
-+	struct block_device_operations *ops = bdev->bd_disk->fops;
+ 	struct block_device *bdev = inode->i_sb->s_bdev;
+ 	struct block_device_operations *ops = bdev->bd_disk->fops;
++	sector_t sector;
 +
-+	BUG_ON(!ops->direct_access);
-+	return ops->direct_access(bdev, sector, kaddr, pfn);
++	sector = block * (PAGE_SIZE / 512); /* ext2 block to bdev sector */
+ 
+ 	BUG_ON(!ops->direct_access);
+ 	return ops->direct_access(bdev, sector, kaddr, pfn);
  }
  
  static inline int
-@@ -48,12 +50,13 @@ int
- ext2_clear_xip_target(struct inode *inode, int block)
+-__ext2_get_sector(struct inode *inode, sector_t offset, int create,
++__ext2_get_block(struct inode *inode, pgoff_t pgoff, int create,
+ 		   sector_t *result)
  {
- 	sector_t sector = block * (PAGE_SIZE/512);
--	unsigned long data;
-+	void *kaddr;
-+	unsigned long pfn;
+ 	struct buffer_head tmp;
  	int rc;
  
--	rc = __inode_direct_access(inode, sector, &data);
-+	rc = __inode_direct_access(inode, sector, &kaddr, &pfn);
- 	if (!rc)
--		clear_page((void*)data);
-+		clear_page(kaddr);
- 	return rc;
+ 	memset(&tmp, 0, sizeof(struct buffer_head));
+-	rc = ext2_get_block(inode, offset/ (PAGE_SIZE/512), &tmp,
+-			    create);
++	rc = ext2_get_block(inode, pgoff, &tmp, create);
+ 	*result = tmp.b_blocknr;
+ 
+ 	/* did we get a sparse block (hole in the file)? */
+@@ -47,14 +49,13 @@ __ext2_get_sector(struct inode *inode, s
  }
  
-@@ -74,7 +77,8 @@ ext2_get_xip_page(struct address_space *
- 		   int create)
+ int
+-ext2_clear_xip_target(struct inode *inode, int block)
++ext2_clear_xip_target(struct inode *inode, sector_t block)
+ {
+-	sector_t sector = block * (PAGE_SIZE/512);
+ 	void *kaddr;
+ 	unsigned long pfn;
+ 	int rc;
+ 
+-	rc = __inode_direct_access(inode, sector, &kaddr, &pfn);
++	rc = __inode_direct_access(inode, block, &kaddr, &pfn);
+ 	if (!rc)
+ 		clear_page(kaddr);
+ 	return rc;
+@@ -72,26 +73,18 @@ void ext2_xip_verify_sb(struct super_blo
+ 	}
+ }
+ 
+-struct page *
+-ext2_get_xip_page(struct address_space *mapping, sector_t offset,
+-		   int create)
++int ext2_get_xip_mem(struct address_space *mapping, pgoff_t pgoff, int create,
++				void **kmem, unsigned long *pfn)
  {
  	int rc;
--	unsigned long data;
-+	void *kaddr;
-+	unsigned long pfn;
- 	sector_t sector;
+-	void *kaddr;
+-	unsigned long pfn;
+-	sector_t sector;
++	sector_t block;
  
  	/* first, retrieve the sector number */
-@@ -84,9 +88,9 @@ ext2_get_xip_page(struct address_space *
+-	rc = __ext2_get_sector(mapping->host, offset, create, &sector);
++	rc = __ext2_get_block(mapping->host, pgoff, create, &block);
+ 	if (rc)
+-		goto error;
++		return rc;
  
  	/* retrieve address of the target data */
- 	rc = __inode_direct_access
--		(mapping->host, sector * (PAGE_SIZE/512), &data);
-+		(mapping->host, sector * (PAGE_SIZE/512), &kaddr, &pfn);
- 	if (!rc)
--		return virt_to_page(data);
-+		return pfn_to_page(pfn);
+-	rc = __inode_direct_access
+-		(mapping->host, sector * (PAGE_SIZE/512), &kaddr, &pfn);
+-	if (!rc)
+-		return pfn_to_page(pfn);
+-
+- error:
+-	return ERR_PTR(rc);
++	rc = __inode_direct_access(mapping->host, block, kmem, pfn);
++	return rc;
+ }
+diff -puN fs/ext2/xip.h~xip-support-non-struct-page-backed-memory fs/ext2/xip.h
+--- a/fs/ext2/xip.h~xip-support-non-struct-page-backed-memory
++++ a/fs/ext2/xip.h
+@@ -7,19 +7,20 @@
  
-  error:
- 	return ERR_PTR(rc);
-diff -puN include/linux/fs.h~return-pfn-from-direct_access-for-xip include/linux/fs.h
---- a/include/linux/fs.h~return-pfn-from-direct_access-for-xip
+ #ifdef CONFIG_EXT2_FS_XIP
+ extern void ext2_xip_verify_sb (struct super_block *);
+-extern int ext2_clear_xip_target (struct inode *, int);
++extern int ext2_clear_xip_target (struct inode *, sector_t);
+ 
+ static inline int ext2_use_xip (struct super_block *sb)
+ {
+ 	struct ext2_sb_info *sbi = EXT2_SB(sb);
+ 	return (sbi->s_mount_opt & EXT2_MOUNT_XIP);
+ }
+-struct page* ext2_get_xip_page (struct address_space *, sector_t, int);
+-#define mapping_is_xip(map) unlikely(map->a_ops->get_xip_page)
++int ext2_get_xip_mem(struct address_space *, pgoff_t, int,
++				void **, unsigned long *);
++#define mapping_is_xip(map) unlikely(map->a_ops->get_xip_mem)
+ #else
+ #define mapping_is_xip(map)			0
+ #define ext2_xip_verify_sb(sb)			do { } while (0)
+ #define ext2_use_xip(sb)			0
+ #define ext2_clear_xip_target(inode, chain)	0
+-#define ext2_get_xip_page			NULL
++#define ext2_get_xip_mem			NULL
+ #endif
+diff -puN fs/open.c~xip-support-non-struct-page-backed-memory fs/open.c
+--- a/fs/open.c~xip-support-non-struct-page-backed-memory
++++ a/fs/open.c
+@@ -837,7 +837,7 @@ static struct file *__dentry_open(struct
+ 	if (f->f_flags & O_DIRECT) {
+ 		if (!f->f_mapping->a_ops ||
+ 		    ((!f->f_mapping->a_ops->direct_IO) &&
+-		    (!f->f_mapping->a_ops->get_xip_page))) {
++		    (!f->f_mapping->a_ops->get_xip_mem))) {
+ 			fput(f);
+ 			f = ERR_PTR(-EINVAL);
+ 		}
+diff -puN include/linux/fs.h~xip-support-non-struct-page-backed-memory include/linux/fs.h
+--- a/include/linux/fs.h~xip-support-non-struct-page-backed-memory
 +++ a/include/linux/fs.h
-@@ -1178,7 +1178,8 @@ struct block_device_operations {
- 	int (*ioctl) (struct inode *, struct file *, unsigned, unsigned long);
- 	long (*unlocked_ioctl) (struct file *, unsigned, unsigned long);
- 	long (*compat_ioctl) (struct file *, unsigned, unsigned long);
--	int (*direct_access) (struct block_device *, sector_t, unsigned long *);
-+	int (*direct_access) (struct block_device *, sector_t,
+@@ -474,8 +474,8 @@ struct address_space_operations {
+ 	int (*releasepage) (struct page *, gfp_t);
+ 	ssize_t (*direct_IO)(int, struct kiocb *, const struct iovec *iov,
+ 			loff_t offset, unsigned long nr_segs);
+-	struct page* (*get_xip_page)(struct address_space *, sector_t,
+-			int);
++	int (*get_xip_mem)(struct address_space *, pgoff_t, int,
 +						void **, unsigned long *);
- 	int (*media_changed) (struct gendisk *);
- 	int (*revalidate_disk) (struct gendisk *);
- 	int (*getgeo)(struct block_device *, struct hd_geometry *);
+ 	/* migrate the contents of a page to the specified target */
+ 	int (*migratepage) (struct address_space *,
+ 			struct page *, struct page *);
+diff -puN mm/fadvise.c~xip-support-non-struct-page-backed-memory mm/fadvise.c
+--- a/mm/fadvise.c~xip-support-non-struct-page-backed-memory
++++ a/mm/fadvise.c
+@@ -49,7 +49,7 @@ asmlinkage long sys_fadvise64_64(int fd,
+ 		goto out;
+ 	}
+ 
+-	if (mapping->a_ops->get_xip_page) {
++	if (mapping->a_ops->get_xip_mem) {
+ 		switch (advice) {
+ 		case POSIX_FADV_NORMAL:
+ 		case POSIX_FADV_RANDOM:
+diff -puN mm/filemap_xip.c~xip-support-non-struct-page-backed-memory mm/filemap_xip.c
+--- a/mm/filemap_xip.c~xip-support-non-struct-page-backed-memory
++++ a/mm/filemap_xip.c
+@@ -15,6 +15,7 @@
+ #include <linux/rmap.h>
+ #include <linux/sched.h>
+ #include <asm/tlbflush.h>
++#include <asm/io.h>
+ 
+ /*
+  * We do use our own empty page to avoid interference with other users
+@@ -42,37 +43,41 @@ static struct page *xip_sparse_page(void
+ 
+ /*
+  * This is a file read routine for execute in place files, and uses
+- * the mapping->a_ops->get_xip_page() function for the actual low-level
++ * the mapping->a_ops->get_xip_mem() function for the actual low-level
+  * stuff.
+  *
+  * Note the struct file* is not used at all.  It may be NULL.
+  */
+-static void
++static ssize_t
+ do_xip_mapping_read(struct address_space *mapping,
+ 		    struct file_ra_state *_ra,
+ 		    struct file *filp,
+-		    loff_t *ppos,
+-		    read_descriptor_t *desc,
+-		    read_actor_t actor)
++		    char __user *buf,
++		    size_t len,
++		    loff_t *ppos)
+ {
+ 	struct inode *inode = mapping->host;
+ 	pgoff_t index, end_index;
+ 	unsigned long offset;
+-	loff_t isize;
++	loff_t isize, pos;
++	size_t copied = 0, error = 0;
+ 
+-	BUG_ON(!mapping->a_ops->get_xip_page);
++	BUG_ON(!mapping->a_ops->get_xip_mem);
+ 
+-	index = *ppos >> PAGE_CACHE_SHIFT;
+-	offset = *ppos & ~PAGE_CACHE_MASK;
++	pos = *ppos;
++	index = pos >> PAGE_CACHE_SHIFT;
++	offset = pos & ~PAGE_CACHE_MASK;
+ 
+ 	isize = i_size_read(inode);
+ 	if (!isize)
+ 		goto out;
+ 
+ 	end_index = (isize - 1) >> PAGE_CACHE_SHIFT;
+-	for (;;) {
+-		struct page *page;
+-		unsigned long nr, ret;
++	do {
++		unsigned long nr, left;
++		void *xip_mem;
++		unsigned long xip_pfn;
++		int zero = 0;
+ 
+ 		/* nr is the maximum number of bytes to copy from this page */
+ 		nr = PAGE_CACHE_SIZE;
+@@ -85,19 +90,17 @@ do_xip_mapping_read(struct address_space
+ 			}
+ 		}
+ 		nr = nr - offset;
++		if (nr > len)
++			nr = len;
+ 
+-		page = mapping->a_ops->get_xip_page(mapping,
+-			index*(PAGE_SIZE/512), 0);
+-		if (!page)
+-			goto no_xip_page;
+-		if (unlikely(IS_ERR(page))) {
+-			if (PTR_ERR(page) == -ENODATA) {
++		error = mapping->a_ops->get_xip_mem(mapping, index, 0,
++							&xip_mem, &xip_pfn);
++		if (unlikely(error)) {
++			if (error == -ENODATA) {
+ 				/* sparse */
+-				page = ZERO_PAGE(0);
+-			} else {
+-				desc->error = PTR_ERR(page);
++				zero = 1;
++			} else
+ 				goto out;
+-			}
+ 		}
+ 
+ 		/* If users can be writing to this page using arbitrary
+@@ -105,10 +108,10 @@ do_xip_mapping_read(struct address_space
+ 		 * before reading the page on the kernel side.
+ 		 */
+ 		if (mapping_writably_mapped(mapping))
+-			flush_dcache_page(page);
++			/* address based flush */ ;
+ 
+ 		/*
+-		 * Ok, we have the page, so now we can copy it to user space...
++		 * Ok, we have the mem, so now we can copy it to user space...
+ 		 *
+ 		 * The actor routine returns how many bytes were actually used..
+ 		 * NOTE! This may not be the same as how much of a user buffer
+@@ -116,47 +119,38 @@ do_xip_mapping_read(struct address_space
+ 		 * "pos" here (the actor routine has to update the user buffer
+ 		 * pointers and the remaining count).
+ 		 */
+-		ret = actor(desc, page, offset, nr);
+-		offset += ret;
+-		index += offset >> PAGE_CACHE_SHIFT;
+-		offset &= ~PAGE_CACHE_MASK;
++		if (!zero)
++			left = __copy_to_user(buf+copied, xip_mem+offset, nr);
++		else
++			left = __clear_user(buf + copied, nr);
+ 
+-		if (ret == nr && desc->count)
+-			continue;
+-		goto out;
++		if (left) {
++			error = -EFAULT;
++			goto out;
++		}
+ 
+-no_xip_page:
+-		/* Did not get the page. Report it */
+-		desc->error = -EIO;
+-		goto out;
+-	}
++		copied += (nr - left);
++		offset += (nr - left);
++		index += offset >> PAGE_CACHE_SHIFT;
++		offset &= ~PAGE_CACHE_MASK;
++	} while (copied < len);
+ 
+ out:
+-	*ppos = ((loff_t) index << PAGE_CACHE_SHIFT) + offset;
++	*ppos = pos + copied;
+ 	if (filp)
+ 		file_accessed(filp);
++
++	return (copied ? copied : error);
+ }
+ 
+ ssize_t
+ xip_file_read(struct file *filp, char __user *buf, size_t len, loff_t *ppos)
+ {
+-	read_descriptor_t desc;
+-
+ 	if (!access_ok(VERIFY_WRITE, buf, len))
+ 		return -EFAULT;
+ 
+-	desc.written = 0;
+-	desc.arg.buf = buf;
+-	desc.count = len;
+-	desc.error = 0;
+-
+-	do_xip_mapping_read(filp->f_mapping, &filp->f_ra, filp,
+-			    ppos, &desc, file_read_actor);
+-
+-	if (desc.written)
+-		return desc.written;
+-	else
+-		return desc.error;
++	return do_xip_mapping_read(filp->f_mapping, &filp->f_ra, filp,
++			    buf, len, ppos);
+ }
+ EXPORT_SYMBOL_GPL(xip_file_read);
+ 
+@@ -211,13 +205,16 @@ __xip_unmap (struct address_space * mapp
+  *
+  * This function is derived from filemap_fault, but used for execute in place
+  */
+-static int xip_file_fault(struct vm_area_struct *area, struct vm_fault *vmf)
++static int xip_file_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	struct file *file = area->vm_file;
++	struct file *file = vma->vm_file;
+ 	struct address_space *mapping = file->f_mapping;
+ 	struct inode *inode = mapping->host;
+-	struct page *page;
+ 	pgoff_t size;
++	void *xip_mem;
++	unsigned long xip_pfn;
++	struct page *page;
++	int error;
+ 
+ 	/* XXX: are VM_FAULT_ codes OK? */
+ 
+@@ -225,35 +222,44 @@ static int xip_file_fault(struct vm_area
+ 	if (vmf->pgoff >= size)
+ 		return VM_FAULT_SIGBUS;
+ 
+-	page = mapping->a_ops->get_xip_page(mapping,
+-					vmf->pgoff*(PAGE_SIZE/512), 0);
+-	if (!IS_ERR(page))
+-		goto out;
+-	if (PTR_ERR(page) != -ENODATA)
++	error = mapping->a_ops->get_xip_mem(mapping, vmf->pgoff, 0,
++						&xip_mem, &xip_pfn);
++	if (likely(!error))
++		goto found;
++	if (error != -ENODATA)
+ 		return VM_FAULT_OOM;
+ 
+ 	/* sparse block */
+-	if ((area->vm_flags & (VM_WRITE | VM_MAYWRITE)) &&
+-	    (area->vm_flags & (VM_SHARED| VM_MAYSHARE)) &&
++	if ((vma->vm_flags & (VM_WRITE | VM_MAYWRITE)) &&
++	    (vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) &&
+ 	    (!(mapping->host->i_sb->s_flags & MS_RDONLY))) {
++		int err;
++
+ 		/* maybe shared writable, allocate new block */
+-		page = mapping->a_ops->get_xip_page(mapping,
+-					vmf->pgoff*(PAGE_SIZE/512), 1);
+-		if (IS_ERR(page))
++		error = mapping->a_ops->get_xip_mem(mapping, vmf->pgoff, 1,
++							&xip_mem, &xip_pfn);
++		if (error)
+ 			return VM_FAULT_SIGBUS;
+-		/* unmap page at pgoff from all other vmas */
++		/* unmap sparse mappings at pgoff from all other vmas */
+ 		__xip_unmap(mapping, vmf->pgoff);
++
++found:
++		err = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
++							xip_pfn);
++		if (err == -ENOMEM)
++			return VM_FAULT_OOM;
++		BUG_ON(err);
++		return VM_FAULT_NOPAGE;
+ 	} else {
+ 		/* not shared and writable, use xip_sparse_page() */
+ 		page = xip_sparse_page();
+ 		if (!page)
+ 			return VM_FAULT_OOM;
+-	}
+ 
+-out:
+-	page_cache_get(page);
+-	vmf->page = page;
+-	return 0;
++		page_cache_get(page);
++		vmf->page = page;
++		return 0;
++	}
+ }
+ 
+ static struct vm_operations_struct xip_file_vm_ops = {
+@@ -262,11 +268,11 @@ static struct vm_operations_struct xip_f
+ 
+ int xip_file_mmap(struct file * file, struct vm_area_struct * vma)
+ {
+-	BUG_ON(!file->f_mapping->a_ops->get_xip_page);
++	BUG_ON(!file->f_mapping->a_ops->get_xip_mem);
+ 
+ 	file_accessed(file);
+ 	vma->vm_ops = &xip_file_vm_ops;
+-	vma->vm_flags |= VM_CAN_NONLINEAR;
++	vma->vm_flags |= VM_CAN_NONLINEAR | VM_MIXEDMAP;
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(xip_file_mmap);
+@@ -279,17 +285,17 @@ __xip_file_write(struct file *filp, cons
+ 	const struct address_space_operations *a_ops = mapping->a_ops;
+ 	struct inode 	*inode = mapping->host;
+ 	long		status = 0;
+-	struct page	*page;
+ 	size_t		bytes;
+ 	ssize_t		written = 0;
+ 
+-	BUG_ON(!mapping->a_ops->get_xip_page);
++	BUG_ON(!mapping->a_ops->get_xip_mem);
+ 
+ 	do {
+ 		unsigned long index;
+ 		unsigned long offset;
+ 		size_t copied;
+-		char *kaddr;
++		void *xip_mem;
++		unsigned long xip_pfn;
+ 
+ 		offset = (pos & (PAGE_CACHE_SIZE -1)); /* Within page */
+ 		index = pos >> PAGE_CACHE_SHIFT;
+@@ -297,28 +303,22 @@ __xip_file_write(struct file *filp, cons
+ 		if (bytes > count)
+ 			bytes = count;
+ 
+-		page = a_ops->get_xip_page(mapping,
+-					   index*(PAGE_SIZE/512), 0);
+-		if (IS_ERR(page) && (PTR_ERR(page) == -ENODATA)) {
++		status = a_ops->get_xip_mem(mapping, index, 0,
++						&xip_mem, &xip_pfn);
++		if (status == -ENODATA) {
+ 			/* we allocate a new page unmap it */
+-			page = a_ops->get_xip_page(mapping,
+-						   index*(PAGE_SIZE/512), 1);
+-			if (!IS_ERR(page))
++			status = a_ops->get_xip_mem(mapping, index, 1,
++							&xip_mem, &xip_pfn);
++			if (!status)
+ 				/* unmap page at pgoff from all other vmas */
+ 				__xip_unmap(mapping, index);
+ 		}
+ 
+-		if (IS_ERR(page)) {
+-			status = PTR_ERR(page);
++		if (status)
+ 			break;
+-		}
+ 
+-		fault_in_pages_readable(buf, bytes);
+-		kaddr = kmap_atomic(page, KM_USER0);
+ 		copied = bytes -
+-			__copy_from_user_inatomic_nocache(kaddr + offset, buf, bytes);
+-		kunmap_atomic(kaddr, KM_USER0);
+-		flush_dcache_page(page);
++			__copy_from_user_nocache(xip_mem + offset, buf, bytes);
+ 
+ 		if (likely(copied > 0)) {
+ 			status = copied;
+@@ -398,7 +398,7 @@ EXPORT_SYMBOL_GPL(xip_file_write);
+ 
+ /*
+  * truncate a page used for execute in place
+- * functionality is analog to block_truncate_page but does use get_xip_page
++ * functionality is analog to block_truncate_page but does use get_xip_mem
+  * to get the page instead of page cache
+  */
+ int
+@@ -408,9 +408,11 @@ xip_truncate_page(struct address_space *
+ 	unsigned offset = from & (PAGE_CACHE_SIZE-1);
+ 	unsigned blocksize;
+ 	unsigned length;
+-	struct page *page;
++	void *xip_mem;
++	unsigned long xip_pfn;
++	int err;
+ 
+-	BUG_ON(!mapping->a_ops->get_xip_page);
++	BUG_ON(!mapping->a_ops->get_xip_mem);
+ 
+ 	blocksize = 1 << mapping->host->i_blkbits;
+ 	length = offset & (blocksize - 1);
+@@ -421,18 +423,16 @@ xip_truncate_page(struct address_space *
+ 
+ 	length = blocksize - length;
+ 
+-	page = mapping->a_ops->get_xip_page(mapping,
+-					    index*(PAGE_SIZE/512), 0);
+-	if (!page)
+-		return -ENOMEM;
+-	if (unlikely(IS_ERR(page))) {
+-		if (PTR_ERR(page) == -ENODATA)
++	err = mapping->a_ops->get_xip_mem(mapping, index, 0,
++						&xip_mem, &xip_pfn);
++	if (unlikely(err)) {
++		if (err == -ENODATA)
+ 			/* Hole? No need to truncate */
+ 			return 0;
+ 		else
+-			return PTR_ERR(page);
++			return err;
+ 	}
+-	zero_user(page, offset, length);
++	memset(xip_mem + offset, 0, length);
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(xip_truncate_page);
+diff -puN mm/madvise.c~xip-support-non-struct-page-backed-memory mm/madvise.c
+--- a/mm/madvise.c~xip-support-non-struct-page-backed-memory
++++ a/mm/madvise.c
+@@ -112,7 +112,7 @@ static long madvise_willneed(struct vm_a
+ 	if (!file)
+ 		return -EBADF;
+ 
+-	if (file->f_mapping->a_ops->get_xip_page) {
++	if (file->f_mapping->a_ops->get_xip_mem) {
+ 		/* no bad return value, but ignore advice */
+ 		return 0;
+ 	}
 _
 
-Patches currently in -mm which might be from jaredeh@gmail.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
 origin.patch
+git-kvm.patch
+fuse-implement-perform_write.patch
+reiser4.patch
+reiser4-correct-references-to-filemap_nopage.patch
+likeliness-accounting-change-and-cleanup.patch
 
