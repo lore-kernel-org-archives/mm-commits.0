@@ -1,45 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: - ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 00:03:26 -0700
-Message-ID: <200804280703.m3S73QPK013147@imap1.linux-foundation.org>
+Subject: - ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 00:03:41 -0700
+Message-ID: <200804280703.m3S73foc013154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34612 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34050 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932210AbYD1HDa (ORCPT
+	by vger.kernel.org with ESMTP id S1765057AbYD1HDu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 03:03:30 -0400
+	Mon, 28 Apr 2008 03:03:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo
+     ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo
 has been removed from the -mm tree.  Its filename was
-     ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+     ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
 
-This patch was dropped because it was folded into ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone.patch
+This patch was dropped because it was folded into ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo
+Subject: ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext2/balloc.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/ext3/balloc.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext2/balloc.c~ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo fs/ext2/balloc.c
---- a/fs/ext2/balloc.c~ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo
-+++ a/fs/ext2/balloc.c
-@@ -152,8 +152,8 @@ read_block_bitmap(struct super_block *sb
- 
- 	ext2_valid_block_bitmap(sb, desc, block_group, bh);
+diff -puN fs/ext3/balloc.c~ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo fs/ext3/balloc.c
+--- a/fs/ext3/balloc.c~ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo
++++ a/fs/ext3/balloc.c
+@@ -166,8 +166,8 @@ read_block_bitmap(struct super_block *sb
+ 	}
+ 	ext3_valid_block_bitmap(sb, desc, block_group, bh);
  	/*
 -	 * file system mounted not to panic on error,
 -	 * continue with corrput bitmap
@@ -48,16 +48,15 @@ diff -puN fs/ext2/balloc.c~ext2-retry-block-allocation-if-new-blocks-are-allocat
  	 */
  	return bh;
  }
-@@ -1382,9 +1382,9 @@ allocated:
- 			    "blocks from "E2FSBLK", length %lu",
- 			    ret_block, num);
+@@ -1643,9 +1643,8 @@ allocated:
+ 			    "blocks from "E3FSBLK", length %lu",
+ 			     ret_block, num);
  		/*
--		 * ext2_try_to_allocate marked the blocks we allocated
+-		 * claim_block marked the blocks we allocated
 -		 * as in use. So we may want to selectively
 -		 * mark some of the blocks as free
-+		 * ext2_try_to_allocate marked the blocks we allocated as in
-+		 * use.  So we may want to selectively mark some of the blocks
-+		 * as free
++		 * claim_block() marked the blocks we allocated as in use. So we
++		 * may want to selectively mark some of the blocks as free.
  		 */
  		goto retry_alloc;
  	}
@@ -107,7 +106,7 @@ drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
 drivers-md-use-time_before-time_before_eq-etc.patch
 pnp-use-dev_printk-for-quirk-messages.patch
 ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone.patch
-ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone.patch
 ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
 fat_valid_media-remove-pointless-test.patch
 documentation-build-source-files-in-documentation-sub-dir-disable.patch
