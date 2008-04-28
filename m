@@ -1,288 +1,254 @@
 From: akpm@linux-foundation.org
-Subject: - fat-fat_notify_change-and-check_mode-cleanup.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:01:30 -0700
-Message-ID: <200804282201.m3SM1UqT018870@imap1.linux-foundation.org>
+Subject: - vfat-bug-fix-for-vfat-cannot-handle-filename-with-255.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:01:42 -0700
+Message-ID: <200804282201.m3SM1gi3018889@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44838 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59359 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965776AbYD1WBd (ORCPT
+	by vger.kernel.org with ESMTP id S965806AbYD1WBp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:01:33 -0400
+	Mon, 28 Apr 2008 18:01:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: ek9852@gmail.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fat: fat_notify_change() and check_mode() cleanup
+     vfat: bug fix for vfat cannot handle filename with 255
 has been removed from the -mm tree.  Its filename was
-     fat-fat_notify_change-and-check_mode-cleanup.patch
+     vfat-bug-fix-for-vfat-cannot-handle-filename-with-255.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: fat_notify_change() and check_mode() cleanup
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: vfat: bug fix for vfat cannot handle filename with 255
+From: Keith Mok <ek9852@gmail.com>
 
-- Rename fat_notify_change() to fat_setattr()
-- check_mode() cleanup
-- Change layout of code
+This patch fix the problem that the buffer allocated for convert of unicode to
+utf8 in fat/dir.c is too small.
 
+And cannot handle filename with 255 asian characters when mounted with utf8
+options.
+
+Also it fix the filename length limitation checking in vfat/namei.c that the
+filename length should be checked against the number of converted unicode
+characters.
+
+Not the length before NLS/UTF8 converted.
+
+Signed-off-by: Keith Mok <ek9852@gmail.com>
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/file.c            |  183 ++++++++++++++++---------------------
- fs/msdos/namei.c         |    2 
- fs/vfat/namei.c          |    2 
- include/linux/msdos_fs.h |    2 
- 4 files changed, 87 insertions(+), 102 deletions(-)
+ fs/fat/dir.c    |   44 ++++++++++++++++++++++++++++----------------
+ fs/vfat/namei.c |   25 +++++++++++--------------
+ 2 files changed, 39 insertions(+), 30 deletions(-)
 
-diff -puN fs/fat/file.c~fat-fat_notify_change-and-check_mode-cleanup fs/fat/file.c
---- a/fs/fat/file.c~fat-fat_notify_change-and-check_mode-cleanup
-+++ a/fs/fat/file.c
-@@ -157,104 +157,6 @@ out:
- 	return err;
- }
+diff -puN fs/fat/dir.c~vfat-bug-fix-for-vfat-cannot-handle-filename-with-255 fs/fat/dir.c
+--- a/fs/fat/dir.c~vfat-bug-fix-for-vfat-cannot-handle-filename-with-255
++++ a/fs/fat/dir.c
+@@ -124,8 +124,8 @@ static inline int fat_get_entry(struct i
+  * but ignore that right now.
+  * Ahem... Stack smashing in ring 0 isn't fun. Fixed.
+  */
+-static int uni16_to_x8(unsigned char *ascii, wchar_t *uni, int uni_xlate,
+-		       struct nls_table *nls)
++static int uni16_to_x8(unsigned char *ascii, wchar_t *uni, int len,
++		       int uni_xlate, struct nls_table *nls)
+ {
+ 	wchar_t *ip, ec;
+ 	unsigned char *op, nc;
+@@ -135,10 +135,11 @@ static int uni16_to_x8(unsigned char *as
+ 	ip = uni;
+ 	op = ascii;
  
--static int check_mode(const struct msdos_sb_info *sbi, mode_t mode)
--{
--	mode_t req = mode & ~S_IFMT;
--
--	/*
--	 * Of the r and x bits, all (subject to umask) must be present. Of the
--	 * w bits, either all (subject to umask) or none must be present.
--	 */
--
--	if (S_ISREG(mode)) {
--		req &= ~sbi->options.fs_fmask;
--
--		if ((req & (S_IRUGO | S_IXUGO)) !=
--		    ((S_IRUGO | S_IXUGO) & ~sbi->options.fs_fmask))
--			return -EPERM;
--
--		if ((req & S_IWUGO) != 0 &&
--		    (req & S_IWUGO) != (S_IWUGO & ~sbi->options.fs_fmask))
--			return -EPERM;
--	} else if (S_ISDIR(mode)) {
--		req &= ~sbi->options.fs_dmask;
--
--		if ((req & (S_IRUGO | S_IXUGO)) !=
--		    ((S_IRUGO | S_IXUGO) & ~sbi->options.fs_dmask))
--			return -EPERM;
--
--		if ((req & S_IWUGO) != 0 &&
--		    (req & S_IWUGO) != (S_IWUGO & ~sbi->options.fs_dmask))
--			return -EPERM;
--	} else {
--		return -EPERM;
--	}
--
+-	while (*ip) {
++	while (*ip && ((len - NLS_MAX_CHARSET_SIZE) > 0)) {
+ 		ec = *ip++;
+ 		if ( (charlen = nls->uni2char(ec, op, NLS_MAX_CHARSET_SIZE)) > 0) {
+ 			op += charlen;
++			len -= charlen;
+ 		} else {
+ 			if (uni_xlate == 1) {
+ 				*op = ':';
+@@ -149,16 +150,19 @@ static int uni16_to_x8(unsigned char *as
+ 					ec >>= 4;
+ 				}
+ 				op += 5;
++				len -= 5;
+ 			} else {
+ 				*op++ = '?';
++				len--;
+ 			}
+ 		}
+-		/* We have some slack there, so it's OK */
+-		if (op>ascii+256) {
+-			op = ascii + 256;
+-			break;
+-		}
+ 	}
++
++	if (unlikely(*ip)) {
++		printk(KERN_WARNING "FAT: filename was truncated while "
++		       "converting.");
++	}
++
+ 	*op = 0;
+ 	return (op - ascii);
+ }
+@@ -311,9 +315,11 @@ int fat_search_long(struct inode *inode,
+ 	struct nls_table *nls_io = sbi->nls_io;
+ 	struct nls_table *nls_disk = sbi->nls_disk;
+ 	wchar_t bufuname[14];
+-	unsigned char xlate_len, nr_slots;
++	unsigned char nr_slots;
++	int xlate_len;
+ 	wchar_t *unicode = NULL;
+-	unsigned char work[MSDOS_NAME], bufname[260];	/* 256 + 4 */
++	unsigned char work[MSDOS_NAME];
++	unsigned char *bufname = NULL;
+ 	int uni_xlate = sbi->options.unicode_xlate;
+ 	int utf8 = sbi->options.utf8;
+ 	int anycase = (sbi->options.name_check != 's');
+@@ -321,6 +327,10 @@ int fat_search_long(struct inode *inode,
+ 	loff_t cpos = 0;
+ 	int chl, i, j, last_u, err;
+ 
++	bufname = (unsigned char*)__get_free_page(GFP_KERNEL);
++	if (!bufname)
++		return -ENOMEM;
++
+ 	err = -ENOENT;
+ 	while(1) {
+ 		if (fat_get_entry(inode, &cpos, &bh, &de) == -1)
+@@ -386,8 +396,8 @@ parse_record:
+ 
+ 		bufuname[last_u] = 0x0000;
+ 		xlate_len = utf8
+-			?utf8_wcstombs(bufname, bufuname, sizeof(bufname))
+-			:uni16_to_x8(bufname, bufuname, uni_xlate, nls_io);
++			?utf8_wcstombs(bufname, bufuname, PAGE_SIZE)
++			:uni16_to_x8(bufname, bufuname, PAGE_SIZE, uni_xlate, nls_io);
+ 		if (xlate_len == name_len)
+ 			if ((!anycase && !memcmp(name, bufname, xlate_len)) ||
+ 			    (anycase && !nls_strnicmp(nls_io, name, bufname,
+@@ -396,8 +406,8 @@ parse_record:
+ 
+ 		if (nr_slots) {
+ 			xlate_len = utf8
+-				?utf8_wcstombs(bufname, unicode, sizeof(bufname))
+-				:uni16_to_x8(bufname, unicode, uni_xlate, nls_io);
++				?utf8_wcstombs(bufname, unicode, PAGE_SIZE)
++				:uni16_to_x8(bufname, unicode, PAGE_SIZE, uni_xlate, nls_io);
+ 			if (xlate_len != name_len)
+ 				continue;
+ 			if ((!anycase && !memcmp(name, bufname, xlate_len)) ||
+@@ -416,6 +426,8 @@ Found:
+ 	sinfo->i_pos = fat_make_i_pos(sb, sinfo->bh, sinfo->de);
+ 	err = 0;
+ EODir:
++	if (bufname)
++		free_page((unsigned long)bufname);
+ 	if (unicode)
+ 		free_page((unsigned long)unicode);
+ 
+@@ -598,7 +610,7 @@ parse_record:
+ 	if (isvfat) {
+ 		bufuname[j] = 0x0000;
+ 		i = utf8 ? utf8_wcstombs(bufname, bufuname, sizeof(bufname))
+-			 : uni16_to_x8(bufname, bufuname, uni_xlate, nls_io);
++			 : uni16_to_x8(bufname, bufuname, sizeof(bufname), uni_xlate, nls_io);
+ 	}
+ 
+ 	fill_name = bufname;
+@@ -610,7 +622,7 @@ parse_record:
+ 		int buf_size = PAGE_SIZE - (261 * sizeof(unicode[0]));
+ 		int long_len = utf8
+ 			? utf8_wcstombs(longname, unicode, buf_size)
+-			: uni16_to_x8(longname, unicode, uni_xlate, nls_io);
++			: uni16_to_x8(longname, unicode, buf_size, uni_xlate, nls_io);
+ 
+ 		if (!both) {
+ 			fill_name = longname;
+diff -puN fs/vfat/namei.c~vfat-bug-fix-for-vfat-cannot-handle-filename-with-255 fs/vfat/namei.c
+--- a/fs/vfat/namei.c~vfat-bug-fix-for-vfat-cannot-handle-filename-with-255
++++ a/fs/vfat/namei.c
+@@ -176,15 +176,10 @@ static inline int vfat_is_used_badchars(
+ 	for (i = 0; i < len; i++)
+ 		if (vfat_bad_char(s[i]))
+ 			return -EINVAL;
 -	return 0;
 -}
--
--int fat_notify_change(struct dentry *dentry, struct iattr *attr)
+ 
+-static int vfat_valid_longname(const unsigned char *name, unsigned int len)
 -{
--	struct msdos_sb_info *sbi = MSDOS_SB(dentry->d_sb);
--	struct inode *inode = dentry->d_inode;
--	int mask, error = 0;
--
--	lock_kernel();
--
--	/*
--	 * Expand the file. Since inode_setattr() updates ->i_size
--	 * before calling the ->truncate(), but FAT needs to fill the
--	 * hole before it.
--	 */
--	if (attr->ia_valid & ATTR_SIZE) {
--		if (attr->ia_size > inode->i_size) {
--			error = fat_cont_expand(inode, attr->ia_size);
--			if (error || attr->ia_valid == ATTR_SIZE)
--				goto out;
--			attr->ia_valid &= ~ATTR_SIZE;
--		}
--	}
--
--	error = inode_change_ok(inode, attr);
--	if (error) {
--		if (sbi->options.quiet)
--			error = 0;
--		goto out;
--	}
--	if (((attr->ia_valid & ATTR_UID) &&
--	     (attr->ia_uid != sbi->options.fs_uid)) ||
--	    ((attr->ia_valid & ATTR_GID) &&
--	     (attr->ia_gid != sbi->options.fs_gid)))
--		error = -EPERM;
--
--	if (error) {
--		if (sbi->options.quiet)
--			error = 0;
--		goto out;
--	}
--
--	if (attr->ia_valid & ATTR_MODE) {
--		error = check_mode(sbi, attr->ia_mode);
--		if (error != 0 && !sbi->options.quiet)
--			goto out;
--	}
--
--	error = inode_setattr(inode, attr);
--	if (error)
--		goto out;
--
--	if (S_ISDIR(inode->i_mode))
--		mask = sbi->options.fs_dmask;
--	else
--		mask = sbi->options.fs_fmask;
--	inode->i_mode &= S_IFMT | (S_IRWXUGO & ~mask);
--out:
--	unlock_kernel();
--	return error;
--}
--
--EXPORT_SYMBOL_GPL(fat_notify_change);
--
- /* Free all clusters after the skip'th cluster. */
- static int fat_free(struct inode *inode, int skip)
- {
-@@ -355,8 +257,91 @@ int fat_getattr(struct vfsmount *mnt, st
+-	if (name[len - 1] == ' ')
++	if (s[i - 1] == ' ') /* last character cannot be space */
+ 		return -EINVAL;
+-	if (len >= 256)
+-		return -ENAMETOOLONG;
++
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(fat_getattr);
  
-+static int fat_check_mode(const struct msdos_sb_info *sbi, mode_t mode)
-+{
-+	mode_t mask, req = mode & ~S_IFMT;
-+
-+	if (S_ISREG(mode))
-+		mask = sbi->options.fs_fmask;
-+	else
-+		mask = sbi->options.fs_dmask;
-+
-+	/*
-+	 * Of the r and x bits, all (subject to umask) must be present. Of the
-+	 * w bits, either all (subject to umask) or none must be present.
-+	 */
-+	req &= ~mask;
-+	if ((req & (S_IRUGO | S_IXUGO)) != ((S_IRUGO | S_IXUGO) & ~mask))
-+		return -EPERM;
-+	if ((req & S_IWUGO) && ((req & S_IWUGO) != (S_IWUGO & ~mask)))
-+		return -EPERM;
-+
-+	return 0;
-+}
-+
-+int fat_setattr(struct dentry *dentry, struct iattr *attr)
-+{
-+	struct msdos_sb_info *sbi = MSDOS_SB(dentry->d_sb);
-+	struct inode *inode = dentry->d_inode;
-+	int mask, error = 0;
-+
-+	lock_kernel();
-+
-+	/*
-+	 * Expand the file. Since inode_setattr() updates ->i_size
-+	 * before calling the ->truncate(), but FAT needs to fill the
-+	 * hole before it.
-+	 */
-+	if (attr->ia_valid & ATTR_SIZE) {
-+		if (attr->ia_size > inode->i_size) {
-+			error = fat_cont_expand(inode, attr->ia_size);
-+			if (error || attr->ia_valid == ATTR_SIZE)
-+				goto out;
-+			attr->ia_valid &= ~ATTR_SIZE;
-+		}
-+	}
-+
-+	error = inode_change_ok(inode, attr);
-+	if (error) {
-+		if (sbi->options.quiet)
-+			error = 0;
-+		goto out;
-+	}
-+	if (((attr->ia_valid & ATTR_UID) &&
-+	     (attr->ia_uid != sbi->options.fs_uid)) ||
-+	    ((attr->ia_valid & ATTR_GID) &&
-+	     (attr->ia_gid != sbi->options.fs_gid)))
-+		error = -EPERM;
-+
-+	if (error) {
-+		if (sbi->options.quiet)
-+			error = 0;
-+		goto out;
-+	}
-+
-+	if (attr->ia_valid & ATTR_MODE) {
-+		error = fat_check_mode(sbi, attr->ia_mode);
-+		if (error != 0 && !sbi->options.quiet)
-+			goto out;
-+	}
-+
-+	error = inode_setattr(inode, attr);
-+	if (error)
-+		goto out;
-+
-+	if (S_ISDIR(inode->i_mode))
-+		mask = sbi->options.fs_dmask;
-+	else
-+		mask = sbi->options.fs_fmask;
-+	inode->i_mode &= S_IFMT | (S_IRWXUGO & ~mask);
-+out:
-+	unlock_kernel();
-+	return error;
-+}
-+EXPORT_SYMBOL_GPL(fat_setattr);
-+
- const struct inode_operations fat_file_inode_operations = {
- 	.truncate	= fat_truncate,
--	.setattr	= fat_notify_change,
-+	.setattr	= fat_setattr,
- 	.getattr	= fat_getattr,
- };
-diff -puN fs/msdos/namei.c~fat-fat_notify_change-and-check_mode-cleanup fs/msdos/namei.c
---- a/fs/msdos/namei.c~fat-fat_notify_change-and-check_mode-cleanup
-+++ a/fs/msdos/namei.c
-@@ -653,7 +653,7 @@ static const struct inode_operations msd
- 	.mkdir		= msdos_mkdir,
- 	.rmdir		= msdos_rmdir,
- 	.rename		= msdos_rename,
--	.setattr	= fat_notify_change,
-+	.setattr	= fat_setattr,
- 	.getattr	= fat_getattr,
- };
+@@ -485,11 +480,14 @@ xlate_to_uni(const unsigned char *name, 
+ 		 */
+ 		*outlen -= (name_len - len);
  
-diff -puN fs/vfat/namei.c~fat-fat_notify_change-and-check_mode-cleanup fs/vfat/namei.c
---- a/fs/vfat/namei.c~fat-fat_notify_change-and-check_mode-cleanup
-+++ a/fs/vfat/namei.c
-@@ -1003,7 +1003,7 @@ static const struct inode_operations vfa
- 	.mkdir		= vfat_mkdir,
- 	.rmdir		= vfat_rmdir,
- 	.rename		= vfat_rename,
--	.setattr	= fat_notify_change,
-+	.setattr	= fat_setattr,
- 	.getattr	= fat_getattr,
- };
++		if (*outlen > 255)
++			return -ENAMETOOLONG;
++
+ 		op = &outname[*outlen * sizeof(wchar_t)];
+ 	} else {
+ 		if (nls) {
+ 			for (i = 0, ip = name, op = outname, *outlen = 0;
+-			     i < len && *outlen <= 260;
++			     i < len && *outlen <= 255;
+ 			     *outlen += 1)
+ 			{
+ 				if (escape && (*ip == ':')) {
+@@ -525,18 +523,20 @@ xlate_to_uni(const unsigned char *name, 
+ 					op += 2;
+ 				}
+ 			}
++			if (i < len)
++				return -ENAMETOOLONG;
+ 		} else {
+ 			for (i = 0, ip = name, op = outname, *outlen = 0;
+-			     i < len && *outlen <= 260;
++			     i < len && *outlen <= 255;
+ 			     i++, *outlen += 1)
+ 			{
+ 				*op++ = *ip++;
+ 				*op++ = 0;
+ 			}
++			if (i < len)
++				return -ENAMETOOLONG;
+ 		}
+ 	}
+-	if (*outlen > 260)
+-		return -ENAMETOOLONG;
  
-diff -puN include/linux/msdos_fs.h~fat-fat_notify_change-and-check_mode-cleanup include/linux/msdos_fs.h
---- a/include/linux/msdos_fs.h~fat-fat_notify_change-and-check_mode-cleanup
-+++ a/include/linux/msdos_fs.h
-@@ -401,7 +401,7 @@ extern int fat_generic_ioctl(struct inod
- 			     unsigned int cmd, unsigned long arg);
- extern const struct file_operations fat_file_operations;
- extern const struct inode_operations fat_file_inode_operations;
--extern int fat_notify_change(struct dentry * dentry, struct iattr * attr);
-+extern int fat_setattr(struct dentry * dentry, struct iattr * attr);
- extern void fat_truncate(struct inode *inode);
- extern int fat_getattr(struct vfsmount *mnt, struct dentry *dentry,
- 		       struct kstat *stat);
+ 	*longlen = *outlen;
+ 	if (*outlen % 13) {
+@@ -574,9 +574,6 @@ static int vfat_build_slots(struct inode
+ 	loff_t offset;
+ 
+ 	*nr_slots = 0;
+-	err = vfat_valid_longname(name, len);
+-	if (err)
+-		return err;
+ 
+ 	page = __get_free_page(GFP_KERNEL);
+ 	if (!page)
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from ek9852@gmail.com are
 
 origin.patch
-vfs-fix-unconditional-write_super-call-in-file_fsync.patch
-fat-use-get-put_unaligned_-helpers.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
 
