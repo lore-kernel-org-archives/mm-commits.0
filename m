@@ -1,119 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 23:55:10 -0700
-Message-ID: <200804280655.m3S6tAaE012725@imap1.linux-foundation.org>
+Subject: - gxfb-add-power-management-functionality-fix.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 00:01:05 -0700
+Message-ID: <200804280701.m3S715GB013067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40262 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57500 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763424AbYD1HBC (ORCPT
+	by vger.kernel.org with ESMTP id S1763140AbYD1HBY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 03:01:02 -0400
+	Mon, 28 Apr 2008 03:01:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, agl@us.ibm.com, ebmunson@us.ibm.com, mm-commits@vger.kernel.org
+To: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb-vmstat-events-for-huge-page-allocations-cleanup
+     gxfb: two suspend/resume fixes
 has been removed from the -mm tree.  Its filename was
-     hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
+     gxfb-add-power-management-functionality-fix.patch
 
-This patch was dropped because it was folded into hugetlb-vmstat-events-for-huge-page-allocations.patch
+This patch was dropped because it was folded into gxfb-add-power-management-functionality.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb-vmstat-events-for-huge-page-allocations-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: gxfb: two suspend/resume fixes
+From: Andres Salomon <dilinger@queued.net>
 
-Cc: Adam Litke <agl@us.ibm.com>
-Cc: Eric Munson <ebmunson@us.ibm.com>
+Two suspend/resume fixes:
+  - we weren't saving/restoring the palette correctly; I wasn't setting
+    PAL_ADDRESS correctly.
+  - the original GP restore code had an off-by-one bug that I happily
+    reproduced in this code.  This fixes that, which fixes the RASTER_MODE
+    register not getting set.
+
+And drop an unnecessary comment.
+
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/video/geode/suspend_gx.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/vmstat.h~hugetlb-vmstat-events-for-huge-page-allocations-cleanup include/linux/vmstat.h
---- a/include/linux/vmstat.h~hugetlb-vmstat-events-for-huge-page-allocations-cleanup
-+++ a/include/linux/vmstat.h
-@@ -25,11 +25,6 @@
- #define HIGHMEM_ZONE(xx)
- #endif
+diff -puN drivers/video/geode/suspend_gx.c~gxfb-add-power-management-functionality-fix drivers/video/geode/suspend_gx.c
+--- a/drivers/video/geode/suspend_gx.c~gxfb-add-power-management-functionality-fix
++++ a/drivers/video/geode/suspend_gx.c
+@@ -39,7 +39,7 @@ static void gx_save_regs(struct gxfb_par
+ 	memcpy(par->fp, par->vid_regs + VP_FP_START, sizeof(par->fp));
  
--#ifdef CONFIG_HUGETLB_PAGE
--#define HTLB_STATS	HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
--#else
--#define HTLB_STATS
--#endif
+ 	/* save the palette */
+-	write_gp(par, DC_PAL_ADDRESS, 0);
++	write_dc(par, DC_PAL_ADDRESS, 0);
+ 	for (i = 0; i < ARRAY_SIZE(par->pal); i++)
+ 		par->pal[i] = read_dc(par, DC_PAL_DATA);
+ }
+@@ -73,10 +73,10 @@ static void gx_restore_gfx_proc(struct g
  
- #define FOR_ALL_ZONES(xx) DMA_ZONE(xx) DMA32_ZONE(xx) xx##_NORMAL HIGHMEM_ZONE(xx) , xx##_MOVABLE
+ 	for (i = 0; i < ARRAY_SIZE(par->gp); i++) {
+ 		switch (i) {
+-		case GP_RASTER_MODE:
+ 		case GP_VECTOR_MODE:
+ 		case GP_BLT_MODE:
+ 		case GP_BLT_STATUS:
++		case GP_HST_SRC:
+ 			/* don't restore these registers */
+ 			break;
+ 		default:
+@@ -130,7 +130,7 @@ static void gx_restore_display_ctlr(stru
+ 	}
  
-@@ -42,7 +37,10 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		FOR_ALL_ZONES(PGSCAN_KSWAPD),
- 		FOR_ALL_ZONES(PGSCAN_DIRECT),
- 		PGINODESTEAL, SLABS_SCANNED, KSWAPD_STEAL, KSWAPD_INODESTEAL,
--		PAGEOUTRUN, ALLOCSTALL, PGROTATED, HTLB_STATS
-+		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
-+#ifdef CONFIG_HUGETLB_PAGE
-+		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
-+#endif
- 		NR_VM_EVENT_ITEMS
- };
- 
+ 	/* restore the palette */
+-	write_gp(par, DC_PAL_ADDRESS, 0);
++	write_dc(par, DC_PAL_ADDRESS, 0);
+ 	for (i = 0; i < ARRAY_SIZE(par->pal); i++)
+ 		write_dc(par, DC_PAL_DATA, par->pal[i]);
+ }
+@@ -163,7 +163,7 @@ static void gx_restore_video_proc(struct
+ 		case VP_RSVD_3:
+ 		case VP_CRC32:
+ 		case VP_AWT:
+-		case VP_VTM:    /* this is r/w, shouldn't we restore?  -dil */
++		case VP_VTM:
+ 			/* don't restore these registers */
+ 			break;
+ 		default:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-origin.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
-rtc-pcf8563-new-style-conversion.patch
-rtc-x1205-new-style-conversion.patch
-hotplug-memory-make-online_page-common.patch
-remove-sparse-warning-for-mmzoneh.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
-vmallocinfo-add-caller-information.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries.patch
-mm-introduce-pte_special-pte-bit.patch
-hugetlb-vmstat-events-for-huge-page-allocations.patch
-hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix-fix-fix.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
-kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
-quota-various-style-cleanups-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-gpiochip_reserve-fix.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+x86-geode-msr-cleanup.patch
+x86-geode-add-virtual-systems-architecture-detection.patch
+gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
+gxfb-replace-fbsize-config-option-with-a-module-parameter.patch
+gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
+gxfb-clean-up-register-definitions.patch
+gxfb-move-msr-bit-fields-into-gxfbh.patch
+gxfb-stop-sharing-code-with-gx1fb.patch
+gxfb-add-power-management-functionality.patch
+gxfb-add-power-management-functionality-fix.patch
+gxfb-add-power-management-functionality-update.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
 pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-create-gp-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
+lxfb-clean-up-register-definitions.patch
+lxfb-clean-up-final-bits-of-df_regs.patch
+lxfb-rearrange-rename-msr-bitfields.patch
+lxfb-add-power-management-functionality.patch
 lxfb-add-power-management-functionality-fix.patch
-drivers-video-uvesafbc-fix-error-path-memory-leak.patch
-fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
-drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
-drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
+lxfb-add-power-management-functionality-update.patch
+lxfb-rename-kernel-arg-fbsize-to-vram.patch
+lxfb-disable-suspend-vt-switch-by-default.patch
+lxfb-gxfb-when-blanking-with-fb_blank_powerdown-also-turn-off-the-crt.patch
+gxfb-lxfb-use-vsa-definitions-when-fetching-framebuffer-size.patch
+gxfb-lxfb-detect-framebuffer-size-using-an-msr-if-vsa2-isnt-available.patch
+olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers.patch
+olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix.patch
 
