@@ -1,116 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - pageflags-use-proper-page-flag-functions-in-xen.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:52:24 -0700
-Message-ID: <200804282152.m3SLqO77017770@imap1.linux-foundation.org>
+Subject: - mempolicy-rename-mpol_copy-to-mpol_dup.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:53:04 -0700
+Message-ID: <200804282153.m3SLr4VX017835@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47264 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934836AbYD1Vw4 (ORCPT
+	by vger.kernel.org with ESMTP id S934904AbYD1VxV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:52:56 -0400
+	Mon, 28 Apr 2008 17:53:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, apw@shadowen.org, jeremy@goop.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
+To: lee.schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pageflags: use proper page flag functions in Xen
+     mempolicy: rename mpol_copy to mpol_dup
 has been removed from the -mm tree.  Its filename was
-     pageflags-use-proper-page-flag-functions-in-xen.patch
+     mempolicy-rename-mpol_copy-to-mpol_dup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pageflags: use proper page flag functions in Xen
-From: Christoph Lameter <clameter@sgi.com>
+Subject: mempolicy: rename mpol_copy to mpol_dup
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Xen uses bitops to manipulate page flags.  Make it use proper page flag
-functions.
+This patch renames mpol_copy() to mpol_dup() because, well, that's what it
+does.  Like, e.g., strdup() for strings, mpol_dup() takes a pointer to an
+existing mempolicy, allocates a new one and copies the contents.
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Rik van Riel <riel@redhat.com>
+In a later patch, I want to use the name mpol_copy() to copy the contents from
+one mempolicy to another like, e.g., strcpy() does for strings.
+
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/mmu.c         |    4 ++--
- include/linux/page-flags.h |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mempolicy.h |   14 +++++++-------
+ kernel/cpuset.c           |    4 ++--
+ kernel/fork.c             |    4 ++--
+ mm/mempolicy.c            |    6 +++---
+ mm/mmap.c                 |    4 ++--
+ 5 files changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN arch/x86/xen/mmu.c~pageflags-use-proper-page-flag-functions-in-xen arch/x86/xen/mmu.c
---- a/arch/x86/xen/mmu.c~pageflags-use-proper-page-flag-functions-in-xen
-+++ a/arch/x86/xen/mmu.c
-@@ -387,7 +387,7 @@ static void xen_do_pin(unsigned level, u
+diff -puN include/linux/mempolicy.h~mempolicy-rename-mpol_copy-to-mpol_dup include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mempolicy-rename-mpol_copy-to-mpol_dup
++++ a/include/linux/mempolicy.h
+@@ -73,10 +73,10 @@ struct mm_struct;
+  * Mempolicy objects are reference counted.  A mempolicy will be freed when
+  * mpol_put() decrements the reference count to zero.
+  *
+- * Copying policy objects:
+- * mpol_copy() allocates a new mempolicy and copies the specified mempolicy
++ * Duplicating policy objects:
++ * mpol_dup() allocates a new mempolicy and copies the specified mempolicy
+  * to the new storage.  The reference count of the new object is initialized
+- * to 1, representing the caller of mpol_copy().
++ * to 1, representing the caller of mpol_dup().
+  */
+ struct mempolicy {
+ 	atomic_t refcnt;
+@@ -105,11 +105,11 @@ static inline void mpol_put(struct mempo
+ 		__mpol_put(pol);
+ }
  
- static int pin_page(struct page *page, enum pt_level level)
+-extern struct mempolicy *__mpol_copy(struct mempolicy *pol);
+-static inline struct mempolicy *mpol_copy(struct mempolicy *pol)
++extern struct mempolicy *__mpol_dup(struct mempolicy *pol);
++static inline struct mempolicy *mpol_dup(struct mempolicy *pol)
  {
--	unsigned pgfl = test_and_set_bit(PG_pinned, &page->flags);
-+	unsigned pgfl = TestSetPagePinned(page);
- 	int flush;
+ 	if (pol)
+-		pol = __mpol_copy(pol);
++		pol = __mpol_dup(pol);
+ 	return pol;
+ }
  
- 	if (pgfl)
-@@ -468,7 +468,7 @@ void __init xen_mark_init_mm_pinned(void
- 
- static int unpin_page(struct page *page, enum pt_level level)
+@@ -198,7 +198,7 @@ static inline void mpol_get(struct mempo
  {
--	unsigned pgfl = test_and_clear_bit(PG_pinned, &page->flags);
-+	unsigned pgfl = TestClearPagePinned(page);
+ }
  
- 	if (pgfl && !PageHighMem(page)) {
- 		void *pt = lowmem_page_address(page);
-diff -puN include/linux/page-flags.h~pageflags-use-proper-page-flag-functions-in-xen include/linux/page-flags.h
---- a/include/linux/page-flags.h~pageflags-use-proper-page-flag-functions-in-xen
-+++ a/include/linux/page-flags.h
-@@ -159,7 +159,7 @@ PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, 
- PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
- __PAGEFLAG(Slab, slab)
- PAGEFLAG(Checked, checked)		/* Used by some filesystems */
--PAGEFLAG(Pinned, pinned)		/* Xen pinned pagetable */
-+PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen pagetable */
- PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
- PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
- 	__SETPAGEFLAG(Private, private)
+-static inline struct mempolicy *mpol_copy(struct mempolicy *old)
++static inline struct mempolicy *mpol_dup(struct mempolicy *old)
+ {
+ 	return NULL;
+ }
+diff -puN kernel/cpuset.c~mempolicy-rename-mpol_copy-to-mpol_dup kernel/cpuset.c
+--- a/kernel/cpuset.c~mempolicy-rename-mpol_copy-to-mpol_dup
++++ a/kernel/cpuset.c
+@@ -941,7 +941,7 @@ static int update_nodemask(struct cpuset
+ 	cs->mems_generation = cpuset_mems_generation++;
+ 	mutex_unlock(&callback_mutex);
+ 
+-	cpuset_being_rebound = cs;		/* causes mpol_copy() rebind */
++	cpuset_being_rebound = cs;		/* causes mpol_dup() rebind */
+ 
+ 	fudge = 10;				/* spare mmarray[] slots */
+ 	fudge += cpus_weight(cs->cpus_allowed);	/* imagine one fork-bomb/cpu */
+@@ -992,7 +992,7 @@ static int update_nodemask(struct cpuset
+ 	 * rebind the vma mempolicies of each mm in mmarray[] to their
+ 	 * new cpuset, and release that mm.  The mpol_rebind_mm()
+ 	 * call takes mmap_sem, which we couldn't take while holding
+-	 * tasklist_lock.  Forks can happen again now - the mpol_copy()
++	 * tasklist_lock.  Forks can happen again now - the mpol_dup()
+ 	 * cpuset_being_rebound check will catch such forks, and rebind
+ 	 * their vma mempolicies too.  Because we still hold the global
+ 	 * cgroup_mutex, we know that no other rebind effort will
+diff -puN kernel/fork.c~mempolicy-rename-mpol_copy-to-mpol_dup kernel/fork.c
+--- a/kernel/fork.c~mempolicy-rename-mpol_copy-to-mpol_dup
++++ a/kernel/fork.c
+@@ -279,7 +279,7 @@ static int dup_mmap(struct mm_struct *mm
+ 		if (!tmp)
+ 			goto fail_nomem;
+ 		*tmp = *mpnt;
+-		pol = mpol_copy(vma_policy(mpnt));
++		pol = mpol_dup(vma_policy(mpnt));
+ 		retval = PTR_ERR(pol);
+ 		if (IS_ERR(pol))
+ 			goto fail_nomem_policy;
+@@ -1116,7 +1116,7 @@ static struct task_struct *copy_process(
+ 	p->audit_context = NULL;
+ 	cgroup_fork(p);
+ #ifdef CONFIG_NUMA
+- 	p->mempolicy = mpol_copy(p->mempolicy);
++	p->mempolicy = mpol_dup(p->mempolicy);
+  	if (IS_ERR(p->mempolicy)) {
+  		retval = PTR_ERR(p->mempolicy);
+  		p->mempolicy = NULL;
+diff -puN mm/mempolicy.c~mempolicy-rename-mpol_copy-to-mpol_dup mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-rename-mpol_copy-to-mpol_dup
++++ a/mm/mempolicy.c
+@@ -1566,15 +1566,15 @@ struct page *alloc_pages_current(gfp_t g
+ EXPORT_SYMBOL(alloc_pages_current);
+ 
+ /*
+- * If mpol_copy() sees current->cpuset == cpuset_being_rebound, then it
++ * If mpol_dup() sees current->cpuset == cpuset_being_rebound, then it
+  * rebinds the mempolicy its copying by calling mpol_rebind_policy()
+  * with the mems_allowed returned by cpuset_mems_allowed().  This
+  * keeps mempolicies cpuset relative after its cpuset moves.  See
+  * further kernel/cpuset.c update_nodemask().
+  */
+ 
+-/* Slow path of a mempolicy copy */
+-struct mempolicy *__mpol_copy(struct mempolicy *old)
++/* Slow path of a mempolicy duplicate */
++struct mempolicy *__mpol_dup(struct mempolicy *old)
+ {
+ 	struct mempolicy *new = kmem_cache_alloc(policy_cache, GFP_KERNEL);
+ 
+diff -puN mm/mmap.c~mempolicy-rename-mpol_copy-to-mpol_dup mm/mmap.c
+--- a/mm/mmap.c~mempolicy-rename-mpol_copy-to-mpol_dup
++++ a/mm/mmap.c
+@@ -1810,7 +1810,7 @@ int split_vma(struct mm_struct * mm, str
+ 		new->vm_pgoff += ((addr - vma->vm_start) >> PAGE_SHIFT);
+ 	}
+ 
+-	pol = mpol_copy(vma_policy(vma));
++	pol = mpol_dup(vma_policy(vma));
+ 	if (IS_ERR(pol)) {
+ 		kmem_cache_free(vm_area_cachep, new);
+ 		return PTR_ERR(pol);
+@@ -2126,7 +2126,7 @@ struct vm_area_struct *copy_vma(struct v
+ 		new_vma = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
+ 		if (new_vma) {
+ 			*new_vma = *vma;
+-			pol = mpol_copy(vma_policy(vma));
++			pol = mpol_dup(vma_policy(vma));
+ 			if (IS_ERR(pol)) {
+ 				kmem_cache_free(vm_area_cachep, new_vma);
+ 				return NULL;
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
 origin.patch
-git-unionfs.patch
-git-pekka.patch
-page-allcoator-smarter-retry-of-costly-order-allocations.patch
-page-allocator-explicitly-retry-hugepage-allocations.patch
-ipc-add-definitions-of-ushort_max-and-others.patch
-mm-add-nr_writeback_temp-counter.patch
-remove-div_long_long_rem.patch
-slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
-add-kbuildh-that-contains-common-definitions-for-kbuild-users.patch
-x86-use-kbuildh.patch
-mips-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
-alpha-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
-ia64-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch
-arm-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
-xtensa-use-kbuildh-macros-instead-of-defining-them-in-asm-offsetsc.patch
-sparc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
-avr32-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch
-blackfin-use-kbuildh-instead-of-defining-macros-in-asm-macrosc.patch
-frv-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
-h8300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
-m68k-m68kmmu-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
-mn10300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
-parisc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
-ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
-s390-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
-s390-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc-update.patch
-sh-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
-v850-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
+mm-add-nr_writeback_temp-counter-fix.patch
 
