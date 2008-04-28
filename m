@@ -1,239 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - mm-introduce-vm_mixedmap.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:52:41 -0700
-Message-ID: <200804282152.m3SLqf5M017795@imap1.linux-foundation.org>
+Subject: - pageflags-eliminate-pg_xxx-aliases.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:52:26 -0700
+Message-ID: <200804282152.m3SLqQs3017773@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47844 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52581 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934877AbYD1VxH (ORCPT
+	by vger.kernel.org with ESMTP id S934860AbYD1Vw6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:53:07 -0400
+	Mon, 28 Apr 2008 17:52:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jaredeh@gmail.com, cotte@de.ibm.com, heiko.carstens@de.ibm.com, npiggin@suse.de, schwidefsky@de.ibm.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: clameter@sgi.com, apw@shadowen.org, jeremy@goop.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: introduce VM_MIXEDMAP
+     pageflags: eliminate PG_xxx aliases
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-vm_mixedmap.patch
+     pageflags-eliminate-pg_xxx-aliases.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: introduce VM_MIXEDMAP
-From: Jared Hulbert <jaredeh@gmail.com>
+Subject: pageflags: eliminate PG_xxx aliases
+From: Christoph Lameter <clameter@sgi.com>
 
-This series introduces some important infrastructure work.  The overall result
-is that:
+Remove aliases of PG_xxx.  We can easily drop those now and alias by
+specifying the PG_xxx flag in the macro that generates the functions.
 
-1. We now support XIP backed filesystems using memory that have no
-   struct page allocated to them. And patches 6 and 7 actually implement
-   this for s390.
-
-   This is pretty important in a number of cases. As far as I understand,
-   in the case of virtualisation (eg. s390), each guest may mount a
-   readonly copy of the same filesystem (eg. the distro). Currently,
-   guests need to allocate struct pages for this image. So if you have
-   100 guests, you already need to allocate more memory for the struct
-   pages than the size of the image. I think. (Carsten?)
-
-   For other (eg. embedded) systems, you may have a very large non-
-   volatile filesystem. If you have to have struct pages for this, then
-   your RAM consumption will go up proportionally to fs size. Even
-   though it is just a small proportion, the RAM can be much more costly
-   eg in terms of power, so every KB less that Linux uses makes it more
-   attractive to a lot of these guys.
-
-2. VM_MIXEDMAP allows us to support mappings where you actually do want
-   to refcount _some_ pages in the mapping, but not others, and support
-   COW on arbitrary (non-linear) mappings. Jared needs this for his NVRAM
-   filesystem in progress. Future iterations of this filesystem will
-   most likely want to migrate pages between pagecache and XIP backing,
-   which is where the requirement for mixed (some refcounted, some not)
-   comes from.
-
-3. pte_special also has a peripheral usage that I need for my lockless
-   get_user_pages patch. That was shown to speed up "oltp" on db2 by
-   10% on a 2 socket system, which is kind of significant because they
-   scrounge for months to try to find 0.1% improvement on these
-   workloads. I'm hoping we might finally be faster than AIX on
-   pSeries with this :). My reference to lockless get_user_pages is not
-   meant to justify this patchset (which doesn't include lockless gup),
-   but just to show that pte_special is not some s390 specific thing that
-   should be hidden in arch code or xip code: I definitely want to use it
-   on at least x86 and powerpc as well.
-
-
-
-This patch:
-
-Introduce a new type of mapping, VM_MIXEDMAP.  This is unlike VM_PFNMAP in
-that it can support COW mappings of arbitrary ranges including ranges without
-struct page *and* ranges with a struct page that we actually want to refcount
-(PFNMAP can only support COW in those cases where the un-COW-ed translations
-are mapped linearly in the virtual address, and can only support non
-refcounted ranges).
-
-VM_MIXEDMAP achieves this by refcounting all pfn_valid pages, and not
-refcounting !pfn_valid pages (which is not an option for VM_PFNMAP, because it
-needs to avoid refcounting pfn_valid pages eg.  for /dev/mem mappings).
-
-Signed-off-by: Jared Hulbert <jaredeh@gmail.com>
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Carsten Otte <cotte@de.ibm.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Jared Hulbert <jaredeh@gmail.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 
- mm/memory.c        |   79 +++++++++++++++++++++++++++++++------------
- 2 files changed, 59 insertions(+), 21 deletions(-)
+ include/linux/page-flags.h |   12 ++++--------
+ mm/page_alloc.c            |    2 +-
+ 2 files changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mm.h~mm-introduce-vm_mixedmap include/linux/mm.h
---- a/include/linux/mm.h~mm-introduce-vm_mixedmap
-+++ a/include/linux/mm.h
-@@ -107,6 +107,7 @@ extern unsigned int kobjsize(const void 
- #define VM_ALWAYSDUMP	0x04000000	/* Always include in core dumps */
+diff -puN include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases include/linux/page-flags.h
+--- a/include/linux/page-flags.h~pageflags-eliminate-pg_xxx-aliases
++++ a/include/linux/page-flags.h
+@@ -79,8 +79,6 @@ enum pageflags {
+ 	PG_active,
+ 	PG_slab,
+ 	PG_owner_priv_1,	/* Owner use. If pagecache, fs may use*/
+-	PG_checked = PG_owner_priv_1, /* Used by some filesystems */
+-	PG_pinned = PG_owner_priv_1, /* Xen pinned pagetable */
+ 	PG_arch_1,
+ 	PG_reserved,
+ 	PG_private,		/* If pagecache, has fs-private data */
+@@ -89,8 +87,6 @@ enum pageflags {
+ 	PG_swapcache,		/* Swap page: swp_entry_t in private */
+ 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
+ 	PG_reclaim,		/* To be reclaimed asap */
+-	/* PG_readahead is only used for file reads; PG_reclaim is only for writes */
+-	PG_readahead = PG_reclaim, /* Reminder to do async read-ahead */
+ 	PG_buddy,		/* Page is free, on buddy lists */
  
- #define VM_CAN_NONLINEAR 0x08000000	/* Has ->fault & does nonlinear pages */
-+#define VM_MIXEDMAP	0x10000000	/* Can contain "struct page" and pure PFN pages */
+ #if (BITS_PER_LONG > 32)
+@@ -158,8 +154,8 @@ PAGEFLAG(Dirty, dirty) TESTSCFLAG(Dirty,
+ PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, lru)
+ PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
+ __PAGEFLAG(Slab, slab)
+-PAGEFLAG(Checked, checked)		/* Used by some filesystems */
+-PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned) /* Xen pagetable */
++PAGEFLAG(Checked, owner_priv_1)		/* Used by some filesystems */
++PAGEFLAG(Pinned, owner_priv_1) TESTSCFLAG(Pinned, owner_priv_1) /* Xen */
+ PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
+ PAGEFLAG(Private, private) __CLEARPAGEFLAG(Private, private)
+ 	__SETPAGEFLAG(Private, private)
+@@ -174,14 +170,14 @@ PAGEFLAG(MappedToDisk, mappedtodisk)
  
- #ifndef VM_STACK_DEFAULT_FLAGS		/* arch can override this */
- #define VM_STACK_DEFAULT_FLAGS VM_DATA_DEFAULT_FLAGS
-diff -puN mm/memory.c~mm-introduce-vm_mixedmap mm/memory.c
---- a/mm/memory.c~mm-introduce-vm_mixedmap
-+++ a/mm/memory.c
-@@ -371,35 +371,65 @@ static inline int is_cow_mapping(unsigne
- }
+ /* PG_readahead is only used for file reads; PG_reclaim is only for writes */
+ PAGEFLAG(Reclaim, reclaim) TESTCLEARFLAG(Reclaim, reclaim)
+-PAGEFLAG(Readahead, readahead)		/* Reminder to do async read-ahead */
++PAGEFLAG(Readahead, reclaim)		/* Reminder to do async read-ahead */
  
+ #ifdef CONFIG_HIGHMEM
  /*
-- * This function gets the "struct page" associated with a pte.
-+ * This function gets the "struct page" associated with a pte or returns
-+ * NULL if no "struct page" is associated with the pte.
-  *
-- * NOTE! Some mappings do not have "struct pages". A raw PFN mapping
-- * will have each page table entry just pointing to a raw page frame
-- * number, and as far as the VM layer is concerned, those do not have
-- * pages associated with them - even if the PFN might point to memory
-+ * A raw VM_PFNMAP mapping (ie. one that is not COWed) may not have any "struct
-+ * page" backing, and even if they do, they are not refcounted. COWed pages of
-+ * a VM_PFNMAP do always have a struct page, and they are normally refcounted
-+ * (they are _normal_ pages).
-+ *
-+ * So a raw PFNMAP mapping will have each page table entry just pointing
-+ * to a page frame number, and as far as the VM layer is concerned, those do
-+ * not have pages associated with them - even if the PFN might point to memory
-  * that otherwise is perfectly fine and has a "struct page".
-  *
-- * The way we recognize those mappings is through the rules set up
-- * by "remap_pfn_range()": the vma will have the VM_PFNMAP bit set,
-- * and the vm_pgoff will point to the first PFN mapped: thus every
-+ * The way we recognize COWed pages within VM_PFNMAP mappings is through the
-+ * rules set up by "remap_pfn_range()": the vma will have the VM_PFNMAP bit
-+ * set, and the vm_pgoff will point to the first PFN mapped: thus every
-  * page that is a raw mapping will always honor the rule
-  *
-  *	pfn_of_page == vma->vm_pgoff + ((addr - vma->vm_start) >> PAGE_SHIFT)
-  *
-- * and if that isn't true, the page has been COW'ed (in which case it
-- * _does_ have a "struct page" associated with it even if it is in a
-- * VM_PFNMAP range).
-+ * A call to vm_normal_page() will return NULL for such a page.
-+ *
-+ * If the page doesn't follow the "remap_pfn_range()" rule in a VM_PFNMAP
-+ * then the page has been COW'ed.  A COW'ed page _does_ have a "struct page"
-+ * associated with it even if it is in a VM_PFNMAP range.  Calling
-+ * vm_normal_page() on such a page will therefore return the "struct page".
-+ *
-+ *
-+ * VM_MIXEDMAP mappings can likewise contain memory with or without "struct
-+ * page" backing, however the difference is that _all_ pages with a struct
-+ * page (that is, those where pfn_valid is true) are refcounted and considered
-+ * normal pages by the VM. The disadvantage is that pages are refcounted
-+ * (which can be slower and simply not an option for some PFNMAP users). The
-+ * advantage is that we don't have to follow the strict linearity rule of
-+ * PFNMAP mappings in order to support COWable mappings.
-+ *
-+ * A call to vm_normal_page() with a VM_MIXEDMAP mapping will return the
-+ * associated "struct page" or NULL for memory not backed by a "struct page".
-+ *
-+ *
-+ * All other mappings should have a valid struct page, which will be
-+ * returned by a call to vm_normal_page().
+  * Must use a macro here due to header dependency issues. page_zone() is not
+  * available at this point.
   */
- struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr, pte_t pte)
+-#define PageHighMem(__p) is_highmem(page_zone(page))
++#define PageHighMem(__p) is_highmem(page_zone(__p))
+ #else
+ static inline int PageHighMem(struct page *page)
  {
- 	unsigned long pfn = pte_pfn(pte);
+diff -puN mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases mm/page_alloc.c
+--- a/mm/page_alloc.c~pageflags-eliminate-pg_xxx-aliases
++++ a/mm/page_alloc.c
+@@ -632,7 +632,7 @@ static int prep_new_page(struct page *pa
+ 	if (PageReserved(page))
+ 		return 1;
  
--	if (unlikely(vma->vm_flags & VM_PFNMAP)) {
--		unsigned long off = (addr - vma->vm_start) >> PAGE_SHIFT;
--		if (pfn == vma->vm_pgoff + off)
--			return NULL;
--		if (!is_cow_mapping(vma->vm_flags))
--			return NULL;
-+	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
-+		if (vma->vm_flags & VM_MIXEDMAP) {
-+			if (!pfn_valid(pfn))
-+				return NULL;
-+			goto out;
-+		} else {
-+			unsigned long off = (addr-vma->vm_start) >> PAGE_SHIFT;
-+			if (pfn == vma->vm_pgoff + off)
-+				return NULL;
-+			if (!is_cow_mapping(vma->vm_flags))
-+				return NULL;
-+		}
- 	}
- 
- #ifdef CONFIG_DEBUG_VM
-@@ -422,6 +452,7 @@ struct page *vm_normal_page(struct vm_ar
- 	 * The PAGE_ZERO() pages and various VDSO mappings can
- 	 * cause them to exist.
- 	 */
-+out:
- 	return pfn_to_page(pfn);
- }
- 
-@@ -1232,8 +1263,11 @@ int vm_insert_pfn(struct vm_area_struct 
- 	pte_t *pte, entry;
- 	spinlock_t *ptl;
- 
--	BUG_ON(!(vma->vm_flags & VM_PFNMAP));
--	BUG_ON(is_cow_mapping(vma->vm_flags));
-+	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
-+	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
-+						(VM_PFNMAP|VM_MIXEDMAP));
-+	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
-+	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
- 
- 	retval = -ENOMEM;
- 	pte = get_locked_pte(mm, addr, &ptl);
-@@ -2365,10 +2399,13 @@ static noinline int do_no_pfn(struct mm_
- 	unsigned long pfn;
- 
- 	pte_unmap(page_table);
--	BUG_ON(!(vma->vm_flags & VM_PFNMAP));
--	BUG_ON(is_cow_mapping(vma->vm_flags));
-+	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
-+	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
- 
- 	pfn = vma->vm_ops->nopfn(vma, address & PAGE_MASK);
-+
-+	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
-+
- 	if (unlikely(pfn == NOPFN_OOM))
- 		return VM_FAULT_OOM;
- 	else if (unlikely(pfn == NOPFN_SIGBUS))
+-	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_readahead |
++	page->flags &= ~(1 << PG_uptodate | 1 << PG_error | 1 << PG_reclaim |
+ 			1 << PG_referenced | 1 << PG_arch_1 |
+ 			1 << PG_owner_priv_1 | 1 << PG_mappedtodisk);
+ 	set_page_private(page, 0);
 _
 
-Patches currently in -mm which might be from jaredeh@gmail.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
+git-unionfs.patch
+git-pekka.patch
+page-allcoator-smarter-retry-of-costly-order-allocations.patch
+page-allocator-explicitly-retry-hugepage-allocations.patch
+ipc-add-definitions-of-ushort_max-and-others.patch
+mm-add-nr_writeback_temp-counter.patch
+remove-div_long_long_rem.patch
+slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
+add-kbuildh-that-contains-common-definitions-for-kbuild-users.patch
+x86-use-kbuildh.patch
+mips-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
+alpha-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
+ia64-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch
+arm-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
+xtensa-use-kbuildh-macros-instead-of-defining-them-in-asm-offsetsc.patch
+sparc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+avr32-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch
+blackfin-use-kbuildh-instead-of-defining-macros-in-asm-macrosc.patch
+frv-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+h8300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+m68k-m68kmmu-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+mn10300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+parisc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+s390-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+s390-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc-update.patch
+sh-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+v850-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
 
