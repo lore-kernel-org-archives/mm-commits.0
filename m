@@ -1,78 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: - mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 00:40:29 -0700
-Message-ID: <200804280740.m3S7eTdE014472@imap1.linux-foundation.org>
+Subject: - lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 00:46:39 -0700
+Message-ID: <200804280746.m3S7kdZt014726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54921 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57778 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763291AbYD1Hkc (ORCPT
+	by vger.kernel.org with ESMTP id S1765754AbYD1Hql (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 03:40:32 -0400
+	Mon, 28 Apr 2008 03:46:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, darwish.07@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes
+     lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+     lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes
+Subject: lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: need spaces around that '=' (ctx:VxW)
-#51: FILE: mm/bootmem.c:131:
-+		sidx= PFN_DOWN(addr - bdata->node_boot_start);
- 		    ^
+WARNING: line over 80 characters
+#123: FILE: include/linux/security.h:1995:
++static inline void security_inode_getsecid(const struct inode *inode, u32 *secid)
 
-ERROR: need spaces around that '=' (ctx:VxW)
-#89: FILE: mm/bootmem.c:165:
-+		sidx= PFN_DOWN(addr - bdata->node_boot_start);
- 		    ^
+total: 0 errors, 1 warnings, 158 lines checked
 
-total: 2 errors, 0 warnings, 120 lines checked
-
-./patches/mm-make-reserve_bootmem-can-crossed-the-nodes.patch has style problems, please review.  If any of these errors
+./patches/lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Ahmed S. Darwish <darwish.07@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/bootmem.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/security.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/bootmem.c~mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes mm/bootmem.c
---- a/mm/bootmem.c~mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes
-+++ a/mm/bootmem.c
-@@ -128,7 +128,7 @@ static int __init can_reserve_bootmem_co
- 	 * Round up to index to the range.
- 	 */
- 	if (addr > bdata->node_boot_start)
--		sidx= PFN_DOWN(addr - bdata->node_boot_start);
-+		sidx = PFN_DOWN(addr - bdata->node_boot_start);
- 	else
- 		sidx = 0;
+diff -puN include/linux/security.h~lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes include/linux/security.h
+--- a/include/linux/security.h~lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes
++++ a/include/linux/security.h
+@@ -2091,7 +2091,8 @@ static inline int security_inode_listsec
+ 	return 0;
+ }
  
-@@ -164,7 +164,7 @@ static void __init reserve_bootmem_core(
- 	 * Round up to index to the range.
- 	 */
- 	if (addr > bdata->node_boot_start)
--		sidx= PFN_DOWN(addr - bdata->node_boot_start);
-+		sidx = PFN_DOWN(addr - bdata->node_boot_start);
- 	else
- 		sidx = 0;
- 
+-static inline void security_inode_getsecid(const struct inode *inode, u32 *secid)
++static inline void security_inode_getsecid(const struct inode *inode,
++					   u32 *secid)
+ {
+ 	*secid = 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,7 +70,6 @@ rtc-x1205-new-style-conversion.patch
 hotplug-memory-make-online_page-common.patch
 remove-sparse-warning-for-mmzoneh.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
 mm-make-early_pfn_to_nid-a-c-function.patch
 vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
 vmallocinfo-add-caller-information.patch
