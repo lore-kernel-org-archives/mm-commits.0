@@ -1,72 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - vmcoreinfo-add-page-flags-values.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:52:56 -0700
-Message-ID: <200804282152.m3SLquMB017816@imap1.linux-foundation.org>
+Subject: - mempolicy-write-lock-mmap_sem-while-changing-task-mempolicy.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:53:06 -0700
+Message-ID: <200804282153.m3SLr6Rd017838@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49032 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36542 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934876AbYD1VxU (ORCPT
+	by vger.kernel.org with ESMTP id S935026AbYD1Vx2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:53:20 -0400
+	Mon, 28 Apr 2008 17:53:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oomichi@mxs.nes.nec.co.jp, clameter@sgi.com, ebiederm@xmission.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: lee.schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmcoreinfo: add page flags values
+     mempolicy: write lock mmap_sem while changing task mempolicy
 has been removed from the -mm tree.  Its filename was
-     vmcoreinfo-add-page-flags-values.patch
+     mempolicy-write-lock-mmap_sem-while-changing-task-mempolicy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmcoreinfo: add page flags values
-From: "Ken'ichi Ohmichi" <oomichi@mxs.nes.nec.co.jp>
+Subject: mempolicy: write lock mmap_sem while changing task mempolicy
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Add some values of page flags to the vmcoreinfo data.
+A read of /proc/<pid>/numa_maps holds the target task's mmap_sem for read
+while examining each vma's mempolicy.  A vma's mempolicy can fall back to the
+task's policy.  However, the task could be changing it's task policy and free
+the one that the show_numa_maps() is examining.
 
-The vmcoreinfo data has the minimum debugging information only for dump
-filtering.  makedumpfile (dump filtering command) gets it to distinguish
-unnecessary pages, and makedumpfile creates a small dumpfile.
+To prevent this, grab the mmap_sem for write when updating task mempolicy. 
+Pointed out to me by Christoph Lameter and extracted and reworked from
+Christoph's alternative mempol reference counting patch.
 
-An old makedumpfile (v1.2.4 or before) had assumed some values of page flags
-internally, and this implementation could not follow the change of these
-values.  For example, Christoph Lameter is changing these values by the
-follwing patch: http://lkml.org/lkml/2008/2/29/463
+This is analogous to the way that do_mbind() and do_get_mempolicy() prevent
+races between task's sharing an mm_struct [a.k.a.  threads] setting and
+querying a mempolicy for a particular address.
 
-So a new makedumpfile (v1.2.5) came to need these values and I created this
-patch to let the kernel output them.
+Note: this is necessary, but not sufficient, to allow us to stop taking an
+extra reference on "other task's mempolicy" in get_vma_policy.  Subsequent
+patches will complete this update, allowing us to simplify the tests for
+whether we need to unref a mempolicy at various points in the code.
 
-Signed-off-by: Ken'ichi Ohmichi <oomichi@mxs.nes.nec.co.jp>
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/mempolicy.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN kernel/kexec.c~vmcoreinfo-add-page-flags-values kernel/kexec.c
---- a/kernel/kexec.c~vmcoreinfo-add-page-flags-values
-+++ a/kernel/kexec.c
-@@ -1405,6 +1405,9 @@ static int __init crash_save_vmcoreinfo_
- 	VMCOREINFO_LENGTH(zone.free_area, MAX_ORDER);
- 	VMCOREINFO_LENGTH(free_area.free_list, MIGRATE_TYPES);
- 	VMCOREINFO_NUMBER(NR_FREE_PAGES);
-+	VMCOREINFO_NUMBER(PG_lru);
-+	VMCOREINFO_NUMBER(PG_private);
-+	VMCOREINFO_NUMBER(PG_swapcache);
+diff -puN mm/mempolicy.c~mempolicy-write-lock-mmap_sem-while-changing-task-mempolicy mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-write-lock-mmap_sem-while-changing-task-mempolicy
++++ a/mm/mempolicy.c
+@@ -591,16 +591,29 @@ static long do_set_mempolicy(unsigned sh
+ 			     nodemask_t *nodes)
+ {
+ 	struct mempolicy *new;
++	struct mm_struct *mm = current->mm;
  
- 	arch_crash_save_vmcoreinfo();
+ 	new = mpol_new(mode, flags, nodes);
+ 	if (IS_ERR(new))
+ 		return PTR_ERR(new);
++
++	/*
++	 * prevent changing our mempolicy while show_numa_maps()
++	 * is using it.
++	 * Note:  do_set_mempolicy() can be called at init time
++	 * with no 'mm'.
++	 */
++	if (mm)
++		down_write(&mm->mmap_sem);
+ 	mpol_put(current->mempolicy);
+ 	current->mempolicy = new;
+ 	mpol_set_task_struct_flag();
+ 	if (new && new->policy == MPOL_INTERLEAVE &&
+ 	    nodes_weight(new->v.nodes))
+ 		current->il_next = first_node(new->v.nodes);
++	if (mm)
++		up_write(&mm->mmap_sem);
++
+ 	return 0;
+ }
  
 _
 
-Patches currently in -mm which might be from oomichi@mxs.nes.nec.co.jp are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
 origin.patch
+mm-add-nr_writeback_temp-counter-fix.patch
 
