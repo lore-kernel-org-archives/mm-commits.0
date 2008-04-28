@@ -1,122 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-vmstat-events-for-huge-page-allocations.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:52:59 -0700
-Message-ID: <200804282152.m3SLqxfj017819@imap1.linux-foundation.org>
+Subject: - mempolicy-mark-shared-policies-for-unref.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:53:15 -0700
+Message-ID: <200804282153.m3SLrF03017849@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42194 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43154 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934961AbYD1VxZ (ORCPT
+	by vger.kernel.org with ESMTP id S935541AbYD1Vxe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:53:25 -0400
+	Mon, 28 Apr 2008 17:53:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agl@us.ibm.com, apw@shadowen.org, ebmunson@us.ibm.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
+To: lee.schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: [PATCH] hugetlb: vmstat events for huge page allocations
+     mempolicy:  mark shared policies for unref
 has been removed from the -mm tree.  Its filename was
-     hugetlb-vmstat-events-for-huge-page-allocations.patch
+     mempolicy-mark-shared-policies-for-unref.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Subject: [PATCH] hugetlb: vmstat events for huge page allocations
-From: Adam Litke <agl@us.ibm.com>
+Subject: mempolicy:  mark shared policies for unref
+From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-Allocating huge pages directly from the buddy allocator is not guaranteed to
-succeed.  Success depends on several factors (such as the amount of physical
-memory available and the level of fragmentation).  With the addition of
-dynamic hugetlb pool resizing, allocations can occur much more frequently. 
-For these reasons it is desirable to keep track of huge page allocation
-successes and failures.
+As part of yet another rework of mempolicy reference counting, we want to be
+able to identify shared policies efficiently, because they have an extra ref
+taken on lookup that needs to be removed when we're finished using the policy.
 
-Add two new vmstat entries to track huge page allocations that succeed and
-fail.  The presence of the two entries is contingent upon CONFIG_HUGETLB_PAGE
-being enabled.
+  Note:  the extra ref is required because the policies are
+  shared between tasks/processes and can be changed/freed
+  by one task while another task is using them--e.g., for
+  page allocation.
 
-[akpm@linux-foundation.org: reduced ifdeffery]
-Signed-off-by: Adam Litke <agl@us.ibm.com>
-Signed-off-by: Eric Munson <ebmunson@us.ibm.com>
-Tested-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: Andy Whitcroft <apw@shadowen.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Building on David Rientjes mempolicy "mode flags" enhancement, this patch
+indicates a "shared" policy by setting a new MPOL_F_SHARED flag in the flags
+member of the struct mempolicy added by David.  MPOL_F_SHARED, and any future
+"internal mode flags" are reserved from bit zero up, as they will never be
+passed in the upper bits of the mode argument of a mempolicy API.
+
+I set the MPOL_F_SHARED flag when the policy is installed in the shared policy
+rb-tree.  Don't need/want to clear the flag when removing from the tree as the
+mempolicy is freed [unref'd] internally to the sp_delete() function.  However,
+a task could hold another reference on this mempolicy from a prior lookup.  We
+need the MPOL_F_SHARED flag to stay put so that any tasks holding a ref will
+unref, eventually freeing, the mempolicy.
+
+A later patch in this series will introduce a function to conditionally unref
+[mpol_free] a policy.  The MPOL_F_SHARED flag is one reason [currently the
+only reason] to unref/free a policy via the conditional free.
+
+Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    4 ++++
- mm/hugetlb.c           |    7 +++++++
- mm/vmstat.c            |    4 ++++
- 3 files changed, 15 insertions(+)
+ include/linux/mempolicy.h |    7 +++++++
+ mm/mempolicy.c            |    1 +
+ 2 files changed, 8 insertions(+)
 
-diff -puN include/linux/vmstat.h~hugetlb-vmstat-events-for-huge-page-allocations include/linux/vmstat.h
---- a/include/linux/vmstat.h~hugetlb-vmstat-events-for-huge-page-allocations
-+++ a/include/linux/vmstat.h
-@@ -25,6 +25,7 @@
- #define HIGHMEM_ZONE(xx)
- #endif
+diff -puN include/linux/mempolicy.h~mempolicy-mark-shared-policies-for-unref include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mempolicy-mark-shared-policies-for-unref
++++ a/include/linux/mempolicy.h
+@@ -44,6 +44,13 @@ enum {
+ #define MPOL_MF_MOVE_ALL (1<<2)	/* Move every page to conform to mapping */
+ #define MPOL_MF_INTERNAL (1<<3)	/* Internal flags start here */
  
++/*
++ * Internal flags that share the struct mempolicy flags word with
++ * "mode flags".  These flags are allocated from bit 0 up, as they
++ * are never OR'ed into the mode in mempolicy API arguments.
++ */
++#define MPOL_F_SHARED  (1 << 0)	/* identify shared policies */
 +
- #define FOR_ALL_ZONES(xx) DMA_ZONE(xx) DMA32_ZONE(xx) xx##_NORMAL HIGHMEM_ZONE(xx) , xx##_MOVABLE
+ #ifdef __KERNEL__
  
- enum vm_event_item { PGPGIN, PGPGOUT, PSWPIN, PSWPOUT,
-@@ -37,6 +38,9 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		FOR_ALL_ZONES(PGSCAN_DIRECT),
- 		PGINODESTEAL, SLABS_SCANNED, KSWAPD_STEAL, KSWAPD_INODESTEAL,
- 		PAGEOUTRUN, ALLOCSTALL, PGROTATED,
-+#ifdef CONFIG_HUGETLB_PAGE
-+		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
-+#endif
- 		NR_VM_EVENT_ITEMS
- };
- 
-diff -puN mm/hugetlb.c~hugetlb-vmstat-events-for-huge-page-allocations mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-vmstat-events-for-huge-page-allocations
-+++ a/mm/hugetlb.c
-@@ -242,6 +242,11 @@ static int alloc_fresh_huge_page(void)
- 		hugetlb_next_nid = next_nid;
- 	} while (!page && hugetlb_next_nid != start_nid);
- 
-+	if (ret)
-+		count_vm_event(HTLB_BUDDY_PGALLOC);
-+	else
-+		count_vm_event(HTLB_BUDDY_PGALLOC_FAIL);
-+
- 	return ret;
+ #include <linux/mmzone.h>
+diff -puN mm/mempolicy.c~mempolicy-mark-shared-policies-for-unref mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-mark-shared-policies-for-unref
++++ a/mm/mempolicy.c
+@@ -1750,6 +1750,7 @@ static struct sp_node *sp_alloc(unsigned
+ 	n->start = start;
+ 	n->end = end;
+ 	mpol_get(pol);
++	pol->flags |= MPOL_F_SHARED;	/* for unref */
+ 	n->policy = pol;
+ 	return n;
  }
- 
-@@ -302,9 +307,11 @@ static struct page *alloc_buddy_huge_pag
- 		 */
- 		nr_huge_pages_node[nid]++;
- 		surplus_huge_pages_node[nid]++;
-+		__count_vm_event(HTLB_BUDDY_PGALLOC);
- 	} else {
- 		nr_huge_pages--;
- 		surplus_huge_pages--;
-+		__count_vm_event(HTLB_BUDDY_PGALLOC_FAIL);
- 	}
- 	spin_unlock(&hugetlb_lock);
- 
-diff -puN mm/vmstat.c~hugetlb-vmstat-events-for-huge-page-allocations mm/vmstat.c
---- a/mm/vmstat.c~hugetlb-vmstat-events-for-huge-page-allocations
-+++ a/mm/vmstat.c
-@@ -645,6 +645,10 @@ static const char * const vmstat_text[] 
- 	"allocstall",
- 
- 	"pgrotated",
-+#ifdef CONFIG_HUGETLB_PAGE
-+	"htlb_buddy_alloc_success",
-+	"htlb_buddy_alloc_fail",
-+#endif
- #endif
- };
- 
 _
 
-Patches currently in -mm which might be from agl@us.ibm.com are
+Patches currently in -mm which might be from lee.schermerhorn@hp.com are
 
 origin.patch
+mm-add-nr_writeback_temp-counter-fix.patch
 
