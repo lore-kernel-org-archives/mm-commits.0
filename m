@@ -1,190 +1,237 @@
 From: akpm@linux-foundation.org
-Subject: - eicon-fix-sparse-integer-as-null-pointer-warnings.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:56:45 -0700
-Message-ID: <200804282156.m3SLujMC018259@imap1.linux-foundation.org>
+Subject: - kprobes-add-unregister_kretprobes-for-batch-registration.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:56:16 -0700
+Message-ID: <200804282156.m3SLuG0r018206@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53340 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36832 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936243AbYD1V46 (ORCPT
+	by vger.kernel.org with ESMTP id S965081AbYD1V5C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:56:58 -0400
+	Mon, 28 Apr 2008 17:57:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, jeff@garzik.org, kkeil@suse.de, mm-commits@vger.kernel.org
+To: mhiramat@redhat.com, ananth@in.ibm.com, davem@davemloft.net, fche@redhat.com, jkenisto@us.ibm.com, prasanna@in.ibm.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     eicon: fix sparse integer as NULL pointer warnings
+     kprobes: add (un)register_kretprobes for batch registration
 has been removed from the -mm tree.  Its filename was
-     eicon-fix-sparse-integer-as-null-pointer-warnings.patch
+     kprobes-add-unregister_kretprobes-for-batch-registration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: eicon: fix sparse integer as NULL pointer warnings
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: kprobes: add (un)register_kretprobes for batch registration
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-drivers/isdn/hardware/eicon/message.c:745:47: warning: Using plain integer as NULL pointer
-drivers/isdn/hardware/eicon/message.c:761:45: warning: Using plain integer as NULL pointer
-drivers/isdn/hardware/eicon/message.c:9122:16: warning: Using plain integer as NULL pointer
-drivers/isdn/hardware/eicon/message.c:9147:16: warning: Using plain integer as NULL pointer
-drivers/isdn/hardware/eicon/message.c:9173:14: warning: Using plain integer as NULL pointer
-drivers/isdn/hardware/eicon/divasmain.c:396:23: warning: Using plain integer as NULL pointer
+Introduce unregister_/register_kretprobes() for kretprobe batch registration.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Karsten Keil <kkeil@suse.de>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Jim Keniston <jkenisto@us.ibm.com>
+Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
+Cc: Shaohua Li <shaohua.li@intel.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: "Frank Ch. Eigler" <fche@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hardware/eicon/divasmain.c |    2 +-
- drivers/isdn/hardware/eicon/message.c   |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ include/linux/kprobes.h |    9 +++
+ kernel/kprobes.c        |  108 ++++++++++++++++++++++++++++++--------
+ 2 files changed, 97 insertions(+), 20 deletions(-)
 
-diff -puN drivers/isdn/hardware/eicon/divasmain.c~eicon-fix-sparse-integer-as-null-pointer-warnings drivers/isdn/hardware/eicon/divasmain.c
---- a/drivers/isdn/hardware/eicon/divasmain.c~eicon-fix-sparse-integer-as-null-pointer-warnings
-+++ a/drivers/isdn/hardware/eicon/divasmain.c
-@@ -393,7 +393,7 @@ void diva_free_dma_map(void *hdev, struc
- 	dma_addr_t dma_handle;
- 	void *addr_handle;
+diff -puN include/linux/kprobes.h~kprobes-add-unregister_kretprobes-for-batch-registration include/linux/kprobes.h
+--- a/include/linux/kprobes.h~kprobes-add-unregister_kretprobes-for-batch-registration
++++ a/include/linux/kprobes.h
+@@ -245,6 +245,8 @@ unsigned long arch_deref_entry_point(voi
  
--	for (i = 0; (pmap != 0); i++) {
-+	for (i = 0; (pmap != NULL); i++) {
- 		diva_get_dma_map_entry(pmap, i, &cpu_addr, &phys_addr);
- 		if (!cpu_addr) {
- 			break;
-diff -puN drivers/isdn/hardware/eicon/message.c~eicon-fix-sparse-integer-as-null-pointer-warnings drivers/isdn/hardware/eicon/message.c
---- a/drivers/isdn/hardware/eicon/message.c~eicon-fix-sparse-integer-as-null-pointer-warnings
-+++ a/drivers/isdn/hardware/eicon/message.c
-@@ -742,7 +742,7 @@ static void start_internal_command (dwor
-   else
-   {
-     i = 1;
--    while (plci->internal_command_queue[i] != 0)
-+    while (plci->internal_command_queue[i] != NULL)
-       i++;
-     plci->internal_command_queue[i] = command_function;
-   }
-@@ -758,7 +758,7 @@ static void next_internal_command (dword
+ int register_kretprobe(struct kretprobe *rp);
+ void unregister_kretprobe(struct kretprobe *rp);
++int register_kretprobes(struct kretprobe **rps, int num);
++void unregister_kretprobes(struct kretprobe **rps, int num);
  
-   plci->internal_command = 0;
-   plci->internal_command_queue[0] = NULL;
--  while (plci->internal_command_queue[1] != 0)
-+  while (plci->internal_command_queue[1] != NULL)
-   {
-     for (i = 0; i < MAX_INTERNAL_COMMAND_LEVELS - 1; i++)
-       plci->internal_command_queue[i] = plci->internal_command_queue[i+1];
-@@ -9119,7 +9119,7 @@ word AdvCodecSupport(DIVA_CAPI_ADAPTER  
-         dbug(1,dprintf("AdvSigPlci=0x%x",a->AdvSignalPLCI));
-         return 0x2001; /* codec in use by another application */
-       }
--      if(plci!=0)
-+      if(plci!=NULL)
-       {
-         a->AdvSignalPLCI = plci;
-         plci->tel=ADV_VOICE;
-@@ -9144,7 +9144,7 @@ word AdvCodecSupport(DIVA_CAPI_ADAPTER  
-         }
-                                                /* indicate D-ch connect if  */
-       }                                        /* codec is connected OK     */
--      if(plci!=0)
-+      if(plci!=NULL)
-       {
-         a->AdvSignalPLCI = plci;
-         plci->tel=ADV_VOICE;
-@@ -9170,7 +9170,7 @@ word AdvCodecSupport(DIVA_CAPI_ADAPTER  
-   {
-     if(hook_listen) return 0x300B;               /* Facility not supported */
-                                                  /* no hook with SCOM      */
--    if(plci!=0) plci->tel = CODEC;
-+    if(plci!=NULL) plci->tel = CODEC;
-     dbug(1,dprintf("S/SCOM codec"));
-     /* first time we use the scom-s codec we must shut down the internal   */
-     /* handset application of the card. This can be done by an assign with */
-@@ -14604,7 +14604,7 @@ static void channel_xmit_extended_xon (P
-   int max_ch = ARRAY_SIZE(a->ch_flow_control);
-   int i, one_requested = 0;
+ void kprobe_flush_task(struct task_struct *tk);
+ void recycle_rp_inst(struct kretprobe_instance *ri, struct hlist_head *head);
+@@ -287,9 +289,16 @@ static inline int register_kretprobe(str
+ {
+ 	return -ENOSYS;
+ }
++static inline int register_kretprobes(struct kretprobe **rps, int num)
++{
++	return -ENOSYS;
++}
+ static inline void unregister_kretprobe(struct kretprobe *rp)
+ {
+ }
++static inline void unregister_kretprobes(struct kretprobe **rps, int num)
++{
++}
+ static inline void kprobe_flush_task(struct task_struct *tk)
+ {
+ }
+diff -puN kernel/kprobes.c~kprobes-add-unregister_kretprobes-for-batch-registration kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-add-unregister_kretprobes-for-batch-registration
++++ a/kernel/kprobes.c
+@@ -429,6 +429,21 @@ static inline void free_rp_inst(struct k
+ 	}
+ }
  
--  if ((!plci) || (!plci->Id) || ((a = plci->adapter) == 0)) {
-+  if ((!plci) || (!plci->Id) || ((a = plci->adapter) == NULL)) {
-     return;
-   }
++static void __kprobes cleanup_rp_inst(struct kretprobe *rp)
++{
++	unsigned long flags;
++	struct kretprobe_instance *ri;
++	struct hlist_node *pos, *next;
++	/* No race here */
++	spin_lock_irqsave(&kretprobe_lock, flags);
++	hlist_for_each_entry_safe(ri, pos, next, &rp->used_instances, uflist) {
++		ri->rp = NULL;
++		hlist_del(&ri->uflist);
++	}
++	spin_unlock_irqrestore(&kretprobe_lock, flags);
++	free_rp_inst(rp);
++}
++
+ /*
+  * Keep all fields in the kprobe consistent
+  */
+@@ -798,7 +813,8 @@ static int __kprobes pre_handler_kretpro
+ 	return 0;
+ }
  
+-int __kprobes register_kretprobe(struct kretprobe *rp)
++static int __kprobes __register_kretprobe(struct kretprobe *rp,
++					  unsigned long called_from)
+ {
+ 	int ret = 0;
+ 	struct kretprobe_instance *inst;
+@@ -844,43 +860,93 @@ int __kprobes register_kretprobe(struct 
+ 
+ 	rp->nmissed = 0;
+ 	/* Establish function entry probe point */
+-	if ((ret = __register_kprobe(&rp->kp,
+-		(unsigned long)__builtin_return_address(0))) != 0)
++	ret = __register_kprobe(&rp->kp, called_from);
++	if (ret != 0)
+ 		free_rp_inst(rp);
+ 	return ret;
+ }
+ 
++static int __register_kretprobes(struct kretprobe **rps, int num,
++	unsigned long called_from)
++{
++	int ret = 0, i;
++
++	if (num <= 0)
++		return -EINVAL;
++	for (i = 0; i < num; i++) {
++		ret = __register_kretprobe(rps[i], called_from);
++		if (ret < 0 && i > 0) {
++			unregister_kretprobes(rps, i);
++			break;
++		}
++	}
++	return ret;
++}
++
++int __kprobes register_kretprobe(struct kretprobe *rp)
++{
++	return __register_kretprobes(&rp, 1,
++			(unsigned long)__builtin_return_address(0));
++}
++
++void __kprobes unregister_kretprobe(struct kretprobe *rp)
++{
++	unregister_kretprobes(&rp, 1);
++}
++
++int __kprobes register_kretprobes(struct kretprobe **rps, int num)
++{
++	return __register_kretprobes(rps, num,
++			(unsigned long)__builtin_return_address(0));
++}
++
++void __kprobes unregister_kretprobes(struct kretprobe **rps, int num)
++{
++	int i;
++
++	if (num <= 0)
++		return;
++	mutex_lock(&kprobe_mutex);
++	for (i = 0; i < num; i++)
++		if (__unregister_kprobe_top(&rps[i]->kp) < 0)
++			rps[i]->kp.addr = NULL;
++	mutex_unlock(&kprobe_mutex);
++
++	synchronize_sched();
++	for (i = 0; i < num; i++) {
++		if (rps[i]->kp.addr) {
++			__unregister_kprobe_bottom(&rps[i]->kp);
++			cleanup_rp_inst(rps[i]);
++		}
++	}
++}
++
+ #else /* CONFIG_KRETPROBES */
+ int __kprobes register_kretprobe(struct kretprobe *rp)
+ {
+ 	return -ENOSYS;
+ }
+ 
+-static int __kprobes pre_handler_kretprobe(struct kprobe *p,
+-					   struct pt_regs *regs)
++int __kprobes register_kretprobes(struct kretprobe **rps, int num)
+ {
+-	return 0;
++	return -ENOSYS;
+ }
+-#endif /* CONFIG_KRETPROBES */
+-
+ void __kprobes unregister_kretprobe(struct kretprobe *rp)
+ {
+-	unsigned long flags;
+-	struct kretprobe_instance *ri;
+-	struct hlist_node *pos, *next;
++}
+ 
+-	unregister_kprobe(&rp->kp);
++void __kprobes unregister_kretprobes(struct kretprobe **rps, int num)
++{
++}
+ 
+-	/* No race here */
+-	spin_lock_irqsave(&kretprobe_lock, flags);
+-	hlist_for_each_entry_safe(ri, pos, next, &rp->used_instances, uflist) {
+-		ri->rp = NULL;
+-		hlist_del(&ri->uflist);
+-	}
+-	spin_unlock_irqrestore(&kretprobe_lock, flags);
+-	free_rp_inst(rp);
++static int __kprobes pre_handler_kretprobe(struct kprobe *p,
++					   struct pt_regs *regs)
++{
++	return 0;
+ }
+ 
++#endif /* CONFIG_KRETPROBES */
++
+ static int __init init_kprobes(void)
+ {
+ 	int i, err = 0;
+@@ -1177,4 +1243,6 @@ EXPORT_SYMBOL_GPL(jprobe_return);
+ #ifdef CONFIG_KPROBES
+ EXPORT_SYMBOL_GPL(register_kretprobe);
+ EXPORT_SYMBOL_GPL(unregister_kretprobe);
++EXPORT_SYMBOL_GPL(register_kretprobes);
++EXPORT_SYMBOL_GPL(unregister_kretprobes);
+ #endif
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
 origin.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-git-kvm.patch
-git-mips.patch
-git-nfsd.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-git-watchdog.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-power-replace-remaining-__function__-occurrences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-firmware-replace-remaining-__function__-occurrences.patch
-drivers-misc-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-kernel-add-common-infrastructure-for-unaligned-access.patch
-kernel-move-arches-to-use-common-unaligned-access.patch
-drivers-block-use-get_unaligned_-helpers.patch
-hid-core-use-get_unaligned_-helpers.patch
-char-use-get_unaligned_-helpers.patch
-input-use-get_unaligned_-helpers.patch
-mmc-use-get-put_unaligned_-helpers.patch
-net-use-get-put_unaligned_-helpers.patch
-wireless-use-get-put_unaligned_-helpers.patch
-pcmcia-use-get-put_unaligned_-helpers.patch
-usb-use-get-put_unaligned_-helpers.patch
-video-use-get-put_unaligned_-helpers.patch
-fat-use-get-put_unaligned_-helpers.patch
-hfsplus-use-get-put_unaligned_-helpers.patch
-isofs-use-get-put_unaligned_-helpers.patch
-ncpfs-use-get-put_unaligned_-helpers.patch
-ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
+relayfs-support-larger-relay-buffer-take-3.patch
+relayfs-support-larger-relay-buffer-take-3-cleanup.patch
 
