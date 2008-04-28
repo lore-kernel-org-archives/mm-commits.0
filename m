@@ -1,73 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 23:53:52 -0700
-Message-ID: <200804280653.m3S6rqSb012683@imap1.linux-foundation.org>
+Subject: - vmallocinfo-add-caller-information-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 23:54:06 -0700
+Message-ID: <200804280654.m3S6s6Ku012695@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47842 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40546 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761882AbYD1Gyf (ORCPT
+	by vger.kernel.org with ESMTP id S1762264AbYD1Gyn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 02:54:35 -0400
+	Mon, 28 Apr 2008 02:54:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@infradead.org, clameter@sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, clameter@sgi.com, hugh@veritas.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2
+     vmallocinfo-add-caller-information-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+     vmallocinfo-add-caller-information-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
+This patch was dropped because it was folded into vmallocinfo-add-caller-information.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2
+Subject: vmallocinfo-add-caller-information-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix CONFIG_MMU=n build (vmalloc_op undefined)
+WARNING: line over 80 characters
+#151: FILE: mm/vmalloc.c:210:
++					    int node, gfp_t gfp_mask, void *caller)
 
-Cc: Arjan van de Ven <arjan@infradead.org>
+total: 0 errors, 1 warnings, 228 lines checked
+
+./patches/vmallocinfo-add-caller-information.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_misc.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/vmalloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/proc_misc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2 fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2
-+++ a/fs/proc/proc_misc.c
-@@ -456,6 +456,7 @@ static const struct file_operations proc
- #endif
- #endif
+diff -puN mm/vmalloc.c~vmallocinfo-add-caller-information-checkpatch-fixes mm/vmalloc.c
+--- a/mm/vmalloc.c~vmallocinfo-add-caller-information-checkpatch-fixes
++++ a/mm/vmalloc.c
+@@ -205,9 +205,9 @@ unsigned long vmalloc_to_pfn(const void 
+ }
+ EXPORT_SYMBOL(vmalloc_to_pfn);
  
-+#ifdef CONFIG_MMU
- static int vmalloc_open(struct inode *inode, struct file *file)
+-static struct vm_struct *__get_vm_area_node(unsigned long size, unsigned long flags,
+-					    unsigned long start, unsigned long end,
+-					    int node, gfp_t gfp_mask, void *caller)
++static struct vm_struct *
++__get_vm_area_node(unsigned long size, unsigned long flags, unsigned long start,
++		unsigned long end, int node, gfp_t gfp_mask, void *caller)
  {
- 	return seq_open(file, &vmalloc_op);
-@@ -467,6 +468,7 @@ static const struct file_operations proc
- 	.llseek		= seq_lseek,
- 	.release	= seq_release,
- };
-+#endif
- 
- static int show_stat(struct seq_file *p, void *v)
- {
-@@ -881,7 +883,9 @@ void __init proc_misc_init(void)
- 	create_seq_entry("slab_allocators", 0 ,&proc_slabstats_operations);
- #endif
- #endif
-+#ifdef CONFIG_MMU
- 	proc_create("vmallocinfo", S_IRUSR, NULL, &proc_vmalloc_operations);
-+#endif
- 	create_seq_entry("buddyinfo",S_IRUGO, &fragmentation_file_operations);
- 	create_seq_entry("pagetypeinfo", S_IRUGO, &pagetypeinfo_file_ops);
- 	create_seq_entry("vmstat",S_IRUGO, &proc_vmstat_file_operations);
+ 	struct vm_struct **p, *tmp, *area;
+ 	unsigned long align = 1;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,7 +78,7 @@ fix-invalidate_inode_pages2_range-to-not-clear-ret.patch
 mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
 mm-make-early_pfn_to_nid-a-c-function.patch
 vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo-fix-2.patch
+vmallocinfo-add-caller-information.patch
 vmallocinfo-add-caller-information-checkpatch-fixes.patch
 page_mapping-add-ifdef-around-reference-to-swapper_space.patch
 smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
