@@ -1,73 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 23:57:43 -0700
-Message-ID: <200804280657.m3S6vhLh012870@imap1.linux-foundation.org>
+Subject: - vt-notifier-extension-for-accessibility-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 23:57:28 -0700
+Message-ID: <200804280657.m3S6vS4b012861@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39492 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54279 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763083AbYD1G61 (ORCPT
+	by vger.kernel.org with ESMTP id S1763083AbYD1G6x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 02:58:27 -0400
+	Mon, 28 Apr 2008 02:58:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ananth@in.ibm.com, haveblue@us.ibm.com, jkenisto@us.ibm.com, srinivasa@in.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, eklhad@comcast.net, samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes
+     vt-notifier-extension-for-accessibility-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
+     vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into kprobes-prevent-probing-of-preempt_schedule.patch
+This patch was dropped because it was folded into vt-notifier-extension-for-accessibility.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes
+Subject: vt-notifier-extension-for-accessibility-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#57: FILE: kernel/kprobes.c:100:
-+        {"preempt_schedule",},$
+WARNING: line over 80 characters
+#39: FILE: drivers/char/vt.c:2207:
++		if (atomic_notifier_call_chain(&vt_notifier_list, VT_PREWRITE, &param) == NOTIFY_STOP)
 
-ERROR: use tabs not spaces
-#58: FILE: kernel/kprobes.c:101:
-+        {NULL}    /* Terminator */$
+WARNING: line over 80 characters
+#52: FILE: include/linux/notifier.h:250:
++#define VT_PREWRITE		0x0005 /* A char is about to be written to the console */
 
-total: 2 errors, 0 warnings, 92 lines checked
+total: 0 errors, 2 warnings, 32 lines checked
 
-./patches/kprobes-prevent-probing-of-preempt_schedule.patch has style problems, please review.  If any of these errors
+./patches/vt-notifier-extension-for-accessibility.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Jim Keniston <jkenisto@us.ibm.com>
-Cc: Srinivasa DS <srinivasa@in.ibm.com>
-Cc: Srinivasa Ds <srinivasa@in.ibm.com>
+Cc: Karl Dahlke <eklhad@comcast.net>
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/vt.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/kprobes.c~kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes
-+++ a/kernel/kprobes.c
-@@ -80,8 +80,8 @@ static DEFINE_PER_CPU(struct kprobe *, k
-  * For such cases, we now have a blacklist
-  */
- struct kprobe_blackpoint kprobe_blacklist[] = {
--        {"preempt_schedule",},
--        {NULL}    /* Terminator */
-+	{"preempt_schedule",},
-+	{NULL}    /* Terminator */
- };
+diff -puN drivers/char/vt.c~vt-notifier-extension-for-accessibility-checkpatch-fixes drivers/char/vt.c
+--- a/drivers/char/vt.c~vt-notifier-extension-for-accessibility-checkpatch-fixes
++++ a/drivers/char/vt.c
+@@ -2205,7 +2205,8 @@ rescan_last_byte:
+ 		}
  
- #ifdef __ARCH_WANT_KPROBES_INSN_SLOT
+ 		param.c = tc;
+-		if (atomic_notifier_call_chain(&vt_notifier_list, VT_PREWRITE, &param) == NOTIFY_STOP)
++		if (atomic_notifier_call_chain(&vt_notifier_list, VT_PREWRITE,
++					&param) == NOTIFY_STOP)
+ 			continue;
+ 
+                 /* If the original code was a control character we
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,7 +95,8 @@ uart_get_baud_rate-stop-mangling-termios.patch
 drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
 oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
 vt-notifier-extension-for-accessibility.patch
-kprobes-prevent-probing-of-preempt_schedule.patch
+vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
+kprobes-prevent-probing-of-preempt_schedule-fix.patch
 kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
 quota-various-style-cleanups-checkpatch-fixes.patch
 quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
