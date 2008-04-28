@@ -1,93 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-use-ext3_group_first_block_no.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:00:35 -0700
-Message-ID: <200804282200.m3SM0ZqC018719__42863.2439965897$1209420125$gmane$org@imap1.linux-foundation.org>
+Subject: - ext3-convert-byte-order-of-constant-instead-of-variable.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:00:31 -0700
+Message-ID: <200804282200.m3SM0V69018708__447.903553913598$1209420126$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54622 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44544 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965193AbYD1WAh (ORCPT
+	by vger.kernel.org with ESMTP id S965608AbYD1WAd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:00:37 -0400
+	Mon, 28 Apr 2008 18:00:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: use ext3_group_first_block_no()
+     ext3: convert byte order of constant instead of variable
 has been removed from the -mm tree.  Its filename was
-     ext3-use-ext3_group_first_block_no.patch
+     ext3-convert-byte-order-of-constant-instead-of-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: use ext3_group_first_block_no()
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: ext3: convert byte order of constant instead of variable
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Use ext3_group_first_block_no()
+Convert byte order of constant instead of variable which can be done at
+compile time (vs run time).
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
 Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |    5 ++---
- fs/ext3/xattr.c |    6 ++----
- 2 files changed, 4 insertions(+), 7 deletions(-)
+ fs/ext3/super.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext3/super.c~ext3-use-ext3_group_first_block_no fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-use-ext3_group_first_block_no
+diff -puN fs/ext3/super.c~ext3-convert-byte-order-of-constant-instead-of-variable fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-convert-byte-order-of-constant-instead-of-variable
 +++ a/fs/ext3/super.c
-@@ -1254,14 +1254,14 @@ static int ext3_setup_super(struct super
- static int ext3_check_descriptors(struct super_block *sb)
- {
- 	struct ext3_sb_info *sbi = EXT3_SB(sb);
--	ext3_fsblk_t first_block = le32_to_cpu(sbi->s_es->s_first_data_block);
--	ext3_fsblk_t last_block;
- 	int i;
- 
- 	ext3_debug ("Checking group descriptors");
- 
- 	for (i = 0; i < sbi->s_groups_count; i++) {
- 		struct ext3_group_desc *gdp = ext3_get_group_desc(sb, i, NULL);
-+		ext3_fsblk_t first_block = ext3_group_first_block_no(sb, i);
-+		ext3_fsblk_t last_block;
- 
- 		if (i == sbi->s_groups_count - 1)
- 			last_block = le32_to_cpu(sbi->s_es->s_blocks_count) - 1;
-@@ -1300,7 +1300,6 @@ static int ext3_check_descriptors(struct
- 					le32_to_cpu(gdp->bg_inode_table));
- 			return 0;
- 		}
--		first_block += EXT3_BLOCKS_PER_GROUP(sb);
- 	}
- 
- 	sbi->s_es->s_free_blocks_count=cpu_to_le32(ext3_count_free_blocks(sb));
-diff -puN fs/ext3/xattr.c~ext3-use-ext3_group_first_block_no fs/ext3/xattr.c
---- a/fs/ext3/xattr.c~ext3-use-ext3_group_first_block_no
-+++ a/fs/ext3/xattr.c
-@@ -799,10 +799,8 @@ inserted:
- 			get_bh(new_bh);
- 		} else {
- 			/* We need to allocate a new block */
--			ext3_fsblk_t goal = le32_to_cpu(
--					EXT3_SB(sb)->s_es->s_first_data_block) +
--				(ext3_fsblk_t)EXT3_I(inode)->i_block_group *
--				EXT3_BLOCKS_PER_GROUP(sb);
-+			ext3_fsblk_t goal = ext3_group_first_block_no(sb,
-+						EXT3_I(inode)->i_block_group);
- 			ext3_fsblk_t block = ext3_new_block(handle, inode,
- 							goal, &error);
- 			if (error)
+@@ -1219,7 +1219,7 @@ static int ext3_setup_super(struct super
+                    inconsistencies, to force a fsck at reboot.  But for
+                    a plain journaled filesystem we can keep it set as
+                    valid forever! :) */
+-	es->s_state = cpu_to_le16(le16_to_cpu(es->s_state) & ~EXT3_VALID_FS);
++	es->s_state &= cpu_to_le16(~EXT3_VALID_FS);
+ #endif
+ 	if (!(__s16) le16_to_cpu(es->s_max_mnt_count))
+ 		es->s_max_mnt_count = cpu_to_le16(EXT3_DFL_MAX_MNT_COUNT);
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-idr-create-idr_layer_cache-at-boot-time.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+ntfs-le_add_cpu-conversion.patch
+affs-be_add_cpu-conversion.patch
+hfs-hfsplus-be_add_cpu-conversion.patch
+quota-le_add_cpu-conversion.patch
+sysv-e_add_cpu-conversion.patch
 
