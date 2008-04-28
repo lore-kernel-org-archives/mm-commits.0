@@ -1,191 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 00:00:09 -0700
-Message-ID: <200804280700.m3S709Ta012976@imap1.linux-foundation.org>
+Subject: - fbcon-replace-mono_col-macro-with-static-inline-fix.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 00:00:49 -0700
+Message-ID: <200804280700.m3S70nBb012986@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60817 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59343 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751607AbYD1HAl (ORCPT
+	by vger.kernel.org with ESMTP id S1763352AbYD1HBB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 03:00:41 -0400
+	Mon, 28 Apr 2008 03:01:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: avorontsov@ru.mvista.com, Valdis.Kletnieks@vt.edu, adaplas@pol.net, benh@kernel.crashing.org, clemens.koller@anagramm.de, geert@linux-m68k.org, krzysztof.h1@poczta.fm, paulus@samba.org
+To: akpm@linux-foundation.org, adaplas@pol.net, geert@linux-m68k.org, harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fb: add support for choice foreign endianness
+     fbcon-replace-mono_col-macro-with-static-inline-fix
 has been removed from the -mm tree.  Its filename was
-     fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch
+     fbcon-replace-mono_col-macro-with-static-inline-fix.patch
 
-This patch was dropped because it was folded into fb-add-support-for-foreign-endianness.patch
+This patch was dropped because it was folded into fbcon-replace-mono_col-macro-with-static-inline.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fb: add support for choice foreign endianness
-From: Anton Vorontsov <avorontsov@ru.mvista.com>
+Subject: fbcon-replace-mono_col-macro-with-static-inline-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-With this patch FB_FOREIGN_ENDIAN converted to menuconfig with the choice
-inside: which type of foreign endianness we want to compile-in.
-
-As a bonus, now fb subsystem will refuse to register framebuffer with
-unsupported endianness, and will suggest a way to solve the problem.
-
-Signed-off-by: Anton Vorontsov <avorontsov@ru.mvista.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/Kconfig |   27 +++++++++++++++++++++------
- drivers/video/fbmem.c |   38 ++++++++++++++++++++++++++++++--------
- include/linux/fb.h    |   14 +++++++++++---
- 3 files changed, 62 insertions(+), 17 deletions(-)
+ drivers/video/console/fbcon.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/Kconfig~fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness drivers/video/Kconfig
---- a/drivers/video/Kconfig~fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness
-+++ a/drivers/video/Kconfig
-@@ -139,14 +139,29 @@ config FB_SYS_IMAGEBLIT
- 	  blitting. This is used by drivers that don't provide their own
- 	  (accelerated) version and the framebuffer is in system RAM.
+diff -puN drivers/video/console/fbcon.h~fbcon-replace-mono_col-macro-with-static-inline-fix drivers/video/console/fbcon.h
+--- a/drivers/video/console/fbcon.h~fbcon-replace-mono_col-macro-with-static-inline-fix
++++ a/drivers/video/console/fbcon.h
+@@ -105,7 +105,7 @@ struct fbcon_ops {
+ 	((s) & 0x8000)
+ 	
  
--config FB_FOREIGN_ENDIAN
--	bool "Enable support for foreign endianness"
-+menuconfig FB_FOREIGN_ENDIAN
-+	bool "Framebuffer foreign endianness support"
- 	depends on FB
- 	---help---
--	  This option enables support for the framebuffers with non-native
--	  endianness (e.g. Little-Endian framebuffer on a Big-Endian machine).
--	  You probably don't have such hardware, so in most cases it's safe to
--	  say "n" here.
-+	  This menu will let you enable support for the framebuffers with
-+	  non-native endianness (e.g. Little-Endian framebuffer on a
-+	  Big-Endian machine). Most probably you don't have such hardware,
-+	  so it's safe to say "n" here.
-+
-+choice
-+	prompt "Choice endianness support"
-+	depends on FB_FOREIGN_ENDIAN
-+
-+config FB_BOTH_ENDIAN
-+	bool "Support for Big- and Little-Endian framebuffers"
-+
-+config FB_BIG_ENDIAN
-+	bool "Support for Big-Endian framebuffers only"
-+
-+config FB_LITTLE_ENDIAN
-+	bool "Support for Little-Endian framebuffers only"
-+
-+endchoice
- 
- config FB_SYS_FOPS
-        tristate
-diff -puN drivers/video/fbmem.c~fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness drivers/video/fbmem.c
---- a/drivers/video/fbmem.c~fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness
-+++ a/drivers/video/fbmem.c
-@@ -1352,6 +1352,32 @@ static const struct file_operations fb_f
- 
- struct class *fb_class;
- EXPORT_SYMBOL(fb_class);
-+
-+static int fb_check_foreignness(struct fb_info *fi)
-+{
-+	const bool foreign_endian = fi->flags & FBINFO_FOREIGN_ENDIAN;
-+
-+	fi->flags &= ~FBINFO_FOREIGN_ENDIAN;
-+
-+#ifdef __BIG_ENDIAN
-+	fi->flags |= foreign_endian ? 0 : FBINFO_BE_MATH;
-+#else
-+	fi->flags |= foreign_endian ? FBINFO_BE_MATH : 0;
-+#endif /* __BIG_ENDIAN */
-+
-+	if (fi->flags & FBINFO_BE_MATH && !fb_be_math(fi)) {
-+		pr_err("%s: enable CONFIG_FB_BIG_ENDIAN to "
-+		       "support this framebuffer\n", fi->fix.id);
-+		return -ENOSYS;
-+	} else if (!(fi->flags & FBINFO_BE_MATH) && fb_be_math(fi)) {
-+		pr_err("%s: enable CONFIG_FB_LITTLE_ENDIAN to "
-+		       "support this framebuffer\n", fi->fix.id);
-+		return -ENOSYS;
-+	}
-+
-+	return 0;
-+}
-+
- /**
-  *	register_framebuffer - registers a frame buffer device
-  *	@fb_info: frame buffer info structure
-@@ -1368,10 +1394,13 @@ register_framebuffer(struct fb_info *fb_
- 	int i;
- 	struct fb_event event;
- 	struct fb_videomode mode;
--	const bool foreign_endian = fb_info->flags & FBINFO_FOREIGN_ENDIAN;
- 
- 	if (num_registered_fb == FB_MAX)
- 		return -ENXIO;
-+
-+	if (fb_check_foreignness(fb_info))
-+		return -ENOSYS;
-+
- 	num_registered_fb++;
- 	for (i = 0 ; i < FB_MAX; i++)
- 		if (!registered_fb[i])
-@@ -1405,13 +1434,6 @@ register_framebuffer(struct fb_info *fb_
- 	if (!fb_info->pixmap.blit_y)
- 		fb_info->pixmap.blit_y = ~(u32)0;
- 
--	fb_info->flags &= ~FBINFO_FOREIGN_ENDIAN;
--#ifdef __BIG_ENDIAN
--	fb_info->flags |= foreign_endian ? 0 : FBINFO_BE_MATH;
--#else
--	fb_info->flags |= foreign_endian ? FBINFO_BE_MATH : 0;
--#endif
--
- 	if (!fb_info->modelist.prev || !fb_info->modelist.next)
- 		INIT_LIST_HEAD(&fb_info->modelist);
- 
-diff -puN include/linux/fb.h~fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness include/linux/fb.h
---- a/include/linux/fb.h~fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness
-+++ a/include/linux/fb.h
-@@ -979,13 +979,21 @@ extern int fb_deferred_io_fsync(struct f
- 
- static inline bool fb_be_math(struct fb_info *info)
+-static inline int mono_col(struct fb_info *info)
++static inline int mono_col(const struct fb_info *info)
  {
--#if defined(CONFIG_FB_FOREIGN_ENDIAN)
-+#ifdef CONFIG_FB_FOREIGN_ENDIAN
-+#if defined(CONFIG_FB_BOTH_ENDIAN)
- 	return info->flags & FBINFO_BE_MATH;
--#elif defined(__BIG_ENDIAN)
-+#elif defined(CONFIG_FB_BIG_ENDIAN)
-+	return true;
-+#elif defined(CONFIG_FB_LITTLE_ENDIAN)
-+	return false;
-+#endif /* CONFIG_FB_BOTH_ENDIAN */
-+#else
-+#ifdef __BIG_ENDIAN
- 	return true;
- #else
- 	return false;
--#endif
-+#endif /* __BIG_ENDIAN */
-+#endif /* CONFIG_FB_FOREIGN_ENDIAN */
- }
- 
- /* drivers/video/fbsysfs.c */
+ 	__u32 max_len;
+ 	max_len = max(info->var.green.length, info->var.red.length);
 _
 
-Patches currently in -mm which might be from avorontsov@ru.mvista.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-gpiolib-dynamic-gpio-number-allocation.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
+rtc-pcf8563-new-style-conversion.patch
+rtc-x1205-new-style-conversion.patch
+hotplug-memory-make-online_page-common.patch
+remove-sparse-warning-for-mmzoneh.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
+vmallocinfo-add-caller-information.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries.patch
+mm-introduce-pte_special-pte-bit.patch
+hugetlb-vmstat-events-for-huge-page-allocations.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info.patch
+capabilities-implement-per-process-securebits.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+uart_get_baud_rate-stop-mangling-termios.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
+vt-notifier-extension-for-accessibility.patch
+kprobes-prevent-probing-of-preempt_schedule.patch
+quota-various-style-cleanups.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
 gpiochip_reserve.patch
-fb-add-support-for-foreign-endianness.patch
-fb-add-support-for-foreign-endianness-add-support-for-choice-foreign-endianness.patch
-fb-add-support-for-foreign-endianness-force-it-on.patch
-powerpc-offb-add-support-for-foreign-endianness.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
+pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+lxfb-add-power-management-functionality-fix.patch
+drivers-video-uvesafbc-fix-error-path-memory-leak.patch
+fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
+drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
+drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+fat_valid_media-remove-pointless-test.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
 
