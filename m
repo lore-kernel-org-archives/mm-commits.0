@@ -1,118 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - radeonfb-fix-debug-option.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:58:17 -0700
-Message-ID: <200804282158.m3SLwHCm018480@imap1.linux-foundation.org>
+Subject: - radeonfb-use-pci-device-id-in-hex-for-name-string.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:58:15 -0700
+Message-ID: <200804282158.m3SLwFcY018477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38594 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50269 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965316AbYD1V6a (ORCPT
+	by vger.kernel.org with ESMTP id S965095AbYD1V61 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:58:30 -0400
+	Mon, 28 Apr 2008 17:58:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khali@linux-fr.org, adaplas@pol.net, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: aherrman@arcor.de, adaplas@pol.net, benh@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     radeonfb: fix debug option
+     radeonfb: use PCI device id in hex for name string
 has been removed from the -mm tree.  Its filename was
-     radeonfb-fix-debug-option.patch
+     radeonfb-use-pci-device-id-in-hex-for-name-string.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: radeonfb: fix debug option
-From: Jean Delvare <khali@linux-fr.org>
+Subject: radeonfb: use PCI device id in hex for name string
+From: Andreas Herrmann <aherrman@arcor.de>
 
-Fix CONFIG_FB_RADEON_DEBUG.  DEBUG must be defined before including any kernel
-header, otherwise dev_dbg() resolves to a no-op.  Also, when debugging is
-disabled, don't set DEBUG at all instead of setting it to 0, to comply with
-what the kernel headers expect.
+Additionally provide PCI device id in character format if possible.  (The
+printable characters were commonly used to identify the cards.)
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Acked-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Andreas Herrmann <aherrman@arcor.de>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/radeon_base.c    |    3 ++-
- drivers/video/aty/radeon_i2c.c     |    3 ++-
- drivers/video/aty/radeon_monitor.c |    2 +-
- drivers/video/aty/radeonfb.h       |   12 +++++-------
- 4 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/video/aty/radeon_base.c |   14 +++++++++++---
+ 1 file changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/aty/radeon_base.c~radeonfb-fix-debug-option drivers/video/aty/radeon_base.c
---- a/drivers/video/aty/radeon_base.c~radeonfb-fix-debug-option
+diff -puN drivers/video/aty/radeon_base.c~radeonfb-use-pci-device-id-in-hex-for-name-string drivers/video/aty/radeon_base.c
+--- a/drivers/video/aty/radeon_base.c~radeonfb-use-pci-device-id-in-hex-for-name-string
 +++ a/drivers/video/aty/radeon_base.c
-@@ -52,6 +52,8 @@
- 
- #define RADEON_VERSION	"0.2.0"
- 
-+#include "radeonfb.h"
-+
- #include <linux/module.h>
- #include <linux/moduleparam.h>
+@@ -57,6 +57,7 @@
  #include <linux/kernel.h>
-@@ -92,7 +94,6 @@
- 
- #include "../edid.h" // MOVE THAT TO include/video
- #include "ati_ids.h"
--#include "radeonfb.h"		    
- 
- #define MAX_MAPPED_VRAM	(2048*2048*4)
- #define MIN_MAPPED_VRAM	(1024*768*1)
-diff -puN drivers/video/aty/radeon_i2c.c~radeonfb-fix-debug-option drivers/video/aty/radeon_i2c.c
---- a/drivers/video/aty/radeon_i2c.c~radeonfb-fix-debug-option
-+++ a/drivers/video/aty/radeon_i2c.c
-@@ -1,3 +1,5 @@
-+#include "radeonfb.h"
-+
- #include <linux/module.h>
- #include <linux/kernel.h>
+ #include <linux/errno.h>
+ #include <linux/string.h>
++#include <linux/ctype.h>
+ #include <linux/mm.h>
+ #include <linux/slab.h>
  #include <linux/delay.h>
-@@ -11,7 +13,6 @@
- #include <asm/io.h>
+@@ -2158,6 +2159,7 @@ static int __devinit radeonfb_pci_regist
+ 	struct fb_info *info;
+ 	struct radeonfb_info *rinfo;
+ 	int ret;
++	unsigned char c1, c2;
  
- #include <video/radeon.h>
--#include "radeonfb.h"
- #include "../edid.h"
+ 	RTRACE("radeonfb_pci_register BEGIN\n");
+ 	
+@@ -2185,9 +2187,15 @@ static int __devinit radeonfb_pci_regist
+ 	rinfo->lvds_timer.function = radeon_lvds_timer_func;
+ 	rinfo->lvds_timer.data = (unsigned long)rinfo;
  
- static void radeon_gpio_setscl(void* data, int state)
-diff -puN drivers/video/aty/radeon_monitor.c~radeonfb-fix-debug-option drivers/video/aty/radeon_monitor.c
---- a/drivers/video/aty/radeon_monitor.c~radeonfb-fix-debug-option
-+++ a/drivers/video/aty/radeon_monitor.c
-@@ -481,7 +481,7 @@ void __devinit radeon_probe_screens(stru
- 		
- 		RTRACE("Starting monitor auto detection...\n");
- 
--#if DEBUG && defined(CONFIG_FB_RADEON_I2C)
-+#if defined(DEBUG) && defined(CONFIG_FB_RADEON_I2C)
- 		{
- 			u8 *EDIDs[4] = { NULL, NULL, NULL, NULL };
- 			int mon_types[4] = {MT_NONE, MT_NONE, MT_NONE, MT_NONE};
-diff -puN drivers/video/aty/radeonfb.h~radeonfb-fix-debug-option drivers/video/aty/radeonfb.h
---- a/drivers/video/aty/radeonfb.h~radeonfb-fix-debug-option
-+++ a/drivers/video/aty/radeonfb.h
-@@ -1,6 +1,10 @@
- #ifndef __RADEONFB_H__
- #define __RADEONFB_H__
- 
-+#ifdef CONFIG_FB_RADEON_DEBUG
-+#define DEBUG		1
-+#endif
+-	strcpy(rinfo->name, "ATI Radeon XX ");
+-	rinfo->name[11] = ent->device >> 8;
+-	rinfo->name[12] = ent->device & 0xFF;
++	c1 = ent->device >> 8;
++	c2 = ent->device & 0xff;
++	if (isprint(c1) && isprint(c2))
++		snprintf(rinfo->name, sizeof(rinfo->name),
++			 "ATI Radeon %x \"%c%c\"", ent->device & 0xffff, c1, c2);
++	else
++		snprintf(rinfo->name, sizeof(rinfo->name),
++			 "ATI Radeon %x", ent->device & 0xffff);
 +
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/sched.h>
-@@ -367,13 +371,7 @@ struct radeonfb_info {
- /*
-  * Debugging stuffs
-  */
--#ifdef CONFIG_FB_RADEON_DEBUG
--#define DEBUG		1
--#else
--#define DEBUG		0
--#endif
+ 	rinfo->family = ent->driver_data & CHIP_FAMILY_MASK;
+ 	rinfo->chipset = pdev->device;
+ 	rinfo->has_CRTC2 = (ent->driver_data & CHIP_HAS_CRTC2) != 0;
+_
+
+Patches currently in -mm which might be from aherrman@arcor.de are
+
+origin.patch
+
