@@ -1,163 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - fat-use-__getname.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:01:44 -0700
-Message-ID: <200804282201.m3SM1ioY018892@imap1.linux-foundation.org>
+Subject: - fat-detect-media-without-partition-table-correctly.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:01:49 -0700
+Message-ID: <200804282201.m3SM1nCg018898@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57621 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51984 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965812AbYD1WBq (ORCPT
+	by vger.kernel.org with ESMTP id S965796AbYD1WB4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:01:46 -0400
+	Mon, 28 Apr 2008 18:01:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: fseidel@suse.de, adilger@sun.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fat: use __getname()
+     fat: detect media without partition table correctly
 has been removed from the -mm tree.  Its filename was
-     fat-use-__getname.patch
+     fat-detect-media-without-partition-table-correctly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: use __getname()
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fat: detect media without partition table correctly
+From: Frank Seidel <fseidel@suse.de>
 
-__getname() is faster than __get_free_page(). Use it.
+I received a complaint that some FAT formated medias (e.g.  sd memory cards)
+trigger a "unknown partition table" message even though there is no partition
+table and they work correctly, while in general (when e.g.  formated with
+mkdosfs or even Windows Vista) this message is not shown.
 
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Currently this seems only to happen when the medias get formatted with Windows
+XP (and possibly Win 2000).  Then the boot indicator byte contains garbage
+(part of text message) and so do the other parts checked by msdos_paritition
+which then later triggers this message.
+
+References: novell bug #364365
+
+Most fat formatted media without partition table contains zeros in the boot
+indication and the other tested bytes and so falls through the checks in
+msdos_partition, leading it to return with 1 (all is fine).
+
+But some (e.g.  WinXP formatted) fat fomated medias don't use boot_ind and so
+the check fails and causes a "unkown partition table" warning eventhough there
+is none and everything would be fine.
+
+This additional check directly verifies if there is a fat formatted medium
+without a partition table.
+
+Signed-off-by: Frank Seidel <fseidel@suse.de>
+Cc: Andreas Dilger <adilger@sun.com>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c    |   20 ++++++++++----------
- fs/vfat/namei.c |   10 ++++------
- 2 files changed, 14 insertions(+), 16 deletions(-)
+ fs/partitions/msdos.c |   20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN fs/fat/dir.c~fat-use-__getname fs/fat/dir.c
---- a/fs/fat/dir.c~fat-use-__getname
-+++ a/fs/fat/dir.c
-@@ -247,7 +247,7 @@ static int fat_parse_long(struct inode *
- 	unsigned char id, slot, slots, alias_checksum;
+diff -puN fs/partitions/msdos.c~fat-detect-media-without-partition-table-correctly fs/partitions/msdos.c
+--- a/fs/partitions/msdos.c~fat-detect-media-without-partition-table-correctly
++++ a/fs/partitions/msdos.c
+@@ -18,7 +18,7 @@
+  *
+  *  Re-organised Feb 1998 Russell King
+  */
+-
++#include <linux/msdos_fs.h>
  
- 	if (!*unicode) {
--		*unicode = (wchar_t *)__get_free_page(GFP_KERNEL);
-+		*unicode = __getname();
- 		if (!*unicode) {
- 			brelse(*bh);
- 			return -ENOMEM;
-@@ -327,7 +327,7 @@ int fat_search_long(struct inode *inode,
- 	loff_t cpos = 0;
- 	int chl, i, j, last_u, err;
+ #include "check.h"
+ #include "msdos.h"
+@@ -419,6 +419,7 @@ int msdos_partition(struct parsed_partit
+ 	Sector sect;
+ 	unsigned char *data;
+ 	struct partition *p;
++	struct fat_boot_sector *fb;
+ 	int slot;
  
--	bufname = (unsigned char*)__get_free_page(GFP_KERNEL);
-+	bufname = __getname();
- 	if (!bufname)
- 		return -ENOMEM;
- 
-@@ -396,8 +396,8 @@ parse_record:
- 
- 		bufuname[last_u] = 0x0000;
- 		xlate_len = utf8
--			?utf8_wcstombs(bufname, bufuname, PAGE_SIZE)
--			:uni16_to_x8(bufname, bufuname, PAGE_SIZE, uni_xlate, nls_io);
-+			?utf8_wcstombs(bufname, bufuname, PATH_MAX)
-+			:uni16_to_x8(bufname, bufuname, PATH_MAX, uni_xlate, nls_io);
- 		if (xlate_len == name_len)
- 			if ((!anycase && !memcmp(name, bufname, xlate_len)) ||
- 			    (anycase && !nls_strnicmp(nls_io, name, bufname,
-@@ -406,8 +406,8 @@ parse_record:
- 
- 		if (nr_slots) {
- 			xlate_len = utf8
--				?utf8_wcstombs(bufname, unicode, PAGE_SIZE)
--				:uni16_to_x8(bufname, unicode, PAGE_SIZE, uni_xlate, nls_io);
-+				?utf8_wcstombs(bufname, unicode, PATH_MAX)
-+				:uni16_to_x8(bufname, unicode, PATH_MAX, uni_xlate, nls_io);
- 			if (xlate_len != name_len)
- 				continue;
- 			if ((!anycase && !memcmp(name, bufname, xlate_len)) ||
-@@ -427,9 +427,9 @@ Found:
- 	err = 0;
- EODir:
- 	if (bufname)
--		free_page((unsigned long)bufname);
-+		__putname(bufname);
- 	if (unicode)
--		free_page((unsigned long)unicode);
-+		__putname(unicode);
- 
- 	return err;
- }
-@@ -619,7 +619,7 @@ parse_record:
- 		/* convert the unicode long name. 261 is maximum size
- 		 * of unicode buffer. (13 * slots + nul) */
- 		void *longname = unicode + 261;
--		int buf_size = PAGE_SIZE - (261 * sizeof(unicode[0]));
-+		int buf_size = PATH_MAX - (261 * sizeof(unicode[0]));
- 		int long_len = utf8
- 			? utf8_wcstombs(longname, unicode, buf_size)
- 			: uni16_to_x8(longname, unicode, buf_size, uni_xlate, nls_io);
-@@ -652,7 +652,7 @@ EODir:
- FillFailed:
- 	brelse(bh);
- 	if (unicode)
--		free_page((unsigned long)unicode);
-+		__putname(unicode);
- out:
- 	unlock_kernel();
- 	return ret;
-diff -puN fs/vfat/namei.c~fat-use-__getname fs/vfat/namei.c
---- a/fs/vfat/namei.c~fat-use-__getname
-+++ a/fs/vfat/namei.c
-@@ -472,7 +472,7 @@ xlate_to_uni(const unsigned char *name, 
- 	if (utf8) {
- 		int name_len = strlen(name);
- 
--		*outlen = utf8_mbstowcs((wchar_t *)outname, name, PAGE_SIZE);
-+		*outlen = utf8_mbstowcs((wchar_t *)outname, name, PATH_MAX);
- 
- 		/*
- 		 * We stripped '.'s before and set len appropriately,
-@@ -565,7 +565,6 @@ static int vfat_build_slots(struct inode
- 	struct fat_mount_options *opts = &sbi->options;
- 	struct msdos_dir_slot *ps;
- 	struct msdos_dir_entry *de;
--	unsigned long page;
- 	unsigned char cksum, lcase;
- 	unsigned char msdos_name[MSDOS_NAME];
- 	wchar_t *uname;
-@@ -575,11 +574,10 @@ static int vfat_build_slots(struct inode
- 
- 	*nr_slots = 0;
- 
--	page = __get_free_page(GFP_KERNEL);
--	if (!page)
-+	uname = __getname();
-+	if (!uname)
- 		return -ENOMEM;
- 
--	uname = (wchar_t *)page;
- 	err = xlate_to_uni(name, len, (unsigned char *)uname, &ulen, &usize,
- 			   opts->unicode_xlate, opts->utf8, sbi->nls_io);
- 	if (err)
-@@ -631,7 +629,7 @@ shortname:
- 	de->starthi = cpu_to_le16(cluster >> 16);
- 	de->size = 0;
- out_free:
--	free_page(page);
-+	__putname(uname);
- 	return err;
- }
+ 	data = read_dev_sector(bdev, 0, &sect);
+@@ -444,8 +445,21 @@ int msdos_partition(struct parsed_partit
+ 	p = (struct partition *) (data + 0x1be);
+ 	for (slot = 1; slot <= 4; slot++, p++) {
+ 		if (p->boot_ind != 0 && p->boot_ind != 0x80) {
+-			put_dev_sector(sect);
+-			return 0;
++			/*
++			 * Even without a valid boot inidicator value
++			 * its still possible this is valid FAT filesystem
++			 * without a partition table.
++			 */
++			fb = (struct fat_boot_sector *) data;
++			if (slot == 1 && fb->reserved && fb->fats
++				&& fat_valid_media(fb->media)) {
++				printk("\n");
++				put_dev_sector(sect);
++				return 1;
++			} else {
++				put_dev_sector(sect);
++				return 0;
++			}
+ 		}
+ 	}
  
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from fseidel@suse.de are
 
 origin.patch
-vfs-fix-unconditional-write_super-call-in-file_fsync.patch
-fat-use-get-put_unaligned_-helpers.patch
 
