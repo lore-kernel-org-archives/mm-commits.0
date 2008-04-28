@@ -1,77 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - metronomefb-dont-free-firmware-twice-in-error-path.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:59:28 -0700
-Message-ID: <200804282159.m3SLxSK4018592@imap1.linux-foundation.org>
+Subject: - ext2-improve-ext2_readdir-return-value.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:00:16 -0700
+Message-ID: <200804282200.m3SM0Gqw018679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59956 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41045 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965394AbYD1V77 (ORCPT
+	by vger.kernel.org with ESMTP id S965541AbYD1WAS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:59:59 -0400
+	Mon, 28 Apr 2008 18:00:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: frame+buffer@ml.breakpoint.cc, adaplas@pol.net, jayakumar.lkml@gmail.com, sebastian@breakpoint.cc, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     metronomefb: don't free firmware twice in error path
+     ext2: improve ext2_readdir() return value
 has been removed from the -mm tree.  Its filename was
-     metronomefb-dont-free-firmware-twice-in-error-path.patch
+     ext2-improve-ext2_readdir-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: metronomefb: don't free firmware twice in error path
-From: Sebastian Siewior <frame+buffer@ml.breakpoint.cc>
+Subject: ext2: improve ext2_readdir() return value
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Right now, if request_irq or anthing after it fails than we free the firmware
-for the second time what might end bad :)
+Improve ext2_readdir() return value for ext2_get_page() failure by using the
+actual result of ext2_get_page().
 
-Signed-off-by: Sebastian Siewior <sebastian@breakpoint.cc>
-Acked-by: Jaya Kumar <jayakumar.lkml@gmail.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/metronomefb.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/ext2/dir.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/metronomefb.c~metronomefb-dont-free-firmware-twice-in-error-path drivers/video/metronomefb.c
---- a/drivers/video/metronomefb.c~metronomefb-dont-free-firmware-twice-in-error-path
-+++ a/drivers/video/metronomefb.c
-@@ -671,14 +671,14 @@ static int __devinit metronomefb_probe(s
- 
- 	retval = load_waveform((u8 *) fw_entry->data, fw_entry->size,
- 				par->metromem_wfm, 3, 31, &par->frame_count);
-+	release_firmware(fw_entry);
- 	if (retval < 0) {
- 		printk(KERN_ERR "metronomefb: couldn't process waveform\n");
--		goto err_ld_wfm;
-+		goto err_dma_free;
- 	}
--	release_firmware(fw_entry);
- 
- 	if (board->setup_irq(info))
--		goto err_ld_wfm;
-+		goto err_dma_free;
- 
- 	retval = metronome_init_regs(par);
- 	if (retval < 0)
-@@ -719,8 +719,6 @@ err_fb_rel:
- 	framebuffer_release(info);
- err_free_irq:
- 	board->free_irq(info);
--err_ld_wfm:
--	release_firmware(fw_entry);
- err_dma_free:
- 	dma_free_writecombine(&dev->dev, par->metromemsize, par->metromem,
- 				par->metromem_dma);
+diff -puN fs/ext2/dir.c~ext2-improve-ext2_readdir-return-value fs/ext2/dir.c
+--- a/fs/ext2/dir.c~ext2-improve-ext2_readdir-return-value
++++ a/fs/ext2/dir.c
+@@ -299,7 +299,7 @@ ext2_readdir (struct file * filp, void *
+ 				   "bad page in #%lu",
+ 				   inode->i_ino);
+ 			filp->f_pos += PAGE_CACHE_SIZE - offset;
+-			return -EIO;
++			return PTR_ERR(page);
+ 		}
+ 		kaddr = page_address(page);
+ 		if (unlikely(need_revalidate)) {
 _
 
-Patches currently in -mm which might be from frame+buffer@ml.breakpoint.cc are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
+idr-create-idr_layer_cache-at-boot-time.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
 
