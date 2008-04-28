@@ -1,39 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 23:44:36 -0700
-Message-ID: <200804280644.m3S6ia4D012303@imap1.linux-foundation.org>
+Subject: - rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 23:44:46 -0700
+Message-ID: <200804280644.m3S6ikoW012307@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33877 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50171 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756236AbYD1GpA (ORCPT
+	by vger.kernel.org with ESMTP id S1760341AbYD1Go5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 02:45:00 -0400
+	Mon, 28 Apr 2008 02:44:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, hvr@gnu.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes
+     rtc-pcf8563-new-style-conversion-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+     rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
+This patch was dropped because it was folded into rtc-pcf8563-new-style-conversion.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes
+Subject: rtc-pcf8563-new-style-conversion-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: labels should not be indented
-#601: FILE: drivers/rtc/rtc-isl1208.c:531:
-+      exit_unregister:
+WARNING: __func__ should be used instead of gcc specific __FUNCTION__
+#100: FILE: drivers/rtc/rtc-pcf8563.c:255:
++	dev_dbg(&client->dev, "%s\n", __FUNCTION__);
 
-total: 0 errors, 1 warnings, 630 lines checked
+ERROR: do not use assignment in if condition
+#120: FILE: drivers/rtc/rtc-pcf8563.c:260:
++	if (!(pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL)))
 
-./patches/rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch has style problems, please review.  If any of these errors
+WARNING: line over 80 characters
+#141: FILE: drivers/rtc/rtc-pcf8563.c:271:
++	pcf8563->rtc = rtc_device_register(pcf8563_driver.driver.name, &client->dev,
+
+total: 1 errors, 2 warnings, 180 lines checked
+
+./patches/rtc-pcf8563-new-style-conversion.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
@@ -41,32 +49,49 @@ Please run checkpatch prior to sending patches
 
 Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: David Brownell <david-b@pacbell.net>
-Cc: Herbert Valerio Riedel <hvr@gnu.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-isl1208.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rtc/rtc-pcf8563.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/rtc/rtc-isl1208.c~rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes drivers/rtc/rtc-isl1208.c
---- a/drivers/rtc/rtc-isl1208.c~rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes
-+++ a/drivers/rtc/rtc-isl1208.c
-@@ -528,7 +528,7 @@ isl1208_probe(struct i2c_client *client)
+diff -puN drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-new-style-conversion-checkpatch-fixes drivers/rtc/rtc-pcf8563.c
+--- a/drivers/rtc/rtc-pcf8563.c~rtc-pcf8563-new-style-conversion-checkpatch-fixes
++++ a/drivers/rtc/rtc-pcf8563.c
+@@ -252,12 +252,13 @@ static int pcf8563_probe(struct i2c_clie
  
- 	return 0;
+ 	int err = 0;
  
--      exit_unregister:
-+exit_unregister:
- 	rtc_device_unregister(rtc);
+-	dev_dbg(&client->dev, "%s\n", __FUNCTION__);
++	dev_dbg(&client->dev, "%s\n", __func__);
  
- 	return rc;
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_I2C))
+ 		return -ENODEV;
+ 
+-	if (!(pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL)))
++	pcf8563 = kzalloc(sizeof(struct pcf8563), GFP_KERNEL));
++	if (!pcf8563)
+ 		return -ENOMEM;
+ 
+ 	/* Verify the chip is really an PCF8563 */
+@@ -268,8 +269,8 @@ static int pcf8563_probe(struct i2c_clie
+ 
+ 	dev_info(&client->dev, "chip found, driver version " DRV_VERSION "\n");
+ 
+-	pcf8563->rtc = rtc_device_register(pcf8563_driver.driver.name, &client->dev,
+-				&pcf8563_rtc_ops, THIS_MODULE);
++	pcf8563->rtc = rtc_device_register(pcf8563_driver.driver.name,
++				&client->dev, &pcf8563_rtc_ops, THIS_MODULE);
+ 
+ 	if (IS_ERR(pcf8563->rtc)) {
+ 		err = PTR_ERR(pcf8563->rtc);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes-checkpatch-fixes.patch
+rtc-pcf8563-new-style-conversion.patch
 rtc-pcf8563-new-style-conversion-checkpatch-fixes.patch
 rtc-pcf8563-new-style-conversion-checkpatch-fixes-fix.patch
 rtc-x1205-new-style-conversion-checkpatch-fixes.patch
