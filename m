@@ -1,80 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - crisv10-prepare-for-bkl-push-down.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:54:40 -0700
-Message-ID: <200804282154.m3SLsef5018029@imap1.linux-foundation.org>
+Subject: - fix-tty-speed-handling-on-8250.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:55:23 -0700
+Message-ID: <200804282155.m3SLtNjw018097@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58871 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46624 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934976AbYD1VzR (ORCPT
+	by vger.kernel.org with ESMTP id S935134AbYD1Vzl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:55:17 -0400
+	Mon, 28 Apr 2008 17:55:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mikael.starvik@axis.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     crisv10: prepare for BKL push down
+     Fix tty speed handling on 8250
 has been removed from the -mm tree.  Its filename was
-     crisv10-prepare-for-bkl-push-down.patch
+     fix-tty-speed-handling-on-8250.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: crisv10: prepare for BKL push down
+Subject: Fix tty speed handling on 8250
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Just the modem bits this time
+We try and write the correct speed back but the serial midlayer already
+mangles the speed on us and that means if we request B0 we report back B9600
+when we should not.  For now we'll hack around this in the drivers and serial
+code, pending a better long term solution.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Mikael Starvik <mikael.starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/crisv10.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/serial/8250.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/serial/crisv10.c~crisv10-prepare-for-bkl-push-down drivers/serial/crisv10.c
---- a/drivers/serial/crisv10.c~crisv10-prepare-for-bkl-push-down
-+++ a/drivers/serial/crisv10.c
-@@ -3582,6 +3582,8 @@ rs_tiocmset(struct tty_struct *tty, stru
- {
- 	struct e100_serial *info = (struct e100_serial *)tty->driver_data;
- 
-+	lock_kernel();
-+
- 	if (clear & TIOCM_RTS)
- 		e100_rts(info, 0);
- 	if (clear & TIOCM_DTR)
-@@ -3601,6 +3603,8 @@ rs_tiocmset(struct tty_struct *tty, stru
- 		e100_ri_out(info, 1);
- 	if (set & TIOCM_CD)
- 		e100_cd_out(info, 1);
-+
-+	unlock_kernel();
- 	return 0;
+diff -puN drivers/serial/8250.c~fix-tty-speed-handling-on-8250 drivers/serial/8250.c
+--- a/drivers/serial/8250.c~fix-tty-speed-handling-on-8250
++++ a/drivers/serial/8250.c
+@@ -2228,7 +2228,9 @@ serial8250_set_termios(struct uart_port 
+ 	}
+ 	serial8250_set_mctrl(&up->port, up->port.mctrl);
+ 	spin_unlock_irqrestore(&up->port.lock, flags);
+-	tty_termios_encode_baud_rate(termios, baud, baud);
++	/* Don't rewrite B0 */
++	if (tty_termios_baud_rate(termios))
++		tty_termios_encode_baud_rate(termios, baud, baud);
  }
  
-@@ -3610,6 +3614,7 @@ rs_tiocmget(struct tty_struct *tty, stru
- 	struct e100_serial *info = (struct e100_serial *)tty->driver_data;
- 	unsigned int result;
- 
-+	lock_kernel();
- 	result =
- 		(!E100_RTS_GET(info) ? TIOCM_RTS : 0)
- 		| (!E100_DTR_GET(info) ? TIOCM_DTR : 0)
-@@ -3618,6 +3623,8 @@ rs_tiocmget(struct tty_struct *tty, stru
- 		| (!E100_CD_GET(info) ? TIOCM_CAR : 0)
- 		| (!E100_CTS_GET(info) ? TIOCM_CTS : 0);
- 
-+	unlock_kernel();
-+
- #ifdef SERIAL_DEBUG_IO
- 	printk(KERN_DEBUG "ser%i: modem state: %i 0x%08X\n",
- 		info->line, result, result);
+ static void
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
