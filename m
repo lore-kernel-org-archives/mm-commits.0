@@ -1,60 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - pm3fb-change-option-mode-to-mode_option.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:58:01 -0700
-Message-ID: <200804282158.m3SLw1JG018447@imap1.linux-foundation.org>
+Subject: - gxfb-use-pci_device-for-gxfbs-pci-device-table.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:57:35 -0700
+Message-ID: <200804282157.m3SLvZBV018410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41942 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934631AbYD1V6D (ORCPT
+	by vger.kernel.org with ESMTP id S964805AbYD1V5t (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:58:03 -0400
+	Mon, 28 Apr 2008 17:57:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: krzysztof.h1@wp.pl, adaplas@pol.net, mm-commits@vger.kernel.org
+To: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm3fb: change option mode to mode_option
+     gxfb: use PCI_DEVICE() for gxfb's pci device table
 has been removed from the -mm tree.  Its filename was
-     pm3fb-change-option-mode-to-mode_option.patch
+     gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm3fb: change option mode to mode_option
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: gxfb: use PCI_DEVICE() for gxfb's pci device table
+From: Andres Salomon <dilinger@queued.net>
 
-Add the option "mode_option".
+Drop the class/class_mask stuff; it's unnecessary as long as the vendor and
+device IDs match.
 
-This is one step toward changing all fb drivers to have common "mode_option"
-parameter.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pm3fb.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/video/geode/gxfb_core.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/video/pm3fb.c~pm3fb-change-option-mode-to-mode_option drivers/video/pm3fb.c
---- a/drivers/video/pm3fb.c~pm3fb-change-option-mode-to-mode_option
-+++ a/drivers/video/pm3fb.c
-@@ -1571,6 +1571,8 @@ module_exit(pm3fb_exit);
- #endif
- module_init(pm3fb_init);
+diff -puN drivers/video/geode/gxfb_core.c~gxfb-use-pci_device-for-gxfbs-pci-device-table drivers/video/geode/gxfb_core.c
+--- a/drivers/video/geode/gxfb_core.c~gxfb-use-pci_device-for-gxfbs-pci-device-table
++++ a/drivers/video/geode/gxfb_core.c
+@@ -398,9 +398,7 @@ static void gxfb_remove(struct pci_dev *
+ }
  
-+module_param(mode_option, charp, 0);
-+MODULE_PARM_DESC(mode_option, "Initial video mode e.g. '648x480-8@60'");
- module_param(noaccel, bool, 0);
- MODULE_PARM_DESC(noaccel, "Disable acceleration");
- module_param(hwcursor, int, 0644);
+ static struct pci_device_id gxfb_id_table[] = {
+-	{ PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_GX_VIDEO,
+-	  PCI_ANY_ID, PCI_ANY_ID, PCI_BASE_CLASS_DISPLAY << 16,
+-	  0xff0000, 0 },
++	{ PCI_DEVICE(PCI_VENDOR_ID_NS, PCI_DEVICE_ID_NS_GX_VIDEO) },
+ 	{ 0, }
+ };
+ 
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from dilinger@queued.net are
 
 origin.patch
+git-kbuild.patch
+x86-olpc-add-one-laptop-per-child-architecture-support.patch
 
