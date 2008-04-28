@@ -1,242 +1,406 @@
 From: akpm@linux-foundation.org
-Subject: - mempolicy-update-numa-memory-policy-documentation.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:51:39 -0700
-Message-ID: <200804282151.m3SLpd55017590@imap1.linux-foundation.org>
+Subject: - vmallocinfo-add-caller-information.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:52:06 -0700
+Message-ID: <200804282152.m3SLq6fN017727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56909 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33616 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964993AbYD1VwB (ORCPT
+	by vger.kernel.org with ESMTP id S965055AbYD1VwU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:52:01 -0400
+	Mon, 28 Apr 2008 17:52:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, pj@sgi.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, hugh@veritas.com, kosaki.motohiro@jp.fujitsu.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mempolicy: update NUMA memory policy documentation
+     vmallocinfo: add caller information
 has been removed from the -mm tree.  Its filename was
-     mempolicy-update-numa-memory-policy-documentation.patch
+     vmallocinfo-add-caller-information.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: update NUMA memory policy documentation
-From: David Rientjes <rientjes@google.com>
+Subject: vmallocinfo: add caller information
+From: Christoph Lameter <clameter@sgi.com>
 
-Updates Documentation/vm/numa_memory_policy.txt and
-Documentation/filesystems/tmpfs.txt to describe optional mempolicy mode flags.
+Add caller information so that /proc/vmallocinfo shows where the allocation
+request for a slice of vmalloc memory originated.
 
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
-Cc: Andi Kleen <ak@suse.de>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Signed-off-by: Paul Jackson <pj@sgi.com>
+Results in output like this:
+
+0xffffc20000000000-0xffffc20000801000 8392704 alloc_large_system_hash+0x127/0x246 pages=2048 vmalloc vpages
+0xffffc20000801000-0xffffc20000806000   20480 alloc_large_system_hash+0x127/0x246 pages=4 vmalloc
+0xffffc20000806000-0xffffc20000c07000 4198400 alloc_large_system_hash+0x127/0x246 pages=1024 vmalloc vpages
+0xffffc20000c07000-0xffffc20000c0a000   12288 alloc_large_system_hash+0x127/0x246 pages=2 vmalloc
+0xffffc20000c0a000-0xffffc20000c0c000    8192 acpi_os_map_memory+0x13/0x1c phys=cff68000 ioremap
+0xffffc20000c0c000-0xffffc20000c0f000   12288 acpi_os_map_memory+0x13/0x1c phys=cff64000 ioremap
+0xffffc20000c10000-0xffffc20000c15000   20480 acpi_os_map_memory+0x13/0x1c phys=cff65000 ioremap
+0xffffc20000c16000-0xffffc20000c18000    8192 acpi_os_map_memory+0x13/0x1c phys=cff69000 ioremap
+0xffffc20000c18000-0xffffc20000c1a000    8192 acpi_os_map_memory+0x13/0x1c phys=fed1f000 ioremap
+0xffffc20000c1a000-0xffffc20000c1c000    8192 acpi_os_map_memory+0x13/0x1c phys=cff68000 ioremap
+0xffffc20000c1c000-0xffffc20000c1e000    8192 acpi_os_map_memory+0x13/0x1c phys=cff68000 ioremap
+0xffffc20000c1e000-0xffffc20000c20000    8192 acpi_os_map_memory+0x13/0x1c phys=cff68000 ioremap
+0xffffc20000c20000-0xffffc20000c22000    8192 acpi_os_map_memory+0x13/0x1c phys=cff68000 ioremap
+0xffffc20000c22000-0xffffc20000c24000    8192 acpi_os_map_memory+0x13/0x1c phys=cff68000 ioremap
+0xffffc20000c24000-0xffffc20000c26000    8192 acpi_os_map_memory+0x13/0x1c phys=e0081000 ioremap
+0xffffc20000c26000-0xffffc20000c28000    8192 acpi_os_map_memory+0x13/0x1c phys=e0080000 ioremap
+0xffffc20000c28000-0xffffc20000c2d000   20480 alloc_large_system_hash+0x127/0x246 pages=4 vmalloc
+0xffffc20000c2d000-0xffffc20000c31000   16384 tcp_init+0xd5/0x31c pages=3 vmalloc
+0xffffc20000c31000-0xffffc20000c34000   12288 alloc_large_system_hash+0x127/0x246 pages=2 vmalloc
+0xffffc20000c34000-0xffffc20000c36000    8192 init_vdso_vars+0xde/0x1f1
+0xffffc20000c36000-0xffffc20000c38000    8192 pci_iomap+0x8a/0xb4 phys=d8e00000 ioremap
+0xffffc20000c38000-0xffffc20000c3a000    8192 usb_hcd_pci_probe+0x139/0x295 [usbcore] phys=d8e00000 ioremap
+0xffffc20000c3a000-0xffffc20000c3e000   16384 sys_swapon+0x509/0xa15 pages=3 vmalloc
+0xffffc20000c40000-0xffffc20000c61000  135168 e1000_probe+0x1c4/0xa32 phys=d8a20000 ioremap
+0xffffc20000c61000-0xffffc20000c6a000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
+0xffffc20000c6a000-0xffffc20000c73000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
+0xffffc20000c73000-0xffffc20000c7c000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
+0xffffc20000c7c000-0xffffc20000c7f000   12288 e1000e_setup_tx_resources+0x29/0xbe pages=2 vmalloc
+0xffffc20000c80000-0xffffc20001481000 8392704 pci_mmcfg_arch_init+0x90/0x118 phys=e0000000 ioremap
+0xffffc20001481000-0xffffc20001682000 2101248 alloc_large_system_hash+0x127/0x246 pages=512 vmalloc
+0xffffc20001682000-0xffffc20001e83000 8392704 alloc_large_system_hash+0x127/0x246 pages=2048 vmalloc vpages
+0xffffc20001e83000-0xffffc20002204000 3674112 alloc_large_system_hash+0x127/0x246 pages=896 vmalloc vpages
+0xffffc20002204000-0xffffc2000220d000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
+0xffffc2000220d000-0xffffc20002216000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
+0xffffc20002216000-0xffffc2000221f000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
+0xffffc2000221f000-0xffffc20002228000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
+0xffffc20002228000-0xffffc20002231000   36864 _xfs_buf_map_pages+0x8e/0xc0 vmap
+0xffffc20002231000-0xffffc20002234000   12288 e1000e_setup_rx_resources+0x35/0x122 pages=2 vmalloc
+0xffffc20002240000-0xffffc20002261000  135168 e1000_probe+0x1c4/0xa32 phys=d8a60000 ioremap
+0xffffc20002261000-0xffffc2000270c000 4894720 sys_swapon+0x509/0xa15 pages=1194 vmalloc vpages
+0xffffffffa0000000-0xffffffffa0022000  139264 module_alloc+0x4f/0x55 pages=33 vmalloc
+0xffffffffa0022000-0xffffffffa0029000   28672 module_alloc+0x4f/0x55 pages=6 vmalloc
+0xffffffffa002b000-0xffffffffa0034000   36864 module_alloc+0x4f/0x55 pages=8 vmalloc
+0xffffffffa0034000-0xffffffffa003d000   36864 module_alloc+0x4f/0x55 pages=8 vmalloc
+0xffffffffa003d000-0xffffffffa0049000   49152 module_alloc+0x4f/0x55 pages=11 vmalloc
+0xffffffffa0049000-0xffffffffa0050000   28672 module_alloc+0x4f/0x55 pages=6 vmalloc
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/tmpfs.txt     |   12 ++
- Documentation/vm/numa_memory_policy.txt |  131 ++++++++++++++++------
- 2 files changed, 112 insertions(+), 31 deletions(-)
+ arch/x86/mm/ioremap.c   |   15 +++++---
+ include/linux/vmalloc.h |    3 +
+ mm/vmalloc.c            |   65 +++++++++++++++++++++++++++-----------
+ 3 files changed, 59 insertions(+), 24 deletions(-)
 
-diff -puN Documentation/filesystems/tmpfs.txt~mempolicy-update-numa-memory-policy-documentation Documentation/filesystems/tmpfs.txt
---- a/Documentation/filesystems/tmpfs.txt~mempolicy-update-numa-memory-policy-documentation
-+++ a/Documentation/filesystems/tmpfs.txt
-@@ -92,6 +92,18 @@ NodeList format is a comma-separated lis
- a range being two hyphen-separated decimal numbers, the smallest and
- largest node numbers in the range.  For example, mpol=bind:0-3,5,7,9-15
+diff -puN arch/x86/mm/ioremap.c~vmallocinfo-add-caller-information arch/x86/mm/ioremap.c
+--- a/arch/x86/mm/ioremap.c~vmallocinfo-add-caller-information
++++ a/arch/x86/mm/ioremap.c
+@@ -117,8 +117,8 @@ int ioremap_change_attr(unsigned long va
+  * have to convert them into an offset in a page-aligned mapping, but the
+  * caller shouldn't need to know that small detail.
+  */
+-static void __iomem *__ioremap(resource_size_t phys_addr, unsigned long size,
+-			       unsigned long prot_val)
++static void __iomem *__ioremap_caller(resource_size_t phys_addr,
++		unsigned long size, unsigned long prot_val, void *caller)
+ {
+ 	unsigned long pfn, offset, vaddr;
+ 	resource_size_t last_addr;
+@@ -212,7 +212,7 @@ static void __iomem *__ioremap(resource_
+ 	/*
+ 	 * Ok, go for it..
+ 	 */
+-	area = get_vm_area(size, VM_IOREMAP);
++	area = get_vm_area_caller(size, VM_IOREMAP, caller);
+ 	if (!area)
+ 		return NULL;
+ 	area->phys_addr = phys_addr;
+@@ -255,7 +255,8 @@ static void __iomem *__ioremap(resource_
+  */
+ void __iomem *ioremap_nocache(resource_size_t phys_addr, unsigned long size)
+ {
+-	return __ioremap(phys_addr, size, _PAGE_CACHE_UC);
++	return __ioremap_caller(phys_addr, size, _PAGE_CACHE_UC,
++				__builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(ioremap_nocache);
  
-+NUMA memory allocation policies have optional flags that can be used in
-+conjunction with their modes.  These optional flags can be specified
-+when tmpfs is mounted by appending them to the mode before the NodeList.
-+See Documentation/vm/numa_memory_policy.txt for a list of all available
-+memory allocation policy mode flags.
-+
-+	=static		is equivalent to	MPOL_F_STATIC_NODES
-+	=relative	is equivalent to	MPOL_F_RELATIVE_NODES
-+
-+For example, mpol=bind=static:NodeList, is the equivalent of an
-+allocation policy of MPOL_BIND | MPOL_F_STATIC_NODES.
-+
- Note that trying to mount a tmpfs with an mpol option will fail if the
- running kernel does not support NUMA; and will fail if its nodelist
- specifies a node which is not online.  If your system relies on that
-diff -puN Documentation/vm/numa_memory_policy.txt~mempolicy-update-numa-memory-policy-documentation Documentation/vm/numa_memory_policy.txt
---- a/Documentation/vm/numa_memory_policy.txt~mempolicy-update-numa-memory-policy-documentation
-+++ a/Documentation/vm/numa_memory_policy.txt
-@@ -135,9 +135,11 @@ most general to most specific:
+@@ -272,7 +273,8 @@ EXPORT_SYMBOL(ioremap_nocache);
+ void __iomem *ioremap_wc(unsigned long phys_addr, unsigned long size)
+ {
+ 	if (pat_wc_enabled)
+-		return __ioremap(phys_addr, size, _PAGE_CACHE_WC);
++		return __ioremap_caller(phys_addr, size, _PAGE_CACHE_WC,
++					__builtin_return_address(0));
+ 	else
+ 		return ioremap_nocache(phys_addr, size);
+ }
+@@ -280,7 +282,8 @@ EXPORT_SYMBOL(ioremap_wc);
  
- Components of Memory Policies
+ void __iomem *ioremap_cache(resource_size_t phys_addr, unsigned long size)
+ {
+-	return __ioremap(phys_addr, size, _PAGE_CACHE_WB);
++	return __ioremap_caller(phys_addr, size, _PAGE_CACHE_WB,
++				__builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(ioremap_cache);
  
--    A Linux memory policy is a tuple consisting of a "mode" and an optional set
--    of nodes.  The mode determine the behavior of the policy, while the
--    optional set of nodes can be viewed as the arguments to the behavior.
-+    A Linux memory policy consists of a "mode", optional mode flags, and an
-+    optional set of nodes.  The mode determines the behavior of the policy,
-+    the optional mode flags determine the behavior of the mode, and the
-+    optional set of nodes can be viewed as the arguments to the policy
-+    behavior.
+diff -puN include/linux/vmalloc.h~vmallocinfo-add-caller-information include/linux/vmalloc.h
+--- a/include/linux/vmalloc.h~vmallocinfo-add-caller-information
++++ a/include/linux/vmalloc.h
+@@ -31,6 +31,7 @@ struct vm_struct {
+ 	struct page		**pages;
+ 	unsigned int		nr_pages;
+ 	unsigned long		phys_addr;
++	void			*caller;
+ };
  
-    Internally, memory policies are implemented by a reference counted
-    structure, struct mempolicy.  Details of this structure will be discussed
-@@ -179,7 +181,8 @@ Components of Memory Policies
- 	    on a non-shared region of the address space.  However, see
- 	    MPOL_PREFERRED below.
+ /*
+@@ -66,6 +67,8 @@ static inline size_t get_vm_area_size(co
+ }
  
--	    The Default mode does not use the optional set of nodes.
-+	    It is an error for the set of nodes specified for this policy to
-+	    be non-empty.
+ extern struct vm_struct *get_vm_area(unsigned long size, unsigned long flags);
++extern struct vm_struct *get_vm_area_caller(unsigned long size,
++					unsigned long flags, void *caller);
+ extern struct vm_struct *__get_vm_area(unsigned long size, unsigned long flags,
+ 					unsigned long start, unsigned long end);
+ extern struct vm_struct *get_vm_area_node(unsigned long size,
+diff -puN mm/vmalloc.c~vmallocinfo-add-caller-information mm/vmalloc.c
+--- a/mm/vmalloc.c~vmallocinfo-add-caller-information
++++ a/mm/vmalloc.c
+@@ -16,6 +16,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/seq_file.h>
+ #include <linux/vmalloc.h>
++#include <linux/kallsyms.h>
  
- 	MPOL_BIND:  This mode specifies that memory must come from the
- 	set of nodes specified by the policy.  Memory will be allocated from
-@@ -226,6 +229,80 @@ Components of Memory Policies
- 	    the temporary interleaved system default policy works in this
- 	    mode.
+ #include <asm/uaccess.h>
+ #include <asm/tlbflush.h>
+@@ -25,7 +26,7 @@ DEFINE_RWLOCK(vmlist_lock);
+ struct vm_struct *vmlist;
  
-+   Linux memory policy supports the following optional mode flags:
-+
-+	MPOL_F_STATIC_NODES:  This flag specifies that the nodemask passed by
-+	the user should not be remapped if the task or VMA's set of allowed
-+	nodes changes after the memory policy has been defined.
-+
-+	    Without this flag, anytime a mempolicy is rebound because of a
-+	    change in the set of allowed nodes, the node (Preferred) or
-+	    nodemask (Bind, Interleave) is remapped to the new set of
-+	    allowed nodes.  This may result in nodes being used that were
-+	    previously undesired.
-+
-+	    With this flag, if the user-specified nodes overlap with the
-+	    nodes allowed by the task's cpuset, then the memory policy is
-+	    applied to their intersection.  If the two sets of nodes do not
-+	    overlap, the Default policy is used.
-+
-+	    For example, consider a task that is attached to a cpuset with
-+	    mems 1-3 that sets an Interleave policy over the same set.  If
-+	    the cpuset's mems change to 3-5, the Interleave will now occur
-+	    over nodes 3, 4, and 5.  With this flag, however, since only node
-+	    3 is allowed from the user's nodemask, the "interleave" only
-+	    occurs over that node.  If no nodes from the user's nodemask are
-+	    now allowed, the Default behavior is used.
-+
-+	    MPOL_F_STATIC_NODES cannot be used with MPOL_F_RELATIVE_NODES.
-+
-+	MPOL_F_RELATIVE_NODES:  This flag specifies that the nodemask passed
-+	by the user will be mapped relative to the set of the task or VMA's
-+	set of allowed nodes.  The kernel stores the user-passed nodemask,
-+	and if the allowed nodes changes, then that original nodemask will
-+	be remapped relative to the new set of allowed nodes.
-+
-+	    Without this flag (and without MPOL_F_STATIC_NODES), anytime a
-+	    mempolicy is rebound because of a change in the set of allowed
-+	    nodes, the node (Preferred) or nodemask (Bind, Interleave) is
-+	    remapped to the new set of allowed nodes.  That remap may not
-+	    preserve the relative nature of the user's passed nodemask to its
-+	    set of allowed nodes upon successive rebinds: a nodemask of
-+	    1,3,5 may be remapped to 7-9 and then to 1-3 if the set of
-+	    allowed nodes is restored to its original state.
-+
-+	    With this flag, the remap is done so that the node numbers from
-+	    the user's passed nodemask are relative to the set of allowed
-+	    nodes.  In other words, if nodes 0, 2, and 4 are set in the user's
-+	    nodemask, the policy will be effected over the first (and in the
-+	    Bind or Interleave case, the third and fifth) nodes in the set of
-+	    allowed nodes.  The nodemask passed by the user represents nodes
-+	    relative to task or VMA's set of allowed nodes.
-+
-+	    If the user's nodemask includes nodes that are outside the range
-+	    of the new set of allowed nodes (for example, node 5 is set in
-+	    the user's nodemask when the set of allowed nodes is only 0-3),
-+	    then the remap wraps around to the beginning of the nodemask and,
-+	    if not already set, sets the node in the mempolicy nodemask.
-+
-+	    For example, consider a task that is attached to a cpuset with
-+	    mems 2-5 that sets an Interleave policy over the same set with
-+	    MPOL_F_RELATIVE_NODES.  If the cpuset's mems change to 3-7, the
-+	    interleave now occurs over nodes 3,5-6.  If the cpuset's mems
-+	    then change to 0,2-3,5, then the interleave occurs over nodes
-+	    0,3,5.
-+
-+	    Thanks to the consistent remapping, applications preparing
-+	    nodemasks to specify memory policies using this flag should
-+	    disregard their current, actual cpuset imposed memory placement
-+	    and prepare the nodemask as if they were always located on
-+	    memory nodes 0 to N-1, where N is the number of memory nodes the
-+	    policy is intended to manage.  Let the kernel then remap to the
-+	    set of memory nodes allowed by the task's cpuset, as that may
-+	    change over time.
-+
-+	    MPOL_F_RELATIVE_NODES cannot be used with MPOL_F_STATIC_NODES.
-+
- MEMORY POLICY APIs
+ static void *__vmalloc_node(unsigned long size, gfp_t gfp_mask, pgprot_t prot,
+-			    int node);
++			    int node, void *caller);
  
- Linux supports 3 system calls for controlling memory policy.  These APIS
-@@ -246,7 +323,9 @@ Set [Task] Memory Policy:
- 	Set's the calling task's "task/process memory policy" to mode
- 	specified by the 'mode' argument and the set of nodes defined
- 	by 'nmask'.  'nmask' points to a bit mask of node ids containing
--	at least 'maxnode' ids.
-+	at least 'maxnode' ids.  Optional mode flags may be passed by
-+	combining the 'mode' argument with the flag (for example:
-+	MPOL_INTERLEAVE | MPOL_F_STATIC_NODES).
+ static void vunmap_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end)
+ {
+@@ -204,9 +205,9 @@ unsigned long vmalloc_to_pfn(const void 
+ }
+ EXPORT_SYMBOL(vmalloc_to_pfn);
  
- 	See the set_mempolicy(2) man page for more details
+-static struct vm_struct *__get_vm_area_node(unsigned long size, unsigned long flags,
+-					    unsigned long start, unsigned long end,
+-					    int node, gfp_t gfp_mask)
++static struct vm_struct *
++__get_vm_area_node(unsigned long size, unsigned long flags, unsigned long start,
++		unsigned long end, int node, gfp_t gfp_mask, void *caller)
+ {
+ 	struct vm_struct **p, *tmp, *area;
+ 	unsigned long align = 1;
+@@ -269,6 +270,7 @@ found:
+ 	area->pages = NULL;
+ 	area->nr_pages = 0;
+ 	area->phys_addr = 0;
++	area->caller = caller;
+ 	write_unlock(&vmlist_lock);
  
-@@ -298,29 +377,19 @@ MEMORY POLICIES AND CPUSETS
- Memory policies work within cpusets as described above.  For memory policies
- that require a node or set of nodes, the nodes are restricted to the set of
- nodes whose memories are allowed by the cpuset constraints.  If the nodemask
--specified for the policy contains nodes that are not allowed by the cpuset, or
--the intersection of the set of nodes specified for the policy and the set of
--nodes with memory is the empty set, the policy is considered invalid
--and cannot be installed.
--
--The interaction of memory policies and cpusets can be problematic for a
--couple of reasons:
--
--1) the memory policy APIs take physical node id's as arguments.  As mentioned
--   above, it is illegal to specify nodes that are not allowed in the cpuset.
--   The application must query the allowed nodes using the get_mempolicy()
--   API with the MPOL_F_MEMS_ALLOWED flag to determine the allowed nodes and
--   restrict itself to those nodes.  However, the resources available to a
--   cpuset can be changed by the system administrator, or a workload manager
--   application, at any time.  So, a task may still get errors attempting to
--   specify policy nodes, and must query the allowed memories again.
--
--2) when tasks in two cpusets share access to a memory region, such as shared
--   memory segments created by shmget() of mmap() with the MAP_ANONYMOUS and
--   MAP_SHARED flags, and any of the tasks install shared policy on the region,
--   only nodes whose memories are allowed in both cpusets may be used in the
--   policies.  Obtaining this information requires "stepping outside" the
--   memory policy APIs to use the cpuset information and requires that one
--   know in what cpusets other task might be attaching to the shared region.
--   Furthermore, if the cpusets' allowed memory sets are disjoint, "local"
--   allocation is the only valid policy.
-+specified for the policy contains nodes that are not allowed by the cpuset and
-+MPOL_F_RELATIVE_NODES is not used, the intersection of the set of nodes
-+specified for the policy and the set of nodes with memory is used.  If the
-+result is the empty set, the policy is considered invalid and cannot be
-+installed.  If MPOL_F_RELATIVE_NODES is used, the policy's nodes are mapped
-+onto and folded into the task's set of allowed nodes as previously described.
+ 	return area;
+@@ -284,7 +286,8 @@ out:
+ struct vm_struct *__get_vm_area(unsigned long size, unsigned long flags,
+ 				unsigned long start, unsigned long end)
+ {
+-	return __get_vm_area_node(size, flags, start, end, -1, GFP_KERNEL);
++	return __get_vm_area_node(size, flags, start, end, -1, GFP_KERNEL,
++						__builtin_return_address(0));
+ }
+ EXPORT_SYMBOL_GPL(__get_vm_area);
+ 
+@@ -299,14 +302,22 @@ EXPORT_SYMBOL_GPL(__get_vm_area);
+  */
+ struct vm_struct *get_vm_area(unsigned long size, unsigned long flags)
+ {
+-	return __get_vm_area(size, flags, VMALLOC_START, VMALLOC_END);
++	return __get_vm_area_node(size, flags, VMALLOC_START, VMALLOC_END,
++				-1, GFP_KERNEL, __builtin_return_address(0));
++}
 +
-+The interaction of memory policies and cpusets can be problematic when tasks
-+in two cpusets share access to a memory region, such as shared memory segments
-+created by shmget() of mmap() with the MAP_ANONYMOUS and MAP_SHARED flags, and
-+any of the tasks install shared policy on the region, only nodes whose
-+memories are allowed in both cpusets may be used in the policies.  Obtaining
-+this information requires "stepping outside" the memory policy APIs to use the
-+cpuset information and requires that one know in what cpusets other task might
-+be attaching to the shared region.  Furthermore, if the cpusets' allowed
-+memory sets are disjoint, "local" allocation is the only valid policy.
++struct vm_struct *get_vm_area_caller(unsigned long size, unsigned long flags,
++				void *caller)
++{
++	return __get_vm_area_node(size, flags, VMALLOC_START, VMALLOC_END,
++						-1, GFP_KERNEL, caller);
+ }
+ 
+ struct vm_struct *get_vm_area_node(unsigned long size, unsigned long flags,
+ 				   int node, gfp_t gfp_mask)
+ {
+ 	return __get_vm_area_node(size, flags, VMALLOC_START, VMALLOC_END, node,
+-				  gfp_mask);
++				  gfp_mask, __builtin_return_address(0));
+ }
+ 
+ /* Caller must hold vmlist_lock */
+@@ -455,9 +466,11 @@ void *vmap(struct page **pages, unsigned
+ 	if (count > num_physpages)
+ 		return NULL;
+ 
+-	area = get_vm_area((count << PAGE_SHIFT), flags);
++	area = get_vm_area_caller((count << PAGE_SHIFT), flags,
++					__builtin_return_address(0));
+ 	if (!area)
+ 		return NULL;
++
+ 	if (map_vm_area(area, prot, &pages)) {
+ 		vunmap(area->addr);
+ 		return NULL;
+@@ -468,7 +481,7 @@ void *vmap(struct page **pages, unsigned
+ EXPORT_SYMBOL(vmap);
+ 
+ static void *__vmalloc_area_node(struct vm_struct *area, gfp_t gfp_mask,
+-				 pgprot_t prot, int node)
++				 pgprot_t prot, int node, void *caller)
+ {
+ 	struct page **pages;
+ 	unsigned int nr_pages, array_size, i;
+@@ -480,7 +493,7 @@ static void *__vmalloc_area_node(struct 
+ 	/* Please note that the recursion is strictly bounded. */
+ 	if (array_size > PAGE_SIZE) {
+ 		pages = __vmalloc_node(array_size, gfp_mask | __GFP_ZERO,
+-					PAGE_KERNEL, node);
++				PAGE_KERNEL, node, caller);
+ 		area->flags |= VM_VPAGES;
+ 	} else {
+ 		pages = kmalloc_node(array_size,
+@@ -488,6 +501,7 @@ static void *__vmalloc_area_node(struct 
+ 				node);
+ 	}
+ 	area->pages = pages;
++	area->caller = caller;
+ 	if (!area->pages) {
+ 		remove_vm_area(area->addr);
+ 		kfree(area);
+@@ -521,7 +535,8 @@ fail:
+ 
+ void *__vmalloc_area(struct vm_struct *area, gfp_t gfp_mask, pgprot_t prot)
+ {
+-	return __vmalloc_area_node(area, gfp_mask, prot, -1);
++	return __vmalloc_area_node(area, gfp_mask, prot, -1,
++					__builtin_return_address(0));
+ }
+ 
+ /**
+@@ -536,7 +551,7 @@ void *__vmalloc_area(struct vm_struct *a
+  *	kernel virtual space, using a pagetable protection of @prot.
+  */
+ static void *__vmalloc_node(unsigned long size, gfp_t gfp_mask, pgprot_t prot,
+-			    int node)
++						int node, void *caller)
+ {
+ 	struct vm_struct *area;
+ 
+@@ -544,16 +559,19 @@ static void *__vmalloc_node(unsigned lon
+ 	if (!size || (size >> PAGE_SHIFT) > num_physpages)
+ 		return NULL;
+ 
+-	area = get_vm_area_node(size, VM_ALLOC, node, gfp_mask);
++	area = __get_vm_area_node(size, VM_ALLOC, VMALLOC_START, VMALLOC_END,
++						node, gfp_mask, caller);
++
+ 	if (!area)
+ 		return NULL;
+ 
+-	return __vmalloc_area_node(area, gfp_mask, prot, node);
++	return __vmalloc_area_node(area, gfp_mask, prot, node, caller);
+ }
+ 
+ void *__vmalloc(unsigned long size, gfp_t gfp_mask, pgprot_t prot)
+ {
+-	return __vmalloc_node(size, gfp_mask, prot, -1);
++	return __vmalloc_node(size, gfp_mask, prot, -1,
++				__builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(__vmalloc);
+ 
+@@ -568,7 +586,8 @@ EXPORT_SYMBOL(__vmalloc);
+  */
+ void *vmalloc(unsigned long size)
+ {
+-	return __vmalloc(size, GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL);
++	return __vmalloc_node(size, GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL,
++					-1, __builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(vmalloc);
+ 
+@@ -608,7 +627,8 @@ EXPORT_SYMBOL(vmalloc_user);
+  */
+ void *vmalloc_node(unsigned long size, int node)
+ {
+-	return __vmalloc_node(size, GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL, node);
++	return __vmalloc_node(size, GFP_KERNEL | __GFP_HIGHMEM, PAGE_KERNEL,
++					node, __builtin_return_address(0));
+ }
+ EXPORT_SYMBOL(vmalloc_node);
+ 
+@@ -843,7 +863,8 @@ struct vm_struct *alloc_vm_area(size_t s
+ {
+ 	struct vm_struct *area;
+ 
+-	area = get_vm_area(size, VM_IOREMAP);
++	area = get_vm_area_caller(size, VM_IOREMAP,
++				__builtin_return_address(0));
+ 	if (area == NULL)
+ 		return NULL;
+ 
+@@ -914,6 +935,14 @@ static int s_show(struct seq_file *m, vo
+ 	seq_printf(m, "0x%p-0x%p %7ld",
+ 		v->addr, v->addr + v->size, v->size);
+ 
++	if (v->caller) {
++		char buff[2 * KSYM_NAME_LEN];
++
++		seq_putc(m, ' ');
++		sprint_symbol(buff, (unsigned long)v->caller);
++		seq_puts(m, buff);
++	}
++
+ 	if (v->nr_pages)
+ 		seq_printf(m, " pages=%d", v->nr_pages);
+ 
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-make-cgroup_enable_task_cg_lists-static.patch
-cgroups-add-an-owner-to-the-mm_struct.patch
-memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
+git-unionfs.patch
+git-pekka.patch
+page-allcoator-smarter-retry-of-costly-order-allocations.patch
+page-allocator-explicitly-retry-hugepage-allocations.patch
+ipc-add-definitions-of-ushort_max-and-others.patch
+mm-add-nr_writeback_temp-counter.patch
+remove-div_long_long_rem.patch
+slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
+add-kbuildh-that-contains-common-definitions-for-kbuild-users.patch
+x86-use-kbuildh.patch
+mips-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
+alpha-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
+ia64-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch
+arm-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
+xtensa-use-kbuildh-macros-instead-of-defining-them-in-asm-offsetsc.patch
+sparc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+avr32-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch
+blackfin-use-kbuildh-instead-of-defining-macros-in-asm-macrosc.patch
+frv-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+h8300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+m68k-m68kmmu-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+mn10300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+parisc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+ppc-powerpc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+s390-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+s390-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc-update.patch
+sh-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+v850-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
 
