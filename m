@@ -1,120 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-hecubafb-bugfix-v4.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:59:24 -0700
-Message-ID: <200804282159.m3SLxO1e018586@imap1.linux-foundation.org>
+Subject: - bf54x-framebuffer-driver-bf542-does-not-have-eppi0-so-dont-allow-the-lq034-driver-for-now.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:59:46 -0700
+Message-ID: <200804282159.m3SLxkf8018616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50117 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49283 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965468AbYD1V7f (ORCPT
+	by vger.kernel.org with ESMTP id S965484AbYD1V74 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:59:35 -0400
+	Mon, 28 Apr 2008 17:59:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jayakumar.lkml@gmail.com, adaplas@pol.net, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: vapier.adi@gmail.com, cooloney@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: hecubafb bugfix
+     BF54x Framebuffer Driver: BF542 does not have EPPI0, so dont allow the LQ034 driver for now
 has been removed from the -mm tree.  Its filename was
-     fbdev-hecubafb-bugfix-v4.patch
+     bf54x-framebuffer-driver-bf542-does-not-have-eppi0-so-dont-allow-the-lq034-driver-for-now.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: hecubafb bugfix
-From: Jaya Kumar <jayakumar.lkml@gmail.com>
+Subject: BF54x Framebuffer Driver: BF542 does not have EPPI0, so dont allow the LQ034 driver for now
+From: Mike Frysinger <vapier.adi@gmail.com>
 
-This patch is a bugfix for hecubafb_write which would return an incorrect
-error value for the bytecount from framebuffer writes.
-
-Signed-off-by: Jaya Kumar <jayakumar.lkml@gmail.com>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Signed-off-by: Mike Frysinger <vapier.adi@gmail.com>
+Signed-off-by: Bryan Wu <cooloney@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/hecubafb.c |   52 +++++++++++++++++++------------------
- 1 file changed, 27 insertions(+), 25 deletions(-)
+ drivers/video/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/hecubafb.c~fbdev-hecubafb-bugfix-v4 drivers/video/hecubafb.c
---- a/drivers/video/hecubafb.c~fbdev-hecubafb-bugfix-v4
-+++ a/drivers/video/hecubafb.c
-@@ -270,41 +270,43 @@ static void hecubafb_imageblit(struct fb
- static ssize_t hecubafb_write(struct fb_info *info, const char __user *buf,
- 				size_t count, loff_t *ppos)
- {
--	unsigned long p;
--	int err=-EINVAL;
--	struct hecubafb_par *par;
--	unsigned int xres;
--	unsigned int fbmemlength;
-+	struct hecubafb_par *par = info->par;
-+	unsigned long p = *ppos;
-+	void *dst;
-+	int err = 0;
-+	unsigned long total_size;
+diff -puN drivers/video/Kconfig~bf54x-framebuffer-driver-bf542-does-not-have-eppi0-so-dont-allow-the-lq034-driver-for-now drivers/video/Kconfig
+--- a/drivers/video/Kconfig~bf54x-framebuffer-driver-bf542-does-not-have-eppi0-so-dont-allow-the-lq034-driver-for-now
++++ a/drivers/video/Kconfig
+@@ -580,7 +580,7 @@ config FB_VGA16
  
--	p = *ppos;
--	par = info->par;
--	xres = info->var.xres;
--	fbmemlength = (xres * info->var.yres)/8;
-+	if (info->state != FBINFO_STATE_RUNNING)
-+		return -EPERM;
-+
-+	total_size = info->fix.smem_len;
- 
--	if (p > fbmemlength)
--		return -ENOSPC;
-+	if (p > total_size)
-+		return -EFBIG;
- 
--	err = 0;
--	if ((count + p) > fbmemlength) {
--		count = fbmemlength - p;
--		err = -ENOSPC;
-+	if (count > total_size) {
-+		err = -EFBIG;
-+		count = total_size;
- 	}
- 
--	if (count) {
--		char *base_addr;
-+	if (count + p > total_size) {
-+		if (!err)
-+			err = -ENOSPC;
- 
--		base_addr = (char __force *)info->screen_base;
--		count -= copy_from_user(base_addr + p, buf, count);
--		*ppos += count;
--		err = -EFAULT;
-+		count = total_size - p;
- 	}
- 
--	hecubafb_dpy_update(par);
-+	dst = (void __force *) (info->screen_base + p);
- 
--	if (count)
--		return count;
-+	if (copy_from_user(dst, buf, count))
-+		err = -EFAULT;
-+
-+	if  (!err)
-+		*ppos += count;
-+
-+	hecubafb_dpy_update(par);
- 
--	return err;
-+	return (err) ? err : count;
- }
- 
- static struct fb_ops hecubafb_ops = {
+ config FB_BF54X_LQ043
+ 	tristate "SHARP LQ043 TFT LCD (BF548 EZKIT)"
+-	depends on FB && (BF54x)
++	depends on FB && (BF54x) && !BF542
+ 	select FB_CFB_FILLRECT
+ 	select FB_CFB_COPYAREA
+ 	select FB_CFB_IMAGEBLIT
 _
 
-Patches currently in -mm which might be from jayakumar.lkml@gmail.com are
+Patches currently in -mm which might be from vapier.adi@gmail.com are
 
 origin.patch
-git-arm.patch
+git-watchdog.patch
+procfs-task-exe-symlink-fix-2.patch
+add-kbuildh-that-contains-common-definitions-for-kbuild-users.patch
+blackfin-use-kbuildh-instead-of-defining-macros-in-asm-macrosc.patch
 
