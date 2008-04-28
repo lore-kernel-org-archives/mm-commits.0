@@ -1,141 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-fix-possible-journal-overflow-issues.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:00:48 -0700
-Message-ID: <200804282200.m3SM0mGu018771__4807.10723572901$1209420164$gmane$org@imap1.linux-foundation.org>
+Subject: - udf-fix-sparse-warning-in-nameic.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:01:12 -0700
+Message-ID: <200804282201.m3SM1CIl018826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57083 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47191 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965706AbYD1WBJ (ORCPT
+	by vger.kernel.org with ESMTP id S965685AbYD1WBQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:01:09 -0400
+	Mon, 28 Apr 2008 18:01:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbacik@redhat.com, jack@ucw.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, jack@ucw.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: fix possible journal overflow issues
+     udf: fix sparse warning in namei.c
 has been removed from the -mm tree.  Its filename was
-     jbd-fix-possible-journal-overflow-issues.patch
+     udf-fix-sparse-warning-in-nameic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: fix possible journal overflow issues
-From: Josef Bacik <jbacik@redhat.com>
+Subject: udf: fix sparse warning in namei.c
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-There are several cases where the running transaction can get buffers added to
-its BJ_Metadata list which it never dirtied, which makes its t_nr_buffers
-counter end up larger than its t_outstanding_credits counter.
+Let's use bsize instead.
+fs/udf/namei.c:960:12: warning: symbol 'elen' shadows an earlier one
+fs/udf/namei.c:937:15: originally declared here
 
-This will cause issues when starting new transactions as while we are logging
-buffers we decrement t_outstanding_buffers, so when t_outstanding_buffers goes
-negative, we will report that we need less space in the journal than we
-actually need, so transactions will be started even though there may not be
-enough room for them.  In the worst case scenario (which admittedly is almost
-impossible to reproduce) this will result in the journal running out of space.
-
-The fix is to only
-refile buffers from the committing transaction to the running transactions
-BJ_Modified list when b_modified is set on that journal, which is the only way
-to be sure if the running transaction has modified that buffer.
-
-This patch also fixes an accounting error in journal_forget, it is possible
-that we can call journal_forget on a buffer without having modified it, only
-gotten write access to it, so instead of freeing a credit, we only do so if
-the buffer was modified.  The assert will help catch if this problem occurs. 
-Without these two patches I could hit this assert within minutes of running
-postmark, with them this issue no longer arises.  Thank you,
-
-Signed-off-by: Josef Bacik <jbacik@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
-Acked-by: Jan Kara <jack@ucw.cz>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Jan Kara <jack@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/commit.c      |    3 +++
- fs/jbd/transaction.c |   21 ++++++++++++++++++---
- 2 files changed, 21 insertions(+), 3 deletions(-)
+ fs/udf/namei.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/jbd/commit.c~jbd-fix-possible-journal-overflow-issues fs/jbd/commit.c
---- a/fs/jbd/commit.c~jbd-fix-possible-journal-overflow-issues
-+++ a/fs/jbd/commit.c
-@@ -472,6 +472,9 @@ void journal_commit_transaction(journal_
- 	 */
- 	commit_transaction->t_state = T_COMMIT;
+diff -puN fs/udf/namei.c~udf-fix-sparse-warning-in-nameic fs/udf/namei.c
+--- a/fs/udf/namei.c~udf-fix-sparse-warning-in-nameic
++++ a/fs/udf/namei.c
+@@ -890,7 +890,7 @@ static int udf_symlink(struct inode *dir
  
-+	J_ASSERT(commit_transaction->t_nr_buffers <=
-+		 commit_transaction->t_outstanding_credits);
-+
- 	descriptor = NULL;
- 	bufs = 0;
- 	while (commit_transaction->t_buffers) {
-diff -puN fs/jbd/transaction.c~jbd-fix-possible-journal-overflow-issues fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~jbd-fix-possible-journal-overflow-issues
-+++ a/fs/jbd/transaction.c
-@@ -1235,6 +1235,7 @@ int journal_forget (handle_t *handle, st
- 	struct journal_head *jh;
- 	int drop_reserve = 0;
- 	int err = 0;
-+	int was_modified = 0;
+ 	if (iinfo->i_alloc_type != ICBTAG_FLAG_AD_IN_ICB) {
+ 		kernel_lb_addr eloc;
+-		uint32_t elen;
++		uint32_t bsize;
  
- 	BUFFER_TRACE(bh, "entry");
+ 		block = udf_new_block(inode->i_sb, inode,
+ 				iinfo->i_location.partitionReferenceNum,
+@@ -903,9 +903,9 @@ static int udf_symlink(struct inode *dir
+ 		eloc.logicalBlockNum = block;
+ 		eloc.partitionReferenceNum =
+ 				iinfo->i_location.partitionReferenceNum;
+-		elen = inode->i_sb->s_blocksize;
+-		iinfo->i_lenExtents = elen;
+-		udf_add_aext(inode, &epos, eloc, elen, 0);
++		bsize = inode->i_sb->s_blocksize;
++		iinfo->i_lenExtents = bsize;
++		udf_add_aext(inode, &epos, eloc, bsize, 0);
+ 		brelse(epos.bh);
  
-@@ -1253,6 +1254,9 @@ int journal_forget (handle_t *handle, st
- 		goto not_jbd;
- 	}
- 
-+	/* keep track of wether or not this transaction modified us */
-+	was_modified = jh->b_modified;
-+
- 	/*
- 	 * The buffer's going from the transaction, we must drop
- 	 * all references -bzzz
-@@ -1270,7 +1274,12 @@ int journal_forget (handle_t *handle, st
- 
- 		JBUFFER_TRACE(jh, "belongs to current transaction: unfile");
- 
--		drop_reserve = 1;
-+		/*
-+		 * we only want to drop a reference if this transaction
-+		 * modified the buffer
-+		 */
-+		if (was_modified)
-+			drop_reserve = 1;
- 
- 		/*
- 		 * We are no longer going to journal this buffer.
-@@ -1310,7 +1319,13 @@ int journal_forget (handle_t *handle, st
- 		if (jh->b_next_transaction) {
- 			J_ASSERT(jh->b_next_transaction == transaction);
- 			jh->b_next_transaction = NULL;
--			drop_reserve = 1;
-+
-+			/*
-+			 * only drop a reference if this transaction modified
-+			 * the buffer
-+			 */
-+			if (was_modified)
-+				drop_reserve = 1;
- 		}
- 	}
- 
-@@ -2082,7 +2097,7 @@ void __journal_refile_buffer(struct jour
- 	jh->b_transaction = jh->b_next_transaction;
- 	jh->b_next_transaction = NULL;
- 	__journal_file_buffer(jh, jh->b_transaction,
--				was_dirty ? BJ_Metadata : BJ_Reserved);
-+				jh->b_modified ? BJ_Metadata : BJ_Reserved);
- 	J_ASSERT_JH(jh, jh->b_transaction->t_state == T_RUNNING);
- 
- 	if (was_dirty)
+ 		block = udf_get_pblock(inode->i_sb, block,
 _
 
-Patches currently in -mm which might be from jbacik@redhat.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-ext4-fix-wrong-gfp-type-under-transaction.patch
+cifs-remove-global_extern-macro.patch
+input-replace-remaining-__function__-occurrences.patch
+git-kvm.patch
+git-mips.patch
+git-nfsd.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+git-watchdog.patch
+git-xfs.patch
+xtensa-replace-remaining-__function__-occurences.patch
+power-replace-remaining-__function__-occurrences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+drivers-replace-remaining-__function__-occurrences.patch
+kernel-add-common-infrastructure-for-unaligned-access.patch
+kernel-move-arches-to-use-common-unaligned-access.patch
+drivers-block-use-get_unaligned_-helpers.patch
+hid-core-use-get_unaligned_-helpers.patch
+char-use-get_unaligned_-helpers.patch
+input-use-get_unaligned_-helpers.patch
+mmc-use-get-put_unaligned_-helpers.patch
+net-use-get-put_unaligned_-helpers.patch
+wireless-use-get-put_unaligned_-helpers.patch
+pcmcia-use-get-put_unaligned_-helpers.patch
+usb-use-get-put_unaligned_-helpers.patch
+video-use-get-put_unaligned_-helpers.patch
+fat-use-get-put_unaligned_-helpers.patch
+hfsplus-use-get-put_unaligned_-helpers.patch
+isofs-use-get-put_unaligned_-helpers.patch
+ncpfs-use-get-put_unaligned_-helpers.patch
+ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
