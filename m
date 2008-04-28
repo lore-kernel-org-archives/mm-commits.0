@@ -1,212 +1,407 @@
 From: akpm@linux-foundation.org
-Subject: - spi-replace-remaining-__function__-occurrences.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:55:53 -0700
-Message-ID: <200804282155.m3SLtrvA018163@imap1.linux-foundation.org>
+Subject: - spi-spi_imx-updates.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:55:57 -0700
+Message-ID: <200804282155.m3SLtvqv018171@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42241 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934016AbYD1V4C (ORCPT
+	by vger.kernel.org with ESMTP id S935555AbYD1V4L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:56:02 -0400
+	Mon, 28 Apr 2008 17:56:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: a.paterniani@swapp-eng.it, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: replace remaining __FUNCTION__ occurrences
+     spi: spi_imx updates
 has been removed from the -mm tree.  Its filename was
-     spi-replace-remaining-__function__-occurrences.patch
+     spi-spi_imx-updates.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: replace remaining __FUNCTION__ occurrences
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: spi: spi_imx updates
+From: Andrea Paterniani <a.paterniani@swapp-eng.it>
 
-__FUNCTION__ is gcc-specific, use __func__
+Updates to the i.MX SPI controller driver:
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: David Brownell <dbrownell@users.sourceforge.net>
+ 1) Some comments changed and/or added.
+
+ 2) End of transfers is now managed on TXFIFO empty interrupt after the
+    last write to TXFIFO.  This speeds interrupt execution by removing
+    the wait for TXFIFO to become empty.  On TXFIFO empty interrupt the
+    handler needs only to poll for the end of the ongoing transaction
+    (SPI_CONTROL_XCH) to close the transfer.
+     (2.1) Write only transfers are closed flushing RXFIFO.
+     (2.2) Read transfers are closed reading trailing bytes from RXFIFO.
+     (2.3) Read transfers where RXFIFO overrun occurred are closed by
+           flushing RXFIFO and aborting the message.
+
+ 3) Fifos are now flushed via SPI disable after the end of ongoing
+    transaction.
+
+Signed-off-by: Andrea Paterniani <a.paterniani@swapp-eng.it>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/omap_uwire.c  |    4 ++--
- drivers/spi/spi_bitbang.c |    2 +-
- drivers/spi/spi_mpc83xx.c |    2 +-
- drivers/spi/spi_s3c24xx.c |    2 +-
- drivers/spi/xilinx_spi.c  |    8 ++++----
- 5 files changed, 9 insertions(+), 9 deletions(-)
+ drivers/spi/spi_imx.c |  223 ++++++++++++++++++++--------------------
+ 1 file changed, 114 insertions(+), 109 deletions(-)
 
-diff -puN drivers/spi/omap_uwire.c~spi-replace-remaining-__function__-occurrences drivers/spi/omap_uwire.c
---- a/drivers/spi/omap_uwire.c~spi-replace-remaining-__function__-occurrences
-+++ a/drivers/spi/omap_uwire.c
-@@ -151,7 +151,7 @@ static int wait_uwire_csr_flag(u16 mask,
- 		if (time_after(jiffies, max_jiffies)) {
- 			printk(KERN_ERR "%s: timeout. reg=%#06x "
- 					"mask=%#06x val=%#06x\n",
--			       __FUNCTION__, w, mask, val);
-+			       __func__, w, mask, val);
- 			return -1;
- 		}
- 		c++;
-@@ -437,7 +437,7 @@ static int uwire_setup_transfer(struct s
- 	}
- 	omap_uwire_configure_mode(spi->chip_select, flags);
- 	pr_debug("%s: uwire flags %02x, armxor %lu KHz, SCK %lu KHz\n",
--			__FUNCTION__, flags,
-+			__func__, flags,
- 			clk_get_rate(uwire->ck) / 1000,
- 			rate / 1000);
- 	status = 0;
-diff -puN drivers/spi/spi_bitbang.c~spi-replace-remaining-__function__-occurrences drivers/spi/spi_bitbang.c
---- a/drivers/spi/spi_bitbang.c~spi-replace-remaining-__function__-occurrences
-+++ a/drivers/spi/spi_bitbang.c
-@@ -214,7 +214,7 @@ int spi_bitbang_setup(struct spi_device 
- 		return retval;
+diff -puN drivers/spi/spi_imx.c~spi-spi_imx-updates drivers/spi/spi_imx.c
+--- a/drivers/spi/spi_imx.c~spi-spi_imx-updates
++++ a/drivers/spi/spi_imx.c
+@@ -270,19 +270,26 @@ struct chip_data {
  
- 	dev_dbg(&spi->dev, "%s, mode %d, %u bits/w, %u nsec/bit\n",
--			__FUNCTION__, spi->mode & (SPI_CPOL | SPI_CPHA),
-+			__func__, spi->mode & (SPI_CPOL | SPI_CPHA),
- 			spi->bits_per_word, 2 * cs->nsecs);
+ static void pump_messages(struct work_struct *work);
  
- 	/* NOTE we _need_ to call chipselect() early, ideally with adapter
-diff -puN drivers/spi/spi_mpc83xx.c~spi-replace-remaining-__function__-occurrences drivers/spi/spi_mpc83xx.c
---- a/drivers/spi/spi_mpc83xx.c~spi-replace-remaining-__function__-occurrences
-+++ a/drivers/spi/spi_mpc83xx.c
-@@ -310,7 +310,7 @@ static int mpc83xx_spi_setup(struct spi_
- 		return retval;
+-static int flush(struct driver_data *drv_data)
++static void flush(struct driver_data *drv_data)
+ {
+-	unsigned long limit = loops_per_jiffy << 1;
+ 	void __iomem *regs = drv_data->regs;
+-	volatile u32 d;
++	u32 control;
  
- 	dev_dbg(&spi->dev, "%s, mode %d, %u bits/w, %u nsec\n",
--		__FUNCTION__, spi->mode & (SPI_CPOL | SPI_CPHA),
-+		__func__, spi->mode & (SPI_CPOL | SPI_CPHA),
- 		spi->bits_per_word, 2 * mpc83xx_spi->nsecs);
+ 	dev_dbg(&drv_data->pdev->dev, "flush\n");
++
++	/* Wait for end of transaction */
+ 	do {
+-		while (readl(regs + SPI_INT_STATUS) & SPI_STATUS_RR)
+-			d = readl(regs + SPI_RXDATA);
+-	} while ((readl(regs + SPI_CONTROL) & SPI_CONTROL_XCH) && limit--);
++		control = readl(regs + SPI_CONTROL);
++	} while (control & SPI_CONTROL_XCH);
++
++	/* Release chip select if requested, transfer delays are
++	   handled in pump_transfers */
++	if (drv_data->cs_change)
++		drv_data->cs_control(SPI_CS_DEASSERT);
  
- 	/* NOTE we _need_ to call chipselect() early, ideally with adapter
-diff -puN drivers/spi/spi_s3c24xx.c~spi-replace-remaining-__function__-occurrences drivers/spi/spi_s3c24xx.c
---- a/drivers/spi/spi_s3c24xx.c~spi-replace-remaining-__function__-occurrences
-+++ a/drivers/spi/spi_s3c24xx.c
-@@ -169,7 +169,7 @@ static int s3c24xx_spi_setup(struct spi_
- 	}
- 
- 	dev_dbg(&spi->dev, "%s: mode %d, %u bpw, %d hz\n",
--		__FUNCTION__, spi->mode, spi->bits_per_word,
-+		__func__, spi->mode, spi->bits_per_word,
- 		spi->max_speed_hz);
- 
- 	return 0;
-diff -puN drivers/spi/xilinx_spi.c~spi-replace-remaining-__function__-occurrences drivers/spi/xilinx_spi.c
---- a/drivers/spi/xilinx_spi.c~spi-replace-remaining-__function__-occurrences
-+++ a/drivers/spi/xilinx_spi.c
-@@ -151,13 +151,13 @@ static int xilinx_spi_setup_transfer(str
- 	hz = (t) ? t->speed_hz : spi->max_speed_hz;
- 	if (bits_per_word != 8) {
- 		dev_err(&spi->dev, "%s, unsupported bits_per_word=%d\n",
--			__FUNCTION__, bits_per_word);
-+			__func__, bits_per_word);
- 		return -EINVAL;
- 	}
- 
- 	if (hz && xspi->speed_hz > hz) {
- 		dev_err(&spi->dev, "%s, unsupported clock rate %uHz\n",
--			__FUNCTION__, hz);
-+			__func__, hz);
- 		return -EINVAL;
- 	}
- 
-@@ -181,7 +181,7 @@ static int xilinx_spi_setup(struct spi_d
- 
- 	if (spi->mode & ~MODEBITS) {
- 		dev_err(&spi->dev, "%s, unsupported mode bits %x\n",
--			__FUNCTION__, spi->mode & ~MODEBITS);
-+			__func__, spi->mode & ~MODEBITS);
- 		return -EINVAL;
- 	}
- 
-@@ -190,7 +190,7 @@ static int xilinx_spi_setup(struct spi_d
- 		return retval;
- 
- 	dev_dbg(&spi->dev, "%s, mode %d, %u bits/w, %u nsec/bit\n",
--		__FUNCTION__, spi->mode & MODEBITS, spi->bits_per_word, 0);
-+		__func__, spi->mode & MODEBITS, spi->bits_per_word, 0);
- 
- 	return 0;
+-	return limit;
++	/* Disable SPI to flush FIFOs */
++	writel(control & ~SPI_CONTROL_SPIEN, regs + SPI_CONTROL);
++	writel(control, regs + SPI_CONTROL);
  }
+ 
+ static void restore_state(struct driver_data *drv_data)
+@@ -570,6 +577,7 @@ static void giveback(struct spi_message 
+ 	writel(0, regs + SPI_INT_STATUS);
+ 	writel(0, regs + SPI_DMA);
+ 
++	/* Unconditioned deselct */
+ 	drv_data->cs_control(SPI_CS_DEASSERT);
+ 
+ 	message->state = NULL;
+@@ -592,13 +600,10 @@ static void dma_err_handler(int channel,
+ 	/* Disable both rx and tx dma channels */
+ 	imx_dma_disable(drv_data->rx_channel);
+ 	imx_dma_disable(drv_data->tx_channel);
+-
+-	if (flush(drv_data) == 0)
+-		dev_err(&drv_data->pdev->dev,
+-				"dma_err_handler - flush failed\n");
+-
+ 	unmap_dma_buffers(drv_data);
+ 
++	flush(drv_data);
++
+ 	msg->state = ERROR_STATE;
+ 	tasklet_schedule(&drv_data->pump_transfers);
+ }
+@@ -612,8 +617,7 @@ static void dma_tx_handler(int channel, 
+ 	imx_dma_disable(channel);
+ 
+ 	/* Now waits for TX FIFO empty */
+-	writel(readl(drv_data->regs + SPI_INT_STATUS) | SPI_INTEN_TE,
+-			drv_data->regs + SPI_INT_STATUS);
++	writel(SPI_INTEN_TE, drv_data->regs + SPI_INT_STATUS);
+ }
+ 
+ static irqreturn_t dma_transfer(struct driver_data *drv_data)
+@@ -621,19 +625,18 @@ static irqreturn_t dma_transfer(struct d
+ 	u32 status;
+ 	struct spi_message *msg = drv_data->cur_msg;
+ 	void __iomem *regs = drv_data->regs;
+-	unsigned long limit;
+ 
+ 	status = readl(regs + SPI_INT_STATUS);
+ 
+-	if ((status & SPI_INTEN_RO) && (status & SPI_STATUS_RO)) {
++	if ((status & (SPI_INTEN_RO | SPI_STATUS_RO))
++			== (SPI_INTEN_RO | SPI_STATUS_RO)) {
+ 		writel(status & ~SPI_INTEN, regs + SPI_INT_STATUS);
+ 
++		imx_dma_disable(drv_data->tx_channel);
+ 		imx_dma_disable(drv_data->rx_channel);
+ 		unmap_dma_buffers(drv_data);
+ 
+-		if (flush(drv_data) == 0)
+-			dev_err(&drv_data->pdev->dev,
+-				"dma_transfer - flush failed\n");
++		flush(drv_data);
+ 
+ 		dev_warn(&drv_data->pdev->dev,
+ 				"dma_transfer - fifo overun\n");
+@@ -649,20 +652,17 @@ static irqreturn_t dma_transfer(struct d
+ 
+ 		if (drv_data->rx) {
+ 			/* Wait end of transfer before read trailing data */
+-			limit = loops_per_jiffy << 1;
+-			while ((readl(regs + SPI_CONTROL) & SPI_CONTROL_XCH) &&
+-					limit--);
+-
+-			if (limit == 0)
+-				dev_err(&drv_data->pdev->dev,
+-					"dma_transfer - end of tx failed\n");
+-			else
+-				dev_dbg(&drv_data->pdev->dev,
+-					"dma_transfer - end of tx\n");
++			while (readl(regs + SPI_CONTROL) & SPI_CONTROL_XCH)
++				cpu_relax();
+ 
+ 			imx_dma_disable(drv_data->rx_channel);
+ 			unmap_dma_buffers(drv_data);
+ 
++			/* Release chip select if requested, transfer delays are
++			   handled in pump_transfers() */
++			if (drv_data->cs_change)
++				drv_data->cs_control(SPI_CS_DEASSERT);
++
+ 			/* Calculate number of trailing data and read them */
+ 			dev_dbg(&drv_data->pdev->dev,
+ 				"dma_transfer - test = 0x%08X\n",
+@@ -676,19 +676,12 @@ static irqreturn_t dma_transfer(struct d
+ 			/* Write only transfer */
+ 			unmap_dma_buffers(drv_data);
+ 
+-			if (flush(drv_data) == 0)
+-				dev_err(&drv_data->pdev->dev,
+-					"dma_transfer - flush failed\n");
++			flush(drv_data);
+ 		}
+ 
+ 		/* End of transfer, update total byte transfered */
+ 		msg->actual_length += drv_data->len;
+ 
+-		/* Release chip select if requested, transfer delays are
+-		   handled in pump_transfers() */
+-		if (drv_data->cs_change)
+-			drv_data->cs_control(SPI_CS_DEASSERT);
+-
+ 		/* Move to next transfer */
+ 		msg->state = next_transfer(drv_data);
+ 
+@@ -711,44 +704,43 @@ static irqreturn_t interrupt_wronly_tran
+ 
+ 	status = readl(regs + SPI_INT_STATUS);
+ 
+-	while (status & SPI_STATUS_TH) {
++	if (status & SPI_INTEN_TE) {
++		/* TXFIFO Empty Interrupt on the last transfered word */
++		writel(status & ~SPI_INTEN, regs + SPI_INT_STATUS);
+ 		dev_dbg(&drv_data->pdev->dev,
+-			"interrupt_wronly_transfer - status = 0x%08X\n", status);
++			"interrupt_wronly_transfer - end of tx\n");
+ 
+-		/* Pump data */
+-		if (write(drv_data)) {
+-			writel(readl(regs + SPI_INT_STATUS) & ~SPI_INTEN,
+-				regs + SPI_INT_STATUS);
++		flush(drv_data);
+ 
+-			dev_dbg(&drv_data->pdev->dev,
+-				"interrupt_wronly_transfer - end of tx\n");
++		/* Update total byte transfered */
++		msg->actual_length += drv_data->len;
+ 
+-			if (flush(drv_data) == 0)
+-				dev_err(&drv_data->pdev->dev,
+-					"interrupt_wronly_transfer - "
+-					"flush failed\n");
++		/* Move to next transfer */
++		msg->state = next_transfer(drv_data);
+ 
+-			/* End of transfer, update total byte transfered */
+-			msg->actual_length += drv_data->len;
++		/* Schedule transfer tasklet */
++		tasklet_schedule(&drv_data->pump_transfers);
+ 
+-			/* Release chip select if requested, transfer delays are
+-			   handled in pump_transfers */
+-			if (drv_data->cs_change)
+-				drv_data->cs_control(SPI_CS_DEASSERT);
++		return IRQ_HANDLED;
++	} else {
++		while (status & SPI_STATUS_TH) {
++			dev_dbg(&drv_data->pdev->dev,
++				"interrupt_wronly_transfer - status = 0x%08X\n",
++				status);
+ 
+-			/* Move to next transfer */
+-			msg->state = next_transfer(drv_data);
++			/* Pump data */
++			if (write(drv_data)) {
++				/* End of TXFIFO writes,
++				   now wait until TXFIFO is empty */
++				writel(SPI_INTEN_TE, regs + SPI_INT_STATUS);
++				return IRQ_HANDLED;
++			}
+ 
+-			/* Schedule transfer tasklet */
+-			tasklet_schedule(&drv_data->pump_transfers);
++			status = readl(regs + SPI_INT_STATUS);
+ 
+-			return IRQ_HANDLED;
++			/* We did something */
++			handled = IRQ_HANDLED;
+ 		}
+-
+-		status = readl(regs + SPI_INT_STATUS);
+-
+-		/* We did something */
+-		handled = IRQ_HANDLED;
+ 	}
+ 
+ 	return handled;
+@@ -758,45 +750,31 @@ static irqreturn_t interrupt_transfer(st
+ {
+ 	struct spi_message *msg = drv_data->cur_msg;
+ 	void __iomem *regs = drv_data->regs;
+-	u32 status;
++	u32 status, control;
+ 	irqreturn_t handled = IRQ_NONE;
+ 	unsigned long limit;
+ 
+ 	status = readl(regs + SPI_INT_STATUS);
+ 
+-	while (status & (SPI_STATUS_TH | SPI_STATUS_RO)) {
++	if (status & SPI_INTEN_TE) {
++		/* TXFIFO Empty Interrupt on the last transfered word */
++		writel(status & ~SPI_INTEN, regs + SPI_INT_STATUS);
+ 		dev_dbg(&drv_data->pdev->dev,
+-			"interrupt_transfer - status = 0x%08X\n", status);
+-
+-		if (status & SPI_STATUS_RO) {
+-			writel(readl(regs + SPI_INT_STATUS) & ~SPI_INTEN,
+-				regs + SPI_INT_STATUS);
+-
+-			dev_warn(&drv_data->pdev->dev,
+-				"interrupt_transfer - fifo overun\n"
+-				"    data not yet written = %d\n"
+-				"    data not yet read    = %d\n",
+-				data_to_write(drv_data),
+-				data_to_read(drv_data));
+-
+-			if (flush(drv_data) == 0)
+-				dev_err(&drv_data->pdev->dev,
+-					"interrupt_transfer - flush failed\n");
+-
+-			msg->state = ERROR_STATE;
+-			tasklet_schedule(&drv_data->pump_transfers);
++			"interrupt_transfer - end of tx\n");
+ 
+-			return IRQ_HANDLED;
+-		}
+-
+-		/* Pump data */
+-		read(drv_data);
+-		if (write(drv_data)) {
+-			writel(readl(regs + SPI_INT_STATUS) & ~SPI_INTEN,
+-				regs + SPI_INT_STATUS);
++		if (msg->state == ERROR_STATE) {
++			/* RXFIFO overrun was detected and message aborted */
++			flush(drv_data);
++		} else {
++			/* Wait for end of transaction */
++			do {
++				control = readl(regs + SPI_CONTROL);
++			} while (control & SPI_CONTROL_XCH);
+ 
+-			dev_dbg(&drv_data->pdev->dev,
+-				"interrupt_transfer - end of tx\n");
++			/* Release chip select if requested, transfer delays are
++			   handled in pump_transfers */
++			if (drv_data->cs_change)
++				drv_data->cs_control(SPI_CS_DEASSERT);
+ 
+ 			/* Read trailing bytes */
+ 			limit = loops_per_jiffy << 1;
+@@ -810,27 +788,54 @@ static irqreturn_t interrupt_transfer(st
+ 				dev_dbg(&drv_data->pdev->dev,
+ 					"interrupt_transfer - end of rx\n");
+ 
+-			/* End of transfer, update total byte transfered */
++			/* Update total byte transfered */
+ 			msg->actual_length += drv_data->len;
+ 
+-			/* Release chip select if requested, transfer delays are
+-			   handled in pump_transfers */
+-			if (drv_data->cs_change)
+-				drv_data->cs_control(SPI_CS_DEASSERT);
+-
+ 			/* Move to next transfer */
+ 			msg->state = next_transfer(drv_data);
++		}
+ 
+-			/* Schedule transfer tasklet */
+-			tasklet_schedule(&drv_data->pump_transfers);
++		/* Schedule transfer tasklet */
++		tasklet_schedule(&drv_data->pump_transfers);
+ 
+-			return IRQ_HANDLED;
+-		}
++		return IRQ_HANDLED;
++	} else {
++		while (status & (SPI_STATUS_TH | SPI_STATUS_RO)) {
++			dev_dbg(&drv_data->pdev->dev,
++				"interrupt_transfer - status = 0x%08X\n",
++				status);
++
++			if (status & SPI_STATUS_RO) {
++				/* RXFIFO overrun, abort message end wait
++				   until TXFIFO is empty */
++				writel(SPI_INTEN_TE, regs + SPI_INT_STATUS);
++
++				dev_warn(&drv_data->pdev->dev,
++					"interrupt_transfer - fifo overun\n"
++					"    data not yet written = %d\n"
++					"    data not yet read    = %d\n",
++					data_to_write(drv_data),
++					data_to_read(drv_data));
++
++				msg->state = ERROR_STATE;
++
++				return IRQ_HANDLED;
++			}
+ 
+-		status = readl(regs + SPI_INT_STATUS);
++			/* Pump data */
++			read(drv_data);
++			if (write(drv_data)) {
++				/* End of TXFIFO writes,
++				   now wait until TXFIFO is empty */
++				writel(SPI_INTEN_TE, regs + SPI_INT_STATUS);
++				return IRQ_HANDLED;
++			}
+ 
+-		/* We did something */
+-		handled = IRQ_HANDLED;
++			status = readl(regs + SPI_INT_STATUS);
++
++			/* We did something */
++			handled = IRQ_HANDLED;
++		}
+ 	}
+ 
+ 	return handled;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from a.paterniani@swapp-eng.it are
 
 origin.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-git-kvm.patch
-git-mips.patch
-git-nfsd.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-git-watchdog.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-power-replace-remaining-__function__-occurrences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-firmware-replace-remaining-__function__-occurrences.patch
-drivers-misc-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-kernel-add-common-infrastructure-for-unaligned-access.patch
-kernel-move-arches-to-use-common-unaligned-access.patch
-drivers-block-use-get_unaligned_-helpers.patch
-hid-core-use-get_unaligned_-helpers.patch
-char-use-get_unaligned_-helpers.patch
-input-use-get_unaligned_-helpers.patch
-mmc-use-get-put_unaligned_-helpers.patch
-net-use-get-put_unaligned_-helpers.patch
-wireless-use-get-put_unaligned_-helpers.patch
-pcmcia-use-get-put_unaligned_-helpers.patch
-usb-use-get-put_unaligned_-helpers.patch
-video-use-get-put_unaligned_-helpers.patch
-fat-use-get-put_unaligned_-helpers.patch
-hfsplus-use-get-put_unaligned_-helpers.patch
-isofs-use-get-put_unaligned_-helpers.patch
-ncpfs-use-get-put_unaligned_-helpers.patch
-ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
 
