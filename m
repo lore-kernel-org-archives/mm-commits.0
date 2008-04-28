@@ -1,183 +1,184 @@
 From: akpm@linux-foundation.org
-Subject: - mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 23:52:58 -0700
-Message-ID: <200804280652.m3S6qwVD012631@imap1.linux-foundation.org>
+Subject: - mempolicy-create-mempolicy_operations-structure-fix.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 23:53:35 -0700
+Message-ID: <200804280653.m3S6rZ18012653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54109 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39335 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757106AbYD1Gxz (ORCPT
+	by vger.kernel.org with ESMTP id S1759006AbYD1GyN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 02:53:55 -0400
+	Mon, 28 Apr 2008 02:54:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Lee.Schermerhorn@hp.com, clameter@sgi.com, hugh@veritas.com, kamezawa.hiroyu@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, nacc@us.ibm.com, nickpiggin@yahoo.com.au, rientjes
+To: Lee.Schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, eric.whitney@hp.com, lee.schermerhorn@hp.com, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Mempolicy: make dequeue_huge_page_vma() obey MPOL_BIND nodemask rework
+     mempolicy-create-mempolicy_operations-structure fix
 has been removed from the -mm tree.  Its filename was
-     mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
+     mempolicy-create-mempolicy_operations-structure-fix.patch
 
-This patch was dropped because it was folded into mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
+This patch was dropped because it was folded into mempolicy-create-mempolicy_operations-structure.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Mempolicy: make dequeue_huge_page_vma() obey MPOL_BIND nodemask rework
+Subject: mempolicy-create-mempolicy_operations-structure fix
 From: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
 
-Fix for earlier patch:
-"mempolicy-make-dequeue_huge_page_vma-obey-bind-policy"
+The subject patch causes a regression in the numactl package mempolicy
+regression tests.
 
-Against: 2.6.25-rc3-mm1 atop the above patch.
+I'm using the numactl-1.0.2 package with the patches available at:
 
-As suggested by Nish Aravamudan, remove the mpol_bind_nodemask()
-helper and return a pointer to the policy node mask from
-huge_zonelist for MPOL_BIND.  This hides more of the mempolicy
-quirks from hugetlb.
+http://free.linux.hp.com/~lts/Patches/Numactl/numactl-1.0.2-patches-080226.tar.gz
 
-In making this change, I noticed that the huge_zonelist() stub
-for !NUMA wasn't nulling out the mpol.  Added that as well.
+The numastat and regress patches in that tarball are necessary for
+recent kernels, else the tests will report false failures.
+
+The following patch fixes the regression.
+
+
+
+Specifically this patch fixes problems introduced by the rework of mpol_new()
+in patch 2/4 in the second series.  As a result, we're no longer accepting
+NULL/empty nodemask with MPOL_PREFERRED as "local" allocation.  This breaks
+the numactl regression tests.
+
+"numactl --localalloc" <some command>" fails with invalid argument.
+
+This patch fixes the regression by again treating NULL/empty nodemask with
+MPOL_PREFERRED as "local allocation", and special casing this condition, as
+needed, in mpol_new(), mpol_new_preferred() and mpol_rebind_preferred().
+
+It also appears that the patch series listed above required a non-empty
+nodemask with MPOL_DEFAULT.  However, I didn't test that.  With this
+patch, MPOL_DEFAULT effectively ignores the nodemask--empty or not.
+This is a change in behavior that I have argued against, but the
+regression tests don't test this, so I'm not going to attempt to address
+it with this patch.
+
+Note:  I have no tests to test the 'STATIC_NODES and 'RELATIVE_NODES
+behavior to ensure that this patch doesn't regress those.
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Paul Jackson <pj@sgi.com>
 Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Lee Schermerhorn <Lee.Schermerhorn@hp.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Eric Whitney <eric.whitney@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |   21 ++++++---------------
- mm/hugetlb.c              |    4 ++--
- mm/mempolicy.c            |   18 ++++++++++++------
- 3 files changed, 20 insertions(+), 23 deletions(-)
+ mm/mempolicy.c |   54 +++++++++++++++++++++++++++++++----------------
+ 1 file changed, 36 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/mempolicy.h~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework
-+++ a/include/linux/mempolicy.h
-@@ -152,7 +152,8 @@ extern void mpol_fix_fork_child_flag(str
- 
- extern struct mempolicy default_policy;
- extern struct zonelist *huge_zonelist(struct vm_area_struct *vma,
--		unsigned long addr, gfp_t gfp_flags, struct mempolicy **mpol);
-+				unsigned long addr, gfp_t gfp_flags,
-+				struct mempolicy **mpol, nodemask_t **nodemask);
- extern unsigned slab_node(struct mempolicy *policy);
- 
- extern enum zone_type policy_zone;
-@@ -163,14 +164,6 @@ static inline void check_highest_zone(en
- 		policy_zone = k;
- }
- 
--static inline nodemask_t *mpol_bind_nodemask(struct mempolicy *mpol)
--{
--	if (mpol->policy == MPOL_BIND)
--		return &mpol->v.nodes;
--	else
--		return NULL;
--}
--
- int do_migrate_pages(struct mm_struct *mm,
- 	const nodemask_t *from_nodes, const nodemask_t *to_nodes, int flags);
- 
-@@ -248,8 +241,11 @@ static inline void mpol_fix_fork_child_f
- }
- 
- static inline struct zonelist *huge_zonelist(struct vm_area_struct *vma,
-- 		unsigned long addr, gfp_t gfp_flags, struct mempolicy **mpol)
-+				unsigned long addr, gfp_t gfp_flags,
-+				struct mempolicy **mpol, nodemask_t **nodemask)
- {
-+	*mpol = NULL;
-+	*nodemask = NULL;
- 	return node_zonelist(0, gfp_flags);
- }
- 
-@@ -263,11 +259,6 @@ static inline int do_migrate_pages(struc
- static inline void check_highest_zone(int k)
- {
- }
--
--static inline nodemask_t *mpol_bind_nodemask(struct mempolicy *mpol)
--{
--	return NULL;
--}
- #endif /* CONFIG_NUMA */
- #endif /* __KERNEL__ */
- 
-diff -puN mm/hugetlb.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework mm/hugetlb.c
---- a/mm/hugetlb.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework
-+++ a/mm/hugetlb.c
-@@ -95,11 +95,11 @@ static struct page *dequeue_huge_page_vm
- 	int nid;
- 	struct page *page = NULL;
- 	struct mempolicy *mpol;
-+	nodemask_t *nodemask;
- 	struct zonelist *zonelist = huge_zonelist(vma, address,
--					htlb_alloc_mask, &mpol);
-+					htlb_alloc_mask, &mpol, &nodemask);
- 	struct zone *zone;
- 	struct zoneref *z;
--	nodemask_t *nodemask = mpol_bind_nodemask(mpol);
- 
- 	for_each_zone_zonelist_nodemask(zone, z, zonelist,
- 						MAX_NR_ZONES - 1, nodemask) {
-diff -puN mm/mempolicy.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework mm/mempolicy.c
---- a/mm/mempolicy.c~mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework
+diff -puN mm/mempolicy.c~mempolicy-create-mempolicy_operations-structure-fix mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-create-mempolicy_operations-structure-fix
 +++ a/mm/mempolicy.c
-@@ -1276,25 +1276,31 @@ static inline unsigned interleave_nid(st
-  * @vma = virtual memory area whose policy is sought
-  * @addr = address in @vma for shared policy lookup and interleave policy
-  * @gfp_flags = for requested zone
-- * @mpol = pointer to mempolicy pointer for reference counted 'BIND policy
-+ * @mpol = pointer to mempolicy pointer for reference counted mempolicy
-+ * @nodemask = pointer to nodemask pointer for MPOL_BIND nodemask
-  *
-  * Returns a zonelist suitable for a huge page allocation.
-- * If the effective policy is 'BIND, returns pointer to policy's zonelist.
-+ * If the effective policy is 'BIND, returns pointer to local node's zonelist,
-+ * and a pointer to the mempolicy's @nodemask for filtering the zonelist.
-  * If it is also a policy for which get_vma_policy() returns an extra
-- * reference, we must hold that reference until after allocation.
-+ * reference, we must hold that reference until after the allocation.
-  * In that case, return policy via @mpol so hugetlb allocation can drop
-- * the reference.  For non-'BIND referenced policies, we can/do drop the
-+ * the reference. For non-'BIND referenced policies, we can/do drop the
-  * reference here, so the caller doesn't need to know about the special case
-  * for default and current task policy.
-  */
- struct zonelist *huge_zonelist(struct vm_area_struct *vma, unsigned long addr,
--				gfp_t gfp_flags, struct mempolicy **mpol)
-+				gfp_t gfp_flags, struct mempolicy **mpol,
-+				nodemask_t **nodemask)
+@@ -158,9 +158,12 @@ static int mpol_new_interleave(struct me
+ 
+ static int mpol_new_preferred(struct mempolicy *pol, const nodemask_t *nodes)
  {
- 	struct mempolicy *pol = get_vma_policy(current, vma, addr);
- 	struct zonelist *zl;
+-	if (nodes_empty(*nodes))
+-		return -EINVAL;
+-	pol->v.preferred_node = first_node(*nodes);
++	if (!nodes)
++		pol->v.preferred_node = -1;	/* local allocation */
++	else if (nodes_empty(*nodes))
++		return -EINVAL;			/*  no allowed nodes */
++	else
++		pol->v.preferred_node = first_node(*nodes);
+ 	return 0;
+ }
  
- 	*mpol = NULL;		/* probably no unref needed */
--	if (pol->policy == MPOL_INTERLEAVE) {
-+	*nodemask = NULL;	/* assume !MPOL_BIND */
-+	if (pol->policy == MPOL_BIND) {
-+			*nodemask = &pol->v.nodes;
-+	} else if (pol->policy == MPOL_INTERLEAVE) {
- 		unsigned nid;
+@@ -178,34 +181,43 @@ static struct mempolicy *mpol_new(unsign
+ {
+ 	struct mempolicy *policy;
+ 	nodemask_t cpuset_context_nmask;
++	int localalloc = 0;
+ 	int ret;
  
- 		nid = interleave_nid(pol, vma, addr, HPAGE_SHIFT);
+ 	pr_debug("setting mode %d flags %d nodes[0] %lx\n",
+ 		 mode, flags, nodes ? nodes_addr(*nodes)[0] : -1);
+ 
+-	if (nodes && nodes_empty(*nodes) && mode != MPOL_PREFERRED)
+-		return ERR_PTR(-EINVAL);
+ 	if (mode == MPOL_DEFAULT)
+ 		return NULL;
++	if (!nodes || nodes_empty(*nodes)) {
++		if (mode != MPOL_PREFERRED)
++			return ERR_PTR(-EINVAL);
++		localalloc = 1;	/* special case:  no mode flags */
++	}
+ 	policy = kmem_cache_alloc(policy_cache, GFP_KERNEL);
+ 	if (!policy)
+ 		return ERR_PTR(-ENOMEM);
+ 	atomic_set(&policy->refcnt, 1);
+-	cpuset_update_task_memory_state();
+-	if (flags & MPOL_F_RELATIVE_NODES)
+-		mpol_relative_nodemask(&cpuset_context_nmask, nodes,
+-				       &cpuset_current_mems_allowed);
+-	else
+-		nodes_and(cpuset_context_nmask, *nodes,
+-			  cpuset_current_mems_allowed);
+ 	policy->policy = mode;
+-	policy->flags = flags;
+-	if (mpol_store_user_nodemask(policy))
+-		policy->w.user_nodemask = *nodes;
+-	else
+-		policy->w.cpuset_mems_allowed = cpuset_mems_allowed(current);
+ 
+-	ret = mpol_ops[mode].create(policy, &cpuset_context_nmask);
++	if (!localalloc) {
++		policy->flags = flags;
++		cpuset_update_task_memory_state();
++		if (flags & MPOL_F_RELATIVE_NODES)
++			mpol_relative_nodemask(&cpuset_context_nmask, nodes,
++					       &cpuset_current_mems_allowed);
++		else
++			nodes_and(cpuset_context_nmask, *nodes,
++				  cpuset_current_mems_allowed);
++		if (mpol_store_user_nodemask(policy))
++			policy->w.user_nodemask = *nodes;
++		else
++			policy->w.cpuset_mems_allowed =
++						cpuset_mems_allowed(current);
++	}
++
++	ret = mpol_ops[mode].create(policy,
++				localalloc ? NULL : &cpuset_context_nmask);
+ 	if (ret < 0) {
+ 		kmem_cache_free(policy_cache, policy);
+ 		return ERR_PTR(ret);
+@@ -247,6 +259,10 @@ static void mpol_rebind_preferred(struct
+ {
+ 	nodemask_t tmp;
+ 
++	/*
++	 * check 'STATIC_NODES first, as preferred_node == -1 may be
++	 * a temporary, "fallback" state for this policy.
++	 */
+ 	if (pol->flags & MPOL_F_STATIC_NODES) {
+ 		int node = first_node(pol->w.user_nodemask);
+ 
+@@ -254,6 +270,8 @@ static void mpol_rebind_preferred(struct
+ 			pol->v.preferred_node = node;
+ 		else
+ 			pol->v.preferred_node = -1;
++	} else if (pol->v.preferred_node == -1) {
++		return;	/* no remap required for explicit local alloc */
+ 	} else if (pol->flags & MPOL_F_RELATIVE_NODES) {
+ 		mpol_relative_nodemask(&tmp, &pol->w.user_nodemask, nodes);
+ 		pol->v.preferred_node = first_node(tmp);
 _
 
 Patches currently in -mm which might be from Lee.Schermerhorn@hp.com are
 
 mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask.patch
-mm-filter-based-on-a-nodemask-as-well-as-a-gfp_mask-make-dequeue_huge_page_vma-obey-mpol_bind-nodemask-rework.patch
 mempolicy-convert-mpol-constants-to-enum.patch
 mempolicy-support-optional-mode-flags.patch
-mempolicy-support-optional-mode-flags-fix.patch
 mempolicy-add-mpol_f_static_nodes-flag.patch
 mempolicy-add-mpol_f_relative_nodes-flag.patch
 mempolicy-update-numa-memory-policy-documentation.patch
