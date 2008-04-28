@@ -1,128 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - fat-update-free_clusters-even-if-it-is-untrusted.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:01:36 -0700
-Message-ID: <200804282201.m3SM1aUD018880@imap1.linux-foundation.org>
+Subject: - fat-use-__getname.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:01:44 -0700
+Message-ID: <200804282201.m3SM1ioY018892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48969 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965806AbYD1WBj (ORCPT
+	by vger.kernel.org with ESMTP id S965812AbYD1WBq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:01:39 -0400
+	Mon, 28 Apr 2008 18:01:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fat: Update free_clusters even if it is untrusted
+     fat: use __getname()
 has been removed from the -mm tree.  Its filename was
-     fat-update-free_clusters-even-if-it-is-untrusted.patch
+     fat-use-__getname.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: Update free_clusters even if it is untrusted
+Subject: fat: use __getname()
 From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-Currently, free_clusters is not updated until it is trusted, because
-Windows doesn't update it correctly.
-
-But if user is using FAT driver of Linux, it updates free_clusters
-correctly.  Instead, this updates it even if it's untrusted, so if
-free_clustes is correct, now keep correct value.
+__getname() is faster than __get_free_page(). Use it.
 
 Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/fatent.c          |    7 +++++--
- fs/fat/inode.c           |    7 ++++---
- include/linux/msdos_fs.h |    1 +
- 3 files changed, 10 insertions(+), 5 deletions(-)
+ fs/fat/dir.c    |   20 ++++++++++----------
+ fs/vfat/namei.c |   10 ++++------
+ 2 files changed, 14 insertions(+), 16 deletions(-)
 
-diff -puN fs/fat/fatent.c~fat-update-free_clusters-even-if-it-is-untrusted fs/fat/fatent.c
---- a/fs/fat/fatent.c~fat-update-free_clusters-even-if-it-is-untrusted
-+++ a/fs/fat/fatent.c
-@@ -450,7 +450,8 @@ int fat_alloc_clusters(struct inode *ino
- 	BUG_ON(nr_cluster > (MAX_BUF_PER_PAGE / 2));	/* fixed limit */
+diff -puN fs/fat/dir.c~fat-use-__getname fs/fat/dir.c
+--- a/fs/fat/dir.c~fat-use-__getname
++++ a/fs/fat/dir.c
+@@ -247,7 +247,7 @@ static int fat_parse_long(struct inode *
+ 	unsigned char id, slot, slots, alias_checksum;
  
- 	lock_fat(sbi);
--	if (sbi->free_clusters != -1 && sbi->free_clusters < nr_cluster) {
-+	if (sbi->free_clusters != -1 && sbi->free_clus_valid &&
-+	    sbi->free_clusters < nr_cluster) {
- 		unlock_fat(sbi);
- 		return -ENOSPC;
- 	}
-@@ -504,6 +505,7 @@ int fat_alloc_clusters(struct inode *ino
+ 	if (!*unicode) {
+-		*unicode = (wchar_t *)__get_free_page(GFP_KERNEL);
++		*unicode = __getname();
+ 		if (!*unicode) {
+ 			brelse(*bh);
+ 			return -ENOMEM;
+@@ -327,7 +327,7 @@ int fat_search_long(struct inode *inode,
+ 	loff_t cpos = 0;
+ 	int chl, i, j, last_u, err;
  
- 	/* Couldn't allocate the free entries */
- 	sbi->free_clusters = 0;
-+	sbi->free_clus_valid = 1;
- 	sb->s_dirt = 1;
- 	err = -ENOSPC;
+-	bufname = (unsigned char*)__get_free_page(GFP_KERNEL);
++	bufname = __getname();
+ 	if (!bufname)
+ 		return -ENOMEM;
  
-@@ -615,7 +617,7 @@ int fat_count_free_clusters(struct super
- 	int err = 0, free;
+@@ -396,8 +396,8 @@ parse_record:
  
- 	lock_fat(sbi);
--	if (sbi->free_clusters != -1)
-+	if (sbi->free_clusters != -1 && sbi->free_clus_valid)
- 		goto out;
+ 		bufuname[last_u] = 0x0000;
+ 		xlate_len = utf8
+-			?utf8_wcstombs(bufname, bufuname, PAGE_SIZE)
+-			:uni16_to_x8(bufname, bufuname, PAGE_SIZE, uni_xlate, nls_io);
++			?utf8_wcstombs(bufname, bufuname, PATH_MAX)
++			:uni16_to_x8(bufname, bufuname, PATH_MAX, uni_xlate, nls_io);
+ 		if (xlate_len == name_len)
+ 			if ((!anycase && !memcmp(name, bufname, xlate_len)) ||
+ 			    (anycase && !nls_strnicmp(nls_io, name, bufname,
+@@ -406,8 +406,8 @@ parse_record:
  
- 	reada_blocks = FAT_READA_SIZE >> sb->s_blocksize_bits;
-@@ -643,6 +645,7 @@ int fat_count_free_clusters(struct super
- 		} while (fat_ent_next(sbi, &fatent));
- 	}
- 	sbi->free_clusters = free;
-+	sbi->free_clus_valid = 1;
- 	sb->s_dirt = 1;
- 	fatent_brelse(&fatent);
+ 		if (nr_slots) {
+ 			xlate_len = utf8
+-				?utf8_wcstombs(bufname, unicode, PAGE_SIZE)
+-				:uni16_to_x8(bufname, unicode, PAGE_SIZE, uni_xlate, nls_io);
++				?utf8_wcstombs(bufname, unicode, PATH_MAX)
++				:uni16_to_x8(bufname, unicode, PATH_MAX, uni_xlate, nls_io);
+ 			if (xlate_len != name_len)
+ 				continue;
+ 			if ((!anycase && !memcmp(name, bufname, xlate_len)) ||
+@@ -427,9 +427,9 @@ Found:
+ 	err = 0;
+ EODir:
+ 	if (bufname)
+-		free_page((unsigned long)bufname);
++		__putname(bufname);
+ 	if (unicode)
+-		free_page((unsigned long)unicode);
++		__putname(unicode);
+ 
+ 	return err;
+ }
+@@ -619,7 +619,7 @@ parse_record:
+ 		/* convert the unicode long name. 261 is maximum size
+ 		 * of unicode buffer. (13 * slots + nul) */
+ 		void *longname = unicode + 261;
+-		int buf_size = PAGE_SIZE - (261 * sizeof(unicode[0]));
++		int buf_size = PATH_MAX - (261 * sizeof(unicode[0]));
+ 		int long_len = utf8
+ 			? utf8_wcstombs(longname, unicode, buf_size)
+ 			: uni16_to_x8(longname, unicode, buf_size, uni_xlate, nls_io);
+@@ -652,7 +652,7 @@ EODir:
+ FillFailed:
+ 	brelse(bh);
+ 	if (unicode)
+-		free_page((unsigned long)unicode);
++		__putname(unicode);
  out:
-diff -puN fs/fat/inode.c~fat-update-free_clusters-even-if-it-is-untrusted fs/fat/inode.c
---- a/fs/fat/inode.c~fat-update-free_clusters-even-if-it-is-untrusted
-+++ a/fs/fat/inode.c
-@@ -537,7 +537,7 @@ static int fat_statfs(struct dentry *den
- 	struct msdos_sb_info *sbi = MSDOS_SB(dentry->d_sb);
+ 	unlock_kernel();
+ 	return ret;
+diff -puN fs/vfat/namei.c~fat-use-__getname fs/vfat/namei.c
+--- a/fs/vfat/namei.c~fat-use-__getname
++++ a/fs/vfat/namei.c
+@@ -472,7 +472,7 @@ xlate_to_uni(const unsigned char *name, 
+ 	if (utf8) {
+ 		int name_len = strlen(name);
  
- 	/* If the count of free cluster is still unknown, counts it here. */
--	if (sbi->free_clusters == -1) {
-+	if (sbi->free_clusters == -1 || !sbi->free_clus_valid) {
- 		int err = fat_count_free_clusters(dentry->d_sb);
- 		if (err)
- 			return err;
-@@ -1274,6 +1274,7 @@ int fat_fill_super(struct super_block *s
- 	sbi->fat_length = le16_to_cpu(b->fat_length);
- 	sbi->root_cluster = 0;
- 	sbi->free_clusters = -1;	/* Don't know yet */
-+	sbi->free_clus_valid = 0;
- 	sbi->prev_free = FAT_START_ENT;
+-		*outlen = utf8_mbstowcs((wchar_t *)outname, name, PAGE_SIZE);
++		*outlen = utf8_mbstowcs((wchar_t *)outname, name, PATH_MAX);
  
- 	if (!sbi->fat_length && b->fat32_length) {
-@@ -1309,8 +1310,8 @@ int fat_fill_super(struct super_block *s
- 			       sbi->fsinfo_sector);
- 		} else {
- 			if (sbi->options.usefree)
--				sbi->free_clusters =
--					le32_to_cpu(fsinfo->free_clusters);
-+				sbi->free_clus_valid = 1;
-+			sbi->free_clusters = le32_to_cpu(fsinfo->free_clusters);
- 			sbi->prev_free = le32_to_cpu(fsinfo->next_cluster);
- 		}
+ 		/*
+ 		 * We stripped '.'s before and set len appropriately,
+@@ -565,7 +565,6 @@ static int vfat_build_slots(struct inode
+ 	struct fat_mount_options *opts = &sbi->options;
+ 	struct msdos_dir_slot *ps;
+ 	struct msdos_dir_entry *de;
+-	unsigned long page;
+ 	unsigned char cksum, lcase;
+ 	unsigned char msdos_name[MSDOS_NAME];
+ 	wchar_t *uname;
+@@ -575,11 +574,10 @@ static int vfat_build_slots(struct inode
  
-diff -puN include/linux/msdos_fs.h~fat-update-free_clusters-even-if-it-is-untrusted include/linux/msdos_fs.h
---- a/include/linux/msdos_fs.h~fat-update-free_clusters-even-if-it-is-untrusted
-+++ a/include/linux/msdos_fs.h
-@@ -233,6 +233,7 @@ struct msdos_sb_info {
- 	struct mutex fat_lock;
- 	unsigned int prev_free;      /* previously allocated cluster number */
- 	unsigned int free_clusters;  /* -1 if undefined */
-+	unsigned int free_clus_valid; /* is free_clusters valid? */
- 	struct fat_mount_options options;
- 	struct nls_table *nls_disk;  /* Codepage used on disk */
- 	struct nls_table *nls_io;    /* Charset used for input and display */
+ 	*nr_slots = 0;
+ 
+-	page = __get_free_page(GFP_KERNEL);
+-	if (!page)
++	uname = __getname();
++	if (!uname)
+ 		return -ENOMEM;
+ 
+-	uname = (wchar_t *)page;
+ 	err = xlate_to_uni(name, len, (unsigned char *)uname, &ulen, &usize,
+ 			   opts->unicode_xlate, opts->utf8, sbi->nls_io);
+ 	if (err)
+@@ -631,7 +629,7 @@ shortname:
+ 	de->starthi = cpu_to_le16(cluster >> 16);
+ 	de->size = 0;
+ out_free:
+-	free_page(page);
++	__putname(uname);
+ 	return err;
+ }
+ 
 _
 
 Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
