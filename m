@@ -1,217 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - memory-hotplug-free-memmaps-allocated-by-bootmem.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:54:01 -0700
-Message-ID: <200804282154.m3SLs1Rh017951@imap1.linux-foundation.org>
+Subject: - oom_kill-remove-unused-parameter-in-badness.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:54:02 -0700
+Message-ID: <200804282154.m3SLs2c6017960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34181 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936999AbYD1Vyf (ORCPT
+	by vger.kernel.org with ESMTP id S936216AbYD1VyN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:54:35 -0400
+	Mon, 28 Apr 2008 17:54:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: y-goto@jp.fujitsu.com, pbadari@us.ibm.com, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
+To: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory hotplug: free memmaps allocated by bootmem
+     oom_kill: remove unused parameter in badness()
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-free-memmaps-allocated-by-bootmem.patch
+     oom_kill-remove-unused-parameter-in-badness.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: free memmaps allocated by bootmem
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: oom_kill: remove unused parameter in badness()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-This patch is to free memmaps which is allocated by bootmem.
+In commit 4c4a22148909e4c003562ea7ffe0a06e26919e3c, we moved the
+memcontroller-related code from badness() to select_bad_process(), so the
+parameter 'mem' in badness() is unused now.
 
-Freeing usemap is not necessary.  The pages of usemap may be necessary for
-other sections.
-
-If removing section is last section on the node, its section is the final user
-of usemap page.  (usemaps are allocated on its section by previous patch.) But
-it shouldn't be freed too, because the section must be logical offline state
-which all pages are isolated against page allocater.  If it is freed, page
-alloctor may use it which will be removed physically soon.  It will be
-disaster.  So, this patch keeps it as it is.
-
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h       |    3 --
- mm/memory_hotplug.c |   11 +++++++++
- mm/page_alloc.c     |    2 -
- mm/sparse.c         |   51 ++++++++++++++++++++++++++++++++++++++----
- 4 files changed, 60 insertions(+), 7 deletions(-)
+ mm/oom_kill.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/internal.h~memory-hotplug-free-memmaps-allocated-by-bootmem mm/internal.h
---- a/mm/internal.h~memory-hotplug-free-memmaps-allocated-by-bootmem
-+++ a/mm/internal.h
-@@ -34,8 +34,7 @@ static inline void __put_page(struct pag
- 	atomic_dec(&page->_count);
- }
- 
--extern void __init __free_pages_bootmem(struct page *page,
--						unsigned int order);
-+extern void __free_pages_bootmem(struct page *page, unsigned int order);
- 
- /*
-  * function for dealing with page's order in buddy system.
-diff -puN mm/memory_hotplug.c~memory-hotplug-free-memmaps-allocated-by-bootmem mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-free-memmaps-allocated-by-bootmem
-+++ a/mm/memory_hotplug.c
-@@ -198,6 +198,16 @@ static int __add_section(struct zone *zo
- 	return register_new_memory(__pfn_to_section(phys_start_pfn));
- }
- 
-+#ifdef CONFIG_SPARSEMEM_VMEMMAP
-+static int __remove_section(struct zone *zone, struct mem_section *ms)
-+{
-+	/*
-+	 * XXX: Freeing memmap with vmemmap is not implement yet.
-+	 *      This should be removed later.
-+	 */
-+	return -EBUSY;
-+}
-+#else
- static int __remove_section(struct zone *zone, struct mem_section *ms)
- {
- 	unsigned long flags;
-@@ -216,6 +226,7 @@ static int __remove_section(struct zone 
- 	pgdat_resize_unlock(pgdat, &flags);
- 	return 0;
- }
-+#endif
- 
- /*
-  * Reasonably generic function for adding memory.  It is
-diff -puN mm/page_alloc.c~memory-hotplug-free-memmaps-allocated-by-bootmem mm/page_alloc.c
---- a/mm/page_alloc.c~memory-hotplug-free-memmaps-allocated-by-bootmem
-+++ a/mm/page_alloc.c
-@@ -546,7 +546,7 @@ static void __free_pages_ok(struct page 
- /*
-  * permit the bootmem allocator to evade page validation on high-order frees
+diff -puN mm/oom_kill.c~oom_kill-remove-unused-parameter-in-badness mm/oom_kill.c
+--- a/mm/oom_kill.c~oom_kill-remove-unused-parameter-in-badness
++++ a/mm/oom_kill.c
+@@ -53,8 +53,7 @@ static DEFINE_SPINLOCK(zone_scan_mutex);
+  *    of least surprise ... (be careful when you change it)
   */
--void __init __free_pages_bootmem(struct page *page, unsigned int order)
-+void __free_pages_bootmem(struct page *page, unsigned int order)
- {
- 	if (order == 0) {
- 		__ClearPageReserved(page);
-diff -puN mm/sparse.c~memory-hotplug-free-memmaps-allocated-by-bootmem mm/sparse.c
---- a/mm/sparse.c~memory-hotplug-free-memmaps-allocated-by-bootmem
-+++ a/mm/sparse.c
-@@ -8,6 +8,7 @@
- #include <linux/module.h>
- #include <linux/spinlock.h>
- #include <linux/vmalloc.h>
-+#include "internal.h"
- #include <asm/dma.h>
- #include <asm/pgalloc.h>
- #include <asm/pgtable.h>
-@@ -376,6 +377,9 @@ static void __kfree_section_memmap(struc
- {
- 	return; /* XXX: Not implemented yet */
- }
-+static void free_map_bootmem(struct page *page, unsigned long nr_pages)
-+{
-+}
- #else
- static struct page *__kmalloc_section_memmap(unsigned long nr_pages)
- {
-@@ -413,17 +417,47 @@ static void __kfree_section_memmap(struc
- 		free_pages((unsigned long)memmap,
- 			   get_order(sizeof(struct page) * nr_pages));
- }
-+
-+static void free_map_bootmem(struct page *page, unsigned long nr_pages)
-+{
-+	unsigned long maps_section_nr, removing_section_nr, i;
-+	int magic;
-+
-+	for (i = 0; i < nr_pages; i++, page++) {
-+		magic = atomic_read(&page->_mapcount);
-+
-+		BUG_ON(magic == NODE_INFO);
-+
-+		maps_section_nr = pfn_to_section_nr(page_to_pfn(page));
-+		removing_section_nr = page->private;
-+
-+		/*
-+		 * When this function is called, the removing section is
-+		 * logical offlined state. This means all pages are isolated
-+		 * from page allocator. If removing section's memmap is placed
-+		 * on the same section, it must not be freed.
-+		 * If it is freed, page allocator may allocate it which will
-+		 * be removed physically soon.
-+		 */
-+		if (maps_section_nr != removing_section_nr)
-+			put_page_bootmem(page);
-+	}
-+}
- #endif /* CONFIG_SPARSEMEM_VMEMMAP */
  
- static void free_section_usemap(struct page *memmap, unsigned long *usemap)
+-unsigned long badness(struct task_struct *p, unsigned long uptime,
+-			struct mem_cgroup *mem)
++unsigned long badness(struct task_struct *p, unsigned long uptime)
  {
-+	struct page *usemap_page;
-+	unsigned long nr_pages;
-+
- 	if (!usemap)
- 		return;
+ 	unsigned long points, cpu_time, run_time, s;
+ 	struct mm_struct *mm;
+@@ -256,7 +255,7 @@ static struct task_struct *select_bad_pr
+ 		if (p->oomkilladj == OOM_DISABLE)
+ 			continue;
  
-+	usemap_page = virt_to_page(usemap);
- 	/*
- 	 * Check to see if allocation came from hot-plug-add
- 	 */
--	if (PageSlab(virt_to_page(usemap))) {
-+	if (PageSlab(usemap_page)) {
- 		kfree(usemap);
- 		if (memmap)
- 			__kfree_section_memmap(memmap, PAGES_PER_SECTION);
-@@ -431,10 +465,19 @@ static void free_section_usemap(struct p
- 	}
- 
- 	/*
--	 * TODO: Allocations came from bootmem - how do I free up ?
-+	 * The usemap came from bootmem. This is packed with other usemaps
-+	 * on the section which has pgdat at boot time. Just keep it as is now.
- 	 */
--	printk(KERN_WARNING "Not freeing up allocations from bootmem "
--			"- leaking memory\n");
-+
-+	if (memmap) {
-+		struct page *memmap_page;
-+		memmap_page = virt_to_page(memmap);
-+
-+		nr_pages = PAGE_ALIGN(PAGES_PER_SECTION * sizeof(struct page))
-+			>> PAGE_SHIFT;
-+
-+		free_map_bootmem(memmap_page, nr_pages);
-+	}
- }
- 
- /*
+-		points = badness(p, uptime.tv_sec, mem);
++		points = badness(p, uptime.tv_sec);
+ 		if (points > *ppoints || !chosen) {
+ 			chosen = p;
+ 			*ppoints = points;
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
 origin.patch
-powerpc-hotplug-memory-notifications-for-ppc.patch
-powerpc-update-lmb-for-hotplug-memory-add-remove.patch
-powerpc-provide-walk_memory_resource-for-ppc.patch
-ipc-scale-msgmni-to-the-amount-of-lowmem.patch
-ipc-scale-msgmni-to-the-number-of-ipc-namespaces.patch
-ipc-define-the-slab_memory_callback-priority-as-a-constant.patch
-ipc-recompute-msgmni-on-memory-add--remove.patch
-ipc-invoke-the-ipcns-notifier-chain-as-a-work-item.patch
-ipc-recompute-msgmni-on-ipc-namespace-creation-removal.patch
-ipc-do-not-recompute-msgmni-anymore-if-explicitly-set-by-user.patch
-ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative.patch
+acpi-check-a-return-value-correctly-in-acpi_power_get_context.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+revert-part-of-sched-cpuset-customize-sched-domains-core.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+reapply-sched-cpuset-customize-sched-domains-core-bits.patch
+reapply-sched-cpuset-customize-sched-domains-core-bits-fix.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+cgroup-annotate-cgroup_init_subsys-with-__init.patch
+cgroup-switch-to-proc_create.patch
+cgroups-implement-device-whitelist-v6.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-doc.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+cgroups-use-a-hash-table-for-css_set-finding.patch
+cgroups-simplify-init_subsys.patch
+cgroups-remove-the-css_set-linked-list.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+use-vmalloc-for-mem_cgroup-allocation-v3.patch
+use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
+memcg-remove-redundant-initialization-in-mem_cgroup_create.patch
+cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
 
