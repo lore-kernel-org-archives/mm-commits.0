@@ -1,123 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - jbd-fix-the-way-the-b_modified-flag-is-cleared.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:00:45 -0700
-Message-ID: <200804282200.m3SM0jMJ018744@imap1.linux-foundation.org>
+Subject: - ufs-e_add_cpu-conversion.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:01:03 -0700
+Message-ID: <200804282201.m3SM13vQ018811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40232 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41131 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965685AbYD1WBH (ORCPT
+	by vger.kernel.org with ESMTP id S934933AbYD1WBL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:01:07 -0400
+	Mon, 28 Apr 2008 18:01:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbacik@redhat.com, jack@ucw.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, dushistov@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd: fix the way the b_modified flag is cleared
+     ufs: [bl]e*_add_cpu conversion
 has been removed from the -mm tree.  Its filename was
-     jbd-fix-the-way-the-b_modified-flag-is-cleared.patch
+     ufs-e_add_cpu-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd: fix the way the b_modified flag is cleared
-From: Josef Bacik <jbacik@redhat.com>
+Subject: ufs: [bl]e*_add_cpu conversion
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Currently at the start of a journal commit we loop through all of the buffers
-on the committing transaction and clear the b_modified flag (the flag that is
-set when a transaction modifies the buffer) under the j_list_lock.
+replace all:
+big/little_endian_variable = cpu_to_[bl]eX([bl]eX_to_cpu(big/little_endian_variable) +
+					expression_in_cpu_byteorder);
+with:
+	[bl]eX_add_cpu(&big/little_endian_variable, expression_in_cpu_byteorder);
+generated with semantic patch
 
-The problem is that everywhere else this flag is modified only under the jbd
-lock buffer flag, so it will race with a running transaction who could
-potentially set it, and have it unset by the committing transaction.
-
-This is also a big waste, you can have several thousands of buffers that you
-are clearing the modified flag on when you may not need to.  This patch
-removes this code and instead clears the b_modified flag upon entering
-do_get_write_access/journal_get_create_access, so if that transaction does
-indeed use the buffer then it will be accounted for properly, and if it does
-not then we know we didn't use it.
-
-That will be important for the next patch in this series.  Tested thoroughly
-by myself using postmark/iozone/bonnie++.
-
-Signed-off-by: Josef Bacik <jbacik@redhat.com>
-Cc: <linux-ext4@vger.kernel.org>
-Acked-by: Jan Kara <jack@ucw.cz>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: Evgeniy Dushistov <dushistov@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd/commit.c      |   16 ----------------
- fs/jbd/transaction.c |   13 +++++++++++++
- 2 files changed, 13 insertions(+), 16 deletions(-)
+ fs/ufs/swab.h |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/jbd/commit.c~jbd-fix-the-way-the-b_modified-flag-is-cleared fs/jbd/commit.c
---- a/fs/jbd/commit.c~jbd-fix-the-way-the-b_modified-flag-is-cleared
-+++ a/fs/jbd/commit.c
-@@ -407,22 +407,6 @@ void journal_commit_transaction(journal_
- 	jbd_debug (3, "JBD: commit phase 2\n");
+diff -puN fs/ufs/swab.h~ufs-e_add_cpu-conversion fs/ufs/swab.h
+--- a/fs/ufs/swab.h~ufs-e_add_cpu-conversion
++++ a/fs/ufs/swab.h
+@@ -80,18 +80,18 @@ static inline void
+ fs32_add(struct super_block *sbp, __fs32 *n, int d)
+ {
+ 	if (UFS_SB(sbp)->s_bytesex == BYTESEX_LE)
+-		*(__le32 *)n = cpu_to_le32(le32_to_cpu(*(__le32 *)n)+d);
++		le32_add_cpu((__le32 *)n, d);
+ 	else
+-		*(__be32 *)n = cpu_to_be32(be32_to_cpu(*(__be32 *)n)+d);
++		be32_add_cpu((__be32 *)n, d);
+ }
  
- 	/*
--	 * First, drop modified flag: all accesses to the buffers
--	 * will be tracked for a new trasaction only -bzzz
--	 */
--	spin_lock(&journal->j_list_lock);
--	if (commit_transaction->t_buffers) {
--		new_jh = jh = commit_transaction->t_buffers->b_tnext;
--		do {
--			J_ASSERT_JH(new_jh, new_jh->b_modified == 1 ||
--					new_jh->b_modified == 0);
--			new_jh->b_modified = 0;
--			new_jh = new_jh->b_tnext;
--		} while (new_jh != jh);
--	}
--	spin_unlock(&journal->j_list_lock);
--
--	/*
- 	 * Now start flushing things to disk, in the order they appear
- 	 * on the transaction lists.  Data blocks go first.
- 	 */
-diff -puN fs/jbd/transaction.c~jbd-fix-the-way-the-b_modified-flag-is-cleared fs/jbd/transaction.c
---- a/fs/jbd/transaction.c~jbd-fix-the-way-the-b_modified-flag-is-cleared
-+++ a/fs/jbd/transaction.c
-@@ -609,6 +609,12 @@ repeat:
- 		goto done;
+ static inline void
+ fs32_sub(struct super_block *sbp, __fs32 *n, int d)
+ {
+ 	if (UFS_SB(sbp)->s_bytesex == BYTESEX_LE)
+-		*(__le32 *)n = cpu_to_le32(le32_to_cpu(*(__le32 *)n)-d);
++		le32_add_cpu((__le32 *)n, -d);
+ 	else
+-		*(__be32 *)n = cpu_to_be32(be32_to_cpu(*(__be32 *)n)-d);
++		be32_add_cpu((__be32 *)n, -d);
+ }
  
- 	/*
-+	 * this is the first time this transaction is touching this buffer,
-+	 * reset the modified flag
-+	 */
-+	jh->b_modified = 0;
-+
-+	/*
- 	 * If there is already a copy-out version of this buffer, then we don't
- 	 * need to make another one
- 	 */
-@@ -820,9 +826,16 @@ int journal_get_create_access(handle_t *
+ static inline u16
+@@ -116,18 +116,18 @@ static inline void
+ fs16_add(struct super_block *sbp, __fs16 *n, int d)
+ {
+ 	if (UFS_SB(sbp)->s_bytesex == BYTESEX_LE)
+-		*(__le16 *)n = cpu_to_le16(le16_to_cpu(*(__le16 *)n)+d);
++		le16_add_cpu((__le16 *)n, d);
+ 	else
+-		*(__be16 *)n = cpu_to_be16(be16_to_cpu(*(__be16 *)n)+d);
++		be16_add_cpu((__be16 *)n, d);
+ }
  
- 	if (jh->b_transaction == NULL) {
- 		jh->b_transaction = transaction;
-+
-+		/* first access by this transaction */
-+		jh->b_modified = 0;
-+
- 		JBUFFER_TRACE(jh, "file as BJ_Reserved");
- 		__journal_file_buffer(jh, transaction, BJ_Reserved);
- 	} else if (jh->b_transaction == journal->j_committing_transaction) {
-+		/* first access by this transaction */
-+		jh->b_modified = 0;
-+
- 		JBUFFER_TRACE(jh, "set next transaction");
- 		jh->b_next_transaction = transaction;
- 	}
+ static inline void
+ fs16_sub(struct super_block *sbp, __fs16 *n, int d)
+ {
+ 	if (UFS_SB(sbp)->s_bytesex == BYTESEX_LE)
+-		*(__le16 *)n = cpu_to_le16(le16_to_cpu(*(__le16 *)n)-d);
++		le16_add_cpu((__le16 *)n, -d);
+ 	else
+-		*(__be16 *)n = cpu_to_be16(be16_to_cpu(*(__be16 *)n)-d);
++		be16_add_cpu((__be16 *)n, -d);
+ }
+ 
+ #endif /* _UFS_SWAB_H */
 _
 
-Patches currently in -mm which might be from jbacik@redhat.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-ext4-fix-wrong-gfp-type-under-transaction.patch
+ntfs-le_add_cpu-conversion.patch
+affs-be_add_cpu-conversion.patch
+hfs-hfsplus-be_add_cpu-conversion.patch
+quota-le_add_cpu-conversion.patch
+sysv-e_add_cpu-conversion.patch
 
