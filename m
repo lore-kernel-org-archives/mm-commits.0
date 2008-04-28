@@ -1,199 +1,288 @@
 From: akpm@linux-foundation.org
-Subject: - fat_valid_media-remove-pointless-test.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:01:46 -0700
-Message-ID: <200804282201.m3SM1kMb018895@imap1.linux-foundation.org>
+Subject: - fat-fat_notify_change-and-check_mode-cleanup.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:01:30 -0700
+Message-ID: <200804282201.m3SM1UqT018870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50853 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44838 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965796AbYD1WBw (ORCPT
+	by vger.kernel.org with ESMTP id S965776AbYD1WBd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:01:52 -0400
+	Mon, 28 Apr 2008 18:01:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fseidel@suse.de, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     FAT_VALID_MEDIA(): remove pointless test
+     fat: fat_notify_change() and check_mode() cleanup
 has been removed from the -mm tree.  Its filename was
-     fat_valid_media-remove-pointless-test.patch
+     fat-fat_notify_change-and-check_mode-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: FAT_VALID_MEDIA(): remove pointless test
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fat: fat_notify_change() and check_mode() cleanup
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 
-The on-disk media specification field in FAT is only 8-bits, so testing for
-<=0xff is pointless, and can generate a "comparison is always true due to
-limited range of data type" warning.
+- Rename fat_notify_change() to fat_setattr()
+- check_mode() cleanup
+- Change layout of code
 
-While we're there, convert FAT_VALID_MEDIA() into a C function - the present
-implementation is buggy: it generates either one or two references to its
-argument.
-
-Cc: Frank Seidel <fseidel@suse.de>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c           |    2 +-
- include/linux/msdos_fs.h |    6 +++++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ fs/fat/file.c            |  183 ++++++++++++++++---------------------
+ fs/msdos/namei.c         |    2 
+ fs/vfat/namei.c          |    2 
+ include/linux/msdos_fs.h |    2 
+ 4 files changed, 87 insertions(+), 102 deletions(-)
 
-diff -puN fs/fat/inode.c~fat_valid_media-remove-pointless-test fs/fat/inode.c
---- a/fs/fat/inode.c~fat_valid_media-remove-pointless-test
-+++ a/fs/fat/inode.c
-@@ -1215,7 +1215,7 @@ int fat_fill_super(struct super_block *s
- 	 */
+diff -puN fs/fat/file.c~fat-fat_notify_change-and-check_mode-cleanup fs/fat/file.c
+--- a/fs/fat/file.c~fat-fat_notify_change-and-check_mode-cleanup
++++ a/fs/fat/file.c
+@@ -157,104 +157,6 @@ out:
+ 	return err;
+ }
  
- 	media = b->media;
--	if (!FAT_VALID_MEDIA(media)) {
-+	if (!fat_valid_media(media)) {
- 		if (!silent)
- 			printk(KERN_ERR "FAT: invalid media value (0x%02x)\n",
- 			       media);
-diff -puN include/linux/msdos_fs.h~fat_valid_media-remove-pointless-test include/linux/msdos_fs.h
---- a/include/linux/msdos_fs.h~fat_valid_media-remove-pointless-test
-+++ a/include/linux/msdos_fs.h
-@@ -58,7 +58,11 @@
- #define MSDOS_DOTDOT	"..         "	/* "..", padded to MSDOS_NAME chars */
+-static int check_mode(const struct msdos_sb_info *sbi, mode_t mode)
+-{
+-	mode_t req = mode & ~S_IFMT;
+-
+-	/*
+-	 * Of the r and x bits, all (subject to umask) must be present. Of the
+-	 * w bits, either all (subject to umask) or none must be present.
+-	 */
+-
+-	if (S_ISREG(mode)) {
+-		req &= ~sbi->options.fs_fmask;
+-
+-		if ((req & (S_IRUGO | S_IXUGO)) !=
+-		    ((S_IRUGO | S_IXUGO) & ~sbi->options.fs_fmask))
+-			return -EPERM;
+-
+-		if ((req & S_IWUGO) != 0 &&
+-		    (req & S_IWUGO) != (S_IWUGO & ~sbi->options.fs_fmask))
+-			return -EPERM;
+-	} else if (S_ISDIR(mode)) {
+-		req &= ~sbi->options.fs_dmask;
+-
+-		if ((req & (S_IRUGO | S_IXUGO)) !=
+-		    ((S_IRUGO | S_IXUGO) & ~sbi->options.fs_dmask))
+-			return -EPERM;
+-
+-		if ((req & S_IWUGO) != 0 &&
+-		    (req & S_IWUGO) != (S_IWUGO & ~sbi->options.fs_dmask))
+-			return -EPERM;
+-	} else {
+-		return -EPERM;
+-	}
+-
+-	return 0;
+-}
+-
+-int fat_notify_change(struct dentry *dentry, struct iattr *attr)
+-{
+-	struct msdos_sb_info *sbi = MSDOS_SB(dentry->d_sb);
+-	struct inode *inode = dentry->d_inode;
+-	int mask, error = 0;
+-
+-	lock_kernel();
+-
+-	/*
+-	 * Expand the file. Since inode_setattr() updates ->i_size
+-	 * before calling the ->truncate(), but FAT needs to fill the
+-	 * hole before it.
+-	 */
+-	if (attr->ia_valid & ATTR_SIZE) {
+-		if (attr->ia_size > inode->i_size) {
+-			error = fat_cont_expand(inode, attr->ia_size);
+-			if (error || attr->ia_valid == ATTR_SIZE)
+-				goto out;
+-			attr->ia_valid &= ~ATTR_SIZE;
+-		}
+-	}
+-
+-	error = inode_change_ok(inode, attr);
+-	if (error) {
+-		if (sbi->options.quiet)
+-			error = 0;
+-		goto out;
+-	}
+-	if (((attr->ia_valid & ATTR_UID) &&
+-	     (attr->ia_uid != sbi->options.fs_uid)) ||
+-	    ((attr->ia_valid & ATTR_GID) &&
+-	     (attr->ia_gid != sbi->options.fs_gid)))
+-		error = -EPERM;
+-
+-	if (error) {
+-		if (sbi->options.quiet)
+-			error = 0;
+-		goto out;
+-	}
+-
+-	if (attr->ia_valid & ATTR_MODE) {
+-		error = check_mode(sbi, attr->ia_mode);
+-		if (error != 0 && !sbi->options.quiet)
+-			goto out;
+-	}
+-
+-	error = inode_setattr(inode, attr);
+-	if (error)
+-		goto out;
+-
+-	if (S_ISDIR(inode->i_mode))
+-		mask = sbi->options.fs_dmask;
+-	else
+-		mask = sbi->options.fs_fmask;
+-	inode->i_mode &= S_IFMT | (S_IRWXUGO & ~mask);
+-out:
+-	unlock_kernel();
+-	return error;
+-}
+-
+-EXPORT_SYMBOL_GPL(fat_notify_change);
+-
+ /* Free all clusters after the skip'th cluster. */
+ static int fat_free(struct inode *inode, int skip)
+ {
+@@ -355,8 +257,91 @@ int fat_getattr(struct vfsmount *mnt, st
+ }
+ EXPORT_SYMBOL_GPL(fat_getattr);
  
- /* media of boot sector */
--#define FAT_VALID_MEDIA(x)	((0xF8 <= (x) && (x) <= 0xFF) || (x) == 0xF0)
-+static inline int fat_valid_media(u8 media)
++static int fat_check_mode(const struct msdos_sb_info *sbi, mode_t mode)
 +{
-+	return 0xf8 <= media || media == 0xf0;
++	mode_t mask, req = mode & ~S_IFMT;
++
++	if (S_ISREG(mode))
++		mask = sbi->options.fs_fmask;
++	else
++		mask = sbi->options.fs_dmask;
++
++	/*
++	 * Of the r and x bits, all (subject to umask) must be present. Of the
++	 * w bits, either all (subject to umask) or none must be present.
++	 */
++	req &= ~mask;
++	if ((req & (S_IRUGO | S_IXUGO)) != ((S_IRUGO | S_IXUGO) & ~mask))
++		return -EPERM;
++	if ((req & S_IWUGO) && ((req & S_IWUGO) != (S_IWUGO & ~mask)))
++		return -EPERM;
++
++	return 0;
 +}
 +
- #define FAT_FIRST_ENT(s, x)	((MSDOS_SB(s)->fat_bits == 32 ? 0x0FFFFF00 : \
- 	MSDOS_SB(s)->fat_bits == 16 ? 0xFF00 : 0xF00) | (x))
++int fat_setattr(struct dentry *dentry, struct iattr *attr)
++{
++	struct msdos_sb_info *sbi = MSDOS_SB(dentry->d_sb);
++	struct inode *inode = dentry->d_inode;
++	int mask, error = 0;
++
++	lock_kernel();
++
++	/*
++	 * Expand the file. Since inode_setattr() updates ->i_size
++	 * before calling the ->truncate(), but FAT needs to fill the
++	 * hole before it.
++	 */
++	if (attr->ia_valid & ATTR_SIZE) {
++		if (attr->ia_size > inode->i_size) {
++			error = fat_cont_expand(inode, attr->ia_size);
++			if (error || attr->ia_valid == ATTR_SIZE)
++				goto out;
++			attr->ia_valid &= ~ATTR_SIZE;
++		}
++	}
++
++	error = inode_change_ok(inode, attr);
++	if (error) {
++		if (sbi->options.quiet)
++			error = 0;
++		goto out;
++	}
++	if (((attr->ia_valid & ATTR_UID) &&
++	     (attr->ia_uid != sbi->options.fs_uid)) ||
++	    ((attr->ia_valid & ATTR_GID) &&
++	     (attr->ia_gid != sbi->options.fs_gid)))
++		error = -EPERM;
++
++	if (error) {
++		if (sbi->options.quiet)
++			error = 0;
++		goto out;
++	}
++
++	if (attr->ia_valid & ATTR_MODE) {
++		error = fat_check_mode(sbi, attr->ia_mode);
++		if (error != 0 && !sbi->options.quiet)
++			goto out;
++	}
++
++	error = inode_setattr(inode, attr);
++	if (error)
++		goto out;
++
++	if (S_ISDIR(inode->i_mode))
++		mask = sbi->options.fs_dmask;
++	else
++		mask = sbi->options.fs_fmask;
++	inode->i_mode &= S_IFMT | (S_IRWXUGO & ~mask);
++out:
++	unlock_kernel();
++	return error;
++}
++EXPORT_SYMBOL_GPL(fat_setattr);
++
+ const struct inode_operations fat_file_inode_operations = {
+ 	.truncate	= fat_truncate,
+-	.setattr	= fat_notify_change,
++	.setattr	= fat_setattr,
+ 	.getattr	= fat_getattr,
+ };
+diff -puN fs/msdos/namei.c~fat-fat_notify_change-and-check_mode-cleanup fs/msdos/namei.c
+--- a/fs/msdos/namei.c~fat-fat_notify_change-and-check_mode-cleanup
++++ a/fs/msdos/namei.c
+@@ -653,7 +653,7 @@ static const struct inode_operations msd
+ 	.mkdir		= msdos_mkdir,
+ 	.rmdir		= msdos_rmdir,
+ 	.rename		= msdos_rename,
+-	.setattr	= fat_notify_change,
++	.setattr	= fat_setattr,
+ 	.getattr	= fat_getattr,
+ };
  
+diff -puN fs/vfat/namei.c~fat-fat_notify_change-and-check_mode-cleanup fs/vfat/namei.c
+--- a/fs/vfat/namei.c~fat-fat_notify_change-and-check_mode-cleanup
++++ a/fs/vfat/namei.c
+@@ -1003,7 +1003,7 @@ static const struct inode_operations vfa
+ 	.mkdir		= vfat_mkdir,
+ 	.rmdir		= vfat_rmdir,
+ 	.rename		= vfat_rename,
+-	.setattr	= fat_notify_change,
++	.setattr	= fat_setattr,
+ 	.getattr	= fat_getattr,
+ };
+ 
+diff -puN include/linux/msdos_fs.h~fat-fat_notify_change-and-check_mode-cleanup include/linux/msdos_fs.h
+--- a/include/linux/msdos_fs.h~fat-fat_notify_change-and-check_mode-cleanup
++++ a/include/linux/msdos_fs.h
+@@ -401,7 +401,7 @@ extern int fat_generic_ioctl(struct inod
+ 			     unsigned int cmd, unsigned long arg);
+ extern const struct file_operations fat_file_operations;
+ extern const struct inode_operations fat_file_inode_operations;
+-extern int fat_notify_change(struct dentry * dentry, struct iattr * attr);
++extern int fat_setattr(struct dentry * dentry, struct iattr * attr);
+ extern void fat_truncate(struct inode *inode);
+ extern int fat_getattr(struct vfsmount *mnt, struct dentry *dentry,
+ 		       struct kstat *stat);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
 origin.patch
-disable-the-memory-controller-by-default-v3.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-x86-ptrace-pebs-support-warning-fix.patch
-rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-drivers-media-dvb-frontends-s5h1420c-printk-fix.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-hwmon.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-kvm.patch
-pata_atiixp-simplex-clear.patch
-git-m32r.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-sched.patch
-sched-add-debug-checks-to-idle-functions.patch
-add-rcu_assign_index-if-ever-needed.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-aic79xx_core-remove-ascii-art.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-revert-rusty-misc-timer-typesafe.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-ext4-is-busted-on-m68k.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-make-dev-kmem-a-config-option-fix.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
-ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
-x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
-x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-revert-part-of-sched-cpuset-customize-sched-domains-core.patch
-reapply-sched-cpuset-customize-sched-domains-core-bits.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
-cgroups-implement-device-whitelist-v6-cleanups.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
-memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
-use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework-fix-2.patch
-tty-the-big-operations-rework-isicom-fix.patch
-tty-the-big-operations-rework-simserial-fix.patch
-tty-the-big-operations-rework-vs-git-kgdb-light.patch
-tty-the-big-operations-rework-vs-kgdb-2.patch
-devpts-factor-out-pty-index-allocation-fix.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-fuse-fix-race-in-llseek-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
-relayfs-support-larger-relay-buffer-take-3-cleanup.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+vfs-fix-unconditional-write_super-call-in-file_fsync.patch
+fat-use-get-put_unaligned_-helpers.patch
 
