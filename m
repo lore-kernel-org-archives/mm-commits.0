@@ -1,74 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 00:02:46 -0700
-Message-ID: <200804280702.m3S72kY7013126@imap1.linux-foundation.org>
+Subject: - pnp-use-dev_printk-for-quirk-messages-fix.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 00:03:14 -0700
+Message-ID: <200804280703.m3S73Ejd013144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48615 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58956 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763515AbYD1HC6 (ORCPT
+	by vger.kernel.org with ESMTP id S1766014AbYD1HD0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 03:02:58 -0400
+	Mon, 28 Apr 2008 03:03:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, julia@diku.dk, neilb@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ambx1@neo.rr.com, bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes
+     pnp-use-dev_printk-for-quirk-messages-fix
 has been removed from the -mm tree.  Its filename was
-     drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
+     pnp-use-dev_printk-for-quirk-messages-fix.patch
 
-This patch was dropped because it was folded into drivers-md-use-time_before-time_before_eq-etc.patch
+This patch was dropped because it was folded into pnp-use-dev_printk-for-quirk-messages.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes
+Subject: pnp-use-dev_printk-for-quirk-messages-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space prohibited after that open parenthesis '('
-#58: FILE: drivers/md/raid6algos.c:124:
-+			while ( time_before(jiffies,
+Fix this:
 
-WARNING: line over 80 characters
-#59: FILE: drivers/md/raid6algos.c:125:
-+					    j1 + (1<<RAID6_TIME_JIFFIES_LG2)) ) {
+drivers/pnp/quirks.c: In function 'quirk_awe32_resources':
+drivers/pnp/quirks.c:25: warning: 'port3' may be used uninitialized in this function
+drivers/pnp/quirks.c:25: warning: 'port2' may be used uninitialized in this function
 
-ERROR: space prohibited before that close parenthesis ')'
-#59: FILE: drivers/md/raid6algos.c:125:
-+					    j1 + (1<<RAID6_TIME_JIFFIES_LG2)) ) {
+and make the output more accurate.
 
-total: 2 errors, 1 warnings, 9 lines checked
-
-./patches/drivers-md-use-time_before-time_before_eq-etc.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Julia Lawall <julia@diku.dk>
-Cc: Neil Brown <neilb@suse.de>
+Cc: Adam Belay <ambx1@neo.rr.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid6algos.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pnp/quirks.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/raid6algos.c~drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes drivers/md/raid6algos.c
---- a/drivers/md/raid6algos.c~drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes
-+++ a/drivers/md/raid6algos.c
-@@ -121,8 +121,8 @@ int __init raid6_select_algo(void)
- 			j0 = jiffies;
- 			while ( (j1 = jiffies) == j0 )
- 				cpu_relax();
--			while ( time_before(jiffies,
--					    j1 + (1<<RAID6_TIME_JIFFIES_LG2)) ) {
-+			while (time_before(jiffies,
-+					    j1 + (1<<RAID6_TIME_JIFFIES_LG2))) {
- 				(*algo)->gen_syndrome(disks, PAGE_SIZE, dptrs);
- 				perf++;
- 			}
+diff -puN drivers/pnp/quirks.c~pnp-use-dev_printk-for-quirk-messages-fix drivers/pnp/quirks.c
+--- a/drivers/pnp/quirks.c~pnp-use-dev_printk-for-quirk-messages-fix
++++ a/drivers/pnp/quirks.c
+@@ -49,9 +49,11 @@ static void quirk_awe32_resources(struct
+ 		port2->max += 0x400;
+ 		port3->min += 0x800;
+ 		port3->max += 0x800;
++		dev_info(&dev->dev,
++			"AWE32 quirk - added ioports 0x%lx and 0x%lx\n",
++			(unsigned long)port2->min,
++			(unsigned long)port3->min);
+ 	}
+-	dev_info(&dev->dev, "AWE32 quirk - added ioports 0x%lx and 0x%lx\n",
+-		(unsigned long) port2->min, (unsigned long) port3->min);
+ }
+ 
+ static void quirk_cmi8330_resources(struct pnp_dev *dev)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,7 +104,7 @@ drivers-video-uvesafbc-fix-error-path-memory-leak.patch
 fb-convert-proc-fb-to-seq_file-interface.patch
 drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
 drivers-md-use-time_before-time_before_eq-etc.patch
-drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
+pnp-use-dev_printk-for-quirk-messages.patch
 pnp-use-dev_printk-for-quirk-messages-fix.patch
 ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
 ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
