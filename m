@@ -1,33 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-replace-remaining-__function__-occurrences.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:01:21 -0700
-Message-ID: <200804282201.m3SM1LX3018854@imap1.linux-foundation.org>
+Subject: - reiserfs-fix-more-sparse-warnings-in-do_balanc.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:01:19 -0700
+Message-ID: <200804282201.m3SM1JKF018849@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48385 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965787AbYD1WBg (ORCPT
+	by vger.kernel.org with ESMTP id S965822AbYD1WCN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:01:36 -0400
+	Mon, 28 Apr 2008 18:02:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, chris.mason@oracle.com, jeffm@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: replace remaining __FUNCTION__ occurrences
+     reiserfs: fix more sparse warnings in do_balan.c
 has been removed from the -mm tree.  Its filename was
-     reiserfs-replace-remaining-__function__-occurrences.patch
+     reiserfs-fix-more-sparse-warnings-in-do_balanc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: replace remaining __FUNCTION__ occurrences
+Subject: reiserfs: fix more sparse warnings in do_balan.c
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-__FUNCTION__ is gcc-specific, use __func__
+fs/reiserfs/do_balan.c:1467:10: warning: symbol 'ret_val' shadows an earlier one
+fs/reiserfs/do_balan.c:275:6: originally declared here
+fs/reiserfs/do_balan.c:1471:23: warning: symbol 'ih' shadows an earlier one
+fs/reiserfs/do_balan.c:249:67: originally declared here
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: Chris Mason <chris.mason@oracle.com>
@@ -35,141 +38,49 @@ Cc: Jeff Mahoney <jeffm@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/bitmap.c   |    8 ++++----
- fs/reiserfs/journal.c  |    8 ++++----
- fs/reiserfs/namei.c    |    8 ++++----
- fs/reiserfs/objectid.c |    2 +-
- 4 files changed, 13 insertions(+), 13 deletions(-)
+ fs/reiserfs/do_balan.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/reiserfs/bitmap.c~reiserfs-replace-remaining-__function__-occurrences fs/reiserfs/bitmap.c
---- a/fs/reiserfs/bitmap.c~reiserfs-replace-remaining-__function__-occurrences
-+++ a/fs/reiserfs/bitmap.c
-@@ -479,7 +479,7 @@ static void __discard_prealloc(struct re
- 	if (ei->i_prealloc_count < 0)
- 		reiserfs_warning(th->t_super,
- 				 "zam-4001:%s: inode has negative prealloc blocks count.",
--				 __FUNCTION__);
-+				 __func__);
- #endif
- 	while (ei->i_prealloc_count > 0) {
- 		reiserfs_free_prealloc_block(th, inode, ei->i_prealloc_block);
-@@ -517,7 +517,7 @@ void reiserfs_discard_all_prealloc(struc
- 		if (!ei->i_prealloc_count) {
- 			reiserfs_warning(th->t_super,
- 					 "zam-4001:%s: inode is in prealloc list but has no preallocated blocks.",
--					 __FUNCTION__);
-+					 __func__);
- 		}
- #endif
- 		__discard_prealloc(th, ei);
-@@ -632,7 +632,7 @@ int reiserfs_parse_alloc_options(struct 
- 		}
+diff -puN fs/reiserfs/do_balan.c~reiserfs-fix-more-sparse-warnings-in-do_balanc fs/reiserfs/do_balan.c
+--- a/fs/reiserfs/do_balan.c~reiserfs-fix-more-sparse-warnings-in-do_balanc
++++ a/fs/reiserfs/do_balan.c
+@@ -1464,29 +1464,29 @@ static int balance_leaf(struct tree_bala
+ 				} else
+ 					/* item falls wholly into S_new[i] */
+ 				{
+-					int ret_val;
++					int leaf_mi;
+ 					struct item_head *pasted;
  
- 		reiserfs_warning(s, "zam-4001: %s : unknown option - %s",
--				 __FUNCTION__, this_char);
-+				 __func__, this_char);
- 		return 1;
- 	}
+ #ifdef CONFIG_REISERFS_CHECK
+-					struct item_head *ih =
++					struct item_head *ih_check =
+ 					    B_N_PITEM_HEAD(tbS0, item_pos);
  
-@@ -1254,7 +1254,7 @@ struct buffer_head *reiserfs_read_bitmap
- 	bh = sb_bread(sb, block);
- 	if (bh == NULL)
- 		reiserfs_warning(sb, "sh-2029: %s: bitmap block (#%u) "
--		                 "reading failed", __FUNCTION__, block);
-+		                 "reading failed", __func__, block);
- 	else {
- 		if (buffer_locked(bh)) {
- 			PROC_INFO_INC(sb, scan_bitmap.wait);
-diff -puN fs/reiserfs/journal.c~reiserfs-replace-remaining-__function__-occurrences fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-replace-remaining-__function__-occurrences
-+++ a/fs/reiserfs/journal.c
-@@ -1187,7 +1187,7 @@ static int flush_commit_list(struct supe
+-					if (!is_direntry_le_ih(ih)
+-					    && (pos_in_item != ih_item_len(ih)
++					if (!is_direntry_le_ih(ih_check)
++					    && (pos_in_item != ih_item_len(ih_check)
+ 						|| tb->insert_size[0] <= 0))
+ 						reiserfs_panic(tb->tb_sb,
+ 							       "PAP-12235: balance_leaf: pos_in_item must be equal to ih_item_len");
+ #endif				/* CONFIG_REISERFS_CHECK */
  
- 	if (retval)
- 		reiserfs_abort(s, retval, "Journal write error in %s",
--			       __FUNCTION__);
-+			       __func__);
- 	put_fs_excl();
- 	return retval;
- }
-@@ -1534,7 +1534,7 @@ static int flush_journal_list(struct sup
- 			reiserfs_warning(s,
- 					 "clm-2082: Unable to flush buffer %llu in %s",
- 					 (unsigned long long)saved_bh->
--					 b_blocknr, __FUNCTION__);
-+					 b_blocknr, __func__);
- 		}
- 	      free_cnode:
- 		last = cn;
-@@ -1586,7 +1586,7 @@ static int flush_journal_list(struct sup
- 	if (err)
- 		reiserfs_abort(s, -EIO,
- 			       "Write error while pushing transaction to disk in %s",
--			       __FUNCTION__);
-+			       __func__);
-       flush_older_and_return:
+-					ret_val =
++					leaf_mi =
+ 					    leaf_move_items(LEAF_FROM_S_TO_SNEW,
+ 							    tb, snum[i],
+ 							    sbytes[i],
+ 							    S_new[i]);
  
- 	/* before we can update the journal header block, we _must_ flush all 
-@@ -1616,7 +1616,7 @@ static int flush_journal_list(struct sup
- 		if (err)
- 			reiserfs_abort(s, -EIO,
- 				       "Write error while updating journal header in %s",
--				       __FUNCTION__);
-+				       __func__);
- 	}
- 	remove_all_from_journal_list(s, jl, 0);
- 	list_del_init(&jl->j_list);
-diff -puN fs/reiserfs/namei.c~reiserfs-replace-remaining-__function__-occurrences fs/reiserfs/namei.c
---- a/fs/reiserfs/namei.c~reiserfs-replace-remaining-__function__-occurrences
-+++ a/fs/reiserfs/namei.c
-@@ -301,7 +301,7 @@ static int reiserfs_find_entry(struct in
- 					path_to_entry, de);
- 		if (retval == IO_ERROR) {
- 			reiserfs_warning(dir->i_sb, "zam-7001: io error in %s",
--					 __FUNCTION__);
-+					 __func__);
- 			return IO_ERROR;
- 		}
+-					RFALSE(ret_val,
++					RFALSE(leaf_mi,
+ 					       "PAP-12240: unexpected value returned by leaf_move_items (%d)",
+-					       ret_val);
++					       leaf_mi);
  
-@@ -496,7 +496,7 @@ static int reiserfs_add_entry(struct rei
- 			reiserfs_warning(dir->i_sb,
- 					 "zam-7002:%s: \"reiserfs_find_entry\" "
- 					 "has returned unexpected value (%d)",
--					 __FUNCTION__, retval);
-+					 __func__, retval);
- 		}
- 
- 		return -EEXIST;
-@@ -907,7 +907,7 @@ static int reiserfs_rmdir(struct inode *
- 
- 	if (inode->i_nlink != 2 && inode->i_nlink != 1)
- 		reiserfs_warning(inode->i_sb, "%s: empty directory has nlink "
--				 "!= 2 (%d)", __FUNCTION__, inode->i_nlink);
-+				 "!= 2 (%d)", __func__, inode->i_nlink);
- 
- 	clear_nlink(inode);
- 	inode->i_ctime = dir->i_ctime = dir->i_mtime = CURRENT_TIME_SEC;
-@@ -984,7 +984,7 @@ static int reiserfs_unlink(struct inode 
- 
- 	if (!inode->i_nlink) {
- 		reiserfs_warning(inode->i_sb, "%s: deleting nonexistent file "
--				 "(%s:%lu), %d", __FUNCTION__,
-+				 "(%s:%lu), %d", __func__,
- 				 reiserfs_bdevname(inode->i_sb), inode->i_ino,
- 				 inode->i_nlink);
- 		inode->i_nlink = 1;
-diff -puN fs/reiserfs/objectid.c~reiserfs-replace-remaining-__function__-occurrences fs/reiserfs/objectid.c
---- a/fs/reiserfs/objectid.c~reiserfs-replace-remaining-__function__-occurrences
-+++ a/fs/reiserfs/objectid.c
-@@ -61,7 +61,7 @@ __u32 reiserfs_get_unused_objectid(struc
- 	/* comment needed -Hans */
- 	unused_objectid = le32_to_cpu(map[1]);
- 	if (unused_objectid == U32_MAX) {
--		reiserfs_warning(s, "%s: no more object ids", __FUNCTION__);
-+		reiserfs_warning(s, "%s: no more object ids", __func__);
- 		reiserfs_restore_prepared_buffer(s, SB_BUFFER_WITH_SB(s));
- 		return 0;
- 	}
+ 					/* paste into item */
+ 					bi.tb = tb;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
