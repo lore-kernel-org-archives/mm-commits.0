@@ -1,86 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - ncpfs-add-prototypes-to-ncp_fsh.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:55:06 -0700
-Message-ID: <200804282155.m3SLt6BY018074@imap1.linux-foundation.org>
+Subject: - ncpfs-fix-sparse-warnings-in-ioctlc.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:55:09 -0700
+Message-ID: <200804282155.m3SLt9pY018080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34552 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35406 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934904AbYD1VzL (ORCPT
+	by vger.kernel.org with ESMTP id S935058AbYD1VzN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:55:11 -0400
+	Mon, 28 Apr 2008 17:55:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, VANDROVE@vc.cvut.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ncpfs: add prototypes to ncp_fs.h
+     ncpfs: fix sparse warnings in ioctl.c
 has been removed from the -mm tree.  Its filename was
-     ncpfs-add-prototypes-to-ncp_fsh.patch
+     ncpfs-fix-sparse-warnings-in-ioctlc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ncpfs: add prototypes to ncp_fs.h
+Subject: ncpfs: fix sparse warnings in ioctl.c
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Removes some externs from C files, noticed from the sparse warnings:
-fs/ncpfs/dir.c:90:26: warning: symbol 'ncp_root_dentry_operations' was not declared. Should it be static?
-fs/ncpfs/symlink.c:107:5: warning: symbol 'ncp_symlink' was not declared. Should it be static?
-fs/ncpfs/symlink.c:101:39: warning: symbol 'ncp_symlink_aops' was not declared. Should it be static?
+In both cases, these inode variables arebeing used to test the
+server's root inode against NULL.  Change them to s_inode.
+fs/ncpfs/ioctl.c:391:18: warning: symbol 'inode' shadows an earlier one
+fs/ncpfs/ioctl.c:264:28: originally declared here
+fs/ncpfs/ioctl.c:441:17: warning: symbol 'inode' shadows an earlier one
+fs/ncpfs/ioctl.c:264:28: originally declared here
+
+In this case, we are about to return anyway, just reuse result.
+fs/ncpfs/ioctl.c:521:8: warning: symbol 'result' shadows an earlier one
+fs/ncpfs/ioctl.c:268:6: originally declared here
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Acked-by: Petr Vandrovec <VANDROVE@vc.cvut.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/inode.c       |    6 ------
- include/linux/ncp_fs.h |    7 +++++++
- 2 files changed, 7 insertions(+), 6 deletions(-)
+ fs/ncpfs/ioctl.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN fs/ncpfs/inode.c~ncpfs-add-prototypes-to-ncp_fsh fs/ncpfs/inode.c
---- a/fs/ncpfs/inode.c~ncpfs-add-prototypes-to-ncp_fsh
-+++ a/fs/ncpfs/inode.c
-@@ -107,12 +107,6 @@ static const struct super_operations ncp
- 	.show_options	= ncp_show_options,
- };
+diff -puN fs/ncpfs/ioctl.c~ncpfs-fix-sparse-warnings-in-ioctlc fs/ncpfs/ioctl.c
+--- a/fs/ncpfs/ioctl.c~ncpfs-fix-sparse-warnings-in-ioctlc
++++ a/fs/ncpfs/ioctl.c
+@@ -389,11 +389,11 @@ static int __ncp_ioctl(struct inode *ino
+ 				struct dentry* dentry = inode->i_sb->s_root;
  
--extern struct dentry_operations ncp_root_dentry_operations;
--#if defined(CONFIG_NCPFS_EXTRAS) || defined(CONFIG_NCPFS_NFS_NS)
--extern const struct address_space_operations ncp_symlink_aops;
--extern int ncp_symlink(struct inode*, struct dentry*, const char*);
--#endif
--
- /*
-  * Fill in the ncpfs-specific information in the inode.
-  */
-diff -puN include/linux/ncp_fs.h~ncpfs-add-prototypes-to-ncp_fsh include/linux/ncp_fs.h
---- a/include/linux/ncp_fs.h~ncpfs-add-prototypes-to-ncp_fsh
-+++ a/include/linux/ncp_fs.h
-@@ -204,6 +204,7 @@ void ncp_update_inode2(struct inode *, s
- /* linux/fs/ncpfs/dir.c */
- extern const struct inode_operations ncp_dir_inode_operations;
- extern const struct file_operations ncp_dir_operations;
-+extern struct dentry_operations ncp_root_dentry_operations;
- int ncp_conn_logged_in(struct super_block *);
- int ncp_date_dos2unix(__le16 time, __le16 date);
- void ncp_date_unix2dos(int unix_date, __le16 * time, __le16 * date);
-@@ -223,6 +224,12 @@ int ncp_disconnect(struct ncp_server *se
- void ncp_lock_server(struct ncp_server *server);
- void ncp_unlock_server(struct ncp_server *server);
+ 				if (dentry) {
+-					struct inode* inode = dentry->d_inode;
++					struct inode* s_inode = dentry->d_inode;
+ 				
+-					if (inode) {
+-						sr.volNumber = NCP_FINFO(inode)->volNumber;
+-						sr.dirEntNum = NCP_FINFO(inode)->dirEntNum;
++					if (s_inode) {
++						sr.volNumber = NCP_FINFO(s_inode)->volNumber;
++						sr.dirEntNum = NCP_FINFO(s_inode)->dirEntNum;
+ 						sr.namespace = server->name_space[sr.volNumber];
+ 					} else
+ 						DPRINTK("ncpfs: s_root->d_inode==NULL\n");
+@@ -439,12 +439,12 @@ static int __ncp_ioctl(struct inode *ino
+ 			dentry = inode->i_sb->s_root;
+ 			server->root_setuped = 1;
+ 			if (dentry) {
+-				struct inode* inode = dentry->d_inode;
++				struct inode* s_inode = dentry->d_inode;
+ 				
+ 				if (inode) {
+-					NCP_FINFO(inode)->volNumber = vnum;
+-					NCP_FINFO(inode)->dirEntNum = de;
+-					NCP_FINFO(inode)->DosDirNum = dosde;
++					NCP_FINFO(s_inode)->volNumber = vnum;
++					NCP_FINFO(s_inode)->dirEntNum = de;
++					NCP_FINFO(s_inode)->DosDirNum = dosde;
+ 				} else
+ 					DPRINTK("ncpfs: s_root->d_inode==NULL\n");
+ 			} else
+@@ -519,7 +519,6 @@ static int __ncp_ioctl(struct inode *ino
+ 		}
+ 		{
+ 			struct ncp_lock_ioctl	 rqdata;
+-			int result;
  
-+/* linux/fs/ncpfs/symlink.c */
-+#if defined(CONFIG_NCPFS_EXTRAS) || defined(CONFIG_NCPFS_NFS_NS)
-+extern const struct address_space_operations ncp_symlink_aops;
-+int ncp_symlink(struct inode*, struct dentry*, const char*);
-+#endif
-+
- /* linux/fs/ncpfs/file.c */
- extern const struct inode_operations ncp_file_inode_operations;
- extern const struct file_operations ncp_file_operations;
+ 			if (copy_from_user(&rqdata, argp, sizeof(rqdata)))
+ 				return -EFAULT;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
