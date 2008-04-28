@@ -1,113 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - memory-hotplug-make-alloc_bootmem_section.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:53:57 -0700
-Message-ID: <200804282153.m3SLrvNA017945@imap1.linux-foundation.org>
+Subject: - md-fix-integer-as-null-pointer-warnings-in-mdc.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:59:51 -0700
+Message-ID: <200804282159.m3SLxpmD018622@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51353 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42437 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934933AbYD1V7v (ORCPT
+	by vger.kernel.org with ESMTP id S935249AbYD1V74 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:59:51 -0400
+	Mon, 28 Apr 2008 17:59:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: y-goto@jp.fujitsu.com, pbadari@us.ibm.com, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory hotplug: make alloc_bootmem_section()
+     md: fix integer as NULL pointer warnings in md.c
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-make-alloc_bootmem_section.patch
+     md-fix-integer-as-null-pointer-warnings-in-mdc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory hotplug: make alloc_bootmem_section()
-From: Yasunori Goto <y-goto@jp.fujitsu.com>
+Subject: md: fix integer as NULL pointer warnings in md.c
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-alloc_bootmem_section() can allocate specified section's area.  This is used
-for usemap to keep same section with pgdat by later patch.
+drivers/md/md.c:734:16: warning: Using plain integer as NULL pointer
+drivers/md/md.c:1115:16: warning: Using plain integer as NULL pointer
 
-Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Badari Pulavarty <pbadari@us.ibm.com>
-Cc: Yinghai Lu <yhlu.kernel@gmail.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Add some braces to match the else-block as well.
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bootmem.h |    2 ++
- mm/bootmem.c            |   31 +++++++++++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
+ drivers/md/md.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/bootmem.h~memory-hotplug-make-alloc_bootmem_section include/linux/bootmem.h
---- a/include/linux/bootmem.h~memory-hotplug-make-alloc_bootmem_section
-+++ a/include/linux/bootmem.h
-@@ -101,6 +101,8 @@ extern void reserve_bootmem_node(pg_data
- extern void free_bootmem_node(pg_data_t *pgdat,
- 			      unsigned long addr,
- 			      unsigned long size);
-+extern void *alloc_bootmem_section(unsigned long size,
-+				   unsigned long section_nr);
+diff -puN drivers/md/md.c~md-fix-integer-as-null-pointer-warnings-in-mdc drivers/md/md.c
+--- a/drivers/md/md.c~md-fix-integer-as-null-pointer-warnings-in-mdc
++++ a/drivers/md/md.c
+@@ -731,9 +731,9 @@ static int super_90_load(mdk_rdev_t *rde
+ 	else
+ 		rdev->desc_nr = sb->this_disk.number;
  
- #ifndef CONFIG_HAVE_ARCH_BOOTMEM_NODE
- #define alloc_bootmem_node(pgdat, x) \
-diff -puN mm/bootmem.c~memory-hotplug-make-alloc_bootmem_section mm/bootmem.c
---- a/mm/bootmem.c~memory-hotplug-make-alloc_bootmem_section
-+++ a/mm/bootmem.c
-@@ -545,6 +545,37 @@ void * __init __alloc_bootmem_node(pg_da
- 	return __alloc_bootmem(size, align, goal);
- }
+-	if (refdev == 0)
++	if (!refdev) {
+ 		ret = 1;
+-	else {
++	} else {
+ 		__u64 ev1, ev2;
+ 		mdp_super_t *refsb = (mdp_super_t*)page_address(refdev->sb_page);
+ 		if (!uuid_equal(refsb, sb)) {
+@@ -1116,9 +1116,9 @@ static int super_1_load(mdk_rdev_t *rdev
+ 	else
+ 		rdev->desc_nr = le32_to_cpu(sb->dev_number);
  
-+#ifdef CONFIG_SPARSEMEM
-+void * __init alloc_bootmem_section(unsigned long size,
-+				    unsigned long section_nr)
-+{
-+	void *ptr;
-+	unsigned long limit, goal, start_nr, end_nr, pfn;
-+	struct pglist_data *pgdat;
-+
-+	pfn = section_nr_to_pfn(section_nr);
-+	goal = PFN_PHYS(pfn);
-+	limit = PFN_PHYS(section_nr_to_pfn(section_nr + 1)) - 1;
-+	pgdat = NODE_DATA(early_pfn_to_nid(pfn));
-+	ptr = __alloc_bootmem_core(pgdat->bdata, size, SMP_CACHE_BYTES, goal,
-+				   limit);
-+
-+	if (!ptr)
-+		return NULL;
-+
-+	start_nr = pfn_to_section_nr(PFN_DOWN(__pa(ptr)));
-+	end_nr = pfn_to_section_nr(PFN_DOWN(__pa(ptr) + size));
-+	if (start_nr != section_nr || end_nr != section_nr) {
-+		printk(KERN_WARNING "alloc_bootmem failed on section %ld.\n",
-+		       section_nr);
-+		free_bootmem_core(pgdat->bdata, __pa(ptr), size);
-+		ptr = NULL;
-+	}
-+
-+	return ptr;
-+}
-+#endif
-+
- #ifndef ARCH_LOW_ADDRESS_LIMIT
- #define ARCH_LOW_ADDRESS_LIMIT	0xffffffffUL
- #endif
+-	if (refdev == 0)
++	if (!refdev) {
+ 		ret = 1;
+-	else {
++	} else {
+ 		__u64 ev1, ev2;
+ 		struct mdp_superblock_1 *refsb = 
+ 			(struct mdp_superblock_1*)page_address(refdev->sb_page);
 _
 
-Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-powerpc-hotplug-memory-notifications-for-ppc.patch
-powerpc-update-lmb-for-hotplug-memory-add-remove.patch
-powerpc-provide-walk_memory_resource-for-ppc.patch
-ipc-scale-msgmni-to-the-amount-of-lowmem.patch
-ipc-scale-msgmni-to-the-number-of-ipc-namespaces.patch
-ipc-define-the-slab_memory_callback-priority-as-a-constant.patch
-ipc-recompute-msgmni-on-memory-add--remove.patch
-ipc-invoke-the-ipcns-notifier-chain-as-a-work-item.patch
-ipc-recompute-msgmni-on-ipc-namespace-creation-removal.patch
-ipc-do-not-recompute-msgmni-anymore-if-explicitly-set-by-user.patch
-ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative.patch
+cifs-remove-global_extern-macro.patch
+input-replace-remaining-__function__-occurrences.patch
+git-kvm.patch
+git-mips.patch
+git-nfsd.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+git-watchdog.patch
+git-xfs.patch
+xtensa-replace-remaining-__function__-occurences.patch
+power-replace-remaining-__function__-occurrences.patch
+adfs-work-around-bogus-sparse-warning.patch
+coda-add-static-to-functions-in-dirc.patch
+befs-fix-sparse-warning-in-linuxvfsc.patch
+autofs4-fix-sparse-warning-in-rootc.patch
+firmware-replace-remaining-__function__-occurrences.patch
+drivers-misc-replace-remaining-__function__-occurrences.patch
+xen-make-blkif_getgeo-static.patch
+ecryptfs-replace-remaining-__function__-occurrences.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+ext4-replace-remaining-__function__-occurrences.patch
+jdb2-replace-remaining-__function__-occurrences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+drivers-replace-remaining-__function__-occurrences.patch
+kernel-add-common-infrastructure-for-unaligned-access.patch
+kernel-move-arches-to-use-common-unaligned-access.patch
+drivers-block-use-get_unaligned_-helpers.patch
+hid-core-use-get_unaligned_-helpers.patch
+char-use-get_unaligned_-helpers.patch
+input-use-get_unaligned_-helpers.patch
+mmc-use-get-put_unaligned_-helpers.patch
+net-use-get-put_unaligned_-helpers.patch
+wireless-use-get-put_unaligned_-helpers.patch
+pcmcia-use-get-put_unaligned_-helpers.patch
+usb-use-get-put_unaligned_-helpers.patch
+video-use-get-put_unaligned_-helpers.patch
+fat-use-get-put_unaligned_-helpers.patch
+hfsplus-use-get-put_unaligned_-helpers.patch
+isofs-use-get-put_unaligned_-helpers.patch
+ncpfs-use-get-put_unaligned_-helpers.patch
+ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
