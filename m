@@ -1,138 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_lcdfb-wiring-bgr-to-rgb-color-mode.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:58:41 -0700
-Message-ID: <200804282158.m3SLwfvB018510@imap1.linux-foundation.org>
+Subject: - lxfb-clean-up-final-bits-of-df_regs.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:58:53 -0700
+Message-ID: <200804282158.m3SLwrSa018526@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60121 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965436AbYD1V66 (ORCPT
+	by vger.kernel.org with ESMTP id S965444AbYD1V7L (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:58:58 -0400
+	Mon, 28 Apr 2008 17:59:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.ferre@atmel.com, adaplas@pol.net, avictor.za@gmail.com, dbrownell@users.sourceforge.net, hcegtvedt@atmel.com, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_lcdfb: wiring BGR to RGB color mode
+     lxfb: clean up final bits of df_regs
 has been removed from the -mm tree.  Its filename was
-     atmel_lcdfb-wiring-bgr-to-rgb-color-mode.patch
+     lxfb-clean-up-final-bits-of-df_regs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb: wiring BGR to RGB color mode
-From: Nicolas Ferre <nicolas.ferre@atmel.com>
+Subject: lxfb: clean up final bits of df_regs
+From: Andres Salomon <dilinger@queued.net>
 
-Adds different wiring mode for the LCD screen.
+Finally drop the last remnants of df_regs, using vp_regs instead.  Also, drop
+panel_width and panel_height from lxfb_par; they're unused.
 
-The legacy atmel LCDC IP uses a non standard color mode, "BGR-555.1" instead
-"RGB-565".  The major part of graphic stacks for embedded systems uses only
-"RGB-565".  It is possible to swap LCD IOs instead of doing this bit swapping
-by software (See application note AT91SAM9 LCD Controller
-http://www.atmel.com/dyn/resources/prod_documents/doc6300.pdf)
-
-This wire swapping is done on the at91sam9rl-ek board (board code
-using this patch will come later).
-
-Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Hans-Christian Egtvedt <hcegtvedt@atmel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
-Cc: Andrew Victor <avictor.za@gmail.com>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |   27 ++++++++++++++++++++++-----
- include/video/atmel_lcdc.h  |   10 ++++++++++
- 2 files changed, 32 insertions(+), 5 deletions(-)
+ drivers/video/geode/lxfb.h      |   12 +++++-------
+ drivers/video/geode/lxfb_core.c |   12 ++++++------
+ 2 files changed, 11 insertions(+), 13 deletions(-)
 
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-wiring-bgr-to-rgb-color-mode drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-wiring-bgr-to-rgb-color-mode
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -338,19 +338,35 @@ static int atmel_lcdfb_check_var(struct 
- 		break;
- 	case 15:
- 	case 16:
--		var->red.offset = 0;
-+		if (sinfo->lcd_wiring_mode == ATMEL_LCDC_WIRING_RGB) {
-+			/* RGB:565 mode */
-+			var->red.offset = 11;
-+			var->blue.offset = 0;
-+			var->green.length = 6;
-+		} else {
-+			/* BGR:555 mode */
-+			var->red.offset = 0;
-+			var->blue.offset = 10;
-+			var->green.length = 5;
-+		}
- 		var->green.offset = 5;
--		var->blue.offset = 10;
--		var->red.length = var->green.length = var->blue.length = 5;
-+		var->red.length = var->blue.length = 5;
- 		break;
- 	case 32:
- 		var->transp.offset = 24;
- 		var->transp.length = 8;
- 		/* fall through */
- 	case 24:
--		var->red.offset = 0;
-+		if (sinfo->lcd_wiring_mode == ATMEL_LCDC_WIRING_RGB) {
-+			/* RGB:888 mode */
-+			var->red.offset = 16;
-+			var->blue.offset = 0;
-+		} else {
-+			/* BGR:888 mode */
-+			var->red.offset = 0;
-+			var->blue.offset = 16;
-+		}
- 		var->green.offset = 8;
--		var->blue.offset = 16;
- 		var->red.length = var->green.length = var->blue.length = 8;
- 		break;
- 	default:
-@@ -697,6 +713,7 @@ static int __init atmel_lcdfb_probe(stru
- 		sinfo->atmel_lcdfb_power_control = pdata_sinfo->atmel_lcdfb_power_control;
- 		sinfo->guard_time = pdata_sinfo->guard_time;
- 		sinfo->lcdcon_is_backlight = pdata_sinfo->lcdcon_is_backlight;
-+		sinfo->lcd_wiring_mode = pdata_sinfo->lcd_wiring_mode;
- 	} else {
- 		dev_err(dev, "cannot get default configuration\n");
- 		goto free_info;
-diff -puN include/video/atmel_lcdc.h~atmel_lcdfb-wiring-bgr-to-rgb-color-mode include/video/atmel_lcdc.h
---- a/include/video/atmel_lcdc.h~atmel_lcdfb-wiring-bgr-to-rgb-color-mode
-+++ a/include/video/atmel_lcdc.h
-@@ -22,6 +22,15 @@
- #ifndef __ATMEL_LCDC_H__
- #define __ATMEL_LCDC_H__
+diff -puN drivers/video/geode/lxfb.h~lxfb-clean-up-final-bits-of-df_regs drivers/video/geode/lxfb.h
+--- a/drivers/video/geode/lxfb.h~lxfb-clean-up-final-bits-of-df_regs
++++ a/drivers/video/geode/lxfb.h
+@@ -8,12 +8,10 @@
  
-+
-+/* Way LCD wires are connected to the chip:
-+ * Some Atmel chips use BGR color mode (instead of standard RGB)
-+ * A swapped wiring onboard can bring to RGB mode.
-+ */
-+#define ATMEL_LCDC_WIRING_BGR	0
-+#define ATMEL_LCDC_WIRING_RGB	1
-+
-+
-  /* LCD Controller info data structure, stored in device platform_data */
- struct atmel_lcdfb_info {
- 	spinlock_t		lock;
-@@ -42,6 +51,7 @@ struct atmel_lcdfb_info {
- 	u8			saved_lcdcon;
+ struct lxfb_par {
+ 	int output;
+-	int panel_width;
+-	int panel_height;
  
- 	u8			default_bpp;
-+	u8			lcd_wiring_mode;
- 	unsigned int		default_lcdcon2;
- 	unsigned int		default_dmacon;
- 	void (*atmel_lcdfb_power_control)(int on);
+ 	void __iomem *gp_regs;
+ 	void __iomem *dc_regs;
+-	void __iomem *df_regs;
++	void __iomem *vp_regs;
+ };
+ 
+ static inline unsigned int lx_get_pitch(unsigned int xres, int bpp)
+@@ -374,22 +372,22 @@ static inline void write_dc(struct lxfb_
+ 
+ static inline uint32_t read_vp(struct lxfb_par *par, int reg)
+ {
+-	return readl(par->df_regs + 8*reg);
++	return readl(par->vp_regs + 8*reg);
+ }
+ 
+ static inline void write_vp(struct lxfb_par *par, int reg, uint32_t val)
+ {
+-	writel(val, par->df_regs + 8*reg);
++	writel(val, par->vp_regs + 8*reg);
+ }
+ 
+ static inline uint32_t read_fp(struct lxfb_par *par, int reg)
+ {
+-	return readl(par->df_regs + 8*reg + VP_FP_START);
++	return readl(par->vp_regs + 8*reg + VP_FP_START);
+ }
+ 
+ static inline void write_fp(struct lxfb_par *par, int reg, uint32_t val)
+ {
+-	writel(val, par->df_regs + 8*reg + VP_FP_START);
++	writel(val, par->vp_regs + 8*reg + VP_FP_START);
+ }
+ 
+ #endif
+diff -puN drivers/video/geode/lxfb_core.c~lxfb-clean-up-final-bits-of-df_regs drivers/video/geode/lxfb_core.c
+--- a/drivers/video/geode/lxfb_core.c~lxfb-clean-up-final-bits-of-df_regs
++++ a/drivers/video/geode/lxfb_core.c
+@@ -333,7 +333,7 @@ static int __init lxfb_map_video_memory(
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = pci_request_region(dev, 3, "lxfb-vip");
++	ret = pci_request_region(dev, 3, "lxfb-vp");
+ 
+ 	if (ret)
+ 		return ret;
+@@ -360,10 +360,10 @@ static int __init lxfb_map_video_memory(
+ 	if (par->dc_regs == NULL)
+ 		return ret;
+ 
+-	par->df_regs = ioremap(pci_resource_start(dev, 3),
++	par->vp_regs = ioremap(pci_resource_start(dev, 3),
+ 			       pci_resource_len(dev, 3));
+ 
+-	if (par->df_regs == NULL)
++	if (par->vp_regs == NULL)
+ 		return ret;
+ 
+ 	write_dc(par, DC_UNLOCK, DC_UNLOCK_UNLOCK);
+@@ -507,8 +507,8 @@ err:
+ 		iounmap(par->dc_regs);
+ 		pci_release_region(pdev, 2);
+ 	}
+-	if (par->df_regs) {
+-		iounmap(par->df_regs);
++	if (par->vp_regs) {
++		iounmap(par->vp_regs);
+ 		pci_release_region(pdev, 3);
+ 	}
+ 
+@@ -534,7 +534,7 @@ static void lxfb_remove(struct pci_dev *
+ 	iounmap(par->dc_regs);
+ 	pci_release_region(pdev, 2);
+ 
+-	iounmap(par->df_regs);
++	iounmap(par->vp_regs);
+ 	pci_release_region(pdev, 3);
+ 
+ 	pci_set_drvdata(pdev, NULL);
 _
 
-Patches currently in -mm which might be from nicolas.ferre@atmel.com are
+Patches currently in -mm which might be from dilinger@queued.net are
 
 origin.patch
+git-kbuild.patch
+x86-olpc-add-one-laptop-per-child-architecture-support.patch
 
