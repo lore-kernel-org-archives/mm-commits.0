@@ -1,105 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:56:33 -0700
-Message-ID: <200804282156.m3SLuX19018239@imap1.linux-foundation.org>
+Subject: - isdn-rename-config_avmb1_compat-to-not-look-like-a-kconfig-variable.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:56:55 -0700
+Message-ID: <200804282156.m3SLutvE018282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59653 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58460 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937225AbYD1V4h (ORCPT
+	by vger.kernel.org with ESMTP id S965098AbYD1V5C (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:56:37 -0400
+	Mon, 28 Apr 2008 17:57:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota: ext4: make ext4 handle quotaon on remount
+     isdn: rename CONFIG_AVMB1_COMPAT to not look like a Kconfig variable
 has been removed from the -mm tree.  Its filename was
-     quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch
+     isdn-rename-config_avmb1_compat-to-not-look-like-a-kconfig-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: ext4: make ext4 handle quotaon on remount
-From: Jan Kara <jack@suse.cz>
+Subject: isdn: rename CONFIG_AVMB1_COMPAT to not look like a Kconfig variable
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Update ext4 to handle quotaon on remount RW.
+Since CONFIG_AVMB1_COMPAT is not a Kconfig variable, move it out of the
+Kconfig namespace.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/super.c |   15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
+ drivers/isdn/capi/kcapi.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/ext4/super.c~quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount fs/ext4/super.c
---- a/fs/ext4/super.c~quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount
-+++ a/fs/ext4/super.c
-@@ -813,7 +813,8 @@ static int ext4_acquire_dquot(struct dqu
- static int ext4_release_dquot(struct dquot *dquot);
- static int ext4_mark_dquot_dirty(struct dquot *dquot);
- static int ext4_write_info(struct super_block *sb, int type);
--static int ext4_quota_on(struct super_block *sb, int type, int format_id, char *path);
-+static int ext4_quota_on(struct super_block *sb, int type, int format_id,
-+				char *path, int remount);
- static int ext4_quota_on_mount(struct super_block *sb, int type);
- static ssize_t ext4_quota_read(struct super_block *sb, int type, char *data,
- 			       size_t len, loff_t off);
-@@ -1632,7 +1633,7 @@ static void ext4_orphan_cleanup (struct 
- 	/* Turn quotas off */
- 	for (i = 0; i < MAXQUOTAS; i++) {
- 		if (sb_dqopt(sb)->files[i])
--			vfs_quota_off(sb, i);
-+			vfs_quota_off(sb, i, 0);
- 	}
- #endif
- 	sb->s_flags = s_flags; /* Restore MS_RDONLY status */
-@@ -3143,7 +3144,7 @@ static int ext4_quota_on_mount(struct su
-  * Standard function to be called on quota_on
+diff -puN drivers/isdn/capi/kcapi.c~isdn-rename-config_avmb1_compat-to-not-look-like-a-kconfig-variable drivers/isdn/capi/kcapi.c
+--- a/drivers/isdn/capi/kcapi.c~isdn-rename-config_avmb1_compat-to-not-look-like-a-kconfig-variable
++++ a/drivers/isdn/capi/kcapi.c
+@@ -10,7 +10,7 @@
+  *
   */
- static int ext4_quota_on(struct super_block *sb, int type, int format_id,
--			 char *path)
-+			 char *path, int remount)
- {
- 	int err;
- 	struct nameidata nd;
-@@ -3151,9 +3152,9 @@ static int ext4_quota_on(struct super_bl
- 	if (!test_opt(sb, QUOTA))
- 		return -EINVAL;
- 	/* Not journalling quota? */
--	if (!EXT4_SB(sb)->s_qf_names[USRQUOTA] &&
--	    !EXT4_SB(sb)->s_qf_names[GRPQUOTA])
--		return vfs_quota_on(sb, type, format_id, path);
-+	if ((!EXT4_SB(sb)->s_qf_names[USRQUOTA] &&
-+	    !EXT4_SB(sb)->s_qf_names[GRPQUOTA]) || remount)
-+		return vfs_quota_on(sb, type, format_id, path, remount);
- 	err = path_lookup(path, LOOKUP_FOLLOW, &nd);
- 	if (err)
- 		return err;
-@@ -3168,7 +3169,7 @@ static int ext4_quota_on(struct super_bl
- 			"EXT4-fs: Quota file not on filesystem root. "
- 			"Journalled quota will not work.\n");
- 	path_put(&nd.path);
--	return vfs_quota_on(sb, type, format_id, path);
-+	return vfs_quota_on(sb, type, format_id, path, remount);
- }
  
- /* Read data from quotafile - avoid pagecache and such because we cannot afford
+-#define CONFIG_AVMB1_COMPAT
++#define AVMB1_COMPAT
+ 
+ #include "kcapi.h"
+ #include <linux/module.h>
+@@ -29,7 +29,7 @@
+ #include <asm/uaccess.h>
+ #include <linux/isdn/capicmd.h>
+ #include <linux/isdn/capiutil.h>
+-#ifdef CONFIG_AVMB1_COMPAT
++#ifdef AVMB1_COMPAT
+ #include <linux/b1lli.h>
+ #endif
+ #include <linux/mutex.h>
+@@ -740,7 +740,7 @@ u16 capi20_get_profile(u32 contr, struct
+ 
+ EXPORT_SYMBOL(capi20_get_profile);
+ 
+-#ifdef CONFIG_AVMB1_COMPAT
++#ifdef AVMB1_COMPAT
+ static int old_capi_manufacturer(unsigned int cmd, void __user *data)
+ {
+ 	avmb1_loadandconfigdef ldef;
+@@ -904,7 +904,7 @@ int capi20_manufacturer(unsigned int cmd
+         struct capi_ctr *card;
+ 
+ 	switch (cmd) {
+-#ifdef CONFIG_AVMB1_COMPAT
++#ifdef AVMB1_COMPAT
+ 	case AVMB1_LOAD:
+ 	case AVMB1_LOAD_AND_CONFIG:
+ 	case AVMB1_RESETCARD:
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
 origin.patch
-vfs-fix-lock-inversion-in-drop_pagecache_sb.patch
-vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb.patch
-ext4-fix-update-of-mtime-and-ctime-on-rename.patch
-ext4-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
-ext4-fix-mount-messages-when-quota-disabled.patch
-quota-le_add_cpu-conversion.patch
-isofs-use-get-put_unaligned_-helpers.patch
+git-mtd.patch
+git-nfsd.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
+kernel-explicitly-include-required-header-files-under-kernel.patch
+remove-superfluous-include-of-stringh-from-percpuh.patch
+kbuild-remove-duplicate-conflicting-entry-for-oomh.patch
+kbuild-move-files-that-dont-check-__kernel__.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+maintainers-clarify-status-of-mn10300-mailing-list-as-moderated.patch
+ipmi-make-comment-match-actual-preprocessor-check.patch
+keys-explicitly-include-required-slabh-header-file.patch
+nbd-delete-superfluous-test-for-__gnuc__.patch
+generalize-asm-generic-ioctlh-to-allow-overriding-values.patch
+edac-use-the-shorter-list_head-for-brevity.patch
+afs-use-the-shorter-list_head-for-brevity.patch
+sysv-fs-remove-superfluous-check-for-__gnuc__-compiler.patch
+remove-ifdef-__kernel__-checks-from-unexported-headers.patch
+remove-__kernel__-tests-of-unexported-headers-under-asm-generic.patch
+drop-the-exporting-of-empty-linux-byteorder-generich.patch
 
