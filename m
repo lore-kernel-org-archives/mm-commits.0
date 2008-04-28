@@ -1,67 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-simplify-quirk-debug-output.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:00:08 -0700
-Message-ID: <200804282200.m3SM08a7018667@imap1.linux-foundation.org>
+Subject: - ext2-convert-byte-order-of-constant-instead-of-variable.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:00:14 -0700
+Message-ID: <200804282200.m3SM0Eh4018676@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38808 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58664 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965498AbYD1WAR (ORCPT
+	by vger.kernel.org with ESMTP id S965525AbYD1WAR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 28 Apr 2008 18:00:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PNP: simplify quirk debug output
+     ext2: convert byte order of constant instead of variable
 has been removed from the -mm tree.  Its filename was
-     pnp-simplify-quirk-debug-output.patch
+     ext2-convert-byte-order-of-constant-instead-of-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PNP: simplify quirk debug output
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: ext2: convert byte order of constant instead of variable
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-print_fn_descriptor_symbol() prints the address if we don't have a symbol,
-so no need to print both.
+Convert byte order of constant instead of variable which can be done at
+compile time (vs run time).
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ext2/super.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/pnp/quirks.c~pnp-simplify-quirk-debug-output drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-simplify-quirk-debug-output
-+++ a/drivers/pnp/quirks.c
-@@ -214,8 +214,8 @@ void pnp_fixup_device(struct pnp_dev *de
- 			quirk = pnp_fixups[i].quirk_function;
+diff -puN fs/ext2/super.c~ext2-convert-byte-order-of-constant-instead-of-variable fs/ext2/super.c
+--- a/fs/ext2/super.c~ext2-convert-byte-order-of-constant-instead-of-variable
++++ a/fs/ext2/super.c
+@@ -51,8 +51,7 @@ void ext2_error (struct super_block * sb
  
- #ifdef DEBUG
--			dev_dbg(&dev->dev, "calling quirk 0x%p", quirk);
--			print_fn_descriptor_symbol(": %s()\n",
-+			dev_dbg(&dev->dev, "calling ");
-+			print_fn_descriptor_symbol("%s()\n",
- 				(unsigned long) *quirk);
- #endif
- 			(*quirk)(dev);
+ 	if (!(sb->s_flags & MS_RDONLY)) {
+ 		sbi->s_mount_state |= EXT2_ERROR_FS;
+-		es->s_state =
+-			cpu_to_le16(le16_to_cpu(es->s_state) | EXT2_ERROR_FS);
++		es->s_state |= cpu_to_le16(EXT2_ERROR_FS);
+ 		ext2_sync_super(sb, es);
+ 	}
+ 
+@@ -1126,10 +1125,9 @@ void ext2_write_super (struct super_bloc
+ 	if (!(sb->s_flags & MS_RDONLY)) {
+ 		es = EXT2_SB(sb)->s_es;
+ 
+-		if (le16_to_cpu(es->s_state) & EXT2_VALID_FS) {
++		if (es->s_state & cpu_to_le16(EXT2_VALID_FS)) {
+ 			ext2_debug ("setting valid to 0\n");
+-			es->s_state = cpu_to_le16(le16_to_cpu(es->s_state) &
+-						  ~EXT2_VALID_FS);
++			es->s_state &= cpu_to_le16(~EXT2_VALID_FS);
+ 			es->s_free_blocks_count = cpu_to_le32(ext2_count_free_blocks(sb));
+ 			es->s_free_inodes_count = cpu_to_le32(ext2_count_free_inodes(sb));
+ 			es->s_mtime = cpu_to_le32(get_seconds());
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-nsc-ircc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-simplify-initcall_debug-output.patch
-proc-introduce-proc_create_data-to-setup-de-data.patch
-drivers-use-non-racy-method-for-proc-entries-creation-2.patch
-parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
-tpm-change-kconfig-dependencies-from-pnpacpi-to-pnp.patch
+ntfs-le_add_cpu-conversion.patch
+affs-be_add_cpu-conversion.patch
+hfs-hfsplus-be_add_cpu-conversion.patch
+quota-le_add_cpu-conversion.patch
+sysv-e_add_cpu-conversion.patch
 
