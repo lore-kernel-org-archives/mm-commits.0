@@ -1,113 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - gxfb-add-power-management-functionality-update.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 00:01:08 -0700
-Message-ID: <200804280701.m3S7184d013072@imap1.linux-foundation.org>
+Subject: - pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 00:01:24 -0700
+Message-ID: <200804280701.m3S71Oji013082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40852 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46600 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763455AbYD1HB0 (ORCPT
+	by vger.kernel.org with ESMTP id S1764844AbYD1HCH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 03:01:26 -0400
+	Mon, 28 Apr 2008 03:02:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adaplas@pol.net, dilinger@queued.net, jordan.crouse@amd.com, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gxfb-add-power-management-functionality update
+     pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix
 has been removed from the -mm tree.  Its filename was
-     gxfb-add-power-management-functionality-update.patch
+     pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
 
-This patch was dropped because it was folded into gxfb-add-power-management-functionality.patch
+This patch was dropped because it was folded into pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gxfb-add-power-management-functionality update
-From: Andres Salomon <dilinger@queued.net>
+Subject: pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This drops the power_state stuff from the patch.  Can you please replace the
-original patch with this one?  Thanks!
+In file included from arch/x86/kernel/asm-offsets_64.c:12,
+                 from arch/x86/kernel/asm-offsets.c:4:
+include/linux/suspend.h: In function 'pm_set_vt_switch':
+include/linux/suspend.h:19: error: parameter name omitted
 
-This adds the ability to suspend/resume the gxfb driver, which includes:
-  - The addition of a Graphics Processor register table in gxfb.h, and
-    associated GP handling.
-  - Register and palette saving code; registers are stored in gxfb_par.
-    A few MSR values are saved as well.
-  - gx_powerup and gx_powerdown functions which restore/save registers and
-    enable/disable graphic engines.
-  - gxfb_suspend/gxfb_resume
+Please use Documentation/SubmitChecklist.
 
-Originally based on a patch by Jordan Crouse.
-
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: Andres Salomon <dilinger@queued.net>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Pavel Machek <pavel@ucw.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/gxfb_core.c |    6 ------
- 1 file changed, 6 deletions(-)
+ include/linux/suspend.h |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/geode/gxfb_core.c~gxfb-add-power-management-functionality-update drivers/video/geode/gxfb_core.c
---- a/drivers/video/geode/gxfb_core.c~gxfb-add-power-management-functionality-update
-+++ a/drivers/video/geode/gxfb_core.c
-@@ -310,9 +310,6 @@ static int gxfb_suspend(struct pci_dev *
- {
- 	struct fb_info *info = pci_get_drvdata(pdev);
- 
--	if (pdev->dev.power.power_state.event == state.event)
--		return 0;
--
- 	if (state.event == PM_EVENT_SUSPEND) {
- 		acquire_console_sem();
- 		gx_powerdown(info);
-@@ -323,7 +320,6 @@ static int gxfb_suspend(struct pci_dev *
- 	/* there's no point in setting PCI states; we emulate PCI, so
- 	 * we don't end up getting power savings anyways */
- 
--	pdev->dev.power.power_state = state;
- 	return 0;
- }
- 
-@@ -341,8 +337,6 @@ static int gxfb_resume(struct pci_dev *p
- 
- 	fb_set_suspend(info, 0);
- 	release_console_sem();
--
--	pdev->dev.power.power_state = PMSG_ON;
- 	return 0;
- }
+diff -puN include/linux/suspend.h~pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix include/linux/suspend.h
+--- a/include/linux/suspend.h~pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix
++++ a/include/linux/suspend.h
+@@ -16,9 +16,18 @@ extern void pm_set_vt_switch(int);
+ extern int pm_prepare_console(void);
+ extern void pm_restore_console(void);
+ #else
+-static inline void pm_set_vt_switch(int) {}
+-static inline int pm_prepare_console(void) { return 0; }
+-static inline void pm_restore_console(void) {}
++static inline void pm_set_vt_switch(int do_switch)
++{
++}
++
++static inline int pm_prepare_console(void)
++{
++	return 0;
++}
++
++static inline void pm_restore_console(void)
++{
++}
  #endif
+ 
+ typedef int __bitwise suspend_state_t;
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-geode-msr-cleanup.patch
-x86-geode-add-virtual-systems-architecture-detection.patch
-gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
-gxfb-replace-fbsize-config-option-with-a-module-parameter.patch
-gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
-gxfb-clean-up-register-definitions.patch
-gxfb-move-msr-bit-fields-into-gxfbh.patch
-gxfb-stop-sharing-code-with-gx1fb.patch
-gxfb-add-power-management-functionality.patch
-gxfb-add-power-management-functionality-update.patch
+origin.patch
+rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
+rtc-pcf8563-new-style-conversion.patch
+rtc-x1205-new-style-conversion.patch
+hotplug-memory-make-online_page-common.patch
+remove-sparse-warning-for-mmzoneh.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret.patch
+mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
+mm-make-early_pfn_to_nid-a-c-function.patch
+vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
+vmallocinfo-add-caller-information.patch
+page_mapping-add-ifdef-around-reference-to-swapper_space.patch
+smaps-account-swap-entries.patch
+mm-introduce-pte_special-pte-bit.patch
+hugetlb-vmstat-events-for-huge-page-allocations.patch
+mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info.patch
+capabilities-implement-per-process-securebits.patch
+lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
+lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
+selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
+audit-final-renamings-and-cleanup-checkpatch-fixes.patch
+arch-alpha-kernel-trapsc-use-time_-macros.patch
+alpha-teach-the-compiler-that-bug-doesnt-return.patch
+uart_get_baud_rate-stop-mangling-termios.patch
+drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
+vt-notifier-extension-for-accessibility.patch
+kprobes-prevent-probing-of-preempt_schedule.patch
+quota-various-style-cleanups.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount.patch
+quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch
+quota-convert-stub-functions-from-macros-into-inlines.patch
+gpiochip_reserve.patch
+fbcon-replace-mono_col-macro-with-static-inline.patch
 pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
 pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
-lxfb-create-gp-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
-lxfb-clean-up-register-definitions.patch
-lxfb-clean-up-final-bits-of-df_regs.patch
-lxfb-rearrange-rename-msr-bitfields.patch
-lxfb-add-power-management-functionality.patch
 lxfb-add-power-management-functionality-fix.patch
-lxfb-add-power-management-functionality-update.patch
-lxfb-rename-kernel-arg-fbsize-to-vram.patch
-lxfb-disable-suspend-vt-switch-by-default.patch
-lxfb-gxfb-when-blanking-with-fb_blank_powerdown-also-turn-off-the-crt.patch
-gxfb-lxfb-use-vsa-definitions-when-fetching-framebuffer-size.patch
-gxfb-lxfb-detect-framebuffer-size-using-an-msr-if-vsa2-isnt-available.patch
-olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers.patch
-olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix.patch
+drivers-video-uvesafbc-fix-error-path-memory-leak.patch
+fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
+drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
+drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
+pnp-use-dev_printk-for-quirk-messages-fix.patch
+ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
+fat_valid_media-remove-pointless-test.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
 
