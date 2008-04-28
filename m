@@ -1,106 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-rename-config_avmb1_compat-to-not-look-like-a-kconfig-variable.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:56:55 -0700
-Message-ID: <200804282156.m3SLutvE018282@imap1.linux-foundation.org>
+Subject: - hisax-depend-on-config_pnp-not-__isapnp__.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:56:51 -0700
+Message-ID: <200804282156.m3SLupsa018273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58460 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48894 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965098AbYD1V5C (ORCPT
+	by vger.kernel.org with ESMTP id S935593AbYD1V5D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:57:02 -0400
+	Mon, 28 Apr 2008 17:57:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, kkeil@suse.de, mm-commits@vger.kernel.org
+To: bjorn.helgaas@hp.com, kkeil@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn: rename CONFIG_AVMB1_COMPAT to not look like a Kconfig variable
+     hisax: depend on CONFIG_PNP, not __ISAPNP__
 has been removed from the -mm tree.  Its filename was
-     isdn-rename-config_avmb1_compat-to-not-look-like-a-kconfig-variable.patch
+     hisax-depend-on-config_pnp-not-__isapnp__.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: rename CONFIG_AVMB1_COMPAT to not look like a Kconfig variable
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: hisax: depend on CONFIG_PNP, not __ISAPNP__
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-Since CONFIG_AVMB1_COMPAT is not a Kconfig variable, move it out of the
-Kconfig namespace.
+The PNP driver interfaces depend on CONFIG_PNP, so test that rather than
+__ISAPNP__.
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Acked-by: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/kcapi.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/isdn/hisax/hisax_fcpcipnp.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/isdn/capi/kcapi.c~isdn-rename-config_avmb1_compat-to-not-look-like-a-kconfig-variable drivers/isdn/capi/kcapi.c
---- a/drivers/isdn/capi/kcapi.c~isdn-rename-config_avmb1_compat-to-not-look-like-a-kconfig-variable
-+++ a/drivers/isdn/capi/kcapi.c
-@@ -10,7 +10,7 @@
-  *
-  */
+diff -puN drivers/isdn/hisax/hisax_fcpcipnp.c~hisax-depend-on-config_pnp-not-__isapnp__ drivers/isdn/hisax/hisax_fcpcipnp.c
+--- a/drivers/isdn/hisax/hisax_fcpcipnp.c~hisax-depend-on-config_pnp-not-__isapnp__
++++ a/drivers/isdn/hisax/hisax_fcpcipnp.c
+@@ -68,7 +68,7 @@ static struct pci_device_id fcpci_ids[] 
  
--#define CONFIG_AVMB1_COMPAT
-+#define AVMB1_COMPAT
+ MODULE_DEVICE_TABLE(pci, fcpci_ids);
  
- #include "kcapi.h"
- #include <linux/module.h>
-@@ -29,7 +29,7 @@
- #include <asm/uaccess.h>
- #include <linux/isdn/capicmd.h>
- #include <linux/isdn/capiutil.h>
--#ifdef CONFIG_AVMB1_COMPAT
-+#ifdef AVMB1_COMPAT
- #include <linux/b1lli.h>
- #endif
- #include <linux/mutex.h>
-@@ -740,7 +740,7 @@ u16 capi20_get_profile(u32 contr, struct
+-#ifdef __ISAPNP__
++#ifdef CONFIG_PNP
+ static struct pnp_device_id fcpnp_ids[] __devinitdata = {
+ 	{ 
+ 		.id		= "AVM0900",
+@@ -914,7 +914,7 @@ static int __devinit fcpci_probe(struct 
+ 	return retval;
+ }
  
- EXPORT_SYMBOL(capi20_get_profile);
- 
--#ifdef CONFIG_AVMB1_COMPAT
-+#ifdef AVMB1_COMPAT
- static int old_capi_manufacturer(unsigned int cmd, void __user *data)
+-#ifdef __ISAPNP__
++#ifdef CONFIG_PNP
+ static int __devinit fcpnp_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
  {
- 	avmb1_loadandconfigdef ldef;
-@@ -904,7 +904,7 @@ int capi20_manufacturer(unsigned int cmd
-         struct capi_ctr *card;
+ 	struct fritz_adapter *adapter;
+@@ -974,6 +974,8 @@ static struct pnp_driver fcpnp_driver = 
+ 	.remove		= __devexit_p(fcpnp_remove),
+ 	.id_table	= fcpnp_ids,
+ };
++#else
++static struct pnp_driver fcpnp_driver;
+ #endif
  
- 	switch (cmd) {
--#ifdef CONFIG_AVMB1_COMPAT
-+#ifdef AVMB1_COMPAT
- 	case AVMB1_LOAD:
- 	case AVMB1_LOAD_AND_CONFIG:
- 	case AVMB1_RESETCARD:
+ static void __devexit fcpci_remove(struct pci_dev *pdev)
+@@ -1001,7 +1003,7 @@ static int __init hisax_fcpcipnp_init(vo
+ 	retval = pci_register_driver(&fcpci_driver);
+ 	if (retval)
+ 		return retval;
+-#ifdef __ISAPNP__
++#ifdef CONFIG_PNP
+ 	retval = pnp_register_driver(&fcpnp_driver);
+ 	if (retval < 0) {
+ 		pci_unregister_driver(&fcpci_driver);
+@@ -1013,7 +1015,7 @@ static int __init hisax_fcpcipnp_init(vo
+ 
+ static void __exit hisax_fcpcipnp_exit(void)
+ {
+-#ifdef __ISAPNP__
++#ifdef CONFIG_PNP
+ 	pnp_unregister_driver(&fcpnp_driver);
+ #endif
+ 	pci_unregister_driver(&fcpci_driver);
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
 origin.patch
-git-mtd.patch
-git-nfsd.patch
-xtensa-warn-about-including-asm-rwsemh-directly.patch
-xtensa-use-newer-__spin_lock_unlocked-macro.patch
-kernel-explicitly-include-required-header-files-under-kernel.patch
-remove-superfluous-include-of-stringh-from-percpuh.patch
-kbuild-remove-duplicate-conflicting-entry-for-oomh.patch
-kbuild-move-files-that-dont-check-__kernel__.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-maintainers-clarify-status-of-mn10300-mailing-list-as-moderated.patch
-ipmi-make-comment-match-actual-preprocessor-check.patch
-keys-explicitly-include-required-slabh-header-file.patch
-nbd-delete-superfluous-test-for-__gnuc__.patch
-generalize-asm-generic-ioctlh-to-allow-overriding-values.patch
-edac-use-the-shorter-list_head-for-brevity.patch
-afs-use-the-shorter-list_head-for-brevity.patch
-sysv-fs-remove-superfluous-check-for-__gnuc__-compiler.patch
-remove-ifdef-__kernel__-checks-from-unexported-headers.patch
-remove-__kernel__-tests-of-unexported-headers-under-asm-generic.patch
-drop-the-exporting-of-empty-linux-byteorder-generich.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+nsc-ircc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+simplify-initcall_debug-output.patch
+proc-introduce-proc_create_data-to-setup-de-data.patch
+drivers-use-non-racy-method-for-proc-entries-creation-2.patch
+parport_pc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+tpm-change-kconfig-dependencies-from-pnpacpi-to-pnp.patch
 
