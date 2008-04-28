@@ -1,51 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - uart_get_baud_rate-stop-mangling-termios-fix.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 23:56:52 -0700
-Message-ID: <200804280656.m3S6uq7R012844@imap1.linux-foundation.org>
+Subject: - oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 23:57:13 -0700
+Message-ID: <200804280657.m3S6vDOB012855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46378 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763259AbYD1G5o (ORCPT
+	by vger.kernel.org with ESMTP id S1763297AbYD1G5q (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 02:57:44 -0400
+	Mon, 28 Apr 2008 02:57:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, phil.el@wanadoo.fr, travis@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uart_get_baud_rate-stop-mangling-termios-fix
+     oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     uart_get_baud_rate-stop-mangling-termios-fix.patch
+     oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into uart_get_baud_rate-stop-mangling-termios.patch
+This patch was dropped because it was folded into oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uart_get_baud_rate-stop-mangling-termios-fix
+Subject: oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@redhat.com>
+ERROR: "foo * bar" should be "foo *bar"
+#24: FILE: drivers/oprofile/buffer_sync.c:497:
++	struct oprofile_cpu_buffer * cpu_buf = &per_cpu(cpu_buffer, cpu);
+
+ERROR: "foo * bar" should be "foo *bar"
+#54: FILE: drivers/oprofile/cpu_buffer.c:52:
++		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
+
+ERROR: "foo * bar" should be "foo *bar"
+#63: FILE: drivers/oprofile/cpu_buffer.c:86:
++		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
+
+ERROR: "foo * bar" should be "foo *bar"
+#72: FILE: drivers/oprofile/cpu_buffer.c:103:
++		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
+
+ERROR: "foo * bar" should be "foo *bar"
+#81: FILE: drivers/oprofile/cpu_buffer.c:230:
++	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
+
+ERROR: "foo * bar" should be "foo *bar"
+#90: FILE: drivers/oprofile/cpu_buffer.c:257:
++	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
+
+ERROR: "foo * bar" should be "foo *bar"
+#97: FILE: drivers/oprofile/cpu_buffer.c:263:
++	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
+
+total: 7 errors, 0 warnings, 102 lines checked
+
+./patches/oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Mike Travis <travis@sgi.com>
+Cc: Philippe Elie <phil.el@wanadoo.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/oprofile/buffer_sync.c |    2 +-
+ drivers/oprofile/cpu_buffer.c  |   12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/serial/serial_core.c~uart_get_baud_rate-stop-mangling-termios-fix drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~uart_get_baud_rate-stop-mangling-termios-fix
-+++ a/drivers/serial/serial_core.c
-@@ -337,7 +337,7 @@ uart_get_baud_rate(struct uart_port *por
- 		   struct ktermios *old, unsigned int min, unsigned int max)
+diff -puN drivers/oprofile/buffer_sync.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes drivers/oprofile/buffer_sync.c
+--- a/drivers/oprofile/buffer_sync.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
++++ a/drivers/oprofile/buffer_sync.c
+@@ -491,7 +491,7 @@ typedef enum {
+  */
+ void sync_buffer(int cpu)
  {
- 	unsigned int try, baud, altbaud = 38400;
--	int hung_up;
-+	int hung_up = 0;
- 	upf_t flags = port->flags & UPF_SPD_MASK;
+-	struct oprofile_cpu_buffer * cpu_buf = &per_cpu(cpu_buffer, cpu);
++	struct oprofile_cpu_buffer *cpu_buf = &per_cpu(cpu_buffer, cpu);
+ 	struct mm_struct *mm = NULL;
+ 	struct task_struct * new;
+ 	unsigned long cookie = 0;
+diff -puN drivers/oprofile/cpu_buffer.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes drivers/oprofile/cpu_buffer.c
+--- a/drivers/oprofile/cpu_buffer.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
++++ a/drivers/oprofile/cpu_buffer.c
+@@ -49,7 +49,7 @@ int alloc_cpu_buffers(void)
+ 	unsigned long buffer_size = fs_cpu_buffer_size;
+  
+ 	for_each_online_cpu(i) {
+-		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
++		struct oprofile_cpu_buffer *b = &per_cpu(cpu_buffer, i);
+  
+ 		b->buffer = vmalloc_node(sizeof(struct op_sample) * buffer_size,
+ 			cpu_to_node(i));
+@@ -83,7 +83,7 @@ void start_cpu_work(void)
+ 	work_enabled = 1;
  
- 	if (flags == UPF_SPD_HI)
+ 	for_each_online_cpu(i) {
+-		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
++		struct oprofile_cpu_buffer *b = &per_cpu(cpu_buffer, i);
+ 
+ 		/*
+ 		 * Spread the work by 1 jiffy per cpu so they dont all
+@@ -100,7 +100,7 @@ void end_cpu_work(void)
+ 	work_enabled = 0;
+ 
+ 	for_each_online_cpu(i) {
+-		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
++		struct oprofile_cpu_buffer *b = &per_cpu(cpu_buffer, i);
+ 
+ 		cancel_delayed_work(&b->work);
+ 	}
+@@ -227,7 +227,7 @@ static void oprofile_end_trace(struct op
+ void oprofile_add_ext_sample(unsigned long pc, struct pt_regs * const regs,
+ 				unsigned long event, int is_kernel)
+ {
+-	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
++	struct oprofile_cpu_buffer *cpu_buf = &__get_cpu_var(cpu_buffer);
+ 
+ 	if (!backtrace_depth) {
+ 		log_sample(cpu_buf, pc, is_kernel, event);
+@@ -254,13 +254,13 @@ void oprofile_add_sample(struct pt_regs 
+ 
+ void oprofile_add_pc(unsigned long pc, int is_kernel, unsigned long event)
+ {
+-	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
++	struct oprofile_cpu_buffer *cpu_buf = &__get_cpu_var(cpu_buffer);
+ 	log_sample(cpu_buf, pc, is_kernel, event);
+ }
+ 
+ void oprofile_add_trace(unsigned long pc)
+ {
+-	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
++	struct oprofile_cpu_buffer *cpu_buf = &__get_cpu_var(cpu_buffer);
+ 
+ 	if (!cpu_buf->tracing)
+ 		return;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,8 +167,8 @@ audit-final-renamings-and-cleanup-checkpatch-fixes.patch
 arch-alpha-kernel-trapsc-use-time_-macros.patch
 alpha-teach-the-compiler-that-bug-doesnt-return.patch
 uart_get_baud_rate-stop-mangling-termios.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
 drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
 oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
 vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
 kprobes-prevent-probing-of-preempt_schedule-fix.patch
