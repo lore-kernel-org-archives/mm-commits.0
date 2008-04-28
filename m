@@ -1,43 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - mempolicy-rename-struct-mempolicy-policy-member-to-mode.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:53:12 -0700
-Message-ID: <200804282153.m3SLrCwm017844@imap1.linux-foundation.org>
+Subject: - mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:53:29 -0700
+Message-ID: <200804282153.m3SLrTUt017875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42045 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935243AbYD1Vxb (ORCPT
+	by vger.kernel.org with ESMTP id S936252AbYD1Vxq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:53:31 -0400
+	Mon, 28 Apr 2008 17:53:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: lee.schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mempolicy: rename struct mempolicy 'policy' member to 'mode'
+     mempolicy: use MPOL_F_LOCAL to Indicate Preferred Local Policy
 has been removed from the -mm tree.  Its filename was
-     mempolicy-rename-struct-mempolicy-policy-member-to-mode.patch
+     mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: rename struct mempolicy 'policy' member to 'mode'
+Subject: mempolicy: use MPOL_F_LOCAL to Indicate Preferred Local Policy
 From: Lee Schermerhorn <lee.schermerhorn@hp.com>
 
-The terms 'policy' and 'mode' are both used in various places to describe the
-semantics of the value stored in the 'policy' member of struct mempolicy. 
-Furthermore, the term 'policy' is used to refer to that member, to the entire
-struct mempolicy and to the more abstract concept of the tuple consisting of a
-"mode" and an optional node or set of nodes.  Recently, we have added "mode
-flags" that are passed in the upper bits of the 'mode' [or sometimes,
-'policy'] member of the numa APIs.
+Now that we're using "preferred local" policy for system default, we need to
+make this as fast as possible.  Because of the variable size of the mempolicy
+structure [based on size of nodemasks], the preferred_node may be in a
+different cacheline from the mode.  This can result in accessing an extra
+cacheline in the normal case of system default policy.  Suspect this is the
+cause of an observed 2-3% slowdown in page fault testing relative to kernel
+without this patch series.
 
-I'd like to resolve this confusion, which perhaps only exists in my mind, by
-renaming the 'policy' member to 'mode' throughout, and fixing up the
-Documentation.  Man pages will be updated separately.
+To alleviate this, use an internal mode flag, MPOL_F_LOCAL in the mempolicy
+flags member which is guaranteed [?] to be in the same cacheline as the mode
+itself.
+
+Verified that reworked mempolicy now performs slightly better on 25-rc8-mm1
+for both anon and shmem segments with system default and vma [preferred local]
+policy.
 
 Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Cc: Christoph Lameter <clameter@sgi.com>
@@ -47,246 +51,197 @@ Cc: Andi Kleen <ak@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/numa_memory_policy.txt |    4 -
- include/linux/mempolicy.h               |    6 +-
- mm/mempolicy.c                          |   46 +++++++++++-----------
- 3 files changed, 26 insertions(+), 30 deletions(-)
+ Documentation/vm/numa_memory_policy.txt |   11 ++---
+ include/linux/mempolicy.h               |    1 
+ mm/mempolicy.c                          |   47 ++++++++++------------
+ 3 files changed, 28 insertions(+), 31 deletions(-)
 
-diff -puN Documentation/vm/numa_memory_policy.txt~mempolicy-rename-struct-mempolicy-policy-member-to-mode Documentation/vm/numa_memory_policy.txt
---- a/Documentation/vm/numa_memory_policy.txt~mempolicy-rename-struct-mempolicy-policy-member-to-mode
+diff -puN Documentation/vm/numa_memory_policy.txt~mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy Documentation/vm/numa_memory_policy.txt
+--- a/Documentation/vm/numa_memory_policy.txt~mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy
 +++ a/Documentation/vm/numa_memory_policy.txt
-@@ -145,10 +145,6 @@ Components of Memory Policies
-    structure, struct mempolicy.  Details of this structure will be discussed
-    in context, below, as required to explain the behavior.
+@@ -176,12 +176,11 @@ Components of Memory Policies
+ 	containing the cpu where the allocation takes place.
  
--	Note:  in some functions AND in the struct mempolicy itself, the mode
--	is called "policy".  However, to avoid confusion with the policy tuple,
--	this document will continue to use the term "mode".
--
-    Linux memory policy supports the following 4 behavioral modes:
+ 	    Internally, the Preferred policy uses a single node--the
+-	    preferred_node member of struct mempolicy.  A "distinguished
+-	    value of this preferred_node, currently '-1', is interpreted
+-	    as "the node containing the cpu where the allocation takes
+-	    place"--local allocation.  "Local" allocation policy can be
+-	    viewed as a Preferred policy that starts at the node containing
+-	    the cpu where the allocation takes place.
++	    preferred_node member of struct mempolicy.  When the internal
++	    mode flag MPOL_F_LOCAL is set, the preferred_node is ignored and
++	    the policy is interpreted as local allocation.  "Local" allocation
++	    policy can be viewed as a Preferred policy that starts at the node
++	    containing the cpu where the allocation takes place.
  
- 	Default Mode--MPOL_DEFAULT:  The behavior specified by this mode is
-diff -puN include/linux/mempolicy.h~mempolicy-rename-struct-mempolicy-policy-member-to-mode include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mempolicy-rename-struct-mempolicy-policy-member-to-mode
+ 	    It is possible for the user to specify that local allocation is
+ 	    always preferred by passing an empty nodemask with this mode.
+diff -puN include/linux/mempolicy.h~mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy
 +++ a/include/linux/mempolicy.h
-@@ -80,7 +80,7 @@ struct mm_struct;
+@@ -50,6 +50,7 @@ enum {
+  * are never OR'ed into the mode in mempolicy API arguments.
   */
- struct mempolicy {
- 	atomic_t refcnt;
--	unsigned short policy; 	/* See MPOL_* above */
-+	unsigned short mode; 	/* See MPOL_* above */
- 	unsigned short flags;	/* See set_mempolicy() MPOL_F_* above */
- 	union {
- 		short 		 preferred_node; /* preferred */
-@@ -149,7 +149,7 @@ struct shared_policy {
- 	spinlock_t lock;
- };
+ #define MPOL_F_SHARED  (1 << 0)	/* identify shared policies */
++#define MPOL_F_LOCAL   (1 << 1)	/* preferred local allocation */
  
--void mpol_shared_policy_init(struct shared_policy *info, unsigned short policy,
-+void mpol_shared_policy_init(struct shared_policy *info, unsigned short mode,
- 				unsigned short flags, nodemask_t *nodes);
- int mpol_set_shared_policy(struct shared_policy *info,
- 				struct vm_area_struct *vma,
-@@ -213,7 +213,7 @@ static inline int mpol_set_shared_policy
- }
+ #ifdef __KERNEL__
  
- static inline void mpol_shared_policy_init(struct shared_policy *info,
--		unsigned short policy, unsigned short flags, nodemask_t *nodes)
-+		unsigned short mode, unsigned short flags, nodemask_t *nodes)
- {
- }
- 
-diff -puN mm/mempolicy.c~mempolicy-rename-struct-mempolicy-policy-member-to-mode mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-rename-struct-mempolicy-policy-member-to-mode
+diff -puN mm/mempolicy.c~mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-use-mpol_f_local-to-indicate-preferred-local-policy
 +++ a/mm/mempolicy.c
-@@ -106,7 +106,7 @@ enum zone_type policy_zone = 0;
- 
+@@ -110,7 +110,7 @@ enum zone_type policy_zone = 0;
  struct mempolicy default_policy = {
  	.refcnt = ATOMIC_INIT(1), /* never free it */
--	.policy = MPOL_DEFAULT,
-+	.mode   = MPOL_DEFAULT,
+ 	.mode = MPOL_PREFERRED,
+-	.v =  { .preferred_node =  -1 },
++	.flags = MPOL_F_LOCAL,
  };
  
  static const struct mempolicy_operations {
-@@ -211,7 +211,7 @@ static struct mempolicy *mpol_new(unsign
- 	if (!policy)
- 		return ERR_PTR(-ENOMEM);
- 	atomic_set(&policy->refcnt, 1);
--	policy->policy = mode;
-+	policy->mode = mode;
- 	policy->flags = flags;
- 
- 	if (nodes) {
-@@ -302,7 +302,7 @@ static void mpol_rebind_policy(struct me
- 	if (!mpol_store_user_nodemask(pol) &&
- 	    nodes_equal(pol->w.cpuset_mems_allowed, *newmask))
- 		return;
--	mpol_ops[pol->policy].rebind(pol, newmask);
-+	mpol_ops[pol->mode].rebind(pol, newmask);
- }
- 
- /*
-@@ -608,7 +608,7 @@ static long do_set_mempolicy(unsigned sh
- 	mpol_put(current->mempolicy);
- 	current->mempolicy = new;
- 	mpol_set_task_struct_flag();
--	if (new && new->policy == MPOL_INTERLEAVE &&
-+	if (new && new->mode == MPOL_INTERLEAVE &&
- 	    nodes_weight(new->v.nodes))
- 		current->il_next = first_node(new->v.nodes);
- 	if (mm)
-@@ -621,7 +621,7 @@ static long do_set_mempolicy(unsigned sh
- static void get_zonemask(struct mempolicy *p, nodemask_t *nodes)
+@@ -163,7 +163,7 @@ static int mpol_new_interleave(struct me
+ static int mpol_new_preferred(struct mempolicy *pol, const nodemask_t *nodes)
  {
- 	nodes_clear(*nodes);
--	switch (p->policy) {
-+	switch (p->mode) {
- 	case MPOL_DEFAULT:
+ 	if (!nodes)
+-		pol->v.preferred_node = -1;	/* local allocation */
++		pol->flags |= MPOL_F_LOCAL;	/* local allocation */
+ 	else if (nodes_empty(*nodes))
+ 		return -EINVAL;			/*  no allowed nodes */
+ 	else
+@@ -290,14 +290,15 @@ static void mpol_rebind_preferred(struct
+ 	if (pol->flags & MPOL_F_STATIC_NODES) {
+ 		int node = first_node(pol->w.user_nodemask);
+ 
+-		if (node_isset(node, *nodes))
++		if (node_isset(node, *nodes)) {
+ 			pol->v.preferred_node = node;
+-		else
+-			pol->v.preferred_node = -1;
++			pol->flags &= ~MPOL_F_LOCAL;
++		} else
++			pol->flags |= MPOL_F_LOCAL;
+ 	} else if (pol->flags & MPOL_F_RELATIVE_NODES) {
+ 		mpol_relative_nodemask(&tmp, &pol->w.user_nodemask, nodes);
+ 		pol->v.preferred_node = first_node(tmp);
+-	} else if (pol->v.preferred_node != -1) {
++	} else if (!(pol->flags & MPOL_F_LOCAL)) {
+ 		pol->v.preferred_node = node_remap(pol->v.preferred_node,
+ 						   pol->w.cpuset_mems_allowed,
+ 						   *nodes);
+@@ -645,7 +646,7 @@ static void get_policy_nodemask(struct m
+ 		*nodes = p->v.nodes;
+ 		break;
+ 	case MPOL_PREFERRED:
+-		if (p->v.preferred_node >= 0)
++		if (!(p->flags & MPOL_F_LOCAL))
+ 			node_set(p->v.preferred_node, *nodes);
+ 		/* else return empty node mask for local allocation */
+ 		break;
+@@ -1324,13 +1325,12 @@ static nodemask_t *policy_nodemask(gfp_t
+ /* Return a zonelist indicated by gfp for node representing a mempolicy */
+ static struct zonelist *policy_zonelist(gfp_t gfp, struct mempolicy *policy)
+ {
+-	int nd;
++	int nd = numa_node_id();
+ 
+ 	switch (policy->mode) {
+ 	case MPOL_PREFERRED:
+-		nd = policy->v.preferred_node;
+-		if (nd < 0)
+-			nd = numa_node_id();
++		if (!(policy->flags & MPOL_F_LOCAL))
++			nd = policy->v.preferred_node;
  		break;
  	case MPOL_BIND:
-@@ -700,14 +700,14 @@ static long do_get_mempolicy(int *policy
- 				goto out;
- 			*policy = err;
- 		} else if (pol == current->mempolicy &&
--				pol->policy == MPOL_INTERLEAVE) {
-+				pol->mode == MPOL_INTERLEAVE) {
- 			*policy = current->il_next;
- 		} else {
- 			err = -EINVAL;
- 			goto out;
- 		}
- 	} else
--		*policy = pol->policy | pol->flags;
-+		*policy = pol->mode | pol->flags;
- 
- 	if (vma) {
- 		up_read(&current->mm->mmap_sem);
-@@ -1276,7 +1276,7 @@ static struct mempolicy *get_vma_policy(
- 				pol = vpol;
- 			shared_pol = 1;	/* if pol non-NULL, add ref below */
- 		} else if (vma->vm_policy &&
--				vma->vm_policy->policy != MPOL_DEFAULT)
-+				vma->vm_policy->mode != MPOL_DEFAULT)
- 			pol = vma->vm_policy;
+ 		/*
+@@ -1339,16 +1339,13 @@ static struct zonelist *policy_zonelist(
+ 		 * current node is part of the mask, we use the zonelist for
+ 		 * the first node in the mask instead.
+ 		 */
+-		nd = numa_node_id();
+ 		if (unlikely(gfp & __GFP_THISNODE) &&
+ 				unlikely(!node_isset(nd, policy->v.nodes)))
+ 			nd = first_node(policy->v.nodes);
+ 		break;
+ 	case MPOL_INTERLEAVE: /* should not happen */
+-		nd = numa_node_id();
+ 		break;
+ 	default:
+-		nd = 0;
+ 		BUG();
  	}
- 	if (!pol)
-@@ -1290,7 +1290,7 @@ static struct mempolicy *get_vma_policy(
- static nodemask_t *nodemask_policy(gfp_t gfp, struct mempolicy *policy)
- {
- 	/* Lower zones don't get a nodemask applied for MPOL_BIND */
--	if (unlikely(policy->policy == MPOL_BIND) &&
-+	if (unlikely(policy->mode == MPOL_BIND) &&
- 			gfp_zone(gfp) >= policy_zone &&
- 			cpuset_nodemask_valid_mems_allowed(&policy->v.nodes))
- 		return &policy->v.nodes;
-@@ -1303,7 +1303,7 @@ static struct zonelist *zonelist_policy(
- {
- 	int nd;
- 
--	switch (policy->policy) {
-+	switch (policy->mode) {
- 	case MPOL_PREFERRED:
- 		nd = policy->v.preferred_node;
- 		if (nd < 0)
-@@ -1353,7 +1353,7 @@ static unsigned interleave_nodes(struct 
+ 	return node_zonelist(nd, gfp);
+@@ -1379,14 +1376,15 @@ static unsigned interleave_nodes(struct 
   */
  unsigned slab_node(struct mempolicy *policy)
  {
--	unsigned short pol = policy ? policy->policy : MPOL_DEFAULT;
-+	unsigned short pol = policy ? policy->mode : MPOL_DEFAULT;
+-	if (!policy)
++	if (!policy || policy->flags & MPOL_F_LOCAL)
+ 		return numa_node_id();
  
- 	switch (pol) {
+ 	switch (policy->mode) {
+ 	case MPOL_PREFERRED:
+-		if (unlikely(policy->v.preferred_node >= 0))
+-			return policy->v.preferred_node;
+-		return numa_node_id();
++		/*
++		 * handled MPOL_F_LOCAL above
++		 */
++		return policy->v.preferred_node;
+ 
  	case MPOL_INTERLEAVE:
-@@ -1454,9 +1454,9 @@ struct zonelist *huge_zonelist(struct vm
- 
- 	*mpol = NULL;		/* probably no unref needed */
- 	*nodemask = NULL;	/* assume !MPOL_BIND */
--	if (pol->policy == MPOL_BIND) {
-+	if (pol->mode == MPOL_BIND) {
- 			*nodemask = &pol->v.nodes;
--	} else if (pol->policy == MPOL_INTERLEAVE) {
-+	} else if (pol->mode == MPOL_INTERLEAVE) {
- 		unsigned nid;
- 
- 		nid = interleave_nid(pol, vma, addr, HPAGE_SHIFT);
-@@ -1468,7 +1468,7 @@ struct zonelist *huge_zonelist(struct vm
- 
- 	zl = zonelist_policy(GFP_HIGHUSER, pol);
- 	if (unlikely(pol != &default_policy && pol != current->mempolicy)) {
--		if (pol->policy != MPOL_BIND)
-+		if (pol->mode != MPOL_BIND)
- 			__mpol_put(pol);	/* finished with pol */
- 		else
- 			*mpol = pol;	/* unref needed after allocation */
-@@ -1522,7 +1522,7 @@ alloc_page_vma(gfp_t gfp, struct vm_area
- 
- 	cpuset_update_task_memory_state();
- 
--	if (unlikely(pol->policy == MPOL_INTERLEAVE)) {
-+	if (unlikely(pol->mode == MPOL_INTERLEAVE)) {
- 		unsigned nid;
- 
- 		nid = interleave_nid(pol, vma, addr, PAGE_SHIFT);
-@@ -1574,7 +1574,7 @@ struct page *alloc_pages_current(gfp_t g
- 		cpuset_update_task_memory_state();
- 	if (!pol || in_interrupt() || (gfp & __GFP_THISNODE))
- 		pol = &default_policy;
--	if (pol->policy == MPOL_INTERLEAVE)
-+	if (pol->mode == MPOL_INTERLEAVE)
- 		return alloc_page_interleave(gfp, order, interleave_nodes(pol));
- 	return __alloc_pages_nodemask(gfp, order,
- 			zonelist_policy(gfp, pol), nodemask_policy(gfp, pol));
-@@ -1620,11 +1620,11 @@ int __mpol_equal(struct mempolicy *a, st
- {
- 	if (!a || !b)
+ 		return interleave_nodes(policy);
+@@ -1666,7 +1664,8 @@ int __mpol_equal(struct mempolicy *a, st
+ 	case MPOL_INTERLEAVE:
+ 		return nodes_equal(a->v.nodes, b->v.nodes);
+ 	case MPOL_PREFERRED:
+-		return a->v.preferred_node == b->v.preferred_node;
++		return a->v.preferred_node == b->v.preferred_node &&
++			a->flags == b->flags;
+ 	default:
+ 		BUG();
  		return 0;
--	if (a->policy != b->policy)
-+	if (a->mode != b->mode)
- 		return 0;
--	if (a->policy != MPOL_DEFAULT && !mpol_match_intent(a, b))
-+	if (a->mode != MPOL_DEFAULT && !mpol_match_intent(a, b))
- 		return 0;
--	switch (a->policy) {
-+	switch (a->mode) {
- 	case MPOL_DEFAULT:
- 		return 1;
- 	case MPOL_BIND:
-@@ -1644,7 +1644,7 @@ void __mpol_put(struct mempolicy *p)
- {
- 	if (!atomic_dec_and_test(&p->refcnt))
- 		return;
--	p->policy = MPOL_DEFAULT;
-+	p->mode = MPOL_DEFAULT;
- 	kmem_cache_free(policy_cache, p);
+@@ -1946,7 +1945,7 @@ void numa_default_policy(void)
  }
  
-@@ -1710,7 +1710,7 @@ static void sp_insert(struct shared_poli
- 	rb_link_node(&new->nd, parent, p);
- 	rb_insert_color(&new->nd, &sp->root);
- 	pr_debug("inserting %lx-%lx: %d\n", new->start, new->end,
--		 new->policy ? new->policy->policy : 0);
-+		 new->policy ? new->policy->mode : 0);
- }
- 
- /* Find shared policy intersecting idx */
-@@ -1835,7 +1835,7 @@ int mpol_set_shared_policy(struct shared
- 
- 	pr_debug("set_shared_policy %lx sz %lu %d %d %lx\n",
- 		 vma->vm_pgoff,
--		 sz, npol ? npol->policy : -1,
-+		 sz, npol ? npol->mode : -1,
- 		 npol ? npol->flags : -1,
- 		 npol ? nodes_addr(npol->v.nodes)[0] : -1);
- 
-@@ -1935,7 +1935,7 @@ static inline int mpol_to_str(char *buff
+ /*
+- * "local" is pseudo-policy:  MPOL_PREFERRED with preferred_node == -1
++ * "local" is pseudo-policy:  MPOL_PREFERRED with MPOL_F_LOCAL flag
+  * Used only for mpol_to_str()
+  */
+ #define MPOL_LOCAL (MPOL_INTERLEAVE + 1)
+@@ -1962,7 +1961,6 @@ static inline int mpol_to_str(char *buff
+ {
  	char *p = buffer;
  	int l;
+-	int nid;
  	nodemask_t nodes;
--	unsigned short mode = pol ? pol->policy : MPOL_DEFAULT;
-+	unsigned short mode = pol ? pol->mode : MPOL_DEFAULT;
+ 	unsigned short mode;
  	unsigned short flags = pol ? pol->flags : 0;
+@@ -1979,11 +1977,10 @@ static inline int mpol_to_str(char *buff
  
- 	switch (mode) {
+ 	case MPOL_PREFERRED:
+ 		nodes_clear(nodes);
+-		nid = pol->v.preferred_node;
+-		if (nid < 0)
++		if (flags & MPOL_F_LOCAL)
+ 			mode = MPOL_LOCAL;	/* pseudo-policy */
+ 		else
+-			node_set(nid, nodes);
++			node_set(pol->v.preferred_node, nodes);
+ 		break;
+ 
+ 	case MPOL_BIND:
+@@ -2004,7 +2001,7 @@ static inline int mpol_to_str(char *buff
+ 	strcpy(p, policy_types[mode]);
+ 	p += l;
+ 
+-	if (flags) {
++	if (flags & MPOL_MODE_FLAGS) {
+ 		int need_bar = 0;
+ 
+ 		if (buffer + maxlen < p + 2)
 _
 
 Patches currently in -mm which might be from lee.schermerhorn@hp.com are
