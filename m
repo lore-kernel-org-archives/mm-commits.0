@@ -1,64 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: - quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 23:59:10 -0700
-Message-ID: <200804280659.m3S6xA8j012931@imap1.linux-foundation.org>
+Subject: - gpiochip_reserve-fix.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 23:59:54 -0700
+Message-ID: <200804280659.m3S6xsX0012944@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52649 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56922 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763297AbYD1G7o (ORCPT
+	by vger.kernel.org with ESMTP id S1756168AbYD1HAJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 02:59:44 -0400
+	Mon, 28 Apr 2008 03:00:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, avorontsov@ru.mvista.com, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes
+     gpiochip_reserve-fix
 has been removed from the -mm tree.  Its filename was
-     quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
+     gpiochip_reserve-fix.patch
 
-This patch was dropped because it was folded into quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch
+This patch was dropped because it was folded into gpiochip_reserve.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes
+Subject: gpiochip_reserve-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#20: FILE: fs/ext4/super.c:816:
-+static int ext4_quota_on(struct super_block *sb, int type, int format_id, char *path, int remount);
-
-total: 0 errors, 1 warnings, 44 lines checked
-
-./patches/quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Jan Kara <jack@suse.cz>
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/super.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/gpio/gpiolib.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ext4/super.c~quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes fs/ext4/super.c
---- a/fs/ext4/super.c~quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes
-+++ a/fs/ext4/super.c
-@@ -813,7 +813,8 @@ static int ext4_acquire_dquot(struct dqu
- static int ext4_release_dquot(struct dquot *dquot);
- static int ext4_mark_dquot_dirty(struct dquot *dquot);
- static int ext4_write_info(struct super_block *sb, int type);
--static int ext4_quota_on(struct super_block *sb, int type, int format_id, char *path, int remount);
-+static int ext4_quota_on(struct super_block *sb, int type, int format_id,
-+				char *path, int remount);
- static int ext4_quota_on_mount(struct super_block *sb, int type);
- static ssize_t ext4_quota_read(struct super_block *sb, int type, char *data,
- 			       size_t len, loff_t off);
+diff -puN drivers/gpio/gpiolib.c~gpiochip_reserve-fix drivers/gpio/gpiolib.c
+--- a/drivers/gpio/gpiolib.c~gpiochip_reserve-fix
++++ a/drivers/gpio/gpiolib.c
+@@ -121,7 +121,7 @@ static int gpiochip_find_base(int ngpio)
+  * to mark a range of gpios as unavailable for dynamic gpio number allocation,
+  * for example because its driver support is not yet loaded.
+  */
+-int __init __must_check gpiochip_reserve(int start, int ngpio)
++int __init gpiochip_reserve(int start, int ngpio)
+ {
+ 	int ret = 0;
+ 	unsigned long flags;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,8 +82,8 @@ kprobes-prevent-probing-of-preempt_schedule.patch
 quota-various-style-cleanups.patch
 quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount.patch
 quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount-checkpatch-fixes.patch
 quota-convert-stub-functions-from-macros-into-inlines.patch
+gpiochip_reserve.patch
 gpiochip_reserve-fix.patch
 fb-add-support-for-foreign-endianness-force-it-on.patch
 fbcon-replace-mono_col-macro-with-static-inline-fix.patch
