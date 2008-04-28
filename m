@@ -1,353 +1,413 @@
 From: akpm@linux-foundation.org
-Subject: - mempolicy-create-mempolicy_operations-structure.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:51:43 -0700
-Message-ID: <200804282151.m3SLphSc017599@imap1.linux-foundation.org>
+Subject: - mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:51:33 -0700
+Message-ID: <200804282151.m3SLpX5Y017583@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58123 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S964950AbYD1Vvz (ORCPT
+	by vger.kernel.org with ESMTP id S964964AbYD1Vv5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:51:55 -0400
+	Mon, 28 Apr 2008 17:51:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, ak@suse.de, clameter@sgi.com, eric.whitney@hp.com, lee.schermerhorn@hp.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: pj@sgi.com, ak@suse.de, clameter@sgi.com, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie, ray-lk@madrabbit.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mempolicy: create mempolicy_operations structure
+     mempolicy: add bitmap_onto() and bitmap_fold() operations
 has been removed from the -mm tree.  Its filename was
-     mempolicy-create-mempolicy_operations-structure.patch
+     mempolicy-add-bitmap_onto-and-bitmap_fold-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: create mempolicy_operations structure
-From: David Rientjes <rientjes@google.com>
+Subject: mempolicy: add bitmap_onto() and bitmap_fold() operations
+From: Paul Jackson <pj@sgi.com>
 
-Create a mempolicy_operations structure that currently points to two
-functions[*] for the various modes:
+The following adds two more bitmap operators, bitmap_onto() and bitmap_fold(),
+with the usual cpumask and nodemask wrappers.
 
-	int (*create)(struct mempolicy *, const nodemask_t *);
-	void (*rebind)(struct mempolicy *, const nodemask_t *);
+The bitmap_onto() operator computes one bitmap relative to another.  If the
+n-th bit in the origin mask is set, then the m-th bit of the destination mask
+will be set, where m is the position of the n-th set bit in the relative mask.
 
-This splits the implementation for the various modes out of two large
-functions, mpol_new() and mpol_rebind_policy().  Eventually it may be
-beneficial to add additional functions to accomodate the existing switch()
-statements in mm/mempolicy.c.
+The bitmap_fold() operator folds a bitmap into a second that has bit m set iff
+the input bitmap has some bit n set, where m == n mod sz, for the specified sz
+value.
 
- [*] The ->create() function for MPOL_DEFAULT is currently NULL since no
-     struct mempolicy is dynamically allocated.
+There are two substantive changes between this patch and its
+predecessor bitmap_relative:
+ 1) Renamed bitmap_relative() to be bitmap_onto().
+ 2) Added bitmap_fold().
 
-[Lee.Schermerhorn@hp.com: fix regression in the package mempolicy regression tests]
+The essential motivation for bitmap_onto() is to provide a mechanism for
+converting a cpuset-relative CPU or Node mask to an absolute mask.  Cpuset
+relative masks are written as if the current task were in a cpuset whose CPUs
+or Nodes were just the consecutive ones numbered 0..N-1, for some N.  The
+bitmap_onto() operator is provided in anticipation of adding support for the
+first such cpuset relative mask, by the mbind() and set_mempolicy() system
+calls, using a planned flag of MPOL_F_RELATIVE_NODES.  These bitmap operators
+(and their nodemask wrappers, in particular) will be used in code that
+converts the user specified cpuset relative memory policy to a specific system
+node numbered policy, given the current mems_allowed of the tasks cpuset.
+
+Such cpuset relative mempolicies will address two deficiencies
+of the existing interface between cpusets and mempolicies:
+ 1) A task cannot at present reliably establish a cpuset
+    relative mempolicy because there is an essential race
+    condition, in that the tasks cpuset may be changed in
+    between the time the task can query its cpuset placement,
+    and the time the task can issue the applicable mbind or
+    set_memplicy system call.
+ 2) A task cannot at present establish what cpuset relative
+    mempolicy it would like to have, if it is in a smaller
+    cpuset than it might have mempolicy preferences for,
+    because the existing interface only allows specifying
+    mempolicies for nodes currently allowed by the cpuset.
+
+Cpuset relative mempolicies are useful for tasks that don't distinguish
+particularly between one CPU or Node and another, but only between how many of
+each are allowed, and the proper placement of threads and memory pages on the
+various CPUs and Nodes available.
+
+The motivation for the added bitmap_fold() can be seen in the following
+example.
+
+Let's say an application has specified some mempolicies that presume 16 memory
+nodes, including say a mempolicy that specified MPOL_F_RELATIVE_NODES (cpuset
+relative) nodes 12-15.  Then lets say that application is crammed into a
+cpuset that only has 8 memory nodes, 0-7.  If one just uses bitmap_onto(),
+this mempolicy, mapped to that cpuset, would ignore the requested relative
+nodes above 7, leaving it empty of nodes.  That's not good; better to fold the
+higher nodes down, so that some nodes are included in the resulting mapped
+mempolicy.  In this case, the mempolicy nodes 12-15 are taken modulo 8 (the
+weight of the mems_allowed of the confining cpuset), resulting in a mempolicy
+specifying nodes 4-7.
+
+Signed-off-by: Paul Jackson <pj@sgi.com>
 Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Paul Jackson <pj@sgi.com>
 Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Andi Kleen <ak@suse.de>
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Eric Whitney <eric.whitney@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: <kosaki.motohiro@jp.fujitsu.com>
+Cc: <ray-lk@madrabbit.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |  233 ++++++++++++++++++++++++++++-------------------
- 1 file changed, 140 insertions(+), 93 deletions(-)
+ include/linux/bitmap.h   |    6 +
+ include/linux/cpumask.h  |   22 ++++-
+ include/linux/nodemask.h |   22 ++++-
+ lib/bitmap.c             |  158 +++++++++++++++++++++++++++++++++++++
+ 4 files changed, 206 insertions(+), 2 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-create-mempolicy_operations-structure mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-create-mempolicy_operations-structure
-+++ a/mm/mempolicy.c
-@@ -63,7 +63,6 @@
-    grows down?
-    make bind policy root only? It can trigger oom much faster and the
-    kernel is not always grateful with that.
--   could replace all the switch()es with a mempolicy_ops structure.
- */
- 
- #include <linux/mempolicy.h>
-@@ -110,8 +109,13 @@ struct mempolicy default_policy = {
- 	.policy = MPOL_DEFAULT,
- };
- 
-+static const struct mempolicy_operations {
-+	int (*create)(struct mempolicy *pol, const nodemask_t *nodes);
-+	void (*rebind)(struct mempolicy *pol, const nodemask_t *nodes);
-+} mpol_ops[MPOL_MAX];
-+
- /* Check that the nodemask contains at least one populated zone */
--static int is_valid_nodemask(nodemask_t *nodemask)
-+static int is_valid_nodemask(const nodemask_t *nodemask)
- {
- 	int nd, k;
- 
-@@ -144,125 +148,151 @@ static void mpol_relative_nodemask(nodem
- 	nodes_onto(*ret, tmp, *rel);
+diff -puN include/linux/bitmap.h~mempolicy-add-bitmap_onto-and-bitmap_fold-operations include/linux/bitmap.h
+--- a/include/linux/bitmap.h~mempolicy-add-bitmap_onto-and-bitmap_fold-operations
++++ a/include/linux/bitmap.h
+@@ -46,6 +46,8 @@
+  * bitmap_shift_left(dst, src, n, nbits)	*dst = *src << n
+  * bitmap_remap(dst, src, old, new, nbits)	*dst = map(old, new)(src)
+  * bitmap_bitremap(oldbit, old, new, nbits)	newbit = map(old, new)(oldbit)
++ * bitmap_onto(dst, orig, relmap, nbits)	*dst = orig relative to relmap
++ * bitmap_fold(dst, orig, sz, nbits)		dst bits = orig bits mod sz
+  * bitmap_scnprintf(buf, len, src, nbits)	Print bitmap src to buf
+  * bitmap_parse(buf, buflen, dst, nbits)	Parse bitmap dst from kernel buf
+  * bitmap_parse_user(ubuf, ulen, dst, nbits)	Parse bitmap dst from user buf
+@@ -121,6 +123,10 @@ extern void bitmap_remap(unsigned long *
+ 		const unsigned long *old, const unsigned long *new, int bits);
+ extern int bitmap_bitremap(int oldbit,
+ 		const unsigned long *old, const unsigned long *new, int bits);
++extern void bitmap_onto(unsigned long *dst, const unsigned long *orig,
++		const unsigned long *relmap, int bits);
++extern void bitmap_fold(unsigned long *dst, const unsigned long *orig,
++		int sz, int bits);
+ extern int bitmap_find_free_region(unsigned long *bitmap, int bits, int order);
+ extern void bitmap_release_region(unsigned long *bitmap, int pos, int order);
+ extern int bitmap_allocate_region(unsigned long *bitmap, int pos, int order);
+diff -puN include/linux/cpumask.h~mempolicy-add-bitmap_onto-and-bitmap_fold-operations include/linux/cpumask.h
+--- a/include/linux/cpumask.h~mempolicy-add-bitmap_onto-and-bitmap_fold-operations
++++ a/include/linux/cpumask.h
+@@ -14,6 +14,8 @@
+  * bitmap_scnlistprintf() and bitmap_parselist(), also in bitmap.c.
+  * For details of cpu_remap(), see bitmap_bitremap in lib/bitmap.c
+  * For details of cpus_remap(), see bitmap_remap in lib/bitmap.c.
++ * For details of cpus_onto(), see bitmap_onto in lib/bitmap.c.
++ * For details of cpus_fold(), see bitmap_fold in lib/bitmap.c.
+  *
+  * The available cpumask operations are:
+  *
+@@ -53,7 +55,9 @@
+  * int cpulist_scnprintf(buf, len, mask) Format cpumask as list for printing
+  * int cpulist_parse(buf, map)		Parse ascii string as cpulist
+  * int cpu_remap(oldbit, old, new)	newbit = map(old, new)(oldbit)
+- * int cpus_remap(dst, src, old, new)	*dst = map(old, new)(src)
++ * void cpus_remap(dst, src, old, new)	*dst = map(old, new)(src)
++ * void cpus_onto(dst, orig, relmap)	*dst = orig relative to relmap
++ * void cpus_fold(dst, orig, sz)	dst bits = orig bits mod sz
+  *
+  * for_each_cpu_mask(cpu, mask)		for-loop cpu over mask
+  *
+@@ -330,6 +334,22 @@ static inline void __cpus_remap(cpumask_
+ 	bitmap_remap(dstp->bits, srcp->bits, oldp->bits, newp->bits, nbits);
  }
  
-+static int mpol_new_interleave(struct mempolicy *pol, const nodemask_t *nodes)
++#define cpus_onto(dst, orig, relmap) \
++		__cpus_onto(&(dst), &(orig), &(relmap), NR_CPUS)
++static inline void __cpus_onto(cpumask_t *dstp, const cpumask_t *origp,
++		const cpumask_t *relmapp, int nbits)
 +{
-+	if (nodes_empty(*nodes))
-+		return -EINVAL;
-+	pol->v.nodes = *nodes;
-+	return 0;
++	bitmap_onto(dstp->bits, origp->bits, relmapp->bits, nbits);
 +}
 +
-+static int mpol_new_preferred(struct mempolicy *pol, const nodemask_t *nodes)
++#define cpus_fold(dst, orig, sz) \
++		__cpus_fold(&(dst), &(orig), sz, NR_CPUS)
++static inline void __cpus_fold(cpumask_t *dstp, const cpumask_t *origp,
++		int sz, int nbits)
 +{
-+	if (!nodes)
-+		pol->v.preferred_node = -1;	/* local allocation */
-+	else if (nodes_empty(*nodes))
-+		return -EINVAL;			/*  no allowed nodes */
-+	else
-+		pol->v.preferred_node = first_node(*nodes);
-+	return 0;
++	bitmap_fold(dstp->bits, origp->bits, sz, nbits);
 +}
 +
-+static int mpol_new_bind(struct mempolicy *pol, const nodemask_t *nodes)
-+{
-+	if (!is_valid_nodemask(nodes))
-+		return -EINVAL;
-+	pol->v.nodes = *nodes;
-+	return 0;
-+}
-+
- /* Create a new policy */
- static struct mempolicy *mpol_new(unsigned short mode, unsigned short flags,
- 				  nodemask_t *nodes)
- {
- 	struct mempolicy *policy;
- 	nodemask_t cpuset_context_nmask;
-+	int localalloc = 0;
-+	int ret;
+ #if NR_CPUS > 1
+ #define for_each_cpu_mask(cpu, mask)		\
+ 	for ((cpu) = first_cpu(mask);		\
+diff -puN include/linux/nodemask.h~mempolicy-add-bitmap_onto-and-bitmap_fold-operations include/linux/nodemask.h
+--- a/include/linux/nodemask.h~mempolicy-add-bitmap_onto-and-bitmap_fold-operations
++++ a/include/linux/nodemask.h
+@@ -14,6 +14,8 @@
+  * bitmap_scnlistprintf() and bitmap_parselist(), also in bitmap.c.
+  * For details of node_remap(), see bitmap_bitremap in lib/bitmap.c.
+  * For details of nodes_remap(), see bitmap_remap in lib/bitmap.c.
++ * For details of nodes_onto(), see bitmap_onto in lib/bitmap.c.
++ * For details of nodes_fold(), see bitmap_fold in lib/bitmap.c.
+  *
+  * The available nodemask operations are:
+  *
+@@ -55,7 +57,9 @@
+  * int nodelist_scnprintf(buf, len, mask) Format nodemask as list for printing
+  * int nodelist_parse(buf, map)		Parse ascii string as nodelist
+  * int node_remap(oldbit, old, new)	newbit = map(old, new)(oldbit)
+- * int nodes_remap(dst, src, old, new)	*dst = map(old, new)(dst)
++ * void nodes_remap(dst, src, old, new)	*dst = map(old, new)(src)
++ * void nodes_onto(dst, orig, relmap)	*dst = orig relative to relmap
++ * void nodes_fold(dst, orig, sz)	dst bits = orig bits mod sz
+  *
+  * for_each_node_mask(node, mask)	for-loop node over mask
+  *
+@@ -326,6 +330,22 @@ static inline void __nodes_remap(nodemas
+ 	bitmap_remap(dstp->bits, srcp->bits, oldp->bits, newp->bits, nbits);
+ }
  
- 	pr_debug("setting mode %d flags %d nodes[0] %lx\n",
- 		 mode, flags, nodes ? nodes_addr(*nodes)[0] : -1);
++#define nodes_onto(dst, orig, relmap) \
++		__nodes_onto(&(dst), &(orig), &(relmap), MAX_NUMNODES)
++static inline void __nodes_onto(nodemask_t *dstp, const nodemask_t *origp,
++		const nodemask_t *relmapp, int nbits)
++{
++	bitmap_onto(dstp->bits, origp->bits, relmapp->bits, nbits);
++}
++
++#define nodes_fold(dst, orig, sz) \
++		__nodes_fold(&(dst), &(orig), sz, MAX_NUMNODES)
++static inline void __nodes_fold(nodemask_t *dstp, const nodemask_t *origp,
++		int sz, int nbits)
++{
++	bitmap_fold(dstp->bits, origp->bits, sz, nbits);
++}
++
+ #if MAX_NUMNODES > 1
+ #define for_each_node_mask(node, mask)			\
+ 	for ((node) = first_node(mask);			\
+diff -puN lib/bitmap.c~mempolicy-add-bitmap_onto-and-bitmap_fold-operations lib/bitmap.c
+--- a/lib/bitmap.c~mempolicy-add-bitmap_onto-and-bitmap_fold-operations
++++ a/lib/bitmap.c
+@@ -714,6 +714,164 @@ int bitmap_bitremap(int oldbit, const un
+ }
+ EXPORT_SYMBOL(bitmap_bitremap);
  
- 	if (mode == MPOL_DEFAULT)
--		return (nodes && nodes_weight(*nodes)) ? ERR_PTR(-EINVAL) :
--							 NULL;
-+		return NULL;
-+	if (!nodes || nodes_empty(*nodes)) {
-+		if (mode != MPOL_PREFERRED)
-+			return ERR_PTR(-EINVAL);
-+		localalloc = 1;	/* special case:  no mode flags */
-+	}
- 	policy = kmem_cache_alloc(policy_cache, GFP_KERNEL);
- 	if (!policy)
- 		return ERR_PTR(-ENOMEM);
- 	atomic_set(&policy->refcnt, 1);
--	cpuset_update_task_memory_state();
--	if (flags & MPOL_F_RELATIVE_NODES)
--		mpol_relative_nodemask(&cpuset_context_nmask, nodes,
--				       &cpuset_current_mems_allowed);
--	else
--		nodes_and(cpuset_context_nmask, *nodes,
--			  cpuset_current_mems_allowed);
--	switch (mode) {
--	case MPOL_INTERLEAVE:
--		if (nodes_empty(*nodes) || nodes_empty(cpuset_context_nmask))
--			goto free;
--		policy->v.nodes = cpuset_context_nmask;
--		break;
--	case MPOL_PREFERRED:
--		policy->v.preferred_node = first_node(cpuset_context_nmask);
--		if (policy->v.preferred_node >= MAX_NUMNODES)
--			goto free;
--		break;
--	case MPOL_BIND:
--		if (!is_valid_nodemask(&cpuset_context_nmask))
--			goto free;
--		policy->v.nodes = cpuset_context_nmask;
--		break;
--	default:
--		BUG();
--	}
- 	policy->policy = mode;
--	policy->flags = flags;
--	if (mpol_store_user_nodemask(policy))
--		policy->w.user_nodemask = *nodes;
--	else
--		policy->w.cpuset_mems_allowed = cpuset_mems_allowed(current);
-+
-+	if (!localalloc) {
-+		policy->flags = flags;
-+		cpuset_update_task_memory_state();
-+		if (flags & MPOL_F_RELATIVE_NODES)
-+			mpol_relative_nodemask(&cpuset_context_nmask, nodes,
-+					       &cpuset_current_mems_allowed);
-+		else
-+			nodes_and(cpuset_context_nmask, *nodes,
-+				  cpuset_current_mems_allowed);
-+		if (mpol_store_user_nodemask(policy))
-+			policy->w.user_nodemask = *nodes;
-+		else
-+			policy->w.cpuset_mems_allowed =
-+						cpuset_mems_allowed(current);
-+	}
-+
-+	ret = mpol_ops[mode].create(policy,
-+				localalloc ? NULL : &cpuset_context_nmask);
-+	if (ret < 0) {
-+		kmem_cache_free(policy_cache, policy);
-+		return ERR_PTR(ret);
-+	}
- 	return policy;
-+}
-+
-+static void mpol_rebind_default(struct mempolicy *pol, const nodemask_t *nodes)
++/**
++ * bitmap_onto - translate one bitmap relative to another
++ *	@dst: resulting translated bitmap
++ * 	@orig: original untranslated bitmap
++ * 	@relmap: bitmap relative to which translated
++ *	@bits: number of bits in each of these bitmaps
++ *
++ * Set the n-th bit of @dst iff there exists some m such that the
++ * n-th bit of @relmap is set, the m-th bit of @orig is set, and
++ * the n-th bit of @relmap is also the m-th _set_ bit of @relmap.
++ * (If you understood the previous sentence the first time your
++ * read it, you're overqualified for your current job.)
++ *
++ * In other words, @orig is mapped onto (surjectively) @dst,
++ * using the the map { <n, m> | the n-th bit of @relmap is the
++ * m-th set bit of @relmap }.
++ *
++ * Any set bits in @orig above bit number W, where W is the
++ * weight of (number of set bits in) @relmap are mapped nowhere.
++ * In particular, if for all bits m set in @orig, m >= W, then
++ * @dst will end up empty.  In situations where the possibility
++ * of such an empty result is not desired, one way to avoid it is
++ * to use the bitmap_fold() operator, below, to first fold the
++ * @orig bitmap over itself so that all its set bits x are in the
++ * range 0 <= x < W.  The bitmap_fold() operator does this by
++ * setting the bit (m % W) in @dst, for each bit (m) set in @orig.
++ *
++ * Example [1] for bitmap_onto():
++ *  Let's say @relmap has bits 30-39 set, and @orig has bits
++ *  1, 3, 5, 7, 9 and 11 set.  Then on return from this routine,
++ *  @dst will have bits 31, 33, 35, 37 and 39 set.
++ *
++ *  When bit 0 is set in @orig, it means turn on the bit in
++ *  @dst corresponding to whatever is the first bit (if any)
++ *  that is turned on in @relmap.  Since bit 0 was off in the
++ *  above example, we leave off that bit (bit 30) in @dst.
++ *
++ *  When bit 1 is set in @orig (as in the above example), it
++ *  means turn on the bit in @dst corresponding to whatever
++ *  is the second bit that is turned on in @relmap.  The second
++ *  bit in @relmap that was turned on in the above example was
++ *  bit 31, so we turned on bit 31 in @dst.
++ *
++ *  Similarly, we turned on bits 33, 35, 37 and 39 in @dst,
++ *  because they were the 4th, 6th, 8th and 10th set bits
++ *  set in @relmap, and the 4th, 6th, 8th and 10th bits of
++ *  @orig (i.e. bits 3, 5, 7 and 9) were also set.
++ *
++ *  When bit 11 is set in @orig, it means turn on the bit in
++ *  @dst corresponding to whatever is the twelth bit that is
++ *  turned on in @relmap.  In the above example, there were
++ *  only ten bits turned on in @relmap (30..39), so that bit
++ *  11 was set in @orig had no affect on @dst.
++ *
++ * Example [2] for bitmap_fold() + bitmap_onto():
++ *  Let's say @relmap has these ten bits set:
++ *		40 41 42 43 45 48 53 61 74 95
++ *  (for the curious, that's 40 plus the first ten terms of the
++ *  Fibonacci sequence.)
++ *
++ *  Further lets say we use the following code, invoking
++ *  bitmap_fold() then bitmap_onto, as suggested above to
++ *  avoid the possitility of an empty @dst result:
++ *
++ *	unsigned long *tmp;	// a temporary bitmap's bits
++ *
++ *	bitmap_fold(tmp, orig, bitmap_weight(relmap, bits), bits);
++ *	bitmap_onto(dst, tmp, relmap, bits);
++ *
++ *  Then this table shows what various values of @dst would be, for
++ *  various @orig's.  I list the zero-based positions of each set bit.
++ *  The tmp column shows the intermediate result, as computed by
++ *  using bitmap_fold() to fold the @orig bitmap modulo ten
++ *  (the weight of @relmap).
++ *
++ *      @orig           tmp            @dst
++ *      0                0             40
++ *      1                1             41
++ *      9                9             95
++ *      10               0             40 (*)
++ *      1 3 5 7          1 3 5 7       41 43 48 61
++ *      0 1 2 3 4        0 1 2 3 4     40 41 42 43 45
++ *      0 9 18 27        0 9 8 7       40 61 74 95
++ *      0 10 20 30       0             40
++ *      0 11 22 33       0 1 2 3       40 41 42 43
++ *      0 12 24 36       0 2 4 6       40 42 45 53
++ *      78 102 211       1 2 8         41 42 74 (*)
++ *
++ * (*) For these marked lines, if we hadn't first done bitmap_fold()
++ *     into tmp, then the @dst result would have been empty.
++ *
++ * If either of @orig or @relmap is empty (no set bits), then @dst
++ * will be returned empty.
++ *
++ * If (as explained above) the only set bits in @orig are in positions
++ * m where m >= W, (where W is the weight of @relmap) then @dst will
++ * once again be returned empty.
++ *
++ * All bits in @dst not set by the above rule are cleared.
++ */
++void bitmap_onto(unsigned long *dst, const unsigned long *orig,
++			const unsigned long *relmap, int bits)
 +{
-+}
++	int n, m;       	/* same meaning as in above comment */
 +
-+static void mpol_rebind_nodemask(struct mempolicy *pol,
-+				 const nodemask_t *nodes)
-+{
-+	nodemask_t tmp;
- 
--free:
--	kmem_cache_free(policy_cache, policy);
--	return ERR_PTR(-EINVAL);
-+	if (pol->flags & MPOL_F_STATIC_NODES)
-+		nodes_and(tmp, pol->w.user_nodemask, *nodes);
-+	else if (pol->flags & MPOL_F_RELATIVE_NODES)
-+		mpol_relative_nodemask(&tmp, &pol->w.user_nodemask, nodes);
-+	else {
-+		nodes_remap(tmp, pol->v.nodes, pol->w.cpuset_mems_allowed,
-+			    *nodes);
-+		pol->w.cpuset_mems_allowed = *nodes;
-+	}
-+
-+	pol->v.nodes = tmp;
-+	if (!node_isset(current->il_next, tmp)) {
-+		current->il_next = next_node(current->il_next, tmp);
-+		if (current->il_next >= MAX_NUMNODES)
-+			current->il_next = first_node(tmp);
-+		if (current->il_next >= MAX_NUMNODES)
-+			current->il_next = numa_node_id();
-+	}
-+}
-+
-+static void mpol_rebind_preferred(struct mempolicy *pol,
-+				  const nodemask_t *nodes)
-+{
-+	nodemask_t tmp;
++	if (dst == orig)	/* following doesn't handle inplace mappings */
++		return;
++	bitmap_zero(dst, bits);
 +
 +	/*
-+	 * check 'STATIC_NODES first, as preferred_node == -1 may be
-+	 * a temporary, "fallback" state for this policy.
++	 * The following code is a more efficient, but less
++	 * obvious, equivalent to the loop:
++	 *	for (m = 0; m < bitmap_weight(relmap, bits); m++) {
++	 *		n = bitmap_ord_to_pos(orig, m, bits);
++	 *		if (test_bit(m, orig))
++	 *			set_bit(n, dst);
++	 *	}
 +	 */
-+	if (pol->flags & MPOL_F_STATIC_NODES) {
-+		int node = first_node(pol->w.user_nodemask);
 +
-+		if (node_isset(node, *nodes))
-+			pol->v.preferred_node = node;
-+		else
-+			pol->v.preferred_node = -1;
-+	} else if (pol->v.preferred_node == -1) {
-+		return;	/* no remap required for explicit local alloc */
-+	} else if (pol->flags & MPOL_F_RELATIVE_NODES) {
-+		mpol_relative_nodemask(&tmp, &pol->w.user_nodemask, nodes);
-+		pol->v.preferred_node = first_node(tmp);
-+	} else {
-+		pol->v.preferred_node = node_remap(pol->v.preferred_node,
-+						   pol->w.cpuset_mems_allowed,
-+						   *nodes);
-+		pol->w.cpuset_mems_allowed = *nodes;
++	m = 0;
++	for (n = find_first_bit(relmap, bits);
++	     n < bits;
++	     n = find_next_bit(relmap, bits, n + 1)) {
++		/* m == bitmap_pos_to_ord(relmap, n, bits) */
++		if (test_bit(m, orig))
++			set_bit(n, dst);
++		m++;
 +	}
- }
- 
- /* Migrate a policy to a different set of nodes */
- static void mpol_rebind_policy(struct mempolicy *pol,
- 			       const nodemask_t *newmask)
- {
--	nodemask_t tmp;
--	int static_nodes;
--	int relative_nodes;
--
- 	if (!pol)
- 		return;
--	static_nodes = pol->flags & MPOL_F_STATIC_NODES;
--	relative_nodes = pol->flags & MPOL_F_RELATIVE_NODES;
- 	if (!mpol_store_user_nodemask(pol) &&
- 	    nodes_equal(pol->w.cpuset_mems_allowed, *newmask))
- 		return;
--
--	switch (pol->policy) {
--	case MPOL_DEFAULT:
--		break;
--	case MPOL_BIND:
--		/* Fall through */
--	case MPOL_INTERLEAVE:
--		if (static_nodes)
--			nodes_and(tmp, pol->w.user_nodemask, *newmask);
--		else if (relative_nodes)
--			mpol_relative_nodemask(&tmp, &pol->w.user_nodemask,
--					       newmask);
--		else {
--			nodes_remap(tmp, pol->v.nodes,
--				    pol->w.cpuset_mems_allowed, *newmask);
--			pol->w.cpuset_mems_allowed = *newmask;
--		}
--		pol->v.nodes = tmp;
--		if (!node_isset(current->il_next, tmp)) {
--			current->il_next = next_node(current->il_next, tmp);
--			if (current->il_next >= MAX_NUMNODES)
--				current->il_next = first_node(tmp);
--			if (current->il_next >= MAX_NUMNODES)
--				current->il_next = numa_node_id();
--		}
--		break;
--	case MPOL_PREFERRED:
--		if (static_nodes) {
--			int node = first_node(pol->w.user_nodemask);
--
--			if (node_isset(node, *newmask))
--				pol->v.preferred_node = node;
--			else
--				pol->v.preferred_node = -1;
--		} else if (relative_nodes) {
--			mpol_relative_nodemask(&tmp, &pol->w.user_nodemask,
--					       newmask);
--			pol->v.preferred_node = first_node(tmp);
--		} else {
--			pol->v.preferred_node = node_remap(pol->v.preferred_node,
--					pol->w.cpuset_mems_allowed, *newmask);
--			pol->w.cpuset_mems_allowed = *newmask;
--		}
--		break;
--	default:
--		BUG();
--		break;
--	}
-+	mpol_ops[pol->policy].rebind(pol, newmask);
- }
- 
- /*
-@@ -291,6 +321,24 @@ void mpol_rebind_mm(struct mm_struct *mm
- 	up_write(&mm->mmap_sem);
- }
- 
-+static const struct mempolicy_operations mpol_ops[MPOL_MAX] = {
-+	[MPOL_DEFAULT] = {
-+		.rebind = mpol_rebind_default,
-+	},
-+	[MPOL_INTERLEAVE] = {
-+		.create = mpol_new_interleave,
-+		.rebind = mpol_rebind_nodemask,
-+	},
-+	[MPOL_PREFERRED] = {
-+		.create = mpol_new_preferred,
-+		.rebind = mpol_rebind_preferred,
-+	},
-+	[MPOL_BIND] = {
-+		.create = mpol_new_bind,
-+		.rebind = mpol_rebind_nodemask,
-+	},
-+};
++}
++EXPORT_SYMBOL(bitmap_onto);
 +
- static void gather_stats(struct page *, void *, int pte_dirty);
- static void migrate_page_add(struct page *page, struct list_head *pagelist,
- 				unsigned long flags);
-@@ -1848,7 +1896,6 @@ void numa_default_policy(void)
++/**
++ * bitmap_fold - fold larger bitmap into smaller, modulo specified size
++ *	@dst: resulting smaller bitmap
++ *	@orig: original larger bitmap
++ *	@sz: specified size
++ *	@bits: number of bits in each of these bitmaps
++ *
++ * For each bit oldbit in @orig, set bit oldbit mod @sz in @dst.
++ * Clear all other bits in @dst.  See further the comment and
++ * Example [2] for bitmap_onto() for why and how to use this.
++ */
++void bitmap_fold(unsigned long *dst, const unsigned long *orig,
++			int sz, int bits)
++{
++	int oldbit;
++
++	if (dst == orig)	/* following doesn't handle inplace mappings */
++		return;
++	bitmap_zero(dst, bits);
++
++	for (oldbit = find_first_bit(orig, bits);
++	     oldbit < bits;
++	     oldbit = find_next_bit(orig, bits, oldbit + 1))
++		set_bit(oldbit % sz, dst);
++}
++EXPORT_SYMBOL(bitmap_fold);
++
  /*
-  * Display pages allocated per node and memory policy via /proc.
-  */
+  * Common code for bitmap_*_region() routines.
+  *	bitmap: array of unsigned longs corresponding to the bitmap
+_
+
+Patches currently in -mm which might be from pj@sgi.com are
+
+origin.patch
+cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
+cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+cgroup-api-files-add-res_counter_read_u64.patch
+cgroup-api-files-use-read_u64-in-memory-controller.patch
+cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
+revert-part-of-sched-cpuset-customize-sched-domains-core.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+reapply-sched-cpuset-customize-sched-domains-core-bits.patch
+reapply-sched-cpuset-customize-sched-domains-core-bits-fix.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroup-api-files-add-cgroup-map-data-type.patch
+cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+cgroup-api-files-drop-mem_cgroup_force_empty.patch
+cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
+cgroup-api-files-make-cgroup_debug-default-to-off.patch
+kernel-cpusetc-make-3-functions-static.patch
+cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
+cpuset-hardwall-flag-add-a-mem_hardwall-flag-to-cpusets.patch
+
