@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-fix-node-id-type.patch added to -mm tree
-Date: Sun, 27 Apr 2008 19:26:32 -0700
-Message-ID: <200804280226.m3S2QWUd003425@imap1.linux-foundation.org>
+Subject: + fuse-fix-max-i-o-size-calculation.patch added to -mm tree
+Date: Sun, 27 Apr 2008 19:26:30 -0700
+Message-ID: <200804280226.m3S2QU4G003422@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42784 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751111AbYD1C1J (ORCPT
+	by vger.kernel.org with ESMTP id S1763255AbYD1C1F (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sun, 27 Apr 2008 22:27:09 -0400
+	Sun, 27 Apr 2008 22:27:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: mszeredi@suse.cz
 
 
 The patch titled
-     fuse: fix node ID type
+     fuse: fix max i/o size calculation
 has been added to the -mm tree.  Its filename is
-     fuse-fix-node-id-type.patch
+     fuse-fix-max-i-o-size-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,77 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fuse: fix node ID type
+Subject: fuse: fix max i/o size calculation
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Node ID is 64bit but it is passed as unsigned long to some functions.  This
-breakage wasn't noticed, because libfuse uses unsigned long too.
+Fix a bug that Werner Baumann reported: fuse can send a bigger write request
+than the maximum specified.  This only affected direct_io operation.
+
+In addition set a sane minimum for the max_read and max_write tunables, so I/O
+always makes some progress.
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/fuse_i.h |    4 ++--
- fs/fuse/inode.c  |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ fs/fuse/file.c  |    7 ++++---
+ fs/fuse/inode.c |    3 ++-
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/fuse/fuse_i.h~fuse-fix-node-id-type fs/fuse/fuse_i.h
---- a/fs/fuse/fuse_i.h~fuse-fix-node-id-type
-+++ a/fs/fuse/fuse_i.h
-@@ -464,7 +464,7 @@ extern const struct file_operations fuse
- /**
-  * Get a filled in inode
-  */
--struct inode *fuse_iget(struct super_block *sb, unsigned long nodeid,
-+struct inode *fuse_iget(struct super_block *sb, u64 nodeid,
- 			int generation, struct fuse_attr *attr,
- 			u64 attr_valid, u64 attr_version);
+diff -puN fs/fuse/file.c~fuse-fix-max-i-o-size-calculation fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-fix-max-i-o-size-calculation
++++ a/fs/fuse/file.c
+@@ -966,14 +966,15 @@ static ssize_t fuse_direct_io(struct fil
  
-@@ -472,7 +472,7 @@ struct inode *fuse_iget(struct super_blo
-  * Send FORGET command
-  */
- void fuse_send_forget(struct fuse_conn *fc, struct fuse_req *req,
--		      unsigned long nodeid, u64 nlookup);
-+		      u64 nodeid, u64 nlookup);
- 
- /**
-  * Initialize READ or READDIR request
-diff -puN fs/fuse/inode.c~fuse-fix-node-id-type fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-fix-node-id-type
+ 	while (count) {
+ 		size_t nres;
+-		size_t nbytes = min(count, nmax);
+-		int err = fuse_get_user_pages(req, buf, nbytes, !write);
++		size_t nbytes_limit = min(count, nmax);
++		size_t nbytes;
++		int err = fuse_get_user_pages(req, buf, nbytes_limit, !write);
+ 		if (err) {
+ 			res = err;
+ 			break;
+ 		}
+ 		nbytes = (req->num_pages << PAGE_SHIFT) - req->page_offset;
+-		nbytes = min(count, nbytes);
++		nbytes = min(nbytes_limit, nbytes);
+ 		if (write)
+ 			nres = fuse_send_write(req, file, inode, pos, nbytes,
+ 					       current->files);
+diff -puN fs/fuse/inode.c~fuse-fix-max-i-o-size-calculation fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-fix-max-i-o-size-calculation
 +++ a/fs/fuse/inode.c
-@@ -84,7 +84,7 @@ static void fuse_destroy_inode(struct in
- }
+@@ -584,6 +584,7 @@ static void process_init_reply(struct fu
+ 		fc->bdi.ra_pages = min(fc->bdi.ra_pages, ra_pages);
+ 		fc->minor = arg->minor;
+ 		fc->max_write = arg->minor < 5 ? 4096 : arg->max_write;
++		fc->max_write = min_t(unsigned, 4096, fc->max_write);
+ 		fc->conn_init = 1;
+ 	}
+ 	fuse_put_request(fc, req);
+@@ -658,7 +659,7 @@ static int fuse_fill_super(struct super_
+ 	fc->flags = d.flags;
+ 	fc->user_id = d.user_id;
+ 	fc->group_id = d.group_id;
+-	fc->max_read = d.max_read;
++	fc->max_read = min_t(unsigned, 4096, d.max_read);
  
- void fuse_send_forget(struct fuse_conn *fc, struct fuse_req *req,
--		      unsigned long nodeid, u64 nlookup)
-+		      u64 nodeid, u64 nlookup)
- {
- 	struct fuse_forget_in *inarg = &req->misc.forget_in;
- 	inarg->nlookup = nlookup;
-@@ -207,7 +207,7 @@ static void fuse_init_inode(struct inode
- 
- static int fuse_inode_eq(struct inode *inode, void *_nodeidp)
- {
--	unsigned long nodeid = *(unsigned long *) _nodeidp;
-+	u64 nodeid = *(u64 *) _nodeidp;
- 	if (get_node_id(inode) == nodeid)
- 		return 1;
- 	else
-@@ -216,12 +216,12 @@ static int fuse_inode_eq(struct inode *i
- 
- static int fuse_inode_set(struct inode *inode, void *_nodeidp)
- {
--	unsigned long nodeid = *(unsigned long *) _nodeidp;
-+	u64 nodeid = *(u64 *) _nodeidp;
- 	get_fuse_inode(inode)->nodeid = nodeid;
- 	return 0;
- }
- 
--struct inode *fuse_iget(struct super_block *sb, unsigned long nodeid,
-+struct inode *fuse_iget(struct super_block *sb, u64 nodeid,
- 			int generation, struct fuse_attr *attr,
- 			u64 attr_valid, u64 attr_version)
- {
+ 	/* Used by get_root_inode() */
+ 	sb->s_fs_info = fc;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
