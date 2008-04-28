@@ -1,55 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 23:54:34 -0700
-Message-ID: <200804280654.m3S6sZM1012712@imap1.linux-foundation.org>
+Subject: - mm-introduce-pte_special-pte-bit-fix.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 23:54:54 -0700
+Message-ID: <200804280654.m3S6sst5012715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38472 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54997 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755882AbYD1Gz0 (ORCPT
+	by vger.kernel.org with ESMTP id S1755882AbYD1Gzn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 02:55:26 -0400
+	Mon, 28 Apr 2008 02:55:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, kosaki.motohiro@jp.fujitsu.com, mpm@selenic.com, peterz@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cotte@de.ibm.com, heiko.carstens@de.ibm.com, jaredeh@gmail.com, npiggin@suse.de, schwidefsky@de.ibm.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smaps-account-swap-entries-sneak-in-a-coding-style-fix
+     mm-introduce-pte_special-pte-bit-fix
 has been removed from the -mm tree.  Its filename was
-     smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+     mm-introduce-pte_special-pte-bit-fix.patch
 
-This patch was dropped because it was folded into smaps-account-swap-entries.patch
+This patch was dropped because it was folded into mm-introduce-pte_special-pte-bit.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smaps-account-swap-entries-sneak-in-a-coding-style-fix
+Subject: mm-introduce-pte_special-pte-bit-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Peter Zijlstra <peterz@infradead.org>
+buncha crackmonkeys, I dunno.
+
+Cc: Carsten Otte <cotte@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Jared Hulbert <jaredeh@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/asm-sparc/pgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~smaps-account-swap-entries-sneak-in-a-coding-style-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~smaps-account-swap-entries-sneak-in-a-coding-style-fix
-+++ a/fs/proc/task_mmu.c
-@@ -338,8 +338,7 @@ const struct file_operations proc_maps_o
- #define PSS_SHIFT 12
+diff -puN include/asm-sparc/pgtable.h~mm-introduce-pte_special-pte-bit-fix include/asm-sparc/pgtable.h
+--- a/include/asm-sparc/pgtable.h~mm-introduce-pte_special-pte-bit-fix
++++ a/include/asm-sparc/pgtable.h
+@@ -256,7 +256,7 @@ BTFIXUPDEF_CALL_CONST(pte_t, pte_mkyoung
+ #define pte_mkdirty(pte) BTFIXUP_CALL(pte_mkdirty)(pte)
+ #define pte_mkyoung(pte) BTFIXUP_CALL(pte_mkyoung)(pte)
  
- #ifdef CONFIG_PROC_PAGE_MONITOR
--struct mem_size_stats
--{
-+struct mem_size_stats {
- 	struct vm_area_struct *vma;
- 	unsigned long resident;
- 	unsigned long shared_clean;
+-#define pte_mkspecial(pte_t pte)    (pte)
++#define pte_mkspecial(pte)    (pte)
+ 
+ #define pfn_pte(pfn, prot)		mk_pte(pfn_to_page(pfn), prot)
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,7 +70,7 @@ vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
 vmallocinfo-add-caller-information.patch
 page_mapping-add-ifdef-around-reference-to-swapper_space.patch
 smaps-account-swap-entries.patch
-smaps-account-swap-entries-sneak-in-a-coding-style-fix.patch
+mm-introduce-pte_special-pte-bit.patch
 mm-introduce-pte_special-pte-bit-fix.patch
 hugetlb-vmstat-events-for-huge-page-allocations-cleanup.patch
 mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info-fix.patch
