@@ -1,117 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: - mempolicy-support-mpol=local-tmpfs-mount-option.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:53:38 -0700
-Message-ID: <200804282153.m3SLrcxF017903@imap1.linux-foundation.org>
+Subject: - memory-hotplugallocate-usemap-on-the-section-with-pgdat.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:53:59 -0700
+Message-ID: <200804282153.m3SLrxpo017948@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46000 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45891 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935019AbYD1Vxy (ORCPT
+	by vger.kernel.org with ESMTP id S936216AbYD1VyE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:53:54 -0400
+	Mon, 28 Apr 2008 17:54:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lee.schermerhorn@hp.com, ak@suse.de, clameter@sgi.com, mel@csn.ul.ie, rientjes@google.com, mm-commits@vger.kernel.org
+To: y-goto@jp.fujitsu.com, pbadari@us.ibm.com, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mempolicy: support mpol=local tmpfs mount option
+     memory hotplug)allocat: usemap on the section with pgdat
 has been removed from the -mm tree.  Its filename was
-     mempolicy-support-mpol=local-tmpfs-mount-option.patch
+     memory-hotplugallocate-usemap-on-the-section-with-pgdat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mempolicy: support mpol=local tmpfs mount option
-From: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Subject: memory hotplug)allocat: usemap on the section with pgdat
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-For tmpfs/shmem shared policies, MPOL_DEFAULT is not necessarily equivalent to
-"local allocation".  Because shared policies are at the same "scope" level
-[see Documentation/vm/numa_memory_policy.txt], as vma policies MPOL_DEFAULT
-means "fall back to current task policy".
+Usemaps are allocated on the section which has pgdat by this.
 
-This patch extends the memory policy string parsing function to display
-"local" for MPOL_PREFERRED + MPOL_F_LOCAL.  This allows one to specify local
-allocation as the default policy for shared memory areas via the tmpfs mpol
-mount option, regardless of the current task's policy.
+Because usemap size is very small, many other sections usemaps are allocated
+on only one page.  If a section has usemap, it can't be removed until removing
+other sections.  This dependency is not desirable for memory removing.
 
-Also, "local" is now displayed for this policy.  This patch allows us to
-accept the same input format as the display.
+Pgdat has similar feature.  When a section has pgdat area, it must be the last
+section for removing on the node.  So, if section A has pgdat and section B
+has usemap for section A, Both sections can't be removed due to dependency
+each other.
 
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Andi Kleen <ak@suse.de>
+To solve this issue, this patch collects usemap on same section with pgdat. 
+If other sections doesn't have any dependency, this section will be able to be
+removed finally.
+
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
+ mm/sparse.c |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-support-mpol=local-tmpfs-mount-option mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-support-mpol=local-tmpfs-mount-option
-+++ a/mm/mempolicy.c
-@@ -1951,7 +1951,7 @@ void numa_default_policy(void)
+diff -puN mm/sparse.c~memory-hotplugallocate-usemap-on-the-section-with-pgdat mm/sparse.c
+--- a/mm/sparse.c~memory-hotplugallocate-usemap-on-the-section-with-pgdat
++++ a/mm/sparse.c
+@@ -249,11 +249,22 @@ static unsigned long *__kmalloc_section_
  
- /*
-  * "local" is pseudo-policy:  MPOL_PREFERRED with MPOL_F_LOCAL flag
-- * Used only for mpol_to_str()
-+ * Used only for mpol_parse_str() and mpol_to_str()
-  */
- #define MPOL_LOCAL (MPOL_INTERLEAVE + 1)
- static const char * const policy_types[] =
-@@ -1990,21 +1990,16 @@ int mpol_parse_str(char *str, unsigned s
- 	if (flags)
- 		*flags++ = '\0';	/* terminate mode string */
+ static unsigned long *__init sparse_early_usemap_alloc(unsigned long pnum)
+ {
+-	unsigned long *usemap;
++	unsigned long *usemap, section_nr;
+ 	struct mem_section *ms = __nr_to_section(pnum);
+ 	int nid = sparse_early_nid(ms);
++	struct pglist_data *pgdat = NODE_DATA(nid);
  
--	for (i = 0; i < MPOL_MAX; i++) {
-+	for (i = 0; i <= MPOL_LOCAL; i++) {
- 		if (!strcmp(str, policy_types[i])) {
- 			*mode = i;
- 			break;
- 		}
- 	}
--	if (i == MPOL_MAX)
-+	if (i > MPOL_LOCAL)
- 		goto out;
+-	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
++	/*
++	 * Usemap's page can't be freed until freeing other sections
++	 * which use it. And, Pgdat has same feature.
++	 * If section A has pgdat and section B has usemap for other
++	 * sections (includes section A), both sections can't be removed,
++	 * because there is the dependency each other.
++	 * To solve above issue, this collects all usemap on the same section
++	 * which has pgdat.
++	 */
++	section_nr = pfn_to_section_nr(__pa(pgdat) >> PAGE_SHIFT);
++	usemap = alloc_bootmem_section(usemap_size(), section_nr);
+ 	if (usemap)
+ 		return usemap;
  
- 	switch (*mode) {
--	case MPOL_DEFAULT:
--		/* Don't allow a nodelist nor flags */
--		if (!nodelist && !flags)
--			err = 0;
--		break;
- 	case MPOL_PREFERRED:
- 		/* Insist on a nodelist of one node only */
- 		if (nodelist) {
-@@ -2027,6 +2022,20 @@ int mpol_parse_str(char *str, unsigned s
- 		if (!nodelist)
- 			*policy_nodes = node_states[N_HIGH_MEMORY];
- 		err = 0;
-+		break;
-+	default:
-+		/*
-+		 * MPOL_DEFAULT or MPOL_LOCAL
-+		 * Don't allow a nodelist nor flags
-+		 */
-+		if (!nodelist && !flags)
-+			err = 0;
-+		if (*mode == MPOL_DEFAULT)
-+			goto out;
-+		/* else MPOL_LOCAL */
-+		*mode = MPOL_PREFERRED;
-+		nodes_clear(*policy_nodes);
-+		break;
- 	}
- 
- 	*mode_flags = 0;
 _
 
-Patches currently in -mm which might be from lee.schermerhorn@hp.com are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
 origin.patch
-mm-add-nr_writeback_temp-counter-fix.patch
+powerpc-hotplug-memory-notifications-for-ppc.patch
+powerpc-update-lmb-for-hotplug-memory-add-remove.patch
+powerpc-provide-walk_memory_resource-for-ppc.patch
+ipc-scale-msgmni-to-the-amount-of-lowmem.patch
+ipc-scale-msgmni-to-the-number-of-ipc-namespaces.patch
+ipc-define-the-slab_memory_callback-priority-as-a-constant.patch
+ipc-recompute-msgmni-on-memory-add--remove.patch
+ipc-invoke-the-ipcns-notifier-chain-as-a-work-item.patch
+ipc-recompute-msgmni-on-ipc-namespace-creation-removal.patch
+ipc-do-not-recompute-msgmni-anymore-if-explicitly-set-by-user.patch
+ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative.patch
 
