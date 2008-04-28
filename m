@@ -1,57 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - capabilities-implement-per-process-securebits-warning-fix.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 23:56:11 -0700
-Message-ID: <200804280656.m3S6uBr2012818@imap1.linux-foundation.org>
+Subject: - kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 23:57:43 -0700
+Message-ID: <200804280657.m3S6vhLh012870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44874 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39492 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765971AbYD1G5a (ORCPT
+	by vger.kernel.org with ESMTP id S1763083AbYD1G61 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 02:57:30 -0400
+	Mon, 28 Apr 2008 02:58:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, morgan@kernel.org, paul.moore@hp.com, sds@tycho.nsa.gov, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ananth@in.ibm.com, haveblue@us.ibm.com, jkenisto@us.ibm.com, srinivasa@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     capabilities-implement-per-process-securebits-warning-fix
+     kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     capabilities-implement-per-process-securebits-warning-fix.patch
+     kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into capabilities-implement-per-process-securebits.patch
+This patch was dropped because it was folded into kprobes-prevent-probing-of-preempt_schedule.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: capabilities-implement-per-process-securebits-warning-fix
+Subject: kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-kernel/sys.c: In function 'sys_prctl':
-kernel/sys.c:1629: warning: 'error' may be used uninitialized in this function
+ERROR: use tabs not spaces
+#57: FILE: kernel/kprobes.c:100:
++        {"preempt_schedule",},$
 
-Cc: Andrew G. Morgan <morgan@kernel.org>
-Cc: Paul Moore <paul.moore@hp.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
+ERROR: use tabs not spaces
+#58: FILE: kernel/kprobes.c:101:
++        {NULL}    /* Terminator */$
+
+total: 2 errors, 0 warnings, 92 lines checked
+
+./patches/kprobes-prevent-probing-of-preempt_schedule.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Jim Keniston <jkenisto@us.ibm.com>
+Cc: Srinivasa DS <srinivasa@in.ibm.com>
+Cc: Srinivasa Ds <srinivasa@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kprobes.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sys.c~capabilities-implement-per-process-securebits-warning-fix kernel/sys.c
---- a/kernel/sys.c~capabilities-implement-per-process-securebits-warning-fix
-+++ a/kernel/sys.c
-@@ -1626,7 +1626,7 @@ asmlinkage long sys_umask(int mask)
- asmlinkage long sys_prctl(int option, unsigned long arg2, unsigned long arg3,
- 			  unsigned long arg4, unsigned long arg5)
- {
--	long error;
-+	long uninitialized_var(error);
+diff -puN kernel/kprobes.c~kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes kernel/kprobes.c
+--- a/kernel/kprobes.c~kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes
++++ a/kernel/kprobes.c
+@@ -80,8 +80,8 @@ static DEFINE_PER_CPU(struct kprobe *, k
+  * For such cases, we now have a blacklist
+  */
+ struct kprobe_blackpoint kprobe_blacklist[] = {
+-        {"preempt_schedule",},
+-        {NULL}    /* Terminator */
++	{"preempt_schedule",},
++	{NULL}    /* Terminator */
+ };
  
- 	if (security_task_prctl(option, arg2, arg3, arg4, arg5, &error))
- 		return error;
+ #ifdef __ARCH_WANT_KPROBES_INSN_SLOT
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -73,18 +89,17 @@ mm-introduce-pte_special-pte-bit.patch
 hugetlb-vmstat-events-for-huge-page-allocations.patch
 mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info.patch
 capabilities-implement-per-process-securebits.patch
-capabilities-implement-per-process-securebits-warning-fix.patch
 lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
 lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
 selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
 audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+arch-alpha-kernel-trapsc-use-time_-macros.patch
 alpha-teach-the-compiler-that-bug-doesnt-return.patch
-uart_get_baud_rate-stop-mangling-termios-fix.patch
+uart_get_baud_rate-stop-mangling-termios.patch
 drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
-vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
-kprobes-prevent-probing-of-preempt_schedule-fix.patch
+oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
+vt-notifier-extension-for-accessibility.patch
+kprobes-prevent-probing-of-preempt_schedule.patch
 kprobes-prevent-probing-of-preempt_schedule-checkpatch-fixes.patch
 quota-various-style-cleanups-checkpatch-fixes.patch
 quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount-checkpatch-fixes.patch
