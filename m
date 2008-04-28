@@ -1,56 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - arch-alpha-kernel-trapsc-use-time_-macros-fix.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 23:56:29 -0700
-Message-ID: <200804280656.m3S6uT72012837@imap1.linux-foundation.org>
+Subject: - capabilities-implement-per-process-securebits-warning-fix.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 23:56:11 -0700
+Message-ID: <200804280656.m3S6uBr2012818@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40388 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44874 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763227AbYD1G5k (ORCPT
+	by vger.kernel.org with ESMTP id S1765971AbYD1G5a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 02:57:40 -0400
+	Mon, 28 Apr 2008 02:57:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, caglar@pardus.org.tr, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, morgan@kernel.org, paul.moore@hp.com, sds@tycho.nsa.gov, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch-alpha-kernel-trapsc-use-time_-macros-fix
+     capabilities-implement-per-process-securebits-warning-fix
 has been removed from the -mm tree.  Its filename was
-     arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
+     capabilities-implement-per-process-securebits-warning-fix.patch
 
-This patch was dropped because it was folded into arch-alpha-kernel-trapsc-use-time_-macros.patch
+This patch was dropped because it was folded into capabilities-implement-per-process-securebits.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch-alpha-kernel-trapsc-use-time_-macros-fix
+Subject: capabilities-implement-per-process-securebits-warning-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/alpha/kernel/traps.c: In function 'do_entUnaUser':
-arch/alpha/kernel/traps.c:785: warning: comparison of distinct pointer types lacks a cast
+kernel/sys.c: In function 'sys_prctl':
+kernel/sys.c:1629: warning: 'error' may be used uninitialized in this function
 
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: S.Caglar Onur <caglar@pardus.org.tr>
+Cc: Andrew G. Morgan <morgan@kernel.org>
+Cc: Paul Moore <paul.moore@hp.com>
+Cc: Serge Hallyn <serue@us.ibm.com>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/traps.c |    2 +-
+ kernel/sys.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/kernel/traps.c~arch-alpha-kernel-trapsc-use-time_-macros-fix arch/alpha/kernel/traps.c
---- a/arch/alpha/kernel/traps.c~arch-alpha-kernel-trapsc-use-time_-macros-fix
-+++ a/arch/alpha/kernel/traps.c
-@@ -771,7 +771,7 @@ do_entUnaUser(void __user * va, unsigned
- 	      unsigned long reg, struct pt_regs *regs)
+diff -puN kernel/sys.c~capabilities-implement-per-process-securebits-warning-fix kernel/sys.c
+--- a/kernel/sys.c~capabilities-implement-per-process-securebits-warning-fix
++++ a/kernel/sys.c
+@@ -1626,7 +1626,7 @@ asmlinkage long sys_umask(int mask)
+ asmlinkage long sys_prctl(int option, unsigned long arg2, unsigned long arg3,
+ 			  unsigned long arg4, unsigned long arg5)
  {
- 	static int cnt = 0;
--	static long last_time = 0;
-+	static unsigned long last_time;
+-	long error;
++	long uninitialized_var(error);
  
- 	unsigned long tmp1, tmp2, tmp3, tmp4;
- 	unsigned long fake_reg, *reg_addr = &fake_reg;
+ 	if (security_task_prctl(option, arg2, arg3, arg4, arg5, &error))
+ 		return error;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,11 +73,11 @@ mm-introduce-pte_special-pte-bit.patch
 hugetlb-vmstat-events-for-huge-page-allocations.patch
 mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info.patch
 capabilities-implement-per-process-securebits.patch
+capabilities-implement-per-process-securebits-warning-fix.patch
 lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
 lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
 selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
 audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros.patch
 arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
 alpha-teach-the-compiler-that-bug-doesnt-return.patch
 uart_get_baud_rate-stop-mangling-termios-fix.patch
