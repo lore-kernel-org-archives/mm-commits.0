@@ -1,315 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-framebuffer_alloc-fixes.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:58:33 -0700
-Message-ID: <200804282158.m3SLwXCk018501@imap1.linux-foundation.org>
+Subject: - lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:58:46 -0700
+Message-ID: <200804282158.m3SLwkv6018516@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32919 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35806 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965373AbYD1V6i (ORCPT
+	by vger.kernel.org with ESMTP id S965403AbYD1V64 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:58:38 -0400
+	Mon, 28 Apr 2008 17:58:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: santiago@crfreenet.org, adaplas@pol.net, mm-commits@vger.kernel.org
+To: JRottmann@LiPPERT-AT.de, adaplas@pol.net, jordan.crouse@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: framebuffer_alloc() fixes
+     lxfb: extend PLL table to support dotclocks below 25 MHz
 has been removed from the -mm tree.  Its filename was
-     fbdev-framebuffer_alloc-fixes.patch
+     lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: framebuffer_alloc() fixes
-From: Ondrej Zajicek <santiago@crfreenet.org>
+Subject: lxfb: extend PLL table to support dotclocks below 25 MHz
+From: Jens Rottmann <JRottmann@LiPPERT-AT.de>
 
-Correct the dev arg of framebuffer_alloc() in arkfb, s3fb and vt8623fb.
+Extends the PLL frequency table of the AMD Geode-LX frame buffer driver to
+make use of the DIV4 bit, thus adding support for dotclocks between 6 and 25
+MHz.  These are needed for small LCDs (e.g.  320x240).  Also inserts some
+intermediate steps between pre-existing frequencies.
 
-Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
+Signed-off-by: Jens Rottmann <JRottmann@LiPPERT-AT.de>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/arkfb.c    |   20 ++++++++++----------
- drivers/video/s3fb.c     |   20 ++++++++++----------
- drivers/video/vt8623fb.c |   22 +++++++++++-----------
- 3 files changed, 31 insertions(+), 31 deletions(-)
+ drivers/video/geode/lxfb_ops.c |  112 ++++++++++++++++++++++---------
+ 1 file changed, 81 insertions(+), 31 deletions(-)
 
-diff -puN drivers/video/arkfb.c~fbdev-framebuffer_alloc-fixes drivers/video/arkfb.c
---- a/drivers/video/arkfb.c~fbdev-framebuffer_alloc-fixes
-+++ a/drivers/video/arkfb.c
-@@ -943,7 +943,7 @@ static int __devinit ark_pci_probe(struc
+diff -puN drivers/video/geode/lxfb_ops.c~lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz drivers/video/geode/lxfb_ops.c
+--- a/drivers/video/geode/lxfb_ops.c~lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz
++++ a/drivers/video/geode/lxfb_ops.c
+@@ -35,35 +35,85 @@ static const struct {
+   unsigned int pllval;
+   unsigned int freq;
+ } pll_table[] = {
+-  { 0x000031AC, 24923 },
+-  { 0x0000215D, 25175 },
+-  { 0x00001087, 27000 },
+-  { 0x0000216C, 28322 },
+-  { 0x0000218D, 28560 },
+-  { 0x000010C9, 31200 },
+-  { 0x00003147, 31500 },
+-  { 0x000010A7, 33032 },
+-  { 0x00002159, 35112 },
+-  { 0x00004249, 35500 },
+-  { 0x00000057, 36000 },
+-  { 0x0000219A, 37889 },
+-  { 0x00002158, 39168 },
+-  { 0x00000045, 40000 },
+-  { 0x00000089, 43163 },
+-  { 0x000010E7, 44900 },
+-  { 0x00002136, 45720 },
+-  { 0x00003207, 49500 },
+-  { 0x00002187, 50000 },
+-  { 0x00004286, 56250 },
+-  { 0x000010E5, 60065 },
+-  { 0x00004214, 65000 },
+-  { 0x00001105, 68179 },
+-  { 0x000031E4, 74250 },
+-  { 0x00003183, 75000 },
+-  { 0x00004284, 78750 },
+-  { 0x00001104, 81600 },
+-  { 0x00006363, 94500 },
+-  { 0x00005303, 97520 },
++  { 0x000131AC,   6231 },
++  { 0x0001215D,   6294 },
++  { 0x00011087,   6750 },
++  { 0x0001216C,   7081 },
++  { 0x0001218D,   7140 },
++  { 0x000110C9,   7800 },
++  { 0x00013147,   7875 },
++  { 0x000110A7,   8258 },
++  { 0x00012159,   8778 },
++  { 0x00014249,   8875 },
++  { 0x00010057,   9000 },
++  { 0x0001219A,   9472 },
++  { 0x00012158,   9792 },
++  { 0x00010045,  10000 },
++  { 0x00010089,  10791 },
++  { 0x000110E7,  11225 },
++  { 0x00012136,  11430 },
++  { 0x00013207,  12375 },
++  { 0x00012187,  12500 },
++  { 0x00014286,  14063 },
++  { 0x000110E5,  15016 },
++  { 0x00014214,  16250 },
++  { 0x00011105,  17045 },
++  { 0x000131E4,  18563 },
++  { 0x00013183,  18750 },
++  { 0x00014284,  19688 },
++  { 0x00011104,  20400 },
++  { 0x00016363,  23625 },
++  { 0x00015303,  24380 },
++  { 0x000031AC,  24923 },
++  { 0x0000215D,  25175 },
++  { 0x00001087,  27000 },
++  { 0x0000216C,  28322 },
++  { 0x0000218D,  28560 },
++  { 0x00010041,  29913 },
++  { 0x000010C9,  31200 },
++  { 0x00003147,  31500 },
++  { 0x000141A1,  32400 },
++  { 0x000010A7,  33032 },
++  { 0x00012182,  33375 },
++  { 0x000141B1,  33750 },
++  { 0x00002159,  35112 },
++  { 0x00004249,  35500 },
++  { 0x00000057,  36000 },
++  { 0x000141E1,  37125 },
++  { 0x0000219A,  37889 },
++  { 0x00002158,  39168 },
++  { 0x00000045,  40000 },
++  { 0x000131A1,  40500 },
++  { 0x00010061,  42301 },
++  { 0x00000089,  43163 },
++  { 0x00012151,  43875 },
++  { 0x000010E7,  44900 },
++  { 0x00002136,  45720 },
++  { 0x000152E1,  47250 },
++  { 0x00010071,  48000 },
++  { 0x00003207,  49500 },
++  { 0x00002187,  50000 },
++  { 0x00014291,  50625 },
++  { 0x00011101,  51188 },
++  { 0x00017481,  54563 },
++  { 0x00004286,  56250 },
++  { 0x00014170,  57375 },
++  { 0x00016210,  58500 },
++  { 0x000010E5,  60065 },
++  { 0x00013140,  62796 },
++  { 0x00004214,  65000 },
++  { 0x00016250,  65250 },
++  { 0x00001105,  68179 },
++  { 0x000141C0,  69600 },
++  { 0x00015220,  70160 },
++  { 0x00010050,  72000 },
++  { 0x000031E4,  74250 },
++  { 0x00003183,  75000 },
++  { 0x00004284,  78750 },
++  { 0x00012130,  80052 },
++  { 0x00001104,  81600 },
++  { 0x00006363,  94500 },
++  { 0x00005303,  97520 },
+   { 0x00002183, 100187 },
+   { 0x00002122, 101420 },
+   { 0x00001081, 108000 },
+@@ -138,7 +188,7 @@ static void lx_set_clock(struct fb_info 
+ 	unsigned int diff, min, best = 0;
+ 	unsigned int freq, i;
+ 
+-	freq = (unsigned int) (0x3b9aca00 / info->var.pixclock);
++	freq = (unsigned int) (1000000000 / info->var.pixclock);
+ 
+ 	min = abs(pll_table[0].freq - freq);
+ 
+@@ -150,7 +200,7 @@ static void lx_set_clock(struct fb_info 
+ 		}
  	}
  
- 	/* Allocate and fill driver data structure */
--	info = framebuffer_alloc(sizeof(struct arkfb_info), NULL);
-+	info = framebuffer_alloc(sizeof(struct arkfb_info), &(dev->dev));
- 	if (! info) {
- 		dev_err(&(dev->dev), "cannot allocate memory\n");
- 		return -ENOMEM;
-@@ -958,20 +958,20 @@ static int __devinit ark_pci_probe(struc
- 	/* Prepare PCI device */
- 	rc = pci_enable_device(dev);
- 	if (rc < 0) {
--		dev_err(&(dev->dev), "cannot enable PCI device\n");
-+		dev_err(info->dev, "cannot enable PCI device\n");
- 		goto err_enable_device;
- 	}
+-	lx_set_dotpll(pll_table[best].pllval & 0x7FFF);
++	lx_set_dotpll(pll_table[best].pllval & 0x00017FFF);
+ }
  
- 	rc = pci_request_regions(dev, "arkfb");
- 	if (rc < 0) {
--		dev_err(&(dev->dev), "cannot reserve framebuffer region\n");
-+		dev_err(info->dev, "cannot reserve framebuffer region\n");
- 		goto err_request_regions;
- 	}
- 
- 	par->dac = ics5342_init(ark_dac_read_regs, ark_dac_write_regs, info);
- 	if (! par->dac) {
- 		rc = -ENOMEM;
--		dev_err(&(dev->dev), "RAMDAC initialization failed\n");
-+		dev_err(info->dev, "RAMDAC initialization failed\n");
- 		goto err_dac;
- 	}
- 
-@@ -982,7 +982,7 @@ static int __devinit ark_pci_probe(struc
- 	info->screen_base = pci_iomap(dev, 0, 0);
- 	if (! info->screen_base) {
- 		rc = -ENOMEM;
--		dev_err(&(dev->dev), "iomap for framebuffer failed\n");
-+		dev_err(info->dev, "iomap for framebuffer failed\n");
- 		goto err_iomap;
- 	}
- 
-@@ -1004,19 +1004,19 @@ static int __devinit ark_pci_probe(struc
- 	rc = fb_find_mode(&(info->var), info, mode_option, NULL, 0, NULL, 8);
- 	if (! ((rc == 1) || (rc == 2))) {
- 		rc = -EINVAL;
--		dev_err(&(dev->dev), "mode %s not found\n", mode_option);
-+		dev_err(info->dev, "mode %s not found\n", mode_option);
- 		goto err_find_mode;
- 	}
- 
- 	rc = fb_alloc_cmap(&info->cmap, 256, 0);
- 	if (rc < 0) {
--		dev_err(&(dev->dev), "cannot allocate colormap\n");
-+		dev_err(info->dev, "cannot allocate colormap\n");
- 		goto err_alloc_cmap;
- 	}
- 
- 	rc = register_framebuffer(info);
- 	if (rc < 0) {
--		dev_err(&(dev->dev), "cannot register framebugger\n");
-+		dev_err(info->dev, "cannot register framebugger\n");
- 		goto err_reg_fb;
- 	}
- 
-@@ -1090,7 +1090,7 @@ static int ark_pci_suspend (struct pci_d
- 	struct fb_info *info = pci_get_drvdata(dev);
- 	struct arkfb_info *par = info->par;
- 
--	dev_info(&(dev->dev), "suspend\n");
-+	dev_info(info->dev, "suspend\n");
- 
- 	acquire_console_sem();
- 	mutex_lock(&(par->open_lock));
-@@ -1121,7 +1121,7 @@ static int ark_pci_resume (struct pci_de
- 	struct fb_info *info = pci_get_drvdata(dev);
- 	struct arkfb_info *par = info->par;
- 
--	dev_info(&(dev->dev), "resume\n");
-+	dev_info(info->dev, "resume\n");
- 
- 	acquire_console_sem();
- 	mutex_lock(&(par->open_lock));
-diff -puN drivers/video/s3fb.c~fbdev-framebuffer_alloc-fixes drivers/video/s3fb.c
---- a/drivers/video/s3fb.c~fbdev-framebuffer_alloc-fixes
-+++ a/drivers/video/s3fb.c
-@@ -888,7 +888,7 @@ static int __devinit s3_pci_probe(struct
- 	}
- 
- 	/* Allocate and fill driver data structure */
--	info = framebuffer_alloc(sizeof(struct s3fb_info), NULL);
-+	info = framebuffer_alloc(sizeof(struct s3fb_info), &(dev->dev));
- 	if (!info) {
- 		dev_err(&(dev->dev), "cannot allocate memory\n");
- 		return -ENOMEM;
-@@ -903,13 +903,13 @@ static int __devinit s3_pci_probe(struct
- 	/* Prepare PCI device */
- 	rc = pci_enable_device(dev);
- 	if (rc < 0) {
--		dev_err(&(dev->dev), "cannot enable PCI device\n");
-+		dev_err(info->dev, "cannot enable PCI device\n");
- 		goto err_enable_device;
- 	}
- 
- 	rc = pci_request_regions(dev, "s3fb");
- 	if (rc < 0) {
--		dev_err(&(dev->dev), "cannot reserve framebuffer region\n");
-+		dev_err(info->dev, "cannot reserve framebuffer region\n");
- 		goto err_request_regions;
- 	}
- 
-@@ -921,7 +921,7 @@ static int __devinit s3_pci_probe(struct
- 	info->screen_base = pci_iomap(dev, 0, 0);
- 	if (! info->screen_base) {
- 		rc = -ENOMEM;
--		dev_err(&(dev->dev), "iomap for framebuffer failed\n");
-+		dev_err(info->dev, "iomap for framebuffer failed\n");
- 		goto err_iomap;
- 	}
- 
-@@ -965,19 +965,19 @@ static int __devinit s3_pci_probe(struct
- 	rc = fb_find_mode(&(info->var), info, mode_option, NULL, 0, NULL, 8);
- 	if (! ((rc == 1) || (rc == 2))) {
- 		rc = -EINVAL;
--		dev_err(&(dev->dev), "mode %s not found\n", mode_option);
-+		dev_err(info->dev, "mode %s not found\n", mode_option);
- 		goto err_find_mode;
- 	}
- 
- 	rc = fb_alloc_cmap(&info->cmap, 256, 0);
- 	if (rc < 0) {
--		dev_err(&(dev->dev), "cannot allocate colormap\n");
-+		dev_err(info->dev, "cannot allocate colormap\n");
- 		goto err_alloc_cmap;
- 	}
- 
- 	rc = register_framebuffer(info);
- 	if (rc < 0) {
--		dev_err(&(dev->dev), "cannot register framebuffer\n");
-+		dev_err(info->dev, "cannot register framebuffer\n");
- 		goto err_reg_fb;
- 	}
- 
-@@ -1053,7 +1053,7 @@ static int s3_pci_suspend(struct pci_dev
- 	struct fb_info *info = pci_get_drvdata(dev);
- 	struct s3fb_info *par = info->par;
- 
--	dev_info(&(dev->dev), "suspend\n");
-+	dev_info(info->dev, "suspend\n");
- 
- 	acquire_console_sem();
- 	mutex_lock(&(par->open_lock));
-@@ -1085,7 +1085,7 @@ static int s3_pci_resume(struct pci_dev*
- 	struct s3fb_info *par = info->par;
- 	int err;
- 
--	dev_info(&(dev->dev), "resume\n");
-+	dev_info(info->dev, "resume\n");
- 
- 	acquire_console_sem();
- 	mutex_lock(&(par->open_lock));
-@@ -1102,7 +1102,7 @@ static int s3_pci_resume(struct pci_dev*
- 	if (err) {
- 		mutex_unlock(&(par->open_lock));
- 		release_console_sem();
--		dev_err(&(dev->dev), "error %d enabling device for resume\n", err);
-+		dev_err(info->dev, "error %d enabling device for resume\n", err);
- 		return err;
- 	}
- 	pci_set_master(dev);
-diff -puN drivers/video/vt8623fb.c~fbdev-framebuffer_alloc-fixes drivers/video/vt8623fb.c
---- a/drivers/video/vt8623fb.c~fbdev-framebuffer_alloc-fixes
-+++ a/drivers/video/vt8623fb.c
-@@ -661,7 +661,7 @@ static int __devinit vt8623_pci_probe(st
- 	}
- 
- 	/* Allocate and fill driver data structure */
--	info = framebuffer_alloc(sizeof(struct vt8623fb_info), NULL);
-+	info = framebuffer_alloc(sizeof(struct vt8623fb_info), &(dev->dev));
- 	if (! info) {
- 		dev_err(&(dev->dev), "cannot allocate memory\n");
- 		return -ENOMEM;
-@@ -677,13 +677,13 @@ static int __devinit vt8623_pci_probe(st
- 
- 	rc = pci_enable_device(dev);
- 	if (rc < 0) {
--		dev_err(&(dev->dev), "cannot enable PCI device\n");
-+		dev_err(info->dev, "cannot enable PCI device\n");
- 		goto err_enable_device;
- 	}
- 
- 	rc = pci_request_regions(dev, "vt8623fb");
- 	if (rc < 0) {
--		dev_err(&(dev->dev), "cannot reserve framebuffer region\n");
-+		dev_err(info->dev, "cannot reserve framebuffer region\n");
- 		goto err_request_regions;
- 	}
- 
-@@ -696,14 +696,14 @@ static int __devinit vt8623_pci_probe(st
- 	info->screen_base = pci_iomap(dev, 0, 0);
- 	if (! info->screen_base) {
- 		rc = -ENOMEM;
--		dev_err(&(dev->dev), "iomap for framebuffer failed\n");
-+		dev_err(info->dev, "iomap for framebuffer failed\n");
- 		goto err_iomap_1;
- 	}
- 
- 	par->mmio_base = pci_iomap(dev, 1, 0);
- 	if (! par->mmio_base) {
- 		rc = -ENOMEM;
--		dev_err(&(dev->dev), "iomap for MMIO failed\n");
-+		dev_err(info->dev, "iomap for MMIO failed\n");
- 		goto err_iomap_2;
- 	}
- 
-@@ -714,7 +714,7 @@ static int __devinit vt8623_pci_probe(st
- 	if ((16 <= memsize1) && (memsize1 <= 64) && (memsize1 == memsize2))
- 		info->screen_size = memsize1 << 20;
- 	else {
--		dev_err(&(dev->dev), "memory size detection failed (%x %x), suppose 16 MB\n", memsize1, memsize2);
-+		dev_err(info->dev, "memory size detection failed (%x %x), suppose 16 MB\n", memsize1, memsize2);
- 		info->screen_size = 16 << 20;
- 	}
- 
-@@ -731,19 +731,19 @@ static int __devinit vt8623_pci_probe(st
- 	rc = fb_find_mode(&(info->var), info, mode_option, NULL, 0, NULL, 8);
- 	if (! ((rc == 1) || (rc == 2))) {
- 		rc = -EINVAL;
--		dev_err(&(dev->dev), "mode %s not found\n", mode_option);
-+		dev_err(info->dev, "mode %s not found\n", mode_option);
- 		goto err_find_mode;
- 	}
- 
- 	rc = fb_alloc_cmap(&info->cmap, 256, 0);
- 	if (rc < 0) {
--		dev_err(&(dev->dev), "cannot allocate colormap\n");
-+		dev_err(info->dev, "cannot allocate colormap\n");
- 		goto err_alloc_cmap;
- 	}
- 
- 	rc = register_framebuffer(info);
- 	if (rc < 0) {
--		dev_err(&(dev->dev), "cannot register framebugger\n");
-+		dev_err(info->dev, "cannot register framebugger\n");
- 		goto err_reg_fb;
- 	}
- 
-@@ -817,7 +817,7 @@ static int vt8623_pci_suspend(struct pci
- 	struct fb_info *info = pci_get_drvdata(dev);
- 	struct vt8623fb_info *par = info->par;
- 
--	dev_info(&(dev->dev), "suspend\n");
-+	dev_info(info->dev, "suspend\n");
- 
- 	acquire_console_sem();
- 	mutex_lock(&(par->open_lock));
-@@ -848,7 +848,7 @@ static int vt8623_pci_resume(struct pci_
- 	struct fb_info *info = pci_get_drvdata(dev);
- 	struct vt8623fb_info *par = info->par;
- 
--	dev_info(&(dev->dev), "resume\n");
-+	dev_info(info->dev, "resume\n");
- 
- 	acquire_console_sem();
- 	mutex_lock(&(par->open_lock));
+ static void lx_graphics_disable(struct fb_info *info)
 _
 
-Patches currently in -mm which might be from santiago@crfreenet.org are
+Patches currently in -mm which might be from JRottmann@LiPPERT-AT.de are
 
 origin.patch
 
