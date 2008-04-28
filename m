@@ -1,98 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - uart_get_baud_rate-stop-mangling-termios.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:55:25 -0700
-Message-ID: <200804282155.m3SLtPVG018100@imap1.linux-foundation.org>
+Subject: - crisv10-prepare-for-bkl-push-down.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:54:40 -0700
+Message-ID: <200804282154.m3SLsef5018029@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50941 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935193AbYD1Vzl (ORCPT
+	by vger.kernel.org with ESMTP id S934976AbYD1VzR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:55:41 -0400
+	Mon, 28 Apr 2008 17:55:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mikael.starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uart_get_baud_rate: stop mangling termios
+     crisv10: prepare for BKL push down
 has been removed from the -mm tree.  Its filename was
-     uart_get_baud_rate-stop-mangling-termios.patch
+     crisv10-prepare-for-bkl-push-down.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uart_get_baud_rate: stop mangling termios
+Subject: crisv10: prepare for BKL push down
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Russell King noticed this one: We have to avoid replacing B0 when we pick a
-baud rate for a "hung up" port.  Ugly but the proper fix is in the tty layer
-and means changing the tty<->serial interfaces so we will defer that for now.
+Just the modem bits this time
 
-[akpm@linux-foundation.org: fix uninitialised var]
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Mikael Starvik <mikael.starvik@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/serial_core.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ drivers/serial/crisv10.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/serial/serial_core.c~uart_get_baud_rate-stop-mangling-termios drivers/serial/serial_core.c
---- a/drivers/serial/serial_core.c~uart_get_baud_rate-stop-mangling-termios
-+++ a/drivers/serial/serial_core.c
-@@ -329,13 +329,15 @@ EXPORT_SYMBOL(uart_update_timeout);
-  *	If it's still invalid, we try 9600 baud.
-  *
-  *	Update the @termios structure to reflect the baud rate
-- *	we're actually going to be using.
-+ *	we're actually going to be using. Don't do this for the case
-+ *	where B0 is requested ("hang up").
-  */
- unsigned int
- uart_get_baud_rate(struct uart_port *port, struct ktermios *termios,
- 		   struct ktermios *old, unsigned int min, unsigned int max)
+diff -puN drivers/serial/crisv10.c~crisv10-prepare-for-bkl-push-down drivers/serial/crisv10.c
+--- a/drivers/serial/crisv10.c~crisv10-prepare-for-bkl-push-down
++++ a/drivers/serial/crisv10.c
+@@ -3582,6 +3582,8 @@ rs_tiocmset(struct tty_struct *tty, stru
  {
- 	unsigned int try, baud, altbaud = 38400;
-+	int hung_up = 0;
- 	upf_t flags = port->flags & UPF_SPD_MASK;
+ 	struct e100_serial *info = (struct e100_serial *)tty->driver_data;
  
- 	if (flags == UPF_SPD_HI)
-@@ -360,8 +362,10 @@ uart_get_baud_rate(struct uart_port *por
- 		/*
- 		 * Special case: B0 rate.
- 		 */
--		if (baud == 0)
-+		if (baud == 0) {
-+			hung_up = 1;
- 			baud = 9600;
-+		}
- 
- 		if (baud >= min && baud <= max)
- 			return baud;
-@@ -373,7 +377,9 @@ uart_get_baud_rate(struct uart_port *por
- 		termios->c_cflag &= ~CBAUD;
- 		if (old) {
- 			baud = tty_termios_baud_rate(old);
--			tty_termios_encode_baud_rate(termios, baud, baud);
-+			if (!hung_up)
-+				tty_termios_encode_baud_rate(termios,
-+								baud, baud);
- 			old = NULL;
- 			continue;
- 		}
-@@ -382,7 +388,8 @@ uart_get_baud_rate(struct uart_port *por
- 		 * As a last resort, if the quotient is zero,
- 		 * default to 9600 bps
- 		 */
--		tty_termios_encode_baud_rate(termios, 9600, 9600);
-+		if (!hung_up)
-+			tty_termios_encode_baud_rate(termios, 9600, 9600);
- 	}
- 
++	lock_kernel();
++
+ 	if (clear & TIOCM_RTS)
+ 		e100_rts(info, 0);
+ 	if (clear & TIOCM_DTR)
+@@ -3601,6 +3603,8 @@ rs_tiocmset(struct tty_struct *tty, stru
+ 		e100_ri_out(info, 1);
+ 	if (set & TIOCM_CD)
+ 		e100_cd_out(info, 1);
++
++	unlock_kernel();
  	return 0;
+ }
+ 
+@@ -3610,6 +3614,7 @@ rs_tiocmget(struct tty_struct *tty, stru
+ 	struct e100_serial *info = (struct e100_serial *)tty->driver_data;
+ 	unsigned int result;
+ 
++	lock_kernel();
+ 	result =
+ 		(!E100_RTS_GET(info) ? TIOCM_RTS : 0)
+ 		| (!E100_DTR_GET(info) ? TIOCM_DTR : 0)
+@@ -3618,6 +3623,8 @@ rs_tiocmget(struct tty_struct *tty, stru
+ 		| (!E100_CD_GET(info) ? TIOCM_CAR : 0)
+ 		| (!E100_CTS_GET(info) ? TIOCM_CTS : 0);
+ 
++	unlock_kernel();
++
+ #ifdef SERIAL_DEBUG_IO
+ 	printk(KERN_DEBUG "ser%i: modem state: %i 0x%08X\n",
+ 		info->line, result, result);
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
