@@ -1,154 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - pageflags_extended-and-separate-page-flags-for-head-and-tail.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:52:34 -0700
-Message-ID: <200804282152.m3SLqYE5017786@imap1.linux-foundation.org>
+Subject: - sparsemem-vmemmap-does-not-need-section-bits.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:52:09 -0700
+Message-ID: <200804282152.m3SLq9nm017733@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53078 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933775AbYD1Vwh (ORCPT
+	by vger.kernel.org with ESMTP id S934684AbYD1Vwg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:52:37 -0400
+	Mon, 28 Apr 2008 17:52:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, nickpiggin@yahoo.com.au, mm-commits@vger.kernel.org
+To: clameter@sgi.com, apw@shadowen.org, jeremy@goop.org, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, mel@csn.ul.ie, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     PAGEFLAGS_EXTENDED and separate page flags for Head and Tail
+     sparsemem: vmemmap does not need section bits
 has been removed from the -mm tree.  Its filename was
-     pageflags_extended-and-separate-page-flags-for-head-and-tail.patch
+     sparsemem-vmemmap-does-not-need-section-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PAGEFLAGS_EXTENDED and separate page flags for Head and Tail
+Subject: sparsemem: vmemmap does not need section bits
 From: Christoph Lameter <clameter@sgi.com>
 
-Having separate page flags for the head and the tail of a compound page allows
-the compiler to use bitops instead of operations on a word to check for a tail
-page.  That is f.e.  important for virt_to_head_page() which is used in
-various critical code paths (kfree for example):
+A set of patches that attempts to improve page flag handling.  First of all a
+method is introduced to generate the page flag functions using macros.  Then
+the number of page flags used by sparsemem is reduced.  All page flag
+operations will no longer be macros.  All flags will use inline function.
 
-Code for PageTail(page)
+Then we add a way to export enum constants to the preprocessor which allows us
+to get rid of __ZONE_COUNT and use the NR_PAGEFLAGS for the dynamic
+calculation of actually available page flags for fields.
 
-Before:
 
- mov    (%rdi),%rdx		page->flags
- mov    %rdx,%rax		3 bytes
- and    $0x12000,%eax		5 bytes
- cmp    $0x12000,%rax		6 bytes
- je     897 <kfree+0xa7>
 
-After:
+This patch:
 
- mov    (%rdi),%rax
- test   $0x40,%ah			(3 bytes)
- jne    887 <kfree+0x97>
-
-So we go from 14 bytes to 3 bytes and from 3 instructions to one.  From the
-use of 2 registers we go to none.
-
-We can only use page flags for this if we have page flags available.  This
-patch introduces CONFIG_PAGEFLAGS_EXTENDED that is set if pageflags are not
-scarce due to SPARSEMEM using page flags for its sectionid on 32 bit NUMA
-platforms.
-
-Additional page flag definitions can be added to the CONFIG_PAGEFLAGS_EXTENDED
-section in page-flags.h if the functionality depends on PAGEFLAGS_EXTENDED or
-if more page flag overlapping tricks are used for the !PAGEFLAGS_EXTENDED
-fallback (the upcoming virtual compound patch may hook in here and Rik's/Lee's
-additional page flags to solve the reclaim issues could also be added there
-[hint...  hint...  where are these patchsets?]).
-
-Avoiding the overlaying of Pg_reclaim also clears the way for possible use of
-compound pages for the pagecache or on the LRU.
+Sparsemem vmemmap does not need any section bits.  This patch has the effect
+of reducing the number of bits used in page->flags by at least 6.
 
 Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   28 ++++++++++++++++++++++++++++
- mm/Kconfig                 |   12 ++++++++++++
- 2 files changed, 40 insertions(+)
+ include/linux/mm.h |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/page-flags.h~pageflags_extended-and-separate-page-flags-for-head-and-tail include/linux/page-flags.h
---- a/include/linux/page-flags.h~pageflags_extended-and-separate-page-flags-for-head-and-tail
-+++ a/include/linux/page-flags.h
-@@ -83,7 +83,12 @@ enum pageflags {
- 	PG_reserved,
- 	PG_private,		/* If pagecache, has fs-private data */
- 	PG_writeback,		/* Page is under writeback */
-+#ifdef CONFIG_PAGEFLAGS_EXTENDED
-+	PG_head,		/* A head page */
-+	PG_tail,		/* A tail page */
-+#else
- 	PG_compound,		/* A compound page */
+diff -puN include/linux/mm.h~sparsemem-vmemmap-does-not-need-section-bits include/linux/mm.h
+--- a/include/linux/mm.h~sparsemem-vmemmap-does-not-need-section-bits
++++ a/include/linux/mm.h
+@@ -395,11 +395,11 @@ static inline void set_compound_order(st
+  * we have run out of space and have to fall back to an
+  * alternate (slower) way of determining the node.
+  *
+- *        No sparsemem: |       NODE     | ZONE | ... | FLAGS |
+- * with space for node: | SECTION | NODE | ZONE | ... | FLAGS |
+- *   no space for node: | SECTION |     ZONE    | ... | FLAGS |
++ * No sparsemem or sparsemem vmemmap: |       NODE     | ZONE | ... | FLAGS |
++ * classic sparse with space for node:| SECTION | NODE | ZONE | ... | FLAGS |
++ * classic sparse no space for node:  | SECTION |     ZONE    | ... | FLAGS |
+  */
+-#ifdef CONFIG_SPARSEMEM
++#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ #define SECTIONS_WIDTH		SECTIONS_SHIFT
+ #else
+ #define SECTIONS_WIDTH		0
+@@ -410,6 +410,9 @@ static inline void set_compound_order(st
+ #if SECTIONS_WIDTH+ZONES_WIDTH+NODES_SHIFT <= FLAGS_RESERVED
+ #define NODES_WIDTH		NODES_SHIFT
+ #else
++#ifdef CONFIG_SPARSEMEM_VMEMMAP
++#error "Vmemmap: No space for nodes field in page flags"
 +#endif
- 	PG_swapcache,		/* Swap page: swp_entry_t in private */
- 	PG_mappedtodisk,	/* Has blocks allocated on-disk */
- 	PG_reclaim,		/* To be reclaimed asap */
-@@ -248,6 +253,28 @@ static inline void set_page_writeback(st
- 	test_set_page_writeback(page);
+ #define NODES_WIDTH		0
+ #endif
+ 
+@@ -502,10 +505,12 @@ static inline struct zone *page_zone(str
+ 	return &NODE_DATA(page_to_nid(page))->node_zones[page_zonenum(page)];
  }
  
-+#ifdef CONFIG_PAGEFLAGS_EXTENDED
-+/*
-+ * System with lots of page flags available. This allows separate
-+ * flags for PageHead() and PageTail() checks of compound pages so that bit
-+ * tests can be used in performance sensitive paths. PageCompound is
-+ * generally not used in hot code paths.
-+ */
-+__PAGEFLAG(Head, head)
-+__PAGEFLAG(Tail, tail)
-+
-+static inline int PageCompound(struct page *page)
-+{
-+	return page->flags & ((1L << PG_head) | (1L << PG_tail));
-+
-+}
-+#else
-+/*
-+ * Reduce page flag use as much as possible by overlapping
-+ * compound page flags with the flags used for page cache pages. Possible
-+ * because PageCompound is always set for compound pages and not for
-+ * pages on the LRU and/or pagecache.
-+ */
- TESTPAGEFLAG(Compound, compound)
- __PAGEFLAG(Head, compound)
- 
-@@ -278,5 +305,6 @@ static inline void __ClearPageTail(struc
- 	page->flags &= ~PG_head_tail_mask;
++#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+ static inline unsigned long page_to_section(struct page *page)
+ {
+ 	return (page->flags >> SECTIONS_PGSHIFT) & SECTIONS_MASK;
  }
++#endif
  
-+#endif /* !PAGEFLAGS_EXTENDED */
- #endif /* !__GENERATING_BOUNDS_H */
- #endif	/* PAGE_FLAGS_H */
-diff -puN mm/Kconfig~pageflags_extended-and-separate-page-flags-for-head-and-tail mm/Kconfig
---- a/mm/Kconfig~pageflags_extended-and-separate-page-flags-for-head-and-tail
-+++ a/mm/Kconfig
-@@ -143,6 +143,18 @@ config MEMORY_HOTREMOVE
- 	depends on MEMORY_HOTPLUG && ARCH_ENABLE_MEMORY_HOTREMOVE
- 	depends on MIGRATION
- 
-+#
-+# If we have space for more page flags then we can enable additional
-+# optimizations and functionality.
-+#
-+# Regular Sparsemem takes page flag bits for the sectionid if it does not
-+# use a virtual memmap. Disable extended page flags for 32 bit platforms
-+# that require the use of a sectionid in the page flags.
-+#
-+config PAGEFLAGS_EXTENDED
-+	def_bool y
-+	depends on 64BIT || SPARSEMEM_VMEMMAP || !NUMA || !SPARSEMEM
-+
- # Heavily threaded applications may benefit from splitting the mm-wide
- # page_table_lock, so that faults on different parts of the user address
- # space can be handled with less contention: split it at this NR_CPUS.
+ static inline void set_page_zone(struct page *page, enum zone_type zone)
+ {
 _
 
 Patches currently in -mm which might be from clameter@sgi.com are
