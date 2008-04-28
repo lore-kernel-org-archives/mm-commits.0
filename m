@@ -1,63 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 23:51:45 -0700
-Message-ID: <200804280651.m3S6pjUe012593@imap1.linux-foundation.org>
+Subject: - fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 23:51:54 -0700
+Message-ID: <200804280651.m3S6pssP012596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38445 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51978 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753527AbYD1GwO (ORCPT
+	by vger.kernel.org with ESMTP id S1753858AbYD1Gw2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 02:52:14 -0400
+	Mon, 28 Apr 2008 02:52:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hifumi.hisashi@oss.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove-sparse-warning-for-mmzoneh-checkpatch-fixes
+     fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+     fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into remove-sparse-warning-for-mmzoneh.patch
+This patch was dropped because it was folded into fix-invalidate_inode_pages2_range-to-not-clear-ret.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove-sparse-warning-for-mmzoneh-checkpatch-fixes
+Subject: fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: use tabs not spaces
-#52: FILE: include/linux/mmzone.h:643:
-+^I        zone_movable_is_highmem());$
+WARNING: line over 80 characters
+#47: FILE: mm/truncate.c:444:
++			if (ret2 == 0 && !invalidate_complete_page2(mapping, page))
 
-total: 1 errors, 0 warnings, 13 lines checked
+total: 0 errors, 1 warnings, 21 lines checked
 
-./patches/remove-sparse-warning-for-mmzoneh.patch has style problems, please review.  If any of these errors
+./patches/fix-invalidate_inode_pages2_range-to-not-clear-ret.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Hisashi Hifumi <hifumi.hisashi@oss.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/truncate.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mmzone.h~remove-sparse-warning-for-mmzoneh-checkpatch-fixes include/linux/mmzone.h
---- a/include/linux/mmzone.h~remove-sparse-warning-for-mmzoneh-checkpatch-fixes
-+++ a/include/linux/mmzone.h
-@@ -640,7 +640,7 @@ static inline int is_highmem(struct zone
- 	int zone_off = (char *)zone - (char *)zone->zone_pgdat->node_zones;
- 	return zone_off == ZONE_HIGHMEM * sizeof(*zone) ||
- 	       (zone_off == ZONE_MOVABLE * sizeof(*zone) &&
--	        zone_movable_is_highmem());
-+		zone_movable_is_highmem());
- #else
- 	return 0;
- #endif
+diff -puN mm/truncate.c~fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes mm/truncate.c
+--- a/mm/truncate.c~fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes
++++ a/mm/truncate.c
+@@ -440,8 +440,10 @@ int invalidate_inode_pages2_range(struct
+ 			}
+ 			BUG_ON(page_mapped(page));
+ 			ret2 = do_launder_page(mapping, page);
+-			if (ret2 == 0 && !invalidate_complete_page2(mapping, page))
+-				ret2 = -EIO;
++			if (ret2 == 0) {
++				if (!invalidate_complete_page2(mapping, page))
++					ret2 = -EIO;
++			}
+ 			if (ret2 < 0)
+ 				ret = ret2;
+ 			unlock_page(page);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -68,7 +72,7 @@ rtc-pcf8563-new-style-conversion.patch
 rtc-x1205-new-style-conversion.patch
 hotplug-memory-make-online_page-common.patch
 remove-sparse-warning-for-mmzoneh.patch
-remove-sparse-warning-for-mmzoneh-checkpatch-fixes.patch
+fix-invalidate_inode_pages2_range-to-not-clear-ret.patch
 fix-invalidate_inode_pages2_range-to-not-clear-ret-checkpatch-fixes.patch
 mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
 mm-make-early_pfn_to_nid-a-c-function.patch
