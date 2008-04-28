@@ -1,68 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - cris-remove-redundant-display-of-free-swap-space-in-show_mem.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:54:42 -0700
-Message-ID: <200804282154.m3SLsg0l018034@imap1.linux-foundation.org>
+Subject: - arch-um-kernel-um_archc-some-small-improvements.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:54:46 -0700
+Message-ID: <200804282154.m3SLskuP018040@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47805 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51267 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935193AbYD1Vys (ORCPT
+	by vger.kernel.org with ESMTP id S934249AbYD1Vyv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:54:48 -0400
+	Mon, 28 Apr 2008 17:54:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@saeurebad.de, mikael.starvik@axis.com, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, jdike@addtoit.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cris: remove redundant display of free swap space in show_mem()
+     arch/um/kernel/um_arch.c: some small improvements
 has been removed from the -mm tree.  Its filename was
-     cris-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+     arch-um-kernel-um_archc-some-small-improvements.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cris: remove redundant display of free swap space in show_mem()
-From: Johannes Weiner <hannes@saeurebad.de>
+Subject: arch/um/kernel/um_arch.c: some small improvements
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-show_mem() has no need to print the amount of free swap space manually because
-show_free_areas() does this already and is called by the former.
+Make some small improvements for arch/um/kernel/um_arch.c.
 
-The two outputs only differ in text formatting:
-
-  printk("Free swap  = %lukB\n", ...);
-  printk("Free swap:       %6ldkB\n", ...);
-
-Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
-Cc: Mikael Starvik <mikael.starvik@axis.com>
+Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Acked-by: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/cris/mm/init.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/um/kernel/um_arch.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN arch/cris/mm/init.c~cris-remove-redundant-display-of-free-swap-space-in-show_mem arch/cris/mm/init.c
---- a/arch/cris/mm/init.c~cris-remove-redundant-display-of-free-swap-space-in-show_mem
-+++ a/arch/cris/mm/init.c
-@@ -27,7 +27,6 @@ show_mem(void)
+diff -puN arch/um/kernel/um_arch.c~arch-um-kernel-um_archc-some-small-improvements arch/um/kernel/um_arch.c
+--- a/arch/um/kernel/um_arch.c~arch-um-kernel-um_archc-some-small-improvements
++++ a/arch/um/kernel/um_arch.c
+@@ -115,7 +115,7 @@ static int have_root __initdata = 0;
+ /* Set in uml_mem_setup and modified in linux_main */
+ long long physmem_size = 32 * 1024 * 1024;
  
- 	printk("\nMem-info:\n");
- 	show_free_areas();
--	printk("Free swap:       %6ldkB\n", nr_swap_pages<<(PAGE_SHIFT-10));
- 	i = max_mapnr;
- 	while (i-- > 0) {
- 		total++;
+-static char *usage_string =
++static const char *usage_string =
+ "User Mode Linux v%s\n"
+ "	available at http://user-mode-linux.sourceforge.net/\n\n";
+ 
+@@ -202,7 +202,7 @@ static void __init uml_checksetup(char *
+ 
+ 	p = &__uml_setup_start;
+ 	while (p < &__uml_setup_end) {
+-		int n;
++		size_t n;
+ 
+ 		n = strlen(p->str);
+ 		if (!strncmp(line, p->str, n) && p->setup_func(line + n, add))
+@@ -258,7 +258,8 @@ int __init linux_main(int argc, char **a
+ {
+ 	unsigned long avail, diff;
+ 	unsigned long virtmem_size, max_physmem;
+-	unsigned int i, add;
++	unsigned int i;
++	int add;
+ 	char * mode;
+ 
+ 	for (i = 1; i < argc; i++) {
 _
 
-Patches currently in -mm which might be from hannes@saeurebad.de are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
-git-mips.patch
-parisc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-git-xtensa.patch
-add-warn_on_secs-macro-simplification.patch
-add-warn_on_secs-macro-simplification-fix.patch
-add-warn_on_secs-macro-simplification-fix-fix.patch
+remove-the-macro-get_personality.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 
