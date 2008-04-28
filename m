@@ -1,228 +1,230 @@
 From: akpm@linux-foundation.org
-Subject: - hotplug-memory-make-online_page-common.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:50:31 -0700
-Message-ID: <200804282150.m3SLoVAf017482@imap1.linux-foundation.org>
+Subject: - hotplug-memory-remove-generic-__remove_pages-support.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:50:29 -0700
+Message-ID: <200804282150.m3SLoTNx017478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51094 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48826 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934434AbYD1VvG (ORCPT
+	by vger.kernel.org with ESMTP id S934614AbYD1VvH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:51:06 -0400
+	Mon, 28 Apr 2008 17:51:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jeremy@goop.org, clameter@sgi.com, dave@linux.vnet.ibm.com, jeremy.fitzhardinge@citrix.com, kamez.hiroyu@jp.fujitsu.com, mingo@elte.hu, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: pbadari@us.ibm.com, benh@kernel.crashing.org, paulus@samba.org, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hotplug-memory: make online_page() common
+     hotplug memory remove: generic __remove_pages() support
 has been removed from the -mm tree.  Its filename was
-     hotplug-memory-make-online_page-common.patch
+     hotplug-memory-remove-generic-__remove_pages-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hotplug-memory: make online_page() common
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: hotplug memory remove: generic __remove_pages() support
+From: Badari Pulavarty <pbadari@us.ibm.com>
 
-All architectures use an effectively identical definition of online_page(), so
-just make it common code.  x86-64, ia64, powerpc and sh are actually
-identical; x86-32 is slightly different.
+Generic helper function to remove section mappings and sysfs entries for the
+section of the memory we are removing.  offline_pages() correctly adjusted
+zone and marked the pages reserved.
 
-x86-32's differences arise because it puts its hotplug pages in the highmem
-zone.  We can handle this in the generic code by inspecting the page to see if
-its in highmem, and update the totalhigh_pages count appropriately.  This
-leaves init_32.c:free_new_highpage with a single caller, so I folded it into
-add_one_highpage_init.
+TODO: Yasunori Goto is working on patches to free up allocations from bootmem.
 
-I also removed an incorrect comment referring to the NUMA case; any NUMA
-details have already been dealt with by the time online_page() is called.
-
-[akpm@linux-foundation.org: fix indenting]
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Acked-by: Dave Hansen <dave@linux.vnet.ibm.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamez.hiroyu@jp.fujitsu.com>
-Tested-by: KAMEZAWA Hiroyuki <kamez.hiroyu@jp.fujitsu.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Badari Pulavarty <pbadari@us.ibm.com>
 Acked-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/mm/init.c   |    9 ---------
- arch/powerpc/mm/mem.c |    9 ---------
- arch/sh/mm/init.c     |    9 ---------
- arch/x86/mm/init_32.c |   36 +++---------------------------------
- arch/x86/mm/init_64.c |    9 ---------
- mm/memory_hotplug.c   |   19 +++++++++++++++++++
- 6 files changed, 22 insertions(+), 69 deletions(-)
+ include/linux/memory_hotplug.h |    6 ++-
+ mm/memory_hotplug.c            |   55 +++++++++++++++++++++++++++++++
+ mm/sparse.c                    |   45 +++++++++++++++++++++++--
+ 3 files changed, 102 insertions(+), 4 deletions(-)
 
-diff -puN arch/ia64/mm/init.c~hotplug-memory-make-online_page-common arch/ia64/mm/init.c
---- a/arch/ia64/mm/init.c~hotplug-memory-make-online_page-common
-+++ a/arch/ia64/mm/init.c
-@@ -682,15 +682,6 @@ mem_init (void)
- }
+diff -puN include/linux/memory_hotplug.h~hotplug-memory-remove-generic-__remove_pages-support include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~hotplug-memory-remove-generic-__remove_pages-support
++++ a/include/linux/memory_hotplug.h
+@@ -8,6 +8,7 @@
+ struct page;
+ struct zone;
+ struct pglist_data;
++struct mem_section;
  
  #ifdef CONFIG_MEMORY_HOTPLUG
--void online_page(struct page *page)
--{
--	ClearPageReserved(page);
--	init_page_count(page);
--	__free_page(page);
--	totalram_pages++;
--	num_physpages++;
--}
--
- int arch_add_memory(int nid, u64 start, u64 size)
- {
- 	pg_data_t *pgdat;
-diff -puN arch/powerpc/mm/mem.c~hotplug-memory-make-online_page-common arch/powerpc/mm/mem.c
---- a/arch/powerpc/mm/mem.c~hotplug-memory-make-online_page-common
-+++ a/arch/powerpc/mm/mem.c
-@@ -110,15 +110,6 @@ EXPORT_SYMBOL(phys_mem_access_prot);
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
- 
--void online_page(struct page *page)
--{
--	ClearPageReserved(page);
--	init_page_count(page);
--	__free_page(page);
--	totalram_pages++;
--	num_physpages++;
--}
--
- #ifdef CONFIG_NUMA
- int memory_add_physaddr_to_nid(u64 start)
- {
-diff -puN arch/sh/mm/init.c~hotplug-memory-make-online_page-common arch/sh/mm/init.c
---- a/arch/sh/mm/init.c~hotplug-memory-make-online_page-common
-+++ a/arch/sh/mm/init.c
-@@ -307,15 +307,6 @@ void free_initrd_mem(unsigned long start
- #endif
- 
- #ifdef CONFIG_MEMORY_HOTPLUG
--void online_page(struct page *page)
--{
--	ClearPageReserved(page);
--	init_page_count(page);
--	__free_page(page);
--	totalram_pages++;
--	num_physpages++;
--}
--
- int arch_add_memory(int nid, u64 start, u64 size)
- {
- 	pg_data_t *pgdat;
-diff -puN arch/x86/mm/init_32.c~hotplug-memory-make-online_page-common arch/x86/mm/init_32.c
---- a/arch/x86/mm/init_32.c~hotplug-memory-make-online_page-common
-+++ a/arch/x86/mm/init_32.c
-@@ -287,47 +287,17 @@ static void __init permanent_kmaps_init(
- 	pkmap_page_table = pte;
- }
- 
--static void __meminit free_new_highpage(struct page *page)
--{
--	init_page_count(page);
--	__free_page(page);
--	totalhigh_pages++;
--}
--
- void __init add_one_highpage_init(struct page *page, int pfn, int bad_ppro)
- {
- 	if (page_is_ram(pfn) && !(bad_ppro && page_kills_ppro(pfn))) {
- 		ClearPageReserved(page);
--		free_new_highpage(page);
-+		init_page_count(page);
-+		__free_page(page);
-+		totalhigh_pages++;
- 	} else
- 		SetPageReserved(page);
- }
- 
--static int __meminit
--add_one_highpage_hotplug(struct page *page, unsigned long pfn)
--{
--	free_new_highpage(page);
--	totalram_pages++;
--#ifdef CONFIG_FLATMEM
--	max_mapnr = max(pfn, max_mapnr);
--#endif
--	num_physpages++;
--
--	return 0;
--}
--
--/*
-- * Not currently handling the NUMA case.
-- * Assuming single node and all memory that
-- * has been added dynamically that would be
-- * onlined here is in HIGHMEM.
-- */
--void __meminit online_page(struct page *page)
--{
--	ClearPageReserved(page);
--	add_one_highpage_hotplug(page, page_to_pfn(page));
--}
--
- #ifndef CONFIG_NUMA
- static void __init set_highmem_pages_init(int bad_ppro)
- {
-diff -puN arch/x86/mm/init_64.c~hotplug-memory-make-online_page-common arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~hotplug-memory-make-online_page-common
-+++ a/arch/x86/mm/init_64.c
-@@ -620,15 +620,6 @@ void __init paging_init(void)
  /*
-  * Memory hotplug specific functions
+@@ -64,9 +65,11 @@ extern int offline_pages(unsigned long, 
+ /* reasonably generic interface to expand the physical pages in a zone  */
+ extern int __add_pages(struct zone *zone, unsigned long start_pfn,
+ 	unsigned long nr_pages);
++extern int __remove_pages(struct zone *zone, unsigned long start_pfn,
++	unsigned long nr_pages);
+ 
+ /*
+- * Walk thorugh all memory which is registered as resource.
++ * Walk through all memory which is registered as resource.
+  * arg is (start_pfn, nr_pages, private_arg_pointer)
   */
--void online_page(struct page *page)
--{
--	ClearPageReserved(page);
--	init_page_count(page);
--	__free_page(page);
--	totalram_pages++;
--	num_physpages++;
--}
--
- #ifdef CONFIG_MEMORY_HOTPLUG
- /*
-  * Memory is added always to NORMAL zone. This means you will never get
-diff -puN mm/memory_hotplug.c~hotplug-memory-make-online_page-common mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~hotplug-memory-make-online_page-common
+ extern int walk_memory_resource(unsigned long start_pfn,
+@@ -176,5 +179,6 @@ extern int arch_add_memory(int nid, u64 
+ extern int remove_memory(u64 start, u64 size);
+ extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+ 								int nr_pages);
++extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
+ 
+ #endif /* __LINUX_MEMORY_HOTPLUG_H */
+diff -puN mm/memory_hotplug.c~hotplug-memory-remove-generic-__remove_pages-support mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~hotplug-memory-remove-generic-__remove_pages-support
 +++ a/mm/memory_hotplug.c
-@@ -219,6 +219,25 @@ static void grow_pgdat_span(struct pglis
- 					pgdat->node_start_pfn;
+@@ -101,6 +101,25 @@ static int __add_section(struct zone *zo
+ 	return register_new_memory(__pfn_to_section(phys_start_pfn));
  }
  
-+void online_page(struct page *page)
++static int __remove_section(struct zone *zone, struct mem_section *ms)
 +{
-+	totalram_pages++;
-+	num_physpages++;
++	unsigned long flags;
++	struct pglist_data *pgdat = zone->zone_pgdat;
++	int ret = -EINVAL;
 +
-+#ifdef CONFIG_HIGHMEM
-+	if (PageHighMem(page))
-+		totalhigh_pages++;
-+#endif
++	if (!valid_section(ms))
++		return ret;
 +
-+#ifdef CONFIG_FLATMEM
-+	max_mapnr = max(page_to_pfn(page), max_mapnr);
-+#endif
++	ret = unregister_memory_section(ms);
++	if (ret)
++		return ret;
 +
-+	ClearPageReserved(page);
-+	init_page_count(page);
-+	__free_page(page);
++	pgdat_resize_lock(pgdat, &flags);
++	sparse_remove_one_section(zone, ms);
++	pgdat_resize_unlock(pgdat, &flags);
++	return 0;
 +}
 +
- static int online_pages_range(unsigned long start_pfn, unsigned long nr_pages,
- 			void *arg)
+ /*
+  * Reasonably generic function for adding memory.  It is
+  * expected that archs that support memory hotplug will
+@@ -134,6 +153,42 @@ int __add_pages(struct zone *zone, unsig
+ }
+ EXPORT_SYMBOL_GPL(__add_pages);
+ 
++/**
++ * __remove_pages() - remove sections of pages from a zone
++ * @zone: zone from which pages need to be removed
++ * @phys_start_pfn: starting pageframe (must be aligned to start of a section)
++ * @nr_pages: number of pages to remove (must be multiple of section size)
++ *
++ * Generic helper function to remove section mappings and sysfs entries
++ * for the section of the memory we are removing. Caller needs to make
++ * sure that pages are marked reserved and zones are adjust properly by
++ * calling offline_pages().
++ */
++int __remove_pages(struct zone *zone, unsigned long phys_start_pfn,
++		 unsigned long nr_pages)
++{
++	unsigned long i, ret = 0;
++	int sections_to_remove;
++
++	/*
++	 * We can only remove entire sections
++	 */
++	BUG_ON(phys_start_pfn & ~PAGE_SECTION_MASK);
++	BUG_ON(nr_pages % PAGES_PER_SECTION);
++
++	release_mem_region(phys_start_pfn << PAGE_SHIFT, nr_pages * PAGE_SIZE);
++
++	sections_to_remove = nr_pages / PAGES_PER_SECTION;
++	for (i = 0; i < sections_to_remove; i++) {
++		unsigned long pfn = phys_start_pfn + i*PAGES_PER_SECTION;
++		ret = __remove_section(zone, __pfn_to_section(pfn));
++		if (ret)
++			break;
++	}
++	return ret;
++}
++EXPORT_SYMBOL_GPL(__remove_pages);
++
+ static void grow_zone_span(struct zone *zone,
+ 		unsigned long start_pfn, unsigned long end_pfn)
  {
+diff -puN mm/sparse.c~hotplug-memory-remove-generic-__remove_pages-support mm/sparse.c
+--- a/mm/sparse.c~hotplug-memory-remove-generic-__remove_pages-support
++++ a/mm/sparse.c
+@@ -208,12 +208,13 @@ static unsigned long sparse_encode_mem_m
+ }
+ 
+ /*
+- * We need this if we ever free the mem_maps.  While not implemented yet,
+- * this function is included for parity with its sibling.
++ * Decode mem_map from the coded memmap
+  */
+-static __attribute((unused))
++static
+ struct page *sparse_decode_mem_map(unsigned long coded_mem_map, unsigned long pnum)
+ {
++	/* mask off the extra low bits of information */
++	coded_mem_map &= SECTION_MAP_MASK;
+ 	return ((struct page *)coded_mem_map) + section_nr_to_pfn(pnum);
+ }
+ 
+@@ -404,6 +405,28 @@ static void __kfree_section_memmap(struc
+ }
+ #endif /* CONFIG_SPARSEMEM_VMEMMAP */
+ 
++static void free_section_usemap(struct page *memmap, unsigned long *usemap)
++{
++	if (!usemap)
++		return;
++
++	/*
++	 * Check to see if allocation came from hot-plug-add
++	 */
++	if (PageSlab(virt_to_page(usemap))) {
++		kfree(usemap);
++		if (memmap)
++			__kfree_section_memmap(memmap, PAGES_PER_SECTION);
++		return;
++	}
++
++	/*
++	 * TODO: Allocations came from bootmem - how do I free up ?
++	 */
++	printk(KERN_WARNING "Not freeing up allocations from bootmem "
++			"- leaking memory\n");
++}
++
+ /*
+  * returns the number of sections whose mem_maps were properly
+  * set.  If this is <=0, then that means that the passed-in
+@@ -456,4 +479,20 @@ out:
+ 	}
+ 	return ret;
+ }
++
++void sparse_remove_one_section(struct zone *zone, struct mem_section *ms)
++{
++	struct page *memmap = NULL;
++	unsigned long *usemap = NULL;
++
++	if (ms->section_mem_map) {
++		usemap = ms->pageblock_flags;
++		memmap = sparse_decode_mem_map(ms->section_mem_map,
++						__section_nr(ms));
++		ms->section_mem_map = 0;
++		ms->pageblock_flags = NULL;
++	}
++
++	free_section_usemap(memmap, usemap);
++}
+ #endif
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from pbadari@us.ibm.com are
 
 origin.patch
-xen-make-blkif_getgeo-static.patch
+powerpc-hotplug-memory-notifications-for-ppc.patch
+powerpc-update-lmb-for-hotplug-memory-add-remove.patch
+powerpc-provide-walk_memory_resource-for-ppc.patch
+fs-aioc-make-3-functions-static.patch
 
