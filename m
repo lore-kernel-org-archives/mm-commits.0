@@ -1,60 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-vt8623fb-better-resume-from-str.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:58:30 -0700
-Message-ID: <200804282158.m3SLwU6s018498@imap1.linux-foundation.org>
+Subject: - drivers-video-imsttfbc-add-missing-curly-brackets.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:58:26 -0700
+Message-ID: <200804282158.m3SLwQeD018492@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53987 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43815 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965359AbYD1V6h (ORCPT
+	by vger.kernel.org with ESMTP id S965368AbYD1V6h (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 28 Apr 2008 17:58:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: santiago@crfreenet.org, adaplas@pol.net, mm-commits@vger.kernel.org
+To: 12o3l@tiscali.nl, benh@kernel.crashing.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fbdev: vt8623fb: better resume from STR
+     drivers/video/imsttfb.c: add missing curly brackets
 has been removed from the -mm tree.  Its filename was
-     fbdev-vt8623fb-better-resume-from-str.patch
+     drivers-video-imsttfbc-add-missing-curly-brackets.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: vt8623fb: better resume from STR
-From: Ondrej Zajicek <santiago@crfreenet.org>
+Subject: drivers/video/imsttfb.c: add missing curly brackets
+From: Roel Kluin <12o3l@tiscali.nl>
 
-After resume from STR, image is shifted by 8 pixels to the left.  This patch
-fixes it.
+in #if 0 inactivated function msttfb_load_cursor_image() the call eieio()
+occurs after rather than in the loop due to missing curly brackets.
 
-Signed-off-by: Ondrej Zajicek <santiago@crfreenet.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/vt8623fb.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/video/imsttfb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/vt8623fb.c~fbdev-vt8623fb-better-resume-from-str drivers/video/vt8623fb.c
---- a/drivers/video/vt8623fb.c~fbdev-vt8623fb-better-resume-from-str
-+++ a/drivers/video/vt8623fb.c
-@@ -436,6 +436,10 @@ static int vt8623fb_set_par(struct fb_in
- 	svga_wcrt_multi(vt8623_offset_regs, offset_value);
- 	svga_wseq_multi(vt8623_fetch_count_regs, fetch_value);
- 
-+	/* Clear H/V Skew */
-+	svga_wcrt_mask(0x03, 0x00, 0x60);
-+	svga_wcrt_mask(0x05, 0x00, 0x60);
-+
- 	if (info->var.vmode & FB_VMODE_DOUBLE)
- 		svga_wcrt_mask(0x09, 0x80, 0x80);
- 	else
+diff -puN drivers/video/imsttfb.c~drivers-video-imsttfbc-add-missing-curly-brackets drivers/video/imsttfb.c
+--- a/drivers/video/imsttfb.c~drivers-video-imsttfbc-add-missing-curly-brackets
++++ a/drivers/video/imsttfb.c
+@@ -1151,8 +1151,10 @@ imsttfb_load_cursor_image(struct imstt_p
+ 				par->cmap_regs[TVPCRDAT] = 0xff;		eieio();
+ 			}
+ 		par->cmap_regs[TVPCADRW] = 0x00;	eieio();
+-		for (x = 0; x < 12; x++)
+-			par->cmap_regs[TVPCDATA] = fgc;	eieio();
++		for (x = 0; x < 12; x++) {
++			par->cmap_regs[TVPCDATA] = fgc;
++			eieio();
++		}
+ 	}
+ 	return 1;
+ }
 _
 
-Patches currently in -mm which might be from santiago@crfreenet.org are
+Patches currently in -mm which might be from 12o3l@tiscali.nl are
 
 origin.patch
+adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
+git-kbuild.patch
+block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn.patch
+likeliness-accounting-change-and-cleanup.patch
+likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
 
