@@ -1,116 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - lxfb-add-power-management-functionality-fix.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 00:01:59 -0700
-Message-ID: <200804280701.m3S71xql013098@imap1.linux-foundation.org>
+Subject: - olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 00:02:15 -0700
+Message-ID: <200804280702.m3S72Fqu013116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53645 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932157AbYD1HCj (ORCPT
+	by vger.kernel.org with ESMTP id S1763844AbYD1HCv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 03:02:39 -0400
+	Mon, 28 Apr 2008 03:02:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, dilinger@debian.org, dilinger@queued.net, jordan.crouse@amd.com, mm-commits@vger.kernel.org
+To: dilinger@queued.net, adaplas@pol.net, dilinger@debian.org, jordan.crouse@amd.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lxfb-add-power-management-functionality-fix
+     lxfb/gxfb: fix up __init and __initdata fields for modedb-related stuff
 has been removed from the -mm tree.  Its filename was
-     lxfb-add-power-management-functionality-fix.patch
+     olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix.patch
 
-This patch was dropped because it was folded into lxfb-add-power-management-functionality.patch
+This patch was dropped because it was folded into olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lxfb-add-power-management-functionality-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lxfb/gxfb: fix up __init and __initdata fields for modedb-related stuff
+From: Andres Salomon <dilinger@queued.net>
 
-Be conventional, save an ifdef
+A couple things were wrong here:
+ - a struct in lxfb should've been static.
+ - 'const' and '__initdata' don't mix, so the consts have been dropped
+ - get_modedb() in both drivers should've been marked w/ __init
 
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Andres Salomon <dilinger@debian.org>
-Cc: Andres Salomon <dilinger@queued.net>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
 Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/lxfb_core.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/video/geode/gxfb_core.c |    8 ++++----
+ drivers/video/geode/lxfb_core.c |    8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/video/geode/lxfb_core.c~lxfb-add-power-management-functionality-fix drivers/video/geode/lxfb_core.c
---- a/drivers/video/geode/lxfb_core.c~lxfb-add-power-management-functionality-fix
-+++ a/drivers/video/geode/lxfb_core.c
-@@ -468,6 +468,9 @@ static int lxfb_resume(struct pci_dev *p
- 	pdev->dev.power.power_state = PMSG_ON;
- 	return 0;
- }
-+#else
-+#define lxfb_suspend NULL
-+#define lxfb_resume NULL
- #endif
+diff -puN drivers/video/geode/gxfb_core.c~olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix drivers/video/geode/gxfb_core.c
+--- a/drivers/video/geode/gxfb_core.c~olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix
++++ a/drivers/video/geode/gxfb_core.c
+@@ -41,7 +41,7 @@ static int vram;
+ static int vt_switch;
  
- static int __init lxfb_probe(struct pci_dev *pdev,
-@@ -595,10 +598,8 @@ static struct pci_driver lxfb_driver = {
- 	.id_table	= lxfb_id_table,
- 	.probe		= lxfb_probe,
- 	.remove		= lxfb_remove,
--#ifdef CONFIG_PM
- 	.suspend	= lxfb_suspend,
- 	.resume		= lxfb_resume,
--#endif
+ /* Modes relevant to the GX (taken from modedb.c) */
+-static const struct fb_videomode gx_modedb[] __initdata = {
++static struct fb_videomode gx_modedb[] __initdata = {
+ 	/* 640x480-60 VESA */
+ 	{ NULL, 60, 640, 480, 39682,  48, 16, 33, 10, 96, 2,
+ 	  0, FB_VMODE_NONINTERLACED, FB_MODE_IS_VESA },
+@@ -111,14 +111,14 @@ static const struct fb_videomode gx_mode
+ #ifdef CONFIG_OLPC
+ #include <asm/olpc.h>
+ 
+-static const struct fb_videomode gx_dcon_modedb[] __initdata = {
++static struct fb_videomode gx_dcon_modedb[] __initdata = {
+ 	/* The only mode the DCON has is 1200x900 */
+ 	{ NULL, 50, 1200, 900, 17460, 24, 8, 4, 5, 8, 3,
+ 	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+ 	  FB_VMODE_NONINTERLACED, 0 }
  };
  
- #ifndef MODULE
+-static void get_modedb(struct fb_videomode **modedb, unsigned int *size)
++static void __init get_modedb(struct fb_videomode **modedb, unsigned int *size)
+ {
+ 	if (olpc_has_dcon()) {
+ 		*modedb = (struct fb_videomode *) gx_dcon_modedb;
+@@ -130,7 +130,7 @@ static void get_modedb(struct fb_videomo
+ }
+ 
+ #else
+-static void get_modedb(struct fb_videomode **modedb, unsigned int *size)
++static void __init get_modedb(struct fb_videomode **modedb, unsigned int *size)
+ {
+ 	*modedb = (struct fb_videomode *) gx_modedb;
+ 	*size = ARRAY_SIZE(gx_modedb);
+diff -puN drivers/video/geode/lxfb_core.c~olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix drivers/video/geode/lxfb_core.c
+--- a/drivers/video/geode/lxfb_core.c~olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix
++++ a/drivers/video/geode/lxfb_core.c
+@@ -36,7 +36,7 @@ static int vt_switch;
+  * we try to make it something sane - 640x480-60 is sane
+  */
+ 
+-static const struct fb_videomode geode_modedb[] __initdata = {
++static struct fb_videomode geode_modedb[] __initdata = {
+ 	/* 640x480-60 */
+ 	{ NULL, 60, 640, 480, 39682, 48, 8, 25, 2, 88, 2,
+ 	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+@@ -220,14 +220,14 @@ static const struct fb_videomode geode_m
+ #ifdef CONFIG_OLPC
+ #include <asm/olpc.h>
+ 
+-const struct fb_videomode olpc_dcon_modedb[] __initdata = {
++static struct fb_videomode olpc_dcon_modedb[] __initdata = {
+ 	/* The only mode the DCON has is 1200x900 */
+ 	{ NULL, 50, 1200, 900, 17460, 24, 8, 4, 5, 8, 3,
+ 	  FB_SYNC_HOR_HIGH_ACT | FB_SYNC_VERT_HIGH_ACT,
+ 	  FB_VMODE_NONINTERLACED, 0 }
+ };
+ 
+-static void get_modedb(struct fb_videomode **modedb, unsigned int *size)
++static void __init get_modedb(struct fb_videomode **modedb, unsigned int *size)
+ {
+ 	if (olpc_has_dcon()) {
+ 		*modedb = (struct fb_videomode *) olpc_dcon_modedb;
+@@ -239,7 +239,7 @@ static void get_modedb(struct fb_videomo
+ }
+ 
+ #else
+-static void get_modedb(struct fb_videomode **modedb, unsigned int *size)
++static void __init get_modedb(struct fb_videomode **modedb, unsigned int *size)
+ {
+ 	*modedb = (struct fb_videomode *) geode_modedb;
+ 	*size = ARRAY_SIZE(geode_modedb);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-origin.patch
-rtc-isl1208-new-style-conversion-and-minor-bug-fixes.patch
-rtc-pcf8563-new-style-conversion.patch
-rtc-x1205-new-style-conversion.patch
-hotplug-memory-make-online_page-common.patch
-remove-sparse-warning-for-mmzoneh.patch
-fix-invalidate_inode_pages2_range-to-not-clear-ret.patch
-mm-make-reserve_bootmem-can-crossed-the-nodes-checkpatch-fixes.patch
-mm-make-early_pfn_to_nid-a-c-function.patch
-vmalloc-show-vmalloced-areas-via-proc-vmallocinfo.patch
-vmallocinfo-add-caller-information.patch
-page_mapping-add-ifdef-around-reference-to-swapper_space.patch
-smaps-account-swap-entries.patch
-mm-introduce-pte_special-pte-bit.patch
-hugetlb-vmstat-events-for-huge-page-allocations.patch
-mempolicy-use-struct-mempolicy-pointer-in-shmem_sb_info.patch
-capabilities-implement-per-process-securebits.patch
-lsm-introduce-inode_getsecid-and-ipc_getsecid-hooks-checkpatch-fixes.patch
-lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
-selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
-audit-final-renamings-and-cleanup-checkpatch-fixes.patch
-arch-alpha-kernel-trapsc-use-time_-macros.patch
-alpha-teach-the-compiler-that-bug-doesnt-return.patch
-uart_get_baud_rate-stop-mangling-termios.patch
-drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
-vt-notifier-extension-for-accessibility.patch
-kprobes-prevent-probing-of-preempt_schedule.patch
-quota-various-style-cleanups.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quotaon-on-remount.patch
-quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch
-quota-convert-stub-functions-from-macros-into-inlines.patch
-gpiochip_reserve.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
+x86-geode-msr-cleanup.patch
+x86-geode-add-virtual-systems-architecture-detection.patch
+gxfb-use-pci_device-for-gxfbs-pci-device-table.patch
+gxfb-replace-fbsize-config-option-with-a-module-parameter.patch
+gxfb-create-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
+gxfb-clean-up-register-definitions.patch
+gxfb-move-msr-bit-fields-into-gxfbh.patch
+gxfb-stop-sharing-code-with-gx1fb.patch
+gxfb-add-power-management-functionality.patch
 pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+lxfb-create-gp-dc-vp-fp-specific-handlers-rather-than-using-readl-writel.patch
+lxfb-clean-up-register-definitions.patch
+lxfb-clean-up-final-bits-of-df_regs.patch
+lxfb-rearrange-rename-msr-bitfields.patch
 lxfb-add-power-management-functionality.patch
-lxfb-add-power-management-functionality-fix.patch
-drivers-video-uvesafbc-fix-error-path-memory-leak.patch
-fb-convert-proc-fb-to-seq_file-interface-checkpatch-fixes.patch
-drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
-drivers-md-use-time_before-time_before_eq-etc-checkpatch-fixes.patch
-pnp-use-dev_printk-for-quirk-messages-fix.patch
-ext2-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone-comment-typo.patch
-fat_valid_media-remove-pointless-test.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
+lxfb-rename-kernel-arg-fbsize-to-vram.patch
+lxfb-disable-suspend-vt-switch-by-default.patch
+lxfb-gxfb-when-blanking-with-fb_blank_powerdown-also-turn-off-the-crt.patch
+gxfb-lxfb-use-vsa-definitions-when-fetching-framebuffer-size.patch
+gxfb-lxfb-detect-framebuffer-size-using-an-msr-if-vsa2-isnt-available.patch
+olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers.patch
+olpc-gxfb-lxfb-add-dcon-panel-modes-to-framebuffer-drivers-section-fix.patch
 
