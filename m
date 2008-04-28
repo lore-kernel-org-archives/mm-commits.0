@@ -1,52 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: - ufs-replace-__inline-with-inline.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:01:10 -0700
-Message-ID: <200804282201.m3SM1ATN018822@imap1.linux-foundation.org>
+Subject: - ufs-replace-remaining-__function__-occurrences.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:01:06 -0700
+Message-ID: <200804282201.m3SM161Q018816@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41734 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33296 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965686AbYD1WBQ (ORCPT
+	by vger.kernel.org with ESMTP id S965739AbYD1WBQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Mon, 28 Apr 2008 18:01:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, dushistov@mail.ru, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, jengelh@linux01.gwdg.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ufs: replace __inline with inline
+     ufs: replace remaining __FUNCTION__ occurrences
 has been removed from the -mm tree.  Its filename was
-     ufs-replace-__inline-with-inline.patch
+     ufs-replace-remaining-__function__-occurrences.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ufs: replace __inline with inline
+Subject: ufs: replace remaining __FUNCTION__ occurrences
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
+__FUNCTION__ is gcc-specific, use __func__
+
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Evgeniy Dushistov <dushistov@mail.ru>
+Cc: Jan Engelhardt <jengelh@linux01.gwdg.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/swab.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ufs/balloc.c |    4 ++--
+ fs/ufs/dir.c    |   14 +++++++-------
+ fs/ufs/inode.c  |    2 +-
+ fs/ufs/ufs.h    |    2 +-
+ 4 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN fs/ufs/swab.h~ufs-replace-__inline-with-inline fs/ufs/swab.h
---- a/fs/ufs/swab.h~ufs-replace-__inline-with-inline
-+++ a/fs/ufs/swab.h
-@@ -40,7 +40,7 @@ cpu_to_fs64(struct super_block *sbp, u64
- 		return (__force __fs64)cpu_to_be64(n);
- }
+diff -puN fs/ufs/balloc.c~ufs-replace-remaining-__function__-occurrences fs/ufs/balloc.c
+--- a/fs/ufs/balloc.c~ufs-replace-remaining-__function__-occurrences
++++ a/fs/ufs/balloc.c
+@@ -277,7 +277,7 @@ static void ufs_change_blocknr(struct in
+ 			if (!page)/* it was truncated */
+ 				continue;
+ 			if (IS_ERR(page)) {/* or EIO */
+-				ufs_error(inode->i_sb, __FUNCTION__,
++				ufs_error(inode->i_sb, __func__,
+ 					  "read of page %llu failed\n",
+ 					  (unsigned long long)index);
+ 				continue;
+@@ -308,7 +308,7 @@ static void ufs_change_blocknr(struct in
+ 				ll_rw_block(READ, 1, &bh);
+ 				wait_on_buffer(bh);
+ 				if (!buffer_uptodate(bh)) {
+-					ufs_error(inode->i_sb, __FUNCTION__,
++					ufs_error(inode->i_sb, __func__,
+ 						  "read of block failed\n");
+ 					break;
+ 				}
+diff -puN fs/ufs/dir.c~ufs-replace-remaining-__function__-occurrences fs/ufs/dir.c
+--- a/fs/ufs/dir.c~ufs-replace-remaining-__function__-occurrences
++++ a/fs/ufs/dir.c
+@@ -179,7 +179,7 @@ bad_entry:
+ 	goto fail;
+ Eend:
+ 	p = (struct ufs_dir_entry *)(kaddr + offs);
+-	ufs_error(sb, __FUNCTION__,
++	ufs_error(sb, __func__,
+ 		   "entry in directory #%lu spans the page boundary"
+ 		   "offset=%lu",
+ 		   dir->i_ino, (page->index<<PAGE_CACHE_SHIFT)+offs);
+@@ -284,7 +284,7 @@ struct ufs_dir_entry *ufs_find_entry(str
+ 			kaddr += ufs_last_byte(dir, n) - reclen;
+ 			while ((char *) de <= kaddr) {
+ 				if (de->d_reclen == 0) {
+-					ufs_error(dir->i_sb, __FUNCTION__,
++					ufs_error(dir->i_sb, __func__,
+ 						  "zero-length directory entry");
+ 					ufs_put_page(page);
+ 					goto out;
+@@ -356,7 +356,7 @@ int ufs_add_link(struct dentry *dentry, 
+ 				goto got_it;
+ 			}
+ 			if (de->d_reclen == 0) {
+-				ufs_error(dir->i_sb, __FUNCTION__,
++				ufs_error(dir->i_sb, __func__,
+ 					  "zero-length directory entry");
+ 				err = -EIO;
+ 				goto out_unlock;
+@@ -456,7 +456,7 @@ ufs_readdir(struct file *filp, void *dir
+ 		struct page *page = ufs_get_page(inode, n);
  
--static __inline u32
-+static inline u32
- fs32_to_cpu(struct super_block *sbp, __fs32 n)
- {
- 	if (UFS_SB(sbp)->s_bytesex == BYTESEX_LE)
+ 		if (IS_ERR(page)) {
+-			ufs_error(sb, __FUNCTION__,
++			ufs_error(sb, __func__,
+ 				  "bad page in #%lu",
+ 				  inode->i_ino);
+ 			filp->f_pos += PAGE_CACHE_SIZE - offset;
+@@ -475,7 +475,7 @@ ufs_readdir(struct file *filp, void *dir
+ 		limit = kaddr + ufs_last_byte(inode, n) - UFS_DIR_REC_LEN(1);
+ 		for ( ;(char*)de <= limit; de = ufs_next_entry(sb, de)) {
+ 			if (de->d_reclen == 0) {
+-				ufs_error(sb, __FUNCTION__,
++				ufs_error(sb, __func__,
+ 					"zero-length directory entry");
+ 				ufs_put_page(page);
+ 				return -EIO;
+@@ -536,7 +536,7 @@ int ufs_delete_entry(struct inode *inode
+ 
+ 	while ((char*)de < (char*)dir) {
+ 		if (de->d_reclen == 0) {
+-			ufs_error(inode->i_sb, __FUNCTION__,
++			ufs_error(inode->i_sb, __func__,
+ 				  "zero-length directory entry");
+ 			err = -EIO;
+ 			goto out;
+@@ -633,7 +633,7 @@ int ufs_empty_dir(struct inode * inode)
+ 
+ 		while ((char *)de <= kaddr) {
+ 			if (de->d_reclen == 0) {
+-				ufs_error(inode->i_sb, __FUNCTION__,
++				ufs_error(inode->i_sb, __func__,
+ 					"zero-length directory entry: "
+ 					"kaddr=%p, de=%p\n", kaddr, de);
+ 				goto not_empty;
+diff -puN fs/ufs/inode.c~ufs-replace-remaining-__function__-occurrences fs/ufs/inode.c
+--- a/fs/ufs/inode.c~ufs-replace-remaining-__function__-occurrences
++++ a/fs/ufs/inode.c
+@@ -929,7 +929,7 @@ void ufs_delete_inode (struct inode * in
+ 	old_i_size = inode->i_size;
+ 	inode->i_size = 0;
+ 	if (inode->i_blocks && ufs_truncate(inode, old_i_size))
+-		ufs_warning(inode->i_sb, __FUNCTION__, "ufs_truncate failed\n");
++		ufs_warning(inode->i_sb, __func__, "ufs_truncate failed\n");
+ 	ufs_free_inode (inode);
+ 	unlock_kernel();
+ 	return;
+diff -puN fs/ufs/ufs.h~ufs-replace-remaining-__function__-occurrences fs/ufs/ufs.h
+--- a/fs/ufs/ufs.h~ufs-replace-remaining-__function__-occurrences
++++ a/fs/ufs/ufs.h
+@@ -66,7 +66,7 @@ struct ufs_inode_info {
+ #ifdef CONFIG_UFS_DEBUG
+ #	define UFSD(f, a...)	{					\
+ 		printk ("UFSD (%s, %d): %s:",				\
+-			__FILE__, __LINE__, __FUNCTION__);		\
++			__FILE__, __LINE__, __func__);		\
+ 		printk (f, ## a);					\
+ 	}
+ #else
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
