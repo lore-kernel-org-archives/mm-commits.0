@@ -1,268 +1,218 @@
 From: akpm@linux-foundation.org
-Subject: - kprobes-add-unregister_kprobes-for-batch-registration.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:56:11 -0700
-Message-ID: <200804282156.m3SLuBnJ018192@imap1.linux-foundation.org>
+Subject: - sm501-add-uart-support.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:56:00 -0700
+Message-ID: <200804282156.m3SLu02b018174@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55387 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34565 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935966AbYD1V47 (ORCPT
+	by vger.kernel.org with ESMTP id S937271AbYD1V4o (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:56:59 -0400
+	Mon, 28 Apr 2008 17:56:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhiramat@redhat.com, ananth@in.ibm.com, davem@davemloft.net, fche@redhat.com, jkenisto@us.ibm.com, prasanna@in.ibm.com, shaohua.li@intel.com, mm-commits@vger.kernel.org
+To: magnus.damm@gmail.com, ben-linux@fluff.org, damm@igel.co.jp, lethal@linux-sh.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kprobes: add (un)register_kprobes for batch registration
+     sm501: add uart support
 has been removed from the -mm tree.  Its filename was
-     kprobes-add-unregister_kprobes-for-batch-registration.patch
+     sm501-add-uart-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kprobes: add (un)register_kprobes for batch registration
-From: Masami Hiramatsu <mhiramat@redhat.com>
+Subject: sm501: add uart support
+From: Magnus Damm <magnus.damm@gmail.com>
 
-Introduce unregister_/register_kprobes() for kprobe batch registration.  This
-can reduce waiting time for synchronized_sched() when a lot of probes have to
-be unregistered at once.
+This patch extends the sm501 mfd with 8250 uart support. We're currently
+doing this in the board specific r2d-1 code already, but it would be nice to
+do move things into the mfd since it's more chip specific than board specific.
 
-Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Ananth N Mavinakayanahalli <ananth@in.ibm.com>
-Cc: Jim Keniston <jkenisto@us.ibm.com>
-Cc: Prasanna S Panchamukhi <prasanna@in.ibm.com>
-Cc: Shaohua Li <shaohua.li@intel.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: "Frank Ch. Eigler" <fche@redhat.com>
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kprobes.h |    9 ++
- kernel/kprobes.c        |  124 ++++++++++++++++++++++++++------------
- 2 files changed, 96 insertions(+), 37 deletions(-)
+ drivers/mfd/sm501.c         |   86 +++++++++++++++++++++++++++-------
+ include/linux/serial_8250.h |    1 
+ 2 files changed, 70 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/kprobes.h~kprobes-add-unregister_kprobes-for-batch-registration include/linux/kprobes.h
---- a/include/linux/kprobes.h~kprobes-add-unregister_kprobes-for-batch-registration
-+++ a/include/linux/kprobes.h
-@@ -234,6 +234,8 @@ static inline struct kprobe_ctlblk *get_
+diff -puN drivers/mfd/sm501.c~sm501-add-uart-support drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~sm501-add-uart-support
++++ a/drivers/mfd/sm501.c
+@@ -22,6 +22,7 @@
  
- int register_kprobe(struct kprobe *p);
- void unregister_kprobe(struct kprobe *p);
-+int register_kprobes(struct kprobe **kps, int num);
-+void unregister_kprobes(struct kprobe **kps, int num);
- int setjmp_pre_handler(struct kprobe *, struct pt_regs *);
- int longjmp_break_handler(struct kprobe *, struct pt_regs *);
- int register_jprobe(struct jprobe *p);
-@@ -261,9 +263,16 @@ static inline int register_kprobe(struct
- {
- 	return -ENOSYS;
- }
-+static inline int register_kprobes(struct kprobe **kps, int num)
-+{
-+	return -ENOSYS;
-+}
- static inline void unregister_kprobe(struct kprobe *p)
- {
- }
-+static inline void unregister_kprobes(struct kprobe **kps, int num)
-+{
-+}
- static inline int register_jprobe(struct jprobe *p)
- {
- 	return -ENOSYS;
-diff -puN kernel/kprobes.c~kprobes-add-unregister_kprobes-for-batch-registration kernel/kprobes.c
---- a/kernel/kprobes.c~kprobes-add-unregister_kprobes-for-batch-registration
-+++ a/kernel/kprobes.c
-@@ -580,6 +580,7 @@ static int __kprobes __register_kprobe(s
- 	}
+ #include <linux/sm501.h>
+ #include <linux/sm501-regs.h>
++#include <linux/serial_8250.h>
  
- 	p->nmissed = 0;
-+	INIT_LIST_HEAD(&p->list);
- 	mutex_lock(&kprobe_mutex);
- 	old_p = get_kprobe(p->addr);
- 	if (old_p) {
-@@ -606,35 +607,28 @@ out:
- 	return ret;
- }
+ #include <asm/io.h>
  
--int __kprobes register_kprobe(struct kprobe *p)
--{
--	return __register_kprobe(p, (unsigned long)__builtin_return_address(0));
--}
+@@ -723,13 +724,14 @@ static void sm501_device_release(struct 
+ */
+ 
+ static struct platform_device *
+-sm501_create_subdev(struct sm501_devdata *sm,
+-		    char *name, unsigned int res_count)
++sm501_create_subdev(struct sm501_devdata *sm, char *name,
++		    unsigned int res_count, unsigned int platform_data_size)
+ {
+ 	struct sm501_device *smdev;
+ 
+ 	smdev = kzalloc(sizeof(struct sm501_device) +
+-			sizeof(struct resource) * res_count, GFP_KERNEL);
++			(sizeof(struct resource) * res_count) +
++			platform_data_size, GFP_KERNEL);
+ 	if (!smdev)
+ 		return NULL;
+ 
+@@ -737,11 +739,15 @@ sm501_create_subdev(struct sm501_devdata
+ 
+ 	smdev->pdev.name = name;
+ 	smdev->pdev.id = sm->pdev_id;
+-	smdev->pdev.resource = (struct resource *)(smdev+1);
+-	smdev->pdev.num_resources = res_count;
 -
--void __kprobes unregister_kprobe(struct kprobe *p)
-+/*
-+ * Unregister a kprobe without a scheduler synchronization.
-+ */
-+static int __kprobes __unregister_kprobe_top(struct kprobe *p)
- {
--	struct module *mod;
- 	struct kprobe *old_p, *list_p;
--	int cleanup_p;
+ 	smdev->pdev.dev.parent = sm->dev;
  
--	mutex_lock(&kprobe_mutex);
- 	old_p = get_kprobe(p->addr);
--	if (unlikely(!old_p)) {
--		mutex_unlock(&kprobe_mutex);
--		return;
--	}
-+	if (unlikely(!old_p))
-+		return -EINVAL;
-+
- 	if (p != old_p) {
- 		list_for_each_entry_rcu(list_p, &old_p->list, list)
- 			if (list_p == p)
- 			/* kprobe p is a valid probe */
- 				goto valid_p;
--		mutex_unlock(&kprobe_mutex);
--		return;
-+		return -EINVAL;
- 	}
- valid_p:
- 	if (old_p == p ||
- 	    (old_p->pre_handler == aggr_pre_handler &&
--	     p->list.next == &old_p->list && p->list.prev == &old_p->list)) {
-+	     list_is_singular(&old_p->list))) {
- 		/*
- 		 * Only probe on the hash list. Disarm only if kprobes are
- 		 * enabled - otherwise, the breakpoint would already have
-@@ -643,43 +637,97 @@ valid_p:
- 		if (kprobe_enabled)
- 			arch_disarm_kprobe(p);
- 		hlist_del_rcu(&old_p->hlist);
--		cleanup_p = 1;
- 	} else {
-+		if (p->break_handler)
-+			old_p->break_handler = NULL;
-+		if (p->post_handler) {
-+			list_for_each_entry_rcu(list_p, &old_p->list, list) {
-+				if ((list_p != p) && (list_p->post_handler))
-+					goto noclean;
-+			}
-+			old_p->post_handler = NULL;
-+		}
-+noclean:
- 		list_del_rcu(&p->list);
--		cleanup_p = 0;
- 	}
-+	return 0;
-+}
- 
--	mutex_unlock(&kprobe_mutex);
-+static void __kprobes __unregister_kprobe_bottom(struct kprobe *p)
-+{
-+	struct module *mod;
-+	struct kprobe *old_p;
- 
--	synchronize_sched();
- 	if (p->mod_refcounted) {
- 		mod = module_text_address((unsigned long)p->addr);
- 		if (mod)
- 			module_put(mod);
- 	}
- 
--	if (cleanup_p) {
--		if (p != old_p) {
--			list_del_rcu(&p->list);
-+	if (list_empty(&p->list) || list_is_singular(&p->list)) {
-+		if (!list_empty(&p->list)) {
-+			/* "p" is the last child of an aggr_kprobe */
-+			old_p = list_entry(p->list.next, struct kprobe, list);
-+			list_del(&p->list);
- 			kfree(old_p);
- 		}
- 		arch_remove_kprobe(p);
--	} else {
--		mutex_lock(&kprobe_mutex);
--		if (p->break_handler)
--			old_p->break_handler = NULL;
--		if (p->post_handler){
--			list_for_each_entry_rcu(list_p, &old_p->list, list){
--				if (list_p->post_handler){
--					cleanup_p = 2;
--					break;
--				}
--			}
--			if (cleanup_p == 0)
--				old_p->post_handler = NULL;
++	if (res_count) {
++		smdev->pdev.resource = (struct resource *)(smdev+1);
++		smdev->pdev.num_resources = res_count;
 +	}
-+}
++	if (platform_data_size)
++		smdev->pdev.dev.platform_data = (void *)(smdev+1);
 +
-+static int __register_kprobes(struct kprobe **kps, int num,
-+	unsigned long called_from)
-+{
-+	int i, ret = 0;
-+
-+	if (num <= 0)
-+		return -EINVAL;
-+	for (i = 0; i < num; i++) {
-+		ret = __register_kprobe(kps[i], called_from);
-+		if (ret < 0 && i > 0) {
-+			unregister_kprobes(kps, i);
-+			break;
- 		}
--		mutex_unlock(&kprobe_mutex);
- 	}
-+	return ret;
-+}
-+
-+/*
-+ * Registration and unregistration functions for kprobe.
-+ */
-+int __kprobes register_kprobe(struct kprobe *p)
-+{
-+	return __register_kprobes(&p, 1,
-+				  (unsigned long)__builtin_return_address(0));
-+}
-+
-+void __kprobes unregister_kprobe(struct kprobe *p)
-+{
-+	unregister_kprobes(&p, 1);
-+}
-+
-+int __kprobes register_kprobes(struct kprobe **kps, int num)
-+{
-+	return __register_kprobes(kps, num,
-+				  (unsigned long)__builtin_return_address(0));
-+}
-+
-+void __kprobes unregister_kprobes(struct kprobe **kps, int num)
-+{
-+	int i;
-+
-+	if (num <= 0)
-+		return;
-+	mutex_lock(&kprobe_mutex);
-+	for (i = 0; i < num; i++)
-+		if (__unregister_kprobe_top(kps[i]) < 0)
-+			kps[i]->addr = NULL;
-+	mutex_unlock(&kprobe_mutex);
-+
-+	synchronize_sched();
-+	for (i = 0; i < num; i++)
-+		if (kps[i]->addr)
-+			__unregister_kprobe_bottom(kps[i]);
+ 	return &smdev->pdev;
  }
  
- static struct notifier_block kprobe_exceptions_nb = {
-@@ -1118,6 +1166,8 @@ module_init(init_kprobes);
+@@ -829,7 +835,7 @@ static int sm501_register_usbhost(struct
+ {
+ 	struct platform_device *pdev;
  
- EXPORT_SYMBOL_GPL(register_kprobe);
- EXPORT_SYMBOL_GPL(unregister_kprobe);
-+EXPORT_SYMBOL_GPL(register_kprobes);
-+EXPORT_SYMBOL_GPL(unregister_kprobes);
- EXPORT_SYMBOL_GPL(register_jprobe);
- EXPORT_SYMBOL_GPL(unregister_jprobe);
- #ifdef CONFIG_KPROBES
+-	pdev = sm501_create_subdev(sm, "sm501-usb", 3);
++	pdev = sm501_create_subdev(sm, "sm501-usb", 3, 0);
+ 	if (!pdev)
+ 		return -ENOMEM;
+ 
+@@ -840,12 +846,55 @@ static int sm501_register_usbhost(struct
+ 	return sm501_register_device(sm, pdev);
+ }
+ 
++static void sm501_setup_uart_data(struct sm501_devdata *sm,
++				  struct plat_serial8250_port *uart_data,
++				  unsigned int offset)
++{
++	uart_data->membase = sm->regs + offset;
++	uart_data->mapbase = sm->io_res->start + offset;
++	uart_data->iotype = UPIO_MEM;
++	uart_data->irq = sm->irq;
++	uart_data->flags = UPF_BOOT_AUTOCONF | UPF_SKIP_TEST | UPF_SHARE_IRQ;
++	uart_data->regshift = 2;
++	uart_data->uartclk = (9600 * 16);
++}
++
++static int sm501_register_uart(struct sm501_devdata *sm, int devices)
++{
++	struct platform_device *pdev;
++	struct plat_serial8250_port *uart_data;
++
++	pdev = sm501_create_subdev(sm, "serial8250", 0,
++				   sizeof(struct plat_serial8250_port) * 3);
++	if (!pdev)
++		return -ENOMEM;
++
++	uart_data = pdev->dev.platform_data;
++
++	if (devices & SM501_USE_UART0) {
++		sm501_setup_uart_data(sm, uart_data++, 0x30000);
++		sm501_unit_power(sm->dev, SM501_GATE_UART0, 1);
++		sm501_modify_reg(sm->dev, SM501_IRQ_MASK, 1 << 12, 0);
++		sm501_modify_reg(sm->dev, SM501_GPIO63_32_CONTROL, 0x01e0, 0);
++	}
++	if (devices & SM501_USE_UART1) {
++		sm501_setup_uart_data(sm, uart_data++, 0x30020);
++		sm501_unit_power(sm->dev, SM501_GATE_UART1, 1);
++		sm501_modify_reg(sm->dev, SM501_IRQ_MASK, 1 << 13, 0);
++		sm501_modify_reg(sm->dev, SM501_GPIO63_32_CONTROL, 0x1e00, 0);
++	}
++
++	pdev->id = PLAT8250_DEV_SM501;
++
++	return sm501_register_device(sm, pdev);
++}
++
+ static int sm501_register_display(struct sm501_devdata *sm,
+ 				  resource_size_t *mem_avail)
+ {
+ 	struct platform_device *pdev;
+ 
+-	pdev = sm501_create_subdev(sm, "sm501-fb", 4);
++	pdev = sm501_create_subdev(sm, "sm501-fb", 4, 0);
+ 	if (!pdev)
+ 		return -ENOMEM;
+ 
+@@ -963,6 +1012,7 @@ static unsigned int sm501_mem_local[] = 
+ 
+ static int sm501_init_dev(struct sm501_devdata *sm)
+ {
++	struct sm501_initdata *idata;
+ 	resource_size_t mem_avail;
+ 	unsigned long dramctrl;
+ 	unsigned long devid;
+@@ -980,6 +1030,9 @@ static int sm501_init_dev(struct sm501_d
+ 		return -EINVAL;
+ 	}
+ 
++	/* disable irqs */
++	writel(0, sm->regs + SM501_IRQ_MASK);
++
+ 	dramctrl = readl(sm->regs + SM501_DRAM_CONTROL);
+ 	mem_avail = sm501_mem_local[(dramctrl >> 13) & 0x7];
+ 
+@@ -998,15 +1051,14 @@ static int sm501_init_dev(struct sm501_d
+ 
+ 	/* check to see if we have some device initialisation */
+ 
+-	if (sm->platdata) {
+-		struct sm501_platdata *pdata = sm->platdata;
+-
+-		if (pdata->init) {
+-			sm501_init_regs(sm, sm->platdata->init);
+-
+-			if (pdata->init->devices & SM501_USE_USB_HOST)
+-				sm501_register_usbhost(sm, &mem_avail);
+-		}
++	idata = sm->platdata ? sm->platdata->init : NULL;
++	if (idata) {
++		sm501_init_regs(sm, idata);
++
++		if (idata->devices & SM501_USE_USB_HOST)
++			sm501_register_usbhost(sm, &mem_avail);
++		if (idata->devices & (SM501_USE_UART0 | SM501_USE_UART1))
++			sm501_register_uart(sm, idata->devices);
+ 	}
+ 
+ 	ret = sm501_check_clocks(sm);
+diff -puN include/linux/serial_8250.h~sm501-add-uart-support include/linux/serial_8250.h
+--- a/include/linux/serial_8250.h~sm501-add-uart-support
++++ a/include/linux/serial_8250.h
+@@ -46,6 +46,7 @@ enum {
+ 	PLAT8250_DEV_HUB6,
+ 	PLAT8250_DEV_MCA,
+ 	PLAT8250_DEV_AU1X00,
++	PLAT8250_DEV_SM501,
+ };
+ 
+ /*
 _
 
-Patches currently in -mm which might be from mhiramat@redhat.com are
+Patches currently in -mm which might be from magnus.damm@gmail.com are
 
 origin.patch
-relayfs-support-larger-relay-buffer-take-3.patch
-relayfs-support-larger-relay-buffer-take-3-cleanup.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-sh.patch
 
