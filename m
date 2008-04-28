@@ -1,60 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:59:42 -0700
-Message-ID: <200804282159.m3SLxgiR018607@imap1.linux-foundation.org>
+Subject: - drivers-video-uvesafbc-fix-error-path-memory-leak.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:59:33 -0700
+Message-ID: <200804282159.m3SLxXjn018598@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59429 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38967 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934819AbYD1V7t (ORCPT
+	by vger.kernel.org with ESMTP id S935075AbYD1V7x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:59:49 -0400
+	Mon, 28 Apr 2008 17:59:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, marciobuss@gmail.com, xinzhou.sjtu@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adaplas@pol.net, danielm77@spray.se, rdunlap@xenotime.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/w100fb.c: avoid a couple of error-path NULL derefs
+     drivers/video/uvesafb.c: fix error-path memory leak
 has been removed from the -mm tree.  Its filename was
-     drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs.patch
+     drivers-video-uvesafbc-fix-error-path-memory-leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/w100fb.c: avoid a couple of error-path NULL derefs
+Subject: drivers/video/uvesafb.c: fix error-path memory leak
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a couple of error-patch oopses identified by Marcio Buss in
-http://bugzilla.kernel.org/show_bug.cgi?id=9567.
+Fix bug identified by Daniel Marjamki: `m' is leaked on the error path.
 
-Cc: Marcio Buss <marciobuss@gmail.com>
-Cc: Jeff Zhou <xinzhou.sjtu@gmail.com>
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10452
+
+Cc: Daniel Marjamki <danielm77@spray.se>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/w100fb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/video/uvesafb.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/w100fb.c~drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs drivers/video/w100fb.c
---- a/drivers/video/w100fb.c~drivers-video-w100fbc-avoid-a-couple-of-error-path-null-derefs
-+++ a/drivers/video/w100fb.c
-@@ -765,8 +765,10 @@ int __init w100fb_probe(struct platform_
- 	printk(KERN_INFO "fb%d: %s frame buffer device\n", info->node, info->fix.id);
- 	return 0;
- out:
--	fb_dealloc_cmap(&info->cmap);
--	kfree(info->pseudo_palette);
-+	if (info) {
-+		fb_dealloc_cmap(&info->cmap);
-+		kfree(info->pseudo_palette);
-+	}
- 	if (remapped_fbuf != NULL)
- 		iounmap(remapped_fbuf);
- 	if (remapped_regs != NULL)
+diff -puN drivers/video/uvesafb.c~drivers-video-uvesafbc-fix-error-path-memory-leak drivers/video/uvesafb.c
+--- a/drivers/video/uvesafb.c~drivers-video-uvesafbc-fix-error-path-memory-leak
++++ a/drivers/video/uvesafb.c
+@@ -181,7 +181,8 @@ static int uvesafb_exec(struct uvesafb_k
+ 	/* If all slots are taken -- bail out. */
+ 	if (uvfb_tasks[seq]) {
+ 		mutex_unlock(&uvfb_lock);
+-		return -EBUSY;
++		err = -EBUSY;
++		goto out;
+ 	}
+ 
+ 	/* Save a pointer to the kernel part of the task struct. */
+@@ -205,7 +206,6 @@ static int uvesafb_exec(struct uvesafb_k
+ 			err = cn_netlink_send(m, 0, gfp_any());
+ 		}
+ 	}
+-	kfree(m);
+ 
+ 	if (!err && !(task->t.flags & TF_EXIT))
+ 		err = !wait_for_completion_timeout(task->done,
+@@ -218,7 +218,8 @@ static int uvesafb_exec(struct uvesafb_k
+ 	seq++;
+ 	if (seq >= UVESAFB_TASKS_MAX)
+ 		seq = 0;
+-
++out:
++	kfree(m);
+ 	return err;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
