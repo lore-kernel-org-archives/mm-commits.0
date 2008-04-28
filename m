@@ -1,60 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - arch-um-os-linux-sys-i386-task_sizec-improve-a-bit.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:55:02 -0700
-Message-ID: <200804282155.m3SLt2e2018068@imap1.linux-foundation.org>
+Subject: - uml-make-several-things-static.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:55:00 -0700
+Message-ID: <200804282155.m3SLt0vg018058@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46046 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932504AbYD1VzG (ORCPT
+	by vger.kernel.org with ESMTP id S934567AbYD1VzD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:55:06 -0400
+	Mon, 28 Apr 2008 17:55:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xiyou.wangcong@gmail.com, jdike@addtoit.com, wangcong@zeuux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arch/um/os-Linux/sys-i386/task_size.c: improve a bit
+     uml: make several things static
 has been removed from the -mm tree.  Its filename was
-     arch-um-os-linux-sys-i386-task_sizec-improve-a-bit.patch
+     uml-make-several-things-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/um/os-Linux/sys-i386/task_size.c: improve a bit
+Subject: uml: make several things static
 From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Improve this code a bit: check sigaction's return value and remove a useless
-fflush().
+Make several things static, because they no longer need to be global.
 
 Acked-by: Jeff Dike <jdike@addtoit.com>
 Signed-off-by: WANG Cong <wangcong@zeuux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/sys-i386/task_size.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ arch/um/drivers/net_kern.c      |    6 +++---
+ arch/um/drivers/slip_kern.c     |    4 ++--
+ arch/um/drivers/stdio_console.c |    4 ++--
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN arch/um/os-Linux/sys-i386/task_size.c~arch-um-os-linux-sys-i386-task_sizec-improve-a-bit arch/um/os-Linux/sys-i386/task_size.c
---- a/arch/um/os-Linux/sys-i386/task_size.c~arch-um-os-linux-sys-i386-task_sizec-improve-a-bit
-+++ a/arch/um/os-Linux/sys-i386/task_size.c
-@@ -88,7 +88,10 @@ unsigned long os_get_task_size(void)
- 	sa.sa_handler = segfault;
- 	sigemptyset(&sa.sa_mask);
- 	sa.sa_flags = SA_NODEFER;
--	sigaction(SIGSEGV, &sa, &old);
-+	if (sigaction(SIGSEGV, &sa, &old)) {
-+		perror("os_get_task_size");
-+		exit(1);
-+	}
+diff -puN arch/um/drivers/net_kern.c~uml-make-several-things-static arch/um/drivers/net_kern.c
+--- a/arch/um/drivers/net_kern.c~uml-make-several-things-static
++++ a/arch/um/drivers/net_kern.c
+@@ -116,7 +116,7 @@ static void uml_dev_close(struct work_st
+ 	dev_close(lp->dev);
+ }
  
- 	if (!page_ok(bottom)) {
- 		fprintf(stderr, "Address 0x%x no good?\n",
-@@ -110,11 +113,12 @@ unsigned long os_get_task_size(void)
+-irqreturn_t uml_net_interrupt(int irq, void *dev_id)
++static irqreturn_t uml_net_interrupt(int irq, void *dev_id)
+ {
+ 	struct net_device *dev = dev_id;
+ 	struct uml_net_private *lp = dev->priv;
+@@ -296,7 +296,7 @@ static struct ethtool_ops uml_net_ethtoo
+ 	.get_link	= ethtool_op_get_link,
+ };
  
- out:
- 	/* Restore the old SIGSEGV handling */
--	sigaction(SIGSEGV, &old, NULL);
+-void uml_net_user_timer_expire(unsigned long _conn)
++static void uml_net_user_timer_expire(unsigned long _conn)
+ {
+ #ifdef undef
+ 	struct connection *conn = (struct connection *)_conn;
+@@ -786,7 +786,7 @@ static int uml_inetaddr_event(struct not
+ }
+ 
+ /* uml_net_init shouldn't be called twice on two CPUs at the same time */
+-struct notifier_block uml_inetaddr_notifier = {
++static struct notifier_block uml_inetaddr_notifier = {
+ 	.notifier_call		= uml_inetaddr_event,
+ };
+ 
+diff -puN arch/um/drivers/slip_kern.c~uml-make-several-things-static arch/um/drivers/slip_kern.c
+--- a/arch/um/drivers/slip_kern.c~uml-make-several-things-static
++++ a/arch/um/drivers/slip_kern.c
+@@ -13,7 +13,7 @@ struct slip_init {
+ 	char *gate_addr;
+ };
+ 
+-void slip_init(struct net_device *dev, void *data)
++static void slip_init(struct net_device *dev, void *data)
+ {
+ 	struct uml_net_private *private;
+ 	struct slip_data *spri;
+@@ -57,7 +57,7 @@ static int slip_write(int fd, struct sk_
+ 			       (struct slip_data *) &lp->user);
+ }
+ 
+-const struct net_kern_info slip_kern_info = {
++static const struct net_kern_info slip_kern_info = {
+ 	.init			= slip_init,
+ 	.protocol		= slip_protocol,
+ 	.read			= slip_read,
+diff -puN arch/um/drivers/stdio_console.c~uml-make-several-things-static arch/um/drivers/stdio_console.c
+--- a/arch/um/drivers/stdio_console.c~uml-make-several-things-static
++++ a/arch/um/drivers/stdio_console.c
+@@ -34,7 +34,7 @@
+ 
+ static struct tty_driver *console_driver;
+ 
+-void stdio_announce(char *dev_name, int dev)
++static void stdio_announce(char *dev_name, int dev)
+ {
+ 	printk(KERN_INFO "Virtual console %d assigned device '%s'\n", dev,
+ 	       dev_name);
+@@ -158,7 +158,7 @@ static struct console stdiocons = {
+ 	.index		= -1,
+ };
+ 
+-int stdio_init(void)
++static int stdio_init(void)
+ {
+ 	char *new_title;
+ 
+_
+
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+
+origin.patch
+remove-the-macro-get_personality.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+
