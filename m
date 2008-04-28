@@ -1,75 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 00:01:24 -0700
-Message-ID: <200804280701.m3S71Oji013082@imap1.linux-foundation.org>
+Subject: - fb-add-support-for-foreign-endianness-force-it-on.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 00:00:25 -0700
+Message-ID: <200804280700.m3S70Pt6012979@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46600 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37175 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764844AbYD1HCH (ORCPT
+	by vger.kernel.org with ESMTP id S1763526AbYD1HCV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 03:02:07 -0400
+	Mon, 28 Apr 2008 03:02:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adaplas@pol.net, dilinger@queued.net, jordan.crouse@amd.com, pavel@ucw.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adaplas@pol.net, avorontsov@ru.mvista.com, benh@kernel.crashing.org, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix
+     fb-add-support-for-foreign-endianness-force-it-on
 has been removed from the -mm tree.  Its filename was
-     pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
+     fb-add-support-for-foreign-endianness-force-it-on.patch
 
-This patch was dropped because it was folded into pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix
+Subject: fb-add-support-for-foreign-endianness-force-it-on
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from arch/x86/kernel/asm-offsets_64.c:12,
-                 from arch/x86/kernel/asm-offsets.c:4:
-include/linux/suspend.h: In function 'pm_set_vt_switch':
-include/linux/suspend.h:19: error: parameter name omitted
-
-Please use Documentation/SubmitChecklist.
+for testing.
 
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Andres Salomon <dilinger@queued.net>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
-Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Anton Vorontsov <avorontsov@ru.mvista.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/suspend.h |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ drivers/video/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/suspend.h~pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix include/linux/suspend.h
---- a/include/linux/suspend.h~pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix
-+++ a/include/linux/suspend.h
-@@ -16,9 +16,18 @@ extern void pm_set_vt_switch(int);
- extern int pm_prepare_console(void);
- extern void pm_restore_console(void);
- #else
--static inline void pm_set_vt_switch(int) {}
--static inline int pm_prepare_console(void) { return 0; }
--static inline void pm_restore_console(void) {}
-+static inline void pm_set_vt_switch(int do_switch)
-+{
-+}
-+
-+static inline int pm_prepare_console(void)
-+{
-+	return 0;
-+}
-+
-+static inline void pm_restore_console(void)
-+{
-+}
- #endif
- 
- typedef int __bitwise suspend_state_t;
+diff -puN drivers/video/Kconfig~fb-add-support-for-foreign-endianness-force-it-on drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fb-add-support-for-foreign-endianness-force-it-on
++++ a/drivers/video/Kconfig
+@@ -142,6 +142,7 @@ config FB_SYS_IMAGEBLIT
+ menuconfig FB_FOREIGN_ENDIAN
+ 	bool "Framebuffer foreign endianness support"
+ 	depends on FB
++	default y
+ 	---help---
+ 	  This menu will let you enable support for the framebuffers with
+ 	  non-native endianness (e.g. Little-Endian framebuffer on a
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,8 +87,8 @@ quota-quota-core-changes-for-quotaon-on-remount-quota-ext3-make-ext3-handle-quot
 quota-quota-core-changes-for-quotaon-on-remount-quota-ext4-make-ext4-handle-quotaon-on-remount.patch
 quota-convert-stub-functions-from-macros-into-inlines.patch
 gpiochip_reserve.patch
-fbcon-replace-mono_col-macro-with-static-inline.patch
-pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch.patch
+fb-add-support-for-foreign-endianness-force-it-on.patch
+fbcon-replace-mono_col-macro-with-static-inline-fix.patch
 pm-gxfb-add-hook-to-pm-console-layer-that-allows-disabling-of-suspend-vt-switch-fix.patch
 lxfb-add-power-management-functionality-fix.patch
 drivers-video-uvesafbc-fix-error-path-memory-leak.patch
