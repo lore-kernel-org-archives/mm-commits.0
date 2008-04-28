@@ -1,126 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: - smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:54:17 -0700
-Message-ID: <200804282154.m3SLsH5F017988@imap1.linux-foundation.org>
+Subject: - memory-hotplug-align-memmap-to-page-size.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:53:56 -0700
+Message-ID: <200804282153.m3SLruuI017941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41194 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34389 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965040AbYD1VyV (ORCPT
+	by vger.kernel.org with ESMTP id S936068AbYD1VyE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:54:21 -0400
+	Mon, 28 Apr 2008 17:54:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, casey@schaufler-ca.com, mm-commits@vger.kernel.org
+To: y-goto@jp.fujitsu.com, pbadari@us.ibm.com, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smack: fix integer as NULL pointer warning in smack_lsm.c
+     memory hotplug: align memmap to page size
 has been removed from the -mm tree.  Its filename was
-     smack-fix-integer-as-null-pointer-warning-in-smack_lsmc.patch
+     memory-hotplug-align-memmap-to-page-size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smack: fix integer as NULL pointer warning in smack_lsm.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: memory hotplug: align memmap to page size
+From: Yasunori Goto <y-goto@jp.fujitsu.com>
 
-security/smack/smack_lsm.c:1257:16: warning: Using plain integer as NULL pointer
+To free memmap easier, this patch aligns it to page size.  Bootmem allocater
+may mix some objects in one pages.  It's not good for freeing memmap of memory
+hot-remove.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
+Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack_lsm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/sparse.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN security/smack/smack_lsm.c~smack-fix-integer-as-null-pointer-warning-in-smack_lsmc security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~smack-fix-integer-as-null-pointer-warning-in-smack_lsmc
-+++ a/security/smack/smack_lsm.c
-@@ -1242,7 +1242,7 @@ static void smack_set_catset(char *catse
- 	int rc;
- 	int byte;
+diff -puN mm/sparse.c~memory-hotplug-align-memmap-to-page-size mm/sparse.c
+--- a/mm/sparse.c~memory-hotplug-align-memmap-to-page-size
++++ a/mm/sparse.c
+@@ -273,8 +273,8 @@ struct page __init *sparse_mem_map_popul
+ 	if (map)
+ 		return map;
  
--	if (catset == 0)
-+	if (!catset)
- 		return;
- 
- 	sap->flags |= NETLBL_SECATTR_MLS_CAT;
+-	map = alloc_bootmem_node(NODE_DATA(nid),
+-			sizeof(struct page) * PAGES_PER_SECTION);
++	map = alloc_bootmem_pages_node(NODE_DATA(nid),
++		       PAGE_ALIGN(sizeof(struct page) * PAGES_PER_SECTION));
+ 	return map;
+ }
+ #endif /* !CONFIG_SPARSEMEM_VMEMMAP */
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from y-goto@jp.fujitsu.com are
 
 origin.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-git-kvm.patch
-git-mips.patch
-git-nfsd.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-git-watchdog.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-power-replace-remaining-__function__-occurrences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-firmware-replace-remaining-__function__-occurrences.patch
-drivers-misc-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-kernel-add-common-infrastructure-for-unaligned-access.patch
-kernel-move-arches-to-use-common-unaligned-access.patch
-drivers-block-use-get_unaligned_-helpers.patch
-hid-core-use-get_unaligned_-helpers.patch
-char-use-get_unaligned_-helpers.patch
-input-use-get_unaligned_-helpers.patch
-mmc-use-get-put_unaligned_-helpers.patch
-net-use-get-put_unaligned_-helpers.patch
-wireless-use-get-put_unaligned_-helpers.patch
-pcmcia-use-get-put_unaligned_-helpers.patch
-usb-use-get-put_unaligned_-helpers.patch
-video-use-get-put_unaligned_-helpers.patch
-fat-use-get-put_unaligned_-helpers.patch
-hfsplus-use-get-put_unaligned_-helpers.patch
-isofs-use-get-put_unaligned_-helpers.patch
-ncpfs-use-get-put_unaligned_-helpers.patch
-ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
+powerpc-hotplug-memory-notifications-for-ppc.patch
+powerpc-update-lmb-for-hotplug-memory-add-remove.patch
+powerpc-provide-walk_memory_resource-for-ppc.patch
+ipc-scale-msgmni-to-the-amount-of-lowmem.patch
+ipc-scale-msgmni-to-the-number-of-ipc-namespaces.patch
+ipc-define-the-slab_memory_callback-priority-as-a-constant.patch
+ipc-recompute-msgmni-on-memory-add--remove.patch
+ipc-invoke-the-ipcns-notifier-chain-as-a-work-item.patch
+ipc-recompute-msgmni-on-ipc-namespace-creation-removal.patch
+ipc-do-not-recompute-msgmni-anymore-if-explicitly-set-by-user.patch
+ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative.patch
 
