@@ -1,144 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch removed from -mm tree
-Date: Sun, 27 Apr 2008 23:57:13 -0700
-Message-ID: <200804280657.m3S6vDOB012855@imap1.linux-foundation.org>
+Subject: - arch-alpha-kernel-trapsc-use-time_-macros-fix.patch removed from -mm tree
+Date: Sun, 27 Apr 2008 23:56:29 -0700
+Message-ID: <200804280656.m3S6uT72012837@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46378 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40388 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763297AbYD1G5q (ORCPT
+	by vger.kernel.org with ESMTP id S1763227AbYD1G5k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 02:57:46 -0400
+	Mon, 28 Apr 2008 02:57:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, phil.el@wanadoo.fr, travis@sgi.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, caglar@pardus.org.tr, ink@jurassic.park.msu.ru, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
+     arch-alpha-kernel-trapsc-use-time_-macros-fix
 has been removed from the -mm tree.  Its filename was
-     oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+     arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
 
-This patch was dropped because it was folded into oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
+This patch was dropped because it was folded into arch-alpha-kernel-trapsc-use-time_-macros.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
+Subject: arch-alpha-kernel-trapsc-use-time_-macros-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#24: FILE: drivers/oprofile/buffer_sync.c:497:
-+	struct oprofile_cpu_buffer * cpu_buf = &per_cpu(cpu_buffer, cpu);
+arch/alpha/kernel/traps.c: In function 'do_entUnaUser':
+arch/alpha/kernel/traps.c:785: warning: comparison of distinct pointer types lacks a cast
 
-ERROR: "foo * bar" should be "foo *bar"
-#54: FILE: drivers/oprofile/cpu_buffer.c:52:
-+		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
-
-ERROR: "foo * bar" should be "foo *bar"
-#63: FILE: drivers/oprofile/cpu_buffer.c:86:
-+		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
-
-ERROR: "foo * bar" should be "foo *bar"
-#72: FILE: drivers/oprofile/cpu_buffer.c:103:
-+		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
-
-ERROR: "foo * bar" should be "foo *bar"
-#81: FILE: drivers/oprofile/cpu_buffer.c:230:
-+	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
-
-ERROR: "foo * bar" should be "foo *bar"
-#90: FILE: drivers/oprofile/cpu_buffer.c:257:
-+	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
-
-ERROR: "foo * bar" should be "foo *bar"
-#97: FILE: drivers/oprofile/cpu_buffer.c:263:
-+	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
-
-total: 7 errors, 0 warnings, 102 lines checked
-
-./patches/oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Mike Travis <travis@sgi.com>
-Cc: Philippe Elie <phil.el@wanadoo.fr>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: S.Caglar Onur <caglar@pardus.org.tr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/oprofile/buffer_sync.c |    2 +-
- drivers/oprofile/cpu_buffer.c  |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ arch/alpha/kernel/traps.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/oprofile/buffer_sync.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes drivers/oprofile/buffer_sync.c
---- a/drivers/oprofile/buffer_sync.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
-+++ a/drivers/oprofile/buffer_sync.c
-@@ -491,7 +491,7 @@ typedef enum {
-  */
- void sync_buffer(int cpu)
+diff -puN arch/alpha/kernel/traps.c~arch-alpha-kernel-trapsc-use-time_-macros-fix arch/alpha/kernel/traps.c
+--- a/arch/alpha/kernel/traps.c~arch-alpha-kernel-trapsc-use-time_-macros-fix
++++ a/arch/alpha/kernel/traps.c
+@@ -771,7 +771,7 @@ do_entUnaUser(void __user * va, unsigned
+ 	      unsigned long reg, struct pt_regs *regs)
  {
--	struct oprofile_cpu_buffer * cpu_buf = &per_cpu(cpu_buffer, cpu);
-+	struct oprofile_cpu_buffer *cpu_buf = &per_cpu(cpu_buffer, cpu);
- 	struct mm_struct *mm = NULL;
- 	struct task_struct * new;
- 	unsigned long cookie = 0;
-diff -puN drivers/oprofile/cpu_buffer.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes drivers/oprofile/cpu_buffer.c
---- a/drivers/oprofile/cpu_buffer.c~oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
-+++ a/drivers/oprofile/cpu_buffer.c
-@@ -49,7 +49,7 @@ int alloc_cpu_buffers(void)
- 	unsigned long buffer_size = fs_cpu_buffer_size;
-  
- 	for_each_online_cpu(i) {
--		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
-+		struct oprofile_cpu_buffer *b = &per_cpu(cpu_buffer, i);
-  
- 		b->buffer = vmalloc_node(sizeof(struct op_sample) * buffer_size,
- 			cpu_to_node(i));
-@@ -83,7 +83,7 @@ void start_cpu_work(void)
- 	work_enabled = 1;
+ 	static int cnt = 0;
+-	static long last_time = 0;
++	static unsigned long last_time;
  
- 	for_each_online_cpu(i) {
--		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
-+		struct oprofile_cpu_buffer *b = &per_cpu(cpu_buffer, i);
- 
- 		/*
- 		 * Spread the work by 1 jiffy per cpu so they dont all
-@@ -100,7 +100,7 @@ void end_cpu_work(void)
- 	work_enabled = 0;
- 
- 	for_each_online_cpu(i) {
--		struct oprofile_cpu_buffer * b = &per_cpu(cpu_buffer, i);
-+		struct oprofile_cpu_buffer *b = &per_cpu(cpu_buffer, i);
- 
- 		cancel_delayed_work(&b->work);
- 	}
-@@ -227,7 +227,7 @@ static void oprofile_end_trace(struct op
- void oprofile_add_ext_sample(unsigned long pc, struct pt_regs * const regs,
- 				unsigned long event, int is_kernel)
- {
--	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
-+	struct oprofile_cpu_buffer *cpu_buf = &__get_cpu_var(cpu_buffer);
- 
- 	if (!backtrace_depth) {
- 		log_sample(cpu_buf, pc, is_kernel, event);
-@@ -254,13 +254,13 @@ void oprofile_add_sample(struct pt_regs 
- 
- void oprofile_add_pc(unsigned long pc, int is_kernel, unsigned long event)
- {
--	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
-+	struct oprofile_cpu_buffer *cpu_buf = &__get_cpu_var(cpu_buffer);
- 	log_sample(cpu_buf, pc, is_kernel, event);
- }
- 
- void oprofile_add_trace(unsigned long pc)
- {
--	struct oprofile_cpu_buffer * cpu_buf = &__get_cpu_var(cpu_buffer);
-+	struct oprofile_cpu_buffer *cpu_buf = &__get_cpu_var(cpu_buffer);
- 
- 	if (!cpu_buf->tracing)
- 		return;
+ 	unsigned long tmp1, tmp2, tmp3, tmp4;
+ 	unsigned long fake_reg, *reg_addr = &fake_reg;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -165,10 +77,10 @@ lsm-audit-introduce-generic-audit-lsm-hooks-checkpatch-fixes.patch
 selinux-use-new-audit-hooks-remove-redundant-exports-checkpatch-fixes.patch
 audit-final-renamings-and-cleanup-checkpatch-fixes.patch
 arch-alpha-kernel-trapsc-use-time_-macros.patch
+arch-alpha-kernel-trapsc-use-time_-macros-fix.patch
 alpha-teach-the-compiler-that-bug-doesnt-return.patch
-uart_get_baud_rate-stop-mangling-termios.patch
+uart_get_baud_rate-stop-mangling-termios-fix.patch
 drivers-acpi-thermalc-fix-build-with-config_dmi=n.patch
-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
 oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
 vt-notifier-extension-for-accessibility-checkpatch-fixes.patch
 kprobes-prevent-probing-of-preempt_schedule-fix.patch
