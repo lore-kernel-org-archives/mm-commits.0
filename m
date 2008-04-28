@@ -1,121 +1,139 @@
 From: akpm@linux-foundation.org
-Subject: - gpiolib-better-rmmod-infrastructure.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:57:00 -0700
-Message-ID: <200804282157.m3SLv0TH018291@imap1.linux-foundation.org>
+Subject: - fbdev-use-div_round_up-or-roundup.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:57:19 -0700
+Message-ID: <200804282157.m3SLvJrj018389@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39410 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965117AbYD1V5Y (ORCPT
+	by vger.kernel.org with ESMTP id S935718AbYD1V5W (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:57:24 -0400
+	Mon, 28 Apr 2008 17:57:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: g.liakhovetski@pengutronix.de, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: julia@diku.dk, adaplas@pol.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     gpiolib: better rmmod infrastructure
+     fbdev: use DIV_ROUND_UP or roundup
 has been removed from the -mm tree.  Its filename was
-     gpiolib-better-rmmod-infrastructure.patch
+     fbdev-use-div_round_up-or-roundup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: gpiolib: better rmmod infrastructure
-From: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
+Subject: fbdev: use DIV_ROUND_UP or roundup
+From: Julia Lawall <julia@diku.dk>
 
-As long as one or more GPIOs on a gpio chip are used its driver should not be
-unloaded.  The existing mechanism (gpiochip_remove failure) doesn't address
-that, since rmmod can no longer be made to fail by having the cleanup code
-report errors.  Module usecounts are the solution.
+The kernel.h macro DIV_ROUND_UP performs the computation (((n) + (d) - 1) /
+(d)) but is perhaps more readable.
 
-Assuming standard "initialize struct to zero" policies, this change won't
-affect SOC platform drivers.  However, drivers for external chips (on I2C and
-SPI busses) should be updated if they can be built as modules.
+An extract of the semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-[ gpio_ensure_requested() needs to update module usecounts too ]
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+// <smpl>
+@haskernel@
+@@
+
+#include <linux/kernel.h>
+
+@depends on haskernel@
+expression n,d;
+@@
+
+(
+- (n + d - 1) / d
++ DIV_ROUND_UP(n,d)
+|
+- (n + (d - 1)) / d
++ DIV_ROUND_UP(n,d)
+)
+
+@depends on haskernel@
+expression n,d;
+@@
+
+- DIV_ROUND_UP((n),d)
++ DIV_ROUND_UP(n,d)
+
+@depends on haskernel@
+expression n,d;
+@@
+
+- DIV_ROUND_UP(n,(d))
++ DIV_ROUND_UP(n,d)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpio/gpiolib.c     |   15 ++++++++++++---
- include/asm-generic/gpio.h |    2 ++
- 2 files changed, 14 insertions(+), 3 deletions(-)
+ drivers/video/atafb.c         |    2 +-
+ drivers/video/cirrusfb.c      |    2 +-
+ drivers/video/console/fbcon.c |    3 +--
+ drivers/video/gxt4500.c       |    2 +-
+ 4 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN drivers/gpio/gpiolib.c~gpiolib-better-rmmod-infrastructure drivers/gpio/gpiolib.c
---- a/drivers/gpio/gpiolib.c~gpiolib-better-rmmod-infrastructure
-+++ a/drivers/gpio/gpiolib.c
-@@ -68,6 +68,9 @@ static void gpio_ensure_requested(struct
- 	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
- 		pr_warning("GPIO-%d autorequested\n", (int)(desc - gpio_desc));
- 		desc_set_label(desc, "[auto]");
-+		if (!try_module_get(desc->chip->owner))
-+			pr_err("GPIO-%d: module can't be gotten \n",
-+					(int)(desc - gpio_desc));
- 	}
- }
+diff -puN drivers/video/atafb.c~fbdev-use-div_round_up-or-roundup drivers/video/atafb.c
+--- a/drivers/video/atafb.c~fbdev-use-div_round_up-or-roundup
++++ a/drivers/video/atafb.c
+@@ -1270,7 +1270,7 @@ again:
  
-@@ -177,6 +180,9 @@ int gpio_request(unsigned gpio, const ch
- 	if (desc->chip == NULL)
- 		goto done;
- 
-+	if (!try_module_get(desc->chip->owner))
-+		goto done;
-+
- 	/* NOTE:  gpio_request() can be called in early boot,
- 	 * before IRQs are enabled.
- 	 */
-@@ -184,8 +190,10 @@ int gpio_request(unsigned gpio, const ch
- 	if (test_and_set_bit(FLAG_REQUESTED, &desc->flags) == 0) {
- 		desc_set_label(desc, label ? : "?");
- 		status = 0;
--	} else
-+	} else {
- 		status = -EBUSY;
-+		module_put(desc->chip->owner);
-+	}
- 
- done:
- 	if (status)
-@@ -209,9 +217,10 @@ void gpio_free(unsigned gpio)
- 	spin_lock_irqsave(&gpio_lock, flags);
- 
- 	desc = &gpio_desc[gpio];
--	if (desc->chip && test_and_clear_bit(FLAG_REQUESTED, &desc->flags))
-+	if (desc->chip && test_and_clear_bit(FLAG_REQUESTED, &desc->flags)) {
- 		desc_set_label(desc, NULL);
--	else
-+		module_put(desc->chip->owner);
-+	} else
- 		WARN_ON(extra_checks);
- 
- 	spin_unlock_irqrestore(&gpio_lock, flags);
-diff -puN include/asm-generic/gpio.h~gpiolib-better-rmmod-infrastructure include/asm-generic/gpio.h
---- a/include/asm-generic/gpio.h~gpiolib-better-rmmod-infrastructure
-+++ a/include/asm-generic/gpio.h
-@@ -17,6 +17,7 @@
- #endif
- 
- struct seq_file;
-+struct module;
- 
- /**
-  * struct gpio_chip - abstract a GPIO controller
-@@ -48,6 +49,7 @@ struct seq_file;
-  */
- struct gpio_chip {
- 	char			*label;
-+	struct module		*owner;
- 
- 	int			(*direction_input)(struct gpio_chip *chip,
- 						unsigned offset);
+ 	gstart = (prescale / 2 + plen * left_margin) / prescale;
+ 	/* gend1 is for hde (gend-gstart multiple of align), shifter's xres */
+-	gend1 = gstart + ((xres + align - 1) / align) * align * plen / prescale;
++	gend1 = gstart + roundup(xres, align) * plen / prescale;
+ 	/* gend2 is for hbb, visible xres (rest to gend1 is cut off by hblank) */
+ 	gend2 = gstart + xres * plen / prescale;
+ 	par->HHT = plen * (left_margin + xres + right_margin) /
+diff -puN drivers/video/cirrusfb.c~fbdev-use-div_round_up-or-roundup drivers/video/cirrusfb.c
+--- a/drivers/video/cirrusfb.c~fbdev-use-div_round_up-or-roundup
++++ a/drivers/video/cirrusfb.c
+@@ -3117,7 +3117,7 @@ static void bestclock(long freq, long *b
+ 				}
+ 			}
+ 		}
+-		d = ((143181 * n) + f - 1) / f;
++		d = DIV_ROUND_UP(143181 * n, f);
+ 		if ((d >= 7) && (d <= 63)) {
+ 			if (d > 31)
+ 				d = (d / 2) * 2;
+diff -puN drivers/video/console/fbcon.c~fbdev-use-div_round_up-or-roundup drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~fbdev-use-div_round_up-or-roundup
++++ a/drivers/video/console/fbcon.c
+@@ -620,8 +620,7 @@ static void fbcon_prepare_logo(struct vc
+ 	if (fb_get_color_depth(&info->var, &info->fix) == 1)
+ 		erase &= ~0x400;
+ 	logo_height = fb_prepare_logo(info, ops->rotate);
+-	logo_lines = (logo_height + vc->vc_font.height - 1) /
+-		vc->vc_font.height;
++	logo_lines = DIV_ROUND_UP(logo_height, vc->vc_font.height);
+ 	q = (unsigned short *) (vc->vc_origin +
+ 				vc->vc_size_row * rows);
+ 	step = logo_lines * cols;
+diff -puN drivers/video/gxt4500.c~fbdev-use-div_round_up-or-roundup drivers/video/gxt4500.c
+--- a/drivers/video/gxt4500.c~fbdev-use-div_round_up-or-roundup
++++ a/drivers/video/gxt4500.c
+@@ -238,7 +238,7 @@ static int calc_pll(int period_ps, struc
+ 	for (pdiv1 = 1; pdiv1 <= 8; ++pdiv1) {
+ 		for (pdiv2 = 1; pdiv2 <= pdiv1; ++pdiv2) {
+ 			postdiv = pdiv1 * pdiv2;
+-			pll_period = (period_ps + postdiv - 1) / postdiv;
++			pll_period = DIV_ROUND_UP(period_ps, postdiv);
+ 			/* keep pll in range 350..600 MHz */
+ 			if (pll_period < 1666 || pll_period > 2857)
+ 				continue;
 _
 
-Patches currently in -mm which might be from g.liakhovetski@pengutronix.de are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
+drivers-scsi-use-time_before-time_before_eq-etc.patch
+fs-affs-filec-use-bug_on.patch
+drivers-misc-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
+fs-ext4-use-bug_on.patch
+drivers-char-ds1286c-use-time_before-time_before_eq-etc.patch
 
