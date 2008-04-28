@@ -1,199 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: - fat-add-allow_utime-option.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:01:34 -0700
-Message-ID: <200804282201.m3SM1Yms018877@imap1.linux-foundation.org>
+Subject: - fat_valid_media-remove-pointless-test.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:01:46 -0700
+Message-ID: <200804282201.m3SM1kMb018895@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54234 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50853 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965803AbYD1WBh (ORCPT
+	by vger.kernel.org with ESMTP id S965796AbYD1WBw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:01:37 -0400
+	Mon, 28 Apr 2008 18:01:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fseidel@suse.de, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fat: Add allow_utime option
+     FAT_VALID_MEDIA(): remove pointless test
 has been removed from the -mm tree.  Its filename was
-     fat-add-allow_utime-option.patch
+     fat_valid_media-remove-pointless-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fat: Add allow_utime option
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: FAT_VALID_MEDIA(): remove pointless test
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Normally utime(2) checks current process is owner of the file, or it
-has CAP_FOWNER capability.  But FAT filesystem doesn't have uid/gid as
-on disk info, so normal check is too unflexible.
+The on-disk media specification field in FAT is only 8-bits, so testing for
+<=0xff is pointless, and can generate a "comparison is always true due to
+limited range of data type" warning.
 
-With this option you can relax it.
+While we're there, convert FAT_VALID_MEDIA() into a C function - the present
+implementation is buggy: it generates either one or two references to its
+argument.
 
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Frank Seidel <fseidel@suse.de>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfat.txt |   15 +++++++++++++++
- fs/fat/file.c                      |   24 ++++++++++++++++++++++++
- fs/fat/inode.c                     |   18 +++++++++++++++---
- include/linux/msdos_fs.h           |    1 +
- 4 files changed, 55 insertions(+), 3 deletions(-)
+ fs/fat/inode.c           |    2 +-
+ include/linux/msdos_fs.h |    6 +++++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/filesystems/vfat.txt~fat-add-allow_utime-option Documentation/filesystems/vfat.txt
---- a/Documentation/filesystems/vfat.txt~fat-add-allow_utime-option
-+++ a/Documentation/filesystems/vfat.txt
-@@ -17,6 +17,21 @@ dmask=###     -- The permission mask for
- fmask=###     -- The permission mask for files.
-                  The default is the umask of current process.
+diff -puN fs/fat/inode.c~fat_valid_media-remove-pointless-test fs/fat/inode.c
+--- a/fs/fat/inode.c~fat_valid_media-remove-pointless-test
++++ a/fs/fat/inode.c
+@@ -1215,7 +1215,7 @@ int fat_fill_super(struct super_block *s
+ 	 */
  
-+allow_utime=### -- This option controls the permission check of mtime/atime.
-+
-+                  20 - If current process is in group of file's group ID,
-+                       you can change timestamp.
-+                   2 - Other users can change timestamp.
-+
-+                 The default is set from `dmask' option. (If the directory is
-+                 writable, utime(2) is also allowed. I.e. ~dmask & 022)
-+
-+                 Normally utime(2) checks current process is owner of
-+                 the file, or it has CAP_FOWNER capability.  But FAT
-+                 filesystem doesn't have uid/gid on disk, so normal
-+                 check is too unflexible. With this option you can
-+                 relax it.
-+
- codepage=###  -- Sets the codepage number for converting to shortname
- 		 characters on FAT filesystem.
- 		 By default, FAT_DEFAULT_CODEPAGE setting is used.
-diff -puN fs/fat/file.c~fat-add-allow_utime-option fs/fat/file.c
---- a/fs/fat/file.c~fat-add-allow_utime-option
-+++ a/fs/fat/file.c
-@@ -280,11 +280,27 @@ static int fat_check_mode(const struct m
- 	return 0;
- }
+ 	media = b->media;
+-	if (!FAT_VALID_MEDIA(media)) {
++	if (!fat_valid_media(media)) {
+ 		if (!silent)
+ 			printk(KERN_ERR "FAT: invalid media value (0x%02x)\n",
+ 			       media);
+diff -puN include/linux/msdos_fs.h~fat_valid_media-remove-pointless-test include/linux/msdos_fs.h
+--- a/include/linux/msdos_fs.h~fat_valid_media-remove-pointless-test
++++ a/include/linux/msdos_fs.h
+@@ -58,7 +58,11 @@
+ #define MSDOS_DOTDOT	"..         "	/* "..", padded to MSDOS_NAME chars */
  
-+static int fat_allow_set_time(struct msdos_sb_info *sbi, struct inode *inode)
+ /* media of boot sector */
+-#define FAT_VALID_MEDIA(x)	((0xF8 <= (x) && (x) <= 0xFF) || (x) == 0xF0)
++static inline int fat_valid_media(u8 media)
 +{
-+	mode_t allow_utime = sbi->options.allow_utime;
-+
-+	if (current->fsuid != inode->i_uid) {
-+		if (in_group_p(inode->i_gid))
-+			allow_utime >>= 3;
-+		if (allow_utime & MAY_WRITE)
-+			return 1;
-+	}
-+
-+	/* use a default check */
-+	return 0;
++	return 0xf8 <= media || media == 0xf0;
 +}
 +
- int fat_setattr(struct dentry *dentry, struct iattr *attr)
- {
- 	struct msdos_sb_info *sbi = MSDOS_SB(dentry->d_sb);
- 	struct inode *inode = dentry->d_inode;
- 	int mask, error = 0;
-+	unsigned int ia_valid;
+ #define FAT_FIRST_ENT(s, x)	((MSDOS_SB(s)->fat_bits == 32 ? 0x0FFFFF00 : \
+ 	MSDOS_SB(s)->fat_bits == 16 ? 0xFF00 : 0xF00) | (x))
  
- 	lock_kernel();
- 
-@@ -302,7 +318,15 @@ int fat_setattr(struct dentry *dentry, s
- 		}
- 	}
- 
-+	/* Check for setting the inode time. */
-+	ia_valid = attr->ia_valid;
-+	if (ia_valid & (ATTR_MTIME_SET | ATTR_ATIME_SET)) {
-+		if (fat_allow_set_time(sbi, inode))
-+			attr->ia_valid &= ~(ATTR_MTIME_SET | ATTR_ATIME_SET);
-+	}
-+
- 	error = inode_change_ok(inode, attr);
-+	attr->ia_valid = ia_valid;
- 	if (error) {
- 		if (sbi->options.quiet)
- 			error = 0;
-diff -puN fs/fat/inode.c~fat-add-allow_utime-option fs/fat/inode.c
---- a/fs/fat/inode.c~fat-add-allow_utime-option
-+++ a/fs/fat/inode.c
-@@ -785,6 +785,8 @@ static int fat_show_options(struct seq_f
- 		seq_printf(m, ",gid=%u", opts->fs_gid);
- 	seq_printf(m, ",fmask=%04o", opts->fs_fmask);
- 	seq_printf(m, ",dmask=%04o", opts->fs_dmask);
-+	if (opts->allow_utime)
-+		seq_printf(m, ",allow_utime=%04o", opts->allow_utime);
- 	if (sbi->nls_disk)
- 		seq_printf(m, ",codepage=%s", sbi->nls_disk->charset);
- 	if (isvfat) {
-@@ -840,9 +842,9 @@ static int fat_show_options(struct seq_f
- 
- enum {
- 	Opt_check_n, Opt_check_r, Opt_check_s, Opt_uid, Opt_gid,
--	Opt_umask, Opt_dmask, Opt_fmask, Opt_codepage, Opt_usefree, Opt_nocase,
--	Opt_quiet, Opt_showexec, Opt_debug, Opt_immutable,
--	Opt_dots, Opt_nodots,
-+	Opt_umask, Opt_dmask, Opt_fmask, Opt_allow_utime, Opt_codepage,
-+	Opt_usefree, Opt_nocase, Opt_quiet, Opt_showexec, Opt_debug,
-+	Opt_immutable, Opt_dots, Opt_nodots,
- 	Opt_charset, Opt_shortname_lower, Opt_shortname_win95,
- 	Opt_shortname_winnt, Opt_shortname_mixed, Opt_utf8_no, Opt_utf8_yes,
- 	Opt_uni_xl_no, Opt_uni_xl_yes, Opt_nonumtail_no, Opt_nonumtail_yes,
-@@ -861,6 +863,7 @@ static match_table_t fat_tokens = {
- 	{Opt_umask, "umask=%o"},
- 	{Opt_dmask, "dmask=%o"},
- 	{Opt_fmask, "fmask=%o"},
-+	{Opt_allow_utime, "allow_utime=%o"},
- 	{Opt_codepage, "codepage=%u"},
- 	{Opt_usefree, "usefree"},
- 	{Opt_nocase, "nocase"},
-@@ -932,6 +935,7 @@ static int parse_options(char *options, 
- 	opts->fs_uid = current->uid;
- 	opts->fs_gid = current->gid;
- 	opts->fs_fmask = opts->fs_dmask = current->fs->umask;
-+	opts->allow_utime = -1;
- 	opts->codepage = fat_default_codepage;
- 	opts->iocharset = fat_default_iocharset;
- 	if (is_vfat)
-@@ -1019,6 +1023,11 @@ static int parse_options(char *options, 
- 				return 0;
- 			opts->fs_fmask = option;
- 			break;
-+		case Opt_allow_utime:
-+			if (match_octal(&args[0], &option))
-+				return 0;
-+			opts->allow_utime = option & (S_IWGRP | S_IWOTH);
-+			break;
- 		case Opt_codepage:
- 			if (match_int(&args[0], &option))
- 				return 0;
-@@ -1101,6 +1110,9 @@ static int parse_options(char *options, 
- 		       " for FAT filesystems, filesystem will be case sensitive!\n");
- 	}
- 
-+	/* If user doesn't specify allow_utime, it's initialized from dmask. */
-+	if (opts->allow_utime == (unsigned short)-1)
-+		opts->allow_utime = ~opts->fs_dmask & (S_IWGRP | S_IWOTH);
- 	if (opts->unicode_xlate)
- 		opts->utf8 = 0;
- 
-diff -puN include/linux/msdos_fs.h~fat-add-allow_utime-option include/linux/msdos_fs.h
---- a/include/linux/msdos_fs.h~fat-add-allow_utime-option
-+++ a/include/linux/msdos_fs.h
-@@ -195,6 +195,7 @@ struct fat_mount_options {
- 	char *iocharset;          /* Charset used for filename input/display */
- 	unsigned short shortname; /* flags for shortname display/create rule */
- 	unsigned char name_check; /* r = relaxed, n = normal, s = strict */
-+	unsigned short allow_utime;/* permission for setting the [am]time */
- 	unsigned quiet:1,         /* set = fake successful chmods and chowns */
- 		 showexec:1,      /* set = only set x bit for com/exe/bat */
- 		 sys_immutable:1, /* set = system files are immutable */
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-vfs-fix-unconditional-write_super-call-in-file_fsync.patch
-fat-use-get-put_unaligned_-helpers.patch
+disable-the-memory-controller-by-default-v3.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+x86-ptrace-pebs-support-warning-fix.patch
+rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+drivers-media-dvb-frontends-s5h1420c-printk-fix.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-hwmon.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-kvm.patch
+pata_atiixp-simplex-clear.patch
+git-m32r.patch
+git-mips.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-sched.patch
+sched-add-debug-checks-to-idle-functions.patch
+add-rcu_assign_index-if-ever-needed.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+aic79xx_core-remove-ascii-art.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+revert-rusty-misc-timer-typesafe.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+ext4-is-busted-on-m68k.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
+utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
+add-warn_on_secs-macro-simplification-fix.patch
+add-warn_on_secs-macro-simplification-fix-fix.patch
+ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
+x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
+x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+revert-part-of-sched-cpuset-customize-sched-domains-core.patch
+reapply-sched-cpuset-customize-sched-domains-core-bits.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+isicom-bring-into-coding-style-fix.patch
+tty-the-big-operations-rework-fix-2.patch
+tty-the-big-operations-rework-isicom-fix.patch
+tty-the-big-operations-rework-simserial-fix.patch
+tty-the-big-operations-rework-vs-git-kgdb-light.patch
+tty-the-big-operations-rework-vs-kgdb-2.patch
+devpts-factor-out-pty-index-allocation-fix.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+fuse-fix-race-in-llseek-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
+relayfs-support-larger-relay-buffer-take-3-cleanup.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
