@@ -1,66 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-fix-update-of-mtime-and-ctime-on-rename.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:00:51 -0700
-Message-ID: <200804282200.m3SM0pZV018779@imap1.linux-foundation.org>
+Subject: - fs-ext3-use-bug_on.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:00:43 -0700
+Message-ID: <200804282200.m3SM0hx9018738@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46585 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44941 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965630AbYD1WAz (ORCPT
+	by vger.kernel.org with ESMTP id S965634AbYD1WAr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:00:55 -0400
+	Mon, 28 Apr 2008 18:00:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, linux-ext4@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: julia@diku.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: fix update of mtime and ctime on rename
+     fs/ext3: use BUG_ON
 has been removed from the -mm tree.  Its filename was
-     ext3-fix-update-of-mtime-and-ctime-on-rename.patch
+     fs-ext3-use-bug_on.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: fix update of mtime and ctime on rename
-From: Jan Kara <jack@suse.cz>
+Subject: fs/ext3: use BUG_ON
+From: Julia Lawall <julia@diku.dk>
 
-Make ext3 update mtime and ctime of the directory into which we move file even
-if the directory entry already exists.
+if (...) BUG(); should be replaced with BUG_ON(...) when the test has no
+side-effects to allow a definition of BUG_ON that drops the code completely.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: <linux-ext4@vger.kernel.org>
+The semantic patch that makes this change is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
+
+// <smpl>
+@ disable unlikely @ expression E,f; @@
+
+(
+  if (<... f(...) ...>) { BUG(); }
+|
+- if (unlikely(E)) { BUG(); }
++ BUG_ON(E);
+)
+
+@@ expression E,f; @@
+
+(
+  if (<... f(...) ...>) { BUG(); }
+|
+- if (E) { BUG(); }
++ BUG_ON(E);
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/namei.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/ext3/balloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/ext3/namei.c~ext3-fix-update-of-mtime-and-ctime-on-rename fs/ext3/namei.c
---- a/fs/ext3/namei.c~ext3-fix-update-of-mtime-and-ctime-on-rename
-+++ a/fs/ext3/namei.c
-@@ -2323,6 +2323,8 @@ static int ext3_rename (struct inode * o
- 					      EXT3_FEATURE_INCOMPAT_FILETYPE))
- 			new_de->file_type = old_de->file_type;
- 		new_dir->i_version++;
-+		new_dir->i_ctime = new_dir->i_mtime = CURRENT_TIME_SEC;
-+		ext3_mark_inode_dirty(handle, new_dir);
- 		BUFFER_TRACE(new_bh, "call ext3_journal_dirty_metadata");
- 		ext3_journal_dirty_metadata(handle, new_bh);
- 		brelse(new_bh);
+diff -puN fs/ext3/balloc.c~fs-ext3-use-bug_on fs/ext3/balloc.c
+--- a/fs/ext3/balloc.c~fs-ext3-use-bug_on
++++ a/fs/ext3/balloc.c
+@@ -232,8 +232,7 @@ restart:
+ 		prev = rsv;
+ 	}
+ 	printk("Window map complete.\n");
+-	if (bad)
+-		BUG();
++	BUG_ON(bad);
+ }
+ #define rsv_window_dump(root, verbose) \
+ 	__rsv_window_dump((root), (verbose), __FUNCTION__)
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from julia@diku.dk are
 
 origin.patch
-vfs-fix-lock-inversion-in-drop_pagecache_sb.patch
-vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb.patch
-ext4-fix-update-of-mtime-and-ctime-on-rename.patch
-ext4-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
-ext4-fix-mount-messages-when-quota-disabled.patch
-quota-le_add_cpu-conversion.patch
-isofs-use-get-put_unaligned_-helpers.patch
+drivers-scsi-use-time_before-time_before_eq-etc.patch
+fs-affs-filec-use-bug_on.patch
+drivers-misc-elide-a-non-zero-test-on-a-result-that-is-never-0.patch
+fs-ext4-use-bug_on.patch
+drivers-char-ds1286c-use-time_before-time_before_eq-etc.patch
 
