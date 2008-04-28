@@ -1,74 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - ext3-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:00:53 -0700
-Message-ID: <200804282200.m3SM0rUs018784@imap1.linux-foundation.org>
+Subject: - ext2-use-ext2_fsblk_t-type.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:00:20 -0700
+Message-ID: <200804282200.m3SM0Kuf018685__9237.2503052049$1209420128$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38910 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52021 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965644AbYD1WA6 (ORCPT
+	by vger.kernel.org with ESMTP id S965548AbYD1WAX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:00:58 -0400
+	Mon, 28 Apr 2008 18:00:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, lioupayphone@gmail.com, mm-commits@vger.kernel.org
+To: akinobu.mita@gmail.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext3: fix hang on umount with quotas when journal is aborted
+     ext2: use ext2_fsblk_t type
 has been removed from the -mm tree.  Its filename was
-     ext3-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
+     ext2-use-ext2_fsblk_t-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext3: fix hang on umount with quotas when journal is aborted
-From: Jan Kara <jack@suse.cz>
+Subject: ext2: use ext2_fsblk_t type
+From: Akinobu Mita <akinobu.mita@gmail.com>
 
-Call dquot_drop() from ext3_dquot_drop() even if we fail to start a
-transaction.  Otherwise we never get to dropping references to quota
-structures from the inode and umount will hang indefinitely.  Thanks to
-Payphone LIOU for spotting the problem.
+Use ext2_fsblk_t type for filesystem-wide blocks number
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Payphone LIOU <lioupayphone@gmail.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext3/super.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ fs/ext2/inode.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN fs/ext3/super.c~ext3-fix-hang-on-umount-with-quotas-when-journal-is-aborted fs/ext3/super.c
---- a/fs/ext3/super.c~ext3-fix-hang-on-umount-with-quotas-when-journal-is-aborted
-+++ a/fs/ext3/super.c
-@@ -2639,8 +2639,14 @@ static int ext3_dquot_drop(struct inode 
+diff -puN fs/ext2/inode.c~ext2-use-ext2_fsblk_t-type fs/ext2/inode.c
+--- a/fs/ext2/inode.c~ext2-use-ext2_fsblk_t-type
++++ a/fs/ext2/inode.c
+@@ -254,13 +254,13 @@ no_block:
+  *	Caller must make sure that @ind is valid and will stay that way.
+  */
  
- 	/* We may delete quota structure so we need to reserve enough blocks */
- 	handle = ext3_journal_start(inode, 2*EXT3_QUOTA_DEL_BLOCKS(inode->i_sb));
--	if (IS_ERR(handle))
-+	if (IS_ERR(handle)) {
-+		/*
-+		 * We call dquot_drop() anyway to at least release references
-+		 * to quota structures so that umount does not hang.
-+		 */
-+		dquot_drop(inode);
- 		return PTR_ERR(handle);
-+	}
- 	ret = dquot_drop(inode);
- 	err = ext3_journal_stop(handle);
- 	if (!ret)
+-static unsigned long ext2_find_near(struct inode *inode, Indirect *ind)
++static ext2_fsblk_t ext2_find_near(struct inode *inode, Indirect *ind)
+ {
+ 	struct ext2_inode_info *ei = EXT2_I(inode);
+ 	__le32 *start = ind->bh ? (__le32 *) ind->bh->b_data : ei->i_data;
+ 	__le32 *p;
+-	unsigned long bg_start;
+-	unsigned long colour;
++	ext2_fsblk_t bg_start;
++	ext2_fsblk_t colour;
+ 
+ 	/* Try to find previous block */
+ 	for (p = ind->p - 1; p >= start; p--)
+@@ -290,8 +290,8 @@ static unsigned long ext2_find_near(stru
+  *	Returns preferred place for a block (the goal).
+  */
+ 
+-static inline int ext2_find_goal(struct inode *inode, long block,
+-				 Indirect *partial)
++static inline ext2_fsblk_t ext2_find_goal(struct inode *inode, long block,
++					  Indirect *partial)
+ {
+ 	struct ext2_block_alloc_info *block_i;
+ 
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from akinobu.mita@gmail.com are
 
 origin.patch
-vfs-fix-lock-inversion-in-drop_pagecache_sb.patch
-vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb.patch
-ext4-fix-update-of-mtime-and-ctime-on-rename.patch
-ext4-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
-ext4-fix-mount-messages-when-quota-disabled.patch
-quota-le_add_cpu-conversion.patch
-isofs-use-get-put_unaligned_-helpers.patch
+idr-create-idr_layer_cache-at-boot-time.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
 
