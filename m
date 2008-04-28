@@ -1,254 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - vfat-bug-fix-for-vfat-cannot-handle-filename-with-255.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 15:01:42 -0700
-Message-ID: <200804282201.m3SM1gi3018889@imap1.linux-foundation.org>
+Subject: - ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 15:00:55 -0700
+Message-ID: <200804282200.m3SM0tgl018789__28169.9414634661$1209420196$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59359 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45527 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965806AbYD1WBp (ORCPT
+	by vger.kernel.org with ESMTP id S965808AbYD1WBt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 18:01:45 -0400
+	Mon, 28 Apr 2008 18:01:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ek9852@gmail.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfat: bug fix for vfat cannot handle filename with 255
+     ext3: retry block allocation if new blocks are allocated from system zone
 has been removed from the -mm tree.  Its filename was
-     vfat-bug-fix-for-vfat-cannot-handle-filename-with-255.patch
+     ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfat: bug fix for vfat cannot handle filename with 255
-From: Keith Mok <ek9852@gmail.com>
+Subject: ext3: retry block allocation if new blocks are allocated from system zone
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 
-This patch fix the problem that the buffer allocated for convert of unicode to
-utf8 in fat/dir.c is too small.
+If the block allocator gets blocks out of system zone ext3 calls ext3_error. 
+But if the file system is mounted with errors=continue retry block allocation.
+ We need to mark the system zone blocks as in use to make sure retry don't
+pick them again
 
-And cannot handle filename with 255 asian characters when mounted with utf8
-options.
+System zone is the block range mapping block bitmap, inode bitmap and inode
+table.
 
-Also it fix the filename length limitation checking in vfat/namei.c that the
-filename length should be checked against the number of converted unicode
-characters.
-
-Not the length before NLS/UTF8 converted.
-
-Signed-off-by: Keith Mok <ek9852@gmail.com>
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+[akpm@linux-foundation.org: fix typo in comment]
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c    |   44 ++++++++++++++++++++++++++++----------------
- fs/vfat/namei.c |   25 +++++++++++--------------
- 2 files changed, 39 insertions(+), 30 deletions(-)
+ fs/ext3/balloc.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN fs/fat/dir.c~vfat-bug-fix-for-vfat-cannot-handle-filename-with-255 fs/fat/dir.c
---- a/fs/fat/dir.c~vfat-bug-fix-for-vfat-cannot-handle-filename-with-255
-+++ a/fs/fat/dir.c
-@@ -124,8 +124,8 @@ static inline int fat_get_entry(struct i
-  * but ignore that right now.
-  * Ahem... Stack smashing in ring 0 isn't fun. Fixed.
-  */
--static int uni16_to_x8(unsigned char *ascii, wchar_t *uni, int uni_xlate,
--		       struct nls_table *nls)
-+static int uni16_to_x8(unsigned char *ascii, wchar_t *uni, int len,
-+		       int uni_xlate, struct nls_table *nls)
- {
- 	wchar_t *ip, ec;
- 	unsigned char *op, nc;
-@@ -135,10 +135,11 @@ static int uni16_to_x8(unsigned char *as
- 	ip = uni;
- 	op = ascii;
- 
--	while (*ip) {
-+	while (*ip && ((len - NLS_MAX_CHARSET_SIZE) > 0)) {
- 		ec = *ip++;
- 		if ( (charlen = nls->uni2char(ec, op, NLS_MAX_CHARSET_SIZE)) > 0) {
- 			op += charlen;
-+			len -= charlen;
- 		} else {
- 			if (uni_xlate == 1) {
- 				*op = ':';
-@@ -149,16 +150,19 @@ static int uni16_to_x8(unsigned char *as
- 					ec >>= 4;
- 				}
- 				op += 5;
-+				len -= 5;
- 			} else {
- 				*op++ = '?';
-+				len--;
- 			}
- 		}
--		/* We have some slack there, so it's OK */
--		if (op>ascii+256) {
--			op = ascii + 256;
--			break;
--		}
+diff -puN fs/ext3/balloc.c~ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone fs/ext3/balloc.c
+--- a/fs/ext3/balloc.c~ext3-retry-block-allocation-if-new-blocks-are-allocated-from-system-zone
++++ a/fs/ext3/balloc.c
+@@ -164,10 +164,11 @@ read_block_bitmap(struct super_block *sb
+ 			    block_group, le32_to_cpu(desc->bg_block_bitmap));
+ 		return NULL;
  	}
-+
-+	if (unlikely(*ip)) {
-+		printk(KERN_WARNING "FAT: filename was truncated while "
-+		       "converting.");
-+	}
-+
- 	*op = 0;
- 	return (op - ascii);
+-	if (!ext3_valid_block_bitmap(sb, desc, block_group, bh)) {
+-		brelse(bh);
+-		return NULL;
+-	}
++	ext3_valid_block_bitmap(sb, desc, block_group, bh);
++	/*
++	 * file system mounted not to panic on error, continue with corrupt
++	 * bitmap
++	 */
+ 	return bh;
  }
-@@ -311,9 +315,11 @@ int fat_search_long(struct inode *inode,
- 	struct nls_table *nls_io = sbi->nls_io;
- 	struct nls_table *nls_disk = sbi->nls_disk;
- 	wchar_t bufuname[14];
--	unsigned char xlate_len, nr_slots;
-+	unsigned char nr_slots;
-+	int xlate_len;
- 	wchar_t *unicode = NULL;
--	unsigned char work[MSDOS_NAME], bufname[260];	/* 256 + 4 */
-+	unsigned char work[MSDOS_NAME];
-+	unsigned char *bufname = NULL;
- 	int uni_xlate = sbi->options.unicode_xlate;
- 	int utf8 = sbi->options.utf8;
- 	int anycase = (sbi->options.name_check != 's');
-@@ -321,6 +327,10 @@ int fat_search_long(struct inode *inode,
- 	loff_t cpos = 0;
- 	int chl, i, j, last_u, err;
- 
-+	bufname = (unsigned char*)__get_free_page(GFP_KERNEL);
-+	if (!bufname)
-+		return -ENOMEM;
-+
- 	err = -ENOENT;
- 	while(1) {
- 		if (fat_get_entry(inode, &cpos, &bh, &de) == -1)
-@@ -386,8 +396,8 @@ parse_record:
- 
- 		bufuname[last_u] = 0x0000;
- 		xlate_len = utf8
--			?utf8_wcstombs(bufname, bufuname, sizeof(bufname))
--			:uni16_to_x8(bufname, bufuname, uni_xlate, nls_io);
-+			?utf8_wcstombs(bufname, bufuname, PAGE_SIZE)
-+			:uni16_to_x8(bufname, bufuname, PAGE_SIZE, uni_xlate, nls_io);
- 		if (xlate_len == name_len)
- 			if ((!anycase && !memcmp(name, bufname, xlate_len)) ||
- 			    (anycase && !nls_strnicmp(nls_io, name, bufname,
-@@ -396,8 +406,8 @@ parse_record:
- 
- 		if (nr_slots) {
- 			xlate_len = utf8
--				?utf8_wcstombs(bufname, unicode, sizeof(bufname))
--				:uni16_to_x8(bufname, unicode, uni_xlate, nls_io);
-+				?utf8_wcstombs(bufname, unicode, PAGE_SIZE)
-+				:uni16_to_x8(bufname, unicode, PAGE_SIZE, uni_xlate, nls_io);
- 			if (xlate_len != name_len)
- 				continue;
- 			if ((!anycase && !memcmp(name, bufname, xlate_len)) ||
-@@ -416,6 +426,8 @@ Found:
- 	sinfo->i_pos = fat_make_i_pos(sb, sinfo->bh, sinfo->de);
- 	err = 0;
- EODir:
-+	if (bufname)
-+		free_page((unsigned long)bufname);
- 	if (unicode)
- 		free_page((unsigned long)unicode);
- 
-@@ -598,7 +610,7 @@ parse_record:
- 	if (isvfat) {
- 		bufuname[j] = 0x0000;
- 		i = utf8 ? utf8_wcstombs(bufname, bufuname, sizeof(bufname))
--			 : uni16_to_x8(bufname, bufuname, uni_xlate, nls_io);
-+			 : uni16_to_x8(bufname, bufuname, sizeof(bufname), uni_xlate, nls_io);
+ /*
+@@ -1641,7 +1642,11 @@ allocated:
+ 			    "Allocating block in system zone - "
+ 			    "blocks from "E3FSBLK", length %lu",
+ 			     ret_block, num);
+-		goto out;
++		/*
++		 * claim_block() marked the blocks we allocated as in use. So we
++		 * may want to selectively mark some of the blocks as free.
++		 */
++		goto retry_alloc;
  	}
  
- 	fill_name = bufname;
-@@ -610,7 +622,7 @@ parse_record:
- 		int buf_size = PAGE_SIZE - (261 * sizeof(unicode[0]));
- 		int long_len = utf8
- 			? utf8_wcstombs(longname, unicode, buf_size)
--			: uni16_to_x8(longname, unicode, uni_xlate, nls_io);
-+			: uni16_to_x8(longname, unicode, buf_size, uni_xlate, nls_io);
- 
- 		if (!both) {
- 			fill_name = longname;
-diff -puN fs/vfat/namei.c~vfat-bug-fix-for-vfat-cannot-handle-filename-with-255 fs/vfat/namei.c
---- a/fs/vfat/namei.c~vfat-bug-fix-for-vfat-cannot-handle-filename-with-255
-+++ a/fs/vfat/namei.c
-@@ -176,15 +176,10 @@ static inline int vfat_is_used_badchars(
- 	for (i = 0; i < len; i++)
- 		if (vfat_bad_char(s[i]))
- 			return -EINVAL;
--	return 0;
--}
- 
--static int vfat_valid_longname(const unsigned char *name, unsigned int len)
--{
--	if (name[len - 1] == ' ')
-+	if (s[i - 1] == ' ') /* last character cannot be space */
- 		return -EINVAL;
--	if (len >= 256)
--		return -ENAMETOOLONG;
-+
- 	return 0;
- }
- 
-@@ -485,11 +480,14 @@ xlate_to_uni(const unsigned char *name, 
- 		 */
- 		*outlen -= (name_len - len);
- 
-+		if (*outlen > 255)
-+			return -ENAMETOOLONG;
-+
- 		op = &outname[*outlen * sizeof(wchar_t)];
- 	} else {
- 		if (nls) {
- 			for (i = 0, ip = name, op = outname, *outlen = 0;
--			     i < len && *outlen <= 260;
-+			     i < len && *outlen <= 255;
- 			     *outlen += 1)
- 			{
- 				if (escape && (*ip == ':')) {
-@@ -525,18 +523,20 @@ xlate_to_uni(const unsigned char *name, 
- 					op += 2;
- 				}
- 			}
-+			if (i < len)
-+				return -ENAMETOOLONG;
- 		} else {
- 			for (i = 0, ip = name, op = outname, *outlen = 0;
--			     i < len && *outlen <= 260;
-+			     i < len && *outlen <= 255;
- 			     i++, *outlen += 1)
- 			{
- 				*op++ = *ip++;
- 				*op++ = 0;
- 			}
-+			if (i < len)
-+				return -ENAMETOOLONG;
- 		}
- 	}
--	if (*outlen > 260)
--		return -ENAMETOOLONG;
- 
- 	*longlen = *outlen;
- 	if (*outlen % 13) {
-@@ -574,9 +574,6 @@ static int vfat_build_slots(struct inode
- 	loff_t offset;
- 
- 	*nr_slots = 0;
--	err = vfat_valid_longname(name, len);
--	if (err)
--		return err;
- 
- 	page = __get_free_page(GFP_KERNEL);
- 	if (!page)
+ 	performed_allocation = 1;
 _
 
-Patches currently in -mm which might be from ek9852@gmail.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 origin.patch
-input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
 
