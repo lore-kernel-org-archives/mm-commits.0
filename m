@@ -1,96 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: - hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 14:51:13 -0700
-Message-ID: <200804282151.m3SLpDsi017563@imap1.linux-foundation.org>
+Subject: - mm-move-cache_line_size-to-linux-cacheh.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 14:51:20 -0700
+Message-ID: <200804282151.m3SLpKW1017571@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37522 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49176 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765975AbYD1Vv5 (ORCPT
+	by vger.kernel.org with ESMTP id S964905AbYD1Vvu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 17:51:57 -0400
+	Mon, 28 Apr 2008 17:51:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: agl@us.ibm.com, apw@shadowen.org, david@gibson.dropbear.id.au, haveblue@us.ibm.com, mel@csn.ul.ie, wli@holomorphy.com, mm-commits@vger.kernel.org
+To: penberg@cs.helsinki.fi, clameter@sgi.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hugetlb: decrease hugetlb_lock cycling in gather_surplus_huge_pages
+     mm: move cache_line_size() to <linux/cache.h>
 has been removed from the -mm tree.  Its filename was
-     hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages.patch
+     mm-move-cache_line_size-to-linux-cacheh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hugetlb: decrease hugetlb_lock cycling in gather_surplus_huge_pages
-From: Adam Litke <agl@us.ibm.com>
+Subject: mm: move cache_line_size() to <linux/cache.h>
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-To reduce hugetlb_lock acquisitions and releases when freeing excess surplus
-pages, scan the page list in two parts.  First, transfer the needed pages to
-the hugetlb pool.  Then drop the lock and free the remaining pages back to the
-buddy allocator.
+Not all architectures define cache_line_size() so as suggested by Andrew move
+the private implementations in mm/slab.c and mm/slob.c to <linux/cache.h>.
 
-In the common case there are zero excess pages and no lock operations are
-required.
-
-Thanks Mel Gorman for this improvement.
-
-Signed-off-by: Adam Litke <agl@us.ibm.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: William Lee Irwin III <wli@holomorphy.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: David Gibson <david@gibson.dropbear.id.au>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Reviewed-by: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ arch/x86/Kconfig      |    3 +++
+ include/linux/cache.h |    4 ++++
+ mm/slab.c             |    4 ----
+ mm/slub.c             |    5 -----
+ 4 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN mm/hugetlb.c~hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages mm/hugetlb.c
---- a/mm/hugetlb.c~hugetlb-decrease-hugetlb_lock-cycling-in-gather_surplus_huge_pages
-+++ a/mm/hugetlb.c
-@@ -372,11 +372,19 @@ retry:
- 	resv_huge_pages += delta;
- 	ret = 0;
- free:
-+	/* Free the needed pages to the hugetlb pool */
- 	list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
-+		if ((--needed) < 0)
-+			break;
- 		list_del(&page->lru);
--		if ((--needed) >= 0)
--			enqueue_huge_page(page);
--		else {
-+		enqueue_huge_page(page);
-+	}
-+
-+	/* Free unnecessary surplus pages to the buddy allocator */
-+	if (!list_empty(&surplus_list)) {
-+		spin_unlock(&hugetlb_lock);
-+		list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
-+			list_del(&page->lru);
- 			/*
- 			 * The page has a reference count of zero already, so
- 			 * call free_huge_page directly instead of using
-@@ -384,10 +392,9 @@ free:
- 			 * unlocked which is safe because free_huge_page takes
- 			 * hugetlb_lock before deciding how to free the page.
- 			 */
--			spin_unlock(&hugetlb_lock);
- 			free_huge_page(page);
--			spin_lock(&hugetlb_lock);
- 		}
-+		spin_lock(&hugetlb_lock);
- 	}
+diff -puN arch/x86/Kconfig~mm-move-cache_line_size-to-linux-cacheh arch/x86/Kconfig
+--- a/arch/x86/Kconfig~mm-move-cache_line_size-to-linux-cacheh
++++ a/arch/x86/Kconfig
+@@ -114,6 +114,9 @@ config GENERIC_TIME_VSYSCALL
+ config ARCH_HAS_CPU_RELAX
+ 	def_bool y
  
- 	return ret;
-_
-
-Patches currently in -mm which might be from agl@us.ibm.com are
-
-origin.patch
-
++config ARCH_HAS_CACHE_LINE_SIZE
++	def_bool y
++
+ config HAVE_SETUP_PER_CPU_AREA
+ 	def_bool X86_64 || (X86_SMP && !X86_VOYAGER)
+ 
+diff -puN include/linux/cache.h~mm-move-cache_line_size-to-linux-cacheh include/linux/cache.h
+--- a/include/linux/cache.h~mm-move-cache_line_size-to-linux-cacheh
++++ a/include/linux/cache.h
+@@ -60,4 +60,8 @@
+ #endif
+ #endif
+ 
++#ifndef CONFIG_ARCH_HAS_CACHE_LINE_SIZE
++#define cache_line_size()	L1_CACHE_BYTES
++#endif
++
+ #endif /* __LINUX_CACHE_H */
+diff -puN mm/slab.c~mm-move-cache_line_size-to-linux-cacheh mm/slab.c
+--- a/mm/slab.c~mm-move-cache_line_size-to-linux-cacheh
++++ a/mm/slab.c
+@@ -139,10 +139,6 @@
+ #define	BYTES_PER_WORD		sizeof(void *)
+ #define	REDZONE_ALIGN		max(BYTES_PER_WORD, __alignof__(unsigned long long))
+ 
+-#ifndef cache_line_size
+-#define cache_line_size()	L1_CACHE_BYTES
+-#endif
+-
+ #ifndef ARCH_KMALLOC_MINALIGN
+ /*
+  * Enforce a minimum alignment for the kmalloc caches.
+diff -puN mm/slub.c~mm-move-cache_line_size-to-linux-cacheh mm/slub.c
+--- a/mm/slub.c~mm-move-cache_line_size-to-linux-cacheh
++++ a/mm/slub.c
+@@ -207,11 +207,6 @@ static inline void ClearSlabDebug(struct
+ #define __KMALLOC_CACHE		0x20000000 /* objects freed using kfree */
+ #define __PAGE_ALLOC_FALLBACK	0x10000000 /* Allow fallback to page alloc */
+ 
+-/* Not all arches define cache_line_size */
+-#ifndef cache_line_size
+-#define cache_line_size()	L1_CACHE_BYTES
+-#endif
