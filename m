@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kallsyms-nuke-all-changelog-this-should-be-logged-by-git.patch added to -mm tree
-Date: Tue, 29 Apr 2008 15:01:12 -0700
-Message-ID: <200804292201.m3TM1CIe012077@imap1.linux-foundation.org>
+Subject: + pci-export-resource_wc-in-pci-sysfs.patch added to -mm tree
+Date: Tue, 29 Apr 2008 15:24:56 -0700
+Message-ID: <200804292224.m3TMOuCS013197@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37734 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40092 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753547AbYD2WG1 (ORCPT
+	by vger.kernel.org with ESMTP id S1761467AbYD2WZW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 18:06:27 -0400
+	Tue, 29 Apr 2008 18:25:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cooloney@kernel.org, pmarques@grupopie.com
+Cc: venkatesh.pallipadi@intel.com, jbarnes@virtuousgeek.org, mingo@elte.hu, suresh.b.siddha@intel.com
 
 
 The patch titled
-     kallsyms: nuke all ChangeLog, this should be logged by git
+     PCI: export resource_wc in pci sysfs
 has been added to the -mm tree.  Its filename is
-     kallsyms-nuke-all-changelog-this-should-be-logged-by-git.patch
+     pci-export-resource_wc-in-pci-sysfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,48 +34,183 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kallsyms: nuke all ChangeLog, this should be logged by git
-From: Bryan Wu <cooloney@kernel.org>
+Subject: PCI: export resource_wc in pci sysfs
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Pointed out by Paulo:
-"When I wrote this initially, it was a mistake to add a Changelog
-in the first place, but I didn't know better at the time.
+For the ranges with IORESOURCE_PREFETCH, export a new resource_wc interface in
+pci /sysfs along with resource (which is uncached).
 
-If you're going to make changes to this file, please remove all the Changelog,
-instead of adding more entries to it.  The "Changelog" should be kept by the
-version control system, and not the source code itself."
-
-Cc: Paulo Marques <pmarques@grupopie.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Acked-by: Paulo Marques <pmarques@grupopie.com>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kallsyms.c |    6 ------
- 1 file changed, 6 deletions(-)
+ Documentation/filesystems/sysfs-pci.txt |    1 
+ drivers/pci/pci-sysfs.c                 |   82 ++++++++++++++++------
+ include/linux/pci.h                     |    1 
+ 3 files changed, 63 insertions(+), 21 deletions(-)
 
-diff -puN scripts/kallsyms.c~kallsyms-nuke-all-changelog-this-should-be-logged-by-git scripts/kallsyms.c
---- a/scripts/kallsyms.c~kallsyms-nuke-all-changelog-this-should-be-logged-by-git
-+++ a/scripts/kallsyms.c
-@@ -7,12 +7,6 @@
+diff -puN Documentation/filesystems/sysfs-pci.txt~pci-export-resource_wc-in-pci-sysfs Documentation/filesystems/sysfs-pci.txt
+--- a/Documentation/filesystems/sysfs-pci.txt~pci-export-resource_wc-in-pci-sysfs
++++ a/Documentation/filesystems/sysfs-pci.txt
+@@ -36,6 +36,7 @@ files, each with their own function.
+        local_cpus	   nearby CPU mask (cpumask, ro)
+        resource		   PCI resource host addresses (ascii, ro)
+        resource0..N	   PCI resource N, if present (binary, mmap)
++       resource0_wc..N_wc  PCI WC map resource N, if prefetchable (binary, mmap)
+        rom		   PCI ROM resource, if present (binary, ro)
+        subsystem_device	   PCI subsystem device (ascii, ro)
+        subsystem_vendor	   PCI subsystem vendor (ascii, ro)
+diff -puN drivers/pci/pci-sysfs.c~pci-export-resource_wc-in-pci-sysfs drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~pci-export-resource_wc-in-pci-sysfs
++++ a/drivers/pci/pci-sysfs.c
+@@ -489,13 +489,14 @@ pci_mmap_legacy_mem(struct kobject *kobj
+  * @kobj: kobject for mapping
+  * @attr: struct bin_attribute for the file being mapped
+  * @vma: struct vm_area_struct passed into the mmap
++ * @write_combine: 1 for write_combine mapping
   *
-  * Usage: nm -n vmlinux | scripts/kallsyms [--all-symbols] > symbols.S
-  *
-- * ChangeLog:
-- *
-- * (25/Aug/2004) Paulo Marques <pmarques@grupopie.com>
-- *      Changed the compression method from stem compression to "table lookup"
-- *      compression
-- *
-  *      Table compression uses all the unused char codes on the symbols and
-  *  maps these to the most used substrings (tokens). For instance, it might
-  *  map char code 0xF7 to represent "write_" and then in every symbol where
+  * Use the regular PCI mapping routines to map a PCI resource into userspace.
+  * FIXME: write combining?  maybe automatic for prefetchable regions?
+  */
+ static int
+ pci_mmap_resource(struct kobject *kobj, struct bin_attribute *attr,
+-		  struct vm_area_struct *vma)
++		  struct vm_area_struct *vma, int write_combine)
+ {
+ 	struct pci_dev *pdev = to_pci_dev(container_of(kobj,
+ 						       struct device, kobj));
+@@ -518,7 +519,21 @@ pci_mmap_resource(struct kobject *kobj, 
+ 	vma->vm_pgoff += start >> PAGE_SHIFT;
+ 	mmap_type = res->flags & IORESOURCE_MEM ? pci_mmap_mem : pci_mmap_io;
+ 
+-	return pci_mmap_page_range(pdev, vma, mmap_type, 0);
++	return pci_mmap_page_range(pdev, vma, mmap_type, write_combine);
++}
++
++static int
++pci_mmap_resource_uc(struct kobject *kobj, struct bin_attribute *attr,
++		     struct vm_area_struct *vma)
++{
++	return pci_mmap_resource(kobj, attr, vma, 0);
++}
++
++static int
++pci_mmap_resource_wc(struct kobject *kobj, struct bin_attribute *attr,
++		     struct vm_area_struct *vma)
++{
++	return pci_mmap_resource(kobj, attr, vma, 1);
+ }
+ 
+ /**
+@@ -541,9 +556,46 @@ pci_remove_resource_files(struct pci_dev
+ 			sysfs_remove_bin_file(&pdev->dev.kobj, res_attr);
+ 			kfree(res_attr);
+ 		}
++
++		res_attr = pdev->res_attr_wc[i];
++		if (res_attr) {
++			sysfs_remove_bin_file(&pdev->dev.kobj, res_attr);
++			kfree(res_attr);
++		}
+ 	}
+ }
+ 
++static int pci_create_attr(struct pci_dev *pdev, int num, int write_combine)
++{
++	/* allocate attribute structure, piggyback attribute name */
++	int name_len = write_combine ? 13 : 10;
++	struct bin_attribute *res_attr;
++	int retval;
++
++	res_attr = kzalloc(sizeof(*res_attr) + name_len, GFP_ATOMIC);
++	if (res_attr) {
++		char *res_attr_name = (char *)(res_attr + 1);
++
++		if (write_combine) {
++			pdev->res_attr_wc[num] = res_attr;
++			sprintf(res_attr_name, "resource%d_wc", num);
++			res_attr->mmap = pci_mmap_resource_wc;
++		} else {
++			pdev->res_attr[num] = res_attr;
++			sprintf(res_attr_name, "resource%d", num);
++			res_attr->mmap = pci_mmap_resource_uc;
++		}
++		res_attr->attr.name = res_attr_name;
++		res_attr->attr.mode = S_IRUSR | S_IWUSR;
++		res_attr->size = pci_resource_len(pdev, num);
++		res_attr->private = &pdev->resource[num];
++		retval = sysfs_create_bin_file(&pdev->dev.kobj, res_attr);
++	} else
++		retval = -ENOMEM;
++
++	return retval;
++}
++
+ /**
+  * pci_create_resource_files - create resource files in sysfs for @dev
+  * @dev: dev in question
+@@ -557,31 +609,19 @@ static int pci_create_resource_files(str
+ 
+ 	/* Expose the PCI resources from this device as files */
+ 	for (i = 0; i < PCI_ROM_RESOURCE; i++) {
+-		struct bin_attribute *res_attr;
+ 
+ 		/* skip empty resources */
+ 		if (!pci_resource_len(pdev, i))
+ 			continue;
+ 
+-		/* allocate attribute structure, piggyback attribute name */
+-		res_attr = kzalloc(sizeof(*res_attr) + 10, GFP_ATOMIC);
+-		if (res_attr) {
+-			char *res_attr_name = (char *)(res_attr + 1);
++		retval = pci_create_attr(pdev, i, 0);
++		/* for prefetchable resources, create a WC mappable file */
++		if (!retval && pdev->resource[i].flags & IORESOURCE_PREFETCH)
++			retval = pci_create_attr(pdev, i, 1);
+ 
+-			pdev->res_attr[i] = res_attr;
+-			sprintf(res_attr_name, "resource%d", i);
+-			res_attr->attr.name = res_attr_name;
+-			res_attr->attr.mode = S_IRUSR | S_IWUSR;
+-			res_attr->size = pci_resource_len(pdev, i);
+-			res_attr->mmap = pci_mmap_resource;
+-			res_attr->private = &pdev->resource[i];
+-			retval = sysfs_create_bin_file(&pdev->dev.kobj, res_attr);
+-			if (retval) {
+-				pci_remove_resource_files(pdev);
+-				return retval;
+-			}
+-		} else {
+-			return -ENOMEM;
++		if (retval) {
++			pci_remove_resource_files(pdev);
++			return retval;
+ 		}
+ 	}
+ 	return 0;
+diff -puN include/linux/pci.h~pci-export-resource_wc-in-pci-sysfs include/linux/pci.h
+--- a/include/linux/pci.h~pci-export-resource_wc-in-pci-sysfs
++++ a/include/linux/pci.h
+@@ -215,6 +215,7 @@ struct pci_dev {
+ 	struct bin_attribute *rom_attr; /* attribute descriptor for sysfs ROM entry */
+ 	int rom_attr_enabled;		/* has display of the rom attribute been enabled? */
+ 	struct bin_attribute *res_attr[DEVICE_COUNT_RESOURCE]; /* sysfs file for resources */
++	struct bin_attribute *res_attr_wc[DEVICE_COUNT_RESOURCE]; /* sysfs file for WC mapping of resources */
+ #ifdef CONFIG_PCI_MSI
+ 	struct list_head msi_list;
+ #endif
 _
 
-Patches currently in -mm which might be from cooloney@kernel.org are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
 origin.patch
-git-watchdog.patch
-git-pekka.patch
-kallsyms-nuke-all-changelog-this-should-be-logged-by-git.patch
+pci-export-resource_wc-in-pci-sysfs.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
+git-acpi.patch
+git-cpufreq.patch
+cpufreq-document-the-currently-undocumented-parts-of-the-sysfs-interface.patch
+sched-add-debug-checks-to-idle-functions.patch
 
