@@ -1,59 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - idr-create-idr_layer_cache-at-boot-time-fix-fix.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 23:04:23 -0700
-Message-ID: <200804290604.m3T64Nt5004409@imap1.linux-foundation.org>
+Subject: - edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 23:05:28 -0700
+Message-ID: <200804290605.m3T65SSB004427@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60212 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38427 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753510AbYD2GEZ (ORCPT
+	by vger.kernel.org with ESMTP id S1754100AbYD2GFh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 02:04:25 -0400
+	Tue, 29 Apr 2008 02:05:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, ptyser@xes-inc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     idr-create-idr_layer_cache-at-boot-time-fix-fix
+     edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+     edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into idr-create-idr_layer_cache-at-boot-time.patch
+This patch was dropped because it was folded into edac-add-e752x-parameter-for-sysbus_parity-selection.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr-create-idr_layer_cache-at-boot-time-fix-fix
+Subject: edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha:
+ERROR: use tabs not spaces
+#91: FILE: drivers/edac/e752x_edac.c:1326:
++                " 1=enable system bus parity checking, default=auto-detect");$
 
-In file included from include/linux/ipc_namespace.h:5,
-                 from ipc/namespace.c:8:
-include/linux/idr.h:118: error: expected '=', ',', ';', 'asm' or '__attribute__' before 'idr_init_cache'
+total: 1 errors, 0 warnings, 61 lines checked
 
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
+./patches/edac-add-e752x-parameter-for-sysbus_parity-selection.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Peter Tyser <ptyser@xes-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- idr.c               |    0 
- include/linux/idr.h |    1 +
- 2 files changed, 1 insertion(+)
+ drivers/edac/e752x_edac.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/idr.h~idr-create-idr_layer_cache-at-boot-time-fix-fix include/linux/idr.h
---- a/include/linux/idr.h~idr-create-idr_layer_cache-at-boot-time-fix-fix
-+++ a/include/linux/idr.h
-@@ -14,6 +14,7 @@
+diff -puN drivers/edac/e752x_edac.c~edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes drivers/edac/e752x_edac.c
+--- a/drivers/edac/e752x_edac.c~edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes
++++ a/drivers/edac/e752x_edac.c
+@@ -1328,4 +1328,4 @@ MODULE_PARM_DESC(edac_op_state, "EDAC Er
  
- #include <linux/types.h>
- #include <linux/bitops.h>
-+#include <linux/init.h>
- 
- #if BITS_PER_LONG == 32
- # define IDR_BITS 5
-diff -puN init/main.c~idr-create-idr_layer_cache-at-boot-time-fix-fix init/main.c
-diff -puN lib/idr.c~idr-create-idr_layer_cache-at-boot-time-fix-fix lib/idr.c
+ module_param(sysbus_parity, int, 0444);
+ MODULE_PARM_DESC(sysbus_parity, "0=disable system bus parity checking,"
+-                " 1=enable system bus parity checking, default=auto-detect");
++		" 1=enable system bus parity checking, default=auto-detect");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,7 +89,7 @@ procfs-task-exe-symlink.patch
 proc-switch-to-proc_create.patch
 edd-add-default-mode-config_edd_off=n-override-with-edd=onoff.patch
 idr-create-idr_layer_cache-at-boot-time.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection.patch
 edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
 ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
 relayfs-support-larger-relay-buffer-take-3-cleanup.patch
