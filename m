@@ -1,60 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64-fix.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:35:56 -0700
-Message-ID: <200804290535.m3T5ZuAX003291@imap1.linux-foundation.org>
+Subject: - revert-part-of-sched-cpuset-customize-sched-domains-core.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:38:03 -0700
+Message-ID: <200804290538.m3T5c3r0003330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51267 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751133AbYD2FgE (ORCPT
+	by vger.kernel.org with ESMTP id S1752528AbYD2FjB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:36:04 -0400
+	Tue, 29 Apr 2008 01:39:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: peterz@infradead.org, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, mingo@elte.hu, pj@sgi.com, seto.hidetoshi@jp.fujitsu.com, xemul@o
 
 
 The patch titled
-     someone mucked around with the cgroup api; this should fix it:
+     revert part of "sched, cpuset: customize sched domains, core"
 has been removed from the -mm tree.  Its filename was
-     cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64-fix.patch
+     revert-part-of-sched-cpuset-customize-sched-domains-core.patch
 
-This patch was dropped because it was folded into cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
+This patch was dropped because it was folded into cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: someone mucked around with the cgroup api; this should fix it:
-From: Peter Zijlstra <peterz@infradead.org>
+Subject: revert part of "sched, cpuset: customize sched domains, core"
 
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
 
- kernel/sched.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff -puN kernel/sched.c~cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64-fix kernel/sched.c
---- a/kernel/sched.c~cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64-fix
-+++ a/kernel/sched.c
-@@ -8325,8 +8325,8 @@ static struct cftype cpu_files[] = {
- 	},
- 	{
- 		.name = "rt_period_us",
--		.read_uint = cpu_rt_period_read_uint,
--		.write_uint = cpu_rt_period_write_uint,
-+		.read_u64 = cpu_rt_period_read_uint,
-+		.write_u64 = cpu_rt_period_write_uint,
- 	},
- #endif
- };
-_
-
-Patches currently in -mm which might be from peterz@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64-fix.patch
-ipmi-convert-locked-counters-to-atomics-convert-message-handler-defines-to-an-enum.patch
-ipmi-convert-locked-counters-to-atomics-in-the-system-interface-convert-system-interface-defines-to-an-enum.patch
+make-dev-kmem-a-config-option.patch
+misc-phantom-add-compat-ioctl.patch
+sysrq-add-show-backtrace-on-all-cpus-function.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry.patch
+ecryptfs-integrate-ecryptfs-device-handle-into-the-module.patch
+ecryptfs-make-key-module-subsystem-respect-namespaces.patch
+x86-olpc-add-one-laptop-per-child-architecture-support.patch
+revert-part-of-sched-cpuset-customize-sched-domains-core.patch
+reapply-sched-cpuset-customize-sched-domains-core-bits.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
+ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
+ipmi-run-to-completion-fixes-checkpatch-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+isicom-bring-into-coding-style-fix.patch
+tty-the-big-operations-rework-fix-2.patch
+tty-the-big-operations-rework-isicom-fix.patch
+tty-the-big-operations-rework-simserial-fix.patch
+tty-the-big-operations-rework-vs-git-kgdb-light.patch
+tty-the-big-operations-rework-vs-kgdb-2.patch
+devpts-factor-out-pty-index-allocation-fix.patch
+keys-add-keyctl-function-to-get-a-security-label-fix.patch
+procfs-task-exe-symlink-fix.patch
+proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+fuse-fix-race-in-llseek-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix.patch
+idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
+relayfs-support-larger-relay-buffer-take-3-cleanup.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
