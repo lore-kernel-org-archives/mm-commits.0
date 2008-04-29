@@ -1,57 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - make-dev-kmem-a-config-option-fix.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:15:23 -0700
-Message-ID: <200804290515.m3T5FNLQ002560@imap1.linux-foundation.org>
+Subject: - misc-phantom-add-compat-ioctl-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:16:49 -0700
+Message-ID: <200804290516.m3T5GnfG002596@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51592 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44549 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750763AbYD2FP0 (ORCPT
+	by vger.kernel.org with ESMTP id S1751385AbYD2FQw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:15:26 -0400
+	Tue, 29 Apr 2008 01:16:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make-dev-kmem-a-config-option-fix
+     misc-phantom-add-compat-ioctl-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     make-dev-kmem-a-config-option-fix.patch
+     misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into make-dev-kmem-a-config-option.patch
+This patch was dropped because it was folded into misc-phantom-add-compat-ioctl.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make-dev-kmem-a-config-option-fix
+Subject: misc-phantom-add-compat-ioctl-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Arjan van de Ven <arjan@linux.intel.com>
+WARNING: no space between function name and open parenthesis '('
+#101: FILE: include/linux/phantom.h:38:
++#define PHN_SETREG		_IOW (PH_IOC_MAGIC, 6, struct phm_reg)
+
+WARNING: no space between function name and open parenthesis '('
+#103: FILE: include/linux/phantom.h:40:
++#define PHN_SETREGS		_IOW (PH_IOC_MAGIC, 8, struct phm_regs)
+
+total: 0 errors, 2 warnings, 78 lines checked
+
+./patches/misc-phantom-add-compat-ioctl.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/phantom.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/Kconfig~make-dev-kmem-a-config-option-fix drivers/char/Kconfig
---- a/drivers/char/Kconfig~make-dev-kmem-a-config-option-fix
-+++ a/drivers/char/Kconfig
-@@ -82,6 +82,7 @@ config VT_HW_CONSOLE_BINDING
+diff -puN include/linux/phantom.h~misc-phantom-add-compat-ioctl-checkpatch-fixes include/linux/phantom.h
+--- a/include/linux/phantom.h~misc-phantom-add-compat-ioctl-checkpatch-fixes
++++ a/include/linux/phantom.h
+@@ -35,9 +35,9 @@ struct phm_regs {
+  * libphantom) */
+ #define PHN_NOT_OH		_IO  (PH_IOC_MAGIC, 4)
+ #define PHN_GETREG		_IOWR(PH_IOC_MAGIC, 5, struct phm_reg)
+-#define PHN_SETREG		_IOW (PH_IOC_MAGIC, 6, struct phm_reg)
++#define PHN_SETREG		_IOW(PH_IOC_MAGIC, 6, struct phm_reg)
+ #define PHN_GETREGS		_IOWR(PH_IOC_MAGIC, 7, struct phm_regs)
+-#define PHN_SETREGS		_IOW (PH_IOC_MAGIC, 8, struct phm_regs)
++#define PHN_SETREGS		_IOW(PH_IOC_MAGIC, 8, struct phm_regs)
  
- config DEVKMEM
- 	bool "/dev/kmem virtual device support"
-+	default y
- 	help
- 	  Say Y here if you want to support the /dev/kmem device. The
- 	  /dev/kmem device is rarely used, but can be used for certain
+ #define PHN_CONTROL		0x6     /* control byte in iaddr space */
+ #define PHN_CTL_AMP		0x1     /*   switch after torques change */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 make-dev-kmem-a-config-option.patch
-make-dev-kmem-a-config-option-fix.patch
+misc-phantom-add-compat-ioctl.patch
 misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
