@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + char-serial-switch-drivers-to-ioremap_nocache.patch added to -mm tree
-Date: Tue, 29 Apr 2008 12:30:53 -0700
-Message-ID: <200804291930.m3TJUrT7005826@imap1.linux-foundation.org>
+Subject: + maintainers-sort-ordering.patch added to -mm tree
+Date: Tue, 29 Apr 2008 12:39:12 -0700
+Message-ID: <200804291939.m3TJdCa0006168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40625 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752007AbYD2TcX (ORCPT
+	by vger.kernel.org with ESMTP id S1752582AbYD2TkT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 15:32:23 -0400
+	Tue, 29 Apr 2008 15:40:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mingo@elte.hu, paulkf@microgate.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com
 
 
 The patch titled
-     char serial: switch drivers to ioremap_nocache
+     MAINTAINERS: sort ordering
 has been added to the -mm tree.  Its filename is
-     char-serial-switch-drivers-to-ioremap_nocache.patch
+     maintainers-sort-ordering.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,244 +34,212 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char serial: switch drivers to ioremap_nocache
+Subject: MAINTAINERS: sort ordering
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Simple search/replace except for synclink.c where I noticed a real bug and
-fixed it too.  It was doing NULL + offset, then checking for NULL if the remap
-failed.
+Seems we have various confused entries around S and T.  Sort them all out and
+also add myself as tty maintainer (which is how I noticed it).
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Paul Fulghum <paulkf@microgate.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/applicom.c    |    4 ++--
- drivers/char/istallion.c   |    6 +++---
- drivers/char/moxa.c        |    4 ++--
- drivers/char/nozomi.c      |    2 +-
- drivers/char/sx.c          |   10 +++++-----
- drivers/char/synclink.c    |    7 +++++--
- drivers/char/synclink_gt.c |    2 +-
- drivers/char/synclinkmp.c  |   10 ++++++----
- 8 files changed, 25 insertions(+), 20 deletions(-)
+ MAINTAINERS |  120 ++++++++++++++++++++++++++------------------------
+ 1 file changed, 63 insertions(+), 57 deletions(-)
 
-diff -puN drivers/char/applicom.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/applicom.c
---- a/drivers/char/applicom.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/applicom.c
-@@ -199,7 +199,7 @@ static int __init applicom_init(void)
- 		if (pci_enable_device(dev))
- 			return -EIO;
+diff -puN MAINTAINERS~maintainers-sort-ordering MAINTAINERS
+--- a/MAINTAINERS~maintainers-sort-ordering
++++ a/MAINTAINERS
+@@ -3740,42 +3740,6 @@ M:	chrisw@sous-sol.org
+ L:	stable@kernel.org
+ S:	Maintained
  
--		RamIO = ioremap(pci_resource_start(dev, 0), LEN_RAM_IO);
-+		RamIO = ioremap_nocache(pci_resource_start(dev, 0), LEN_RAM_IO);
+-TPM DEVICE DRIVER
+-P:	Kylene Hall
+-M:	tpmdd-devel@lists.sourceforge.net
+-W:	http://tpmdd.sourceforge.net
+-P:	Marcel Selhorst
+-M:	tpm@selhorst.net
+-W:	http://www.prosec.rub.de/tpm/
+-L:	tpmdd-devel@lists.sourceforge.net
+-S:	Maintained
+-
+-Telecom Clock Driver for MCPL0010
+-P:	Mark Gross
+-M:	mark.gross@intel.com
+-S:	Supported
+-
+-TENSILICA XTENSA PORT (xtensa):
+-P:	Chris Zankel
+-M:	chris@zankel.net
+-S:	Maintained
+-
+-THINKPAD ACPI EXTRAS DRIVER
+-P:	Henrique de Moraes Holschuh
+-M:	ibm-acpi@hmh.eng.br
+-L:	ibm-acpi-devel@lists.sourceforge.net
+-W:	http://ibm-acpi.sourceforge.net
+-W:	http://thinkwiki.org/wiki/Ibm-acpi
+-T:	git repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
+-S:	Maintained
+-
+-UltraSPARC (sparc64):
+-P:	David S. Miller
+-M:	davem@davemloft.net
+-L:	sparclinux@vger.kernel.org
+-T:	git kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git
+-S:	Maintained
+-
+ SHARP LH SUPPORT (LH7952X & LH7A40X)
+ P:	Marc Singer
+ M:	elf@buici.com
+@@ -3872,6 +3836,12 @@ P:	Christoph Hellwig
+ M:	hch@infradead.org
+ S:	Maintained
  
- 		if (!RamIO) {
- 			printk(KERN_INFO "ac.o: Failed to ioremap PCI memory "
-@@ -254,7 +254,7 @@ static int __init applicom_init(void)
- 	/* Now try the specified ISA cards */
++TASKSTATS STATISTICS INTERFACE
++P:	Shailabh Nagar
++M:	nagar@watson.ibm.com
++L:	linux-kernel@vger.kernel.org
++S:	Maintained
++
+ TC CLASSIFIER
+ P:	Jamal Hadi Salim
+ M:	hadi@cyberus.ca
+@@ -3894,6 +3864,25 @@ M:	andy@greyhouse.net
+ L:	netdev@vger.kernel.org
+ S:	Supported
  
- 	for (i = 0; i < MAX_ISA_BOARD; i++) {
--		RamIO = ioremap(mem + (LEN_RAM_IO * i), LEN_RAM_IO);
-+		RamIO = ioremap_nocache(mem + (LEN_RAM_IO * i), LEN_RAM_IO);
++Telecom Clock Driver for MCPL0010
++P:	Mark Gross
++M:	mark.gross@intel.com
++S:	Supported
++
++TENSILICA XTENSA PORT (xtensa):
++P:	Chris Zankel
++M:	chris@zankel.net
++S:	Maintained
++
++THINKPAD ACPI EXTRAS DRIVER
++P:	Henrique de Moraes Holschuh
++M:	ibm-acpi@hmh.eng.br
++L:	ibm-acpi-devel@lists.sourceforge.net
++W:	http://ibm-acpi.sourceforge.net
++W:	http://thinkwiki.org/wiki/Ibm-acpi
++T:	git repo.or.cz/linux-2.6/linux-acpi-2.6/ibm-acpi-2.6.git
++S:	Maintained
++
+ TI FLASH MEDIA INTERFACE DRIVER
+ P:      Alex Dubov
+ M:      oakad@yahoo.com
+@@ -3911,12 +3900,6 @@ P:	Deepak Saxena
+ M:	dsaxena@plexity.net
+ S:	Maintained
  
- 		if (!RamIO) {
- 			printk(KERN_INFO "ac.o: Failed to ioremap the ISA card's memory space (slot #%d)\n", i + 1);
-diff -puN drivers/char/istallion.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/istallion.c
---- a/drivers/char/istallion.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/istallion.c
-@@ -3257,7 +3257,7 @@ static int stli_initecp(struct stlibrd *
-  */
- 	EBRDINIT(brdp);
+-TASKSTATS STATISTICS INTERFACE
+-P:	Shailabh Nagar
+-M:	nagar@watson.ibm.com
+-L:	linux-kernel@vger.kernel.org
+-S:	Maintained
+-
+ TIPC NETWORK LAYER
+ P:	Per Liden
+ M:	per.liden@ericsson.com
+@@ -3950,6 +3933,16 @@ L:	tlinux-users@tce.toshiba-dme.co.jp
+ W:	http://www.buzzard.org.uk/toshiba/
+ S:	Maintained
  
--	brdp->membase = ioremap(brdp->memaddr, brdp->memsize);
-+	brdp->membase = ioremap_nocache(brdp->memaddr, brdp->memsize);
- 	if (brdp->membase == NULL) {
- 		retval = -ENOMEM;
- 		goto err_reg;
-@@ -3414,7 +3414,7 @@ static int stli_initonb(struct stlibrd *
-  */
- 	EBRDINIT(brdp);
++TPM DEVICE DRIVER
++P:	Kylene Hall
++M:	tpmdd-devel@lists.sourceforge.net
++W:	http://tpmdd.sourceforge.net
++P:	Marcel Selhorst
++M:	tpm@selhorst.net
++W:	http://www.prosec.rub.de/tpm/
++L:	tpmdd-devel@lists.sourceforge.net
++S:	Maintained
++
+ TRIDENT 4DWAVE/SIS 7018 PCI AUDIO CORE
+ P:	Muli Ben-Yehuda
+ M:	mulix@mulix.org
+@@ -3962,6 +3955,12 @@ M:	trivial@kernel.org
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
  
--	brdp->membase = ioremap(brdp->memaddr, brdp->memsize);
-+	brdp->membase = ioremap_nocache(brdp->memaddr, brdp->memsize);
- 	if (brdp->membase == NULL) {
- 		retval = -ENOMEM;
- 		goto err_reg;
-@@ -3665,7 +3665,7 @@ static int stli_eisamemprobe(struct stli
-  */
- 	for (i = 0; (i < stli_eisamempsize); i++) {
- 		brdp->memaddr = stli_eisamemprobeaddrs[i];
--		brdp->membase = ioremap(brdp->memaddr, brdp->memsize);
-+		brdp->membase = ioremap_nocache(brdp->memaddr, brdp->memsize);
- 		if (brdp->membase == NULL)
- 			continue;
++TTY LAYER
++P:	Alan Cox
++M:	alan@lxorguk.ukuu.org.uk
++L:	linux-kernel@vger.kernel.org
++S:	Maintained
++
+ TULIP NETWORK DRIVERS
+ P:	Grant Grundler
+ M:	grundler@parisc-linux.org
+@@ -4130,6 +4129,20 @@ L:      linux-usb@vger.kernel.org
+ W:	http://www.chello.nl/~j.vreeken/se401/
+ S:	Maintained
  
-diff -puN drivers/char/moxa.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/moxa.c
---- a/drivers/char/moxa.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/moxa.c
-@@ -937,7 +937,7 @@ static int __devinit moxa_pci_probe(stru
- 		goto err;
- 	}
++USB SERIAL BELKIN F5U103 DRIVER
++P:	William Greathouse
++M:	wgreathouse@smva.com
++L:      linux-usb@vger.kernel.org
++S:	Maintained
++
++USB SERIAL CYPRESS M8 DRIVER
++P:	Lonnie Mendez
++M:	dignome@gmail.com
++L:      linux-usb@vger.kernel.org
++S:	Maintained
++W:	http://geocities.com/i0xox0i
++W:	http://firstlight.net/cvs
++
+ USB SERIAL CYBERJACK DRIVER
+ P:	Matthias Bruestle and Harald Welte
+ M:	support@reiner-sct.com
+@@ -4149,20 +4162,6 @@ M:	gregkh@suse.de
+ L:      linux-usb@vger.kernel.org
+ S:	Supported
  
--	board->basemem = ioremap(pci_resource_start(pdev, 2), 0x4000);
-+	board->basemem = ioremap_nocache(pci_resource_start(pdev, 2), 0x4000);
- 	if (board->basemem == NULL) {
- 		dev_err(&pdev->dev, "can't remap io space 2\n");
- 		goto err_reg;
-@@ -1042,7 +1042,7 @@ static int __init moxa_init(void)
- 			brd->numPorts = type[i] == MOXA_BOARD_C218_ISA ? 8 :
- 					numports[i];
- 			brd->busType = MOXA_BUS_TYPE_ISA;
--			brd->basemem = ioremap(baseaddr[i], 0x4000);
-+			brd->basemem = ioremap_nocache(baseaddr[i], 0x4000);
- 			if (!brd->basemem) {
- 				printk(KERN_ERR "MOXA: can't remap %lx\n",
- 						baseaddr[i]);
-diff -puN drivers/char/nozomi.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/nozomi.c
---- a/drivers/char/nozomi.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/nozomi.c
-@@ -1407,7 +1407,7 @@ static int __devinit nozomi_card_init(st
- 	/* Find out what card type it is */
- 	nozomi_get_card_type(dc);
+-USB SERIAL BELKIN F5U103 DRIVER
+-P:	William Greathouse
+-M:	wgreathouse@smva.com
+-L:      linux-usb@vger.kernel.org
+-S:	Maintained
+-
+-USB SERIAL CYPRESS M8 DRIVER
+-P:	Lonnie Mendez
+-M:	dignome@gmail.com
+-L:      linux-usb@vger.kernel.org
+-S:	Maintained
+-W:	http://geocities.com/i0xox0i
+-W:	http://firstlight.net/cvs
+-
+ USB SERIAL EMPEG EMPEG-CAR MARK I/II DRIVER
+ P:	Gary Brubaker
+ M:	xavyer@ix.netcom.com
+@@ -4265,7 +4264,7 @@ M:	gregkh@suse.de
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
  
--	dc->base_addr = ioremap(start, dc->card_type);
-+	dc->base_addr = ioremap_nocache(start, dc->card_type);
- 	if (!dc->base_addr) {
- 		dev_err(&pdev->dev, "Unable to map card MMIO\n");
- 		ret = -ENODEV;
-diff -puN drivers/char/sx.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/sx.c
---- a/drivers/char/sx.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/sx.c
-@@ -2543,7 +2543,7 @@ static int __devinit sx_eisa_probe(struc
- 		goto err_flag;
- 	}
- 	board->base2 =
--	board->base = ioremap(board->hw_base, SI2_EISA_WINDOW_LEN);
-+	board->base = ioremap_nocache(board->hw_base, SI2_EISA_WINDOW_LEN);
- 	if (!board->base) {
- 		dev_err(dev, "can't remap memory\n");
- 		goto err_reg;
-@@ -2620,7 +2620,7 @@ static void __devinit fix_sx_pci(struct 
+-FAT/VFAT/MSDOS FILESYSTEM:
++VFAT/FAT/MSDOS FILESYSTEM:
+ P:	OGAWA Hirofumi
+ M:	hirofumi@mail.parknet.co.jp
+ L:	linux-kernel@vger.kernel.org
+@@ -4310,6 +4309,13 @@ M:	dushistov@mail.ru
+ L:	linux-kernel@vger.kernel.org
+ S:	Maintained
  
- 	pci_read_config_dword(pdev, PCI_BASE_ADDRESS_0, &hwbase);
- 	hwbase &= PCI_BASE_ADDRESS_MEM_MASK;
--	rebase = ioremap(hwbase, 0x80);
-+	rebase = ioremap_nocache(hwbase, 0x80);
- 	t = readl(rebase + CNTRL_REG_OFFSET);
- 	if (t != CNTRL_REG_GOODVALUE) {
- 		printk(KERN_DEBUG "sx: performing cntrl reg fix: %08x -> "
-@@ -2764,7 +2764,7 @@ static int __init sx_init(void)
- 		if (!request_region(board->hw_base, board->hw_len, "sx"))
- 			continue;
- 		board->base2 =
--		board->base = ioremap(board->hw_base, board->hw_len);
-+		board->base = ioremap_nocache(board->hw_base, board->hw_len);
- 		if (!board->base)
- 			goto err_sx_reg;
- 		board->flags &= ~SX_BOARD_TYPE;
-@@ -2788,7 +2788,7 @@ err_sx_reg:
- 		if (!request_region(board->hw_base, board->hw_len, "sx"))
- 			continue;
- 		board->base2 =
--		board->base = ioremap(board->hw_base, board->hw_len);
-+		board->base = ioremap_nocache(board->hw_base, board->hw_len);
- 		if (!board->base)
- 			goto err_si_reg;
- 		board->flags &= ~SX_BOARD_TYPE;
-@@ -2811,7 +2811,7 @@ err_si_reg:
- 		if (!request_region(board->hw_base, board->hw_len, "sx"))
- 			continue;
- 		board->base2 =
--		board->base = ioremap(board->hw_base, board->hw_len);
-+		board->base = ioremap_nocache(board->hw_base, board->hw_len);
- 		if (!board->base)
- 			goto err_si1_reg;
- 		board->flags &= ~SX_BOARD_TYPE;
-diff -puN drivers/char/synclink.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/synclink.c
---- a/drivers/char/synclink.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/synclink.c
-@@ -4150,7 +4150,8 @@ static int mgsl_claim_resources(struct m
- 		}
- 		info->lcr_mem_requested = true;
- 
--		info->memory_base = ioremap(info->phys_memory_base,0x40000);
-+		info->memory_base = ioremap_nocache(info->phys_memory_base,
-+								0x40000);
- 		if (!info->memory_base) {
- 			printk( "%s(%d):Cant map shared memory on device %s MemAddr=%08X\n",
- 				__FILE__,__LINE__,info->device_name, info->phys_memory_base );
-@@ -4163,12 +4164,14 @@ static int mgsl_claim_resources(struct m
- 			goto errout;
- 		}
- 		
--		info->lcr_base = ioremap(info->phys_lcr_base,PAGE_SIZE) + info->lcr_offset;
-+		info->lcr_base = ioremap_nocache(info->phys_lcr_base,
-+								PAGE_SIZE);
- 		if (!info->lcr_base) {
- 			printk( "%s(%d):Cant map LCR memory on device %s MemAddr=%08X\n",
- 				__FILE__,__LINE__,info->device_name, info->phys_lcr_base );
- 			goto errout;
- 		}
-+		info->lcr_base += info->lcr_offset;
- 		
- 	} else {
- 		/* claim DMA channel */
-diff -puN drivers/char/synclink_gt.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/synclink_gt.c
-@@ -3350,7 +3350,7 @@ static int claim_resources(struct slgt_i
- 	else
- 		info->reg_addr_requested = true;
- 
--	info->reg_addr = ioremap(info->phys_reg_addr, SLGT_REG_SIZE);
-+	info->reg_addr = ioremap_nocache(info->phys_reg_addr, SLGT_REG_SIZE);
- 	if (!info->reg_addr) {
- 		DBGERR(("%s cant map device registers, addr=%08X\n",
- 			info->device_name, info->phys_reg_addr));
-diff -puN drivers/char/synclinkmp.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/synclinkmp.c
---- a/drivers/char/synclinkmp.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/synclinkmp.c
-@@ -3643,7 +3643,8 @@ static int claim_resources(SLMP_INFO *in
- 	else
- 		info->sca_statctrl_requested = true;
- 
--	info->memory_base = ioremap(info->phys_memory_base,SCA_MEM_SIZE);
-+	info->memory_base = ioremap_nocache(info->phys_memory_base,
-+								SCA_MEM_SIZE);
- 	if (!info->memory_base) {
- 		printk( "%s(%d):%s Cant map shared memory, MemAddr=%08X\n",
- 			__FILE__,__LINE__,info->device_name, info->phys_memory_base );
-@@ -3651,7 +3652,7 @@ static int claim_resources(SLMP_INFO *in
- 		goto errout;
- 	}
- 
--	info->lcr_base = ioremap(info->phys_lcr_base,PAGE_SIZE);
-+	info->lcr_base = ioremap_nocache(info->phys_lcr_base, PAGE_SIZE);
- 	if (!info->lcr_base) {
- 		printk( "%s(%d):%s Cant map LCR memory, MemAddr=%08X\n",
- 			__FILE__,__LINE__,info->device_name, info->phys_lcr_base );
-@@ -3660,7 +3661,7 @@ static int claim_resources(SLMP_INFO *in
- 	}
- 	info->lcr_base += info->lcr_offset;
- 
--	info->sca_base = ioremap(info->phys_sca_base,PAGE_SIZE);
-+	info->sca_base = ioremap_nocache(info->phys_sca_base, PAGE_SIZE);
- 	if (!info->sca_base) {
- 		printk( "%s(%d):%s Cant map SCA memory, MemAddr=%08X\n",
- 			__FILE__,__LINE__,info->device_name, info->phys_sca_base );
-@@ -3669,7 +3670,8 @@ static int claim_resources(SLMP_INFO *in
- 	}
- 	info->sca_base += info->sca_offset;
- 
--	info->statctrl_base = ioremap(info->phys_statctrl_base,PAGE_SIZE);
-+	info->statctrl_base = ioremap_nocache(info->phys_statctrl_base,
-+								PAGE_SIZE);
- 	if (!info->statctrl_base) {
- 		printk( "%s(%d):%s Cant map SCA Status/Control memory, MemAddr=%08X\n",
- 			__FILE__,__LINE__,info->device_name, info->phys_statctrl_base );
++UltraSPARC (sparc64):
++P:	David S. Miller
++M:	davem@davemloft.net
++L:	sparclinux@vger.kernel.org
++T:	git kernel.org:/pub/scm/linux/kernel/git/davem/sparc-2.6.git
++S:	Maintained
++
+ USB DIAMOND RIO500 DRIVER
+ P:	Cesar Miquel
+ M:	miquel@df.uba.ar
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
