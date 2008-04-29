@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-fix-integer-as-null-pointer-sparse-warnings.patch added to -mm tree
-Date: Tue, 29 Apr 2008 13:56:20 -0700
-Message-ID: <200804292056.m3TKuKhG009337@imap1.linux-foundation.org>
+Subject: + acpi_pm_device_sleep_state-cleanup.patch added to -mm tree
+Date: Tue, 29 Apr 2008 13:58:33 -0700
+Message-ID: <200804292058.m3TKwXMD009509@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46364 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43163 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763371AbYD2U4X (ORCPT
+	by vger.kernel.org with ESMTP id S1755359AbYD2U7J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 16:56:23 -0400
+	Tue, 29 Apr 2008 16:59:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, pj@sgi.com
+Cc: dbrownell@users.sourceforge.net, bjorn.helgaas@hp.com, jbarnes@virtuousgeek.org, lenb@kernel.org, pavel@ucw.cz, trenn@suse.de
 
 
 The patch titled
-     kernel: fix integer as NULL pointer sparse warnings
+     acpi_pm_device_sleep_state() cleanup
 has been added to the -mm tree.  Its filename is
-     kernel-fix-integer-as-null-pointer-sparse-warnings.patch
+     acpi_pm_device_sleep_state-cleanup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,118 +34,112 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel: fix integer as NULL pointer sparse warnings
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: acpi_pm_device_sleep_state() cleanup
+From: David Brownell <dbrownell@users.sourceforge.net>
 
-kernel/cpuset.c:1268:52: warning: Using plain integer as NULL pointer
-kernel/pid_namespace.c:95:24: warning: Using plain integer as NULL pointer
+Get rid of a superfluous acpi_pm_device_sleep_state() parameter.  The only
+legitimate value of that parameter must be derived from the first parameter,
+which is what all the callers already do.  (However, this does not address the
+fact that ACPI *still* doesn't set up those flags.)
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Reviewed-by: Paul Jackson <pj@sgi.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Acked-by: Pavel Machek <pavel@ucw.cz>
+Cc: Thomas Renninger <trenn@suse.de>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c        |    3 ++-
- kernel/pid_namespace.c |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/acpi/sleep/main.c  |    8 ++++----
+ drivers/pci/pci-acpi.c     |    3 +--
+ drivers/pnp/pnpacpi/core.c |    4 +---
+ include/acpi/acpi_bus.h    |    4 ++--
+ 4 files changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN kernel/cpuset.c~kernel-fix-integer-as-null-pointer-sparse-warnings kernel/cpuset.c
---- a/kernel/cpuset.c~kernel-fix-integer-as-null-pointer-sparse-warnings
-+++ a/kernel/cpuset.c
-@@ -1256,7 +1256,8 @@ static ssize_t cpuset_common_file_write(
- 		return -E2BIG;
+diff -puN drivers/acpi/sleep/main.c~acpi_pm_device_sleep_state-cleanup drivers/acpi/sleep/main.c
+--- a/drivers/acpi/sleep/main.c~acpi_pm_device_sleep_state-cleanup
++++ a/drivers/acpi/sleep/main.c
+@@ -369,8 +369,8 @@ int acpi_suspend(u32 acpi_state)
+ /**
+  *	acpi_pm_device_sleep_state - return preferred power state of ACPI device
+  *		in the system sleep state given by %acpi_target_sleep_state
+- *	@dev: device to examine
+- *	@wake: if set, the device should be able to wake up the system
++ *	@dev: device to examine; its driver model wakeup flags control
++ *		whether it should be able to wake up the system
+  *	@d_min_p: used to store the upper limit of allowed states range
+  *	Return value: preferred power state of the device on success, -ENODEV on
+  *		failure (ie. if there's no 'struct acpi_device' for @dev)
+@@ -388,7 +388,7 @@ int acpi_suspend(u32 acpi_state)
+  *	via @wake.
+  */
  
- 	/* +1 for nul-terminator */
--	if ((buffer = kmalloc(nbytes + 1, GFP_KERNEL)) == 0)
-+	buffer = kmalloc(nbytes + 1, GFP_KERNEL);
-+	if (!buffer)
- 		return -ENOMEM;
+-int acpi_pm_device_sleep_state(struct device *dev, int wake, int *d_min_p)
++int acpi_pm_device_sleep_state(struct device *dev, int *d_min_p)
+ {
+ 	acpi_handle handle = DEVICE_ACPI_HANDLE(dev);
+ 	struct acpi_device *adev;
+@@ -427,7 +427,7 @@ int acpi_pm_device_sleep_state(struct de
+ 	 * can wake the system.  _S0W may be valid, too.
+ 	 */
+ 	if (acpi_target_sleep_state == ACPI_STATE_S0 ||
+-	    (wake && adev->wakeup.state.enabled &&
++	    (device_may_wakeup(dev) && adev->wakeup.state.enabled &&
+ 	     adev->wakeup.sleep_state <= acpi_target_sleep_state)) {
+ 		acpi_status status;
  
- 	if (copy_from_user(buffer, userbuf, nbytes)) {
-diff -puN kernel/pid_namespace.c~kernel-fix-integer-as-null-pointer-sparse-warnings kernel/pid_namespace.c
---- a/kernel/pid_namespace.c~kernel-fix-integer-as-null-pointer-sparse-warnings
-+++ a/kernel/pid_namespace.c
-@@ -92,7 +92,7 @@ static struct pid_namespace *create_pid_
- 	atomic_set(&ns->pidmap[0].nr_free, BITS_PER_PAGE - 1);
+diff -puN drivers/pci/pci-acpi.c~acpi_pm_device_sleep_state-cleanup drivers/pci/pci-acpi.c
+--- a/drivers/pci/pci-acpi.c~acpi_pm_device_sleep_state-cleanup
++++ a/drivers/pci/pci-acpi.c
+@@ -249,8 +249,7 @@ static pci_power_t acpi_pci_choose_state
+ {
+ 	int acpi_state;
  
- 	for (i = 1; i < PIDMAP_ENTRIES; i++) {
--		ns->pidmap[i].page = 0;
-+		ns->pidmap[i].page = NULL;
- 		atomic_set(&ns->pidmap[i].nr_free, BITS_PER_PAGE);
- 	}
+-	acpi_state = acpi_pm_device_sleep_state(&pdev->dev,
+-		device_may_wakeup(&pdev->dev), NULL);
++	acpi_state = acpi_pm_device_sleep_state(&pdev->dev, NULL);
+ 	if (acpi_state < 0)
+ 		return PCI_POWER_ERROR;
  
+diff -puN drivers/pnp/pnpacpi/core.c~acpi_pm_device_sleep_state-cleanup drivers/pnp/pnpacpi/core.c
+--- a/drivers/pnp/pnpacpi/core.c~acpi_pm_device_sleep_state-cleanup
++++ a/drivers/pnp/pnpacpi/core.c
+@@ -132,9 +132,7 @@ static int pnpacpi_suspend(struct pnp_de
+ {
+ 	int power_state;
+ 
+-	power_state = acpi_pm_device_sleep_state(&dev->dev,
+-						device_may_wakeup(&dev->dev),
+-						NULL);
++	power_state = acpi_pm_device_sleep_state(&dev->dev, NULL);
+ 	if (power_state < 0)
+ 		power_state = (state.event == PM_EVENT_ON) ?
+ 				ACPI_STATE_D0 : ACPI_STATE_D3;
+diff -puN include/acpi/acpi_bus.h~acpi_pm_device_sleep_state-cleanup include/acpi/acpi_bus.h
+--- a/include/acpi/acpi_bus.h~acpi_pm_device_sleep_state-cleanup
++++ a/include/acpi/acpi_bus.h
+@@ -376,9 +376,9 @@ acpi_handle acpi_get_pci_rootbridge_hand
+ #define DEVICE_ACPI_HANDLE(dev) ((acpi_handle)((dev)->archdata.acpi_handle))
+ 
+ #ifdef CONFIG_PM_SLEEP
+-int acpi_pm_device_sleep_state(struct device *, int, int *);
++int acpi_pm_device_sleep_state(struct device *, int *);
+ #else /* !CONFIG_PM_SLEEP */
+-static inline int acpi_pm_device_sleep_state(struct device *d, int w, int *p)
++static inline int acpi_pm_device_sleep_state(struct device *d, int *p)
+ {
+ 	if (p)
+ 		*p = ACPI_STATE_D0;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from dbrownell@users.sourceforge.net are
 
 origin.patch
-power-replace-remaining-__function__-occurrences.patch
-adfs-work-around-bogus-sparse-warning.patch
-coda-add-static-to-functions-in-dirc.patch
-befs-fix-sparse-warning-in-linuxvfsc.patch
-autofs4-fix-sparse-warning-in-rootc.patch
-firmware-replace-remaining-__function__-occurrences.patch
-drivers-misc-replace-remaining-__function__-occurrences.patch
-xen-make-blkif_getgeo-static.patch
-ecryptfs-replace-remaining-__function__-occurrences.patch
-cgroup-fix-sparse-warning-of-shadow-symbol-in-cgroupc.patch
-kernel-add-common-infrastructure-for-unaligned-access.patch
-kernel-move-arches-to-use-common-unaligned-access.patch
-drivers-block-use-get_unaligned_-helpers.patch
-hid-core-use-get_unaligned_-helpers.patch
-char-use-get_unaligned_-helpers.patch
-input-use-get_unaligned_-helpers.patch
 mmc-use-get-put_unaligned_-helpers.patch
-net-use-get-put_unaligned_-helpers.patch
-wireless-use-get-put_unaligned_-helpers.patch
-pcmcia-use-get-put_unaligned_-helpers.patch
 usb-use-get-put_unaligned_-helpers.patch
-video-use-get-put_unaligned_-helpers.patch
-fat-use-get-put_unaligned_-helpers.patch
-hfsplus-use-get-put_unaligned_-helpers.patch
-isofs-use-get-put_unaligned_-helpers.patch
-ncpfs-use-get-put_unaligned_-helpers.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-git-kvm.patch
-git-mips.patch
-git-nfsd.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-git-watchdog.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-kernel-fix-integer-as-null-pointer-sparse-warnings.patch
-ext4-replace-remaining-__function__-occurrences.patch
-jdb2-replace-remaining-__function__-occurrences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
+git-acpi.patch
+acpi_pm_device_sleep_state-cleanup.patch
+add-a-new-sysfs_streq-string-comparison-function.patch
+usb-gadget-switch-to-put_char-returning-int.patch
 
