@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-base-topologyc-add-conditionals-around-show_cpumap.patch added to -mm tree
-Date: Mon, 28 Apr 2008 23:24:10 -0700
-Message-ID: <200804290624.m3T6OA7k005115@imap1.linux-foundation.org>
+Subject: + proc-remove-proc_bus-fix.patch added to -mm tree
+Date: Mon, 28 Apr 2008 23:31:38 -0700
+Message-ID: <200804290631.m3T6VcAo005384@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45715 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752586AbYD2GZC (ORCPT
+	by vger.kernel.org with ESMTP id S1754750AbYD2Gbl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 02:25:02 -0400
+	Tue, 29 Apr 2008 02:31:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, travis@sgi.com
+Cc: akpm@linux-foundation.org, adobriyan@gmail.com
 
 
 The patch titled
-     drivers/base/topology.c: add conditionals around show_cpumap()
+     proc-remove-proc_bus-fix
 has been added to the -mm tree.  Its filename is
-     drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+     proc-remove-proc_bus-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/base/topology.c: add conditionals around show_cpumap()
+Subject: proc-remove-proc_bus-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/base/topology.c:44: warning: 'show_cpumap' defined but not used
+pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch is -mm only :(
 
-Cc: Mike Travis <travis@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/topology.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/pcmcia/pcmcia_ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/topology.c~drivers-base-topologyc-add-conditionals-around-show_cpumap drivers/base/topology.c
---- a/drivers/base/topology.c~drivers-base-topologyc-add-conditionals-around-show_cpumap
-+++ a/drivers/base/topology.c
-@@ -40,6 +40,7 @@ static ssize_t show_##name(struct sys_de
- 	return sprintf(buf, "%d\n", topology_##name(cpu));	\
- }
+diff -puN drivers/pcmcia/pcmcia_ioctl.c~proc-remove-proc_bus-fix drivers/pcmcia/pcmcia_ioctl.c
+--- a/drivers/pcmcia/pcmcia_ioctl.c~proc-remove-proc_bus-fix
++++ a/drivers/pcmcia/pcmcia_ioctl.c
+@@ -787,7 +787,7 @@ void __init pcmcia_setup_ioctl(void) {
+ 		major_dev = i;
  
-+#if defined(topology_thread_siblings) || defined(topology_core_siblings)
- static ssize_t show_cpumap(int type, cpumask_t *mask, char *buf)
- {
- 	ptrdiff_t len = PTR_ALIGN(buf + PAGE_SIZE - 1, PAGE_SIZE) - buf;
-@@ -54,6 +55,7 @@ static ssize_t show_cpumap(int type, cpu
- 	}
- 	return n;
- }
-+#endif
- 
- #define define_siblings_show_map(name)					\
- static inline ssize_t show_##name(struct sys_device *dev, char *buf)	\
+ #ifdef CONFIG_PROC_FS
+-	proc_pccard = proc_mkdir("pccard", proc_bus);
++	proc_pccard = proc_mkdir("bus/pccard", NULL);
+ 	if (proc_pccard)
+ 		create_proc_read_entry("drivers",0,proc_pccard,proc_read_drivers,NULL);
+ #endif
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -96,10 +88,10 @@ elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 keys-add-keyctl-function-to-get-a-security-label.patch
 procfs-task-exe-symlink.patch
 proc-switch-to-proc_create.patch
+proc-remove-proc_bus-fix.patch
 edd-add-default-mode-config_edd_off=n-override-with-edd=onoff.patch
 idr-create-idr_layer_cache-at-boot-time.patch
 edac-add-e752x-parameter-for-sysbus_parity-selection.patch
 ncpfs-use-get-put_unaligned_-helpers.patch
 relayfs-support-larger-relay-buffer-take-3.patch
-drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
 
