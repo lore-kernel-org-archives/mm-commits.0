@@ -1,71 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - pcmcia-unschedule-the-planned-removal-of-the-pcmcia_ioctl-feature.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 15:40:06 -0700
-Message-ID: <200804292240.m3TMe7dj013809@imap1.linux-foundation.org>
+Subject: + blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch added to -mm tree
+Date: Tue, 29 Apr 2008 15:42:28 -0700
+Message-ID: <200804292242.m3TMgS3H013866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51392 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752189AbYD2Wks (ORCPT
+	by vger.kernel.org with ESMTP id S1752705AbYD2WnJ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 18:40:48 -0400
+	Tue, 29 Apr 2008 18:43:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, linux@dominikbrodowski.net, rmk@arm.linux.org.uk, rpjday@mindspring.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, alan@redhat.com, bryan.wu@analog.com
 
 
 The patch titled
-     PCMCIA: unschedule the planned removal of the PCMCIA_IOCTL feature
-has been removed from the -mm tree.  Its filename was
-     pcmcia-unschedule-the-planned-removal-of-the-pcmcia_ioctl-feature.patch
+     blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix
+has been added to the -mm tree.  Its filename is
+     blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch
 
-This patch was dropped because we should at least leave it on the todo list
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: PCMCIA: unschedule the planned removal of the PCMCIA_IOCTL feature
+Subject: blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Russell has some machine whihc still needs this.
-
-Cc: Robert P. J. Day <rpjday@mindspring.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Alan Cox <alan@redhat.com>
+Cc: Bryan Wu <bryan.wu@analog.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/feature-removal-schedule.txt |   17 -----------------
- 1 file changed, 17 deletions(-)
+ include/linux/serial_core.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/feature-removal-schedule.txt~pcmcia-unschedule-the-planned-removal-of-the-pcmcia_ioctl-feature Documentation/feature-removal-schedule.txt
---- a/Documentation/feature-removal-schedule.txt~pcmcia-unschedule-the-planned-removal-of-the-pcmcia_ioctl-feature
-+++ a/Documentation/feature-removal-schedule.txt
-@@ -47,23 +47,6 @@ Who:	Mauro Carvalho Chehab <mchehab@infr
+diff -puN include/linux/serial_core.h~blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix include/linux/serial_core.h
+--- a/include/linux/serial_core.h~blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix
++++ a/include/linux/serial_core.h
+@@ -149,8 +149,6 @@
+ /* Freescale ColdFire */
+ #define PORT_MCF	78
  
- ---------------------------
+-#define PORT_SC26XX	79
+-
+ /* Blackfin SPORT */
+ #define PORT_BFIN_SPORT		79
  
--What:	PCMCIA control ioctl (needed for pcmcia-cs [cardmgr, cardctl])
--When:	November 2005
--Files:	drivers/pcmcia/: pcmcia_ioctl.c
--Why:	With the 16-bit PCMCIA subsystem now behaving (almost) like a
--	normal hotpluggable bus, and with it using the default kernel
--	infrastructure (hotplug, driver core, sysfs) keeping the PCMCIA
--	control ioctl needed by cardmgr and cardctl from pcmcia-cs is
--	unnecessary, and makes further cleanups and integration of the
--	PCMCIA subsystem into the Linux kernel device driver model more
--	difficult. The features provided by cardmgr and cardctl are either
--	handled by the kernel itself now or are available in the new
--	pcmciautils package available at
--	http://kernel.org/pub/linux/utils/kernel/pcmcia/
--Who:	Dominik Brodowski <linux@brodo.de>
--
-----------------------------
--
- What:	sys_sysctl
- When:	September 2010
- Option: CONFIG_SYSCTL_SYSCALL
+@@ -158,6 +156,8 @@
+ #define PORT_MN10300		80
+ #define PORT_MN10300_CTS	81
+ 
++#define PORT_SC26XX	82
++
+ #ifdef __KERNEL__
+ 
+ #include <linux/compiler.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,7 +100,7 @@ idr-create-idr_layer_cache-at-boot-time.patch
 edac-add-e752x-parameter-for-sysbus_parity-selection.patch
 ncpfs-use-get-put_unaligned_-helpers.patch
 relayfs-support-larger-relay-buffer-take-3.patch
-pcmcia-unschedule-the-planned-removal-of-the-pcmcia_ioctl-feature.patch
+blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch
 pci-export-resource_wc-in-pci-sysfs-fix.patch
 disable-the-memory-controller-by-default-v3.patch
 git-acpi.patch
