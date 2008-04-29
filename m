@@ -1,62 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - proc-remove-proc_bus-fix.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 00:13:19 -0700
-Message-ID: <200804290713.m3T7DJa8006790@imap1.linux-foundation.org>
+Subject: + drivers-scsi-mvsasc-fix-printk-warnings.patch added to -mm tree
+Date: Tue, 29 Apr 2008 00:56:50 -0700
+Message-ID: <200804290756.m3T7uouu008479@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43174 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754269AbYD2HNW (ORCPT
+	by vger.kernel.org with ESMTP id S1751411AbYD2H5M (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 03:13:22 -0400
+	Tue, 29 Apr 2008 03:57:12 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3T7uoJ8017724
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 29 Apr 2008 00:56:51 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     proc-remove-proc_bus-fix
-has been removed from the -mm tree.  Its filename was
-     proc-remove-proc_bus-fix.patch
+     drivers/scsi/mvsas.c: fix printk warnings
+has been added to the -mm tree.  Its filename is
+     drivers-scsi-mvsasc-fix-printk-warnings.patch
 
-This patch was dropped because it was folded into proc-remove-proc_bus.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc-remove-proc_bus-fix
+Subject: drivers/scsi/mvsas.c: fix printk warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-pcmcia-delete-obsolete-pcmcia_ioctl-feature.patch is -mm only :(
+sparc64:
 
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+drivers/scsi/mvsas.c: In function `mvs_update_phyinfo':
+drivers/scsi/mvsas.c:2822: warning: long long unsigned int format, u64 arg (arg 5)
+drivers/scsi/mvsas.c:2822: warning: long long unsigned int format, u64 arg (arg 6)
+
+We do not know what type the architecture uses for u64 and must cast it.
+
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/pcmcia_ioctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/mvsas.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/pcmcia/pcmcia_ioctl.c~proc-remove-proc_bus-fix drivers/pcmcia/pcmcia_ioctl.c
---- a/drivers/pcmcia/pcmcia_ioctl.c~proc-remove-proc_bus-fix
-+++ a/drivers/pcmcia/pcmcia_ioctl.c
-@@ -787,7 +787,7 @@ void __init pcmcia_setup_ioctl(void) {
- 		major_dev = i;
- 
- #ifdef CONFIG_PROC_FS
--	proc_pccard = proc_mkdir("pccard", proc_bus);
-+	proc_pccard = proc_mkdir("bus/pccard", NULL);
- 	if (proc_pccard)
- 		create_proc_read_entry("drivers",0,proc_pccard,proc_read_drivers,NULL);
- #endif
-@@ -798,7 +798,7 @@ void __exit pcmcia_cleanup_ioctl(void) {
- #ifdef CONFIG_PROC_FS
- 	if (proc_pccard) {
- 		remove_proc_entry("drivers", proc_pccard);
--		remove_proc_entry("pccard", proc_bus);
-+		remove_proc_entry("bus/pccard", NULL);
- 	}
- #endif
- 	if (major_dev != -1)
+diff -puN drivers/scsi/mvsas.c~drivers-scsi-mvsasc-fix-printk-warnings drivers/scsi/mvsas.c
+--- a/drivers/scsi/mvsas.c~drivers-scsi-mvsasc-fix-printk-warnings
++++ a/drivers/scsi/mvsas.c
+@@ -2822,7 +2822,9 @@ static void mvs_update_phyinfo(struct mv
+ 		dev_printk(KERN_DEBUG, &pdev->dev,
+ 			"phy[%d] Get Attached Address 0x%llX ,"
+ 			" SAS Address 0x%llX\n",
+-			i, phy->att_dev_sas_addr, phy->dev_sas_addr);
++			i,
++			(unsigned long long)phy->att_dev_sas_addr,
++			(unsigned long long)phy->dev_sas_addr);
+ 		dev_printk(KERN_DEBUG, &pdev->dev,
+ 			"Rate = %x , type = %d\n",
+ 			sas_phy->linkrate, phy->phy_type);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,11 +100,10 @@ ipmi-style-fixes-in-the-system-interface-code.patch
 elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 keys-add-keyctl-function-to-get-a-security-label.patch
 procfs-task-exe-symlink.patch
-proc-remove-proc_bus.patch
-proc-remove-proc_bus-fix.patch
 edd-add-default-mode-config_edd_off=n-override-with-edd=onoff.patch
 idr-create-idr_layer_cache-at-boot-time.patch
 edac-add-e752x-parameter-for-sysbus_parity-selection.patch
 ncpfs-use-get-put_unaligned_-helpers.patch
 relayfs-support-larger-relay-buffer-take-3.patch
+drivers-scsi-mvsasc-fix-printk-warnings.patch
 
