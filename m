@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch added to -mm tree
-Date: Tue, 29 Apr 2008 15:42:28 -0700
-Message-ID: <200804292242.m3TMgS3H013866@imap1.linux-foundation.org>
+Subject: + nfs-path_getput-cleanups.patch added to -mm tree
+Date: Tue, 29 Apr 2008 16:16:35 -0700
+Message-ID: <200804292316.m3TNGZju015231@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42862 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46211 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752705AbYD2WnJ (ORCPT
+	by vger.kernel.org with ESMTP id S1752729AbYD2XR0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 18:43:09 -0400
+	Tue, 29 Apr 2008 19:17:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@redhat.com, bryan.wu@analog.com
+Cc: jblunck@suse.de, bfields@fieldses.org, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix
+     nfs: path_{get,put}() cleanups
 has been added to the -mm tree.  Its filename is
-     blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch
+     nfs-path_getput-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,158 +34,79 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: nfs: path_{get,put}() cleanups
+From: Jan Blunck <jblunck@suse.de>
 
-Cc: Alan Cox <alan@redhat.com>
-Cc: Bryan Wu <bryan.wu@analog.com>
+Here are some more places where path_{get,put}() can be used instead of
+dput()/mntput() pair.
+
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/serial_core.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/nfs/inode.c     |    3 +--
+ fs/nfs/namespace.c |    3 +--
+ fs/nfs/nfs4proc.c  |    6 ++----
+ 3 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/serial_core.h~blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix include/linux/serial_core.h
---- a/include/linux/serial_core.h~blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix
-+++ a/include/linux/serial_core.h
-@@ -149,8 +149,6 @@
- /* Freescale ColdFire */
- #define PORT_MCF	78
+diff -puN fs/nfs/inode.c~nfs-path_getput-cleanups fs/nfs/inode.c
+--- a/fs/nfs/inode.c~nfs-path_getput-cleanups
++++ a/fs/nfs/inode.c
+@@ -541,8 +541,7 @@ static void __put_nfs_open_context(struc
+ 	}
+ 	if (ctx->cred != NULL)
+ 		put_rpccred(ctx->cred);
+-	dput(ctx->path.dentry);
+-	mntput(ctx->path.mnt);
++	path_put(&ctx->path);
+ 	kfree(ctx);
+ }
  
--#define PORT_SC26XX	79
--
- /* Blackfin SPORT */
- #define PORT_BFIN_SPORT		79
+diff -puN fs/nfs/namespace.c~nfs-path_getput-cleanups fs/nfs/namespace.c
+--- a/fs/nfs/namespace.c~nfs-path_getput-cleanups
++++ a/fs/nfs/namespace.c
+@@ -137,8 +137,7 @@ static void * nfs_follow_mountpoint(stru
+ 			goto out_follow;
+ 		goto out_err;
+ 	}
+-	mntput(nd->path.mnt);
+-	dput(nd->path.dentry);
++	path_put(&nd->path);
+ 	nd->path.mnt = mnt;
+ 	nd->path.dentry = dget(mnt->mnt_root);
+ 	schedule_delayed_work(&nfs_automount_task, nfs_mountpoint_expiry_timeout);
+diff -puN fs/nfs/nfs4proc.c~nfs-path_getput-cleanups fs/nfs/nfs4proc.c
+--- a/fs/nfs/nfs4proc.c~nfs-path_getput-cleanups
++++ a/fs/nfs/nfs4proc.c
+@@ -306,8 +306,7 @@ static void nfs4_opendata_free(struct kr
+ 		nfs4_put_open_state(p->state);
+ 	nfs4_put_state_owner(p->owner);
+ 	dput(p->dir);
+-	dput(p->path.dentry);
+-	mntput(p->path.mnt);
++	path_put(&p->path);
+ 	kfree(p);
+ }
  
-@@ -158,6 +156,8 @@
- #define PORT_MN10300		80
- #define PORT_MN10300_CTS	81
+@@ -1210,8 +1209,7 @@ static void nfs4_free_closedata(void *da
+ 	nfs4_put_open_state(calldata->state);
+ 	nfs_free_seqid(calldata->arg.seqid);
+ 	nfs4_put_state_owner(sp);
+-	dput(calldata->path.dentry);
+-	mntput(calldata->path.mnt);
++	path_put(&calldata->path);
+ 	kfree(calldata);
+ }
  
-+#define PORT_SC26XX	82
-+
- #ifdef __KERNEL__
- 
- #include <linux/compiler.h>
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jblunck@suse.de are
 
-origin.patch
-make-dev-kmem-a-config-option.patch
-misc-phantom-add-compat-ioctl.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry.patch
-ecryptfs-integrate-ecryptfs-device-handle-into-the-module.patch
-ecryptfs-make-key-module-subsystem-respect-namespaces.patch
-x86-olpc-add-one-laptop-per-child-architecture-support.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroups-implement-device-whitelist-v6.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-memcgroup-implement-failcounter-reset.patch
-use-vmalloc-for-mem_cgroup-allocation-v3.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid.patch
-ipc-add-definitions-of-ushort_max-and-others.patch
-ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc.patch
-ipmi-run-to-completion-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-keys-add-keyctl-function-to-get-a-security-label.patch
-procfs-task-exe-symlink.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff.patch
-idr-create-idr_layer_cache-at-boot-time.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection.patch
-ncpfs-use-get-put_unaligned_-helpers.patch
-relayfs-support-larger-relay-buffer-take-3.patch
-blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-disable-the-memory-controller-by-default-v3.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-x86-ptrace-pebs-support-warning-fix.patch
-rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
-x86-ioremap-add-checks-for-virtual-addresses-fix.patch
-cifs-suppress-warning.patch
-devres-support-addresses-greater-than-an-unsigned-long-via-dev_ioremap-checkpatch-fixes.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-drivers-media-dvb-frontends-s5h1420c-printk-fix.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-hwmon.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-kvm.patch
-pata_atiixp-simplex-clear.patch
-git-m32r.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-sched.patch
-sched-add-debug-checks-to-idle-functions.patch
-drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
-add-rcu_assign_index-if-ever-needed.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-aic79xx_core-remove-ascii-art.patch
-sparc32-export-empty_zero_page.patch
+vfs-remove-lives_below_in_same_fs.patch
+nfs-path_getput-cleanups.patch
 git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-revert-rusty-misc-timer-typesafe.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-ext4-is-busted-on-m68k.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
-add-warn_on_secs-macro.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework-fix-2.patch
-tty-the-big-operations-rework-isicom-fix.patch
-tty-the-big-operations-rework-simserial-fix.patch
-tty-the-big-operations-rework-vs-git-kgdb-light.patch
-tty-the-big-operations-rework-vs-kgdb-2.patch
-devpts-factor-out-pty-index-allocation-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-fuse-fix-race-in-llseek-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+vfs-path_getput-cleanups.patch
+autofs-path_getput-cleanups.patch
 
