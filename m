@@ -1,64 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: - procfs-task-exe-symlink-fix.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:55:56 -0700
-Message-ID: <200804290555.m3T5tvD7004080@imap1.linux-foundation.org>
+Subject: - edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 23:01:51 -0700
+Message-ID: <200804290601.m3T61pMV004297@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55421 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752071AbYD2F50 (ORCPT
+	by vger.kernel.org with ESMTP id S1754221AbYD2GCF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:57:26 -0400
+	Tue, 29 Apr 2008 02:02:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dhowells@redhat.com, ebiederm@xmission.com, hch@lst.de, hugh@veritas.com, matthltc@us.ibm.com, oleg@tv-sign.ru, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Matt_Domsch@dell.com, hpa@zytor.com, rdunlap@xenotime.net, tim.gardner@canonical.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     procfs-task-exe-symlink-fix
+     edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix
 has been removed from the -mm tree.  Its filename was
-     procfs-task-exe-symlink-fix.patch
+     edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
 
-This patch was dropped because it was folded into procfs-task-exe-symlink.patch
+This patch was dropped because it was folded into edd-add-default-mode-config_edd_off=n-override-with-edd=onoff.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: procfs-task-exe-symlink-fix
+Subject: edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-clarify that mmap_sem must be held for writing.
-
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Matt Helsley <matthltc@us.ibm.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc:"Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Matt Domsch <Matt_Domsch@dell.com>
+Cc: Tim Gardner <tim.gardner@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ Documentation/kernel-parameters.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/base.c~procfs-task-exe-symlink-fix fs/proc/base.c
---- a/fs/proc/base.c~procfs-task-exe-symlink-fix
-+++ a/fs/proc/base.c
-@@ -1181,9 +1181,11 @@ static const struct file_operations proc
+diff -puN Documentation/kernel-parameters.txt~edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix
++++ a/Documentation/kernel-parameters.txt
+@@ -627,7 +627,7 @@ and is between 256 and 4096 characters. 
+ 	eata=		[HW,SCSI]
  
- #endif
+ 	edd=		[EDD]
+-			Format: {"off" | "on" | "sk[ipmbr]"}
++			Format: {"off" | "on" | "skip[mbr]"}
  
--/* We added or removed a vma mapping the executable. The vmas are only mapped
-+/*
-+ * We added or removed a vma mapping the executable. The vmas are only mapped
-  * during exec and are not mapped with the mmap system call.
-- * Callers must hold the mm's mmap_sem for these */
-+ * Callers must hold down_write() on the mm's mmap_sem for these
-+ */
- void added_exe_file_vma(struct mm_struct *mm)
- {
- 	mm->num_exe_file_vmas++;
+ 	eisa_irq_edge=	[PARISC,HW]
+ 			See header of drivers/parisc/eisa.c.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -88,8 +78,8 @@ ipmi-style-fixes-in-the-system-interface-code.patch
 elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 keys-add-keyctl-function-to-get-a-security-label.patch
 procfs-task-exe-symlink.patch
-procfs-task-exe-symlink-fix.patch
 proc-switch-to-proc_create.patch
+edd-add-default-mode-config_edd_off=n-override-with-edd=onoff.patch
 edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
 fuse-fix-race-in-llseek-fix.patch
