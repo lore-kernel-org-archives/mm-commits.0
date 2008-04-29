@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + affs-fix-reservation-discarding.patch added to -mm tree
-Date: Tue, 29 Apr 2008 11:33:32 -0700
-Message-ID: <200804291833.m3TIXWdf003209@imap1.linux-foundation.org>
+Subject: + vfs-kill-put_inode.patch added to -mm tree
+Date: Tue, 29 Apr 2008 11:35:21 -0700
+Message-ID: <200804291835.m3TIZLGr003261@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53352 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36332 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753990AbYD2SeM (ORCPT
+	by vger.kernel.org with ESMTP id S1754672AbYD2Sf7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 14:34:12 -0400
+	Tue, 29 Apr 2008 14:35:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, zippel@linux-m68k.org
+Cc: hch@lst.de, viro@zeniv.linux.org.uk, zippel@linux-m68k.org
 
 
 The patch titled
-     affs: fix reservation discarding
+     vfs: kill->put_inode
 has been added to the -mm tree.  Its filename is
-     affs-fix-reservation-discarding.patch
+     vfs-kill-put_inode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,273 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: affs: fix reservation discarding
+Subject: vfs: kill->put_inode
 From: Christoph Hellwig <hch@lst.de>
 
--ENOSIGNEDOFFBY
--ENOCHANGELOG
--ENOACK
+With the patch to affs killing the last put_inode() instance we can finally,
+after many years of transition kill this racy and awkward interface.
 
+(It's kinda funny that even the description in
+Documentation/filesystems/vfs.txt was entirely wrong..)
+
+Also remove a very misleading comment above the defintion of struct
+super_operations.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/affs/affs.h  |    4 +---
- fs/affs/file.c  |   25 +++++++++++++++++--------
- fs/affs/inode.c |   34 ++++++++--------------------------
- fs/affs/namei.c |    6 ++++--
- fs/affs/super.c |   18 +++++++++++-------
- 5 files changed, 41 insertions(+), 46 deletions(-)
+ Documentation/filesystems/Locking |    2 --
+ Documentation/filesystems/vfs.txt |    4 ----
+ fs/inode.c                        |    3 ---
+ include/linux/fs.h                |    5 -----
+ 4 files changed, 14 deletions(-)
 
-diff -puN fs/affs/affs.h~affs-fix-reservation-discarding fs/affs/affs.h
---- a/fs/affs/affs.h~affs-fix-reservation-discarding
-+++ a/fs/affs/affs.h
-@@ -48,7 +48,7 @@ struct affs_ext_key {
-  * affs fs inode data in memory
-  */
- struct affs_inode_info {
--	u32	 i_opencnt;
-+	atomic_t i_opencnt;
- 	struct semaphore i_link_lock;		/* Protects internal inode access. */
- 	struct semaphore i_ext_lock;		/* Protects internal inode access. */
- #define i_hash_lock i_ext_lock
-@@ -170,8 +170,6 @@ extern int	affs_rename(struct inode *old
- extern unsigned long		 affs_parent_ino(struct inode *dir);
- extern struct inode		*affs_new_inode(struct inode *dir);
- extern int			 affs_notify_change(struct dentry *dentry, struct iattr *attr);
--extern void			 affs_put_inode(struct inode *inode);
--extern void			 affs_drop_inode(struct inode *inode);
- extern void			 affs_delete_inode(struct inode *inode);
- extern void			 affs_clear_inode(struct inode *inode);
- extern struct inode		*affs_iget(struct super_block *sb,
-diff -puN fs/affs/file.c~affs-fix-reservation-discarding fs/affs/file.c
---- a/fs/affs/file.c~affs-fix-reservation-discarding
-+++ a/fs/affs/file.c
-@@ -48,8 +48,9 @@ affs_file_open(struct inode *inode, stru
- {
- 	if (atomic_read(&filp->f_count) != 1)
- 		return 0;
--	pr_debug("AFFS: open(%d)\n", AFFS_I(inode)->i_opencnt);
--	AFFS_I(inode)->i_opencnt++;
-+	pr_debug("AFFS: open(%lu,%d)\n",
-+		 inode->i_ino, atomic_read(&AFFS_I(inode)->i_opencnt));
-+	atomic_inc(&AFFS_I(inode)->i_opencnt);
- 	return 0;
- }
+diff -puN Documentation/filesystems/Locking~vfs-kill-put_inode Documentation/filesystems/Locking
+--- a/Documentation/filesystems/Locking~vfs-kill-put_inode
++++ a/Documentation/filesystems/Locking
+@@ -92,7 +92,6 @@ prototypes:
+ 	void (*destroy_inode)(struct inode *);
+ 	void (*dirty_inode) (struct inode *);
+ 	int (*write_inode) (struct inode *, int);
+-	void (*put_inode) (struct inode *);
+ 	void (*drop_inode) (struct inode *);
+ 	void (*delete_inode) (struct inode *);
+ 	void (*put_super) (struct super_block *);
+@@ -115,7 +114,6 @@ alloc_inode:		no	no	no
+ destroy_inode:		no
+ dirty_inode:		no				(must not sleep)
+ write_inode:		no
+-put_inode:		no
+ drop_inode:		no				!!!inode_lock!!!
+ delete_inode:		no
+ put_super:		yes	yes	no
+diff -puN Documentation/filesystems/vfs.txt~vfs-kill-put_inode Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~vfs-kill-put_inode
++++ a/Documentation/filesystems/vfs.txt
+@@ -205,7 +205,6 @@ struct super_operations {
  
-@@ -58,10 +59,16 @@ affs_file_release(struct inode *inode, s
- {
- 	if (atomic_read(&filp->f_count) != 0)
- 		return 0;
--	pr_debug("AFFS: release(%d)\n", AFFS_I(inode)->i_opencnt);
--	AFFS_I(inode)->i_opencnt--;
--	if (!AFFS_I(inode)->i_opencnt)
-+	pr_debug("AFFS: release(%lu, %d)\n",
-+		 inode->i_ino, atomic_read(&AFFS_I(inode)->i_opencnt));
-+
-+	if (atomic_dec_and_test(&AFFS_I(inode)->i_opencnt)) {
-+		mutex_lock(&inode->i_mutex);
-+		if (inode->i_size != AFFS_I(inode)->mmu_private)
-+			affs_truncate(inode);
- 		affs_free_prealloc(inode);
-+		mutex_unlock(&inode->i_mutex);
-+	}
+         void (*dirty_inode) (struct inode *);
+         int (*write_inode) (struct inode *, int);
+-        void (*put_inode) (struct inode *);
+         void (*drop_inode) (struct inode *);
+         void (*delete_inode) (struct inode *);
+         void (*put_super) (struct super_block *);
+@@ -246,9 +245,6 @@ or bottom half).
+ 	inode to disc.  The second parameter indicates whether the write
+ 	should be synchronous or not, not all filesystems check this flag.
  
- 	return 0;
- }
-@@ -180,7 +187,7 @@ affs_get_extblock(struct inode *inode, u
- 	/* inline the simplest case: same extended block as last time */
- 	struct buffer_head *bh = AFFS_I(inode)->i_ext_bh;
- 	if (ext == AFFS_I(inode)->i_ext_last)
--		atomic_inc(&bh->b_count);
-+		get_bh(bh);
- 	else
- 		/* we have to do more (not inlined) */
- 		bh = affs_get_extblock_slow(inode, ext);
-@@ -306,7 +313,7 @@ store_ext:
- 	affs_brelse(AFFS_I(inode)->i_ext_bh);
- 	AFFS_I(inode)->i_ext_last = ext;
- 	AFFS_I(inode)->i_ext_bh = bh;
--	atomic_inc(&bh->b_count);
-+	get_bh(bh);
- 
- 	return bh;
- 
-@@ -324,7 +331,6 @@ affs_get_block(struct inode *inode, sect
- 
- 	pr_debug("AFFS: get_block(%u, %lu)\n", (u32)inode->i_ino, (unsigned long)block);
- 
+-  put_inode: called when the VFS inode is removed from the inode
+-	cache.
 -
- 	BUG_ON(block > (sector_t)0x7fffffffUL);
+   drop_inode: called when the last access to the inode is dropped,
+ 	with the inode_lock spinlock held.
  
- 	if (block >= AFFS_I(inode)->i_blkcnt) {
-@@ -827,6 +833,8 @@ affs_truncate(struct inode *inode)
- 		res = mapping->a_ops->write_begin(NULL, mapping, size, 0, 0, &page, &fsdata);
- 		if (!res)
- 			res = mapping->a_ops->write_end(NULL, mapping, size, 0, 0, page, fsdata);
-+		else
-+			inode->i_size = AFFS_I(inode)->mmu_private;
- 		mark_inode_dirty(inode);
- 		return;
- 	} else if (inode->i_size == AFFS_I(inode)->mmu_private)
-@@ -862,6 +870,7 @@ affs_truncate(struct inode *inode)
- 		blk++;
- 	} else
- 		AFFS_HEAD(ext_bh)->first_data = 0;
-+	AFFS_HEAD(ext_bh)->block_count = cpu_to_be32(i);
- 	size = AFFS_SB(sb)->s_hashsize;
- 	if (size > blkcnt - blk + i)
- 		size = blkcnt - blk + i;
-diff -puN fs/affs/inode.c~affs-fix-reservation-discarding fs/affs/inode.c
---- a/fs/affs/inode.c~affs-fix-reservation-discarding
-+++ a/fs/affs/inode.c
-@@ -58,7 +58,7 @@ struct inode *affs_iget(struct super_blo
- 	AFFS_I(inode)->i_extcnt = 1;
- 	AFFS_I(inode)->i_ext_last = ~1;
- 	AFFS_I(inode)->i_protect = prot;
--	AFFS_I(inode)->i_opencnt = 0;
-+	atomic_set(&AFFS_I(inode)->i_opencnt, 0);
- 	AFFS_I(inode)->i_blkcnt = 0;
- 	AFFS_I(inode)->i_lc = NULL;
- 	AFFS_I(inode)->i_lc_size = 0;
-@@ -108,8 +108,6 @@ struct inode *affs_iget(struct super_blo
- 			inode->i_mode |= S_IFDIR;
- 		} else
- 			inode->i_mode = S_IRUGO | S_IXUGO | S_IWUSR | S_IFDIR;
--		if (tail->link_chain)
--			inode->i_nlink = 2;
- 		/* Maybe it should be controlled by mount parameter? */
- 		//inode->i_mode |= S_ISVTX;
- 		inode->i_op = &affs_dir_inode_operations;
-@@ -245,31 +243,12 @@ out:
- }
+diff -puN fs/inode.c~vfs-kill-put_inode fs/inode.c
+--- a/fs/inode.c~vfs-kill-put_inode
++++ a/fs/inode.c
+@@ -1153,9 +1153,6 @@ void iput(struct inode *inode)
  
- void
--affs_put_inode(struct inode *inode)
--{
--	pr_debug("AFFS: put_inode(ino=%lu, nlink=%u)\n", inode->i_ino, inode->i_nlink);
--	affs_free_prealloc(inode);
--}
+ 		BUG_ON(inode->i_state == I_CLEAR);
+ 
+-		if (op && op->put_inode)
+-			op->put_inode(inode);
 -
--void
--affs_drop_inode(struct inode *inode)
--{
--	mutex_lock(&inode->i_mutex);
--	if (inode->i_size != AFFS_I(inode)->mmu_private)
--		affs_truncate(inode);
--	mutex_unlock(&inode->i_mutex);
--
--	generic_drop_inode(inode);
--}
--
--void
- affs_delete_inode(struct inode *inode)
- {
- 	pr_debug("AFFS: delete_inode(ino=%lu, nlink=%u)\n", inode->i_ino, inode->i_nlink);
- 	truncate_inode_pages(&inode->i_data, 0);
- 	inode->i_size = 0;
--	if (S_ISREG(inode->i_mode))
--		affs_truncate(inode);
-+	affs_truncate(inode);
- 	clear_inode(inode);
- 	affs_free_block(inode->i_sb, inode->i_ino);
- }
-@@ -277,9 +256,12 @@ affs_delete_inode(struct inode *inode)
- void
- affs_clear_inode(struct inode *inode)
- {
--	unsigned long cache_page = (unsigned long) AFFS_I(inode)->i_lc;
-+	unsigned long cache_page;
+ 		if (atomic_dec_and_lock(&inode->i_count, &inode_lock))
+ 			iput_final(inode);
+ 	}
+diff -puN include/linux/fs.h~vfs-kill-put_inode include/linux/fs.h
+--- a/include/linux/fs.h~vfs-kill-put_inode
++++ a/include/linux/fs.h
+@@ -1289,17 +1289,12 @@ extern ssize_t vfs_readv(struct file *, 
+ extern ssize_t vfs_writev(struct file *, const struct iovec __user *,
+ 		unsigned long, loff_t *);
  
- 	pr_debug("AFFS: clear_inode(ino=%lu, nlink=%u)\n", inode->i_ino, inode->i_nlink);
-+
-+	affs_free_prealloc(inode);
-+	cache_page = (unsigned long)AFFS_I(inode)->i_lc;
- 	if (cache_page) {
- 		pr_debug("AFFS: freeing ext cache\n");
- 		AFFS_I(inode)->i_lc = NULL;
-@@ -316,7 +298,7 @@ affs_new_inode(struct inode *dir)
- 	inode->i_ino     = block;
- 	inode->i_nlink   = 1;
- 	inode->i_mtime   = inode->i_atime = inode->i_ctime = CURRENT_TIME_SEC;
--	AFFS_I(inode)->i_opencnt = 0;
-+	atomic_set(&AFFS_I(inode)->i_opencnt, 0);
- 	AFFS_I(inode)->i_blkcnt = 0;
- 	AFFS_I(inode)->i_lc = NULL;
- 	AFFS_I(inode)->i_lc_size = 0;
-@@ -369,12 +351,12 @@ affs_add_entry(struct inode *dir, struct
- 	switch (type) {
- 	case ST_LINKFILE:
- 	case ST_LINKDIR:
--		inode_bh = bh;
- 		retval = -ENOSPC;
- 		block = affs_alloc_block(dir, dir->i_ino);
- 		if (!block)
- 			goto err;
- 		retval = -EIO;
-+		inode_bh = bh;
- 		bh = affs_getzeroblk(sb, block);
- 		if (!bh)
- 			goto err;
-diff -puN fs/affs/namei.c~affs-fix-reservation-discarding fs/affs/namei.c
---- a/fs/affs/namei.c~affs-fix-reservation-discarding
-+++ a/fs/affs/namei.c
-@@ -234,7 +234,8 @@ affs_lookup(struct inode *dir, struct de
- int
- affs_unlink(struct inode *dir, struct dentry *dentry)
- {
--	pr_debug("AFFS: unlink(dir=%d, \"%.*s\")\n", (u32)dir->i_ino,
-+	pr_debug("AFFS: unlink(dir=%d, %lu \"%.*s\")\n", (u32)dir->i_ino,
-+		 dentry->d_inode->i_ino,
- 		 (int)dentry->d_name.len, dentry->d_name.name);
+-/*
+- * NOTE: write_inode, delete_inode, clear_inode, put_inode can be called
+- * without the big kernel lock held in all filesystems.
+- */
+ struct super_operations {
+    	struct inode *(*alloc_inode)(struct super_block *sb);
+ 	void (*destroy_inode)(struct inode *);
  
- 	return affs_remove_header(dentry);
-@@ -302,7 +303,8 @@ affs_mkdir(struct inode *dir, struct den
- int
- affs_rmdir(struct inode *dir, struct dentry *dentry)
- {
--	pr_debug("AFFS: rmdir(dir=%u, \"%.*s\")\n", (u32)dir->i_ino,
-+	pr_debug("AFFS: rmdir(dir=%u, %lu \"%.*s\")\n", (u32)dir->i_ino,
-+		 dentry->d_inode->i_ino,
- 		 (int)dentry->d_name.len, dentry->d_name.name);
- 
- 	return affs_remove_header(dentry);
-diff -puN fs/affs/super.c~affs-fix-reservation-discarding fs/affs/super.c
---- a/fs/affs/super.c~affs-fix-reservation-discarding
-+++ a/fs/affs/super.c
-@@ -71,12 +71,18 @@ static struct kmem_cache * affs_inode_ca
- 
- static struct inode *affs_alloc_inode(struct super_block *sb)
- {
--	struct affs_inode_info *ei;
--	ei = (struct affs_inode_info *)kmem_cache_alloc(affs_inode_cachep, GFP_KERNEL);
--	if (!ei)
-+	struct affs_inode_info *i;
-+
-+	i = kmem_cache_alloc(affs_inode_cachep, GFP_KERNEL);
-+	if (!i)
- 		return NULL;
--	ei->vfs_inode.i_version = 1;
--	return &ei->vfs_inode;
-+
-+	i->vfs_inode.i_version = 1;
-+	i->i_lc = NULL;
-+	i->i_ext_bh = NULL;
-+	i->i_pa_cnt = 0;
-+
-+	return &i->vfs_inode;
- }
- 
- static void affs_destroy_inode(struct inode *inode)
-@@ -114,8 +120,6 @@ static const struct super_operations aff
- 	.alloc_inode	= affs_alloc_inode,
- 	.destroy_inode	= affs_destroy_inode,
- 	.write_inode	= affs_write_inode,
--	.put_inode	= affs_put_inode,
--	.drop_inode	= affs_drop_inode,
- 	.delete_inode	= affs_delete_inode,
- 	.clear_inode	= affs_clear_inode,
- 	.put_super	= affs_put_super,
+    	void (*dirty_inode) (struct inode *);
+ 	int (*write_inode) (struct inode *, int);
+-	void (*put_inode) (struct inode *);
+ 	void (*drop_inode) (struct inode *);
+ 	void (*delete_inode) (struct inode *);
+ 	void (*put_super) (struct super_block *);
 _
 
 Patches currently in -mm which might be from hch@lst.de are
@@ -317,4 +148,5 @@ signals-do_tkill-dont-use-tasklist_lock-comment.patch
 mxser-convert-large-macros-to-functions.patch
 reiserfs-use-open_bdev_excl.patch
 affs-fix-reservation-discarding.patch
+vfs-kill-put_inode.patch
 
