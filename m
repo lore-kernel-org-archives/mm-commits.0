@@ -1,61 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - relayfs-support-larger-relay-buffer-take-3-cleanup.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 23:07:26 -0700
-Message-ID: <200804290607.m3T67QQW004478@imap1.linux-foundation.org>
+Subject: + drivers-base-topologyc-add-conditionals-around-show_cpumap.patch added to -mm tree
+Date: Mon, 28 Apr 2008 23:24:10 -0700
+Message-ID: <200804290624.m3T6OA7k005115@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52325 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34634 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757355AbYD2GIa (ORCPT
+	by vger.kernel.org with ESMTP id S1752586AbYD2GZC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 02:08:30 -0400
+	Tue, 29 Apr 2008 02:25:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwilder@us.ibm.com, mhiramat@redhat.com, zanussi@comcast.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, travis@sgi.com
 
 
 The patch titled
-     relayfs-support-larger-relay-buffer-take-3-cleanup
-has been removed from the -mm tree.  Its filename was
-     relayfs-support-larger-relay-buffer-take-3-cleanup.patch
+     drivers/base/topology.c: add conditionals around show_cpumap()
+has been added to the -mm tree.  Its filename is
+     drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
 
-This patch was dropped because it was folded into relayfs-support-larger-relay-buffer-take-3.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: relayfs-support-larger-relay-buffer-take-3-cleanup
+Subject: drivers/base/topology.c: add conditionals around show_cpumap()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: David Wilder <dwilder@us.ibm.com>
-Cc: Masami Hiramatsu <mhiramat@redhat.com>
-Cc: Tom Zanussi <zanussi@comcast.net>
+drivers/base/topology.c:44: warning: 'show_cpumap' defined but not used
+
+Cc: Mike Travis <travis@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/relay.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/topology.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/relay.c~relayfs-support-larger-relay-buffer-take-3-cleanup kernel/relay.c
---- a/kernel/relay.c~relayfs-support-larger-relay-buffer-take-3-cleanup
-+++ a/kernel/relay.c
-@@ -71,14 +71,14 @@ static struct vm_operations_struct relay
- static struct page **relay_alloc_page_array(unsigned int n_pages)
- {
- 	struct page **array;
--	unsigned int pa_size = n_pages * sizeof(struct page *);
-+	size_t pa_size = n_pages * sizeof(struct page *);
- 
- 	if (pa_size > PAGE_SIZE) {
- 		array = vmalloc(pa_size);
- 		if (array)
- 			memset(array, 0, pa_size);
- 	} else {
--		array = kcalloc(n_pages, sizeof(struct page *), GFP_KERNEL);
-+		array = kzalloc(pa_size, GFP_KERNEL);
- 	}
- 	return array;
+diff -puN drivers/base/topology.c~drivers-base-topologyc-add-conditionals-around-show_cpumap drivers/base/topology.c
+--- a/drivers/base/topology.c~drivers-base-topologyc-add-conditionals-around-show_cpumap
++++ a/drivers/base/topology.c
+@@ -40,6 +40,7 @@ static ssize_t show_##name(struct sys_de
+ 	return sprintf(buf, "%d\n", topology_##name(cpu));	\
  }
+ 
++#if defined(topology_thread_siblings) || defined(topology_core_siblings)
+ static ssize_t show_cpumap(int type, cpumask_t *mask, char *buf)
+ {
+ 	ptrdiff_t len = PTR_ALIGN(buf + PAGE_SIZE - 1, PAGE_SIZE) - buf;
+@@ -54,6 +55,7 @@ static ssize_t show_cpumap(int type, cpu
+ 	}
+ 	return n;
+ }
++#endif
+ 
+ #define define_siblings_show_map(name)					\
+ static inline ssize_t show_##name(struct sys_device *dev, char *buf)	\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -91,20 +101,5 @@ idr-create-idr_layer_cache-at-boot-time.patch
 edac-add-e752x-parameter-for-sysbus_parity-selection.patch
 ncpfs-use-get-put_unaligned_-helpers.patch
 relayfs-support-larger-relay-buffer-take-3.patch
-relayfs-support-larger-relay-buffer-take-3-cleanup.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
 
