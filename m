@@ -1,120 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:46:15 -0700
-Message-ID: <200804290546.m3T5kF3e003687@imap1.linux-foundation.org>
+Subject: - dma-add-dma_map_attrs-interfaces-fix.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:47:04 -0700
+Message-ID: <200804290547.m3T5l4Iu003704@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39708 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33736 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752159AbYD2Fq0 (ORCPT
+	by vger.kernel.org with ESMTP id S1752159AbYD2Frg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:46:26 -0400
+	Tue, 29 Apr 2008 01:47:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: markn@au1.ibm.com, akepner@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueues-shrink-cpu_populated_map-when-cpu-dies-fix
+     fix up for dma-add-dma_map_attrs-interfaces and update docs
 has been removed from the -mm tree.  Its filename was
-     workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
+     dma-add-dma_map_attrs-interfaces-fix.patch
 
-This patch was dropped because it was folded into workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+This patch was dropped because it was folded into dma-add-dma_map_attrs-interfaces.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueues-shrink-cpu_populated_map-when-cpu-dies-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fix up for dma-add-dma_map_attrs-interfaces and update docs
+From: Mark Nelson <markn@au1.ibm.com>
 
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+But more importantly, dma_{set,get}_attr() have to be static inline
+
+Signed-off-by: Mark Nelson <markn@au1.ibm.com>
+Cc: Arthur Kepner <akepner@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/dma-attrs.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueues-shrink-cpu_populated_map-when-cpu-dies-fix kernel/workqueue.c
---- a/kernel/workqueue.c~workqueues-shrink-cpu_populated_map-when-cpu-dies-fix
-+++ a/kernel/workqueue.c
-@@ -158,7 +158,7 @@ static void __queue_work(struct cpu_work
-  *
-  * Returns 0 if @work was already on a queue, non-zero otherwise.
-  *
-- * We queue the work to the CPU it was submitted, but if CPU dies
-+ * We queue the work to the CPU on which it was submitted, but if the CPU dies
-  * it can be processed by another CPU.
+diff -puN include/linux/dma-attrs.h~dma-add-dma_map_attrs-interfaces-fix include/linux/dma-attrs.h
+--- a/include/linux/dma-attrs.h~dma-add-dma_map_attrs-interfaces-fix
++++ a/include/linux/dma-attrs.h
+@@ -41,7 +41,7 @@ static inline void init_dma_attrs(struct
+  * @attr: attribute to set
+  * @attrs: struct dma_attrs (may be NULL)
   */
- int queue_work(struct workqueue_struct *wq, struct work_struct *work)
+-void dma_set_attr(enum dma_attr attr, struct dma_attrs *attrs)
++static inline void dma_set_attr(enum dma_attr attr, struct dma_attrs *attrs)
+ {
+ 	if (attrs == NULL)
+ 		return;
+@@ -54,7 +54,7 @@ void dma_set_attr(enum dma_attr attr, st
+  * @attr: attribute to set
+  * @attrs: struct dma_attrs (may be NULL)
+  */
+-int dma_get_attr(enum dma_attr attr, struct dma_attrs *attrs)
++static inline int dma_get_attr(enum dma_attr attr, struct dma_attrs *attrs)
+ {
+ 	if (attrs == NULL)
+ 		return 0;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from markn@au1.ibm.com are
 
-origin.patch
-make-dev-kmem-a-config-option.patch
-misc-phantom-add-compat-ioctl.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry.patch
-ecryptfs-integrate-ecryptfs-device-handle-into-the-module.patch
-ecryptfs-make-key-module-subsystem-respect-namespaces.patch
-x86-olpc-add-one-laptop-per-child-architecture-support.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroups-implement-device-whitelist-v6.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-memcgroup-implement-failcounter-reset.patch
-use-vmalloc-for-mem_cgroup-allocation-v3.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
-ipmi-run-to-completion-fixes-checkpatch-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework-fix-2.patch
-tty-the-big-operations-rework-isicom-fix.patch
-tty-the-big-operations-rework-simserial-fix.patch
-tty-the-big-operations-rework-vs-git-kgdb-light.patch
-tty-the-big-operations-rework-vs-kgdb-2.patch
-devpts-factor-out-pty-index-allocation-fix.patch
-keys-add-keyctl-function-to-get-a-security-label-fix.patch
-procfs-task-exe-symlink-fix.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-fuse-fix-race-in-llseek-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix.patch
-idr-create-idr_layer_cache-at-boot-time-fix-fix.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
-relayfs-support-larger-relay-buffer-take-3-cleanup.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+dma-add-dma_map_attrs-interfaces.patch
+dma-add-dma_map_attrs-interfaces-fix.patch
+dma-document-dma_map_attrs-interfaces-fix.patch
 
