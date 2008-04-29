@@ -1,61 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - add-warn_on_secs-macro-simplification-fix.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:20:08 -0700
-Message-ID: <200804290520.m3T5K8dE002747@imap1.linux-foundation.org>
+Subject: - add-warn_on_secs-macro-simplification-fix-fix.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:20:12 -0700
+Message-ID: <200804290520.m3T5KCwx002750@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39798 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32816 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753573AbYD2FUo (ORCPT
+	by vger.kernel.org with ESMTP id S1753605AbYD2FVN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:20:44 -0400
+	Tue, 29 Apr 2008 01:21:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@saeurebad.de, hidave.darkstar@gmail.com, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@saeurebad.de, hidave.darkstar@gmail.com, paulmck@linux.vnet.ibm.com, tremyfr@yahoo.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     add-warn_on_secs-macro-simplification-fix
+     add-warn_on_secs-macro-simplification-fix-fix
 has been removed from the -mm tree.  Its filename was
-     add-warn_on_secs-macro-simplification-fix.patch
+     add-warn_on_secs-macro-simplification-fix-fix.patch
 
 This patch was dropped because it was folded into add-warn_on_secs-macro.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-warn_on_secs-macro-simplification-fix
+Subject: add-warn_on_secs-macro-simplification-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+We still need the param.h include.
+
+> From: Reynes Philippe <tremyfr@yahoo.fr>
+> To: Andrew Morton <akpm@linux-foundation.org>
+> Subject: [PATCH] [MM] include param.h in rcupreempt.h if CONFIG_NO_HZ is set
+> Date: Sun, 30 Mar 2008 18:55:39 +0200 (CEST)
+> 
+> The file rcupreempt.h needs HZ if CONFIG_NO_HZ is set. But HZ is defined
+> in include/linux/param.h, and this file isn't included. So the compilation fails with
+> this error :
+> 
+>   CC      init/main.o
+> In file included from include/linux/rcupdate.h:57,
+>                  from include/linux/rculist.h:10,
+>                  from include/linux/dcache.h:6,
+>                  from include/linux/fs.h:278,
+>                  from include/linux/proc_fs.h:5,
+>                  from init/main.c:14:
+> include/linux/rcupreempt.h: In function rcu_enter_nohz:
+> include/linux/rcupreempt.h:90: erreur: HZ undeclared (first use in this function)
+> include/linux/rcupreempt.h:90: erreur: (Each undeclared identifier is reported only once
+> include/linux/rcupreempt.h:90: erreur: for each function it appears in.)
+> include/linux/rcupreempt.h: In function rcu_exit_nohz:
+> include/linux/rcupreempt.h:97: erreur: HZ undeclared (first use in this function)
 
 Cc: Dave Young <hidave.darkstar@gmail.com>
 Cc: Johannes Weiner <hannes@saeurebad.de>
 Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Cc: Reynes Philippe <tremyfr@yahoo.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ include/asm-generic/bug.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-generic/bug.h~add-warn_on_secs-macro-simplification-fix include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~add-warn_on_secs-macro-simplification-fix
+diff -puN include/asm-generic/bug.h~add-warn_on_secs-macro-simplification-fix-fix include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~add-warn_on_secs-macro-simplification-fix-fix
 +++ a/include/asm-generic/bug.h
-@@ -2,7 +2,6 @@
+@@ -2,6 +2,7 @@
  #define _ASM_GENERIC_BUG_H
  
  #include <linux/compiler.h>
--#include <linux/param.h>
++#include <linux/param.h>
  
  #ifdef CONFIG_BUG
  
-@@ -77,7 +76,7 @@ extern void warn_on_slowpath(const char 
- })
- 
- #define WARN_ON_SECS(condition, secs)				\
--		WARN_ON((condition && __ratelimit(secs * HZ, 1)))
-+		WARN_ON((condition) && __ratelimit((secs) * HZ, 1))
- 
- #ifdef CONFIG_SMP
- # define WARN_ON_SMP(x)			WARN_ON(x)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,7 +86,6 @@ lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
 lib-swiotlbc-cleanups.patch
 fs-inodec-use-hlist_for_each_entry.patch
 add-warn_on_secs-macro.patch
-add-warn_on_secs-macro-simplification-fix.patch
 add-warn_on_secs-macro-simplification-fix-fix.patch
 ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
 x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
