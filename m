@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + idr-introduce-ridr_get_new.patch added to -mm tree
-Date: Tue, 29 Apr 2008 12:01:12 -0700
-Message-ID: <200804291901.m3TJ1Cq6004461@imap1.linux-foundation.org>
+Subject: + libata-more-tsstcorp-pain-keep-in-sync-with-legacy-ide.patch added to -mm tree
+Date: Tue, 29 Apr 2008 12:16:11 -0700
+Message-ID: <200804291916.m3TJGBNN005181@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60574 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38765 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758283AbYD2TPN (ORCPT
+	by vger.kernel.org with ESMTP id S1761732AbYD2TRc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 15:15:13 -0400
+	Tue, 29 Apr 2008 15:17:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, nickpiggin@yahoo.com.au, paulmck@us.ibm.com, peifferp@gmail.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, bzolnier@gmail.com, htejun@gmail.com, jeff@garzik.org
 
 
 The patch titled
-     idr: introduce ridr_get_new()
+     libata: more TSSTcorp pain, keep in sync with legacy IDE
 has been added to the -mm tree.  Its filename is
-     idr-introduce-ridr_get_new.patch
+     libata-more-tsstcorp-pain-keep-in-sync-with-legacy-ide.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: introduce ridr_get_new()
-From: Nadia Derbey <Nadia.Derbey@bull.net>
+Subject: libata: more TSSTcorp pain, keep in sync with legacy IDE
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Introduce the ridr_get_new() routine.
-
-Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Jim Houston <jim.houston@comcast.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Pierre Peiffer <peifferp@gmail.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ridr.h |    1 +
- lib/ridr.c           |   27 +++++++++++++++++++++++++++
- 2 files changed, 28 insertions(+)
+ drivers/ata/libata-core.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/ridr.h~idr-introduce-ridr_get_new include/linux/ridr.h
---- a/include/linux/ridr.h~idr-introduce-ridr_get_new
-+++ a/include/linux/ridr.h
-@@ -44,6 +44,7 @@ struct ridr {
-  * This is what we export.
-  */
- int ridr_pre_get(struct ridr *, gfp_t);
-+int ridr_get_new(struct ridr *, void *, int *);
- int ridr_get_new_above(struct ridr *, void *, int, int *);
- void ridr_init(struct ridr *);
+diff -puN drivers/ata/libata-core.c~libata-more-tsstcorp-pain-keep-in-sync-with-legacy-ide drivers/ata/libata-core.c
+--- a/drivers/ata/libata-core.c~libata-more-tsstcorp-pain-keep-in-sync-with-legacy-ide
++++ a/drivers/ata/libata-core.c
+@@ -3933,6 +3933,9 @@ static const struct ata_blacklist_entry 
  
-diff -puN lib/ridr.c~idr-introduce-ridr_get_new lib/ridr.c
---- a/lib/ridr.c~idr-introduce-ridr_get_new
-+++ a/lib/ridr.c
-@@ -232,6 +232,33 @@ int ridr_get_new_above(struct ridr *idp,
- }
- EXPORT_SYMBOL(ridr_get_new_above);
- 
-+/**
-+ * ridr_get_new - allocate new ridr entry
-+ * @idp: ridr handle
-+ * @ptr: pointer you want associated with the ide
-+ * @id: pointer to the allocated handle
-+ *
-+ * This is the allocate id function.  It should be called with any
-+ * required locks.
-+ *
-+ * If memory is required, it will return -EAGAIN, you should unlock
-+ * and go back to the ridr_pre_get() call.  If the ridr is full, it will
-+ * return -ENOSPC.
-+ *
-+ * @id returns a value in the range 0 ... 0x7fffffff
-+ */
-+int ridr_get_new(struct ridr *idp, void *ptr, int *id)
-+{
-+	int rv;
-+
-+	rv = ridr_get_new_above_int(idp, ptr, 0);
-+	if (rv < 0)
-+		return _idr_rc_to_errno(rv);
-+	*id = rv;
-+	return 0;
-+}
-+EXPORT_SYMBOL(ridr_get_new);
-+
- static void ridr_cache_ctor(struct kmem_cache *ridr_layer_cache,
- 			void *ridr_layer)
- {
+ 	/* Devices which get the IVB wrong */
+ 	{ "QUANTUM FIREBALLlct10 05", "A03.0900", ATA_HORKAGE_IVB, },
++	/* Maybe we should just blacklist TSSTcorp... */
++	{ "TSSTcorp CDDVDW SH-S202H", "SB00",	  ATA_HORKAGE_IVB, },
++	{ "TSSTcorp CDDVDW SH-S202H", "SB01",	  ATA_HORKAGE_IVB, },
+ 	{ "TSSTcorp CDDVDW SH-S202J", "SB00",	  ATA_HORKAGE_IVB, },
+ 	{ "TSSTcorp CDDVDW SH-S202J", "SB01",	  ATA_HORKAGE_IVB, },
+ 	{ "TSSTcorp CDDVDW SH-S202N", "SB00",	  ATA_HORKAGE_IVB, },
 _
 
-Patches currently in -mm which might be from Nadia.Derbey@bull.net are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
-ipc-use-ipc_buildid-directly-from-ipc_addid.patch
-ipc-scale-msgmni-to-the-amount-of-lowmem.patch
-ipc-scale-msgmni-to-the-number-of-ipc-namespaces.patch
-ipc-define-the-slab_memory_callback-priority-as-a-constant.patch
-ipc-recompute-msgmni-on-memory-add--remove.patch
-ipc-invoke-the-ipcns-notifier-chain-as-a-work-item.patch
-ipc-recompute-msgmni-on-ipc-namespace-creation-removal.patch
-ipc-do-not-recompute-msgmni-anymore-if-explicitly-set-by-user.patch
-ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative.patch
-ipc-semaphores-code-factorisation.patch
-ipc-shared-memory-introduce-shmctl_down.patch
-ipc-message-queues-introduce-msgctl_down.patch
-ipc-semaphores-move-the-rwmutex-handling-inside-semctl_down.patch
-ipc-semaphores-remove-one-unused-parameter-from-semctl_down.patch
-ipc-get-rid-of-the-use-_setbuf-structure.patch
-ipc-introduce-ipc_update_perm.patch
-ipc-consolidate-all-xxxctl_down-functions.patch
-ipc-add-definitions-of-ushort_max-and-others.patch
-proc-introduce-proc_create_data-to-setup-de-data.patch
-sysvipc-use-non-racy-method-for-proc-entries-creation.patch
-idr-fix-idr_remove.patch
-idr-introduce-the-ridr-structure.patch
-idr-introduce-ridr_pre_get.patch
-idr-introduce-ridr_init.patch
-idr-introduce-ridr_get_new_above.patch
-idr-introduce-ridr_get_new.patch
-idr-introduce-ridr_find.patch
-idr-introduce-ridr_remove.patch
-ipc-integrate-the-ridr-code-into-ipc-code.patch
-ipc-get-rid-of-ipc_lock_down.patch
+origin.patch
+vt-fix-background-color-on-line-feed.patch
+proc-convert-proc-tty-ldiscs-to-seq_file-interface.patch
+edac-new-support-for-intel-3100-chipset.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection.patch
+edac-remove-unneeded-functions-and-add-static-accessor.patch
+edac-fix-module-initialization-on-several-modules-2nd-time.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+libata-more-tsstcorp-pain-keep-in-sync-with-legacy-ide.patch
+pata_atiixp-simplex-clear.patch
+pata_via-fix-6410-misdetect.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+amiserial-prepare-for-locking-relaxation-in-caller.patch
+cyclades-prepare-for-relaxed-locking-in-callers.patch
+epca-lock_kernel-push-down.patch
+esp-lock_kernel-push-down.patch
+isicom-prepare-for-lock_kernel-push-down.patch
+isicom-istallion-prepare-for-lock_kernel-pushdown.patch
+mxser-prepare-for-bkl-pushdown.patch
+riscom8-prepare-for-bkl-pushdown.patch
+rocket-prepare-for-bkl-pushdown.patch
+serial167-prepare-to-push-bkl-down-into-drivers.patch
+specialix-prepare-for-bkl-pushdown.patch
+stallion-prepare-for-bkl-push-down.patch
+sx-prepare-for-bkl-pushdown.patch
+synclink-series-prepare-for-bkl-pushdown.patch
+viocons-bkl-locking.patch
+vt_ioctl-prepare-for-bkl-push-down.patch
+isdn_tty-prepare-for-bkl-push-down.patch
+68360serial-note-that-there-isnt-any-info-mcr-locking.patch
+serial_core-prepare-for-bkl-push-down.patch
+tty-bkl-pushdown.patch
+tty-bkl-pushdown-fix1.patch
+redo-locking-of-tty-pgrp.patch
+resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
+tty_io-fix-remaining-pid-struct-locking.patch
+tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
+tty_ioctl-locking-for-tty_wait_until_sent.patch
+tty_ioctl-soft-carrier-handling.patch
+tty-drop-the-bkl-for-driver-ldisc-ioctl-methods.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+istallion-tiocg-ssoftcar-handling-removal.patch
+cyclades-coding-style-review.patch
+tty-serial-lay-the-foundations-for-the-next-set-of-reworks.patch
+s390-tty-prepare-for-put_char-to-return-success-fail.patch
+serial-m68k-put_char-returns.patch
+usb-gadget-switch-to-put_char-returning-int.patch
+amiserial-switch-put-char-to-return-success-fail.patch
+char-switch-gs-cyclades-and-esp-to-return-int-for-put_char.patch
+mxser-switch-to-put_char-being-int.patch
+pcmcia-serial-to-int-put_char-method.patch
+riscom-rocket-switch-to-int-put_char-method.patch
+serial167-switch-to-int-put_char-method.patch
+specialix-switch-to-int-put_char-method.patch
+synclink-series-switch-to-int-put_char-method.patch
+consoles-switch-to-int-put_char-method.patch
+isdn-switch-to-int-put_char-method.patch
+pty-prepare-for-tty-ops-changes.patch
+pc300-update-to-tty_set_operations.patch
+serial-switch-the-serial-core-to-int-put_char-methods.patch
+isicom-bring-into-coding-style.patch
+isicom-bring-into-coding-style-fix.patch
+tty-the-big-operations-rework.patch
+tty-the-big-operations-rework-broke-wan-x25_asy-fix.patch
+tty-the-big-operations-rework-fix-2.patch
+tty-the-big-operations-rework-isicom-fix.patch
+tty-the-big-operations-rework-simserial-fix.patch
+strip-fix-up-strip-for-the-new-order.patch
+tty-the-big-operations-rework-vs-git-kgdb-light.patch
+tty-the-big-operations-rework-vs-kgdb-2.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
