@@ -1,54 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:24:45 -0700
-Message-ID: <200804290524.m3T5OjYg002911@imap1.linux-foundation.org>
+Subject: - x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:29:13 -0700
+Message-ID: <200804290529.m3T5TDfW003076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48656 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753889AbYD2FZb (ORCPT
+	by vger.kernel.org with ESMTP id S1753828AbYD2F3x (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:25:31 -0400
+	Tue, 29 Apr 2008 01:29:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, mhalcrow@us.ibm.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ak@suse.de, dilinger@debian.org, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix
+     x86-olpc-add-one-laptop-per-child-architecture-support fix
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
+     x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
 
-This patch was dropped because it was folded into ecryptfs-make-key-module-subsystem-respect-namespaces.patch
+This patch was dropped because it was folded into x86-olpc-add-one-laptop-per-child-architecture-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix
+Subject: x86-olpc-add-one-laptop-per-child-architecture-support fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-put_user_ns() from a module...
+arch/x86/kernel/olpc.c: In function 'olpc_init':
+arch/x86/kernel/olpc.c:243: error: implicit declaration of function 'geode_has_vsa'
 
-Should this be EXPORT_SYMBOL_GPL()?
+Is this right?
 
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
-Cc: Serge Hallyn <serue@us.ibm.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Andres Salomon <dilinger@debian.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user_namespace.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/kernel/olpc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/user_namespace.c~ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix kernel/user_namespace.c
---- a/kernel/user_namespace.c~ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix
-+++ a/kernel/user_namespace.c
-@@ -74,3 +74,4 @@ void free_user_ns(struct kref *kref)
- 	release_uids(ns);
- 	kfree(ns);
- }
-+EXPORT_SYMBOL(free_user_ns);
+diff -puN arch/x86/kernel/olpc.c~x86-olpc-add-one-laptop-per-child-architecture-support-fix arch/x86/kernel/olpc.c
+--- a/arch/x86/kernel/olpc.c~x86-olpc-add-one-laptop-per-child-architecture-support-fix
++++ a/arch/x86/kernel/olpc.c
+@@ -240,7 +240,7 @@ static int __init olpc_init(void)
+ 			(unsigned char *) &olpc_platform_info.ecver, 1);
+ 
+ 	/* check to see if the VSA exists */
+-	if (geode_has_vsa())
++	if (geode_has_vsa2())
+ 		olpc_platform_info.flags |= OLPC_F_VSA;
+ 
+ 	printk(KERN_INFO "OLPC board revision %s%X (EC=%x)\n",
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,7 +69,7 @@ lib-swiotlbc-cleanups.patch
 fs-inodec-use-hlist_for_each_entry.patch
 ecryptfs-integrate-ecryptfs-device-handle-into-the-module.patch
 ecryptfs-make-key-module-subsystem-respect-namespaces.patch
-ecryptfs-make-key-module-subsystem-respect-namespaces-fix-refs-to-pid-and-user_ns-fix.patch
+x86-olpc-add-one-laptop-per-child-architecture-support.patch
 x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
 x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
 documentation-build-source-files-in-documentation-sub-dir-disable.patch
