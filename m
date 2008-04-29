@@ -1,70 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - misc-phantom-add-compat-ioctl-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:16:49 -0700
-Message-ID: <200804290516.m3T5GnfG002596@imap1.linux-foundation.org>
+Subject: - sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:17:31 -0700
+Message-ID: <200804290517.m3T5HV3C002610@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44549 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751385AbYD2FQw (ORCPT
+	by vger.kernel.org with ESMTP id S1752004AbYD2FSG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:16:52 -0400
+	Tue, 29 Apr 2008 01:18:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, lwoodman@redhat.com, mingo@elte.hu, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     misc-phantom-add-compat-ioctl-checkpatch-fixes
+     sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+     sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into misc-phantom-add-compat-ioctl.patch
+This patch was dropped because it was folded into sysrq-add-show-backtrace-on-all-cpus-function.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc-phantom-add-compat-ioctl-checkpatch-fixes
+Subject: sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: no space between function name and open parenthesis '('
-#101: FILE: include/linux/phantom.h:38:
-+#define PHN_SETREG		_IOW (PH_IOC_MAGIC, 6, struct phm_reg)
+WARNING: printk() should include KERN_ facility level
+#53: FILE: drivers/char/sysrq.c:210:
++	printk("CPU%d:\n", smp_processor_id());
 
-WARNING: no space between function name and open parenthesis '('
-#103: FILE: include/linux/phantom.h:40:
-+#define PHN_SETREGS		_IOW (PH_IOC_MAGIC, 8, struct phm_regs)
+WARNING: printk() should include KERN_ facility level
+#67: FILE: drivers/char/sysrq.c:224:
++		printk("CPU%d:\n", smp_processor_id());
 
-total: 0 errors, 2 warnings, 78 lines checked
+total: 0 errors, 2 warnings, 63 lines checked
 
-./patches/misc-phantom-add-compat-ioctl.patch has style problems, please review.  If any of these errors
+./patches/sysrq-add-show-backtrace-on-all-cpus-function.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: <lwoodman@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/phantom.h |    4 ++--
+ drivers/char/sysrq.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/phantom.h~misc-phantom-add-compat-ioctl-checkpatch-fixes include/linux/phantom.h
---- a/include/linux/phantom.h~misc-phantom-add-compat-ioctl-checkpatch-fixes
-+++ a/include/linux/phantom.h
-@@ -35,9 +35,9 @@ struct phm_regs {
-  * libphantom) */
- #define PHN_NOT_OH		_IO  (PH_IOC_MAGIC, 4)
- #define PHN_GETREG		_IOWR(PH_IOC_MAGIC, 5, struct phm_reg)
--#define PHN_SETREG		_IOW (PH_IOC_MAGIC, 6, struct phm_reg)
-+#define PHN_SETREG		_IOW(PH_IOC_MAGIC, 6, struct phm_reg)
- #define PHN_GETREGS		_IOWR(PH_IOC_MAGIC, 7, struct phm_regs)
--#define PHN_SETREGS		_IOW (PH_IOC_MAGIC, 8, struct phm_regs)
-+#define PHN_SETREGS		_IOW(PH_IOC_MAGIC, 8, struct phm_regs)
+diff -puN drivers/char/sysrq.c~sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes drivers/char/sysrq.c
+--- a/drivers/char/sysrq.c~sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes
++++ a/drivers/char/sysrq.c
+@@ -207,7 +207,7 @@ static void showacpu(void *dummy)
+ 		return;
  
- #define PHN_CONTROL		0x6     /* control byte in iaddr space */
- #define PHN_CTL_AMP		0x1     /*   switch after torques change */
+ 	spin_lock_irqsave(&show_lock, flags);
+-	printk("CPU%d:\n", smp_processor_id());
++	printk(KERN_INFO "CPU%d:\n", smp_processor_id());
+ 	show_stack(NULL, NULL);
+ 	spin_unlock_irqrestore(&show_lock, flags);
+ }
+@@ -221,7 +221,7 @@ static void sysrq_handle_showallcpus(int
+ {
+ 	struct pt_regs *regs = get_irq_regs();
+ 	if (regs) {
+-		printk("CPU%d:\n", smp_processor_id());
++		printk(KERN_INFO "CPU%d:\n", smp_processor_id());
+ 		show_regs(regs);
+ 	}
+ 	schedule_work(&sysrq_showallcpus);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -72,7 +80,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 make-dev-kmem-a-config-option.patch
 misc-phantom-add-compat-ioctl.patch
-misc-phantom-add-compat-ioctl-checkpatch-fixes.patch
+sysrq-add-show-backtrace-on-all-cpus-function.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
 sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
 codafs-fix-build-warning.patch
