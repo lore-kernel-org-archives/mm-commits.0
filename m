@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch added to -mm tree
-Date: Tue, 29 Apr 2008 13:35:23 -0700
-Message-ID: <200804292039.m3TKdGlV008622@imap1.linux-foundation.org>
+Subject: + scsi-megaraid_sas-update-the-version-and-changelog.patch added to -mm tree
+Date: Tue, 29 Apr 2008 13:45:18 -0700
+Message-ID: <200804292045.m3TKjIbB008887@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57299 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36131 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762722AbYD2UkL (ORCPT
+	by vger.kernel.org with ESMTP id S1752770AbYD2UpW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 16:40:11 -0400
+	Tue, 29 Apr 2008 16:45:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, dilinger@debian.org, dilinger@queued.net, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de
+Cc: bo.yang@lsi.com
 
 
 The patch titled
-     x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup
+     scsi: megaraid_sas: update the Version and Changelog
 has been added to the -mm tree.  Its filename is
-     x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
+     scsi-megaraid_sas-update-the-version-and-changelog.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,153 +34,81 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scsi: megaraid_sas: update the Version and Changelog
+From: bo yang <bo.yang@lsi.com>
 
-Cc: Andres Salomon <dilinger@debian.org>
-Cc: Andres Salomon <dilinger@queued.net>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Update the Version and Changelog for megaraid_sas Driver
+
+Signed-off-by: Bo Yang <bo.yang@lsi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/geode_32.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/scsi/ChangeLog.megaraid_sas |   22 ++++++++++++++++++++
+ drivers/scsi/megaraid/megaraid_sas.c      |    2 -
+ drivers/scsi/megaraid/megaraid_sas.h      |    6 ++---
+ 3 files changed, 26 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/geode_32.c~x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup arch/x86/kernel/geode_32.c
---- a/arch/x86/kernel/geode_32.c~x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup
-+++ a/arch/x86/kernel/geode_32.c
-@@ -161,10 +161,10 @@ void geode_gpio_setup_event(unsigned int
- }
- EXPORT_SYMBOL_GPL(geode_gpio_setup_event);
- 
--static int has_vsa2 = -1;
--
- int geode_has_vsa2(void)
- {
-+	static int has_vsa2 = -1;
+diff -puN Documentation/scsi/ChangeLog.megaraid_sas~scsi-megaraid_sas-update-the-version-and-changelog Documentation/scsi/ChangeLog.megaraid_sas
+--- a/Documentation/scsi/ChangeLog.megaraid_sas~scsi-megaraid_sas-update-the-version-and-changelog
++++ a/Documentation/scsi/ChangeLog.megaraid_sas
+@@ -1,3 +1,25 @@
++1 Release Date    : Mon. March 10 11:02:31 PDT 2008 -
++			(emaild-id:megaraidlinux@lsi.com)
++			Sumant Patro
++			Bo Yang
 +
- 	if (has_vsa2 == -1) {
- 		/*
- 		 * The VSA has virtual registers that we can query for a
++2 Current Version : 00.00.03.20-RC1
++3 Older Version   : 00.00.03.16
++
++1. Rollback the sense info implementation
++	Sense buffer ptr data type in the ioctl path is reverted back
++	to u32 * as in previous versions of driver.
++
++2. Fixed the driver frame count.
++	When Driver sent wrong frame count to firmware.  As this
++	particular command is sent to drive, FW is seeing continuous
++	chip resets and so the command will timeout.
++
++3. Add the new controller(1078DE) support to the driver
++	and Increase the max_wait to 60 from 10 in the controller
++	operational status.  With this max_wait increase, driver will
++	make sure the FW will 	finish the pending cmd for KDUMP case.
++
+ 1 Release Date    : Thur. Nov. 07 16:30:43 PST 2007 -
+ 			(emaild-id:megaraidlinux@lsi.com)
+ 			Sumant Patro
+diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-update-the-version-and-changelog drivers/scsi/megaraid/megaraid_sas.c
+--- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-update-the-version-and-changelog
++++ a/drivers/scsi/megaraid/megaraid_sas.c
+@@ -10,7 +10,7 @@
+  *	   2 of the License, or (at your option) any later version.
+  *
+  * FILE		: megaraid_sas.c
+- * Version	: v00.00.03.16-rc1
++ * Version	: v00.00.03.20-rc1
+  *
+  * Authors:
+  *	(email-id : megaraidlinux@lsi.com)
+diff -puN drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-update-the-version-and-changelog drivers/scsi/megaraid/megaraid_sas.h
+--- a/drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-update-the-version-and-changelog
++++ a/drivers/scsi/megaraid/megaraid_sas.h
+@@ -18,9 +18,9 @@
+ /*
+  * MegaRAID SAS Driver meta data
+  */
+-#define MEGASAS_VERSION				"00.00.03.16-rc1"
+-#define MEGASAS_RELDATE				"Nov. 07, 2007"
+-#define MEGASAS_EXT_VERSION			"Thu. Nov. 07 10:09:32 PDT 2007"
++#define MEGASAS_VERSION			"00.00.03.20-rc1"
++#define MEGASAS_RELDATE			"March 10, 2008"
++#define MEGASAS_EXT_VERSION		"Mon. March 10 11:02:31 PDT 2008"
+ 
+ /*
+  * Device IDs
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bo.yang@lsi.com are
 
 origin.patch
-make-dev-kmem-a-config-option.patch
-misc-phantom-add-compat-ioctl.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry.patch
-ecryptfs-integrate-ecryptfs-device-handle-into-the-module.patch
-ecryptfs-make-key-module-subsystem-respect-namespaces.patch
-x86-olpc-add-one-laptop-per-child-architecture-support.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroups-implement-device-whitelist-v6.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-memcgroup-implement-failcounter-reset.patch
-use-vmalloc-for-mem_cgroup-allocation-v3.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid.patch
-ipc-add-definitions-of-ushort_max-and-others.patch
-ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc.patch
-ipmi-run-to-completion-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
-keys-add-keyctl-function-to-get-a-security-label.patch
-procfs-task-exe-symlink.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff.patch
-idr-create-idr_layer_cache-at-boot-time.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection.patch
-ncpfs-use-get-put_unaligned_-helpers.patch
-relayfs-support-larger-relay-buffer-take-3.patch
-disable-the-memory-controller-by-default-v3.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
-x86-ptrace-pebs-support-warning-fix.patch
-rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
-cifs-suppress-warning.patch
-devres-support-addresses-greater-than-an-unsigned-long-via-dev_ioremap-checkpatch-fixes.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-drivers-media-dvb-frontends-s5h1420c-printk-fix.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-hwmon.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-kvm.patch
-pata_atiixp-simplex-clear.patch
-git-m32r.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-nfsd.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-sched.patch
-sched-add-debug-checks-to-idle-functions.patch
-drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
-add-rcu_assign_index-if-ever-needed.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-aic79xx_core-remove-ascii-art.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-revert-rusty-misc-timer-typesafe.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-ext4-is-busted-on-m68k.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
-add-warn_on_secs-macro.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework-fix-2.patch
-tty-the-big-operations-rework-isicom-fix.patch
-tty-the-big-operations-rework-simserial-fix.patch
-tty-the-big-operations-rework-vs-git-kgdb-light.patch
-tty-the-big-operations-rework-vs-kgdb-2.patch
-devpts-factor-out-pty-index-allocation-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-fuse-fix-race-in-llseek-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+scsi-megaraid_sas-update-the-version-and-changelog.patch
 
