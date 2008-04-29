@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isicom-fix-buffer-allocation.patch added to -mm tree
-Date: Tue, 29 Apr 2008 12:25:08 -0700
-Message-ID: <200804291925.m3TJP8Us005586@imap1.linux-foundation.org>
+Subject: + tty-add-throttle-unthrottle-helpers.patch added to -mm tree
+Date: Tue, 29 Apr 2008 12:27:07 -0700
+Message-ID: <200804291927.m3TJR7ZW005694@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37109 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760727AbYD2T0l (ORCPT
+	by vger.kernel.org with ESMTP id S1752035AbYD2T2a (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 15:26:41 -0400
+	Tue, 29 Apr 2008 15:28:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com
+Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, arjan@infradead.org
 
 
 The patch titled
-     isicom: fix buffer allocation
+     tty: add throttle/unthrottle helpers
 has been added to the -mm tree.  Its filename is
-     isicom-fix-buffer-allocation.patch
+     tty-add-throttle-unthrottle-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,45 +34,205 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isicom: fix buffer allocation
+Subject: tty: add throttle/unthrottle helpers
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Fix the rather strange buffer management on open that turned up while auditing
-for BKL dependencies.
+Something Arjan suggested which allows us to clean up the code nicely
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Arjan van de Ven <arjan@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/isicom.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ drivers/bluetooth/hci_ldisc.c |    4 +---
+ drivers/char/n_tty.c          |   14 ++++----------
+ drivers/char/tty_ioctl.c      |   18 ++++++++++++++++++
+ drivers/net/hamradio/6pack.c  |    4 +---
+ drivers/net/hamradio/mkiss.c  |    4 +---
+ drivers/net/ppp_async.c       |    4 +---
+ drivers/net/ppp_synctty.c     |    4 +---
+ include/linux/tty.h           |    2 ++
+ include/linux/tty_driver.h    |    8 ++++++--
+ 9 files changed, 35 insertions(+), 27 deletions(-)
 
-diff -puN drivers/char/isicom.c~isicom-fix-buffer-allocation drivers/char/isicom.c
---- a/drivers/char/isicom.c~isicom-fix-buffer-allocation
-+++ a/drivers/char/isicom.c
-@@ -813,15 +813,13 @@ static int isicom_setup_port(struct isi_
- 		return 0;
- 	if (!port->xmit_buf) {
- 		/* Relies on BKL */
--		void *xmit_buf = (void *)get_zeroed_page(GFP_KERNEL);
--
--		if (xmit_buf == NULL)
-+		unsigned long page  = get_zeroed_page(GFP_KERNEL);
-+		if (page == 0)
- 			return -ENOMEM;
--		if (port->xmit_buf) {
--			free_page((unsigned long)xmit_buf);
--			return -ERESTARTSYS;
--		}
--		port->xmit_buf = xmit_buf;
-+		if (port->xmit_buf)
-+			free_page(page);
-+		else
-+			port->xmit_buf = (unsigned char *) page;
+diff -puN drivers/bluetooth/hci_ldisc.c~tty-add-throttle-unthrottle-helpers drivers/bluetooth/hci_ldisc.c
+--- a/drivers/bluetooth/hci_ldisc.c~tty-add-throttle-unthrottle-helpers
++++ a/drivers/bluetooth/hci_ldisc.c
+@@ -370,9 +370,7 @@ static void hci_uart_tty_receive(struct 
+ 	hu->hdev->stat.byte_rx += count;
+ 	spin_unlock(&hu->rx_lock);
+ 
+-	if (test_and_clear_bit(TTY_THROTTLED, &tty->flags) &&
+-					tty->ops->unthrottle)
+-		tty->ops->unthrottle(tty);
++	tty_unthrottle(tty);
+ }
+ 
+ static int hci_uart_register_dev(struct hci_uart *hu)
+diff -puN drivers/char/n_tty.c~tty-add-throttle-unthrottle-helpers drivers/char/n_tty.c
+--- a/drivers/char/n_tty.c~tty-add-throttle-unthrottle-helpers
++++ a/drivers/char/n_tty.c
+@@ -147,10 +147,8 @@ static void put_tty_queue(unsigned char 
+ 
+ static void check_unthrottle(struct tty_struct *tty)
+ {
+-	if (tty->count &&
+-	    test_and_clear_bit(TTY_THROTTLED, &tty->flags) &&
+-	    tty->ops->unthrottle)
+-		tty->ops->unthrottle(tty);
++	if (tty->count)
++		tty_unthrottle(tty);
+ }
+ 
+ /**
+@@ -982,12 +980,8 @@ static void n_tty_receive_buf(struct tty
+ 	 * mode.  We don't want to throttle the driver if we're in
+ 	 * canonical mode and don't have a newline yet!
+ 	 */
+-	if (tty->receive_room < TTY_THRESHOLD_THROTTLE) {
+-		/* check TTY_THROTTLED first so it indicates our state */
+-		if (!test_and_set_bit(TTY_THROTTLED, &tty->flags) &&
+-		    tty->ops->throttle)
+-			tty->ops->throttle(tty);
+-	}
++	if (tty->receive_room < TTY_THRESHOLD_THROTTLE)
++		tty_throttle(tty);
+ }
+ 
+ int is_ignored(int sig)
+diff -puN drivers/char/tty_ioctl.c~tty-add-throttle-unthrottle-helpers drivers/char/tty_ioctl.c
+--- a/drivers/char/tty_ioctl.c~tty-add-throttle-unthrottle-helpers
++++ a/drivers/char/tty_ioctl.c
+@@ -67,6 +67,24 @@ void tty_driver_flush_buffer(struct tty_
+ 
+ EXPORT_SYMBOL(tty_driver_flush_buffer);
+ 
++void tty_throttle(struct tty_struct *tty)
++{
++	/* check TTY_THROTTLED first so it indicates our state */
++	if (!test_and_set_bit(TTY_THROTTLED, &tty->flags) &&
++	    tty->ops->throttle)
++		tty->ops->throttle(tty);
++}
++
++EXPORT_SYMBOL(tty_throttle);
++
++void tty_unthrottle(struct tty_struct *tty)
++{
++	if (test_and_clear_bit(TTY_THROTTLED, &tty->flags) &&
++	    tty->ops->unthrottle)
++		tty->ops->unthrottle(tty);
++}
++
++EXPORT_SYMBOL(tty_unthrottle);
+ 
+ /**
+  *	tty_wait_until_sent	-	wait for I/O to finish
+diff -puN drivers/net/hamradio/6pack.c~tty-add-throttle-unthrottle-helpers drivers/net/hamradio/6pack.c
+--- a/drivers/net/hamradio/6pack.c~tty-add-throttle-unthrottle-helpers
++++ a/drivers/net/hamradio/6pack.c
+@@ -491,9 +491,7 @@ static void sixpack_receive_buf(struct t
+ 	sixpack_decode(sp, buf, count1);
+ 
+ 	sp_put(sp);
+-	if (test_and_clear_bit(TTY_THROTTLED, &tty->flags)
+-	    && tty->ops->unthrottle)
+-		tty->ops->unthrottle(tty);
++	tty_unthrottle(tty);
+ }
+ 
+ /*
+diff -puN drivers/net/hamradio/mkiss.c~tty-add-throttle-unthrottle-helpers drivers/net/hamradio/mkiss.c
+--- a/drivers/net/hamradio/mkiss.c~tty-add-throttle-unthrottle-helpers
++++ a/drivers/net/hamradio/mkiss.c
+@@ -936,9 +936,7 @@ static void mkiss_receive_buf(struct tty
  	}
  
- 	spin_lock_irqsave(&card->card_lock, flags);
+ 	mkiss_put(ax);
+-	if (test_and_clear_bit(TTY_THROTTLED, &tty->flags)
+-	    && tty->ops->unthrottle)
+-		tty->ops->unthrottle(tty);
++	tty_unthrottle(tty);
+ }
+ 
+ /*
+diff -puN drivers/net/ppp_async.c~tty-add-throttle-unthrottle-helpers drivers/net/ppp_async.c
+--- a/drivers/net/ppp_async.c~tty-add-throttle-unthrottle-helpers
++++ a/drivers/net/ppp_async.c
+@@ -361,9 +361,7 @@ ppp_asynctty_receive(struct tty_struct *
+ 	if (!skb_queue_empty(&ap->rqueue))
+ 		tasklet_schedule(&ap->tsk);
+ 	ap_put(ap);
+-	if (test_and_clear_bit(TTY_THROTTLED, &tty->flags)
+-	    && tty->ops->unthrottle)
+-		tty->ops->unthrottle(tty);
++	tty_unthrottle(tty);
+ }
+ 
+ static void
+diff -puN drivers/net/ppp_synctty.c~tty-add-throttle-unthrottle-helpers drivers/net/ppp_synctty.c
+--- a/drivers/net/ppp_synctty.c~tty-add-throttle-unthrottle-helpers
++++ a/drivers/net/ppp_synctty.c
+@@ -401,9 +401,7 @@ ppp_sync_receive(struct tty_struct *tty,
+ 	if (!skb_queue_empty(&ap->rqueue))
+ 		tasklet_schedule(&ap->tsk);
+ 	sp_put(ap);
+-	if (test_and_clear_bit(TTY_THROTTLED, &tty->flags)
+-	    && tty->ops->unthrottle)
+-		tty->ops->unthrottle(tty);
++	tty_unthrottle(tty);
+ }
+ 
+ static void
+diff -puN include/linux/tty.h~tty-add-throttle-unthrottle-helpers include/linux/tty.h
+--- a/include/linux/tty.h~tty-add-throttle-unthrottle-helpers
++++ a/include/linux/tty.h
+@@ -303,6 +303,8 @@ extern int tty_put_char(struct tty_struc
+ extern int tty_chars_in_buffer(struct tty_struct *tty);
+ extern int tty_write_room(struct tty_struct *tty);
+ extern void tty_driver_flush_buffer(struct tty_struct *tty);
++extern void tty_throttle(struct tty_struct *tty);
++extern void tty_unthrottle(struct tty_struct *tty);
+ 
+ extern int is_current_pgrp_orphaned(void);
+ extern struct pid *tty_get_pgrp(struct tty_struct *tty);
+diff -puN include/linux/tty_driver.h~tty-add-throttle-unthrottle-helpers include/linux/tty_driver.h
+--- a/include/linux/tty_driver.h~tty-add-throttle-unthrottle-helpers
++++ a/include/linux/tty_driver.h
+@@ -100,6 +100,8 @@
+  * 	This routine notifies the tty driver that input buffers for
+  * 	the line discipline are close to full, and it should somehow
+  * 	signal that no more characters should be sent to the tty.
++ *
++ *	Optional: Always invoke via tty_throttle();
+  * 
+  * void (*unthrottle)(struct tty_struct * tty);
+  *
+@@ -107,12 +109,14 @@
+  * 	that characters can now be sent to the tty without fear of
+  * 	overrunning the input buffers of the line disciplines.
+  * 
++ *	Optional: Always invoke via tty_unthrottle();
++ *
+  * void (*stop)(struct tty_struct *tty);
+  *
+  * 	This routine notifies the tty driver that it should stop
+  * 	outputting characters to the tty device.  
+  *
+- *	Optional:
++ *	Optional: 
+  *
+  *	Note: Call stop_tty not this method.
+  * 
+@@ -141,7 +145,7 @@
+  *
+  * 	If this routine is implemented, the high-level tty driver will
+  * 	handle the following ioctls: TCSBRK, TCSBRKP, TIOCSBRK,
+- * 	TIOCCBRK.
++ * 	TIOCCBRK. 
+  *
+  *	Optional: Required for TCSBRK/BRKP/etc handling.
+  *
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
@@ -155,11 +315,10 @@ epca-coding-style.patch
 esp-clean-up-to-modern-coding-style.patch
 toshiba-use-ioremap_cached.patch
 isicom-fix-buffer-allocation.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
 tty-add-throttle-unthrottle-helpers.patch
 ip2-switch-remaining-direct-call-of-ops-flush_buffer.patch
-x25_asy-code-cleanup.patch
 8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
 maintainers-sort-ordering.patch
 char-serial-switch-drivers-to-ioremap_nocache.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
