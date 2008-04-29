@@ -1,75 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:17:34 -0700
-Message-ID: <200804290517.m3T5HYQF002613@imap1.linux-foundation.org>
+Subject: - fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:19:02 -0700
+Message-ID: <200804290519.m3T5J2mX002708@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46602 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753468AbYD2FSH (ORCPT
+	by vger.kernel.org with ESMTP id S1752177AbYD2FTf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:18:07 -0400
+	Tue, 29 Apr 2008 01:19:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lwoodman@redhat.com, mingo@elte.hu, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, matthias@kaehlcke.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup
+     fs-inodec-use-hlist_for_each_entry-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
+     fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into sysrq-add-show-backtrace-on-all-cpus-function.patch
+This patch was dropped because it was folded into fs-inodec-use-hlist_for_each_entry.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup
+Subject: fs-inodec-use-hlist_for_each_entry-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-be conventional about code layout.
+WARNING: no space between function name and open parenthesis '('
+#21: FILE: fs/inode.c:498:
++	hlist_for_each_entry (inode, node, head, i_hash) {
 
-Cc: <lwoodman@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Rik van Riel <riel@redhat.com>
+WARNING: no space between function name and open parenthesis '('
+#31: FILE: fs/inode.c:522:
++	hlist_for_each_entry (inode, node, head, i_hash) {
+
+total: 0 errors, 2 warnings, 18 lines checked
+
+./patches/fs-inodec-use-hlist_for_each_entry.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Matthias Kaehlcke <matthias@kaehlcke.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sysrq.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ fs/inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/sysrq.c~sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup
-+++ a/drivers/char/sysrq.c
-@@ -198,6 +198,7 @@ static struct sysrq_key_op sysrq_showloc
+diff -puN fs/inode.c~fs-inodec-use-hlist_for_each_entry-checkpatch-fixes fs/inode.c
+--- a/fs/inode.c~fs-inodec-use-hlist_for_each_entry-checkpatch-fixes
++++ a/fs/inode.c
+@@ -495,7 +495,7 @@ static struct inode * find_inode(struct 
+ 	struct inode * inode = NULL;
  
- #ifdef CONFIG_SMP
- static DEFINE_SPINLOCK(show_lock);
-+
- static void showacpu(void *dummy)
- {
- 	unsigned long flags;
-@@ -211,10 +212,12 @@ static void showacpu(void *dummy)
- 	show_stack(NULL, NULL);
- 	spin_unlock_irqrestore(&show_lock, flags);
- }
-+
- static void sysrq_showregs_othercpus(struct work_struct *dummy)
- {
- 	smp_call_function(showacpu, NULL, 0, 0);
- }
-+
- static DECLARE_WORK(sysrq_showallcpus, sysrq_showregs_othercpus);
+ repeat:
+-	hlist_for_each_entry (inode, node, head, i_hash) {
++	hlist_for_each_entry(inode, node, head, i_hash) {
+ 		if (inode->i_sb != sb)
+ 			continue;
+ 		if (!test(inode, data))
+@@ -519,7 +519,7 @@ static struct inode * find_inode_fast(st
+ 	struct inode * inode = NULL;
  
- static void sysrq_handle_showallcpus(int key, struct tty_struct *tty)
-@@ -226,6 +229,7 @@ static void sysrq_handle_showallcpus(int
- 	}
- 	schedule_work(&sysrq_showallcpus);
- }
-+
- static struct sysrq_key_op sysrq_showallcpus_op = {
- 	.handler	= sysrq_handle_showallcpus,
- 	.help_msg	= "aLlcpus",
+ repeat:
+-	hlist_for_each_entry (inode, node, head, i_hash) {
++	hlist_for_each_entry(inode, node, head, i_hash) {
+ 		if (inode->i_ino != ino)
+ 			continue;
+ 		if (inode->i_sb != sb)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,11 +79,10 @@ origin.patch
 make-dev-kmem-a-config-option.patch
 misc-phantom-add-compat-ioctl.patch
 sysrq-add-show-backtrace-on-all-cpus-function.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
 codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
-utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
 lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry.patch
 fs-inodec-use-hlist_for_each_entry-checkpatch-fixes.patch
 add-warn_on_secs-macro-simplification-fix.patch
 add-warn_on_secs-macro-simplification-fix-fix.patch
