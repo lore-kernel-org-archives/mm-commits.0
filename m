@@ -1,62 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-implement-device-whitelist-v6-fix.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:40:24 -0700
-Message-ID: <200804290540.m3T5eO8A003481@imap1.linux-foundation.org>
+Subject: - memcgroup-implement-failcounter-reset-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:44:36 -0700
+Message-ID: <200804290544.m3T5iamu003644@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41161 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41506 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751925AbYD2FlO (ORCPT
+	by vger.kernel.org with ESMTP id S1751169AbYD2Fox (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:41:14 -0400
+	Tue, 29 Apr 2008 01:44:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, daniel@hozac.com, jmorris@namei.org, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, serue@us.ibm.com, mm-commits
+To: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups-implement-device-whitelist-v6-fix
+     memcgroup-implement-failcounter-reset-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     cgroups-implement-device-whitelist-v6-fix.patch
+     memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into cgroups-implement-device-whitelist-v6.patch
+This patch was dropped because it was folded into memcgroup-implement-failcounter-reset.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups-implement-device-whitelist-v6-fix
+Subject: memcgroup-implement-failcounter-reset-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-security/device_cgroup.c: In function 'devcgroup_access_read':
-security/device_cgroup.c:280: warning: 'len' may be used uninitialized in this function
+ERROR: switch and case should be at the same indent
+#59: FILE: mm/memcontrol.c:878:
++	switch (event) {
++		case RES_MAX_USAGE:
+[...]
++		case RES_FAILCNT:
 
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+total: 1 errors, 0 warnings, 48 lines checked
+
+./patches/memcgroup-implement-failcounter-reset.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Daniel Hokka Zakrisson <daniel@hozac.com>
-Cc: James Morris <jmorris@namei.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
-Cc: Serge E. Hallyn <serue@us.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/device_cgroup.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN security/device_cgroup.c~cgroups-implement-device-whitelist-v6-fix security/device_cgroup.c
---- a/security/device_cgroup.c~cgroups-implement-device-whitelist-v6-fix
-+++ a/security/device_cgroup.c
-@@ -277,7 +277,8 @@ static ssize_t devcgroup_access_read(str
- 	struct dev_cgroup *devcgroup = cgroup_to_devcgroup(cgroup);
- 	int filetype = cft->private;
- 	char *buffer;
--	int len, retval;
-+	int uninitialized_var(len);
-+	int retval;
+diff -puN mm/memcontrol.c~memcgroup-implement-failcounter-reset-checkpatch-fixes mm/memcontrol.c
+--- a/mm/memcontrol.c~memcgroup-implement-failcounter-reset-checkpatch-fixes
++++ a/mm/memcontrol.c
+@@ -863,12 +863,12 @@ static int mem_cgroup_reset(struct cgrou
  
- 	if (filetype != DEVCG_ALLOW)
- 		return -EINVAL;
+ 	mem = mem_cgroup_from_cont(cont);
+ 	switch (event) {
+-		case RES_MAX_USAGE:
+-			res_counter_reset_max(&mem->res);
+-			break;
+-		case RES_FAILCNT:
+-			res_counter_reset_failcnt(&mem->res);
+-			break;
++	case RES_MAX_USAGE:
++		res_counter_reset_max(&mem->res);
++		break;
++	case RES_FAILCNT:
++		res_counter_reset_failcnt(&mem->res);
++		break;
+ 	}
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,8 +91,8 @@ ecryptfs-make-key-module-subsystem-respect-namespaces.patch
 x86-olpc-add-one-laptop-per-child-architecture-support.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
 cgroups-implement-device-whitelist-v6.patch
-cgroups-implement-device-whitelist-v6-fix.patch
-add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2.patch
+memcgroup-implement-failcounter-reset.patch
 memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
 use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
 workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
