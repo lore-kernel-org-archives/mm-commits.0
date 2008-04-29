@@ -1,56 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:39:13 -0700
-Message-ID: <200804290539.m3T5dDb5003439@imap1.linux-foundation.org>
+Subject: - cgroups-implement-device-whitelist-v6-cleanups.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:40:14 -0700
+Message-ID: <200804290540.m3T5eE09003475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39718 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752124AbYD2Fjq (ORCPT
+	by vger.kernel.org with ESMTP id S1751535AbYD2Fkq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:39:46 -0400
+	Tue, 29 Apr 2008 01:40:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, pj@sgi.com, xemul@openvz.org, yamamoto@valinux.co.jp, mm-commits@
+To: akpm@linux-foundation.org, balbir@in.ibm.com, daniel@hozac.com, jmorris@namei.org, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, serue@us.ibm.com, mm-commits
 
 
 The patch titled
-     cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix
+     cgroups-implement-device-whitelist-v6-cleanups
 has been removed from the -mm tree.  Its filename was
-     cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
+     cgroups-implement-device-whitelist-v6-cleanups.patch
 
-This patch was dropped because it was folded into cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+This patch was dropped because it was folded into cgroups-implement-device-whitelist-v6.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix
+Subject: cgroups-implement-device-whitelist-v6-cleanups
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Li Zefan" <lizf@cn.fujitsu.com>
-Cc: "YAMAMOTO Takashi" <yamamoto@valinux.co.jp>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daniel Hokka Zakrisson <daniel@hozac.com>
+Cc: James Morris <jmorris@namei.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Jackson <pj@sgi.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Cc: Paul Menage <menage@google.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    1 -
- 1 file changed, 1 deletion(-)
+ security/device_cgroup.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN kernel/cpuset.c~cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix kernel/cpuset.c
---- a/kernel/cpuset.c~cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix
-+++ a/kernel/cpuset.c
-@@ -1381,7 +1381,6 @@ static u64 cpuset_read_u64(struct cgroup
- 		return cpuset_memory_pressure_enabled;
- 	case FILE_MEMORY_PRESSURE:
- 		return fmeter_getrate(&cs->fmeter);
--		break;
- 	case FILE_SPREAD_PAGE:
- 		return is_spread_page(cs);
- 	case FILE_SPREAD_SLAB:
+diff -puN security/device_cgroup.c~cgroups-implement-device-whitelist-v6-cleanups security/device_cgroup.c
+--- a/security/device_cgroup.c~cgroups-implement-device-whitelist-v6-cleanups
++++ a/security/device_cgroup.c
+@@ -48,14 +48,12 @@ struct dev_cgroup {
+ 	spinlock_t lock;
+ };
+ 
+-static inline struct dev_cgroup *cgroup_to_devcgroup(
+-		struct cgroup *cgroup)
++static inline struct dev_cgroup *cgroup_to_devcgroup(struct cgroup *cgroup)
+ {
+ 	return container_of(cgroup_subsys_state(cgroup, devices_subsys_id),
+ 			    struct dev_cgroup, css);
+ }
+ 
+-
+ struct cgroup_subsys devices_subsys;
+ 
+ static int devcgroup_can_attach(struct cgroup_subsys *ss,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -67,8 +76,7 @@ ecryptfs-integrate-ecryptfs-device-handle-into-the-module.patch
 ecryptfs-make-key-module-subsystem-respect-namespaces.patch
 x86-olpc-add-one-laptop-per-child-architecture-support.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api-fix.patch
-cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6.patch
 cgroups-implement-device-whitelist-v6-cleanups.patch
 cgroups-implement-device-whitelist-v6-fix.patch
 add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
