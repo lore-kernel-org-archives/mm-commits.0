@@ -1,78 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:17:31 -0700
-Message-ID: <200804290517.m3T5HV3C002610@imap1.linux-foundation.org>
+Subject: - lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:18:08 -0700
+Message-ID: <200804290518.m3T5I8nO002629@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46127 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47544 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752004AbYD2FSG (ORCPT
+	by vger.kernel.org with ESMTP id S1753509AbYD2FSM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:18:06 -0400
+	Tue, 29 Apr 2008 01:18:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, lwoodman@redhat.com, mingo@elte.hu, riel@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, rpjday@crashcourse.ca, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes
+     lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
+     lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into sysrq-add-show-backtrace-on-all-cpus-function.patch
+This patch was dropped because it was folded into lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes
+Subject: lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: printk() should include KERN_ facility level
-#53: FILE: drivers/char/sysrq.c:210:
-+	printk("CPU%d:\n", smp_processor_id());
+WARNING: line over 80 characters
+#30: FILE: include/linux/list.h:242:
++static inline void list_splice(const struct list_head *list, struct list_head *head)
 
-WARNING: printk() should include KERN_ facility level
-#67: FILE: drivers/char/sysrq.c:224:
-+		printk("CPU%d:\n", smp_processor_id());
+total: 0 errors, 1 warnings, 16 lines checked
 
-total: 0 errors, 2 warnings, 63 lines checked
-
-./patches/sysrq-add-show-backtrace-on-all-cpus-function.patch has style problems, please review.  If any of these errors
+./patches/lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: <lwoodman@redhat.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Cc: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sysrq.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/list.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/sysrq.c~sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes drivers/char/sysrq.c
---- a/drivers/char/sysrq.c~sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes
-+++ a/drivers/char/sysrq.c
-@@ -207,7 +207,7 @@ static void showacpu(void *dummy)
- 		return;
- 
- 	spin_lock_irqsave(&show_lock, flags);
--	printk("CPU%d:\n", smp_processor_id());
-+	printk(KERN_INFO "CPU%d:\n", smp_processor_id());
- 	show_stack(NULL, NULL);
- 	spin_unlock_irqrestore(&show_lock, flags);
- }
-@@ -221,7 +221,7 @@ static void sysrq_handle_showallcpus(int
+diff -puN include/linux/list.h~lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes include/linux/list.h
+--- a/include/linux/list.h~lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes
++++ a/include/linux/list.h
+@@ -230,7 +230,8 @@ static inline void __list_splice(const s
+  * @list: the new list to add.
+  * @head: the place to add it in the first list.
+  */
+-static inline void list_splice(const struct list_head *list, struct list_head *head)
++static inline void list_splice(const struct list_head *list,
++				struct list_head *head)
  {
- 	struct pt_regs *regs = get_irq_regs();
- 	if (regs) {
--		printk("CPU%d:\n", smp_processor_id());
-+		printk(KERN_INFO "CPU%d:\n", smp_processor_id());
- 		show_regs(regs);
- 	}
- 	schedule_work(&sysrq_showallcpus);
+ 	if (!list_empty(list))
+ 		__list_splice(list, head);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,9 +68,8 @@ origin.patch
 make-dev-kmem-a-config-option.patch
 misc-phantom-add-compat-ioctl.patch
 sysrq-add-show-backtrace-on-all-cpus-function.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes.patch
-sysrq-add-show-backtrace-on-all-cpus-function-checkpatch-fixes-cleanup.patch
 codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
 lists-add-const-qualifier-to-first-arg-of-list_splice-operations-checkpatch-fixes.patch
 utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
 lib-swiotlbc-cleanups.patch
