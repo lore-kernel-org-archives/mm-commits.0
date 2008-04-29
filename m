@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch added to -mm tree
-Date: Tue, 29 Apr 2008 12:45:15 -0700
-Message-ID: <200804291945.m3TJjFek006421@imap1.linux-foundation.org>
+Subject: + netfilter-assign-pde-fops-before-gluing-pde-into-proc-tree.patch added to -mm tree
+Date: Tue, 29 Apr 2008 12:45:19 -0700
+Message-ID: <200804291945.m3TJjJ3G006427@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34738 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41273 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755870AbYD2Tp1 (ORCPT
+	by vger.kernel.org with ESMTP id S1755557AbYD2TpZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 15:45:27 -0400
+	Tue, 29 Apr 2008 15:45:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, adobriyan@openvz.org, benh@kernel.crashing.org, ebiederm@xmission.com, paulus@au.ibm.com
+Cc: den@openvz.org, adobriyan@openvz.org, ebiederm@xmission.com, kaber@trash.net
 
 
 The patch titled
-     powerpc: assign PDE->data before gluing PDE into /proc tree
+     netfilter: assign PDE->fops before gluing PDE into /proc tree
 has been added to the -mm tree.  Its filename is
-     powerpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+     netfilter-assign-pde-fops-before-gluing-pde-into-proc-tree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: assign PDE->data before gluing PDE into /proc tree
+Subject: netfilter: assign PDE->fops before gluing PDE into /proc tree
 From: "Denis V. Lunev" <den@openvz.org>
 
-Simply replace proc_create and further data assigned with proc_create_data. 
-No need to check for data!=NULL after that.
+Replace create_proc_entry with specially created for this purpose proc_create.
 
 Signed-off-by: Denis V. Lunev <den@openvz.org>
 Cc: Alexey Dobriyan <adobriyan@openvz.org>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Paul Mackerras <paulus@au.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/scanlog.c |   19 ++-----------------
- 1 file changed, 2 insertions(+), 17 deletions(-)
+ net/netfilter/nf_conntrack_standalone.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/platforms/pseries/scanlog.c~powerpc-assign-pde-data-before-gluing-pde-into-proc-tree arch/powerpc/platforms/pseries/scanlog.c
---- a/arch/powerpc/platforms/pseries/scanlog.c~powerpc-assign-pde-data-before-gluing-pde-into-proc-tree
-+++ a/arch/powerpc/platforms/pseries/scanlog.c
-@@ -55,11 +55,6 @@ static ssize_t scanlog_read(struct file 
-         dp = PDE(inode);
-  	data = (unsigned int *)dp->data;
- 
--	if (!data) {
--		printk(KERN_ERR "scanlog: read failed no data\n");
--		return -EIO;
--	}
--
- 	if (count > RTAS_DATA_BUF_SIZE)
- 		count = RTAS_DATA_BUF_SIZE;
- 
-@@ -146,11 +141,6 @@ static int scanlog_open(struct inode * i
- 	struct proc_dir_entry *dp = PDE(inode);
- 	unsigned int *data = (unsigned int *)dp->data;
- 
--	if (!data) {
--		printk(KERN_ERR "scanlog: open failed no data\n");
--		return -EIO;
--	}
--
- 	if (data[0] != 0) {
- 		/* This imperfect test stops a second copy of the
- 		 * data (or a reset while data is being copied)
-@@ -168,10 +158,6 @@ static int scanlog_release(struct inode 
- 	struct proc_dir_entry *dp = PDE(inode);
- 	unsigned int *data = (unsigned int *)dp->data;
- 
--	if (!data) {
--		printk(KERN_ERR "scanlog: release failed no data\n");
--		return -EIO;
--	}
- 	data[0] = 0;
- 
+diff -puN net/netfilter/nf_conntrack_standalone.c~netfilter-assign-pde-fops-before-gluing-pde-into-proc-tree net/netfilter/nf_conntrack_standalone.c
+--- a/net/netfilter/nf_conntrack_standalone.c~netfilter-assign-pde-fops-before-gluing-pde-into-proc-tree
++++ a/net/netfilter/nf_conntrack_standalone.c
+@@ -296,11 +296,11 @@ static int nf_conntrack_standalone_init_
+ 	pde = proc_net_fops_create(&init_net, "nf_conntrack", 0440, &ct_file_ops);
+ 	if (!pde)
+ 		goto out_nf_conntrack;
+-	pde = create_proc_entry("nf_conntrack", S_IRUGO, init_net.proc_net_stat);
++
++	pde = proc_create("nf_conntrack", S_IRUGO, init_net.proc_net_stat,
++			  &ct_cpu_seq_fops);
+ 	if (!pde)
+ 		goto out_stat_nf_conntrack;
+-	pde->proc_fops = &ct_cpu_seq_fops;
+-	pde->owner = THIS_MODULE;
  	return 0;
-@@ -200,12 +186,11 @@ static int __init scanlog_init(void)
- 	if (!data)
- 		goto err;
  
--	ent = proc_create("ppc64/rtas/scan-log-dump", S_IRUSR, NULL,
--			  &scanlog_fops);
-+	ent = proc_create_data("ppc64/rtas/scan-log-dump", S_IRUSR, NULL,
-+			       &scanlog_fops, data);
- 	if (!ent)
- 		goto err;
- 
--	ent->data = data;
- 	proc_ppc64_scan_log_dump = ent;
- 
- 	return 0;
+ out_stat_nf_conntrack:
 _
 
 Patches currently in -mm which might be from den@openvz.org are
