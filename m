@@ -1,58 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:45:00 -0700
-Message-ID: <200804290545.m3T5j0ZO003647@imap1.linux-foundation.org>
+Subject: - cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:40:10 -0700
+Message-ID: <200804290540.m3T5eAET003472@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35553 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46673 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751765AbYD2FpU (ORCPT
+	by vger.kernel.org with ESMTP id S1752018AbYD2FqY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:45:20 -0400
+	Tue, 29 Apr 2008 01:46:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@in.ibm.com, daniel@hozac.com, jmorris@namei.org, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, menage@google.com, serue@us.ibm.com, mm-commits
 
 
 The patch titled
-     use-vmalloc-for-mem_cgroup-allocation-v3-simplification
+     cgroups-implement-device-whitelist-v6-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
+     cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into use-vmalloc-for-mem_cgroup-allocation-v3.patch
+This patch was dropped because it was folded into cgroups-implement-device-whitelist-v6.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: use-vmalloc-for-mem_cgroup-allocation-v3-simplification
+Subject: cgroups-implement-device-whitelist-v6-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
+WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
+#153: FILE: security/device_cgroup.c:11:
++#include <asm/uaccess.h>
+
+ERROR: spaces required around that '=' (ctx:VxV)
+#609: FILE: security/device_cgroup.c:467:
++			count=3;
+ 			     ^
+
+total: 1 errors, 1 warnings, 669 lines checked
+
+./patches/cgroups-implement-device-whitelist-v6.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
 Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Daniel Hokka Zakrisson <daniel@hozac.com>
+Cc: James Morris <jmorris@namei.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Paul Menage <menage@google.com>
+Cc: Serge E. Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ security/device_cgroup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~use-vmalloc-for-mem_cgroup-allocation-v3-simplification mm/memcontrol.c
---- a/mm/memcontrol.c~use-vmalloc-for-mem_cgroup-allocation-v3-simplification
-+++ a/mm/memcontrol.c
-@@ -993,10 +993,8 @@ static struct mem_cgroup *mem_cgroup_all
- 	else
- 		mem = vmalloc(sizeof(*mem));
+diff -puN security/device_cgroup.c~cgroups-implement-device-whitelist-v6-checkpatch-fixes security/device_cgroup.c
+--- a/security/device_cgroup.c~cgroups-implement-device-whitelist-v6-checkpatch-fixes
++++ a/security/device_cgroup.c
+@@ -8,7 +8,7 @@
+ #include <linux/cgroup.h>
+ #include <linux/ctype.h>
+ #include <linux/list.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
  
--	if (!mem)
--		return NULL;
--
--	memset(mem, 0, sizeof(*mem));
-+	if (mem)
-+		memset(mem, 0, sizeof(*mem));
- 	return mem;
- }
- 
+ #define ACC_MKNOD 1
+ #define ACC_READ  2
+@@ -464,7 +464,7 @@ static ssize_t devcgroup_access_write(st
+ 			break;
+ 		case '\n':
+ 		case '\0':
+-			count=3;
++			count = 3;
+ 			break;
+ 		default:
+ 			retval = -EINVAL;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,9 +96,11 @@ ecryptfs-make-key-module-subsystem-respect-namespaces.patch
 x86-olpc-add-one-laptop-per-child-architecture-support.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
 cgroups-implement-device-whitelist-v6.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-memcgroup-implement-failcounter-reset.patch
-use-vmalloc-for-mem_cgroup-allocation-v3.patch
+cgroups-implement-device-whitelist-v6-checkpatch-fixes.patch
+cgroups-implement-device-whitelist-v6-cleanups.patch
+cgroups-implement-device-whitelist-v6-fix.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
+memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
 use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
 workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid-cleanup.patch
