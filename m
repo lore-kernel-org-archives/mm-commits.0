@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + proc-remove-proc_bus-fix.patch added to -mm tree
-Date: Mon, 28 Apr 2008 23:31:38 -0700
-Message-ID: <200804290631.m3T6VcAo005384@imap1.linux-foundation.org>
+Date: Mon, 28 Apr 2008 23:39:20 -0700
+Message-ID: <200804290639.m3T6dKRW005664@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45715 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45940 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754750AbYD2Gbl (ORCPT
+	by vger.kernel.org with ESMTP id S1754659AbYD2Gjx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 02:31:41 -0400
+	Tue, 29 Apr 2008 02:39:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -43,8 +43,8 @@ Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/pcmcia_ioctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pcmcia/pcmcia_ioctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff -puN drivers/pcmcia/pcmcia_ioctl.c~proc-remove-proc_bus-fix drivers/pcmcia/pcmcia_ioctl.c
 --- a/drivers/pcmcia/pcmcia_ioctl.c~proc-remove-proc_bus-fix
@@ -58,6 +58,15 @@ diff -puN drivers/pcmcia/pcmcia_ioctl.c~proc-remove-proc_bus-fix drivers/pcmcia/
  	if (proc_pccard)
  		create_proc_read_entry("drivers",0,proc_pccard,proc_read_drivers,NULL);
  #endif
+@@ -798,7 +798,7 @@ void __exit pcmcia_cleanup_ioctl(void) {
+ #ifdef CONFIG_PROC_FS
+ 	if (proc_pccard) {
+ 		remove_proc_entry("drivers", proc_pccard);
+-		remove_proc_entry("pccard", proc_bus);
++		remove_proc_entry("bus/pccard", NULL);
+ 	}
+ #endif
+ 	if (major_dev != -1)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
