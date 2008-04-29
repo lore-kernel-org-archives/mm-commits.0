@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + proc-remove-proc_bus-fix.patch added to -mm tree
-Date: Mon, 28 Apr 2008 23:39:20 -0700
-Message-ID: <200804290639.m3T6dKRW005664@imap1.linux-foundation.org>
+Subject: - proc-remove-proc_bus-fix.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 00:13:19 -0700
+Message-ID: <200804290713.m3T7DJa8006790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45940 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754659AbYD2Gjx (ORCPT
+	by vger.kernel.org with ESMTP id S1754269AbYD2HNW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 02:39:53 -0400
+	Tue, 29 Apr 2008 03:13:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, adobriyan@gmail.com
+To: akpm@linux-foundation.org, adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      proc-remove-proc_bus-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      proc-remove-proc_bus-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into proc-remove-proc_bus.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -96,7 +86,7 @@ ipmi-style-fixes-in-the-system-interface-code.patch
 elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
 keys-add-keyctl-function-to-get-a-security-label.patch
 procfs-task-exe-symlink.patch
-proc-switch-to-proc_create.patch
+proc-remove-proc_bus.patch
 proc-remove-proc_bus-fix.patch
 edd-add-default-mode-config_edd_off=n-override-with-edd=onoff.patch
 idr-create-idr_layer_cache-at-boot-time.patch
