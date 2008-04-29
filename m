@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-path_getput-cleanups.patch added to -mm tree
-Date: Tue, 29 Apr 2008 16:16:08 -0700
-Message-ID: <200804292316.m3TNG88o015225@imap1.linux-foundation.org>
+Subject: + autofs-path_getput-cleanups.patch added to -mm tree
+Date: Tue, 29 Apr 2008 16:18:19 -0700
+Message-ID: <200804292318.m3TNIJJj015356@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50641 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45591 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751968AbYD2XRi (ORCPT
+	by vger.kernel.org with ESMTP id S1754753AbYD2XSz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 19:17:38 -0400
+	Tue, 29 Apr 2008 19:18:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jblunck@suse.de, jens.axboe@oracle.com, viro@zeniv.linux.org.uk
+Cc: jblunck@suse.de, raven@themaw.net
 
 
 The patch titled
-     vfs: path_{get,put}() cleanups
+     autofs: path_{get,put}() cleanups
 has been added to the -mm tree.  Its filename is
-     vfs-path_getput-cleanups.patch
+     autofs-path_getput-cleanups.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,96 +34,69 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: path_{get,put}() cleanups
+Subject: autofs: path_{get,put}() cleanups
 From: Jan Blunck <jblunck@suse.de>
 
 Here are some more places where path_{get,put}() can be used instead of
-dput()/mntput() pair.
+dput()/mntput() pair.  Besides that it fixes a bug in autofs4_mount_busy()
+where mntput() was called before dput().
 
 Signed-off-by: Jan Blunck <jblunck@suse.de>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c |   11 +++++------
- fs/pipe.c  |   10 ++++------
- 2 files changed, 9 insertions(+), 12 deletions(-)
+ fs/autofs4/expire.c |    2 +-
+ fs/autofs4/root.c   |   12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/namei.c~vfs-path_getput-cleanups fs/namei.c
---- a/fs/namei.c~vfs-path_getput-cleanups
-+++ a/fs/namei.c
-@@ -582,15 +582,13 @@ static __always_inline int link_path_wal
- 	int result;
- 
- 	/* make sure the stuff we saved doesn't go away */
--	dget(save.dentry);
--	mntget(save.mnt);
-+	path_get(&save);
- 
- 	result = __link_path_walk(name, nd);
- 	if (result == -ESTALE) {
- 		/* nd->path had been dropped */
- 		nd->path = save;
--		dget(nd->path.dentry);
--		mntget(nd->path.mnt);
-+		path_get(&nd->path);
- 		nd->flags |= LOOKUP_REVAL;
- 		result = __link_path_walk(name, nd);
- 	}
-@@ -1217,8 +1215,9 @@ int vfs_path_lookup(struct dentry *dentr
- 	nd->flags = flags;
- 	nd->depth = 0;
- 
--	nd->path.mnt = mntget(mnt);
--	nd->path.dentry = dget(dentry);
-+	nd->path.dentry = dentry;
-+	nd->path.mnt = mnt;
-+	path_get(&nd->path);
- 
- 	retval = path_walk(name, nd);
- 	if (unlikely(!retval && !audit_dummy_context() && nd->path.dentry &&
-diff -puN fs/pipe.c~vfs-path_getput-cleanups fs/pipe.c
---- a/fs/pipe.c~vfs-path_getput-cleanups
-+++ a/fs/pipe.c
-@@ -1002,8 +1002,7 @@ struct file *create_write_pipe(void)
- void free_write_pipe(struct file *f)
- {
- 	free_pipe_info(f->f_dentry->d_inode);
--	dput(f->f_path.dentry);
--	mntput(f->f_path.mnt);
-+	path_put(&f->f_path);
- 	put_filp(f);
+diff -puN fs/autofs4/expire.c~autofs-path_getput-cleanups fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c~autofs-path_getput-cleanups
++++ a/fs/autofs4/expire.c
+@@ -73,8 +73,8 @@ static int autofs4_mount_busy(struct vfs
+ 	status = 0;
+ done:
+ 	DPRINTK("returning = %d", status);
+-	mntput(mnt);
+ 	dput(dentry);
++	mntput(mnt);
+ 	return status;
  }
  
-@@ -1014,8 +1013,8 @@ struct file *create_read_pipe(struct fil
- 		return ERR_PTR(-ENFILE);
+diff -puN fs/autofs4/root.c~autofs-path_getput-cleanups fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs-path_getput-cleanups
++++ a/fs/autofs4/root.c
+@@ -146,17 +146,17 @@ static int autofs4_dir_open(struct inode
  
- 	/* Grab pipe from the writer */
--	f->f_path.mnt = mntget(wrf->f_path.mnt);
--	f->f_path.dentry = dget(wrf->f_path.dentry);
-+	f->f_path = wrf->f_path;
-+	path_get(&wrf->f_path);
- 	f->f_mapping = wrf->f_path.dentry->d_inode->i_mapping;
+ 	if (d_mountpoint(dentry)) {
+ 		struct file *fp = NULL;
+-		struct vfsmount *fp_mnt = mntget(mnt);
+-		struct dentry *fp_dentry = dget(dentry);
++		struct path fp_path = { .dentry = dentry, .mnt = mnt };
  
- 	f->f_pos = 0;
-@@ -1067,8 +1066,7 @@ int do_pipe(int *fd)
-  err_fdr:
- 	put_unused_fd(fdr);
-  err_read_pipe:
--	dput(fr->f_dentry);
--	mntput(fr->f_vfsmnt);
-+	path_put(&fr->f_path);
- 	put_filp(fr);
-  err_write_pipe:
- 	free_write_pipe(fw);
+-		if (!autofs4_follow_mount(&fp_mnt, &fp_dentry)) {
+-			dput(fp_dentry);
+-			mntput(fp_mnt);
++		path_get(&fp_path);
++
++		if (!autofs4_follow_mount(&fp_path.mnt, &fp_path.dentry)) {
++			path_put(&fp_path);
+ 			dcache_dir_close(inode, file);
+ 			goto out;
+ 		}
+ 
+-		fp = dentry_open(fp_dentry, fp_mnt, file->f_flags);
++		fp = dentry_open(fp_path.dentry, fp_path.mnt, file->f_flags);
+ 		status = PTR_ERR(fp);
+ 		if (IS_ERR(fp)) {
+ 			dcache_dir_close(inode, file);
 _
 
 Patches currently in -mm which might be from jblunck@suse.de are
 
 vfs-remove-lives_below_in_same_fs.patch
+nfs-path_getput-cleanups.patch
 git-unionfs.patch
 vfs-path_getput-cleanups.patch
-nfs-path_getput-cleanups.patch
 autofs-path_getput-cleanups.patch
 
