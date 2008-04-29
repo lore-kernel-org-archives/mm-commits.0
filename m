@@ -1,66 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:49:24 -0700
-Message-ID: <200804290549.m3T5nO2X003823@imap1.linux-foundation.org>
+Subject: - ipmi-run-to-completion-fixes-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:50:34 -0700
+Message-ID: <200804290550.m3T5oY2K003844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49018 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57313 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752796AbYD2Fug (ORCPT
+	by vger.kernel.org with ESMTP id S1753085AbYD2Fvb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:50:36 -0400
+	Tue, 29 Apr 2008 01:51:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Nadia.Derbey@bull.net, peifferp@gmail.com, yanmin.zhang@intel.com, yanmin_zhang@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cminyard@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes
+     ipmi-run-to-completion-fixes-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
+     ipmi-run-to-completion-fixes-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into ipc-add-definitions-of-ushort_max-and-others.patch
+This patch was dropped because it was folded into ipmi-run-to-completion-fixes.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes
+Subject: ipmi-run-to-completion-fixes-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space required before the open parenthesis '('
-#70: FILE: ipc/util.c:136:
-+		if(seq_limit > USHORT_MAX)
+WARNING: braces {} are not necessary for any arm of this statement
+#148: FILE: drivers/char/ipmi/ipmi_si_intf.c:837:
++	if (priority > 0) {
 
-total: 1 errors, 0 warnings, 51 lines checked
+total: 0 errors, 1 warnings, 177 lines checked
 
-./patches/ipc-add-definitions-of-ushort_max-and-others.patch has style problems, please review.  If any of these errors
+./patches/ipmi-run-to-completion-fixes.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: "Pierre Peiffer" <peifferp@gmail.com>
-Cc: "Zhang, Yanmin" <yanmin_zhang@linux.intel.com>
-Cc: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Zhang Yanmin <yanmin.zhang@intel.com>
+Cc: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/ipmi/ipmi_si_intf.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN ipc/util.c~ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes ipc/util.c
---- a/ipc/util.c~ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes
-+++ a/ipc/util.c
-@@ -133,7 +133,7 @@ void ipc_init_ids(struct ipc_ids *ids)
- 	ids->seq = 0;
- 	{
- 		int seq_limit = INT_MAX/SEQ_MULTIPLIER;
--		if(seq_limit > USHORT_MAX)
-+		if (seq_limit > USHORT_MAX)
- 			ids->seq_max = USHORT_MAX;
- 		 else
- 		 	ids->seq_max = seq_limit;
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-run-to-completion-fixes-checkpatch-fixes drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-run-to-completion-fixes-checkpatch-fixes
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -834,11 +834,10 @@ static void sender(void                *
+ 	}
+ 
+ 	spin_lock_irqsave(&smi_info->msg_lock, flags);
+-	if (priority > 0) {
++	if (priority > 0)
+ 		list_add_tail(&msg->link, &smi_info->hp_xmit_msgs);
+-	} else {
++	else
+ 		list_add_tail(&msg->link, &smi_info->xmit_msgs);
+-	}
+ 	spin_unlock_irqrestore(&smi_info->msg_lock, flags);
+ 
+ 	spin_lock_irqsave(&smi_info->si_lock, flags);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,8 +86,8 @@ use-vmalloc-for-mem_cgroup-allocation-v3.patch
 workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
 ipc-use-ipc_buildid-directly-from-ipc_addid.patch
 ipc-add-definitions-of-ushort_max-and-others.patch
-ipc-add-definitions-of-ushort_max-and-others-checkpatch-fixes.patch
-ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc-cleanup.patch
+ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc.patch
+ipmi-run-to-completion-fixes.patch
 ipmi-run-to-completion-fixes-checkpatch-fixes.patch
 ipmi-style-fixes-in-the-system-interface-code-checkpatch-fixes.patch
 sxc-fix-printk-warnings-on-sparc32.patch
