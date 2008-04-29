@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: - x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:29:13 -0700
-Message-ID: <200804290529.m3T5TDfW003076@imap1.linux-foundation.org>
+Subject: - x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:29:16 -0700
+Message-ID: <200804290529.m3T5TGKm003079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48656 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43838 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753828AbYD2F3x (ORCPT
+	by vger.kernel.org with ESMTP id S1753787AbYD2F3w (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:29:53 -0400
+	Tue, 29 Apr 2008 01:29:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ak@suse.de, dilinger@debian.org, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86-olpc-add-one-laptop-per-child-architecture-support fix
+     x86-olpc-add-one-laptop-per-child-architecture-support-fix-2
 has been removed from the -mm tree.  Its filename was
-     x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
+     x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
 
 This patch was dropped because it was folded into x86-olpc-add-one-laptop-per-child-architecture-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86-olpc-add-one-laptop-per-child-architecture-support fix
+Subject: x86-olpc-add-one-laptop-per-child-architecture-support-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/olpc.c: In function 'olpc_init':
-arch/x86/kernel/olpc.c:243: error: implicit declaration of function 'geode_has_vsa'
+oops, we turned on CONFIG_OLPC.
 
-Is this right?
+ERROR: "olpc_register_battery_callback" [drivers/power/olpc_battery.ko] undefined!
+ERROR: "olpc_deregister_battery_callback" [drivers/power/olpc_battery.ko] undefined!
 
 Cc: Andres Salomon <dilinger@debian.org>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -40,21 +40,42 @@ Cc: Jordan Crouse <jordan.crouse@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/olpc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/power/olpc_battery.c |    2 --
+ include/asm-x86/olpc.h       |    3 ---
+ 2 files changed, 5 deletions(-)
 
-diff -puN arch/x86/kernel/olpc.c~x86-olpc-add-one-laptop-per-child-architecture-support-fix arch/x86/kernel/olpc.c
---- a/arch/x86/kernel/olpc.c~x86-olpc-add-one-laptop-per-child-architecture-support-fix
-+++ a/arch/x86/kernel/olpc.c
-@@ -240,7 +240,7 @@ static int __init olpc_init(void)
- 			(unsigned char *) &olpc_platform_info.ecver, 1);
+diff -puN include/asm-x86/olpc.h~x86-olpc-add-one-laptop-per-child-architecture-support-fix-2 include/asm-x86/olpc.h
+--- a/include/asm-x86/olpc.h~x86-olpc-add-one-laptop-per-child-architecture-support-fix-2
++++ a/include/asm-x86/olpc.h
+@@ -102,9 +102,6 @@ extern int olpc_ec_cmd(unsigned char cmd
+ extern int olpc_ec_mask_set(uint8_t bits);
+ extern int olpc_ec_mask_unset(uint8_t bits);
  
- 	/* check to see if the VSA exists */
--	if (geode_has_vsa())
-+	if (geode_has_vsa2())
- 		olpc_platform_info.flags |= OLPC_F_VSA;
+-extern void olpc_register_battery_callback(void (*f)(unsigned long));
+-extern void olpc_deregister_battery_callback(void);
+-
+ /* EC commands */
  
- 	printk(KERN_INFO "OLPC board revision %s%X (EC=%x)\n",
+ #define EC_FIRMWARE_REV		0x08
+diff -puN drivers/power/olpc_battery.c~x86-olpc-add-one-laptop-per-child-architecture-support-fix-2 drivers/power/olpc_battery.c
+--- a/drivers/power/olpc_battery.c~x86-olpc-add-one-laptop-per-child-architecture-support-fix-2
++++ a/drivers/power/olpc_battery.c
+@@ -315,7 +315,6 @@ static int __init olpc_bat_init(void)
+ 	if (ret)
+ 		goto battery_failed;
+ 
+-	olpc_register_battery_callback(&olpc_battery_trigger_uevent);
+ 	goto success;
+ 
+ battery_failed:
+@@ -328,7 +327,6 @@ success:
+ 
+ static void __exit olpc_bat_exit(void)
+ {
+-	olpc_deregister_battery_callback();
+ 	power_supply_unregister(&olpc_bat);
+ 	power_supply_unregister(&olpc_ac);
+ 	platform_device_unregister(bat_pdev);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,7 +91,6 @@ fs-inodec-use-hlist_for_each_entry.patch
 ecryptfs-integrate-ecryptfs-device-handle-into-the-module.patch
 ecryptfs-make-key-module-subsystem-respect-namespaces.patch
 x86-olpc-add-one-laptop-per-child-architecture-support.patch
-x86-olpc-add-one-laptop-per-child-architecture-support-fix.patch
 x86-olpc-add-one-laptop-per-child-architecture-support-fix-2.patch
 documentation-build-source-files-in-documentation-sub-dir-disable.patch
 revert-part-of-sched-cpuset-customize-sched-domains-core.patch
