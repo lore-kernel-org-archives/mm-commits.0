@@ -1,35 +1,25 @@
 From: akpm@linux-foundation.org
-Subject: + md-md-raid5-rate-limit-error-printk.patch added to -mm tree
-Date: Mon, 28 Apr 2008 20:56:35 -0700
-Message-ID: <200804290356.m3T3uZsa032374@imap1.linux-foundation.org>
+Subject: - md-md-raid5-rate-limit-error-printk.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 21:29:27 -0700
+Message-ID: <200804290429.m3T4TRbJ001003@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55273 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32868 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753584AbYD2D4n (ORCPT
+	by vger.kernel.org with ESMTP id S1751503AbYD2E3f (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 28 Apr 2008 23:56:43 -0400
+	Tue, 29 Apr 2008 00:29:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: bernd-schubert@gmx.de, dan.j.williams@intel.com, neilb@suse.de
+To: bernd-schubert@gmx.de, dan.j.williams@intel.com, neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
      md: md: raid5 rate limit error printk
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      md-md-raid5-rate-limit-error-printk.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
