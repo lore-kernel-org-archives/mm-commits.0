@@ -1,78 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: - procfs-task-exe-symlink-fix-3.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:56:03 -0700
-Message-ID: <200804290556.m3T5u30c004092@imap1.linux-foundation.org>
+Subject: - procfs-task-exe-symlink-fix-2.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:56:00 -0700
+Message-ID: <200804290556.m3T5u02i004083@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35060 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48124 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753531AbYD2F4s (ORCPT
+	by vger.kernel.org with ESMTP id S1754010AbYD2F5H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:56:48 -0400
+	Tue, 29 Apr 2008 01:57:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yamamoto@valinux.co.jp, matthltc@us.ibm.com, mm-commits@vger.kernel.org
+To: matthltc@us.ibm.com, dhowells@redhat.com, ebiederm@xmission.com, hch@lst.de, hugh@veritas.com, oleg@tv-sign.ru, vapier.adi@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     a fix for procfs-task-exe-symlink.patch
+     fix nommu path broken by procfs task exe symlink
 has been removed from the -mm tree.  Its filename was
-     procfs-task-exe-symlink-fix-3.patch
+     procfs-task-exe-symlink-fix-2.patch
 
 This patch was dropped because it was folded into procfs-task-exe-symlink.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: a fix for procfs-task-exe-symlink.patch
-From: yamamoto@valinux.co.jp (YAMAMOTO Takashi)
+Subject: fix nommu path broken by procfs task exe symlink
+From: Matt Helsley <matthltc@us.ibm.com>
 
-It seems that procfs-task-exe-symlink.patch broke the case of dup_mmap
-failure.  ie.  mm->exe_file is copied by memcpy from oldmm and then be fput'ed
-by mmput/set_mm_exe_file.
+nommu configurations will not compile because the "mm" variable does not
+exist.  Replace usage of the mm variable and the empty vma->vm_mm field
+with correct mm pointers.
 
-Signed-off-by: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Acked-by: Matt Helsley <matthltc@us.ibm.com>
+Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
+Cc: Mike Frysinger <vapier.adi@gmail.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: David Howells <dhowells@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/nommu.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN kernel/fork.c~procfs-task-exe-symlink-fix-3 kernel/fork.c
---- a/kernel/fork.c~procfs-task-exe-symlink-fix-3
-+++ a/kernel/fork.c
-@@ -521,11 +521,12 @@ static struct mm_struct *dup_mm(struct t
- 	if (init_new_context(tsk, mm))
- 		goto fail_nocontext;
+diff -puN mm/nommu.c~procfs-task-exe-symlink-fix-2 mm/nommu.c
+--- a/mm/nommu.c~procfs-task-exe-symlink-fix-2
++++ a/mm/nommu.c
+@@ -964,8 +964,10 @@ unsigned long do_mmap_pgoff(struct file 
+ 	atomic_set(&vma->vm_usage, 1);
+ 	if (file) {
+ 		get_file(file);
+-		if (vm_flags & VM_EXECUTABLE)
+-			added_exe_file_vma(mm);
++		if (vm_flags & VM_EXECUTABLE) {
++			added_exe_file_vma(current->mm);
++			vma->vm_mm = current->mm;
++		}
+ 	}
+ 	vma->vm_file	= file;
+ 	vma->vm_flags	= vm_flags;
+@@ -1055,7 +1057,7 @@ EXPORT_SYMBOL(do_mmap_pgoff);
+ /*
+  * handle mapping disposal for uClinux
+  */
+-static void put_vma(struct vm_area_struct *vma)
++static void put_vma(struct mm_struct *mm, struct vm_area_struct *vma)
+ {
+ 	if (vma) {
+ 		down_write(&nommu_vma_sem);
+@@ -1080,7 +1082,7 @@ static void put_vma(struct vm_area_struc
+ 			if (vma->vm_file) {
+ 				fput(vma->vm_file);
+ 				if (vma->vm_flags & VM_EXECUTABLE)
+-					removed_exe_file_vma(vma->vm_mm);
++					removed_exe_file_vma(mm);
+ 			}
+ 			kfree(vma);
+ 		}
+@@ -1118,7 +1120,7 @@ int do_munmap(struct mm_struct *mm, unsi
+  found:
+ 	vml = *parent;
  
-+	dup_mm_exe_file(oldmm, mm);
-+
- 	err = dup_mmap(mm, oldmm);
- 	if (err)
- 		goto free_pt;
+-	put_vma(vml->vma);
++	put_vma(mm, vml->vma);
  
--	dup_mm_exe_file(oldmm, mm);
- 	mm->hiwater_rss = get_mm_rss(mm);
- 	mm->hiwater_vm = mm->total_vm;
+ 	*parent = vml->next;
+ 	realalloc -= kobjsize(vml);
+@@ -1163,7 +1165,7 @@ void exit_mmap(struct mm_struct * mm)
  
+ 		while ((tmp = mm->context.vmlist)) {
+ 			mm->context.vmlist = tmp->next;
+-			put_vma(tmp->vma);
++			put_vma(mm, tmp->vma);
+ 
+ 			realalloc -= kobjsize(tmp);
+ 			askedalloc -= sizeof(*tmp);
 _
 
-Patches currently in -mm which might be from yamamoto@valinux.co.jp are
+Patches currently in -mm which might be from matthltc@us.ibm.com are
 
-cgroup-api-files-rename-read-write_uint-methods-to-read_write_u64.patch
-cgroup-api-files-add-res_counter_read_u64.patch
-cgroup-api-files-use-read_u64-in-memory-controller.patch
-cgroup-api-files-strip-all-trailing-whitespace-in-cgroup_write_u64.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroup-api-files-add-cgroup-map-data-type.patch
-cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
-cgroup-api-files-drop-mem_cgroup_force_empty.patch
-cgroup-api-files-move-releasable-to-cgroup_debug-subsystem.patch
-cgroup-api-files-make-cgroup_debug-default-to-off.patch
-cgroups-add-an-owner-to-the-mm_struct.patch
-memcgroup-move-memory-controller-allocations-to-their-own-slabs.patch
-memcgroup-make-the-memory-controller-more-desktop-responsive.patch
+ipc-scale-msgmni-to-the-amount-of-lowmem.patch
+ipc-scale-msgmni-to-the-number-of-ipc-namespaces.patch
+ipc-define-the-slab_memory_callback-priority-as-a-constant.patch
+ipc-recompute-msgmni-on-memory-add--remove.patch
+ipc-invoke-the-ipcns-notifier-chain-as-a-work-item.patch
+ipc-recompute-msgmni-on-ipc-namespace-creation-removal.patch
+ipc-do-not-recompute-msgmni-anymore-if-explicitly-set-by-user.patch
+ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative.patch
 procfs-task-exe-symlink.patch
+procfs-task-exe-symlink-fix-2.patch
 procfs-task-exe-symlink-fix-3.patch
 
