@@ -1,101 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - isolate-ratelimit-from-printkc-for-other-use-update.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:19:43 -0700
-Message-ID: <200804290519.m3T5JhuY002717@imap1.linux-foundation.org>
+Subject: - add-warn_on_secs-macro-simplification.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:20:02 -0700
+Message-ID: <200804290520.m3T5K2tx002744@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37274 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34227 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753532AbYD2FU0 (ORCPT
+	by vger.kernel.org with ESMTP id S1753543AbYD2FUo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:20:26 -0400
+	Tue, 29 Apr 2008 01:20:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidave.darkstar@gmail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: hidave.darkstar@gmail.com, hannes@saeurebad.de, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isolate-ratelimit-from-printkc-for-other-use update
+     add-warn_on_secs-macro simplification
 has been removed from the -mm tree.  Its filename was
-     isolate-ratelimit-from-printkc-for-other-use-update.patch
+     add-warn_on_secs-macro-simplification.patch
 
-This patch was dropped because it was folded into isolate-ratelimit-from-printkc-for-other-use.patch
+This patch was dropped because it was folded into add-warn_on_secs-macro.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isolate-ratelimit-from-printkc-for-other-use update
+Subject: add-warn_on_secs-macro simplification
 From: Dave Young <hidave.darkstar@gmail.com>
 
-On Mon, Mar 10, 2008 at 08:51:32AM -0700, Randy Dunlap wrote:
-[snip]
-> > +/*
-> > + * __ratelimit - rate limiting
-> > + * @ratelimit_jiffies: minimum time in jiffies between too callbacks
->
-> s/too/two/
-
-will fix
-
-[snip]
-> > +		if (lost)
-> > +			printk(KERN_WARNING "__ratelimit: %d messages"
-> > +				" suppressed.\n", lost);
->
-> Would be better not to split the string, e.g.:
->
-> 			printk(KERN_WARNING "%s: %d messages suppressed\n",
-> 				__func__, lost);
->
-
-Yes, it's better to use __func__
-
-Thanks randy.
-
-Andrew, Could you use the following update? I don't want to bother you,
-but...
-
-Thanks.
----
+Change to the concise version as suggestion of Johannes Weiner.
 
 Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Johannes Weiner <hannes@saeurebad.de>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/ratelimit.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/asm-generic/bug.h |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN lib/ratelimit.c~isolate-ratelimit-from-printkc-for-other-use-update lib/ratelimit.c
---- a/lib/ratelimit.c~isolate-ratelimit-from-printkc-for-other-use-update
-+++ a/lib/ratelimit.c
-@@ -13,7 +13,7 @@
+diff -puN include/asm-generic/bug.h~add-warn_on_secs-macro-simplification include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~add-warn_on_secs-macro-simplification
++++ a/include/asm-generic/bug.h
+@@ -76,13 +76,8 @@ extern void warn_on_slowpath(const char 
+ 	unlikely(__ret_warn_once);				\
+ })
  
- /*
-  * __ratelimit - rate limiting
-- * @ratelimit_jiffies: minimum time in jiffies between too callbacks
-+ * @ratelimit_jiffies: minimum time in jiffies between two callbacks
-  * @ratelimit_burst: number of callbacks we do before ratelimiting
-  *
-  * This enforces a rate limit: not more than @ratelimit_burst callbacks
-@@ -40,8 +40,8 @@ int __ratelimit(int ratelimit_jiffies, i
- 		toks -= ratelimit_jiffies;
- 		spin_unlock_irqrestore(&ratelimit_lock, flags);
- 		if (lost)
--			printk(KERN_WARNING "__ratelimit: %d messages"
--				" suppressed.\n", lost);
-+			printk(KERN_WARNING "%s: %d messages suppressed\n",
-+				__func__, lost);
- 		return 1;
- 	}
- 	missed++;
+-#define WARN_ON_SECS(condition, secs) ({			\
+-	int __ret_warn_on = !!(condition);			\
+-	if (unlikely(__ret_warn_on))				\
+-		if (__ratelimit(secs * HZ, 1))			\
+-			WARN_ON(1);				\
+-	unlikely(__ret_warn_on);				\
+-})
++#define WARN_ON_SECS(condition, secs)				\
++		WARN_ON((condition && __ratelimit(secs * HZ, 1)))
+ 
+ #ifdef CONFIG_SMP
+ # define WARN_ON_SMP(x)			WARN_ON(x)
 _
 
 Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
 origin.patch
 isolate-ratelimit-from-printkc-for-other-use.patch
-isolate-ratelimit-from-printkc-for-other-use-update.patch
 add-warn_on_secs-macro.patch
 add-warn_on_secs-macro-simplification.patch
 add-warn_on_secs-macro-simplification-fix.patch
