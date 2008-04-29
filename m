@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + autofs-path_getput-cleanups.patch added to -mm tree
-Date: Tue, 29 Apr 2008 16:18:19 -0700
-Message-ID: <200804292318.m3TNIJJj015356@imap1.linux-foundation.org>
+Subject: + mm-filemapc-generic_write_checks-mustnt-be-inline.patch added to -mm tree
+Date: Tue, 29 Apr 2008 16:22:17 -0700
+Message-ID: <200804292322.m3TNMHQa015464@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45591 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45126 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754753AbYD2XSz (ORCPT
+	by vger.kernel.org with ESMTP id S1754631AbYD2XWs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 19:18:55 -0400
+	Tue, 29 Apr 2008 19:22:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jblunck@suse.de, raven@themaw.net
+Cc: bunk@kernel.org, mingo@elte.hu
 
 
 The patch titled
-     autofs: path_{get,put}() cleanups
+     mm/filemap.c:generic_write_checks() mustn't be inline
 has been added to the -mm tree.  Its filename is
-     autofs-path_getput-cleanups.patch
+     mm-filemapc-generic_write_checks-mustnt-be-inline.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs: path_{get,put}() cleanups
-From: Jan Blunck <jblunck@suse.de>
+Subject: mm/filemap.c:generic_write_checks() mustn't be inline
+From: Adrian Bunk <bunk@kernel.org>
 
-Here are some more places where path_{get,put}() can be used instead of
-dput()/mntput() pair.  Besides that it fixes a bug in autofs4_mount_busy()
-where mntput() was called before dput().
+Fix the following build error with UML and gcc 4.3:
 
-Signed-off-by: Jan Blunck <jblunck@suse.de>
-Cc: Ian Kent <raven@themaw.net>
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/filemap.c: In function `__generic_file_aio_write_nolock':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/filemap.c:1831: sorry, unimplemented: inlining failed in call to `generic_write_checks': function body not available
+/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/filemap.c:2383: sorry, unimplemented: called from here
+
+Reported-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/expire.c |    2 +-
- fs/autofs4/root.c   |   12 ++++++------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ mm/filemap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/autofs4/expire.c~autofs-path_getput-cleanups fs/autofs4/expire.c
---- a/fs/autofs4/expire.c~autofs-path_getput-cleanups
-+++ a/fs/autofs4/expire.c
-@@ -73,8 +73,8 @@ static int autofs4_mount_busy(struct vfs
- 	status = 0;
- done:
- 	DPRINTK("returning = %d", status);
--	mntput(mnt);
- 	dput(dentry);
-+	mntput(mnt);
- 	return status;
- }
- 
-diff -puN fs/autofs4/root.c~autofs-path_getput-cleanups fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs-path_getput-cleanups
-+++ a/fs/autofs4/root.c
-@@ -146,17 +146,17 @@ static int autofs4_dir_open(struct inode
- 
- 	if (d_mountpoint(dentry)) {
- 		struct file *fp = NULL;
--		struct vfsmount *fp_mnt = mntget(mnt);
--		struct dentry *fp_dentry = dget(dentry);
-+		struct path fp_path = { .dentry = dentry, .mnt = mnt };
- 
--		if (!autofs4_follow_mount(&fp_mnt, &fp_dentry)) {
--			dput(fp_dentry);
--			mntput(fp_mnt);
-+		path_get(&fp_path);
-+
-+		if (!autofs4_follow_mount(&fp_path.mnt, &fp_path.dentry)) {
-+			path_put(&fp_path);
- 			dcache_dir_close(inode, file);
- 			goto out;
- 		}
- 
--		fp = dentry_open(fp_dentry, fp_mnt, file->f_flags);
-+		fp = dentry_open(fp_path.dentry, fp_path.mnt, file->f_flags);
- 		status = PTR_ERR(fp);
- 		if (IS_ERR(fp)) {
- 			dcache_dir_close(inode, file);
+diff -puN mm/filemap.c~mm-filemapc-generic_write_checks-mustnt-be-inline mm/filemap.c
+--- a/mm/filemap.c~mm-filemapc-generic_write_checks-mustnt-be-inline
++++ a/mm/filemap.c
+@@ -1829,7 +1829,8 @@ EXPORT_SYMBOL(iov_iter_single_seg_count)
+  * Returns appropriate error code that caller should return or
+  * zero in case that write should be allowed.
+  */
+-inline int generic_write_checks(struct file *file, loff_t *pos, size_t *count, int isblk)
++int generic_write_checks(struct file *file, loff_t *pos, size_t *count,
++			 int isblk)
+ {
+ 	struct inode *inode = file->f_mapping->host;
+ 	unsigned long limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
 _
 
-Patches currently in -mm which might be from jblunck@suse.de are
+Patches currently in -mm which might be from bunk@kernel.org are
 
-vfs-remove-lives_below_in_same_fs.patch
-nfs-path_getput-cleanups.patch
-git-unionfs.patch
-vfs-path_getput-cleanups.patch
-autofs-path_getput-cleanups.patch
+origin.patch
+fs-ramfs-extern-cleanup.patch
+fs-hfsplus-proper-externs.patch
+fs-freevxfs-proper-externs.patch
+make-__put_super-static.patch
+make-vfs_ioctl-static.patch
+fs-fs-writeback-make-2-functions-static.patch
+fs-drop_cachesc-make-2-functions-static.patch
+fs-aioc-make-3-functions-static.patch
+let-log_buf_shift-default-to-17.patch
+fs-timerfdc-should-include-linux-syscallsh.patch
+remove-generic_commit_write.patch
+make-fs-bufferccont_expand_zero-static.patch
+make-binfmt_flat-a-bool.patch
+remove-mca_is_adapter_used.patch
+ipwireless-remove-dead-code.patch
+proper-__do_softirq-prototype.patch
+proper-extern-for-late_time_init.patch
+remove-ecryptfs_header_cache_0.patch
+make-cgroup_enable_task_cg_lists-static.patch
+cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh.patch
+kernel-cpusetc-make-3-functions-static.patch
+ipmi-make-alloc_recv_msg-static.patch
+ipmi-fix-return-from-atca_oem_poweroff_hook.patch
+include-linux-sysctlh-remove-empty-else.patch
+remove-aoedev_isbusy.patch
+edac-remove-unneeded-functions-and-add-static-accessor.patch
+mm-filemapc-generic_write_checks-mustnt-be-inline.patch
+git-acpi.patch
+arch-x86-video-fbdevc-add-module_license.patch
+git-m32r.patch
+git-nfsd.patch
+git-ocfs2.patch
+git-pci.patch
+show_schedstat-fix-memleak.patch
+git-sh.patch
+if-0-ses_match_host.patch
+git-watchdog.patch
+make-marker_debug-static.patch
+reiser4.patch
 
