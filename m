@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pata_via-fix-6410-misdetect.patch added to -mm tree
-Date: Tue, 29 Apr 2008 12:16:15 -0700
-Message-ID: <200804291916.m3TJGFRa005184@imap1.linux-foundation.org>
+Subject: + idr-introduce-the-ridr-structure.patch added to -mm tree
+Date: Tue, 29 Apr 2008 12:01:03 -0700
+Message-ID: <200804291901.m3TJ14tT004446@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44409 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45913 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757489AbYD2TRr (ORCPT
+	by vger.kernel.org with ESMTP id S1757489AbYD2TRt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 15:17:47 -0400
+	Tue, 29 Apr 2008 15:17:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: alan@lxorguk.ukuu.org.uk, alan@redhat.com, htejun@gmail.com, jeff@garzik.org, stable@kernel.org
+Cc: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, nickpiggin@yahoo.com.au, paulmck@us.ibm.com, peifferp@gmail.com
 
 
 The patch titled
-     pata_via: fix 6410 misdetect
+     idr: introduce the ridr structure
 has been added to the -mm tree.  Its filename is
-     pata_via-fix-6410-misdetect.patch
+     idr-introduce-the-ridr-structure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,122 +34,204 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pata_via: fix 6410 misdetect
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: idr: introduce the ridr structure
+From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-The discrete VIA ATA chips don't have 0x40 enable bits.  We check that
-properly in one location but not another.  This causes some users 6410 RAID
-cards to be incorrectly skipped.
+Introduce the ridr structure as an RCU safe idr structure: a layer is actually
+made of the existing idr layer, followed by the rcu head.
 
-Would be good if this made the next kernel (may also be appropriate for
-stable)
-
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Tejun Heo <htejun@gmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: <stable@kernel.org>
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Cc: Jim Houston <jim.houston@comcast.net>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ata/pata_via.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ include/linux/idr.h  |    6 ++--
+ include/linux/ridr.h |   50 +++++++++++++++++++++++++++++++++++++++++
+ init/main.c          |    2 +
+ lib/Makefile         |    2 -
+ lib/idr.c            |    2 -
+ lib/ridr.c           |   26 +++++++++++++++++++++
+ 6 files changed, 83 insertions(+), 5 deletions(-)
 
-diff -puN drivers/ata/pata_via.c~pata_via-fix-6410-misdetect drivers/ata/pata_via.c
---- a/drivers/ata/pata_via.c~pata_via-fix-6410-misdetect
-+++ a/drivers/ata/pata_via.c
-@@ -464,11 +464,12 @@ static int via_init_one(struct pci_dev *
- 	}
- 	pci_dev_put(isa);
+diff -puN include/linux/idr.h~idr-introduce-the-ridr-structure include/linux/idr.h
+--- a/include/linux/idr.h~idr-introduce-the-ridr-structure
++++ a/include/linux/idr.h
+@@ -48,9 +48,9 @@
+ #define IDR_FREE_MAX MAX_LEVEL + MAX_LEVEL
  
--	/* 0x40 low bits indicate enabled channels */
--	pci_read_config_byte(pdev, 0x40 , &enable);
--	enable &= 3;
--	if (enable == 0) {
--		return -ENODEV;
-+	if (!(config->flags & VIA_NO_ENABLES)) {
-+		/* 0x40 low bits indicate enabled channels */
-+		pci_read_config_byte(pdev, 0x40 , &enable);
-+		enable &= 3;
-+		if (enable == 0)
-+			return -ENODEV;
- 	}
+ struct idr_layer {
+-	unsigned long		 bitmap; /* A zero bit means "space here" */
+-	struct idr_layer	*ary[1<<IDR_BITS];
+-	int			 count;	 /* When zero, we can release it */
++	unsigned long	 bitmap; /* A zero bit means "space here" */
++	void		*ary[1<<IDR_BITS];
++	int		 count;	 /* When zero, we can release it */
+ };
  
- 	/* Initialise the FIFO for the enabled channels. */
+ struct idr {
+diff -puN /dev/null include/linux/ridr.h
+--- /dev/null
++++ a/include/linux/ridr.h
+@@ -0,0 +1,50 @@
++/*
++ * include/linux/ridr.h
++ *
++ * Small id to pointer translation service avoiding fixed sized
++ * tables. RCU-based implmentation of IDRs.
++ */
++
++#ifndef _RIDR_H_
++#define _RIDR_H_
++
++#include <linux/idr.h>
++#include <linux/rcupdate.h>
++
++/*
++ * The idr_layer part should stay at the beginning of the structure
++ */
++struct ridr_layer {
++	struct idr_layer idr;
++	struct rcu_head	 rcu_head;
++};
++
++struct ridr {
++	struct ridr_layer *top;
++	struct ridr_layer *id_free;
++	int		  layers;
++	int		  id_free_cnt;
++	spinlock_t	  lock;
++};
++
++#define RIDR_INIT(name)						\
++{								\
++	.top		= NULL,					\
++	.id_free	= NULL,					\
++	.layers 	= 0,					\
++	.id_free_cnt	= 0,					\
++	.lock		= __SPIN_LOCK_UNLOCKED(name.lock),	\
++}
++#define DEFINE_RIDR(name)	struct ridr name = RIDR_INIT(name)
++
++#define idr_to_ridr(p) container_of((p), struct ridr_layer, idr)
++#define ridr_to_idr(p) (&((p)->idr))
++
++/*
++ * This is what we export.
++ */
++
++
++void __init ridr_init_cache(void);
++
++#endif /* _RIDR_H_ */
+diff -puN init/main.c~idr-introduce-the-ridr-structure init/main.c
+--- a/init/main.c~idr-introduce-the-ridr-structure
++++ a/init/main.c
+@@ -59,6 +59,7 @@
+ #include <linux/sched.h>
+ #include <linux/signal.h>
+ #include <linux/idr.h>
++#include <linux/ridr.h>
+ 
+ #include <asm/io.h>
+ #include <asm/bugs.h>
+@@ -639,6 +640,7 @@ asmlinkage void __init start_kernel(void
+ 	cpu_hotplug_init();
+ 	kmem_cache_init();
+ 	idr_init_cache();
++	ridr_init_cache();
+ 	setup_per_cpu_pageset();
+ 	numa_policy_init();
+ 	if (late_time_init)
+diff -puN lib/Makefile~idr-introduce-the-ridr-structure lib/Makefile
+--- a/lib/Makefile~idr-introduce-the-ridr-structure
++++ a/lib/Makefile
+@@ -6,7 +6,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
+ 	 rbtree.o radix-tree.o dump_stack.o \
+ 	 idr.o int_sqrt.o extable.o prio_tree.o \
+ 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
+-	 proportions.o prio_heap.o ratelimit.o
++	 proportions.o prio_heap.o ratelimit.o ridr.o
+ 
+ ifdef CONFIG_FTRACE
+ # Do not profile string.o, since it may be used in early boot or vdso
+diff -puN lib/idr.c~idr-introduce-the-ridr-structure lib/idr.c
+--- a/lib/idr.c~idr-introduce-the-ridr-structure
++++ a/lib/idr.c
+@@ -342,7 +342,7 @@ static void sub_remove(struct idr *idp, 
+ 	while ((shift > 0) && p) {
+ 		n = (id >> shift) & IDR_MASK;
+ 		__clear_bit(n, &p->bitmap);
+-		*++paa = &p->ary[n];
++		*++paa = (struct idr_layer **) &p->ary[n];
+ 		p = p->ary[n];
+ 		shift -= IDR_BITS;
+ 	}
+diff -puN /dev/null lib/ridr.c
+--- /dev/null
++++ a/lib/ridr.c
+@@ -0,0 +1,26 @@
++/*
++ * RCU-based idr API
++ */
++
++
++#include <linux/slab.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/ridr.h>
++
++static struct kmem_cache *ridr_layer_cache;
++
++
++static void ridr_cache_ctor(struct kmem_cache *ridr_layer_cache,
++			void *ridr_layer)
++{
++	memset(ridr_layer, 0, sizeof(struct ridr_layer));
++}
++
++void __init ridr_init_cache(void)
++{
++	ridr_layer_cache = kmem_cache_create("ridr_layer_cache",
++				sizeof(struct ridr_layer), 0, SLAB_PANIC,
++				ridr_cache_ctor);
++}
++
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from Nadia.Derbey@bull.net are
 
-origin.patch
-vt-fix-background-color-on-line-feed.patch
-proc-convert-proc-tty-ldiscs-to-seq_file-interface.patch
-edac-new-support-for-intel-3100-chipset.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection.patch
-edac-remove-unneeded-functions-and-add-static-accessor.patch
-edac-fix-module-initialization-on-several-modules-2nd-time.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-libata-more-tsstcorp-pain-keep-in-sync-with-legacy-ide.patch
-pata_atiixp-simplex-clear.patch
-pata_via-fix-6410-misdetect.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-amiserial-prepare-for-locking-relaxation-in-caller.patch
-cyclades-prepare-for-relaxed-locking-in-callers.patch
-epca-lock_kernel-push-down.patch
-esp-lock_kernel-push-down.patch
-isicom-prepare-for-lock_kernel-push-down.patch
-isicom-istallion-prepare-for-lock_kernel-pushdown.patch
-mxser-prepare-for-bkl-pushdown.patch
-riscom8-prepare-for-bkl-pushdown.patch
-rocket-prepare-for-bkl-pushdown.patch
-serial167-prepare-to-push-bkl-down-into-drivers.patch
-specialix-prepare-for-bkl-pushdown.patch
-stallion-prepare-for-bkl-push-down.patch
-sx-prepare-for-bkl-pushdown.patch
-synclink-series-prepare-for-bkl-pushdown.patch
-viocons-bkl-locking.patch
-vt_ioctl-prepare-for-bkl-push-down.patch
-isdn_tty-prepare-for-bkl-push-down.patch
-68360serial-note-that-there-isnt-any-info-mcr-locking.patch
-serial_core-prepare-for-bkl-push-down.patch
-tty-bkl-pushdown.patch
-tty-bkl-pushdown-fix1.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-tty_ioctl-locking-for-tty_wait_until_sent.patch
-tty_ioctl-soft-carrier-handling.patch
-tty-drop-the-bkl-for-driver-ldisc-ioctl-methods.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-istallion-tiocg-ssoftcar-handling-removal.patch
-cyclades-coding-style-review.patch
-tty-serial-lay-the-foundations-for-the-next-set-of-reworks.patch
-s390-tty-prepare-for-put_char-to-return-success-fail.patch
-serial-m68k-put_char-returns.patch
-usb-gadget-switch-to-put_char-returning-int.patch
-amiserial-switch-put-char-to-return-success-fail.patch
-char-switch-gs-cyclades-and-esp-to-return-int-for-put_char.patch
-mxser-switch-to-put_char-being-int.patch
-pcmcia-serial-to-int-put_char-method.patch
-riscom-rocket-switch-to-int-put_char-method.patch
-serial167-switch-to-int-put_char-method.patch
-specialix-switch-to-int-put_char-method.patch
-synclink-series-switch-to-int-put_char-method.patch
-consoles-switch-to-int-put_char-method.patch
-isdn-switch-to-int-put_char-method.patch
-pty-prepare-for-tty-ops-changes.patch
-pc300-update-to-tty_set_operations.patch
-serial-switch-the-serial-core-to-int-put_char-methods.patch
-isicom-bring-into-coding-style.patch
-isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework.patch
-tty-the-big-operations-rework-broke-wan-x25_asy-fix.patch
-tty-the-big-operations-rework-fix-2.patch
-tty-the-big-operations-rework-isicom-fix.patch
-tty-the-big-operations-rework-simserial-fix.patch
-strip-fix-up-strip-for-the-new-order.patch
-tty-the-big-operations-rework-vs-git-kgdb-light.patch
-tty-the-big-operations-rework-vs-kgdb-2.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid.patch
+ipc-scale-msgmni-to-the-amount-of-lowmem.patch
+ipc-scale-msgmni-to-the-number-of-ipc-namespaces.patch
+ipc-define-the-slab_memory_callback-priority-as-a-constant.patch
+ipc-recompute-msgmni-on-memory-add--remove.patch
+ipc-invoke-the-ipcns-notifier-chain-as-a-work-item.patch
+ipc-recompute-msgmni-on-ipc-namespace-creation-removal.patch
+ipc-do-not-recompute-msgmni-anymore-if-explicitly-set-by-user.patch
+ipc-re-enable-msgmni-automatic-recomputing-msgmni-if-set-to-negative.patch
+ipc-semaphores-code-factorisation.patch
+ipc-shared-memory-introduce-shmctl_down.patch
+ipc-message-queues-introduce-msgctl_down.patch
+ipc-semaphores-move-the-rwmutex-handling-inside-semctl_down.patch
+ipc-semaphores-remove-one-unused-parameter-from-semctl_down.patch
+ipc-get-rid-of-the-use-_setbuf-structure.patch
+ipc-introduce-ipc_update_perm.patch
+ipc-consolidate-all-xxxctl_down-functions.patch
+ipc-add-definitions-of-ushort_max-and-others.patch
+proc-introduce-proc_create_data-to-setup-de-data.patch
+sysvipc-use-non-racy-method-for-proc-entries-creation.patch
+idr-fix-idr_remove.patch
+idr-introduce-the-ridr-structure.patch
+idr-introduce-ridr_pre_get.patch
+idr-introduce-ridr_init.patch
+idr-introduce-ridr_get_new_above.patch
+idr-introduce-ridr_get_new.patch
+idr-introduce-ridr_find.patch
+idr-introduce-ridr_remove.patch
+ipc-integrate-the-ridr-code-into-ipc-code.patch
+ipc-get-rid-of-ipc_lock_down.patch
 
