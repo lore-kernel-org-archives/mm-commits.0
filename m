@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipv4-assign-pde-data-before-gluing-pde-into-proc-tree.patch added to -mm tree
-Date: Tue, 29 Apr 2008 12:45:17 -0700
-Message-ID: <200804291945.m3TJjHom006424@imap1.linux-foundation.org>
+Subject: + atm-assign-pde-data-before-gluing-pde-into-proc-tree.patch added to -mm tree
+Date: Tue, 29 Apr 2008 12:45:08 -0700
+Message-ID: <200804291945.m3TJj9Sp006412@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47387 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53342 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755557AbYD2TpV (ORCPT
+	by vger.kernel.org with ESMTP id S1755524AbYD2TpS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 15:45:21 -0400
+	Tue, 29 Apr 2008 15:45:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, adobriyan@openvz.org, davem@davemloft.net, ebiederm@xmission.com
+Cc: den@openvz.org, adobriyan@openvz.org, chas@cmf.nrl.navy.mil, davem@davemloft.net, ebiederm@xmission.com
 
 
 The patch titled
-     ipv4: assign PDE->data before gluing PDE into /proc tree
+     atm: assign PDE->data before gluing PDE into /proc tree
 has been added to the -mm tree.  Its filename is
-     ipv4-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+     atm-assign-pde-data-before-gluing-pde-into-proc-tree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,67 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipv4: assign PDE->data before gluing PDE into /proc tree
+Subject: atm: assign PDE->data before gluing PDE into /proc tree
 From: "Denis V. Lunev" <den@openvz.org>
 
-The check for PDE->data != NULL becomes useless after the replacement of
-proc_net_fops_create with proc_create_data.
+Simply replace proc_create and further data assigned with proc_create_data. 
+proc_atm_dev_ops holds proper referrence.
 
 Signed-off-by: Denis V. Lunev <den@openvz.org>
 Cc: Alexey Dobriyan <adobriyan@openvz.org>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: David S. Miller <davem@davemloft.net>
+Cc: Chas Williams <chas@cmf.nrl.navy.mil>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/tcp_ipv4.c |   10 +++-------
- net/ipv4/udp.c      |    7 +++----
- 2 files changed, 6 insertions(+), 11 deletions(-)
+ net/atm/proc.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN net/ipv4/tcp_ipv4.c~ipv4-assign-pde-data-before-gluing-pde-into-proc-tree net/ipv4/tcp_ipv4.c
---- a/net/ipv4/tcp_ipv4.c~ipv4-assign-pde-data-before-gluing-pde-into-proc-tree
-+++ a/net/ipv4/tcp_ipv4.c
-@@ -2214,9 +2214,6 @@ static int tcp_seq_open(struct inode *in
- 	struct tcp_iter_state *s;
- 	int err;
+diff -puN net/atm/proc.c~atm-assign-pde-data-before-gluing-pde-into-proc-tree net/atm/proc.c
+--- a/net/atm/proc.c~atm-assign-pde-data-before-gluing-pde-into-proc-tree
++++ a/net/atm/proc.c
+@@ -417,12 +417,10 @@ int atm_proc_dev_register(struct atm_dev
+ 		goto err_out;
+ 	sprintf(dev->proc_name,"%s:%d",dev->type, dev->number);
  
--	if (unlikely(afinfo == NULL))
--		return -EINVAL;
--
- 	err = seq_open_net(inode, file, &afinfo->seq_ops,
- 			  sizeof(struct tcp_iter_state));
- 	if (err < 0)
-@@ -2241,10 +2238,9 @@ int tcp_proc_register(struct net *net, s
- 	afinfo->seq_ops.next		= tcp_seq_next;
- 	afinfo->seq_ops.stop		= tcp_seq_stop;
- 
--	p = proc_net_fops_create(net, afinfo->name, S_IRUGO, &afinfo->seq_fops);
--	if (p)
--		p->data = afinfo;
--	else
-+	p = proc_create_data(afinfo->name, S_IRUGO, net->proc_net,
-+			     &afinfo->seq_fops, afinfo);
-+	if (!p)
- 		rc = -ENOMEM;
- 	return rc;
- }
-diff -puN net/ipv4/udp.c~ipv4-assign-pde-data-before-gluing-pde-into-proc-tree net/ipv4/udp.c
---- a/net/ipv4/udp.c~ipv4-assign-pde-data-before-gluing-pde-into-proc-tree
-+++ a/net/ipv4/udp.c
-@@ -1605,10 +1605,9 @@ int udp_proc_register(struct net *net, s
- 	afinfo->seq_ops.next		= udp_seq_next;
- 	afinfo->seq_ops.stop		= udp_seq_stop;
- 
--	p = proc_net_fops_create(net, afinfo->name, S_IRUGO, &afinfo->seq_fops);
--	if (p)
--		p->data = afinfo;
--	else
-+	p = proc_create_data(afinfo->name, S_IRUGO, net->proc_net,
-+			     &afinfo->seq_fops, afinfo);
-+	if (!p)
- 		rc = -ENOMEM;
- 	return rc;
- }
+-	dev->proc_entry = proc_create(dev->proc_name, 0, atm_proc_root,
+-				      &proc_atm_dev_ops);
++	dev->proc_entry = proc_create_data(dev->proc_name, 0, atm_proc_root,
++					   &proc_atm_dev_ops, dev);
+ 	if (!dev->proc_entry)
+ 		goto err_free_name;
+-	dev->proc_entry->data = dev;
+-	dev->proc_entry->owner = THIS_MODULE;
+ 	return 0;
+ err_free_name:
+ 	kfree(dev->proc_name);
 _
 
 Patches currently in -mm which might be from den@openvz.org are
