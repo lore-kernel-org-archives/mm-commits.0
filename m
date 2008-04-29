@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + net-assign-pde-data-before-gluing-pde-into-proc-tree.patch added to -mm tree
-Date: Tue, 29 Apr 2008 12:45:04 -0700
-Message-ID: <200804291945.m3TJj4Bp006406@imap1.linux-foundation.org>
+Subject: + netfilter-assign-pde-data-before-gluing-pde-into-proc-tree.patch added to -mm tree
+Date: Tue, 29 Apr 2008 12:45:02 -0700
+Message-ID: <200804291945.m3TJj2Y7006403@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42069 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50984 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753010AbYD2TpI (ORCPT
+	by vger.kernel.org with ESMTP id S1753843AbYD2TpI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 29 Apr 2008 15:45:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, adobriyan@openvz.org, davem@davemloft.net, ebiederm@xmission.com
+Cc: den@openvz.org, adobriyan@openvz.org, ebiederm@xmission.com, kaber@trash.net
 
 
 The patch titled
-     net: assign PDE->data before gluing PDE into /proc tree
+     netfilter: assign PDE->data before gluing PDE into /proc tree
 has been added to the -mm tree.  Its filename is
-     net-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+     netfilter-assign-pde-data-before-gluing-pde-into-proc-tree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,90 +34,84 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net: assign PDE->data before gluing PDE into /proc tree
+Subject: netfilter: assign PDE->data before gluing PDE into /proc tree
 From: "Denis V. Lunev" <den@openvz.org>
 
-Simply replace proc_create and further data assigned with proc_create_data. 
-Additionally, there is no need to assign NULL to PDE->data after creation,
-/proc generic has already done this for us.
+Simply replace proc_create and further data assigned with proc_create_data.
 
 Signed-off-by: Denis V. Lunev <den@openvz.org>
 Cc: Alexey Dobriyan <adobriyan@openvz.org>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: David S. Miller <davem@davemloft.net>
+Acked-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/core/neighbour.c |    5 ++---
- net/core/pktgen.c    |   12 ++++--------
- 2 files changed, 6 insertions(+), 11 deletions(-)
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |    6 +++---
+ net/netfilter/xt_hashlimit.c       |   12 ++++++------
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN net/core/neighbour.c~net-assign-pde-data-before-gluing-pde-into-proc-tree net/core/neighbour.c
---- a/net/core/neighbour.c~net-assign-pde-data-before-gluing-pde-into-proc-tree
-+++ a/net/core/neighbour.c
-@@ -1430,11 +1430,10 @@ void neigh_table_init_no_netlink(struct 
- 		panic("cannot create neighbour cache statistics");
+diff -puN net/ipv4/netfilter/ipt_CLUSTERIP.c~netfilter-assign-pde-data-before-gluing-pde-into-proc-tree net/ipv4/netfilter/ipt_CLUSTERIP.c
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c~netfilter-assign-pde-data-before-gluing-pde-into-proc-tree
++++ a/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -169,14 +169,14 @@ clusterip_config_init(const struct ipt_c
  
- #ifdef CONFIG_PROC_FS
--	tbl->pde = proc_create(tbl->id, 0, init_net.proc_net_stat,
--			       &neigh_stat_seq_fops);
-+	tbl->pde = proc_create_data(tbl->id, 0, init_net.proc_net_stat,
-+				    &neigh_stat_seq_fops, tbl);
- 	if (!tbl->pde)
- 		panic("cannot create neighbour proc dir entry");
--	tbl->pde->data = tbl;
+ 		/* create proc dir entry */
+ 		sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(ip));
+-		c->pde = proc_create(buffer, S_IWUSR|S_IRUSR,
+-				     clusterip_procdir, &clusterip_proc_fops);
++		c->pde = proc_create_data(buffer, S_IWUSR|S_IRUSR,
++					  clusterip_procdir,
++					  &clusterip_proc_fops, c);
+ 		if (!c->pde) {
+ 			kfree(c);
+ 			return NULL;
+ 		}
+ 	}
+-	c->pde->data = c;
  #endif
  
- 	tbl->hash_mask = 1;
-diff -puN net/core/pktgen.c~net-assign-pde-data-before-gluing-pde-into-proc-tree net/core/pktgen.c
---- a/net/core/pktgen.c~net-assign-pde-data-before-gluing-pde-into-proc-tree
-+++ a/net/core/pktgen.c
-@@ -3570,15 +3570,14 @@ static int pktgen_add_device(struct pktg
- 	if (err)
- 		goto out1;
- 
--	pkt_dev->entry = proc_create(ifname, 0600,
--				     pg_proc_dir, &pktgen_if_fops);
-+	pkt_dev->entry = proc_create_data(ifname, 0600, pg_proc_dir,
-+					  &pktgen_if_fops, pkt_dev);
- 	if (!pkt_dev->entry) {
- 		printk(KERN_ERR "pktgen: cannot create %s/%s procfs entry.\n",
- 		       PG_PROC_DIR, ifname);
- 		err = -EINVAL;
- 		goto out2;
+ 	write_lock_bh(&clusterip_lock);
+diff -puN net/netfilter/xt_hashlimit.c~netfilter-assign-pde-data-before-gluing-pde-into-proc-tree net/netfilter/xt_hashlimit.c
+--- a/net/netfilter/xt_hashlimit.c~netfilter-assign-pde-data-before-gluing-pde-into-proc-tree
++++ a/net/netfilter/xt_hashlimit.c
+@@ -237,15 +237,15 @@ static int htable_create_v0(struct xt_ha
+ 	hinfo->family = family;
+ 	hinfo->rnd_initialized = 0;
+ 	spin_lock_init(&hinfo->lock);
+-	hinfo->pde = proc_create(minfo->name, 0,
++	hinfo->pde =
++		proc_create_data(minfo->name, 0,
+ 				 family == AF_INET ? hashlimit_procdir4 :
+ 						     hashlimit_procdir6,
+-				 &dl_file_ops);
++				 &dl_file_ops, hinfo);
+ 	if (!hinfo->pde) {
+ 		vfree(hinfo);
+ 		return -1;
  	}
--	pkt_dev->entry->data = pkt_dev;
- #ifdef CONFIG_XFRM
- 	pkt_dev->ipsmode = XFRM_MODE_TRANSPORT;
- 	pkt_dev->ipsproto = IPPROTO_ESP;
-@@ -3628,7 +3627,8 @@ static int __init pktgen_create_thread(i
- 	kthread_bind(p, cpu);
- 	t->tsk = p;
+-	hinfo->pde->data = hinfo;
  
--	pe = proc_create(t->tsk->comm, 0600, pg_proc_dir, &pktgen_thread_fops);
-+	pe = proc_create_data(t->tsk->comm, 0600, pg_proc_dir,
-+			      &pktgen_thread_fops, t);
- 	if (!pe) {
- 		printk(KERN_ERR "pktgen: cannot create %s/%s procfs entry.\n",
- 		       PG_PROC_DIR, t->tsk->comm);
-@@ -3638,8 +3638,6 @@ static int __init pktgen_create_thread(i
- 		return -EINVAL;
+ 	setup_timer(&hinfo->timer, htable_gc, (unsigned long )hinfo);
+ 	hinfo->timer.expires = jiffies + msecs_to_jiffies(hinfo->cfg.gc_interval);
+@@ -301,15 +301,15 @@ static int htable_create(struct xt_hashl
+ 	hinfo->rnd_initialized = 0;
+ 	spin_lock_init(&hinfo->lock);
+ 
+-	hinfo->pde = proc_create(minfo->name, 0,
++	hinfo->pde =
++		proc_create_data(minfo->name, 0,
+ 				 family == AF_INET ? hashlimit_procdir4 :
+ 						     hashlimit_procdir6,
+-				 &dl_file_ops);
++				 &dl_file_ops, hinfo);
+ 	if (hinfo->pde == NULL) {
+ 		vfree(hinfo);
+ 		return -1;
  	}
+-	hinfo->pde->data = hinfo;
  
--	pe->data = t;
--
- 	wake_up_process(p);
- 
- 	return 0;
-@@ -3716,8 +3714,6 @@ static int __init pg_init(void)
- 		return -EINVAL;
- 	}
- 
--	pe->data = NULL;
--
- 	/* Register us to receive netdevice events */
- 	register_netdevice_notifier(&pktgen_notifier_block);
- 
+ 	setup_timer(&hinfo->timer, htable_gc, (unsigned long)hinfo);
+ 	hinfo->timer.expires = jiffies + msecs_to_jiffies(hinfo->cfg.gc_interval);
 _
 
 Patches currently in -mm which might be from den@openvz.org are
