@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + ipc-get-rid-of-ipc_lock_down.patch added to -mm tree
-Date: Tue, 29 Apr 2008 12:01:20 -0700
-Message-ID: <200804291901.m3TJ1KBa004477@imap1.linux-foundation.org>
+Subject: + idr-introduce-ridr_remove.patch added to -mm tree
+Date: Tue, 29 Apr 2008 12:01:16 -0700
+Message-ID: <200804291901.m3TJ1GkN004470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60622 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33442 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764256AbYD2TKQ (ORCPT
+	by vger.kernel.org with ESMTP id S1764110AbYD2TKG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 15:10:16 -0400
+	Tue, 29 Apr 2008 15:10:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, ni
 
 
 The patch titled
-     ipc: get rid of ipc_lock_down()
+     idr: introduce ridr_remove()
 has been added to the -mm tree.  Its filename is
-     ipc-get-rid-of-ipc_lock_down.patch
+     idr-introduce-ridr_remove.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,11 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: get rid of ipc_lock_down()
+Subject: idr: introduce ridr_remove()
 From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-With the previous patch ipc_lock() becomes lockless.  So there is no need
-anymore for ipc_lock_down()-like routines.
+Introduce the ridr_remove() routine.
 
 Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
 Cc: Jim Houston <jim.houston@comcast.net>
@@ -49,149 +48,159 @@ Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/shm.c  |   21 ++------------------
- ipc/util.c |   52 ---------------------------------------------------
- ipc/util.h |    6 -----
- 3 files changed, 4 insertions(+), 75 deletions(-)
+ include/linux/idr.h  |    1 
+ include/linux/ridr.h |    1 
+ lib/idr.c            |    7 +--
+ lib/ridr.c           |   83 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 89 insertions(+), 3 deletions(-)
 
-diff -puN ipc/shm.c~ipc-get-rid-of-ipc_lock_down ipc/shm.c
---- a/ipc/shm.c~ipc-get-rid-of-ipc_lock_down
-+++ a/ipc/shm.c
-@@ -112,23 +112,8 @@ void __init shm_init (void)
- }
+diff -puN include/linux/idr.h~idr-introduce-ridr_remove include/linux/idr.h
+--- a/include/linux/idr.h~idr-introduce-ridr_remove
++++ a/include/linux/idr.h
+@@ -91,6 +91,7 @@ static inline void _idr_set_new_slot(str
+ 
+ void _idr_mark_full(struct idr_layer **, int);
+ int _idr_sub_alloc(int *, int *, struct idr_layer **, struct idr_layer **);
++void _idr_remove_warning(const char *, int);
  
  /*
-- * shm_lock_(check_)down routines are called in the paths where the rw_mutex
-- * is held to protect access to the idr tree.
-- */
--static inline struct shmid_kernel *shm_lock_down(struct ipc_namespace *ns,
--						int id)
--{
--	struct kern_ipc_perm *ipcp = ipc_lock_down(&shm_ids(ns), id);
--
--	if (IS_ERR(ipcp))
--		return (struct shmid_kernel *)ipcp;
--
--	return container_of(ipcp, struct shmid_kernel, shm_perm);
--}
--
--/*
-  * shm_lock_(check_) routines are called in the paths where the rw_mutex
-- * is not held.
-+ * is not necessarily held.
-  */
- static inline struct shmid_kernel *shm_lock(struct ipc_namespace *ns, int id)
+  * This is what we export.
+diff -puN include/linux/ridr.h~idr-introduce-ridr_remove include/linux/ridr.h
+--- a/include/linux/ridr.h~idr-introduce-ridr_remove
++++ a/include/linux/ridr.h
+@@ -63,6 +63,7 @@ void *ridr_find(struct ridr *, int);
+ int ridr_pre_get(struct ridr *, gfp_t);
+ int ridr_get_new(struct ridr *, void *, int *);
+ int ridr_get_new_above(struct ridr *, void *, int, int *);
++void ridr_remove(struct ridr *, int);
+ void ridr_init(struct ridr *);
+ 
+ 
+diff -puN lib/idr.c~idr-introduce-ridr_remove lib/idr.c
+--- a/lib/idr.c~idr-introduce-ridr_remove
++++ a/lib/idr.c
+@@ -356,9 +356,10 @@ int idr_get_new(struct idr *idp, void *p
+ }
+ EXPORT_SYMBOL(idr_get_new);
+ 
+-static void idr_remove_warning(int id)
++void _idr_remove_warning(const char *caller, int id)
  {
-@@ -211,7 +196,7 @@ static void shm_close(struct vm_area_str
- 
- 	down_write(&shm_ids(ns).rw_mutex);
- 	/* remove from the list of attaches of the shm segment */
--	shp = shm_lock_down(ns, sfd->id);
-+	shp = shm_lock(ns, sfd->id);
- 	BUG_ON(IS_ERR(shp));
- 	shp->shm_lprid = task_tgid_vnr(current);
- 	shp->shm_dtim = get_seconds();
-@@ -933,7 +918,7 @@ invalid:
- 
- out_nattch:
- 	down_write(&shm_ids(ns).rw_mutex);
--	shp = shm_lock_down(ns, shmid);
-+	shp = shm_lock(ns, shmid);
- 	BUG_ON(IS_ERR(shp));
- 	shp->shm_nattch--;
- 	if(shp->shm_nattch == 0 &&
-diff -puN ipc/util.c~ipc-get-rid-of-ipc_lock_down ipc/util.c
---- a/ipc/util.c~ipc-get-rid-of-ipc_lock_down
-+++ a/ipc/util.c
-@@ -716,56 +716,6 @@ struct kern_ipc_perm *ipc_lock(struct ip
- 	return out;
+-	printk("idr_remove called for id=%d which is not allocated.\n", id);
++	printk(KERN_INFO "%s called for id=%d which is not allocated.\n",
++		caller, id);
+ 	dump_stack();
  }
  
--/**
-- * ipc_lock_down - Lock an ipc structure with rw_sem held
-- * @ids: IPC identifier set
-- * @id: ipc id to look for
-- *
-- * Look for an id in the ipc ids ridr and lock the associated ipc object.
-- *
-- * The ipc object is locked on exit.
-- *
-- * This is the routine that should be called when the rw_mutex is already
-- * held, i.e. ridr tree protected.
-- */
--
--struct kern_ipc_perm *ipc_lock_down(struct ipc_ids *ids, int id)
--{
--	struct kern_ipc_perm *out;
--	int lid = ipcid_to_idx(id);
--
--	rcu_read_lock();
--	out = ridr_find(&ids->ipcs_ridr, lid);
--	if (out == NULL) {
--		rcu_read_unlock();
--		return ERR_PTR(-EINVAL);
--	}
--
--	spin_lock(&out->lock);
--
--	/*
--	 * No need to verify that the structure is still valid since the
--	 * rw_mutex is held.
--	 */
--	return out;
--}
--
--struct kern_ipc_perm *ipc_lock_check_down(struct ipc_ids *ids, int id)
--{
--	struct kern_ipc_perm *out;
--
--	out = ipc_lock_down(ids, id);
--	if (IS_ERR(out))
--		return out;
--
--	if (ipc_checkid(out, id)) {
--		ipc_unlock(out);
--		return ERR_PTR(-EIDRM);
--	}
--
--	return out;
--}
--
- struct kern_ipc_perm *ipc_lock_check(struct ipc_ids *ids, int id)
- {
- 	struct kern_ipc_perm *out;
-@@ -837,7 +787,7 @@ struct kern_ipc_perm *ipcctl_pre_down(st
- 	int err;
- 
- 	down_write(&ids->rw_mutex);
--	ipcp = ipc_lock_check_down(ids, id);
-+	ipcp = ipc_lock_check(ids, id);
- 	if (IS_ERR(ipcp)) {
- 		err = PTR_ERR(ipcp);
- 		goto out_up;
-diff -puN ipc/util.h~ipc-get-rid-of-ipc_lock_down ipc/util.h
---- a/ipc/util.h~ipc-get-rid-of-ipc_lock_down
-+++ a/ipc/util.h
-@@ -102,11 +102,6 @@ void* ipc_rcu_alloc(int size);
- void ipc_rcu_getref(void *ptr);
- void ipc_rcu_putref(void *ptr);
- 
--/*
-- * ipc_lock_down: called with rw_mutex held
-- * ipc_lock: called without that lock held
-- */
--struct kern_ipc_perm *ipc_lock_down(struct ipc_ids *, int);
- struct kern_ipc_perm *ipc_lock(struct ipc_ids *, int);
- 
- void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
-@@ -155,7 +150,6 @@ static inline void ipc_unlock(struct ker
- 	rcu_read_unlock();
+@@ -390,7 +391,7 @@ static void sub_remove(struct idr *idp, 
+ 		if (!*paa)
+ 			idp->layers = 0;
+ 	} else
+-		idr_remove_warning(id);
++		_idr_remove_warning("idr_remove", id);
  }
  
--struct kern_ipc_perm *ipc_lock_check_down(struct ipc_ids *ids, int id);
- struct kern_ipc_perm *ipc_lock_check(struct ipc_ids *ids, int id);
- int ipcget(struct ipc_namespace *ns, struct ipc_ids *ids,
- 			struct ipc_ops *ops, struct ipc_params *params);
+ /**
+diff -puN lib/ridr.c~idr-introduce-ridr_remove lib/ridr.c
+--- a/lib/ridr.c~idr-introduce-ridr_remove
++++ a/lib/ridr.c
+@@ -28,6 +28,19 @@ static struct ridr_layer *get_from_free_
+ 	return(q);
+ }
+ 
++static void ridr_layer_rcu_free(struct rcu_head *head)
++{
++	struct ridr_layer *layer;
++
++	layer = container_of(head, struct ridr_layer, rcu_head);
++	kmem_cache_free(ridr_layer_cache, layer);
++}
++
++static inline void free_layer(struct ridr_layer *p)
++{
++	call_rcu(&p->rcu_head, ridr_layer_rcu_free);
++}
++
+ /* only called when idp->lock is held */
+ /* moves an ridr_layer to the free list */
+ static void __move_to_free_list(struct ridr *idp, struct ridr_layer *p)
+@@ -259,6 +272,76 @@ int ridr_get_new(struct ridr *idp, void 
+ }
+ EXPORT_SYMBOL(ridr_get_new);
+ 
++static void sub_remove(struct ridr *idp, int shift, int id)
++{
++	struct ridr_layer *p = idp->top;
++	struct ridr_layer **pa[MAX_LEVEL];
++	struct ridr_layer ***paa = &pa[0];
++	struct ridr_layer *to_free;
++	int n;
++
++	*paa = NULL;
++	*++paa = &idp->top;
++
++	while ((shift > 0) && p) {
++		n = (id >> shift) & IDR_MASK;
++		__clear_bit(n, &p->idr.bitmap);
++		*++paa = (struct ridr_layer **) &(p->idr.ary[n]);
++		p = p->idr.ary[n];
++		shift -= IDR_BITS;
++	}
++	n = id & IDR_MASK;
++	if (likely(p != NULL && test_bit(n, &p->idr.bitmap))) {
++		__clear_bit(n, &p->idr.bitmap);
++		rcu_assign_pointer(p->idr.ary[n], NULL);
++		to_free = NULL;
++		while (*paa && !--((**paa)->idr.count)) {
++			if (to_free)
++				free_layer(to_free);
++			to_free = **paa;
++			**paa-- = NULL;
++		}
++		if (!*paa)
++			idp->layers = 0;
++		if (to_free)
++			free_layer(to_free);
++	} else
++		_idr_remove_warning("ridr_remove", id);
++}
++/**
++ * ridr_remove - remove the given id and free it's slot
++ * @idp: ridr handle
++ * @id: unique key
++ */
++void ridr_remove(struct ridr *idp, int id)
++{
++	struct ridr_layer *p;
++	struct ridr_layer *to_free;
++
++	/* Mask off upper bits we don't use for the search. */
++	id &= MAX_ID_MASK;
++
++	sub_remove(idp, (idp->layers - 1) * IDR_BITS, id);
++	if (idp->top && idp->top->idr.count == 1 && (idp->layers > 1) &&
++	    idp->top->idr.ary[0]) {
++		/*
++		 * Single child at leftmost slot: we can shrink the tree.
++		 * This level is not needed anymore since when layers are
++		 * inserted, they are inserted at the top of the existing
++		 * tree.
++		 */
++		to_free = idp->top;
++		p = idp->top->idr.ary[0];
++		rcu_assign_pointer(idp->top, p);
++		--idp->layers;
++		to_free->idr.bitmap = to_free->idr.count = 0;
++		to_free->idr.ary[0] = NULL;
++		free_layer(to_free);
++	}
++	return;
++}
++EXPORT_SYMBOL(ridr_remove);
++
+ /**
+  * ridr_find - return pointer for given id
+  * @idp: ridr handle
 _
 
 Patches currently in -mm which might be from Nadia.Derbey@bull.net are
