@@ -1,62 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 23:06:54 -0700
-Message-ID: <200804290606.m3T66tGP004469@imap1.linux-foundation.org>
+Subject: - relayfs-support-larger-relay-buffer-take-3-cleanup.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 23:07:26 -0700
+Message-ID: <200804290607.m3T67QQW004478@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54183 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52325 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754247AbYD2GG6 (ORCPT
+	by vger.kernel.org with ESMTP id S1757355AbYD2GIa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 02:06:58 -0400
+	Tue, 29 Apr 2008 02:08:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dwilder@us.ibm.com, mhiramat@redhat.com, zanussi@comcast.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes
+     relayfs-support-larger-relay-buffer-take-3-cleanup
 has been removed from the -mm tree.  Its filename was
-     ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
+     relayfs-support-larger-relay-buffer-take-3-cleanup.patch
 
-This patch was dropped because it was folded into ncpfs-use-get-put_unaligned_-helpers.patch
+This patch was dropped because it was folded into relayfs-support-larger-relay-buffer-take-3.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes
+Subject: relayfs-support-larger-relay-buffer-take-3-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo* bar" should be "foo *bar"
-#40: FILE: fs/ncpfs/ncplib_kernel.c:120:
-+static inline u16 WVAL_LH(void* data)
-
-total: 1 errors, 0 warnings, 75 lines checked
-
-./patches/ncpfs-use-get-put_unaligned_-helpers.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: David Wilder <dwilder@us.ibm.com>
+Cc: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: Tom Zanussi <zanussi@comcast.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ncplib_kernel.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/relay.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ncpfs/ncplib_kernel.c~ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes fs/ncpfs/ncplib_kernel.c
---- a/fs/ncpfs/ncplib_kernel.c~ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes
-+++ a/fs/ncpfs/ncplib_kernel.c
-@@ -117,7 +117,7 @@ static u8 ncp_reply_byte(struct ncp_serv
- 	return *(u8 *)ncp_reply_data(server, offset);
- }
- 
--static inline u16 WVAL_LH(void* data)
-+static inline u16 WVAL_LH(void *data)
+diff -puN kernel/relay.c~relayfs-support-larger-relay-buffer-take-3-cleanup kernel/relay.c
+--- a/kernel/relay.c~relayfs-support-larger-relay-buffer-take-3-cleanup
++++ a/kernel/relay.c
+@@ -71,14 +71,14 @@ static struct vm_operations_struct relay
+ static struct page **relay_alloc_page_array(unsigned int n_pages)
  {
- 	return get_unaligned_le16(data);
+ 	struct page **array;
+-	unsigned int pa_size = n_pages * sizeof(struct page *);
++	size_t pa_size = n_pages * sizeof(struct page *);
+ 
+ 	if (pa_size > PAGE_SIZE) {
+ 		array = vmalloc(pa_size);
+ 		if (array)
+ 			memset(array, 0, pa_size);
+ 	} else {
+-		array = kcalloc(n_pages, sizeof(struct page *), GFP_KERNEL);
++		array = kzalloc(pa_size, GFP_KERNEL);
+ 	}
+ 	return array;
  }
 _
 
@@ -92,7 +90,7 @@ edd-add-default-mode-config_edd_off=n-override-with-edd=onoff.patch
 idr-create-idr_layer_cache-at-boot-time.patch
 edac-add-e752x-parameter-for-sysbus_parity-selection.patch
 ncpfs-use-get-put_unaligned_-helpers.patch
-ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
+relayfs-support-larger-relay-buffer-take-3.patch
 relayfs-support-larger-relay-buffer-take-3-cleanup.patch
 reiser4.patch
 jens-broke-reiser4patch-added-to-mm-tree.patch
