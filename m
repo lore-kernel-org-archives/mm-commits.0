@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + netfilter-assign-pde-data-before-gluing-pde-into-proc-tree.patch added to -mm tree
-Date: Tue, 29 Apr 2008 12:45:02 -0700
-Message-ID: <200804291945.m3TJj2Y7006403@imap1.linux-foundation.org>
+Subject: + sunrpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch added to -mm tree
+Date: Tue, 29 Apr 2008 12:44:59 -0700
+Message-ID: <200804291945.m3TJj0Jj006391@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50984 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38862 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753843AbYD2TpI (ORCPT
+	by vger.kernel.org with ESMTP id S1755387AbYD2TpR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 15:45:08 -0400
+	Tue, 29 Apr 2008 15:45:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: den@openvz.org, adobriyan@openvz.org, ebiederm@xmission.com, kaber@trash.net
+Cc: den@openvz.org, adobriyan@openvz.org, bfields@fieldses.org, davem@davemloft.net, ebiederm@xmission.com, neilb@suse.de, trond.myklebust@fys.uio.no
 
 
 The patch titled
-     netfilter: assign PDE->data before gluing PDE into /proc tree
+     sunrpc: assign PDE->data before gluing PDE into /proc tree
 has been added to the -mm tree.  Its filename is
-     netfilter-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+     sunrpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: netfilter: assign PDE->data before gluing PDE into /proc tree
+Subject: sunrpc: assign PDE->data before gluing PDE into /proc tree
 From: "Denis V. Lunev" <den@openvz.org>
 
 Simply replace proc_create and further data assigned with proc_create_data.
@@ -42,76 +42,79 @@ Simply replace proc_create and further data assigned with proc_create_data.
 Signed-off-by: Denis V. Lunev <den@openvz.org>
 Cc: Alexey Dobriyan <adobriyan@openvz.org>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Patrick McHardy <kaber@trash.net>
+Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Neil Brown <neilb@suse.de>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/netfilter/ipt_CLUSTERIP.c |    6 +++---
- net/netfilter/xt_hashlimit.c       |   12 ++++++------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ net/sunrpc/cache.c |   15 ++++++---------
+ net/sunrpc/stats.c |    8 +-------
+ 2 files changed, 7 insertions(+), 16 deletions(-)
 
-diff -puN net/ipv4/netfilter/ipt_CLUSTERIP.c~netfilter-assign-pde-data-before-gluing-pde-into-proc-tree net/ipv4/netfilter/ipt_CLUSTERIP.c
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c~netfilter-assign-pde-data-before-gluing-pde-into-proc-tree
-+++ a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -169,14 +169,14 @@ clusterip_config_init(const struct ipt_c
+diff -puN net/sunrpc/cache.c~sunrpc-assign-pde-data-before-gluing-pde-into-proc-tree net/sunrpc/cache.c
+--- a/net/sunrpc/cache.c~sunrpc-assign-pde-data-before-gluing-pde-into-proc-tree
++++ a/net/sunrpc/cache.c
+@@ -316,31 +316,28 @@ static int create_cache_proc_entries(str
+ 	cd->proc_ent->owner = cd->owner;
+ 	cd->channel_ent = cd->content_ent = NULL;
  
- 		/* create proc dir entry */
- 		sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(ip));
--		c->pde = proc_create(buffer, S_IWUSR|S_IRUSR,
--				     clusterip_procdir, &clusterip_proc_fops);
-+		c->pde = proc_create_data(buffer, S_IWUSR|S_IRUSR,
-+					  clusterip_procdir,
-+					  &clusterip_proc_fops, c);
- 		if (!c->pde) {
- 			kfree(c);
- 			return NULL;
- 		}
+-	p = proc_create("flush", S_IFREG|S_IRUSR|S_IWUSR,
+-			cd->proc_ent, &cache_flush_operations);
++	p = proc_create_data("flush", S_IFREG|S_IRUSR|S_IWUSR,
++			     cd->proc_ent, &cache_flush_operations, cd);
+ 	cd->flush_ent = p;
+ 	if (p == NULL)
+ 		goto out_nomem;
+ 	p->owner = cd->owner;
+-	p->data = cd;
+ 
+ 	if (cd->cache_request || cd->cache_parse) {
+-		p = proc_create("channel", S_IFREG|S_IRUSR|S_IWUSR,
+-				cd->proc_ent, &cache_file_operations);
++		p = proc_create_data("channel", S_IFREG|S_IRUSR|S_IWUSR,
++				     cd->proc_ent, &cache_file_operations, cd);
+ 		cd->channel_ent = p;
+ 		if (p == NULL)
+ 			goto out_nomem;
+ 		p->owner = cd->owner;
+-		p->data = cd;
  	}
--	c->pde->data = c;
- #endif
- 
- 	write_lock_bh(&clusterip_lock);
-diff -puN net/netfilter/xt_hashlimit.c~netfilter-assign-pde-data-before-gluing-pde-into-proc-tree net/netfilter/xt_hashlimit.c
---- a/net/netfilter/xt_hashlimit.c~netfilter-assign-pde-data-before-gluing-pde-into-proc-tree
-+++ a/net/netfilter/xt_hashlimit.c
-@@ -237,15 +237,15 @@ static int htable_create_v0(struct xt_ha
- 	hinfo->family = family;
- 	hinfo->rnd_initialized = 0;
- 	spin_lock_init(&hinfo->lock);
--	hinfo->pde = proc_create(minfo->name, 0,
-+	hinfo->pde =
-+		proc_create_data(minfo->name, 0,
- 				 family == AF_INET ? hashlimit_procdir4 :
- 						     hashlimit_procdir6,
--				 &dl_file_ops);
-+				 &dl_file_ops, hinfo);
- 	if (!hinfo->pde) {
- 		vfree(hinfo);
- 		return -1;
+ 	if (cd->cache_show) {
+-		p = proc_create("content", S_IFREG|S_IRUSR|S_IWUSR,
+-				cd->proc_ent, &content_file_operations);
++		p = proc_create_data("content", S_IFREG|S_IRUSR|S_IWUSR,
++				cd->proc_ent, &content_file_operations, cd);
+ 		cd->content_ent = p;
+ 		if (p == NULL)
+ 			goto out_nomem;
+ 		p->owner = cd->owner;
+-		p->data = cd;
  	}
--	hinfo->pde->data = hinfo;
+ 	return 0;
+ out_nomem:
+diff -puN net/sunrpc/stats.c~sunrpc-assign-pde-data-before-gluing-pde-into-proc-tree net/sunrpc/stats.c
+--- a/net/sunrpc/stats.c~sunrpc-assign-pde-data-before-gluing-pde-into-proc-tree
++++ a/net/sunrpc/stats.c
+@@ -224,16 +224,10 @@ EXPORT_SYMBOL_GPL(rpc_print_iostats);
+ static inline struct proc_dir_entry *
+ do_register(const char *name, void *data, const struct file_operations *fops)
+ {
+-	struct proc_dir_entry *ent;
+-
+ 	rpc_proc_init();
+ 	dprintk("RPC:       registering /proc/net/rpc/%s\n", name);
  
- 	setup_timer(&hinfo->timer, htable_gc, (unsigned long )hinfo);
- 	hinfo->timer.expires = jiffies + msecs_to_jiffies(hinfo->cfg.gc_interval);
-@@ -301,15 +301,15 @@ static int htable_create(struct xt_hashl
- 	hinfo->rnd_initialized = 0;
- 	spin_lock_init(&hinfo->lock);
+-	ent = proc_create(name, 0, proc_net_rpc, fops);
+-	if (ent) {
+-		ent->data = data;
+-	}
+-	return ent;
++	return proc_create_data(name, 0, proc_net_rpc, fops, data);
+ }
  
--	hinfo->pde = proc_create(minfo->name, 0,
-+	hinfo->pde =
-+		proc_create_data(minfo->name, 0,
- 				 family == AF_INET ? hashlimit_procdir4 :
- 						     hashlimit_procdir6,
--				 &dl_file_ops);
-+				 &dl_file_ops, hinfo);
- 	if (hinfo->pde == NULL) {
- 		vfree(hinfo);
- 		return -1;
- 	}
--	hinfo->pde->data = hinfo;
- 
- 	setup_timer(&hinfo->timer, htable_gc, (unsigned long)hinfo);
- 	hinfo->timer.expires = jiffies + msecs_to_jiffies(hinfo->cfg.gc_interval);
+ struct proc_dir_entry *
 _
 
 Patches currently in -mm which might be from den@openvz.org are
