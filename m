@@ -1,111 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 23:05:28 -0700
-Message-ID: <200804290605.m3T65SSB004427@imap1.linux-foundation.org>
+Subject: - afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself-try-3.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 23:06:04 -0700
+Message-ID: <200804290606.m3T664gt004459@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38427 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46560 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754100AbYD2GFh (ORCPT
+	by vger.kernel.org with ESMTP id S1754221AbYD2GGX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 02:05:37 -0400
+	Tue, 29 Apr 2008 02:06:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, ptyser@xes-inc.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes
+     afs: the AFS RPC op CBGetCapabilities is actually CBTellMeAboutYourself [try #3]
 has been removed from the -mm tree.  Its filename was
-     edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
+     afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself-try-3.patch
 
-This patch was dropped because it was folded into edac-add-e752x-parameter-for-sysbus_parity-selection.patch
+This patch was dropped because it was folded into afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: afs: the AFS RPC op CBGetCapabilities is actually CBTellMeAboutYourself [try #3]
+From: David Howells <dhowells@redhat.com>
 
-ERROR: use tabs not spaces
-#91: FILE: drivers/edac/e752x_edac.c:1326:
-+                " 1=enable system bus parity checking, default=auto-detect");$
+The AFS RxRPC op CBGetCapabilities is actually CBTellMeAboutYourself.
 
-total: 1 errors, 0 warnings, 61 lines checked
-
-./patches/edac-add-e752x-parameter-for-sysbus_parity-selection.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Doug Thompson <dougthompson@xmission.com>
-Cc: Peter Tyser <ptyser@xes-inc.com>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/e752x_edac.c |    2 +-
+ fs/afs/cmservice.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/edac/e752x_edac.c~edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes drivers/edac/e752x_edac.c
---- a/drivers/edac/e752x_edac.c~edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes
-+++ a/drivers/edac/e752x_edac.c
-@@ -1328,4 +1328,4 @@ MODULE_PARM_DESC(edac_op_state, "EDAC Er
- 
- module_param(sysbus_parity, int, 0444);
- MODULE_PARM_DESC(sysbus_parity, "0=disable system bus parity checking,"
--                " 1=enable system bus parity checking, default=auto-detect");
-+		" 1=enable system bus parity checking, default=auto-detect");
+diff -puN fs/afs/cmservice.c~afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself-try-3 fs/afs/cmservice.c
+--- a/fs/afs/cmservice.c~afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself-try-3
++++ a/fs/afs/cmservice.c
+@@ -74,7 +74,7 @@ static const struct afs_call_type afs_SR
+  * CB.TellMeAboutYourself operation type
+  */
+ static const struct afs_call_type afs_SRXCBTellMeAboutYourself = {
+-	.name		= "CB.",
++	.name		= "CB.TellMeAboutYourself",
+ 	.deliver	= afs_deliver_cb_tell_me_about_yourself,
+ 	.abort_to_error	= afs_abort_to_error,
+ 	.destructor	= afs_cm_destructor,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-make-dev-kmem-a-config-option.patch
-misc-phantom-add-compat-ioctl.patch
-sysrq-add-show-backtrace-on-all-cpus-function.patch
-codafs-fix-build-warning.patch
-lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
-lib-swiotlbc-cleanups.patch
-fs-inodec-use-hlist_for_each_entry.patch
-ecryptfs-integrate-ecryptfs-device-handle-into-the-module.patch
-ecryptfs-make-key-module-subsystem-respect-namespaces.patch
-x86-olpc-add-one-laptop-per-child-architecture-support.patch
-cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
-cgroups-implement-device-whitelist-v6.patch
-add-a-document-describing-the-resource-counter-abstraction-v2.patch
-memcgroup-implement-failcounter-reset.patch
-use-vmalloc-for-mem_cgroup-allocation-v3.patch
-workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
-ipc-use-ipc_buildid-directly-from-ipc_addid.patch
-ipc-add-definitions-of-ushort_max-and-others.patch
-ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc.patch
-ipmi-run-to-completion-fixes.patch
-ipmi-style-fixes-in-the-system-interface-code.patch
-elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+remove-the-macro-get_personality.patch
+fdpic-check-that-the-size-returned-by-kernel_read-is-what-we-asked-for.patch
+maintainers-clarify-status-of-mn10300-mailing-list-as-moderated.patch
+xattr-add-missing-consts-to-function-arguments.patch
+keys-increase-the-payload-size-when-instantiating-a-key.patch
+keys-check-starting-keyring-as-part-of-search.patch
+keys-allow-the-callout-data-to-be-passed-as-a-blob-rather-than-a-string.patch
 keys-add-keyctl-function-to-get-a-security-label.patch
+keys-switch-to-proc_create.patch
+keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
+keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
+keys-make-the-keyring-quotas-controllable-through-proc-sys.patch
+keys-explicitly-include-required-slabh-header-file.patch
+keys-make-key_serial-a-function-if-config_keys=y.patch
 procfs-task-exe-symlink.patch
-proc-switch-to-proc_create.patch
-edd-add-default-mode-config_edd_off=n-override-with-edd=onoff.patch
-idr-create-idr_layer_cache-at-boot-time.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection.patch
-edac-add-e752x-parameter-for-sysbus_parity-selection-checkpatch-fixes.patch
-ncpfs-use-get-put_unaligned_-helpers-checkpatch-fixes.patch
-relayfs-support-larger-relay-buffer-take-3-cleanup.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-profile-likely-unlikely-macros-fix.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+proc-introduce-proc_create_data-to-setup-de-data.patch
+afs-use-non-racy-method-for-proc-entries-creation.patch
+afs-use-the-shorter-list_head-for-brevity.patch
+afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself.patch
+afs-the-afs-rpc-op-cbgetcapabilities-is-actually-cbtellmeaboutyourself-try-3.patch
+afs-support-the-cbprobeuuid-rpc-op.patch
+add-kbuildh-that-contains-common-definitions-for-kbuild-users.patch
+frv-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+mn10300-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
+mutex-subsystem-synchro-test-module.patch
 
