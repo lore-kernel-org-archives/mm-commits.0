@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + leds-add-pca9532-platform-data-for-thecus-n2100.patch added to -mm tree
-Date: Tue, 29 Apr 2008 13:26:35 -0700
-Message-ID: <200804292026.m3TKQZge008024@imap1.linux-foundation.org>
+Subject: + proc-pagetypeinfo-fix-output-for-memoryless-nodes.patch added to -mm tree
+Date: Tue, 29 Apr 2008 13:28:56 -0700
+Message-ID: <200804292028.m3TKSu9X008167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41372 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37278 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762177AbYD2U11 (ORCPT
+	by vger.kernel.org with ESMTP id S1755986AbYD2U31 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 16:27:27 -0400
+	Tue, 29 Apr 2008 16:29:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: riku.voipio@iki.fi, rmk@arm.linux.org.uk, rpurdie@rpsys.net
+Cc: kosaki.motohiro@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie
 
 
 The patch titled
-     leds: add pca9532 platform data for Thecus N2100
+     /proc/pagetypeinfo: fix output for memoryless nodes
 has been added to the -mm tree.  Its filename is
-     leds-add-pca9532-platform-data-for-thecus-n2100.patch
+     proc-pagetypeinfo-fix-output-for-memoryless-nodes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: leds: add pca9532 platform data for Thecus N2100
-From: Riku Voipio <riku.voipio@iki.fi>
+Subject: /proc/pagetypeinfo: fix output for memoryless nodes
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-Thecus N2100 has leds and a buzzer attached to a pca9532 controller.  Attach
-the driver to the i2c bus and define the pca9532 pin coniguration for this
-platform in n2100_leds.
+on memoryless node, /proc/pagetypeinfo is displayed slightly funny output.
+this patch fix it.
 
-With this patch, support for N2100 should be complete in mainline Linux.
+output example (header is outputed, but no data is outputed)
+--------------------------------------------------------------
+Page block order: 14
+Pages per block:  16384
 
-Signed-off-by: Riku Voipio <riku.voipio@iki.fi>
-Cc: Richard Purdie <rpurdie@rpsys.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Free pages count per migrate type at order       0      1      2      3      4      5    \
+  6      7      8      9     10     11     12     13     14     15     16
+
+Number of blocks type     Unmovable  Reclaimable      Movable      Reserve      Isolate
+Page block order: 14
+Pages per block:  16384
+
+Free pages count per migrate type at order       0      1      2      3      4      5    \
+  6      7      8      9     10     11     12     13     14     15     16
+
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-iop32x/n2100.c |   52 +++++++++++++++++++++++++++++++++
- 1 file changed, 52 insertions(+)
+ mm/vmstat.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/arm/mach-iop32x/n2100.c~leds-add-pca9532-platform-data-for-thecus-n2100 arch/arm/mach-iop32x/n2100.c
---- a/arch/arm/mach-iop32x/n2100.c~leds-add-pca9532-platform-data-for-thecus-n2100
-+++ a/arch/arm/mach-iop32x/n2100.c
-@@ -17,6 +17,7 @@
- #include <linux/mm.h>
- #include <linux/init.h>
- #include <linux/f75375s.h>
-+#include <linux/leds-pca9532.h>
- #include <linux/delay.h>
- #include <linux/kernel.h>
- #include <linux/pci.h>
-@@ -206,6 +207,53 @@ static struct f75375s_platform_data n210
- 	.pwm_enable = { 0, 0 },
- };
+diff -puN mm/vmstat.c~proc-pagetypeinfo-fix-output-for-memoryless-nodes mm/vmstat.c
+--- a/mm/vmstat.c~proc-pagetypeinfo-fix-output-for-memoryless-nodes
++++ a/mm/vmstat.c
+@@ -548,6 +548,10 @@ static int pagetypeinfo_show(struct seq_
+ {
+ 	pg_data_t *pgdat = (pg_data_t *)arg;
  
-+static struct pca9532_platform_data n2100_leds = {
-+	.leds = {
-+	{	.name = "n2100:red:satafail0",
-+		.state = PCA9532_OFF,
-+		.type = PCA9532_TYPE_LED,
-+	},
-+	{	.name = "n2100:red:satafail1",
-+		.state = PCA9532_OFF,
-+		.type = PCA9532_TYPE_LED,
-+	},
-+	{	.name = "n2100:blue:usb",
-+		.state = PCA9532_OFF,
-+		.type = PCA9532_TYPE_LED,
-+	},
-+	{ 	.type = PCA9532_TYPE_NONE },
++	/* check memoryless node */
++	if (!node_state(pgdat->node_id, N_HIGH_MEMORY))
++		return 0;
 +
-+	{ 	.type = PCA9532_TYPE_NONE },
-+	{ 	.type = PCA9532_TYPE_NONE },
-+	{ 	.type = PCA9532_TYPE_NONE },
-+	{	.name = "n2100:red:usb",
-+		.state = PCA9532_OFF,
-+		.type = PCA9532_TYPE_LED,
-+	},
-+
-+	{	.type = PCA9532_TYPE_NONE }, /* power OFF gpio */
-+	{	.type = PCA9532_TYPE_NONE }, /* reset gpio */
-+	{	.type = PCA9532_TYPE_NONE },
-+	{	.type = PCA9532_TYPE_NONE },
-+
-+	{	.type = PCA9532_TYPE_NONE },
-+	{	.name = "n2100:orange:system",
-+		.state = PCA9532_OFF,
-+		.type = PCA9532_TYPE_LED,
-+	},
-+	{	.name = "n2100:red:system",
-+		.state = PCA9532_OFF,
-+		.type = PCA9532_TYPE_LED,
-+	},
-+	{	.name = "N2100 beeper"  ,
-+		.state =  PCA9532_OFF,
-+		.type = PCA9532_TYPE_N2100_BEEP,
-+	},
-+	},
-+	.psc = { 0, 0 },
-+	.pwm = { 0, 0 },
-+};
-+
- static struct i2c_board_info __initdata n2100_i2c_devices[] = {
- 	{
- 		I2C_BOARD_INFO("rtc-rs5c372", 0x32),
-@@ -216,6 +264,10 @@ static struct i2c_board_info __initdata 
- 		.type = "f75375",
- 		.platform_data = &n2100_f75375s,
- 	},
-+	{
-+		I2C_BOARD_INFO("pca9532", 0x60),
-+		.platform_data = &n2100_leds,
-+	},
- };
- 
- /*
+ 	seq_printf(m, "Page block order: %d\n", pageblock_order);
+ 	seq_printf(m, "Pages per block:  %lu\n", pageblock_nr_pages);
+ 	seq_putc(m, '\n');
 _
 
-Patches currently in -mm which might be from riku.voipio@iki.fi are
+Patches currently in -mm which might be from kosaki.motohiro@jp.fujitsu.com are
 
-leds-add-pca9532-led-driver.patch
-leds-add-pca9532-platform-data-for-thecus-n2100.patch
+origin.patch
+memcgroup-make-the-memory-controller-more-desktop-responsive.patch
+proc-pagetypeinfo-fix-output-for-memoryless-nodes.patch
 
