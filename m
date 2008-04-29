@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atmel_spi-clean-up-baud-rate-divisor-calculation.patch added to -mm tree
-Date: Tue, 29 Apr 2008 13:15:42 -0700
-Message-ID: <200804292015.m3TKFgbX007580@imap1.linux-foundation.org>
+Subject: + workqueue-remove-redundant-function-invocation.patch added to -mm tree
+Date: Tue, 29 Apr 2008 13:20:10 -0700
+Message-ID: <200804292020.m3TKKAdQ007786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52110 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54377 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755556AbYD2UP5 (ORCPT
+	by vger.kernel.org with ESMTP id S1754075AbYD2UV2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 16:15:57 -0400
+	Tue, 29 Apr 2008 16:21:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: haavard.skinnemoen@atmel.com, david-b@pacbell.net, jramakrishnan@neuropace.com
+Cc: shengping.liu@windriver.com, mingo@elte.hu, oleg@tv-sign.ru, pavel@ucw.cz
 
 
 The patch titled
-     atmel_spi: Clean up baud rate divisor calculation
+     workqueue: remove redundant function invocation
 has been added to the -mm tree.  Its filename is
-     atmel_spi-clean-up-baud-rate-divisor-calculation.patch
+     workqueue-remove-redundant-function-invocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,81 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_spi: Clean up baud rate divisor calculation
-From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Subject: workqueue: remove redundant function invocation
+From: Andrew Liu <shengping.liu@windriver.com>
 
-Make the baud rate divisor calculation code a bit more readable and add a
-few comments.
+timer_stats_timer_set_start_info is invoked twice, additionally, the
+invocation of this function can be moved to where it is only called when a
+delay is really required.
 
-Also fix wrong debug information being displayed when !new_1 and
-max_speed_hz == 0.
-
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
-Cc: "Janesh Ramakrishnan" <jramakrishnan@neuropace.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Andrew Liu <shengping.liu@windriver.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |   26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+ kernel/workqueue.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-clean-up-baud-rate-divisor-calculation drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-clean-up-baud-rate-divisor-calculation
-+++ a/drivers/spi/atmel_spi.c
-@@ -536,14 +536,25 @@ static int atmel_spi_setup(struct spi_de
- 		return -EINVAL;
- 	}
+diff -puN kernel/workqueue.c~workqueue-remove-redundant-function-invocation kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueue-remove-redundant-function-invocation
++++ a/kernel/workqueue.c
+@@ -195,7 +195,6 @@ static void delayed_work_timer_fn(unsign
+ int queue_delayed_work(struct workqueue_struct *wq,
+ 			struct delayed_work *dwork, unsigned long delay)
+ {
+-	timer_stats_timer_set_start_info(&dwork->timer);
+ 	if (delay == 0)
+ 		return queue_work(wq, &dwork->work);
  
--	/* speed zero convention is used by some upper layers */
-+	/*
-+	 * Pre-new_1 chips start out at half the peripheral
-+	 * bus speed.
-+	 */
- 	bus_hz = clk_get_rate(as->clk);
-+	if (!as->new_1)
-+		bus_hz /= 2;
+@@ -219,11 +218,12 @@ int queue_delayed_work_on(int cpu, struc
+ 	struct timer_list *timer = &dwork->timer;
+ 	struct work_struct *work = &dwork->work;
+ 
+-	timer_stats_timer_set_start_info(&dwork->timer);
+ 	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work))) {
+ 		BUG_ON(timer_pending(timer));
+ 		BUG_ON(!list_empty(&work->entry));
+ 
++		timer_stats_timer_set_start_info(&dwork->timer);
 +
- 	if (spi->max_speed_hz) {
--		/* assume div32/fdiv/mbz == 0 */
--		if (!as->new_1)
--			bus_hz /= 2;
--		scbr = ((bus_hz + spi->max_speed_hz - 1)
--			/ spi->max_speed_hz);
-+		/*
-+		 * Calculate the lowest divider that satisfies the
-+		 * constraint, assuming div32/fdiv/mbz == 0.
-+		 */
-+		scbr = DIV_ROUND_UP(bus_hz, spi->max_speed_hz);
-+
-+		/*
-+		 * If the resulting divider doesn't fit into the
-+		 * register bitfield, we can't satisfy the constraint.
-+		 */
- 		if (scbr >= (1 << SPI_SCBR_SIZE)) {
- 			dev_dbg(&spi->dev,
- 				"setup: %d Hz too slow, scbr %u; min %ld Hz\n",
-@@ -551,8 +562,8 @@ static int atmel_spi_setup(struct spi_de
- 			return -EINVAL;
- 		}
- 	} else
-+		/* speed zero means "as slow as possible" */
- 		scbr = 0xff;
--	sck_hz = bus_hz / scbr;
- 
- 	csr = SPI_BF(SCBR, scbr) | SPI_BF(BITS, bits - 8);
- 	if (spi->mode & SPI_CPOL)
-@@ -587,6 +598,7 @@ static int atmel_spi_setup(struct spi_de
- 		spin_unlock_irqrestore(&as->lock, flags);
- 	}
- 
-+	sck_hz = bus_hz / scbr;
- 	dev_dbg(&spi->dev,
- 		"setup: %lu Hz bpw %u mode 0x%x -> csr%d %08x\n",
- 		sck_hz, bits, spi->mode, spi->chip_select, csr);
+ 		/* This stores cwq for the moment, for the timer_fn */
+ 		set_wq_data(work, wq_per_cpu(wq, raw_smp_processor_id()));
+ 		timer->expires = jiffies + delay;
+@@ -564,7 +564,6 @@ EXPORT_SYMBOL(schedule_work);
+ int schedule_delayed_work(struct delayed_work *dwork,
+ 					unsigned long delay)
+ {
+-	timer_stats_timer_set_start_info(&dwork->timer);
+ 	return queue_delayed_work(keventd_wq, dwork, delay);
+ }
+ EXPORT_SYMBOL(schedule_delayed_work);
+@@ -581,7 +580,6 @@ EXPORT_SYMBOL(schedule_delayed_work);
+ int schedule_delayed_work_on(int cpu,
+ 			struct delayed_work *dwork, unsigned long delay)
+ {
+-	timer_stats_timer_set_start_info(&dwork->timer);
+ 	return queue_delayed_work_on(cpu, keventd_wq, dwork, delay);
+ }
+ EXPORT_SYMBOL(schedule_delayed_work_on);
 _
 
-Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
+Patches currently in -mm which might be from shengping.liu@windriver.com are
 
-origin.patch
-atmel_spi-clean-up-baud-rate-divisor-calculation.patch
+workqueue-remove-redundant-function-invocation.patch
 
