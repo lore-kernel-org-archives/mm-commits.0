@@ -1,79 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: - memcgroup-implement-failcounter-reset-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 28 Apr 2008 22:44:36 -0700
-Message-ID: <200804290544.m3T5iamu003644@imap1.linux-foundation.org>
+Subject: - add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch removed from -mm tree
+Date: Mon, 28 Apr 2008 22:43:42 -0700
+Message-ID: <200804290543.m3T5hgAH003548@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41506 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751169AbYD2Fox (ORCPT
+	by vger.kernel.org with ESMTP id S1751483AbYD2Fo7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 01:44:53 -0400
+	Tue, 29 Apr 2008 01:44:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, randy.dunlap@oracle.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcgroup-implement-failcounter-reset-checkpatch-fixes
+     add-a-document-describing-the-resource-counter-abstraction-v2-fix
 has been removed from the -mm tree.  Its filename was
-     memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
+     add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
 
-This patch was dropped because it was folded into memcgroup-implement-failcounter-reset.patch
+This patch was dropped because it was folded into add-a-document-describing-the-resource-counter-abstraction-v2.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcgroup-implement-failcounter-reset-checkpatch-fixes
+Subject: add-a-document-describing-the-resource-counter-abstraction-v2-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: switch and case should be at the same indent
-#59: FILE: mm/memcontrol.c:878:
-+	switch (event) {
-+		case RES_MAX_USAGE:
-[...]
-+		case RES_FAILCNT:
-
-total: 1 errors, 0 warnings, 48 lines checked
-
-./patches/memcgroup-implement-failcounter-reset.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Paul Menage <menage@google.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ Documentation/controllers/resource_counter.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcgroup-implement-failcounter-reset-checkpatch-fixes mm/memcontrol.c
---- a/mm/memcontrol.c~memcgroup-implement-failcounter-reset-checkpatch-fixes
-+++ a/mm/memcontrol.c
-@@ -863,12 +863,12 @@ static int mem_cgroup_reset(struct cgrou
+diff -puN Documentation/controllers/resource_counter.txt~add-a-document-describing-the-resource-counter-abstraction-v2-fix Documentation/controllers/resource_counter.txt
+--- a/Documentation/controllers/resource_counter.txt~add-a-document-describing-the-resource-counter-abstraction-v2-fix
++++ a/Documentation/controllers/resource_counter.txt
+@@ -70,7 +70,7 @@ to work with it.
+  c. void res_counter_uncharge[_locked]
+ 			(struct res_counter *rc, unsigned long val)
  
- 	mem = mem_cgroup_from_cont(cont);
- 	switch (event) {
--		case RES_MAX_USAGE:
--			res_counter_reset_max(&mem->res);
--			break;
--		case RES_FAILCNT:
--			res_counter_reset_failcnt(&mem->res);
--			break;
-+	case RES_MAX_USAGE:
-+		res_counter_reset_max(&mem->res);
-+		break;
-+	case RES_FAILCNT:
-+		res_counter_reset_failcnt(&mem->res);
-+		break;
- 	}
- 	return 0;
- }
+-	When a resource is released (freed) is should be de-accounted
++	When a resource is released (freed) it should be de-accounted
+ 	from the resource counter it was accounted to.  This is called
+ 	"uncharging".
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,7 +68,7 @@ x86-olpc-add-one-laptop-per-child-architecture-support.patch
 cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
 cgroups-implement-device-whitelist-v6.patch
 add-a-document-describing-the-resource-counter-abstraction-v2.patch
-memcgroup-implement-failcounter-reset.patch
+add-a-document-describing-the-resource-counter-abstraction-v2-fix.patch
 memcgroup-implement-failcounter-reset-checkpatch-fixes.patch
 use-vmalloc-for-mem_cgroup-allocation-v3-simplification.patch
 workqueues-shrink-cpu_populated_map-when-cpu-dies-fix.patch
