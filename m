@@ -1,67 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - avoid-divides-in-bits_to_longs.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:38:44 -0700
-Message-ID: <200804300538.m3U5ciPY028774@imap1.linux-foundation.org>
+Subject: - page-allocator-explicitly-retry-hugepage-allocations.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:38:34 -0700
+Message-ID: <200804300538.m3U5cYwL028759@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33780 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43523 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752504AbYD3Fi4 (ORCPT
+	by vger.kernel.org with ESMTP id S1752547AbYD3Fiz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:38:56 -0400
+	Wed, 30 Apr 2008 01:38:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dada1@cosmosbay.com, mm-commits@vger.kernel.org
+To: nacc@us.ibm.com, apw@shadowen.org, clameter@sgi.com, haveblue@us.ibm.com, mel@csn.ul.ie, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Avoid divides in BITS_TO_LONGS
+     page allocator: explicitly retry hugepage allocations
 has been removed from the -mm tree.  Its filename was
-     avoid-divides-in-bits_to_longs.patch
+     page-allocator-explicitly-retry-hugepage-allocations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Avoid divides in BITS_TO_LONGS
-From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: page allocator: explicitly retry hugepage allocations
+From: Nishanth Aravamudan <nacc@us.ibm.com>
 
-BITS_PER_LONG is a signed value (32 or 64)
+Add __GFP_REPEAT to hugepage allocations.  Do so to not necessitate userspace
+putting pressure on the VM by repeated echo's into /proc/sys/vm/nr_hugepages
+to grow the pool.  With the previous patch to allow for large-order
+__GFP_REPEAT attempts to loop for a bit (as opposed to indefinitely), this
+increases the likelihood of getting hugepages when the system experiences (or
+recently experienced) load.
 
-DIV_ROUND_UP(nr, BITS_PER_LONG) performs signed arithmetic if "nr" is signed too.
+Mel tested the patchset on an x86_32 laptop.  With the patches, it was easier
+to use the proc interface to grow the hugepage pool.  The following is the
+output of a script that grows the pool as much as possible running on
+2.6.25-rc9.
 
+Allocating hugepages test
+-------------------------
+Disabling OOM Killer for current test process
+Starting page count: 0
+Attempt 1: 57 pages Progress made with 57 pages
+Attempt 2: 73 pages Progress made with 16 pages
+Attempt 3: 74 pages Progress made with 1 pages
+Attempt 4: 75 pages Progress made with 1 pages
+Attempt 5: 77 pages Progress made with 2 pages
 
-Converting BITS_TO_LONGS(nr) to DIV_ROUND_UP(nr, BITS_PER_BYTE *
-sizeof(long)) makes sure compiler can perform a right shift, even if "nr"
-is a signed value, instead of an expensive integer divide.
+77 pages was the most it allocated but it took 5 attempts from userspace
+to get it. With the 3 patches in this series applied,
 
-Applying this patch saves 141 bytes on x86 when CONFIG_CC_OPTIMIZE_FOR_SIZE=y
-and speedup bitmap operations.
+Allocating hugepages test
+-------------------------
+Disabling OOM Killer for current test process
+Starting page count: 0
+Attempt 1: 75 pages Progress made with 75 pages
+Attempt 2: 76 pages Progress made with 1 pages
+Attempt 3: 79 pages Progress made with 3 pages
 
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+And 79 pages was the most it got. Your patches were able to allocate the
+bulk of possible pages on the first attempt.
+
+Signed-off-by: Nishanth Aravamudan <nacc@us.ibm.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Tested-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/bitops.h~avoid-divides-in-bits_to_longs include/linux/bitops.h
---- a/include/linux/bitops.h~avoid-divides-in-bits_to_longs
-+++ a/include/linux/bitops.h
-@@ -6,8 +6,8 @@
- #define BIT(nr)			(1UL << (nr))
- #define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
- #define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
--#define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_LONG)
- #define BITS_PER_BYTE		8
-+#define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long))
- #endif
+diff -puN mm/hugetlb.c~page-allocator-explicitly-retry-hugepage-allocations mm/hugetlb.c
+--- a/mm/hugetlb.c~page-allocator-explicitly-retry-hugepage-allocations
++++ a/mm/hugetlb.c
+@@ -199,7 +199,8 @@ static struct page *alloc_fresh_huge_pag
+ 	struct page *page;
  
- /*
+ 	page = alloc_pages_node(nid,
+-		htlb_alloc_mask|__GFP_COMP|__GFP_THISNODE|__GFP_NOWARN,
++		htlb_alloc_mask|__GFP_COMP|__GFP_THISNODE|
++						__GFP_REPEAT|__GFP_NOWARN,
+ 		HUGETLB_PAGE_ORDER);
+ 	if (page) {
+ 		if (arch_prepare_hugepage(page)) {
+@@ -294,7 +295,8 @@ static struct page *alloc_buddy_huge_pag
+ 	}
+ 	spin_unlock(&hugetlb_lock);
+ 
+-	page = alloc_pages(htlb_alloc_mask|__GFP_COMP|__GFP_NOWARN,
++	page = alloc_pages(htlb_alloc_mask|__GFP_COMP|
++					__GFP_REPEAT|__GFP_NOWARN,
+ 					HUGETLB_PAGE_ORDER);
+ 
+ 	spin_lock(&hugetlb_lock);
 _
 
-Patches currently in -mm which might be from dada1@cosmosbay.com are
+Patches currently in -mm which might be from nacc@us.ibm.com are
 
 origin.patch
 
