@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-acpi_numa_init-build-fix.patch added to -mm tree
-Date: Wed, 30 Apr 2008 14:18:12 -0700
-Message-ID: <200804302118.m3ULIDtH003602@imap1.linux-foundation.org>
+Subject: + x86-fix-setup-printk-format-warning.patch added to -mm tree
+Date: Wed, 30 Apr 2008 14:18:51 -0700
+Message-ID: <200804302118.m3ULIpvW003617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58585 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57120 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760314AbYD3VSc (ORCPT
+	by vger.kernel.org with ESMTP id S1762440AbYD3VTs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 17:18:32 -0400
+	Wed, 30 Apr 2008 17:19:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu
+Cc: randy.dunlap@oracle.com
 
 
 The patch titled
-     acpi: acpi_numa_init() build fix
+     x86: fix setup printk format warning
 has been added to the -mm tree.  Its filename is
-     acpi-acpi_numa_init-build-fix.patch
+     x86-fix-setup-printk-format-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,131 +34,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: acpi_numa_init() build fix
-From: Ingo Molnar <mingo@elte.hu>
+Subject: x86: fix setup printk format warning
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-x86.git testing found the following build error on latest -git:
+Fix x86 setup printk format warming:
 
- drivers/acpi/numa.c: In function 'acpi_numa_init':
- drivers/acpi/numa.c:226: error: 'NR_NODE_MEMBLKS' undeclared (first use in this function)
- drivers/acpi/numa.c:226: error: (Each undeclared identifier is reported only once
- drivers/acpi/numa.c:226: error: for each function it appears in.)
+next-20080430/arch/x86/kernel/setup.c:172: warning: format '%lu' expects type 'long unsigned int', but argument 2 has type 'ssize_t'
 
-with this config:
-
- http://redhat.com/~mingo/misc/config-Wed_Apr_30_22_42_42_CEST_2008.bad
-
-i suspect we dont want SRAT parsing when CONFIG_HAVE_ARCH_PARSE_SRAT
-is unset - but the fix looks a bit ugly. Perhaps we should define
-NR_NODE_MEMBLKS even in this case and just let the code fall back
-to some sane behavior?
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/numa.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/x86/kernel/setup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/acpi/numa.c~acpi-acpi_numa_init-build-fix drivers/acpi/numa.c
---- a/drivers/acpi/numa.c~acpi-acpi_numa_init-build-fix
-+++ a/drivers/acpi/numa.c
-@@ -176,6 +176,7 @@ acpi_parse_processor_affinity(struct acp
- 	return 0;
- }
+diff -puN arch/x86/kernel/setup.c~x86-fix-setup-printk-format-warning arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~x86-fix-setup-printk-format-warning
++++ a/arch/x86/kernel/setup.c
+@@ -95,7 +95,7 @@ void __init setup_per_cpu_areas(void)
  
-+#ifdef CONFIG_HAVE_ARCH_PARSE_SRAT
- static int __init
- acpi_parse_memory_affinity(struct acpi_subtable_header * header,
- 			   const unsigned long end)
-@@ -193,6 +194,7 @@ acpi_parse_memory_affinity(struct acpi_s
+ 	/* Copy section for each CPU (we discard the original) */
+ 	size = PERCPU_ENOUGH_ROOM;
+-	printk(KERN_INFO "PERCPU: Allocating %lu bytes of per cpu data\n",
++	printk(KERN_INFO "PERCPU: Allocating %zd bytes of per cpu data\n",
+ 			  size);
  
- 	return 0;
- }
-+#endif
- 
- static int __init acpi_parse_srat(struct acpi_table_header *table)
- {
-@@ -221,9 +223,11 @@ int __init acpi_numa_init(void)
- 	if (!acpi_table_parse(ACPI_SIG_SRAT, acpi_parse_srat)) {
- 		acpi_table_parse_srat(ACPI_SRAT_TYPE_CPU_AFFINITY,
- 				      acpi_parse_processor_affinity, NR_CPUS);
-+#ifdef CONFIG_HAVE_ARCH_PARSE_SRAT
- 		acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
- 				      acpi_parse_memory_affinity,
- 				      NR_NODE_MEMBLKS);
-+#endif
- 	}
- 
- 	/* SLIT: System Locality Information Table */
+ 	for_each_possible_cpu(i) {
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-signals-add-set_restore_sigmask.patch
-signals-set_restore_sigmask-tif_sigpending.patch
-signals-s390-renumber-tif_restore_sigmask.patch
-signals-ia64-renumber-tif_restore_sigmask.patch
-signals-use-have_set_restore_sigmask.patch
-signals-x86-ts_restore_sigmask.patch
-char-serial-switch-drivers-to-ioremap_nocache.patch
-make-marker_debug-static.patch
-asm-futexh-should-include-linux-uaccessh.patch
-slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
+basic-braille-screen-reader-support.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
 infrastructure-to-debug-dynamic-objects.patch
 debugobjects-add-documentation.patch
 debugobjects-add-timer-specific-object-debugging-code.patch
 add-hrtimer-specific-debugobjects-code.patch
-kernel-replace-remaining-__function__-occurances.patch
-cpusets-update-maintainers.patch
-fix-cpu-hotplug-problem-in-softirq-code.patch
-rename-div64_64-to-div64_u64.patch
-remove-div_long_long_rem.patch
-isdn-hysdn_procconfc-build-fix.patch
-pci-export-resource_wc-in-pci-sysfs.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-mm-filemapc-generic_write_checks-mustnt-be-inline.patch
-acpi-acpi_numa_init-build-fix.patch
-acpi-fix-drivers-acpi-gluec-build-error.patch
-x86-ioremap-ram-check-fix.patch
-git-x86.patch
-git-x86-fixup.patch
-x86_64-restore-mask_bits-in-msi-shutdown.patch
-arch-x86-video-fbdevc-add-module_license.patch
-rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
-fix-drivers-media-common-tuners-build-bug.patch
+sysfs-sysfs_update_group-stub-for-config_sysfs=n.patch
+docbook-fix-fatal-rapidio-yet-again-and-more-to-come.patch
+docbook-fix-vmalloc-missing-parameter-notation.patch
+x86-fix-setup-printk-format-warning.patch
+rapidio-fix-docbook-references.patch
+rapidio-fix-kernel-doc-problems.patch
 git-kvm.patch
-git-sched.patch
-sched-add-debug-checks-to-idle-functions.patch
-mutex-debug-check-mutex-magic-before-owner.patch
-show_schedstat-fix-memleak.patch
-drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
-rcu-fix-rcu_try_flip_waitack_needed-to-prevent-grace-period-stall.patch
-rcu-add-call_rcu_sched.patch
-rcu-add-memory-barriers-and-comments-to-rcu_check_callbacks.patch
-rcu-add-call_rcu_sched-and-friends-to-rcutorture.patch
-rcu-1q08-rcu-doc-update-add-call_rcu_sched.patch
-aes-x86_64-asm-implementation-optimization.patch
-generic-irq-let-setup_irq-reenable-a-shared-irq.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
-accounting-account-for-user-time-when-updating-memory-integrals.patch
-8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
-posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
-workqueue-remove-redundant-function-invocation.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-x86-ioremap-add-checks-for-virtual-addresses.patch
-x86-ioremap-add-checks-for-virtual-addresses-fix.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-ocfs2.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-isp1760-hcd-driver.patch
+docbook-some-kernel-locking-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+profile-likely-unlikely-macros.patch
 
