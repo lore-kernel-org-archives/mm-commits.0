@@ -1,159 +1,235 @@
 From: akpm@linux-foundation.org
-Subject: - cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:43:28 -0700
-Message-ID: <200804300543.m3U5hSkQ029320@imap1.linux-foundation.org>
+Subject: - proc-remove-proc_bus.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:45:55 -0700
+Message-ID: <200804300545.m3U5jt2x029555@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52225 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49128 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759377AbYD3GEn (ORCPT
+	by vger.kernel.org with ESMTP id S1757570AbYD3GFG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:04:43 -0400
+	Wed, 30 Apr 2008 02:05:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cleanup_workqueue_thread: remove the unneeded "cpu" parameter
+     proc: remove proc_bus
 has been removed from the -mm tree.  Its filename was
-     cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter.patch
+     proc-remove-proc_bus.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cleanup_workqueue_thread: remove the unneeded "cpu" parameter
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: proc: remove proc_bus
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-cleanup_workqueue_thread() doesn't need the second argument, remove it.
+Remove proc_bus export and variable itself. Using pathnames works fine
+and is slightly more understandable and greppable.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ arch/arm/kernel/ecard.c    |    2 +-
+ drivers/input/input.c      |    6 +++---
+ drivers/nubus/proc.c       |    2 +-
+ drivers/pci/proc.c         |    2 +-
+ drivers/pnp/isapnp/proc.c  |    2 +-
+ drivers/pnp/pnpbios/proc.c |    4 ++--
+ drivers/usb/core/inode.c   |    4 ++--
+ drivers/zorro/proc.c       |    2 +-
+ fs/proc/root.c             |    5 ++---
+ include/linux/proc_fs.h    |    2 --
+ 10 files changed, 14 insertions(+), 17 deletions(-)
 
-diff -puN kernel/workqueue.c~cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter kernel/workqueue.c
---- a/kernel/workqueue.c~cleanup_workqueue_thread-remove-the-unneeded-cpu-parameter
-+++ a/kernel/workqueue.c
-@@ -772,7 +772,7 @@ struct workqueue_struct *__create_workqu
+diff -puN arch/arm/kernel/ecard.c~proc-remove-proc_bus arch/arm/kernel/ecard.c
+--- a/arch/arm/kernel/ecard.c~proc-remove-proc_bus
++++ a/arch/arm/kernel/ecard.c
+@@ -778,7 +778,7 @@ static struct proc_dir_entry *proc_bus_e
+ 
+ static void ecard_proc_init(void)
+ {
+-	proc_bus_ecard_dir = proc_mkdir("ecard", proc_bus);
++	proc_bus_ecard_dir = proc_mkdir("bus/ecard", NULL);
+ 	create_proc_info_entry("devices", 0, proc_bus_ecard_dir,
+ 		get_ecard_dev_info);
  }
- EXPORT_SYMBOL_GPL(__create_workqueue_key);
- 
--static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq, int cpu)
-+static void cleanup_workqueue_thread(struct cpu_workqueue_struct *cwq)
+diff -puN drivers/input/input.c~proc-remove-proc_bus drivers/input/input.c
+--- a/drivers/input/input.c~proc-remove-proc_bus
++++ a/drivers/input/input.c
+@@ -898,7 +898,7 @@ static int __init input_proc_init(void)
  {
- 	/*
- 	 * Our caller is either destroy_workqueue() or CPU_DEAD,
-@@ -808,7 +808,6 @@ static void cleanup_workqueue_thread(str
- void destroy_workqueue(struct workqueue_struct *wq)
+ 	struct proc_dir_entry *entry;
+ 
+-	proc_bus_input_dir = proc_mkdir("input", proc_bus);
++	proc_bus_input_dir = proc_mkdir("bus/input", NULL);
+ 	if (!proc_bus_input_dir)
+ 		return -ENOMEM;
+ 
+@@ -921,7 +921,7 @@ static int __init input_proc_init(void)
+ 	return 0;
+ 
+  fail2:	remove_proc_entry("devices", proc_bus_input_dir);
+- fail1: remove_proc_entry("input", proc_bus);
++ fail1: remove_proc_entry("bus/input", NULL);
+ 	return -ENOMEM;
+ }
+ 
+@@ -929,7 +929,7 @@ static void input_proc_exit(void)
  {
- 	const cpumask_t *cpu_map = wq_cpu_map(wq);
--	struct cpu_workqueue_struct *cwq;
- 	int cpu;
+ 	remove_proc_entry("devices", proc_bus_input_dir);
+ 	remove_proc_entry("handlers", proc_bus_input_dir);
+-	remove_proc_entry("input", proc_bus);
++	remove_proc_entry("bus/input", NULL);
+ }
  
- 	get_online_cpus();
-@@ -816,10 +815,8 @@ void destroy_workqueue(struct workqueue_
- 	list_del(&wq->list);
- 	spin_unlock(&workqueue_lock);
+ #else /* !CONFIG_PROC_FS */
+diff -puN drivers/nubus/proc.c~proc-remove-proc_bus drivers/nubus/proc.c
+--- a/drivers/nubus/proc.c~proc-remove-proc_bus
++++ a/drivers/nubus/proc.c
+@@ -171,7 +171,7 @@ void __init nubus_proc_init(void)
+ {
+ 	if (!MACH_IS_MAC)
+ 		return;
+-	proc_bus_nubus_dir = proc_mkdir("nubus", proc_bus);
++	proc_bus_nubus_dir = proc_mkdir("bus/nubus", NULL);
+ 	create_proc_info_entry("devices", 0, proc_bus_nubus_dir,
+ 				get_nubus_dev_info);
+ 	proc_bus_nubus_add_devices();
+diff -puN drivers/pci/proc.c~proc-remove-proc_bus drivers/pci/proc.c
+--- a/drivers/pci/proc.c~proc-remove-proc_bus
++++ a/drivers/pci/proc.c
+@@ -472,7 +472,7 @@ static int __init pci_proc_init(void)
+ {
+ 	struct proc_dir_entry *entry;
+ 	struct pci_dev *dev = NULL;
+-	proc_bus_pci_dir = proc_mkdir("pci", proc_bus);
++	proc_bus_pci_dir = proc_mkdir("bus/pci", NULL);
+ 	entry = create_proc_entry("devices", 0, proc_bus_pci_dir);
+ 	if (entry)
+ 		entry->proc_fops = &proc_bus_pci_dev_operations;
+diff -puN drivers/pnp/isapnp/proc.c~proc-remove-proc_bus drivers/pnp/isapnp/proc.c
+--- a/drivers/pnp/isapnp/proc.c~proc-remove-proc_bus
++++ a/drivers/pnp/isapnp/proc.c
+@@ -116,7 +116,7 @@ int __init isapnp_proc_init(void)
+ {
+ 	struct pnp_dev *dev;
  
--	for_each_cpu_mask(cpu, *cpu_map) {
--		cwq = per_cpu_ptr(wq->cpu_wq, cpu);
--		cleanup_workqueue_thread(cwq, cpu);
--	}
-+	for_each_cpu_mask(cpu, *cpu_map)
-+		cleanup_workqueue_thread(per_cpu_ptr(wq->cpu_wq, cpu));
- 	put_online_cpus();
- 
- 	free_percpu(wq->cpu_wq);
-@@ -860,7 +857,7 @@ static int __devinit workqueue_cpu_callb
- 		case CPU_UP_CANCELED:
- 			start_workqueue_thread(cwq, -1);
- 		case CPU_DEAD:
--			cleanup_workqueue_thread(cwq, cpu);
-+			cleanup_workqueue_thread(cwq);
- 			break;
- 		}
+-	isapnp_proc_bus_dir = proc_mkdir("isapnp", proc_bus);
++	isapnp_proc_bus_dir = proc_mkdir("bus/isapnp", NULL);
+ 	protocol_for_each_dev(&isapnp_protocol, dev) {
+ 		isapnp_proc_attach_device(dev);
  	}
+diff -puN drivers/pnp/pnpbios/proc.c~proc-remove-proc_bus drivers/pnp/pnpbios/proc.c
+--- a/drivers/pnp/pnpbios/proc.c~proc-remove-proc_bus
++++ a/drivers/pnp/pnpbios/proc.c
+@@ -256,7 +256,7 @@ int pnpbios_interface_attach_device(stru
+  */
+ int __init pnpbios_proc_init(void)
+ {
+-	proc_pnp = proc_mkdir("pnp", proc_bus);
++	proc_pnp = proc_mkdir("bus/pnp", NULL);
+ 	if (!proc_pnp)
+ 		return -EIO;
+ 	proc_pnp_boot = proc_mkdir("boot", proc_pnp);
+@@ -294,5 +294,5 @@ void __exit pnpbios_proc_exit(void)
+ 	remove_proc_entry("configuration_info", proc_pnp);
+ 	remove_proc_entry("devices", proc_pnp);
+ 	remove_proc_entry("boot", proc_pnp);
+-	remove_proc_entry("pnp", proc_bus);
++	remove_proc_entry("bus/pnp", NULL);
+ }
+diff -puN drivers/usb/core/inode.c~proc-remove-proc_bus drivers/usb/core/inode.c
+--- a/drivers/usb/core/inode.c~proc-remove-proc_bus
++++ a/drivers/usb/core/inode.c
+@@ -773,7 +773,7 @@ int __init usbfs_init(void)
+ 	usb_register_notify(&usbfs_nb);
+ 
+ 	/* create mount point for usbfs */
+-	usbdir = proc_mkdir("usb", proc_bus);
++	usbdir = proc_mkdir("bus/usb", NULL);
+ 
+ 	return 0;
+ }
+@@ -783,6 +783,6 @@ void usbfs_cleanup(void)
+ 	usb_unregister_notify(&usbfs_nb);
+ 	unregister_filesystem(&usb_fs_type);
+ 	if (usbdir)
+-		remove_proc_entry("usb", proc_bus);
++		remove_proc_entry("bus/usb", NULL);
+ }
+ 
+diff -puN drivers/zorro/proc.c~proc-remove-proc_bus drivers/zorro/proc.c
+--- a/drivers/zorro/proc.c~proc-remove-proc_bus
++++ a/drivers/zorro/proc.c
+@@ -128,7 +128,7 @@ static int __init zorro_proc_init(void)
+ 	u_int slot;
+ 
+ 	if (MACH_IS_AMIGA && AMIGAHW_PRESENT(ZORRO)) {
+-		proc_bus_zorro_dir = proc_mkdir("zorro", proc_bus);
++		proc_bus_zorro_dir = proc_mkdir("bus/zorro", NULL);
+ 		create_proc_info_entry("devices", 0, proc_bus_zorro_dir,
+ 				       get_zorro_dev_info);
+ 		for (slot = 0; slot < zorro_num_autocon; slot++)
+diff -puN fs/proc/root.c~proc-remove-proc_bus fs/proc/root.c
+--- a/fs/proc/root.c~proc-remove-proc_bus
++++ a/fs/proc/root.c
+@@ -22,7 +22,7 @@
+ 
+ #include "internal.h"
+ 
+-struct proc_dir_entry *proc_bus, *proc_root_fs, *proc_root_driver;
++struct proc_dir_entry *proc_root_fs, *proc_root_driver;
+ 
+ static int proc_test_super(struct super_block *sb, void *data)
+ {
+@@ -137,7 +137,7 @@ void __init proc_root_init(void)
+ #ifdef CONFIG_PROC_DEVICETREE
+ 	proc_device_tree_init();
+ #endif
+-	proc_bus = proc_mkdir("bus", NULL);
++	proc_mkdir("bus", NULL);
+ 	proc_sys_init();
+ }
+ 
+@@ -236,5 +236,4 @@ EXPORT_SYMBOL(proc_create);
+ EXPORT_SYMBOL(remove_proc_entry);
+ EXPORT_SYMBOL(proc_root);
+ EXPORT_SYMBOL(proc_root_fs);
+-EXPORT_SYMBOL(proc_bus);
+ EXPORT_SYMBOL(proc_root_driver);
+diff -puN include/linux/proc_fs.h~proc-remove-proc_bus include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~proc-remove-proc_bus
++++ a/include/linux/proc_fs.h
+@@ -98,7 +98,6 @@ struct vmcore {
+ 
+ extern struct proc_dir_entry proc_root;
+ extern struct proc_dir_entry *proc_root_fs;
+-extern struct proc_dir_entry *proc_bus;
+ extern struct proc_dir_entry *proc_root_driver;
+ extern struct proc_dir_entry *proc_root_kcore;
+ 
+@@ -214,7 +213,6 @@ extern void dup_mm_exe_file(struct mm_st
+ #else
+ 
+ #define proc_root_driver NULL
+-#define proc_bus NULL
+ 
+ #define proc_net_fops_create(net, name, mode, fops)  ({ (void)(mode), NULL; })
+ static inline void proc_net_remove(struct net *net, const char *name) {}
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
-git-s390.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-document-cld_continued-notification-mechanics-more.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-signals-check_kill_permission-remove-tasklist_lock.patch
-signals-fix-sbin-init-protection-from-unwanted-signals.patch
-signals-de_thread-simplify-the-child_reaper-switching.patch
-signals-allow-the-kernel-to-actually-kill-sbin-init.patch
-signals-add-set_restore_sigmask.patch
-signals-set_restore_sigmask-tif_sigpending.patch
-signals-s390-renumber-tif_restore_sigmask.patch
-signals-ia64-renumber-tif_restore_sigmask.patch
-signals-use-have_set_restore_sigmask.patch
-signals-x86-ts_restore_sigmask.patch
-posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
-ptrace-allow-to-ptrace-sbin-init.patch
-workqueue-remove-redundant-function-invocation.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
-pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+drivers-use-non-racy-method-for-proc-entries-creation-2-rio.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+git-xfs.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
