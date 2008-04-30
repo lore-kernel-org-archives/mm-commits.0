@@ -1,107 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-add-the-trigger-callback-to-struct-cftype.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:42:39 -0700
-Message-ID: <200804300542.m3U5gdSY029165@imap1.linux-foundation.org>
+Subject: - ipc-introduce-ipc_update_perm.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:44:19 -0700
+Message-ID: <200804300544.m3U5iJP3029401@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58851 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49645 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759502AbYD3GMl (ORCPT
+	by vger.kernel.org with ESMTP id S1760661AbYD3GMk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:12:41 -0400
+	Wed, 30 Apr 2008 02:12:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
+To: pierre.peiffer@bull.net, Nadia.Derbey@bull.net, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: add the trigger callback to struct cftype
+     IPC: introduce ipc_update_perm()
 has been removed from the -mm tree.  Its filename was
-     cgroups-add-the-trigger-callback-to-struct-cftype.patch
+     ipc-introduce-ipc_update_perm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: add the trigger callback to struct cftype
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: IPC: introduce ipc_update_perm()
+From: Pierre Peiffer <pierre.peiffer@bull.net>
 
-Trigger callback can be used to receive a kick-up from the user space.  The
-string written is ignored.
+The IPC_SET command performs the same permission setting for all IPCs.  This
+patch introduces a common ipc_update_perm() function to update these
+permissions and makes use of it for all IPCs.
 
-The cftype->private is used for multiplexing events.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-Acked-by: Paul Menage <menage@google.com>
-Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
+Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    8 ++++++++
- kernel/cgroup.c        |    4 ++++
- 2 files changed, 12 insertions(+)
+ ipc/msg.c  |    5 +----
+ ipc/sem.c  |    5 +----
+ ipc/shm.c  |    5 +----
+ ipc/util.c |   13 +++++++++++++
+ ipc/util.h |    1 +
+ 5 files changed, 17 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroups-add-the-trigger-callback-to-struct-cftype include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-add-the-trigger-callback-to-struct-cftype
-+++ a/include/linux/cgroup.h
-@@ -243,6 +243,14 @@ struct cftype {
- 	 */
- 	int (*write_s64) (struct cgroup *cgrp, struct cftype *cft, s64 val);
+diff -puN ipc/msg.c~ipc-introduce-ipc_update_perm ipc/msg.c
+--- a/ipc/msg.c~ipc-introduce-ipc_update_perm
++++ a/ipc/msg.c
+@@ -484,10 +484,7 @@ static int msgctl_down(struct ipc_namesp
  
-+	/*
-+	 * trigger() callback can be used to get some kick from the
-+	 * userspace, when the actual string written is not important
-+	 * at all. The private field can be used to determine the
-+	 * kick type for multiplexing.
-+	 */
-+	int (*trigger)(struct cgroup *cgrp, unsigned int event);
-+
- 	int (*release) (struct inode *inode, struct file *file);
- };
+ 		msq->q_qbytes = msqid64.msg_qbytes;
  
-diff -puN kernel/cgroup.c~cgroups-add-the-trigger-callback-to-struct-cftype kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-add-the-trigger-callback-to-struct-cftype
-+++ a/kernel/cgroup.c
-@@ -1410,6 +1410,10 @@ static ssize_t cgroup_file_write(struct 
- 		return cft->write(cgrp, cft, file, buf, nbytes, ppos);
- 	if (cft->write_u64 || cft->write_s64)
- 		return cgroup_write_X64(cgrp, cft, file, buf, nbytes, ppos);
-+	if (cft->trigger) {
-+		int ret = cft->trigger(cgrp, (unsigned int)cft->private);
-+		return ret ? ret : nbytes;
-+	}
- 	return -EINVAL;
+-		ipcp->uid = msqid64.msg_perm.uid;
+-		ipcp->gid = msqid64.msg_perm.gid;
+-		ipcp->mode = (ipcp->mode & ~S_IRWXUGO) |
+-			     (S_IRWXUGO & msqid64.msg_perm.mode);
++		ipc_update_perm(&msqid64.msg_perm, ipcp);
+ 		msq->q_ctime = get_seconds();
+ 		/* sleeping receivers might be excluded by
+ 		 * stricter permissions.
+diff -puN ipc/sem.c~ipc-introduce-ipc_update_perm ipc/sem.c
+--- a/ipc/sem.c~ipc-introduce-ipc_update_perm
++++ a/ipc/sem.c
+@@ -913,10 +913,7 @@ static int semctl_down(struct ipc_namesp
+ 		freeary(ns, ipcp);
+ 		goto out_up;
+ 	case IPC_SET:
+-		ipcp->uid = semid64.sem_perm.uid;
+-		ipcp->gid = semid64.sem_perm.gid;
+-		ipcp->mode = (ipcp->mode & ~S_IRWXUGO)
+-				| (semid64.sem_perm.mode & S_IRWXUGO);
++		ipc_update_perm(&semid64.sem_perm, ipcp);
+ 		sma->sem_ctime = get_seconds();
+ 		break;
+ 	default:
+diff -puN ipc/shm.c~ipc-introduce-ipc_update_perm ipc/shm.c
+--- a/ipc/shm.c~ipc-introduce-ipc_update_perm
++++ a/ipc/shm.c
+@@ -656,10 +656,7 @@ static int shmctl_down(struct ipc_namesp
+ 		do_shm_rmid(ns, ipcp);
+ 		goto out_up;
+ 	case IPC_SET:
+-		ipcp->uid = shmid64.shm_perm.uid;
+-		ipcp->gid = shmid64.shm_perm.gid;
+-		ipcp->mode = (ipcp->mode & ~S_IRWXUGO)
+-			| (shmid64.shm_perm.mode & S_IRWXUGO);
++		ipc_update_perm(&shmid64.shm_perm, ipcp);
+ 		shp->shm_ctim = get_seconds();
+ 		break;
+ 	default:
+diff -puN ipc/util.c~ipc-introduce-ipc_update_perm ipc/util.c
+--- a/ipc/util.c~ipc-introduce-ipc_update_perm
++++ a/ipc/util.c
+@@ -811,6 +811,19 @@ int ipcget(struct ipc_namespace *ns, str
+ 		return ipcget_public(ns, ids, ops, params);
  }
  
++/**
++ * ipc_update_perm - update the permissions of an IPC.
++ * @in:  the permission given as input.
++ * @out: the permission of the ipc to set.
++ */
++void ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out)
++{
++	out->uid = in->uid;
++	out->gid = in->gid;
++	out->mode = (out->mode & ~S_IRWXUGO)
++		| (in->mode & S_IRWXUGO);
++}
++
+ #ifdef __ARCH_WANT_IPC_PARSE_VERSION
+ 
+ 
+diff -puN ipc/util.h~ipc-introduce-ipc_update_perm ipc/util.h
+--- a/ipc/util.h~ipc-introduce-ipc_update_perm
++++ a/ipc/util.h
+@@ -112,6 +112,7 @@ struct kern_ipc_perm *ipc_lock(struct ip
+ 
+ void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
+ void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
++void ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out);
+ 
+ #if defined(__ia64__) || defined(__x86_64__) || defined(__hppa__) || defined(__XTENSA__)
+   /* On IA-64, we always use the "64-bit version" of the IPC structures.  */ 
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from pierre.peiffer@bull.net are
 
 origin.patch
-disable-the-memory-controller-by-default-v3.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-ptrace-allow-to-ptrace-sbin-init.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-deprecate-find_task_by_pid-warning-fix.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-pidns-make-pid-level-and-pid_ns-level-unsigned.patch
-reiser4.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
 
