@@ -1,76 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - include-linux-sysctlh-remove-empty-else.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:47:41 -0700
-Message-ID: <200804300547.m3U5lfqR029727@imap1.linux-foundation.org>
+Subject: - ext4-fix-wrong-gfp-type-under-transaction.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:52:13 -0700
+Message-ID: <200804300552.m3U5qD8U030300@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52103 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42742 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756845AbYD3GBv (ORCPT
+	by vger.kernel.org with ESMTP id S1756265AbYD3GBq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:01:51 -0400
+	Wed, 30 Apr 2008 02:01:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: jbacik@redhat.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     include/linux/sysctl.h: remove empty #else
+     ext4: fix wrong gfp type under transaction
 has been removed from the -mm tree.  Its filename was
-     include-linux-sysctlh-remove-empty-else.patch
+     ext4-fix-wrong-gfp-type-under-transaction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include/linux/sysctl.h: remove empty #else
-From: Adrian Bunk <bunk@kernel.org>
+Subject: ext4: fix wrong gfp type under transaction
+From: Josef Bacik <jbacik@redhat.com>
 
-Remove an empty #else.
+This fixes the allocations with GFP_KERNEL while under a transaction problems
+in ext4.  This patch is the same as its ext3 counterpart, just switches these
+to GFP_NOFS.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Josef Bacik <jbacik@redhat.com>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    2 --
- 1 file changed, 2 deletions(-)
+ fs/ext4/acl.c     |    8 ++++----
+ fs/ext4/extents.c |    2 +-
+ fs/ext4/resize.c  |    4 ++--
+ fs/ext4/xattr.c   |    4 ++--
+ 4 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/sysctl.h~include-linux-sysctlh-remove-empty-else include/linux/sysctl.h
---- a/include/linux/sysctl.h~include-linux-sysctlh-remove-empty-else
-+++ a/include/linux/sysctl.h
-@@ -1085,8 +1085,6 @@ struct ctl_table_header *register_sysctl
- void unregister_sysctl_table(struct ctl_table_header * table);
- int sysctl_check_table(struct nsproxy *namespaces, struct ctl_table *table);
+diff -puN fs/ext4/acl.c~ext4-fix-wrong-gfp-type-under-transaction fs/ext4/acl.c
+--- a/fs/ext4/acl.c~ext4-fix-wrong-gfp-type-under-transaction
++++ a/fs/ext4/acl.c
+@@ -37,7 +37,7 @@ ext4_acl_from_disk(const void *value, si
+ 		return ERR_PTR(-EINVAL);
+ 	if (count == 0)
+ 		return NULL;
+-	acl = posix_acl_alloc(count, GFP_KERNEL);
++	acl = posix_acl_alloc(count, GFP_NOFS);
+ 	if (!acl)
+ 		return ERR_PTR(-ENOMEM);
+ 	for (n=0; n < count; n++) {
+@@ -91,7 +91,7 @@ ext4_acl_to_disk(const struct posix_acl 
  
--#else /* __KERNEL__ */
--
- #endif /* __KERNEL__ */
+ 	*size = ext4_acl_size(acl->a_count);
+ 	ext_acl = kmalloc(sizeof(ext4_acl_header) + acl->a_count *
+-			sizeof(ext4_acl_entry), GFP_KERNEL);
++			sizeof(ext4_acl_entry), GFP_NOFS);
+ 	if (!ext_acl)
+ 		return ERR_PTR(-ENOMEM);
+ 	ext_acl->a_version = cpu_to_le32(EXT4_ACL_VERSION);
+@@ -187,7 +187,7 @@ ext4_get_acl(struct inode *inode, int ty
+ 	}
+ 	retval = ext4_xattr_get(inode, name_index, "", NULL, 0);
+ 	if (retval > 0) {
+-		value = kmalloc(retval, GFP_KERNEL);
++		value = kmalloc(retval, GFP_NOFS);
+ 		if (!value)
+ 			return ERR_PTR(-ENOMEM);
+ 		retval = ext4_xattr_get(inode, name_index, "", value, retval);
+@@ -335,7 +335,7 @@ ext4_init_acl(handle_t *handle, struct i
+ 			if (error)
+ 				goto cleanup;
+ 		}
+-		clone = posix_acl_clone(acl, GFP_KERNEL);
++		clone = posix_acl_clone(acl, GFP_NOFS);
+ 		error = -ENOMEM;
+ 		if (!clone)
+ 			goto cleanup;
+diff -puN fs/ext4/extents.c~ext4-fix-wrong-gfp-type-under-transaction fs/ext4/extents.c
+--- a/fs/ext4/extents.c~ext4-fix-wrong-gfp-type-under-transaction
++++ a/fs/ext4/extents.c
+@@ -2010,7 +2010,7 @@ int ext4_ext_remove_space(struct inode *
+ 	 * We start scanning from right side, freeing all the blocks
+ 	 * after i_size and walking into the tree depth-wise.
+ 	 */
+-	path = kzalloc(sizeof(struct ext4_ext_path) * (depth + 1), GFP_KERNEL);
++	path = kzalloc(sizeof(struct ext4_ext_path) * (depth + 1), GFP_NOFS);
+ 	if (path == NULL) {
+ 		ext4_journal_stop(handle);
+ 		return -ENOMEM;
+diff -puN fs/ext4/resize.c~ext4-fix-wrong-gfp-type-under-transaction fs/ext4/resize.c
+--- a/fs/ext4/resize.c~ext4-fix-wrong-gfp-type-under-transaction
++++ a/fs/ext4/resize.c
+@@ -469,7 +469,7 @@ static int add_new_gdb(handle_t *handle,
+ 		goto exit_dindj;
  
- #endif /* _LINUX_SYSCTL_H */
+ 	n_group_desc = kmalloc((gdb_num + 1) * sizeof(struct buffer_head *),
+-			GFP_KERNEL);
++			GFP_NOFS);
+ 	if (!n_group_desc) {
+ 		err = -ENOMEM;
+ 		ext4_warning (sb, __FUNCTION__,
+@@ -552,7 +552,7 @@ static int reserve_backup_gdb(handle_t *
+ 	int res, i;
+ 	int err;
+ 
+-	primary = kmalloc(reserved_gdb * sizeof(*primary), GFP_KERNEL);
++	primary = kmalloc(reserved_gdb * sizeof(*primary), GFP_NOFS);
+ 	if (!primary)
+ 		return -ENOMEM;
+ 
+diff -puN fs/ext4/xattr.c~ext4-fix-wrong-gfp-type-under-transaction fs/ext4/xattr.c
+--- a/fs/ext4/xattr.c~ext4-fix-wrong-gfp-type-under-transaction
++++ a/fs/ext4/xattr.c
+@@ -739,7 +739,7 @@ ext4_xattr_block_set(handle_t *handle, s
+ 				ce = NULL;
+ 			}
+ 			ea_bdebug(bs->bh, "cloning");
+-			s->base = kmalloc(bs->bh->b_size, GFP_KERNEL);
++			s->base = kmalloc(bs->bh->b_size, GFP_NOFS);
+ 			error = -ENOMEM;
+ 			if (s->base == NULL)
+ 				goto cleanup;
+@@ -751,7 +751,7 @@ ext4_xattr_block_set(handle_t *handle, s
+ 		}
+ 	} else {
+ 		/* Allocate a buffer where we construct the new block. */
+-		s->base = kzalloc(sb->s_blocksize, GFP_KERNEL);
++		s->base = kzalloc(sb->s_blocksize, GFP_NOFS);
+ 		/* assert(header == s->base) */
+ 		error = -ENOMEM;
+ 		if (s->base == NULL)
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from jbacik@redhat.com are
 
 origin.patch
-mm-filemapc-generic_write_checks-mustnt-be-inline.patch
-fs-block_devc-i_bdev-mustnt-be-inline.patch
-frv-fix-arch-frv-mm-unalignedo-build-error.patch
-reiserfs-some-functions-mustnt-be-inline.patch
-git-acpi.patch
-git-x86.patch
-arch-x86-video-fbdevc-add-module_license.patch
-md-make-dm_dirty_log_initexit-static.patch
-drm-make-drm_minors_cleanup-static.patch
-git-m32r.patch
-net-ipv4-ip_outputc-ip_send_check-mustnt-be-inline.patch
-nfs-make-nfs4_drop_state_owner-static.patch
-git-ocfs2.patch
-show_schedstat-fix-memleak.patch
-git-sh.patch
-if-0-ses_match_host.patch
-git-watchdog.patch
-xen-drivers-xen-balloonc-make-a-function-static.patch
-make-marker_debug-static.patch
-reiser4.patch
 
