@@ -1,70 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - ext4-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:52:21 -0700
-Message-ID: <200804300552.m3U5qLba030312@imap1.linux-foundation.org>
+Subject: - sparc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:50:05 -0700
+Message-ID: <200804300550.m3U5o5Yw030082@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47775 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54533 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755818AbYD3GAu (ORCPT
+	by vger.kernel.org with ESMTP id S1755953AbYD3GBT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:00:50 -0400
+	Wed, 30 Apr 2008 02:01:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, lioupayphone@gmail.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ext4: fix hang on umount with quotas when journal is aborted
+     sparc: use kbuild.h instead of defining macros in asm-offsets.c
 has been removed from the -mm tree.  Its filename was
-     ext4-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
+     sparc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: fix hang on umount with quotas when journal is aborted
-From: Jan Kara <jack@suse.cz>
+Subject: sparc: use kbuild.h instead of defining macros in asm-offsets.c
+From: Christoph Lameter <clameter@sgi.com>
 
-Call dquot_drop() from ext4_dquot_drop() even if we fail to start a
-transaction.  Otherwise we never get to dropping references to quota
-structures from the inode and umount will hang indefinitely.  Thanks to
-Payphone LIOU for spotting the problem.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Payphone LIOU <lioupayphone@gmail.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/super.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ arch/sparc/kernel/asm-offsets.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN fs/ext4/super.c~ext4-fix-hang-on-umount-with-quotas-when-journal-is-aborted fs/ext4/super.c
---- a/fs/ext4/super.c~ext4-fix-hang-on-umount-with-quotas-when-journal-is-aborted
-+++ a/fs/ext4/super.c
-@@ -3116,8 +3116,14 @@ static int ext4_dquot_drop(struct inode 
+diff -puN arch/sparc/kernel/asm-offsets.c~sparc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/sparc/kernel/asm-offsets.c
+--- a/arch/sparc/kernel/asm-offsets.c~sparc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
++++ a/arch/sparc/kernel/asm-offsets.c
+@@ -12,11 +12,7 @@
  
- 	/* We may delete quota structure so we need to reserve enough blocks */
- 	handle = ext4_journal_start(inode, 2*EXT4_QUOTA_DEL_BLOCKS(inode->i_sb));
--	if (IS_ERR(handle))
-+	if (IS_ERR(handle)) {
-+		/*
-+		 * We call dquot_drop() anyway to at least release references
-+		 * to quota structures so that umount does not hang.
-+		 */
-+		dquot_drop(inode);
- 		return PTR_ERR(handle);
-+	}
- 	ret = dquot_drop(inode);
- 	err = ext4_journal_stop(handle);
- 	if (!ret)
+ #include <linux/sched.h>
+ // #include <linux/mm.h>
+-
+-#define DEFINE(sym, val) \
+-	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+-
+-#define BLANK() asm volatile("\n->" : : )
++#include <linux/kbuild.h>
+ 
+ int foo(void)
+ {
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from clameter@sgi.com are
 
 origin.patch
-isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem.patch
-ext4-fix-mount-messages-when-quota-disabled.patch
-quota-le_add_cpu-conversion.patch
+git-unionfs.patch
+git-slub.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-verify-the-page-links-and-memory-model.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+mm-add-nr_writeback_temp-counter.patch
+remove-div_long_long_rem.patch
+slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
+reiser4.patch
+reiser4-portion-of-zero_user-cleanup-patch.patch
+page-owner-tracking-leak-detector.patch
+x86-ioremap-add-checks-for-virtual-addresses.patch
+x86-ioremap-add-checks-for-virtual-addresses-fix.patch
 
