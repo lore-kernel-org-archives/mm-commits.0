@@ -1,134 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - toshiba-use-ioremap_cached.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:52:23 -0700
-Message-ID: <200804300552.m3U5qNaj030316@imap1.linux-foundation.org>
+Subject: - parisc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:50:19 -0700
+Message-ID: <200804300550.m3U5oJaB030103@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60022 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48500 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756885AbYD3GB4 (ORCPT
+	by vger.kernel.org with ESMTP id S1756839AbYD3GBr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:01:56 -0400
+	Wed, 30 Apr 2008 02:01:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: clameter@sgi.com, grundler@parisc-linux.org, kyle@mcmartin.ca, matthew@wil.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     toshiba: use ioremap_cached
+     parisc: use kbuild.h instead of defining macros in asm-offsets.c
 has been removed from the -mm tree.  Its filename was
-     toshiba-use-ioremap_cached.patch
+     parisc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: toshiba: use ioremap_cached
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: parisc: use kbuild.h instead of defining macros in asm-offsets.c
+From: Christoph Lameter <clameter@sgi.com>
 
-The switch of ioremap to default to uncached doesn't break this driver but it
-does needlessly slow it down as BIOS space is cachable and this driver is
-quite happy scanning cached ROM space.
-
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/toshiba.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/parisc/kernel/asm-offsets.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN drivers/char/toshiba.c~toshiba-use-ioremap_cached drivers/char/toshiba.c
---- a/drivers/char/toshiba.c~toshiba-use-ioremap_cached
-+++ a/drivers/char/toshiba.c
-@@ -426,7 +426,7 @@ static int tosh_probe(void)
- 	int i,major,minor,day,year,month,flag;
- 	unsigned char signature[7] = { 0x54,0x4f,0x53,0x48,0x49,0x42,0x41 };
- 	SMMRegisters regs;
--	void __iomem *bios = ioremap(0xf0000, 0x10000);
-+	void __iomem *bios = ioremap_cache(0xf0000, 0x10000);
+diff -puN arch/parisc/kernel/asm-offsets.c~parisc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc arch/parisc/kernel/asm-offsets.c
+--- a/arch/parisc/kernel/asm-offsets.c~parisc-use-kbuildh-instead-of-defining-macros-in-asm-offsetsc
++++ a/arch/parisc/kernel/asm-offsets.c
+@@ -32,6 +32,7 @@
+ #include <linux/thread_info.h>
+ #include <linux/ptrace.h>
+ #include <linux/hardirq.h>
++#include <linux/kbuild.h>
  
- 	if (!bios)
- 		return -ENOMEM;
-_
-
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
-
-origin.patch
-maintainers-sort-ordering.patch
-git-x86.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-pata_atiixp-simplex-clear.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-amiserial-prepare-for-locking-relaxation-in-caller.patch
-cyclades-prepare-for-relaxed-locking-in-callers.patch
-epca-lock_kernel-push-down.patch
-esp-lock_kernel-push-down.patch
-isicom-prepare-for-lock_kernel-push-down.patch
-isicom-istallion-prepare-for-lock_kernel-pushdown.patch
-mxser-prepare-for-bkl-pushdown.patch
-riscom8-prepare-for-bkl-pushdown.patch
-rocket-prepare-for-bkl-pushdown.patch
-serial167-prepare-to-push-bkl-down-into-drivers.patch
-specialix-prepare-for-bkl-pushdown.patch
-stallion-prepare-for-bkl-push-down.patch
-sx-prepare-for-bkl-pushdown.patch
-synclink-series-prepare-for-bkl-pushdown.patch
-viocons-bkl-locking.patch
-vt_ioctl-prepare-for-bkl-push-down.patch
-isdn_tty-prepare-for-bkl-push-down.patch
-68360serial-note-that-there-isnt-any-info-mcr-locking.patch
-serial_core-prepare-for-bkl-push-down.patch
-tty-bkl-pushdown.patch
-tty-bkl-pushdown-fix1.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-tty_ioctl-locking-for-tty_wait_until_sent.patch
-tty_ioctl-soft-carrier-handling.patch
-tty-drop-the-bkl-for-driver-ldisc-ioctl-methods.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-istallion-tiocg-ssoftcar-handling-removal.patch
-cyclades-coding-style-review.patch
-cyclades-use-ioremap_nocache-for-clarity-as-proposed.patch
-tty-serial-lay-the-foundations-for-the-next-set-of-reworks.patch
-s390-tty-prepare-for-put_char-to-return-success-fail.patch
-serial-m68k-put_char-returns.patch
-usb-gadget-switch-to-put_char-returning-int.patch
-amiserial-switch-put-char-to-return-success-fail.patch
-char-switch-gs-cyclades-and-esp-to-return-int-for-put_char.patch
-mxser-switch-to-put_char-being-int.patch
-pcmcia-serial-to-int-put_char-method.patch
-riscom-rocket-switch-to-int-put_char-method.patch
-serial167-switch-to-int-put_char-method.patch
-specialix-switch-to-int-put_char-method.patch
-synclink-series-switch-to-int-put_char-method.patch
-consoles-switch-to-int-put_char-method.patch
-isdn-switch-to-int-put_char-method.patch
-pty-prepare-for-tty-ops-changes.patch
-pc300-update-to-tty_set_operations.patch
-serial-switch-the-serial-core-to-int-put_char-methods.patch
-isicom-bring-into-coding-style.patch
-isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework.patch
-tty-the-big-operations-rework-broke-wan-x25_asy-fix.patch
-tty-the-big-operations-rework-fix-2.patch
-tty-the-big-operations-rework-isicom-fix.patch
-tty-the-big-operations-rework-simserial-fix.patch
-strip-fix-up-strip-for-the-new-order.patch
-tty-the-big-operations-rework-vs-git-kgdb-light.patch
-tty-the-big-operations-rework-vs-kgdb-2.patch
-riscom8-coding-style.patch
-epca-coding-style.patch
-esp-clean-up-to-modern-coding-style.patch
-isicom-fix-buffer-allocation.patch
-tty-add-throttle-unthrottle-helpers.patch
-ip2-switch-remaining-direct-call-of-ops-flush_buffer.patch
-char-serial-switch-drivers-to-ioremap_nocache.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
-
+ #include <asm/pgtable.h>
+ #include <asm/ptrace.h>
+@@ -39,11 +40,6 @@
+ #include <asm/pdc.h>
+ #include <asm/uaccess.h>
+ 
+-#define DEFINE(sym, val) \
+-	asm volatile("\n->" #sym " %0 " #val : : "i" (val))
+-
+-#define BLANK() asm volatile("\n->" : : )
