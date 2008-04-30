@@ -1,151 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: - video-use-get-put_unaligned_-helpers.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:49:33 -0700
-Message-ID: <200804300549.m3U5nXP9030011@imap1.linux-foundation.org>
+Subject: - pcmcia-use-get-put_unaligned_-helpers.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:49:27 -0700
+Message-ID: <200804300549.m3U5nRYC030005@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54194 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50969 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758905AbYD3FuH (ORCPT
+	by vger.kernel.org with ESMTP id S1758808AbYD3FuE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:50:07 -0400
+	Wed, 30 Apr 2008 01:50:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, adaplas@gmail.com, vandrove@vc.cvut.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, daniel.ritz@gmx.ch, linux@dominikbrodowski.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     video: use get/put_unaligned_* helpers
+     pcmcia: use get/put_unaligned_* helpers
 has been removed from the -mm tree.  Its filename was
-     video-use-get-put_unaligned_-helpers.patch
+     pcmcia-use-get-put_unaligned_-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: video: use get/put_unaligned_* helpers
+Subject: pcmcia: use get/put_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Petr Vandrovec <vandrove@vc.cvut.cz>
-Cc: Antonino Daplas <adaplas@gmail.com>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Daniel Ritz <daniel.ritz@gmx.ch>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/matrox/matroxfb_misc.c |   28 ++++++++++++-------------
- drivers/video/metronomefb.c          |    9 ++------
- 2 files changed, 17 insertions(+), 20 deletions(-)
+ drivers/pcmcia/cistpl.c |   39 ++++++++++++++------------------------
+ 1 file changed, 15 insertions(+), 24 deletions(-)
 
-diff -puN drivers/video/matrox/matroxfb_misc.c~video-use-get-put_unaligned_-helpers drivers/video/matrox/matroxfb_misc.c
---- a/drivers/video/matrox/matroxfb_misc.c~video-use-get-put_unaligned_-helpers
-+++ a/drivers/video/matrox/matroxfb_misc.c
-@@ -522,8 +522,6 @@ static void parse_bios(unsigned char __i
- #endif
+diff -puN drivers/pcmcia/cistpl.c~pcmcia-use-get-put_unaligned_-helpers drivers/pcmcia/cistpl.c
+--- a/drivers/pcmcia/cistpl.c~pcmcia-use-get-put_unaligned_-helpers
++++ a/drivers/pcmcia/cistpl.c
+@@ -402,15 +402,6 @@ EXPORT_SYMBOL(pcmcia_replace_cis);
+     
+ ======================================================================*/
+ 
+-static inline u16 cis_get_u16(void *ptr)
+-{
+-	return le16_to_cpu(get_unaligned((__le16 *) ptr));
+-}
+-static inline u32 cis_get_u32(void *ptr)
+-{
+-	return le32_to_cpu(get_unaligned((__le32 *) ptr));
+-}
+-
+ typedef struct tuple_flags {
+     u_int		link_space:4;
+     u_int		has_link:1;
+@@ -471,7 +462,7 @@ static int follow_link(struct pcmcia_soc
+ 	/* Get indirect link from the MFC tuple */
+ 	read_cis_cache(s, LINK_SPACE(tuple->Flags),
+ 		       tuple->LinkOffset, 5, link);
+-	ofs = cis_get_u32(link + 1);
++	ofs = get_unaligned_le32(link + 1);
+ 	SPACE(tuple->Flags) = (link[0] == CISTPL_MFC_ATTR);
+ 	/* Move to the next indirect link */
+ 	tuple->LinkOffset += 5;
+@@ -679,8 +670,8 @@ static int parse_checksum(tuple_t *tuple
+     if (tuple->TupleDataLen < 5)
+ 	return CS_BAD_TUPLE;
+     p = (u_char *) tuple->TupleData;
+-    csum->addr = tuple->CISOffset + cis_get_u16(p) - 2;
+-    csum->len = cis_get_u16(p + 2);
++    csum->addr = tuple->CISOffset + get_unaligned_le16(p) - 2;
++    csum->len = get_unaligned_le16(p + 2);
+     csum->sum = *(p + 4);
+     return CS_SUCCESS;
+ }
+@@ -691,7 +682,7 @@ static int parse_longlink(tuple_t *tuple
+ {
+     if (tuple->TupleDataLen < 4)
+ 	return CS_BAD_TUPLE;
+-    link->addr = cis_get_u32(tuple->TupleData);
++    link->addr = get_unaligned_le32(tuple->TupleData);
+     return CS_SUCCESS;
  }
  
--#define get_u16(x) (le16_to_cpu(get_unaligned((__u16*)(x))))
--#define get_u32(x) (le32_to_cpu(get_unaligned((__u32*)(x))))
- static int parse_pins1(WPMINFO const struct matrox_bios* bd) {
- 	unsigned int maxdac;
+@@ -710,7 +701,7 @@ static int parse_longlink_mfc(tuple_t *t
+ 	return CS_BAD_TUPLE;
+     for (i = 0; i < link->nfn; i++) {
+ 	link->fn[i].space = *p; p++;
+-	link->fn[i].addr = cis_get_u32(p);
++	link->fn[i].addr = get_unaligned_le32(p);
+ 	p += 4;
+     }
+     return CS_SUCCESS;
+@@ -800,8 +791,8 @@ static int parse_manfid(tuple_t *tuple, 
+ {
+     if (tuple->TupleDataLen < 4)
+ 	return CS_BAD_TUPLE;
+-    m->manf = cis_get_u16(tuple->TupleData);
+-    m->card = cis_get_u16(tuple->TupleData + 2);
++    m->manf = get_unaligned_le16(tuple->TupleData);
++    m->card = get_unaligned_le16(tuple->TupleData + 2);
+     return CS_SUCCESS;
+ }
  
-@@ -532,11 +530,12 @@ static int parse_pins1(WPMINFO const str
- 		case 1:		maxdac = 220000; break;
- 		default:	maxdac = 240000; break;
- 	}
--	if (get_u16(bd->pins + 24)) {
--		maxdac = get_u16(bd->pins + 24) * 10;
-+	if (get_unaligned_le16(bd->pins + 24)) {
-+		maxdac = get_unaligned_le16(bd->pins + 24) * 10;
- 	}
- 	MINFO->limits.pixel.vcomax = maxdac;
--	MINFO->values.pll.system = get_u16(bd->pins + 28) ? get_u16(bd->pins + 28) * 10 : 50000;
-+	MINFO->values.pll.system = get_unaligned_le16(bd->pins + 28) ?
-+		get_unaligned_le16(bd->pins + 28) * 10 : 50000;
- 	/* ignore 4MB, 8MB, module clocks */
- 	MINFO->features.pll.ref_freq = 14318;
- 	MINFO->values.reg.mctlwtst	= 0x00030101;
-@@ -575,7 +574,8 @@ static void default_pins2(WPMINFO2) {
- static int parse_pins3(WPMINFO const struct matrox_bios* bd) {
- 	MINFO->limits.pixel.vcomax	=
- 	MINFO->limits.system.vcomax	= (bd->pins[36] == 0xFF) ? 230000			: ((bd->pins[36] + 100) * 1000);
--	MINFO->values.reg.mctlwtst	= get_u32(bd->pins + 48) == 0xFFFFFFFF ? 0x01250A21	: get_u32(bd->pins + 48);
-+	MINFO->values.reg.mctlwtst	= get_unaligned_le32(bd->pins + 48) == 0xFFFFFFFF ?
-+		0x01250A21 : get_unaligned_le32(bd->pins + 48);
- 	/* memory config */
- 	MINFO->values.reg.memrdbk	= ((bd->pins[57] << 21) & 0x1E000000) |
- 					  ((bd->pins[57] << 22) & 0x00C00000) |
-@@ -601,7 +601,7 @@ static void default_pins3(WPMINFO2) {
- static int parse_pins4(WPMINFO const struct matrox_bios* bd) {
- 	MINFO->limits.pixel.vcomax	= (bd->pins[ 39] == 0xFF) ? 230000			: bd->pins[ 39] * 4000;
- 	MINFO->limits.system.vcomax	= (bd->pins[ 38] == 0xFF) ? MINFO->limits.pixel.vcomax	: bd->pins[ 38] * 4000;
--	MINFO->values.reg.mctlwtst	= get_u32(bd->pins + 71);
-+	MINFO->values.reg.mctlwtst	= get_unaligned_le32(bd->pins + 71);
- 	MINFO->values.reg.memrdbk	= ((bd->pins[87] << 21) & 0x1E000000) |
- 					  ((bd->pins[87] << 22) & 0x00C00000) |
- 					  ((bd->pins[86] <<  1) & 0x000001E0) |
-@@ -609,7 +609,7 @@ static int parse_pins4(WPMINFO const str
- 	MINFO->values.reg.opt		= ((bd->pins[53] << 15) & 0x00400000) |
- 					  ((bd->pins[53] << 22) & 0x10000000) |
- 					  ((bd->pins[53] <<  7) & 0x00001C00);
--	MINFO->values.reg.opt3		= get_u32(bd->pins + 67);
-+	MINFO->values.reg.opt3		= get_unaligned_le32(bd->pins + 67);
- 	MINFO->values.pll.system	= (bd->pins[ 65] == 0xFF) ? 200000 			: bd->pins[ 65] * 4000;
- 	MINFO->features.pll.ref_freq	= (bd->pins[ 92] & 0x01) ? 14318 : 27000;
- 	return 0;
-@@ -640,12 +640,12 @@ static int parse_pins5(WPMINFO const str
- 	MINFO->limits.video.vcomin	= (bd->pins[122] == 0xFF) ? MINFO->limits.system.vcomin	: bd->pins[122] * mult;
- 	MINFO->values.pll.system	=
- 	MINFO->values.pll.video		= (bd->pins[ 92] == 0xFF) ? 284000			: bd->pins[ 92] * 4000;
--	MINFO->values.reg.opt		= get_u32(bd->pins+ 48);
--	MINFO->values.reg.opt2		= get_u32(bd->pins+ 52);
--	MINFO->values.reg.opt3		= get_u32(bd->pins+ 94);
--	MINFO->values.reg.mctlwtst	= get_u32(bd->pins+ 98);
--	MINFO->values.reg.memmisc	= get_u32(bd->pins+102);
--	MINFO->values.reg.memrdbk	= get_u32(bd->pins+106);
-+	MINFO->values.reg.opt		= get_unaligned_le32(bd->pins + 48);
-+	MINFO->values.reg.opt2		= get_unaligned_le32(bd->pins + 52);
-+	MINFO->values.reg.opt3		= get_unaligned_le32(bd->pins + 94);
-+	MINFO->values.reg.mctlwtst	= get_unaligned_le32(bd->pins + 98);
-+	MINFO->values.reg.memmisc	= get_unaligned_le32(bd->pins + 102);
-+	MINFO->values.reg.memrdbk	= get_unaligned_le32(bd->pins + 106);
- 	MINFO->features.pll.ref_freq	= (bd->pins[110] & 0x01) ? 14318 : 27000;
- 	MINFO->values.memory.ddr	= (bd->pins[114] & 0x60) == 0x20;
- 	MINFO->values.memory.dll	= (bd->pins[115] & 0x02) != 0;
-diff -puN drivers/video/metronomefb.c~video-use-get-put_unaligned_-helpers drivers/video/metronomefb.c
---- a/drivers/video/metronomefb.c~video-use-get-put_unaligned_-helpers
-+++ a/drivers/video/metronomefb.c
-@@ -206,8 +206,7 @@ static int load_waveform(u8 *mem, size_t
- 	}
+@@ -1100,7 +1091,7 @@ static int parse_cftable_entry(tuple_t *
+ 	break;
+     case 0x20:
+ 	entry->mem.nwin = 1;
+-	entry->mem.win[0].len = cis_get_u16(p) << 8;
++	entry->mem.win[0].len = get_unaligned_le16(p) << 8;
+ 	entry->mem.win[0].card_addr = 0;
+ 	entry->mem.win[0].host_addr = 0;
+ 	p += 2;
+@@ -1108,8 +1099,8 @@ static int parse_cftable_entry(tuple_t *
+ 	break;
+     case 0x40:
+ 	entry->mem.nwin = 1;
+-	entry->mem.win[0].len = cis_get_u16(p) << 8;
+-	entry->mem.win[0].card_addr = cis_get_u16(p + 2) << 8;
++	entry->mem.win[0].len = get_unaligned_le16(p) << 8;
++	entry->mem.win[0].card_addr = get_unaligned_le16(p + 2) << 8;
+ 	entry->mem.win[0].host_addr = 0;
+ 	p += 4;
+ 	if (p > q) return CS_BAD_TUPLE;
+@@ -1146,7 +1137,7 @@ static int parse_bar(tuple_t *tuple, cis
+     p = (u_char *)tuple->TupleData;
+     bar->attr = *p;
+     p += 2;
+-    bar->size = cis_get_u32(p);
++    bar->size = get_unaligned_le32(p);
+     return CS_SUCCESS;
+ }
  
- 	/* check waveform mode table address checksum */
--	wmta = le32_to_cpu(get_unaligned((__le32 *) wfm_hdr->wmta));
--	wmta &= 0x00FFFFFF;
-+	wmta = get_unaligned_le32(wfm_hdr->wmta) & 0x00FFFFFF;
- 	cksum_idx = wmta + m*4 + 3;
- 	if (cksum_idx > size)
- 		return -EINVAL;
-@@ -219,8 +218,7 @@ static int load_waveform(u8 *mem, size_t
- 	}
+@@ -1159,7 +1150,7 @@ static int parse_config_cb(tuple_t *tupl
+ 	return CS_BAD_TUPLE;
+     config->last_idx = *(++p);
+     p++;
+-    config->base = cis_get_u32(p);
++    config->base = get_unaligned_le32(p);
+     config->subtuples = tuple->TupleDataLen - 6;
+     return CS_SUCCESS;
+ }
+@@ -1275,7 +1266,7 @@ static int parse_vers_2(tuple_t *tuple, 
  
- 	/* check waveform temperature table address checksum */
--	tta = le32_to_cpu(get_unaligned((int *) (mem + wmta + m*4)));
--	tta &= 0x00FFFFFF;
-+	tta = get_unaligned_le32(mem + wmta + m * 4) & 0x00FFFFFF;
- 	cksum_idx = tta + trn*4 + 3;
- 	if (cksum_idx > size)
- 		return -EINVAL;
-@@ -233,8 +231,7 @@ static int load_waveform(u8 *mem, size_t
+     v2->vers = p[0];
+     v2->comply = p[1];
+-    v2->dindex = cis_get_u16(p +2 );
++    v2->dindex = get_unaligned_le16(p +2 );
+     v2->vspec8 = p[6];
+     v2->vspec9 = p[7];
+     v2->nhdr = p[8];
+@@ -1316,8 +1307,8 @@ static int parse_format(tuple_t *tuple, 
  
- 	/* here we do the real work of putting the waveform into the
- 	metromem buffer. this does runlength decoding of the waveform */
--	wfm_idx = le32_to_cpu(get_unaligned((__le32 *) (mem + tta + trn*4)));
--	wfm_idx &= 0x00FFFFFF;
-+	wfm_idx = get_unaligned_le32(mem + tta + trn * 4) & 0x00FFFFFF;
- 	owfm_idx = wfm_idx;
- 	if (wfm_idx > size)
- 		return -EINVAL;
+     fmt->type = p[0];
+     fmt->edc = p[1];
+-    fmt->offset = cis_get_u32(p + 2);
+-    fmt->length = cis_get_u32(p + 6);
++    fmt->offset = get_unaligned_le32(p + 2);
++    fmt->length = get_unaligned_le32(p + 6);
+ 
+     return CS_SUCCESS;
+ }
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
