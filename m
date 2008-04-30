@@ -1,79 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - mm-bdi-export-bdi-attributes-in-sysfs-fix.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 23:18:54 -0700
-Message-ID: <200804300618.m3U6IsDT031410@imap1.linux-foundation.org>
+Subject: - mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 23:18:57 -0700
+Message-ID: <200804300618.m3U6Ivut031413@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39338 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39284 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751126AbYD3GS6 (ORCPT
+	by vger.kernel.org with ESMTP id S1756212AbYD3GTB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:18:58 -0400
+	Wed, 30 Apr 2008 02:19:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: bdi: fix read_ahead_kb_store()
+     mm: bdi: use MAJOR:MINOR in /sys/class/bdi
 has been removed from the -mm tree.  Its filename was
-     mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
+     mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
 
 This patch was dropped because it was folded into mm-bdi-export-bdi-attributes-in-sysfs.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: bdi: fix read_ahead_kb_store()
+Subject: mm: bdi: use MAJOR:MINOR in /sys/class/bdi
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-This managed to completely evade testing :(
+Uniformly use MAJOR:MINOR in /sys/class/bdi/ for both block devices
+and non-block device backed filesystems: FUSE and NFS.
 
-Fix return value to be count or -errno.  Also bring the function in
-line with the other store functions on this object, which have more
-strict input checking.
+Add symlink for block devices:
 
-Also fix bdi_set_max_ratio() to actually return an error, instead of
-always zero.
+    /sys/block/<name>/bdi -> /sys/class/bdi/<bdi>
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |   11 ++++++++---
- page-writeback.c |    0 
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ block/genhd.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN mm/backing-dev.c~mm-bdi-export-bdi-attributes-in-sysfs-fix mm/backing-dev.c
---- a/mm/backing-dev.c~mm-bdi-export-bdi-attributes-in-sysfs-fix
-+++ a/mm/backing-dev.c
-@@ -16,10 +16,15 @@ static ssize_t read_ahead_kb_store(struc
+diff -puN block/genhd.c~mm-bdi-export-bdi-attributes-in-sysfs-fix-2 block/genhd.c
+--- a/block/genhd.c~mm-bdi-export-bdi-attributes-in-sysfs-fix-2
++++ a/block/genhd.c
+@@ -182,13 +182,17 @@ static int exact_lock(dev_t devt, void *
+  */
+ void add_disk(struct gendisk *disk)
  {
- 	struct backing_dev_info *bdi = dev_get_drvdata(dev);
- 	char *end;
-+	unsigned long read_ahead_kb;
-+	ssize_t ret = -EINVAL;
- 
--	bdi->ra_pages = simple_strtoul(buf, &end, 10) >> (PAGE_SHIFT - 10);
--
--	return end - buf;
-+	read_ahead_kb = simple_strtoul(buf, &end, 10);
-+	if (*buf && (end[0] == '\0' || (end[0] == '\n' && end[1] == '\0'))) {
-+		bdi->ra_pages = read_ahead_kb >> (PAGE_SHIFT - 10);
-+		ret = count;
-+	}
-+	return ret;
++	struct backing_dev_info *bdi;
++
+ 	disk->flags |= GENHD_FL_UP;
+ 	blk_register_region(MKDEV(disk->major, disk->first_minor),
+ 			    disk->minors, NULL, exact_match, exact_lock, disk);
+ 	register_disk(disk);
+ 	blk_register_queue(disk);
+-	bdi_register(&disk->queue->backing_dev_info, NULL,
+-		"blk-%s", disk->disk_name);
++
++	bdi = &disk->queue->backing_dev_info;
++	bdi_register_dev(bdi, MKDEV(disk->major, disk->first_minor));
++	sysfs_create_link(&disk->dev.kobj, &bdi->dev->kobj, "bdi");
  }
  
- #define K(pages) ((pages) << (PAGE_SHIFT - 10))
-diff -puN mm/page-writeback.c~mm-bdi-export-bdi-attributes-in-sysfs-fix mm/page-writeback.c
+ EXPORT_SYMBOL(add_disk);
+@@ -196,8 +200,9 @@ EXPORT_SYMBOL(del_gendisk);	/* in partit
+ 
+ void unlink_gendisk(struct gendisk *disk)
+ {
+-	blk_unregister_queue(disk);
++	sysfs_remove_link(&disk->dev.kobj, "bdi");
+ 	bdi_unregister(&disk->queue->backing_dev_info);
++	blk_unregister_queue(disk);
+ 	blk_unregister_region(MKDEV(disk->major, disk->first_minor),
+ 			      disk->minors);
+ }
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
 mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
 mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
 mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
 mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
