@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch added to -mm tree
-Date: Wed, 30 Apr 2008 11:50:59 -0700
-Message-ID: <200804301850.m3UIoxK8029356@imap1.linux-foundation.org>
+Subject: + mac80211-michaelc-use-kernel-provided-infrastructure.patch added to -mm tree
+Date: Wed, 30 Apr 2008 11:50:57 -0700
+Message-ID: <200804301850.m3UIowAB029353@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52690 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35114 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750976AbYD3SwL (ORCPT
+	by vger.kernel.org with ESMTP id S1755419AbYD3SwP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 14:52:11 -0400
+	Wed, 30 Apr 2008 14:52:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com, linville@tuxdriver.com
 
 
 The patch titled
-     mac80211: introduce struct michael_mic_ctx and static helpers
+     mac80211: michael.c use kernel-provided infrastructure
 has been added to the -mm tree.  Its filename is
-     mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
+     mac80211-michaelc-use-kernel-provided-infrastructure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,137 +34,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: introduce struct michael_mic_ctx and static helpers
+Subject: mac80211: michael.c use kernel-provided infrastructure
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Replace the existing macro with a static function, significantly shrinks the
-size of the produced object file.
+Replace private implementation of bit rotation and unaligned access helpers
+with kernel-provided implementation.
+
+Fold xswap helper in its one usage in the michael_block macro.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/michael.c |   75 ++++++++++++++++++++-------------------
- net/mac80211/michael.h |    4 ++
- 2 files changed, 44 insertions(+), 35 deletions(-)
+ net/mac80211/michael.c |   60 +++++++++------------------------------
+ 1 file changed, 14 insertions(+), 46 deletions(-)
 
-diff -puN net/mac80211/michael.c~mac80211-introduce-struct-michael_mic_ctx-and-static-helpers net/mac80211/michael.c
---- a/net/mac80211/michael.c~mac80211-introduce-struct-michael_mic_ctx-and-static-helpers
+diff -puN net/mac80211/michael.c~mac80211-michaelc-use-kernel-provided-infrastructure net/mac80211/michael.c
+--- a/net/mac80211/michael.c~mac80211-michaelc-use-kernel-provided-infrastructure
 +++ a/net/mac80211/michael.c
-@@ -13,46 +13,52 @@
+@@ -8,71 +8,39 @@
+  */
+ 
+ #include <linux/types.h>
++#include <linux/bitops.h>
++#include <asm/unaligned.h>
  
  #include "michael.h"
  
--#define michael_block(l, r) \
--do { \
--	r ^= rol32(l, 17); \
--	l += r; \
--	r ^= ((l & 0xff00ff00) >> 8) | ((l & 0x00ff00ff) << 8); \
--	l += r; \
--	r ^= rol32(l, 3); \
--	l += r; \
--	r ^= ror32(l, 2); \
--	l += r; \
--} while (0)
-+static void michael_block(struct michael_mic_ctx *mctx, u32 val)
-+{
-+	mctx->l ^= val;
-+	mctx->r ^= rol32(mctx->l, 17);
-+	mctx->l += mctx->r;
-+	mctx->r ^= ((mctx->l & 0xff00ff00) >> 8) |
-+		   ((mctx->l & 0x00ff00ff) << 8);
-+	mctx->l += mctx->r;
-+	mctx->r ^= rol32(mctx->l, 3);
-+	mctx->l += mctx->r;
-+	mctx->r ^= ror32(mctx->l, 2);
-+	mctx->l += mctx->r;
-+}
-+
-+static void michael_mic_hdr(struct michael_mic_ctx *mctx,
-+			    u8 *key, u8 *da, u8 *sa, u8 priority)
-+{
-+	mctx->l = get_unaligned_le32(key);
-+	mctx->r = get_unaligned_le32(key + 4);
-+
-+	/*
-+	 * A pseudo header (DA, SA, Priority, 0, 0, 0) is used in Michael MIC
-+	 * calculation, but it is _not_ transmitted
-+	 */
-+	michael_block(mctx, get_unaligned_le32(da));
-+	michael_block(mctx, get_unaligned_le16(&da[4]) |
-+			    (get_unaligned_le16(sa) << 16));
-+	michael_block(mctx, get_unaligned_le32(&sa[2]));
-+	michael_block(mctx, priority);
-+}
+-static inline u32 rotr(u32 val, int bits)
+-{
+-	return (val >> bits) | (val << (32 - bits));
+-}
+-
+-
+-static inline u32 rotl(u32 val, int bits)
+-{
+-	return (val << bits) | (val >> (32 - bits));
+-}
+-
+-
+-static inline u32 xswap(u32 val)
+-{
+-	return ((val & 0xff00ff00) >> 8) | ((val & 0x00ff00ff) << 8);
+-}
+-
+-
+ #define michael_block(l, r) \
+ do { \
+-	r ^= rotl(l, 17); \
++	r ^= rol32(l, 17); \
+ 	l += r; \
+-	r ^= xswap(l); \
++	r ^= ((l & 0xff00ff00) >> 8) | ((l & 0x00ff00ff) << 8); \
+ 	l += r; \
+-	r ^= rotl(l, 3); \
++	r ^= rol32(l, 3); \
+ 	l += r; \
+-	r ^= rotr(l, 2); \
++	r ^= ror32(l, 2); \
+ 	l += r; \
+ } while (0)
  
+-
+-static inline u32 michael_get32(u8 *data)
+-{
+-	return data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
+-}
+-
+-
+-static inline void michael_put32(u32 val, u8 *data)
+-{
+-	data[0] = val & 0xff;
+-	data[1] = (val >> 8) & 0xff;
+-	data[2] = (val >> 16) & 0xff;
+-	data[3] = (val >> 24) & 0xff;
+-}
+-
+-
  void michael_mic(u8 *key, u8 *da, u8 *sa, u8 priority,
  		 u8 *data, size_t data_len, u8 *mic)
  {
--	u32 l, r, val;
-+	u32 val;
+ 	u32 l, r, val;
  	size_t block, blocks, left;
-+	struct michael_mic_ctx mctx;
  
--	l = get_unaligned_le32(key);
--	r = get_unaligned_le32(key + 4);
--
--	/* A pseudo header (DA, SA, Priority, 0, 0, 0) is used in Michael MIC
--	 * calculation, but it is _not_ transmitted */
--	l ^= get_unaligned_le32(da);
--	michael_block(l, r);
--	l ^= get_unaligned_le16(&da[4]) | (get_unaligned_le16(sa) << 16);
--	michael_block(l, r);
--	l ^= get_unaligned_le32(&sa[2]);
--	michael_block(l, r);
--	l ^= priority;
--	michael_block(l, r);
-+	michael_mic_hdr(&mctx, key, da, sa, priority);
+-	l = michael_get32(key);
+-	r = michael_get32(key + 4);
++	l = get_unaligned_le32(key);
++	r = get_unaligned_le32(key + 4);
  
- 	/* Real data */
- 	blocks = data_len / 4;
+ 	/* A pseudo header (DA, SA, Priority, 0, 0, 0) is used in Michael MIC
+ 	 * calculation, but it is _not_ transmitted */
+-	l ^= michael_get32(da);
++	l ^= get_unaligned_le32(da);
+ 	michael_block(l, r);
+-	l ^= da[4] | (da[5] << 8) | (sa[0] << 16) | (sa[1] << 24);
++	l ^= get_unaligned_le16(&da[4]) | (get_unaligned_le16(sa) << 16);
+ 	michael_block(l, r);
+-	l ^= michael_get32(&sa[2]);
++	l ^= get_unaligned_le32(&sa[2]);
+ 	michael_block(l, r);
+ 	l ^= priority;
+ 	michael_block(l, r);
+@@ -82,7 +50,7 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
  	left = data_len % 4;
  
--	for (block = 0; block < blocks; block++) {
--		l ^= get_unaligned_le32(&data[block * 4]);
--		michael_block(l, r);
--	}
-+	for (block = 0; block < blocks; block++)
-+		michael_block(&mctx, get_unaligned_le32(&data[block * 4]));
- 
- 	/* Partial block of 0..3 bytes and padding: 0x5a + 4..7 zeros to make
- 	 * total length a multiple of 4. */
-@@ -62,11 +68,10 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
- 		left--;
- 		val |= data[blocks * 4 + left];
+ 	for (block = 0; block < blocks; block++) {
+-		l ^= michael_get32(&data[block * 4]);
++		l ^= get_unaligned_le32(&data[block * 4]);
+ 		michael_block(l, r);
  	}
--	l ^= val;
--	michael_block(l, r);
--	/* last block is zero, so l ^ 0 = l */
--	michael_block(l, r);
  
--	put_unaligned_le32(l, mic);
--	put_unaligned_le32(r, mic + 4);
-+	michael_block(&mctx, val);
-+	michael_block(&mctx, 0);
-+
-+	put_unaligned_le32(mctx.l, mic);
-+	put_unaligned_le32(mctx.r, mic + 4);
+@@ -99,6 +67,6 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
+ 	/* last block is zero, so l ^ 0 = l */
+ 	michael_block(l, r);
+ 
+-	michael_put32(l, mic);
+-	michael_put32(r, mic + 4);
++	put_unaligned_le32(l, mic);
++	put_unaligned_le32(r, mic + 4);
  }
-diff -puN net/mac80211/michael.h~mac80211-introduce-struct-michael_mic_ctx-and-static-helpers net/mac80211/michael.h
---- a/net/mac80211/michael.h~mac80211-introduce-struct-michael_mic_ctx-and-static-helpers
-+++ a/net/mac80211/michael.h
-@@ -14,6 +14,10 @@
- 
- #define MICHAEL_MIC_LEN 8
- 
-+struct michael_mic_ctx {
-+	u32 l, r;
-+};
-+
- void michael_mic(u8 *key, u8 *da, u8 *sa, u8 priority,
- 		 u8 *data, size_t data_len, u8 *mic);
- 
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
