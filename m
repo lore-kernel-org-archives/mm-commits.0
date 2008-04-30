@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rename-div64_64-to-div64_u64-dvb.patch added to -mm tree
-Date: Wed, 30 Apr 2008 05:52:50 -0700
-Message-ID: <200804301252.m3UCqo5E014415@imap1.linux-foundation.org>
+Subject: + rename-div64_64-to-div64_u64-kvm.patch added to -mm tree
+Date: Wed, 30 Apr 2008 05:53:22 -0700
+Message-ID: <200804301253.m3UCrM9W014428@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37168 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40608 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755023AbYD3MxW (ORCPT
+	by vger.kernel.org with ESMTP id S1759976AbYD3Mx5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 08:53:22 -0400
+	Wed, 30 Apr 2008 08:53:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zippel@linux-m68k.org, mchehab@infradead.org
+Cc: zippel@linux-m68k.org, avi@qumranet.com, tglx@linutronix.de
 
 
 The patch titled
      2.6.25-rc5-mm1 specifc div64_u64 fixes
 has been added to the -mm tree.  Its filename is
-     rename-div64_64-to-div64_u64-dvb.patch
+     rename-div64_64-to-div64_u64-kvm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,32 +40,37 @@ From: Roman Zippel <zippel@linux-m68k.org>
 Rename a few more div64_u64 which are only in -mm.
 
 Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Avi Kivity <avi@qumranet.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/frontends/drx397xD.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kvm/i8254.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/media/dvb/frontends/drx397xD.c~rename-div64_64-to-div64_u64-dvb drivers/media/dvb/frontends/drx397xD.c
---- a/drivers/media/dvb/frontends/drx397xD.c~rename-div64_64-to-div64_u64-dvb
-+++ a/drivers/media/dvb/frontends/drx397xD.c
-@@ -1026,13 +1026,13 @@ static int drx_tune(struct drx397xD_stat
+diff -puN arch/x86/kvm/i8254.c~rename-div64_64-to-div64_u64-kvm arch/x86/kvm/i8254.c
+--- a/arch/x86/kvm/i8254.c~rename-div64_64-to-div64_u64-kvm
++++ a/arch/x86/kvm/i8254.c
+@@ -35,7 +35,7 @@
+ #include "i8254.h"
  
- 	{
- 		/* Configure bandwidth specific factor */
--		ebx = div64_64(((u64) (s->f_osc) << 21) + (ebx >> 1),
-+		ebx = div64_u64(((u64) (s->f_osc) << 21) + (ebx >> 1),
- 				     (u64)ebx) - 0x800000;
- 		EXIT_RC(WR16(s, 0x0c50010, ebx & 0xffff));
- 		EXIT_RC(WR16(s, 0x0c50011, ebx >> 16));
+ #ifndef CONFIG_X86_64
+-#define mod_64(x, y) ((x) - (y) * div64_64(x, y))
++#define mod_64(x, y) ((x) - (y) * div64_u64(x, y))
+ #else
+ #define mod_64(x, y) ((x) % (y))
+ #endif
+@@ -60,8 +60,8 @@ static u64 muldiv64(u64 a, u32 b, u32 c)
+ 	rl = (u64)u.l.low * (u64)b;
+ 	rh = (u64)u.l.high * (u64)b;
+ 	rh += (rl >> 32);
+-	res.l.high = div64_64(rh, c);
+-	res.l.low = div64_64(((mod_64(rh, c) << 32) + (rl & 0xffffffff)), c);
++	res.l.high = div64_u64(rh, c);
++	res.l.low = div64_u64(((mod_64(rh, c) << 32) + (rl & 0xffffffff)), c);
+ 	return res.ll;
+ }
  
- 		/* drx397xD oscillator calibration */
--		ebx = div64_64(((u64) (s->config.f_if + df_tuner) << 28) +
-+		ebx = div64_u64(((u64) (s->config.f_if + df_tuner) << 28) +
- 				     (s->f_osc >> 1), (u64)s->f_osc);
- 	}
- 	ebx &= 0xfffffff;
 _
 
 Patches currently in -mm which might be from zippel@linux-m68k.org are
@@ -91,7 +96,6 @@ ntp-handle-leap-second-via-timer.patch
 rename-div64_64-to-div64_u64-dvb.patch
 provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
 provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-update.patch
-rename-div64_64-to-div64_u64-mm.patch
 rename-div64_64-to-div64_u64-kvm.patch
 git-watchdog.patch
 affs-fix-reservation-discarding.patch
