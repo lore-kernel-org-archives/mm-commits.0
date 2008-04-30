@@ -1,146 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: - make-dev-kmem-a-config-option.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:38:39 -0700
-Message-ID: <200804300538.m3U5cdEo028765@imap1.linux-foundation.org>
+Subject: - profile-likely-unlikely-macros-fix.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:38:11 -0700
+Message-ID: <200804300538.m3U5cBHp028745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58635 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48876 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752854AbYD3Fil (ORCPT
+	by vger.kernel.org with ESMTP id S1752551AbYD3Fik (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:38:41 -0400
+	Wed, 30 Apr 2008 01:38:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arjan@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andi@firstfloor.org, dwalker@mvista.com, hzhong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     make /dev/kmem a config option
+     profile-likely-unlikely-macros-fix
 has been removed from the -mm tree.  Its filename was
-     make-dev-kmem-a-config-option.patch
+     profile-likely-unlikely-macros-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into profile-likely-unlikely-macros.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make /dev/kmem a config option
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: profile-likely-unlikely-macros-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Make /dev/kmem a config option; /dev/kmem is VERY rarely used, and when
-used, it's generally for no good (rootkits tend to be the most common
-users).  With this config option, users have the choice to disable
-/dev/kmem, saving some size as well.
-
-A patch to disable /dev/kmem has been in the Fedora and RHEL kernels for
-4+ years now without any known problems or legit users of /dev/kmem.
-
-[akpm@linux-foundation.org: make CONFIG_DEVKMEM default to y]
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Daniel Walker <dwalker@mvista.com>
+Cc: Hua Zhong <hzhong@gmail.com>
+Cc: Valdis.Kletnieks@vt.edu
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/Kconfig |    9 +++++++++
- drivers/char/mem.c   |   10 ++++++++++
- 2 files changed, 19 insertions(+)
+ arch/x86/kernel/vsyscall_64.c  |   11 ++---------
+ arch/x86/vdso/vclock_gettime.c |   11 ++---------
+ include/linux/compiler.h       |    3 ++-
+ 3 files changed, 6 insertions(+), 19 deletions(-)
 
-diff -puN drivers/char/Kconfig~make-dev-kmem-a-config-option drivers/char/Kconfig
---- a/drivers/char/Kconfig~make-dev-kmem-a-config-option
-+++ a/drivers/char/Kconfig
-@@ -80,6 +80,15 @@ config VT_HW_CONSOLE_BINDING
- 	 information. For framebuffer console users, please refer to
- 	 <file:Documentation/fb/fbcon.txt>.
- 
-+config DEVKMEM
-+	bool "/dev/kmem virtual device support"
-+	default y
-+	help
-+	  Say Y here if you want to support the /dev/kmem device. The
-+	  /dev/kmem device is rarely used, but can be used for certain
-+	  kind of kernel debugging operations.
-+	  When in doubt, say "N".
-+
- config SERIAL_NONSTANDARD
- 	bool "Non-standard serial port support"
- 	depends on HAS_IOMEM
-diff -puN drivers/char/mem.c~make-dev-kmem-a-config-option drivers/char/mem.c
---- a/drivers/char/mem.c~make-dev-kmem-a-config-option
-+++ a/drivers/char/mem.c
-@@ -364,6 +364,7 @@ static int mmap_mem(struct file * file, 
- 	return 0;
- }
- 
-+#ifdef CONFIG_DEVKMEM
- static int mmap_kmem(struct file * file, struct vm_area_struct * vma)
- {
- 	unsigned long pfn;
-@@ -384,6 +385,7 @@ static int mmap_kmem(struct file * file,
- 	vma->vm_pgoff = pfn;
- 	return mmap_mem(file, vma);
- }
-+#endif
- 
- #ifdef CONFIG_CRASH_DUMP
- /*
-@@ -422,6 +424,7 @@ static ssize_t read_oldmem(struct file *
- extern long vread(char *buf, char *addr, unsigned long count);
- extern long vwrite(char *buf, char *addr, unsigned long count);
- 
-+#ifdef CONFIG_DEVKMEM
- /*
-  * This function reads the *virtual* memory as seen by the kernel.
+diff -puN arch/x86/kernel/vsyscall_64.c~profile-likely-unlikely-macros-fix arch/x86/kernel/vsyscall_64.c
+--- a/arch/x86/kernel/vsyscall_64.c~profile-likely-unlikely-macros-fix
++++ a/arch/x86/kernel/vsyscall_64.c
+@@ -17,6 +17,8 @@
+  *  want per guest time just set the kernel.vsyscall64 sysctl to 0.
   */
-@@ -626,6 +629,7 @@ static ssize_t write_kmem(struct file * 
-  	*ppos = p;
-  	return virtr + wrote;
- }
-+#endif
  
- #ifdef CONFIG_DEVPORT
- static ssize_t read_port(struct file * file, char __user * buf,
-@@ -803,6 +807,7 @@ static const struct file_operations mem_
- 	.get_unmapped_area = get_unmapped_area_mem,
- };
++#define SUPPRESS_LIKELY_PROFILING
++
+ #include <linux/time.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+@@ -46,15 +48,6 @@
+ #define __syscall_clobber "r11","cx","memory"
  
-+#ifdef CONFIG_DEVKMEM
- static const struct file_operations kmem_fops = {
- 	.llseek		= memory_lseek,
- 	.read		= read_kmem,
-@@ -811,6 +816,7 @@ static const struct file_operations kmem
- 	.open		= open_kmem,
- 	.get_unmapped_area = get_unmapped_area_mem,
- };
-+#endif
+ /*
+- * likely and unlikely explode when used in vdso in combination with
+- * profile-likely-unlikely-macros.patch
+- */
+-#undef likely
+-#define likely(x) (x)
+-#undef unlikely
+-#define unlikely(x) (x)
+-
+-/*
+  * vsyscall_gtod_data contains data that is :
+  * - readonly from vsyscalls
+  * - written by timer interrupt or systcl (/proc/sys/kernel/vsyscall64)
+diff -puN arch/x86/vdso/vclock_gettime.c~profile-likely-unlikely-macros-fix arch/x86/vdso/vclock_gettime.c
+--- a/arch/x86/vdso/vclock_gettime.c~profile-likely-unlikely-macros-fix
++++ a/arch/x86/vdso/vclock_gettime.c
+@@ -9,6 +9,8 @@
+  * Also alternative() doesn't work.
+  */
  
- static const struct file_operations null_fops = {
- 	.llseek		= null_lseek,
-@@ -889,11 +895,13 @@ static int memory_open(struct inode * in
- 			filp->f_mapping->backing_dev_info =
- 				&directly_mappable_cdev_bdi;
- 			break;
-+#ifdef CONFIG_DEVKMEM
- 		case 2:
- 			filp->f_op = &kmem_fops;
- 			filp->f_mapping->backing_dev_info =
- 				&directly_mappable_cdev_bdi;
- 			break;
-+#endif
- 		case 3:
- 			filp->f_op = &null_fops;
- 			break;
-@@ -942,7 +950,9 @@ static const struct {
- 	const struct file_operations	*fops;
- } devlist[] = { /* list of minor devices */
- 	{1, "mem",     S_IRUSR | S_IWUSR | S_IRGRP, &mem_fops},
-+#ifdef CONFIG_DEVKMEM
- 	{2, "kmem",    S_IRUSR | S_IWUSR | S_IRGRP, &kmem_fops},
-+#endif
- 	{3, "null",    S_IRUGO | S_IWUGO,           &null_fops},
- #ifdef CONFIG_DEVPORT
- 	{4, "port",    S_IRUSR | S_IWUSR | S_IRGRP, &port_fops},
++#define SUPPRESS_LIKELY_PROFILING
++
+ #include <linux/kernel.h>
+ #include <linux/posix-timers.h>
+ #include <linux/time.h>
+@@ -23,15 +25,6 @@
+ 
+ #define gtod vdso_vsyscall_gtod_data
+ 
+-/*
+- * likely and unlikely explode when used in vdso in combination with
+- * profile-likely-unlikely-macros.patch
+- */
+-#undef likely
+-#define likely(x) (x)
+-#undef unlikely
+-#define unlikely(x) (x)
+-
+ static long vdso_fallback_gettime(long clock, struct timespec *ts)
+ {
+ 	long ret;
+diff -puN include/linux/compiler.h~profile-likely-unlikely-macros-fix include/linux/compiler.h
+--- a/include/linux/compiler.h~profile-likely-unlikely-macros-fix
++++ a/include/linux/compiler.h
+@@ -51,7 +51,8 @@ extern void __chk_io_ptr(const volatile 
+ # include <linux/compiler-intel.h>
+ #endif
+ 
+-#if defined(CONFIG_PROFILE_LIKELY) && !(defined(CONFIG_MODULE_UNLOAD) && defined(MODULE))
++#if defined(CONFIG_PROFILE_LIKELY) && !defined(SUPPRESS_LIKELY_PROFILING) && \
++	!(defined(CONFIG_MODULE_UNLOAD) && defined(MODULE))
+ struct likeliness {
+ 	const char *func;
+ 	char *file;
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
+disable-the-memory-controller-by-default-v3.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+x86-ptrace-pebs-support-warning-fix.patch
+rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
+cifs-suppress-warning.patch
+devres-support-addresses-greater-than-an-unsigned-long-via-dev_ioremap-checkpatch-fixes.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-hwmon.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-kvm.patch
+pata_atiixp-simplex-clear.patch
+git-m32r.patch
+git-mips.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+sched-add-debug-checks-to-idle-functions.patch
+drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+add-rcu_assign_index-if-ever-needed.patch
+git-scsi-misc.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+aic79xx_core-remove-ascii-art.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+revert-rusty-misc-timer-typesafe.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+ext4-is-busted-on-m68k.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
+add-warn_on_secs-macro.patch
+rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+isicom-bring-into-coding-style-fix.patch
+tty-the-big-operations-rework-fix-2.patch
+tty-the-big-operations-rework-isicom-fix.patch
+tty-the-big-operations-rework-simserial-fix.patch
+tty-the-big-operations-rework-vs-git-kgdb-light.patch
+tty-the-big-operations-rework-vs-kgdb-2.patch
+devpts-factor-out-pty-index-allocation-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+fuse-fix-race-in-llseek-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+x86-ioremap-add-checks-for-virtual-addresses-fix.patch
+profile-likely-unlikely-macros.patch
+profile-likely-unlikely-macros-fix.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
