@@ -1,172 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: - proc-switch-proc-scsi-device_info-to-seq_file-interface.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:46:27 -0700
-Message-ID: <200804300546.m3U5kRCv029618@imap1.linux-foundation.org>
+Subject: - drivers-block-use-get_unaligned_-helpers.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:49:11 -0700
+Message-ID: <200804300549.m3U5nBFR029975@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51881 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758815AbYD3Ftw (ORCPT
+	by vger.kernel.org with ESMTP id S1758811AbYD3Ftz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:49:52 -0400
+	Wed, 30 Apr 2008 01:49:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@sw.ru, James.Bottomley@SteelEye.com, matthew@wil.cx, michaelc@cs.wisc.edu, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, ecashin@coraid.com, jens.axboe@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: switch /proc/scsi/device_info to seq_file interface
+     drivers/block: use get_unaligned_* helpers
 has been removed from the -mm tree.  Its filename was
-     proc-switch-proc-scsi-device_info-to-seq_file-interface.patch
+     drivers-block-use-get_unaligned_-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: switch /proc/scsi/device_info to seq_file interface
-From: Alexey Dobriyan <adobriyan@sw.ru>
+Subject: drivers/block: use get_unaligned_* helpers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Note 1: 0644 should be used, but root bypasses permissions, so writing
-	to /proc/scsi/device_info still works.
-Note 2: looks like scsi_dev_info_list is unprotected
-Note 3: probably make proc whine about "unwriteable but with ->write hook"
-	entries. Probably.
-
-Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Cc: Mike Christie <michaelc@cs.wisc.edu>
-Cc: Matthew Wilcox <matthew@wil.cx>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Ed L. Cashin <ecashin@coraid.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/scsi_devinfo.c |   77 +++++++++++++++++++---------------
- 1 file changed, 44 insertions(+), 33 deletions(-)
+ drivers/block/aoe/aoecmd.c |   24 ++++++++++++------------
+ drivers/block/aoe/aoenet.c |    4 ++--
+ 2 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/scsi/scsi_devinfo.c~proc-switch-proc-scsi-device_info-to-seq_file-interface drivers/scsi/scsi_devinfo.c
---- a/drivers/scsi/scsi_devinfo.c~proc-switch-proc-scsi-device_info-to-seq_file-interface
-+++ a/drivers/scsi/scsi_devinfo.c
-@@ -449,37 +449,40 @@ int scsi_get_device_flags(struct scsi_de
- }
+diff -puN drivers/block/aoe/aoecmd.c~drivers-block-use-get_unaligned_-helpers drivers/block/aoe/aoecmd.c
+--- a/drivers/block/aoe/aoecmd.c~drivers-block-use-get_unaligned_-helpers
++++ a/drivers/block/aoe/aoecmd.c
+@@ -668,16 +668,16 @@ ataid_complete(struct aoedev *d, struct 
+ 	u16 n;
  
- #ifdef CONFIG_SCSI_PROC_FS
--/* 
-- * proc_scsi_dev_info_read: dump the scsi_dev_info_list via
-- * /proc/scsi/device_info
-- */
--static int proc_scsi_devinfo_read(char *buffer, char **start,
--				  off_t offset, int length)
-+static int devinfo_seq_show(struct seq_file *m, void *v)
- {
--	struct scsi_dev_info_list *devinfo;
--	int size, len = 0;
--	off_t begin = 0;
--	off_t pos = 0;
-+	struct scsi_dev_info_list *devinfo =
-+		list_entry(v, struct scsi_dev_info_list, dev_info_list);
+ 	/* word 83: command set supported */
+-	n = le16_to_cpu(get_unaligned((__le16 *) &id[83<<1]));
++	n = get_unaligned_le16(&id[83 << 1]);
  
--	list_for_each_entry(devinfo, &scsi_dev_info_list, dev_info_list) {
--		size = sprintf(buffer + len, "'%.8s' '%.16s' 0x%x\n",
-+	seq_printf(m, "'%.8s' '%.16s' 0x%x\n",
- 			devinfo->vendor, devinfo->model, devinfo->flags);
--		len += size;
--		pos = begin + len;
--		if (pos < offset) {
--			len = 0;
--			begin = pos;
--		}
--		if (pos > offset + length)
--			goto stop_output;
--	}
-+	return 0;
-+}
+ 	/* word 86: command set/feature enabled */
+-	n |= le16_to_cpu(get_unaligned((__le16 *) &id[86<<1]));
++	n |= get_unaligned_le16(&id[86 << 1]);
  
--stop_output:
--	*start = buffer + (offset - begin);	/* Start of wanted data */
--	len -= (offset - begin);	/* Start slop */
--	if (len > length)
--		len = length;	/* Ending slop */
--	return (len);
-+static void * devinfo_seq_start(struct seq_file *m, loff_t *pos)
-+{
-+	return seq_list_start(&scsi_dev_info_list, *pos);
-+}
-+
-+static void * devinfo_seq_next(struct seq_file *m, void *v, loff_t *pos)
-+{
-+	return seq_list_next(v, &scsi_dev_info_list, pos);
-+}
-+
-+static void devinfo_seq_stop(struct seq_file *m, void *v)
-+{
-+}
-+
-+static const struct seq_operations scsi_devinfo_seq_ops = {
-+	.start	= devinfo_seq_start,
-+	.next	= devinfo_seq_next,
-+	.stop	= devinfo_seq_stop,
-+	.show	= devinfo_seq_show,
-+};
-+
-+static int proc_scsi_devinfo_open(struct inode *inode, struct file *file)
-+{
-+	return seq_open(file, &scsi_devinfo_seq_ops);
- }
+ 	if (n & (1<<10)) {	/* bit 10: LBA 48 */
+ 		d->flags |= DEVFL_EXT;
  
- /* 
-@@ -489,11 +492,12 @@ stop_output:
-  * integer value of flag to the scsi device info list.
-  * To use, echo "vendor:model:flag" > /proc/scsi/device_info
-  */
--static int proc_scsi_devinfo_write(struct file *file, const char __user *buf,
--				   unsigned long length, void *data)
-+static ssize_t proc_scsi_devinfo_write(struct file *file,
-+				       const char __user *buf,
-+				       size_t length, loff_t *ppos)
- {
- 	char *buffer;
--	int err = length;
-+	ssize_t err = length;
+ 		/* word 100: number lba48 sectors */
+-		ssize = le64_to_cpu(get_unaligned((__le64 *) &id[100<<1]));
++		ssize = get_unaligned_le64(&id[100 << 1]);
  
- 	if (!buf || length>PAGE_SIZE)
- 		return -EINVAL;
-@@ -517,6 +521,15 @@ out:
- 	free_page((unsigned long)buffer);
- 	return err;
- }
-+
-+static const struct file_operations scsi_devinfo_proc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= proc_scsi_devinfo_open,
-+	.read		= seq_read,
-+	.write		= proc_scsi_devinfo_write,
-+	.llseek		= seq_lseek,
-+	.release	= seq_release,
-+};
- #endif /* CONFIG_SCSI_PROC_FS */
+ 		/* set as in ide-disk.c:init_idedisk_capacity */
+ 		d->geo.cylinders = ssize;
+@@ -688,12 +688,12 @@ ataid_complete(struct aoedev *d, struct 
+ 		d->flags &= ~DEVFL_EXT;
  
- module_param_string(dev_flags, scsi_dev_flags, sizeof(scsi_dev_flags), 0);
-@@ -577,15 +590,13 @@ int __init scsi_init_devinfo(void)
+ 		/* number lba28 sectors */
+-		ssize = le32_to_cpu(get_unaligned((__le32 *) &id[60<<1]));
++		ssize = get_unaligned_le32(&id[60 << 1]);
+ 
+ 		/* NOTE: obsolete in ATA 6 */
+-		d->geo.cylinders = le16_to_cpu(get_unaligned((__le16 *) &id[54<<1]));
+-		d->geo.heads = le16_to_cpu(get_unaligned((__le16 *) &id[55<<1]));
+-		d->geo.sectors = le16_to_cpu(get_unaligned((__le16 *) &id[56<<1]));
++		d->geo.cylinders = get_unaligned_le16(&id[54 << 1]);
++		d->geo.heads = get_unaligned_le16(&id[55 << 1]);
++		d->geo.sectors = get_unaligned_le16(&id[56 << 1]);
  	}
  
- #ifdef CONFIG_SCSI_PROC_FS
--	p = create_proc_entry("scsi/device_info", 0, NULL);
-+	p = proc_create("scsi/device_info", 0, NULL, &scsi_devinfo_proc_fops);
- 	if (!p) {
- 		error = -ENOMEM;
- 		goto out;
+ 	if (d->ssize != ssize)
+@@ -779,7 +779,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
+ 	u16 aoemajor;
+ 
+ 	hin = (struct aoe_hdr *) skb_mac_header(skb);
+-	aoemajor = be16_to_cpu(get_unaligned(&hin->major));
++	aoemajor = get_unaligned_be16(&hin->major);
+ 	d = aoedev_by_aoeaddr(aoemajor, hin->minor);
+ 	if (d == NULL) {
+ 		snprintf(ebuf, sizeof ebuf, "aoecmd_ata_rsp: ata response "
+@@ -791,7 +791,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
+ 
+ 	spin_lock_irqsave(&d->lock, flags);
+ 
+-	n = be32_to_cpu(get_unaligned(&hin->tag));
++	n = get_unaligned_be32(&hin->tag);
+ 	t = gettgt(d, hin->src);
+ 	if (t == NULL) {
+ 		printk(KERN_INFO "aoe: can't find target e%ld.%d:%012llx\n",
+@@ -806,9 +806,9 @@ aoecmd_ata_rsp(struct sk_buff *skb)
+ 		snprintf(ebuf, sizeof ebuf,
+ 			"%15s e%d.%d    tag=%08x@%08lx\n",
+ 			"unexpected rsp",
+-			be16_to_cpu(get_unaligned(&hin->major)),
++			get_unaligned_be16(&hin->major),
+ 			hin->minor,
+-			be32_to_cpu(get_unaligned(&hin->tag)),
++			get_unaligned_be32(&hin->tag),
+ 			jiffies);
+ 		aoechr_error(ebuf);
+ 		return;
+@@ -873,7 +873,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
+ 			printk(KERN_INFO
+ 				"aoe: unrecognized ata command %2.2Xh for %d.%d\n",
+ 				ahout->cmdstat,
+-				be16_to_cpu(get_unaligned(&hin->major)),
++				get_unaligned_be16(&hin->major),
+ 				hin->minor);
+ 		}
  	}
+diff -puN drivers/block/aoe/aoenet.c~drivers-block-use-get_unaligned_-helpers drivers/block/aoe/aoenet.c
+--- a/drivers/block/aoe/aoenet.c~drivers-block-use-get_unaligned_-helpers
++++ a/drivers/block/aoe/aoenet.c
+@@ -128,7 +128,7 @@ aoenet_rcv(struct sk_buff *skb, struct n
+ 	skb_push(skb, ETH_HLEN);	/* (1) */
  
- 	p->owner = THIS_MODULE;
--	p->get_info = proc_scsi_devinfo_read;
--	p->write_proc = proc_scsi_devinfo_write;
- #endif /* CONFIG_SCSI_PROC_FS */
+ 	h = (struct aoe_hdr *) skb_mac_header(skb);
+-	n = be32_to_cpu(get_unaligned(&h->tag));
++	n = get_unaligned_be32(&h->tag);
+ 	if ((h->verfl & AOEFL_RSP) == 0 || (n & 1<<31))
+ 		goto exit;
  
-  out:
+@@ -140,7 +140,7 @@ aoenet_rcv(struct sk_buff *skb, struct n
+ 			printk(KERN_ERR
+ 				"%s%d.%d@%s; ecode=%d '%s'\n",
+ 				"aoe: error packet from ",
+-				be16_to_cpu(get_unaligned(&h->major)),
++				get_unaligned_be16(&h->major),
+ 				h->minor, skb->dev->name,
+ 				h->err, aoe_errlist[n]);
+ 		goto exit;
 _
 
-Patches currently in -mm which might be from adobriyan@sw.ru are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-single_open-seq_release-leak-diagnostics.patch
+frv-fix-arch-frv-mm-unalignedo-build-error.patch
+cifs-remove-global_extern-macro.patch
+input-replace-remaining-__function__-occurrences.patch
+git-kvm.patch
+git-mips.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+git-watchdog.patch
+git-xfs.patch
+xtensa-replace-remaining-__function__-occurences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+drivers-replace-remaining-__function__-occurrences.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
