@@ -1,98 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - basic-braille-screen-reader-support-doc.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 23:24:21 -0700
-Message-ID: <200804300624.m3U6OL84031669@imap1.linux-foundation.org>
+Subject: - basic-braille-screen-reader-support-fixes.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 23:24:15 -0700
+Message-ID: <200804300624.m3U6OFZM031658@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43805 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33769 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758269AbYD3GZ1 (ORCPT
+	by vger.kernel.org with ESMTP id S1757375AbYD3GZ0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:25:27 -0400
+	Wed, 30 Apr 2008 02:25:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samuel.thibault@ens-lyon.org, dtor@mail.ru, jikos@jikos.cz, rdunlap@xenotime.net, mm-commits@vger.kernel.org
+To: samuel.thibault@ens-lyon.org, dtor@mail.ru, jikos@jikos.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Braille screen reader documentation
+     Braille screen reader fixes
 has been removed from the -mm tree.  Its filename was
-     basic-braille-screen-reader-support-doc.patch
+     basic-braille-screen-reader-support-fixes.patch
 
 This patch was dropped because it was folded into basic-braille-screen-reader-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Braille screen reader documentation
+Subject: Braille screen reader fixes
 From: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
-Document the console=brl option and the usage of the braille screen reader.
+Braille screen reader fixes:
+- console_cmdline's brl_options field is only required when braille
+console support is enabled.
+- Use strlcpy to copy the console name.
+- braille console support depends on VT support.
 
 Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Cc: Jiri Kosina <jikos@jikos.cz>
 Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/braille-console.txt   |   34 ++++++++++++++++++++++++++
- Documentation/kernel-parameters.txt |    5 +++
- 2 files changed, 39 insertions(+)
+ drivers/accessibility/Kconfig |    1 +
+ kernel/printk.c               |    7 +++++--
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN /dev/null Documentation/braille-console.txt
---- /dev/null
-+++ a/Documentation/braille-console.txt
-@@ -0,0 +1,34 @@
-+                       Linux Braille Console
-+
-+To get early boot messages on a braille device (before userspace screen
-+readers can start), you first need to compile the support for the usual serial
-+console (see serial-console.txt), and for braille device (in Device Drivers -
-+Accessibility).
-+
-+Then you need to specify a console=brl, option on the kernel command line, the
-+format is:
-+
-+	console=brl,serial_options...
-+
-+where serial_options... are the same as described in serial-console.txt
-+
-+So for instance you can use console=brl,ttyS0 if the braille device is connected
-+to the first serial port, and console=brl,ttyS0,115200 to override the baud rate
-+to 115200, etc.
-+
-+By default, the braille device will just show the last kernel message (console
-+mode).  To review previous messages, press the Insert key to switch to the VT
-+review mode.  In review mode, the arrow keys permit to browse in the VT content,
-+page up/down keys go at the top/bottom of the screen, and the home key goes back
-+to the cursor, hence providing very basic screen reviewing facility.
-+
-+Sound feedback can be obtained by adding the braille_console.sound=1 kernel
-+parameter.
-+
-+For simplicity, only one braille console can be enabled, other uses of
-+console=brl,... will be discarded.  Also note that it does not interfere with
-+the console selection mecanism described in serial-console.txt
-+
-+For now, only the VisioBraille device is supported.
-+
-+Samuel Thibault <samuel.thibault@ens-lyon.org>
-diff -puN Documentation/kernel-parameters.txt~basic-braille-screen-reader-support-doc Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~basic-braille-screen-reader-support-doc
-+++ a/Documentation/kernel-parameters.txt
-@@ -496,6 +496,11 @@ and is between 256 and 4096 characters. 
- 			switching to the matching ttyS device later.  The
- 			options are the same as for ttyS, above.
+diff -puN drivers/accessibility/Kconfig~basic-braille-screen-reader-support-fixes drivers/accessibility/Kconfig
+--- a/drivers/accessibility/Kconfig~basic-braille-screen-reader-support-fixes
++++ a/drivers/accessibility/Kconfig
+@@ -8,6 +8,7 @@ menuconfig ACCESSIBILITY
+ if ACCESSIBILITY
+ config A11Y_BRAILLE_CONSOLE
+ 	bool "Console on braille device"
++	depends on VT
+ 	depends on SERIAL_CORE_CONSOLE
+ 	---help---
+ 	  Enables console output on a braille device connected to a 8250
+diff -puN kernel/printk.c~basic-braille-screen-reader-support-fixes kernel/printk.c
+--- a/kernel/printk.c~basic-braille-screen-reader-support-fixes
++++ a/kernel/printk.c
+@@ -111,7 +111,9 @@ struct console_cmdline
+ 	char	name[8];			/* Name of the driver	    */
+ 	int	index;				/* Minor dev. to use	    */
+ 	char	*options;			/* Options for the driver   */
++#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
+ 	char	*brl_options;			/* Options for braille driver */
++#endif
+ };
  
-+                If the device connected to the port is not a TTY but a braille
-+                device, prepend "brl," before the device type, for instance
-+			console=brl,ttyS0
-+		For now, only VisioBraille is supported.
-+
- 	earlycon=	[KNL] Output early console device and options.
- 		uart[8250],io,<addr>[,options]
- 		uart[8250],mmio,<addr>[,options]
+ #define MAX_CMDLINECONSOLES 8
+@@ -829,10 +831,11 @@ static int __add_preferred_console(char 
+ 	if (!brl_options)
+ 		selected_console = i;
+ 	c = &console_cmdline[i];
+-	memcpy(c->name, name, sizeof(c->name));
+-	c->name[sizeof(c->name) - 1] = 0;
++	strlcpy(c->name, name, sizeof(c->name));
+ 	c->options = options;
++#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
+ 	c->brl_options = brl_options;
++#endif
+ 	c->index = idx;
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
@@ -100,6 +88,8 @@ Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
 origin.patch
 consoles-switch-to-int-put_char-method.patch
 basic-braille-screen-reader-support.patch
+basic-braille-screen-reader-support-fixes.patch
+basic-braille-screen-reader-support-ppc-fix.patch
 basic-braille-screen-reader-support-doc.patch
 basic-braille-screen-reader-support-makefile-fix.patch
 
