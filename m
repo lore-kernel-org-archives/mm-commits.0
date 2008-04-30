@@ -1,96 +1,167 @@
 From: akpm@linux-foundation.org
-Subject: - cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:42:23 -0700
-Message-ID: <200804300542.m3U5gNcr029141@imap1.linux-foundation.org>
+Subject: - memcgroup-add-the-max_usage-member-on-the-res_counter.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:42:57 -0700
+Message-ID: <200804300542.m3U5gvVo029186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52194 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57908 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760815AbYD3GM4 (ORCPT
+	by vger.kernel.org with ESMTP id S1760719AbYD3GMi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:12:56 -0400
+	Wed, 30 Apr 2008 02:12:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, pj@sgi.com, xemul@openvz.org, yamamoto@valinux.co.jp, mm-commits@vger.kernel.org
+To: xemul@openvz.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CGroup API files: use cgroup map for memcontrol stats file
+     memcgroup: add the max_usage member on the res_counter
 has been removed from the -mm tree.  Its filename was
-     cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file.patch
+     memcgroup-add-the-max_usage-member-on-the-res_counter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CGroup API files: use cgroup map for memcontrol stats file
-From: Paul Menage <menage@google.com>
+Subject: memcgroup: add the max_usage member on the res_counter
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Remove the seq_file boilerplate used to construct the memcontrol stats map,
-and instead use the new map representation for cgroup control files
+This field is the maximal value of the usage one since the counter creation
+(or since the latest reset).
 
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: "Li Zefan" <lizf@cn.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+To reset this to the usage value simply write anything to the appropriate
+cgroup file.
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: "YAMAMOTO Takashi" <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   28 ++++++----------------------
- 1 file changed, 6 insertions(+), 22 deletions(-)
+ include/linux/res_counter.h |   14 ++++++++++++++
+ kernel/res_counter.c        |    4 ++++
+ mm/memcontrol.c             |   17 +++++++++++++++++
+ 3 files changed, 35 insertions(+)
 
-diff -puN mm/memcontrol.c~cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file mm/memcontrol.c
---- a/mm/memcontrol.c~cgroup-api-files-use-cgroup-map-for-memcontrol-stats-file
-+++ a/mm/memcontrol.c
-@@ -899,9 +899,9 @@ static const struct mem_cgroup_stat_desc
- 	[MEM_CGROUP_STAT_RSS] = { "rss", PAGE_SIZE, },
+diff -puN include/linux/res_counter.h~memcgroup-add-the-max_usage-member-on-the-res_counter include/linux/res_counter.h
+--- a/include/linux/res_counter.h~memcgroup-add-the-max_usage-member-on-the-res_counter
++++ a/include/linux/res_counter.h
+@@ -25,6 +25,10 @@ struct res_counter {
+ 	 */
+ 	unsigned long long usage;
+ 	/*
++	 * the maximal value of the usage from the counter creation
++	 */
++	unsigned long long max_usage;
++	/*
+ 	 * the limit that usage cannot exceed
+ 	 */
+ 	unsigned long long limit;
+@@ -67,6 +71,7 @@ ssize_t res_counter_write(struct res_cou
+ 
+ enum {
+ 	RES_USAGE,
++	RES_MAX_USAGE,
+ 	RES_LIMIT,
+ 	RES_FAILCNT,
  };
+@@ -127,4 +132,13 @@ static inline bool res_counter_check_und
+ 	return ret;
+ }
  
--static int mem_control_stat_show(struct seq_file *m, void *arg)
-+static int mem_control_stat_show(struct cgroup *cont, struct cftype *cft,
-+				 struct cgroup_map_cb *cb)
- {
--	struct cgroup *cont = m->private;
- 	struct mem_cgroup *mem_cont = mem_cgroup_from_cont(cont);
- 	struct mem_cgroup_stat *stat = &mem_cont->stat;
- 	int i;
-@@ -911,8 +911,7 @@ static int mem_control_stat_show(struct 
++static inline void res_counter_reset_max(struct res_counter *cnt)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&cnt->lock, flags);
++	cnt->max_usage = cnt->usage;
++	spin_unlock_irqrestore(&cnt->lock, flags);
++}
++
+ #endif
+diff -puN kernel/res_counter.c~memcgroup-add-the-max_usage-member-on-the-res_counter kernel/res_counter.c
+--- a/kernel/res_counter.c~memcgroup-add-the-max_usage-member-on-the-res_counter
++++ a/kernel/res_counter.c
+@@ -28,6 +28,8 @@ int res_counter_charge_locked(struct res
+ 	}
  
- 		val = mem_cgroup_read_stat(stat, i);
- 		val *= mem_cgroup_stat_desc[i].unit;
--		seq_printf(m, "%s %lld\n", mem_cgroup_stat_desc[i].msg,
--				(long long)val);
-+		cb->fill(cb, mem_cgroup_stat_desc[i].msg, val);
- 	}
- 	/* showing # of active pages */
- 	{
-@@ -922,27 +921,12 @@ static int mem_control_stat_show(struct 
- 						MEM_CGROUP_ZSTAT_INACTIVE);
- 		active = mem_cgroup_get_all_zonestat(mem_cont,
- 						MEM_CGROUP_ZSTAT_ACTIVE);
--		seq_printf(m, "active %ld\n", (active) * PAGE_SIZE);
--		seq_printf(m, "inactive %ld\n", (inactive) * PAGE_SIZE);
-+		cb->fill(cb, "active", (active) * PAGE_SIZE);
-+		cb->fill(cb, "inactive", (inactive) * PAGE_SIZE);
- 	}
+ 	counter->usage += val;
++	if (counter->usage > counter->max_usage)
++		counter->max_usage = counter->usage;
  	return 0;
  }
  
--static const struct file_operations mem_control_stat_file_operations = {
--	.read = seq_read,
--	.llseek = seq_lseek,
--	.release = single_release,
--};
--
--static int mem_control_stat_open(struct inode *unused, struct file *file)
--{
--	/* XXX __d_cont */
--	struct cgroup *cont = file->f_dentry->d_parent->d_fsdata;
--
--	file->f_op = &mem_control_stat_file_operations;
--	return single_open(file, mem_control_stat_show, cont);
--}
+@@ -66,6 +68,8 @@ res_counter_member(struct res_counter *c
+ 	switch (member) {
+ 	case RES_USAGE:
+ 		return &counter->usage;
++	case RES_MAX_USAGE:
++		return &counter->max_usage;
+ 	case RES_LIMIT:
+ 		return &counter->limit;
+ 	case RES_FAILCNT:
+diff -puN mm/memcontrol.c~memcgroup-add-the-max_usage-member-on-the-res_counter mm/memcontrol.c
+--- a/mm/memcontrol.c~memcgroup-add-the-max_usage-member-on-the-res_counter
++++ a/mm/memcontrol.c
+@@ -855,6 +855,17 @@ static ssize_t mem_cgroup_write(struct c
+ 				mem_cgroup_write_strategy);
+ }
+ 
++static ssize_t mem_cgroup_max_reset(struct cgroup *cont, struct cftype *cft,
++				struct file *file, const char __user *userbuf,
++				size_t nbytes, loff_t *ppos)
++{
++	struct mem_cgroup *mem;
++
++	mem = mem_cgroup_from_cont(cont);
++	res_counter_reset_max(&mem->res);
++	return nbytes;
++}
++
+ static ssize_t mem_force_empty_write(struct cgroup *cont,
+ 				struct cftype *cft, struct file *file,
+ 				const char __user *userbuf,
+@@ -910,6 +921,12 @@ static struct cftype mem_cgroup_files[] 
+ 		.read_u64 = mem_cgroup_read,
+ 	},
+ 	{
++		.name = "max_usage_in_bytes",
++		.private = RES_MAX_USAGE,
++		.write = mem_cgroup_max_reset,
++		.read_u64 = mem_cgroup_read,
++	},
++	{
+ 		.name = "limit_in_bytes",
+ 		.private = RES_LIMIT,
+ 		.write = mem_cgroup_write,
+_
+
+Patches currently in -mm which might be from xemul@openvz.org are
+
+origin.patch
+disable-the-memory-controller-by-default-v3.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+ptrace-allow-to-ptrace-sbin-init.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+use-find_task_by_vpid-in-taskstats.patch
+deprecate-find_task_by_pid.patch
+deprecate-find_task_by_pid-warning-fix.patch
+pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
+pids-introduce-change_pid-helper.patch
+pids-sys_setpgid-use-change_pid-helper.patch
+pids-__set_special_pids-use-change_pid-helper.patch
+pidns-make-pid-level-and-pid_ns-level-unsigned.patch
+reiser4.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
+
