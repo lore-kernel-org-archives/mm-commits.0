@@ -1,134 +1,163 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-simplify-init_subsys.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:42:47 -0700
-Message-ID: <200804300542.m3U5glBK029174@imap1.linux-foundation.org>
+Subject: - cgroup-api-files-add-cgroup-map-data-type.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:42:21 -0700
+Message-ID: <200804300542.m3U5gL3c029138@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40973 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45202 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757938AbYD3Fnc (ORCPT
+	by vger.kernel.org with ESMTP id S1758028AbYD3Fne (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:43:32 -0400
+	Wed, 30 Apr 2008 01:43:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, pj@sgi.com, xemul@openvz.org, yamamoto@valinux.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: simplify init_subsys()
+     CGroup API files: add cgroup map data type
 has been removed from the -mm tree.  Its filename was
-     cgroups-simplify-init_subsys.patch
+     cgroup-api-files-add-cgroup-map-data-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: simplify init_subsys()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: CGroup API files: add cgroup map data type
+From: Paul Menage <menage@google.com>
 
-We are at system boot and there is only 1 cgroup group (i,e, init_css_set), so
-we don't need to run through the css_set linked list.  Neither do we need to
-run through the task list, since no processes have been created yet.
+Adds a new type of supported control file representation, a map from strings
+to u64 values.
 
-Also referring to a comment in cgroup.h:
+Each map entry is printed as a line in a similar format to /proc/vmstat, i.e. 
+"$key $value\n"
 
-struct css_set
-{
-	...
-	/*
-	 * Set of subsystem states, one for each subsystem. This array
-	 * is immutable after creation apart from the init_css_set
-	 * during subsystem registration (at boot time).
-	 */
-	struct cgroup_subsys_state *subsys[CGROUP_SUBSYS_COUNT];
-}
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Reviewed-by: Paul Menage <menage@google.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: "Li Zefan" <lizf@cn.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Jackson <pj@sgi.com>
 Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "YAMAMOTO Takashi" <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroups.txt |    3 +--
- kernel/cgroup.c           |   35 +++++++++--------------------------
- 2 files changed, 10 insertions(+), 28 deletions(-)
+ include/linux/cgroup.h |   19 +++++++++++++
+ kernel/cgroup.c        |   53 ++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 71 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/cgroups.txt~cgroups-simplify-init_subsys Documentation/cgroups.txt
---- a/Documentation/cgroups.txt~cgroups-simplify-init_subsys
-+++ a/Documentation/cgroups.txt
-@@ -500,8 +500,7 @@ post-attachment activity that requires m
+diff -puN include/linux/cgroup.h~cgroup-api-files-add-cgroup-map-data-type include/linux/cgroup.h
+--- a/include/linux/cgroup.h~cgroup-api-files-add-cgroup-map-data-type
++++ a/include/linux/cgroup.h
+@@ -166,6 +166,16 @@ struct css_set {
  
- void fork(struct cgroup_subsy *ss, struct task_struct *task)
+ };
  
--Called when a task is forked into a cgroup. Also called during
--registration for all existing tasks.
-+Called when a task is forked into a cgroup.
- 
- void exit(struct cgroup_subsys *ss, struct task_struct *task)
- 
-diff -puN kernel/cgroup.c~cgroups-simplify-init_subsys kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-simplify-init_subsys
-+++ a/kernel/cgroup.c
-@@ -2477,7 +2477,6 @@ static int cgroup_rmdir(struct inode *un
- static void __init cgroup_init_subsys(struct cgroup_subsys *ss)
- {
- 	struct cgroup_subsys_state *css;
--	struct list_head *l;
- 
- 	printk(KERN_INFO "Initializing cgroup subsys %s\n", ss->name);
- 
-@@ -2488,35 +2487,19 @@ static void __init cgroup_init_subsys(st
- 	BUG_ON(IS_ERR(css));
- 	init_cgroup_css(css, ss, dummytop);
- 
--	/* Update all cgroup groups to contain a subsys
-+	/* Update the init_css_set to contain a subsys
- 	 * pointer to this state - since the subsystem is
--	 * newly registered, all tasks and hence all cgroup
--	 * groups are in the subsystem's top cgroup. */
--	write_lock(&css_set_lock);
--	l = &init_css_set.list;
--	do {
--		struct css_set *cg =
--			list_entry(l, struct css_set, list);
--		cg->subsys[ss->subsys_id] = dummytop->subsys[ss->subsys_id];
--		l = l->next;
--	} while (l != &init_css_set.list);
--	write_unlock(&css_set_lock);
--
-- 	/* If this subsystem requested that it be notified with fork
-- 	 * events, we should send it one now for every process in the
-- 	 * system */
--	if (ss->fork) {
--		struct task_struct *g, *p;
--
--		read_lock(&tasklist_lock);
--		do_each_thread(g, p) {
--			ss->fork(ss, p);
--		} while_each_thread(g, p);
--		read_unlock(&tasklist_lock);
--	}
-+	 * newly registered, all tasks and hence the
-+	 * init_css_set is in the subsystem's top cgroup. */
-+	init_css_set.subsys[ss->subsys_id] = dummytop->subsys[ss->subsys_id];
- 
- 	need_forkexit_callback |= ss->fork || ss->exit;
- 
-+	/* At system boot, before all subsystems have been
-+	 * registered, no tasks have been forked, so we don't
-+	 * need to invoke fork callbacks here. */
-+	BUG_ON(!list_empty(&init_task.tasks));
++/*
++ * cgroup_map_cb is an abstract callback API for reporting map-valued
++ * control files
++ */
 +
- 	ss->active = 1;
++struct cgroup_map_cb {
++	int (*fill)(struct cgroup_map_cb *cb, const char *key, u64 value);
++	void *state;
++};
++
+ /* struct cftype:
+  *
+  * The files in the cgroup filesystem mostly have a very simple read/write
+@@ -194,6 +204,15 @@ struct cftype {
+ 	 * single integer. Use it in place of read()
+ 	 */
+ 	u64 (*read_u64) (struct cgroup *cgrp, struct cftype *cft);
++	/*
++	 * read_map() is used for defining a map of key/value
++	 * pairs. It should call cb->fill(cb, key, value) for each
++	 * entry. The key/value pairs (and their ordering) should not
++	 * change between reboots.
++	 */
++	int (*read_map) (struct cgroup *cont, struct cftype *cft,
++			 struct cgroup_map_cb *cb);
++
+ 	ssize_t (*write) (struct cgroup *cgrp, struct cftype *cft,
+ 			  struct file *file,
+ 			  const char __user *buf, size_t nbytes, loff_t *ppos);
+diff -puN kernel/cgroup.c~cgroup-api-files-add-cgroup-map-data-type kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-api-files-add-cgroup-map-data-type
++++ a/kernel/cgroup.c
+@@ -1492,6 +1492,46 @@ static ssize_t cgroup_file_read(struct f
+ 	return -EINVAL;
  }
  
++/*
++ * seqfile ops/methods for returning structured data. Currently just
++ * supports string->u64 maps, but can be extended in future.
++ */
++
++struct cgroup_seqfile_state {
++	struct cftype *cft;
++	struct cgroup *cgroup;
++};
++
++static int cgroup_map_add(struct cgroup_map_cb *cb, const char *key, u64 value)
++{
++	struct seq_file *sf = cb->state;
++	return seq_printf(sf, "%s %llu\n", key, (unsigned long long)value);
++}
++
++static int cgroup_seqfile_show(struct seq_file *m, void *arg)
++{
++	struct cgroup_seqfile_state *state = m->private;
++	struct cftype *cft = state->cft;
++	struct cgroup_map_cb cb = {
++		.fill = cgroup_map_add,
++		.state = m,
++	};
++	return cft->read_map(state->cgroup, cft, &cb);
++}
++
++int cgroup_seqfile_release(struct inode *inode, struct file *file)
++{
++	struct seq_file *seq = file->private_data;
++	kfree(seq->private);
++	return single_release(inode, file);
++}
++
++static struct file_operations cgroup_seqfile_operations = {
++	.read = seq_read,
++	.llseek = seq_lseek,
++	.release = cgroup_seqfile_release,
++};
++
+ static int cgroup_file_open(struct inode *inode, struct file *file)
+ {
+ 	int err;
+@@ -1504,7 +1544,18 @@ static int cgroup_file_open(struct inode
+ 	cft = __d_cft(file->f_dentry);
+ 	if (!cft)
+ 		return -ENODEV;
+-	if (cft->open)
++	if (cft->read_map) {
++		struct cgroup_seqfile_state *state =
++			kzalloc(sizeof(*state), GFP_USER);
++		if (!state)
++			return -ENOMEM;
++		state->cft = cft;
++		state->cgroup = __d_cgrp(file->f_dentry->d_parent);
++		file->f_op = &cgroup_seqfile_operations;
++		err = single_open(file, cgroup_seqfile_show, state);
++		if (err < 0)
++			kfree(state);
++	} else if (cft->open)
+ 		err = cft->open(inode, file);
+ 	else
+ 		err = 0;
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from menage@google.com are
 
 origin.patch
-git-acpi.patch
+disable-the-memory-controller-by-default-v3.patch
+add-a-refcount-check-in-dput.patch
 
