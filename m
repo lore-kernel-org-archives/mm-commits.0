@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-cpu-hotplug-problem-in-softirq-code.patch added to -mm tree
-Date: Wed, 30 Apr 2008 05:02:57 -0700
-Message-ID: <200804301202.m3UC2vEd012382@imap1.linux-foundation.org>
+Subject: + frv-unbreak-misalignment-handling-changes.patch added to -mm tree
+Date: Wed, 30 Apr 2008 05:04:16 -0700
+Message-ID: <200804301204.m3UC4Gxg012410@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49985 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35112 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757990AbYD3MD2 (ORCPT
+	by vger.kernel.org with ESMTP id S1759659AbYD3MEh (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 08:03:28 -0400
+	Wed, 30 Apr 2008 08:04:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: borntraeger@de.ibm.com, mingo@elte.hu, olof@lixom.net
+Cc: dhowells@redhat.com, harvey.harrison@gmail.com
 
 
 The patch titled
-     Fix cpu hotplug problem in softirq code
+     frv: unbreak misalignment handling changes
 has been added to the -mm tree.  Its filename is
-     fix-cpu-hotplug-problem-in-softirq-code.patch
+     frv-unbreak-misalignment-handling-changes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,113 +26,68 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix cpu hotplug problem in softirq code
-=46rom: Christian Borntraeger <borntraeger@de.ibm.com>
+Subject: frv: unbreak misalignment handling changes
+From: David Howells <dhowells@redhat.com>
 
-currently cpu hotplug (unplug) seems broken on s390 and likely others. =
-On cpu=20
-unplug the system starts to behave very strange and hangs.
+Fix a reference in a arch/frv/mm/Makefile to unaligned.c which has now been
+deleted.
 
-I bisected the problem to the following commit:
+Also revert the change to the guard macro name in include/asm-frv/unaligned.h.
 
-commit 48f20a9a9488c432fc86df1ff4b7f4fa895d1183
-Author: Olof Johansson <olof@lixom.net>
-Date: =A0 Tue Mar 4 15:23:25 2008 -0800
-=A0 =A0 tasklets: execute tasklets in the same order they were queued
-
-Reverting this patch seems to fix the problem.  I looked into takeover_=
-tasklet
-and it seems that there is a way to corrupt the tail pointer of the cur=
-rent
-cpu.  If the tasklet list of the frozen cpu is empty, the tail pointer =
-of the
-current cpu points to the address of the head pointer of the stopped cp=
-u and
-not to the next pointer of a tasklet_struct.
-
-This patch avoids the list splice of the list is empty and cpu hotplug =
-seems
-to work as the tail pointer is not corrupted.  Olof, can you look into =
-that
-patch and ACK/NACK it so Andrew can push this to Linus, if appropriate?=
-=20
-Please note that some lines are longer than 80 chars, but line-wrapping=
- looked
-worse that this version.
-
-Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Acked-by: Olof Johansson <olof@lixom.net>
-Acked-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/softirq.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ arch/frv/mm/Makefile        |    2 +-
+ include/asm-frv/unaligned.h |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN kernel/softirq.c~fix-cpu-hotplug-problem-in-softirq-code kern=
-el/softirq.c
---- a/kernel/softirq.c~fix-cpu-hotplug-problem-in-softirq-code
-+++ a/kernel/softirq.c
-@@ -589,16 +589,20 @@ static void takeover_tasklets(unsigned i
- 	local_irq_disable();
-=20
- 	/* Find end, append list for that CPU. */
--	*__get_cpu_var(tasklet_vec).tail =3D per_cpu(tasklet_vec, cpu).head;
--	__get_cpu_var(tasklet_vec).tail =3D per_cpu(tasklet_vec, cpu).tail;
--	per_cpu(tasklet_vec, cpu).head =3D NULL;
--	per_cpu(tasklet_vec, cpu).tail =3D &per_cpu(tasklet_vec, cpu).head;
-+	if (&per_cpu(tasklet_vec, cpu).head !=3D per_cpu(tasklet_vec, cpu).ta=
-il) {
-+		*(__get_cpu_var(tasklet_vec).tail) =3D per_cpu(tasklet_vec, cpu).hea=
-d;
-+		__get_cpu_var(tasklet_vec).tail =3D per_cpu(tasklet_vec, cpu).tail;
-+		per_cpu(tasklet_vec, cpu).head =3D NULL;
-+		per_cpu(tasklet_vec, cpu).tail =3D &per_cpu(tasklet_vec, cpu).head;
-+	}
- 	raise_softirq_irqoff(TASKLET_SOFTIRQ);
-=20
--	*__get_cpu_var(tasklet_hi_vec).tail =3D per_cpu(tasklet_hi_vec, cpu).=
-head;
--	__get_cpu_var(tasklet_hi_vec).tail =3D per_cpu(tasklet_hi_vec, cpu).t=
-ail;
--	per_cpu(tasklet_hi_vec, cpu).head =3D NULL;
--	per_cpu(tasklet_hi_vec, cpu).tail =3D &per_cpu(tasklet_hi_vec, cpu).h=
-ead;
-+	if (&per_cpu(tasklet_hi_vec, cpu).head !=3D per_cpu(tasklet_hi_vec, c=
-pu).tail) {
-+		*__get_cpu_var(tasklet_hi_vec).tail =3D per_cpu(tasklet_hi_vec, cpu)=
-=2Ehead;
-+		__get_cpu_var(tasklet_hi_vec).tail =3D per_cpu(tasklet_hi_vec, cpu).=
-tail;
-+		per_cpu(tasklet_hi_vec, cpu).head =3D NULL;
-+		per_cpu(tasklet_hi_vec, cpu).tail =3D &per_cpu(tasklet_hi_vec, cpu).=
-head;
-+	}
- 	raise_softirq_irqoff(HI_SOFTIRQ);
-=20
- 	local_irq_enable();
+diff -puN arch/frv/mm/Makefile~frv-unbreak-misalignment-handling-changes arch/frv/mm/Makefile
+--- a/arch/frv/mm/Makefile~frv-unbreak-misalignment-handling-changes
++++ a/arch/frv/mm/Makefile
+@@ -6,4 +6,4 @@ obj-y := init.o kmap.o
+ 
+ obj-$(CONFIG_MMU) += \
+ 	pgalloc.o highmem.o fault.o extable.o cache-page.o tlb-flush.o tlb-miss.o \
+-	mmu-context.o dma-alloc.o unaligned.o elf-fdpic.o
++	mmu-context.o dma-alloc.o elf-fdpic.o
+diff -puN include/asm-frv/unaligned.h~frv-unbreak-misalignment-handling-changes include/asm-frv/unaligned.h
+--- a/include/asm-frv/unaligned.h~frv-unbreak-misalignment-handling-changes
++++ a/include/asm-frv/unaligned.h
+@@ -9,8 +9,8 @@
+  * 2 of the License, or (at your option) any later version.
+  */
+ 
+-#ifndef _ASM_FRV_UNALIGNED_H
+-#define _ASM_FRV_UNALIGNED_H
++#ifndef _ASM_UNALIGNED_H
++#define _ASM_UNALIGNED_H
+ 
+ #include <linux/unaligned/le_byteshift.h>
+ #include <linux/unaligned/be_byteshift.h>
+@@ -19,4 +19,4 @@
+ #define get_unaligned	__get_unaligned_be
+ #define put_unaligned	__put_unaligned_be
+ 
+-#endif /* _ASM_FRV_UNALIGNED_H */
++#endif /* _ASM_UNALIGNED_H */
 _
 
-Patches currently in -mm which might be from borntraeger@de.ibm.com are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-s390-tty-prepare-for-put_char-to-return-success-fail.patch
-fix-cpu-hotplug-problem-in-softirq-code.patch
-git-kvm.patch
+alloc_uid-cleanup.patch
+frv-unbreak-misalignment-handling-changes.patch
+git-unionfs.patch
+rename-div64_64-to-div64_u64.patch
+mutex-subsystem-synchro-test-module.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
