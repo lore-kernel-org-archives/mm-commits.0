@@ -1,88 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - edac-use-the-shorter-list_head-for-brevity.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:48:44 -0700
-Message-ID: <200804300548.m3U5micC029906@imap1.linux-foundation.org>
+Subject: - vfs-fix-lock-inversion-in-drop_pagecache_sb.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:41:20 -0700
+Message-ID: <200804300541.m3U5fKYd029047@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57035 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57533 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757570AbYD3GL5 (ORCPT
+	by vger.kernel.org with ESMTP id S1760158AbYD3GMP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:11:57 -0400
+	Wed, 30 Apr 2008 02:12:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rpjday@crashcourse.ca, norsk5@yahoo.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, dgc@sgi.com, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: use the shorter LIST_HEAD for brevity
+     vfs: fix lock inversion in drop_pagecache_sb()
 has been removed from the -mm tree.  Its filename was
-     edac-use-the-shorter-list_head-for-brevity.patch
+     vfs-fix-lock-inversion-in-drop_pagecache_sb.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: use the shorter LIST_HEAD for brevity
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: vfs: fix lock inversion in drop_pagecache_sb()
+From: Jan Kara <jack@suse.cz>
 
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Acked-by: Doug Thompson <norsk5@yahoo.com>
+Fix longstanding lock inversion in drop_pagecache_sb by dropping inode_lock
+before calling __invalidate_mapping_pages().  We just have to make sure inode
+won't go away from under us by keeping reference to it and putting the
+reference only after we have safely resumed the scan of the inode list.  A bit
+tricky but not too bad...
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Fengguang Wu <wfg@mail.ustc.edu.cn>
+Cc: David Chinner <dgc@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/edac_device.c |    2 +-
- drivers/edac/edac_mc.c     |    2 +-
- drivers/edac/edac_pci.c    |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ fs/drop_caches.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/edac/edac_device.c~edac-use-the-shorter-list_head-for-brevity drivers/edac/edac_device.c
---- a/drivers/edac/edac_device.c~edac-use-the-shorter-list_head-for-brevity
-+++ a/drivers/edac/edac_device.c
-@@ -36,7 +36,7 @@
-  * is protected by the 'device_ctls_mutex' lock
-  */
- static DEFINE_MUTEX(device_ctls_mutex);
--static struct list_head edac_device_list = LIST_HEAD_INIT(edac_device_list);
-+static LIST_HEAD(edac_device_list);
+diff -puN fs/drop_caches.c~vfs-fix-lock-inversion-in-drop_pagecache_sb fs/drop_caches.c
+--- a/fs/drop_caches.c~vfs-fix-lock-inversion-in-drop_pagecache_sb
++++ a/fs/drop_caches.c
+@@ -14,15 +14,21 @@ int sysctl_drop_caches;
  
- #ifdef CONFIG_EDAC_DEBUG
- static void edac_device_dump_device(struct edac_device_ctl_info *edac_dev)
-diff -puN drivers/edac/edac_mc.c~edac-use-the-shorter-list_head-for-brevity drivers/edac/edac_mc.c
---- a/drivers/edac/edac_mc.c~edac-use-the-shorter-list_head-for-brevity
-+++ a/drivers/edac/edac_mc.c
-@@ -36,7 +36,7 @@
+ static void drop_pagecache_sb(struct super_block *sb)
+ {
+-	struct inode *inode;
++	struct inode *inode, *toput_inode = NULL;
  
- /* lock to memory controller's control array */
- static DEFINE_MUTEX(mem_ctls_mutex);
--static struct list_head mc_devices = LIST_HEAD_INIT(mc_devices);
-+static LIST_HEAD(mc_devices);
+ 	spin_lock(&inode_lock);
+ 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+ 		if (inode->i_state & (I_FREEING|I_WILL_FREE))
+ 			continue;
++		__iget(inode);
++		spin_unlock(&inode_lock);
+ 		__invalidate_mapping_pages(inode->i_mapping, 0, -1, true);
++		iput(toput_inode);
++		toput_inode = inode;
++		spin_lock(&inode_lock);
+ 	}
+ 	spin_unlock(&inode_lock);
++	iput(toput_inode);
+ }
  
- #ifdef CONFIG_EDAC_DEBUG
- 
-diff -puN drivers/edac/edac_pci.c~edac-use-the-shorter-list_head-for-brevity drivers/edac/edac_pci.c
---- a/drivers/edac/edac_pci.c~edac-use-the-shorter-list_head-for-brevity
-+++ a/drivers/edac/edac_pci.c
-@@ -29,7 +29,7 @@
- #include "edac_module.h"
- 
- static DEFINE_MUTEX(edac_pci_ctls_mutex);
--static struct list_head edac_pci_list = LIST_HEAD_INIT(edac_pci_list);
-+static LIST_HEAD(edac_pci_list);
- 
- /*
-  * edac_pci_alloc_ctl_info
+ static void drop_pagecache(void)
 _
 
-Patches currently in -mm which might be from rpjday@crashcourse.ca are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-git-dvb.patch
-git-mtd.patch
-xtensa-warn-about-including-asm-rwsemh-directly.patch
-xtensa-use-newer-__spin_lock_unlocked-macro.patch
-remove-ifdef-__kernel__-checks-from-unexported-headers.patch
-remove-__kernel__-tests-of-unexported-headers-under-asm-generic.patch
-drop-the-exporting-of-empty-linux-byteorder-generich.patch
+isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem.patch
+ext4-fix-mount-messages-when-quota-disabled.patch
+quota-le_add_cpu-conversion.patch
 
