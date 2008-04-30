@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-aarning-on-memory-offline.patch added to -mm tree
-Date: Wed, 30 Apr 2008 00:34:49 -0700
-Message-ID: <200804300734.m3U7YnBm001715@imap1.linux-foundation.org>
+Subject: + revert-memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch added to -mm tree
+Date: Wed, 30 Apr 2008 00:37:07 -0700
+Message-ID: <200804300737.m3U7b7H3001821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38813 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57246 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758219AbYD3He4 (ORCPT
+	by vger.kernel.org with ESMTP id S1755201AbYD3HhQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 03:34:56 -0400
+	Wed, 30 Apr 2008 03:37:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, kamezawa.hiroyu@jp.fujitsu.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, pbadari@us.ibm.com, torvalds@linux-foundation.org, y-goto@jp.fujitsu.com, yhlu.kernel@gmail.com
 
 
 The patch titled
-     mm: fix aarning on memory offline
+     revert "memory hotplug: allocate usemap on the section with pgdat"
 has been added to the -mm tree.  Its filename is
-     mm-fix-aarning-on-memory-offline.patch
+     revert-memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,68 +34,96 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix aarning on memory offline
-From: Nick Piggin <npiggin@suse.de>
+Subject: revert "memory hotplug: allocate usemap on the section with pgdat"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-KAMEZAWA Hiroyuki found a warning message in the buffer dirtying code that
-is coming from page migration caller.
+This:
 
-WARNING: at fs/buffer.c:720 __set_page_dirty+0x330/0x360()
-Call Trace:
- [<a000000100015220>] show_stack+0x80/0xa0
- [<a000000100015270>] dump_stack+0x30/0x60
- [<a000000100089ed0>] warn_on_slowpath+0x90/0xe0
- [<a0000001001f8b10>] __set_page_dirty+0x330/0x360
- [<a0000001001ffb90>] __set_page_dirty_buffers+0xd0/0x280
- [<a00000010012fec0>] set_page_dirty+0xc0/0x260
- [<a000000100195670>] migrate_page_copy+0x5d0/0x5e0
- [<a000000100197840>] buffer_migrate_page+0x2e0/0x3c0
- [<a000000100195eb0>] migrate_pages+0x770/0xe00
+commit 86f6dae1377523689bd8468fed2f2dd180fc0560
+Author: Yasunori Goto <y-goto@jp.fujitsu.com>
+Date:   Mon Apr 28 02:13:33 2008 -0700
 
-What was happening is that migrate_page_copy wants to transfer the PG_dirty
-bit from old page to new page, so what it would do is set_page_dirty(newpage).
-However set_page_dirty() is used to set the entire page dirty, wheras in
-this case, only part of the page was dirty, and it also was not uptodate.
+    memory hotplug: allocate usemap on the section with pgdat
+    
+    Usemaps are allocated on the section which has pgdat by this.
+    
+    Because usemap size is very small, many other sections usemaps are allocated
+    on only one page.  If a section has usemap, it can't be removed until removing
+    other sections.  This dependency is not desirable for memory removing.
+    
+    Pgdat has similar feature.  When a section has pgdat area, it must be the last
+    section for removing on the node.  So, if section A has pgdat and section B
+    has usemap for section A, Both sections can't be removed due to dependency
+    each other.
+    
+    To solve this issue, this patch collects usemap on same section with pgdat.
+    If other sections doesn't have any dependency, this section will be able to be
+    removed finally.
+    
+    Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+    Cc: Badari Pulavarty <pbadari@us.ibm.com>
+    Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+    Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 
-Marking the whole page dirty with set_page_dirty would lead to corruption or
-unresolvable conditions -- a dirty && !uptodate page and dirty && !uptodate
-buffers.
+broke davem's sparc64 bootup.  Revert it while we work out what went wrong.
 
-Possibly we could just ClearPageDirty(oldpage); SetPageDirty(newpage);
-however in the interests of keeping the change minimal...
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Tested-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ mm/sparse.c |   15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
-diff -puN mm/migrate.c~mm-fix-aarning-on-memory-offline mm/migrate.c
---- a/mm/migrate.c~mm-fix-aarning-on-memory-offline
-+++ a/mm/migrate.c
-@@ -383,7 +383,14 @@ static void migrate_page_copy(struct pag
+diff -puN mm/sparse.c~revert-memory-hotplug-allocate-usemap-on-the-section-with-pgdat mm/sparse.c
+--- a/mm/sparse.c~revert-memory-hotplug-allocate-usemap-on-the-section-with-pgdat
++++ a/mm/sparse.c
+@@ -250,22 +250,11 @@ static unsigned long *__kmalloc_section_
  
- 	if (PageDirty(page)) {
- 		clear_page_dirty_for_io(page);
--		set_page_dirty(newpage);
-+		/*
-+		 * Want to mark the page and the radix tree as dirty, and
-+		 * redo the accounting that clear_page_dirty_for_io undid,
-+		 * but we can't use set_page_dirty because that function
-+		 * is actually a signal that all of the page has become dirty.
-+		 * Wheras only part of our page may be dirty.
-+		 */
-+		__set_page_dirty_nobuffers(newpage);
-  	}
+ static unsigned long *__init sparse_early_usemap_alloc(unsigned long pnum)
+ {
+-	unsigned long *usemap, section_nr;
++	unsigned long *usemap;
+ 	struct mem_section *ms = __nr_to_section(pnum);
+ 	int nid = sparse_early_nid(ms);
+-	struct pglist_data *pgdat = NODE_DATA(nid);
  
- #ifdef CONFIG_SWAP
+-	/*
+-	 * Usemap's page can't be freed until freeing other sections
+-	 * which use it. And, Pgdat has same feature.
+-	 * If section A has pgdat and section B has usemap for other
+-	 * sections (includes section A), both sections can't be removed,
+-	 * because there is the dependency each other.
+-	 * To solve above issue, this collects all usemap on the same section
+-	 * which has pgdat.
+-	 */
+-	section_nr = pfn_to_section_nr(__pa(pgdat) >> PAGE_SHIFT);
+-	usemap = alloc_bootmem_section(usemap_size(), section_nr);
++	usemap = alloc_bootmem_node(NODE_DATA(nid), usemap_size());
+ 	if (usemap)
+ 		return usemap;
+ 
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-fuse-implement-perform_write.patch
-mm-fix-aarning-on-memory-offline.patch
+blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+isicom-bring-into-coding-style.patch
+tty-the-big-operations-rework.patch
+devpts-factor-out-pty-index-allocation.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+fuse-fix-race-in-llseek.patch
+basic-braille-screen-reader-support.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+revert-memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch
 
