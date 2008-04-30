@@ -1,112 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - remove-generic_commit_write.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:39:37 -0700
-Message-ID: <200804300539.m3U5dbK2028864@imap1.linux-foundation.org>
+Subject: - add-rusage_thread.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:38:57 -0700
+Message-ID: <200804300538.m3U5cvE7028788@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55736 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754199AbYD3Fj6 (ORCPT
+	by vger.kernel.org with ESMTP id S1754426AbYD3FkE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:39:58 -0400
+	Wed, 30 Apr 2008 01:40:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, hch@infradead.org, mm-commits@vger.kernel.org
+To: sripathik@in.ibm.com, drepper@redhat.com, mingo@elte.hu, mtk.manpages@googlemail.com, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove generic_commit_write()
+     add RUSAGE_THREAD
 has been removed from the -mm tree.  Its filename was
-     remove-generic_commit_write.patch
+     add-rusage_thread.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove generic_commit_write()
-From: Adrian Bunk <bunk@kernel.org>
+Subject: add RUSAGE_THREAD
+From: Sripathi Kodi <sripathik@in.ibm.com>
 
-Remove the obsolete and no longer used generic_commit_write().
+Add the RUSAGE_THREAD option for the getrusage system call.  This is
+essentially Roland's patch from http://lkml.org/lkml/2008/1/18/589, but the
+line about RUSAGE_LWP line has been removed, as suggested by Ulrich and
+Christoph.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Sripathi Kodi <sripathik@in.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/buffer.c                 |   18 ------------------
- include/linux/buffer_head.h |    1 -
- 2 files changed, 19 deletions(-)
+ include/linux/resource.h |    1 +
+ kernel/sys.c             |   31 ++++++++++++++++++++++---------
+ 2 files changed, 23 insertions(+), 9 deletions(-)
 
-diff -puN fs/buffer.c~remove-generic_commit_write fs/buffer.c
---- a/fs/buffer.c~remove-generic_commit_write
-+++ a/fs/buffer.c
-@@ -2328,23 +2328,6 @@ int block_commit_write(struct page *page
- 	return 0;
- }
+diff -puN include/linux/resource.h~add-rusage_thread include/linux/resource.h
+--- a/include/linux/resource.h~add-rusage_thread
++++ a/include/linux/resource.h
+@@ -19,6 +19,7 @@ struct task_struct;
+ #define	RUSAGE_SELF	0
+ #define	RUSAGE_CHILDREN	(-1)
+ #define RUSAGE_BOTH	(-2)		/* sys_wait4() uses this */
++#define	RUSAGE_THREAD	1		/* only the calling thread */
  
--int generic_commit_write(struct file *file, struct page *page,
--		unsigned from, unsigned to)
--{
--	struct inode *inode = page->mapping->host;
--	loff_t pos = ((loff_t)page->index << PAGE_CACHE_SHIFT) + to;
--	__block_commit_write(inode,page,from,to);
--	/*
--	 * No need to use i_size_read() here, the i_size
--	 * cannot change under us because we hold i_mutex.
--	 */
--	if (pos > inode->i_size) {
--		i_size_write(inode, pos);
--		mark_inode_dirty(inode);
--	}
--	return 0;
--}
--
- /*
-  * block_page_mkwrite() is not allowed to change the file size as it gets
-  * called from a page fault handler when a page is first dirtied. Hence we must
-@@ -3315,7 +3298,6 @@ EXPORT_SYMBOL(end_buffer_write_sync);
- EXPORT_SYMBOL(file_fsync);
- EXPORT_SYMBOL(fsync_bdev);
- EXPORT_SYMBOL(generic_block_bmap);
--EXPORT_SYMBOL(generic_commit_write);
- EXPORT_SYMBOL(generic_cont_expand_simple);
- EXPORT_SYMBOL(init_buffer);
- EXPORT_SYMBOL(invalidate_bdev);
-diff -puN include/linux/buffer_head.h~remove-generic_commit_write include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~remove-generic_commit_write
-+++ a/include/linux/buffer_head.h
-@@ -225,7 +225,6 @@ int block_page_mkwrite(struct vm_area_st
- 				get_block_t get_block);
- void block_sync_page(struct page *);
- sector_t generic_block_bmap(struct address_space *, sector_t, get_block_t *);
--int generic_commit_write(struct file *, struct page *, unsigned, unsigned);
- int block_truncate_page(struct address_space *, loff_t, get_block_t *);
- int file_fsync(struct file *, struct dentry *, int);
- int nobh_write_begin(struct file *, struct address_space *,
+ struct	rusage {
+ 	struct timeval ru_utime;	/* user time used */
+diff -puN kernel/sys.c~add-rusage_thread kernel/sys.c
+--- a/kernel/sys.c~add-rusage_thread
++++ a/kernel/sys.c
+@@ -1545,6 +1545,19 @@ out:
+  *
+  */
+ 
++static void accumulate_thread_rusage(struct task_struct *t, struct rusage *r,
++				     cputime_t *utimep, cputime_t *stimep)
++{
++	*utimep = cputime_add(*utimep, t->utime);
++	*stimep = cputime_add(*stimep, t->stime);
++	r->ru_nvcsw += t->nvcsw;
++	r->ru_nivcsw += t->nivcsw;
++	r->ru_minflt += t->min_flt;
++	r->ru_majflt += t->maj_flt;
++	r->ru_inblock += task_io_get_inblock(t);
++	r->ru_oublock += task_io_get_oublock(t);
++}
++
+ static void k_getrusage(struct task_struct *p, int who, struct rusage *r)
+ {
+ 	struct task_struct *t;
+@@ -1554,6 +1567,11 @@ static void k_getrusage(struct task_stru
+ 	memset((char *) r, 0, sizeof *r);
+ 	utime = stime = cputime_zero;
+ 
++	if (who == RUSAGE_THREAD) {
++		accumulate_thread_rusage(p, r, &utime, &stime);
++		goto out;
++	}
++
+ 	rcu_read_lock();
+ 	if (!lock_task_sighand(p, &flags)) {
+ 		rcu_read_unlock();
+@@ -1586,14 +1604,7 @@ static void k_getrusage(struct task_stru
+ 			r->ru_oublock += p->signal->oublock;
+ 			t = p;
+ 			do {
+-				utime = cputime_add(utime, t->utime);
+-				stime = cputime_add(stime, t->stime);
+-				r->ru_nvcsw += t->nvcsw;
+-				r->ru_nivcsw += t->nivcsw;
+-				r->ru_minflt += t->min_flt;
+-				r->ru_majflt += t->maj_flt;
+-				r->ru_inblock += task_io_get_inblock(t);
+-				r->ru_oublock += task_io_get_oublock(t);
++				accumulate_thread_rusage(t, r, &utime, &stime);
+ 				t = next_thread(t);
+ 			} while (t != p);
+ 			break;
+@@ -1605,6 +1616,7 @@ static void k_getrusage(struct task_stru
+ 	unlock_task_sighand(p, &flags);
+ 	rcu_read_unlock();
+ 
++out:
+ 	cputime_to_timeval(utime, &r->ru_utime);
+ 	cputime_to_timeval(stime, &r->ru_stime);
+ }
+@@ -1618,7 +1630,8 @@ int getrusage(struct task_struct *p, int
+ 
+ asmlinkage long sys_getrusage(int who, struct rusage __user *ru)
+ {
+-	if (who != RUSAGE_SELF && who != RUSAGE_CHILDREN)
++	if (who != RUSAGE_SELF && who != RUSAGE_CHILDREN &&
++	    who != RUSAGE_THREAD)
+ 		return -EINVAL;
+ 	return getrusage(current, who, ru);
+ }
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from sripathik@in.ibm.com are
 
 origin.patch
-mm-filemapc-generic_write_checks-mustnt-be-inline.patch
-fs-block_devc-i_bdev-mustnt-be-inline.patch
-frv-fix-arch-frv-mm-unalignedo-build-error.patch
-reiserfs-some-functions-mustnt-be-inline.patch
-git-acpi.patch
-git-x86.patch
-arch-x86-video-fbdevc-add-module_license.patch
-md-make-dm_dirty_log_initexit-static.patch
-drm-make-drm_minors_cleanup-static.patch
-git-m32r.patch
-net-ipv4-ip_outputc-ip_send_check-mustnt-be-inline.patch
-nfs-make-nfs4_drop_state_owner-static.patch
-git-ocfs2.patch
-show_schedstat-fix-memleak.patch
-git-sh.patch
-if-0-ses_match_host.patch
-git-watchdog.patch
-xen-drivers-xen-balloonc-make-a-function-static.patch
-make-marker_debug-static.patch
-reiser4.patch
 
