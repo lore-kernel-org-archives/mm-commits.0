@@ -1,118 +1,300 @@
 From: akpm@linux-foundation.org
-Subject: + input-make-one-bit-signed-bitfields-unsigned.patch added to -mm tree
-Date: Wed, 30 Apr 2008 15:24:34 -0700
-Message-ID: <200804302224.m3UMOYmp006663@imap1.linux-foundation.org>
+Subject: - rapidio-add-fsl-rapidio-controller-memory-ops-functions.patch removed from -mm tree
+Date: Wed, 30 Apr 2008 15:25:27 -0700
+Message-ID: <200804302225.m3UMPRWl006691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51462 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41408 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752914AbYD3WZK (ORCPT
+	by vger.kernel.org with ESMTP id S1760798AbYD3W0D (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 18:25:10 -0400
+	Wed, 30 Apr 2008 18:26:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dtor@mail.ru
+To: wei.zhang@freescale.com, galak@gate.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: make one-bit signed bitfields unsigned
-has been added to the -mm tree.  Its filename is
-     input-make-one-bit-signed-bitfields-unsigned.patch
+     rapidio: add FSL RapidIO controller memory ops functions
+has been removed from the -mm tree.  Its filename was
+     rapidio-add-fsl-rapidio-controller-memory-ops-functions.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: make one-bit signed bitfields unsigned
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: rapidio: add FSL RapidIO controller memory ops functions
+From: Zhang Wei <wei.zhang@freescale.com>
 
-Otherwise it can only take the values 0/-1 which doesn't seem to
-have been intended.
+Add FSL RapidIO controller (MPC85xx, MPC86xx) memory operation functions,
+which include map inbound/outbound window and unmap incound/outbound window.
 
-drivers/input/tablet/wacom.h:108:12: error: dubious one-bit signed bitfield
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-CcL Dmitry Torokhov <dtor@mail.ru>
+Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/tablet/wacom.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/powerpc/sysdev/fsl_rio.c |  204 ++++++++++++++++++++++++++++++++
+ 1 file changed, 204 insertions(+)
 
-diff -puN drivers/input/tablet/wacom.h~input-make-one-bit-signed-bitfields-unsigned drivers/input/tablet/wacom.h
---- a/drivers/input/tablet/wacom.h~input-make-one-bit-signed-bitfields-unsigned
-+++ a/drivers/input/tablet/wacom.h
-@@ -105,7 +105,7 @@ struct wacom {
- 	struct urb *irq;
- 	struct wacom_wac * wacom_wac;
- 	struct mutex lock;
--	int open:1;
-+	unsigned int open:1;
- 	char phys[32];
+diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-add-fsl-rapidio-controller-memory-ops-functions arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-add-fsl-rapidio-controller-memory-ops-functions
++++ a/arch/powerpc/sysdev/fsl_rio.c
+@@ -30,6 +30,8 @@
+ #define IRQ_RIO_TX(m)		(((struct rio_priv *)(m->priv))->txirq)
+ #define IRQ_RIO_RX(m)		(((struct rio_priv *)(m->priv))->rxirq)
+ 
++#define IS_64BIT_RES ((sizeof(resource_size_t) == 8) ? 1 : 0)
++
+ #define RIO_ATMU_REGS_OFFSET	0x10c00
+ #define RIO_P_MSG_REGS_OFFSET	0x11000
+ #define RIO_S_MSG_REGS_OFFSET	0x13000
+@@ -39,6 +41,15 @@
+ #define RIO_ISR_AACR_AA		0x1	/* Accept All ID */
+ #define RIO_MAINT_WIN_SIZE	0x400000
+ #define RIO_DBELL_WIN_SIZE	0x1000
++#define RIO_MAX_INB_ATMU	4
++#define RIO_MAX_OUTB_ATMU	8
++#define RIO_INB_ATMU_REGS_OFFSET	0x10de0
++#define RIO_ATMU_EN_MASK	0x80000000
++
++#define RIO_NREAD		0x4
++#define RIO_NWRITE		0x4
++#define RIO_NWRITE_R		0x5
++#define RIO_NREAD_R		0x5
+ 
+ #define RIO_MSG_OMR_MUI		0x00000002
+ #define RIO_MSG_OSR_TE		0x00000080
+@@ -82,6 +93,15 @@ struct rio_atmu_regs {
+ 	u32 pad3[3];
  };
  
++struct rio_inb_atmu_regs {
++	u32 riwtar;
++	u32 pad1;
++	u32 riwbar;
++	u32 pad2;
++	u32 riwar;
++	u32 pad3[3];
++};
++
+ struct rio_msg_regs {
+ 	u32 omr;
+ 	u32 osr;
+@@ -334,6 +354,182 @@ fsl_rio_config_write(struct rio_mport *m
+ }
+ 
+ /**
++ * fsl_rio_map_inb_mem -- Mapping inbound memory region.
++ * @lstart: Local memory space start address.
++ * @rstart: RapidIO space start address.
++ * @size: The mapping region size.
++ * @flags: Flags for mapping. 0 for using default flags.
++ *
++ * Return: 0 -- Success.
++ *
++ * This function will create the inbound mapping
++ * from rstart to lstart.
++ */
++static int fsl_rio_map_inb_mem(struct rio_mport *mport, resource_size_t lstart,
++		resource_size_t rstart,	resource_size_t size, u32 flags)
++{
++	int i;
++	struct rio_priv *priv = mport->priv;
++	struct rio_inb_atmu_regs __iomem *inbatmu = (struct rio_inb_atmu_regs *)
++				(priv->regs_win + RIO_INB_ATMU_REGS_OFFSET) - 1;
++	int size_ffs;
++	resource_size_t align;
++
++	if (flags == 0)
++		flags = (RIO_NREAD_R << 4) | RIO_NWRITE_R;
++
++	align = (size < 0x1000) ? 0x1000 : 1 << (__ilog2(size - 1) + 1);
++
++	/* Align the size */
++	if ((lstart + size) > (_ALIGN_DOWN(lstart, align) + align)) {
++		size_ffs = __ffs(_ALIGN_DOWN(lstart + size - 1, align));
++		size = 1 << (size_ffs +	(((_ALIGN_DOWN(lstart, 1 << size_ffs) +
++				(1 << size_ffs)) < (lstart + size)) ? 1 : 0));
++	} else
++		size = align;
++
++	if ((lstart & (size - 1)) != (rstart & (size - 1))) {
++		dev_err(mport->dev, "The local address 0x%x can not be aligned "
++			"to the same size 0x%x with the RapidIO space "
++			"address 0x%x!\n", lstart, size, rstart);
++		return -EINVAL;
++	}
++
++	/* Search for free inbound ATMU */
++	for (i = 1;
++		(i <= RIO_MAX_INB_ATMU) && (inbatmu->riwar & RIO_ATMU_EN_MASK);
++		i++, inbatmu--)
++		;
++
++	if (i > RIO_MAX_INB_ATMU) {
++		dev_err(mport->dev, "No free inbound ATMU!\n");
++		return -EBUSY;
++	}
++	out_be32(&inbatmu->riwtar, ((IS_64BIT_RES ? (lstart >> 32)
++				& 0xf : 0) << 20) | ((lstart >> 12) & 0xfffff));
++	out_be32(&inbatmu->riwbar, ((IS_64BIT_RES ? (rstart >> 32)
++				& 0x3 : 0) << 20) | ((rstart >> 12) & 0xfffff));
++	out_be32(&inbatmu->riwar, 0x80000000 | (0xf << 20)
++				| ((flags & 0xff) << 12)
++				| (__ilog2(size) - 1));
++	return 0;
++}
++
++/**
++ * fsl_rio_map_outb_mem -- Mapping outbound memory region.
++ * @lstart: Local memory space start address.
++ * @rstart: RapidIO space start address.
++ * @size: The mapping region size.
++ * @tid: The target RapidIO device id.
++ * @flags: Flags for mapping. 0 for using default flags.
++ *
++ * Return: 0 -- Success.
++ *
++ * This function will create the outbound mapping
++ * from lstart to rstart.
++ */
++static int fsl_rio_map_outb_mem(struct rio_mport *mport, resource_size_t lstart,
++		resource_size_t rstart,	resource_size_t size,
++		u16 tid, u32 flags)
++{
++	int i;
++	struct rio_priv *priv = mport->priv;
++	struct rio_atmu_regs __iomem *outbatmu = (struct rio_atmu_regs *)
++			(priv->regs_win + RIO_ATMU_REGS_OFFSET) + 1;
++	int size_ffs;
++	resource_size_t align;
++
++	if (flags == 0)
++		flags = (RIO_NREAD << 4) | RIO_NWRITE_R;
++
++	align = (size < 0x1000) ? 0x1000 : 1 << (__ilog2(size - 1) + 1);
++
++	/* Align the size */
++	if ((lstart + size) > (_ALIGN_DOWN(lstart, align) + align)) {
++		size_ffs = __ffs(_ALIGN_DOWN(lstart + size - 1, align));
++		size = 1 << (size_ffs +	(((_ALIGN_DOWN(lstart, 1 << size_ffs) +
++				(1 << size_ffs)) < (lstart + size)) ? 1 : 0));
++	} else
++		size = align;
++
++	if ((lstart & (size - 1)) != (rstart & (size - 1))) {
++		dev_err(mport->dev, "The local address 0x%x can not be aligned "
++			"to the same size 0x%x with the RapidIO space address "
++			"0x%x!\n", lstart, size, rstart);
++		return -EINVAL;
++	}
++
++	/* Search for free outbound ATMU */
++	for (i = 1;
++	      (i <= RIO_MAX_OUTB_ATMU) && (outbatmu->rowar & RIO_ATMU_EN_MASK);
++	      i++, outbatmu++)
++		;
++
++	if (i > RIO_MAX_OUTB_ATMU) {
++		dev_err(mport->dev, "No free outbound ATMU!\n");
++		return -EBUSY;
++	}
++	out_be32(&outbatmu->rowtar, ((tid & 0x3ff) << 22)
++			| ((IS_64BIT_RES ? (rstart >> 32) & 0x3 : 0) << 20)
++			| ((rstart >> 12) & 0xfffff));
++	if (mport->phy_type == RIO_PHY_SERIAL)
++		out_be32(&outbatmu->rowtear, tid >> 10);
++	out_be32(&outbatmu->rowbar, ((IS_64BIT_RES ?
++					(lstart >> 32) & 0xf : 0) << 20)
++					| ((lstart >> 12) & 0xfffff));
++	out_be32(&outbatmu->rowar, 0x80000000
++				| ((flags & 0xff) << 12)
++				| (__ilog2(size) - 1));
++	return 0;
++}
++
++/**
++ * fsl_rio_unmap_inb_mem -- Unmapping inbound memory region.
++ * @lstart: Local memory space start address.
++ */
++static void fsl_rio_unmap_inb_mem(struct rio_mport *mport,
++				resource_size_t lstart)
++{
++	int i;
++	struct rio_priv *priv = mport->priv;
++	struct rio_inb_atmu_regs __iomem *inbatmu = (struct rio_inb_atmu_regs *)
++			(priv->regs_win + RIO_INB_ATMU_REGS_OFFSET) - 1;
++
++	/* Search for inbound ATMU */
++	for (i = 1; i <= RIO_MAX_INB_ATMU ; i++, inbatmu--) {
++		u32 tar = ((IS_64BIT_RES ? (lstart >> 32) & 0xf : 0) << 20)
++			| ((lstart >> 12) & 0xfffff);
++		if (inbatmu->riwtar == tar) {
++			out_be32(&inbatmu->riwar, ~(RIO_ATMU_EN_MASK));
++			return;
++		}
++	}
++}
++
++/**
++ * fsl_rio_unmap_inb_mem -- Unmapping outbound memory region.
++ * @lstart: Local memory space start address.
++ */
++static void fsl_rio_unmap_outb_mem(struct rio_mport *mport,
++				resource_size_t lstart)
++{
++	int i;
++	struct rio_priv *priv = mport->priv;
++	struct rio_atmu_regs __iomem *outbatmu = (struct rio_atmu_regs *)
++			(priv->regs_win + RIO_ATMU_REGS_OFFSET) + 1;
++
++	/* Search for outbound ATMU */
++	for (i = 1; i <= RIO_MAX_OUTB_ATMU ; i++, outbatmu++) {
++		u32 bar = ((IS_64BIT_RES ? (lstart >> 32) & 0xf : 0) << 20)
++			| ((lstart >> 12) & 0xfffff);
++		if (outbatmu->rowbar == bar) {
++			out_be32(&outbatmu->rowar, ~(RIO_ATMU_EN_MASK));
++			return;
++		}
++	}
++}
++
++/**
+  * rio_hw_add_outb_message - Add message to the MPC85xx outbound message queue
+  * @mport: Master port with outbound message queue
+  * @rdev: Target of outbound message
+@@ -953,6 +1149,13 @@ static int fsl_rio_get_cmdline(char *s)
+ 
+ __setup("riohdid=", fsl_rio_get_cmdline);
+ 
++static struct rio_mem_ops fsl_mem_ops = {
++	.map_inb = fsl_rio_map_inb_mem,
++	.map_outb = fsl_rio_map_outb_mem,
++	.unmap_inb = fsl_rio_unmap_inb_mem,
++	.unmap_outb = fsl_rio_unmap_outb_mem,
++};
++
+ static inline void fsl_rio_info(struct device *dev, u32 ccsr)
+ {
+ 	const char *str;
+@@ -1096,6 +1299,7 @@ int fsl_rio_setup(struct of_device *dev)
+ 	strcpy(port->name, "RIO0 mport");
+ 
+ 	port->ops = ops;
++	port->mops = &fsl_mem_ops;
+ 	port->host_deviceid = fsl_rio_get_hdid(port->id);
+ 
+ 	port->priv = priv;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from wei.zhang@freescale.com are
 
 origin.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-mm-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
-frv-unbreak-misalignment-handling-changes.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-input-make-one-bit-signed-bitfields-unsigned.patch
-git-kvm.patch
-git-mips.patch
-mmc-make-one-bit-signed-bitfields-unsigned.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-tkipc-use-kernel-provided-infrastructure.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-autofs4-fix-sparse-warning-in-waitqc-autofs4_expire_indirect.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-block-remove-remaining-__function__-occurances.patch
+rapidio-add-fsl-rapidio-controller-memory-ops-functions.patch
+rapidio-add-the-rapidio-master-port-maintance-and-doorbell-window-to-space-resources.patch
+rapidio-add-rapidio-proc-fs-for-memory-mapping-debugging.patch
+rapidio-add-the-memory-mapping-support-in-rionet-driver.patch
+rapidio-fix-docbook-references.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
 
