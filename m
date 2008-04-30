@@ -1,149 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - tty-bkl-pushdown-fix.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 23:09:23 -0700
-Message-ID: <200804300609.m3U69NhY030976@imap1.linux-foundation.org>
+Subject: - afs-use-the-shorter-list_head-for-brevity.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:48:50 -0700
+Message-ID: <200804300548.m3U5moGV029918@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47577 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52379 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755448AbYD3GJx (ORCPT
+	by vger.kernel.org with ESMTP id S1755820AbYD3GJ7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:09:53 -0400
+	Wed, 30 Apr 2008 02:09:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty: BKL pushdown fix
+     afs: use the shorter LIST_HEAD for brevity
 has been removed from the -mm tree.  Its filename was
-     tty-bkl-pushdown-fix.patch
+     afs-use-the-shorter-list_head-for-brevity.patch
 
-This patch was dropped because it was folded into tty-bkl-pushdown.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty: BKL pushdown fix
-From: Jiri Slaby <jirislaby@gmail.com>
+Subject: afs: use the shorter LIST_HEAD for brevity
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    8 +++++---
- drivers/char/vt.c     |    4 ++--
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ fs/afs/cell.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tty_io.c~tty-bkl-pushdown-fix drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-bkl-pushdown-fix
-+++ a/drivers/char/tty_io.c
-@@ -1246,8 +1246,8 @@ static unsigned int hung_up_tty_poll(str
- 	return POLLIN | POLLOUT | POLLERR | POLLHUP | POLLRDNORM | POLLWRNORM;
- }
+diff -puN fs/afs/cell.c~afs-use-the-shorter-list_head-for-brevity fs/afs/cell.c
+--- a/fs/afs/cell.c~afs-use-the-shorter-list_head-for-brevity
++++ a/fs/afs/cell.c
+@@ -20,7 +20,7 @@
+ DECLARE_RWSEM(afs_proc_cells_sem);
+ LIST_HEAD(afs_proc_cells);
  
--static long hung_up_tty_ioctl(struct inode *inode, struct file *file,
--			     unsigned int cmd, unsigned long arg)
-+static long hung_up_tty_ioctl(struct file *file, unsigned int cmd,
-+		unsigned long arg)
- {
- 	return cmd == TIOCSPGRP ? -ENOTTY : -EIO;
- }
-@@ -1301,7 +1301,7 @@ static const struct file_operations hung
- 	.read		= hung_up_tty_read,
- 	.write		= hung_up_tty_write,
- 	.poll		= hung_up_tty_poll,
--	.ioctl		= hung_up_tty_ioctl,
-+	.unlocked_ioctl	= hung_up_tty_ioctl,
- 	.compat_ioctl	= hung_up_tty_compat_ioctl,
- 	.release	= tty_release,
- };
-@@ -3254,6 +3254,8 @@ static int tiocsetd(struct tty_struct *t
- 	lock_kernel();
- 	ret = tty_set_ldisc(tty, ldisc);
- 	unlock_kernel();
-+
-+	return ret;
- }
- 
- /**
-diff -puN drivers/char/vt.c~tty-bkl-pushdown-fix drivers/char/vt.c
---- a/drivers/char/vt.c~tty-bkl-pushdown-fix
-+++ a/drivers/char/vt.c
-@@ -2562,7 +2562,7 @@ int tioclinux(struct tty_struct *tty, un
- 			ret = sel_loadlut(p);
- 			break;
- 		case TIOCL_GETSHIFTSTATE:
--			
-+
- 	/*
- 	 * Make it possible to react to Shift+Mousebutton.
- 	 * Note that 'shift_state' is an undocumented
-@@ -3832,7 +3832,7 @@ static int con_font_get(struct vc_data *
- 		goto out;
- 
- 	c = (font.width+7)/8 * 32 * font.charcount;
--	
-+
- 	if (op->data && font.charcount > op->charcount)
- 		rc = -ENOSPC;
- 	if (!(op->flags & KD_FONT_FLAG_OLD)) {
+-static struct list_head afs_cells = LIST_HEAD_INIT(afs_cells);
++static LIST_HEAD(afs_cells);
+ static DEFINE_RWLOCK(afs_cells_lock);
+ static DECLARE_RWSEM(afs_cells_sem); /* add/remove serialisation */
+ static DECLARE_WAIT_QUEUE_HEAD(afs_cells_freeable_wq);
 _
 
-Patches currently in -mm which might be from jirislaby@gmail.com are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
 origin.patch
-mxser-prepare-for-bkl-pushdown.patch
-tty-bkl-pushdown.patch
-tty-bkl-pushdown-fix.patch
-tty-bkl-pushdown-fix1.patch
-char-moxa-remove-static-isa-support.patch
-char-moxa-cleanup-module-param-passed-isa-init.patch
-char-moxa-pci-io-space-fixup.patch
-char-moxa-fix-tiocg-ssoftcar-param.patch
-char-moxa-add-firmware-loading.patch
-char-moxa-merge-c2xx-and-c320-firmware-loading.patch
-char-moxa-remove-port-port.patch
-char-moxa-remove-unused-port-entries.patch
-char-moxa-centralize-board-readiness.patch
-char-moxa-centralize-board-readiness-warning-fix.patch
-char-moxa-timer-cleanup.patch
-char-moxa-ioctl-cleanup.patch
-char-moxa-merge-2-poll-functions.patch
-char-moxa-cleanup-rx-tx.patch
-char-moxa-serialise-timer.patch
-char-moxa-rework-open-close.patch
-char-moxa-little-cleanup.patch
-char-moxa-remove-useless-tty-functions.patch
-char-moxa-introduce-moxa_is_320-macro.patch
-char-moxa-notify-about-board-readiness.patch
-char-moxa-update-credits.patch
-char-moxa-add-firmware-loading-fix.patch
-char-espc-fix-possible-double-unlock.patch
-char-ip2-macros-cleanup.patch
-cyclades-coding-style-review.patch
-cyclades-use-ioremap_nocache-for-clarity-as-proposed.patch
-char-rio-fix-cirrus-defines.patch
-drivers-char-ds1286c-use-time_before-time_before_eq-etc.patch
-tty-serial-lay-the-foundations-for-the-next-set-of-reworks.patch
-amiserial-switch-put-char-to-return-success-fail.patch
-char-switch-gs-cyclades-and-esp-to-return-int-for-put_char.patch
-mxser-switch-to-put_char-being-int.patch
-pcmcia-serial-to-int-put_char-method.patch
-riscom-rocket-switch-to-int-put_char-method.patch
-serial167-switch-to-int-put_char-method.patch
-specialix-switch-to-int-put_char-method.patch
-synclink-series-switch-to-int-put_char-method.patch
-consoles-switch-to-int-put_char-method.patch
-isicom-bring-into-coding-style.patch
-isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework-isicom-fix.patch
-riscom8-coding-style.patch
-epca-coding-style.patch
-esp-clean-up-to-modern-coding-style.patch
-isicom-fix-buffer-allocation.patch
-char-serial-switch-drivers-to-ioremap_nocache.patch
-mxser-convert-large-macros-to-functions.patch
-reiser4.patch
-shrink_slab-handle-bad-shrinkers.patch
+git-dvb.patch
+git-mtd.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
+remove-ifdef-__kernel__-checks-from-unexported-headers.patch
+remove-__kernel__-tests-of-unexported-headers-under-asm-generic.patch
+drop-the-exporting-of-empty-linux-byteorder-generich.patch
 
