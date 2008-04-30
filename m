@@ -1,24 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + i8k-make-fan-multiplier-tunable-with-a-module-parameter.patch added to -mm tree
-Date: Tue, 29 Apr 2008 17:20:51 -0700
-Message-ID: <200804300020.m3U0KpWL017699@imap1.linux-foundation.org>
+Subject: + rtc-class-driver-for-ppc_md-rtc-functions.patch added to -mm tree
+Date: Tue, 29 Apr 2008 17:22:12 -0700
+Message-ID: <200804300022.m3U0MC1d017730@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33052 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54729 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753059AbYD3AVm (ORCPT
+	by vger.kernel.org with ESMTP id S1755037AbYD3AXB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 20:21:42 -0400
+	Tue, 29 Apr 2008 20:23:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jochen@penguin-breeder.org
+Cc: dwmw2@infradead.org, a.zummo@towertech.it, benh@kernel.crashing.org, david-b@pacbell.net, paulus@samba.org
 
 
 The patch titled
-     i8k: make fan multiplier tunable with a module parameter
+     RTC class driver for ppc_md RTC functions
 has been added to the -mm tree.  Its filename is
-     i8k-make-fan-multiplier-tunable-with-a-module-parameter.patch
+     rtc-class-driver-for-ppc_md-rtc-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -26,54 +29,155 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
+find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: i8k: make fan multiplier tunable with a module parameter
-From: Jochen Eisinger <jochen@penguin-breeder.org>
+Subject: RTC class driver for ppc_md RTC functions
+=46rom: David Woodhouse <dwmw2@infradead.org>
 
-The i8k driver multiplies the fan speed reported by the BIOS with a factor of
-30.  On my Dell Latitude D800, this factor is not required.
+This hooks up the platform-specific [gs]et_rtc_time functions so that k=
+ernels
+using CONFIG_RTC_CLASS have RTC support on most PowerPC platforms.
 
-I'd suggest to make this configurable.
-
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Paul Mackerras <paulus@samba.org>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/i8k.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/rtc/Kconfig   |    8 ++++
+ drivers/rtc/Makefile  |    1=20
+ drivers/rtc/rtc-ppc.c |   69 ++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 78 insertions(+)
 
-diff -puN drivers/char/i8k.c~i8k-make-fan-multiplier-tunable-with-a-module-parameter drivers/char/i8k.c
---- a/drivers/char/i8k.c~i8k-make-fan-multiplier-tunable-with-a-module-parameter
-+++ a/drivers/char/i8k.c
-@@ -77,6 +77,10 @@ static int power_status;
- module_param(power_status, bool, 0600);
- MODULE_PARM_DESC(power_status, "Report power status in /proc/i8k");
- 
-+static int fan_mult = I8K_FAN_MULT;
-+module_param(fan_mult, int, 0);
-+MODULE_PARM_DESC(fan_mult, "Factor to multiply fan speed with");
+diff -puN drivers/rtc/Kconfig~rtc-class-driver-for-ppc_md-rtc-functions=
+ drivers/rtc/Kconfig
+--- a/drivers/rtc/Kconfig~rtc-class-driver-for-ppc_md-rtc-functions
++++ a/drivers/rtc/Kconfig
+@@ -544,4 +544,12 @@ config RTC_DRV_RS5C313
+ 	help
+ 	  If you say yes here you get support for the Ricoh RS5C313 RTC chips=
+=2E
+=20
++config RTC_DRV_PPC
++       tristate "PowerPC machine dependent RTC support"
++       depends on PPC_MERGE
++       help
++         The PowerPC kernel has machine-specific functions for accessi=
+ng
++	 the RTC. This exposes that functionality through the generic RTC
++	 class.
 +
- static int i8k_open_fs(struct inode *inode, struct file *file);
- static int i8k_ioctl(struct inode *, struct file *, unsigned int,
- 		     unsigned long);
-@@ -239,7 +243,7 @@ static int i8k_get_fan_speed(int fan)
- 	struct smm_regs regs = { .eax = I8K_SMM_GET_SPEED, };
- 
- 	regs.ebx = fan & 0xff;
--	return i8k_smm(&regs) ? : (regs.eax & 0xffff) * I8K_FAN_MULT;
-+	return i8k_smm(&regs) ? : (regs.eax & 0xffff) * fan_mult;
- }
- 
- /*
+ endif # RTC_CLASS
+diff -puN drivers/rtc/Makefile~rtc-class-driver-for-ppc_md-rtc-function=
+s drivers/rtc/Makefile
+--- a/drivers/rtc/Makefile~rtc-class-driver-for-ppc_md-rtc-functions
++++ a/drivers/rtc/Makefile
+@@ -55,3 +55,4 @@ obj-$(CONFIG_RTC_DRV_TEST)	+=3D rtc-test.o
+ obj-$(CONFIG_RTC_DRV_V3020)	+=3D rtc-v3020.o
+ obj-$(CONFIG_RTC_DRV_VR41XX)	+=3D rtc-vr41xx.o
+ obj-$(CONFIG_RTC_DRV_X1205)	+=3D rtc-x1205.o
++obj-$(CONFIG_RTC_DRV_PPC)	+=3D rtc-ppc.o
+diff -puN /dev/null drivers/rtc/rtc-ppc.c
+--- /dev/null
++++ a/drivers/rtc/rtc-ppc.c
+@@ -0,0 +1,69 @@
++/*
++ * RTC driver for ppc_md RTC functions
++ *
++ * =C2=A9 2007 Red Hat, Inc.
++ *
++ * Author: David Woodhouse <dwmw2@infradead.org>
++ *
++ * This program is free software; you can redistribute it and/or modif=
+y
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++
++#include <linux/module.h>
++#include <linux/err.h>
++#include <linux/rtc.h>
++#include <linux/platform_device.h>
++#include <asm/machdep.h>
++
++static int ppc_rtc_read_time(struct device *dev, struct rtc_time *tm)
++{
++	ppc_md.get_rtc_time(tm);
++	return 0;
++}
++
++static int ppc_rtc_set_time(struct device *dev, struct rtc_time *tm)
++{
++	return ppc_md.set_rtc_time(tm);
++}
++
++static const struct rtc_class_ops ppc_rtc_ops =3D {
++	.set_time =3D ppc_rtc_set_time,
++	.read_time =3D ppc_rtc_read_time,
++};
++
++static struct rtc_device *rtc;
++static struct platform_device *ppc_rtc_pdev;
++
++static int __init ppc_rtc_init(void)
++{
++	if (!ppc_md.get_rtc_time || !ppc_md.set_rtc_time)
++		return -ENODEV;
++
++	ppc_rtc_pdev =3D platform_device_register_simple("ppc-rtc", 0, NULL, =
+0);
++	if (IS_ERR(ppc_rtc_pdev))
++		return PTR_ERR(ppc_rtc_pdev);
++
++	rtc =3D rtc_device_register("ppc_md", &ppc_rtc_pdev->dev,
++				  &ppc_rtc_ops, THIS_MODULE);
++	if (IS_ERR(rtc)) {
++		platform_device_unregister(ppc_rtc_pdev);
++		return PTR_ERR(rtc);
++	}
++
++	return 0;
++}
++
++static void __exit ppc_rtc_exit(void)
++{
++	rtc_device_unregister(rtc);
++	platform_device_unregister(ppc_rtc_pdev);
++}
++
++module_init(ppc_rtc_init);
++module_exit(ppc_rtc_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("David Woodhouse <dwmw2@infradead.org>");
++MODULE_DESCRIPTION("Generic RTC class driver for PowerPC");
 _
 
-Patches currently in -mm which might be from jochen@penguin-breeder.org are
+Patches currently in -mm which might be from dwmw2@infradead.org are
 
-i8k-make-fan-multiplier-tunable-with-a-module-parameter.patch
+origin.patch
+kbuild-remove-duplicate-conflicting-entry-for-oomh.patch
+kbuild-move-files-that-dont-check-__kernel__.patch
+audit-let-userspace-fully-control-tty-input-auditing.patch
+git-mtd.patch
+jffs2-summary-allocation-dont-use-vmalloc.patch
+remove-ifdef-__kernel__-checks-from-unexported-headers.patch
+rtc-class-driver-for-ppc_md-rtc-functions.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
