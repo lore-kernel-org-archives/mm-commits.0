@@ -1,103 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - random-improve-variable-naming-clear-extract-buffer.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:48:13 -0700
-Message-ID: <200804300548.m3U5mDd2029864@imap1.linux-foundation.org>
+Subject: - scsi-use-non-racy-method-for-proc-entries-creation.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:47:05 -0700
+Message-ID: <200804300547.m3U5l5bm029673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45879 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60661 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760625AbYD3GMY (ORCPT
+	by vger.kernel.org with ESMTP id S1758745AbYD3GMR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:12:24 -0400
+	Wed, 30 Apr 2008 02:12:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: den@openvz.org, James.Bottomley@HansenPartnership.com, adobriyan@gmail.com, ebiederm@xmission.com, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     random: improve variable naming, clear extract buffer
+     scsi: use non-racy method for proc entries creation
 has been removed from the -mm tree.  Its filename was
-     random-improve-variable-naming-clear-extract-buffer.patch
+     scsi-use-non-racy-method-for-proc-entries-creation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: improve variable naming, clear extract buffer
-From: Matt Mackall <mpm@selenic.com>
+Subject: scsi: use non-racy method for proc entries creation
+From: "Denis V. Lunev" <den@openvz.org>
 
-- split the SHA variables apart into hash and workspace
-- rename data to extract
-- wipe extract and workspace after hashing
+Use proc_create() to make sure that ->proc_fops be setup before gluing PDE to
+main tree.
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Add correct ->owner to proc_fops to fix reading/module unloading race.
+
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |   24 +++++++++++++-----------
- 1 file changed, 13 insertions(+), 11 deletions(-)
+ drivers/scsi/scsi_proc.c |    4 ++--
+ drivers/scsi/sg.c        |   12 ++++--------
+ 2 files changed, 6 insertions(+), 10 deletions(-)
 
-diff -puN drivers/char/random.c~random-improve-variable-naming-clear-extract-buffer drivers/char/random.c
---- a/drivers/char/random.c~random-improve-variable-naming-clear-extract-buffer
-+++ a/drivers/char/random.c
-@@ -765,9 +765,9 @@ static size_t account(struct entropy_sto
- static void extract_buf(struct entropy_store *r, __u8 *out)
- {
- 	int i;
--	__u32 data[16], buf[5 + SHA_WORKSPACE_WORDS];
-+	__u32 extract[16], hash[5], workspace[SHA_WORKSPACE_WORDS];
- 
--	sha_init(buf);
-+	sha_init(hash);
- 	/*
- 	 * As we hash the pool, we mix intermediate values of
- 	 * the hash back into the pool.  This eliminates
-@@ -778,9 +778,9 @@ static void extract_buf(struct entropy_s
- 	 */
- 	for (i = 0; i < r->poolinfo->poolwords; i += 16) {
- 		/* hash blocks of 16 words = 512 bits */
--		sha_transform(buf, (__u8 *)(r->pool + i), buf + 5);
-+		sha_transform(hash, (__u8 *)(r->pool + i), workspace);
- 		/* feed back portion of the resulting hash */
--		add_entropy_words(r, &buf[i % 5], 1);
-+		add_entropy_words(r, &hash[i % 5], 1);
- 	}
- 
- 	/*
-@@ -788,19 +788,21 @@ static void extract_buf(struct entropy_s
- 	 * portion of the pool while mixing, and hash one
- 	 * final time.
- 	 */
--	__add_entropy_words(r, &buf[i % 5], 1, data);
--	sha_transform(buf, (__u8 *)data, buf + 5);
-+	__add_entropy_words(r, &hash[i % 5], 1, extract);
-+	sha_transform(hash, (__u8 *)extract, workspace);
-+	memset(extract, 0, sizeof(extract));
-+	memset(workspace, 0, sizeof(workspace));
- 
- 	/*
- 	 * In case the hash function has some recognizable
- 	 * output pattern, we fold it in half.
- 	 */
- 
--	buf[0] ^= buf[3];
--	buf[1] ^= buf[4];
--	buf[2] ^= rol32(buf[2], 16);
--	memcpy(out, buf, EXTRACT_SIZE);
--	memset(buf, 0, sizeof(buf));
-+	hash[0] ^= hash[3];
-+	hash[1] ^= hash[4];
-+	hash[2] ^= rol32(hash[2], 16);
-+	memcpy(out, hash, EXTRACT_SIZE);
-+	memset(hash, 0, sizeof(hash));
+diff -puN drivers/scsi/scsi_proc.c~scsi-use-non-racy-method-for-proc-entries-creation drivers/scsi/scsi_proc.c
+--- a/drivers/scsi/scsi_proc.c~scsi-use-non-racy-method-for-proc-entries-creation
++++ a/drivers/scsi/scsi_proc.c
+@@ -413,6 +413,7 @@ static int proc_scsi_open(struct inode *
  }
  
- static ssize_t extract_entropy(struct entropy_store *r, void *buf,
+ static const struct file_operations proc_scsi_operations = {
++	.owner		= THIS_MODULE,
+ 	.open		= proc_scsi_open,
+ 	.read		= seq_read,
+ 	.write		= proc_scsi_write,
+@@ -431,10 +432,9 @@ int __init scsi_init_procfs(void)
+ 	if (!proc_scsi)
+ 		goto err1;
+ 
+-	pde = create_proc_entry("scsi/scsi", 0, NULL);
++	pde = proc_create("scsi/scsi", 0, NULL, &proc_scsi_operations);
+ 	if (!pde)
+ 		goto err2;
+-	pde->proc_fops = &proc_scsi_operations;
+ 
+ 	return 0;
+ 
+diff -puN drivers/scsi/sg.c~scsi-use-non-racy-method-for-proc-entries-creation drivers/scsi/sg.c
+--- a/drivers/scsi/sg.c~scsi-use-non-racy-method-for-proc-entries-creation
++++ a/drivers/scsi/sg.c
+@@ -2667,7 +2667,6 @@ sg_proc_init(void)
+ {
+ 	int k, mask;
+ 	int num_leaves = ARRAY_SIZE(sg_proc_leaf_arr);
+-	struct proc_dir_entry *pdep;
+ 	struct sg_proc_leaf * leaf;
+ 
+ 	sg_proc_sgp = proc_mkdir(sg_proc_sg_dirname, NULL);
+@@ -2676,13 +2675,10 @@ sg_proc_init(void)
+ 	for (k = 0; k < num_leaves; ++k) {
+ 		leaf = &sg_proc_leaf_arr[k];
+ 		mask = leaf->fops->write ? S_IRUGO | S_IWUSR : S_IRUGO;
+-		pdep = create_proc_entry(leaf->name, mask, sg_proc_sgp);
+-		if (pdep) {
+-			leaf->fops->owner = THIS_MODULE,
+-			leaf->fops->read = seq_read,
+-			leaf->fops->llseek = seq_lseek,
+-			pdep->proc_fops = leaf->fops;
+-		}
++		leaf->fops->owner = THIS_MODULE;
++		leaf->fops->read = seq_read;
++		leaf->fops->llseek = seq_lseek;
++		proc_create(leaf->name, mask, sg_proc_sgp, leaf->fops);
+ 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from den@openvz.org are
 
 origin.patch
+drivers-use-non-racy-method-for-proc-entries-creation-2-rio.patch
+sunrpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+netfilter-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+net-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+ipv6-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+atm-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+vlan-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+cciss-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+powerpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+ipv4-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+netfilter-assign-pde-fops-before-gluing-pde-into-proc-tree.patch
+netfilter-assign-pde-data-before-gluing-pde-into-proc-tree-2.patch
+netns-assign-pde-data-before-gluing-entry-into-proc-tree.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
 
