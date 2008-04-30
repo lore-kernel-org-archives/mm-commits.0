@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-fix-setup-printk-format-warning.patch added to -mm tree
-Date: Wed, 30 Apr 2008 14:18:51 -0700
-Message-ID: <200804302118.m3ULIpvW003617@imap1.linux-foundation.org>
+Subject: + pnp-fix-printk-format-warnings.patch added to -mm tree
+Date: Wed, 30 Apr 2008 14:20:54 -0700
+Message-ID: <200804302120.m3ULKs9W003691@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57120 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36069 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762440AbYD3VTs (ORCPT
+	by vger.kernel.org with ESMTP id S1760326AbYD3VVN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 17:19:48 -0400
+	Wed, 30 Apr 2008 17:21:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+Cc: randy.dunlap@oracle.com, bjorn.helgaas@hp.com
 
 
 The patch titled
-     x86: fix setup printk format warning
+     PNP: fix printk format warnings
 has been added to the -mm tree.  Its filename is
-     x86-fix-setup-printk-format-warning.patch
+     pnp-fix-printk-format-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: fix setup printk format warning
+Subject: PNP: fix printk format warnings
 From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Fix x86 setup printk format warming:
-
-next-20080430/arch/x86/kernel/setup.c:172: warning: format '%lu' expects type 'long unsigned int', but argument 2 has type 'ssize_t'
+next-20080430/drivers/pnp/pnpbios/rsparser.c:594: warning: format '%d' expects type 'int', but argument 4 has type 'resource_size_t'
+next-20080430/drivers/pnp/pnpbios/rsparser.c:605: warning: format '%d' expects type 'int', but argument 4 has type 'resource_size_t'
 
 Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pnp/pnpbios/rsparser.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/setup.c~x86-fix-setup-printk-format-warning arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~x86-fix-setup-printk-format-warning
-+++ a/arch/x86/kernel/setup.c
-@@ -95,7 +95,7 @@ void __init setup_per_cpu_areas(void)
+diff -puN drivers/pnp/pnpbios/rsparser.c~pnp-fix-printk-format-warnings drivers/pnp/pnpbios/rsparser.c
+--- a/drivers/pnp/pnpbios/rsparser.c~pnp-fix-printk-format-warnings
++++ a/drivers/pnp/pnpbios/rsparser.c
+@@ -591,7 +591,7 @@ static void pnpbios_encode_irq(struct pn
+ 	p[1] = map & 0xff;
+ 	p[2] = (map >> 8) & 0xff;
  
- 	/* Copy section for each CPU (we discard the original) */
- 	size = PERCPU_ENOUGH_ROOM;
--	printk(KERN_INFO "PERCPU: Allocating %lu bytes of per cpu data\n",
-+	printk(KERN_INFO "PERCPU: Allocating %zd bytes of per cpu data\n",
- 			  size);
+-	dev_dbg(&dev->dev, "  encode irq %d\n", res->start);
++	dev_dbg(&dev->dev, "  encode irq %d\n", (int)res->start);
+ }
  
- 	for_each_possible_cpu(i) {
+ static void pnpbios_encode_dma(struct pnp_dev *dev, unsigned char *p,
+@@ -602,7 +602,7 @@ static void pnpbios_encode_dma(struct pn
+ 	map = 1 << res->start;
+ 	p[1] = map & 0xff;
+ 
+-	dev_dbg(&dev->dev, "  encode dma %d\n", res->start);
++	dev_dbg(&dev->dev, "  encode dma %d\n", (int)res->start);
+ }
+ 
+ static void pnpbios_encode_port(struct pnp_dev *dev, unsigned char *p,
 _
 
 Patches currently in -mm which might be from randy.dunlap@oracle.com are
@@ -74,6 +83,7 @@ add-hrtimer-specific-debugobjects-code.patch
 sysfs-sysfs_update_group-stub-for-config_sysfs=n.patch
 docbook-fix-fatal-rapidio-yet-again-and-more-to-come.patch
 docbook-fix-vmalloc-missing-parameter-notation.patch
+pnp-fix-printk-format-warnings.patch
 x86-fix-setup-printk-format-warning.patch
 rapidio-fix-docbook-references.patch
 rapidio-fix-kernel-doc-problems.patch
