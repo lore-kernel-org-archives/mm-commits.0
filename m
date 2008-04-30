@@ -1,606 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: - xattr-add-missing-consts-to-function-arguments.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:41:30 -0700
-Message-ID: <200804300541.m3U5fUrw029059@imap1.linux-foundation.org>
+Subject: - vt-fix-background-color-on-line-feed.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:41:41 -0700
+Message-ID: <200804300541.m3U5ff3t029071@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53751 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39917 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757387AbYD3FmV (ORCPT
+	by vger.kernel.org with ESMTP id S1757177AbYD3FmY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:42:21 -0400
+	Wed, 30 Apr 2008 01:42:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, agruen@suse.de, mm-commits@vger.kernel.org
+To: jengelh@computergmbh.de, adaplas@pol.net, alan@lxorguk.ukuu.org.uk, hpa@zytor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     xattr: add missing consts to function arguments
+     vt: fix background color on line feed
 has been removed from the -mm tree.  Its filename was
-     xattr-add-missing-consts-to-function-arguments.patch
+     vt-fix-background-color-on-line-feed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xattr: add missing consts to function arguments
-From: David Howells <dhowells@redhat.com>
+Subject: vt: fix background color on line feed
+From: Jan Engelhardt <jengelh@computergmbh.de>
 
-Add missing consts to xattr function arguments.
+A command that causes a line feed while a background color is active,
+such as
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Andreas Gruenbacher <agruen@suse.de>
+	perl -e 'print "x" x 60, "\e[44m", "x" x 40, "\e[0m\n"'
+and
+	perl -e 'print "x" x 40, "\e[44m\n", "x" x 40, "\e[0m\n"'
+
+causes the line that was started as a result of the line feed to be completely
+filled with the currently active background color instead of the default
+color.
+
+When scrolling, part of the current screen is memcpy'd/memmove'd to the new
+region, and the new line(s) that will appear as a result are cleared using
+memset.  However, the lines are cleared with vc->vc_video_erase_char, causing
+them to be colored with the currently active background color.  This is
+different from X11 terminal emulators which always paint the new lines with
+the default background color (e.g.  `xterm -bg black`).
+
+The clear operation (\e[1J and \e[2J) also use vc_video_erase_char, so a new
+vc->vc_scrl_erase_char is introduced with contains the erase character used
+for scrolling, which is built from vc->vc_def_color instead of vc->vc_color.
+
+Signed-off-by: Jan Engelhardt <jengelh@computergmbh.de>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xattr.c                          |   41 ++++++++++++------------
- include/linux/security.h            |   43 +++++++++++++-------------
- include/linux/syscalls.h            |   30 +++++++++---------
- include/linux/xattr.h               |    6 +--
- security/commoncap.c                |    6 +--
- security/dummy.c                    |   13 ++++---
- security/security.c                 |   12 +++----
- security/selinux/hooks.c            |   14 ++++----
- security/selinux/include/security.h |    2 -
- security/selinux/ss/services.c      |    4 +-
- security/smack/smack_lsm.c          |   12 +++----
- 11 files changed, 96 insertions(+), 87 deletions(-)
+ drivers/char/vt.c              |    7 ++++---
+ drivers/video/console/fbcon.c  |    8 ++++----
+ drivers/video/console/mdacon.c |    2 +-
+ drivers/video/console/sticon.c |    4 ++--
+ drivers/video/console/vgacon.c |    4 ++--
+ include/linux/console_struct.h |    1 +
+ 6 files changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN fs/xattr.c~xattr-add-missing-consts-to-function-arguments fs/xattr.c
---- a/fs/xattr.c~xattr-add-missing-consts-to-function-arguments
-+++ a/fs/xattr.c
-@@ -67,7 +67,7 @@ xattr_permission(struct inode *inode, co
+diff -puN drivers/char/vt.c~vt-fix-background-color-on-line-feed drivers/char/vt.c
+--- a/drivers/char/vt.c~vt-fix-background-color-on-line-feed
++++ a/drivers/char/vt.c
+@@ -301,7 +301,7 @@ static void scrup(struct vc_data *vc, un
+ 	d = (unsigned short *)(vc->vc_origin + vc->vc_size_row * t);
+ 	s = (unsigned short *)(vc->vc_origin + vc->vc_size_row * (t + nr));
+ 	scr_memmovew(d, s, (b - t - nr) * vc->vc_size_row);
+-	scr_memsetw(d + (b - t - nr) * vc->vc_cols, vc->vc_video_erase_char,
++	scr_memsetw(d + (b - t - nr) * vc->vc_cols, vc->vc_scrl_erase_char,
+ 		    vc->vc_size_row * nr);
  }
  
- int
--vfs_setxattr(struct dentry *dentry, char *name, void *value,
-+vfs_setxattr(struct dentry *dentry, const char *name, const void *value,
- 		size_t size, int flags)
- {
- 	struct inode *inode = dentry->d_inode;
-@@ -131,7 +131,7 @@ out_noalloc:
- EXPORT_SYMBOL_GPL(xattr_getsecurity);
+@@ -319,7 +319,7 @@ static void scrdown(struct vc_data *vc, 
+ 	s = (unsigned short *)(vc->vc_origin + vc->vc_size_row * t);
+ 	step = vc->vc_cols * nr;
+ 	scr_memmovew(s + step, s, (b - t - nr) * vc->vc_size_row);
+-	scr_memsetw(s, vc->vc_video_erase_char, 2 * step);
++	scr_memsetw(s, vc->vc_scrl_erase_char, 2 * step);
+ }
  
- ssize_t
--vfs_getxattr(struct dentry *dentry, char *name, void *value, size_t size)
-+vfs_getxattr(struct dentry *dentry, const char *name, void *value, size_t size)
- {
- 	struct inode *inode = dentry->d_inode;
- 	int error;
-@@ -187,7 +187,7 @@ vfs_listxattr(struct dentry *d, char *li
- EXPORT_SYMBOL_GPL(vfs_listxattr);
- 
- int
--vfs_removexattr(struct dentry *dentry, char *name)
-+vfs_removexattr(struct dentry *dentry, const char *name)
- {
- 	struct inode *inode = dentry->d_inode;
- 	int error;
-@@ -218,7 +218,7 @@ EXPORT_SYMBOL_GPL(vfs_removexattr);
-  * Extended attribute SET operations
+ static void do_update_region(struct vc_data *vc, unsigned long start, int count)
+@@ -400,7 +400,7 @@ static u8 build_attr(struct vc_data *vc,
+  *  Bit 7   : blink
   */
- static long
--setxattr(struct dentry *d, char __user *name, void __user *value,
-+setxattr(struct dentry *d, const char __user *name, const void __user *value,
- 	 size_t size, int flags)
- {
- 	int error;
-@@ -252,8 +252,8 @@ setxattr(struct dentry *d, char __user *
+ 	{
+-	u8 a = vc->vc_color;
++	u8 a = _color;
+ 	if (!vc->vc_can_do_color)
+ 		return _intensity |
+ 		       (_italic ? 2 : 0) |
+@@ -434,6 +434,7 @@ static void update_attr(struct vc_data *
+ 	              vc->vc_blink, vc->vc_underline,
+ 	              vc->vc_reverse ^ vc->vc_decscnm, vc->vc_italic);
+ 	vc->vc_video_erase_char = (build_attr(vc, vc->vc_color, 1, vc->vc_blink, 0, vc->vc_decscnm, 0) << 8) | ' ';
++	vc->vc_scrl_erase_char = (build_attr(vc, vc->vc_def_color, 1, false, false, false, false) << 8) | ' ';
  }
  
- asmlinkage long
--sys_setxattr(char __user *path, char __user *name, void __user *value,
--	     size_t size, int flags)
-+sys_setxattr(const char __user *path, const char __user *name,
-+	     const void __user *value, size_t size, int flags)
+ /* Note: inverting the screen twice should revert to the original state */
+diff -puN drivers/video/console/fbcon.c~vt-fix-background-color-on-line-feed drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~vt-fix-background-color-on-line-feed
++++ a/drivers/video/console/fbcon.c
+@@ -1881,7 +1881,7 @@ static int fbcon_scroll(struct vc_data *
+ 			scr_memsetw((unsigned short *) (vc->vc_origin +
+ 							vc->vc_size_row *
+ 							(b - count)),
+-				    vc->vc_video_erase_char,
++				    vc->vc_scrl_erase_char,
+ 				    vc->vc_size_row * count);
+ 			return 1;
+ 			break;
+@@ -1953,7 +1953,7 @@ static int fbcon_scroll(struct vc_data *
+ 			scr_memsetw((unsigned short *) (vc->vc_origin +
+ 							vc->vc_size_row *
+ 							(b - count)),
+-				    vc->vc_video_erase_char,
++				    vc->vc_scrl_erase_char,
+ 				    vc->vc_size_row * count);
+ 			return 1;
+ 		}
+@@ -1972,7 +1972,7 @@ static int fbcon_scroll(struct vc_data *
+ 			scr_memsetw((unsigned short *) (vc->vc_origin +
+ 							vc->vc_size_row *
+ 							t),
+-				    vc->vc_video_erase_char,
++				    vc->vc_scrl_erase_char,
+ 				    vc->vc_size_row * count);
+ 			return 1;
+ 			break;
+@@ -2042,7 +2042,7 @@ static int fbcon_scroll(struct vc_data *
+ 			scr_memsetw((unsigned short *) (vc->vc_origin +
+ 							vc->vc_size_row *
+ 							t),
+-				    vc->vc_video_erase_char,
++				    vc->vc_scrl_erase_char,
+ 				    vc->vc_size_row * count);
+ 			return 1;
+ 		}
+diff -puN drivers/video/console/mdacon.c~vt-fix-background-color-on-line-feed drivers/video/console/mdacon.c
+--- a/drivers/video/console/mdacon.c~vt-fix-background-color-on-line-feed
++++ a/drivers/video/console/mdacon.c
+@@ -531,7 +531,7 @@ static void mdacon_cursor(struct vc_data
+ 
+ static int mdacon_scroll(struct vc_data *c, int t, int b, int dir, int lines)
  {
- 	struct nameidata nd;
- 	int error;
-@@ -271,8 +271,8 @@ sys_setxattr(char __user *path, char __u
- }
+-	u16 eattr = mda_convert_attr(c->vc_video_erase_char);
++	u16 eattr = mda_convert_attr(c->vc_scrl_erase_char);
  
- asmlinkage long
--sys_lsetxattr(char __user *path, char __user *name, void __user *value,
--	      size_t size, int flags)
-+sys_lsetxattr(const char __user *path, const char __user *name,
-+	      const void __user *value, size_t size, int flags)
- {
- 	struct nameidata nd;
- 	int error;
-@@ -290,7 +290,7 @@ sys_lsetxattr(char __user *path, char __
- }
- 
- asmlinkage long
--sys_fsetxattr(int fd, char __user *name, void __user *value,
-+sys_fsetxattr(int fd, const char __user *name, const void __user *value,
- 	      size_t size, int flags)
- {
- 	struct file *f;
-@@ -315,7 +315,8 @@ sys_fsetxattr(int fd, char __user *name,
-  * Extended attribute GET operations
-  */
- static ssize_t
--getxattr(struct dentry *d, char __user *name, void __user *value, size_t size)
-+getxattr(struct dentry *d, const char __user *name, void __user *value,
-+	 size_t size)
- {
- 	ssize_t error;
- 	void *kvalue = NULL;
-@@ -349,8 +350,8 @@ getxattr(struct dentry *d, char __user *
- }
- 
- asmlinkage ssize_t
--sys_getxattr(char __user *path, char __user *name, void __user *value,
--	     size_t size)
-+sys_getxattr(const char __user *path, const char __user *name,
-+	     void __user *value, size_t size)
- {
- 	struct nameidata nd;
- 	ssize_t error;
-@@ -364,7 +365,7 @@ sys_getxattr(char __user *path, char __u
- }
- 
- asmlinkage ssize_t
--sys_lgetxattr(char __user *path, char __user *name, void __user *value,
-+sys_lgetxattr(const char __user *path, const char __user *name, void __user *value,
- 	      size_t size)
- {
- 	struct nameidata nd;
-@@ -379,7 +380,7 @@ sys_lgetxattr(char __user *path, char __
- }
- 
- asmlinkage ssize_t
--sys_fgetxattr(int fd, char __user *name, void __user *value, size_t size)
-+sys_fgetxattr(int fd, const char __user *name, void __user *value, size_t size)
- {
- 	struct file *f;
- 	ssize_t error = -EBADF;
-@@ -424,7 +425,7 @@ listxattr(struct dentry *d, char __user 
- }
- 
- asmlinkage ssize_t
--sys_listxattr(char __user *path, char __user *list, size_t size)
-+sys_listxattr(const char __user *path, char __user *list, size_t size)
- {
- 	struct nameidata nd;
- 	ssize_t error;
-@@ -438,7 +439,7 @@ sys_listxattr(char __user *path, char __
- }
- 
- asmlinkage ssize_t
--sys_llistxattr(char __user *path, char __user *list, size_t size)
-+sys_llistxattr(const char __user *path, char __user *list, size_t size)
- {
- 	struct nameidata nd;
- 	ssize_t error;
-@@ -470,7 +471,7 @@ sys_flistxattr(int fd, char __user *list
-  * Extended attribute REMOVE operations
-  */
- static long
--removexattr(struct dentry *d, char __user *name)
-+removexattr(struct dentry *d, const char __user *name)
- {
- 	int error;
- 	char kname[XATTR_NAME_MAX + 1];
-@@ -485,7 +486,7 @@ removexattr(struct dentry *d, char __use
- }
- 
- asmlinkage long
--sys_removexattr(char __user *path, char __user *name)
-+sys_removexattr(const char __user *path, const char __user *name)
- {
- 	struct nameidata nd;
- 	int error;
-@@ -503,7 +504,7 @@ sys_removexattr(char __user *path, char 
- }
- 
- asmlinkage long
--sys_lremovexattr(char __user *path, char __user *name)
-+sys_lremovexattr(const char __user *path, const char __user *name)
- {
- 	struct nameidata nd;
- 	int error;
-@@ -521,7 +522,7 @@ sys_lremovexattr(char __user *path, char
- }
- 
- asmlinkage long
--sys_fremovexattr(int fd, char __user *name)
-+sys_fremovexattr(int fd, const char __user *name)
- {
- 	struct file *f;
- 	struct dentry *dentry;
-diff -puN include/linux/security.h~xattr-add-missing-consts-to-function-arguments include/linux/security.h
---- a/include/linux/security.h~xattr-add-missing-consts-to-function-arguments
-+++ a/include/linux/security.h
-@@ -53,8 +53,9 @@ extern void cap_capset_set(struct task_s
- extern int cap_bprm_set_security(struct linux_binprm *bprm);
- extern void cap_bprm_apply_creds(struct linux_binprm *bprm, int unsafe);
- extern int cap_bprm_secureexec(struct linux_binprm *bprm);
--extern int cap_inode_setxattr(struct dentry *dentry, char *name, void *value, size_t size, int flags);
--extern int cap_inode_removexattr(struct dentry *dentry, char *name);
-+extern int cap_inode_setxattr(struct dentry *dentry, const char *name,
-+			      const void *value, size_t size, int flags);
-+extern int cap_inode_removexattr(struct dentry *dentry, const char *name);
- extern int cap_inode_need_killpriv(struct dentry *dentry);
- extern int cap_inode_killpriv(struct dentry *dentry);
- extern int cap_task_post_setuid(uid_t old_ruid, uid_t old_euid, uid_t old_suid, int flags);
-@@ -1362,13 +1363,13 @@ struct security_operations {
- 	int (*inode_setattr)	(struct dentry *dentry, struct iattr *attr);
- 	int (*inode_getattr) (struct vfsmount *mnt, struct dentry *dentry);
- 	void (*inode_delete) (struct inode *inode);
--	int (*inode_setxattr) (struct dentry *dentry, char *name, void *value,
--			       size_t size, int flags);
--	void (*inode_post_setxattr) (struct dentry *dentry, char *name, void *value,
--				     size_t size, int flags);
--	int (*inode_getxattr) (struct dentry *dentry, char *name);
-+	int (*inode_setxattr) (struct dentry *dentry, const char *name,
-+			       const void *value, size_t size, int flags);
-+	void (*inode_post_setxattr) (struct dentry *dentry, const char *name,
-+				     const void *value, size_t size, int flags);
-+	int (*inode_getxattr) (struct dentry *dentry, const char *name);
- 	int (*inode_listxattr) (struct dentry *dentry);
--	int (*inode_removexattr) (struct dentry *dentry, char *name);
-+	int (*inode_removexattr) (struct dentry *dentry, const char *name);
- 	int (*inode_need_killpriv) (struct dentry *dentry);
- 	int (*inode_killpriv) (struct dentry *dentry);
- 	int (*inode_getsecurity) (const struct inode *inode, const char *name, void **buffer, bool alloc);
-@@ -1633,13 +1634,13 @@ int security_inode_permission(struct ino
- int security_inode_setattr(struct dentry *dentry, struct iattr *attr);
- int security_inode_getattr(struct vfsmount *mnt, struct dentry *dentry);
- void security_inode_delete(struct inode *inode);
--int security_inode_setxattr(struct dentry *dentry, char *name,
--			    void *value, size_t size, int flags);
--void security_inode_post_setxattr(struct dentry *dentry, char *name,
--				  void *value, size_t size, int flags);
--int security_inode_getxattr(struct dentry *dentry, char *name);
-+int security_inode_setxattr(struct dentry *dentry, const char *name,
-+			    const void *value, size_t size, int flags);
-+void security_inode_post_setxattr(struct dentry *dentry, const char *name,
-+				  const void *value, size_t size, int flags);
-+int security_inode_getxattr(struct dentry *dentry, const char *name);
- int security_inode_listxattr(struct dentry *dentry);
--int security_inode_removexattr(struct dentry *dentry, char *name);
-+int security_inode_removexattr(struct dentry *dentry, const char *name);
- int security_inode_need_killpriv(struct dentry *dentry);
- int security_inode_killpriv(struct dentry *dentry);
- int security_inode_getsecurity(const struct inode *inode, const char *name, void **buffer, bool alloc);
-@@ -2041,17 +2042,18 @@ static inline int security_inode_getattr
- static inline void security_inode_delete(struct inode *inode)
- { }
- 
--static inline int security_inode_setxattr(struct dentry *dentry, char *name,
--					   void *value, size_t size, int flags)
-+static inline int security_inode_setxattr(struct dentry *dentry,
-+		const char *name, const void *value, size_t size, int flags)
- {
- 	return cap_inode_setxattr(dentry, name, value, size, flags);
- }
- 
--static inline void security_inode_post_setxattr(struct dentry *dentry, char *name,
--						 void *value, size_t size, int flags)
-+static inline void security_inode_post_setxattr(struct dentry *dentry,
-+		const char *name, const void *value, size_t size, int flags)
- { }
- 
--static inline int security_inode_getxattr(struct dentry *dentry, char *name)
-+static inline int security_inode_getxattr(struct dentry *dentry,
-+			const char *name)
- {
- 	return 0;
- }
-@@ -2061,7 +2063,8 @@ static inline int security_inode_listxat
- 	return 0;
- }
- 
--static inline int security_inode_removexattr(struct dentry *dentry, char *name)
-+static inline int security_inode_removexattr(struct dentry *dentry,
-+			const char *name)
- {
- 	return cap_inode_removexattr(dentry, name);
- }
-diff -puN include/linux/syscalls.h~xattr-add-missing-consts-to-function-arguments include/linux/syscalls.h
---- a/include/linux/syscalls.h~xattr-add-missing-consts-to-function-arguments
-+++ a/include/linux/syscalls.h
-@@ -240,26 +240,28 @@ asmlinkage long sys_truncate64(const cha
- asmlinkage long sys_ftruncate64(unsigned int fd, loff_t length);
- #endif
- 
--asmlinkage long sys_setxattr(char __user *path, char __user *name,
--				void __user *value, size_t size, int flags);
--asmlinkage long sys_lsetxattr(char __user *path, char __user *name,
--				void __user *value, size_t size, int flags);
--asmlinkage long sys_fsetxattr(int fd, char __user *name, void __user *value,
--				size_t size, int flags);
--asmlinkage ssize_t sys_getxattr(char __user *path, char __user *name,
-+asmlinkage long sys_setxattr(const char __user *path, const char __user *name,
-+			     const void __user *value, size_t size, int flags);
-+asmlinkage long sys_lsetxattr(const char __user *path, const char __user *name,
-+			      const void __user *value, size_t size, int flags);
-+asmlinkage long sys_fsetxattr(int fd, const char __user *name,
-+			      const void __user *value, size_t size, int flags);
-+asmlinkage ssize_t sys_getxattr(const char __user *path, const char __user *name,
- 				void __user *value, size_t size);
--asmlinkage ssize_t sys_lgetxattr(char __user *path, char __user *name,
-+asmlinkage ssize_t sys_lgetxattr(const char __user *path, const char __user *name,
- 				void __user *value, size_t size);
--asmlinkage ssize_t sys_fgetxattr(int fd, char __user *name,
-+asmlinkage ssize_t sys_fgetxattr(int fd, const char __user *name,
- 				void __user *value, size_t size);
--asmlinkage ssize_t sys_listxattr(char __user *path, char __user *list,
-+asmlinkage ssize_t sys_listxattr(const char __user *path, char __user *list,
- 				size_t size);
--asmlinkage ssize_t sys_llistxattr(char __user *path, char __user *list,
-+asmlinkage ssize_t sys_llistxattr(const char __user *path, char __user *list,
- 				size_t size);
- asmlinkage ssize_t sys_flistxattr(int fd, char __user *list, size_t size);
--asmlinkage long sys_removexattr(char __user *path, char __user *name);
--asmlinkage long sys_lremovexattr(char __user *path, char __user *name);
--asmlinkage long sys_fremovexattr(int fd, char __user *name);
-+asmlinkage long sys_removexattr(const char __user *path,
-+				const char __user *name);
-+asmlinkage long sys_lremovexattr(const char __user *path,
-+				 const char __user *name);
-+asmlinkage long sys_fremovexattr(int fd, const char __user *name);
- 
- asmlinkage unsigned long sys_brk(unsigned long brk);
- asmlinkage long sys_mprotect(unsigned long start, size_t len,
-diff -puN include/linux/xattr.h~xattr-add-missing-consts-to-function-arguments include/linux/xattr.h
---- a/include/linux/xattr.h~xattr-add-missing-consts-to-function-arguments
-+++ a/include/linux/xattr.h
-@@ -47,10 +47,10 @@ struct xattr_handler {
- };
- 
- ssize_t xattr_getsecurity(struct inode *, const char *, void *, size_t);
--ssize_t vfs_getxattr(struct dentry *, char *, void *, size_t);
-+ssize_t vfs_getxattr(struct dentry *, const char *, void *, size_t);
- ssize_t vfs_listxattr(struct dentry *d, char *list, size_t size);
--int vfs_setxattr(struct dentry *, char *, void *, size_t, int);
--int vfs_removexattr(struct dentry *, char *);
-+int vfs_setxattr(struct dentry *, const char *, const void *, size_t, int);
-+int vfs_removexattr(struct dentry *, const char *);
- 
- ssize_t generic_getxattr(struct dentry *dentry, const char *name, void *buffer, size_t size);
- ssize_t generic_listxattr(struct dentry *dentry, char *buffer, size_t buffer_size);
-diff -puN security/commoncap.c~xattr-add-missing-consts-to-function-arguments security/commoncap.c
---- a/security/commoncap.c~xattr-add-missing-consts-to-function-arguments
-+++ a/security/commoncap.c
-@@ -383,8 +383,8 @@ int cap_bprm_secureexec (struct linux_bi
- 		current->egid != current->gid);
- }
- 
--int cap_inode_setxattr(struct dentry *dentry, char *name, void *value,
--		       size_t size, int flags)
-+int cap_inode_setxattr(struct dentry *dentry, const char *name,
-+		       const void *value, size_t size, int flags)
- {
- 	if (!strcmp(name, XATTR_NAME_CAPS)) {
- 		if (!capable(CAP_SETFCAP))
-@@ -397,7 +397,7 @@ int cap_inode_setxattr(struct dentry *de
- 	return 0;
- }
- 
--int cap_inode_removexattr(struct dentry *dentry, char *name)
-+int cap_inode_removexattr(struct dentry *dentry, const char *name)
- {
- 	if (!strcmp(name, XATTR_NAME_CAPS)) {
- 		if (!capable(CAP_SETFCAP))
-diff -puN security/dummy.c~xattr-add-missing-consts-to-function-arguments security/dummy.c
---- a/security/dummy.c~xattr-add-missing-consts-to-function-arguments
-+++ a/security/dummy.c
-@@ -365,8 +365,8 @@ static void dummy_inode_delete (struct i
- 	return;
- }
- 
--static int dummy_inode_setxattr (struct dentry *dentry, char *name, void *value,
--				size_t size, int flags)
-+static int dummy_inode_setxattr (struct dentry *dentry, const char *name,
-+				 const void *value, size_t size, int flags)
- {
- 	if (!strncmp(name, XATTR_SECURITY_PREFIX,
- 		     sizeof(XATTR_SECURITY_PREFIX) - 1) &&
-@@ -375,12 +375,13 @@ static int dummy_inode_setxattr (struct 
- 	return 0;
- }
- 
--static void dummy_inode_post_setxattr (struct dentry *dentry, char *name, void *value,
--				       size_t size, int flags)
-+static void dummy_inode_post_setxattr (struct dentry *dentry, const char *name,
-+				       const void *value, size_t size,
-+				       int flags)
- {
- }
- 
--static int dummy_inode_getxattr (struct dentry *dentry, char *name)
-+static int dummy_inode_getxattr (struct dentry *dentry, const char *name)
- {
- 	return 0;
- }
-@@ -390,7 +391,7 @@ static int dummy_inode_listxattr (struct
- 	return 0;
- }
- 
--static int dummy_inode_removexattr (struct dentry *dentry, char *name)
-+static int dummy_inode_removexattr (struct dentry *dentry, const char *name)
- {
- 	if (!strncmp(name, XATTR_SECURITY_PREFIX,
- 		     sizeof(XATTR_SECURITY_PREFIX) - 1) &&
-diff -puN security/security.c~xattr-add-missing-consts-to-function-arguments security/security.c
---- a/security/security.c~xattr-add-missing-consts-to-function-arguments
-+++ a/security/security.c
-@@ -491,23 +491,23 @@ void security_inode_delete(struct inode 
- 	security_ops->inode_delete(inode);
- }
- 
--int security_inode_setxattr(struct dentry *dentry, char *name,
--			     void *value, size_t size, int flags)
-+int security_inode_setxattr(struct dentry *dentry, const char *name,
-+			    const void *value, size_t size, int flags)
- {
- 	if (unlikely(IS_PRIVATE(dentry->d_inode)))
+ 	if (!lines)
  		return 0;
- 	return security_ops->inode_setxattr(dentry, name, value, size, flags);
- }
+diff -puN drivers/video/console/sticon.c~vt-fix-background-color-on-line-feed drivers/video/console/sticon.c
+--- a/drivers/video/console/sticon.c~vt-fix-background-color-on-line-feed
++++ a/drivers/video/console/sticon.c
+@@ -170,12 +170,12 @@ static int sticon_scroll(struct vc_data 
+     switch (dir) {
+     case SM_UP:
+ 	sti_bmove(sti, t + count, 0, t, 0, b - t - count, conp->vc_cols);
+-	sti_clear(sti, b - count, 0, count, conp->vc_cols, conp->vc_video_erase_char);
++	sti_clear(sti, b - count, 0, count, conp->vc_cols, conp->vc_scrl_erase_char);
+ 	break;
  
--void security_inode_post_setxattr(struct dentry *dentry, char *name,
--				   void *value, size_t size, int flags)
-+void security_inode_post_setxattr(struct dentry *dentry, const char *name,
-+				  const void *value, size_t size, int flags)
- {
- 	if (unlikely(IS_PRIVATE(dentry->d_inode)))
- 		return;
- 	security_ops->inode_post_setxattr(dentry, name, value, size, flags);
- }
+     case SM_DOWN:
+ 	sti_bmove(sti, t, 0, t + count, 0, b - t - count, conp->vc_cols);
+-	sti_clear(sti, t, 0, count, conp->vc_cols, conp->vc_video_erase_char);
++	sti_clear(sti, t, 0, count, conp->vc_cols, conp->vc_scrl_erase_char);
+ 	break;
+     }
  
--int security_inode_getxattr(struct dentry *dentry, char *name)
-+int security_inode_getxattr(struct dentry *dentry, const char *name)
- {
- 	if (unlikely(IS_PRIVATE(dentry->d_inode)))
- 		return 0;
-@@ -521,7 +521,7 @@ int security_inode_listxattr(struct dent
- 	return security_ops->inode_listxattr(dentry);
- }
- 
--int security_inode_removexattr(struct dentry *dentry, char *name)
-+int security_inode_removexattr(struct dentry *dentry, const char *name)
- {
- 	if (unlikely(IS_PRIVATE(dentry->d_inode)))
- 		return 0;
-diff -puN security/selinux/hooks.c~xattr-add-missing-consts-to-function-arguments security/selinux/hooks.c
---- a/security/selinux/hooks.c~xattr-add-missing-consts-to-function-arguments
-+++ a/security/selinux/hooks.c
-@@ -2619,7 +2619,7 @@ static int selinux_inode_getattr(struct 
- 	return dentry_has_perm(current, mnt, dentry, FILE__GETATTR);
- }
- 
--static int selinux_inode_setotherxattr(struct dentry *dentry, char *name)
-+static int selinux_inode_setotherxattr(struct dentry *dentry, const char *name)
- {
- 	if (!strncmp(name, XATTR_SECURITY_PREFIX,
- 		     sizeof XATTR_SECURITY_PREFIX - 1)) {
-@@ -2638,7 +2638,8 @@ static int selinux_inode_setotherxattr(s
- 	return dentry_has_perm(current, NULL, dentry, FILE__SETATTR);
- }
- 
--static int selinux_inode_setxattr(struct dentry *dentry, char *name, void *value, size_t size, int flags)
-+static int selinux_inode_setxattr(struct dentry *dentry, const char *name,
-+				  const void *value, size_t size, int flags)
- {
- 	struct task_security_struct *tsec = current->security;
- 	struct inode *inode = dentry->d_inode;
-@@ -2687,8 +2688,9 @@ static int selinux_inode_setxattr(struct
- 			    &ad);
- }
- 
--static void selinux_inode_post_setxattr(struct dentry *dentry, char *name,
--					void *value, size_t size, int flags)
-+static void selinux_inode_post_setxattr(struct dentry *dentry, const char *name,
-+                                        const void *value, size_t size,
-+					int flags)
- {
- 	struct inode *inode = dentry->d_inode;
- 	struct inode_security_struct *isec = inode->i_security;
-@@ -2711,7 +2713,7 @@ static void selinux_inode_post_setxattr(
- 	return;
- }
- 
--static int selinux_inode_getxattr(struct dentry *dentry, char *name)
-+static int selinux_inode_getxattr(struct dentry *dentry, const char *name)
- {
- 	return dentry_has_perm(current, NULL, dentry, FILE__GETATTR);
- }
-@@ -2721,7 +2723,7 @@ static int selinux_inode_listxattr(struc
- 	return dentry_has_perm(current, NULL, dentry, FILE__GETATTR);
- }
- 
--static int selinux_inode_removexattr(struct dentry *dentry, char *name)
-+static int selinux_inode_removexattr(struct dentry *dentry, const char *name)
- {
- 	if (strcmp(name, XATTR_NAME_SELINUX))
- 		return selinux_inode_setotherxattr(dentry, name);
-diff -puN security/selinux/include/security.h~xattr-add-missing-consts-to-function-arguments security/selinux/include/security.h
---- a/security/selinux/include/security.h~xattr-add-missing-consts-to-function-arguments
-+++ a/security/selinux/include/security.h
-@@ -93,7 +93,7 @@ int security_change_sid(u32 ssid, u32 ts
- int security_sid_to_context(u32 sid, char **scontext,
- 	u32 *scontext_len);
- 
--int security_context_to_sid(char *scontext, u32 scontext_len,
-+int security_context_to_sid(const char *scontext, u32 scontext_len,
- 	u32 *out_sid);
- 
- int security_context_to_sid_default(char *scontext, u32 scontext_len,
-diff -puN security/selinux/ss/services.c~xattr-add-missing-consts-to-function-arguments security/selinux/ss/services.c
---- a/security/selinux/ss/services.c~xattr-add-missing-consts-to-function-arguments
-+++ a/security/selinux/ss/services.c
-@@ -708,7 +708,7 @@ out:
- 
- }
- 
--static int security_context_to_sid_core(char *scontext, u32 scontext_len,
-+static int security_context_to_sid_core(const char *scontext, u32 scontext_len,
- 					u32 *sid, u32 def_sid, gfp_t gfp_flags)
- {
- 	char *scontext2;
-@@ -835,7 +835,7 @@ out:
-  * Returns -%EINVAL if the context is invalid, -%ENOMEM if insufficient
-  * memory is available, or 0 on success.
-  */
--int security_context_to_sid(char *scontext, u32 scontext_len, u32 *sid)
-+int security_context_to_sid(const char *scontext, u32 scontext_len, u32 *sid)
- {
- 	return security_context_to_sid_core(scontext, scontext_len,
- 					    sid, SECSID_NULL, GFP_KERNEL);
-diff -puN security/smack/smack_lsm.c~xattr-add-missing-consts-to-function-arguments security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~xattr-add-missing-consts-to-function-arguments
-+++ a/security/smack/smack_lsm.c
-@@ -574,8 +574,8 @@ static int smack_inode_getattr(struct vf
-  *
-  * Returns 0 if access is permitted, an error code otherwise
-  */
--static int smack_inode_setxattr(struct dentry *dentry, char *name,
--				void *value, size_t size, int flags)
-+static int smack_inode_setxattr(struct dentry *dentry, const char *name,
-+				const void *value, size_t size, int flags)
- {
- 	int rc = 0;
- 
-@@ -604,8 +604,8 @@ static int smack_inode_setxattr(struct d
-  * Set the pointer in the inode blob to the entry found
-  * in the master label list.
-  */
--static void smack_inode_post_setxattr(struct dentry *dentry, char *name,
--				      void *value, size_t size, int flags)
-+static void smack_inode_post_setxattr(struct dentry *dentry, const char *name,
-+				      const void *value, size_t size, int flags)
- {
- 	struct inode_smack *isp;
- 	char *nsp;
-@@ -641,7 +641,7 @@ static void smack_inode_post_setxattr(st
-  *
-  * Returns 0 if access is permitted, an error code otherwise
-  */
--static int smack_inode_getxattr(struct dentry *dentry, char *name)
-+static int smack_inode_getxattr(struct dentry *dentry, const char *name)
- {
- 	return smk_curacc(smk_of_inode(dentry->d_inode), MAY_READ);
- }
-@@ -655,7 +655,7 @@ static int smack_inode_getxattr(struct d
-  *
-  * Returns 0 if access is permitted, an error code otherwise
-  */
--static int smack_inode_removexattr(struct dentry *dentry, char *name)
-+static int smack_inode_removexattr(struct dentry *dentry, const char *name)
- {
- 	int rc = 0;
- 
+diff -puN drivers/video/console/vgacon.c~vt-fix-background-color-on-line-feed drivers/video/console/vgacon.c
+--- a/drivers/video/console/vgacon.c~vt-fix-background-color-on-line-feed
++++ a/drivers/video/console/vgacon.c
+@@ -1350,7 +1350,7 @@ static int vgacon_scroll(struct vc_data 
+ 		} else
+ 			c->vc_origin += delta;
+ 		scr_memsetw((u16 *) (c->vc_origin + c->vc_screenbuf_size -
+-				     delta), c->vc_video_erase_char,
++				     delta), c->vc_scrl_erase_char,
+ 			    delta);
+ 	} else {
+ 		if (oldo - delta < vga_vram_base) {
+@@ -1363,7 +1363,7 @@ static int vgacon_scroll(struct vc_data 
+ 		} else
+ 			c->vc_origin -= delta;
+ 		c->vc_scr_end = c->vc_origin + c->vc_screenbuf_size;
+-		scr_memsetw((u16 *) (c->vc_origin), c->vc_video_erase_char,
++		scr_memsetw((u16 *) (c->vc_origin), c->vc_scrl_erase_char,
+ 			    delta);
+ 	}
+ 	c->vc_scr_end = c->vc_origin + c->vc_screenbuf_size;
+diff -puN include/linux/console_struct.h~vt-fix-background-color-on-line-feed include/linux/console_struct.h
+--- a/include/linux/console_struct.h~vt-fix-background-color-on-line-feed
++++ a/include/linux/console_struct.h
+@@ -53,6 +53,7 @@ struct vc_data {
+ 	unsigned short	vc_hi_font_mask;	/* [#] Attribute set for upper 256 chars of font or 0 if not supported */
+ 	struct console_font vc_font;		/* Current VC font set */
+ 	unsigned short	vc_video_erase_char;	/* Background erase character */
++	unsigned short	vc_scrl_erase_char;	/* Erase character for scroll */
+ 	/* VT terminal data */
+ 	unsigned int	vc_state;		/* Escape sequence parser state */
+ 	unsigned int	vc_npar,vc_par[NPAR];	/* Parameters of current escape sequence */
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from jengelh@computergmbh.de are
 
 origin.patch
+git-kvm.patch
 git-unionfs.patch
-alloc_uid-cleanup.patch
-rename-div64_64-to-div64_u64.patch
-mutex-subsystem-synchro-test-module.patch
 
