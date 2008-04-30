@@ -1,238 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: - cpuset-hardwall-flag-add-a-mem_hardwall-flag-to-cpusets.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:43:24 -0700
-Message-ID: <200804300543.m3U5hOrq029314@imap1.linux-foundation.org>
+Subject: - workqueues-shrink-cpu_populated_map-when-cpu-dies.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:43:26 -0700
+Message-ID: <200804300543.m3U5hQIX029317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36778 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54723 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758228AbYD3Fn7 (ORCPT
+	by vger.kernel.org with ESMTP id S1758260AbYD3FoD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:43:59 -0400
+	Wed, 30 Apr 2008 01:44:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, pj@sgi.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Cpuset hardwall flag: add a mem_hardwall flag to cpusets
+     workqueues: shrink cpu_populated_map when CPU dies
 has been removed from the -mm tree.  Its filename was
-     cpuset-hardwall-flag-add-a-mem_hardwall-flag-to-cpusets.patch
+     workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Cpuset hardwall flag: add a mem_hardwall flag to cpusets
-From: Paul Menage <menage@google.com>
+Subject: workqueues: shrink cpu_populated_map when CPU dies
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This flag provides the hardwalling properties of mem_exclusive, without
-enforcing the exclusivity.  Either mem_hardwall or mem_exclusive is sufficient
-to prevent GFP_KERNEL allocations from passing outside the cpuset's assigned
-nodes.
+When cpu_populated_map was introduced, it was supposed that cwq->thread can
+survive after CPU_DEAD, that is why we never shrink cpu_populated_map.
 
-Signed-off-by: Paul Menage <menage@google.com>
-Acked-by: Paul Jackson <pj@sgi.com>
+This is not very nice, we can safely remove the already dead CPU from the map.
+ The only required change is that destroy_workqueue() must hold the hotplug
+lock until it destroys all cwq->thread's, to protect the cpu_populated_map. 
+We could make the local copy of cpu mask and drop the lock, but
+sizeof(cpumask_t) may be very large.
+
+Also, fix the comment near queue_work().  Unless _cpu_down() happens we do
+guarantee the cpu-affinity of the work_struct, and we have users which rely on
+this.
+
+[akpm@linux-foundation.org: repair comment]
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cpusets.txt |   26 ++++++++++---------
- kernel/cpuset.c           |   48 ++++++++++++++++++++++++------------
- 2 files changed, 46 insertions(+), 28 deletions(-)
+ kernel/workqueue.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/cpusets.txt~cpuset-hardwall-flag-add-a-mem_hardwall-flag-to-cpusets Documentation/cpusets.txt
---- a/Documentation/cpusets.txt~cpuset-hardwall-flag-add-a-mem_hardwall-flag-to-cpusets
-+++ a/Documentation/cpusets.txt
-@@ -171,6 +171,7 @@ files describing that cpuset:
-  - memory_migrate flag: if set, move pages to cpusets nodes
-  - cpu_exclusive flag: is cpu placement exclusive?
-  - mem_exclusive flag: is memory placement exclusive?
-+ - mem_hardwall flag:  is memory allocation hardwalled
-  - memory_pressure: measure of how much paging pressure in cpuset
- 
- In addition, the root cpuset only has the following file:
-@@ -222,17 +223,18 @@ If a cpuset is cpu or mem exclusive, no 
- a direct ancestor or descendent, may share any of the same CPUs or
- Memory Nodes.
- 
--A cpuset that is mem_exclusive restricts kernel allocations for
--page, buffer and other data commonly shared by the kernel across
--multiple users.  All cpusets, whether mem_exclusive or not, restrict
--allocations of memory for user space.  This enables configuring a
--system so that several independent jobs can share common kernel data,
--such as file system pages, while isolating each jobs user allocation in
--its own cpuset.  To do this, construct a large mem_exclusive cpuset to
--hold all the jobs, and construct child, non-mem_exclusive cpusets for
--each individual job.  Only a small amount of typical kernel memory,
--such as requests from interrupt handlers, is allowed to be taken
--outside even a mem_exclusive cpuset.
-+A cpuset that is mem_exclusive *or* mem_hardwall is "hardwalled",
-+i.e. it restricts kernel allocations for page, buffer and other data
-+commonly shared by the kernel across multiple users.  All cpusets,
-+whether hardwalled or not, restrict allocations of memory for user
-+space.  This enables configuring a system so that several independent
-+jobs can share common kernel data, such as file system pages, while
-+isolating each job's user allocation in its own cpuset.  To do this,
-+construct a large mem_exclusive cpuset to hold all the jobs, and
-+construct child, non-mem_exclusive cpusets for each individual job.
-+Only a small amount of typical kernel memory, such as requests from
-+interrupt handlers, is allowed to be taken outside even a
-+mem_exclusive cpuset.
- 
- 
- 1.5 What is memory_pressure ?
-@@ -707,7 +709,7 @@ Now you want to do something with this c
- 
- In this directory you can find several files:
- # ls
--cpus  cpu_exclusive  mems  mem_exclusive  tasks
-+cpus  cpu_exclusive  mems  mem_exclusive mem_hardwall  tasks
- 
- Reading them will give you information about the state of this cpuset:
- the CPUs and Memory Nodes it can use, the processes that are using
-diff -puN kernel/cpuset.c~cpuset-hardwall-flag-add-a-mem_hardwall-flag-to-cpusets kernel/cpuset.c
---- a/kernel/cpuset.c~cpuset-hardwall-flag-add-a-mem_hardwall-flag-to-cpusets
-+++ a/kernel/cpuset.c
-@@ -127,6 +127,7 @@ struct cpuset_hotplug_scanner {
- typedef enum {
- 	CS_CPU_EXCLUSIVE,
- 	CS_MEM_EXCLUSIVE,
-+	CS_MEM_HARDWALL,
- 	CS_MEMORY_MIGRATE,
- 	CS_SCHED_LOAD_BALANCE,
- 	CS_SPREAD_PAGE,
-@@ -144,6 +145,11 @@ static inline int is_mem_exclusive(const
- 	return test_bit(CS_MEM_EXCLUSIVE, &cs->flags);
- }
- 
-+static inline int is_mem_hardwall(const struct cpuset *cs)
-+{
-+	return test_bit(CS_MEM_HARDWALL, &cs->flags);
-+}
-+
- static inline int is_sched_load_balance(const struct cpuset *cs)
- {
- 	return test_bit(CS_SCHED_LOAD_BALANCE, &cs->flags);
-@@ -1042,12 +1048,9 @@ static int update_relax_domain_level(str
- 
- /*
-  * update_flag - read a 0 or a 1 in a file and update associated flag
-- * bit:	the bit to update (CS_CPU_EXCLUSIVE, CS_MEM_EXCLUSIVE,
-- *				CS_SCHED_LOAD_BALANCE,
-- *				CS_NOTIFY_ON_RELEASE, CS_MEMORY_MIGRATE,
-- *				CS_SPREAD_PAGE, CS_SPREAD_SLAB)
-- * cs:	the cpuset to update
-- * buf:	the buffer where we read the 0 or 1
-+ * bit:		the bit to update (see cpuset_flagbits_t)
-+ * cs:		the cpuset to update
-+ * turning_on: 	whether the flag is being set or cleared
+diff -puN kernel/workqueue.c~workqueues-shrink-cpu_populated_map-when-cpu-dies kernel/workqueue.c
+--- a/kernel/workqueue.c~workqueues-shrink-cpu_populated_map-when-cpu-dies
++++ a/kernel/workqueue.c
+@@ -158,8 +158,8 @@ static void __queue_work(struct cpu_work
   *
-  * Call with cgroup_mutex held.
+  * Returns 0 if @work was already on a queue, non-zero otherwise.
+  *
+- * We queue the work to the CPU it was submitted, but there is no
+- * guarantee that it will be processed by that CPU.
++ * We queue the work to the CPU on which it was submitted, but if the CPU dies
++ * it can be processed by another CPU.
   */
-@@ -1228,6 +1231,7 @@ typedef enum {
- 	FILE_MEMLIST,
- 	FILE_CPU_EXCLUSIVE,
- 	FILE_MEM_EXCLUSIVE,
-+	FILE_MEM_HARDWALL,
- 	FILE_SCHED_LOAD_BALANCE,
- 	FILE_SCHED_RELAX_DOMAIN_LEVEL,
- 	FILE_MEMORY_PRESSURE_ENABLED,
-@@ -1312,6 +1316,9 @@ static int cpuset_write_u64(struct cgrou
- 	case FILE_MEM_EXCLUSIVE:
- 		retval = update_flag(CS_MEM_EXCLUSIVE, cs, val);
- 		break;
-+	case FILE_MEM_HARDWALL:
-+		retval = update_flag(CS_MEM_HARDWALL, cs, val);
-+		break;
- 	case FILE_SCHED_LOAD_BALANCE:
- 		retval = update_flag(CS_SCHED_LOAD_BALANCE, cs, val);
- 		break;
-@@ -1422,6 +1429,8 @@ static u64 cpuset_read_u64(struct cgroup
- 		return is_cpu_exclusive(cs);
- 	case FILE_MEM_EXCLUSIVE:
- 		return is_mem_exclusive(cs);
-+	case FILE_MEM_HARDWALL:
-+		return is_mem_hardwall(cs);
- 	case FILE_SCHED_LOAD_BALANCE:
- 		return is_sched_load_balance(cs);
- 	case FILE_MEMORY_MIGRATE:
-@@ -1474,6 +1483,13 @@ static struct cftype files[] = {
- 	},
- 
- 	{
-+		.name = "mem_hardwall",
-+		.read_u64 = cpuset_read_u64,
-+		.write_u64 = cpuset_write_u64,
-+		.private = FILE_MEM_HARDWALL,
-+	},
-+
-+	{
- 		.name = "sched_load_balance",
- 		.read_u64 = cpuset_read_u64,
- 		.write_u64 = cpuset_write_u64,
-@@ -1962,14 +1978,14 @@ int cpuset_nodemask_valid_mems_allowed(n
- }
- 
- /*
-- * nearest_exclusive_ancestor() - Returns the nearest mem_exclusive
-- * ancestor to the specified cpuset.  Call holding callback_mutex.
-- * If no ancestor is mem_exclusive (an unusual configuration), then
-- * returns the root cpuset.
-+ * nearest_hardwall_ancestor() - Returns the nearest mem_exclusive or
-+ * mem_hardwall ancestor to the specified cpuset.  Call holding
-+ * callback_mutex.  If no ancestor is mem_exclusive or mem_hardwall
-+ * (an unusual configuration), then returns the root cpuset.
-  */
--static const struct cpuset *nearest_exclusive_ancestor(const struct cpuset *cs)
-+static const struct cpuset *nearest_hardwall_ancestor(const struct cpuset *cs)
+ int queue_work(struct workqueue_struct *wq, struct work_struct *work)
  {
--	while (!is_mem_exclusive(cs) && cs->parent)
-+	while (!(is_mem_exclusive(cs) || is_mem_hardwall(cs)) && cs->parent)
- 		cs = cs->parent;
- 	return cs;
+@@ -815,12 +815,12 @@ void destroy_workqueue(struct workqueue_
+ 	spin_lock(&workqueue_lock);
+ 	list_del(&wq->list);
+ 	spin_unlock(&workqueue_lock);
+-	put_online_cpus();
+ 
+ 	for_each_cpu_mask(cpu, *cpu_map) {
+ 		cwq = per_cpu_ptr(wq->cpu_wq, cpu);
+ 		cleanup_workqueue_thread(cwq, cpu);
+ 	}
++	put_online_cpus();
+ 
+ 	free_percpu(wq->cpu_wq);
+ 	kfree(wq);
+@@ -838,7 +838,6 @@ static int __devinit workqueue_cpu_callb
+ 	action &= ~CPU_TASKS_FROZEN;
+ 
+ 	switch (action) {
+-
+ 	case CPU_UP_PREPARE:
+ 		cpu_set(cpu, cpu_populated_map);
+ 	}
+@@ -866,6 +865,12 @@ static int __devinit workqueue_cpu_callb
+ 		}
+ 	}
+ 
++	switch (action) {
++	case CPU_UP_CANCELED:
++	case CPU_DEAD:
++		cpu_clear(cpu, cpu_populated_map);
++	}
++
+ 	return NOTIFY_OK;
  }
-@@ -1983,7 +1999,7 @@ static const struct cpuset *nearest_excl
-  * __GFP_THISNODE is set, yes, we can always allocate.  If zone
-  * z's node is in our tasks mems_allowed, yes.  If it's not a
-  * __GFP_HARDWALL request and this zone's nodes is in the nearest
-- * mem_exclusive cpuset ancestor to this tasks cpuset, yes.
-+ * hardwalled cpuset ancestor to this tasks cpuset, yes.
-  * If the task has been OOM killed and has access to memory reserves
-  * as specified by the TIF_MEMDIE flag, yes.
-  * Otherwise, no.
-@@ -2006,7 +2022,7 @@ static const struct cpuset *nearest_excl
-  * and do not allow allocations outside the current tasks cpuset
-  * unless the task has been OOM killed as is marked TIF_MEMDIE.
-  * GFP_KERNEL allocations are not so marked, so can escape to the
-- * nearest enclosing mem_exclusive ancestor cpuset.
-+ * nearest enclosing hardwalled ancestor cpuset.
-  *
-  * Scanning up parent cpusets requires callback_mutex.  The
-  * __alloc_pages() routine only calls here with __GFP_HARDWALL bit
-@@ -2029,7 +2045,7 @@ static const struct cpuset *nearest_excl
-  *	in_interrupt - any node ok (current task context irrelevant)
-  *	GFP_ATOMIC   - any node ok
-  *	TIF_MEMDIE   - any node ok
-- *	GFP_KERNEL   - any node in enclosing mem_exclusive cpuset ok
-+ *	GFP_KERNEL   - any node in enclosing hardwalled cpuset ok
-  *	GFP_USER     - only nodes in current tasks mems allowed ok.
-  *
-  * Rule:
-@@ -2066,7 +2082,7 @@ int __cpuset_zone_allowed_softwall(struc
- 	mutex_lock(&callback_mutex);
  
- 	task_lock(current);
--	cs = nearest_exclusive_ancestor(task_cs(current));
-+	cs = nearest_hardwall_ancestor(task_cs(current));
- 	task_unlock(current);
- 
- 	allowed = node_isset(node, cs->mems_allowed);
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-disable-the-memory-controller-by-default-v3.patch
-add-a-refcount-check-in-dput.patch
+git-s390.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
+kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
+handle_stop_signal-unify-partial-full-stop-handling.patch
+handle_stop_signal-use-the-cached-p-signal-value.patch
+get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
+signals-send_sigqueue-dont-take-rcu-lock.patch
+signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
+signals-__group_complete_signal-cache-the-value-of-p-signal.patch
+signals-send_group_sigqueue-dont-take-tasklist_lock.patch
+signals-move-handle_stop_signal-into-send_signal.patch
+signals-do_tkill-dont-use-tasklist_lock.patch
+signals-do_tkill-dont-use-tasklist_lock-comment.patch
+signals-send_sig_info-dont-take-tasklist_lock.patch
+signals-microoptimize-the-usage-of-curr_target.patch
+signals-move-the-definition-of-__group_complete_signal-up.patch
+signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+signals-join-send_sigqueue-with-send_group_sigqueue.patch
+signals-handle_stop_signal-dont-worry-about-sigkill.patch
+signals-cleanup-the-usage-of-print_fatal_signal.patch
+signals-fold-sig_ignored-into-handle_stop_signal.patch
+signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
+signals-document-cld_continued-notification-mechanics.patch
+signals-document-cld_continued-notification-mechanics-more.patch
+signals-send_signal-be-paranoid-about-signalfd_notify.patch
+signals-check_kill_permission-check-session-under-tasklist_lock.patch
+signals-check_kill_permission-remove-tasklist_lock.patch
+signals-fix-sbin-init-protection-from-unwanted-signals.patch
+signals-de_thread-simplify-the-child_reaper-switching.patch
+signals-allow-the-kernel-to-actually-kill-sbin-init.patch
+signals-add-set_restore_sigmask.patch
+signals-set_restore_sigmask-tif_sigpending.patch
+signals-s390-renumber-tif_restore_sigmask.patch
+signals-ia64-renumber-tif_restore_sigmask.patch
+signals-use-have_set_restore_sigmask.patch
+signals-x86-ts_restore_sigmask.patch
+posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
+ptrace-introduce-task_detached-helper.patch
+reparent_thread-use-same_thread_group.patch
+document-de_thread-with-exit_notify-connection.patch
+ptrace-introduce-ptrace_reparented-helper.patch
+ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
+ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
+ptrace-allow-to-ptrace-sbin-init.patch
+workqueue-remove-redundant-function-invocation.patch
+redo-locking-of-tty-pgrp.patch
+resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
+tty_io-fix-remaining-pid-struct-locking.patch
+tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
+pids-introduce-change_pid-helper.patch
+pids-sys_setpgid-use-change_pid-helper.patch
+pids-__set_special_pids-use-change_pid-helper.patch
+pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
+pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
