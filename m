@@ -1,137 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - misc-phantom-add-compat-ioctl.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:40:11 -0700
-Message-ID: <200804300540.m3U5eBTF028938@imap1.linux-foundation.org>
+Subject: - misc-phantom-fix-poll.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:40:13 -0700
+Message-ID: <200804300540.m3U5eDGx028941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60989 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754559AbYD3FkN (ORCPT
+	by vger.kernel.org with ESMTP id S1753901AbYD3FkQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:40:13 -0400
+	Wed, 30 Apr 2008 01:40:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Misc: phantom, add compat ioctl
+     Misc, phantom, fix poll
 has been removed from the -mm tree.  Its filename was
-     misc-phantom-add-compat-ioctl.patch
+     misc-phantom-fix-poll.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Misc: phantom, add compat ioctl
+Subject: Misc, phantom, fix poll
 From: Jiri Slaby <jirislaby@gmail.com>
 
-Openhaptics uses pointers in _IOC() macros, implement compat for them. Also
-add _IOC alternatives which are not 32/64 bit dependent (structures
-passed through aren't yet) -- libphantom will use them.
+Return ERR even if there are pending data, but hw is not running.  Do not
+decrement count in poll, do it in ioctl, where data are actually read.
 
-[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/phantom.c  |   24 ++++++++++++++++++++----
- include/linux/phantom.h |    5 ++++-
- 2 files changed, 24 insertions(+), 5 deletions(-)
+ drivers/misc/phantom.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/misc/phantom.c~misc-phantom-add-compat-ioctl drivers/misc/phantom.c
---- a/drivers/misc/phantom.c~misc-phantom-add-compat-ioctl
+diff -puN drivers/misc/phantom.c~misc-phantom-fix-poll drivers/misc/phantom.c
+--- a/drivers/misc/phantom.c~misc-phantom-fix-poll
 +++ a/drivers/misc/phantom.c
-@@ -12,6 +12,7 @@
-  *  or alternatively, you might use OpenHaptics provided by Sensable.
-  */
- 
-+#include <linux/compat.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/device.h>
-@@ -91,11 +92,8 @@ static long phantom_ioctl(struct file *f
- 	unsigned long flags;
- 	unsigned int i;
- 
--	if (_IOC_TYPE(cmd) != PH_IOC_MAGIC ||
--			_IOC_NR(cmd) > PH_IOC_MAXNR)
--		return -ENOTTY;
--
- 	switch (cmd) {
-+	case PHN_SETREG:
- 	case PHN_SET_REG:
- 		if (copy_from_user(&r, argp, sizeof(r)))
- 			return -EFAULT;
-@@ -126,6 +124,7 @@ static long phantom_ioctl(struct file *f
- 			phantom_status(dev, dev->status & ~PHB_RUNNING);
+@@ -169,6 +169,7 @@ static long phantom_ioctl(struct file *f
+ 		for (i = 0; i < m; i++)
+ 			if (rs.mask & BIT(i))
+ 				rs.values[i] = ioread32(dev->iaddr + i);
++		atomic_set(&dev->counter, 0);
  		spin_unlock_irqrestore(&dev->regs_lock, flags);
- 		break;
-+	case PHN_SETREGS:
- 	case PHN_SET_REGS:
- 		if (copy_from_user(&rs, argp, sizeof(rs)))
- 			return -EFAULT;
-@@ -143,6 +142,7 @@ static long phantom_ioctl(struct file *f
- 		}
- 		spin_unlock_irqrestore(&dev->regs_lock, flags);
- 		break;
-+	case PHN_GETREG:
- 	case PHN_GET_REG:
- 		if (copy_from_user(&r, argp, sizeof(r)))
- 			return -EFAULT;
-@@ -155,6 +155,7 @@ static long phantom_ioctl(struct file *f
- 		if (copy_to_user(argp, &r, sizeof(r)))
- 			return -EFAULT;
- 		break;
-+	case PHN_GETREGS:
- 	case PHN_GET_REGS: {
- 		u32 m;
  
-@@ -191,6 +192,20 @@ static long phantom_ioctl(struct file *f
- 	return 0;
- }
+ 		if (copy_to_user(argp, &rs, sizeof(rs)))
+@@ -254,11 +255,12 @@ static unsigned int phantom_poll(struct 
  
-+#ifdef CONFIG_COMPAT
-+static long phantom_compat_ioctl(struct file *filp, unsigned int cmd,
-+		unsigned long arg)
-+{
-+	if (_IOC_NR(cmd) <= 3 && _IOC_SIZE(cmd) == sizeof(compat_uptr_t)) {
-+		cmd &= ~(_IOC_SIZEMASK << _IOC_SIZESHIFT);
-+		cmd |= sizeof(void *) << _IOC_SIZESHIFT;
-+	}
-+	return phantom_ioctl(filp, cmd, (unsigned long)compat_ptr(arg));
-+}
-+#else
-+#define phantom_compat_ioctl NULL
-+#endif
+ 	pr_debug("phantom_poll: %d\n", atomic_read(&dev->counter));
+ 	poll_wait(file, &dev->wait, wait);
+-	if (atomic_read(&dev->counter)) {
 +
- static int phantom_open(struct inode *inode, struct file *file)
- {
- 	struct phantom_device *dev = container_of(inode->i_cdev,
-@@ -253,6 +268,7 @@ static struct file_operations phantom_fi
- 	.open = phantom_open,
- 	.release = phantom_release,
- 	.unlocked_ioctl = phantom_ioctl,
-+	.compat_ioctl = phantom_compat_ioctl,
- 	.poll = phantom_poll,
- };
++	if (!(dev->status & PHB_RUNNING))
++		mask = POLLERR;
++	else if (atomic_read(&dev->counter))
+ 		mask = POLLIN | POLLRDNORM;
+-		atomic_dec(&dev->counter);
+-	} else if ((dev->status & PHB_RUNNING) == 0)
+-		mask = POLLIN | POLLRDNORM | POLLERR;
++
+ 	pr_debug("phantom_poll end: %x/%d\n", mask, atomic_read(&dev->counter));
  
-diff -puN include/linux/phantom.h~misc-phantom-add-compat-ioctl include/linux/phantom.h
---- a/include/linux/phantom.h~misc-phantom-add-compat-ioctl
-+++ a/include/linux/phantom.h
-@@ -34,7 +34,10 @@ struct phm_regs {
-  * use improved registers update (no more phantom switchoffs when using
-  * libphantom) */
- #define PHN_NOT_OH		_IO  (PH_IOC_MAGIC, 4)
--#define PH_IOC_MAXNR		4
-+#define PHN_GETREG		_IOWR(PH_IOC_MAGIC, 5, struct phm_reg)
-+#define PHN_SETREG		_IOW(PH_IOC_MAGIC, 6, struct phm_reg)
-+#define PHN_GETREGS		_IOWR(PH_IOC_MAGIC, 7, struct phm_regs)
-+#define PHN_SETREGS		_IOW(PH_IOC_MAGIC, 8, struct phm_regs)
- 
- #define PHN_CONTROL		0x6     /* control byte in iaddr space */
- #define PHN_CTL_AMP		0x1     /*   switch after torques change */
+ 	return mask;
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
