@@ -1,236 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: - iomap-fix-64-bits-resources-on-32-bits.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:40:04 -0700
-Message-ID: <200804300540.m3U5e4xM028929__16144.5988379002$1209534085$gmane$org@imap1.linux-foundation.org>
+Subject: - fs-aioc-make-3-functions-static.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:39:30 -0700
+Message-ID: <200804300539.m3U5dUEZ028852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42781 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46227 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754255AbYD3FkH (ORCPT
+	by vger.kernel.org with ESMTP id S1754426AbYD3FkH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 30 Apr 2008 01:40:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benh@kernel.crashing.org, linux-arch@vger.kernel.org, mm-commits@vger.kernel.org
+To: bunk@kernel.org, bcrl@kvack.org, pbadari@us.ibm.com, zach.brown@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     iomap: fix 64 bits resources on 32 bits
+     fs/aio.c: make 3 functions static
 has been removed from the -mm tree.  Its filename was
-     iomap-fix-64-bits-resources-on-32-bits.patch
+     fs-aioc-make-3-functions-static.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: iomap: fix 64 bits resources on 32 bits
-From: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Subject: fs/aio.c: make 3 functions static
+From: Adrian Bunk <bunk@kernel.org>
 
-Almost all implementations of pci_iomap() in the kernel, including the generic
-lib/iomap.c one, copies the content of a struct resource into unsigned long's
-which will break on 32 bits platforms with 64 bits resources.
+Make the following needlessly global functions static:
 
-This fixes all definitions of pci_iomap() to use resource_size_t.  I also
-"fixed" the 64bits arch for consistency.
+- __put_ioctx()
+- lookup_ioctx()
+- io_submit_one()
 
-Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: <linux-arch@vger.kernel.org>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: Zach Brown <zach.brown@oracle.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/pci.c               |    4 ++--
- arch/arm/mm/iomap.c                   |    4 ++--
- arch/frv/mb93090-mb00/pci-iomap.c     |    4 ++--
- arch/mips/lib/iomap-pci.c             |    4 ++--
- arch/mn10300/unit-asb2305/pci-iomap.c |    4 ++--
- arch/parisc/lib/iomap.c               |    4 ++--
- arch/ppc/kernel/pci.c                 |    4 ++--
- arch/sh/drivers/pci/pci.c             |    4 ++--
- arch/sparc/lib/iomap.c                |    4 ++--
- arch/sparc64/lib/iomap.c              |    4 ++--
- arch/v850/kernel/rte_mb_a_pci.c       |    4 ++--
- lib/iomap.c                           |    2 +-
- 12 files changed, 23 insertions(+), 23 deletions(-)
+ fs/aio.c            |   67 ++++++++++++++++++++++++------------------
+ include/linux/aio.h |   19 -----------
+ 2 files changed, 39 insertions(+), 47 deletions(-)
 
-diff -puN arch/alpha/kernel/pci.c~iomap-fix-64-bits-resources-on-32-bits arch/alpha/kernel/pci.c
---- a/arch/alpha/kernel/pci.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/alpha/kernel/pci.c
-@@ -514,8 +514,8 @@ sys_pciconfig_iobase(long which, unsigne
+diff -puN fs/aio.c~fs-aioc-make-3-functions-static fs/aio.c
+--- a/fs/aio.c~fs-aioc-make-3-functions-static
++++ a/fs/aio.c
+@@ -191,6 +191,43 @@ static int aio_setup_ring(struct kioctx 
+ 	kunmap_atomic((void *)((unsigned long)__event & PAGE_MASK), km); \
+ } while(0)
  
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
-diff -puN arch/arm/mm/iomap.c~iomap-fix-64-bits-resources-on-32-bits arch/arm/mm/iomap.c
---- a/arch/arm/mm/iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/arm/mm/iomap.c
-@@ -26,8 +26,8 @@ EXPORT_SYMBOL(ioport_unmap);
- #ifdef CONFIG_PCI
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len   = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len   = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
-diff -puN arch/frv/mb93090-mb00/pci-iomap.c~iomap-fix-64-bits-resources-on-32-bits arch/frv/mb93090-mb00/pci-iomap.c
---- a/arch/frv/mb93090-mb00/pci-iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/frv/mb93090-mb00/pci-iomap.c
-@@ -13,8 +13,8 @@
- 
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
-diff -puN arch/mips/lib/iomap-pci.c~iomap-fix-64-bits-resources-on-32-bits arch/mips/lib/iomap-pci.c
---- a/arch/mips/lib/iomap-pci.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/mips/lib/iomap-pci.c
-@@ -45,8 +45,8 @@ static void __iomem *ioport_map_pci(stru
++
++/* __put_ioctx
++ *	Called when the last user of an aio context has gone away,
++ *	and the struct needs to be freed.
++ */
++static void __put_ioctx(struct kioctx *ctx)
++{
++	unsigned nr_events = ctx->max_reqs;
++
++	BUG_ON(ctx->reqs_active);
++
++	cancel_delayed_work(&ctx->wq);
++	cancel_work_sync(&ctx->wq.work);
++	aio_free_ring(ctx);
++	mmdrop(ctx->mm);
++	ctx->mm = NULL;
++	pr_debug("__put_ioctx: freeing %p\n", ctx);
++	kmem_cache_free(kioctx_cachep, ctx);
++
++	if (nr_events) {
++		spin_lock(&aio_nr_lock);
++		BUG_ON(aio_nr - nr_events > aio_nr);
++		aio_nr -= nr_events;
++		spin_unlock(&aio_nr_lock);
++	}
++}
++
++#define get_ioctx(kioctx) do {						\
++	BUG_ON(atomic_read(&(kioctx)->users) <= 0);			\
++	atomic_inc(&(kioctx)->users);					\
++} while (0)
++#define put_ioctx(kioctx) do {						\
++	BUG_ON(atomic_read(&(kioctx)->users) <= 0);			\
++	if (unlikely(atomic_dec_and_test(&(kioctx)->users))) 		\
++		__put_ioctx(kioctx);					\
++} while (0)
++
+ /* ioctx_alloc
+  *	Allocates and initializes an ioctx.  Returns an ERR_PTR if it failed.
   */
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
+@@ -361,32 +398,6 @@ void exit_aio(struct mm_struct *mm)
+ 	}
+ }
  
- 	if (!len || !start)
-diff -puN arch/mn10300/unit-asb2305/pci-iomap.c~iomap-fix-64-bits-resources-on-32-bits arch/mn10300/unit-asb2305/pci-iomap.c
---- a/arch/mn10300/unit-asb2305/pci-iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/mn10300/unit-asb2305/pci-iomap.c
-@@ -16,8 +16,8 @@
+-/* __put_ioctx
+- *	Called when the last user of an aio context has gone away,
+- *	and the struct needs to be freed.
+- */
+-void __put_ioctx(struct kioctx *ctx)
+-{
+-	unsigned nr_events = ctx->max_reqs;
+-
+-	BUG_ON(ctx->reqs_active);
+-
+-	cancel_delayed_work(&ctx->wq);
+-	cancel_work_sync(&ctx->wq.work);
+-	aio_free_ring(ctx);
+-	mmdrop(ctx->mm);
+-	ctx->mm = NULL;
+-	pr_debug("__put_ioctx: freeing %p\n", ctx);
+-	kmem_cache_free(kioctx_cachep, ctx);
+-
+-	if (nr_events) {
+-		spin_lock(&aio_nr_lock);
+-		BUG_ON(aio_nr - nr_events > aio_nr);
+-		aio_nr -= nr_events;
+-		spin_unlock(&aio_nr_lock);
+-	}
+-}
+-
+ /* aio_get_req
+  *	Allocate a slot for an aio request.  Increments the users count
+  * of the kioctx so that the kioctx stays around until all requests are
+@@ -545,7 +556,7 @@ int aio_put_req(struct kiocb *req)
+ /*	Lookup an ioctx id.  ioctx_list is lockless for reads.
+  *	FIXME: this is O(n) and is only suitable for development.
   */
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
+-struct kioctx *lookup_ioctx(unsigned long ctx_id)
++static struct kioctx *lookup_ioctx(unsigned long ctx_id)
  {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
+ 	struct kioctx *ioctx;
+ 	struct mm_struct *mm;
+@@ -1552,7 +1563,7 @@ static int aio_wake_function(wait_queue_
+ 	return 1;
+ }
  
- 	if (!len || !start)
-diff -puN arch/parisc/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits arch/parisc/lib/iomap.c
---- a/arch/parisc/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/parisc/lib/iomap.c
-@@ -438,8 +438,8 @@ void ioport_unmap(void __iomem *addr)
- /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
+-int io_submit_one(struct kioctx *ctx, struct iocb __user *user_iocb,
++static int io_submit_one(struct kioctx *ctx, struct iocb __user *user_iocb,
+ 			 struct iocb *iocb)
  {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
+ 	struct kiocb *req;
+diff -puN include/linux/aio.h~fs-aioc-make-3-functions-static include/linux/aio.h
+--- a/include/linux/aio.h~fs-aioc-make-3-functions-static
++++ a/include/linux/aio.h
+@@ -209,27 +209,8 @@ extern ssize_t wait_on_sync_kiocb(struct
+ extern int aio_put_req(struct kiocb *iocb);
+ extern void kick_iocb(struct kiocb *iocb);
+ extern int aio_complete(struct kiocb *iocb, long res, long res2);
+-extern void __put_ioctx(struct kioctx *ctx);
+ struct mm_struct;
+ extern void exit_aio(struct mm_struct *mm);
+-extern struct kioctx *lookup_ioctx(unsigned long ctx_id);
+-extern int io_submit_one(struct kioctx *ctx, struct iocb __user *user_iocb,
+-			 struct iocb *iocb);
+-
+-/* semi private, but used by the 32bit emulations: */
+-struct kioctx *lookup_ioctx(unsigned long ctx_id);
+-int io_submit_one(struct kioctx *ctx, struct iocb __user *user_iocb,
+-		  struct iocb *iocb);
+-
+-#define get_ioctx(kioctx) do {						\
+-	BUG_ON(atomic_read(&(kioctx)->users) <= 0);			\
+-	atomic_inc(&(kioctx)->users);					\
+-} while (0)
+-#define put_ioctx(kioctx) do {						\
+-	BUG_ON(atomic_read(&(kioctx)->users) <= 0);			\
+-	if (unlikely(atomic_dec_and_test(&(kioctx)->users))) 		\
+-		__put_ioctx(kioctx);					\
+-} while (0)
  
- 	if (!len || !start)
-diff -puN arch/ppc/kernel/pci.c~iomap-fix-64-bits-resources-on-32-bits arch/ppc/kernel/pci.c
---- a/arch/ppc/kernel/pci.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/ppc/kernel/pci.c
-@@ -1121,8 +1121,8 @@ void __init pci_init_resource(struct res
+ #define io_wait_to_kiocb(wait) container_of(wait, struct kiocb, ki_wait)
  
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long max)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len)
-diff -puN arch/sh/drivers/pci/pci.c~iomap-fix-64-bits-resources-on-32-bits arch/sh/drivers/pci/pci.c
---- a/arch/sh/drivers/pci/pci.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/sh/drivers/pci/pci.c
-@@ -191,8 +191,8 @@ void __init pcibios_update_irq(struct pc
- 
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (unlikely(!len || !start))
-diff -puN arch/sparc/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits arch/sparc/lib/iomap.c
---- a/arch/sparc/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/sparc/lib/iomap.c
-@@ -21,8 +21,8 @@ EXPORT_SYMBOL(ioport_unmap);
- /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
-diff -puN arch/sparc64/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits arch/sparc64/lib/iomap.c
---- a/arch/sparc64/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/sparc64/lib/iomap.c
-@@ -21,8 +21,8 @@ EXPORT_SYMBOL(ioport_unmap);
- /* Create a virtual mapping cookie for a PCI BAR (memory or IO) */
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
--	unsigned long start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t start = pci_resource_start(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
-diff -puN arch/v850/kernel/rte_mb_a_pci.c~iomap-fix-64-bits-resources-on-32-bits arch/v850/kernel/rte_mb_a_pci.c
---- a/arch/v850/kernel/rte_mb_a_pci.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/arch/v850/kernel/rte_mb_a_pci.c
-@@ -790,8 +790,8 @@ pci_free_consistent (struct pci_dev *pde
- 
- void __iomem *pci_iomap (struct pci_dev *dev, int bar, unsigned long max)
- {
--	unsigned long start = pci_resource_start (dev, bar);
--	unsigned long len = pci_resource_len (dev, bar);
-+	resource_size_t start = pci_resource_start (dev, bar);
-+	resource_size_t len = pci_resource_len (dev, bar);
- 
- 	if (!start || len == 0)
- 		return 0;
-diff -puN lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits lib/iomap.c
---- a/lib/iomap.c~iomap-fix-64-bits-resources-on-32-bits
-+++ a/lib/iomap.c
-@@ -257,7 +257,7 @@ EXPORT_SYMBOL(ioport_unmap);
- void __iomem *pci_iomap(struct pci_dev *dev, int bar, unsigned long maxlen)
- {
- 	resource_size_t start = pci_resource_start(dev, bar);
--	unsigned long len = pci_resource_len(dev, bar);
-+	resource_size_t len = pci_resource_len(dev, bar);
- 	unsigned long flags = pci_resource_flags(dev, bar);
- 
- 	if (!len || !start)
 _
 
-Patches currently in -mm which might be from benh@kernel.crashing.org are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-macintosh-therm_pm72-driver_lock-semaphore-to-mutex.patch
-macintosh-qindfarm_smu_sat-semaphore-to-mutex.patch
-machintosh-adb-driver-adb_handler_sem-semaphore-to-mutex.patch
-adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
-rtc-class-driver-for-ppc_md-rtc-functions.patch
-rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
-powerpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-asm-futexh-should-include-linux-uaccessh.patch
-basic-braille-screen-reader-support-ppc-fix.patch
+mm-filemapc-generic_write_checks-mustnt-be-inline.patch
+fs-block_devc-i_bdev-mustnt-be-inline.patch
+frv-fix-arch-frv-mm-unalignedo-build-error.patch
+reiserfs-some-functions-mustnt-be-inline.patch
+git-acpi.patch
+git-x86.patch
+arch-x86-video-fbdevc-add-module_license.patch
+md-make-dm_dirty_log_initexit-static.patch
+drm-make-drm_minors_cleanup-static.patch
+git-m32r.patch
+net-ipv4-ip_outputc-ip_send_check-mustnt-be-inline.patch
+nfs-make-nfs4_drop_state_owner-static.patch
+git-ocfs2.patch
+show_schedstat-fix-memleak.patch
+git-sh.patch
+if-0-ses_match_host.patch
+git-watchdog.patch
+xen-drivers-xen-balloonc-make-a-function-static.patch
+make-marker_debug-static.patch
+reiser4.patch
 
