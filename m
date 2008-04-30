@@ -1,189 +1,207 @@
 From: akpm@linux-foundation.org
-Subject: - dma-add-dma_map_attrs-interfaces.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:43:32 -0700
-Message-ID: <200804300543.m3U5hWMC029326@imap1.linux-foundation.org>
+Subject: - ipmi-convert-locked-counters-to-atomics-convert-message-handler-defines-to-an-enum.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:44:43 -0700
+Message-ID: <200804300544.m3U5ihLq029437@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45428 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760144AbYD3GMt (ORCPT
+	by vger.kernel.org with ESMTP id S1759387AbYD3GMl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:12:49 -0400
+	Wed, 30 Apr 2008 02:12:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akepner@sgi.com, James.Bottomley@HansenPartnership.com, benh@kernel.crashing.org, davem@davemloft.net, grundler@parisc-linux.org, jbarnes@virtuousgeek.org, jes@sgi.com, markn@au1.ibm.
+To: cminyard@mvista.com, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dma: add dma_*map*_attrs() interfaces
+     IPMI: convert message handler defines to an enum
 has been removed from the -mm tree.  Its filename was
-     dma-add-dma_map_attrs-interfaces.patch
+     ipmi-convert-locked-counters-to-atomics-convert-message-handler-defines-to-an-enum.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dma: add dma_*map*_attrs() interfaces
-From: Arthur Kepner <akepner@sgi.com>
+Subject: IPMI: convert message handler defines to an enum
+From: Corey Minyard <cminyard@mvista.com>
 
-Introduce new interfaces, dma_*map*_attrs(), for passing architecture-specific
-attributes when memory is mapped and unmapped for DMA.  Give the interfaces
-default implementations which ignore attributes.  Also introduce the
-dma_{set|get}_attr() interfaces for setting and retrieving individual
-attributes.  Define one attribute, DMA_ATTR_WRITE_BARRIER, in anticipation of
-its use by ia64/sn.  Select whether architectures implement arch-specific
-versions of the dma_*map*_attrs() interfaces via HAVE_DMA_ATTRS in Kconfig.
+Convert the #defines for statistics into an enum in the IPMI message
+handler.
 
-[markn@au1.ibm.com: dma_{set,get}_attr() have to be static inline]
-Signed-off-by: Arthur Kepner <akepner@sgi.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
-Cc: Jes Sorensen <jes@sgi.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Roland Dreier <rdreier@cisco.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Grant Grundler <grundler@parisc-linux.org>
-Cc: Michael Ellerman <michael@ellerman.id.au>
-Signed-off-by: Mark Nelson <markn@au1.ibm.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig                |    3 +
- arch/ia64/Kconfig           |    1 
- include/linux/dma-attrs.h   |   74 ++++++++++++++++++++++++++++++++++
- include/linux/dma-mapping.h |   17 +++++++
- 4 files changed, 95 insertions(+)
+ drivers/char/ipmi/ipmi_msghandler.c |  125 +++++++++++++-------------
+ 1 file changed, 67 insertions(+), 58 deletions(-)
 
-diff -puN arch/Kconfig~dma-add-dma_map_attrs-interfaces arch/Kconfig
---- a/arch/Kconfig~dma-add-dma_map_attrs-interfaces
-+++ a/arch/Kconfig
-@@ -36,3 +36,6 @@ config HAVE_KPROBES
+diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-convert-locked-counters-to-atomics-convert-message-handler-defines-to-an-enum drivers/char/ipmi/ipmi_msghandler.c
+--- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-convert-locked-counters-to-atomics-convert-message-handler-defines-to-an-enum
++++ a/drivers/char/ipmi/ipmi_msghandler.c
+@@ -189,90 +189,99 @@ struct bmc_device
+  * Various statistics for IPMI, these index stats[] in the ipmi_smi
+  * structure.
+  */
+-/* Commands we got from the user that were invalid. */
+-#define IPMI_STAT_sent_invalid_commands			0
++enum ipmi_stat_indexes {
++	/* Commands we got from the user that were invalid. */
++	IPMI_STAT_sent_invalid_commands = 0,
  
- config HAVE_KRETPROBES
- 	def_bool n
-+
-+config HAVE_DMA_ATTRS
-+	def_bool n
-diff -puN arch/ia64/Kconfig~dma-add-dma_map_attrs-interfaces arch/ia64/Kconfig
---- a/arch/ia64/Kconfig~dma-add-dma_map_attrs-interfaces
-+++ a/arch/ia64/Kconfig
-@@ -19,6 +19,7 @@ config IA64
- 	select HAVE_OPROFILE
- 	select HAVE_KPROBES
- 	select HAVE_KRETPROBES
-+	select HAVE_DMA_ATTRS
- 	select HAVE_KVM
- 	default y
- 	help
-diff -puN include/linux/dma-attrs.h~dma-add-dma_map_attrs-interfaces include/linux/dma-attrs.h
---- a/include/linux/dma-attrs.h~dma-add-dma_map_attrs-interfaces
-+++ a/include/linux/dma-attrs.h
-@@ -0,0 +1,74 @@
-+#ifndef _DMA_ATTR_H
-+#define _DMA_ATTR_H
-+
-+#include <linux/bitmap.h>
-+#include <linux/bitops.h>
-+#include <linux/bug.h>
-+
-+/**
-+ * an enum dma_attr represents an attribute associated with a DMA
-+ * mapping. The semantics of each attribute should be defined in
-+ * Documentation/DMA-attributes.txt.
-+ */
-+enum dma_attr {
-+	DMA_ATTR_WRITE_BARRIER,
-+	DMA_ATTR_MAX,
-+};
-+
-+#define __DMA_ATTRS_LONGS BITS_TO_LONGS(DMA_ATTR_MAX)
-+
-+/**
-+ * struct dma_attrs - an opaque container for DMA attributes
-+ * @flags - bitmask representing a collection of enum dma_attr
-+ */
-+struct dma_attrs {
-+	unsigned long flags[__DMA_ATTRS_LONGS];
-+};
-+
-+#define DEFINE_DMA_ATTRS(x) 					\
-+	struct dma_attrs x = {					\
-+		.flags = { [0 ... __DMA_ATTRS_LONGS-1] = 0 },	\
-+	}
-+
-+static inline void init_dma_attrs(struct dma_attrs *attrs)
-+{
-+	bitmap_zero(attrs->flags, __DMA_ATTRS_LONGS);
-+}
-+
-+#ifdef CONFIG_HAVE_DMA_ATTRS
-+/**
-+ * dma_set_attr - set a specific attribute
-+ * @attr: attribute to set
-+ * @attrs: struct dma_attrs (may be NULL)
-+ */
-+static inline void dma_set_attr(enum dma_attr attr, struct dma_attrs *attrs)
-+{
-+	if (attrs == NULL)
-+		return;
-+	BUG_ON(attr >= DMA_ATTR_MAX);
-+	__set_bit(attr, attrs->flags);
-+}
-+
-+/**
-+ * dma_get_attr - check for a specific attribute
-+ * @attr: attribute to set
-+ * @attrs: struct dma_attrs (may be NULL)
-+ */
-+static inline int dma_get_attr(enum dma_attr attr, struct dma_attrs *attrs)
-+{
-+	if (attrs == NULL)
-+		return 0;
-+	BUG_ON(attr >= DMA_ATTR_MAX);
-+	return test_bit(attr, attrs->flags);
-+}
-+#else /* !CONFIG_HAVE_DMA_ATTRS */
-+static inline void dma_set_attr(enum dma_attr attr, struct dma_attrs *attrs)
-+{
-+}
-+
-+static inline int dma_get_attr(enum dma_attr attr, struct dma_attrs *attrs)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_HAVE_DMA_ATTRS */
-+#endif /* _DMA_ATTR_H */
-diff -puN include/linux/dma-mapping.h~dma-add-dma_map_attrs-interfaces include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~dma-add-dma_map_attrs-interfaces
-+++ a/include/linux/dma-mapping.h
-@@ -146,4 +146,21 @@ static inline void dmam_release_declared
- }
- #endif /* ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY */
+-/* Commands we sent to the MC. */
+-#define IPMI_STAT_sent_local_commands			1
++	/* Commands we sent to the MC. */
++	IPMI_STAT_sent_local_commands,
  
-+#ifndef CONFIG_HAVE_DMA_ATTRS
-+struct dma_attrs;
+-/* Responses from the MC that were delivered to a user. */
+-#define IPMI_STAT_handled_local_responses		2
++	/* Responses from the MC that were delivered to a user. */
++	IPMI_STAT_handled_local_responses,
+ 
+-/* Responses from the MC that were not delivered to a user. */
+-#define IPMI_STAT_unhandled_local_responses		3
++	/* Responses from the MC that were not delivered to a user. */
++	IPMI_STAT_unhandled_local_responses,
+ 
+-/* Commands we sent out to the IPMB bus. */
+-#define IPMI_STAT_sent_ipmb_commands			4
++	/* Commands we sent out to the IPMB bus. */
++	IPMI_STAT_sent_ipmb_commands,
+ 
+-/* Commands sent on the IPMB that had errors on the SEND CMD */
+-#define IPMI_STAT_sent_ipmb_command_errs		5
++	/* Commands sent on the IPMB that had errors on the SEND CMD */
++	IPMI_STAT_sent_ipmb_command_errs,
+ 
+-/* Each retransmit increments this count. */
+-#define IPMI_STAT_retransmitted_ipmb_commands		6
++	/* Each retransmit increments this count. */
++	IPMI_STAT_retransmitted_ipmb_commands,
+ 
+-/* When a message times out (runs out of retransmits) this is incremented. */
+-#define IPMI_STAT_timed_out_ipmb_commands		7
++	/*
++	 * When a message times out (runs out of retransmits) this is
++	 * incremented.
++	 */
++	IPMI_STAT_timed_out_ipmb_commands,
+ 
+-/*
+- * This is like above, but for broadcasts.  Broadcasts are
+- * *not* included in the above count (they are expected to
+- * time out).
+- */
+-#define IPMI_STAT_timed_out_ipmb_broadcasts		8
++	/*
++	 * This is like above, but for broadcasts.  Broadcasts are
++	 * *not* included in the above count (they are expected to
++	 * time out).
++	 */
++	IPMI_STAT_timed_out_ipmb_broadcasts,
+ 
+-/* Responses I have sent to the IPMB bus. */
+-#define IPMI_STAT_sent_ipmb_responses			9
++	/* Responses I have sent to the IPMB bus. */
++	IPMI_STAT_sent_ipmb_responses,
+ 
+-/* The response was delivered to the user. */
+-#define IPMI_STAT_handled_ipmb_responses		10
++	/* The response was delivered to the user. */
++	IPMI_STAT_handled_ipmb_responses,
+ 
+-/* The response had invalid data in it. */
+-#define IPMI_STAT_invalid_ipmb_responses		11
++	/* The response had invalid data in it. */
++	IPMI_STAT_invalid_ipmb_responses,
+ 
+-/* The response didn't have anyone waiting for it. */
+-#define IPMI_STAT_unhandled_ipmb_responses		12
++	/* The response didn't have anyone waiting for it. */
++	IPMI_STAT_unhandled_ipmb_responses,
+ 
+-/* Commands we sent out to the IPMB bus. */
+-#define IPMI_STAT_sent_lan_commands			13
++	/* Commands we sent out to the IPMB bus. */
++	IPMI_STAT_sent_lan_commands,
+ 
+-/* Commands sent on the IPMB that had errors on the SEND CMD */
+-#define IPMI_STAT_sent_lan_command_errs			14
++	/* Commands sent on the IPMB that had errors on the SEND CMD */
++	IPMI_STAT_sent_lan_command_errs,
+ 
+-/* Each retransmit increments this count. */
+-#define IPMI_STAT_retransmitted_lan_commands		15
++	/* Each retransmit increments this count. */
++	IPMI_STAT_retransmitted_lan_commands,
+ 
+-/* When a message times out (runs out of retransmits) this is incremented. */
+-#define IPMI_STAT_timed_out_lan_commands		16
++	/*
++	 * When a message times out (runs out of retransmits) this is
++	 * incremented.
++	 */
++	IPMI_STAT_timed_out_lan_commands,
+ 
+-/* Responses I have sent to the IPMB bus. */
+-#define IPMI_STAT_sent_lan_responses			17
++	/* Responses I have sent to the IPMB bus. */
++	IPMI_STAT_sent_lan_responses,
+ 
+-/* The response was delivered to the user. */
+-#define IPMI_STAT_handled_lan_responses			18
++	/* The response was delivered to the user. */
++	IPMI_STAT_handled_lan_responses,
+ 
+-/* The response had invalid data in it. */
+-#define IPMI_STAT_invalid_lan_responses			19
++	/* The response had invalid data in it. */
++	IPMI_STAT_invalid_lan_responses,
+ 
+-/* The response didn't have anyone waiting for it. */
+-#define IPMI_STAT_unhandled_lan_responses		20
++	/* The response didn't have anyone waiting for it. */
++	IPMI_STAT_unhandled_lan_responses,
+ 
+-/* The command was delivered to the user. */
+-#define IPMI_STAT_handled_commands			21
++	/* The command was delivered to the user. */
++	IPMI_STAT_handled_commands,
+ 
+-/* The command had invalid data in it. */
+-#define IPMI_STAT_invalid_commands			22
++	/* The command had invalid data in it. */
++	IPMI_STAT_invalid_commands,
+ 
+-/* The command didn't have anyone waiting for it. */
+-#define IPMI_STAT_unhandled_commands			23
++	/* The command didn't have anyone waiting for it. */
++	IPMI_STAT_unhandled_commands,
+ 
+-/* Invalid data in an event. */
+-#define IPMI_STAT_invalid_events			24
++	/* Invalid data in an event. */
++	IPMI_STAT_invalid_events,
+ 
+-/* Events that were received with the proper format. */
+-#define IPMI_STAT_events				25
++	/* Events that were received with the proper format. */
++	IPMI_STAT_events,
+ 
+-/* When you add a statistic, you must update this value. */
+-#define IPMI_NUM_STATS					26
 +
-+#define dma_map_single_attrs(dev, cpu_addr, size, dir, attrs) \
-+	dma_map_single(dev, cpu_addr, size, dir)
-+
-+#define dma_unmap_single_attrs(dev, dma_addr, size, dir, attrs) \
-+	dma_unmap_single(dev, dma_addr, size, dir)
-+
-+#define dma_map_sg_attrs(dev, sgl, nents, dir, attrs) \
-+	dma_map_sg(dev, sgl, nents, dir)
-+
-+#define dma_unmap_sg_attrs(dev, sgl, nents, dir, attrs) \
-+	dma_unmap_sg(dev, sgl, nents, dir)
-+
-+#endif /* CONFIG_HAVE_DMA_ATTRS */
-+
- #endif
++	/* This *must* remain last, add new values above this. */
++	IPMI_NUM_STATS
++};
+ 
+ 
+ #define IPMI_IPMB_NUM_SEQ	64
 _
 
-Patches currently in -mm which might be from akepner@sgi.com are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
 origin.patch
 
