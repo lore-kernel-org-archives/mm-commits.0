@@ -1,540 +1,656 @@
 From: akpm@linux-foundation.org
-Subject: - rapidio-add-the-memory-mapping-support-in-rionet-driver.patch removed from -mm tree
-Date: Wed, 30 Apr 2008 15:25:33 -0700
-Message-ID: <200804302225.m3UMPX1T006700@imap1.linux-foundation.org>
+Subject: + spi_mpc83xx-much-improved-driver.patch added to -mm tree
+Date: Wed, 30 Apr 2008 15:46:37 -0700
+Message-ID: <200804302246.m3UMkbhV007702@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59468 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55229 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934344AbYD3W2q (ORCPT
+	by vger.kernel.org with ESMTP id S1755935AbYD3WrA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 18:28:46 -0400
+	Wed, 30 Apr 2008 18:47:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wei.zhang@freescale.com, galak@gate.crashing.org, jeff@garzik.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: Joakim.Tjernlund@transmode.se, 12o3l@tiscali.nl, dbrownell@users.sourceforge.net
 
 
 The patch titled
-     rapidio: add the memory mapping support in rionet driver
-has been removed from the -mm tree.  Its filename was
-     rapidio-add-the-memory-mapping-support-in-rionet-driver.patch
+     spi_mpc83xx: much improved driver
+has been added to the -mm tree.  Its filename is
+     spi_mpc83xx-much-improved-driver.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: add the memory mapping support in rionet driver
-From: Zhang Wei <wei.zhang@freescale.com>
+Subject: spi_mpc83xx: much improved driver
+From: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
 
-The user can select memory mapping mode or message mode in CONFIG.  It is also
-an example to how-to use memory mapping driver for RapidIO.
+The current driver may cause glitches on SPI CLK line since one must disable
+the SPI controller before changing any HW settings.  Fix this by implementing
+a local spi_transfer function that won't change speed and/or word size while
+CS is active.
 
-Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
+While doing that heavy lifting a few other issues were addressed too:
+ - Make word size 16 and 32 work too.
+ - Honor bits_per_word and speed_hz in spi transaction.
+ - Optimize the common path.
+
+This also stops using the "bitbang" framework (except for a few constants).
+
+[Roel Kluin <12o3l@tiscali.nl>: "irq" needs to be signed]
+Signed-off-by: Joakim Tjernlund <Joakim.Tjernlund@transmode.se>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/Kconfig  |   10 +
- drivers/net/rionet.c |  324 +++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 334 insertions(+)
+ drivers/spi/Kconfig       |    1 
+ drivers/spi/spi_mpc83xx.c |  409 ++++++++++++++++++++++++------------
+ 2 files changed, 281 insertions(+), 129 deletions(-)
 
-diff -puN drivers/net/Kconfig~rapidio-add-the-memory-mapping-support-in-rionet-driver drivers/net/Kconfig
---- a/drivers/net/Kconfig~rapidio-add-the-memory-mapping-support-in-rionet-driver
-+++ a/drivers/net/Kconfig
-@@ -2719,6 +2719,16 @@ config RIONET_RX_SIZE
- 	depends on RIONET
- 	default "128"
+diff -puN drivers/spi/Kconfig~spi_mpc83xx-much-improved-driver drivers/spi/Kconfig
+--- a/drivers/spi/Kconfig~spi_mpc83xx-much-improved-driver
++++ a/drivers/spi/Kconfig
+@@ -126,7 +126,6 @@ config SPI_MPC52xx_PSC
+ config SPI_MPC83xx
+ 	tristate "Freescale MPC83xx/QUICC Engine SPI controller"
+ 	depends on SPI_MASTER && (PPC_83xx || QUICC_ENGINE) && EXPERIMENTAL
+-	select SPI_BITBANG
+ 	help
+ 	  This enables using the Freescale MPC83xx and QUICC Engine SPI
+ 	  controllers in master mode.
+diff -puN drivers/spi/spi_mpc83xx.c~spi_mpc83xx-much-improved-driver drivers/spi/spi_mpc83xx.c
+--- a/drivers/spi/spi_mpc83xx.c~spi_mpc83xx-much-improved-driver
++++ a/drivers/spi/spi_mpc83xx.c
+@@ -49,6 +49,7 @@ struct mpc83xx_spi_reg {
+ #define	SPMODE_LEN(x)		((x) << 20)
+ #define	SPMODE_PM(x)		((x) << 16)
+ #define	SPMODE_OP		(1 << 14)
++#define	SPMODE_CG(x)		((x) << 7)
  
-+config RIONET_MEMMAP
-+	bool "Use memory map instead of message"
-+	depends on RIONET
-+	default n
-+
-+config RIONET_DMA
-+	bool "Use DMA for memory mapping data transfer"
-+	depends on RIONET_MEMMAP && FSL_DMA
-+	default y
-+
- config FDDI
- 	bool "FDDI driver support"
- 	depends on (PCI || EISA || TC)
-diff -puN drivers/net/rionet.c~rapidio-add-the-memory-mapping-support-in-rionet-driver drivers/net/rionet.c
---- a/drivers/net/rionet.c~rapidio-add-the-memory-mapping-support-in-rionet-driver
-+++ a/drivers/net/rionet.c
-@@ -1,6 +1,13 @@
  /*
-  * rionet - Ethernet driver over RapidIO messaging services
-  *
-+ * Copyright (C) 2007 Freescale Semiconductor, Inc. All rights reserved.
-+ * Author: Zhang Wei, wei.zhang@freescale.com, Jun 2007
-+ *
-+ * Changelog:
-+ * Jun 2007 Zhang Wei <wei.zhang@freescale.com>
-+ * - Added the support to RapidIO memory driver. 2007.
-+ *
-  * Copyright 2005 MontaVista Software, Inc.
-  * Matt Porter <mporter@kernel.crashing.org>
-  *
-@@ -8,6 +15,7 @@
-  * under  the terms of  the GNU General  Public License as published by the
-  * Free Software Foundation;  either version 2 of the  License, or (at your
-  * option) any later version.
-+ *
-  */
+  * Default for SPI Mode:
+@@ -67,10 +68,6 @@ struct mpc83xx_spi_reg {
  
- #include <linux/module.h>
-@@ -23,6 +31,7 @@
- #include <linux/skbuff.h>
- #include <linux/crc32.h>
- #include <linux/ethtool.h>
-+#include <linux/dmaengine.h>
+ /* SPI Controller driver's private data. */
+ struct mpc83xx_spi {
+-	/* bitbang has to be first */
+-	struct spi_bitbang bitbang;
+-	struct completion done;
+-
+ 	struct mpc83xx_spi_reg __iomem *base;
  
- #define DRV_NAME        "rionet"
- #define DRV_VERSION     "0.2"
-@@ -40,13 +49,47 @@ MODULE_LICENSE("GPL");
- 			 NETIF_MSG_TX_ERR)
+ 	/* rx & tx bufs from the spi_transfer */
+@@ -82,7 +79,7 @@ struct mpc83xx_spi {
+ 	u32(*get_tx) (struct mpc83xx_spi *);
  
- #define RIONET_DOORBELL_JOIN	0x1000
-+#ifdef CONFIG_RIONET_MEMMAP
-+#define RIONET_DOORBELL_SEND	0x1001
-+#define RIONET_DOORBELL_LEAVE	0x1002
-+#else
- #define RIONET_DOORBELL_LEAVE	0x1001
-+#endif
+ 	unsigned int count;
+-	u32 irq;
++	int irq;
  
- #define RIONET_MAILBOX		0
+ 	unsigned nsecs;		/* (clock cycle time)/2 */
  
- #define RIONET_TX_RING_SIZE	CONFIG_RIONET_TX_SIZE
- #define RIONET_RX_RING_SIZE	CONFIG_RIONET_RX_SIZE
+@@ -94,6 +91,25 @@ struct mpc83xx_spi {
  
-+#define ERR(fmt, arg...) \
-+	printk(KERN_ERR "ERROR %s - %s: " fmt,  __FILE__, __func__, ## arg)
+ 	void (*activate_cs) (u8 cs, u8 polarity);
+ 	void (*deactivate_cs) (u8 cs, u8 polarity);
 +
-+#ifdef CONFIG_RIONET_MEMMAP
-+/* Definitions for rionet memory map driver */
-+#define RIONET_DRVID		0x101
-+#define RIONET_MAX_SK_DATA_SIZE	0x1000
-+#define RIONET_TX_RX_BUFF_SIZE	(0x1000 * (128 + 128))
-+#define RIONET_QUEUE_NEXT(x)	(((x) < 127) ? ((x) + 1) : 0)
-+#define RIONET_QUEUE_INC(x)	(x = RIONET_QUEUE_NEXT(x))
++	u8 busy;
 +
-+struct sk_data {
-+	u8	data[0x1000];
++	struct workqueue_struct *workqueue;
++	struct work_struct work;
++
++	struct list_head queue;
++	spinlock_t lock;
++
++	struct completion done;
 +};
 +
-+#define RIONET_SKDATA_EN	0x80000000
-+struct rionet_tx_rx_buff {
-+	int		enqueue;		/* enqueue point */
-+	int		dequeue;		/* dequeue point */
-+	u32		size[128];		/* size[i] is skdata[i] size
-+						 * the most high bit [31] is
-+						 * enable bit. The
-+						 * max size is 4096.
-+						 */
-+	u8		rev1[3576];
-+	struct sk_data	skdata[128];		/* all size are 0x1000 * 128 */
-+};
-+#endif /* CONFIG_RIONET_MEMMAP */
-+
- static LIST_HEAD(rionet_peers);
- 
- struct rionet_private {
-@@ -60,6 +103,18 @@ struct rionet_private {
- 	spinlock_t lock;
- 	spinlock_t tx_lock;
- 	u32 msg_enable;
-+#ifdef CONFIG_RIONET_MEMMAP
-+	struct rionet_tx_rx_buff *rxbuff;
-+	struct rionet_tx_rx_buff __iomem *txbuff;
-+	struct rio_mem *rxmem;
-+	struct rio_mem *txmem;
-+#ifdef CONFIG_RIONET_DMA
-+	struct dma_chan *txdmachan;
-+	struct dma_chan *rxdmachan;
-+	struct dma_client rio_dma_client;
-+	spinlock_t rio_dma_event_lock;
-+#endif
-+#endif
++struct spi_mpc83xx_cs {
++	/* functions to deal with different sized buffers */
++	void (*get_rx) (u32 rx_data, struct mpc83xx_spi *);
++	u32 (*get_tx) (struct mpc83xx_spi *);
++	u32 rx_shift;		/* RX data reg shift when in qe mode */
++	u32 tx_shift;		/* TX data reg shift when in qe mode */
++	u32 hw_mode;		/* Holds HW mode register settings */
  };
  
- struct rionet_peer {
-@@ -90,6 +145,7 @@ static struct rio_dev **rionet_active;
- #define RIONET_MAC_MATCH(x)	(*(u32 *)x == 0x00010001)
- #define RIONET_GET_DESTID(x)	(*(u16 *)(x + 4))
- 
-+#ifndef CONFIG_RIONET_MEMMAP
- static int rionet_rx_clean(struct net_device *ndev)
+ static inline void mpc83xx_spi_write_reg(__be32 __iomem * reg, u32 val)
+@@ -137,6 +153,7 @@ static void mpc83xx_spi_chipselect(struc
  {
- 	int i;
-@@ -108,9 +164,11 @@ static int rionet_rx_clean(struct net_de
+ 	struct mpc83xx_spi *mpc83xx_spi;
+ 	u8 pol = spi->mode & SPI_CS_HIGH ? 1 : 0;
++	struct spi_mpc83xx_cs	*cs = spi->controller_state;
  
- 		rnet->rx_skb[i]->data = data;
- 		skb_put(rnet->rx_skb[i], RIO_MAX_MSG_SIZE);
-+		rnet->rx_skb[i]->dev = ndev;
- 		rnet->rx_skb[i]->protocol =
- 		    eth_type_trans(rnet->rx_skb[i], ndev);
- 		error = netif_rx(rnet->rx_skb[i]);
-+		rnet->rx_skb[i] = NULL;
+ 	mpc83xx_spi = spi_master_get_devdata(spi->master);
  
- 		if (error == NET_RX_DROP) {
- 			ndev->stats.rx_dropped++;
-@@ -128,6 +186,7 @@ static int rionet_rx_clean(struct net_de
+@@ -147,50 +164,26 @@ static void mpc83xx_spi_chipselect(struc
  
- 	return i;
- }
-+#endif
+ 	if (value == BITBANG_CS_ACTIVE) {
+ 		u32 regval = mpc83xx_spi_read_reg(&mpc83xx_spi->base->mode);
+-		u32 len = spi->bits_per_word;
+-		u8 pm;
+-
+-		if (len == 32)
+-			len = 0;
+-		else
+-			len = len - 1;
  
- static void rionet_rx_fill(struct net_device *ndev, int end)
+-		/* mask out bits we are going to set */
+-		regval &= ~(SPMODE_CP_BEGIN_EDGECLK | SPMODE_CI_INACTIVEHIGH
+-				| SPMODE_LEN(0xF) | SPMODE_DIV16
+-				| SPMODE_PM(0xF) | SPMODE_REV | SPMODE_LOOP);
+-
+-		if (spi->mode & SPI_CPHA)
+-			regval |= SPMODE_CP_BEGIN_EDGECLK;
+-		if (spi->mode & SPI_CPOL)
+-			regval |= SPMODE_CI_INACTIVEHIGH;
+-		if (!(spi->mode & SPI_LSB_FIRST))
+-			regval |= SPMODE_REV;
+-		if (spi->mode & SPI_LOOP)
+-			regval |= SPMODE_LOOP;
+-
+-		regval |= SPMODE_LEN(len);
+-
+-		if ((mpc83xx_spi->spibrg / spi->max_speed_hz) >= 64) {
+-			pm = mpc83xx_spi->spibrg / (spi->max_speed_hz * 64) - 1;
+-			if (pm > 0x0f) {
+-				dev_err(&spi->dev, "Requested speed is too "
+-					"low: %d Hz. Will use %d Hz instead.\n",
+-					spi->max_speed_hz,
+-					mpc83xx_spi->spibrg / 1024);
+-				pm = 0x0f;
+-			}
+-			regval |= SPMODE_PM(pm) | SPMODE_DIV16;
+-		} else {
+-			pm = mpc83xx_spi->spibrg / (spi->max_speed_hz * 4);
+-			if (pm)
+-				pm--;
+-			regval |= SPMODE_PM(pm);
++		mpc83xx_spi->rx_shift = cs->rx_shift;
++		mpc83xx_spi->tx_shift = cs->tx_shift;
++		mpc83xx_spi->get_rx = cs->get_rx;
++		mpc83xx_spi->get_tx = cs->get_tx;
++
++		if (cs->hw_mode != regval) {
++			unsigned long flags;
++			void *tmp_ptr = &mpc83xx_spi->base->mode;
++
++			regval = cs->hw_mode;
++			/* Turn off IRQs locally to minimize time that
++			 * SPI is disabled
++			 */
++			local_irq_save(flags);
++			/* Turn off SPI unit prior changing mode */
++			mpc83xx_spi_write_reg(tmp_ptr, regval & ~SPMODE_ENABLE);
++			mpc83xx_spi_write_reg(tmp_ptr, regval);
++			local_irq_restore(flags);
+ 		}
+-
+-		/* Turn off SPI unit prior changing mode */
+-		mpc83xx_spi_write_reg(&mpc83xx_spi->base->mode, 0);
+-		mpc83xx_spi_write_reg(&mpc83xx_spi->base->mode, regval);
+ 		if (mpc83xx_spi->activate_cs)
+ 			mpc83xx_spi->activate_cs(spi->chip_select, pol);
+ 	}
+@@ -201,8 +194,9 @@ int mpc83xx_spi_setup_transfer(struct sp
  {
-@@ -141,19 +200,94 @@ static void rionet_rx_fill(struct net_de
- 		if (!rnet->rx_skb[i])
- 			break;
+ 	struct mpc83xx_spi *mpc83xx_spi;
+ 	u32 regval;
+-	u8 bits_per_word;
++	u8 bits_per_word, pm;
+ 	u32 hz;
++	struct spi_mpc83xx_cs	*cs = spi->controller_state;
  
-+#ifndef CONFIG_RIONET_MEMMAP
- 		rio_add_inb_buffer(rnet->mport, RIONET_MAILBOX,
- 				   rnet->rx_skb[i]->data);
-+#endif
- 	} while ((i = (i + 1) % RIONET_RX_RING_SIZE) != end);
+ 	mpc83xx_spi = spi_master_get_devdata(spi->master);
  
- 	rnet->rx_slot = i;
- }
+@@ -223,72 +217,203 @@ int mpc83xx_spi_setup_transfer(struct sp
+ 	    || ((bits_per_word > 16) && (bits_per_word != 32)))
+ 		return -EINVAL;
  
-+#ifdef CONFIG_RIONET_MEMMAP
-+static int rio_send_mem(struct sk_buff *skb,
-+				struct net_device *ndev, struct rio_dev *rdev)
-+{
-+	struct rionet_private *rnet = ndev->priv;
-+	int enqueue, dequeue;
-+	int err;
+-	mpc83xx_spi->rx_shift = 0;
+-	mpc83xx_spi->tx_shift = 0;
++	if (!hz)
++		hz = spi->max_speed_hz;
 +
-+	if (!rdev)
-+		return -EFAULT;
-+
-+	if (skb->len > RIONET_MAX_SK_DATA_SIZE) {
-+		printk(KERN_ERR "Frame len is more than RIONET max sk_data!\n");
-+		return -EINVAL;
++	cs->rx_shift = 0;
++	cs->tx_shift = 0;
+ 	if (bits_per_word <= 8) {
+-		mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u8;
+-		mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u8;
++		cs->get_rx = mpc83xx_spi_rx_buf_u8;
++		cs->get_tx = mpc83xx_spi_tx_buf_u8;
+ 		if (mpc83xx_spi->qe_mode) {
+-			mpc83xx_spi->rx_shift = 16;
+-			mpc83xx_spi->tx_shift = 24;
++			cs->rx_shift = 16;
++			cs->tx_shift = 24;
+ 		}
+ 	} else if (bits_per_word <= 16) {
+-		mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u16;
+-		mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u16;
++		cs->get_rx = mpc83xx_spi_rx_buf_u16;
++		cs->get_tx = mpc83xx_spi_tx_buf_u16;
+ 		if (mpc83xx_spi->qe_mode) {
+-			mpc83xx_spi->rx_shift = 16;
+-			mpc83xx_spi->tx_shift = 16;
++			cs->rx_shift = 16;
++			cs->tx_shift = 16;
+ 		}
+ 	} else if (bits_per_word <= 32) {
+-		mpc83xx_spi->get_rx = mpc83xx_spi_rx_buf_u32;
+-		mpc83xx_spi->get_tx = mpc83xx_spi_tx_buf_u32;
++		cs->get_rx = mpc83xx_spi_rx_buf_u32;
++		cs->get_tx = mpc83xx_spi_tx_buf_u32;
+ 	} else
+ 		return -EINVAL;
+ 
+ 	if (mpc83xx_spi->qe_mode && spi->mode & SPI_LSB_FIRST) {
+-		mpc83xx_spi->tx_shift = 0;
++		cs->tx_shift = 0;
+ 		if (bits_per_word <= 8)
+-			mpc83xx_spi->rx_shift = 8;
++			cs->rx_shift = 8;
+ 		else
+-			mpc83xx_spi->rx_shift = 0;
++			cs->rx_shift = 0;
+ 	}
+ 
+-	/* nsecs = (clock period)/2 */
+-	if (!hz)
+-		hz = spi->max_speed_hz;
+-	mpc83xx_spi->nsecs = (1000000000 / 2) / hz;
+-	if (mpc83xx_spi->nsecs > MAX_UDELAY_MS * 1000)
+-		return -EINVAL;
++	mpc83xx_spi->rx_shift = cs->rx_shift;
++	mpc83xx_spi->tx_shift = cs->tx_shift;
++	mpc83xx_spi->get_rx = cs->get_rx;
++	mpc83xx_spi->get_tx = cs->get_tx;
+ 
+ 	if (bits_per_word == 32)
+ 		bits_per_word = 0;
+ 	else
+ 		bits_per_word = bits_per_word - 1;
+ 
+-	regval = mpc83xx_spi_read_reg(&mpc83xx_spi->base->mode);
+-
+ 	/* mask out bits we are going to set */
+-	regval &= ~(SPMODE_LEN(0xF) | SPMODE_REV);
+-	regval |= SPMODE_LEN(bits_per_word);
+-	if (!(spi->mode & SPI_LSB_FIRST))
+-		regval |= SPMODE_REV;
++	cs->hw_mode &= ~(SPMODE_LEN(0xF) | SPMODE_DIV16
++				  | SPMODE_PM(0xF));
+ 
+-	/* Turn off SPI unit prior changing mode */
+-	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mode, 0);
+-	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mode, regval);
++	cs->hw_mode |= SPMODE_LEN(bits_per_word);
+ 
++	if ((mpc83xx_spi->spibrg / hz) >= 64) {
++		pm = mpc83xx_spi->spibrg / (hz * 64) - 1;
++		if (pm > 0x0f) {
++			dev_err(&spi->dev, "Requested speed is too "
++				"low: %d Hz. Will use %d Hz instead.\n",
++				hz, mpc83xx_spi->spibrg / 1024);
++			pm = 0x0f;
++		}
++		cs->hw_mode |= SPMODE_PM(pm) | SPMODE_DIV16;
++	} else {
++		pm = mpc83xx_spi->spibrg / (hz * 4);
++		if (pm)
++			pm--;
++		cs->hw_mode |= SPMODE_PM(pm);
 +	}
++	regval =  mpc83xx_spi_read_reg(&mpc83xx_spi->base->mode);
++	if (cs->hw_mode != regval) {
++		unsigned long flags;
++		void *tmp_ptr = &mpc83xx_spi->base->mode;
 +
-+	err = rio_space_find_mem(rnet->mport, rdev->destid, RIONET_DRVID,
-+					&rnet->txmem->riores);
-+	if (err) {
-+		ndev->stats.tx_dropped++;
-+		printk(KERN_ERR "Rio find mem err %d\n", err);
-+		return -EBUSY;
++		regval = cs->hw_mode;
++		/* Turn off IRQs locally to minimize time
++		 * that SPI is disabled
++		 */
++		local_irq_save(flags);
++		/* Turn off SPI unit prior changing mode */
++		mpc83xx_spi_write_reg(tmp_ptr, regval & ~SPMODE_ENABLE);
++		mpc83xx_spi_write_reg(tmp_ptr, regval);
++		local_irq_restore(flags);
 +	}
-+	rio_map_outb_region(rnet->mport, rdev->destid, rnet->txmem, 0);
-+
-+	enqueue = in_be32(&rnet->txbuff->enqueue);
-+	dequeue = in_be32(&rnet->txbuff->dequeue);
-+
-+	if (!(in_be32(&rnet->txbuff->size[enqueue]) & RIONET_SKDATA_EN)
-+			&& (RIONET_QUEUE_NEXT(enqueue) != dequeue)) {
-+#ifdef CONFIG_RIONET_DMA
-+		struct dma_device *dmadev;
-+		struct dma_async_tx_descriptor *tx;
-+		dma_cookie_t tx_cookie = 0;
-+
-+		dmadev = rnet->txdmachan->device;
-+		tx = dmadev->device_prep_dma_memcpy(rnet->txdmachan,
-+			(void *)rnet->txbuff->skdata[enqueue].data
-+			  - (void *)rnet->txbuff + rnet->txmem->iores.start,
-+			dma_map_single(&ndev->dev, skb->data, skb->len,
-+			  DMA_TO_DEVICE), skb->len, 0);
-+		if (!tx)
-+			return -EFAULT;
-+		tx->ack = 1;
-+		tx_cookie = tx->tx_submit(tx);
-+
-+		dma_async_memcpy_issue_pending(rnet->txdmachan);
-+		while (dma_async_memcpy_complete(rnet->txdmachan,
-+				tx_cookie, NULL, NULL) == DMA_IN_PROGRESS) ;
-+#else
-+		memcpy(rnet->txbuff->skdata[enqueue].data, skb->data, skb->len);
-+#endif /* CONFIG_RIONET_DMA */
-+		out_be32(&rnet->txbuff->size[enqueue],
-+						RIONET_SKDATA_EN | skb->len);
-+		out_be32(&rnet->txbuff->enqueue,
-+						RIONET_QUEUE_NEXT(enqueue));
-+		in_be32(&rnet->txbuff->enqueue);	/* verify read */
-+	} else if (netif_msg_tx_err(rnet))
-+		printk(KERN_ERR "rionmet(memmap): txbuff is busy!\n");
-+
-+	rio_unmap_outb_region(rnet->mport, rnet->txmem);
-+	rio_send_doorbell(rdev, RIONET_DOORBELL_SEND);
-+	return 0;
-+}
-+#endif
-+
- static int rionet_queue_tx_msg(struct sk_buff *skb, struct net_device *ndev,
- 			       struct rio_dev *rdev)
- {
- 	struct rionet_private *rnet = ndev->priv;
- 
-+#ifdef CONFIG_RIONET_MEMMAP
-+	int ret = 0;
-+	ret = rio_send_mem(skb, ndev, rdev);
-+	if (ret)
-+		return ret;
-+#else
- 	rio_add_outb_message(rnet->mport, rdev, 0, skb->data, skb->len);
-+#endif
- 	rnet->tx_skb[rnet->tx_slot] = skb;
- 
- 	ndev->stats.tx_packets++;
-@@ -165,6 +299,19 @@ static int rionet_queue_tx_msg(struct sk
- 	++rnet->tx_slot;
- 	rnet->tx_slot &= (RIONET_TX_RING_SIZE - 1);
- 
-+#ifdef CONFIG_RIONET_MEMMAP
-+	while (rnet->tx_cnt && (rnet->ack_slot != rnet->tx_slot)) {
-+		/* dma unmap single */
-+		dev_kfree_skb_any(rnet->tx_skb[rnet->ack_slot]);
-+		rnet->tx_skb[rnet->ack_slot] = NULL;
-+		++rnet->ack_slot;
-+		rnet->ack_slot &= (RIONET_TX_RING_SIZE - 1);
-+		rnet->tx_cnt--;
-+	}
-+
-+	if (rnet->tx_cnt < RIONET_TX_RING_SIZE)
-+		netif_wake_queue(ndev);
-+#endif
- 	if (netif_msg_tx_queued(rnet))
- 		printk(KERN_INFO "%s: queued skb %8.8x len %8.8x\n", DRV_NAME,
- 		       (u32) skb, skb->len);
-@@ -211,6 +358,93 @@ static int rionet_start_xmit(struct sk_b
  	return 0;
  }
  
-+#ifdef CONFIG_RIONET_MEMMAP
-+static void rio_recv_mem(struct net_device *ndev)
++static int mpc83xx_spi_bufs(struct spi_device *spi, struct spi_transfer *t)
 +{
-+	struct rionet_private *rnet = (struct rionet_private *)ndev->priv;
-+	struct sk_buff *skb;
-+	u32 enqueue, dequeue, size;
-+	int error = 0;
-+#ifdef CONFIG_RIONET_DMA
-+	dma_cookie_t rx_cookie = 0;
-+	struct dma_device *dmadev;
-+	struct dma_async_tx_descriptor *tx;
-+#endif
++	struct mpc83xx_spi *mpc83xx_spi;
++	u32 word, len, bits_per_word;
 +
-+	dequeue = rnet->rxbuff->dequeue;
-+	enqueue = rnet->rxbuff->enqueue;
++	mpc83xx_spi = spi_master_get_devdata(spi->master);
 +
-+	while (enqueue != dequeue) {
-+		size = rnet->rxbuff->size[dequeue];
-+		if (!(size & RIONET_SKDATA_EN))
-+			return;
-+		size &= ~RIONET_SKDATA_EN;
++	mpc83xx_spi->tx = t->tx_buf;
++	mpc83xx_spi->rx = t->rx_buf;
++	bits_per_word = spi->bits_per_word;
++	if (t->bits_per_word)
++		bits_per_word = t->bits_per_word;
++	len = t->len;
++	if (bits_per_word > 8)
++		len /= 2;
++	if (bits_per_word > 16)
++		len /= 2;
++	mpc83xx_spi->count = len;
++	INIT_COMPLETION(mpc83xx_spi->done);
 +
-+		skb = dev_alloc_skb(size + 2);
-+		if (!skb)
-+			return;
++	/* enable rx ints */
++	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mask, SPIM_NE);
 +
-+#ifdef CONFIG_RIONET_DMA
-+		dmadev = rnet->rxdmachan->device;
-+		tx = dmadev->device_prep_dma_memcpy(rnet->rxdmachan,
-+			dma_map_single(&ndev->dev, skb_put(skb, size),
-+			  size, DMA_FROM_DEVICE),
-+			(void *)rnet->rxbuff->skdata[dequeue].data
-+			  - (void *)rnet->rxbuff + rnet->rxmem->iores.start,
-+			size, 0);
-+		if (!tx)
-+			return;
-+		tx->ack = 1;
-+		rx_cookie = tx->tx_submit(tx);
-+		dma_async_memcpy_issue_pending(rnet->rxdmachan);
-+		while (dma_async_memcpy_complete(rnet->rxdmachan,
-+				rx_cookie, NULL, NULL) == DMA_IN_PROGRESS) ;
-+#else
-+		memcpy(skb_put(skb, size),
-+				rnet->rxbuff->skdata[dequeue].data,
-+				size);
-+#endif /* CONFIG_RIONET_DMA */
-+		skb->dev = ndev;
-+		skb->protocol = eth_type_trans(skb, ndev);
-+		skb->ip_summed = CHECKSUM_UNNECESSARY;
++	/* transmit word */
++	word = mpc83xx_spi->get_tx(mpc83xx_spi);
++	mpc83xx_spi_write_reg(&mpc83xx_spi->base->transmit, word);
 +
-+		error = netif_rx(skb);
++	wait_for_completion(&mpc83xx_spi->done);
 +
-+		rnet->rxbuff->size[dequeue] &= ~RIONET_SKDATA_EN;
-+		rnet->rxbuff->dequeue = RIONET_QUEUE_NEXT(dequeue);
-+		dequeue = RIONET_QUEUE_NEXT(dequeue);
++	/* disable rx ints */
++	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mask, 0);
 +
-+		if (error == NET_RX_DROP) {
-+			ndev->stats.rx_dropped++;
-+		} else if (error == NET_RX_BAD) {
-+			if (netif_msg_rx_err(rnet))
-+				printk(KERN_WARNING "%s: bad rx packet\n",
-+				       DRV_NAME);
-+			ndev->stats.rx_errors++;
-+		} else {
-+			ndev->stats.rx_packets++;
-+			ndev->stats.rx_bytes += RIO_MAX_MSG_SIZE;
-+		}
-+	}
++	return mpc83xx_spi->count;
 +}
 +
-+static void rionet_inb_recv_event(struct rio_mport *mport, void *dev_id)
++static void mpc83xx_spi_work(struct work_struct *work)
 +{
-+	struct net_device *ndev = dev_id;
-+	struct rionet_private *rnet = (struct rionet_private *)ndev->priv;
++	struct mpc83xx_spi *mpc83xx_spi =
++		container_of(work, struct mpc83xx_spi, work);
++
++	spin_lock_irq(&mpc83xx_spi->lock);
++	mpc83xx_spi->busy = 1;
++	while (!list_empty(&mpc83xx_spi->queue)) {
++		struct spi_message *m;
++		struct spi_device *spi;
++		struct spi_transfer *t = NULL;
++		unsigned cs_change;
++		int status, nsecs = 50;
++
++		m = container_of(mpc83xx_spi->queue.next,
++				struct spi_message, queue);
++		list_del_init(&m->queue);
++		spin_unlock_irq(&mpc83xx_spi->lock);
++
++		spi = m->spi;
++		cs_change = 1;
++		status = 0;
++		list_for_each_entry(t, &m->transfers, transfer_list) {
++			if (t->bits_per_word || t->speed_hz) {
++				/* Don't allow changes if CS is active */
++				status = -EINVAL;
++
++				if (cs_change)
++					status = mpc83xx_spi_setup_transfer(spi, t);
++				if (status < 0)
++					break;
++			}
++
++			if (cs_change)
++				mpc83xx_spi_chipselect(spi, BITBANG_CS_ACTIVE);
++			cs_change = t->cs_change;
++			if (t->len)
++				status = mpc83xx_spi_bufs(spi, t);
++			if (status) {
++				status = -EMSGSIZE;
++				break;
++			}
++			m->actual_length += t->len;
++
++			if (t->delay_usecs)
++				udelay(t->delay_usecs);
++
++			if (cs_change) {
++				ndelay(nsecs);
++				mpc83xx_spi_chipselect(spi, BITBANG_CS_INACTIVE);
++				ndelay(nsecs);
++			}
++		}
++
++		m->status = status;
++		m->complete(m->context);
++
++		if (status || !cs_change) {
++			ndelay(nsecs);
++			mpc83xx_spi_chipselect(spi, BITBANG_CS_INACTIVE);
++		}
++
++		mpc83xx_spi_setup_transfer(spi, NULL);
++
++		spin_lock_irq(&mpc83xx_spi->lock);
++	}
++	mpc83xx_spi->busy = 0;
++	spin_unlock_irq(&mpc83xx_spi->lock);
++}
++
+ /* the spi->mode bits understood by this driver: */
+ #define MODEBITS	(SPI_CPOL | SPI_CPHA | SPI_CS_HIGH \
+ 			| SPI_LSB_FIRST | SPI_LOOP)
+ 
+ static int mpc83xx_spi_setup(struct spi_device *spi)
+ {
+-	struct spi_bitbang *bitbang;
+ 	struct mpc83xx_spi *mpc83xx_spi;
+ 	int retval;
++	u32 hw_mode;
++	struct spi_mpc83xx_cs	*cs = spi->controller_state;
+ 
+ 	if (spi->mode & ~MODEBITS) {
+ 		dev_dbg(&spi->dev, "setup: unsupported mode bits %x\n",
+@@ -299,63 +424,56 @@ static int mpc83xx_spi_setup(struct spi_
+ 	if (!spi->max_speed_hz)
+ 		return -EINVAL;
+ 
+-	bitbang = spi_master_get_devdata(spi->master);
++	if (!cs) {
++		cs = kzalloc(sizeof *cs, GFP_KERNEL);
++		if (!cs)
++			return -ENOMEM;
++		spi->controller_state = cs;
++	}
+ 	mpc83xx_spi = spi_master_get_devdata(spi->master);
+ 
+ 	if (!spi->bits_per_word)
+ 		spi->bits_per_word = 8;
+ 
++	hw_mode = cs->hw_mode; /* Save orginal settings */
++	cs->hw_mode = mpc83xx_spi_read_reg(&mpc83xx_spi->base->mode);
++	/* mask out bits we are going to set */
++	cs->hw_mode &= ~(SPMODE_CP_BEGIN_EDGECLK | SPMODE_CI_INACTIVEHIGH
++			 | SPMODE_REV | SPMODE_LOOP);
++
++	if (spi->mode & SPI_CPHA)
++		cs->hw_mode |= SPMODE_CP_BEGIN_EDGECLK;
++	if (spi->mode & SPI_CPOL)
++		cs->hw_mode |= SPMODE_CI_INACTIVEHIGH;
++	if (!(spi->mode & SPI_LSB_FIRST))
++		cs->hw_mode |= SPMODE_REV;
++	if (spi->mode & SPI_LOOP)
++		cs->hw_mode |= SPMODE_LOOP;
++
+ 	retval = mpc83xx_spi_setup_transfer(spi, NULL);
+-	if (retval < 0)
++	if (retval < 0) {
++		cs->hw_mode = hw_mode; /* Restore settings */
+ 		return retval;
++	}
+ 
+-	dev_dbg(&spi->dev, "%s, mode %d, %u bits/w, %u nsec\n",
++	dev_dbg(&spi->dev, "%s, mode %d, %u bits/w, %u Hz\n",
+ 		__func__, spi->mode & (SPI_CPOL | SPI_CPHA),
+-		spi->bits_per_word, 2 * mpc83xx_spi->nsecs);
+-
++		spi->bits_per_word, spi->max_speed_hz);
++#if 0 /* Don't think this is needed */
+ 	/* NOTE we _need_ to call chipselect() early, ideally with adapter
+ 	 * setup, unless the hardware defaults cooperate to avoid confusion
+ 	 * between normal (active low) and inverted chipselects.
+ 	 */
+ 
+ 	/* deselect chip (low or high) */
+-	spin_lock(&bitbang->lock);
+-	if (!bitbang->busy) {
+-		bitbang->chipselect(spi, BITBANG_CS_INACTIVE);
+-		ndelay(mpc83xx_spi->nsecs);
+-	}
+-	spin_unlock(&bitbang->lock);
+-
++	spin_lock(&mpc83xx_spi->lock);
++	if (!mpc83xx_spi->busy)
++		mpc83xx_spi_chipselect(spi, BITBANG_CS_INACTIVE);
++	spin_unlock(&mpc83xx_spi->lock);
++#endif
+ 	return 0;
+ }
+ 
+-static int mpc83xx_spi_bufs(struct spi_device *spi, struct spi_transfer *t)
+-{
+-	struct mpc83xx_spi *mpc83xx_spi;
+-	u32 word;
+-
+-	mpc83xx_spi = spi_master_get_devdata(spi->master);
+-
+-	mpc83xx_spi->tx = t->tx_buf;
+-	mpc83xx_spi->rx = t->rx_buf;
+-	mpc83xx_spi->count = t->len;
+-	INIT_COMPLETION(mpc83xx_spi->done);
+-
+-	/* enable rx ints */
+-	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mask, SPIM_NE);
+-
+-	/* transmit word */
+-	word = mpc83xx_spi->get_tx(mpc83xx_spi);
+-	mpc83xx_spi_write_reg(&mpc83xx_spi->base->transmit, word);
+-
+-	wait_for_completion(&mpc83xx_spi->done);
+-
+-	/* disable rx ints */
+-	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mask, 0);
+-
+-	return t->len - mpc83xx_spi->count;
+-}
+-
+ irqreturn_t mpc83xx_spi_irq(s32 irq, void *context_data)
+ {
+ 	struct mpc83xx_spi *mpc83xx_spi = context_data;
+@@ -395,6 +513,28 @@ irqreturn_t mpc83xx_spi_irq(s32 irq, voi
+ 
+ 	return ret;
+ }
++static int mpc83xx_spi_transfer(struct spi_device *spi,
++				struct spi_message *m)
++{
++	struct mpc83xx_spi *mpc83xx_spi = spi_master_get_devdata(spi->master);
 +	unsigned long flags;
 +
-+	if (netif_msg_intr(rnet))
-+		printk(KERN_INFO "%s: inbound memory data receive event\n",
-+		       DRV_NAME);
++	m->actual_length = 0;
++	m->status = -EINPROGRESS;
 +
-+	spin_lock_irqsave(&rnet->lock, flags);
-+	rio_recv_mem(ndev);
-+	spin_unlock_irqrestore(&rnet->lock, flags);
++	spin_lock_irqsave(&mpc83xx_spi->lock, flags);
++	list_add_tail(&m->queue, &mpc83xx_spi->queue);
++	queue_work(mpc83xx_spi->workqueue, &mpc83xx_spi->work);
++	spin_unlock_irqrestore(&mpc83xx_spi->lock, flags);
++
++	return 0;
 +}
-+#endif
 +
 +
- static void rionet_dbell_event(struct rio_mport *mport, void *dev_id, u16 sid, u16 tid,
- 			       u16 info)
++static void mpc83xx_spi_cleanup(struct spi_device *spi)
++{
++	kfree(spi->controller_state);
++}
+ 
+ static int __init mpc83xx_spi_probe(struct platform_device *dev)
  {
-@@ -232,6 +466,10 @@ static void rionet_dbell_event(struct ri
- 		}
- 	} else if (info == RIONET_DOORBELL_LEAVE) {
- 		rionet_active[sid] = NULL;
-+#ifdef CONFIG_RIONET_MEMMAP
-+	} else if (info == RIONET_DOORBELL_SEND) {
-+		rionet_inb_recv_event(mport, ndev);
-+#endif
- 	} else {
- 		if (netif_msg_intr(rnet))
- 			printk(KERN_WARNING "%s: unhandled doorbell\n",
-@@ -239,6 +477,7 @@ static void rionet_dbell_event(struct ri
+@@ -426,11 +566,11 @@ static int __init mpc83xx_spi_probe(stru
+ 		ret = -ENODEV;
+ 		goto free_master;
  	}
- }
- 
-+#ifndef CONFIG_RIONET_MEMMAP
- static void rionet_inb_msg_event(struct rio_mport *mport, void *dev_id, int mbox, int slot)
- {
- 	int n;
-@@ -281,6 +520,58 @@ static void rionet_outb_msg_event(struct
- 
- 	spin_unlock(&rnet->lock);
- }
-+#endif
++	master->setup = mpc83xx_spi_setup;
++	master->transfer = mpc83xx_spi_transfer;
++	master->cleanup = mpc83xx_spi_cleanup;
 +
-+#ifdef CONFIG_RIONET_DMA
-+static enum dma_state_client rionet_dma_event(struct dma_client *client,
-+		struct dma_chan *chan, enum dma_state state)
-+{
-+	struct rionet_private *rnet = container_of(client,
-+			struct rionet_private, rio_dma_client);
-+	enum dma_state_client ack = DMA_DUP;
-+
-+	spin_lock(&rnet->lock);
-+	switch (state) {
-+	case DMA_RESOURCE_AVAILABLE:
-+		if (!rnet->txdmachan) {
-+			ack = DMA_ACK;
-+			rnet->txdmachan = chan;
-+		} else if (!rnet->rxdmachan) {
-+			ack = DMA_ACK;
-+			rnet->rxdmachan = chan;
-+		}
-+		break;
-+	case DMA_RESOURCE_REMOVED:
-+		if (rnet->txdmachan == chan) {
-+			ack = DMA_ACK;
-+			rnet->txdmachan = NULL;
-+		} else if (rnet->rxdmachan == chan) {
-+			ack = DMA_ACK;
-+			rnet->rxdmachan = NULL;
-+		}
-+		break;
-+	default:
-+		break;
+ 	mpc83xx_spi = spi_master_get_devdata(master);
+-	mpc83xx_spi->bitbang.master = spi_master_get(master);
+-	mpc83xx_spi->bitbang.chipselect = mpc83xx_spi_chipselect;
+-	mpc83xx_spi->bitbang.setup_transfer = mpc83xx_spi_setup_transfer;
+-	mpc83xx_spi->bitbang.txrx_bufs = mpc83xx_spi_bufs;
+ 	mpc83xx_spi->activate_cs = pdata->activate_cs;
+ 	mpc83xx_spi->deactivate_cs = pdata->deactivate_cs;
+ 	mpc83xx_spi->qe_mode = pdata->qe_mode;
+@@ -445,7 +585,6 @@ static int __init mpc83xx_spi_probe(stru
+ 		mpc83xx_spi->tx_shift = 24;
+ 	}
+ 
+-	mpc83xx_spi->bitbang.master->setup = mpc83xx_spi_setup;
+ 	init_completion(&mpc83xx_spi->done);
+ 
+ 	mpc83xx_spi->base = ioremap(r->start, r->end - r->start + 1);
+@@ -483,11 +622,21 @@ static int __init mpc83xx_spi_probe(stru
+ 		regval |= SPMODE_OP;
+ 
+ 	mpc83xx_spi_write_reg(&mpc83xx_spi->base->mode, regval);
++	spin_lock_init(&mpc83xx_spi->lock);
++	init_completion(&mpc83xx_spi->done);
++	INIT_WORK(&mpc83xx_spi->work, mpc83xx_spi_work);
++	INIT_LIST_HEAD(&mpc83xx_spi->queue);
+ 
+-	ret = spi_bitbang_start(&mpc83xx_spi->bitbang);
+-
+-	if (ret != 0)
++	mpc83xx_spi->workqueue = create_singlethread_workqueue(
++		master->dev.parent->bus_id);
++	if (mpc83xx_spi->workqueue == NULL) {
++		ret = -EBUSY;
+ 		goto free_irq;
 +	}
-+	spin_unlock(&rnet->lock);
-+	return ack;
-+}
 +
-+static int rionet_dma_register(struct rionet_private *rnet)
-+{
-+	int rc = 0;
-+	spin_lock_init(&rnet->rio_dma_event_lock);
-+	rnet->rio_dma_client.event_callback = rionet_dma_event;
-+	dma_cap_set(DMA_MEMCPY, rnet->rio_dma_client.cap_mask);
-+	dma_async_client_register(&rnet->rio_dma_client);
-+	dma_async_client_chan_request(&rnet->rio_dma_client);
++	ret = spi_register_master(master);
++	if (ret < 0)
++		goto unreg_master;
+ 
+ 	printk(KERN_INFO
+ 	       "%s: MPC83xx SPI Controller driver at 0x%p (irq = %d)\n",
+@@ -495,6 +644,8 @@ static int __init mpc83xx_spi_probe(stru
+ 
+ 	return ret;
+ 
++unreg_master:
++	destroy_workqueue(mpc83xx_spi->workqueue);
+ free_irq:
+ 	free_irq(mpc83xx_spi->irq, mpc83xx_spi);
+ unmap_io:
+@@ -515,10 +666,12 @@ static int __exit mpc83xx_spi_remove(str
+ 	master = platform_get_drvdata(dev);
+ 	mpc83xx_spi = spi_master_get_devdata(master);
+ 
+-	spi_bitbang_stop(&mpc83xx_spi->bitbang);
++	flush_workqueue(mpc83xx_spi->workqueue);
++	destroy_workqueue(mpc83xx_spi->workqueue);
++	spi_unregister_master(master);
 +
-+	if (!rnet->txdmachan || !rnet->rxdmachan)
-+		rc = -ENODEV;
-+
-+	return rc;
-+}
-+#endif
- 
- static int rionet_open(struct net_device *ndev)
- {
-@@ -299,6 +590,28 @@ static int rionet_open(struct net_device
- 					rionet_dbell_event)) < 0)
- 		goto out;
- 
-+#ifdef CONFIG_RIONET_MEMMAP
-+	rnet->rxmem = rio_request_inb_region(rnet->mport, NULL,
-+		  RIONET_TX_RX_BUFF_SIZE, "rionet_rx_buff", RIONET_DRVID);
-+	if (!rnet->rxmem) {
-+		rc = -ENOMEM;
-+		goto out;
-+	}
-+	rnet->rxbuff = rnet->rxmem->virt;
-+
-+	rnet->txmem = rio_prepare_io_mem(rnet->mport, NULL,
-+				RIONET_TX_RX_BUFF_SIZE, "rionet_tx_buff");
-+	if (!rnet->txmem) {
-+		rc = -ENOMEM;
-+		goto out;
-+	}
-+	rnet->txbuff = rnet->txmem->virt;
-+#ifdef CONFIG_RIONET_DMA
-+	rc = rionet_dma_register(rnet);
-+	if (rc)
-+		goto out;
-+#endif /* CONFIG_RIONET_DMA */
-+#else
- 	if ((rc = rio_request_inb_mbox(rnet->mport,
- 				       (void *)ndev,
- 				       RIONET_MAILBOX,
-@@ -312,6 +625,7 @@ static int rionet_open(struct net_device
- 					RIONET_TX_RING_SIZE,
- 					rionet_outb_msg_event)) < 0)
- 		goto out;
-+#endif
- 
- 	/* Initialize inbound message ring */
- 	for (i = 0; i < RIONET_RX_RING_SIZE; i++)
-@@ -375,8 +689,18 @@ static int rionet_close(struct net_devic
- 
- 	rio_release_inb_dbell(rnet->mport, RIONET_DOORBELL_JOIN,
- 			      RIONET_DOORBELL_LEAVE);
-+#ifdef CONFIG_RIONET_MEMMAP
-+	rio_release_inb_region(rnet->mport, rnet->rxmem);
-+	rio_release_outb_region(rnet->mport, rnet->txmem);
-+	rnet->rxbuff = NULL;
-+	rnet->txbuff = NULL;
-+#ifdef CONFIG_RIONET_DMA
-+	dma_async_client_unregister(&rnet->rio_dma_client);
-+#endif
-+#else
- 	rio_release_inb_mbox(rnet->mport, RIONET_MAILBOX);
- 	rio_release_outb_mbox(rnet->mport, RIONET_MAILBOX);
-+#endif
+ 	free_irq(mpc83xx_spi->irq, mpc83xx_spi);
+ 	iounmap(mpc83xx_spi->base);
+-	spi_master_put(mpc83xx_spi->bitbang.master);
  
  	return 0;
  }
 _
 
-Patches currently in -mm which might be from wei.zhang@freescale.com are
+Patches currently in -mm which might be from Joakim.Tjernlund@transmode.se are
 
-origin.patch
-rapidio-add-the-memory-mapping-support-in-rionet-driver.patch
-rapidio-fix-docbook-references.patch
-fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+spi_mpc83xx-much-improved-driver.patch
 
