@@ -1,83 +1,177 @@
 From: akpm@linux-foundation.org
-Subject: - block-blk-barrierc-blk_ordered_cur_seq-mustnt-be-inline.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:50:40 -0700
-Message-ID: <200804300550.m3U5oeKJ030143@imap1.linux-foundation.org>
+Subject: - audit-let-userspace-fully-control-tty-input-auditing.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:50:50 -0700
+Message-ID: <200804300550.m3U5oo54030161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43028 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759200AbYD3FvJ (ORCPT
+	by vger.kernel.org with ESMTP id S1759256AbYD3FvN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:51:09 -0400
+	Wed, 30 Apr 2008 01:51:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: mitr@redhat.com, dwmw2@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     block/blk-barrier.c:blk_ordered_cur_seq() mustn't be inline
+     audit: let userspace fully control TTY input auditing
 has been removed from the -mm tree.  Its filename was
-     block-blk-barrierc-blk_ordered_cur_seq-mustnt-be-inline.patch
+     audit-let-userspace-fully-control-tty-input-auditing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block/blk-barrier.c:blk_ordered_cur_seq() mustn't be inline
-From: Adrian Bunk <bunk@kernel.org>
+Subject: audit: let userspace fully control TTY input auditing
+From: Miloslav Trmac <mitr@redhat.com>
 
-Fix the following build error with UML and gcc 4.3:
+Remove the code that automatically disables TTY input auditing in processes
+that open TTYs when they have no other TTY open; this heuristic was
+intended to automatically handle daemons, but it has false positives (e.g. 
+with sshd) that make it impossible to control TTY input auditing from a PAM
+module.  With this patch, TTY input auditing is controlled from user-space
+only.
 
-/home/bunk/linux/kernel-2.6/git/linux-2.6/block/blk-barrier.c: In function `blk_do_ordered':
-/home/bunk/linux/kernel-2.6/git/linux-2.6/block/blk-barrier.c:57: sorry, unimplemented: inlining failed in call to `blk_ordered_cur_seq': function body not available
-/home/bunk/linux/kernel-2.6/git/linux-2.6/block/blk-barrier.c:252: sorry, unimplemented: called from here
-/home/bunk/linux/kernel-2.6/git/linux-2.6/block/blk-barrier.c:57: sorry, unimplemented: inlining failed in call to `blk_ordered_cur_seq': function body not available
-/home/bunk/linux/kernel-2.6/git/linux-2.6/block/blk-barrier.c:253: sorry, unimplemented: called from here
+On the other hand, not even for daemons does it make sense to audit "input"
+from PTY masters; this data was produced by a program writing to the PTY
+slave, and does not represent data entered by the user.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Signed-off-by: Miloslav Trmac <mitr@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-barrier.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/tty_audit.c |   54 ++-----------------------------------
+ drivers/char/tty_io.c    |    5 ---
+ include/linux/tty.h      |    5 ---
+ 3 files changed, 5 insertions(+), 59 deletions(-)
 
-diff -puN block/blk-barrier.c~block-blk-barrierc-blk_ordered_cur_seq-mustnt-be-inline block/blk-barrier.c
---- a/block/blk-barrier.c~block-blk-barrierc-blk_ordered_cur_seq-mustnt-be-inline
-+++ a/block/blk-barrier.c
-@@ -53,7 +53,7 @@ EXPORT_SYMBOL(blk_queue_ordered);
- /*
-  * Cache flushing for ordered writes handling
-  */
--inline unsigned blk_ordered_cur_seq(struct request_queue *q)
-+unsigned blk_ordered_cur_seq(struct request_queue *q)
- {
- 	if (!q->ordseq)
+diff -puN drivers/char/tty_audit.c~audit-let-userspace-fully-control-tty-input-auditing drivers/char/tty_audit.c
+--- a/drivers/char/tty_audit.c~audit-let-userspace-fully-control-tty-input-auditing
++++ a/drivers/char/tty_audit.c
+@@ -238,6 +238,10 @@ void tty_audit_add_data(struct tty_struc
+ 	if (unlikely(size == 0))
+ 		return;
+ 
++	if (tty->driver->type == TTY_DRIVER_TYPE_PTY
++	    && tty->driver->subtype == PTY_TYPE_MASTER)
++		return;
++
+ 	buf = tty_audit_buf_get(tty);
+ 	if (!buf)
+ 		return;
+@@ -300,53 +304,3 @@ void tty_audit_push(struct tty_struct *t
+ 		tty_audit_buf_put(buf);
+ 	}
+ }
+-
+-/**
+- *	tty_audit_opening	-	A TTY is being opened.
+- *
+- *	As a special hack, tasks that close all their TTYs and open new ones
+- *	are assumed to be system daemons (e.g. getty) and auditing is
+- *	automatically disabled for them.
+- */
+-void tty_audit_opening(void)
+-{
+-	int disable;
+-
+-	disable = 1;
+-	spin_lock_irq(&current->sighand->siglock);
+-	if (current->signal->audit_tty == 0)
+-		disable = 0;
+-	spin_unlock_irq(&current->sighand->siglock);
+-	if (!disable)
+-		return;
+-
+-	task_lock(current);
+-	if (current->files) {
+-		struct fdtable *fdt;
+-		unsigned i;
+-
+-		/*
+-		 * We don't take a ref to the file, so we must hold ->file_lock
+-		 * instead.
+-		 */
+-		spin_lock(&current->files->file_lock);
+-		fdt = files_fdtable(current->files);
+-		for (i = 0; i < fdt->max_fds; i++) {
+-			struct file *filp;
+-
+-			filp = fcheck_files(current->files, i);
+-			if (filp && is_tty(filp)) {
+-				disable = 0;
+-				break;
+-			}
+-		}
+-		spin_unlock(&current->files->file_lock);
+-	}
+-	task_unlock(current);
+-	if (!disable)
+-		return;
+-
+-	spin_lock_irq(&current->sighand->siglock);
+-	current->signal->audit_tty = 0;
+-	spin_unlock_irq(&current->sighand->siglock);
+-}
+diff -puN drivers/char/tty_io.c~audit-let-userspace-fully-control-tty-input-auditing drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~audit-let-userspace-fully-control-tty-input-auditing
++++ a/drivers/char/tty_io.c
+@@ -2755,7 +2755,6 @@ got_driver:
+ 		__proc_set_tty(current, tty);
+ 	spin_unlock_irq(&current->sighand->siglock);
+ 	mutex_unlock(&tty_mutex);
+-	tty_audit_opening();
+ 	return 0;
+ }
+ 
+@@ -2818,10 +2817,8 @@ static int ptmx_open(struct inode *inode
+ 
+ 	check_tty_count(tty, "tty_open");
+ 	retval = ptm_driver->open(tty, filp);
+-	if (!retval) {
+-		tty_audit_opening();
++	if (!retval)
  		return 0;
+-	}
+ out1:
+ 	release_dev(filp);
+ 	return retval;
+diff -puN include/linux/tty.h~audit-let-userspace-fully-control-tty-input-auditing include/linux/tty.h
+--- a/include/linux/tty.h~audit-let-userspace-fully-control-tty-input-auditing
++++ a/include/linux/tty.h
+@@ -300,7 +300,6 @@ extern void tty_hangup(struct tty_struct
+ extern void tty_vhangup(struct tty_struct * tty);
+ extern void tty_unhangup(struct file *filp);
+ extern int tty_hung_up_p(struct file * filp);
+-extern int is_tty(struct file *filp);
+ extern void do_SAK(struct tty_struct *tty);
+ extern void __do_SAK(struct tty_struct *tty);
+ extern void disassociate_ctty(int priv);
+@@ -352,7 +351,6 @@ extern void tty_audit_exit(void);
+ extern void tty_audit_fork(struct signal_struct *sig);
+ extern void tty_audit_push(struct tty_struct *tty);
+ extern void tty_audit_push_task(struct task_struct *tsk, uid_t loginuid);
+-extern void tty_audit_opening(void);
+ #else
+ static inline void tty_audit_add_data(struct tty_struct *tty,
+ 				      unsigned char *data, size_t size)
+@@ -370,9 +368,6 @@ static inline void tty_audit_push(struct
+ static inline void tty_audit_push_task(struct task_struct *tsk, uid_t loginuid)
+ {
+ }
+-static inline void tty_audit_opening(void)
+-{
+-}
+ #endif
+ 
+ /* tty_ioctl.c */
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from mitr@redhat.com are
 
 origin.patch
-mm-filemapc-generic_write_checks-mustnt-be-inline.patch
-fs-block_devc-i_bdev-mustnt-be-inline.patch
-frv-fix-arch-frv-mm-unalignedo-build-error.patch
-reiserfs-some-functions-mustnt-be-inline.patch
-git-acpi.patch
-git-x86.patch
-arch-x86-video-fbdevc-add-module_license.patch
-md-make-dm_dirty_log_initexit-static.patch
-drm-make-drm_minors_cleanup-static.patch
-git-m32r.patch
-net-ipv4-ip_outputc-ip_send_check-mustnt-be-inline.patch
-nfs-make-nfs4_drop_state_owner-static.patch
-git-ocfs2.patch
-show_schedstat-fix-memleak.patch
-git-sh.patch
-if-0-ses_match_host.patch
-git-watchdog.patch
-xen-drivers-xen-balloonc-make-a-function-static.patch
-make-marker_debug-static.patch
-reiser4.patch
 
