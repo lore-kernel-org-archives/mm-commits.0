@@ -1,88 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: - ipc-sysvsem-force-unshareclone_sysvsem-when-clone_newipc.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:44:28 -0700
-Message-ID: <200804300544.m3U5iSlk029416@imap1.linux-foundation.org>
+Subject: - relayfs-support-larger-relay-buffer-take-3.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:49:44 -0700
+Message-ID: <200804300549.m3U5niSl030027@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42997 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34290 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750990AbYD3Fzb (ORCPT
+	by vger.kernel.org with ESMTP id S1752311AbYD3F4U (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:55:31 -0400
+	Wed, 30 Apr 2008 01:56:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, ebiederm@xmission.com, mtk.manpages@googlemail.com, peifferp@gmail.com, serue@us.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: mhiramat@redhat.com, dwilder@us.ibm.com, penberg@cs.helsinki.fi, zanussi@comcast.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ipc: sysvsem: force unshare(CLONE_SYSVSEM) when CLONE_NEWIPC
+     relayfs: support larger relay buffer
 has been removed from the -mm tree.  Its filename was
-     ipc-sysvsem-force-unshareclone_sysvsem-when-clone_newipc.patch
+     relayfs-support-larger-relay-buffer-take-3.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipc: sysvsem: force unshare(CLONE_SYSVSEM) when CLONE_NEWIPC
-From: Manfred Spraul <manfred@colorfullife.com>
+Subject: relayfs: support larger relay buffer
+From: Masami Hiramatsu <mhiramat@redhat.com>
 
-sys_unshare(CLONE_NEWIPC) doesn't handle the undo lists properly, this can
-cause a kernel memory corruption.  CLONE_NEWIPC must detach from the existing
-undo lists.
+Use vmalloc() and memset() instead of kcalloc() to allocate a page* array when
+the array size is bigger than one page.  This enables relayfs to support
+bigger relay buffers than 64MB on 4k-page system, 512MB on 16k-page system.
 
-Fix, part 2: perform an implicit CLONE_SYSVSEM in CLONE_NEWIPC.  CLONE_NEWIPC
-creates a new IPC namespace, the task cannot access the existing semaphore
-arrays after the unshare syscall.  Thus the task can/must detach from the
-existing undo list entries, too.
-
-This fixes the kernel corruption, because it makes it impossible that
-undo records from two different namespaces are in sysvsem.undo_list.
-
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Pierre Peiffer <peifferp@gmail.com>
+[akpm@linux-foundation.org: cleanup]
+Signed-off-by: Masami Hiramatsu <mhiramat@redhat.com>
+Cc: David Wilder <dwilder@us.ibm.com>
+Reviewed-by: Tom Zanussi <zanussi@comcast.net>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ kernel/relay.c |   35 ++++++++++++++++++++++++++++++++---
+ 1 file changed, 32 insertions(+), 3 deletions(-)
 
-diff -puN kernel/fork.c~ipc-sysvsem-force-unshareclone_sysvsem-when-clone_newipc kernel/fork.c
---- a/kernel/fork.c~ipc-sysvsem-force-unshareclone_sysvsem-when-clone_newipc
-+++ a/kernel/fork.c
-@@ -1696,7 +1696,12 @@ asmlinkage long sys_unshare(unsigned lon
- 				CLONE_NEWNET))
- 		goto bad_unshare_out;
+diff -puN kernel/relay.c~relayfs-support-larger-relay-buffer-take-3 kernel/relay.c
+--- a/kernel/relay.c~relayfs-support-larger-relay-buffer-take-3
++++ a/kernel/relay.c
+@@ -65,6 +65,35 @@ static struct vm_operations_struct relay
+ 	.close = relay_file_mmap_close,
+ };
  
--	if (unshare_flags & CLONE_SYSVSEM)
-+	/*
-+	 * CLONE_NEWIPC must also detach from the undolist: after switching
-+	 * to a new ipc namespace, the semaphore arrays from the old
-+	 * namespace are unreachable.
-+	 */
-+	if (unshare_flags & (CLONE_NEWIPC|CLONE_SYSVSEM))
- 		do_sysvsem = 1;
- 	if ((err = unshare_thread(unshare_flags)))
- 		goto bad_unshare_out;
++/*
++ * allocate an array of pointers of struct page
++ */
++static struct page **relay_alloc_page_array(unsigned int n_pages)
++{
++	struct page **array;
++	size_t pa_size = n_pages * sizeof(struct page *);
++
++	if (pa_size > PAGE_SIZE) {
++		array = vmalloc(pa_size);
++		if (array)
++			memset(array, 0, pa_size);
++	} else {
++		array = kzalloc(pa_size, GFP_KERNEL);
++	}
++	return array;
++}
++
++/*
++ * free an array of pointers of struct page
++ */
++static void relay_free_page_array(struct page **array)
++{
++	if (is_vmalloc_addr(array))
++		vfree(array);
++	else
++		kfree(array);
++}
++
+ /**
+  *	relay_mmap_buf: - mmap channel buffer to process address space
+  *	@buf: relay channel buffer
+@@ -109,7 +138,7 @@ static void *relay_alloc_buf(struct rcha
+ 	*size = PAGE_ALIGN(*size);
+ 	n_pages = *size >> PAGE_SHIFT;
+ 
+-	buf->page_array = kcalloc(n_pages, sizeof(struct page *), GFP_KERNEL);
++	buf->page_array = relay_alloc_page_array(n_pages);
+ 	if (!buf->page_array)
+ 		return NULL;
+ 
+@@ -130,7 +159,7 @@ static void *relay_alloc_buf(struct rcha
+ depopulate:
+ 	for (j = 0; j < i; j++)
+ 		__free_page(buf->page_array[j]);
+-	kfree(buf->page_array);
++	relay_free_page_array(buf->page_array);
+ 	return NULL;
+ }
+ 
+@@ -189,7 +218,7 @@ static void relay_destroy_buf(struct rch
+ 		vunmap(buf->start);
+ 		for (i = 0; i < buf->page_count; i++)
+ 			__free_page(buf->page_array[i]);
+-		kfree(buf->page_array);
++		relay_free_page_array(buf->page_array);
+ 	}
+ 	chan->buf[buf->cpu] = NULL;
+ 	kfree(buf->padding);
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from mhiramat@redhat.com are
 
 origin.patch
-idr-fix-idr_remove.patch
-idr-introduce-the-ridr-structure.patch
-idr-introduce-ridr_pre_get.patch
-idr-introduce-ridr_init.patch
-idr-introduce-ridr_get_new_above.patch
-idr-introduce-ridr_get_new.patch
-idr-introduce-ridr_find.patch
-idr-introduce-ridr_remove.patch
-ipc-integrate-the-ridr-code-into-ipc-code.patch
-ipc-get-rid-of-ipc_lock_down.patch
-mm-debug-dump-pageframes-on-bad_page.patch
-slab-leaks3-default-y.patch
 
