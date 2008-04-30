@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mac80211-add-a-struct-to-hold-tkip-context.patch added to -mm tree
-Date: Wed, 30 Apr 2008 11:51:09 -0700
-Message-ID: <200804301851.m3UIp9jV029438@imap1.linux-foundation.org>
+Subject: + mac80211-add-const-remove-unused-function-make-one-function-static.patch added to -mm tree
+Date: Wed, 30 Apr 2008 11:51:07 -0700
+Message-ID: <200804301851.m3UIp8kI029434@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37935 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42410 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755709AbYD3Swi (ORCPT
+	by vger.kernel.org with ESMTP id S1758200AbYD3TAk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 14:52:38 -0400
+	Wed, 30 Apr 2008 15:00:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com, linville@tuxdriver.com
 
 
 The patch titled
-     mac80211: add a struct to hold tkip context
+     mac80211: add const, remove unused function, make one function static
 has been added to the -mm tree.  Its filename is
-     mac80211-add-a-struct-to-hold-tkip-context.patch
+     mac80211-add-const-remove-unused-function-make-one-function-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: add a struct to hold tkip context
+Subject: mac80211: add const, remove unused function, make one function static
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
@@ -42,267 +42,109 @@ Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/cfg.c         |    4 +-
- net/mac80211/debugfs_key.c |    8 ++---
- net/mac80211/key.h         |   17 +++++------
- net/mac80211/tkip.c        |   54 +++++++++++++++++------------------
- net/mac80211/wpa.c         |   16 +++++-----
- 5 files changed, 50 insertions(+), 49 deletions(-)
+ net/mac80211/michael.c |    7 +++----
+ net/mac80211/michael.h |    4 ++--
+ net/mac80211/tkip.c    |   12 ++----------
+ net/mac80211/tkip.h    |    6 +-----
+ 4 files changed, 8 insertions(+), 21 deletions(-)
 
-diff -puN net/mac80211/cfg.c~mac80211-add-a-struct-to-hold-tkip-context net/mac80211/cfg.c
---- a/net/mac80211/cfg.c~mac80211-add-a-struct-to-hold-tkip-context
-+++ a/net/mac80211/cfg.c
-@@ -256,8 +256,8 @@ static int ieee80211_get_key(struct wiph
- 	case ALG_TKIP:
- 		params.cipher = WLAN_CIPHER_SUITE_TKIP;
+diff -puN net/mac80211/michael.c~mac80211-add-const-remove-unused-function-make-one-function-static net/mac80211/michael.c
+--- a/net/mac80211/michael.c~mac80211-add-const-remove-unused-function-make-one-function-static
++++ a/net/mac80211/michael.c
+@@ -6,7 +6,6 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
+-
+ #include <linux/types.h>
+ #include <linux/bitops.h>
+ #include <asm/unaligned.h>
+@@ -28,7 +27,7 @@ static void michael_block(struct michael
+ }
  
--		iv32 = key->u.tkip.iv32;
--		iv16 = key->u.tkip.iv16;
-+		iv32 = key->u.tkip.tx.iv32;
-+		iv16 = key->u.tkip.tx.iv16;
+ static void michael_mic_hdr(struct michael_mic_ctx *mctx,
+-			    u8 *key, u8 *da, u8 *sa, u8 priority)
++			const u8 *key, const u8 *da, const u8 *sa, u8 priority)
+ {
+ 	mctx->l = get_unaligned_le32(key);
+ 	mctx->r = get_unaligned_le32(key + 4);
+@@ -44,8 +43,8 @@ static void michael_mic_hdr(struct micha
+ 	michael_block(mctx, priority);
+ }
  
- 		if (key->flags & KEY_FLAG_UPLOADED_TO_HARDWARE &&
- 		    sdata->local->ops->get_tkip_seq)
-diff -puN net/mac80211/debugfs_key.c~mac80211-add-a-struct-to-hold-tkip-context net/mac80211/debugfs_key.c
---- a/net/mac80211/debugfs_key.c~mac80211-add-a-struct-to-hold-tkip-context
-+++ a/net/mac80211/debugfs_key.c
-@@ -97,8 +97,8 @@ static ssize_t key_tx_spec_read(struct f
- 		break;
- 	case ALG_TKIP:
- 		len = scnprintf(buf, sizeof(buf), "%08x %04x\n",
--				key->u.tkip.iv32,
--				key->u.tkip.iv16);
-+				key->u.tkip.tx.iv32,
-+				key->u.tkip.tx.iv16);
- 		break;
- 	case ALG_CCMP:
- 		tpn = key->u.ccmp.tx_pn;
-@@ -128,8 +128,8 @@ static ssize_t key_rx_spec_read(struct f
- 		for (i = 0; i < NUM_RX_DATA_QUEUES; i++)
- 			p += scnprintf(p, sizeof(buf)+buf-p,
- 				       "%08x %04x\n",
--				       key->u.tkip.iv32_rx[i],
--				       key->u.tkip.iv16_rx[i]);
-+				       key->u.tkip.rx[i].iv32,
-+				       key->u.tkip.rx[i].iv16);
- 		len = p - buf;
- 		break;
- 	case ALG_CCMP:
-diff -puN net/mac80211/key.h~mac80211-add-a-struct-to-hold-tkip-context net/mac80211/key.h
---- a/net/mac80211/key.h~mac80211-add-a-struct-to-hold-tkip-context
-+++ a/net/mac80211/key.h
-@@ -69,6 +69,13 @@ enum ieee80211_internal_key_flags {
- 	KEY_FLAG_TODO_ADD_DEBUGFS	= BIT(5),
+-void michael_mic(u8 *key, u8 *da, u8 *sa, u8 priority,
+-		 u8 *data, size_t data_len, u8 *mic)
++void michael_mic(const u8 *key, const u8 *da, const u8 *sa, u8 priority,
++		 const u8 *data, size_t data_len, u8 *mic)
+ {
+ 	u32 val;
+ 	size_t block, blocks, left;
+diff -puN net/mac80211/michael.h~mac80211-add-const-remove-unused-function-make-one-function-static net/mac80211/michael.h
+--- a/net/mac80211/michael.h~mac80211-add-const-remove-unused-function-make-one-function-static
++++ a/net/mac80211/michael.h
+@@ -18,7 +18,7 @@ struct michael_mic_ctx {
+ 	u32 l, r;
  };
  
-+struct tkip_ctx {
-+	u32 iv32;
-+	u16 iv16;
-+	u16 p1k[5];
-+	int initialized;
-+};
-+
- struct ieee80211_key {
- 	struct ieee80211_local *local;
- 	struct ieee80211_sub_if_data *sdata;
-@@ -85,16 +92,10 @@ struct ieee80211_key {
- 	union {
- 		struct {
- 			/* last used TSC */
--			u32 iv32;
--			u16 iv16;
--			u16 p1k[5];
--			int tx_initialized;
-+			struct tkip_ctx tx;
+-void michael_mic(u8 *key, u8 *da, u8 *sa, u8 priority,
+-		 u8 *data, size_t data_len, u8 *mic);
++void michael_mic(const u8 *key, const u8 *da, const u8 *sa, u8 priority,
++		 const u8 *data, size_t data_len, u8 *mic);
  
- 			/* last received RSC */
--			u32 iv32_rx[NUM_RX_DATA_QUEUES];
--			u16 iv16_rx[NUM_RX_DATA_QUEUES];
--			u16 p1k_rx[NUM_RX_DATA_QUEUES][5];
--			int rx_initialized[NUM_RX_DATA_QUEUES];
-+			struct tkip_ctx rx[NUM_RX_DATA_QUEUES];
- 		} tkip;
- 		struct {
- 			u8 tx_pn[6];
-diff -puN net/mac80211/tkip.c~mac80211-add-a-struct-to-hold-tkip-context net/mac80211/tkip.c
---- a/net/mac80211/tkip.c~mac80211-add-a-struct-to-hold-tkip-context
+ #endif /* MICHAEL_H */
+diff -puN net/mac80211/tkip.c~mac80211-add-const-remove-unused-function-make-one-function-static net/mac80211/tkip.c
+--- a/net/mac80211/tkip.c~mac80211-add-const-remove-unused-function-make-one-function-static
 +++ a/net/mac80211/tkip.c
-@@ -138,7 +138,7 @@ u8 *ieee80211_tkip_add_iv(u8 *pos, struc
- 	*pos++ = iv1;
- 	*pos++ = iv2;
- 	*pos++ = (key->conf.keyidx << 6) | (1 << 5) /* Ext IV */;
--	put_unaligned_le32(key->u.tkip.iv32, pos);
-+	put_unaligned_le32(key->u.tkip.tx.iv32, pos);
+@@ -6,7 +6,6 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
+-
+ #include <linux/kernel.h>
+ #include <linux/bitops.h>
+ #include <linux/types.h>
+@@ -132,7 +131,7 @@ static void tkip_mixing_phase2(const u16
+ /* Add TKIP IV and Ext. IV at @pos. @iv0, @iv1, and @iv2 are the first octets
+  * of the IV. Returns pointer to the octet following IVs (i.e., beginning of
+  * the packet payload). */
+-u8 * ieee80211_tkip_add_iv(u8 *pos, struct ieee80211_key *key,
++u8 *ieee80211_tkip_add_iv(u8 *pos, struct ieee80211_key *key,
+ 			   u8 iv0, u8 iv1, u8 iv2)
+ {
+ 	*pos++ = iv0;
+@@ -143,14 +142,7 @@ u8 * ieee80211_tkip_add_iv(u8 *pos, stru
  	return pos + 4;
  }
  
-@@ -146,16 +146,16 @@ static void ieee80211_tkip_gen_rc4key(st
+-void ieee80211_tkip_gen_phase1key(struct ieee80211_key *key, u8 *ta,
+-				  u16 *phase1key)
+-{
+-	tkip_mixing_phase1(ta, &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
+-			   key->u.tkip.iv32, phase1key);
+-}
+-
+-void ieee80211_tkip_gen_rc4key(struct ieee80211_key *key, u8 *ta,
++static void ieee80211_tkip_gen_rc4key(struct ieee80211_key *key, u8 *ta,
  			       u8 *rc4key)
  {
  	/* Calculate per-packet key */
--	if (key->u.tkip.iv16 == 0 || !key->u.tkip.tx_initialized) {
-+	if (key->u.tkip.tx.iv16 == 0 || !key->u.tkip.tx.initialized) {
- 		/* IV16 wrapped around - perform TKIP phase 1 */
- 		tkip_mixing_phase1(ta, &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
--				   key->u.tkip.iv32, key->u.tkip.p1k);
--		key->u.tkip.tx_initialized = 1;
-+				   key->u.tkip.tx.iv32, key->u.tkip.tx.p1k);
-+		key->u.tkip.tx.initialized = 1;
- 	}
+diff -puN net/mac80211/tkip.h~mac80211-add-const-remove-unused-function-make-one-function-static net/mac80211/tkip.h
+--- a/net/mac80211/tkip.h~mac80211-add-const-remove-unused-function-make-one-function-static
++++ a/net/mac80211/tkip.h
+@@ -13,12 +13,8 @@
+ #include <linux/crypto.h>
+ #include "key.h"
  
--	tkip_mixing_phase2(key->u.tkip.p1k,
-+	tkip_mixing_phase2(key->u.tkip.tx.p1k,
- 			   &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
--			   key->u.tkip.iv16, rc4key);
-+			   key->u.tkip.tx.iv16, rc4key);
- }
- 
- void ieee80211_get_tkip_key(struct ieee80211_key_conf *keyconf,
-@@ -179,9 +179,9 @@ void ieee80211_get_tkip_key(struct ieee8
- 	printk(KERN_DEBUG "TKIP encrypt: iv16 = 0x%04x, iv32 = 0x%08x\n",
- 			iv16, iv32);
- 
--	if (iv32 != key->u.tkip.iv32) {
-+	if (iv32 != key->u.tkip.tx.iv32) {
- 		printk(KERN_DEBUG "skb: iv32 = 0x%08x key: iv32 = 0x%08x\n",
--			iv32, key->u.tkip.iv32);
-+			iv32, key->u.tkip.tx.iv32);
- 		printk(KERN_DEBUG "Wrap around of iv16 in the middle of a "
- 			"fragmented packet\n");
- 	}
-@@ -190,19 +190,19 @@ void ieee80211_get_tkip_key(struct ieee8
- 	/* Update the p1k only when the iv16 in the packet wraps around, this
- 	 * might occur after the wrap around of iv16 in the key in case of
- 	 * fragmented packets. */
--	if (iv16 == 0 || !key->u.tkip.tx_initialized) {
-+	if (iv16 == 0 || !key->u.tkip.tx.initialized) {
- 		/* IV16 wrapped around - perform TKIP phase 1 */
- 		tkip_mixing_phase1(ta, &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
--			iv32, key->u.tkip.p1k);
--		key->u.tkip.tx_initialized = 1;
-+			iv32, key->u.tkip.tx.p1k);
-+		key->u.tkip.tx.initialized = 1;
- 	}
- 
- 	if (type == IEEE80211_TKIP_P1_KEY) {
--		memcpy(outkey, key->u.tkip.p1k, sizeof(u16) * 5);
-+		memcpy(outkey, key->u.tkip.tx.p1k, sizeof(u16) * 5);
- 		return;
- 	}
- 
--	tkip_mixing_phase2(key->u.tkip.p1k,
-+	tkip_mixing_phase2(key->u.tkip.tx.p1k,
- 		&key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],	iv16, outkey);
- }
- EXPORT_SYMBOL(ieee80211_get_tkip_key);
-@@ -263,33 +263,33 @@ int ieee80211_tkip_decrypt_data(struct c
- 	if ((keyid >> 6) != key->conf.keyidx)
- 		return TKIP_DECRYPT_INVALID_KEYIDX;
- 
--	if (key->u.tkip.rx_initialized[queue] &&
--	    (iv32 < key->u.tkip.iv32_rx[queue] ||
--	     (iv32 == key->u.tkip.iv32_rx[queue] &&
--	      iv16 <= key->u.tkip.iv16_rx[queue]))) {
-+	if (key->u.tkip.rx[queue].initialized &&
-+	    (iv32 < key->u.tkip.rx[queue].iv32 ||
-+	     (iv32 == key->u.tkip.rx[queue].iv32 &&
-+	      iv16 <= key->u.tkip.rx[queue].iv16))) {
- #ifdef CONFIG_TKIP_DEBUG
- 		DECLARE_MAC_BUF(mac);
- 		printk(KERN_DEBUG "TKIP replay detected for RX frame from "
- 		       "%s (RX IV (%04x,%02x) <= prev. IV (%04x,%02x)\n",
- 		       print_mac(mac, ta),
--		       iv32, iv16, key->u.tkip.iv32_rx[queue],
--		       key->u.tkip.iv16_rx[queue]);
-+		       iv32, iv16, key->u.tkip.rx[queue].iv32,
-+		       key->u.tkip.rx[queue].iv16);
- #endif /* CONFIG_TKIP_DEBUG */
- 		return TKIP_DECRYPT_REPLAY;
- 	}
- 
- 	if (only_iv) {
- 		res = TKIP_DECRYPT_OK;
--		key->u.tkip.rx_initialized[queue] = 1;
-+		key->u.tkip.rx[queue].initialized = 1;
- 		goto done;
- 	}
- 
--	if (!key->u.tkip.rx_initialized[queue] ||
--	    key->u.tkip.iv32_rx[queue] != iv32) {
--		key->u.tkip.rx_initialized[queue] = 1;
-+	if (!key->u.tkip.rx[queue].initialized ||
-+	    key->u.tkip.rx[queue].iv32 != iv32) {
-+		key->u.tkip.rx[queue].initialized = 1;
- 		/* IV16 wrapped around - perform TKIP phase 1 */
- 		tkip_mixing_phase1(ta, &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
--				   iv32, key->u.tkip.p1k_rx[queue]);
-+				   iv32, key->u.tkip.rx[queue].p1k);
- #ifdef CONFIG_TKIP_DEBUG
- 		{
- 			int i;
-@@ -303,7 +303,7 @@ int ieee80211_tkip_decrypt_data(struct c
- 			printk("\n");
- 			printk(KERN_DEBUG "TKIP decrypt: P1K=");
- 			for (i = 0; i < 5; i++)
--				printk("%04x ", key->u.tkip.p1k_rx[queue][i]);
-+				printk("%04x ", key->u.tkip.rx[queue].p1k[i]);
- 			printk("\n");
- 		}
- #endif /* CONFIG_TKIP_DEBUG */
-@@ -318,11 +318,11 @@ int ieee80211_tkip_decrypt_data(struct c
- 
- 			key->local->ops->update_tkip_key(
- 				local_to_hw(key->local), &key->conf,
--				sta_addr, iv32, key->u.tkip.p1k_rx[queue]);
-+				sta_addr, iv32, key->u.tkip.rx[queue].p1k);
- 		}
- 	}
- 
--	tkip_mixing_phase2(key->u.tkip.p1k_rx[queue],
-+	tkip_mixing_phase2(key->u.tkip.rx[queue].p1k,
- 			   &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
- 			   iv16, rc4key);
- #ifdef CONFIG_TKIP_DEBUG
-diff -puN net/mac80211/wpa.c~mac80211-add-a-struct-to-hold-tkip-context net/mac80211/wpa.c
---- a/net/mac80211/wpa.c~mac80211-add-a-struct-to-hold-tkip-context
-+++ a/net/mac80211/wpa.c
-@@ -176,8 +176,8 @@ ieee80211_rx_h_michael_mic_verify(struct
- 	skb_trim(skb, skb->len - MICHAEL_MIC_LEN);
- 
- 	/* update IV in key information to be able to detect replays */
--	rx->key->u.tkip.iv32_rx[rx->queue] = rx->tkip_iv32;
--	rx->key->u.tkip.iv16_rx[rx->queue] = rx->tkip_iv16;
-+	rx->key->u.tkip.rx[rx->queue].iv32 = rx->tkip_iv32;
-+	rx->key->u.tkip.rx[rx->queue].iv16 = rx->tkip_iv16;
- 
- 	return RX_CONTINUE;
- }
-@@ -214,19 +214,19 @@ static int tkip_encrypt_skb(struct ieee8
- 	pos += hdrlen;
- 
- 	/* Increase IV for the frame */
--	key->u.tkip.iv16++;
--	if (key->u.tkip.iv16 == 0)
--		key->u.tkip.iv32++;
-+	key->u.tkip.tx.iv16++;
-+	if (key->u.tkip.tx.iv16 == 0)
-+		key->u.tkip.tx.iv32++;
- 
- 	if (tx->key->flags & KEY_FLAG_UPLOADED_TO_HARDWARE) {
- 		hdr = (struct ieee80211_hdr *)skb->data;
- 
- 		/* hwaccel - with preallocated room for IV */
- 		ieee80211_tkip_add_iv(pos, key,
--				      (u8) (key->u.tkip.iv16 >> 8),
--				      (u8) (((key->u.tkip.iv16 >> 8) | 0x20) &
-+				      (u8) (key->u.tkip.tx.iv16 >> 8),
-+				      (u8) (((key->u.tkip.tx.iv16 >> 8) | 0x20) &
- 					    0x7f),
--				      (u8) key->u.tkip.iv16);
-+				      (u8) key->u.tkip.tx.iv16);
- 
- 		tx->control->key_idx = tx->key->conf.hw_key_idx;
- 		return 0;
+-u8 * ieee80211_tkip_add_iv(u8 *pos, struct ieee80211_key *key,
++u8 *ieee80211_tkip_add_iv(u8 *pos, struct ieee80211_key *key,
+ 			   u8 iv0, u8 iv1, u8 iv2);
+-void ieee80211_tkip_gen_phase1key(struct ieee80211_key *key, u8 *ta,
+-				  u16 *phase1key);
+-void ieee80211_tkip_gen_rc4key(struct ieee80211_key *key, u8 *ta,
+-			       u8 *rc4key);
+ void ieee80211_tkip_encrypt_data(struct crypto_blkcipher *tfm,
+ 				 struct ieee80211_key *key,
+ 				 u8 *pos, size_t payload_len, u8 *ta);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
