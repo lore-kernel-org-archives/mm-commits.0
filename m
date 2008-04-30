@@ -1,130 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - signals-document-cld_continued-notification-mechanics-more.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 23:08:07 -0700
-Message-ID: <200804300608.m3U687Hv030948@imap1.linux-foundation.org>
+Subject: - vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:41:23 -0700
+Message-ID: <200804300541.m3U5fNV2029050@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52769 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33027 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755448AbYD3GJQ (ORCPT
+	by vger.kernel.org with ESMTP id S1756285AbYD3GJP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:09:16 -0400
+	Wed, 30 Apr 2008 02:09:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals-document-cld_continued-notification-mechanics-more
+     vfs: skip inodes without pages to free in drop_pagecache_sb()
 has been removed from the -mm tree.  Its filename was
-     signals-document-cld_continued-notification-mechanics-more.patch
+     vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb.patch
 
-This patch was dropped because it was folded into signals-document-cld_continued-notification-mechanics.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals-document-cld_continued-notification-mechanics-more
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: vfs: skip inodes without pages to free in drop_pagecache_sb()
+From: Jan Kara <jack@suse.cz>
 
-comments update for signals-document-cld_continued-notification-mechanics.patch
+Many inodes have no pagecache, so we can avoid lots of lock-takings.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Fengguang Wu <wfg@mail.ustc.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ fs/drop_caches.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/signal.c~signals-document-cld_continued-notification-mechanics-more kernel/signal.c
---- a/kernel/signal.c~signals-document-cld_continued-notification-mechanics-more
-+++ a/kernel/signal.c
-@@ -1660,7 +1660,11 @@ relock:
- 	try_to_freeze();
- 
- 	spin_lock_irq(&sighand->siglock);
--	/* see prepare_signal(SIGCONT) */
-+	/*
-+	 * Every stopped thread goes here after wakeup. Check to see if
-+	 * we should notify the parent, prepare_signal(SIGCONT) encodes
-+	 * the CLD_ si_code into SIGNAL_CLD_MASK bits.
-+	 */
- 	if (unlikely(signal->flags & SIGNAL_CLD_MASK)) {
- 		int why = (signal->flags & SIGNAL_STOP_CONTINUED)
- 				? CLD_CONTINUED : CLD_STOPPED;
+diff -puN fs/drop_caches.c~vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb fs/drop_caches.c
+--- a/fs/drop_caches.c~vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb
++++ a/fs/drop_caches.c
+@@ -20,6 +20,8 @@ static void drop_pagecache_sb(struct sup
+ 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
+ 		if (inode->i_state & (I_FREEING|I_WILL_FREE))
+ 			continue;
++		if (inode->i_mapping->nrpages == 0)
++			continue;
+ 		__iget(inode);
+ 		spin_unlock(&inode_lock);
+ 		__invalidate_mapping_pages(inode->i_mapping, 0, -1, true);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-document-cld_continued-notification-mechanics-more.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-signals-check_kill_permission-remove-tasklist_lock.patch
-signals-fix-sbin-init-protection-from-unwanted-signals.patch
-signals-de_thread-simplify-the-child_reaper-switching.patch
-signals-allow-the-kernel-to-actually-kill-sbin-init.patch
-signals-add-set_restore_sigmask.patch
-signals-set_restore_sigmask-tif_sigpending.patch
-signals-s390-renumber-tif_restore_sigmask.patch
-signals-ia64-renumber-tif_restore_sigmask.patch
-signals-use-have_set_restore_sigmask.patch
-signals-x86-ts_restore_sigmask.patch
-posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
-ptrace-allow-to-ptrace-sbin-init.patch
-workqueue-remove-redundant-function-invocation.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
-pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem.patch
+ext4-fix-mount-messages-when-quota-disabled.patch
+quota-le_add_cpu-conversion.patch
 
