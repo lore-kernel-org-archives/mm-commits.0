@@ -1,143 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-media-dvb-frontends-s5h1420c-printk-fix.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:51:37 -0700
-Message-ID: <200804300551.m3U5pbLN030236@imap1.linux-foundation.org>
+Subject: - scsi-megaraid_sas-update-the-version-and-changelog.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:51:55 -0700
+Message-ID: <200804300551.m3U5ptJo030255@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54146 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54342 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755365AbYD3F7z (ORCPT
+	by vger.kernel.org with ESMTP id S1755782AbYD3GAX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:59:55 -0400
+	Wed, 30 Apr 2008 02:00:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: bo.yang@lsi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/dvb/frontends/s5h1420.c: printk fix
+     scsi: megaraid_sas: update the Version and Changelog
 has been removed from the -mm tree.  Its filename was
-     drivers-media-dvb-frontends-s5h1420c-printk-fix.patch
+     scsi-megaraid_sas-update-the-version-and-changelog.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/dvb/frontends/s5h1420.c: printk fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scsi: megaraid_sas: update the Version and Changelog
+From: bo yang <bo.yang@lsi.com>
 
-drivers/media/dvb/frontends/s5h1420.c: In function `s5h1420_setsymbolrate':
-drivers/media/dvb/frontends/s5h1420.c:484: warning: long long unsigned int format, u64 arg (arg 2)
+Update the Version and Changelog for megaraid_sas Driver
 
-We do not know what type the architecture uses for u64.
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Bo Yang <bo.yang@lsi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/frontends/s5h1420.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/scsi/ChangeLog.megaraid_sas |   22 ++++++++++++++++++++
+ drivers/scsi/megaraid/megaraid_sas.c      |    2 -
+ drivers/scsi/megaraid/megaraid_sas.h      |    6 ++---
+ 3 files changed, 26 insertions(+), 4 deletions(-)
 
-diff -puN drivers/media/dvb/frontends/s5h1420.c~drivers-media-dvb-frontends-s5h1420c-printk-fix drivers/media/dvb/frontends/s5h1420.c
---- a/drivers/media/dvb/frontends/s5h1420.c~drivers-media-dvb-frontends-s5h1420c-printk-fix
-+++ a/drivers/media/dvb/frontends/s5h1420.c
-@@ -481,7 +481,7 @@ static void s5h1420_setsymbolrate(struct
- 		val *= 2;
- 	do_div(val, (state->fclk / 1000));
+diff -puN Documentation/scsi/ChangeLog.megaraid_sas~scsi-megaraid_sas-update-the-version-and-changelog Documentation/scsi/ChangeLog.megaraid_sas
+--- a/Documentation/scsi/ChangeLog.megaraid_sas~scsi-megaraid_sas-update-the-version-and-changelog
++++ a/Documentation/scsi/ChangeLog.megaraid_sas
+@@ -1,3 +1,25 @@
++1 Release Date    : Mon. March 10 11:02:31 PDT 2008 -
++			(emaild-id:megaraidlinux@lsi.com)
++			Sumant Patro
++			Bo Yang
++
++2 Current Version : 00.00.03.20-RC1
++3 Older Version   : 00.00.03.16
++
++1. Rollback the sense info implementation
++	Sense buffer ptr data type in the ioctl path is reverted back
++	to u32 * as in previous versions of driver.
++
++2. Fixed the driver frame count.
++	When Driver sent wrong frame count to firmware.  As this
++	particular command is sent to drive, FW is seeing continuous
++	chip resets and so the command will timeout.
++
++3. Add the new controller(1078DE) support to the driver
++	and Increase the max_wait to 60 from 10 in the controller
++	operational status.  With this max_wait increase, driver will
++	make sure the FW will 	finish the pending cmd for KDUMP case.
++
+ 1 Release Date    : Thur. Nov. 07 16:30:43 PST 2007 -
+ 			(emaild-id:megaraidlinux@lsi.com)
+ 			Sumant Patro
+diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-update-the-version-and-changelog drivers/scsi/megaraid/megaraid_sas.c
+--- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid_sas-update-the-version-and-changelog
++++ a/drivers/scsi/megaraid/megaraid_sas.c
+@@ -10,7 +10,7 @@
+  *	   2 of the License, or (at your option) any later version.
+  *
+  * FILE		: megaraid_sas.c
+- * Version	: v00.00.03.16-rc1
++ * Version	: v00.00.03.20-rc1
+  *
+  * Authors:
+  *	(email-id : megaraidlinux@lsi.com)
+diff -puN drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-update-the-version-and-changelog drivers/scsi/megaraid/megaraid_sas.h
+--- a/drivers/scsi/megaraid/megaraid_sas.h~scsi-megaraid_sas-update-the-version-and-changelog
++++ a/drivers/scsi/megaraid/megaraid_sas.h
+@@ -18,9 +18,9 @@
+ /*
+  * MegaRAID SAS Driver meta data
+  */
+-#define MEGASAS_VERSION				"00.00.03.16-rc1"
+-#define MEGASAS_RELDATE				"Nov. 07, 2007"
+-#define MEGASAS_EXT_VERSION			"Thu. Nov. 07 10:09:32 PDT 2007"
++#define MEGASAS_VERSION			"00.00.03.20-rc1"
++#define MEGASAS_RELDATE			"March 10, 2008"
++#define MEGASAS_EXT_VERSION		"Mon. March 10 11:02:31 PDT 2008"
  
--	dprintk("symbol rate register: %06llx\n", val);
-+	dprintk("symbol rate register: %06llx\n", (unsigned long long)val);
- 
- 	v = s5h1420_readreg(state, Loop01);
- 	s5h1420_writereg(state, Loop01, v & 0x7f);
+ /*
+  * Device IDs
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bo.yang@lsi.com are
 
 origin.patch
-blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-disable-the-memory-controller-by-default-v3.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-x86-ptrace-pebs-support-warning-fix.patch
-rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
-cifs-suppress-warning.patch
-devres-support-addresses-greater-than-an-unsigned-long-via-dev_ioremap-checkpatch-fixes.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-hwmon.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-kvm.patch
-pata_atiixp-simplex-clear.patch
-git-m32r.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-sched-add-debug-checks-to-idle-functions.patch
-drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
-add-rcu_assign_index-if-ever-needed.patch
 git-scsi-misc.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-aic79xx_core-remove-ascii-art.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-revert-rusty-misc-timer-typesafe.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-ext4-is-busted-on-m68k.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
-add-warn_on_secs-macro.patch
-rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-isicom-bring-into-coding-style-fix.patch
-tty-the-big-operations-rework-fix-2.patch
-tty-the-big-operations-rework-isicom-fix.patch
-tty-the-big-operations-rework-simserial-fix.patch
-tty-the-big-operations-rework-vs-git-kgdb-light.patch
-tty-the-big-operations-rework-vs-kgdb-2.patch
-devpts-factor-out-pty-index-allocation-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-fuse-fix-race-in-llseek-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-x86-ioremap-add-checks-for-virtual-addresses-fix.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
