@@ -1,58 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - arm-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:50:01 -0700
-Message-ID: <200804300550.m3U5o1Xe030050@imap1.linux-foundation.org>
+Subject: - ipmi-hold-attn-until-upper-layer-ready.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:44:31 -0700
+Message-ID: <200804300544.m3U5iVtF029419@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60866 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44272 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758955AbYD3Fua (ORCPT
+	by vger.kernel.org with ESMTP id S1756398AbYD3FuV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:50:30 -0400
+	Wed, 30 Apr 2008 01:50:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
+To: cminyard@mvista.com, Patrick.Schoeller@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm: use kbuild.h instead of macros in asm-offsets.c
+     ipmi: hold ATTN until upper layer ready
 has been removed from the -mm tree.  Its filename was
-     arm-use-kbuildh-instead-of-macros-in-asm-offsetsc.patch
+     ipmi-hold-attn-until-upper-layer-ready.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm: use kbuild.h instead of macros in asm-offsets.c
-From: Christoph Lameter <clameter@sgi.com>
+Subject: ipmi: hold ATTN until upper layer ready
+From: Corey Minyard <cminyard@mvista.com>
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+Hold handling of ATTN until the upper layer has reported that it is
+ready.
+
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Cc: Patrick Schoeller <Patrick.Schoeller@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/asm-offsets.c |    8 +-------
- 1 file changed, 1 insertion(+), 7 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/kernel/asm-offsets.c~arm-use-kbuildh-instead-of-macros-in-asm-offsetsc arch/arm/kernel/asm-offsets.c
---- a/arch/arm/kernel/asm-offsets.c~arm-use-kbuildh-instead-of-macros-in-asm-offsetsc
-+++ a/arch/arm/kernel/asm-offsets.c
-@@ -16,6 +16,7 @@
- #include <asm/thread_info.h>
- #include <asm/memory.h>
- #include <asm/procinfo.h>
-+#include <linux/kbuild.h>
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-hold-attn-until-upper-layer-ready drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-hold-attn-until-upper-layer-ready
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -723,8 +723,11 @@ static enum si_sm_result smi_event_handl
+ 		si_sm_result = smi_info->handlers->event(smi_info->si_sm, 0);
+ 	}
  
- /*
-  * Make sure that the compiler and target are compatible.
-@@ -35,13 +36,6 @@
- #error    Known good compilers: 3.3
- #endif
+-	/* We prefer handling attn over new messages. */
+-	if (si_sm_result == SI_SM_ATTN)
++	/*
++	 * We prefer handling attn over new messages.  But don't do
++	 * this if there is not yet an upper layer to handle anything.
++	 */
++	if (likely(smi_info->intf) && si_sm_result == SI_SM_ATTN)
+ 	{
+ 		unsigned char msg[2];
  
--/* Use marker if you need to separate the values later */
--
--#define DEFINE(sym, val) \
--        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
--
--#define BLANK() asm volatile("\n->" : : )
+_
+
+Patches currently in -mm which might be from cminyard@mvista.com are
+
+origin.patch
+
