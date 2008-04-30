@@ -1,101 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - fs-drop_cachesc-make-2-functions-static.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:39:28 -0700
-Message-ID: <200804300539.m3U5dSYF028849@imap1.linux-foundation.org>
+Subject: - cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:39:05 -0700
+Message-ID: <200804300539.m3U5d5Tr028808@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34727 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754100AbYD3Fjp (ORCPT
+	by vger.kernel.org with ESMTP id S1753749AbYD3Fjp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 30 Apr 2008 01:39:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, ego@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/drop_caches.c: make 2 functions static
+     cpu: fix section mismatch warnings in hotcpu_register
 has been removed from the -mm tree.  Its filename was
-     fs-drop_cachesc-make-2-functions-static.patch
+     cpu-fix-section-mismatch-warnings-in-hotcpu_register.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/drop_caches.c: make 2 functions static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: cpu: fix section mismatch warnings in hotcpu_register
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Make the following needlessly global functions static:
+Fix following warnings:
+WARNING: vmlinux.o(.data+0x5020): Section mismatch in reference from the variable cpu_vsyscall_notifier_nb.12876 to the function .cpuinit.text:cpu_vsyscall_notifier()
+WARNING: vmlinux.o(.data+0x9ce0): Section mismatch in reference from the variable profile_cpu_callback_nb.17654 to the function .devinit.text:profile_cpu_callback()
+WARNING: vmlinux.o(.data+0xd380): Section mismatch in reference from the variable workqueue_cpu_callback_nb.15004 to the function .devinit.text:workqueue_cpu_callback()
+WARNING: vmlinux.o(.data+0x11d00): Section mismatch in reference from the variable relay_hotcpu_callback_nb.19626 to the function .cpuinit.text:relay_hotcpu_callback()
+WARNING: vmlinux.o(.data+0x12970): Section mismatch in reference from the variable cpu_callback_nb.24694 to the function .devinit.text:cpu_callback()
+WARNING: vmlinux.o(.data+0x3fee0): Section mismatch in reference from the variable percpu_counter_hotcpu_callback_nb.10903 to the function .cpuinit.text:percpu_counter_hotcpu_callback()
+WARNING: vmlinux.o(.data+0x74ce0): Section mismatch in reference from the variable topology_cpu_callback_nb.12506 to the function .cpuinit.text:topology_cpu_callback()
 
-- drop_pagecache()
-- drop_slab()
+Functions used as argument are by definition only used in HOTPLUG_CPU
+situations so thay are annotated __cpuinit.  Annotate the static variable used
+by hotcpu_register with __cpuinitdata to match this definition.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/drop_caches.c   |    4 ++--
- include/linux/mm.h |    2 --
- 2 files changed, 2 insertions(+), 4 deletions(-)
+ include/linux/cpu.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/drop_caches.c~fs-drop_cachesc-make-2-functions-static fs/drop_caches.c
---- a/fs/drop_caches.c~fs-drop_cachesc-make-2-functions-static
-+++ a/fs/drop_caches.c
-@@ -25,7 +25,7 @@ static void drop_pagecache_sb(struct sup
- 	spin_unlock(&inode_lock);
+diff -puN include/linux/cpu.h~cpu-fix-section-mismatch-warnings-in-hotcpu_register include/linux/cpu.h
+--- a/include/linux/cpu.h~cpu-fix-section-mismatch-warnings-in-hotcpu_register
++++ a/include/linux/cpu.h
+@@ -108,7 +108,7 @@ static inline void cpuhotplug_mutex_unlo
+ extern void get_online_cpus(void);
+ extern void put_online_cpus(void);
+ #define hotcpu_notifier(fn, pri) {				\
+-	static struct notifier_block fn##_nb =			\
++	static struct notifier_block fn##_nb __cpuinitdata =	\
+ 		{ .notifier_call = fn, .priority = pri };	\
+ 	register_cpu_notifier(&fn##_nb);			\
  }
- 
--void drop_pagecache(void)
-+static void drop_pagecache(void)
- {
- 	struct super_block *sb;
- 
-@@ -45,7 +45,7 @@ restart:
- 	spin_unlock(&sb_lock);
- }
- 
--void drop_slab(void)
-+static void drop_slab(void)
- {
- 	int nr_objects;
- 
-diff -puN include/linux/mm.h~fs-drop_cachesc-make-2-functions-static include/linux/mm.h
---- a/include/linux/mm.h~fs-drop_cachesc-make-2-functions-static
-+++ a/include/linux/mm.h
-@@ -1230,8 +1230,6 @@ int drop_caches_sysctl_handler(struct ct
- 					void __user *, size_t *, loff_t *);
- unsigned long shrink_slab(unsigned long scanned, gfp_t gfp_mask,
- 			unsigned long lru_pages);
--void drop_pagecache(void);
--void drop_slab(void);
- 
- #ifndef CONFIG_MMU
- #define randomize_va_space 0
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 origin.patch
-mm-filemapc-generic_write_checks-mustnt-be-inline.patch
-fs-block_devc-i_bdev-mustnt-be-inline.patch
-frv-fix-arch-frv-mm-unalignedo-build-error.patch
-reiserfs-some-functions-mustnt-be-inline.patch
-git-acpi.patch
 git-x86.patch
-arch-x86-video-fbdevc-add-module_license.patch
-md-make-dm_dirty_log_initexit-static.patch
-drm-make-drm_minors_cleanup-static.patch
 git-m32r.patch
-net-ipv4-ip_outputc-ip_send_check-mustnt-be-inline.patch
-nfs-make-nfs4_drop_state_owner-static.patch
-git-ocfs2.patch
-show_schedstat-fix-memleak.patch
+pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
+pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
+pcmcia-annotate-cb_alloc-with-__ref.patch
+git-pci.patch
+git-s390.patch
 git-sh.patch
-if-0-ses_match_host.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
 git-watchdog.patch
-xen-drivers-xen-balloonc-make-a-function-static.patch
-make-marker_debug-static.patch
-reiser4.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+remove-ifdef-__kernel__-checks-from-unexported-headers.patch
 
