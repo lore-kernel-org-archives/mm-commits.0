@@ -1,104 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - befs-fix-sparse-warning-in-linuxvfsc.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:39:02 -0700
-Message-ID: <200804300539.m3U5d2Nv028803@imap1.linux-foundation.org>
+Subject: - fs-coda-remove-static-inline-forward-declarations.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:38:47 -0700
+Message-ID: <200804300538.m3U5clrq028777@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57536 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40901 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754901AbYD3FjH (ORCPT
+	by vger.kernel.org with ESMTP id S1756359AbYD3FjI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:39:07 -0400
+	Wed, 30 Apr 2008 01:39:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, rathamahata@php4.ru, mm-commits@vger.kernel.org
+To: ilpo.jarvinen@helsinki.fi, jaharkes@cs.cmu.edu, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
 
 
 The patch titled
-     befs: fix sparse warning in linuxvfs.c
+     fs/coda: remove static inline forward declarations
 has been removed from the -mm tree.  Its filename was
-     befs-fix-sparse-warning-in-linuxvfsc.patch
+     fs-coda-remove-static-inline-forward-declarations.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: befs: fix sparse warning in linuxvfs.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: fs/coda: remove static inline forward declarations
+=46rom: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
 
-Use link as the variable name to avoid shadowing the arg.
+They're defined later on in the same file with bodies and nothing in
+between needs them.
 
-fs/befs/linuxvfs.c:492:8: warning: symbol 'p' shadows an earlier one
-fs/befs/linuxvfs.c:488:77: originally declared here
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: "Sergey S. Kostyliov" <rathamahata@php4.ru>
+Signed-off-by: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
+Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Acked-by: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/befs/linuxvfs.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/coda_linux.h |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN fs/befs/linuxvfs.c~befs-fix-sparse-warning-in-linuxvfsc fs/befs/linuxvfs.c
---- a/fs/befs/linuxvfs.c~befs-fix-sparse-warning-in-linuxvfsc
-+++ a/fs/befs/linuxvfs.c
-@@ -489,9 +489,9 @@ static void befs_put_link(struct dentry 
- {
- 	befs_inode_info *befs_ino = BEFS_I(dentry->d_inode);
- 	if (befs_ino->i_flags & BEFS_LONG_SYMLINK) {
--		char *p = nd_get_link(nd);
--		if (!IS_ERR(p))
--			kfree(p);
-+		char *link = nd_get_link(nd);
-+		if (!IS_ERR(link))
-+			kfree(link);
- 	}
- }
- 
+diff -puN include/linux/coda_linux.h~fs-coda-remove-static-inline-forwa=
+rd-declarations include/linux/coda_linux.h
+--- a/include/linux/coda_linux.h~fs-coda-remove-static-inline-forward-d=
+eclarations
++++ a/include/linux/coda_linux.h
+@@ -43,9 +43,6 @@ int coda_getattr(struct vfsmount *, stru
+ int coda_setattr(struct dentry *, struct iattr *);
+=20
+ /* this file:  heloers */
+-static __inline__ struct CodaFid *coda_i2f(struct inode *);
+-static __inline__ char *coda_i2s(struct inode *);
+-static __inline__ void coda_flag_inode(struct inode *, int flag);
+ char *coda_f2s(struct CodaFid *f);
+ int coda_isroot(struct inode *i);
+ int coda_iscontrol(const char *name, size_t length);
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from ilpo.jarvinen@helsinki.fi =
+are
 
 origin.patch
-frv-fix-arch-frv-mm-unalignedo-build-error.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-git-kvm.patch
-git-mips.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-git-watchdog.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
