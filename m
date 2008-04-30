@@ -1,168 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - pcmcia-use-get-put_unaligned_-helpers.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:49:27 -0700
-Message-ID: <200804300549.m3U5nRYC030005@imap1.linux-foundation.org>
+Subject: - ncpfs-use-get-put_unaligned_-helpers.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:49:42 -0700
+Message-ID: <200804300549.m3U5ng6a030023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50969 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36801 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758808AbYD3FuE (ORCPT
+	by vger.kernel.org with ESMTP id S1758808AbYD3FuL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:50:04 -0400
+	Wed, 30 Apr 2008 01:50:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, daniel.ritz@gmx.ch, linux@dominikbrodowski.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pcmcia: use get/put_unaligned_* helpers
+     ncpfs: use get/put_unaligned_* helpers
 has been removed from the -mm tree.  Its filename was
-     pcmcia-use-get-put_unaligned_-helpers.patch
+     ncpfs-use-get-put_unaligned_-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia: use get/put_unaligned_* helpers
+Subject: ncpfs: use get/put_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
+[akpm@linux-foundation.org: coding-style fixes]
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
-Cc: Daniel Ritz <daniel.ritz@gmx.ch>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/cistpl.c |   39 ++++++++++++++------------------------
- 1 file changed, 15 insertions(+), 24 deletions(-)
+ fs/ncpfs/ncplib_kernel.c |   39 ++++++++++++++++++-------------------
+ 1 file changed, 19 insertions(+), 20 deletions(-)
 
-diff -puN drivers/pcmcia/cistpl.c~pcmcia-use-get-put_unaligned_-helpers drivers/pcmcia/cistpl.c
---- a/drivers/pcmcia/cistpl.c~pcmcia-use-get-put_unaligned_-helpers
-+++ a/drivers/pcmcia/cistpl.c
-@@ -402,15 +402,6 @@ EXPORT_SYMBOL(pcmcia_replace_cis);
-     
- ======================================================================*/
- 
--static inline u16 cis_get_u16(void *ptr)
--{
--	return le16_to_cpu(get_unaligned((__le16 *) ptr));
--}
--static inline u32 cis_get_u32(void *ptr)
--{
--	return le32_to_cpu(get_unaligned((__le32 *) ptr));
--}
--
- typedef struct tuple_flags {
-     u_int		link_space:4;
-     u_int		has_link:1;
-@@ -471,7 +462,7 @@ static int follow_link(struct pcmcia_soc
- 	/* Get indirect link from the MFC tuple */
- 	read_cis_cache(s, LINK_SPACE(tuple->Flags),
- 		       tuple->LinkOffset, 5, link);
--	ofs = cis_get_u32(link + 1);
-+	ofs = get_unaligned_le32(link + 1);
- 	SPACE(tuple->Flags) = (link[0] == CISTPL_MFC_ATTR);
- 	/* Move to the next indirect link */
- 	tuple->LinkOffset += 5;
-@@ -679,8 +670,8 @@ static int parse_checksum(tuple_t *tuple
-     if (tuple->TupleDataLen < 5)
- 	return CS_BAD_TUPLE;
-     p = (u_char *) tuple->TupleData;
--    csum->addr = tuple->CISOffset + cis_get_u16(p) - 2;
--    csum->len = cis_get_u16(p + 2);
-+    csum->addr = tuple->CISOffset + get_unaligned_le16(p) - 2;
-+    csum->len = get_unaligned_le16(p + 2);
-     csum->sum = *(p + 4);
-     return CS_SUCCESS;
+diff -puN fs/ncpfs/ncplib_kernel.c~ncpfs-use-get-put_unaligned_-helpers fs/ncpfs/ncplib_kernel.c
+--- a/fs/ncpfs/ncplib_kernel.c~ncpfs-use-get-put_unaligned_-helpers
++++ a/fs/ncpfs/ncplib_kernel.c
+@@ -102,48 +102,47 @@ static inline void ncp_init_request_s(st
  }
-@@ -691,7 +682,7 @@ static int parse_longlink(tuple_t *tuple
+ 
+ static inline char *
+- ncp_reply_data(struct ncp_server *server, int offset)
++ncp_reply_data(struct ncp_server *server, int offset)
  {
-     if (tuple->TupleDataLen < 4)
- 	return CS_BAD_TUPLE;
--    link->addr = cis_get_u32(tuple->TupleData);
-+    link->addr = get_unaligned_le32(tuple->TupleData);
-     return CS_SUCCESS;
+ 	return &(server->packet[sizeof(struct ncp_reply_header) + offset]);
  }
  
-@@ -710,7 +701,7 @@ static int parse_longlink_mfc(tuple_t *t
- 	return CS_BAD_TUPLE;
-     for (i = 0; i < link->nfn; i++) {
- 	link->fn[i].space = *p; p++;
--	link->fn[i].addr = cis_get_u32(p);
-+	link->fn[i].addr = get_unaligned_le32(p);
- 	p += 4;
-     }
-     return CS_SUCCESS;
-@@ -800,8 +791,8 @@ static int parse_manfid(tuple_t *tuple, 
+-static inline __u8 BVAL(void* data)
++static inline u8 BVAL(void *data)
  {
-     if (tuple->TupleDataLen < 4)
- 	return CS_BAD_TUPLE;
--    m->manf = cis_get_u16(tuple->TupleData);
--    m->card = cis_get_u16(tuple->TupleData + 2);
-+    m->manf = get_unaligned_le16(tuple->TupleData);
-+    m->card = get_unaligned_le16(tuple->TupleData + 2);
-     return CS_SUCCESS;
+-	return get_unaligned((__u8*)data);
++	return *(u8 *)data;
  }
  
-@@ -1100,7 +1091,7 @@ static int parse_cftable_entry(tuple_t *
- 	break;
-     case 0x20:
- 	entry->mem.nwin = 1;
--	entry->mem.win[0].len = cis_get_u16(p) << 8;
-+	entry->mem.win[0].len = get_unaligned_le16(p) << 8;
- 	entry->mem.win[0].card_addr = 0;
- 	entry->mem.win[0].host_addr = 0;
- 	p += 2;
-@@ -1108,8 +1099,8 @@ static int parse_cftable_entry(tuple_t *
- 	break;
-     case 0x40:
- 	entry->mem.nwin = 1;
--	entry->mem.win[0].len = cis_get_u16(p) << 8;
--	entry->mem.win[0].card_addr = cis_get_u16(p + 2) << 8;
-+	entry->mem.win[0].len = get_unaligned_le16(p) << 8;
-+	entry->mem.win[0].card_addr = get_unaligned_le16(p + 2) << 8;
- 	entry->mem.win[0].host_addr = 0;
- 	p += 4;
- 	if (p > q) return CS_BAD_TUPLE;
-@@ -1146,7 +1137,7 @@ static int parse_bar(tuple_t *tuple, cis
-     p = (u_char *)tuple->TupleData;
-     bar->attr = *p;
-     p += 2;
--    bar->size = cis_get_u32(p);
-+    bar->size = get_unaligned_le32(p);
-     return CS_SUCCESS;
+-static __u8
+- ncp_reply_byte(struct ncp_server *server, int offset)
++static u8 ncp_reply_byte(struct ncp_server *server, int offset)
+ {
+-	return get_unaligned((__u8 *) ncp_reply_data(server, offset));
++	return *(u8 *)ncp_reply_data(server, offset);
  }
  
-@@ -1159,7 +1150,7 @@ static int parse_config_cb(tuple_t *tupl
- 	return CS_BAD_TUPLE;
-     config->last_idx = *(++p);
-     p++;
--    config->base = cis_get_u32(p);
-+    config->base = get_unaligned_le32(p);
-     config->subtuples = tuple->TupleDataLen - 6;
-     return CS_SUCCESS;
+-static inline __u16 WVAL_LH(void* data)
++static inline u16 WVAL_LH(void *data)
+ {
+-	return le16_to_cpu(get_unaligned((__le16*)data));
++	return get_unaligned_le16(data);
  }
-@@ -1275,7 +1266,7 @@ static int parse_vers_2(tuple_t *tuple, 
  
-     v2->vers = p[0];
-     v2->comply = p[1];
--    v2->dindex = cis_get_u16(p +2 );
-+    v2->dindex = get_unaligned_le16(p +2 );
-     v2->vspec8 = p[6];
-     v2->vspec9 = p[7];
-     v2->nhdr = p[8];
-@@ -1316,8 +1307,8 @@ static int parse_format(tuple_t *tuple, 
- 
-     fmt->type = p[0];
-     fmt->edc = p[1];
--    fmt->offset = cis_get_u32(p + 2);
--    fmt->length = cis_get_u32(p + 6);
-+    fmt->offset = get_unaligned_le32(p + 2);
-+    fmt->length = get_unaligned_le32(p + 6);
- 
-     return CS_SUCCESS;
+-static __u16
+- ncp_reply_le16(struct ncp_server *server, int offset)
++static u16
++ncp_reply_le16(struct ncp_server *server, int offset)
+ {
+-	return le16_to_cpu(get_unaligned((__le16 *) ncp_reply_data(server, offset)));
++	return get_unaligned_le16(ncp_reply_data(server, offset));
  }
+ 
+-static __u16
+- ncp_reply_be16(struct ncp_server *server, int offset)
++static u16
++ncp_reply_be16(struct ncp_server *server, int offset)
+ {
+-	return be16_to_cpu(get_unaligned((__be16 *) ncp_reply_data(server, offset)));
++	return get_unaligned_be16(ncp_reply_data(server, offset));
+ }
+ 
+-static inline __u32 DVAL_LH(void* data)
++static inline u32 DVAL_LH(void *data)
+ {
+-	return le32_to_cpu(get_unaligned((__le32*)data));
++	return get_unaligned_le32(data);
+ }
+ 
+ static __le32
+- ncp_reply_dword(struct ncp_server *server, int offset)
++ncp_reply_dword(struct ncp_server *server, int offset)
+ {
+-	return get_unaligned((__le32 *) ncp_reply_data(server, offset));
++	return get_unaligned((__le32 *)ncp_reply_data(server, offset));
+ }
+ 
+ static inline __u32 ncp_reply_dword_lh(struct ncp_server* server, int offset) {
+@@ -1006,8 +1005,8 @@ ncp_read_bounce(struct ncp_server *serve
+ 	result = ncp_request2(server, 72, bounce, bufsize);
+ 	ncp_unlock_server(server);
+ 	if (!result) {
+-		int len = be16_to_cpu(get_unaligned((__be16*)((char*)bounce + 
+-			  sizeof(struct ncp_reply_header))));
++		int len = get_unaligned_be16((char *)bounce +
++			  sizeof(struct ncp_reply_header));
+ 		result = -EIO;
+ 		if (len <= to_read) {
+ 			char* source;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
