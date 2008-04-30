@@ -1,178 +1,250 @@
 From: akpm@linux-foundation.org
-Subject: - workqueues-shrink-cpu_populated_map-when-cpu-dies.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:43:26 -0700
-Message-ID: <200804300543.m3U5hQIX029317@imap1.linux-foundation.org>
+Subject: - cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:43:22 -0700
+Message-ID: <200804300543.m3U5hMea029311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54723 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55579 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758260AbYD3FoD (ORCPT
+	by vger.kernel.org with ESMTP id S1758106AbYD3FoB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:44:03 -0400
+	Wed, 30 Apr 2008 01:44:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, mm-commits@vger.kernel.org
+To: menage@google.com, lizf@cn.fujitsu.com, pj@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueues: shrink cpu_populated_map when CPU dies
+     Cpuset hardwall flag: switch cpusets to use the bulk cgroup_add_files() API
 has been removed from the -mm tree.  Its filename was
-     workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+     cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueues: shrink cpu_populated_map when CPU dies
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: Cpuset hardwall flag: switch cpusets to use the bulk cgroup_add_files() API
+From: Paul Menage <menage@google.com>
 
-When cpu_populated_map was introduced, it was supposed that cwq->thread can
-survive after CPU_DEAD, that is why we never shrink cpu_populated_map.
+Currently the cpusets mem_exclusive flag is overloaded to mean both
+"no-overlapping" and "no GFP_KERNEL allocations outside this cpuset".
 
-This is not very nice, we can safely remove the already dead CPU from the map.
- The only required change is that destroy_workqueue() must hold the hotplug
-lock until it destroys all cwq->thread's, to protect the cpu_populated_map. 
-We could make the local copy of cpu mask and drop the lock, but
-sizeof(cpumask_t) may be very large.
+These patches add a new mem_hardwall flag with just the allocation restriction
+part of the mem_exclusive semantics, without breaking backwards-compatibility
+for those who continue to use just mem_exclusive.  Additionally, the cgroup
+control file registration for cpusets is cleaned up to reduce boilerplate.
 
-Also, fix the comment near queue_work().  Unless _cpu_down() happens we do
-guarantee the cpu-affinity of the work_struct, and we have users which rely on
-this.
 
-[akpm@linux-foundation.org: repair comment]
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+This patch:
+
+This change tidies up the cpusets control file definitions, and reduces the
+amount of boilerplate required to add/change control files in the future.
+
+Signed-off-by: Paul Menage <menage@google.com>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Paul Jackson <pj@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ kernel/cpuset.c |  166 ++++++++++++++++++++--------------------------
+ 1 file changed, 75 insertions(+), 91 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueues-shrink-cpu_populated_map-when-cpu-dies kernel/workqueue.c
---- a/kernel/workqueue.c~workqueues-shrink-cpu_populated_map-when-cpu-dies
-+++ a/kernel/workqueue.c
-@@ -158,8 +158,8 @@ static void __queue_work(struct cpu_work
-  *
-  * Returns 0 if @work was already on a queue, non-zero otherwise.
-  *
-- * We queue the work to the CPU it was submitted, but there is no
-- * guarantee that it will be processed by that CPU.
-+ * We queue the work to the CPU on which it was submitted, but if the CPU dies
-+ * it can be processed by another CPU.
+diff -puN kernel/cpuset.c~cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api kernel/cpuset.c
+--- a/kernel/cpuset.c~cpuset-hardwall-flag-switch-cpusets-to-use-the-bulk-cgroup_add_files-api
++++ a/kernel/cpuset.c
+@@ -1444,53 +1444,76 @@ static u64 cpuset_read_u64(struct cgroup
+  * for the common functions, 'private' gives the type of file
   */
- int queue_work(struct workqueue_struct *wq, struct work_struct *work)
- {
-@@ -815,12 +815,12 @@ void destroy_workqueue(struct workqueue_
- 	spin_lock(&workqueue_lock);
- 	list_del(&wq->list);
- 	spin_unlock(&workqueue_lock);
--	put_online_cpus();
  
- 	for_each_cpu_mask(cpu, *cpu_map) {
- 		cwq = per_cpu_ptr(wq->cpu_wq, cpu);
- 		cleanup_workqueue_thread(cwq, cpu);
- 	}
-+	put_online_cpus();
- 
- 	free_percpu(wq->cpu_wq);
- 	kfree(wq);
-@@ -838,7 +838,6 @@ static int __devinit workqueue_cpu_callb
- 	action &= ~CPU_TASKS_FROZEN;
- 
- 	switch (action) {
+-static struct cftype cft_cpus = {
+-	.name = "cpus",
+-	.read = cpuset_common_file_read,
+-	.write = cpuset_common_file_write,
+-	.private = FILE_CPULIST,
+-};
 -
- 	case CPU_UP_PREPARE:
- 		cpu_set(cpu, cpu_populated_map);
- 	}
-@@ -866,6 +865,12 @@ static int __devinit workqueue_cpu_callb
- 		}
- 	}
- 
-+	switch (action) {
-+	case CPU_UP_CANCELED:
-+	case CPU_DEAD:
-+		cpu_clear(cpu, cpu_populated_map);
-+	}
+-static struct cftype cft_mems = {
+-	.name = "mems",
+-	.read = cpuset_common_file_read,
+-	.write = cpuset_common_file_write,
+-	.private = FILE_MEMLIST,
+-};
+-
+-static struct cftype cft_cpu_exclusive = {
+-	.name = "cpu_exclusive",
+-	.read_u64 = cpuset_read_u64,
+-	.write_u64 = cpuset_write_u64,
+-	.private = FILE_CPU_EXCLUSIVE,
+-};
+-
+-static struct cftype cft_mem_exclusive = {
+-	.name = "mem_exclusive",
+-	.read_u64 = cpuset_read_u64,
+-	.write_u64 = cpuset_write_u64,
+-	.private = FILE_MEM_EXCLUSIVE,
+-};
+-
+-static struct cftype cft_sched_load_balance = {
+-	.name = "sched_load_balance",
+-	.read_u64 = cpuset_read_u64,
+-	.write_u64 = cpuset_write_u64,
+-	.private = FILE_SCHED_LOAD_BALANCE,
+-};
+-
+-static struct cftype cft_sched_relax_domain_level = {
+-	.name = "sched_relax_domain_level",
+-	.read = cpuset_common_file_read,
+-	.write = cpuset_common_file_write,
+-	.private = FILE_SCHED_RELAX_DOMAIN_LEVEL,
+-};
+-
+-static struct cftype cft_memory_migrate = {
+-	.name = "memory_migrate",
+-	.read_u64 = cpuset_read_u64,
+-	.write_u64 = cpuset_write_u64,
+-	.private = FILE_MEMORY_MIGRATE,
++static struct cftype files[] = {
++	{
++		.name = "cpus",
++		.read = cpuset_common_file_read,
++		.write = cpuset_common_file_write,
++		.private = FILE_CPULIST,
++	},
 +
- 	return NOTIFY_OK;
++	{
++		.name = "mems",
++		.read = cpuset_common_file_read,
++		.write = cpuset_common_file_write,
++		.private = FILE_MEMLIST,
++	},
++
++	{
++		.name = "cpu_exclusive",
++		.read_u64 = cpuset_read_u64,
++		.write_u64 = cpuset_write_u64,
++		.private = FILE_CPU_EXCLUSIVE,
++	},
++
++	{
++		.name = "mem_exclusive",
++		.read_u64 = cpuset_read_u64,
++		.write_u64 = cpuset_write_u64,
++		.private = FILE_MEM_EXCLUSIVE,
++	},
++
++	{
++		.name = "sched_load_balance",
++		.read_u64 = cpuset_read_u64,
++		.write_u64 = cpuset_write_u64,
++		.private = FILE_SCHED_LOAD_BALANCE,
++	},
++
++	{
++		.name = "sched_relax_domain_level",
++		.read_u64 = cpuset_read_u64,
++		.write_u64 = cpuset_write_u64,
++		.private = FILE_SCHED_RELAX_DOMAIN_LEVEL,
++	},
++
++	{
++		.name = "memory_migrate",
++		.read_u64 = cpuset_read_u64,
++		.write_u64 = cpuset_write_u64,
++		.private = FILE_MEMORY_MIGRATE,
++	},
++
++	{
++		.name = "memory_pressure",
++		.read_u64 = cpuset_read_u64,
++		.write_u64 = cpuset_write_u64,
++		.private = FILE_MEMORY_PRESSURE,
++	},
++
++	{
++		.name = "memory_spread_page",
++		.read_u64 = cpuset_read_u64,
++		.write_u64 = cpuset_write_u64,
++		.private = FILE_SPREAD_PAGE,
++	},
++
++	{
++		.name = "memory_spread_slab",
++		.read_u64 = cpuset_read_u64,
++		.write_u64 = cpuset_write_u64,
++		.private = FILE_SPREAD_SLAB,
++	},
+ };
+ 
+ static struct cftype cft_memory_pressure_enabled = {
+@@ -1500,57 +1523,18 @@ static struct cftype cft_memory_pressure
+ 	.private = FILE_MEMORY_PRESSURE_ENABLED,
+ };
+ 
+-static struct cftype cft_memory_pressure = {
+-	.name = "memory_pressure",
+-	.read_u64 = cpuset_read_u64,
+-	.write_u64 = cpuset_write_u64,
+-	.private = FILE_MEMORY_PRESSURE,
+-};
+-
+-static struct cftype cft_spread_page = {
+-	.name = "memory_spread_page",
+-	.read_u64 = cpuset_read_u64,
+-	.write_u64 = cpuset_write_u64,
+-	.private = FILE_SPREAD_PAGE,
+-};
+-
+-static struct cftype cft_spread_slab = {
+-	.name = "memory_spread_slab",
+-	.read_u64 = cpuset_read_u64,
+-	.write_u64 = cpuset_write_u64,
+-	.private = FILE_SPREAD_SLAB,
+-};
+-
+ static int cpuset_populate(struct cgroup_subsys *ss, struct cgroup *cont)
+ {
+ 	int err;
+ 
+-	if ((err = cgroup_add_file(cont, ss, &cft_cpus)) < 0)
+-		return err;
+-	if ((err = cgroup_add_file(cont, ss, &cft_mems)) < 0)
+-		return err;
+-	if ((err = cgroup_add_file(cont, ss, &cft_cpu_exclusive)) < 0)
+-		return err;
+-	if ((err = cgroup_add_file(cont, ss, &cft_mem_exclusive)) < 0)
+-		return err;
+-	if ((err = cgroup_add_file(cont, ss, &cft_memory_migrate)) < 0)
+-		return err;
+-	if ((err = cgroup_add_file(cont, ss, &cft_sched_load_balance)) < 0)
+-		return err;
+-	if ((err = cgroup_add_file(cont, ss,
+-					&cft_sched_relax_domain_level)) < 0)
+-		return err;
+-	if ((err = cgroup_add_file(cont, ss, &cft_memory_pressure)) < 0)
+-		return err;
+-	if ((err = cgroup_add_file(cont, ss, &cft_spread_page)) < 0)
+-		return err;
+-	if ((err = cgroup_add_file(cont, ss, &cft_spread_slab)) < 0)
++	err = cgroup_add_files(cont, ss, files, ARRAY_SIZE(files));
++	if (err)
+ 		return err;
+ 	/* memory_pressure_enabled is in root cpuset only */
+-	if (err == 0 && !cont->parent)
++	if (!cont->parent)
+ 		err = cgroup_add_file(cont, ss,
+-					 &cft_memory_pressure_enabled);
+-	return 0;
++				      &cft_memory_pressure_enabled);
++	return err;
  }
  
+ /*
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from menage@google.com are
 
 origin.patch
-git-s390.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-document-cld_continued-notification-mechanics-more.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-signals-check_kill_permission-remove-tasklist_lock.patch
-signals-fix-sbin-init-protection-from-unwanted-signals.patch
-signals-de_thread-simplify-the-child_reaper-switching.patch
-signals-allow-the-kernel-to-actually-kill-sbin-init.patch
-signals-add-set_restore_sigmask.patch
-signals-set_restore_sigmask-tif_sigpending.patch
-signals-s390-renumber-tif_restore_sigmask.patch
-signals-ia64-renumber-tif_restore_sigmask.patch
-signals-use-have_set_restore_sigmask.patch
-signals-x86-ts_restore_sigmask.patch
-posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
-ptrace-allow-to-ptrace-sbin-init.patch
-workqueue-remove-redundant-function-invocation.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
-pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+disable-the-memory-controller-by-default-v3.patch
+add-a-refcount-check-in-dput.patch
 
