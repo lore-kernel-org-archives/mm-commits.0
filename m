@@ -1,74 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - let-log_buf_shift-default-to-17.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:39:33 -0700
-Message-ID: <200804300539.m3U5dXq6028858@imap1.linux-foundation.org>
+Subject: - remove-mca_is_adapter_used.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:39:43 -0700
+Message-ID: <200804300539.m3U5dhVl028875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53823 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50245 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754199AbYD3FkA (ORCPT
+	by vger.kernel.org with ESMTP id S1754411AbYD3FkC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:40:00 -0400
+	Wed, 30 Apr 2008 01:40:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     let LOG_BUF_SHIFT default to 17
+     remove mca_is_adapter_used()
 has been removed from the -mm tree.  Its filename was
-     let-log_buf_shift-default-to-17.patch
+     remove-mca_is_adapter_used.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: let LOG_BUF_SHIFT default to 17
+Subject: remove mca_is_adapter_used()
 From: Adrian Bunk <bunk@kernel.org>
 
-16 kB is often no longer enough for a normal boot of an UP system.
-
-And even less when people e.g. use suspend.
-
-17 seems to be a more reasonable default for current kernels on current
-hardware (it's just the default, anyone who is memory limited can still lower
-it).
+Remove the no longer used mca_is_adapter_used().
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: James Bottomley <James.Bottomley@steeleye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |   15 ++++++---------
- 1 file changed, 6 insertions(+), 9 deletions(-)
+ drivers/mca/mca-legacy.c   |   18 ------------------
+ include/linux/mca-legacy.h |    1 -
+ 2 files changed, 19 deletions(-)
 
-diff -puN init/Kconfig~let-log_buf_shift-default-to-17 init/Kconfig
---- a/init/Kconfig~let-log_buf_shift-default-to-17
-+++ a/init/Kconfig
-@@ -259,17 +259,14 @@ config IKCONFIG_PROC
- config LOG_BUF_SHIFT
- 	int "Kernel log buffer size (16 => 64KB, 17 => 128KB)"
- 	range 12 21
--	default 17 if S390 || LOCKDEP
--	default 16 if X86_NUMAQ || IA64
--	default 15 if SMP
--	default 14
-+	default 17
- 	help
- 	  Select kernel log buffer size as a power of 2.
--	  Defaults and Examples:
--	  	     17 => 128 KB for S/390
--		     16 => 64 KB for x86 NUMAQ or IA-64
--	             15 => 32 KB for SMP
--	             14 => 16 KB for uniprocessor
-+	  Examples:
-+	  	     17 => 128 KB
-+		     16 => 64 KB
-+	             15 => 32 KB
-+	             14 => 16 KB
- 		     13 =>  8 KB
- 		     12 =>  4 KB
+diff -puN drivers/mca/mca-legacy.c~remove-mca_is_adapter_used drivers/mca/mca-legacy.c
+--- a/drivers/mca/mca-legacy.c~remove-mca_is_adapter_used
++++ a/drivers/mca/mca-legacy.c
+@@ -282,24 +282,6 @@ void mca_set_adapter_name(int slot, char
+ EXPORT_SYMBOL(mca_set_adapter_name);
+ 
+ /**
+- *	mca_is_adapter_used - check if claimed by driver
+- *	@slot:	slot to check
+- *
+- *	Returns 1 if the slot has been claimed by a driver
+- */
+-
+-int mca_is_adapter_used(int slot)
+-{
+-	struct mca_device *mca_dev = mca_find_device_by_slot(slot);
+-
+-	if(!mca_dev)
+-		return 0;
+-
+-	return mca_device_claimed(mca_dev);
+-}
+-EXPORT_SYMBOL(mca_is_adapter_used);
+-
+-/**
+  *	mca_mark_as_used - claim an MCA device
+  *	@slot:	slot to claim
+  *	FIXME:  should we make this threadsafe
+diff -puN include/linux/mca-legacy.h~remove-mca_is_adapter_used include/linux/mca-legacy.h
+--- a/include/linux/mca-legacy.h~remove-mca_is_adapter_used
++++ a/include/linux/mca-legacy.h
+@@ -34,7 +34,6 @@
+ extern int mca_find_adapter(int id, int start);
+ extern int mca_find_unused_adapter(int id, int start);
+ 
+-extern int mca_is_adapter_used(int slot);
+ extern int mca_mark_as_used(int slot);
+ extern void mca_mark_as_unused(int slot);
  
 _
 
