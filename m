@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed.patch added to -mm tree
-Date: Wed, 30 Apr 2008 04:40:17 -0700
-Message-ID: <200804301140.m3UBeHvm011568@imap1.linux-foundation.org>
+Subject: + drivers-media-build-fix-for-modular-builds.patch added to -mm tree
+Date: Wed, 30 Apr 2008 04:42:15 -0700
+Message-ID: <200804301142.m3UBgFul011617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34057 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757726AbYD3Lki (ORCPT
+	by vger.kernel.org with ESMTP id S1762966AbYD3Lmj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 07:40:38 -0400
+	Wed, 30 Apr 2008 07:42:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, efault@gmx.de, mchehab@infradead.org
+Cc: mingo@elte.hu, mchehab@infradead.org, sam@ravnborg.org
 
 
 The patch titled
-     tuner_symbol_probe(): don't do symbol_put() if symbol_request() failed
+     drivers/media build fix for modular builds
 has been added to the -mm tree.  Its filename is
-     tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed.patch
+     drivers-media-build-fix-for-modular-builds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,118 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tuner_symbol_probe(): don't do symbol_put() if symbol_request() failed
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/media build fix for modular builds
+From: Ingo Molnar <mingo@elte.hu>
 
-Because it goes BUG.
+fix allmodconfig build bug introduced in latest -git by commit 7c91f0624a9
+("V4L/DVB(7767): Move tuners to common/tuners"):
 
-Cc: Mike Galbraith <efault@gmx.de>
+  LD      kernel/built-in.o
+  LD      drivers/built-in.o
+  ld: drivers/media/built-in.o: No such file: No such file or directory
+
+which happens if all media drivers are modular:
+
+  http://redhat.com/~mingo/misc/config-Wed_Apr_30_09_24_48_CEST_2008.bad
+
+In that case there's no obj-y rule connecting all the built-in.o files and
+the link tree breaks.
+
+the fix is to add a guaranteed obj-y rule for the core vmlinux to build.
+(which results in an empty object file if all media drivers are modular)
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Acked-by: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/tuner-core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/Makefile |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/media/video/tuner-core.c~tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed drivers/media/video/tuner-core.c
---- a/drivers/media/video/tuner-core.c~tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed
-+++ a/drivers/media/video/tuner-core.c
-@@ -40,11 +40,11 @@
- 	typeof(&FUNCTION) __a = symbol_request(FUNCTION); \
- 	if (__a) { \
- 		__r = (int) __a(ARGS); \
-+		symbol_put(FUNCTION); \
- 	} else { \
- 		printk(KERN_ERR "TUNER: Unable to find " \
- 				"symbol "#FUNCTION"()\n"); \
- 	} \
--	symbol_put(FUNCTION); \
- 	__r; \
- })
+diff -puN drivers/media/Makefile~drivers-media-build-fix-for-modular-builds drivers/media/Makefile
+--- a/drivers/media/Makefile~drivers-media-build-fix-for-modular-builds
++++ a/drivers/media/Makefile
+@@ -2,6 +2,8 @@
+ # Makefile for the kernel multimedia device drivers.
+ #
  
++obj-y := common/
++
+ obj-$(CONFIG_VIDEO_MEDIA) += common/
+ 
+ # Since hybrid devices are here, should be compiled if DVB and/or V4L
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-isicom-bring-into-coding-style.patch
-tty-the-big-operations-rework.patch
-devpts-factor-out-pty-index-allocation.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-fuse-fix-race-in-llseek.patch
-basic-braille-screen-reader-support.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-revert-memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch
+signals-add-set_restore_sigmask.patch
+signals-set_restore_sigmask-tif_sigpending.patch
+signals-s390-renumber-tif_restore_sigmask.patch
+signals-ia64-renumber-tif_restore_sigmask.patch
+signals-use-have_set_restore_sigmask.patch
+signals-x86-ts_restore_sigmask.patch
+char-serial-switch-drivers-to-ioremap_nocache.patch
+make-marker_debug-static.patch
+asm-futexh-should-include-linux-uaccessh.patch
+slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
+kernel-replace-remaining-__function__-occurances.patch
+cpusets-update-maintainers.patch
+pci-export-resource_wc-in-pci-sysfs.patch
 pci-export-resource_wc-in-pci-sysfs-fix.patch
-disable-the-memory-controller-by-default-v3.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+mm-filemapc-generic_write_checks-mustnt-be-inline.patch
+git-x86.patch
+x86_64-restore-mask_bits-in-msi-shutdown.patch
+arch-x86-video-fbdevc-add-module_license.patch
+x86-ptrace-pebs-support.patch
 x86-ptrace-pebs-support-warning-fix.patch
 rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
 x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
-git-arm-fixup.patch
-cifs-suppress-warning.patch
-devres-support-addresses-greater-than-an-unsigned-long-via-dev_ioremap-checkpatch-fixes.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-hwmon.patch
-touch-screen-driver-for-the-superh-migor-board.patch
+drivers-media-build-fix-for-modular-builds.patch
 git-kvm.patch
-pata_atiixp-simplex-clear.patch
-git-m32r.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-sched.patch
 sched-add-debug-checks-to-idle-functions.patch
+mutex-debug-check-mutex-magic-before-owner.patch
+show_schedstat-fix-memleak.patch
 drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
-add-rcu_assign_index-if-ever-needed.patch
-git-scsi-misc.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-aic79xx_core-remove-ascii-art.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-ext4-is-busted-on-m68k.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
-add-warn_on_secs-macro.patch
-rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-rename-div64_64-to-div64_u64-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
+rcu-fix-rcu_try_flip_waitack_needed-to-prevent-grace-period-stall.patch
+rcu-add-call_rcu_sched.patch
+rcu-add-memory-barriers-and-comments-to-rcu_check_callbacks.patch
+rcu-add-call_rcu_sched-and-friends-to-rcutorture.patch
+rcu-1q08-rcu-doc-update-add-call_rcu_sched.patch
+aes-x86_64-asm-implementation-optimization.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-verify-the-page-links-and-memory-model.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
+posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
+workqueue-remove-redundant-function-invocation.patch
+rename-div64_64-to-div64_u64.patch
+remove-div_long_long_rem.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+x86-ioremap-add-checks-for-virtual-addresses.patch
 x86-ioremap-add-checks-for-virtual-addresses-fix.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
