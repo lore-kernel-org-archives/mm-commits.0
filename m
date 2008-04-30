@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem.patch added to -mm tree
-Date: Tue, 29 Apr 2008 17:13:03 -0700
-Message-ID: <200804300013.m3U0D3AG017430@imap1.linux-foundation.org>
+Subject: + i8k-make-fan-multiplier-tunable-with-a-module-parameter.patch added to -mm tree
+Date: Tue, 29 Apr 2008 17:20:51 -0700
+Message-ID: <200804300020.m3U0KpWL017699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53760 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33052 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755741AbYD3ANH (ORCPT
+	by vger.kernel.org with ESMTP id S1753059AbYD3AVm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 20:13:07 -0400
+	Tue, 29 Apr 2008 20:21:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz
+Cc: jochen@penguin-breeder.org
 
 
 The patch titled
-     isofs: fix access to unallocated memory when reading corrupted filesystem
+     i8k: make fan multiplier tunable with a module parameter
 has been added to the -mm tree.  Its filename is
-     isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem.patch
+     i8k-make-fan-multiplier-tunable-with-a-module-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,69 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isofs: fix access to unallocated memory when reading corrupted filesystem
-From: Jan Kara <jack@suse.cz>
+Subject: i8k: make fan multiplier tunable with a module parameter
+From: Jochen Eisinger <jochen@penguin-breeder.org>
 
-When a directory on isofs is corrupted, we did not check whether length of the
-name in a directory entry and the length of the directory entry itself are
-consistent.  This could lead to possible access beyond the end of buffer when
-the length of the name was too big.  Add this sanity check to directory
-reading code.
+The i8k driver multiplies the fan speed reported by the BIOS with a factor of
+30.  On my Dell Latitude D800, this factor is not required.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+I'd suggest to make this configurable.
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/isofs/dir.c   |    8 ++++++++
- fs/isofs/namei.c |    7 +++++++
- 2 files changed, 15 insertions(+)
+ drivers/char/i8k.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN fs/isofs/dir.c~isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem fs/isofs/dir.c
---- a/fs/isofs/dir.c~isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem
-+++ a/fs/isofs/dir.c
-@@ -145,6 +145,14 @@ static int do_isofs_readdir(struct inode
- 			}
- 			de = tmpde;
- 		}
-+		/* Basic sanity check, whether name doesn't exceed dir entry */
-+		if (de_len < de->name_len[0] +
-+					sizeof(struct iso_directory_record)) {
-+			printk(KERN_NOTICE "iso9660: Corrupted directory entry"
-+			       " in block %lu of inode %lu\n", block,
-+			       inode->i_ino);
-+			return -EIO;
-+		}
+diff -puN drivers/char/i8k.c~i8k-make-fan-multiplier-tunable-with-a-module-parameter drivers/char/i8k.c
+--- a/drivers/char/i8k.c~i8k-make-fan-multiplier-tunable-with-a-module-parameter
++++ a/drivers/char/i8k.c
+@@ -77,6 +77,10 @@ static int power_status;
+ module_param(power_status, bool, 0600);
+ MODULE_PARM_DESC(power_status, "Report power status in /proc/i8k");
  
- 		if (first_de) {
- 			isofs_normalize_block_and_offset(de,
-diff -puN fs/isofs/namei.c~isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem fs/isofs/namei.c
---- a/fs/isofs/namei.c~isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem
-+++ a/fs/isofs/namei.c
-@@ -111,6 +111,13 @@ isofs_find_entry(struct inode *dir, stru
++static int fan_mult = I8K_FAN_MULT;
++module_param(fan_mult, int, 0);
++MODULE_PARM_DESC(fan_mult, "Factor to multiply fan speed with");
++
+ static int i8k_open_fs(struct inode *inode, struct file *file);
+ static int i8k_ioctl(struct inode *, struct file *, unsigned int,
+ 		     unsigned long);
+@@ -239,7 +243,7 @@ static int i8k_get_fan_speed(int fan)
+ 	struct smm_regs regs = { .eax = I8K_SMM_GET_SPEED, };
  
- 		dlen = de->name_len[0];
- 		dpnt = de->name;
-+		/* Basic sanity check, whether name doesn't exceed dir entry */
-+		if (de_len < dlen + sizeof(struct iso_directory_record)) {
-+			printk(KERN_NOTICE "iso9660: Corrupted directory entry"
-+			       " in block %lu of inode %lu\n", block,
-+			       dir->i_ino);
-+			return 0;
-+		}
+ 	regs.ebx = fan & 0xff;
+-	return i8k_smm(&regs) ? : (regs.eax & 0xffff) * I8K_FAN_MULT;
++	return i8k_smm(&regs) ? : (regs.eax & 0xffff) * fan_mult;
+ }
  
- 		if (sbi->s_rock &&
- 		    ((i = get_rock_ridge_filename(de, tmpname, dir)))) {
+ /*
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from jochen@penguin-breeder.org are
 
-origin.patch
-vfs-fix-lock-inversion-in-drop_pagecache_sb.patch
-vfs-skip-inodes-without-pages-to-free-in-drop_pagecache_sb.patch
-isofs-use-get-put_unaligned_-helpers.patch
-ext4-fix-update-of-mtime-and-ctime-on-rename.patch
-ext4-fix-hang-on-umount-with-quotas-when-journal-is-aborted.patch
-ext4-fix-mount-messages-when-quota-disabled.patch
-quota-le_add_cpu-conversion.patch
-isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem.patch
+i8k-make-fan-multiplier-tunable-with-a-module-parameter.patch
 
