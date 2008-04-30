@@ -1,125 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-remove-redundant-function-calls.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:43:09 -0700
-Message-ID: <200804300543.m3U5h9di029296@imap1.linux-foundation.org>
+Subject: - tty-the-big-operations-rework-fix-2.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 23:14:22 -0700
+Message-ID: <200804300614.m3U6ENqn031226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46145 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760625AbYD3GMa (ORCPT
+	by vger.kernel.org with ESMTP id S1754586AbYD3GOb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:12:30 -0400
+	Wed, 30 Apr 2008 02:14:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: remove redundant function calls
+     tty-the-big-operations-rework-fix-2
 has been removed from the -mm tree.  Its filename was
-     memcg-remove-redundant-function-calls.patch
+     tty-the-big-operations-rework-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into tty-the-big-operations-rework.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: remove redundant function calls
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: tty-the-big-operations-rework-fix-2
+From: Andrew Morton <akpm@linux-foundation.org>
 
-remove_list/add_list uses page_cgroup_zoneinfo() in it.
+fs/compat_ioctl.c: In function 'vt_check':
+fs/compat_ioctl.c:1056: error: 'struct tty_driver' has no member named 'ioctl'
 
-So, it's called twice before and after lock.
-
-	mz = page_cgroup_zoneinfo();
-	lock();
-	mz = page_cgroup_zoneinfo();
-	....
-	unlock();
-
-And address of mz never changes.
-
-This is not good. This patch fixes this behavior.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ fs/compat_ioctl.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-remove-redundant-function-calls mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-remove-redundant-function-calls
-+++ a/mm/memcontrol.c
-@@ -275,10 +275,10 @@ static void unlock_page_cgroup(struct pa
- 	bit_spin_unlock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
- }
+diff -puN fs/compat_ioctl.c~tty-the-big-operations-rework-fix-2 fs/compat_ioctl.c
+--- a/fs/compat_ioctl.c~tty-the-big-operations-rework-fix-2
++++ a/fs/compat_ioctl.c
+@@ -1053,7 +1053,7 @@ static int vt_check(struct file *file)
+ 	if (tty_paranoia_check(tty, inode, "tty_ioctl"))
+ 		return -EINVAL;
+ 	                                                
+-	if (tty->driver->ioctl != vt_ioctl)
++	if (tty->ops->ioctl != vt_ioctl)
+ 		return -EINVAL;
  
--static void __mem_cgroup_remove_list(struct page_cgroup *pc)
-+static void __mem_cgroup_remove_list(struct mem_cgroup_per_zone *mz,
-+			struct page_cgroup *pc)
- {
- 	int from = pc->flags & PAGE_CGROUP_FLAG_ACTIVE;
--	struct mem_cgroup_per_zone *mz = page_cgroup_zoneinfo(pc);
- 
- 	if (from)
- 		MEM_CGROUP_ZSTAT(mz, MEM_CGROUP_ZSTAT_ACTIVE) -= 1;
-@@ -289,10 +289,10 @@ static void __mem_cgroup_remove_list(str
- 	list_del_init(&pc->lru);
- }
- 
--static void __mem_cgroup_add_list(struct page_cgroup *pc)
-+static void __mem_cgroup_add_list(struct mem_cgroup_per_zone *mz,
-+				struct page_cgroup *pc)
- {
- 	int to = pc->flags & PAGE_CGROUP_FLAG_ACTIVE;
--	struct mem_cgroup_per_zone *mz = page_cgroup_zoneinfo(pc);
- 
- 	if (!to) {
- 		MEM_CGROUP_ZSTAT(mz, MEM_CGROUP_ZSTAT_INACTIVE) += 1;
-@@ -618,7 +618,7 @@ retry:
- 
- 	mz = page_cgroup_zoneinfo(pc);
- 	spin_lock_irqsave(&mz->lru_lock, flags);
--	__mem_cgroup_add_list(pc);
-+	__mem_cgroup_add_list(mz, pc);
- 	spin_unlock_irqrestore(&mz->lru_lock, flags);
- 
- 	unlock_page_cgroup(page);
-@@ -674,7 +674,7 @@ void mem_cgroup_uncharge_page(struct pag
- 	if (--(pc->ref_cnt) == 0) {
- 		mz = page_cgroup_zoneinfo(pc);
- 		spin_lock_irqsave(&mz->lru_lock, flags);
--		__mem_cgroup_remove_list(pc);
-+		__mem_cgroup_remove_list(mz, pc);
- 		spin_unlock_irqrestore(&mz->lru_lock, flags);
- 
- 		page_assign_page_cgroup(page, NULL);
-@@ -736,7 +736,7 @@ void mem_cgroup_page_migration(struct pa
- 
- 	mz = page_cgroup_zoneinfo(pc);
- 	spin_lock_irqsave(&mz->lru_lock, flags);
--	__mem_cgroup_remove_list(pc);
-+	__mem_cgroup_remove_list(mz, pc);
- 	spin_unlock_irqrestore(&mz->lru_lock, flags);
- 
- 	page_assign_page_cgroup(page, NULL);
-@@ -748,7 +748,7 @@ void mem_cgroup_page_migration(struct pa
- 
- 	mz = page_cgroup_zoneinfo(pc);
- 	spin_lock_irqsave(&mz->lru_lock, flags);
--	__mem_cgroup_add_list(pc);
-+	__mem_cgroup_add_list(mz, pc);
- 	spin_unlock_irqrestore(&mz->lru_lock, flags);
- 
- 	unlock_page_cgroup(newpage);
+ 	vc = (struct vc_data *)tty->driver_data;
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-disable-the-memory-controller-by-default-v3.patch
-proc-pagetypeinfo-fix-output-for-memoryless-nodes.patch
+blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+isicom-bring-into-coding-style.patch
+tty-the-big-operations-rework.patch
+tty-the-big-operations-rework-fix-2.patch
+tty-the-big-operations-rework-isicom-fix.patch
+tty-the-big-operations-rework-simserial-fix.patch
+tty-the-big-operations-rework-vs-git-kgdb-light.patch
+tty-the-big-operations-rework-vs-kgdb-2.patch
+devpts-factor-out-pty-index-allocation-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+fuse-fix-race-in-llseek-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+x86-ioremap-add-checks-for-virtual-addresses-fix.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
