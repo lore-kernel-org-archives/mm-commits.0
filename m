@@ -1,76 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - avr32-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:50:07 -0700
-Message-ID: <200804300550.m3U5o7bO030085@imap1.linux-foundation.org>
+Subject: - ext4-fix-update-of-mtime-and-ctime-on-rename.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:52:19 -0700
+Message-ID: <200804300552.m3U5qJ4W030309__1392.50001307136$1209535354$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54843 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36160 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756019AbYD3GBb (ORCPT
+	by vger.kernel.org with ESMTP id S1756315AbYD3GBc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:01:31 -0400
+	Wed, 30 Apr 2008 02:01:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: clameter@sgi.com, hskinnemoen@atmel.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, linux-ext4@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     avr32: use kbuild.h macros instead of defining macros in asm-offsets.c
+     ext4: fix update of mtime and ctime on rename
 has been removed from the -mm tree.  Its filename was
-     avr32-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc.patch
+     ext4-fix-update-of-mtime-and-ctime-on-rename.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: avr32: use kbuild.h macros instead of defining macros in asm-offsets.c
-From: Christoph Lameter <clameter@sgi.com>
+Subject: ext4: fix update of mtime and ctime on rename
+From: Jan Kara <jack@suse.cz>
 
-Signed-off-by: Christoph Lameter <clameter@sgi.com>
-Cc: Haavard Skinnemoen <hskinnemoen@atmel.com>
+Make ext4 update mtime and ctime of the directory into which we move file even
+if the directory entry already exists.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/kernel/asm-offsets.c |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ fs/ext4/namei.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN arch/avr32/kernel/asm-offsets.c~avr32-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc arch/avr32/kernel/asm-offsets.c
---- a/arch/avr32/kernel/asm-offsets.c~avr32-use-kbuildh-macros-instead-of-defining-macros-in-asm-offsetsc
-+++ a/arch/avr32/kernel/asm-offsets.c
-@@ -5,14 +5,7 @@
-  */
- 
- #include <linux/thread_info.h>
--
--#define DEFINE(sym, val) \
--        asm volatile("\n->" #sym " %0 " #val : : "i" (val))
--
--#define BLANK() asm volatile("\n->" : : )
--
--#define OFFSET(sym, str, mem) \
--        DEFINE(sym, offsetof(struct str, mem));
-+#include <linux/kbuild.h>
- 
- void foo(void)
- {
+diff -puN fs/ext4/namei.c~ext4-fix-update-of-mtime-and-ctime-on-rename fs/ext4/namei.c
+--- a/fs/ext4/namei.c~ext4-fix-update-of-mtime-and-ctime-on-rename
++++ a/fs/ext4/namei.c
+@@ -2354,6 +2354,9 @@ static int ext4_rename (struct inode * o
+ 					      EXT4_FEATURE_INCOMPAT_FILETYPE))
+ 			new_de->file_type = old_de->file_type;
+ 		new_dir->i_version++;
++		new_dir->i_ctime = new_dir->i_mtime =
++					ext4_current_time(new_dir);
++		ext4_mark_inode_dirty(handle, new_dir);
+ 		BUFFER_TRACE(new_bh, "call ext4_journal_dirty_metadata");
+ 		ext4_journal_dirty_metadata(handle, new_bh);
+ 		brelse(new_bh);
 _
 
-Patches currently in -mm which might be from clameter@sgi.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-git-unionfs.patch
-git-slub.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-mm-add-nr_writeback_temp-counter.patch
-remove-div_long_long_rem.patch
-slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
-reiser4.patch
-reiser4-portion-of-zero_user-cleanup-patch.patch
-page-owner-tracking-leak-detector.patch
-x86-ioremap-add-checks-for-virtual-addresses.patch
-x86-ioremap-add-checks-for-virtual-addresses-fix.patch
+isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem.patch
+ext4-fix-mount-messages-when-quota-disabled.patch
+quota-le_add_cpu-conversion.patch
 
