@@ -1,101 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - random-make-backtracking-attacks-harder.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:48:15 -0700
-Message-ID: <200804300548.m3U5mFts029867@imap1.linux-foundation.org>
+Subject: - memcg-remove-redundant-function-calls.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:43:09 -0700
+Message-ID: <200804300543.m3U5h9di029296@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34512 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760667AbYD3GMa (ORCPT
+	by vger.kernel.org with ESMTP id S1760625AbYD3GMa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Wed, 30 Apr 2008 02:12:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     random: make backtracking attacks harder
+     memcg: remove redundant function calls
 has been removed from the -mm tree.  Its filename was
-     random-make-backtracking-attacks-harder.patch
+     memcg-remove-redundant-function-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: make backtracking attacks harder
-From: Matt Mackall <mpm@selenic.com>
+Subject: memcg: remove redundant function calls
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-At each extraction, we change (poolbits / 16) + 32 bits in the pool,
-or 96 bits in the case of the secondary pools. Thus, a brute-force
-backtracking attack on the pool state is less difficult than breaking
-the hash. In certain cases, this difficulty may be is reduced to 2^64
-iterations.
+remove_list/add_list uses page_cgroup_zoneinfo() in it.
 
-Instead, hash the entire pool in one go, then feedback the whole hash
-(160 bits) in one go. This will make backtracking at least as hard as
-inverting the hash.
+So, it's called twice before and after lock.
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+	mz = page_cgroup_zoneinfo();
+	lock();
+	mz = page_cgroup_zoneinfo();
+	....
+	unlock();
+
+And address of mz never changes.
+
+This is not good. This patch fixes this behavior.
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |   36 +++++++++++++++++-------------------
- 1 file changed, 17 insertions(+), 19 deletions(-)
+ mm/memcontrol.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/random.c~random-make-backtracking-attacks-harder drivers/char/random.c
---- a/drivers/char/random.c~random-make-backtracking-attacks-harder
-+++ a/drivers/char/random.c
-@@ -767,37 +767,35 @@ static void extract_buf(struct entropy_s
- 	int i;
- 	__u32 extract[16], hash[5], workspace[SHA_WORKSPACE_WORDS];
+diff -puN mm/memcontrol.c~memcg-remove-redundant-function-calls mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-redundant-function-calls
++++ a/mm/memcontrol.c
+@@ -275,10 +275,10 @@ static void unlock_page_cgroup(struct pa
+ 	bit_spin_unlock(PAGE_CGROUP_LOCK_BIT, &page->page_cgroup);
+ }
  
-+	/* Generate a hash across the pool, 16 words (512 bits) at a time */
- 	sha_init(hash);
-+	for (i = 0; i < r->poolinfo->poolwords; i += 16)
-+		sha_transform(hash, (__u8 *)(r->pool + i), workspace);
-+
- 	/*
--	 * As we hash the pool, we mix intermediate values of
--	 * the hash back into the pool.  This eliminates
--	 * backtracking attacks (where the attacker knows
--	 * the state of the pool plus the current outputs, and
--	 * attempts to find previous ouputs), unless the hash
--	 * function can be inverted.
-+	 * We mix the hash back into the pool to prevent backtracking
-+	 * attacks (where the attacker knows the state of the pool
-+	 * plus the current outputs, and attempts to find previous
-+	 * ouputs), unless the hash function can be inverted. By
-+	 * mixing at least a SHA1 worth of hash data back, we make
-+	 * brute-forcing the feedback as hard as brute-forcing the
-+	 * hash.
- 	 */
--	for (i = 0; i < r->poolinfo->poolwords; i += 16) {
--		/* hash blocks of 16 words = 512 bits */
--		sha_transform(hash, (__u8 *)(r->pool + i), workspace);
--		/* feed back portion of the resulting hash */
--		add_entropy_words(r, &hash[i % 5], 1);
--	}
-+	__add_entropy_words(r, hash, 5, extract);
+-static void __mem_cgroup_remove_list(struct page_cgroup *pc)
++static void __mem_cgroup_remove_list(struct mem_cgroup_per_zone *mz,
++			struct page_cgroup *pc)
+ {
+ 	int from = pc->flags & PAGE_CGROUP_FLAG_ACTIVE;
+-	struct mem_cgroup_per_zone *mz = page_cgroup_zoneinfo(pc);
  
- 	/*
--	 * To avoid duplicates, we atomically extract a
--	 * portion of the pool while mixing, and hash one
--	 * final time.
-+	 * To avoid duplicates, we atomically extract a portion of the
-+	 * pool while mixing, and hash one final time.
- 	 */
--	__add_entropy_words(r, &hash[i % 5], 1, extract);
- 	sha_transform(hash, (__u8 *)extract, workspace);
- 	memset(extract, 0, sizeof(extract));
- 	memset(workspace, 0, sizeof(workspace));
+ 	if (from)
+ 		MEM_CGROUP_ZSTAT(mz, MEM_CGROUP_ZSTAT_ACTIVE) -= 1;
+@@ -289,10 +289,10 @@ static void __mem_cgroup_remove_list(str
+ 	list_del_init(&pc->lru);
+ }
  
- 	/*
--	 * In case the hash function has some recognizable
--	 * output pattern, we fold it in half.
-+	 * In case the hash function has some recognizable output
-+	 * pattern, we fold it in half. Thus, we always feed back
-+	 * twice as much data as we output.
- 	 */
+-static void __mem_cgroup_add_list(struct page_cgroup *pc)
++static void __mem_cgroup_add_list(struct mem_cgroup_per_zone *mz,
++				struct page_cgroup *pc)
+ {
+ 	int to = pc->flags & PAGE_CGROUP_FLAG_ACTIVE;
+-	struct mem_cgroup_per_zone *mz = page_cgroup_zoneinfo(pc);
+ 
+ 	if (!to) {
+ 		MEM_CGROUP_ZSTAT(mz, MEM_CGROUP_ZSTAT_INACTIVE) += 1;
+@@ -618,7 +618,7 @@ retry:
+ 
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	spin_lock_irqsave(&mz->lru_lock, flags);
+-	__mem_cgroup_add_list(pc);
++	__mem_cgroup_add_list(mz, pc);
+ 	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 
+ 	unlock_page_cgroup(page);
+@@ -674,7 +674,7 @@ void mem_cgroup_uncharge_page(struct pag
+ 	if (--(pc->ref_cnt) == 0) {
+ 		mz = page_cgroup_zoneinfo(pc);
+ 		spin_lock_irqsave(&mz->lru_lock, flags);
+-		__mem_cgroup_remove_list(pc);
++		__mem_cgroup_remove_list(mz, pc);
+ 		spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 
+ 		page_assign_page_cgroup(page, NULL);
+@@ -736,7 +736,7 @@ void mem_cgroup_page_migration(struct pa
+ 
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	spin_lock_irqsave(&mz->lru_lock, flags);
+-	__mem_cgroup_remove_list(pc);
++	__mem_cgroup_remove_list(mz, pc);
+ 	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 
+ 	page_assign_page_cgroup(page, NULL);
+@@ -748,7 +748,7 @@ void mem_cgroup_page_migration(struct pa
+ 
+ 	mz = page_cgroup_zoneinfo(pc);
+ 	spin_lock_irqsave(&mz->lru_lock, flags);
+-	__mem_cgroup_add_list(pc);
++	__mem_cgroup_add_list(mz, pc);
+ 	spin_unlock_irqrestore(&mz->lru_lock, flags);
+ 
+ 	unlock_page_cgroup(newpage);
+_
+
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+
+origin.patch
+disable-the-memory-controller-by-default-v3.patch
+proc-pagetypeinfo-fix-output-for-memoryless-nodes.patch
+
