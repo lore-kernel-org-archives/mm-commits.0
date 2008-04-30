@@ -1,52 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 23:10:55 -0700
-Message-ID: <200804300610.m3U6Atxv031024@imap1.linux-foundation.org>
+Subject: - sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 23:10:53 -0700
+Message-ID: <200804300610.m3U6ArUX031021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46568 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39413 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758023AbYD3GL2 (ORCPT
+	by vger.kernel.org with ESMTP id S1755957AbYD3GLV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:11:28 -0400
+	Wed, 30 Apr 2008 02:11:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, sivanich@sgi.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2
+     sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix
 has been removed from the -mm tree.  Its filename was
-     sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+     sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 
 This patch was dropped because it was folded into sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2
+Subject: sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+mark things static
 
 Cc: "Luck, Tony" <tony.luck@intel.com>
 Cc: Dimitri Sivanich <sivanich@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mmtimer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/mmtimer.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/mmtimer.c~sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2 drivers/char/mmtimer.c
---- a/drivers/char/mmtimer.c~sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2
+diff -puN drivers/char/mmtimer.c~sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix drivers/char/mmtimer.c
+--- a/drivers/char/mmtimer.c~sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix
 +++ a/drivers/char/mmtimer.c
-@@ -604,7 +604,7 @@ static int sgi_timer_del(struct k_itimer
- 	if (timr->it.mmtimer.clock != TIMER_OFF) {
- 		unsigned long expires = timr->it.mmtimer.expires;
- 		struct rb_node *n = timers[nodeid].timer_head.rb_node;
--		struct mmtimer *t;
-+		struct mmtimer *uninitialized_var(t);
- 		int r = 0;
+@@ -241,7 +241,7 @@ static struct mmtimer_node *timers;
+  * Add a new mmtimer struct to the node's mmtimer list.
+  * This function assumes the struct mmtimer_node is locked.
+  */
+-void mmtimer_add_list(struct mmtimer *n)
++static void mmtimer_add_list(struct mmtimer *n)
+ {
+ 	int nodeid = n->timer->it.mmtimer.node;
+ 	unsigned long expires = n->timer->it.mmtimer.expires;
+@@ -278,7 +278,7 @@ void mmtimer_add_list(struct mmtimer *n)
+  * Set the comparator for the next timer.
+  * This function assumes the struct mmtimer_node is locked.
+  */
+-void mmtimer_set_next_timer(int nodeid)
++static void mmtimer_set_next_timer(int nodeid)
+ {
+ 	struct mmtimer_node *n = &timers[nodeid];
+ 	struct mmtimer *x;
+@@ -539,7 +539,7 @@ mmtimer_interrupt(int irq, void *dev_id)
+ 	return result;
+ }
  
- 		timr->it.mmtimer.clock = TIMER_OFF;
+-void mmtimer_tasklet(unsigned long data)
++static void mmtimer_tasklet(unsigned long data)
+ {
+ 	int nodeid = data;
+ 	struct mmtimer_node *mn = &timers[nodeid];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -54,6 +74,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 origin.patch
 blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
 sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
 isicom-bring-into-coding-style-fix.patch
