@@ -1,27 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + power_supply-support-serial-number-and-acr-in-olpc_battery.patch added to -mm tree
-Date: Wed, 30 Apr 2008 14:56:18 -0700
-Message-ID: <200804302156.m3ULuIvV005355@imap1.linux-foundation.org>
+Subject: + power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs.patch added to -mm tree
+Date: Wed, 30 Apr 2008 14:56:20 -0700
+Message-ID: <200804302156.m3ULuLc1005358@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40923 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60983 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756473AbYD3V4d (ORCPT
+	by vger.kernel.org with ESMTP id S1757024AbYD3V4k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 17:56:33 -0400
+	Wed, 30 Apr 2008 17:56:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwmw2@infradead.org, cbou@mail.ru, dilinger@debian.org
+Cc: dilinger@queued.net, cbou@mail.ru, dilinger@debian.org, dwmw2@infradead.org
 
 
 The patch titled
-     power_supply: support serial number and ACR in olpc_battery
+     power_supply: add eeprom dump file to olpc_battery's sysfs
 has been added to the -mm tree.  Its filename is
-     power_supply-support-serial-number-and-acr-in-olpc_battery.patch
+     power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -29,144 +26,119 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: power_supply: support serial number and ACR in olpc_battery
-=46rom: David Woodhouse <dwmw2@infradead.org>
+Subject: power_supply: add eeprom dump file to olpc_battery's sysfs
+From: Andres Salomon <dilinger@queued.net>
 
-This adds serial number and accumulated current support to the OLPC bat=
-tery
-driver.
+This allows you to dump 0x60 bytes from the battery's EEPROM (starting at
+address 0x20).  Note that it does an EC command for each byte, so it's pretty
+slow.  OTOH, if you want to grab just a single byte from somewhere in the
+EEPROM, you can do something like:
 
-Signed-off-by: David Woodhouse <dwmw2@infradead.org>
+dd bs=1 count=1 skip=16 if=/sys/class/power_supply/olpc-battery/eeprom | od -x
+
+Userspace battery collection/logging information needs this.
+
 Signed-off-by: Andres Salomon <dilinger@debian.org>
 Cc: Anton Vorontsov <cbou@mail.ru>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/olpc_battery.c       |   23 ++++++++++++++++++++++-
- drivers/power/power_supply_sysfs.c |    1 +
- include/linux/power_supply.h       |    1 +
- 3 files changed, 24 insertions(+), 1 deletion(-)
+ drivers/power/olpc_battery.c |   49 +++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
-diff -puN drivers/power/olpc_battery.c~power_supply-support-serial-numb=
-er-and-acr-in-olpc_battery drivers/power/olpc_battery.c
---- a/drivers/power/olpc_battery.c~power_supply-support-serial-number-a=
-nd-acr-in-olpc_battery
+diff -puN drivers/power/olpc_battery.c~power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs drivers/power/olpc_battery.c
+--- a/drivers/power/olpc_battery.c~power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs
 +++ a/drivers/power/olpc_battery.c
-@@ -19,7 +19,7 @@
-=20
- #define EC_BAT_VOLTAGE	0x10	/* uint16_t,	*9.76/32,    mV   */
- #define EC_BAT_CURRENT	0x11	/* int16_t,	*15.625/120, mA   */
--#define EC_BAT_ACR	0x12
-+#define EC_BAT_ACR	0x12	/* int16_t,	*416.667,    =C2=B5Ah  */
- #define EC_BAT_TEMP	0x13	/* uint16_t,	*100/256,   =C2=B0C  */
- #define EC_AMB_TEMP	0x14	/* uint16_t,	*100/256,   =C2=B0C  */
- #define EC_BAT_STATUS	0x15	/* uint8_t,	bitmask */
-@@ -84,6 +84,8 @@ static struct power_supply olpc_ac =3D {
- 	.get_property =3D olpc_ac_get_prop,
+@@ -283,6 +283,48 @@ static enum power_supply_property olpc_b
+ 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
  };
-=20
-+static char bat_serial[17]; /* Ick */
+ 
++/* EEPROM reading goes completely around the power_supply API, sadly */
++
++#define EEPROM_START	0x20
++#define EEPROM_END	0x80
++#define EEPROM_SIZE	(EEPROM_END - EEPROM_START)
++
++static ssize_t olpc_bat_eeprom_read(struct kobject *kobj,
++		struct bin_attribute *attr, char *buf, loff_t off, size_t count)
++{
++	uint8_t ec_byte;
++	int ret, end;
++
++	if (off >= EEPROM_SIZE)
++		return 0;
++	if (off + count > EEPROM_SIZE)
++		count = EEPROM_SIZE - off;
++
++	end = EEPROM_START + off + count;
++	for (ec_byte = EEPROM_START + off; ec_byte < end; ec_byte++) {
++		ret = olpc_ec_cmd(EC_BAT_EEPROM, &ec_byte, 1,
++				&buf[ec_byte - EEPROM_START], 1);
++		if (ret) {
++			printk(KERN_ERR "olpc-battery:  EC command "
++					"EC_BAT_EEPROM @ 0x%x failed -"
++					" %d!\n", ec_byte, ret);
++			return -EIO;
++		}
++	}
++
++	return count;
++}
++
++static struct bin_attribute olpc_bat_eeprom = {
++	.attr = {
++		.name = "eeprom",
++		.mode = S_IRUGO,
++		.owner = THIS_MODULE,
++	},
++	.size = 0,
++	.read = olpc_bat_eeprom_read,
++};
 +
  /*********************************************************************
-  *		Battery properties
-  *********************************************************************=
-/
-@@ -94,6 +96,7 @@ static int olpc_bat_get_property(struct=20
- 	int ret =3D 0;
- 	int16_t ec_word;
- 	uint8_t ec_byte;
-+	uint64_t ser_buf;
-=20
- 	ret =3D olpc_ec_cmd(EC_BAT_STATUS, NULL, 0, &ec_byte, 1);
+  *		Initialisation
+  *********************************************************************/
+@@ -336,8 +378,14 @@ static int __init olpc_bat_init(void)
  	if (ret)
-@@ -241,6 +244,22 @@ static int olpc_bat_get_property(struct=20
- 		ec_word =3D be16_to_cpu(ec_word);
- 		val->intval =3D ec_word * 100 / 256;
- 		break;
-+	case POWER_SUPPLY_PROP_ACCUM_CURRENT:
-+		ret =3D olpc_ec_cmd(EC_BAT_ACR, NULL, 0, (void *)&ec_word, 2);
-+		if (ret)
-+			return ret;
+ 		goto battery_failed;
+ 
++	ret = device_create_bin_file(olpc_bat.dev, &olpc_bat_eeprom);
++	if (ret)
++		goto eeprom_failed;
 +
-+		ec_word =3D be16_to_cpu(ec_word);
-+		val->intval =3D ec_word;
-+		break;
-+	case POWER_SUPPLY_PROP_SERIAL_NUMBER:
-+		ret =3D olpc_ec_cmd(EC_BAT_SERIAL, NULL, 0, (void *)&ser_buf, 8);
-+		if (ret)
-+			return ret;
-+
-+		sprintf(bat_serial, "%016llx", (long long)be64_to_cpu(ser_buf));
-+		val->strval =3D bat_serial;
-+		break;
- 	default:
- 		ret =3D -EINVAL;
- 		break;
-@@ -259,7 +278,9 @@ static enum power_supply_property olpc_b
- 	POWER_SUPPLY_PROP_CAPACITY,
- 	POWER_SUPPLY_PROP_TEMP,
- 	POWER_SUPPLY_PROP_TEMP_AMBIENT,
-+	POWER_SUPPLY_PROP_ACCUM_CURRENT,
- 	POWER_SUPPLY_PROP_MANUFACTURER,
-+	POWER_SUPPLY_PROP_SERIAL_NUMBER,
- };
-=20
- /*********************************************************************
-diff -puN drivers/power/power_supply_sysfs.c~power_supply-support-seria=
-l-number-and-acr-in-olpc_battery drivers/power/power_supply_sysfs.c
---- a/drivers/power/power_supply_sysfs.c~power_supply-support-serial-nu=
-mber-and-acr-in-olpc_battery
-+++ a/drivers/power/power_supply_sysfs.c
-@@ -112,6 +112,7 @@ static struct device_attribute power_sup
- 	POWER_SUPPLY_ATTR(time_to_empty_avg),
- 	POWER_SUPPLY_ATTR(time_to_full_now),
- 	POWER_SUPPLY_ATTR(time_to_full_avg),
-+	POWER_SUPPLY_ATTR(accum_current),
- 	/* Properties of type `const char *' */
- 	POWER_SUPPLY_ATTR(model_name),
- 	POWER_SUPPLY_ATTR(manufacturer),
-diff -puN include/linux/power_supply.h~power_supply-support-serial-numb=
-er-and-acr-in-olpc_battery include/linux/power_supply.h
---- a/include/linux/power_supply.h~power_supply-support-serial-number-a=
-nd-acr-in-olpc_battery
-+++ a/include/linux/power_supply.h
-@@ -91,6 +91,7 @@ enum power_supply_property {
- 	POWER_SUPPLY_PROP_TIME_TO_EMPTY_AVG,
- 	POWER_SUPPLY_PROP_TIME_TO_FULL_NOW,
- 	POWER_SUPPLY_PROP_TIME_TO_FULL_AVG,
-+	POWER_SUPPLY_PROP_ACCUM_CURRENT,
- 	/* Properties of type `const char *' */
- 	POWER_SUPPLY_PROP_MODEL_NAME,
- 	POWER_SUPPLY_PROP_MANUFACTURER,
+ 	goto success;
+ 
++eeprom_failed:
++	power_supply_unregister(&olpc_bat);
+ battery_failed:
+ 	power_supply_unregister(&olpc_ac);
+ ac_failed:
+@@ -348,6 +396,7 @@ success:
+ 
+ static void __exit olpc_bat_exit(void)
+ {
++	device_remove_bin_file(olpc_bat.dev, &olpc_bat_eeprom);
+ 	power_supply_unregister(&olpc_bat);
+ 	power_supply_unregister(&olpc_ac);
+ 	platform_device_unregister(bat_pdev);
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from dilinger@queued.net are
 
 origin.patch
-remove-ifdef-__kernel__-checks-from-unexported-headers.patch
-embedded-maintainers-linux-embedded-vger-list.patch
-git-mtd.patch
-jffs2-summary-allocation-dont-use-vmalloc.patch
-pmu-battery-filenames-in-sysfs-with-spaces.patch
-power_supply-support-serial-number-and-acr-in-olpc_battery.patch
+x86-ioremap-ram-check-fix.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
 power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs.patch
 power_supply-cleanup-of-the-olpc-battery-driver.patch
-power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_b=
-attery.patch
+power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
