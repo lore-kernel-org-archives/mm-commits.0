@@ -1,120 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - basic-braille-screen-reader-support-ppc-fix.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 23:24:18 -0700
-Message-ID: <200804300624.m3U6OI8p031661@imap1.linux-foundation.org>
+Subject: - add-macros-similar-to-min-max-min_t-max_t-doc.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 23:25:21 -0700
+Message-ID: <200804300625.m3U6PLoj031721@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38233 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757686AbYD3GZ1 (ORCPT
+	by vger.kernel.org with ESMTP id S1756865AbYD3G0A (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:25:27 -0400
+	Wed, 30 Apr 2008 02:26:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, dtor@mail.ru, jikos@jikos.cz, paulus@samba.org, samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     basic-braille-screen-reader-support-ppc-fix
+     add kerneldoc for clamp(), clamp_t(), clamp_val() macros
 has been removed from the -mm tree.  Its filename was
-     basic-braille-screen-reader-support-ppc-fix.patch
+     add-macros-similar-to-min-max-min_t-max_t-doc.patch
 
-This patch was dropped because it was folded into basic-braille-screen-reader-support.patch
+This patch was dropped because it was folded into add-macros-similar-to-min-max-min_t-max_t.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: basic-braille-screen-reader-support-ppc-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: add kerneldoc for clamp(), clamp_t(), clamp_val() macros
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-- As this patch exports kd_mksound we remove the pc-private esports.
-
-- switch the export to non-gpl, as that was what powerpc was using.
-
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jiri Kosina <jikos@jikos.cz>
-Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/ppc_ksyms.c |    3 ---
- arch/ppc/kernel/ppc_ksyms.c     |    3 ---
- drivers/char/keyboard.c         |    2 +-
- 3 files changed, 1 insertion(+), 7 deletions(-)
+ include/linux/kernel.h |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff -puN arch/powerpc/kernel/ppc_ksyms.c~basic-braille-screen-reader-support-ppc-fix arch/powerpc/kernel/ppc_ksyms.c
---- a/arch/powerpc/kernel/ppc_ksyms.c~basic-braille-screen-reader-support-ppc-fix
-+++ a/arch/powerpc/kernel/ppc_ksyms.c
-@@ -137,9 +137,6 @@ EXPORT_SYMBOL(adb_try_handler_change);
- EXPORT_SYMBOL(cuda_request);
- EXPORT_SYMBOL(cuda_poll);
- #endif /* CONFIG_ADB_CUDA */
--#ifdef CONFIG_VT
--EXPORT_SYMBOL(kd_mksound);
--#endif
- EXPORT_SYMBOL(to_tm);
+diff -puN include/linux/kernel.h~add-macros-similar-to-min-max-min_t-max_t-doc include/linux/kernel.h
+--- a/include/linux/kernel.h~add-macros-similar-to-min-max-min_t-max_t-doc
++++ a/include/linux/kernel.h
+@@ -354,6 +354,15 @@ extern void print_hex_dump_bytes(const c
+ 	(void) (&_max1 == &_max2);		\
+ 	_max1 > _max2 ? _max1 : _max2; })
  
- #ifdef CONFIG_PPC32
-diff -puN arch/ppc/kernel/ppc_ksyms.c~basic-braille-screen-reader-support-ppc-fix arch/ppc/kernel/ppc_ksyms.c
---- a/arch/ppc/kernel/ppc_ksyms.c~basic-braille-screen-reader-support-ppc-fix
-+++ a/arch/ppc/kernel/ppc_ksyms.c
-@@ -182,9 +182,6 @@ EXPORT_SYMBOL(cuda_poll);
- #if defined(CONFIG_BOOTX_TEXT)
- EXPORT_SYMBOL(btext_update_display);
- #endif
--#ifdef CONFIG_VT
--EXPORT_SYMBOL(kd_mksound);
--#endif
- EXPORT_SYMBOL(to_tm);
++/**
++ * clamp - return a value clamped to a given range with strict typechecking
++ * @val: current value
++ * @min: minimum allowable value
++ * @max: maximum allowable value
++ *
++ * This macro does strict typechecking of min/max to make sure they are of the
++ * same type as val.  See the unnecessary pointer comparisons.
++ */
+ #define clamp(val, min, max) ({			\
+ 	typeof(val) __val = (val);		\
+ 	typeof(min) __min = (min);		\
+@@ -379,6 +388,16 @@ extern void print_hex_dump_bytes(const c
+ 	type __max2 = (y);			\
+ 	__max1 > __max2 ? __max1: __max2; })
  
- EXPORT_SYMBOL(pm_power_off);
-diff -puN drivers/char/keyboard.c~basic-braille-screen-reader-support-ppc-fix drivers/char/keyboard.c
---- a/drivers/char/keyboard.c~basic-braille-screen-reader-support-ppc-fix
-+++ a/drivers/char/keyboard.c
-@@ -260,7 +260,7 @@ void kd_mksound(unsigned int hz, unsigne
- 	} else
- 		kd_nosound(0);
- }
--EXPORT_SYMBOL_GPL(kd_mksound);
-+EXPORT_SYMBOL(kd_mksound);
++/**
++ * clamp_t - return a value clamped to a given range using a given type
++ * @type: the type of variable to use
++ * @val: current value
++ * @min: minimum allowable value
++ * @max: maximum allowable value
++ *
++ * This macro does no typechecking and uses temporary variables of type
++ * 'type' to make all the comparisons.
++ */
+ #define clamp_t(type, val, min, max) ({		\
+ 	type __val = (val);			\
+ 	type __min = (min);			\
+@@ -386,6 +405,17 @@ extern void print_hex_dump_bytes(const c
+ 	__val = __val < __min ? __min: __val;	\
+ 	__val > __max ? __max: __val; })
  
- /*
-  * Setting the keyboard rate.
++/**
++ * clamp_val - return a value clamped to a given range using val's type
++ * @val: current value
++ * @min: minimum allowable value
++ * @max: maximum allowable value
++ *
++ * This macro does no typechecking and uses temporary variables of whatever
++ * type the input argument 'val' is.  This is useful when val is an unsigned
++ * type and min and max are literals that will otherwise be assigned a signed
++ * integer type.
++ */
+ #define clamp_val(val, min, max) ({		\
+ 	typeof(val) __val = (val);		\
+ 	typeof(val) __min = (min);		\
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-isicom-bring-into-coding-style.patch
-tty-the-big-operations-rework.patch
-devpts-factor-out-pty-index-allocation.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-fuse-fix-race-in-llseek.patch
-basic-braille-screen-reader-support.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
 add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-x86-ioremap-add-checks-for-virtual-addresses-fix.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+drivers-replace-remaining-__function__-occurrences.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
