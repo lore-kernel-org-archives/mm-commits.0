@@ -1,241 +1,319 @@
 From: akpm@linux-foundation.org
-Subject: - wireless-use-get-put_unaligned_-helpers.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:49:24 -0700
-Message-ID: <200804300549.m3U5nOeJ030002@imap1.linux-foundation.org>
+Subject: - ipc-consolidate-all-xxxctl_down-functions.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:44:21 -0700
+Message-ID: <200804300544.m3U5iLPg029404@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58922 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57234 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756821AbYD3FuX (ORCPT
+	by vger.kernel.org with ESMTP id S1758955AbYD3Fu1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:50:23 -0400
+	Wed, 30 Apr 2008 01:50:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, dsd@gentoo.org, linville@tuxdriver.com, mb@bu3sch.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: pierre.peiffer@bull.net, Nadia.Derbey@bull.net, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     wireless: use get/put_unaligned_* helpers
+     IPC: consolidate all xxxctl_down() functions
 has been removed from the -mm tree.  Its filename was
-     wireless-use-get-put_unaligned_-helpers.patch
+     ipc-consolidate-all-xxxctl_down-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wireless: use get/put_unaligned_* helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: IPC: consolidate all xxxctl_down() functions
+From: Pierre Peiffer <pierre.peiffer@bull.net>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Michael Buesch <mb@bu3sch.de>
-Cc: Daniel Drake <dsd@gentoo.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+semctl_down(), msgctl_down() and shmctl_down() are used to handle the same set
+of commands for each kind of IPC.  They all start to do the same job (they
+retrieve the ipc and do some permission checks) before handling the commands
+on their own.
+
+This patch proposes to consolidate this by moving these same pieces of code
+into one common function called ipcctl_pre_down().
+
+It simplifies a little these xxxctl_down() functions and increases a little
+the maintainability.
+
+Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/airo.c             |    2 -
- drivers/net/wireless/ath5k/base.c       |    8 +----
- drivers/net/wireless/b43/main.c         |    2 -
- drivers/net/wireless/b43legacy/main.c   |    2 -
- drivers/net/wireless/iwlwifi/iwl-3945.c |   32 +++++++++-------------
- drivers/net/wireless/libertas/scan.c    |    2 -
- drivers/net/wireless/zd1211rw/zd_usb.c  |    4 +-
- 7 files changed, 22 insertions(+), 30 deletions(-)
+ ipc/msg.c  |   48 +++++-------------------------------------------
+ ipc/sem.c  |   42 ++++--------------------------------------
+ ipc/shm.c  |   42 ++++--------------------------------------
+ ipc/util.c |   51 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ ipc/util.h |    2 ++
+ 5 files changed, 66 insertions(+), 119 deletions(-)
 
-diff -puN drivers/net/wireless/airo.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/airo.c
---- a/drivers/net/wireless/airo.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/airo.c
-@@ -3657,7 +3657,7 @@ void mpi_receive_802_11 (struct airo_inf
- 	ptr += hdrlen;
- 	if (hdrlen == 24)
- 		ptr += 6;
--	gap = le16_to_cpu(get_unaligned((__le16 *)ptr));
-+	gap = get_unaligned_le16(ptr);
- 	ptr += sizeof(__le16);
- 	if (gap) {
- 		if (gap <= 8)
-diff -puN drivers/net/wireless/ath5k/base.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/ath5k/base.c
---- a/drivers/net/wireless/ath5k/base.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/ath5k/base.c
-@@ -58,10 +58,6 @@
- #include "reg.h"
- #include "debug.h"
+diff -puN ipc/msg.c~ipc-consolidate-all-xxxctl_down-functions ipc/msg.c
+--- a/ipc/msg.c~ipc-consolidate-all-xxxctl_down-functions
++++ a/ipc/msg.c
+@@ -142,21 +142,6 @@ void __init msg_init(void)
+ }
  
--/* unaligned little endian access */
--#define LE_READ_2(_p) (le16_to_cpu(get_unaligned((__le16 *)(_p))))
--#define LE_READ_4(_p) (le32_to_cpu(get_unaligned((__le32 *)(_p))))
+ /*
+- * This routine is called in the paths where the rw_mutex is held to protect
+- * access to the idr tree.
+- */
+-static inline struct msg_queue *msg_lock_check_down(struct ipc_namespace *ns,
+-						int id)
+-{
+-	struct kern_ipc_perm *ipcp = ipc_lock_check_down(&msg_ids(ns), id);
 -
- enum {
- 	ATH_LED_TX,
- 	ATH_LED_RX,
-@@ -2909,9 +2905,9 @@ static void ath5k_configure_filter(struc
- 			if (!mclist)
- 				break;
- 			/* calculate XOR of eight 6-bit values */
--			val = LE_READ_4(mclist->dmi_addr + 0);
-+			val = get_unaligned_le32(mclist->dmi_addr + 0);
- 			pos = (val >> 18) ^ (val >> 12) ^ (val >> 6) ^ val;
--			val = LE_READ_4(mclist->dmi_addr + 3);
-+			val = get_unaligned_le32(mclist->dmi_addr + 3);
- 			pos ^= (val >> 18) ^ (val >> 12) ^ (val >> 6) ^ val;
- 			pos &= 0x3f;
- 			mfilt[pos / 32] |= (1 << (pos % 32));
-diff -puN drivers/net/wireless/b43/main.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/b43/main.c
---- a/drivers/net/wireless/b43/main.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/b43/main.c
-@@ -2171,7 +2171,7 @@ static int b43_write_initvals(struct b43
- 				goto err_format;
- 			array_size -= sizeof(iv->data.d32);
- 
--			value = be32_to_cpu(get_unaligned(&iv->data.d32));
-+			value = get_unaligned_be32(&iv->data.d32);
- 			b43_write32(dev, offset, value);
- 
- 			iv = (const struct b43_iv *)((const uint8_t *)iv +
-diff -puN drivers/net/wireless/b43legacy/main.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/b43legacy/main.c
---- a/drivers/net/wireless/b43legacy/main.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/b43legacy/main.c
-@@ -1720,7 +1720,7 @@ static int b43legacy_write_initvals(stru
- 				goto err_format;
- 			array_size -= sizeof(iv->data.d32);
- 
--			value = be32_to_cpu(get_unaligned(&iv->data.d32));
-+			value = get_unaligned_be32(&iv->data.d32);
- 			b43legacy_write32(dev, offset, value);
- 
- 			iv = (const struct b43legacy_iv *)((const uint8_t *)iv +
-diff -puN drivers/net/wireless/iwlwifi/iwl-3945.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/iwlwifi/iwl-3945.c
---- a/drivers/net/wireless/iwlwifi/iwl-3945.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/iwlwifi/iwl-3945.c
-@@ -554,40 +554,36 @@ static void iwl3945_add_radiotap(struct 
- 	iwl3945_rt->rt_hdr.it_pad = 0;
- 
- 	/* total header + data */
--	put_unaligned(cpu_to_le16(sizeof(*iwl3945_rt)),
--		      &iwl3945_rt->rt_hdr.it_len);
-+	put_unaligned_le16(sizeof(*iwl3945_rt), &iwl3945_rt->rt_hdr.it_len);
- 
- 	/* Indicate all the fields we add to the radiotap header */
--	put_unaligned(cpu_to_le32((1 << IEEE80211_RADIOTAP_TSFT) |
--				  (1 << IEEE80211_RADIOTAP_FLAGS) |
--				  (1 << IEEE80211_RADIOTAP_RATE) |
--				  (1 << IEEE80211_RADIOTAP_CHANNEL) |
--				  (1 << IEEE80211_RADIOTAP_DBM_ANTSIGNAL) |
--				  (1 << IEEE80211_RADIOTAP_DBM_ANTNOISE) |
--				  (1 << IEEE80211_RADIOTAP_ANTENNA)),
--		      &iwl3945_rt->rt_hdr.it_present);
-+	put_unaligned_le32((1 << IEEE80211_RADIOTAP_TSFT) |
-+			   (1 << IEEE80211_RADIOTAP_FLAGS) |
-+			   (1 << IEEE80211_RADIOTAP_RATE) |
-+			   (1 << IEEE80211_RADIOTAP_CHANNEL) |
-+			   (1 << IEEE80211_RADIOTAP_DBM_ANTSIGNAL) |
-+			   (1 << IEEE80211_RADIOTAP_DBM_ANTNOISE) |
-+			   (1 << IEEE80211_RADIOTAP_ANTENNA),
-+			&iwl3945_rt->rt_hdr.it_present);
- 
- 	/* Zero the flags, we'll add to them as we go */
- 	iwl3945_rt->rt_flags = 0;
- 
--	put_unaligned(cpu_to_le64(tsf), &iwl3945_rt->rt_tsf);
-+	put_unaligned_le64(tsf, &iwl3945_rt->rt_tsf);
- 
- 	iwl3945_rt->rt_dbmsignal = signal;
- 	iwl3945_rt->rt_dbmnoise = noise;
- 
- 	/* Convert the channel frequency and set the flags */
--	put_unaligned(cpu_to_le16(stats->freq), &iwl3945_rt->rt_channelMHz);
-+	put_unaligned_le16(stats->freq, &iwl3945_rt->rt_channelMHz);
- 	if (!(phy_flags_hw & RX_RES_PHY_FLAGS_BAND_24_MSK))
--		put_unaligned(cpu_to_le16(IEEE80211_CHAN_OFDM |
--					  IEEE80211_CHAN_5GHZ),
-+		put_unaligned_le16(IEEE80211_CHAN_OFDM | IEEE80211_CHAN_5GHZ,
- 			      &iwl3945_rt->rt_chbitmask);
- 	else if (phy_flags_hw & RX_RES_PHY_FLAGS_MOD_CCK_MSK)
--		put_unaligned(cpu_to_le16(IEEE80211_CHAN_CCK |
--					  IEEE80211_CHAN_2GHZ),
-+		put_unaligned_le16(IEEE80211_CHAN_CCK | IEEE80211_CHAN_2GHZ,
- 			      &iwl3945_rt->rt_chbitmask);
- 	else	/* 802.11g */
--		put_unaligned(cpu_to_le16(IEEE80211_CHAN_OFDM |
--					  IEEE80211_CHAN_2GHZ),
-+		put_unaligned_le16(IEEE80211_CHAN_OFDM | IEEE80211_CHAN_2GHZ,
- 			      &iwl3945_rt->rt_chbitmask);
- 
- 	if (rate == -1)
-diff -puN drivers/net/wireless/libertas/scan.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/libertas/scan.c
---- a/drivers/net/wireless/libertas/scan.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/libertas/scan.c
-@@ -522,7 +522,7 @@ static int lbs_process_bss(struct bss_de
- 
- 	if (*bytesleft >= sizeof(beaconsize)) {
- 		/* Extract & convert beacon size from the command buffer */
--		beaconsize = le16_to_cpu(get_unaligned((__le16 *)*pbeaconinfo));
-+		beaconsize = get_unaligned_le16(*pbeaconinfo);
- 		*bytesleft -= sizeof(beaconsize);
- 		*pbeaconinfo += sizeof(beaconsize);
+-	if (IS_ERR(ipcp))
+-		return (struct msg_queue *)ipcp;
+-
+-	return container_of(ipcp, struct msg_queue, q_perm);
+-}
+-
+-/*
+  * msg_lock_(check_) routines are called in the paths where the rw_mutex
+  * is not held.
+  */
+@@ -437,35 +422,12 @@ static int msgctl_down(struct ipc_namesp
+ 			return -EFAULT;
  	}
-diff -puN drivers/net/wireless/zd1211rw/zd_usb.c~wireless-use-get-put_unaligned_-helpers drivers/net/wireless/zd1211rw/zd_usb.c
---- a/drivers/net/wireless/zd1211rw/zd_usb.c~wireless-use-get-put_unaligned_-helpers
-+++ a/drivers/net/wireless/zd1211rw/zd_usb.c
-@@ -545,11 +545,11 @@ static void handle_rx_packet(struct zd_u
- 	 * be padded. Unaligned access might also happen if the length_info
- 	 * structure is not present.
- 	 */
--	if (get_unaligned(&length_info->tag) == cpu_to_le16(RX_LENGTH_INFO_TAG))
-+	if (get_unaligned_le16(&length_info->tag) == RX_LENGTH_INFO_TAG)
- 	{
- 		unsigned int l, k, n;
- 		for (i = 0, l = 0;; i++) {
--			k = le16_to_cpu(get_unaligned(&length_info->length[i]));
-+			k = get_unaligned_le16(&length_info->length[i]);
- 			if (k == 0)
- 				return;
- 			n = l+k;
+ 
+-	down_write(&msg_ids(ns).rw_mutex);
+-	msq = msg_lock_check_down(ns, msqid);
+-	if (IS_ERR(msq)) {
+-		err = PTR_ERR(msq);
+-		goto out_up;
+-	}
+-
+-	ipcp = &msq->q_perm;
+-
+-	err = audit_ipc_obj(ipcp);
+-	if (err)
+-		goto out_unlock;
+-
+-	if (cmd == IPC_SET) {
+-		err = audit_ipc_set_perm(msqid64.msg_qbytes,
+-					 msqid64.msg_perm.uid,
+-					 msqid64.msg_perm.gid,
+-					 msqid64.msg_perm.mode);
+-		if (err)
+-			goto out_unlock;
+-	}
++	ipcp = ipcctl_pre_down(&msg_ids(ns), msqid, cmd,
++			       &msqid64.msg_perm, msqid64.msg_qbytes);
++	if (IS_ERR(ipcp))
++		return PTR_ERR(ipcp);
+ 
+-	if (current->euid != ipcp->cuid &&
+-	    current->euid != ipcp->uid &&
+-	    !capable(CAP_SYS_ADMIN)) {
+-		/* We _could_ check for CAP_CHOWN above, but we don't */
+-		err = -EPERM;
+-		goto out_unlock;
+-	}
++	msq = container_of(ipcp, struct msg_queue, q_perm);
+ 
+ 	err = security_msg_queue_msgctl(msq, cmd);
+ 	if (err)
+diff -puN ipc/sem.c~ipc-consolidate-all-xxxctl_down-functions ipc/sem.c
+--- a/ipc/sem.c~ipc-consolidate-all-xxxctl_down-functions
++++ a/ipc/sem.c
+@@ -141,21 +141,6 @@ void __init sem_init (void)
+ }
+ 
+ /*
+- * This routine is called in the paths where the rw_mutex is held to protect
+- * access to the idr tree.
+- */
+-static inline struct sem_array *sem_lock_check_down(struct ipc_namespace *ns,
+-						int id)
+-{
+-	struct kern_ipc_perm *ipcp = ipc_lock_check_down(&sem_ids(ns), id);
+-
+-	if (IS_ERR(ipcp))
+-		return (struct sem_array *)ipcp;
+-
+-	return container_of(ipcp, struct sem_array, sem_perm);
+-}
+-
+-/*
+  * sem_lock_(check_) routines are called in the paths where the rw_mutex
+  * is not held.
+  */
+@@ -878,31 +863,12 @@ static int semctl_down(struct ipc_namesp
+ 		if (copy_semid_from_user(&semid64, arg.buf, version))
+ 			return -EFAULT;
+ 	}
+-	down_write(&sem_ids(ns).rw_mutex);
+-	sma = sem_lock_check_down(ns, semid);
+-	if (IS_ERR(sma)) {
+-		err = PTR_ERR(sma);
+-		goto out_up;
+-	}
+-
+-	ipcp = &sma->sem_perm;
+ 
+-	err = audit_ipc_obj(ipcp);
+-	if (err)
+-		goto out_unlock;
++	ipcp = ipcctl_pre_down(&sem_ids(ns), semid, cmd, &semid64.sem_perm, 0);
++	if (IS_ERR(ipcp))
++		return PTR_ERR(ipcp);
+ 
+-	if (cmd == IPC_SET) {
+-		err = audit_ipc_set_perm(0, semid64.sem_perm.uid,
+-					 semid64.sem_perm.gid,
+-					 semid64.sem_perm.mode);
+-		if (err)
+-			goto out_unlock;
+-	}
+-	if (current->euid != ipcp->cuid && 
+-	    current->euid != ipcp->uid && !capable(CAP_SYS_ADMIN)) {
+-	    	err=-EPERM;
+-		goto out_unlock;
+-	}
++	sma = container_of(ipcp, struct sem_array, sem_perm);
+ 
+ 	err = security_sem_semctl(sma, cmd);
+ 	if (err)
+diff -puN ipc/shm.c~ipc-consolidate-all-xxxctl_down-functions ipc/shm.c
+--- a/ipc/shm.c~ipc-consolidate-all-xxxctl_down-functions
++++ a/ipc/shm.c
+@@ -126,18 +126,6 @@ static inline struct shmid_kernel *shm_l
+ 	return container_of(ipcp, struct shmid_kernel, shm_perm);
+ }
+ 
+-static inline struct shmid_kernel *shm_lock_check_down(
+-						struct ipc_namespace *ns,
+-						int id)
+-{
+-	struct kern_ipc_perm *ipcp = ipc_lock_check_down(&shm_ids(ns), id);
+-
+-	if (IS_ERR(ipcp))
+-		return (struct shmid_kernel *)ipcp;
+-
+-	return container_of(ipcp, struct shmid_kernel, shm_perm);
+-}
+-
+ /*
+  * shm_lock_(check_) routines are called in the paths where the rw_mutex
+  * is not held.
+@@ -620,33 +608,11 @@ static int shmctl_down(struct ipc_namesp
+ 			return -EFAULT;
+ 	}
+ 
+-	down_write(&shm_ids(ns).rw_mutex);
+-	shp = shm_lock_check_down(ns, shmid);
+-	if (IS_ERR(shp)) {
+-		err = PTR_ERR(shp);
+-		goto out_up;
+-	}
+-
+-	ipcp = &shp->shm_perm;
+-
+-	err = audit_ipc_obj(ipcp);
+-	if (err)
+-		goto out_unlock;
+-
+-	if (cmd == IPC_SET) {
+-		err = audit_ipc_set_perm(0, shmid64.shm_perm.uid,
+-					 shmid64.shm_perm.gid,
+-					 shmid64.shm_perm.mode);
+-		if (err)
+-			goto out_unlock;
+-	}
++	ipcp = ipcctl_pre_down(&shm_ids(ns), shmid, cmd, &shmid64.shm_perm, 0);
++	if (IS_ERR(ipcp))
++		return PTR_ERR(ipcp);
+ 
+-	if (current->euid != ipcp->uid &&
+-	    current->euid != ipcp->cuid &&
+-	    !capable(CAP_SYS_ADMIN)) {
+-		err = -EPERM;
+-		goto out_unlock;
+-	}
++	shp = container_of(ipcp, struct shmid_kernel, shm_perm);
+ 
+ 	err = security_shm_shmctl(shp, cmd);
+ 	if (err)
+diff -puN ipc/util.c~ipc-consolidate-all-xxxctl_down-functions ipc/util.c
+--- a/ipc/util.c~ipc-consolidate-all-xxxctl_down-functions
++++ a/ipc/util.c
+@@ -824,6 +824,57 @@ void ipc_update_perm(struct ipc64_perm *
+ 		| (in->mode & S_IRWXUGO);
+ }
+ 
++/**
++ * ipcctl_pre_down - retrieve an ipc and check permissions for some IPC_XXX cmd
++ * @ids:  the table of ids where to look for the ipc
++ * @id:   the id of the ipc to retrieve
++ * @cmd:  the cmd to check
++ * @perm: the permission to set
++ * @extra_perm: one extra permission parameter used by msq
++ *
++ * This function does some common audit and permissions check for some IPC_XXX
++ * cmd and is called from semctl_down, shmctl_down and msgctl_down.
++ * It must be called without any lock held and
++ *  - retrieves the ipc with the given id in the given table.
++ *  - performs some audit and permission check, depending on the given cmd
++ *  - returns the ipc with both ipc and rw_mutex locks held in case of success
++ *    or an err-code without any lock held otherwise.
++ */
++struct kern_ipc_perm *ipcctl_pre_down(struct ipc_ids *ids, int id, int cmd,
++				      struct ipc64_perm *perm, int extra_perm)
++{
++	struct kern_ipc_perm *ipcp;
++	int err;
++
++	down_write(&ids->rw_mutex);
++	ipcp = ipc_lock_check_down(ids, id);
++	if (IS_ERR(ipcp)) {
++		err = PTR_ERR(ipcp);
++		goto out_up;
++	}
++
++	err = audit_ipc_obj(ipcp);
++	if (err)
++		goto out_unlock;
++
++	if (cmd == IPC_SET) {
++		err = audit_ipc_set_perm(extra_perm, perm->uid,
++					 perm->gid, perm->mode);
++		if (err)
++			goto out_unlock;
++	}
++	if (current->euid == ipcp->cuid ||
++	    current->euid == ipcp->uid || capable(CAP_SYS_ADMIN))
++		return ipcp;
++
++	err = -EPERM;
++out_unlock:
++	ipc_unlock(ipcp);
++out_up:
++	up_write(&ids->rw_mutex);
++	return ERR_PTR(err);
++}
++
+ #ifdef __ARCH_WANT_IPC_PARSE_VERSION
+ 
+ 
+diff -puN ipc/util.h~ipc-consolidate-all-xxxctl_down-functions ipc/util.h
+--- a/ipc/util.h~ipc-consolidate-all-xxxctl_down-functions
++++ a/ipc/util.h
+@@ -113,6 +113,8 @@ struct kern_ipc_perm *ipc_lock(struct ip
+ void kernel_to_ipc64_perm(struct kern_ipc_perm *in, struct ipc64_perm *out);
+ void ipc64_perm_to_ipc_perm(struct ipc64_perm *in, struct ipc_perm *out);
+ void ipc_update_perm(struct ipc64_perm *in, struct kern_ipc_perm *out);
++struct kern_ipc_perm *ipcctl_pre_down(struct ipc_ids *ids, int id, int cmd,
++				      struct ipc64_perm *perm, int extra_perm);
+ 
+ #if defined(__ia64__) || defined(__x86_64__) || defined(__hppa__) || defined(__XTENSA__)
+   /* On IA-64, we always use the "64-bit version" of the IPC structures.  */ 
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from pierre.peiffer@bull.net are
 
 origin.patch
-frv-fix-arch-frv-mm-unalignedo-build-error.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-git-kvm.patch
-git-mips.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-git-watchdog.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
 
