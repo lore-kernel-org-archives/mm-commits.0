@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + uwb-fix-kconfig-causing-undefined-references.patch added to -mm tree
-Date: Wed, 30 Apr 2008 15:12:27 -0700
-Message-ID: <200804302212.m3UMCR5r006111@imap1.linux-foundation.org>
+Subject: + kexec-make-extended-crashkernel=-syntax-less-confusing-fix.patch added to -mm tree
+Date: Wed, 30 Apr 2008 15:15:41 -0700
+Message-ID: <200804302215.m3UMFfhh006199@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37590 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37651 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761704AbYD3WMj (ORCPT
+	by vger.kernel.org with ESMTP id S933728AbYD3WPv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 18:12:39 -0400
+	Wed, 30 Apr 2008 18:15:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, greg@kroah.com
+Cc: bwalle@suse.de, ebiederm@xmission.com, michael@ellerman.id.au
 
 
 The patch titled
-     uwb: fix Kconfig causing undefined references
+     kexec: clarify inclusive/exclusive in crashkernel commandline in documentation
 has been added to the -mm tree.  Its filename is
-     uwb-fix-kconfig-causing-undefined-references.patch
+     kexec-make-extended-crashkernel=-syntax-less-confusing-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,62 +34,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uwb: fix Kconfig causing undefined references
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: kexec: clarify inclusive/exclusive in crashkernel commandline in documentation
+From: Bernhard Walle <bwalle@suse.de>
 
-Fix UWB kconfig so that function reference problems are not generated.
+Reflect the changes from Michael Ellerman in crashkernel syntax that make the
+end of the memory exclusive in the documentation.  It was simply not specified
+before.
 
-next-20080430/drivers/uwb/whc-rc.c:478: undefined reference to `hwarc_filter_event'
-next-20080430/drivers/uwb/whc-rc.c:478: undefined reference to `hwarc_filter_cmd'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Bernhard Walle <bwalle@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uwb/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/kdump/kdump.txt |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/uwb/Kconfig~uwb-fix-kconfig-causing-undefined-references drivers/uwb/Kconfig
---- a/drivers/uwb/Kconfig~uwb-fix-kconfig-causing-undefined-references
-+++ a/drivers/uwb/Kconfig
-@@ -43,6 +43,7 @@ if UWB
- config UWB_WHCI
- 	tristate "UWB Radio Control driver for WHCI-compliant cards"
- 	depends on PCI
-+	depends on UWB_HWA
- 	help
- 	  This driver enables the radio controller for WHCI cards.
+diff -puN Documentation/kdump/kdump.txt~make-extended-crashkernel=-syntax-less-confusing Documentation/kdump/kdump.txt
+--- a/Documentation/kdump/kdump.txt~make-extended-crashkernel=-syntax-less-confusing
++++ a/Documentation/kdump/kdump.txt
+@@ -245,6 +245,8 @@ The syntax is:
+     crashkernel=<range1>:<size1>[,<range2>:<size2>,...][@offset]
+     range=start-[end]
+ 
++    'start' is inclusive and 'end' is exclusive.
++
+ For example:
+ 
+     crashkernel=512M-2G:64M,2G-:128M
+@@ -253,10 +255,11 @@ This would mean:
+ 
+     1) if the RAM is smaller than 512M, then don't reserve anything
+        (this is the "rescue" case)
+-    2) if the RAM size is between 512M and 2G, then reserve 64M
++    2) if the RAM size is between 512M and 2G (exclusive), then reserve 64M
+     3) if the RAM size is larger than 2G, then reserve 128M
+ 
+ 
++
+ Boot into System Kernel
+ =======================
  
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bwalle@suse.de are
 
-origin.patch
-basic-braille-screen-reader-support.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
-sysfs-sysfs_update_group-stub-for-config_sysfs=n.patch
-docbook-fix-fatal-rapidio-yet-again-and-more-to-come.patch
-docbook-fix-vmalloc-missing-parameter-notation.patch
-pnp-fix-printk-format-warnings.patch
-pnp-fix-printk-format-warnings-fix.patch
-pnp-fix-printk-format-warnings-fix-checkpatch-fixes.patch
-x86-fix-setup-printk-format-warning.patch
-rapidio-fix-docbook-references.patch
-rapidio-fix-kernel-doc-problems.patch
-git-kvm.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-ocfs2.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-isp1760-hcd-driver.patch
-uwb-fix-kconfig-causing-undefined-references.patch
-docbook-some-kernel-locking-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-profile-likely-unlikely-macros.patch
+kexec-make-extended-crashkernel=-syntax-less-confusing.patch
+kexec-make-extended-crashkernel=-syntax-less-confusing-fix.patch
 
