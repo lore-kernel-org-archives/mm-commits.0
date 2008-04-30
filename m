@@ -1,198 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: - simplify-cpu_hotplug_begin-put_online_cpus.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:43:30 -0700
-Message-ID: <200804300543.m3U5hUjo029323@imap1.linux-foundation.org>
+Subject: - ipc-scale-msgmni-to-the-amount-of-lowmem.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:43:50 -0700
+Message-ID: <200804300543.m3U5hoEU029344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48676 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755664AbYD3For (ORCPT
+	by vger.kernel.org with ESMTP id S1758355AbYD3Fo4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:44:47 -0400
+	Wed, 30 Apr 2008 01:44:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, dipankar@in.ibm.com, ego@in.ibm.com, mingo@elte.hu, vatsa@in.ibm.com, mm-commits@vger.kernel.org
+To: Nadia.Derbey@bull.net, cmm@us.ibm.com, matthltc@us.ibm.com, pierre.peiffer@bull.net, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     simplify cpu_hotplug_begin()/put_online_cpus()
+     ipc: scale msgmni to the amount of lowmem
 has been removed from the -mm tree.  Its filename was
-     simplify-cpu_hotplug_begin-put_online_cpus.patch
+     ipc-scale-msgmni-to-the-amount-of-lowmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: simplify cpu_hotplug_begin()/put_online_cpus()
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: ipc: scale msgmni to the amount of lowmem
+From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-cpu_hotplug_begin() must be always called under cpu_add_remove_lock, this
-means that only one process can be cpu_hotplug.active_writer.  So we don't
-need the cpu_hotplug.writer_queue, we can wake up the ->active_writer
-directly.
+On large systems we'd like to allow a larger number of message queues.  In
+some cases up to 32K.  However simply setting MSGMNI to a larger value may
+cause problems for smaller systems.
 
-Also, fix the comment.
+The first patch of this series introduces a default maximum number of message
+queue ids that scales with the amount of lowmem.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
-Acked-by: Gautham R Shenoy <ego@in.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Srivatsa Vaddagiri <vatsa@in.ibm.com>
+Since msgmni is per namespace and there is no amount of memory dedicated to
+each namespace so far, the second patch of this series scales msgmni to the
+number of ipc namespaces too.
+
+Since msgmni depends on the amount of memory, it becomes necessary to
+recompute it upon memory add/remove.  In the 4th patch, memory hotplug
+management is added: a notifier block is registered into the memory hotplug
+notifier chain for the ipc subsystem.  Since the ipc namespaces are not linked
+together, they have their own notification chain: one notifier_block is
+defined per ipc namespace.  Each time an ipc namespace is created (removed) it
+registers (unregisters) its notifier block in (from) the ipcns chain.  The
+callback routine registered in the memory chain invokes the ipcns notifier
+chain with the IPCNS_MEMCHANGE event.  Each callback routine registered in the
+ipcns namespace, in turn, recomputes msgmni for the owning namespace.
+
+The 5th patch makes it possible to keep the memory hotplug notifier chain's
+lock for a lesser amount of time: instead of directly notifying the ipcns
+notifier chain upon memory add/remove, a work item is added to the global
+workqueue.  When activated, this work item is the one who notifies the ipcns
+notifier chain.
+
+Since msgmni depends on the number of ipc namespaces, it becomes necessary to
+recompute it upon ipc namespace creation / removal.  The 6th patch uses the
+ipc namespace notifier chain for that purpose: that chain is notified each
+time an ipc namespace is created or removed.  This makes it possible to
+recompute msgmni for all the namespaces each time one of them is created or
+removed.
+
+When msgmni is explicitely set from userspace, we should avoid recomputing it
+upon memory add/remove or ipcns creation/removal.  This is what the 7th patch
+does: it simply unregisters the ipcns callback routine as soon as msgmni has
+been changed from procfs or sysctl().
+
+Even if msgmni is set by hand, it should be possible to make it back
+automatically recomputed upon memory add/remove or ipcns creation/removal. 
+This what is achieved in patch 8: if set to a negative value, msgmni is added
+back to the ipcns notifier chain, making it automatically recomputed again.
+
+
+This patch:
+
+Compute msg_ctlmni to make it scale with the amount of lowmem.  msg_ctlmni is
+now set to make the message queues occupy 1/32 of the available lowmem.
+
+Some cleaning has also been done for the MSGPOOL constant: the msgctl man page
+says it's not used, but it also defines it as a size in bytes (the code
+expresses it in Kbytes).
+
+Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Matt Helsley <matthltc@us.ibm.com>
+Cc: Mingming Cao <cmm@us.ibm.com>
+Cc: Pierre Peiffer <pierre.peiffer@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpu.c |   30 ++++++++++--------------------
- 1 file changed, 10 insertions(+), 20 deletions(-)
+ include/linux/msg.h |   14 ++++++++++++--
+ ipc/msg.c           |   37 ++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 48 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cpu.c~simplify-cpu_hotplug_begin-put_online_cpus kernel/cpu.c
---- a/kernel/cpu.c~simplify-cpu_hotplug_begin-put_online_cpus
-+++ a/kernel/cpu.c
-@@ -33,17 +33,13 @@ static struct {
- 	 * an ongoing cpu hotplug operation.
- 	 */
- 	int refcount;
--	wait_queue_head_t writer_queue;
- } cpu_hotplug;
+diff -puN include/linux/msg.h~ipc-scale-msgmni-to-the-amount-of-lowmem include/linux/msg.h
+--- a/include/linux/msg.h~ipc-scale-msgmni-to-the-amount-of-lowmem
++++ a/include/linux/msg.h
+@@ -49,16 +49,26 @@ struct msginfo {
+ 	unsigned short  msgseg; 
+ };
  
--#define writer_exists() (cpu_hotplug.active_writer != NULL)
--
- void __init cpu_hotplug_init(void)
- {
- 	cpu_hotplug.active_writer = NULL;
- 	mutex_init(&cpu_hotplug.lock);
- 	cpu_hotplug.refcount = 0;
--	init_waitqueue_head(&cpu_hotplug.writer_queue);
- }
- 
- #ifdef CONFIG_HOTPLUG_CPU
-@@ -65,11 +61,8 @@ void put_online_cpus(void)
- 	if (cpu_hotplug.active_writer == current)
- 		return;
- 	mutex_lock(&cpu_hotplug.lock);
--	cpu_hotplug.refcount--;
--
--	if (unlikely(writer_exists()) && !cpu_hotplug.refcount)
--		wake_up(&cpu_hotplug.writer_queue);
--
-+	if (!--cpu_hotplug.refcount && unlikely(cpu_hotplug.active_writer))
-+		wake_up_process(cpu_hotplug.active_writer);
- 	mutex_unlock(&cpu_hotplug.lock);
- 
- }
-@@ -98,8 +91,8 @@ void cpu_maps_update_done(void)
-  * Note that during a cpu-hotplug operation, the new readers, if any,
-  * will be blocked by the cpu_hotplug.lock
-  *
-- * Since cpu_maps_update_begin is always called after invoking
-- * cpu_maps_update_begin, we can be sure that only one writer is active.
-+ * Since cpu_hotplug_begin() is always called after invoking
-+ * cpu_maps_update_begin(), we can be sure that only one writer is active.
-  *
-  * Note that theoretically, there is a possibility of a livelock:
-  * - Refcount goes to zero, last reader wakes up the sleeping
-@@ -115,19 +108,16 @@ void cpu_maps_update_done(void)
-  */
- static void cpu_hotplug_begin(void)
- {
--	DECLARE_WAITQUEUE(wait, current);
--
--	mutex_lock(&cpu_hotplug.lock);
--
- 	cpu_hotplug.active_writer = current;
--	add_wait_queue_exclusive(&cpu_hotplug.writer_queue, &wait);
--	while (cpu_hotplug.refcount) {
--		set_current_state(TASK_UNINTERRUPTIBLE);
++/*
++ * Scaling factor to compute msgmni:
++ * the memory dedicated to msg queues (msgmni * msgmnb) should occupy
++ * at most 1/MSG_MEM_SCALE of the lowmem (see the formula in ipc/msg.c):
++ * up to 8MB       : msgmni = 16 (MSGMNI)
++ * 4 GB            : msgmni = 8K
++ * more than 16 GB : msgmni = 32K (IPCMNI)
++ */
++#define MSG_MEM_SCALE 32
 +
-+	for (;;) {
-+		mutex_lock(&cpu_hotplug.lock);
-+		if (likely(!cpu_hotplug.refcount))
-+			break;
-+		__set_current_state(TASK_UNINTERRUPTIBLE);
- 		mutex_unlock(&cpu_hotplug.lock);
- 		schedule();
--		mutex_lock(&cpu_hotplug.lock);
- 	}
--	remove_wait_queue_locked(&cpu_hotplug.writer_queue, &wait);
- }
+ #define MSGMNI    16   /* <= IPCMNI */     /* max # of msg queue identifiers */
+ #define MSGMAX  8192   /* <= INT_MAX */   /* max size of message (bytes) */
+ #define MSGMNB 16384   /* <= INT_MAX */   /* default max size of a message queue */
  
- static void cpu_hotplug_done(void)
+ /* unused */
+-#define MSGPOOL (MSGMNI*MSGMNB/1024)  /* size in kilobytes of message pool */
++#define MSGPOOL (MSGMNI * MSGMNB) /* size in bytes of message pool */
+ #define MSGTQL  MSGMNB            /* number of system message headers */
+ #define MSGMAP  MSGMNB            /* number of entries in message map */
+ #define MSGSSZ  16                /* message segment size */
+-#define __MSGSEG ((MSGPOOL*1024)/ MSGSSZ) /* max no. of segments */
++#define __MSGSEG (MSGPOOL / MSGSSZ) /* max no. of segments */
+ #define MSGSEG (__MSGSEG <= 0xffff ? __MSGSEG : 0xffff)
+ 
+ #ifdef __KERNEL__
+diff -puN ipc/msg.c~ipc-scale-msgmni-to-the-amount-of-lowmem ipc/msg.c
+--- a/ipc/msg.c~ipc-scale-msgmni-to-the-amount-of-lowmem
++++ a/ipc/msg.c
+@@ -27,6 +27,7 @@
+ #include <linux/msg.h>
+ #include <linux/spinlock.h>
+ #include <linux/init.h>
++#include <linux/mm.h>
+ #include <linux/proc_fs.h>
+ #include <linux/list.h>
+ #include <linux/security.h>
+@@ -77,11 +78,45 @@ static int newque(struct ipc_namespace *
+ static int sysvipc_msg_proc_show(struct seq_file *s, void *it);
+ #endif
+ 
++/*
++ * Scale msgmni with the available lowmem size: the memory dedicated to msg
++ * queues should occupy at most 1/MSG_MEM_SCALE of lowmem.
++ * This should be done staying within the (MSGMNI , IPCMNI) range.
++ */
++static void recompute_msgmni(struct ipc_namespace *ns)
++{
++	struct sysinfo i;
++	unsigned long allowed;
++
++	si_meminfo(&i);
++	allowed = (((i.totalram - i.totalhigh) / MSG_MEM_SCALE) * i.mem_unit)
++		/ MSGMNB;
++
++	if (allowed < MSGMNI) {
++		ns->msg_ctlmni = MSGMNI;
++		goto out_callback;
++	}
++
++	if (allowed > IPCMNI) {
++		ns->msg_ctlmni = IPCMNI;
++		goto out_callback;
++	}
++
++	ns->msg_ctlmni = allowed;
++
++out_callback:
++
++	printk(KERN_INFO "msgmni has been set to %d for ipc namespace %p\n",
++		ns->msg_ctlmni, ns);
++}
++
+ void msg_init_ns(struct ipc_namespace *ns)
+ {
+ 	ns->msg_ctlmax = MSGMAX;
+ 	ns->msg_ctlmnb = MSGMNB;
+-	ns->msg_ctlmni = MSGMNI;
++
++	recompute_msgmni(ns);
++
+ 	atomic_set(&ns->msg_bytes, 0);
+ 	atomic_set(&ns->msg_hdrs, 0);
+ 	ipc_init_ids(&ns->ids[IPC_MSG_IDS]);
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from Nadia.Derbey@bull.net are
 
 origin.patch
-git-s390.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-do_signal_stop-use-signal_group_exit.patch
-signals-do_group_exit-use-signal_group_exit-more-consistently.patch
-lock_task_sighand-add-rcu-lock-unlock.patch
-k_getrusage-dont-take-rcu_read_lock.patch
-do_task_stat-dont-take-rcu_read_lock.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
-kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
-handle_stop_signal-unify-partial-full-stop-handling.patch
-handle_stop_signal-use-the-cached-p-signal-value.patch
-get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
-signals-send_sigqueue-dont-take-rcu-lock.patch
-signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
-signals-__group_complete_signal-cache-the-value-of-p-signal.patch
-signals-send_group_sigqueue-dont-take-tasklist_lock.patch
-signals-move-handle_stop_signal-into-send_signal.patch
-signals-do_tkill-dont-use-tasklist_lock.patch
-signals-do_tkill-dont-use-tasklist_lock-comment.patch
-signals-send_sig_info-dont-take-tasklist_lock.patch
-signals-microoptimize-the-usage-of-curr_target.patch
-signals-move-the-definition-of-__group_complete_signal-up.patch
-signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-signals-join-send_sigqueue-with-send_group_sigqueue.patch
-signals-handle_stop_signal-dont-worry-about-sigkill.patch
-signals-cleanup-the-usage-of-print_fatal_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal.patch
-signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
-signals-document-cld_continued-notification-mechanics.patch
-signals-document-cld_continued-notification-mechanics-more.patch
-signals-send_signal-be-paranoid-about-signalfd_notify.patch
-signals-check_kill_permission-check-session-under-tasklist_lock.patch
-signals-check_kill_permission-remove-tasklist_lock.patch
-signals-fix-sbin-init-protection-from-unwanted-signals.patch
-signals-de_thread-simplify-the-child_reaper-switching.patch
-signals-allow-the-kernel-to-actually-kill-sbin-init.patch
-signals-add-set_restore_sigmask.patch
-signals-set_restore_sigmask-tif_sigpending.patch
-signals-s390-renumber-tif_restore_sigmask.patch
-signals-ia64-renumber-tif_restore_sigmask.patch
-signals-use-have_set_restore_sigmask.patch
-signals-x86-ts_restore_sigmask.patch
-posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
-ptrace-introduce-task_detached-helper.patch
-reparent_thread-use-same_thread_group.patch
-document-de_thread-with-exit_notify-connection.patch
-ptrace-introduce-ptrace_reparented-helper.patch
-ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
-ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
-ptrace-allow-to-ptrace-sbin-init.patch
-workqueue-remove-redundant-function-invocation.patch
-redo-locking-of-tty-pgrp.patch
-resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
-tty_io-fix-remaining-pid-struct-locking.patch
-tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
-pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+idr-fix-idr_remove.patch
+idr-introduce-the-ridr-structure.patch
+idr-introduce-ridr_pre_get.patch
+idr-introduce-ridr_init.patch
+idr-introduce-ridr_get_new_above.patch
+idr-introduce-ridr_get_new.patch
+idr-introduce-ridr_find.patch
+idr-introduce-ridr_remove.patch
+ipc-integrate-the-ridr-code-into-ipc-code.patch
+ipc-get-rid-of-ipc_lock_down.patch
 
