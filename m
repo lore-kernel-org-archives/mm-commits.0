@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-hysdn_procconfc-build-fix.patch added to -mm tree
-Date: Wed, 30 Apr 2008 11:11:18 -0700
-Message-ID: <200804301811.m3UIBI3M027676@imap1.linux-foundation.org>
+Subject: + itco_wdt-ich9do-support.patch added to -mm tree
+Date: Wed, 30 Apr 2008 11:18:17 -0700
+Message-ID: <200804301818.m3UIIHRX027992@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46599 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44328 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759549AbYD3SMD (ORCPT
+	by vger.kernel.org with ESMTP id S1756122AbYD3SSU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 14:12:03 -0400
+	Wed, 30 Apr 2008 14:18:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mingo@elte.hu, den@openvz.org, kkeil@suse.de
+Cc: nix.or.die@googlemail.com, wim@iguana.be
 
 
 The patch titled
-     isdn: hysdn_procconf.c build fix
+     iTCO_wdt: ICH9DO support
 has been added to the -mm tree.  Its filename is
-     isdn-hysdn_procconfc-build-fix.patch
+     itco_wdt-ich9do-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,104 +34,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: hysdn_procconf.c build fix
-From: Ingo Molnar <mingo@elte.hu>
+Subject: iTCO_wdt: ICH9DO support
+From: Gabriel C <nix.or.die@googlemail.com>
 
-x86.git randconfig testing found the following build error in latest
--git:
+Add the Intel ICH9DO controller ID's for the iTCO_wdt kernel driver and bump
+the driver version.
 
-  CC [M]  drivers/isdn/hysdn/hysdn_procconf.o
-  CC [M]  drivers/isdn/hysdn/hysdn_init.o
-  drivers/isdn/hysdn/hysdn_procconf.c: In function 'hysdn_procconf_init':
-  drivers/isdn/hysdn/hysdn_procconf.c:408: error: too few arguments to function 'proc_create'
+Tested on an P5E-VM DO ASUS motherboard.
 
-with the following config:
-
-  http://redhat.com/~mingo/misc/config-Wed_Apr_30_15_12_48_CEST_2008.bad
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Denis V. Lunev" <den@openvz.org>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Gabriel Craciunescu <nix.or.die@googlemail.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hysdn/hysdn_procconf.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/watchdog/iTCO_wdt.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/isdn/hysdn/hysdn_procconf.c~isdn-hysdn_procconfc-build-fix drivers/isdn/hysdn/hysdn_procconf.c
---- a/drivers/isdn/hysdn/hysdn_procconf.c~isdn-hysdn_procconfc-build-fix
-+++ a/drivers/isdn/hysdn/hysdn_procconf.c
-@@ -405,7 +405,8 @@ hysdn_procconf_init(void)
- 		sprintf(conf_name, "%s%d", PROC_CONF_BASENAME, card->myid);
- 		if ((card->procconf = (void *) proc_create(conf_name,
- 						S_IFREG | S_IRUGO | S_IWUSR,
--						hysdn_proc_entry)) != NULL) {
-+						hysdn_proc_entry,
-+						&conf_fops)) != NULL) {
- 			hysdn_proclog_init(card);	/* init the log file entry */
- 		}
- 		card = card->next;	/* next entry */
+diff -puN drivers/watchdog/iTCO_wdt.c~itco_wdt-ich9do-support drivers/watchdog/iTCO_wdt.c
+--- a/drivers/watchdog/iTCO_wdt.c~itco_wdt-ich9do-support
++++ a/drivers/watchdog/iTCO_wdt.c
+@@ -44,6 +44,7 @@
+  *	82801IB  (ICH9)      : document number 316972-001, 316973-001,
+  *	82801IR  (ICH9R)     : document number 316972-001, 316973-001,
+  *	82801IH  (ICH9DH)    : document number 316972-001, 316973-001,
++ *	82801IO  (ICH9DO)    : document number 316972-001, 316973-006,
+  *	6300ESB  (6300ESB)   : document number 300641-003, 300884-010,
+  *	631xESB  (631xESB)   : document number 313082-001, 313075-005,
+  *	632xESB  (632xESB)   : document number 313082-001, 313075-005
+@@ -55,8 +56,8 @@
+ 
+ /* Module and version information */
+ #define DRV_NAME        "iTCO_wdt"
+-#define DRV_VERSION     "1.10"
+-#define DRV_RELDATE     "17-Aug-2007"
++#define DRV_VERSION     "1.11"
++#define DRV_RELDATE     "30-Apr-2008"
+ #define PFX		DRV_NAME ": "
+ 
+ /* Includes */
+@@ -104,6 +105,7 @@ enum iTCO_chipsets {
+ 	TCO_ICH9,	/* ICH9 */
+ 	TCO_ICH9R,	/* ICH9R */
+ 	TCO_ICH9DH,	/* ICH9DH */
++	TCO_ICH9DO,     /* ICH9DO */
+ 	TCO_631XESB,	/* 631xESB/632xESB */
+ };
+ 
+@@ -136,6 +138,7 @@ static struct {
+ 	{"ICH9", 2},
+ 	{"ICH9R", 2},
+ 	{"ICH9DH", 2},
++	{"ICH9DO", 2},
+ 	{"631xESB/632xESB", 2},
+ 	{NULL, 0}
+ };
+@@ -181,6 +184,7 @@ static struct pci_device_id iTCO_wdt_pci
+ 	{ ITCO_PCI_DEVICE(0x2918,				TCO_ICH9   )},
+ 	{ ITCO_PCI_DEVICE(0x2916,				TCO_ICH9R  )},
+ 	{ ITCO_PCI_DEVICE(PCI_DEVICE_ID_INTEL_ICH9_2,		TCO_ICH9DH )},
++	{ ITCO_PCI_DEVICE(PCI_DEVICE_ID_INTEL_ICH9_4,           TCO_ICH9DO )},
+ 	{ ITCO_PCI_DEVICE(PCI_DEVICE_ID_INTEL_ESB2_0,		TCO_631XESB)},
+ 	{ ITCO_PCI_DEVICE(0x2671,				TCO_631XESB)},
+ 	{ ITCO_PCI_DEVICE(0x2672,				TCO_631XESB)},
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from nix.or.die@googlemail.com are
 
-origin.patch
-signals-add-set_restore_sigmask.patch
-signals-set_restore_sigmask-tif_sigpending.patch
-signals-s390-renumber-tif_restore_sigmask.patch
-signals-ia64-renumber-tif_restore_sigmask.patch
-signals-use-have_set_restore_sigmask.patch
-signals-x86-ts_restore_sigmask.patch
-char-serial-switch-drivers-to-ioremap_nocache.patch
-make-marker_debug-static.patch
-asm-futexh-should-include-linux-uaccessh.patch
-slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
-kernel-replace-remaining-__function__-occurances.patch
-cpusets-update-maintainers.patch
-fix-cpu-hotplug-problem-in-softirq-code.patch
-rename-div64_64-to-div64_u64.patch
-remove-div_long_long_rem.patch
-isdn-hysdn_procconfc-build-fix.patch
-pci-export-resource_wc-in-pci-sysfs.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-mm-filemapc-generic_write_checks-mustnt-be-inline.patch
-x86-ioremap-ram-check-fix.patch
-git-x86.patch
-git-x86-fixup.patch
-x86_64-restore-mask_bits-in-msi-shutdown.patch
-arch-x86-video-fbdevc-add-module_license.patch
-rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
-fix-drivers-media-common-tuners-build-bug.patch
 git-kvm.patch
-git-sched.patch
-sched-add-debug-checks-to-idle-functions.patch
-mutex-debug-check-mutex-magic-before-owner.patch
-show_schedstat-fix-memleak.patch
-drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
-rcu-fix-rcu_try_flip_waitack_needed-to-prevent-grace-period-stall.patch
-rcu-add-call_rcu_sched.patch
-rcu-add-memory-barriers-and-comments-to-rcu_check_callbacks.patch
-rcu-add-call_rcu_sched-and-friends-to-rcutorture.patch
-rcu-1q08-rcu-doc-update-add-call_rcu_sched.patch
-aes-x86_64-asm-implementation-optimization.patch
-generic-irq-let-setup_irq-reenable-a-shared-irq.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
-posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
-workqueue-remove-redundant-function-invocation.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
-x86-ioremap-add-checks-for-virtual-addresses.patch
-x86-ioremap-add-checks-for-virtual-addresses-fix.patch
+itco_wdt-ich9do-support.patch
 
