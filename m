@@ -1,57 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - tty-the-big-operations-rework-vs-git-kgdb-light.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 23:14:31 -0700
-Message-ID: <200804300614.m3U6EVRq031235@imap1.linux-foundation.org>
+Subject: - tty-the-big-operations-rework-vs-kgdb-2.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 23:14:35 -0700
+Message-ID: <200804300614.m3U6EZPM031239@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35177 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49235 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755949AbYD3GPA (ORCPT
+	by vger.kernel.org with ESMTP id S1756013AbYD3GPF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:15:00 -0400
+	Wed, 30 Apr 2008 02:15:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jason.wessel@windriver.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     tty-the-big-operations-rework vs git-kgdb-light
+     tty-the-big-operations-rework vs kgdb (2)
 has been removed from the -mm tree.  Its filename was
-     tty-the-big-operations-rework-vs-git-kgdb-light.patch
+     tty-the-big-operations-rework-vs-kgdb-2.patch
 
 This patch was dropped because it was folded into tty-the-big-operations-rework.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tty-the-big-operations-rework vs git-kgdb-light
+Subject: tty-the-big-operations-rework vs kgdb (2)
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jason Wessel <jason.wessel@windriver.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/serial/kgdboc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/char/tty_io.c~tty-the-big-operations-rework-vs-git-kgdb-light drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~tty-the-big-operations-rework-vs-git-kgdb-light
-+++ a/drivers/char/tty_io.c
-@@ -1182,9 +1182,8 @@ struct tty_driver *tty_find_polling_driv
- 		if (*str == '\0')
- 			str = NULL;
+diff -puN drivers/serial/kgdboc.c~tty-the-big-operations-rework-vs-kgdb-2 drivers/serial/kgdboc.c
+--- a/drivers/serial/kgdboc.c~tty-the-big-operations-rework-vs-kgdb-2
++++ a/drivers/serial/kgdboc.c
+@@ -96,12 +96,14 @@ static void cleanup_kgdboc(void)
  
--		if (tty_line >= 0 && tty_line <= p->num && p->poll_init &&
--				!p->poll_init(p, tty_line, str)) {
--
-+		if (tty_line >= 0 && tty_line <= p->num && p->ops &&
-+		    p->ops->poll_init && !p->ops->poll_init(p, tty_line, str)) {
- 			res = p;
- 			*line = tty_line;
- 			break;
+ static int kgdboc_get_char(void)
+ {
+-	return kgdb_tty_driver->poll_get_char(kgdb_tty_driver, kgdb_tty_line);
++	return kgdb_tty_driver->ops->poll_get_char(kgdb_tty_driver,
++						kgdb_tty_line);
+ }
+ 
+ static void kgdboc_put_char(u8 chr)
+ {
+-	kgdb_tty_driver->poll_put_char(kgdb_tty_driver, kgdb_tty_line, chr);
++	kgdb_tty_driver->ops->poll_put_char(kgdb_tty_driver,
++					kgdb_tty_line, chr);
+ }
+ 
+ static int param_set_kgdboc_var(const char *kmessage, struct kernel_param *kp)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -62,7 +67,6 @@ sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
 epcac-static-functions-and-integer-as-null-pointer-fixes.patch
 isicom-bring-into-coding-style.patch
 tty-the-big-operations-rework.patch
-tty-the-big-operations-rework-vs-git-kgdb-light.patch
 tty-the-big-operations-rework-vs-kgdb-2.patch
 devpts-factor-out-pty-index-allocation-fix.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
