@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 30 Apr 2008 14:56:26 -0700
-Message-ID: <200804302156.m3ULuQG9005367@imap1.linux-foundation.org>
+Subject: + power_supply-cleanup-of-the-olpc-battery-driver.patch added to -mm tree
+Date: Wed, 30 Apr 2008 14:56:22 -0700
+Message-ID: <200804302156.m3ULuMcR005361@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46557 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51865 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757024AbYD3V4g (ORCPT
+	by vger.kernel.org with ESMTP id S1759698AbYD3V4l (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 17:56:36 -0400
+	Wed, 30 Apr 2008 17:56:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, cbou@mail.ru, dilinger@debian.org
+Cc: dilinger@queued.net, cbou@mail.ru, dilinger@debian.org, dwmw2@infradead.org
 
 
 The patch titled
-     power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes
+     power_supply: cleanup of the OLPC battery driver
 has been added to the -mm tree.  Its filename is
-     power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes.patch
+     power_supply-cleanup-of-the-olpc-battery-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,119 +34,258 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: power_supply: cleanup of the OLPC battery driver
+From: Andres Salomon <dilinger@queued.net>
 
-total: 0 errors, 0 warnings, 13 lines checked
+Move portions of the massive switch statement into functions.  The layout of
+this thing has already caused one bug (a break in the wrong place), it needed
+to shrink.
 
-./patches/power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery.patch has no obvious style problems and is ready for submission.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andres Salomon <dilinger@debian.org>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
 Cc: Anton Vorontsov <cbou@mail.ru>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/olpc_battery.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/power/olpc_battery.c |  191 ++++++++++++++++++++-------------
+ 1 file changed, 118 insertions(+), 73 deletions(-)
 
-diff -puN drivers/power/olpc_battery.c~power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes drivers/power/olpc_battery.c
---- a/drivers/power/olpc_battery.c~power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes
+diff -puN drivers/power/olpc_battery.c~power_supply-cleanup-of-the-olpc-battery-driver drivers/power/olpc_battery.c
+--- a/drivers/power/olpc_battery.c~power_supply-cleanup-of-the-olpc-battery-driver
 +++ a/drivers/power/olpc_battery.c
-@@ -404,7 +404,8 @@ static int __init olpc_bat_init(void)
- 	 * the latest EC protocol, supported by 0x44 and above.
- 	 */
- 	if (olpc_platform_info.ecver < 0x44) {
--		printk(KERN_NOTICE "OLPC EC version 0x%02x too old for battery driver.\n", olpc_platform_info.ecver);
-+		printk(KERN_NOTICE "OLPC EC version 0x%02x too old for "
-+			"battery driver.\n", olpc_platform_info.ecver);
- 		return -ENXIO;
- 	}
+@@ -86,6 +86,117 @@ static struct power_supply olpc_ac = {
  
+ static char bat_serial[17]; /* Ick */
+ 
++static int olpc_bat_get_status(union power_supply_propval *val, uint8_t ec_byte)
++{
++	if (olpc_platform_info.ecver > 0x44) {
++		if (ec_byte & BAT_STAT_CHARGING)
++			val->intval = POWER_SUPPLY_STATUS_CHARGING;
++		else if (ec_byte & BAT_STAT_DISCHARGING)
++			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
++		else if (ec_byte & BAT_STAT_FULL)
++			val->intval = POWER_SUPPLY_STATUS_FULL;
++		else /* er,... */
++			val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
++	} else {
++		/* Older EC didn't report charge/discharge bits */
++		if (!(ec_byte & BAT_STAT_AC)) /* No AC means discharging */
++			val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
++		else if (ec_byte & BAT_STAT_FULL)
++			val->intval = POWER_SUPPLY_STATUS_FULL;
++		else /* Not _necessarily_ true but EC doesn't tell all yet */
++			val->intval = POWER_SUPPLY_STATUS_CHARGING;
++	}
++
++	return 0;
++}
++
++static int olpc_bat_get_health(union power_supply_propval *val)
++{
++	uint8_t ec_byte;
++	int ret;
++
++	ret = olpc_ec_cmd(EC_BAT_ERRCODE, NULL, 0, &ec_byte, 1);
++	if (ret)
++		return ret;
++
++	switch (ec_byte) {
++	case 0:
++		val->intval = POWER_SUPPLY_HEALTH_GOOD;
++		break;
++
++	case BAT_ERR_OVERTEMP:
++		val->intval = POWER_SUPPLY_HEALTH_OVERHEAT;
++		break;
++
++	case BAT_ERR_OVERVOLTAGE:
++		val->intval = POWER_SUPPLY_HEALTH_OVERVOLTAGE;
++		break;
++
++	case BAT_ERR_INFOFAIL:
++	case BAT_ERR_OUT_OF_CONTROL:
++	case BAT_ERR_ID_FAIL:
++	case BAT_ERR_ACR_FAIL:
++		val->intval = POWER_SUPPLY_HEALTH_UNSPEC_FAILURE;
++		break;
++
++	default:
++		/* Eep. We don't know this failure code */
++		ret = -EIO;
++	}
++
++	return ret;
++}
++
++static int olpc_bat_get_mfr(union power_supply_propval *val)
++{
++	uint8_t ec_byte;
++	int ret;
++
++	ec_byte = BAT_ADDR_MFR_TYPE;
++	ret = olpc_ec_cmd(EC_BAT_EEPROM, &ec_byte, 1, &ec_byte, 1);
++	if (ret)
++		return ret;
++
++	switch (ec_byte >> 4) {
++	case 1:
++		val->strval = "Gold Peak";
++		break;
++	case 2:
++		val->strval = "BYD";
++		break;
++	default:
++		val->strval = "Unknown";
++		break;
++	}
++
++	return ret;
++}
++
++static int olpc_bat_get_tech(union power_supply_propval *val)
++{
++	uint8_t ec_byte;
++	int ret;
++
++	ec_byte = BAT_ADDR_MFR_TYPE;
++	ret = olpc_ec_cmd(EC_BAT_EEPROM, &ec_byte, 1, &ec_byte, 1);
++	if (ret)
++		return ret;
++
++	switch (ec_byte & 0xf) {
++	case 1:
++		val->intval = POWER_SUPPLY_TECHNOLOGY_NiMH;
++		break;
++	case 2:
++		val->intval = POWER_SUPPLY_TECHNOLOGY_LiFe;
++		break;
++	default:
++		val->intval = POWER_SUPPLY_TECHNOLOGY_UNKNOWN;
++		break;
++	}
++
++	return ret;
++}
++
+ /*********************************************************************
+  *		Battery properties
+  *********************************************************************/
+@@ -113,25 +224,10 @@ static int olpc_bat_get_property(struct 
+ 
+ 	switch (psp) {
+ 	case POWER_SUPPLY_PROP_STATUS:
+-		if (olpc_platform_info.ecver > 0x44) {
+-			if (ec_byte & BAT_STAT_CHARGING)
+-				val->intval = POWER_SUPPLY_STATUS_CHARGING;
+-			else if (ec_byte & BAT_STAT_DISCHARGING)
+-				val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
+-			else if (ec_byte & BAT_STAT_FULL)
+-				val->intval = POWER_SUPPLY_STATUS_FULL;
+-			else /* er,... */
+-				val->intval = POWER_SUPPLY_STATUS_NOT_CHARGING;
+-		} else {
+-			/* Older EC didn't report charge/discharge bits */
+-			if (!(ec_byte & BAT_STAT_AC)) /* No AC means discharging */
+-				val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
+-			else if (ec_byte & BAT_STAT_FULL)
+-				val->intval = POWER_SUPPLY_STATUS_FULL;
+-			else /* Not _necessarily_ true but EC doesn't tell all yet */
+-				val->intval = POWER_SUPPLY_STATUS_CHARGING;
+-			break;
+-		}
++		ret = olpc_bat_get_status(val, ec_byte);
++		if (ret)
++			return ret;
++		break;
+ 	case POWER_SUPPLY_PROP_PRESENT:
+ 		val->intval = !!(ec_byte & BAT_STAT_PRESENT);
+ 		break;
+@@ -140,72 +236,21 @@ static int olpc_bat_get_property(struct 
+ 		if (ec_byte & BAT_STAT_DESTROY)
+ 			val->intval = POWER_SUPPLY_HEALTH_DEAD;
+ 		else {
+-			ret = olpc_ec_cmd(EC_BAT_ERRCODE, NULL, 0, &ec_byte, 1);
++			ret = olpc_bat_get_health(val);
+ 			if (ret)
+ 				return ret;
+-
+-			switch (ec_byte) {
+-			case 0:
+-				val->intval = POWER_SUPPLY_HEALTH_GOOD;
+-				break;
+-
+-			case BAT_ERR_OVERTEMP:
+-				val->intval = POWER_SUPPLY_HEALTH_OVERHEAT;
+-				break;
+-
+-			case BAT_ERR_OVERVOLTAGE:
+-				val->intval = POWER_SUPPLY_HEALTH_OVERVOLTAGE;
+-				break;
+-
+-			case BAT_ERR_INFOFAIL:
+-			case BAT_ERR_OUT_OF_CONTROL:
+-			case BAT_ERR_ID_FAIL:
+-			case BAT_ERR_ACR_FAIL:
+-				val->intval = POWER_SUPPLY_HEALTH_UNSPEC_FAILURE;
+-				break;
+-
+-			default:
+-				/* Eep. We don't know this failure code */
+-				return -EIO;
+-			}
+ 		}
+ 		break;
+ 
+ 	case POWER_SUPPLY_PROP_MANUFACTURER:
+-		ec_byte = BAT_ADDR_MFR_TYPE;
+-		ret = olpc_ec_cmd(EC_BAT_EEPROM, &ec_byte, 1, &ec_byte, 1);
++		ret = olpc_bat_get_mfr(val);
+ 		if (ret)
+ 			return ret;
+-
+-		switch (ec_byte >> 4) {
+-		case 1:
+-			val->strval = "Gold Peak";
+-			break;
+-		case 2:
+-			val->strval = "BYD";
+-			break;
+-		default:
+-			val->strval = "Unknown";
+-			break;
+-		}
+ 		break;
+ 	case POWER_SUPPLY_PROP_TECHNOLOGY:
+-		ec_byte = BAT_ADDR_MFR_TYPE;
+-		ret = olpc_ec_cmd(EC_BAT_EEPROM, &ec_byte, 1, &ec_byte, 1);
++		ret = olpc_bat_get_tech(val);
+ 		if (ret)
+ 			return ret;
+-
+-		switch (ec_byte & 0xf) {
+-		case 1:
+-			val->intval = POWER_SUPPLY_TECHNOLOGY_NiMH;
+-			break;
+-		case 2:
+-			val->intval = POWER_SUPPLY_TECHNOLOGY_LiFe;
+-			break;
+-		default:
+-			val->intval = POWER_SUPPLY_TECHNOLOGY_UNKNOWN;
+-			break;
+-		}
+ 		break;
+ 	case POWER_SUPPLY_PROP_VOLTAGE_AVG:
+ 		ret = olpc_ec_cmd(EC_BAT_VOLTAGE, NULL, 0, (void *)&ec_word, 2);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dilinger@queued.net are
 
 origin.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-isicom-bring-into-coding-style.patch
-tty-the-big-operations-rework.patch
-devpts-factor-out-pty-index-allocation.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-fuse-fix-race-in-llseek.patch
-basic-braille-screen-reader-support.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-revert-memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-disable-the-memory-controller-by-default-v3.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-pnp-fix-printk-format-warnings-fix-checkpatch-fixes.patch
-git-x86-fixup.patch
-rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+x86-ioremap-ram-check-fix.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
 x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
-git-arm-fixup.patch
-cifs-suppress-warning.patch
-devres-support-addresses-greater-than-an-unsigned-long-via-dev_ioremap-checkpatch-fixes.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed.patch
-drivers-media-video-tuner-corec-tuner_probe-fix-error-check.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-hwmon.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-kvm.patch
-pata_atiixp-simplex-clear.patch
-git-m32r.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-sched-add-debug-checks-to-idle-functions.patch
-drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
-add-rcu_assign_index-if-ever-needed.patch
-git-scsi-misc.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-aic79xx_core-remove-ascii-art.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-ext4-is-busted-on-m68k.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-add-warn_on_secs-macro.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-x86-ioremap-add-checks-for-virtual-addresses-fix.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs.patch
+power_supply-cleanup-of-the-olpc-battery-driver.patch
+power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery.patch
 
