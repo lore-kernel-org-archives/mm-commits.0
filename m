@@ -1,235 +1,312 @@
 From: akpm@linux-foundation.org
-Subject: - proc-remove-proc_bus.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:45:55 -0700
-Message-ID: <200804300545.m3U5jt2x029555@imap1.linux-foundation.org>
+Subject: - ipmi-convert-locked-counters-to-atomics-in-the-system-interface.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:44:45 -0700
+Message-ID: <200804300544.m3U5ijVx029440@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49128 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34058 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757570AbYD3GFG (ORCPT
+	by vger.kernel.org with ESMTP id S1753181AbYD3GGA (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:05:06 -0400
+	Wed, 30 Apr 2008 02:06:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: cminyard@mvista.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     proc: remove proc_bus
+     ipmi: convert locked counters to atomics in the system interface
 has been removed from the -mm tree.  Its filename was
-     proc-remove-proc_bus.patch
+     ipmi-convert-locked-counters-to-atomics-in-the-system-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proc: remove proc_bus
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: ipmi: convert locked counters to atomics in the system interface
+From: Corey Minyard <cminyard@mvista.com>
 
-Remove proc_bus export and variable itself. Using pathnames works fine
-and is slightly more understandable and greppable.
+Atomics are faster and neater than locked counters.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/kernel/ecard.c    |    2 +-
- drivers/input/input.c      |    6 +++---
- drivers/nubus/proc.c       |    2 +-
- drivers/pci/proc.c         |    2 +-
- drivers/pnp/isapnp/proc.c  |    2 +-
- drivers/pnp/pnpbios/proc.c |    4 ++--
- drivers/usb/core/inode.c   |    4 ++--
- drivers/zorro/proc.c       |    2 +-
- fs/proc/root.c             |    5 ++---
- include/linux/proc_fs.h    |    2 --
- 10 files changed, 14 insertions(+), 17 deletions(-)
+ drivers/char/ipmi/ipmi_si_intf.c |  140 +++++++++++++----------------
+ 1 file changed, 66 insertions(+), 74 deletions(-)
 
-diff -puN arch/arm/kernel/ecard.c~proc-remove-proc_bus arch/arm/kernel/ecard.c
---- a/arch/arm/kernel/ecard.c~proc-remove-proc_bus
-+++ a/arch/arm/kernel/ecard.c
-@@ -778,7 +778,7 @@ static struct proc_dir_entry *proc_bus_e
+diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-convert-locked-counters-to-atomics-in-the-system-interface drivers/char/ipmi/ipmi_si_intf.c
+--- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-convert-locked-counters-to-atomics-in-the-system-interface
++++ a/drivers/char/ipmi/ipmi_si_intf.c
+@@ -120,6 +120,27 @@ static struct device_driver ipmi_driver 
+ 	.bus = &platform_bus_type
+ };
  
- static void ecard_proc_init(void)
++
++/*
++ * Indexes into stats[] in smi_info below.
++ */
++
++#define SI_STAT_short_timeouts		0
++#define SI_STAT_long_timeouts		1
++#define SI_STAT_timeout_restarts	2
++#define SI_STAT_idles			3
++#define SI_STAT_interrupts		4
++#define SI_STAT_attentions		5
++#define SI_STAT_flag_fetches		6
++#define SI_STAT_hosed_count		7
++#define SI_STAT_complete_transactions	8
++#define SI_STAT_events			9
++#define SI_STAT_watchdog_pretimeouts	10
++#define SI_STAT_incoming_messages	11
++
++/* If you add a stat, you must update this value. */
++#define SI_NUM_STATS			12
++
+ struct smi_info
  {
--	proc_bus_ecard_dir = proc_mkdir("ecard", proc_bus);
-+	proc_bus_ecard_dir = proc_mkdir("bus/ecard", NULL);
- 	create_proc_info_entry("devices", 0, proc_bus_ecard_dir,
- 		get_ecard_dev_info);
- }
-diff -puN drivers/input/input.c~proc-remove-proc_bus drivers/input/input.c
---- a/drivers/input/input.c~proc-remove-proc_bus
-+++ a/drivers/input/input.c
-@@ -898,7 +898,7 @@ static int __init input_proc_init(void)
- {
- 	struct proc_dir_entry *entry;
+ 	int                    intf_num;
+@@ -216,25 +237,18 @@ struct smi_info
+ 	unsigned char slave_addr;
  
--	proc_bus_input_dir = proc_mkdir("input", proc_bus);
-+	proc_bus_input_dir = proc_mkdir("bus/input", NULL);
- 	if (!proc_bus_input_dir)
- 		return -ENOMEM;
+ 	/* Counters and things for the proc filesystem. */
+-	spinlock_t count_lock;
+-	unsigned long short_timeouts;
+-	unsigned long long_timeouts;
+-	unsigned long timeout_restarts;
+-	unsigned long idles;
+-	unsigned long interrupts;
+-	unsigned long attentions;
+-	unsigned long flag_fetches;
+-	unsigned long hosed_count;
+-	unsigned long complete_transactions;
+-	unsigned long events;
+-	unsigned long watchdog_pretimeouts;
+-	unsigned long incoming_messages;
++	atomic_t stats[SI_NUM_STATS];
  
-@@ -921,7 +921,7 @@ static int __init input_proc_init(void)
- 	return 0;
+         struct task_struct *thread;
  
-  fail2:	remove_proc_entry("devices", proc_bus_input_dir);
-- fail1: remove_proc_entry("input", proc_bus);
-+ fail1: remove_proc_entry("bus/input", NULL);
- 	return -ENOMEM;
- }
+ 	struct list_head link;
+ };
  
-@@ -929,7 +929,7 @@ static void input_proc_exit(void)
- {
- 	remove_proc_entry("devices", proc_bus_input_dir);
- 	remove_proc_entry("handlers", proc_bus_input_dir);
--	remove_proc_entry("input", proc_bus);
-+	remove_proc_entry("bus/input", NULL);
- }
++#define smi_inc_stat(smi, stat) \
++	atomic_inc(&(smi)->stats[SI_STAT_ ## stat])
++#define smi_get_stat(smi, stat) \
++	((unsigned int) atomic_read(&(smi)->stats[SI_STAT_ ## stat]))
++
+ #define SI_MAX_PARMS 4
  
- #else /* !CONFIG_PROC_FS */
-diff -puN drivers/nubus/proc.c~proc-remove-proc_bus drivers/nubus/proc.c
---- a/drivers/nubus/proc.c~proc-remove-proc_bus
-+++ a/drivers/nubus/proc.c
-@@ -171,7 +171,7 @@ void __init nubus_proc_init(void)
- {
- 	if (!MACH_IS_MAC)
- 		return;
--	proc_bus_nubus_dir = proc_mkdir("nubus", proc_bus);
-+	proc_bus_nubus_dir = proc_mkdir("bus/nubus", NULL);
- 	create_proc_info_entry("devices", 0, proc_bus_nubus_dir,
- 				get_nubus_dev_info);
- 	proc_bus_nubus_add_devices();
-diff -puN drivers/pci/proc.c~proc-remove-proc_bus drivers/pci/proc.c
---- a/drivers/pci/proc.c~proc-remove-proc_bus
-+++ a/drivers/pci/proc.c
-@@ -472,7 +472,7 @@ static int __init pci_proc_init(void)
- {
- 	struct proc_dir_entry *entry;
- 	struct pci_dev *dev = NULL;
--	proc_bus_pci_dir = proc_mkdir("pci", proc_bus);
-+	proc_bus_pci_dir = proc_mkdir("bus/pci", NULL);
- 	entry = create_proc_entry("devices", 0, proc_bus_pci_dir);
- 	if (entry)
- 		entry->proc_fops = &proc_bus_pci_dev_operations;
-diff -puN drivers/pnp/isapnp/proc.c~proc-remove-proc_bus drivers/pnp/isapnp/proc.c
---- a/drivers/pnp/isapnp/proc.c~proc-remove-proc_bus
-+++ a/drivers/pnp/isapnp/proc.c
-@@ -116,7 +116,7 @@ int __init isapnp_proc_init(void)
- {
- 	struct pnp_dev *dev;
+ static int force_kipmid[SI_MAX_PARMS];
+@@ -398,9 +412,7 @@ static void handle_flags(struct smi_info
+  retry:
+ 	if (smi_info->msg_flags & WDT_PRE_TIMEOUT_INT) {
+ 		/* Watchdog pre-timeout */
+-		spin_lock(&smi_info->count_lock);
+-		smi_info->watchdog_pretimeouts++;
+-		spin_unlock(&smi_info->count_lock);
++		smi_inc_stat(smi_info, watchdog_pretimeouts);
  
--	isapnp_proc_bus_dir = proc_mkdir("isapnp", proc_bus);
-+	isapnp_proc_bus_dir = proc_mkdir("bus/isapnp", NULL);
- 	protocol_for_each_dev(&isapnp_protocol, dev) {
- 		isapnp_proc_attach_device(dev);
+ 		start_clear_flags(smi_info);
+ 		smi_info->msg_flags &= ~WDT_PRE_TIMEOUT_INT;
+@@ -545,9 +557,7 @@ static void handle_transaction_done(stru
+ 			smi_info->msg_flags &= ~EVENT_MSG_BUFFER_FULL;
+ 			handle_flags(smi_info);
+ 		} else {
+-			spin_lock(&smi_info->count_lock);
+-			smi_info->events++;
+-			spin_unlock(&smi_info->count_lock);
++			smi_inc_stat(smi_info, events);
+ 
+ 			/* Do this before we deliver the message
+ 			   because delivering the message releases the
+@@ -581,9 +591,7 @@ static void handle_transaction_done(stru
+ 			smi_info->msg_flags &= ~RECEIVE_MSG_AVAIL;
+ 			handle_flags(smi_info);
+ 		} else {
+-			spin_lock(&smi_info->count_lock);
+-			smi_info->incoming_messages++;
+-			spin_unlock(&smi_info->count_lock);
++			smi_inc_stat(smi_info, incoming_messages);
+ 
+ 			/* Do this before we deliver the message
+ 			   because delivering the message releases the
+@@ -700,18 +708,14 @@ static enum si_sm_result smi_event_handl
+ 
+ 	if (si_sm_result == SI_SM_TRANSACTION_COMPLETE)
+ 	{
+-		spin_lock(&smi_info->count_lock);
+-		smi_info->complete_transactions++;
+-		spin_unlock(&smi_info->count_lock);
++		smi_inc_stat(smi_info, complete_transactions);
+ 
+ 		handle_transaction_done(smi_info);
+ 		si_sm_result = smi_info->handlers->event(smi_info->si_sm, 0);
  	}
-diff -puN drivers/pnp/pnpbios/proc.c~proc-remove-proc_bus drivers/pnp/pnpbios/proc.c
---- a/drivers/pnp/pnpbios/proc.c~proc-remove-proc_bus
-+++ a/drivers/pnp/pnpbios/proc.c
-@@ -256,7 +256,7 @@ int pnpbios_interface_attach_device(stru
-  */
- int __init pnpbios_proc_init(void)
+ 	else if (si_sm_result == SI_SM_HOSED)
+ 	{
+-		spin_lock(&smi_info->count_lock);
+-		smi_info->hosed_count++;
+-		spin_unlock(&smi_info->count_lock);
++		smi_inc_stat(smi_info, hosed_count);
+ 
+ 		/* Do the before return_hosed_msg, because that
+ 		   releases the lock. */
+@@ -733,9 +737,7 @@ static enum si_sm_result smi_event_handl
+ 	{
+ 		unsigned char msg[2];
+ 
+-		spin_lock(&smi_info->count_lock);
+-		smi_info->attentions++;
+-		spin_unlock(&smi_info->count_lock);
++		smi_inc_stat(smi_info, attentions);
+ 
+ 		/* Got a attn, send down a get message flags to see
+                    what's causing it.  It would be better to handle
+@@ -753,9 +755,7 @@ static enum si_sm_result smi_event_handl
+ 
+ 	/* If we are currently idle, try to start the next message. */
+ 	if (si_sm_result == SI_SM_IDLE) {
+-		spin_lock(&smi_info->count_lock);
+-		smi_info->idles++;
+-		spin_unlock(&smi_info->count_lock);
++		smi_inc_stat(smi_info, idles);
+ 
+ 		si_sm_result = start_next_msg(smi_info);
+ 		if (si_sm_result != SI_SM_IDLE)
+@@ -945,23 +945,17 @@ static void smi_timeout(unsigned long da
+ 	if ((smi_info->irq) && (!smi_info->interrupt_disabled)) {
+ 		/* Running with interrupts, only do long timeouts. */
+ 		smi_info->si_timer.expires = jiffies + SI_TIMEOUT_JIFFIES;
+-		spin_lock_irqsave(&smi_info->count_lock, flags);
+-		smi_info->long_timeouts++;
+-		spin_unlock_irqrestore(&smi_info->count_lock, flags);
++		smi_inc_stat(smi_info, long_timeouts);
+ 		goto do_add_timer;
+ 	}
+ 
+ 	/* If the state machine asks for a short delay, then shorten
+            the timer timeout. */
+ 	if (smi_result == SI_SM_CALL_WITH_DELAY) {
+-		spin_lock_irqsave(&smi_info->count_lock, flags);
+-		smi_info->short_timeouts++;
+-		spin_unlock_irqrestore(&smi_info->count_lock, flags);
++		smi_inc_stat(smi_info, short_timeouts);
+ 		smi_info->si_timer.expires = jiffies + 1;
+ 	} else {
+-		spin_lock_irqsave(&smi_info->count_lock, flags);
+-		smi_info->long_timeouts++;
+-		spin_unlock_irqrestore(&smi_info->count_lock, flags);
++		smi_inc_stat(smi_info, long_timeouts);
+ 		smi_info->si_timer.expires = jiffies + SI_TIMEOUT_JIFFIES;
+ 	}
+ 
+@@ -979,9 +973,7 @@ static irqreturn_t si_irq_handler(int ir
+ 
+ 	spin_lock_irqsave(&(smi_info->si_lock), flags);
+ 
+-	spin_lock(&smi_info->count_lock);
+-	smi_info->interrupts++;
+-	spin_unlock(&smi_info->count_lock);
++	smi_inc_stat(smi_info, interrupts);
+ 
+ #ifdef DEBUG_TIMING
+ 	do_gettimeofday(&t);
+@@ -1765,9 +1757,7 @@ static u32 ipmi_acpi_gpe(void *context)
+ 
+ 	spin_lock_irqsave(&(smi_info->si_lock), flags);
+ 
+-	spin_lock(&smi_info->count_lock);
+-	smi_info->interrupts++;
+-	spin_unlock(&smi_info->count_lock);
++	smi_inc_stat(smi_info, interrupts);
+ 
+ #ifdef DEBUG_TIMING
+ 	do_gettimeofday(&t);
+@@ -2405,30 +2395,30 @@ static int stat_file_read_proc(char *pag
+ 
+ 	out += sprintf(out, "interrupts_enabled:    %d\n",
+ 		       smi->irq && !smi->interrupt_disabled);
+-	out += sprintf(out, "short_timeouts:        %ld\n",
+-		       smi->short_timeouts);
+-	out += sprintf(out, "long_timeouts:         %ld\n",
+-		       smi->long_timeouts);
+-	out += sprintf(out, "timeout_restarts:      %ld\n",
+-		       smi->timeout_restarts);
+-	out += sprintf(out, "idles:                 %ld\n",
+-		       smi->idles);
+-	out += sprintf(out, "interrupts:            %ld\n",
+-		       smi->interrupts);
+-	out += sprintf(out, "attentions:            %ld\n",
+-		       smi->attentions);
+-	out += sprintf(out, "flag_fetches:          %ld\n",
+-		       smi->flag_fetches);
+-	out += sprintf(out, "hosed_count:           %ld\n",
+-		       smi->hosed_count);
+-	out += sprintf(out, "complete_transactions: %ld\n",
+-		       smi->complete_transactions);
+-	out += sprintf(out, "events:                %ld\n",
+-		       smi->events);
+-	out += sprintf(out, "watchdog_pretimeouts:  %ld\n",
+-		       smi->watchdog_pretimeouts);
+-	out += sprintf(out, "incoming_messages:     %ld\n",
+-		       smi->incoming_messages);
++	out += sprintf(out, "short_timeouts:        %u\n",
++		       smi_get_stat(smi, short_timeouts));
++	out += sprintf(out, "long_timeouts:         %u\n",
++		       smi_get_stat(smi, long_timeouts));
++	out += sprintf(out, "timeout_restarts:      %u\n",
++		       smi_get_stat(smi, timeout_restarts));
++	out += sprintf(out, "idles:                 %u\n",
++		       smi_get_stat(smi, idles));
++	out += sprintf(out, "interrupts:            %u\n",
++		       smi_get_stat(smi, interrupts));
++	out += sprintf(out, "attentions:            %u\n",
++		       smi_get_stat(smi, attentions));
++	out += sprintf(out, "flag_fetches:          %u\n",
++		       smi_get_stat(smi, flag_fetches));
++	out += sprintf(out, "hosed_count:           %u\n",
++		       smi_get_stat(smi, hosed_count));
++	out += sprintf(out, "complete_transactions: %u\n",
++		       smi_get_stat(smi, complete_transactions));
++	out += sprintf(out, "events:                %u\n",
++		       smi_get_stat(smi, events));
++	out += sprintf(out, "watchdog_pretimeouts:  %u\n",
++		       smi_get_stat(smi, watchdog_pretimeouts));
++	out += sprintf(out, "incoming_messages:     %u\n",
++		       smi_get_stat(smi, incoming_messages));
+ 
+ 	return out - page;
+ }
+@@ -2676,6 +2666,7 @@ static int is_new_interface(struct smi_i
+ static int try_smi_init(struct smi_info *new_smi)
  {
--	proc_pnp = proc_mkdir("pnp", proc_bus);
-+	proc_pnp = proc_mkdir("bus/pnp", NULL);
- 	if (!proc_pnp)
- 		return -EIO;
- 	proc_pnp_boot = proc_mkdir("boot", proc_pnp);
-@@ -294,5 +294,5 @@ void __exit pnpbios_proc_exit(void)
- 	remove_proc_entry("configuration_info", proc_pnp);
- 	remove_proc_entry("devices", proc_pnp);
- 	remove_proc_entry("boot", proc_pnp);
--	remove_proc_entry("pnp", proc_bus);
-+	remove_proc_entry("bus/pnp", NULL);
- }
-diff -puN drivers/usb/core/inode.c~proc-remove-proc_bus drivers/usb/core/inode.c
---- a/drivers/usb/core/inode.c~proc-remove-proc_bus
-+++ a/drivers/usb/core/inode.c
-@@ -773,7 +773,7 @@ int __init usbfs_init(void)
- 	usb_register_notify(&usbfs_nb);
+ 	int rv;
++	int i;
  
- 	/* create mount point for usbfs */
--	usbdir = proc_mkdir("usb", proc_bus);
-+	usbdir = proc_mkdir("bus/usb", NULL);
+ 	if (new_smi->addr_source) {
+ 		printk(KERN_INFO "ipmi_si: Trying %s-specified %s state"
+@@ -2738,7 +2729,6 @@ static int try_smi_init(struct smi_info 
  
- 	return 0;
- }
-@@ -783,6 +783,6 @@ void usbfs_cleanup(void)
- 	usb_unregister_notify(&usbfs_nb);
- 	unregister_filesystem(&usb_fs_type);
- 	if (usbdir)
--		remove_proc_entry("usb", proc_bus);
-+		remove_proc_entry("bus/usb", NULL);
- }
+ 	spin_lock_init(&(new_smi->si_lock));
+ 	spin_lock_init(&(new_smi->msg_lock));
+-	spin_lock_init(&(new_smi->count_lock));
  
-diff -puN drivers/zorro/proc.c~proc-remove-proc_bus drivers/zorro/proc.c
---- a/drivers/zorro/proc.c~proc-remove-proc_bus
-+++ a/drivers/zorro/proc.c
-@@ -128,7 +128,7 @@ static int __init zorro_proc_init(void)
- 	u_int slot;
+ 	/* Do low-level detection first. */
+ 	if (new_smi->handlers->detect(new_smi->si_sm)) {
+@@ -2767,6 +2757,8 @@ static int try_smi_init(struct smi_info 
+ 	new_smi->curr_msg = NULL;
+ 	atomic_set(&new_smi->req_events, 0);
+ 	new_smi->run_to_completion = 0;
++	for (i = 0; i < SI_NUM_STATS; i++)
++		atomic_set(&new_smi->stats[i], 0);
  
- 	if (MACH_IS_AMIGA && AMIGAHW_PRESENT(ZORRO)) {
--		proc_bus_zorro_dir = proc_mkdir("zorro", proc_bus);
-+		proc_bus_zorro_dir = proc_mkdir("bus/zorro", NULL);
- 		create_proc_info_entry("devices", 0, proc_bus_zorro_dir,
- 				       get_zorro_dev_info);
- 		for (slot = 0; slot < zorro_num_autocon; slot++)
-diff -puN fs/proc/root.c~proc-remove-proc_bus fs/proc/root.c
---- a/fs/proc/root.c~proc-remove-proc_bus
-+++ a/fs/proc/root.c
-@@ -22,7 +22,7 @@
- 
- #include "internal.h"
- 
--struct proc_dir_entry *proc_bus, *proc_root_fs, *proc_root_driver;
-+struct proc_dir_entry *proc_root_fs, *proc_root_driver;
- 
- static int proc_test_super(struct super_block *sb, void *data)
- {
-@@ -137,7 +137,7 @@ void __init proc_root_init(void)
- #ifdef CONFIG_PROC_DEVICETREE
- 	proc_device_tree_init();
- #endif
--	proc_bus = proc_mkdir("bus", NULL);
-+	proc_mkdir("bus", NULL);
- 	proc_sys_init();
- }
- 
-@@ -236,5 +236,4 @@ EXPORT_SYMBOL(proc_create);
- EXPORT_SYMBOL(remove_proc_entry);
- EXPORT_SYMBOL(proc_root);
- EXPORT_SYMBOL(proc_root_fs);
--EXPORT_SYMBOL(proc_bus);
- EXPORT_SYMBOL(proc_root_driver);
-diff -puN include/linux/proc_fs.h~proc-remove-proc_bus include/linux/proc_fs.h
---- a/include/linux/proc_fs.h~proc-remove-proc_bus
-+++ a/include/linux/proc_fs.h
-@@ -98,7 +98,6 @@ struct vmcore {
- 
- extern struct proc_dir_entry proc_root;
- extern struct proc_dir_entry *proc_root_fs;
--extern struct proc_dir_entry *proc_bus;
- extern struct proc_dir_entry *proc_root_driver;
- extern struct proc_dir_entry *proc_root_kcore;
- 
-@@ -214,7 +213,6 @@ extern void dup_mm_exe_file(struct mm_st
- #else
- 
- #define proc_root_driver NULL
--#define proc_bus NULL
- 
- #define proc_net_fops_create(net, name, mode, fops)  ({ (void)(mode), NULL; })
- static inline void proc_net_remove(struct net *net, const char *name) {}
+ 	new_smi->interrupt_disabled = 0;
+ 	atomic_set(&new_smi->stop_operation, 0);
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
 origin.patch
-drivers-use-non-racy-method-for-proc-entries-creation-2-rio.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-git-xfs.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
 
