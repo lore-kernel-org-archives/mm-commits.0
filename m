@@ -1,93 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - fs-hfsplus-proper-externs.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:39:16 -0700
-Message-ID: <200804300539.m3U5dGpL028823@imap1.linux-foundation.org>
+Subject: - cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:39:12 -0700
+Message-ID: <200804300539.m3U5dCZs028817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49563 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54051 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753723AbYD3Fjm (ORCPT
+	by vger.kernel.org with ESMTP id S1752504AbYD3Fjs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:39:42 -0400
+	Wed, 30 Apr 2008 01:39:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, ego@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/hfsplus/: proper externs
+     cpu: fix section mismatch warning in reference to register_cpu_notifier
 has been removed from the -mm tree.  Its filename was
-     fs-hfsplus-proper-externs.patch
+     cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/hfsplus/: proper externs
-From: Adrian Bunk <bunk@kernel.org>
+Subject: cpu: fix section mismatch warning in reference to register_cpu_notifier
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Add proper extern declarations for two structs in fs/hfsplus/hfsplus_fs.h
+Fix following warnings:
+WARNING: vmlinux.o(.text+0xc60): Section mismatch in reference from the function kvm_init() to the function .cpuinit.text:register_cpu_notifier()
+WARNING: vmlinux.o(.text+0x33869a): Section mismatch in reference from the function xfs_icsb_init_counters() to the function .cpuinit.text:register_cpu_notifier()
+WARNING: vmlinux.o(.text+0x5556a1): Section mismatch in reference from the function acpi_processor_install_hotplug_notify() to the function .cpuinit.text:register_cpu_notifier()
+WARNING: vmlinux.o(.text+0xfe6b28): Section mismatch in reference from the function cpufreq_register_driver() to the function .cpuinit.text:register_cpu_notifier()
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+register_cpu_notifier() are only really defined when HOTPLUG_CPU is enabled. 
+So references to the function are OK.
+
+Annotate it with __ref so we do not get warnings from callers and do not get
+warnings for the functions/data used by register_cpu_notifier().
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Gautham R Shenoy <ego@in.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/hfsplus_fs.h |    4 ++++
- fs/hfsplus/inode.c      |    3 ---
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ kernel/cpu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hfsplus/hfsplus_fs.h~fs-hfsplus-proper-externs fs/hfsplus/hfsplus_fs.h
---- a/fs/hfsplus/hfsplus_fs.h~fs-hfsplus-proper-externs
-+++ a/fs/hfsplus/hfsplus_fs.h
-@@ -311,6 +311,10 @@ int hfsplus_delete_cat(u32, struct inode
- int hfsplus_rename_cat(u32, struct inode *, struct qstr *,
- 		       struct inode *, struct qstr *);
- 
-+/* dir.c */
-+extern const struct inode_operations hfsplus_dir_inode_operations;
-+extern const struct file_operations hfsplus_dir_operations;
-+
- /* extents.c */
- int hfsplus_ext_cmp_key(const hfsplus_btree_key *, const hfsplus_btree_key *);
- void hfsplus_ext_write_extent(struct inode *);
-diff -puN fs/hfsplus/inode.c~fs-hfsplus-proper-externs fs/hfsplus/inode.c
---- a/fs/hfsplus/inode.c~fs-hfsplus-proper-externs
-+++ a/fs/hfsplus/inode.c
-@@ -278,9 +278,6 @@ static int hfsplus_file_release(struct i
- 	return 0;
+diff -puN kernel/cpu.c~cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier kernel/cpu.c
+--- a/kernel/cpu.c~cpu-fix-section-mismatch-warning-in-reference-to-register_cpu_notifier
++++ a/kernel/cpu.c
+@@ -136,7 +136,7 @@ static void cpu_hotplug_done(void)
+ 	mutex_unlock(&cpu_hotplug.lock);
  }
- 
--extern const struct inode_operations hfsplus_dir_inode_operations;
--extern struct file_operations hfsplus_dir_operations;
--
- static const struct inode_operations hfsplus_file_inode_operations = {
- 	.lookup		= hfsplus_file_lookup,
- 	.truncate	= hfsplus_file_truncate,
+ /* Need to know about CPUs going up/down? */
+-int __cpuinit register_cpu_notifier(struct notifier_block *nb)
++int __ref register_cpu_notifier(struct notifier_block *nb)
+ {
+ 	int ret;
+ 	cpu_maps_update_begin();
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 origin.patch
-mm-filemapc-generic_write_checks-mustnt-be-inline.patch
-fs-block_devc-i_bdev-mustnt-be-inline.patch
-frv-fix-arch-frv-mm-unalignedo-build-error.patch
-reiserfs-some-functions-mustnt-be-inline.patch
-git-acpi.patch
 git-x86.patch
-arch-x86-video-fbdevc-add-module_license.patch
-md-make-dm_dirty_log_initexit-static.patch
-drm-make-drm_minors_cleanup-static.patch
 git-m32r.patch
-net-ipv4-ip_outputc-ip_send_check-mustnt-be-inline.patch
-nfs-make-nfs4_drop_state_owner-static.patch
-git-ocfs2.patch
-show_schedstat-fix-memleak.patch
+pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
+pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
+pcmcia-annotate-cb_alloc-with-__ref.patch
+git-pci.patch
+git-s390.patch
 git-sh.patch
-if-0-ses_match_host.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
 git-watchdog.patch
-xen-drivers-xen-balloonc-make-a-function-static.patch
-make-marker_debug-static.patch
-reiser4.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+remove-ifdef-__kernel__-checks-from-unexported-headers.patch
 
