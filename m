@@ -1,520 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: - utimensat-non-conformances-and-fixes.patch removed from -mm tree
-Date: Wed, 30 Apr 2008 10:48:55 -0700
-Message-ID: <200804301748.m3UHmuWT026627@imap1.linux-foundation.org>
+Subject: - utimensat-non-conformances-and-fixes-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 30 Apr 2008 10:49:00 -0700
+Message-ID: <200804301749.m3UHn0uj026630@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37354 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34256 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758750AbYD3Rtp (ORCPT
+	by vger.kernel.org with ESMTP id S1758246AbYD3Rtd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 13:49:45 -0400
+	Wed, 30 Apr 2008 13:49:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mtk.manpages@googlemail.com, drepper@redhat.com, mtk.manpages@gmail.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mtk.manpages@gmail.com, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     utimensat() non-conformances and fixes
+     utimensat-non-conformances-and-fixes-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     utimensat-non-conformances-and-fixes.patch
+     utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: utimensat() non-conformances and fixes
-From: Michael Kerrisk <mtk.manpages@googlemail.com>
+Subject: utimensat-non-conformances-and-fixes-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-While writing a man page for utimensat(2) and futimens(3), I think I've found
-a few bugs in the utimensat() system call (i.e., non-conformances with either
-the specification in the draft POSIX.1-200x revision or traditional Linux
-behavior).
+ERROR: space prohibited after that '!' (ctx:WxW)
+#429: FILE: fs/utimes.c:102:
++	if (times && ! ((times[0].tv_nsec == UTIME_NOW &&
+ 	             ^
 
-       int utimensat(int dirfd, const char *pathname,
-                     const struct timespec times[2], int flags);
+ERROR: code indent should use tabs where possible
+#436: FILE: fs/utimes.c:108:
++                        goto mnt_drop_write_and_out;$
 
-1.  The draft POSIX.1-200x specification for utimensat() says that if a
-   times[n].tv_nsec field is UTIME_OMIT or UTIME_NOW, then the value in the
-   corresponding tv_sec field is ignored.  However the current Linux
-   implementation requires the tv_sec value to be zero (or the EINVAL error
-   results).  This requirement should be removed.
+total: 2 errors, 0 warnings, 59 lines checked
 
-2.  The POSIX.1 draft says that to do anything other than setting both
-   timestamps to a time other than the current time (i.e., times is not NULL,
-   and both tv_nsec fields are not UTIME_NOW and both tv_nsec fields are not
-   UTIME_OMIT -- see lines 32400 to 32403 of draft 5 of the spec), either: the
-   caller's effective user ID must match the owner of the file; or the caller
-   must have appropriate privileges.  If this condition is violated, then the
-   error EPERM results.  However, the current implementation does not generate
-   EPERM if one tv_nsec field is UTIME_NOW while the other is UTIME_OMIT -- it
-   should give this error for that case.
+./patches/utimensat-non-conformances-and-fixes.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-3.  Traditionally, utime()/utimes() gives the error EACCES for the case
-   where the timestamp pointer argument is NULL (i.e., set both timestamps to
-   the current time), and the file is owned by a user other than the effective
-   UID of the caller, and the file is not writable by the effective UID of the
-   program.  utimensat() also gives this error in the same case.  However, in
-   the same circumstances, when utimensat() is given a 'times' array in which
-   both tv_nsec fields are UTIME_NOW, which provides equivalent functionality
-   to specifying 'times' as NULL, the call succeeds.  I think that it should
-   fail with the error EACCES in this case.
+Please run checkpatch prior to sending patches
 
-4.  A further bug relates to traditional Linux behavior.  Traditionally
-   (i.e., utime(2) and utimes(2)), the EPERM error could also occur if the
-   'times' argument was non-NULL (i.e., we are setting the timestamps to a
-   value other than the current time) and the file is marked as immutable or
-   append-only.  The current implementation also returns this error if 'times'
-   is non-NULL and the tv_nsec fields are both UTIME_NOW.  For consistency,
-   the
-
-   (times == NULL && times[0].tv_nsec == UTIME_NOW && times[1].tv_nsec ==
-   UTIME_NOW)
-
-   case should be treated like the traditional utimes() case where 'times'
-   is NULL.  That is, the call should succeed for a file marked append-only
-   and should give the error EACCES if the file is marked as immutable.
-
-The first part of the patch below addresses bugs 2, 3, and 4 and the second
-part of the patch addresses bug 1.
-
-Below is a command-line-driven test program that can be used to test the
-current implementation, and my patch.  Some test cases below demonstrate the 4
-cases described above, showing how a vanilla 2.6.25-rcN kernel behaves, and
-how it behaves with my patch applied.
-
-Finally, with my patch applied, I believe that the following lines could be
-removed from the sys_utimensat() routine (I've done some light testing to
-verify this, but more testing would be in order):
-
-                /* Nothing to do, we must not even check the path.  */
-                if (tstimes[0].tv_nsec == UTIME_OMIT &&
-                    tstimes[1].tv_nsec == UTIME_OMIT)
-                        return 0;
-
-
-Test cases
-==========
-
-All test cases run as user 'mtk'
-
-Bug 1
------
-
-Behavior with vanilla 2.6.25-rcN kernel:
-
-$ ls -l u
--r-------- 1 mtk users 0 Apr  7 21:39 u
-$ ./t_utimensat u 1 n 1 n
-dirfd is -100
-pathname is u
-tsp is 0xbfb41408; struct  = { 1, 1073741823 } { 1, 1073741823 }
-flags is 0
-utimensat: Invalid argument
-
-Behavior with my patch applied:
-
-$ ls -l u
--r-------- 1 mtk users 0 Apr  7 21:39 u
-$ ./t_utimensat u 1 n 1 n
-dirfd is -100
-pathname is u
-tsp is 0xbfab7378; struct  = { 1, 1073741823 } { 1, 1073741823 }
-flags is 0
-utimensat() succeeded
-Last file access:         Mon Apr  7 21:39:36 2008
-Last file modification:   Mon Apr  7 21:39:36 2008
-Last status change:       Mon Apr  7 21:39:36 2008
-
-Bug 2
------
-
-Behavior with vanilla 2.6.25-rcN kernel:
-
-$ ls -l p
--rw-r--r-- 1 root root 0 Apr  7 10:34 p
-$ ./t_utimensat p 0 n 0 o
-dirfd is -100
-pathname is p
-tsp is 0xbfb7ac38; struct  = { 0, 1073741823 } { 0, 1073741822 }
-flags is 0
-utimensat() succeeded
-Last file access:         Mon Apr  7 22:00:51 2008
-Last file modification:   Mon Apr  7 10:34:00 2008
-Last status change:       Mon Apr  7 22:00:51 2008
-
-Behavior with my patch applied:
-
-$ ls -l p
--rw-r--r-- 1 root root 0 Apr  7 10:34 p
-$ ./t_utimensat p 0 n 0 o
-dirfd is -100
-pathname is p
-tsp is 0xbfc40d08; struct  = { 1, 1073741823 } { 1, 1073741822 }
-flags is 0
-utimensat failed with EPERM
-
-Bug 3
------
-
-Behavior with vanilla 2.6.25-rcN kernel:
-
-$ ls -l p
--rw-r--r-- 1 root root 0 Apr  7 22:03 p
-$ ./t_utimensat p 0 n 0 n
-dirfd is -100
-pathname is p
-tsp is 0xbfd99658; struct  = { 0, 1073741823 } { 0, 1073741823 }
-flags is 0
-utimensat() succeeded
-Last file access:         Mon Apr  7 22:03:31 2008
-Last file modification:   Mon Apr  7 22:03:31 2008
-Last status change:       Mon Apr  7 22:03:31 2008
-$ ./t_utimensat p
-dirfd is -100
-pathname is p
-tsp is (nil)
-flags is 0
-utimensat failed with EACCES
-
-Behavior with my patch applied:
-
-$ ls -l p
--rw-r--r-- 1 root root 0 Apr  7 10:34 p
-$ ./t_utimensat p 0 n 0 n
-dirfd is -100
-pathname is p
-tsp is 0xbfa98358; struct  = { 0, 1073741823 } { 0, 1073741823 }
-flags is 0
-utimensat failed with EACCES
-$ ./t_utimensat p
-dirfd is -100
-pathname is p
-tsp is (nil)
-flags is 0
-utimensat failed with EACCES
-
-Bug 4
------
-
-Behavior with vanilla 2.6.25-rcN kernel:
-
-$ ls -l fa fi
--rw-r--r-- 1 mtk users 0 Apr  7 21:43 fa
--rw-r--r-- 1 mtk users 0 Apr  7 09:11 fi
-$ lsattr -l fa fi
-fa                           Append_Only
-fi                           Immutable
-$ ./t_utimensat fa 0 n 0 n
-dirfd is -100
-pathname is fa
-tsp is 0xbfc43508; struct  = { 0, 1073741823 } { 0, 1073741823 }
-flags is 0
-utimensat failed with EPERM
-$ ./t_utimensat fi 0 n 0 n
-dirfd is -100
-pathname is fi
-tsp is 0xbfb54c18; struct  = { 0, 1073741823 } { 0, 1073741823 }
-flags is 0
-utimensat failed with EPERM
-
-Behavior with my patch applied:
-
-$ ls -l fa fi
--rw-r--r-- 1 mtk users 0 Apr  7 18:24 fa
--rw-r--r-- 1 mtk users 0 Apr  7 09:11 fi
-$ lsattr -l fa fi
-fa                           Append_Only
-fi                           Immutable
-$ ./t_utimensat fa 0 n 0 n
-dirfd is -100
-pathname is fa
-tsp is 0xbfa7e338; struct  = { 0, 1073741823 } { 0, 1073741823 }
-flags is 0
-utimensat() succeeded
-Last file access:         Mon Apr  7 21:43:23 2008
-Last file modification:   Mon Apr  7 21:43:23 2008
-Last status change:       Mon Apr  7 21:43:23 2008
-$ ./t_utimensat fi 0 n 0 n
-dirfd is -100
-pathname is fi
-tsp is 0xbfe8d748; struct  = { 0, 1073741823 } { 0, 1073741823 }
-flags is 0
-utimensat failed with EACCES
-
-==================================================
-
-/* t_utimensat.c
-
-   Copyright (C) 2008, Michael Kerrisk <mtk.manpages@gmail.com>
-
-   Licensed under the GPLv2 or later.
-
-   A command-line interface for testing the utimensat() system
-   call.
-
-   17 Mar 2008  Initial creation
-*/
-#define _GNU_SOURCE
-#define _ATFILE_SOURCE
-#include <stdio.h>
-#include <time.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/syscall.h>
-#include <fcntl.h>
-#include <string.h>
-#include <sys/stat.h>
-
-#define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \
-                        } while (0)
-
-
-#define __NR_utimensat          320     /* x86 syscall number */
-
-# define UTIME_NOW      ((1l << 30) - 1l)
-# define UTIME_OMIT     ((1l << 30) - 2l)
-
-static inline int
-utimensat(int dirfd, const char *pathname,
-          const struct timespec times[2], int flags)
-{
-    return syscall(__NR_utimensat, dirfd, pathname, times, flags);
-}
-
-static void
-usageError(char *progName)
-{
-    fprintf(stderr, "Usage: %s pathname [atime-sec "
-            "atime-nsec mtime-sec mtime-nsec]\n\n", progName);
-    fprintf(stderr, "Permitted options are:\n");
-    fprintf(stderr, "    [-d path] "
-            "open a directory file descriptor"
-            " (instead of using AT_FDCWD)\n");
-    fprintf(stderr, "    -w        Open directory file "
-            "descriptor with O_RDWR (instead of O_RDONLY)\n");
-    fprintf(stderr, "    -n        Use AT_SYMLINK_NOFOLLOW\n");
-    fprintf(stderr, "\n");
-
-    fprintf(stderr, "pathname can be \"NULL\" to use NULL "
-            "argument in call\n");
-    fprintf(stderr, "\n");
-
-    fprintf(stderr, "Either nsec field can be\n");
-    fprintf(stderr, "    'n' for UTIME_NOW\n");
-    fprintf(stderr, "    'o' for UTIME_OMIT\n");
-    fprintf(stderr, "\n");
-
-    fprintf(stderr, "If the time fields are omitted, "
-            "then a NULL 'times' argument is used\n");
-    fprintf(stderr, "\n");
-
-    exit(EXIT_FAILURE);
-}
-
-int
-main(int argc, char *argv[])
-{
-    int flags, dirfd, opt, oflag;
-    struct timespec ts[2];
-    struct timespec *tsp;
-    char *pathname, *dirfdPath;
-    struct stat sb;
-
-    flags = 0;
-    dirfd = AT_FDCWD;
-    dirfdPath = NULL;
-    oflag = O_RDONLY;
-
-    while ((opt = getopt(argc, argv, "d:nw")) != -1) {
-        switch (opt) {
-        case 'd':
-            dirfdPath = optarg;
-            break;
-
-        case 'n':
-            flags |= AT_SYMLINK_NOFOLLOW;
-            printf("Not following symbolic links\n");
-            break;
-
-        case 'w':
-            oflag = O_RDWR;
-            break;
-
-        default:
-            usageError(argv[0]);
-        }
-    }
-
-    if ((optind + 5 != argc) && (optind + 1 != argc))
-        usageError(argv[0]);
-
-    if (dirfdPath != NULL) {
-        dirfd = open(dirfdPath, oflag);
-        if (dirfd == -1) errExit("open");
-
-        printf("Opened dirfd");
-        printf(" O_RDWR");
-        printf(": %s\n", dirfdPath);
-    }
-
-    pathname = (strcmp(argv[optind], "NULL") == 0) ?
-                        NULL : argv[optind];
-
-    if (argc == optind + 1) {
-        tsp = NULL;
-
-    } else {
-        ts[0].tv_sec = atoi(argv[optind + 1]);
-        if (argv[optind + 2][0] == 'n') {
-            ts[0].tv_nsec = UTIME_NOW;
-        } else if (argv[optind + 2][0] == 'o') {
-            ts[0].tv_nsec = UTIME_OMIT;
-        } else {
-            ts[0].tv_nsec = atoi(argv[optind + 2]);
-        }
-
-        ts[1].tv_sec = atoi(argv[optind + 3]);
-        if (argv[optind + 4][0] == 'n') {
-            ts[1].tv_nsec = UTIME_NOW;
-        } else if (argv[optind + 4][0] == 'o') {
-            ts[1].tv_nsec = UTIME_OMIT;
-        } else {
-            ts[1].tv_nsec = atoi(argv[optind + 4]);
-        }
-
-        tsp = ts;
-    }
-
-    /* For testing purposes, it may have been useful to run this
-       program as set-user-ID-root so that a directory file
-       descriptor could be opened as root.  Now we reset to the
-       real UID before making the utimensat() call, so that the
-       permission checking is performed under that UID. */
-
-    if (geteuid() == 0) {
-        uid_t u;
-
-        u = getuid();
-
-        printf("Resettng UIDs to %ld\n", (long) u);
-
-        if (setresuid(u, u, u) == -1)
-            errExit("setresuid");
-    }
-
-    printf("dirfd is %d\n", dirfd);
-    printf("pathname is %s\n", pathname);
-    printf("tsp is %p", tsp);
-    if (tsp != NULL) {
-        printf("; struct  = { %ld, %ld } { %ld, %ld }",
-                (long) tsp[0].tv_sec, (long) tsp[0].tv_nsec,
-                (long) tsp[1].tv_sec, (long) tsp[1].tv_nsec);
-    }
-    printf("\n");
-    printf("flags is %d\n", flags);
-
-    if (utimensat(dirfd, pathname, tsp, flags) == -1) {
-        if (errno == EPERM)
-            printf("utimensat failed with EPERM\n");
-        else if (errno == EACCES)
-            printf("utimensat failed with EACCES\n");
-        else
-            perror("utimensat");
-        exit(EXIT_FAILURE);
-    }
-
-    printf("utimensat() succeeded\n");
-
-    if (stat(pathname, &sb) == -1) errExit("stat");
-    printf("Last file access:         %s", ctime(&sb.st_atime));
-    printf("Last file modification:   %s", ctime(&sb.st_mtime));
-    printf("Last status change:       %s", ctime(&sb.st_ctime));
-
-    exit(EXIT_SUCCESS);
-}
-
-Signed-off-by: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |   34 ++++++++++++++++++----------------
- 1 file changed, 18 insertions(+), 16 deletions(-)
+ fs/utimes.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/utimes.c~utimensat-non-conformances-and-fixes fs/utimes.c
---- a/fs/utimes.c~utimensat-non-conformances-and-fixes
+diff -puN fs/utimes.c~utimensat-non-conformances-and-fixes-checkpatch-fixes fs/utimes.c
+--- a/fs/utimes.c~utimensat-non-conformances-and-fixes-checkpatch-fixes
 +++ a/fs/utimes.c
-@@ -99,27 +99,37 @@ long do_utimes(int dfd, char __user *fil
+@@ -99,13 +99,13 @@ long do_utimes(int dfd, char __user *fil
  
  	/* Don't worry, the checks are done in inode_change_ok() */
  	newattrs.ia_valid = ATTR_CTIME | ATTR_MTIME | ATTR_ATIME;
--	if (times) {
-+	if (times && ! ((times[0].tv_nsec == UTIME_NOW &&
-+			 times[1].tv_nsec == UTIME_NOW) ||
-+			(times[0].tv_nsec == UTIME_OMIT &&
-+			 times[1].tv_nsec == UTIME_OMIT))) {
+-	if (times && ! ((times[0].tv_nsec == UTIME_NOW &&
++	if (times && !((times[0].tv_nsec == UTIME_NOW &&
+ 			 times[1].tv_nsec == UTIME_NOW) ||
+ 			(times[0].tv_nsec == UTIME_OMIT &&
+ 			 times[1].tv_nsec == UTIME_OMIT))) {
  		error = -EPERM;
                  if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
--			goto mnt_drop_write_and_out;
-+                        goto mnt_drop_write_and_out;
+-                        goto mnt_drop_write_and_out;
++			goto mnt_drop_write_and_out;
  
--		if (times[0].tv_nsec == UTIME_OMIT)
--			newattrs.ia_valid &= ~ATTR_ATIME;
--		else if (times[0].tv_nsec != UTIME_NOW) {
-+		if (times[0].tv_nsec == UTIME_OMIT) {
-+			newattrs.ia_atime = inode->i_atime;
-+			newattrs.ia_valid |= ATTR_ATIME_SET;
-+		} else if (times[0].tv_nsec != UTIME_NOW) {
- 			newattrs.ia_atime.tv_sec = times[0].tv_sec;
- 			newattrs.ia_atime.tv_nsec = times[0].tv_nsec;
- 			newattrs.ia_valid |= ATTR_ATIME_SET;
- 		}
- 
--		if (times[1].tv_nsec == UTIME_OMIT)
--			newattrs.ia_valid &= ~ATTR_MTIME;
--		else if (times[1].tv_nsec != UTIME_NOW) {
-+		if (times[1].tv_nsec == UTIME_OMIT) {
-+			newattrs.ia_mtime = inode->i_mtime;
-+			newattrs.ia_valid |= ATTR_MTIME_SET;
-+		} else if (times[1].tv_nsec != UTIME_NOW) {
- 			newattrs.ia_mtime.tv_sec = times[1].tv_sec;
- 			newattrs.ia_mtime.tv_nsec = times[1].tv_nsec;
- 			newattrs.ia_valid |= ATTR_MTIME_SET;
- 		}
-+
-+	} else if (unlikely(times && times[0].tv_nsec == UTIME_OMIT &&
-+			times[1].tv_nsec == UTIME_OMIT)) {
-+		newattrs.ia_valid &= ~(ATTR_ATIME | ATTR_MTIME | ATTR_CTIME);
- 	} else {
-+		/* times is NULL, or both tv_nsec fields are UTIME_NOW */
- 		error = -EACCES;
-                 if (IS_IMMUTABLE(inode))
- 			goto mnt_drop_write_and_out;
-@@ -156,14 +166,6 @@ asmlinkage long sys_utimensat(int dfd, c
- 	if (utimes) {
- 		if (copy_from_user(&tstimes, utimes, sizeof(tstimes)))
- 			return -EFAULT;
--		if ((tstimes[0].tv_nsec == UTIME_OMIT ||
--		     tstimes[0].tv_nsec == UTIME_NOW) &&
--		    tstimes[0].tv_sec != 0)
--			return -EINVAL;
--		if ((tstimes[1].tv_nsec == UTIME_OMIT ||
--		     tstimes[1].tv_nsec == UTIME_NOW) &&
--		    tstimes[1].tv_sec != 0)
--			return -EINVAL;
- 
- 		/* Nothing to do, we must not even check the path.  */
- 		if (tstimes[0].tv_nsec == UTIME_OMIT &&
+ 		if (times[0].tv_nsec == UTIME_OMIT) {
+ 			newattrs.ia_atime = inode->i_atime;
 _
 
-Patches currently in -mm which might be from mtk.manpages@googlemail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-utimensat-non-conformances-and-fixes.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+isicom-bring-into-coding-style.patch
+tty-the-big-operations-rework.patch
+devpts-factor-out-pty-index-allocation.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+fuse-fix-race-in-llseek.patch
+basic-braille-screen-reader-support.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+revert-memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
+disable-the-memory-controller-by-default-v3.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86-fixup.patch
+rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
+git-arm-fixup.patch
+cifs-suppress-warning.patch
+devres-support-addresses-greater-than-an-unsigned-long-via-dev_ioremap-checkpatch-fixes.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed.patch
+drivers-media-video-tuner-corec-tuner_probe-fix-error-check.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-hwmon.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-kvm.patch
+pata_atiixp-simplex-clear.patch
+git-m32r.patch
+git-mips.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+sched-add-debug-checks-to-idle-functions.patch
+drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+add-rcu_assign_index-if-ever-needed.patch
+git-scsi-misc.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+aic79xx_core-remove-ascii-art.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+ext4-is-busted-on-m68k.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
-posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
+add-warn_on_secs-macro.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+x86-ioremap-add-checks-for-virtual-addresses-fix.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
