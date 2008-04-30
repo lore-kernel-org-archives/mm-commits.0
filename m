@@ -1,89 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - ecryptfs-add-missing-lock-around-notify_change.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:41:50 -0700
-Message-ID: <200804300541.m3U5foSp029087@imap1.linux-foundation.org>
+Subject: - cgroup-api-files-drop-mem_cgroup_force_empty.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:42:25 -0700
+Message-ID: <200804300542.m3U5gPBU029144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56847 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50407 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760496AbYD3GMQ (ORCPT
+	by vger.kernel.org with ESMTP id S1760842AbYD3GM6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:12:16 -0400
+	Wed, 30 Apr 2008 02:12:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
+To: menage@google.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, pj@sgi.com, xemul@openvz.org, yamamoto@valinux.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ecryptfs: add missing lock around notify_change
+     CGroup API files: drop mem_cgroup_force_empty()
 has been removed from the -mm tree.  Its filename was
-     ecryptfs-add-missing-lock-around-notify_change.patch
+     cgroup-api-files-drop-mem_cgroup_force_empty.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ecryptfs: add missing lock around notify_change
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: CGroup API files: drop mem_cgroup_force_empty()
+From: Paul Menage <menage@google.com>
 
-Callers of notify_change() need to hold i_mutex.
+This function isn't needed - a NULL pointer in the cftype read function will
+result in the same EINVAL response to userspace.
 
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: "Li Zefan" <lizf@cn.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "YAMAMOTO Takashi" <yamamoto@valinux.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ecryptfs/inode.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memcontrol.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff -puN fs/ecryptfs/inode.c~ecryptfs-add-missing-lock-around-notify_change fs/ecryptfs/inode.c
---- a/fs/ecryptfs/inode.c~ecryptfs-add-missing-lock-around-notify_change
-+++ a/fs/ecryptfs/inode.c
-@@ -908,7 +908,9 @@ static int ecryptfs_setattr(struct dentr
- 	if (ia->ia_valid & (ATTR_KILL_SUID | ATTR_KILL_SGID))
- 		ia->ia_valid &= ~ATTR_MODE;
+diff -puN mm/memcontrol.c~cgroup-api-files-drop-mem_cgroup_force_empty mm/memcontrol.c
+--- a/mm/memcontrol.c~cgroup-api-files-drop-mem_cgroup_force_empty
++++ a/mm/memcontrol.c
+@@ -880,17 +880,6 @@ static ssize_t mem_force_empty_write(str
+ 	return ret;
+ }
  
-+	mutex_lock(&lower_dentry->d_inode->i_mutex);
- 	rc = notify_change(lower_dentry, ia);
-+	mutex_unlock(&lower_dentry->d_inode->i_mutex);
- out:
- 	fsstack_copy_attr_all(inode, lower_inode, NULL);
- 	return rc;
-_
-
-Patches currently in -mm which might be from mszeredi@suse.cz are
-
-origin.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
-mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs-fix.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse-fix.patch
-mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit-fix.patch
-mm-bdi-move-statistics-to-debugfs.patch
-mm-bdi-add-separate-writeback-accounting-capability.patch
-mm-bdi-export-bdi_writeout_inc.patch
-mm-bdi-export-bdi_writeout_inc-fix.patch
-mm-add-nr_writeback_temp-counter.patch
-mm-add-nr_writeback_temp-counter-fix.patch
-mm-document-missing-fields-for-proc-meminfo.patch
-fuse-support-writable-mmap.patch
-fuse-support-writable-mmap-fix.patch
-fuse-clean-up-setting-i_size-in-write.patch
-fuse-implement-perform_write.patch
-fuse-update-file-size-on-short-read.patch
-fuse-update-file-size-on-short-read-fix.patch
-fuse-fix-max-i-o-size-calculation.patch
-fuse-fix-node-id-type.patch
-fuse-fix-race-in-llseek.patch
-fuse-fix-race-in-llseek-fix.patch
-fuse-fix-sparse-warnings.patch
-
+-/*
+- * Note: This should be removed if cgroup supports write-only file.
+- */
+-static ssize_t mem_force_empty_read(struct cgroup *cont,
+-				struct cftype *cft,
+-				struct file *file, char __user *userbuf,
+-				size_t nbytes, loff_t *ppos)
+-{
+-	return -EINVAL;
+-}
