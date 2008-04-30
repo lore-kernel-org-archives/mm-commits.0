@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: - mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 23:18:57 -0700
-Message-ID: <200804300618.m3U6Ivut031413@imap1.linux-foundation.org>
+Subject: - mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 23:18:59 -0700
+Message-ID: <200804300618.m3U6IxYa031416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39284 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51965 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756212AbYD3GTB (ORCPT
+	by vger.kernel.org with ESMTP id S1757717AbYD3GTD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:19:01 -0400
+	Wed, 30 Apr 2008 02:19:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mszeredi@suse.cz, mm-commits@vger.kernel.org
@@ -17,7 +17,7 @@ To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 The patch titled
      mm: bdi: use MAJOR:MINOR in /sys/class/bdi
 has been removed from the -mm tree.  Its filename was
-     mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
+     mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
 
 This patch was dropped because it was folded into mm-bdi-export-bdi-attributes-in-sysfs.patch
 
@@ -38,50 +38,41 @@ Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/genhd.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ Documentation/ABI/testing/sysfs-class-bdi |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN block/genhd.c~mm-bdi-export-bdi-attributes-in-sysfs-fix-2 block/genhd.c
---- a/block/genhd.c~mm-bdi-export-bdi-attributes-in-sysfs-fix-2
-+++ a/block/genhd.c
-@@ -182,13 +182,17 @@ static int exact_lock(dev_t devt, void *
-  */
- void add_disk(struct gendisk *disk)
- {
-+	struct backing_dev_info *bdi;
-+
- 	disk->flags |= GENHD_FL_UP;
- 	blk_register_region(MKDEV(disk->major, disk->first_minor),
- 			    disk->minors, NULL, exact_match, exact_lock, disk);
- 	register_disk(disk);
- 	blk_register_queue(disk);
--	bdi_register(&disk->queue->backing_dev_info, NULL,
--		"blk-%s", disk->disk_name);
-+
-+	bdi = &disk->queue->backing_dev_info;
-+	bdi_register_dev(bdi, MKDEV(disk->major, disk->first_minor));
-+	sysfs_create_link(&disk->dev.kobj, &bdi->dev->kobj, "bdi");
- }
+diff -puN Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-export-bdi-attributes-in-sysfs-fix-3 Documentation/ABI/testing/sysfs-class-bdi
+--- a/Documentation/ABI/testing/sysfs-class-bdi~mm-bdi-export-bdi-attributes-in-sysfs-fix-3
++++ a/Documentation/ABI/testing/sysfs-class-bdi
+@@ -6,17 +6,13 @@ Description:
+ Provide a place in sysfs for the backing_dev_info object.
+ This allows us to see and set the various BDI specific variables.
  
- EXPORT_SYMBOL(add_disk);
-@@ -196,8 +200,9 @@ EXPORT_SYMBOL(del_gendisk);	/* in partit
+-The <bdi> identifyer can take the following forms:
++The <bdi> identifier can be either of the following:
  
- void unlink_gendisk(struct gendisk *disk)
- {
--	blk_unregister_queue(disk);
-+	sysfs_remove_link(&disk->dev.kobj, "bdi");
- 	bdi_unregister(&disk->queue->backing_dev_info);
-+	blk_unregister_queue(disk);
- 	blk_unregister_region(MKDEV(disk->major, disk->first_minor),
- 			      disk->minors);
- }
+-blk-NAME
++MAJOR:MINOR
+ 
+-	Block devices, NAME is 'sda', 'loop0', etc...
+-
+-FSTYPE-MAJOR:MINOR
+-
+-	Non-block device backed filesystems which provide their own
+-	BDI, such as NFS and FUSE.  MAJOR:MINOR is the value of st_dev
+-	for files on this filesystem.
++	Device number for block devices, or value of st_dev on
++	non-block filesystems which provide their own BDI, such as NFS
++	and FUSE.
+ 
+ default
+ 
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
 mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-export-bdi-attributes-in-sysfs-fix-2.patch
 mm-bdi-export-bdi-attributes-in-sysfs-fix-3.patch
 mm-bdi-export-bdi-attributes-in-sysfs-fix-4.patch
 mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
