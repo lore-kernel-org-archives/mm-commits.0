@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + accounting-account-for-user-time-when-updating-memory-integrals.patch added to -mm tree
-Date: Wed, 30 Apr 2008 12:04:38 -0700
-Message-ID: <200804301904.m3UJ4cXL030008@imap1.linux-foundation.org>
+Subject: + mm-fix-free_all_bootmem_core-alignment-check.patch added to -mm tree
+Date: Wed, 30 Apr 2008 12:30:05 -0700
+Message-ID: <200804301930.m3UJU6LM031161@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46391 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59232 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760115AbYD3TFe (ORCPT
+	by vger.kernel.org with ESMTP id S932135AbYD3Tak (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 15:05:34 -0400
+	Wed, 30 Apr 2008 15:30:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jlim@sgi.com, mingo@elte.hu
+Cc: hannes@saeurebad.de, apw@shadowen.org, clameter@sgi.com, mel@csn.ul.ie, mingo@elte.hu, yhlu.kernel@gmail.com
 
 
 The patch titled
-     accounting: account for user time when updating memory integrals
+     mm: fix free_all_bootmem_core alignment check
 has been added to the -mm tree.  Its filename is
-     accounting-account-for-user-time-when-updating-memory-integrals.patch
+     mm-fix-free_all_bootmem_core-alignment-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,100 +34,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: accounting: account for user time when updating memory integrals
-From: Jonathan Lim <jlim@sgi.com>
+Subject: mm: fix free_all_bootmem_core alignment check
+From: Johannes Weiner <hannes@saeurebad.de>
 
-Adapt acct_update_integrals() to include user time when calculating the time
-difference.  The units of acct_rss_mem1 and acct_vm_mem1 are also changed from
-pages-jiffies to pages-usecs to avoid calling jiffies_to_usecs() in
-xacct_add_tsk() which might overflow.
+The check for node_boot_start is bogus because we start freeing at the
+corresponding pfn.  So check if the pfn is properly aligned instead in a more
+readable way and adjust the documentation.
 
-Signed-off-by: Jonathan Lim <jlim@sgi.com>
+Also remove an unneeded accounting variable.
+
+Signed-off-by: Johannes Weiner <hannes@saeurebad.de>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 +-
- kernel/sched.c        |    2 ++
- kernel/tsacct.c       |   21 ++++++++++++++-------
- 3 files changed, 17 insertions(+), 8 deletions(-)
+ mm/bootmem.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/sched.h~accounting-account-for-user-time-when-updating-memory-integrals include/linux/sched.h
---- a/include/linux/sched.h~accounting-account-for-user-time-when-updating-memory-integrals
-+++ a/include/linux/sched.h
-@@ -1259,7 +1259,7 @@ struct task_struct {
- #if defined(CONFIG_TASK_XACCT)
- 	u64 acct_rss_mem1;	/* accumulated rss usage */
- 	u64 acct_vm_mem1;	/* accumulated virtual memory usage */
--	cputime_t acct_stimexpd;/* stime since last update */
-+	cputime_t acct_timexpd;	/* stime + utime since last update */
- #endif
- #ifdef CONFIG_NUMA
-   	struct mempolicy *mempolicy;
-diff -puN kernel/sched.c~accounting-account-for-user-time-when-updating-memory-integrals kernel/sched.c
---- a/kernel/sched.c~accounting-account-for-user-time-when-updating-memory-integrals
-+++ a/kernel/sched.c
-@@ -4305,6 +4305,8 @@ void account_user_time(struct task_struc
- 		cpustat->nice = cputime64_add(cpustat->nice, tmp);
- 	else
- 		cpustat->user = cputime64_add(cpustat->user, tmp);
-+	/* Account for user time used */
-+	acct_update_integrals(p);
- }
- 
- /*
-diff -puN kernel/tsacct.c~accounting-account-for-user-time-when-updating-memory-integrals kernel/tsacct.c
---- a/kernel/tsacct.c~accounting-account-for-user-time-when-updating-memory-integrals
-+++ a/kernel/tsacct.c
-@@ -84,9 +84,9 @@ void xacct_add_tsk(struct taskstats *sta
- {
- 	struct mm_struct *mm;
- 
--	/* convert pages-jiffies to Mbyte-usec */
--	stats->coremem = jiffies_to_usecs(p->acct_rss_mem1) * PAGE_SIZE / MB;
--	stats->virtmem = jiffies_to_usecs(p->acct_vm_mem1) * PAGE_SIZE / MB;
-+	/* convert pages-usec to Mbyte-usec */
-+	stats->coremem = p->acct_rss_mem1 * PAGE_SIZE / MB;
-+	stats->virtmem = p->acct_vm_mem1 * PAGE_SIZE / MB;
- 	mm = get_task_mm(p);
- 	if (mm) {
- 		/* adjust to KB unit */
-@@ -118,12 +118,19 @@ void xacct_add_tsk(struct taskstats *sta
- void acct_update_integrals(struct task_struct *tsk)
- {
- 	if (likely(tsk->mm)) {
--		long delta = cputime_to_jiffies(
--			cputime_sub(tsk->stime, tsk->acct_stimexpd));
-+		cputime_t time, dtime;
-+		struct timeval value;
-+		u64 delta;
+diff -puN mm/bootmem.c~mm-fix-free_all_bootmem_core-alignment-check mm/bootmem.c
+--- a/mm/bootmem.c~mm-fix-free_all_bootmem_core-alignment-check
++++ a/mm/bootmem.c
+@@ -377,7 +377,7 @@ static unsigned long __init free_all_boo
+ 	struct page *page;
+ 	unsigned long pfn;
+ 	bootmem_data_t *bdata = pgdat->bdata;
+-	unsigned long i, count, total = 0;
++	unsigned long i, count;
+ 	unsigned long idx;
+ 	unsigned long *map; 
+ 	int gofast = 0;
+@@ -389,10 +389,13 @@ static unsigned long __init free_all_boo
+ 	pfn = PFN_DOWN(bdata->node_boot_start);
+ 	idx = bdata->node_low_pfn - pfn;
+ 	map = bdata->node_bootmem_map;
+-	/* Check physaddr is O(LOG2(BITS_PER_LONG)) page aligned */
+-	if (bdata->node_boot_start == 0 ||
+-	    ffs(bdata->node_boot_start) - PAGE_SHIFT > ffs(BITS_PER_LONG))
++	/*
++	 * Check if we are aligned to BITS_PER_LONG pages.  If so, we might
++	 * be able to free page orders of that size at once.
++	 */
++	if (!(pfn & (BITS_PER_LONG-1)))
+ 		gofast = 1;
 +
-+		time = tsk->stime + tsk->utime;
-+		dtime = cputime_sub(time, tsk->acct_timexpd);
-+		jiffies_to_timeval(cputime_to_jiffies(dtime), &value);
-+		delta = value.tv_sec;
-+		delta = delta * USEC_PER_SEC + value.tv_usec;
+ 	for (i = 0; i < idx; ) {
+ 		unsigned long v = ~map[i / BITS_PER_LONG];
  
- 		if (delta == 0)
- 			return;
--		tsk->acct_stimexpd = tsk->stime;
-+		tsk->acct_timexpd = time;
- 		tsk->acct_rss_mem1 += delta * get_mm_rss(tsk->mm);
- 		tsk->acct_vm_mem1 += delta * tsk->mm->total_vm;
+@@ -420,23 +423,19 @@ static unsigned long __init free_all_boo
+ 		}
+ 		pfn += BITS_PER_LONG;
  	}
-@@ -135,7 +142,7 @@ void acct_update_integrals(struct task_s
-  */
- void acct_clear_integrals(struct task_struct *tsk)
- {
--	tsk->acct_stimexpd = 0;
-+	tsk->acct_timexpd = 0;
- 	tsk->acct_rss_mem1 = 0;
- 	tsk->acct_vm_mem1 = 0;
+-	total += count;
+ 
+ 	/*
+ 	 * Now free the allocator bitmap itself, it's not
+ 	 * needed anymore:
+ 	 */
+ 	page = virt_to_page(bdata->node_bootmem_map);
+-	count = 0;
+ 	idx = (get_mapsize(bdata) + PAGE_SIZE-1) >> PAGE_SHIFT;
+-	for (i = 0; i < idx; i++, page++) {
++	for (i = 0; i < idx; i++, page++)
+ 		__free_pages_bootmem(page, 0);
+-		count++;
+-	}
+-	total += count;
++	count += i;
+ 	bdata->node_bootmem_map = NULL;
+ 
+-	return total;
++	return count;
  }
+ 
+ unsigned long __init init_bootmem_node(pg_data_t *pgdat, unsigned long freepfn,
 _
 
-Patches currently in -mm which might be from jlim@sgi.com are
+Patches currently in -mm which might be from hannes@saeurebad.de are
 
-use-find_task_by_vpid-in-taskstats.patch
-accounting-account-for-user-time-when-updating-memory-integrals.patch
+origin.patch
+git-mips.patch
+parisc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+git-xtensa.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
 
