@@ -1,79 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: - vfs-fix-lock-inversion-in-drop_pagecache_sb.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:41:20 -0700
-Message-ID: <200804300541.m3U5fKYd029047@imap1.linux-foundation.org>
+Subject: - mmc-use-get-put_unaligned_-helpers.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:49:19 -0700
+Message-ID: <200804300549.m3U5nJK1029993@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48379 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760158AbYD3GMP (ORCPT
+	by vger.kernel.org with ESMTP id S1760647AbYD3GM0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:12:15 -0400
+	Wed, 30 Apr 2008 02:12:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, dgc@sgi.com, wfg@mail.ustc.edu.cn, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, dbrownell@users.sourceforge.net, drzeus@drzeus.cx, tonyj@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     vfs: fix lock inversion in drop_pagecache_sb()
+     mmc: use get/put_unaligned_* helpers
 has been removed from the -mm tree.  Its filename was
-     vfs-fix-lock-inversion-in-drop_pagecache_sb.patch
+     mmc-use-get-put_unaligned_-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: fix lock inversion in drop_pagecache_sb()
-From: Jan Kara <jack@suse.cz>
+Subject: mmc: use get/put_unaligned_* helpers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Fix longstanding lock inversion in drop_pagecache_sb by dropping inode_lock
-before calling __invalidate_mapping_pages().  We just have to make sure inode
-won't go away from under us by keeping reference to it and putting the
-reference only after we have safely resumed the scan of the inode list.  A bit
-tricky but not too bad...
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Fengguang Wu <wfg@mail.ustc.edu.cn>
-Cc: David Chinner <dgc@sgi.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: David Brownell <dbrownell@users.sourceforge.net>
+Cc: Tony Jones <tonyj@suse.de>
+Cc: Pierre Ossman <drzeus@drzeus.cx>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/drop_caches.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/mmc/host/mmc_spi.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/drop_caches.c~vfs-fix-lock-inversion-in-drop_pagecache_sb fs/drop_caches.c
---- a/fs/drop_caches.c~vfs-fix-lock-inversion-in-drop_pagecache_sb
-+++ a/fs/drop_caches.c
-@@ -14,15 +14,21 @@ int sysctl_drop_caches;
+diff -puN drivers/mmc/host/mmc_spi.c~mmc-use-get-put_unaligned_-helpers drivers/mmc/host/mmc_spi.c
+--- a/drivers/mmc/host/mmc_spi.c~mmc-use-get-put_unaligned_-helpers
++++ a/drivers/mmc/host/mmc_spi.c
+@@ -340,7 +340,7 @@ checkstatus:
  
- static void drop_pagecache_sb(struct super_block *sb)
- {
--	struct inode *inode;
-+	struct inode *inode, *toput_inode = NULL;
+ 	/* SPI R3, R4, or R7 == R1 + 4 bytes */
+ 	case MMC_RSP_SPI_R3:
+-		cmd->resp[1] = be32_to_cpu(get_unaligned((u32 *)cp));
++		cmd->resp[1] = get_unaligned_be32(cp);
+ 		break;
  
- 	spin_lock(&inode_lock);
- 	list_for_each_entry(inode, &sb->s_inodes, i_sb_list) {
- 		if (inode->i_state & (I_FREEING|I_WILL_FREE))
- 			continue;
-+		__iget(inode);
-+		spin_unlock(&inode_lock);
- 		__invalidate_mapping_pages(inode->i_mapping, 0, -1, true);
-+		iput(toput_inode);
-+		toput_inode = inode;
-+		spin_lock(&inode_lock);
- 	}
- 	spin_unlock(&inode_lock);
-+	iput(toput_inode);
- }
- 
- static void drop_pagecache(void)
+ 	/* SPI R1 == just one status byte */
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem.patch
-ext4-fix-mount-messages-when-quota-disabled.patch
-quota-le_add_cpu-conversion.patch
+frv-fix-arch-frv-mm-unalignedo-build-error.patch
+cifs-remove-global_extern-macro.patch
+input-replace-remaining-__function__-occurrences.patch
+git-kvm.patch
+git-mips.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+git-watchdog.patch
+git-xfs.patch
+xtensa-replace-remaining-__function__-occurences.patch
+char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+char-espc-fix-possible-double-unlock.patch
+char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
+cycladesc-fix-sparse-shadowed-variable-warnings.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+add-macros-similar-to-min-max-min_t-max_t-doc.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+drivers-replace-remaining-__function__-occurrences.patch
+mm-remove-remaining-__function__-occurances.patch
+block-remove-remaining-__function__-occurances.patch
+kernel-replace-remaining-__function__-occurances.patch
+lib-replace-remaining-__function__-occurances.patch
+afs-replace-remaining-__function__-occurrences.patch
+fs-replace-remaining-__function__-occurrences.patch
+drivers-char-replace-remaining-__function__-occurrences.patch
+serial-replace-remaining-__function__-occurrences.patch
 
