@@ -1,102 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: - kernel-cpusetc-make-3-functions-static.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:43:20 -0700
-Message-ID: <200804300543.m3U5hKFJ029308@imap1.linux-foundation.org>
+Subject: - char-moxa-centralize-board-readiness-warning-fix.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 23:11:56 -0700
+Message-ID: <200804300611.m3U6Buqw031051@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40495 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60613 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759072AbYD3GMO (ORCPT
+	by vger.kernel.org with ESMTP id S1758279AbYD3GL7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:12:14 -0400
+	Wed, 30 Apr 2008 02:11:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, pj@sgi.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kernel/cpuset.c: make 3 functions static
+     Char: moxa, fix compiler warning
 has been removed from the -mm tree.  Its filename was
-     kernel-cpusetc-make-3-functions-static.patch
+     char-moxa-centralize-board-readiness-warning-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into char-moxa-centralize-board-readiness.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kernel/cpuset.c: make 3 functions static
-From: Adrian Bunk <bunk@kernel.org>
+Subject: Char: moxa, fix compiler warning
+From: Jiri Slaby <jirislaby@gmail.com>
 
-Make the following needlessly global functions static:
+On CONFIG_MOXA_INTELLIO=y, this warning was emitted:
+drivers/char/moxa.c: In function `moxa_init':
+drivers/char/moxa.c:1000: warning: unused variable `i'
 
-- cpuset_test_cpumask()
-- cpuset_change_cpumask()
-- cpuset_do_move_task()
+Move it into the conditional section where is only used.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Paul Jackson <pj@sgi.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/char/moxa.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/cpuset.c~kernel-cpusetc-make-3-functions-static kernel/cpuset.c
---- a/kernel/cpuset.c~kernel-cpusetc-make-3-functions-static
-+++ a/kernel/cpuset.c
-@@ -735,7 +735,8 @@ static inline int started_after(void *p1
-  * Return nonzero if this tasks's cpus_allowed mask should be changed (in other
-  * words, if its mask is not equal to its cpuset's mask).
-  */
--int cpuset_test_cpumask(struct task_struct *tsk, struct cgroup_scanner *scan)
-+static int cpuset_test_cpumask(struct task_struct *tsk,
-+			       struct cgroup_scanner *scan)
- {
- 	return !cpus_equal(tsk->cpus_allowed,
- 			(cgroup_cs(scan->cg))->cpus_allowed);
-@@ -752,7 +753,8 @@ int cpuset_test_cpumask(struct task_stru
-  * We don't need to re-check for the cgroup/cpuset membership, since we're
-  * holding cgroup_lock() at this point.
-  */
--void cpuset_change_cpumask(struct task_struct *tsk, struct cgroup_scanner *scan)
-+static void cpuset_change_cpumask(struct task_struct *tsk,
-+				  struct cgroup_scanner *scan)
- {
- 	set_cpus_allowed_ptr(tsk, &((cgroup_cs(scan->cg))->cpus_allowed));
- }
-@@ -1713,7 +1715,8 @@ int __init cpuset_init(void)
-  * Called by cgroup_scan_tasks() for each task in a cgroup.
-  * Return nonzero to stop the walk through the tasks.
-  */
--void cpuset_do_move_task(struct task_struct *tsk, struct cgroup_scanner *scan)
-+static void cpuset_do_move_task(struct task_struct *tsk,
-+				struct cgroup_scanner *scan)
- {
- 	struct cpuset_hotplug_scanner *chsp;
+diff -puN drivers/char/moxa.c~char-moxa-centralize-board-readiness-warning-fix drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-centralize-board-readiness-warning-fix
++++ a/drivers/char/moxa.c
+@@ -826,7 +826,7 @@ static struct pci_driver moxa_pci_driver
  
+ static int __init moxa_init(void)
+ {
+-	unsigned int i, isabrds = 0;
++	unsigned int isabrds = 0;
+ 	int retval = 0;
+ 
+ 	printk(KERN_INFO "MOXA Intellio family driver version %s\n",
+@@ -862,6 +862,7 @@ static int __init moxa_init(void)
+ #ifdef MODULE
+ 	{
+ 	struct moxa_board_conf *brd = moxa_boards;
++	unsigned int i;
+ 	for (i = 0; i < MAX_BOARDS; i++) {
+ 		if (!baseaddr[i])
+ 			break;
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-mm-filemapc-generic_write_checks-mustnt-be-inline.patch
-fs-block_devc-i_bdev-mustnt-be-inline.patch
-frv-fix-arch-frv-mm-unalignedo-build-error.patch
-reiserfs-some-functions-mustnt-be-inline.patch
-git-acpi.patch
-git-x86.patch
-arch-x86-video-fbdevc-add-module_license.patch
-md-make-dm_dirty_log_initexit-static.patch
-drm-make-drm_minors_cleanup-static.patch
-git-m32r.patch
-net-ipv4-ip_outputc-ip_send_check-mustnt-be-inline.patch
-nfs-make-nfs4_drop_state_owner-static.patch
-git-ocfs2.patch
-show_schedstat-fix-memleak.patch
-git-sh.patch
-if-0-ses_match_host.patch
-git-watchdog.patch
-xen-drivers-xen-balloonc-make-a-function-static.patch
-make-marker_debug-static.patch
+mxser-prepare-for-bkl-pushdown.patch
+tty-bkl-pushdown.patch
+char-moxa-remove-static-isa-support.patch
+char-moxa-cleanup-module-param-passed-isa-init.patch
+char-moxa-pci-io-space-fixup.patch
+char-moxa-fix-tiocg-ssoftcar-param.patch
+char-moxa-add-firmware-loading.patch
+char-moxa-merge-c2xx-and-c320-firmware-loading.patch
+char-moxa-remove-port-port.patch
+char-moxa-remove-unused-port-entries.patch
+char-moxa-centralize-board-readiness.patch
+char-moxa-centralize-board-readiness-warning-fix.patch
+char-moxa-timer-cleanup.patch
+char-moxa-ioctl-cleanup.patch
+char-moxa-merge-2-poll-functions.patch
+char-moxa-cleanup-rx-tx.patch
+char-moxa-serialise-timer.patch
+char-moxa-rework-open-close.patch
+char-moxa-little-cleanup.patch
+char-moxa-remove-useless-tty-functions.patch
+char-moxa-introduce-moxa_is_320-macro.patch
+char-moxa-notify-about-board-readiness.patch
+char-moxa-update-credits.patch
+char-moxa-add-firmware-loading-fix.patch
+char-espc-fix-possible-double-unlock.patch
+char-ip2-macros-cleanup.patch
+cyclades-coding-style-review.patch
+cyclades-use-ioremap_nocache-for-clarity-as-proposed.patch
+char-rio-fix-cirrus-defines.patch
+drivers-char-ds1286c-use-time_before-time_before_eq-etc.patch
+tty-serial-lay-the-foundations-for-the-next-set-of-reworks.patch
+amiserial-switch-put-char-to-return-success-fail.patch
+char-switch-gs-cyclades-and-esp-to-return-int-for-put_char.patch
+mxser-switch-to-put_char-being-int.patch
+pcmcia-serial-to-int-put_char-method.patch
+riscom-rocket-switch-to-int-put_char-method.patch
+serial167-switch-to-int-put_char-method.patch
+specialix-switch-to-int-put_char-method.patch
+synclink-series-switch-to-int-put_char-method.patch
+consoles-switch-to-int-put_char-method.patch
+isicom-bring-into-coding-style.patch
+isicom-bring-into-coding-style-fix.patch
+tty-the-big-operations-rework-isicom-fix.patch
+riscom8-coding-style.patch
+epca-coding-style.patch
+esp-clean-up-to-modern-coding-style.patch
+isicom-fix-buffer-allocation.patch
+char-serial-switch-drivers-to-ioremap_nocache.patch
+mxser-convert-large-macros-to-functions.patch
 reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
