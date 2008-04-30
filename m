@@ -1,127 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:45:27 -0700
-Message-ID: <200804300545.m3U5jR11029503@imap1.linux-foundation.org>
+Subject: - keys-increase-the-payload-size-when-instantiating-a-key.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:45:13 -0700
+Message-ID: <200804300545.m3U5jDVA029485@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49023 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43710 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756446AbYD3FqY (ORCPT
+	by vger.kernel.org with ESMTP id S1756688AbYD3Fq3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:46:24 -0400
+	Wed, 30 Apr 2008 01:46:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arunsr@cse.iitk.ac.in, dhowells@redhat.com, ssatyam@cse.iitk.ac.in, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, chrisw@sous-sol.org, jmorris@namei.org, kwc@citi.umich.edu, paul.moore@hp.com, sds@tycho.nsa.gov, sfrench@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     keys: allow clients to set key perms in key_create_or_update()
+     keys: increase the payload size when instantiating a key
 has been removed from the -mm tree.  Its filename was
-     keys-allow-clients-to-set-key-perms-in-key_create_or_update.patch
+     keys-increase-the-payload-size-when-instantiating-a-key.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: keys: allow clients to set key perms in key_create_or_update()
-From: Arun Raghavan <arunsr@cse.iitk.ac.in>
+Subject: keys: increase the payload size when instantiating a key
+From: David Howells <dhowells@redhat.com>
 
-The key_create_or_update() function provided by the keyring code has a default
-set of permissions that are always applied to the key when created.  This
-might not be desirable to all clients.
+Increase the size of a payload that can be used to instantiate a key in
+add_key() and keyctl_instantiate_key().  This permits huge CIFS SPNEGO blobs
+to be passed around.  The limit is raised to 1MB.  If kmalloc() can't allocate
+a buffer of sufficient size, vmalloc() will be tried instead.
 
-Here's a patch that adds a "perm" parameter to the function to address this,
-which can be set to KEY_PERM_UNDEF to revert to the current behaviour.
-
-Signed-off-by: Arun Raghavan <arunsr@cse.iitk.ac.in>
 Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Satyam Sharma <ssatyam@cse.iitk.ac.in>
+Cc: Paul Moore <paul.moore@hp.com>
+Cc: Chris Wright <chrisw@sous-sol.org>
+Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: James Morris <jmorris@namei.org>
+Cc: Kevin Coffman <kwc@citi.umich.edu>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/key.h    |    3 +++
- security/keys/key.c    |   18 ++++++++++--------
- security/keys/keyctl.c |    3 ++-
- 3 files changed, 15 insertions(+), 9 deletions(-)
+ security/keys/keyctl.c |   38 ++++++++++++++++++++++++++++++--------
+ 1 file changed, 30 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/key.h~keys-allow-clients-to-set-key-perms-in-key_create_or_update include/linux/key.h
---- a/include/linux/key.h~keys-allow-clients-to-set-key-perms-in-key_create_or_update
-+++ a/include/linux/key.h
-@@ -67,6 +67,8 @@ struct key;
- #define KEY_OTH_SETATTR	0x00000020
- #define KEY_OTH_ALL	0x0000003f
+diff -puN security/keys/keyctl.c~keys-increase-the-payload-size-when-instantiating-a-key security/keys/keyctl.c
+--- a/security/keys/keyctl.c~keys-increase-the-payload-size-when-instantiating-a-key
++++ a/security/keys/keyctl.c
+@@ -19,6 +19,7 @@
+ #include <linux/capability.h>
+ #include <linux/string.h>
+ #include <linux/err.h>
++#include <linux/vmalloc.h>
+ #include <asm/uaccess.h>
+ #include "internal.h"
  
-+#define KEY_PERM_UNDEF	0xffffffff
-+
- struct seq_file;
- struct user_struct;
- struct signal_struct;
-@@ -232,6 +234,7 @@ extern key_ref_t key_create_or_update(ke
- 				      const char *description,
- 				      const void *payload,
- 				      size_t plen,
-+				      key_perm_t perm,
- 				      unsigned long flags);
+@@ -62,9 +63,10 @@ asmlinkage long sys_add_key(const char _
+ 	char type[32], *description;
+ 	void *payload;
+ 	long ret;
++	bool vm;
  
- extern int key_update(key_ref_t key,
-diff -puN security/keys/key.c~keys-allow-clients-to-set-key-perms-in-key_create_or_update security/keys/key.c
---- a/security/keys/key.c~keys-allow-clients-to-set-key-perms-in-key_create_or_update
-+++ a/security/keys/key.c
-@@ -757,11 +757,11 @@ key_ref_t key_create_or_update(key_ref_t
- 			       const char *description,
- 			       const void *payload,
- 			       size_t plen,
-+			       key_perm_t perm,
- 			       unsigned long flags)
- {
- 	struct key_type *ktype;
- 	struct key *keyring, *key = NULL;
--	key_perm_t perm;
- 	key_ref_t key_ref;
- 	int ret;
+ 	ret = -EINVAL;
+-	if (plen > 32767)
++	if (plen > 1024 * 1024 - 1)
+ 		goto error;
  
-@@ -806,15 +806,17 @@ key_ref_t key_create_or_update(key_ref_t
- 			goto found_matching_key;
+ 	/* draw all the data into kernel space */
+@@ -81,11 +83,18 @@ asmlinkage long sys_add_key(const char _
+ 	/* pull the payload in if one was supplied */
+ 	payload = NULL;
+ 
++	vm = false;
+ 	if (_payload) {
+ 		ret = -ENOMEM;
+ 		payload = kmalloc(plen, GFP_KERNEL);
+-		if (!payload)
+-			goto error2;
++		if (!payload) {
++			if (plen <= PAGE_SIZE)
++				goto error2;
++			vm = true;
++			payload = vmalloc(plen);
++			if (!payload)
++				goto error2;
++		}
+ 
+ 		ret = -EFAULT;
+ 		if (copy_from_user(payload, _payload, plen) != 0)
+@@ -113,7 +122,10 @@ asmlinkage long sys_add_key(const char _
+ 
+ 	key_ref_put(keyring_ref);
+  error3:
+-	kfree(payload);
++	if (!vm)
++		kfree(payload);
++	else
++		vfree(payload);
+  error2:
+ 	kfree(description);
+  error:
+@@ -821,9 +833,10 @@ long keyctl_instantiate_key(key_serial_t
+ 	key_ref_t keyring_ref;
+ 	void *payload;
+ 	long ret;
++	bool vm = false;
+ 
+ 	ret = -EINVAL;
+-	if (plen > 32767)
++	if (plen > 1024 * 1024 - 1)
+ 		goto error;
+ 
+ 	/* the appropriate instantiation authorisation key must have been
+@@ -843,8 +856,14 @@ long keyctl_instantiate_key(key_serial_t
+ 	if (_payload) {
+ 		ret = -ENOMEM;
+ 		payload = kmalloc(plen, GFP_KERNEL);
+-		if (!payload)
+-			goto error;
++		if (!payload) {
++			if (plen <= PAGE_SIZE)
++				goto error;
++			vm = true;
++			payload = vmalloc(plen);
++			if (!payload)
++				goto error;
++		}
+ 
+ 		ret = -EFAULT;
+ 		if (copy_from_user(payload, _payload, plen) != 0)
+@@ -877,7 +896,10 @@ long keyctl_instantiate_key(key_serial_t
  	}
  
--	/* decide on the permissions we want */
--	perm = KEY_POS_VIEW | KEY_POS_SEARCH | KEY_POS_LINK | KEY_POS_SETATTR;
--	perm |= KEY_USR_VIEW | KEY_USR_SEARCH | KEY_USR_LINK | KEY_USR_SETATTR;
-+	/* if the client doesn't provide, decide on the permissions we want */
-+	if (perm == KEY_PERM_UNDEF) {
-+		perm = KEY_POS_VIEW | KEY_POS_SEARCH | KEY_POS_LINK | KEY_POS_SETATTR;
-+		perm |= KEY_USR_VIEW | KEY_USR_SEARCH | KEY_USR_LINK | KEY_USR_SETATTR;
+ error2:
+-	kfree(payload);
++	if (!vm)
++		kfree(payload);
++	else
++		vfree(payload);
+ error:
+ 	return ret;
  
--	if (ktype->read)
--		perm |= KEY_POS_READ | KEY_USR_READ;
-+		if (ktype->read)
-+			perm |= KEY_POS_READ | KEY_USR_READ;
- 
--	if (ktype == &key_type_keyring || ktype->update)
--		perm |= KEY_USR_WRITE;
-+		if (ktype == &key_type_keyring || ktype->update)
-+			perm |= KEY_USR_WRITE;
-+	}
- 
- 	/* allocate a new key */
- 	key = key_alloc(ktype, description, current->fsuid, current->fsgid,
-diff -puN security/keys/keyctl.c~keys-allow-clients-to-set-key-perms-in-key_create_or_update security/keys/keyctl.c
---- a/security/keys/keyctl.c~keys-allow-clients-to-set-key-perms-in-key_create_or_update
-+++ a/security/keys/keyctl.c
-@@ -112,7 +112,8 @@ asmlinkage long sys_add_key(const char _
- 	/* create or update the requested key and add it to the target
- 	 * keyring */
- 	key_ref = key_create_or_update(keyring_ref, type, description,
--				       payload, plen, KEY_ALLOC_IN_QUOTA);
-+				       payload, plen, KEY_PERM_UNDEF,
-+				       KEY_ALLOC_IN_QUOTA);
- 	if (!IS_ERR(key_ref)) {
- 		ret = key_ref_to_ptr(key_ref)->serial;
- 		key_ref_put(key_ref);
 _
 
-Patches currently in -mm which might be from arunsr@cse.iitk.ac.in are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
+git-unionfs.patch
+alloc_uid-cleanup.patch
+rename-div64_64-to-div64_u64.patch
+mutex-subsystem-synchro-test-module.patch
 
