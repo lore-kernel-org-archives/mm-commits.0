@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + quota-add-a-convenience-macro-for-filesystems.patch added to -mm tree
-Date: Wed, 30 Apr 2008 10:50:11 -0700
-Message-ID: <200804301750.m3UHoBmg026679@imap1.linux-foundation.org>
+Subject: + reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch added to -mm tree
+Date: Wed, 30 Apr 2008 10:50:09 -0700
+Message-ID: <200804301750.m3UHo992026674@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46571 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39841 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763522AbYD3Rur (ORCPT
+	by vger.kernel.org with ESMTP id S1763478AbYD3Ruo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 13:50:47 -0400
+	Wed, 30 Apr 2008 13:50:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz
+Cc: jack@suse.cz, reiserfs-devel@vger.kernel.org
 
 
 The patch titled
-     quota: add a convenience macro for filesystems
+     reiserfs: fix typos in messages and comments (journalled -> journaled)
 has been added to the -mm tree.  Its filename is
-     quota-add-a-convenience-macro-for-filesystems.patch
+     reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: add a convenience macro for filesystems
+Subject: reiserfs: fix typos in messages and comments (journalled -> journaled)
 From: Jan Kara <jack@suse.cz>
 
-Note that it cannot be an inline function because we don't have struct
-super_block prototype...
-
+Cc: <reiserfs-devel@vger.kernel.org>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/quota.h |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/reiserfs/super.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/quota.h~quota-add-a-convenience-macro-for-filesystems include/linux/quota.h
---- a/include/linux/quota.h~quota-add-a-convenience-macro-for-filesystems
-+++ a/include/linux/quota.h
-@@ -347,6 +347,9 @@ struct quota_info {
- 	((type) == USRQUOTA ? (sb_dqopt(sb)->flags & DQUOT_USR_SUSPENDED) : \
- 			      (sb_dqopt(sb)->flags & DQUOT_GRP_SUSPENDED))
+diff -puN fs/reiserfs/super.c~reiserfs-fix-typos-in-messages-and-comments-journalled-journaled fs/reiserfs/super.c
+--- a/fs/reiserfs/super.c~reiserfs-fix-typos-in-messages-and-comments-journalled-journaled
++++ a/fs/reiserfs/super.c
+@@ -182,7 +182,7 @@ static int finish_unfinished(struct supe
+ 			int ret = reiserfs_quota_on_mount(s, i);
+ 			if (ret < 0)
+ 				reiserfs_warning(s,
+-						 "reiserfs: cannot turn on journalled quota: error %d",
++						 "reiserfs: cannot turn on journaled quota: error %d",
+ 						 ret);
+ 		}
+ 	}
+@@ -994,7 +994,7 @@ static int reiserfs_parse_options(struct
  
-+#define sb_any_quota_suspended(sb) (sb_has_quota_suspended(sb, USRQUOTA) | \
-+				  sb_has_quota_suspended(sb, GRPQUOTA))
-+
- int register_quota_format(struct quota_format_type *fmt);
- void unregister_quota_format(struct quota_format_type *fmt);
+ 			if (sb_any_quota_enabled(s)) {
+ 				reiserfs_warning(s,
+-						 "reiserfs_parse_options: cannot change journalled quota options when quota turned on.");
++						 "reiserfs_parse_options: cannot change journaled quota options when quota turned on.");
+ 				return 0;
+ 			}
+ 			if (*arg) {	/* Some filename specified? */
+@@ -1039,7 +1039,7 @@ static int reiserfs_parse_options(struct
+ #else
+ 		if (c == 'u' || c == 'g' || c == 'f') {
+ 			reiserfs_warning(s,
+-					 "reiserfs_parse_options: journalled quota options not supported.");
++					 "reiserfs_parse_options: journaled quota options not supported.");
+ 			return 0;
+ 		}
+ #endif
+@@ -1050,7 +1050,7 @@ static int reiserfs_parse_options(struct
+ 	    && (REISERFS_SB(s)->s_qf_names[USRQUOTA]
+ 		|| REISERFS_SB(s)->s_qf_names[GRPQUOTA])) {
+ 		reiserfs_warning(s,
+-				 "reiserfs_parse_options: journalled quota format not specified.");
++				 "reiserfs_parse_options: journaled quota format not specified.");
+ 		return 0;
+ 	}
+ 	/* This checking is not precise wrt the quota type but for our purposes it is sufficient */
+@@ -1980,7 +1980,7 @@ static int reiserfs_release_dquot(struct
  
+ static int reiserfs_mark_dquot_dirty(struct dquot *dquot)
+ {
+-	/* Are we journalling quotas? */
++	/* Are we journaling quotas? */
+ 	if (REISERFS_SB(dquot->dq_sb)->s_qf_names[USRQUOTA] ||
+ 	    REISERFS_SB(dquot->dq_sb)->s_qf_names[GRPQUOTA]) {
+ 		dquot_mark_dquot_dirty(dquot);
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
