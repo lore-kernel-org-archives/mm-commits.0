@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + xen-drivers-xen-balloonc-make-a-function-static.patch added to -mm tree
-Date: Tue, 29 Apr 2008 17:03:02 -0700
-Message-ID: <200804300003.m3U032GT017048@imap1.linux-foundation.org>
+Subject: + nfs-make-nfs4_drop_state_owner-static.patch added to -mm tree
+Date: Tue, 29 Apr 2008 17:03:37 -0700
+Message-ID: <200804300003.m3U03bJX017080@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59100 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50842 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753845AbYD3AD7 (ORCPT
+	by vger.kernel.org with ESMTP id S1754734AbYD3AE0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 20:03:59 -0400
+	Tue, 29 Apr 2008 20:04:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, chrisw@sous-sol.org
+Cc: bunk@kernel.org
 
 
 The patch titled
-     xen: drivers/xen/balloon.c: make a function static
+     nfs: make nfs4_drop_state_owner() static
 has been added to the -mm tree.  Its filename is
-     xen-drivers-xen-balloonc-make-a-function-static.patch
+     nfs-make-nfs4_drop_state_owner-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xen: drivers/xen/balloon.c: make a function static
+Subject: nfs: make nfs4_drop_state_owner() static
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global balloon_set_new_target() static.
+nfs4_drop_state_owner() can now become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/balloon.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/nfs/nfs4_fs.h   |    1 -
+ fs/nfs/nfs4state.c |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/xen/balloon.c~xen-drivers-xen-balloonc-make-a-function-static drivers/xen/balloon.c
---- a/drivers/xen/balloon.c~xen-drivers-xen-balloonc-make-a-function-static
-+++ a/drivers/xen/balloon.c
-@@ -368,7 +368,7 @@ static void balloon_process(struct work_
+diff -puN fs/nfs/nfs4_fs.h~nfs-make-nfs4_drop_state_owner-static fs/nfs/nfs4_fs.h
+--- a/fs/nfs/nfs4_fs.h~nfs-make-nfs4_drop_state_owner-static
++++ a/fs/nfs/nfs4_fs.h
+@@ -206,7 +206,6 @@ struct rpc_cred *nfs4_get_renew_cred(str
+ 
+ extern struct nfs4_state_owner * nfs4_get_state_owner(struct nfs_server *, struct rpc_cred *);
+ extern void nfs4_put_state_owner(struct nfs4_state_owner *);
+-extern void nfs4_drop_state_owner(struct nfs4_state_owner *);
+ extern struct nfs4_state * nfs4_get_open_state(struct inode *, struct nfs4_state_owner *);
+ extern void nfs4_put_open_state(struct nfs4_state *);
+ extern void nfs4_close_state(struct path *, struct nfs4_state *, mode_t);
+diff -puN fs/nfs/nfs4state.c~nfs-make-nfs4_drop_state_owner-static fs/nfs/nfs4state.c
+--- a/fs/nfs/nfs4state.c~nfs-make-nfs4_drop_state_owner-static
++++ a/fs/nfs/nfs4state.c
+@@ -282,7 +282,7 @@ nfs4_alloc_state_owner(void)
+ 	return sp;
  }
  
- /* Resets the Xen limit, sets new target, and kicks off processing. */
--void balloon_set_new_target(unsigned long target)
-+static void balloon_set_new_target(unsigned long target)
+-void
++static void
+ nfs4_drop_state_owner(struct nfs4_state_owner *sp)
  {
- 	/* No need for lock. Not read-modify-write updates. */
- 	balloon_stats.hard_limit   = ~0UL;
+ 	if (!RB_EMPTY_NODE(&sp->so_client_node)) {
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -108,7 +119,8 @@ git-sh.patch
 if-0-ses_match_host.patch
 usb-storage-onetouchc-make-a-function-static.patch
 git-watchdog.patch
+xen-drivers-xen-balloonc-make-a-function-static.patch
 make-marker_debug-static.patch
 reiser4.patch
-xen-drivers-xen-balloonc-make-a-function-static.patch
+nfs-make-nfs4_drop_state_owner-static.patch
 
