@@ -1,98 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - mmc-use-get-put_unaligned_-helpers.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:49:19 -0700
-Message-ID: <200804300549.m3U5nJK1029993@imap1.linux-foundation.org>
+Subject: - s390-use-non-racy-method-for-proc-entries-creation.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:47:09 -0700
+Message-ID: <200804300547.m3U5l9NG029679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48379 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58985 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760647AbYD3GM0 (ORCPT
+	by vger.kernel.org with ESMTP id S1760519AbYD3GMS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:12:26 -0400
+	Wed, 30 Apr 2008 02:12:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, dbrownell@users.sourceforge.net, drzeus@drzeus.cx, tonyj@suse.de, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: den@openvz.org, adobriyan@gmail.com, ebiederm@xmission.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc: use get/put_unaligned_* helpers
+     s390: use non-racy method for proc entries creation
 has been removed from the -mm tree.  Its filename was
-     mmc-use-get-put_unaligned_-helpers.patch
+     s390-use-non-racy-method-for-proc-entries-creation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: use get/put_unaligned_* helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: s390: use non-racy method for proc entries creation
+From: "Denis V. Lunev" <den@openvz.org>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Tony Jones <tonyj@suse.de>
-Cc: Pierre Ossman <drzeus@drzeus.cx>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Use proc_create() to make sure that ->proc_fops be setup before gluing PDE to
+main tree.
+
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/mmc_spi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/s390/block/dasd_proc.c |   10 +++++-----
+ drivers/s390/char/tape_proc.c  |    7 +++----
+ drivers/s390/cio/blacklist.c   |    7 ++-----
+ 3 files changed, 10 insertions(+), 14 deletions(-)
 
-diff -puN drivers/mmc/host/mmc_spi.c~mmc-use-get-put_unaligned_-helpers drivers/mmc/host/mmc_spi.c
---- a/drivers/mmc/host/mmc_spi.c~mmc-use-get-put_unaligned_-helpers
-+++ a/drivers/mmc/host/mmc_spi.c
-@@ -340,7 +340,7 @@ checkstatus:
+diff -puN drivers/s390/block/dasd_proc.c~s390-use-non-racy-method-for-proc-entries-creation drivers/s390/block/dasd_proc.c
+--- a/drivers/s390/block/dasd_proc.c~s390-use-non-racy-method-for-proc-entries-creation
++++ a/drivers/s390/block/dasd_proc.c
+@@ -157,6 +157,7 @@ static int dasd_devices_open(struct inod
+ }
  
- 	/* SPI R3, R4, or R7 == R1 + 4 bytes */
- 	case MMC_RSP_SPI_R3:
--		cmd->resp[1] = be32_to_cpu(get_unaligned((u32 *)cp));
-+		cmd->resp[1] = get_unaligned_be32(cp);
- 		break;
+ static const struct file_operations dasd_devices_file_ops = {
++	.owner		= THIS_MODULE,
+ 	.open		= dasd_devices_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+@@ -315,13 +316,12 @@ dasd_proc_init(void)
+ 	if (!dasd_proc_root_entry)
+ 		goto out_nodasd;
+ 	dasd_proc_root_entry->owner = THIS_MODULE;
+-	dasd_devices_entry = create_proc_entry("devices",
+-					       S_IFREG | S_IRUGO | S_IWUSR,
+-					       dasd_proc_root_entry);
++	dasd_devices_entry = proc_create("devices",
++					 S_IFREG | S_IRUGO | S_IWUSR,
++					 dasd_proc_root_entry,
++					 &dasd_devices_file_ops);
+ 	if (!dasd_devices_entry)
+ 		goto out_nodevices;
+-	dasd_devices_entry->proc_fops = &dasd_devices_file_ops;
+-	dasd_devices_entry->owner = THIS_MODULE;
+ 	dasd_statistics_entry = create_proc_entry("statistics",
+ 						  S_IFREG | S_IRUGO | S_IWUSR,
+ 						  dasd_proc_root_entry);
+diff -puN drivers/s390/char/tape_proc.c~s390-use-non-racy-method-for-proc-entries-creation drivers/s390/char/tape_proc.c
+--- a/drivers/s390/char/tape_proc.c~s390-use-non-racy-method-for-proc-entries-creation
++++ a/drivers/s390/char/tape_proc.c
+@@ -111,6 +111,7 @@ static int tape_proc_open(struct inode *
  
- 	/* SPI R1 == just one status byte */
-_
-
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
-
-origin.patch
-frv-fix-arch-frv-mm-unalignedo-build-error.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-git-kvm.patch
-git-mips.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-git-watchdog.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-char-fix-sparse-shadowed-variable-warnings-in-espc.patch
-char-espc-fix-possible-double-unlock.patch
-char-rocketc-fix-sparse-variable-shadowing-and-int-as-null-pointer.patch
-cycladesc-fix-sparse-shadowed-variable-warnings.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-drivers-replace-remaining-__function__-occurrences.patch
-mm-remove-remaining-__function__-occurances.patch
-block-remove-remaining-__function__-occurances.patch
-kernel-replace-remaining-__function__-occurances.patch
-lib-replace-remaining-__function__-occurances.patch
-afs-replace-remaining-__function__-occurrences.patch
-fs-replace-remaining-__function__-occurrences.patch
-drivers-char-replace-remaining-__function__-occurrences.patch
-serial-replace-remaining-__function__-occurrences.patch
-
+ static const struct file_operations tape_proc_ops =
+ {
++	.owner		= THIS_MODULE,
+ 	.open		= tape_proc_open,
+ 	.read		= seq_read,
+ 	.llseek		= seq_lseek,
+@@ -124,14 +125,12 @@ void
+ tape_proc_init(void)
+ {
+ 	tape_proc_devices =
+-		create_proc_entry ("tapedevices", S_IFREG | S_IRUGO | S_IWUSR,
+-				   NULL);
++		proc_create("tapedevices", S_IFREG | S_IRUGO | S_IWUSR, NULL,
++			    &tape_proc_ops);
+ 	if (tape_proc_devices == NULL) {
+ 		PRINT_WARN("tape: Cannot register procfs entry tapedevices\n");
+ 		return;
+ 	}
+-	tape_proc_devices->proc_fops = &tape_proc_ops;
+-	tape_proc_devices->owner = THIS_MODULE;
+ }
+ 
+ /*
+diff -puN drivers/s390/cio/blacklist.c~s390-use-non-racy-method-for-proc-entries-creation drivers/s390/cio/blacklist.c
+--- a/drivers/s390/cio/blacklist.c~s390-use-non-racy-method-for-proc-entries-creation
++++ a/drivers/s390/cio/blacklist.c
+@@ -374,13 +374,10 @@ cio_ignore_proc_init (void)
+ {
+ 	struct proc_dir_entry *entry;
+ 
+-	entry = create_proc_entry ("cio_ignore", S_IFREG | S_IRUGO | S_IWUSR,
+-				   NULL);
++	entry = proc_create("cio_ignore", S_IFREG | S_IRUGO | S_IWUSR, NULL,
++			    &cio_ignore_proc_fops);
+ 	if (!entry)
+ 		return -ENOENT;
+-
+-	entry->proc_fops = &cio_ignore_proc_fops;
