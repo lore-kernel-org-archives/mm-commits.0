@@ -1,143 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-block-use-get_unaligned_-helpers.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:49:11 -0700
-Message-ID: <200804300549.m3U5nBFR029975@imap1.linux-foundation.org>
+Subject: - hid-core-use-get_unaligned_-helpers.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:49:13 -0700
+Message-ID: <200804300549.m3U5nD68029978@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43331 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56526 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758811AbYD3Ftz (ORCPT
+	by vger.kernel.org with ESMTP id S1758811AbYD3Ftq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:49:55 -0400
+	Wed, 30 Apr 2008 01:49:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, ecashin@coraid.com, jens.axboe@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, jkosina@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/block: use get_unaligned_* helpers
+     hid-core: use get_unaligned_* helpers
 has been removed from the -mm tree.  Its filename was
-     drivers-block-use-get_unaligned_-helpers.patch
+     hid-core-use-get_unaligned_-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/block: use get_unaligned_* helpers
+Subject: hid-core: use get_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Ed L. Cashin <ecashin@coraid.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Acked-by: Jiri Kosina <jkosina@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |   24 ++++++++++++------------
- drivers/block/aoe/aoenet.c |    4 ++--
- 2 files changed, 14 insertions(+), 14 deletions(-)
+ drivers/hid/hid-core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~drivers-block-use-get_unaligned_-helpers drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~drivers-block-use-get_unaligned_-helpers
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -668,16 +668,16 @@ ataid_complete(struct aoedev *d, struct 
- 	u16 n;
+diff -puN drivers/hid/hid-core.c~hid-core-use-get_unaligned_-helpers drivers/hid/hid-core.c
+--- a/drivers/hid/hid-core.c~hid-core-use-get_unaligned_-helpers
++++ a/drivers/hid/hid-core.c
+@@ -606,7 +606,7 @@ static u8 *fetch_item(__u8 *start, __u8 
+ 		case 2:
+ 			if ((end - start) < 2)
+ 				return NULL;
+-			item->data.u16 = le16_to_cpu(get_unaligned((__le16*)start));
++			item->data.u16 = get_unaligned_le16(start);
+ 			start = (__u8 *)((__le16 *)start + 1);
+ 			return start;
  
- 	/* word 83: command set supported */
--	n = le16_to_cpu(get_unaligned((__le16 *) &id[83<<1]));
-+	n = get_unaligned_le16(&id[83 << 1]);
- 
- 	/* word 86: command set/feature enabled */
--	n |= le16_to_cpu(get_unaligned((__le16 *) &id[86<<1]));
-+	n |= get_unaligned_le16(&id[86 << 1]);
- 
- 	if (n & (1<<10)) {	/* bit 10: LBA 48 */
- 		d->flags |= DEVFL_EXT;
- 
- 		/* word 100: number lba48 sectors */
--		ssize = le64_to_cpu(get_unaligned((__le64 *) &id[100<<1]));
-+		ssize = get_unaligned_le64(&id[100 << 1]);
- 
- 		/* set as in ide-disk.c:init_idedisk_capacity */
- 		d->geo.cylinders = ssize;
-@@ -688,12 +688,12 @@ ataid_complete(struct aoedev *d, struct 
- 		d->flags &= ~DEVFL_EXT;
- 
- 		/* number lba28 sectors */
--		ssize = le32_to_cpu(get_unaligned((__le32 *) &id[60<<1]));
-+		ssize = get_unaligned_le32(&id[60 << 1]);
- 
- 		/* NOTE: obsolete in ATA 6 */
--		d->geo.cylinders = le16_to_cpu(get_unaligned((__le16 *) &id[54<<1]));
--		d->geo.heads = le16_to_cpu(get_unaligned((__le16 *) &id[55<<1]));
--		d->geo.sectors = le16_to_cpu(get_unaligned((__le16 *) &id[56<<1]));
-+		d->geo.cylinders = get_unaligned_le16(&id[54 << 1]);
-+		d->geo.heads = get_unaligned_le16(&id[55 << 1]);
-+		d->geo.sectors = get_unaligned_le16(&id[56 << 1]);
+@@ -614,7 +614,7 @@ static u8 *fetch_item(__u8 *start, __u8 
+ 			item->size++;
+ 			if ((end - start) < 4)
+ 				return NULL;
+-			item->data.u32 = le32_to_cpu(get_unaligned((__le32*)start));
++			item->data.u32 = get_unaligned_le32(start);
+ 			start = (__u8 *)((__le32 *)start + 1);
+ 			return start;
  	}
+@@ -765,7 +765,7 @@ static __inline__ __u32 extract(__u8 *re
  
- 	if (d->ssize != ssize)
-@@ -779,7 +779,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 	u16 aoemajor;
- 
- 	hin = (struct aoe_hdr *) skb_mac_header(skb);
--	aoemajor = be16_to_cpu(get_unaligned(&hin->major));
-+	aoemajor = get_unaligned_be16(&hin->major);
- 	d = aoedev_by_aoeaddr(aoemajor, hin->minor);
- 	if (d == NULL) {
- 		snprintf(ebuf, sizeof ebuf, "aoecmd_ata_rsp: ata response "
-@@ -791,7 +791,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 
- 	spin_lock_irqsave(&d->lock, flags);
- 
--	n = be32_to_cpu(get_unaligned(&hin->tag));
-+	n = get_unaligned_be32(&hin->tag);
- 	t = gettgt(d, hin->src);
- 	if (t == NULL) {
- 		printk(KERN_INFO "aoe: can't find target e%ld.%d:%012llx\n",
-@@ -806,9 +806,9 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 		snprintf(ebuf, sizeof ebuf,
- 			"%15s e%d.%d    tag=%08x@%08lx\n",
- 			"unexpected rsp",
--			be16_to_cpu(get_unaligned(&hin->major)),
-+			get_unaligned_be16(&hin->major),
- 			hin->minor,
--			be32_to_cpu(get_unaligned(&hin->tag)),
-+			get_unaligned_be32(&hin->tag),
- 			jiffies);
- 		aoechr_error(ebuf);
- 		return;
-@@ -873,7 +873,7 @@ aoecmd_ata_rsp(struct sk_buff *skb)
- 			printk(KERN_INFO
- 				"aoe: unrecognized ata command %2.2Xh for %d.%d\n",
- 				ahout->cmdstat,
--				be16_to_cpu(get_unaligned(&hin->major)),
-+				get_unaligned_be16(&hin->major),
- 				hin->minor);
- 		}
- 	}
-diff -puN drivers/block/aoe/aoenet.c~drivers-block-use-get_unaligned_-helpers drivers/block/aoe/aoenet.c
---- a/drivers/block/aoe/aoenet.c~drivers-block-use-get_unaligned_-helpers
-+++ a/drivers/block/aoe/aoenet.c
-@@ -128,7 +128,7 @@ aoenet_rcv(struct sk_buff *skb, struct n
- 	skb_push(skb, ETH_HLEN);	/* (1) */
- 
- 	h = (struct aoe_hdr *) skb_mac_header(skb);
--	n = be32_to_cpu(get_unaligned(&h->tag));
-+	n = get_unaligned_be32(&h->tag);
- 	if ((h->verfl & AOEFL_RSP) == 0 || (n & 1<<31))
- 		goto exit;
- 
-@@ -140,7 +140,7 @@ aoenet_rcv(struct sk_buff *skb, struct n
- 			printk(KERN_ERR
- 				"%s%d.%d@%s; ecode=%d '%s'\n",
- 				"aoe: error packet from ",
--				be16_to_cpu(get_unaligned(&h->major)),
-+				get_unaligned_be16(&h->major),
- 				h->minor, skb->dev->name,
- 				h->err, aoe_errlist[n]);
- 		goto exit;
+ 	report += offset >> 3;  /* adjust byte index */
+ 	offset &= 7;            /* now only need bit offset into one byte */
+-	x = le64_to_cpu(get_unaligned((__le64 *) report));
++	x = get_unaligned_le64(report);
+ 	x = (x >> offset) & ((1ULL << n) - 1);  /* extract bit field */
+ 	return (u32) x;
+ }
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
