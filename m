@@ -1,79 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - frv-fix-arch-frv-mm-unalignedo-build-error.patch removed from -mm tree
-Date: Wed, 30 Apr 2008 05:09:47 -0700
-Message-ID: <200804301209.m3UC9lST012630@imap1.linux-foundation.org>
+Subject: + ipv6-to-intel-etherexpress-16-fails-multicast-problems.patch added to -mm tree
+Date: Wed, 30 Apr 2008 05:15:43 -0700
+Message-ID: <200804301215.m3UCFhF8012937@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55226 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38042 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763570AbYD3MLM (ORCPT
+	by vger.kernel.org with ESMTP id S1751682AbYD3MQV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 08:11:12 -0400
+	Wed, 30 Apr 2008 08:16:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, dhowells@redhat.com, harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: bns_robson@hotmail.com, jeff@garzik.org
 
 
 The patch titled
-     frv: fix arch/frv/mm/unaligned.o build error
-has been removed from the -mm tree.  Its filename was
-     frv-fix-arch-frv-mm-unalignedo-build-error.patch
+     IPv6 to Intel EtherExpress 16 fails - multicast problems
+has been added to the -mm tree.  Its filename is
+     ipv6-to-intel-etherexpress-16-fails-multicast-problems.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: fix arch/frv/mm/unaligned.o build error
-From: Adrian Bunk <bunk@kernel.org>
+Subject: IPv6 to Intel EtherExpress 16 fails - multicast problems
+From: Bruce Robson <bns_robson@hotmail.com>
 
-Fix the following build error caused by
-commit 6510d41954dc6a9c8b1dbca7eaca0f23195ca727
-(kernel: Move arches to use common unaligned access):
+Taken from http://bugzilla.kernel.org/show_bug.cgi?id=10577
 
-make[2]: *** No rule to make target `arch/frv/mm/unaligned.o', needed by `arch/frv/mm/built-in.o'.  Stop.
+I was unable to access a computer containing an Intel EtherExpress 16 network
+card using IPv6.
 
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Reviewed-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
+I traced this to failure of neighbour discovery.  When I used an "ip -6 neigh
+add" command, on the computer attempting access, to insert a binding between
+the IPv6 address of the computer with the Intel EtherExpress 16 network card
+and the card's ethernet address, I was able to access that computer using
+IPv6.
+
+Neighbour discovery requires working multicast.  The driver sources file
+eexpress.c contains an approximately 30 line function eexp_setup_filter used
+when loading multicast addresses.
+
+I found 3 problems in this function
+
+1) It wrote the number of multicast addresses to the card instead of the
+    number of bytes in the multicast addresses.
+
+2) When loading multiple multicast addresses it loaded the first one
+    provided multiple times instead of loading each one once.
+
+3) The setting of pointer 'data' from 'dmi->dmi_addr' occured before the
+    test for the error situation of 'dmi' being NULL.
+
+Correcting these problems allows the computer with the Intel EtherExpress 16
+network card to found by IPv6 neighbour discovery.
+
+p.s. There is some information on the Intel EtherExpress 16 at
+http://www.intel.com/support/etherexpress/vintage/sb/cs-013500.htm
+Datasheet for the Intel 82586 ethernet controller used by the card
+http://www.datasheetcatalog.com/datasheets_pdf/8/2/5/8/82586.shtml
+
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/mm/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/eexpress.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN arch/frv/mm/Makefile~frv-fix-arch-frv-mm-unalignedo-build-error arch/frv/mm/Makefile
---- a/arch/frv/mm/Makefile~frv-fix-arch-frv-mm-unalignedo-build-error
-+++ a/arch/frv/mm/Makefile
-@@ -6,4 +6,4 @@ obj-y := init.o kmap.o
+diff -puN drivers/net/eexpress.c~ipv6-to-intel-etherexpress-16-fails-multicast-problems drivers/net/eexpress.c
+--- a/drivers/net/eexpress.c~ipv6-to-intel-etherexpress-16-fails-multicast-problems
++++ a/drivers/net/eexpress.c
+@@ -202,7 +202,7 @@ static unsigned short start_code[] = {
+ 	0x0000,Cmd_MCast,
+ 	0x0076,                 /* link to next command */
+ #define CONF_NR_MULTICAST 0x44
+-	0x0000,                 /* number of multicast addresses */
++	0x0000,                 /* number of bytes in multicast address(es) */
+ #define CONF_MULTICAST 0x46
+ 	0x0000, 0x0000, 0x0000, /* some addresses */
+ 	0x0000, 0x0000, 0x0000,
+@@ -1569,7 +1569,7 @@ static void eexp_hw_init586(struct net_d
  
- obj-$(CONFIG_MMU) += \
- 	pgalloc.o highmem.o fault.o extable.o cache-page.o tlb-flush.o tlb-miss.o \
--	mmu-context.o dma-alloc.o unaligned.o elf-fdpic.o
-+	mmu-context.o dma-alloc.o elf-fdpic.o
+ static void eexp_setup_filter(struct net_device *dev)
+ {
+-	struct dev_mc_list *dmi = dev->mc_list;
++	struct dev_mc_list *dmi;
+ 	unsigned short ioaddr = dev->base_addr;
+ 	int count = dev->mc_count;
+ 	int i;
+@@ -1580,9 +1580,9 @@ static void eexp_setup_filter(struct net
+ 	}
+ 
+ 	outw(CONF_NR_MULTICAST & ~31, ioaddr+SM_PTR);
+-	outw(count, ioaddr+SHADOW(CONF_NR_MULTICAST));
+-	for (i = 0; i < count; i++) {
+-		unsigned short *data = (unsigned short *)dmi->dmi_addr;
++	outw(6*count, ioaddr+SHADOW(CONF_NR_MULTICAST));
++	for (i = 0, dmi = dev->mc_list; i < count; i++, dmi = dmi->next) {
++		unsigned short *data;
+ 		if (!dmi) {
+ 			printk(KERN_INFO "%s: too few multicast addresses\n", dev->name);
+ 			break;
+@@ -1591,6 +1591,7 @@ static void eexp_setup_filter(struct net
+ 			printk(KERN_INFO "%s: invalid multicast address length given.\n", dev->name);
+ 			continue;
+ 		}
++		data = (unsigned short *)dmi->dmi_addr;
+ 		outw((CONF_MULTICAST+(6*i)) & ~31, ioaddr+SM_PTR);
+ 		outw(data[0], ioaddr+SHADOW(CONF_MULTICAST+(6*i)));
+ 		outw((CONF_MULTICAST+(6*i)+2) & ~31, ioaddr+SM_PTR);
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from bns_robson@hotmail.com are
 
-origin.patch
-make-marker_debug-static.patch
-frv-fix-arch-frv-mm-unalignedo-build-error.patch
-mm-filemapc-generic_write_checks-mustnt-be-inline.patch
-fs-block_devc-i_bdev-mustnt-be-inline.patch
-reiserfs-some-functions-mustnt-be-inline.patch
-git-acpi.patch
-git-x86.patch
-arch-x86-video-fbdevc-add-module_license.patch
-md-make-dm_dirty_log_initexit-static.patch
-drm-make-drm_minors_cleanup-static.patch
-git-m32r.patch
-net-ipv4-ip_outputc-ip_send_check-mustnt-be-inline.patch
-nfs-make-nfs4_drop_state_owner-static.patch
-git-ocfs2.patch
-show_schedstat-fix-memleak.patch
-git-sh.patch
-if-0-ses_match_host.patch
-git-watchdog.patch
-xen-drivers-xen-balloonc-make-a-function-static.patch
-reiser4.patch
+ipv6-to-intel-etherexpress-16-fails-multicast-problems.patch
 
