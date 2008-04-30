@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + simple-stats-for-memory-resource-controller.patch added to -mm tree
-Date: Wed, 30 Apr 2008 13:20:03 -0700
-Message-ID: <200804302020.m3UKK37l000956@imap1.linux-foundation.org>
+Subject: + memcg-simple-stats-for-memory-resource-controller.patch added to -mm tree
+Date: Wed, 30 Apr 2008 13:20:55 -0700
+Message-ID: <200804302020.m3UKKt6g000976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51147 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758474AbYD3UUI (ORCPT
+	by vger.kernel.org with ESMTP id S1759052AbYD3UV0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 16:20:08 -0400
+	Wed, 30 Apr 2008 16:21:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -18,7 +18,7 @@ Cc: balajirrao@gmail.com, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com
 The patch titled
      memcg: simple stats for memory resource controller
 has been added to the -mm tree.  Its filename is
-     simple-stats-for-memory-resource-controller.patch
+     memcg-simple-stats-for-memory-resource-controller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +40,7 @@ From: Balaji Rao <balajirrao@gmail.com>
 Implement trivial statistics for the memory resource controller.
 
 Signed-off-by: Balaji Rao <balajirrao@gmail.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -48,8 +48,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/memcontrol.c |   11 +++++++++++
  1 file changed, 11 insertions(+)
 
-diff -puN mm/memcontrol.c~simple-stats-for-memory-resource-controller mm/memcontrol.c
---- a/mm/memcontrol.c~simple-stats-for-memory-resource-controller
+diff -puN mm/memcontrol.c~memcg-simple-stats-for-memory-resource-controller mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-simple-stats-for-memory-resource-controller
 +++ a/mm/memcontrol.c
 @@ -48,6 +48,8 @@ enum mem_cgroup_stat_index {
  	 */
@@ -87,5 +87,5 @@ _
 
 Patches currently in -mm which might be from balajirrao@gmail.com are
 
-simple-stats-for-memory-resource-controller.patch
+memcg-simple-stats-for-memory-resource-controller.patch
 
