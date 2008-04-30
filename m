@@ -1,89 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - fdpic-check-that-the-size-returned-by-kernel_read-is-what-we-asked-for.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:41:09 -0700
-Message-ID: <200804300541.m3U5f9kG029032@imap1.linux-foundation.org>
+Subject: - kthread-call-wake_up_process-without-the-lock-being-held.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:40:36 -0700
+Message-ID: <200804300540.m3U5eagf028984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48647 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51909 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757020AbYD3FmB (ORCPT
+	by vger.kernel.org with ESMTP id S1756867AbYD3Flx (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:42:01 -0400
+	Wed, 30 Apr 2008 01:41:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, mm-commits@vger.kernel.org
+To: dmitry.adamushko@gmail.com, a.p.zijlstra@chello.nl, apw@shadowen.org, mingo@elte.hu, nickpiggin@yahoo.com.au, oleg@tv-sign.ru, paulmck@linux.vnet.ibm.com, rusty@rustcorp.com.au, mm-co
 
 
 The patch titled
-     fdpic: check that the size returned by kernel_read() is what we asked for
+     kthread: call wake_up_process() without the lock being held
 has been removed from the -mm tree.  Its filename was
-     fdpic-check-that-the-size-returned-by-kernel_read-is-what-we-asked-for.patch
+     kthread-call-wake_up_process-without-the-lock-being-held.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fdpic: check that the size returned by kernel_read() is what we asked for
-From: David Howells <dhowells@redhat.com>
+Subject: kthread: call wake_up_process() without the lock being held
+From: Dmitry Adamushko <dmitry.adamushko@gmail.com>
 
-Check that the size of the read returned by kernel_read() is what we asked
-for.  If it isn't, then reject the binary as being a badly formatted.
+From the POV of synchronization, there should be no need to call
+wake_up_process() with the 'kthread_create_lock' being held.
 
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Dmitry Adamushko <dmitry.adamushko@gmail.com>
+Cc: Nick Piggin <nickpiggin@yahoo.com.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf_fdpic.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ kernel/kthread.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_elf_fdpic.c~fdpic-check-that-the-size-returned-by-kernel_read-is-what-we-asked-for fs/binfmt_elf_fdpic.c
---- a/fs/binfmt_elf_fdpic.c~fdpic-check-that-the-size-returned-by-kernel_read-is-what-we-asked-for
-+++ a/fs/binfmt_elf_fdpic.c
-@@ -136,8 +136,8 @@ static int elf_fdpic_fetch_phdrs(struct 
+diff -puN kernel/kthread.c~kthread-call-wake_up_process-without-the-lock-being-held kernel/kthread.c
+--- a/kernel/kthread.c~kthread-call-wake_up_process-without-the-lock-being-held
++++ a/kernel/kthread.c
+@@ -144,9 +144,9 @@ struct task_struct *kthread_create(int (
  
- 	retval = kernel_read(file, params->hdr.e_phoff,
- 			     (char *) params->phdrs, size);
--	if (retval < 0)
--		return retval;
-+	if (unlikely(retval != size))
-+		return retval < 0 ? retval : -ENOEXEC;
+ 	spin_lock(&kthread_create_lock);
+ 	list_add_tail(&create.list, &kthread_create_list);
+-	wake_up_process(kthreadd_task);
+ 	spin_unlock(&kthread_create_lock);
  
- 	/* determine stack size for this binary */
- 	phdr = params->phdrs;
-@@ -218,8 +218,11 @@ static int load_elf_fdpic_binary(struct 
- 					     phdr->p_offset,
- 					     interpreter_name,
- 					     phdr->p_filesz);
--			if (retval < 0)
-+			if (unlikely(retval != phdr->p_filesz)) {
-+				if (retval >= 0)
-+					retval = -ENOEXEC;
- 				goto error;
-+			}
++	wake_up_process(kthreadd_task);
+ 	wait_for_completion(&create.done);
  
- 			retval = -ENOENT;
- 			if (interpreter_name[phdr->p_filesz - 1] != '\0')
-@@ -245,8 +248,11 @@ static int load_elf_fdpic_binary(struct 
- 
- 			retval = kernel_read(interpreter, 0, bprm->buf,
- 					     BINPRM_BUF_SIZE);
--			if (retval < 0)
-+			if (unlikely(retval != BINPRM_BUF_SIZE)) {
-+				if (retval >= 0)
-+					retval = -ENOEXEC;
- 				goto error;
-+			}
- 
- 			interp_params.hdr = *((struct elfhdr *) bprm->buf);
- 			break;
+ 	if (!IS_ERR(create.result)) {
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from dmitry.adamushko@gmail.com are
 
 origin.patch
-git-unionfs.patch
-alloc_uid-cleanup.patch
-rename-div64_64-to-div64_u64.patch
-mutex-subsystem-synchro-test-module.patch
 
