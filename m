@@ -1,69 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - nfsd-use-proc_create-to-setup-de-proc_fops.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:46:42 -0700
-Message-ID: <200804300546.m3U5kgfG029630@imap1.linux-foundation.org>
+Subject: - ext4-use-non-racy-method-for-proc-entries-creation.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:46:49 -0700
+Message-ID: <200804300546.m3U5knt0029643__36985.3339544081$1209534503$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51711 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37021 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753645AbYD3FrX (ORCPT
+	by vger.kernel.org with ESMTP id S1756682AbYD3FrV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:47:23 -0400
+	Wed, 30 Apr 2008 01:47:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: den@openvz.org, adobriyan@gmail.com, bfields@fieldses.org, ebiederm@xmission.com, neilb@suse.de, mm-commits@vger.kernel.org
+To: den@openvz.org, adobriyan@gmail.com, ebiederm@xmission.com, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfsd: use proc_create to setup de->proc_fops
+     ext4: use non-racy method for proc entries creation
 has been removed from the -mm tree.  Its filename was
-     nfsd-use-proc_create-to-setup-de-proc_fops.patch
+     ext4-use-non-racy-method-for-proc-entries-creation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfsd: use proc_create to setup de->proc_fops
+Subject: ext4: use non-racy method for proc entries creation
 From: "Denis V. Lunev" <den@openvz.org>
 
-Use proc_create() to make sure that ->proc_fops be setup before gluing PDE to
-main tree.
+Use proc_create()/proc_create_data() to make sure that ->proc_fops and ->data
+be setup before gluing PDE to main tree.
 
 Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: <linux-ext4@vger.kernel.org>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfsd/nfsctl.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ext4/mballoc.c |   15 ++++-----------
+ 1 file changed, 4 insertions(+), 11 deletions(-)
 
-diff -puN fs/nfsd/nfsctl.c~nfsd-use-proc_create-to-setup-de-proc_fops fs/nfsd/nfsctl.c
---- a/fs/nfsd/nfsctl.c~nfsd-use-proc_create-to-setup-de-proc_fops
-+++ a/fs/nfsd/nfsctl.c
-@@ -169,6 +169,7 @@ static const struct file_operations expo
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
- 	.release	= seq_release,
-+	.owner		= THIS_MODULE,
- };
+diff -puN fs/ext4/mballoc.c~ext4-use-non-racy-method-for-proc-entries-creation fs/ext4/mballoc.c
+--- a/fs/ext4/mballoc.c~ext4-use-non-racy-method-for-proc-entries-creation
++++ a/fs/ext4/mballoc.c
+@@ -2449,17 +2449,10 @@ static void ext4_mb_history_init(struct 
+ 	int i;
  
- /*----------------------------------------------------------------------------*/
-@@ -801,10 +802,9 @@ static int create_proc_exports_entry(voi
- 	entry = proc_mkdir("fs/nfs", NULL);
- 	if (!entry)
- 		return -ENOMEM;
--	entry = create_proc_entry("fs/nfs/exports", 0, NULL);
-+	entry = proc_create("exports", 0, entry, &exports_operations);
- 	if (!entry)
- 		return -ENOMEM;
--	entry->proc_fops =  &exports_operations;
- 	return 0;
- }
- #else /* CONFIG_PROC_FS */
+ 	if (sbi->s_mb_proc != NULL) {
+-		struct proc_dir_entry *p;
+-		p = create_proc_entry("mb_history", S_IRUGO, sbi->s_mb_proc);
+-		if (p) {
+-			p->proc_fops = &ext4_mb_seq_history_fops;
+-			p->data = sb;
+-		}
+-		p = create_proc_entry("mb_groups", S_IRUGO, sbi->s_mb_proc);
+-		if (p) {
+-			p->proc_fops = &ext4_mb_seq_groups_fops;
+-			p->data = sb;
+-		}
++		proc_create_data("mb_history", S_IRUGO, sbi->s_mb_proc,
++				 &ext4_mb_seq_history_fops, sb);
++		proc_create_data("mb_groups", S_IRUGO, sbi->s_mb_proc,
++				 &ext4_mb_seq_groups_fops, sb);
+ 	}
+ 
+ 	sbi->s_mb_history_max = 1000;
 _
 
 Patches currently in -mm which might be from den@openvz.org are
