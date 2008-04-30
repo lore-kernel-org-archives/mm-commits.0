@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mac80211-michaelc-use-kernel-provided-infrastructure.patch added to -mm tree
-Date: Wed, 30 Apr 2008 11:50:57 -0700
-Message-ID: <200804301850.m3UIowAB029353@imap1.linux-foundation.org>
+Subject: + mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch added to -mm tree
+Date: Wed, 30 Apr 2008 11:51:11 -0700
+Message-ID: <200804301851.m3UIpBKE029442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35114 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39758 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755419AbYD3SwP (ORCPT
+	by vger.kernel.org with ESMTP id S1755794AbYD3Swi (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 14:52:15 -0400
+	Wed, 30 Apr 2008 14:52:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com, linville@tuxdriver.com
 
 
 The patch titled
-     mac80211: michael.c use kernel-provided infrastructure
+     mac80211: tkip.c use struct tkip_ctx in phase 1 key mixing
 has been added to the -mm tree.  Its filename is
-     mac80211-michaelc-use-kernel-provided-infrastructure.patch
+     mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,126 +34,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mac80211: michael.c use kernel-provided infrastructure
+Subject: mac80211: tkip.c use struct tkip_ctx in phase 1 key mixing
 From: Harvey Harrison <harvey.harrison@gmail.com>
-
-Replace private implementation of bit rotation and unaligned access helpers
-with kernel-provided implementation.
-
-Fold xswap helper in its one usage in the michael_block macro.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/michael.c |   60 +++++++++------------------------------
- 1 file changed, 14 insertions(+), 46 deletions(-)
+ net/mac80211/tkip.c |   27 ++++++++++-----------------
+ 1 file changed, 10 insertions(+), 17 deletions(-)
 
-diff -puN net/mac80211/michael.c~mac80211-michaelc-use-kernel-provided-infrastructure net/mac80211/michael.c
---- a/net/mac80211/michael.c~mac80211-michaelc-use-kernel-provided-infrastructure
-+++ a/net/mac80211/michael.c
-@@ -8,71 +8,39 @@
+diff -puN net/mac80211/tkip.c~mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing net/mac80211/tkip.c
+--- a/net/mac80211/tkip.c~mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing
++++ a/net/mac80211/tkip.c
+@@ -71,10 +71,12 @@ static u16 tkipS(u16 val)
+  * TSC = TKIP sequence counter (48 bits, only 32 msb bits used)
+  * P1K: 80 bits
   */
- 
- #include <linux/types.h>
-+#include <linux/bitops.h>
-+#include <asm/unaligned.h>
- 
- #include "michael.h"
- 
--static inline u32 rotr(u32 val, int bits)
--{
--	return (val >> bits) | (val << (32 - bits));
--}
--
--
--static inline u32 rotl(u32 val, int bits)
--{
--	return (val << bits) | (val >> (32 - bits));
--}
--
--
--static inline u32 xswap(u32 val)
--{
--	return ((val & 0xff00ff00) >> 8) | ((val & 0x00ff00ff) << 8);
--}
--
--
- #define michael_block(l, r) \
- do { \
--	r ^= rotl(l, 17); \
-+	r ^= rol32(l, 17); \
- 	l += r; \
--	r ^= xswap(l); \
-+	r ^= ((l & 0xff00ff00) >> 8) | ((l & 0x00ff00ff) << 8); \
- 	l += r; \
--	r ^= rotl(l, 3); \
-+	r ^= rol32(l, 3); \
- 	l += r; \
--	r ^= rotr(l, 2); \
-+	r ^= ror32(l, 2); \
- 	l += r; \
- } while (0)
- 
--
--static inline u32 michael_get32(u8 *data)
--{
--	return data[0] | (data[1] << 8) | (data[2] << 16) | (data[3] << 24);
--}
--
--
--static inline void michael_put32(u32 val, u8 *data)
--{
--	data[0] = val & 0xff;
--	data[1] = (val >> 8) & 0xff;
--	data[2] = (val >> 16) & 0xff;
--	data[3] = (val >> 24) & 0xff;
--}
--
--
- void michael_mic(u8 *key, u8 *da, u8 *sa, u8 priority,
- 		 u8 *data, size_t data_len, u8 *mic)
+-static void tkip_mixing_phase1(const u8 *ta, const u8 *tk, u32 tsc_IV32,
+-			       u16 *p1k)
++static void tkip_mixing_phase1(struct ieee80211_key *key, const u8 *ta,
++			       struct tkip_ctx *ctx, u32 tsc_IV32)
  {
- 	u32 l, r, val;
- 	size_t block, blocks, left;
+ 	int i, j;
++	const u8 *tk = &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY];
++	u16 *p1k = ctx->p1k;
  
--	l = michael_get32(key);
--	r = michael_get32(key + 4);
-+	l = get_unaligned_le32(key);
-+	r = get_unaligned_le32(key + 4);
- 
- 	/* A pseudo header (DA, SA, Priority, 0, 0, 0) is used in Michael MIC
- 	 * calculation, but it is _not_ transmitted */
--	l ^= michael_get32(da);
-+	l ^= get_unaligned_le32(da);
- 	michael_block(l, r);
--	l ^= da[4] | (da[5] << 8) | (sa[0] << 16) | (sa[1] << 24);
-+	l ^= get_unaligned_le16(&da[4]) | (get_unaligned_le16(sa) << 16);
- 	michael_block(l, r);
--	l ^= michael_get32(&sa[2]);
-+	l ^= get_unaligned_le32(&sa[2]);
- 	michael_block(l, r);
- 	l ^= priority;
- 	michael_block(l, r);
-@@ -82,7 +50,7 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
- 	left = data_len % 4;
- 
- 	for (block = 0; block < blocks; block++) {
--		l ^= michael_get32(&data[block * 4]);
-+		l ^= get_unaligned_le32(&data[block * 4]);
- 		michael_block(l, r);
+ 	p1k[0] = tsc_IV32 & 0xFFFF;
+ 	p1k[1] = tsc_IV32 >> 16;
+@@ -90,6 +92,7 @@ static void tkip_mixing_phase1(const u8 
+ 		p1k[3] += tkipS(p1k[2] ^ get_unaligned_le16(tk + 12 + j));
+ 		p1k[4] += tkipS(p1k[3] ^ get_unaligned_le16(tk + 0 + j)) + i;
  	}
- 
-@@ -99,6 +67,6 @@ void michael_mic(u8 *key, u8 *da, u8 *sa
- 	/* last block is zero, so l ^ 0 = l */
- 	michael_block(l, r);
- 
--	michael_put32(l, mic);
--	michael_put32(r, mic + 4);
-+	put_unaligned_le32(l, mic);
-+	put_unaligned_le32(r, mic + 4);
++	ctx->initialized = 1;
  }
+ 
+ static void tkip_mixing_phase2(const u16 *p1k, const u8 *tk, u16 tsc_IV16,
+@@ -146,12 +149,8 @@ static void ieee80211_tkip_gen_rc4key(st
+ 			       u8 *rc4key)
+ {
+ 	/* Calculate per-packet key */
+-	if (key->u.tkip.tx.iv16 == 0 || !key->u.tkip.tx.initialized) {
+-		/* IV16 wrapped around - perform TKIP phase 1 */
+-		tkip_mixing_phase1(ta, &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
+-				   key->u.tkip.tx.iv32, key->u.tkip.tx.p1k);
+-		key->u.tkip.tx.initialized = 1;
+-	}
++	if (key->u.tkip.tx.iv16 == 0 || !key->u.tkip.tx.initialized)
++		tkip_mixing_phase1(key, ta, &key->u.tkip.tx, key->u.tkip.tx.iv32);
+ 
+ 	tkip_mixing_phase2(key->u.tkip.tx.p1k,
+ 			   &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
+@@ -190,12 +189,8 @@ void ieee80211_get_tkip_key(struct ieee8
+ 	/* Update the p1k only when the iv16 in the packet wraps around, this
+ 	 * might occur after the wrap around of iv16 in the key in case of
+ 	 * fragmented packets. */
+-	if (iv16 == 0 || !key->u.tkip.tx.initialized) {
+-		/* IV16 wrapped around - perform TKIP phase 1 */
+-		tkip_mixing_phase1(ta, &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
+-			iv32, key->u.tkip.tx.p1k);
+-		key->u.tkip.tx.initialized = 1;
+-	}
++	if (iv16 == 0 || !key->u.tkip.tx.initialized)
++		tkip_mixing_phase1(key, ta, &key->u.tkip.tx, iv32);
+ 
+ 	if (type == IEEE80211_TKIP_P1_KEY) {
+ 		memcpy(outkey, key->u.tkip.tx.p1k, sizeof(u16) * 5);
+@@ -286,10 +281,8 @@ int ieee80211_tkip_decrypt_data(struct c
+ 
+ 	if (!key->u.tkip.rx[queue].initialized ||
+ 	    key->u.tkip.rx[queue].iv32 != iv32) {
+-		key->u.tkip.rx[queue].initialized = 1;
+ 		/* IV16 wrapped around - perform TKIP phase 1 */
+-		tkip_mixing_phase1(ta, &key->conf.key[ALG_TKIP_TEMP_ENCR_KEY],
+-				   iv32, key->u.tkip.rx[queue].p1k);
++		tkip_mixing_phase1(key, ta, &key->u.tkip.rx[queue], iv32);
+ #ifdef CONFIG_TKIP_DEBUG
+ 		{
+ 			int i;
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
