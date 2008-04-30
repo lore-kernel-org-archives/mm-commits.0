@@ -1,207 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: - ipmi-convert-locked-counters-to-atomics-convert-message-handler-defines-to-an-enum.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:44:43 -0700
-Message-ID: <200804300544.m3U5ihLq029437@imap1.linux-foundation.org>
+Subject: - nbd-add-partition-support.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:47:57 -0700
+Message-ID: <200804300547.m3U5lv0I029745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45428 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34583 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759387AbYD3GMl (ORCPT
+	by vger.kernel.org with ESMTP id S1760496AbYD3GMm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:12:41 -0400
+	Wed, 30 Apr 2008 02:12:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cminyard@mvista.com, peterz@infradead.org, mm-commits@vger.kernel.org
+To: Laurent.Vivier@bull.net, paul.clements@steeleye.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPMI: convert message handler defines to an enum
+     NBD: add partition support
 has been removed from the -mm tree.  Its filename was
-     ipmi-convert-locked-counters-to-atomics-convert-message-handler-defines-to-an-enum.patch
+     nbd-add-partition-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: IPMI: convert message handler defines to an enum
-From: Corey Minyard <cminyard@mvista.com>
+Subject: NBD: add partition support
+From: Laurent Vivier <Laurent.Vivier@bull.net>
 
-Convert the #defines for statistics into an enum in the IPMI message
-handler.
+Permit the use of partitions with network block devices (NBD).
 
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+A new parameter is introduced to define how many partition we want to be able
+to manage per network block device.  This parameter is "max_part".
+
+For instance, to manage 63 partitions / loop device, we will do:
+
+   [on the server side]
+# nbd-server 1234 /dev/sdb
+   [on the client side]
+# modprobe nbd max_part=63
+# ls -l /dev/nbd*
+brw-rw---- 1 root disk 43,   0 2008-03-25 11:14 /dev/nbd0
+brw-rw---- 1 root disk 43,  64 2008-03-25 11:11 /dev/nbd1
+brw-rw---- 1 root disk 43, 640 2008-03-25 11:11 /dev/nbd10
+brw-rw---- 1 root disk 43, 704 2008-03-25 11:11 /dev/nbd11
+brw-rw---- 1 root disk 43, 768 2008-03-25 11:11 /dev/nbd12
+brw-rw---- 1 root disk 43, 832 2008-03-25 11:11 /dev/nbd13
+brw-rw---- 1 root disk 43, 896 2008-03-25 11:11 /dev/nbd14
+brw-rw---- 1 root disk 43, 960 2008-03-25 11:11 /dev/nbd15
+brw-rw---- 1 root disk 43, 128 2008-03-25 11:11 /dev/nbd2
+brw-rw---- 1 root disk 43, 192 2008-03-25 11:11 /dev/nbd3
+brw-rw---- 1 root disk 43, 256 2008-03-25 11:11 /dev/nbd4
+brw-rw---- 1 root disk 43, 320 2008-03-25 11:11 /dev/nbd5
+brw-rw---- 1 root disk 43, 384 2008-03-25 11:11 /dev/nbd6
+brw-rw---- 1 root disk 43, 448 2008-03-25 11:11 /dev/nbd7
+brw-rw---- 1 root disk 43, 512 2008-03-25 11:11 /dev/nbd8
+brw-rw---- 1 root disk 43, 576 2008-03-25 11:11 /dev/nbd9
+# nbd-client localhost 1234 /dev/nbd0
+Negotiation: ..size = 80418240KB
+bs=1024, sz=80418240
+
+-------NOTE, RFC: partition table is not automatically read.
+The driver sets bdev->bd_invalidated to 1 to force the read of the partition
+table of the device, but this is done only on an open of the device.
+So we have to do a "touch /dev/nbdX" or something like that.
+It can't be done from the nbd-client or nbd driver because at this
+level we can't ask to read the partition table and to serve the request
+at the same time (-> deadlock)
+
+If someone has a better idea, I'm open to any suggestion.
+-------NOTE, RFC
+
+# fdisk -l /dev/nbd0
+
+Disk /dev/nbd0: 82.3 GB, 82348277760 bytes
+255 heads, 63 sectors/track, 10011 cylinders
+Units = cylinders of 16065 * 512 = 8225280 bytes
+
+     Device Boot      Start         End      Blocks   Id  System
+/dev/nbd0p1   *           1        9965    80043831   83  Linux
+/dev/nbd0p2            9966       10011      369495    5  Extended
+/dev/nbd0p5            9966       10011      369463+  82  Linux swap / Solaris
+
+# ls -l /dev/nbd0*
+brw-rw---- 1 root disk 43,   0 2008-03-25 11:16 /dev/nbd0
+brw-rw---- 1 root disk 43,   1 2008-03-25 11:16 /dev/nbd0p1
+brw-rw---- 1 root disk 43,   2 2008-03-25 11:16 /dev/nbd0p2
+brw-rw---- 1 root disk 43,   5 2008-03-25 11:16 /dev/nbd0p5
+# mount /dev/nbd0p1 /mnt
+# ls /mnt
+bin    dev   initrd      lost+found  opt   sbin     sys  var
+boot   etc   initrd.img  media       proc  selinux  tmp  vmlinuz
+cdrom  home  lib         mnt         root  srv      usr
+# umount /mnt
+# nbd-client -d /dev/nbd0
+# ls -l /dev/nbd0*
+brw-rw---- 1 root disk 43, 0 2008-03-25 11:16 /dev/nbd0
+-------NOTE
+On "nbd-client -d", we can do an iocl(BLKRRPART) to update partition table:
+as the size of the device is 0, we don't have to serve the partition manager
+request (-> no deadlock).
+-------NOTE
+
+Signed-off-by: Paul Clements <paul.clements@steeleye.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_msghandler.c |  125 +++++++++++++-------------
- 1 file changed, 67 insertions(+), 58 deletions(-)
+ drivers/block/nbd.c |   25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_msghandler.c~ipmi-convert-locked-counters-to-atomics-convert-message-handler-defines-to-an-enum drivers/char/ipmi/ipmi_msghandler.c
---- a/drivers/char/ipmi/ipmi_msghandler.c~ipmi-convert-locked-counters-to-atomics-convert-message-handler-defines-to-an-enum
-+++ a/drivers/char/ipmi/ipmi_msghandler.c
-@@ -189,90 +189,99 @@ struct bmc_device
-  * Various statistics for IPMI, these index stats[] in the ipmi_smi
-  * structure.
-  */
--/* Commands we got from the user that were invalid. */
--#define IPMI_STAT_sent_invalid_commands			0
-+enum ipmi_stat_indexes {
-+	/* Commands we got from the user that were invalid. */
-+	IPMI_STAT_sent_invalid_commands = 0,
+diff -puN drivers/block/nbd.c~nbd-add-partition-support drivers/block/nbd.c
+--- a/drivers/block/nbd.c~nbd-add-partition-support
++++ a/drivers/block/nbd.c
+@@ -56,6 +56,7 @@ static unsigned int debugflags;
  
--/* Commands we sent to the MC. */
--#define IPMI_STAT_sent_local_commands			1
-+	/* Commands we sent to the MC. */
-+	IPMI_STAT_sent_local_commands,
+ static unsigned int nbds_max = 16;
+ static struct nbd_device *nbd_dev;
++static int max_part;
  
--/* Responses from the MC that were delivered to a user. */
--#define IPMI_STAT_handled_local_responses		2
-+	/* Responses from the MC that were delivered to a user. */
-+	IPMI_STAT_handled_local_responses,
+ /*
+  * Use just one lock (or at most 1 per NIC). Two arguments for this:
+@@ -610,10 +611,13 @@ static int nbd_ioctl(struct inode *inode
+ 		error = -EINVAL;
+ 		file = fget(arg);
+ 		if (file) {
++			struct block_device *bdev = inode->i_bdev;
+ 			inode = file->f_path.dentry->d_inode;
+ 			if (S_ISSOCK(inode->i_mode)) {
+ 				lo->file = file;
+ 				lo->sock = SOCKET_I(inode);
++				if (max_part > 0)
++					bdev->bd_invalidated = 1;
+ 				error = 0;
+ 			} else {
+ 				fput(file);
+@@ -663,6 +667,8 @@ static int nbd_ioctl(struct inode *inode
+ 		lo->bytesize = 0;
+ 		inode->i_bdev->bd_inode->i_size = 0;
+ 		set_capacity(lo->disk, 0);
++		if (max_part > 0)
++			ioctl_by_bdev(inode->i_bdev, BLKRRPART, 0);
+ 		return lo->harderror;
+ 	case NBD_CLEAR_QUE:
+ 		/*
+@@ -696,6 +702,7 @@ static int __init nbd_init(void)
+ {
+ 	int err = -ENOMEM;
+ 	int i;
++	int part_shift;
  
--/* Responses from the MC that were not delivered to a user. */
--#define IPMI_STAT_unhandled_local_responses		3
-+	/* Responses from the MC that were not delivered to a user. */
-+	IPMI_STAT_unhandled_local_responses,
+ 	BUILD_BUG_ON(sizeof(struct nbd_request) != 28);
  
--/* Commands we sent out to the IPMB bus. */
--#define IPMI_STAT_sent_ipmb_commands			4
-+	/* Commands we sent out to the IPMB bus. */
-+	IPMI_STAT_sent_ipmb_commands,
+@@ -703,8 +710,17 @@ static int __init nbd_init(void)
+ 	if (!nbd_dev)
+ 		return -ENOMEM;
  
--/* Commands sent on the IPMB that had errors on the SEND CMD */
--#define IPMI_STAT_sent_ipmb_command_errs		5
-+	/* Commands sent on the IPMB that had errors on the SEND CMD */
-+	IPMI_STAT_sent_ipmb_command_errs,
- 
--/* Each retransmit increments this count. */
--#define IPMI_STAT_retransmitted_ipmb_commands		6
-+	/* Each retransmit increments this count. */
-+	IPMI_STAT_retransmitted_ipmb_commands,
- 
--/* When a message times out (runs out of retransmits) this is incremented. */
--#define IPMI_STAT_timed_out_ipmb_commands		7
-+	/*
-+	 * When a message times out (runs out of retransmits) this is
-+	 * incremented.
-+	 */
-+	IPMI_STAT_timed_out_ipmb_commands,
- 
--/*
-- * This is like above, but for broadcasts.  Broadcasts are
-- * *not* included in the above count (they are expected to
-- * time out).
-- */
--#define IPMI_STAT_timed_out_ipmb_broadcasts		8
-+	/*
-+	 * This is like above, but for broadcasts.  Broadcasts are
-+	 * *not* included in the above count (they are expected to
-+	 * time out).
-+	 */
-+	IPMI_STAT_timed_out_ipmb_broadcasts,
- 
--/* Responses I have sent to the IPMB bus. */
--#define IPMI_STAT_sent_ipmb_responses			9
-+	/* Responses I have sent to the IPMB bus. */
-+	IPMI_STAT_sent_ipmb_responses,
- 
--/* The response was delivered to the user. */
--#define IPMI_STAT_handled_ipmb_responses		10
-+	/* The response was delivered to the user. */
-+	IPMI_STAT_handled_ipmb_responses,
- 
--/* The response had invalid data in it. */
--#define IPMI_STAT_invalid_ipmb_responses		11
-+	/* The response had invalid data in it. */
-+	IPMI_STAT_invalid_ipmb_responses,
- 
--/* The response didn't have anyone waiting for it. */
--#define IPMI_STAT_unhandled_ipmb_responses		12
-+	/* The response didn't have anyone waiting for it. */
-+	IPMI_STAT_unhandled_ipmb_responses,
- 
--/* Commands we sent out to the IPMB bus. */
--#define IPMI_STAT_sent_lan_commands			13
-+	/* Commands we sent out to the IPMB bus. */
-+	IPMI_STAT_sent_lan_commands,
- 
--/* Commands sent on the IPMB that had errors on the SEND CMD */
--#define IPMI_STAT_sent_lan_command_errs			14
-+	/* Commands sent on the IPMB that had errors on the SEND CMD */
-+	IPMI_STAT_sent_lan_command_errs,
- 
--/* Each retransmit increments this count. */
--#define IPMI_STAT_retransmitted_lan_commands		15
-+	/* Each retransmit increments this count. */
-+	IPMI_STAT_retransmitted_lan_commands,
- 
--/* When a message times out (runs out of retransmits) this is incremented. */
--#define IPMI_STAT_timed_out_lan_commands		16
-+	/*
-+	 * When a message times out (runs out of retransmits) this is
-+	 * incremented.
-+	 */
-+	IPMI_STAT_timed_out_lan_commands,
- 
--/* Responses I have sent to the IPMB bus. */
--#define IPMI_STAT_sent_lan_responses			17
-+	/* Responses I have sent to the IPMB bus. */
-+	IPMI_STAT_sent_lan_responses,
- 
--/* The response was delivered to the user. */
--#define IPMI_STAT_handled_lan_responses			18
-+	/* The response was delivered to the user. */
-+	IPMI_STAT_handled_lan_responses,
- 
--/* The response had invalid data in it. */
--#define IPMI_STAT_invalid_lan_responses			19
-+	/* The response had invalid data in it. */
-+	IPMI_STAT_invalid_lan_responses,
- 
--/* The response didn't have anyone waiting for it. */
--#define IPMI_STAT_unhandled_lan_responses		20
-+	/* The response didn't have anyone waiting for it. */
-+	IPMI_STAT_unhandled_lan_responses,
- 
--/* The command was delivered to the user. */
--#define IPMI_STAT_handled_commands			21
-+	/* The command was delivered to the user. */
-+	IPMI_STAT_handled_commands,
- 
--/* The command had invalid data in it. */
--#define IPMI_STAT_invalid_commands			22
-+	/* The command had invalid data in it. */
-+	IPMI_STAT_invalid_commands,
- 
--/* The command didn't have anyone waiting for it. */
--#define IPMI_STAT_unhandled_commands			23
-+	/* The command didn't have anyone waiting for it. */
-+	IPMI_STAT_unhandled_commands,
- 
--/* Invalid data in an event. */
--#define IPMI_STAT_invalid_events			24
-+	/* Invalid data in an event. */
-+	IPMI_STAT_invalid_events,
- 
--/* Events that were received with the proper format. */
--#define IPMI_STAT_events				25
-+	/* Events that were received with the proper format. */
-+	IPMI_STAT_events,
- 
--/* When you add a statistic, you must update this value. */
--#define IPMI_NUM_STATS					26
++	if (max_part < 0) {
++		printk(KERN_CRIT "nbd: max_part must be >= 0\n");
++		return -EINVAL;
++	}
 +
-+	/* This *must* remain last, add new values above this. */
-+	IPMI_NUM_STATS
-+};
++	part_shift = 0;
++	if (max_part > 0)
++		part_shift = fls(max_part);
++
+ 	for (i = 0; i < nbds_max; i++) {
+-		struct gendisk *disk = alloc_disk(1);
++		struct gendisk *disk = alloc_disk(1 << part_shift);
+ 		elevator_t *old_e;
+ 		if (!disk)
+ 			goto out;
+@@ -748,10 +764,9 @@ static int __init nbd_init(void)
+ 		nbd_dev[i].blksize = 1024;
+ 		nbd_dev[i].bytesize = 0;
+ 		disk->major = NBD_MAJOR;
+-		disk->first_minor = i;
++		disk->first_minor = i << part_shift;
+ 		disk->fops = &nbd_fops;
+ 		disk->private_data = &nbd_dev[i];
+-		disk->flags |= GENHD_FL_SUPPRESS_PARTITION_INFO;
+ 		sprintf(disk->disk_name, "nbd%d", i);
+ 		set_capacity(disk, 0);
+ 		add_disk(disk);
+@@ -789,7 +804,9 @@ MODULE_DESCRIPTION("Network Block Device
+ MODULE_LICENSE("GPL");
  
- 
- #define IPMI_IPMB_NUM_SEQ	64
+ module_param(nbds_max, int, 0444);
+-MODULE_PARM_DESC(nbds_max, "How many network block devices to initialize.");
++MODULE_PARM_DESC(nbds_max, "number of network block devices to initialize (default: 16)");
++module_param(max_part, int, 0444);
++MODULE_PARM_DESC(max_part, "number of partitions per device (default: 0)");
+ #ifndef NDEBUG
+ module_param(debugflags, int, 0644);
+ MODULE_PARM_DESC(debugflags, "flags for controlling debug output");
 _
 
-Patches currently in -mm which might be from cminyard@mvista.com are
+Patches currently in -mm which might be from Laurent.Vivier@bull.net are
 
 origin.patch
+git-kvm.patch
+modify-ramdisk-brd-device-to-be-able-to-manage-partitions.patch
 
