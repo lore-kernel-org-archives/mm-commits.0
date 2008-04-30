@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drm-make-drm_minors_cleanup-static.patch added to -mm tree
-Date: Tue, 29 Apr 2008 16:59:24 -0700
-Message-ID: <200804292359.m3TNxOKD016883@imap1.linux-foundation.org>
+Subject: + md-make-dm_dirty_log_initexit-static.patch added to -mm tree
+Date: Tue, 29 Apr 2008 17:00:01 -0700
+Message-ID: <200804300000.m3U001ix016886@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56413 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57086 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755651AbYD3AAN (ORCPT
+	by vger.kernel.org with ESMTP id S1753167AbYD3AAt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 20:00:13 -0400
+	Tue, 29 Apr 2008 20:00:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@kernel.org
 
 
 The patch titled
-     drm: make drm_minors_cleanup() static
+     md: make dm_dirty_log_{init,exit}() static
 has been added to the -mm tree.  Its filename is
-     drm-make-drm_minors_cleanup-static.patch
+     md-make-dm_dirty_log_initexit-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm: make drm_minors_cleanup() static
+Subject: md: make dm_dirty_log_{init,exit}() static
 From: Adrian Bunk <bunk@kernel.org>
 
-Male the needlessly global drm_minors_cleanup() static.
+dm_dirty_log_{init,exit}() can now become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/drm_drv.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/md/dm-log.c |    4 ++--
+ drivers/md/dm.h     |    6 ------
+ 2 files changed, 2 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/drm/drm_drv.c~drm-make-drm_minors_cleanup-static drivers/char/drm/drm_drv.c
---- a/drivers/char/drm/drm_drv.c~drm-make-drm_minors_cleanup-static
-+++ a/drivers/char/drm/drm_drv.c
-@@ -318,7 +318,7 @@ static void drm_cleanup(struct drm_devic
- 		DRM_ERROR("Cannot unload module\n");
+diff -puN drivers/md/dm-log.c~md-make-dm_dirty_log_initexit-static drivers/md/dm-log.c
+--- a/drivers/md/dm-log.c~md-make-dm_dirty_log_initexit-static
++++ a/drivers/md/dm-log.c
+@@ -831,7 +831,7 @@ static struct dm_dirty_log_type _disk_ty
+ 	.status = disk_status,
+ };
+ 
+-int __init dm_dirty_log_init(void)
++static int __init dm_dirty_log_init(void)
+ {
+ 	int r;
+ 
+@@ -848,7 +848,7 @@ int __init dm_dirty_log_init(void)
+ 	return r;
  }
  
--int drm_minors_cleanup(int id, void *ptr, void *data)
-+static int drm_minors_cleanup(int id, void *ptr, void *data)
+-void __exit dm_dirty_log_exit(void)
++static void __exit dm_dirty_log_exit(void)
  {
- 	struct drm_minor *minor = ptr;
- 	struct drm_device *dev;
+ 	dm_dirty_log_type_unregister(&_disk_type);
+ 	dm_dirty_log_type_unregister(&_core_type);
+diff -puN drivers/md/dm.h~md-make-dm_dirty_log_initexit-static drivers/md/dm.h
+--- a/drivers/md/dm.h~md-make-dm_dirty_log_initexit-static
++++ a/drivers/md/dm.h
+@@ -100,12 +100,6 @@ int dm_lock_for_deletion(struct mapped_d
+ 
+ void dm_kobject_uevent(struct mapped_device *md);
+ 
+-/*
+- * Dirty log
+- */
+-int dm_dirty_log_init(void);
+-void dm_dirty_log_exit(void);
+-
+ int dm_kcopyd_init(void);
+ void dm_kcopyd_exit(void);
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -95,6 +121,7 @@ block-blk-barrierc-blk_ordered_cur_seq-mustnt-be-inline.patch
 reiserfs-some-functions-mustnt-be-inline.patch
 git-acpi.patch
 arch-x86-video-fbdevc-add-module_license.patch
+drm-make-drm_minors_cleanup-static.patch
 git-m32r.patch
 net-ipv4-ip_outputc-ip_send_check-mustnt-be-inline.patch
 git-nfsd.patch
@@ -106,5 +133,5 @@ if-0-ses_match_host.patch
 git-watchdog.patch
 make-marker_debug-static.patch
 reiser4.patch
-drm-make-drm_minors_cleanup-static.patch
+md-make-dm_dirty_log_initexit-static.patch
 
