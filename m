@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-make-one-bit-signed-bitfields-unsigned.patch added to -mm tree
-Date: Wed, 30 Apr 2008 15:23:41 -0700
-Message-ID: <200804302223.m3UMNfQu006637@imap1.linux-foundation.org>
+Subject: + input-make-one-bit-signed-bitfields-unsigned.patch added to -mm tree
+Date: Wed, 30 Apr 2008 15:24:34 -0700
+Message-ID: <200804302224.m3UMOYmp006663@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46238 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51462 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758692AbYD3WYT (ORCPT
+	by vger.kernel.org with ESMTP id S1752914AbYD3WZK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 18:24:19 -0400
+	Wed, 30 Apr 2008 18:25:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, drzeus-list@drzeus.cx
+Cc: harvey.harrison@gmail.com, dtor@mail.ru
 
 
 The patch titled
-     mmc: make one-bit signed bitfields unsigned
+     input: make one-bit signed bitfields unsigned
 has been added to the -mm tree.  Its filename is
-     mmc-make-one-bit-signed-bitfields-unsigned.patch
+     input-make-one-bit-signed-bitfields-unsigned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: make one-bit signed bitfields unsigned
+Subject: input: make one-bit signed bitfields unsigned
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Otherwise it can only take the values 0/-1 which doesn't seem to
 have been intended.
 
-drivers/mmc/host/sdhci.h:190:20: error: dubious one-bit signed bitfield
+drivers/input/tablet/wacom.h:108:12: error: dubious one-bit signed bitfield
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+CcL Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdhci.h |    2 +-
+ drivers/input/tablet/wacom.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mmc/host/sdhci.h~mmc-make-one-bit-signed-bitfields-unsigned drivers/mmc/host/sdhci.h
---- a/drivers/mmc/host/sdhci.h~mmc-make-one-bit-signed-bitfields-unsigned
-+++ a/drivers/mmc/host/sdhci.h
-@@ -205,7 +205,7 @@ struct sdhci_host {
- 	struct mmc_request	*mrq;		/* Current request */
- 	struct mmc_command	*cmd;		/* Current command */
- 	struct mmc_data		*data;		/* Current data request */
--	int			data_early:1;	/* Data finished before cmd */
-+	unsigned int		data_early:1;	/* Data finished before cmd */
+diff -puN drivers/input/tablet/wacom.h~input-make-one-bit-signed-bitfields-unsigned drivers/input/tablet/wacom.h
+--- a/drivers/input/tablet/wacom.h~input-make-one-bit-signed-bitfields-unsigned
++++ a/drivers/input/tablet/wacom.h
+@@ -105,7 +105,7 @@ struct wacom {
+ 	struct urb *irq;
+ 	struct wacom_wac * wacom_wac;
+ 	struct mutex lock;
+-	int open:1;
++	unsigned int open:1;
+ 	char phys[32];
+ };
  
- 	struct scatterlist	*cur_sg;	/* We're working on this */
- 	int			num_sg;		/* Entries left */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
