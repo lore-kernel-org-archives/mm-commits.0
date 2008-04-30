@@ -1,138 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - binfmt_miscc-avoid-potential-kernel-stack-overflow.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:40:39 -0700
-Message-ID: <200804300540.m3U5edKI028987@imap1.linux-foundation.org>
+Subject: - codafs-fix-build-warning.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:40:34 -0700
+Message-ID: <200804300540.m3U5eYe9028976@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42522 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42257 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754942AbYD3FlL (ORCPT
+	by vger.kernel.org with ESMTP id S1754877AbYD3FlI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:41:11 -0400
+	Wed, 30 Apr 2008 01:41:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jaharkes@cs.cmu.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     binfmt_misc.c: avoid potential kernel stack overflow
+     codafs: fix build warning
 has been removed from the -mm tree.  Its filename was
-     binfmt_miscc-avoid-potential-kernel-stack-overflow.patch
+     codafs-fix-build-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: binfmt_misc.c: avoid potential kernel stack overflow
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: codafs: fix build warning
+From: Andrew Morton <akpm@linux-foundation.org>
 
-This can be triggered with root help only, but...
+powerpc:
 
-Register the ":text:E::txt::/root/cat.txt:' rule in binfmt_misc (by root) and
-try launching the cat.txt file (by anyone) :) The result is - the endless
-recursion in the load_misc_binary -> open_exec -> load_misc_binary chain and
-stack overflow.
+fs/coda/coda_linux.c: In function 'coda_iattr_to_vattr':
+fs/coda/coda_linux.c:137: warning: large integer implicitly truncated to unsigned type
 
-There's a similar problem with binfmt_script, and there's a sh_bang memner on
-linux_binprm structure to handle this, but simply raising this in binfmt_misc
-may break some setups when the interpreter of some misc binaries is a script.
-
-So the proposal is to turn sh_bang into a bit, add a new one (the misc_bang)
-and raise it in load_misc_binary.  After this, even if we set up the misc ->
-script -> misc loop for binfmts one of them will step on its own bang and
-exit.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: Jan Harkes <jaharkes@cs.cmu.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_em86.c        |    2 +-
- fs/binfmt_misc.c        |    6 ++++++
- fs/binfmt_script.c      |    2 +-
- include/linux/binfmts.h |    3 ++-
- 4 files changed, 10 insertions(+), 3 deletions(-)
+ fs/coda/coda_linux.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/binfmt_em86.c~binfmt_miscc-avoid-potential-kernel-stack-overflow fs/binfmt_em86.c
---- a/fs/binfmt_em86.c~binfmt_miscc-avoid-potential-kernel-stack-overflow
-+++ a/fs/binfmt_em86.c
-@@ -43,7 +43,7 @@ static int load_em86(struct linux_binprm
- 			return -ENOEXEC;
- 	}
+diff -puN fs/coda/coda_linux.c~codafs-fix-build-warning fs/coda/coda_linux.c
+--- a/fs/coda/coda_linux.c~codafs-fix-build-warning
++++ a/fs/coda/coda_linux.c
+@@ -134,7 +134,7 @@ void coda_iattr_to_vattr(struct iattr *i
+         unsigned int valid;
  
--	bprm->sh_bang++;	/* Well, the bang-shell is implicit... */
-+	bprm->sh_bang = 1;	/* Well, the bang-shell is implicit... */
- 	allow_write_access(bprm->file);
- 	fput(bprm->file);
- 	bprm->file = NULL;
-diff -puN fs/binfmt_misc.c~binfmt_miscc-avoid-potential-kernel-stack-overflow fs/binfmt_misc.c
---- a/fs/binfmt_misc.c~binfmt_miscc-avoid-potential-kernel-stack-overflow
-+++ a/fs/binfmt_misc.c
-@@ -115,6 +115,12 @@ static int load_misc_binary(struct linux
- 	if (!enabled)
- 		goto _ret;
- 
-+	retval = -ENOEXEC;
-+	if (bprm->misc_bang)
-+		goto _ret;
-+
-+	bprm->misc_bang = 1;
-+
- 	/* to keep locking time low, we copy the interpreter string */
- 	read_lock(&entries_lock);
- 	fmt = check_file(bprm);
-diff -puN fs/binfmt_script.c~binfmt_miscc-avoid-potential-kernel-stack-overflow fs/binfmt_script.c
---- a/fs/binfmt_script.c~binfmt_miscc-avoid-potential-kernel-stack-overflow
-+++ a/fs/binfmt_script.c
-@@ -29,7 +29,7 @@ static int load_script(struct linux_binp
- 	 * Sorta complicated, but hopefully it will work.  -TYT
- 	 */
- 
--	bprm->sh_bang++;
-+	bprm->sh_bang = 1;
- 	allow_write_access(bprm->file);
- 	fput(bprm->file);
- 	bprm->file = NULL;
-diff -puN include/linux/binfmts.h~binfmt_miscc-avoid-potential-kernel-stack-overflow include/linux/binfmts.h
---- a/include/linux/binfmts.h~binfmt_miscc-avoid-potential-kernel-stack-overflow
-+++ a/include/linux/binfmts.h
-@@ -34,7 +34,8 @@ struct linux_binprm{
- #endif
- 	struct mm_struct *mm;
- 	unsigned long p; /* current top of mem */
--	int sh_bang;
-+	unsigned int sh_bang:1,
-+		     misc_bang:1;
- 	struct file * file;
- 	int e_uid, e_gid;
- 	kernel_cap_t cap_inheritable, cap_permitted;
+         /* clean out */        
+-        vattr->va_mode = (umode_t) -1;
++	vattr->va_mode = -1;
+         vattr->va_uid = (vuid_t) -1; 
+         vattr->va_gid = (vgid_t) -1;
+         vattr->va_size = (off_t) -1;
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
 disable-the-memory-controller-by-default-v3.patch
-remove-unused-variable-from-send_signal.patch
-turn-legacy_queue-macro-into-static-inline-function.patch
-consolidate-checking-for-ignored-legacy-signals.patch
-consolidate-checking-for-ignored-legacy-signals-simplify.patch
-signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
-signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
-signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
-signals-cleanup-security_task_kill-usage-implementation.patch
-signals-use-__group_complete_signal-for-the-specific-signals-too.patch
-signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
-signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
-ptrace-allow-to-ptrace-sbin-init.patch
-free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
-use-find_task_by_vpid-in-taskstats.patch
-deprecate-find_task_by_pid.patch
-deprecate-find_task_by_pid-warning-fix.patch
-pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
-pids-introduce-change_pid-helper.patch
-pids-sys_setpgid-use-change_pid-helper.patch
-pids-__set_special_pids-use-change_pid-helper.patch
-pidns-make-pid-level-and-pid_ns-level-unsigned.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+x86-ptrace-pebs-support-warning-fix.patch
+rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
+cifs-suppress-warning.patch
+devres-support-addresses-greater-than-an-unsigned-long-via-dev_ioremap-checkpatch-fixes.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-hwmon.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-kvm.patch
+pata_atiixp-simplex-clear.patch
+git-m32r.patch
+git-mips.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+sched-add-debug-checks-to-idle-functions.patch
+drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+add-rcu_assign_index-if-ever-needed.patch
+git-scsi-misc.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+aic79xx_core-remove-ascii-art.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+revert-rusty-misc-timer-typesafe.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+ext4-is-busted-on-m68k.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
+add-warn_on_secs-macro.patch
+rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fixes.patch
+isicom-bring-into-coding-style-fix.patch
+tty-the-big-operations-rework-fix-2.patch
+tty-the-big-operations-rework-isicom-fix.patch
+tty-the-big-operations-rework-simserial-fix.patch
+tty-the-big-operations-rework-vs-git-kgdb-light.patch
+tty-the-big-operations-rework-vs-kgdb-2.patch
+devpts-factor-out-pty-index-allocation-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+fuse-fix-race-in-llseek-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
 reiser4.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+x86-ioremap-add-checks-for-virtual-addresses-fix.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
