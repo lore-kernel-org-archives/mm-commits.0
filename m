@@ -1,504 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:45:31 -0700
-Message-ID: <200804300545.m3U5jVr6029506@imap1.linux-foundation.org>
+Subject: - proc-print-more-information-when-removing-non-empty-directories.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:45:40 -0700
+Message-ID: <200804300545.m3U5je74029527@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58819 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42388 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757530AbYD3Fqi (ORCPT
+	by vger.kernel.org with ESMTP id S1757774AbYD3Fqu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:46:38 -0400
+	Wed, 30 Apr 2008 01:46:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, arunsr@cse.iitk.ac.in, chrisw@sous-sol.org, dwalsh@redhat.com, jmorris@namei.org, kwc@citi.umich.edu, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, arjan@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     keys: don't generate user and user session keyrings unless they're accessed
+     proc: print more information when removing non-empty directories
 has been removed from the -mm tree.  Its filename was
-     keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed.patch
+     proc-print-more-information-when-removing-non-empty-directories.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: keys: don't generate user and user session keyrings unless they're accessed
-From: David Howells <dhowells@redhat.com>
+Subject: proc: print more information when removing non-empty directories
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Don't generate the per-UID user and user session keyrings unless they're
-explicitly accessed.  This solves a problem during a login process whereby
-set*uid() is called before the SELinux PAM module, resulting in the per-UID
-keyrings having the wrong security labels.
+This usually saves one recompile to insert similar printk like below. :)
 
-This also cures the problem of multiple per-UID keyrings sometimes appearing
-due to PAM modules (including pam_keyinit) setuiding and causing user_structs
-to come into and go out of existence whilst the session keyring pins the user
-keyring.  This is achieved by first searching for extant per-UID keyrings
-before inventing new ones.
+Sample nastygram:
 
-The serial bound argument is also dropped from find_keyring_by_name() as it's
-not currently made use of (setting it to 0 disables the feature).
+remove_proc_entry: removing non-empty directory '/proc/foo', leaking at least 'bar'
+------------[ cut here ]------------
+WARNING: at fs/proc/generic.c:776 remove_proc_entry+0x18a/0x200()
+Modules linked in: foo(-) container fan battery dock sbs ac sbshc backlight ipv6 loop af_packet amd_rng sr_mod i2c_amd8111 i2c_amd756 cdrom i2c_core button thermal processor
+Pid: 3034, comm: rmmod Tainted: G   M     2.6.25-rc1 #5
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: <kwc@citi.umich.edu>
-Cc: <arunsr@cse.iitk.ac.in>
-Cc: <dwalsh@redhat.com>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
-Cc: Chris Wright <chrisw@sous-sol.org>
+Call Trace:
+ [<ffffffff80231974>] warn_on_slowpath+0x64/0x90
+ [<ffffffff80232a6e>] printk+0x4e/0x60
+ [<ffffffff802d6c8a>] remove_proc_entry+0x18a/0x200
+ [<ffffffff8045cd88>] mutex_lock_nested+0x1c8/0x2d0
+ [<ffffffff8025f0f0>] __try_stop_module+0x0/0x40
+ [<ffffffff8025effd>] sys_delete_module+0x14d/0x200
+ [<ffffffff8045df3d>] lockdep_sys_exit_thunk+0x35/0x67
+ [<ffffffff8031c307>] __up_read+0x27/0xa0
+ [<ffffffff8045decc>] trace_hardirqs_on_thunk+0x35/0x3a
+ [<ffffffff8020b6ab>] system_call_after_swapgs+0x7b/0x80
+
+---[ end trace 10ef850597e89c54 ]---
+
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/key.h          |    8 -
- kernel/user.c                |   15 ---
- security/keys/internal.h     |    4 
- security/keys/key.c          |   45 ----------
- security/keys/keyring.c      |   19 +---
- security/keys/process_keys.c |  144 +++++++++++++++++++--------------
- security/selinux/hooks.c     |    8 -
- 7 files changed, 97 insertions(+), 146 deletions(-)
+ fs/proc/generic.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/key.h~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed include/linux/key.h
---- a/include/linux/key.h~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
-+++ a/include/linux/key.h
-@@ -268,9 +268,6 @@ extern struct key *key_lookup(key_serial
- /*
-  * the userspace interface
-  */
--extern struct key root_user_keyring, root_session_keyring;
--extern int alloc_uid_keyring(struct user_struct *user,
--			     struct task_struct *ctx);
- extern void switch_uid_keyring(struct user_struct *new_user);
- extern int copy_keys(unsigned long clone_flags, struct task_struct *tsk);
- extern int copy_thread_group_keys(struct task_struct *tsk);
-@@ -299,7 +296,6 @@ extern void key_init(void);
- #define make_key_ref(k, p)			({ NULL; })
- #define key_ref_to_ptr(k)		({ NULL; })
- #define is_key_possessed(k)		0
--#define alloc_uid_keyring(u,c)		0
- #define switch_uid_keyring(u)		do { } while(0)
- #define __install_session_keyring(t, k)	({ NULL; })
- #define copy_keys(f,t)			0
-@@ -312,10 +308,6 @@ extern void key_init(void);
- #define key_fsgid_changed(t)		do { } while(0)
- #define key_init()			do { } while(0)
- 
--/* Initial keyrings */
--extern struct key root_user_keyring;
--extern struct key root_session_keyring;
--
- #endif /* CONFIG_KEYS */
- #endif /* __KERNEL__ */
- #endif /* _LINUX_KEY_H */
-diff -puN kernel/user.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed kernel/user.c
---- a/kernel/user.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
-+++ a/kernel/user.c
-@@ -53,10 +53,6 @@ struct user_struct root_user = {
- 	.files		= ATOMIC_INIT(0),
- 	.sigpending	= ATOMIC_INIT(0),
- 	.locked_shm     = 0,
--#ifdef CONFIG_KEYS
--	.uid_keyring	= &root_user_keyring,
--	.session_keyring = &root_session_keyring,
--#endif
- #ifdef CONFIG_USER_SCHED
- 	.tg		= &init_task_group,
- #endif
-@@ -420,12 +416,12 @@ struct user_struct * alloc_uid(struct us
- 		new->mq_bytes = 0;
- #endif
- 		new->locked_shm = 0;
--
--		if (alloc_uid_keyring(new, current) < 0)
--			goto out_free_user;
-+#ifdef CONFIG_KEYS
-+		new->uid_keyring = new->session_keyring = NULL;
-+#endif
- 
- 		if (sched_create_user(new) < 0)
--			goto out_put_keys;
-+			goto out_free_user;
- 
- 		if (uids_user_create(new))
- 			goto out_destoy_sched;
-@@ -459,9 +455,6 @@ struct user_struct * alloc_uid(struct us
- 
- out_destoy_sched:
- 	sched_destroy_user(new);
--out_put_keys:
--	key_put(new->uid_keyring);
--	key_put(new->session_keyring);
- out_free_user:
- 	kmem_cache_free(uid_cachep, new);
- out_unlock:
-diff -puN security/keys/internal.h~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed security/keys/internal.h
---- a/security/keys/internal.h~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
-+++ a/security/keys/internal.h
-@@ -77,8 +77,6 @@ extern struct mutex key_construction_mut
- extern wait_queue_head_t request_key_conswq;
- 
- 
--extern void keyring_publish_name(struct key *keyring);
--
- extern int __key_link(struct key *keyring, struct key *key);
- 
- extern key_ref_t __keyring_search_one(key_ref_t keyring_ref,
-@@ -102,7 +100,7 @@ extern key_ref_t search_process_keyrings
- 					 key_match_func_t match,
- 					 struct task_struct *tsk);
- 
--extern struct key *find_keyring_by_name(const char *name, key_serial_t bound);
-+extern struct key *find_keyring_by_name(const char *name, bool skip_perm_check);
- 
- extern int install_thread_keyring(struct task_struct *tsk);
- extern int install_process_keyring(struct task_struct *tsk);
-diff -puN security/keys/key.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed security/keys/key.c
---- a/security/keys/key.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
-+++ a/security/keys/key.c
-@@ -1,6 +1,6 @@
- /* Basic authentication token and access key management
-  *
-- * Copyright (C) 2004-2007 Red Hat, Inc. All Rights Reserved.
-+ * Copyright (C) 2004-2008 Red Hat, Inc. All Rights Reserved.
-  * Written by David Howells (dhowells@redhat.com)
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -139,36 +139,6 @@ void key_user_put(struct key_user *user)
- 
- /*****************************************************************************/
- /*
-- * insert a key with a fixed serial number
-- */
--static void __init __key_insert_serial(struct key *key)
--{
--	struct rb_node *parent, **p;
--	struct key *xkey;
--
--	parent = NULL;
--	p = &key_serial_tree.rb_node;
--
--	while (*p) {
--		parent = *p;
--		xkey = rb_entry(parent, struct key, serial_node);
--
--		if (key->serial < xkey->serial)
--			p = &(*p)->rb_left;
--		else if (key->serial > xkey->serial)
--			p = &(*p)->rb_right;
--		else
--			BUG();
--	}
--
--	/* we've found a suitable hole - arrange for this key to occupy it */
--	rb_link_node(&key->serial_node, parent, p);
--	rb_insert_color(&key->serial_node, &key_serial_tree);
--
--} /* end __key_insert_serial() */
--
--/*****************************************************************************/
--/*
-  * assign a key the next unique serial number
-  * - these are assigned randomly to avoid security issues through covert
-  *   channel problems
-@@ -1020,17 +990,4 @@ void __init key_init(void)
- 	rb_insert_color(&root_key_user.node,
- 			&key_user_tree);
- 
--	/* record root's user standard keyrings */
--	key_check(&root_user_keyring);
--	key_check(&root_session_keyring);
--
--	__key_insert_serial(&root_user_keyring);
--	__key_insert_serial(&root_session_keyring);
--
--	keyring_publish_name(&root_user_keyring);
--	keyring_publish_name(&root_session_keyring);
--
--	/* link the two root keyrings together */
--	key_link(&root_session_keyring, &root_user_keyring);
--
- } /* end key_init() */
-diff -puN security/keys/keyring.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed security/keys/keyring.c
---- a/security/keys/keyring.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
-+++ a/security/keys/keyring.c
-@@ -1,6 +1,6 @@
--/* keyring.c: keyring handling
-+/* Keyring handling
-  *
-- * Copyright (C) 2004-5 Red Hat, Inc. All Rights Reserved.
-+ * Copyright (C) 2004-2005, 2008 Red Hat, Inc. All Rights Reserved.
-  * Written by David Howells (dhowells@redhat.com)
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -79,7 +79,7 @@ static DECLARE_RWSEM(keyring_serialise_l
-  * publish the name of a keyring so that it can be found by name (if it has
-  * one)
-  */
--void keyring_publish_name(struct key *keyring)
-+static void keyring_publish_name(struct key *keyring)
- {
- 	int bucket;
- 
-@@ -516,10 +516,9 @@ key_ref_t __keyring_search_one(key_ref_t
- /*
-  * find a keyring with the specified name
-  * - all named keyrings are searched
-- * - only find keyrings with search permission for the process
-- * - only find keyrings with a serial number greater than the one specified
-+ * - normally only finds keyrings with search permission for the current process
-  */
--struct key *find_keyring_by_name(const char *name, key_serial_t bound)
-+struct key *find_keyring_by_name(const char *name, bool skip_perm_check)
- {
- 	struct key *keyring;
- 	int bucket;
-@@ -545,15 +544,11 @@ struct key *find_keyring_by_name(const c
- 			if (strcmp(keyring->description, name) != 0)
- 				continue;
- 
--			if (key_permission(make_key_ref(keyring, 0),
-+			if (!skip_perm_check &&
-+			    key_permission(make_key_ref(keyring, 0),
- 					   KEY_SEARCH) < 0)
- 				continue;
- 
--			/* found a potential candidate, but we still need to
--			 * check the serial number */
--			if (keyring->serial <= bound)
--				continue;
--
- 			/* we've got a match */
- 			atomic_inc(&keyring->usage);
- 			read_unlock(&keyring_name_lock);
-diff -puN security/keys/process_keys.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed security/keys/process_keys.c
---- a/security/keys/process_keys.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
-+++ a/security/keys/process_keys.c
-@@ -1,6 +1,6 @@
--/* process_keys.c: management of a process's keyrings
-+/* Management of a process's keyrings
-  *
-- * Copyright (C) 2004-5 Red Hat, Inc. All Rights Reserved.
-+ * Copyright (C) 2004-2005, 2008 Red Hat, Inc. All Rights Reserved.
-  * Written by David Howells (dhowells@redhat.com)
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -23,6 +23,9 @@
- /* session keyring create vs join semaphore */
- static DEFINE_MUTEX(key_session_mutex);
- 
-+/* user keyring creation semaphore */
-+static DEFINE_MUTEX(key_user_keyring_mutex);
-+
- /* the root user's tracking struct */
- struct key_user root_key_user = {
- 	.usage		= ATOMIC_INIT(3),
-@@ -33,78 +36,84 @@ struct key_user root_key_user = {
- 	.uid		= 0,
- };
- 
--/* the root user's UID keyring */
--struct key root_user_keyring = {
--	.usage		= ATOMIC_INIT(1),
--	.serial		= 2,
--	.type		= &key_type_keyring,
--	.user		= &root_key_user,
--	.sem		= __RWSEM_INITIALIZER(root_user_keyring.sem),
--	.perm		= (KEY_POS_ALL & ~KEY_POS_SETATTR) | KEY_USR_ALL,
--	.flags		= 1 << KEY_FLAG_INSTANTIATED,
--	.description	= "_uid.0",
--#ifdef KEY_DEBUGGING
--	.magic		= KEY_DEBUG_MAGIC,
--#endif
--};
--
--/* the root user's default session keyring */
--struct key root_session_keyring = {
--	.usage		= ATOMIC_INIT(1),
--	.serial		= 1,
--	.type		= &key_type_keyring,
--	.user		= &root_key_user,
--	.sem		= __RWSEM_INITIALIZER(root_session_keyring.sem),
--	.perm		= (KEY_POS_ALL & ~KEY_POS_SETATTR) | KEY_USR_ALL,
--	.flags		= 1 << KEY_FLAG_INSTANTIATED,
--	.description	= "_uid_ses.0",
--#ifdef KEY_DEBUGGING
--	.magic		= KEY_DEBUG_MAGIC,
--#endif
--};
--
- /*****************************************************************************/
- /*
-- * allocate the keyrings to be associated with a UID
-+ * install user and user session keyrings for a particular UID
-  */
--int alloc_uid_keyring(struct user_struct *user,
--		      struct task_struct *ctx)
-+static int install_user_keyrings(struct task_struct *tsk)
- {
-+	struct user_struct *user = tsk->user;
- 	struct key *uid_keyring, *session_keyring;
- 	char buf[20];
- 	int ret;
- 
--	/* concoct a default session keyring */
--	sprintf(buf, "_uid_ses.%u", user->uid);
-+	kenter("%p{%u}", user, user->uid);
- 
--	session_keyring = keyring_alloc(buf, user->uid, (gid_t) -1, ctx,
--					KEY_ALLOC_IN_QUOTA, NULL);
--	if (IS_ERR(session_keyring)) {
--		ret = PTR_ERR(session_keyring);
--		goto error;
-+	if (user->uid_keyring) {
-+		kleave(" = 0 [exist]");
-+		return 0;
- 	}
- 
--	/* and a UID specific keyring, pointed to by the default session
--	 * keyring */
--	sprintf(buf, "_uid.%u", user->uid);
--
--	uid_keyring = keyring_alloc(buf, user->uid, (gid_t) -1, ctx,
--				    KEY_ALLOC_IN_QUOTA, session_keyring);
--	if (IS_ERR(uid_keyring)) {
--		key_put(session_keyring);
--		ret = PTR_ERR(uid_keyring);
--		goto error;
-+	mutex_lock(&key_user_keyring_mutex);
-+	ret = 0;
-+
-+	if (!user->uid_keyring) {
-+		/* get the UID-specific keyring
-+		 * - there may be one in existence already as it may have been
-+		 *   pinned by a session, but the user_struct pointing to it
-+		 *   may have been destroyed by setuid */
-+		sprintf(buf, "_uid.%u", user->uid);
-+
-+		uid_keyring = find_keyring_by_name(buf, true);
-+		if (IS_ERR(uid_keyring)) {
-+			uid_keyring = keyring_alloc(buf, user->uid, (gid_t) -1,
-+						    tsk, KEY_ALLOC_IN_QUOTA,
-+						    NULL);
-+			if (IS_ERR(uid_keyring)) {
-+				ret = PTR_ERR(uid_keyring);
-+				goto error;
-+			}
+diff -puN fs/proc/generic.c~proc-print-more-information-when-removing-non-empty-directories fs/proc/generic.c
+--- a/fs/proc/generic.c~proc-print-more-information-when-removing-non-empty-directories
++++ a/fs/proc/generic.c
+@@ -777,7 +777,12 @@ continue_removing:
+ 		if (S_ISDIR(de->mode))
+ 			parent->nlink--;
+ 		de->nlink = 0;
+-		WARN_ON(de->subdir);
++		if (de->subdir) {
++			printk(KERN_WARNING "%s: removing non-empty directory "
++			       "'%s/%s', leaking at least '%s'\n", __func__,
++			       de->parent->name, de->name, de->subdir->name);
++			WARN_ON(1);
 +		}
-+
-+		/* get a default session keyring (which might also exist
-+		 * already) */
-+		sprintf(buf, "_uid_ses.%u", user->uid);
-+
-+		session_keyring = find_keyring_by_name(buf, true);
-+		if (IS_ERR(session_keyring)) {
-+			session_keyring =
-+				keyring_alloc(buf, user->uid, (gid_t) -1,
-+					      tsk, KEY_ALLOC_IN_QUOTA, NULL);
-+			if (IS_ERR(session_keyring)) {
-+				ret = PTR_ERR(session_keyring);
-+				goto error_release;
-+			}
-+
-+			/* we install a link from the user session keyring to
-+			 * the user keyring */
-+			ret = key_link(session_keyring, uid_keyring);
-+			if (ret < 0)
-+				goto error_release_both;
-+		}
-+
-+		/* install the keyrings */
-+		user->uid_keyring = uid_keyring;
-+		user->session_keyring = session_keyring;
- 	}
- 
--	/* install the keyrings */
--	user->uid_keyring = uid_keyring;
--	user->session_keyring = session_keyring;
--	ret = 0;
-+	mutex_unlock(&key_user_keyring_mutex);
-+	kleave(" = 0");
-+	return 0;
- 
-+error_release_both:
-+	key_put(session_keyring);
-+error_release:
-+	key_put(uid_keyring);
- error:
-+	mutex_unlock(&key_user_keyring_mutex);
-+	kleave(" = %d", ret);
- 	return ret;
--
--} /* end alloc_uid_keyring() */
-+}
- 
- /*****************************************************************************/
- /*
-@@ -481,7 +490,7 @@ key_ref_t search_process_keyrings(struct
- 		}
- 	}
- 	/* or search the user-session keyring */
--	else {
-+	else if (context->user->session_keyring) {
- 		key_ref = keyring_search_aux(
- 			make_key_ref(context->user->session_keyring, 1),
- 			context, type, description, match);
-@@ -614,6 +623,9 @@ key_ref_t lookup_user_key(struct task_st
- 		if (!context->signal->session_keyring) {
- 			/* always install a session keyring upon access if one
- 			 * doesn't exist yet */
-+			ret = install_user_keyrings(context);
-+			if (ret < 0)
-+				goto error;
- 			ret = install_session_keyring(
- 				context, context->user->session_keyring);
- 			if (ret < 0)
-@@ -628,12 +640,24 @@ key_ref_t lookup_user_key(struct task_st
+ 		if (atomic_dec_and_test(&de->count))
+ 			free_proc_entry(de);
  		break;
- 
- 	case KEY_SPEC_USER_KEYRING:
-+		if (!context->user->uid_keyring) {
-+			ret = install_user_keyrings(context);
-+			if (ret < 0)
-+				goto error;
-+		}
-+
- 		key = context->user->uid_keyring;
- 		atomic_inc(&key->usage);
- 		key_ref = make_key_ref(key, 1);
- 		break;
- 
- 	case KEY_SPEC_USER_SESSION_KEYRING:
-+		if (!context->user->session_keyring) {
-+			ret = install_user_keyrings(context);
-+			if (ret < 0)
-+				goto error;
-+		}
-+
- 		key = context->user->session_keyring;
- 		atomic_inc(&key->usage);
- 		key_ref = make_key_ref(key, 1);
-@@ -744,7 +768,7 @@ long join_session_keyring(const char *na
- 	mutex_lock(&key_session_mutex);
- 
- 	/* look for an existing keyring of this name */
--	keyring = find_keyring_by_name(name, 0);
-+	keyring = find_keyring_by_name(name, false);
- 	if (PTR_ERR(keyring) == -ENOKEY) {
- 		/* not found - try and create a new one */
- 		keyring = keyring_alloc(name, tsk->uid, tsk->gid, tsk,
-diff -puN security/selinux/hooks.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed security/selinux/hooks.c
---- a/security/selinux/hooks.c~keys-dont-generate-user-and-user-session-keyrings-unless-theyre-accessed
-+++ a/security/selinux/hooks.c
-@@ -5551,14 +5551,6 @@ static __init int selinux_init(void)
- 	else
- 		printk(KERN_DEBUG "SELinux:  Starting in permissive mode\n");
- 
--#ifdef CONFIG_KEYS
--	/* Add security information to initial keyrings */
--	selinux_key_alloc(&root_user_keyring, current,
--			  KEY_ALLOC_NOT_IN_QUOTA);
--	selinux_key_alloc(&root_session_keyring, current,
--			  KEY_ALLOC_NOT_IN_QUOTA);
--#endif
+_
+
+Patches currently in -mm which might be from adobriyan@sw.ru are
+
+origin.patch
+single_open-seq_release-leak-diagnostics.patch
+
