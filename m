@@ -1,107 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - nfs-use-proc_create-to-setup-de-proc_fops.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:46:44 -0700
-Message-ID: <200804300546.m3U5ki87029633@imap1.linux-foundation.org>
+Subject: - proc-switch-proc-excite-unit_id-to-seq_file-interface.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:46:16 -0700
+Message-ID: <200804300546.m3U5kGxd029604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37322 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42867 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756152AbYD3Fr3 (ORCPT
+	by vger.kernel.org with ESMTP id S1758232AbYD3Frf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:47:29 -0400
+	Wed, 30 Apr 2008 01:47:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: den@openvz.org, adobriyan@gmail.com, bfields@fieldses.org, ebiederm@xmission.com, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, ralf@linux-mips.org, thomas.koeller@baslerweb.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nfs: use proc_create to setup de->proc_fops
+     proc: switch /proc/excite/unit_id to seq_file interface
 has been removed from the -mm tree.  Its filename was
-     nfs-use-proc_create-to-setup-de-proc_fops.patch
+     proc-switch-proc-excite-unit_id-to-seq_file-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nfs: use proc_create to setup de->proc_fops
-From: "Denis V. Lunev" <den@openvz.org>
+Subject: proc: switch /proc/excite/unit_id to seq_file interface
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Use proc_create() to make sure that ->proc_fops be setup before gluing PDE to
-main tree.
-
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Thomas Koeller <thomas.koeller@baslerweb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/client.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ arch/mips/basler/excite/excite_procfs.c |   28 +++++++++++++++-------
+ 1 file changed, 20 insertions(+), 8 deletions(-)
 
-diff -puN fs/nfs/client.c~nfs-use-proc_create-to-setup-de-proc_fops fs/nfs/client.c
---- a/fs/nfs/client.c~nfs-use-proc_create-to-setup-de-proc_fops
-+++ a/fs/nfs/client.c
-@@ -1321,6 +1321,7 @@ static const struct file_operations nfs_
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
- 	.release	= seq_release,
-+	.owner		= THIS_MODULE,
- };
- 
- static int nfs_volume_list_open(struct inode *inode, struct file *file);
-@@ -1341,6 +1342,7 @@ static const struct file_operations nfs_
- 	.read		= seq_read,
- 	.llseek		= seq_lseek,
- 	.release	= seq_release,
-+	.owner		= THIS_MODULE,
- };
- 
- /*
-@@ -1507,20 +1509,16 @@ int __init nfs_fs_proc_init(void)
- 	proc_fs_nfs->owner = THIS_MODULE;
- 
- 	/* a file of servers with which we're dealing */
--	p = create_proc_entry("servers", S_IFREG|S_IRUGO, proc_fs_nfs);
-+	p = proc_create("servers", S_IFREG|S_IRUGO,
-+			proc_fs_nfs, &nfs_server_list_fops);
- 	if (!p)
- 		goto error_1;
- 
--	p->proc_fops = &nfs_server_list_fops;
--	p->owner = THIS_MODULE;
+diff -puN arch/mips/basler/excite/excite_procfs.c~proc-switch-proc-excite-unit_id-to-seq_file-interface arch/mips/basler/excite/excite_procfs.c
+--- a/arch/mips/basler/excite/excite_procfs.c~proc-switch-proc-excite-unit_id-to-seq_file-interface
++++ a/arch/mips/basler/excite/excite_procfs.c
+@@ -18,8 +18,9 @@
+  *  along with this program; if not, write to the Free Software
+  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
 -
- 	/* a file of volumes that we have mounted */
--	p = create_proc_entry("volumes", S_IFREG|S_IRUGO, proc_fs_nfs);
-+	p = proc_create("volumes", S_IFREG|S_IRUGO,
-+			proc_fs_nfs, &nfs_volume_list_fops);
- 	if (!p)
- 		goto error_2;
--
--	p->proc_fops = &nfs_volume_list_fops;
--	p->owner = THIS_MODULE;
- 	return 0;
++#include <linux/module.h>
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ #include <linux/stat.h>
+ #include <asm/page.h>
+ #include <asm/io.h>
+@@ -28,14 +29,25 @@
  
- error_2:
+ #include <excite.h>
+ 
+-static int excite_get_unit_id(char *buf, char **addr, off_t offs, int size)
++static int excite_unit_id_proc_show(struct seq_file *m, void *v)
+ {
+-	const int len = snprintf(buf, PAGE_SIZE, "%06x", unit_id);
+-	const int w = len - offs;
+-	*addr = buf + offs;
+-	return w < size ? w : size;
++	seq_printf(m, "%06x", unit_id);
++	return 0;
+ }
+ 
++static int excite_unit_id_proc_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, excite_unit_id_proc_show, NULL);
++}
++
++static const struct file_operations excite_unit_id_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= excite_unit_id_proc_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
+ static int
+ excite_bootrom_read(char *page, char **start, off_t off, int count,
+ 		  int *eof, void *data)
+@@ -69,8 +81,8 @@ void excite_procfs_init(void)
+ 	if (pdir) {
+ 		struct proc_dir_entry * e;
+ 
+-		e = create_proc_info_entry("unit_id", S_IRUGO, pdir,
+-					   excite_get_unit_id);
++		e = proc_create("unit_id", S_IRUGO, pdir,
++				&excite_unit_id_proc_fops);
+ 		if (e) e->size = 6;
+ 
+ 		e = create_proc_read_entry("bootrom", S_IRUGO, pdir,
 _
 
-Patches currently in -mm which might be from den@openvz.org are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-drivers-use-non-racy-method-for-proc-entries-creation-2-rio.patch
-sunrpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-netfilter-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-net-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-ipv6-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-atm-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-vlan-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-cciss-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-powerpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-ipv4-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-netfilter-assign-pde-fops-before-gluing-pde-into-proc-tree.patch
-netfilter-assign-pde-data-before-gluing-pde-into-proc-tree-2.patch
-netns-assign-pde-data-before-gluing-entry-into-proc-tree.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+single_open-seq_release-leak-diagnostics.patch
 
