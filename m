@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + md-make-dm_dirty_log_initexit-static.patch added to -mm tree
-Date: Tue, 29 Apr 2008 17:00:01 -0700
-Message-ID: <200804300000.m3U001ix016886@imap1.linux-foundation.org>
+Subject: + usb-storage-onetouchc-make-a-function-static.patch added to -mm tree
+Date: Tue, 29 Apr 2008 17:01:02 -0700
+Message-ID: <200804300001.m3U012gK016941@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57086 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41261 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753167AbYD3AAt (ORCPT
+	by vger.kernel.org with ESMTP id S1752584AbYD3ABu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 20:00:49 -0400
+	Tue, 29 Apr 2008 20:01:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: bunk@kernel.org
 
 
 The patch titled
-     md: make dm_dirty_log_{init,exit}() static
+     usb/storage/onetouch.c: make a function static
 has been added to the -mm tree.  Its filename is
-     md-make-dm_dirty_log_initexit-static.patch
+     usb-storage-onetouchc-make-a-function-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,55 +34,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: md: make dm_dirty_log_{init,exit}() static
+Subject: usb/storage/onetouch.c: make a function static
 From: Adrian Bunk <bunk@kernel.org>
 
-dm_dirty_log_{init,exit}() can now become static.
+Make the needlessly global onetouch_release_input() static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/dm-log.c |    4 ++--
- drivers/md/dm.h     |    6 ------
- 2 files changed, 2 insertions(+), 8 deletions(-)
+ drivers/usb/storage/onetouch.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/md/dm-log.c~md-make-dm_dirty_log_initexit-static drivers/md/dm-log.c
---- a/drivers/md/dm-log.c~md-make-dm_dirty_log_initexit-static
-+++ a/drivers/md/dm-log.c
-@@ -831,7 +831,7 @@ static struct dm_dirty_log_type _disk_ty
- 	.status = disk_status,
- };
+diff -puN drivers/usb/storage/onetouch.c~usb-storage-onetouchc-make-a-function-static drivers/usb/storage/onetouch.c
+--- a/drivers/usb/storage/onetouch.c~usb-storage-onetouchc-make-a-function-static
++++ a/drivers/usb/storage/onetouch.c
+@@ -38,7 +38,7 @@
+ #include "onetouch.h"
+ #include "debug.h"
  
--int __init dm_dirty_log_init(void)
-+static int __init dm_dirty_log_init(void)
- {
- 	int r;
+-void onetouch_release_input(void *onetouch_);
++static void onetouch_release_input(void *onetouch_);
  
-@@ -848,7 +848,7 @@ int __init dm_dirty_log_init(void)
- 	return r;
+ struct usb_onetouch {
+ 	char name[128];
+@@ -223,7 +223,7 @@ int onetouch_connect_input(struct us_dat
+ 	return error;
  }
  
--void __exit dm_dirty_log_exit(void)
-+static void __exit dm_dirty_log_exit(void)
+-void onetouch_release_input(void *onetouch_)
++static void onetouch_release_input(void *onetouch_)
  {
- 	dm_dirty_log_type_unregister(&_disk_type);
- 	dm_dirty_log_type_unregister(&_core_type);
-diff -puN drivers/md/dm.h~md-make-dm_dirty_log_initexit-static drivers/md/dm.h
---- a/drivers/md/dm.h~md-make-dm_dirty_log_initexit-static
-+++ a/drivers/md/dm.h
-@@ -100,12 +100,6 @@ int dm_lock_for_deletion(struct mapped_d
- 
- void dm_kobject_uevent(struct mapped_device *md);
- 
--/*
-- * Dirty log
-- */
--int dm_dirty_log_init(void);
--void dm_dirty_log_exit(void);
--
- int dm_kcopyd_init(void);
- void dm_kcopyd_exit(void);
+ 	struct usb_onetouch *onetouch = (struct usb_onetouch *) onetouch_;
  
 _
 
@@ -121,6 +104,7 @@ block-blk-barrierc-blk_ordered_cur_seq-mustnt-be-inline.patch
 reiserfs-some-functions-mustnt-be-inline.patch
 git-acpi.patch
 arch-x86-video-fbdevc-add-module_license.patch
+md-make-dm_dirty_log_initexit-static.patch
 drm-make-drm_minors_cleanup-static.patch
 git-m32r.patch
 net-ipv4-ip_outputc-ip_send_check-mustnt-be-inline.patch
@@ -133,5 +117,5 @@ if-0-ses_match_host.patch
 git-watchdog.patch
 make-marker_debug-static.patch
 reiser4.patch
-md-make-dm_dirty_log_initexit-static.patch
+usb-storage-onetouchc-make-a-function-static.patch
 
