@@ -1,138 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-update-rename-div64_64-to-div64_u64-fix.patch removed from -mm tree
-Date: Wed, 30 Apr 2008 10:20:40 -0700
-Message-ID: <200804301720.m3UHKeIN025340@imap1.linux-foundation.org>
+Subject: - provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch removed from -mm tree
+Date: Wed, 30 Apr 2008 10:20:35 -0700
+Message-ID: <200804301720.m3UHKZnC025327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58038 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59836 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757951AbYD3RUn (ORCPT
+	by vger.kernel.org with ESMTP id S1757670AbYD3RUv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 13:20:43 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3UHKfrt023106
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 30 Apr 2008 10:20:42 -0700
+	Wed, 30 Apr 2008 13:20:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: jlim@sgi.com, rdunlap@xenotime.net, tglx@linutronix.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rename-div64_64-to-div64_u64-fix
+     Provide u64 version of jiffies_to_usecs() in kernel/tsacct.c
 has been removed from the -mm tree.  Its filename was
-     provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-update-rename-div64_64-to-div64_u64-fix.patch
+     provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rename-div64_64-to-div64_u64-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Provide u64 version of jiffies_to_usecs() in kernel/tsacct.c
+From: Jonathan Lim <jlim@sgi.com>
 
+It's possible that the values used in and returned from jiffies_to_usecs()
+are incorrect because of truncation when variables of type u64 are
+involved.  So a function specific to that type is used instead.
 
+This version implements a correction to jiffies_64_to_usecs() based on
+feedback from Randy Dunlap.
 
+Signed-off-by: Jonathan Lim <jlim@sgi.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/jiffies.h |    5 +++--
+ kernel/time.c           |    7 +++++++
+ kernel/tsacct.c         |    4 ++--
+ 3 files changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN kernel/time.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-update-rename-div64_64-to-div64_u64-fix kernel/time.c
---- a/kernel/time.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-update-rename-div64_64-to-div64_u64-fix
+diff -puN include/linux/jiffies.h~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc include/linux/jiffies.h
+--- a/include/linux/jiffies.h~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc
++++ a/include/linux/jiffies.h
+@@ -42,7 +42,7 @@
+ /* LATCH is used in the interval timer and ftape setup. */
+ #define LATCH  ((CLOCK_TICK_RATE + HZ/2) / HZ)	/* For divider */
+ 
+-/* Suppose we want to devide two numbers NOM and DEN: NOM/DEN, then we can
++/* Suppose we want to divide two numbers NOM and DEN: NOM/DEN, then we can
+  * improve accuracy by shifting LSH bits, hence calculating:
+  *     (NOM << LSH) / DEN
+  * This however means trouble for large NOM, because (NOM << LSH) may no
+@@ -220,7 +220,7 @@ extern unsigned long preset_lpj;
+  * operator if the result is a long long AND at least one of the
+  * operands is cast to long long (usually just prior to the "*" so as
+  * not to confuse it into thinking it really has a 64-bit operand,
+- * which, buy the way, it can do, but it takes more code and at least 2
++ * which, by the way, it can do, but it takes more code and at least 2
+  * mpys).
+ 
+  * We also need to be aware that one second in nanoseconds is only a
+@@ -285,6 +285,7 @@ extern unsigned long preset_lpj;
+  */
+ extern unsigned int jiffies_to_msecs(const unsigned long j);
+ extern unsigned int jiffies_to_usecs(const unsigned long j);
++extern u64 jiffies_64_to_usecs(const u64 j);
+ extern unsigned long msecs_to_jiffies(const unsigned int m);
+ extern unsigned long usecs_to_jiffies(const unsigned int u);
+ extern unsigned long timespec_to_jiffies(const struct timespec *value);
+diff -puN kernel/time.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc kernel/time.c
+--- a/kernel/time.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc
 +++ a/kernel/time.c
-@@ -276,7 +276,7 @@ u64 jiffies_64_to_usecs(const u64 j)
- # if BITS_PER_LONG == 32
- 	return ((u64)HZ_TO_USEC_MUL32 * j) >> HZ_TO_USEC_SHR32;
- # else
--	return div64_64(j*HZ_TO_USEC_NUM + HZ_TO_USEC_DEN-1, HZ_TO_USEC_DEN);
-+	return div64_u64(j*HZ_TO_USEC_NUM + HZ_TO_USEC_DEN-1, HZ_TO_USEC_DEN);
- # endif
+@@ -40,6 +40,7 @@
+ 
+ #include <asm/uaccess.h>
+ #include <asm/unistd.h>
++#include <asm/div64.h>
+ 
+ #include "timeconst.h"
+ 
+@@ -270,6 +271,12 @@ unsigned int inline jiffies_to_usecs(con
  }
- EXPORT_SYMBOL(jiffies_64_to_usecs);
+ EXPORT_SYMBOL(jiffies_to_usecs);
+ 
++u64 jiffies_64_to_usecs(const u64 j)
++{
++	return div64_64(j*HZ_TO_USEC_NUM + HZ_TO_USEC_DEN-1, HZ_TO_USEC_DEN);
++}
++EXPORT_SYMBOL(jiffies_64_to_usecs);
++
+ /**
+  * timespec_trunc - Truncate timespec to a granularity
+  * @t: Timespec
+diff -puN kernel/tsacct.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc kernel/tsacct.c
+--- a/kernel/tsacct.c~provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc
++++ a/kernel/tsacct.c
+@@ -85,8 +85,8 @@ void xacct_add_tsk(struct taskstats *sta
+ 	struct mm_struct *mm;
+ 
+ 	/* convert pages-jiffies to Mbyte-usec */
+-	stats->coremem = jiffies_to_usecs(p->acct_rss_mem1) * PAGE_SIZE / MB;
+-	stats->virtmem = jiffies_to_usecs(p->acct_vm_mem1) * PAGE_SIZE / MB;
++	stats->coremem = jiffies_64_to_usecs(p->acct_rss_mem1) * PAGE_SIZE / MB;
++	stats->virtmem = jiffies_64_to_usecs(p->acct_vm_mem1) * PAGE_SIZE / MB;
+ 	mm = get_task_mm(p);
+ 	if (mm) {
+ 		/* adjust to KB unit */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jlim@sgi.com are
 
-origin.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-isicom-bring-into-coding-style.patch
-tty-the-big-operations-rework.patch
-devpts-factor-out-pty-index-allocation.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-fuse-fix-race-in-llseek.patch
-basic-braille-screen-reader-support.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-revert-memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-disable-the-memory-controller-by-default-v3.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
-git-arm-fixup.patch
-cifs-suppress-warning.patch
-devres-support-addresses-greater-than-an-unsigned-long-via-dev_ioremap-checkpatch-fixes.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed.patch
-drivers-media-video-tuner-corec-tuner_probe-fix-error-check.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-hwmon.patch
-provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-update-rename-div64_64-to-div64_u64-fix.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-kvm.patch
-pata_atiixp-simplex-clear.patch
-git-m32r.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-sched-add-debug-checks-to-idle-functions.patch
-drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
-add-rcu_assign_index-if-ever-needed.patch
-git-scsi-misc.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-aic79xx_core-remove-ascii-art.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-ext4-is-busted-on-m68k.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
-add-warn_on_secs-macro.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-x86-ioremap-add-checks-for-virtual-addresses-fix.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+use-find_task_by_vpid-in-taskstats.patch
+provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc.patch
+provide-u64-version-of-jiffies_to_usecs-in-kernel-tsacctc-update.patch
 
