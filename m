@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ipv6-to-intel-etherexpress-16-fails-multicast-problems.patch added to -mm tree
-Date: Wed, 30 Apr 2008 05:15:43 -0700
-Message-ID: <200804301215.m3UCFhF8012937@imap1.linux-foundation.org>
+Subject: + mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch added to -mm tree
+Date: Wed, 30 Apr 2008 05:21:07 -0700
+Message-ID: <200804301221.m3UCL7hw013186@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38042 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51128 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751682AbYD3MQV (ORCPT
+	by vger.kernel.org with ESMTP id S1754174AbYD3MWQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 08:16:21 -0400
+	Wed, 30 Apr 2008 08:22:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bns_robson@hotmail.com, jeff@garzik.org
+Cc: mel@csn.ul.ie, apw@shadowen.org, clameter@sgi.com, mingo@elte.hu
 
 
 The patch titled
-     IPv6 to Intel EtherExpress 16 fails - multicast problems
+     Fix for memory initialisation debugging framework
 has been added to the -mm tree.  Its filename is
-     ipv6-to-intel-etherexpress-16-fails-multicast-problems.patch
+     mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,95 +34,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: IPv6 to Intel EtherExpress 16 fails - multicast problems
-From: Bruce Robson <bns_robson@hotmail.com>
+Subject: Fix for memory initialisation debugging framework
+From: Mel Gorman <mel@csn.ul.ie>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=10577
+This patch is a fix to
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch pointed out
+by an off-list reviewer. The intention of the code was to change the printk
+loglevel depending on the message level passed to mminit_dprintk(). What
+actually happens is that for MMINIT_WARNING and levels, only the loglevel
+is sent to printk() and not the message. This patch fixes the code to behave
+as intended.
 
-I was unable to access a computer containing an Intel EtherExpress 16 network
-card using IPv6.
+It can be folded safely into
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch without
+causing collisions later in the set.
 
-I traced this to failure of neighbour discovery.  When I used an "ip -6 neigh
-add" command, on the computer attempting access, to insert a binding between
-the IPv6 address of the computer with the Intel EtherExpress 16 network card
-and the card's ethernet address, I was able to access that computer using
-IPv6.
-
-Neighbour discovery requires working multicast.  The driver sources file
-eexpress.c contains an approximately 30 line function eexp_setup_filter used
-when loading multicast addresses.
-
-I found 3 problems in this function
-
-1) It wrote the number of multicast addresses to the card instead of the
-    number of bytes in the multicast addresses.
-
-2) When loading multiple multicast addresses it loaded the first one
-    provided multiple times instead of loading each one once.
-
-3) The setting of pointer 'data' from 'dmi->dmi_addr' occured before the
-    test for the error situation of 'dmi' being NULL.
-
-Correcting these problems allows the computer with the Intel EtherExpress 16
-network card to found by IPv6 neighbour discovery.
-
-p.s. There is some information on the Intel EtherExpress 16 at
-http://www.intel.com/support/etherexpress/vintage/sb/cs-013500.htm
-Datasheet for the Intel 82586 ethernet controller used by the card
-http://www.datasheetcatalog.com/datasheets_pdf/8/2/5/8/82586.shtml
-
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/eexpress.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/internal.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/eexpress.c~ipv6-to-intel-etherexpress-16-fails-multicast-problems drivers/net/eexpress.c
---- a/drivers/net/eexpress.c~ipv6-to-intel-etherexpress-16-fails-multicast-problems
-+++ a/drivers/net/eexpress.c
-@@ -202,7 +202,7 @@ static unsigned short start_code[] = {
- 	0x0000,Cmd_MCast,
- 	0x0076,                 /* link to next command */
- #define CONF_NR_MULTICAST 0x44
--	0x0000,                 /* number of multicast addresses */
-+	0x0000,                 /* number of bytes in multicast address(es) */
- #define CONF_MULTICAST 0x46
- 	0x0000, 0x0000, 0x0000, /* some addresses */
- 	0x0000, 0x0000, 0x0000,
-@@ -1569,7 +1569,7 @@ static void eexp_hw_init586(struct net_d
+diff -puN mm/internal.h~mm-add-a-basic-debugging-framework-for-memory-initialisation-fix mm/internal.h
+--- a/mm/internal.h~mm-add-a-basic-debugging-framework-for-memory-initialisation-fix
++++ a/mm/internal.h
+@@ -73,8 +73,8 @@ extern int mminit_loglevel;
+ #define mminit_dprintk(level, prefix, fmt, arg...) \
+ do { \
+ 	if (level < mminit_loglevel) { \
+-		printk(level <= MMINIT_WARNING ? KERN_WARNING : KERN_DEBUG \
+-			"mminit:: " prefix " " fmt, ##arg); \
++		printk(level <= MMINIT_WARNING ? KERN_WARNING : KERN_DEBUG); \
++		printk(KERN_CONT "mminit::" prefix " " fmt, ##arg); \
+ 	} \
+ } while (0)
  
- static void eexp_setup_filter(struct net_device *dev)
- {
--	struct dev_mc_list *dmi = dev->mc_list;
-+	struct dev_mc_list *dmi;
- 	unsigned short ioaddr = dev->base_addr;
- 	int count = dev->mc_count;
- 	int i;
-@@ -1580,9 +1580,9 @@ static void eexp_setup_filter(struct net
- 	}
- 
- 	outw(CONF_NR_MULTICAST & ~31, ioaddr+SM_PTR);
--	outw(count, ioaddr+SHADOW(CONF_NR_MULTICAST));
--	for (i = 0; i < count; i++) {
--		unsigned short *data = (unsigned short *)dmi->dmi_addr;
-+	outw(6*count, ioaddr+SHADOW(CONF_NR_MULTICAST));
-+	for (i = 0, dmi = dev->mc_list; i < count; i++, dmi = dmi->next) {
-+		unsigned short *data;
- 		if (!dmi) {
- 			printk(KERN_INFO "%s: too few multicast addresses\n", dev->name);
- 			break;
-@@ -1591,6 +1591,7 @@ static void eexp_setup_filter(struct net
- 			printk(KERN_INFO "%s: invalid multicast address length given.\n", dev->name);
- 			continue;
- 		}
-+		data = (unsigned short *)dmi->dmi_addr;
- 		outw((CONF_MULTICAST+(6*i)) & ~31, ioaddr+SM_PTR);
- 		outw(data[0], ioaddr+SHADOW(CONF_MULTICAST+(6*i)));
- 		outw((CONF_MULTICAST+(6*i)+2) & ~31, ioaddr+SM_PTR);
 _
 
-Patches currently in -mm which might be from bns_robson@hotmail.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
-ipv6-to-intel-etherexpress-16-fails-multicast-problems.patch
+origin.patch
+proc-pagetypeinfo-fix-output-for-memoryless-nodes.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
