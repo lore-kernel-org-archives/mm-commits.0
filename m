@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + usb-storage-onetouchc-make-a-function-static.patch added to -mm tree
-Date: Tue, 29 Apr 2008 17:01:02 -0700
-Message-ID: <200804300001.m3U012gK016941@imap1.linux-foundation.org>
+Subject: + xen-drivers-xen-balloonc-make-a-function-static.patch added to -mm tree
+Date: Tue, 29 Apr 2008 17:03:02 -0700
+Message-ID: <200804300003.m3U032GT017048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41261 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752584AbYD3ABu (ORCPT
+	by vger.kernel.org with ESMTP id S1753845AbYD3AD7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 20:01:50 -0400
+	Tue, 29 Apr 2008 20:03:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, chrisw@sous-sol.org
 
 
 The patch titled
-     usb/storage/onetouch.c: make a function static
+     xen: drivers/xen/balloon.c: make a function static
 has been added to the -mm tree.  Its filename is
-     usb-storage-onetouchc-make-a-function-static.patch
+     xen-drivers-xen-balloonc-make-a-function-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb/storage/onetouch.c: make a function static
+Subject: xen: drivers/xen/balloon.c: make a function static
 From: Adrian Bunk <bunk@kernel.org>
 
-Make the needlessly global onetouch_release_input() static.
+Make the needlessly global balloon_set_new_target() static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Chris Wright <chrisw@sous-sol.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/storage/onetouch.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/xen/balloon.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/storage/onetouch.c~usb-storage-onetouchc-make-a-function-static drivers/usb/storage/onetouch.c
---- a/drivers/usb/storage/onetouch.c~usb-storage-onetouchc-make-a-function-static
-+++ a/drivers/usb/storage/onetouch.c
-@@ -38,7 +38,7 @@
- #include "onetouch.h"
- #include "debug.h"
- 
--void onetouch_release_input(void *onetouch_);
-+static void onetouch_release_input(void *onetouch_);
- 
- struct usb_onetouch {
- 	char name[128];
-@@ -223,7 +223,7 @@ int onetouch_connect_input(struct us_dat
- 	return error;
+diff -puN drivers/xen/balloon.c~xen-drivers-xen-balloonc-make-a-function-static drivers/xen/balloon.c
+--- a/drivers/xen/balloon.c~xen-drivers-xen-balloonc-make-a-function-static
++++ a/drivers/xen/balloon.c
+@@ -368,7 +368,7 @@ static void balloon_process(struct work_
  }
  
--void onetouch_release_input(void *onetouch_)
-+static void onetouch_release_input(void *onetouch_)
+ /* Resets the Xen limit, sets new target, and kicks off processing. */
+-void balloon_set_new_target(unsigned long target)
++static void balloon_set_new_target(unsigned long target)
  {
- 	struct usb_onetouch *onetouch = (struct usb_onetouch *) onetouch_;
- 
+ 	/* No need for lock. Not read-modify-write updates. */
+ 	balloon_stats.hard_limit   = ~0UL;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
@@ -114,8 +106,9 @@ git-pci.patch
 show_schedstat-fix-memleak.patch
 git-sh.patch
 if-0-ses_match_host.patch
+usb-storage-onetouchc-make-a-function-static.patch
 git-watchdog.patch
 make-marker_debug-static.patch
 reiser4.patch
-usb-storage-onetouchc-make-a-function-static.patch
+xen-drivers-xen-balloonc-make-a-function-static.patch
 
