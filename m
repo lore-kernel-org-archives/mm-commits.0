@@ -1,154 +1,181 @@
 From: akpm@linux-foundation.org
-Subject: - keys-increase-the-payload-size-when-instantiating-a-key.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:45:13 -0700
-Message-ID: <200804300545.m3U5jDVA029485@imap1.linux-foundation.org>
+Subject: - proc-remove-proc_root_driver.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:45:59 -0700
+Message-ID: <200804300545.m3U5jxSE029561@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43710 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58021 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756688AbYD3Fq3 (ORCPT
+	by vger.kernel.org with ESMTP id S1756905AbYD3Fqb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:46:29 -0400
+	Wed, 30 Apr 2008 01:46:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dhowells@redhat.com, chrisw@sous-sol.org, jmorris@namei.org, kwc@citi.umich.edu, paul.moore@hp.com, sds@tycho.nsa.gov, sfrench@us.ibm.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     keys: increase the payload size when instantiating a key
+     proc: remove proc_root_driver
 has been removed from the -mm tree.  Its filename was
-     keys-increase-the-payload-size-when-instantiating-a-key.patch
+     proc-remove-proc_root_driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: keys: increase the payload size when instantiating a key
-From: David Howells <dhowells@redhat.com>
+Subject: proc: remove proc_root_driver
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-Increase the size of a payload that can be used to instantiate a key in
-add_key() and keyctl_instantiate_key().  This permits huge CIFS SPNEGO blobs
-to be passed around.  The limit is raised to 1MB.  If kmalloc() can't allocate
-a buffer of sufficient size, vmalloc() will be tried instead.
+Use creation by full path: "driver/foo".
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-Cc: Paul Moore <paul.moore@hp.com>
-Cc: Chris Wright <chrisw@sous-sol.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
-Cc: James Morris <jmorris@namei.org>
-Cc: Kevin Coffman <kwc@citi.umich.edu>
-Cc: Steven French <sfrench@us.ibm.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/keys/keyctl.c |   38 ++++++++++++++++++++++++++++++--------
- 1 file changed, 30 insertions(+), 8 deletions(-)
+ drivers/block/cciss.c       |    4 ++--
+ drivers/block/cpqarray.c    |    4 ++--
+ drivers/block/pktcdvd.c     |    4 ++--
+ drivers/net/wireless/airo.c |    8 ++++----
+ fs/proc/root.c              |    5 +----
+ include/linux/proc_fs.h     |    3 ---
+ 6 files changed, 11 insertions(+), 17 deletions(-)
 
-diff -puN security/keys/keyctl.c~keys-increase-the-payload-size-when-instantiating-a-key security/keys/keyctl.c
---- a/security/keys/keyctl.c~keys-increase-the-payload-size-when-instantiating-a-key
-+++ a/security/keys/keyctl.c
-@@ -19,6 +19,7 @@
- #include <linux/capability.h>
- #include <linux/string.h>
- #include <linux/err.h>
-+#include <linux/vmalloc.h>
- #include <asm/uaccess.h>
- #include "internal.h"
+diff -puN drivers/block/cciss.c~proc-remove-proc_root_driver drivers/block/cciss.c
+--- a/drivers/block/cciss.c~proc-remove-proc_root_driver
++++ a/drivers/block/cciss.c
+@@ -425,7 +425,7 @@ static void __devinit cciss_procinit(int
+ 	struct proc_dir_entry *pde;
  
-@@ -62,9 +63,10 @@ asmlinkage long sys_add_key(const char _
- 	char type[32], *description;
- 	void *payload;
- 	long ret;
-+	bool vm;
+ 	if (proc_cciss == NULL)
+-		proc_cciss = proc_mkdir("cciss", proc_root_driver);
++		proc_cciss = proc_mkdir("driver/cciss", NULL);
+ 	if (!proc_cciss)
+ 		return;
+ 	pde = proc_create(hba[i]->devname, S_IWUSR | S_IRUSR | S_IRGRP |
+@@ -3700,7 +3700,7 @@ static void __exit cciss_cleanup(void)
+ 			cciss_remove_one(hba[i]->pdev);
+ 		}
+ 	}
+-	remove_proc_entry("cciss", proc_root_driver);
++	remove_proc_entry("driver/cciss", NULL);
+ }
  
- 	ret = -EINVAL;
--	if (plen > 32767)
-+	if (plen > 1024 * 1024 - 1)
- 		goto error;
- 
- 	/* draw all the data into kernel space */
-@@ -81,11 +83,18 @@ asmlinkage long sys_add_key(const char _
- 	/* pull the payload in if one was supplied */
- 	payload = NULL;
- 
-+	vm = false;
- 	if (_payload) {
- 		ret = -ENOMEM;
- 		payload = kmalloc(plen, GFP_KERNEL);
--		if (!payload)
--			goto error2;
-+		if (!payload) {
-+			if (plen <= PAGE_SIZE)
-+				goto error2;
-+			vm = true;
-+			payload = vmalloc(plen);
-+			if (!payload)
-+				goto error2;
-+		}
- 
- 		ret = -EFAULT;
- 		if (copy_from_user(payload, _payload, plen) != 0)
-@@ -113,7 +122,10 @@ asmlinkage long sys_add_key(const char _
- 
- 	key_ref_put(keyring_ref);
-  error3:
--	kfree(payload);
-+	if (!vm)
-+		kfree(payload);
-+	else
-+		vfree(payload);
-  error2:
- 	kfree(description);
-  error:
-@@ -821,9 +833,10 @@ long keyctl_instantiate_key(key_serial_t
- 	key_ref_t keyring_ref;
- 	void *payload;
- 	long ret;
-+	bool vm = false;
- 
- 	ret = -EINVAL;
--	if (plen > 32767)
-+	if (plen > 1024 * 1024 - 1)
- 		goto error;
- 
- 	/* the appropriate instantiation authorisation key must have been
-@@ -843,8 +856,14 @@ long keyctl_instantiate_key(key_serial_t
- 	if (_payload) {
- 		ret = -ENOMEM;
- 		payload = kmalloc(plen, GFP_KERNEL);
--		if (!payload)
--			goto error;
-+		if (!payload) {
-+			if (plen <= PAGE_SIZE)
-+				goto error;
-+			vm = true;
-+			payload = vmalloc(plen);
-+			if (!payload)
-+				goto error;
-+		}
- 
- 		ret = -EFAULT;
- 		if (copy_from_user(payload, _payload, plen) != 0)
-@@ -877,7 +896,10 @@ long keyctl_instantiate_key(key_serial_t
+ static void fail_all_cmds(unsigned long ctlr)
+diff -puN drivers/block/cpqarray.c~proc-remove-proc_root_driver drivers/block/cpqarray.c
+--- a/drivers/block/cpqarray.c~proc-remove-proc_root_driver
++++ a/drivers/block/cpqarray.c
+@@ -214,7 +214,7 @@ static struct proc_dir_entry *proc_array
+ static void __init ida_procinit(int i)
+ {
+ 	if (proc_array == NULL) {
+-		proc_array = proc_mkdir("cpqarray", proc_root_driver);
++		proc_array = proc_mkdir("driver/cpqarray", NULL);
+ 		if (!proc_array) return;
  	}
  
- error2:
--	kfree(payload);
-+	if (!vm)
-+		kfree(payload);
-+	else
-+		vfree(payload);
- error:
- 	return ret;
+@@ -1796,7 +1796,7 @@ static void __exit cpqarray_exit(void)
+ 		}
+ 	}
  
-_
-
-Patches currently in -mm which might be from dhowells@redhat.com are
-
-origin.patch
-git-unionfs.patch
-alloc_uid-cleanup.patch
-rename-div64_64-to-div64_u64.patch
-mutex-subsystem-synchro-test-module.patch
-
+-	remove_proc_entry("cpqarray", proc_root_driver);
++	remove_proc_entry("driver/cpqarray", NULL);
+ }
+ 
+ module_init(cpqarray_init)
+diff -puN drivers/block/pktcdvd.c~proc-remove-proc_root_driver drivers/block/pktcdvd.c
+--- a/drivers/block/pktcdvd.c~proc-remove-proc_root_driver
++++ a/drivers/block/pktcdvd.c
+@@ -3101,7 +3101,7 @@ static int __init pkt_init(void)
+ 		goto out_misc;
+ 	}
+ 
+-	pkt_proc = proc_mkdir(DRIVER_NAME, proc_root_driver);
++	pkt_proc = proc_mkdir("driver/"DRIVER_NAME, NULL);
+ 
+ 	return 0;
+ 
+@@ -3117,7 +3117,7 @@ out2:
+ 
+ static void __exit pkt_exit(void)
+ {
+-	remove_proc_entry(DRIVER_NAME, proc_root_driver);
++	remove_proc_entry("driver/"DRIVER_NAME, NULL);
+ 	misc_deregister(&pkt_misc);
+ 
+ 	pkt_debugfs_cleanup();
+diff -puN drivers/net/wireless/airo.c~proc-remove-proc_root_driver drivers/net/wireless/airo.c
+--- a/drivers/net/wireless/airo.c~proc-remove-proc_root_driver
++++ a/drivers/net/wireless/airo.c
+@@ -5625,9 +5625,9 @@ static int __init airo_init_module( void
+ 	int have_isa_dev = 0;
+ #endif
+ 
+-	airo_entry = create_proc_entry("aironet",
++	airo_entry = create_proc_entry("driver/aironet",
+ 				       S_IFDIR | airo_perm,
+-				       proc_root_driver);
++				       NULL);
+ 
+ 	if (airo_entry) {
+ 		airo_entry->uid = proc_uid;
+@@ -5651,7 +5651,7 @@ static int __init airo_init_module( void
+ 	airo_print_info("", "Finished probing for PCI adapters");
+ 
+ 	if (i) {
+-		remove_proc_entry("aironet", proc_root_driver);
++		remove_proc_entry("driver/aironet", NULL);
+ 		return i;
+ 	}
+ #endif
+@@ -5673,7 +5673,7 @@ static void __exit airo_cleanup_module( 
+ #ifdef CONFIG_PCI
+ 	pci_unregister_driver(&airo_driver);
+ #endif
+-	remove_proc_entry("aironet", proc_root_driver);
++	remove_proc_entry("driver/aironet", NULL);
+ }
+ 
+ /*
+diff -puN fs/proc/root.c~proc-remove-proc_root_driver fs/proc/root.c
+--- a/fs/proc/root.c~proc-remove-proc_root_driver
++++ a/fs/proc/root.c
+@@ -22,8 +22,6 @@
+ 
+ #include "internal.h"
+ 
+-struct proc_dir_entry *proc_root_driver;
+-
+ static int proc_test_super(struct super_block *sb, void *data)
+ {
+ 	return sb->s_fs_info == data;
+@@ -127,7 +125,7 @@ void __init proc_root_init(void)
+ 	proc_mkdir("sysvipc", NULL);
+ #endif
+ 	proc_mkdir("fs", NULL);
+-	proc_root_driver = proc_mkdir("driver", NULL);
++	proc_mkdir("driver", NULL);
+ 	proc_mkdir("fs/nfsd", NULL); /* somewhere for the nfsd filesystem to be mounted */
+ #if defined(CONFIG_SUN_OPENPROMFS) || defined(CONFIG_SUN_OPENPROMFS_MODULE)
+ 	/* just give it a mountpoint */
+@@ -235,4 +233,3 @@ EXPORT_SYMBOL(create_proc_entry);
+ EXPORT_SYMBOL(proc_create);
+ EXPORT_SYMBOL(remove_proc_entry);
+ EXPORT_SYMBOL(proc_root);
+-EXPORT_SYMBOL(proc_root_driver);
+diff -puN include/linux/proc_fs.h~proc-remove-proc_root_driver include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~proc-remove-proc_root_driver
++++ a/include/linux/proc_fs.h
+@@ -97,7 +97,6 @@ struct vmcore {
+ #ifdef CONFIG_PROC_FS
+ 
+ extern struct proc_dir_entry proc_root;
+-extern struct proc_dir_entry *proc_root_driver;
+ extern struct proc_dir_entry *proc_root_kcore;
+ 
+ extern spinlock_t proc_subdir_lock;
+@@ -211,8 +210,6 @@ extern void dup_mm_exe_file(struct mm_st
+ 
+ #else
+ 
+-#define proc_root_driver NULL
