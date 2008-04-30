@@ -1,70 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-media-build-fix-for-modular-builds.patch removed from -mm tree
-Date: Wed, 30 Apr 2008 04:56:37 -0700
-Message-ID: <200804301156.m3UBubjW012129@imap1.linux-foundation.org>
+Subject: + fix-drivers-media-common-tuners-build-bug.patch added to -mm tree
+Date: Wed, 30 Apr 2008 04:57:12 -0700
+Message-ID: <200804301157.m3UBvCM7012174@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46595 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36447 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757930AbYD3L53 (ORCPT
+	by vger.kernel.org with ESMTP id S1758172AbYD3L5k (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 07:57:29 -0400
+	Wed, 30 Apr 2008 07:57:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, mchehab@infradead.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mingo@elte.hu, mchehab@infradead.org, sam@ravnborg.org
 
 
 The patch titled
-     drivers/media build fix for modular builds
-has been removed from the -mm tree.  Its filename was
-     drivers-media-build-fix-for-modular-builds.patch
+     fix drivers/media/common/tuners/ build bug
+has been added to the -mm tree.  Its filename is
+     fix-drivers-media-common-tuners-build-bug.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media build fix for modular builds
+Subject: fix drivers/media/common/tuners/ build bug
 From: Ingo Molnar <mingo@elte.hu>
 
-fix allmodconfig build bug introduced in latest -git by commit 7c91f0624a9
-("V4L/DVB(7767): Move tuners to common/tuners"):
+x86.git randconfig testing found a build failure on latest -git:
 
-  LD      kernel/built-in.o
-  LD      drivers/built-in.o
-  ld: drivers/media/built-in.o: No such file: No such file or directory
+ drivers/built-in.o: In function `set_type':
+ tuner-core.c:(.text+0x2a9a26): undefined reference to `tea5761_attach'
+ tuner-core.c:(.text+0x2a9d05): undefined reference to `tda9887_attach'
+ tuner-core.c:(.text+0x2a9d51): undefined reference to `xc2028_attach'
+ tuner-core.c:(.text+0x2a9e22): undefined reference to `tda829x_attach'
+ tuner-core.c:(.text+0x2a9e3f): undefined reference to `microtune_attach'
+ drivers/built-in.o: In function `tuner_probe':
+ tuner-core.c:(.text+0x2aa18a): undefined reference to `tda829x_probe'
+ tuner-core.c:(.text+0x2aa302): undefined reference to `tea5761_autodetection'
 
-which happens if all media drivers are modular:
+with the following config:
 
-  http://redhat.com/~mingo/misc/config-Wed_Apr_30_09_24_48_CEST_2008.bad
+ http://redhat.com/~mingo/misc/config-Wed_Apr_30_10_21_40_CEST_2008.bad
 
-In that case there's no obj-y rule connecting all the built-in.o files and
-the link tree breaks.
+the problem is caused by the drivers/media/common/tuners/ subdirectory
+not being part of the kbuild hierarchy anymore, due to commit
+7c91f0624 ("V4L/DVB(7767): Move tuners to common/tuners").
 
-the fix is to add a guaranteed obj-y rule for the core vmlinux to build.
-(which results in an empty object file if all media drivers are modular)
+this seems similar to the problem also reported by Mike Galbraith.
 
 Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Acked-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/Makefile |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/common/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/Makefile~drivers-media-build-fix-for-modular-builds drivers/media/Makefile
---- a/drivers/media/Makefile~drivers-media-build-fix-for-modular-builds
-+++ a/drivers/media/Makefile
-@@ -2,6 +2,8 @@
- # Makefile for the kernel multimedia device drivers.
- #
+diff -puN drivers/media/common/Makefile~fix-drivers-media-common-tuners-build-bug drivers/media/common/Makefile
+--- a/drivers/media/common/Makefile~fix-drivers-media-common-tuners-build-bug
++++ a/drivers/media/common/Makefile
+@@ -2,6 +2,7 @@ saa7146-objs    := saa7146_i2c.o saa7146
+ saa7146_vv-objs := saa7146_fops.o saa7146_video.o saa7146_hlp.o saa7146_vbi.o
+ ir-common-objs  := ir-functions.o ir-keymaps.o
  
-+obj-y := common/
-+
- obj-$(CONFIG_VIDEO_MEDIA) += common/
- 
- # Since hybrid devices are here, should be compiled if DVB and/or V4L
++obj-y += tuners/
+ obj-$(CONFIG_VIDEO_SAA7146) += saa7146.o
+ obj-$(CONFIG_VIDEO_SAA7146_VV) += saa7146_vv.o
+ obj-$(CONFIG_VIDEO_IR) += ir-common.o
 _
 
 Patches currently in -mm which might be from mingo@elte.hu are
@@ -97,7 +111,7 @@ x86-ptrace-pebs-support-warning-fix.patch
 rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
 x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
 x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
-drivers-media-build-fix-for-modular-builds.patch
+fix-drivers-media-common-tuners-build-bug.patch
 git-kvm.patch
 git-sched.patch
 sched-add-debug-checks-to-idle-functions.patch
