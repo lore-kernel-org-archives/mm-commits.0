@@ -1,86 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-fix-race-in-llseek-fix.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 23:23:37 -0700
-Message-ID: <200804300623.m3U6NbV9031634@imap1.linux-foundation.org>
+Subject: - basic-braille-screen-reader-support-makefile-fix.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 23:24:23 -0700
+Message-ID: <200804300624.m3U6ONw2031672@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60546 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757229AbYD3GYL (ORCPT
+	by vger.kernel.org with ESMTP id S1758095AbYD3GZ1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:24:11 -0400
+	Wed, 30 Apr 2008 02:25:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: samuel.thibault@ens-lyon.org, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse-fix-race-in-llseek-fix
+     Basic braille screen reader support makefile fix
 has been removed from the -mm tree.  Its filename was
-     fuse-fix-race-in-llseek-fix.patch
+     basic-braille-screen-reader-support-makefile-fix.patch
 
-This patch was dropped because it was folded into fuse-fix-race-in-llseek.patch
+This patch was dropped because it was folded into basic-braille-screen-=
+reader-support.patch
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
+otm/
 
 ------------------------------------------------------
-Subject: fuse-fix-race-in-llseek-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Basic braille screen reader support makefile fix
+=46rom: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
-make `retval' loff_t
+Randy Dunlap, le Wed 19 Mar 2008 11:57:26 -0700, a =E9crit :
+> when O=3Ddir is used in make:
+>
+>   CC      drivers/accessibility/braille/braille_console.o
+> Assembler messages:
+> Fatal error: can't create drivers/accessibility/braille/braille_conso=
+le.o: No such file or directory
+>   CC      crypto/aes_generic.o
+> make[3]: *** [drivers/accessibility/braille/braille_console.o] Error =
+2
+> make[2]: *** [drivers/accessibility] Error 2
+> make[1]: *** [drivers] Error 2
 
-Cc: Miklos Szeredi <mszeredi@suse.cz>
+Oh, right, the patch below should fix it
+
+Properly recurse Makefiles into accessibility and accessibility/braille=
+/
+
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/accessibility/Makefile         |    2 +-
+ drivers/accessibility/braille/Makefile |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/fuse/file.c~fuse-fix-race-in-llseek-fix fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-fix-race-in-llseek-fix
-+++ a/fs/fuse/file.c
-@@ -1433,7 +1433,7 @@ static sector_t fuse_bmap(struct address
- 
- static loff_t fuse_file_llseek(struct file *file, loff_t offset, int origin)
- {
--	long long retval;
-+	loff_t retval;
- 	struct inode *inode = file->f_path.dentry->d_inode;
- 
- 	mutex_lock(&inode->i_mutex);
+diff -puN drivers/accessibility/Makefile~basic-braille-screen-reader-su=
+pport-makefile-fix drivers/accessibility/Makefile
+--- a/drivers/accessibility/Makefile~basic-braille-screen-reader-suppor=
+t-makefile-fix
++++ a/drivers/accessibility/Makefile
+@@ -1 +1 @@
+-obj-$(CONFIG_A11Y_BRAILLE_CONSOLE)		+=3D braille/braille_console.o
++obj-y				+=3D braille/
+diff -puN /dev/null drivers/accessibility/braille/Makefile
+--- /dev/null
++++ a/drivers/accessibility/braille/Makefile
+@@ -0,0 +1 @@
++obj-$(CONFIG_A11Y_BRAILLE_CONSOLE)		+=3D braille_console.o
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from samuel.thibault@ens-lyon.o=
+rg are
 
 origin.patch
-blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-isicom-bring-into-coding-style.patch
-tty-the-big-operations-rework.patch
-devpts-factor-out-pty-index-allocation.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-fuse-fix-race-in-llseek.patch
-fuse-fix-race-in-llseek-fix.patch
-basic-braille-screen-reader-support-ppc-fix.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-rename-div64_64-to-div64_u64-fix.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-x86-ioremap-add-checks-for-virtual-addresses-fix.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+consoles-switch-to-int-put_char-method.patch
+basic-braille-screen-reader-support.patch
+basic-braille-screen-reader-support-makefile-fix.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
