@@ -1,118 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - idr-create-idr_layer_cache-at-boot-time.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:48:37 -0700
-Message-ID: <200804300548.m3U5mbJe029894@imap1.linux-foundation.org>
+Subject: - edac-add-e752x-parameter-for-sysbus_parity-selection.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:48:41 -0700
+Message-ID: <200804300548.m3U5mfw9029900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45421 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49182 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758707AbYD3FtK (ORCPT
+	by vger.kernel.org with ESMTP id S1758704AbYD3FtQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:49:10 -0400
+	Wed, 30 Apr 2008 01:49:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akinobu.mita@gmail.com, mm-commits@vger.kernel.org
+To: ptyser@xes-inc.com, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     idr: create idr_layer_cache at boot time
+     edac: add e752x parameter for sysbus_parity selection
 has been removed from the -mm tree.  Its filename was
-     idr-create-idr_layer_cache-at-boot-time.patch
+     edac-add-e752x-parameter-for-sysbus_parity-selection.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: create idr_layer_cache at boot time
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Subject: edac: add e752x parameter for sysbus_parity selection
+From: Peter Tyser <ptyser@xes-inc.com>
 
-Avoid a possible kmem_cache_create() failure by creating idr_layer_cache
-unconditionary at boot time rather than creating it on-demand when idr_init()
-is called the first time.
+Add a module parameter "sysbus_parity" to allow forcing system bus parity
+error checking on or off.  Also add support to automatically disable system
+bus parity errors for processors which do not support it.
 
-This change also enables us to eliminate the check every time idr_init() is
-called.
+If the sysbus_parity parameter is specified, sysbus parity detection will be
+forced on or off.  If it is not specified, the driver will attempt to look at
+the CPU identifier string and determine if the CPU supports system bus parity.
+ A blacklist was used instead of a whitelist so that system bus parity would
+be enabled by default and to minimize the chances of breaking things for those
+people already using the driver which for some reason have a processor that
+does not have a valid CPU identifier string.
 
-[akpm@linux-foundation.org: rename init_id_cache() to idr_init_cache()]
-[akpm@linux-foundation.org: fix alpha build]
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+[akpm@linux-foundation.org: coding-style fixes]
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Signed-off-by: Peter Tyser <ptyser@xes-inc.com>
+Signed-off-by: Doug Thompson <dougthompson@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h |    3 +++
- init/main.c         |    2 ++
- lib/idr.c           |   10 ++++------
- 3 files changed, 9 insertions(+), 6 deletions(-)
+ drivers/edac/e752x_edac.c |   40 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 39 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/idr.h~idr-create-idr_layer_cache-at-boot-time include/linux/idr.h
---- a/include/linux/idr.h~idr-create-idr_layer_cache-at-boot-time
-+++ a/include/linux/idr.h
-@@ -14,6 +14,7 @@
+diff -puN drivers/edac/e752x_edac.c~edac-add-e752x-parameter-for-sysbus_parity-selection drivers/edac/e752x_edac.c
+--- a/drivers/edac/e752x_edac.c~edac-add-e752x-parameter-for-sysbus_parity-selection
++++ a/drivers/edac/e752x_edac.c
+@@ -29,6 +29,7 @@
+ #define EDAC_MOD_STR	"e752x_edac"
  
- #include <linux/types.h>
- #include <linux/bitops.h>
-+#include <linux/init.h>
+ static int force_function_unhide;
++static int sysbus_parity = -1;
  
- #if BITS_PER_LONG == 32
- # define IDR_BITS 5
-@@ -115,4 +116,6 @@ void ida_remove(struct ida *ida, int id)
- void ida_destroy(struct ida *ida);
- void ida_init(struct ida *ida);
+ static struct edac_pci_ctl_info *e752x_pci;
  
-+void __init idr_init_cache(void);
+@@ -1049,6 +1050,37 @@ fail:
+ 	return 1;
+ }
+ 
++/* Setup system bus parity mask register.
++ * Sysbus parity supported on:
++ *   e7320/e7520/e7525 + Xeon
++ *   i3100 + Xeon/Celeron
++ * Sysbus parity not supported on:
++ *   i3100 + Pentium M/Celeron M/Core Duo/Core2 Duo
++ */
++static void e752x_init_sysbus_parity_mask(struct e752x_pvt *pvt)
++{
++	char *cpu_id = cpu_data(0).x86_model_id;
++	struct pci_dev *dev = pvt->dev_d0f1;
++	int enable = 1;
 +
- #endif /* __IDR_H__ */
-diff -puN init/main.c~idr-create-idr_layer_cache-at-boot-time init/main.c
---- a/init/main.c~idr-create-idr_layer_cache-at-boot-time
-+++ a/init/main.c
-@@ -58,6 +58,7 @@
- #include <linux/kthread.h>
- #include <linux/sched.h>
- #include <linux/signal.h>
-+#include <linux/idr.h>
- 
- #include <asm/io.h>
- #include <asm/bugs.h>
-@@ -637,6 +638,7 @@ asmlinkage void __init start_kernel(void
- 	enable_debug_pagealloc();
- 	cpu_hotplug_init();
- 	kmem_cache_init();
-+	idr_init_cache();
- 	setup_per_cpu_pageset();
- 	numa_policy_init();
- 	if (late_time_init)
-diff -puN lib/idr.c~idr-create-idr_layer_cache-at-boot-time lib/idr.c
---- a/lib/idr.c~idr-create-idr_layer_cache-at-boot-time
-+++ a/lib/idr.c
-@@ -585,12 +585,11 @@ static void idr_cache_ctor(struct kmem_c
- 	memset(idr_layer, 0, sizeof(struct idr_layer));
- }
- 
--static  int init_id_cache(void)
-+void __init idr_init_cache(void)
++	/* Allow module paramter override, else see if CPU supports parity */
++	if (sysbus_parity != -1) {
++		enable = sysbus_parity;
++	} else if (cpu_id[0] &&
++		   ((strstr(cpu_id, "Pentium") && strstr(cpu_id, " M ")) ||
++		    (strstr(cpu_id, "Celeron") && strstr(cpu_id, " M ")) ||
++		    (strstr(cpu_id, "Core") && strstr(cpu_id, "Duo")))) {
++		e752x_printk(KERN_INFO, "System Bus Parity not "
++			     "supported by CPU, disabling\n");
++		enable = 0;
++	}
++
++	if (enable)
++		pci_write_config_word(dev, E752X_SYSBUS_ERRMASK, 0x0000);
++	else
++		pci_write_config_word(dev, E752X_SYSBUS_ERRMASK, 0x0309);
++}
++
+ static void e752x_init_error_reporting_regs(struct e752x_pvt *pvt)
  {
--	if (!idr_layer_cache)
--		idr_layer_cache = kmem_cache_create("idr_layer_cache",
--			sizeof(struct idr_layer), 0, 0, idr_cache_ctor);
--	return 0;
-+	idr_layer_cache = kmem_cache_create("idr_layer_cache",
-+				sizeof(struct idr_layer), 0, SLAB_PANIC,
-+				idr_cache_ctor);
- }
- 
- /**
-@@ -602,7 +601,6 @@ static  int init_id_cache(void)
-  */
- void idr_init(struct idr *idp)
- {
--	init_id_cache();
- 	memset(idp, 0, sizeof(struct idr));
- 	spin_lock_init(&idp->lock);
- }
+ 	struct pci_dev *dev;
+@@ -1062,7 +1094,9 @@ static void e752x_init_error_reporting_r
+ 		pci_write_config_byte(dev, E752X_HI_ERRMASK, 0x00);
+ 		pci_write_config_byte(dev, E752X_HI_SMICMD, 0x00);
+ 	}
+-	pci_write_config_word(dev, E752X_SYSBUS_ERRMASK, 0x00);
++
++	e752x_init_sysbus_parity_mask(pvt);
++
+ 	pci_write_config_word(dev, E752X_SYSBUS_SMICMD, 0x00);
+ 	pci_write_config_byte(dev, E752X_BUF_ERRMASK, 0x00);
+ 	pci_write_config_byte(dev, E752X_BUF_SMICMD, 0x00);
+@@ -1291,3 +1325,7 @@ MODULE_PARM_DESC(force_function_unhide, 
+ 		 " 1=force unhide and hope BIOS doesn't fight driver for Dev0:Fun1 access");
+ module_param(edac_op_state, int, 0444);
+ MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");
++
++module_param(sysbus_parity, int, 0444);
++MODULE_PARM_DESC(sysbus_parity, "0=disable system bus parity checking,"
++		" 1=enable system bus parity checking, default=auto-detect");
 _
 
-Patches currently in -mm which might be from akinobu.mita@gmail.com are
+Patches currently in -mm which might be from ptyser@xes-inc.com are
 
 origin.patch
 
