@@ -1,125 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: - edac-add-e752x-parameter-for-sysbus_parity-selection.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:48:41 -0700
-Message-ID: <200804300548.m3U5mfw9029900@imap1.linux-foundation.org>
+Subject: - random-make-mixing-interface-byte-oriented.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:48:25 -0700
+Message-ID: <200804300548.m3U5mPwv029882@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49182 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37948 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758704AbYD3FtQ (ORCPT
+	by vger.kernel.org with ESMTP id S1755452AbYD3FtU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:49:16 -0400
+	Wed, 30 Apr 2008 01:49:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ptyser@xes-inc.com, alan@lxorguk.ukuu.org.uk, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: mpm@selenic.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     edac: add e752x parameter for sysbus_parity selection
+     random: make mixing interface byte-oriented
 has been removed from the -mm tree.  Its filename was
-     edac-add-e752x-parameter-for-sysbus_parity-selection.patch
+     random-make-mixing-interface-byte-oriented.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: edac: add e752x parameter for sysbus_parity selection
-From: Peter Tyser <ptyser@xes-inc.com>
+Subject: random: make mixing interface byte-oriented
+From: Matt Mackall <mpm@selenic.com>
 
-Add a module parameter "sysbus_parity" to allow forcing system bus parity
-error checking on or off.  Also add support to automatically disable system
-bus parity errors for processors which do not support it.
+Switch add_entropy_words to a byte-oriented interface, eliminating numerous
+casts and byte/word size rounding issues.  This also reduces the overall
+bit/byte/word confusion in this code.
 
-If the sysbus_parity parameter is specified, sysbus parity detection will be
-forced on or off.  If it is not specified, the driver will attempt to look at
-the CPU identifier string and determine if the CPU supports system bus parity.
- A blacklist was used instead of a whitelist so that system bus parity would
-be enabled by default and to minimize the chances of breaking things for those
-people already using the driver which for some reason have a processor that
-does not have a valid CPU identifier string.
+We now mix a byte at a time into the word-based pool.  This takes four times
+as many iterations, but should be negligible compared to hashing overhead. 
+This also increases our pool churn, which adds some depth against some
+theoretical failure modes.
 
-[akpm@linux-foundation.org: coding-style fixes]
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Signed-off-by: Peter Tyser <ptyser@xes-inc.com>
-Signed-off-by: Doug Thompson <dougthompson@xmission.com>
+The function name is changed to emphasize pool mixing and deemphasize entropy
+(the samples mixed in may not contain any).  extract is added to the core
+function to make it clear that it extracts from the pool.
+
+Signed-off-by: Matt Mackall <mpm@selenic.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/edac/e752x_edac.c |   40 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 39 insertions(+), 1 deletion(-)
+ drivers/char/random.c |   37 +++++++++++++++++++------------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
 
-diff -puN drivers/edac/e752x_edac.c~edac-add-e752x-parameter-for-sysbus_parity-selection drivers/edac/e752x_edac.c
---- a/drivers/edac/e752x_edac.c~edac-add-e752x-parameter-for-sysbus_parity-selection
-+++ a/drivers/edac/e752x_edac.c
-@@ -29,6 +29,7 @@
- #define EDAC_MOD_STR	"e752x_edac"
+diff -puN drivers/char/random.c~random-make-mixing-interface-byte-oriented drivers/char/random.c
+--- a/drivers/char/random.c~random-make-mixing-interface-byte-oriented
++++ a/drivers/char/random.c
+@@ -439,7 +439,7 @@ static struct entropy_store nonblocking_
+ };
  
- static int force_function_unhide;
-+static int sysbus_parity = -1;
+ /*
+- * This function adds a byte into the entropy "pool".  It does not
++ * This function adds bytes into the entropy "pool".  It does not
+  * update the entropy estimate.  The caller should call
+  * credit_entropy_store if this is appropriate.
+  *
+@@ -448,8 +448,8 @@ static struct entropy_store nonblocking_
+  * it's cheap to do so and helps slightly in the expected case where
+  * the entropy is concentrated in the low-order bits.
+  */
+-static void __add_entropy_words(struct entropy_store *r, const __u32 *in,
+-				int nwords, __u32 out[16])
++static void mix_pool_bytes_extract(struct entropy_store *r, const void *in,
++				   int nbytes, __u8 out[64])
+ {
+ 	static __u32 const twist_table[8] = {
+ 		0x00000000, 0x3b6e20c8, 0x76dc4190, 0x4db26158,
+@@ -457,6 +457,7 @@ static void __add_entropy_words(struct e
+ 	unsigned long i, j, tap1, tap2, tap3, tap4, tap5;
+ 	int input_rotate;
+ 	int wordmask = r->poolinfo->poolwords - 1;
++	const char *bytes = in;
+ 	__u32 w;
+ 	unsigned long flags;
  
- static struct edac_pci_ctl_info *e752x_pci;
+@@ -471,8 +472,9 @@ static void __add_entropy_words(struct e
+ 	input_rotate = r->input_rotate;
+ 	i = r->add_ptr;
  
-@@ -1049,6 +1050,37 @@ fail:
- 	return 1;
+-	while (nwords--) {
+-		w = rol32(*in++, input_rotate & 31);
++	/* mix one byte at a time to simplify size handling and churn faster */
++	while (nbytes--) {
++		w = rol32(*bytes++, input_rotate & 31);
+ 		i = (i - 1) & wordmask;
+ 
+ 		/* XOR in the various taps */
+@@ -500,15 +502,14 @@ static void __add_entropy_words(struct e
+ 
+ 	if (out)
+ 		for (j = 0; j < 16; j++)
+-			out[j] = r->pool[(i - j) & wordmask];
++			((__u32 *)out)[j] = r->pool[(i - j) & wordmask];
+ 
+ 	spin_unlock_irqrestore(&r->lock, flags);
  }
  
-+/* Setup system bus parity mask register.
-+ * Sysbus parity supported on:
-+ *   e7320/e7520/e7525 + Xeon
-+ *   i3100 + Xeon/Celeron
-+ * Sysbus parity not supported on:
-+ *   i3100 + Pentium M/Celeron M/Core Duo/Core2 Duo
-+ */
-+static void e752x_init_sysbus_parity_mask(struct e752x_pvt *pvt)
-+{
-+	char *cpu_id = cpu_data(0).x86_model_id;
-+	struct pci_dev *dev = pvt->dev_d0f1;
-+	int enable = 1;
-+
-+	/* Allow module paramter override, else see if CPU supports parity */
-+	if (sysbus_parity != -1) {
-+		enable = sysbus_parity;
-+	} else if (cpu_id[0] &&
-+		   ((strstr(cpu_id, "Pentium") && strstr(cpu_id, " M ")) ||
-+		    (strstr(cpu_id, "Celeron") && strstr(cpu_id, " M ")) ||
-+		    (strstr(cpu_id, "Core") && strstr(cpu_id, "Duo")))) {
-+		e752x_printk(KERN_INFO, "System Bus Parity not "
-+			     "supported by CPU, disabling\n");
-+		enable = 0;
-+	}
-+
-+	if (enable)
-+		pci_write_config_word(dev, E752X_SYSBUS_ERRMASK, 0x0000);
-+	else
-+		pci_write_config_word(dev, E752X_SYSBUS_ERRMASK, 0x0309);
-+}
-+
- static void e752x_init_error_reporting_regs(struct e752x_pvt *pvt)
+-static inline void add_entropy_words(struct entropy_store *r, const __u32 *in,
+-				     int nwords)
++static void mix_pool_bytes(struct entropy_store *r, const void *in, int bytes)
  {
- 	struct pci_dev *dev;
-@@ -1062,7 +1094,9 @@ static void e752x_init_error_reporting_r
- 		pci_write_config_byte(dev, E752X_HI_ERRMASK, 0x00);
- 		pci_write_config_byte(dev, E752X_HI_SMICMD, 0x00);
+-	__add_entropy_words(r, in, nwords, NULL);
++       mix_pool_bytes_extract(r, in, bytes, NULL);
+ }
+ 
+ /*
+@@ -584,7 +585,7 @@ static void add_timer_randomness(struct 
+ 	sample.jiffies = jiffies;
+ 	sample.cycles = get_cycles();
+ 	sample.num = num;
+-	add_entropy_words(&input_pool, (u32 *)&sample, sizeof(sample)/4);
++	mix_pool_bytes(&input_pool, &sample, sizeof(sample));
+ 
+ 	/*
+ 	 * Calculate number of bits of randomness we probably added.
+@@ -700,7 +701,7 @@ static void xfer_secondary_pool(struct e
+ 
+ 		bytes = extract_entropy(r->pull, tmp, bytes,
+ 					random_read_wakeup_thresh / 8, rsvd);
+-		add_entropy_words(r, tmp, (bytes + 3) / 4);
++		mix_pool_bytes(r, tmp, bytes);
+ 		credit_entropy_store(r, bytes*8);
  	}
--	pci_write_config_word(dev, E752X_SYSBUS_ERRMASK, 0x00);
-+
-+	e752x_init_sysbus_parity_mask(pvt);
-+
- 	pci_write_config_word(dev, E752X_SYSBUS_SMICMD, 0x00);
- 	pci_write_config_byte(dev, E752X_BUF_ERRMASK, 0x00);
- 	pci_write_config_byte(dev, E752X_BUF_SMICMD, 0x00);
-@@ -1291,3 +1325,7 @@ MODULE_PARM_DESC(force_function_unhide, 
- 		 " 1=force unhide and hope BIOS doesn't fight driver for Dev0:Fun1 access");
- module_param(edac_op_state, int, 0444);
- MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");
-+
-+module_param(sysbus_parity, int, 0444);
-+MODULE_PARM_DESC(sysbus_parity, "0=disable system bus parity checking,"
-+		" 1=enable system bus parity checking, default=auto-detect");
+ }
+@@ -758,7 +759,8 @@ static size_t account(struct entropy_sto
+ static void extract_buf(struct entropy_store *r, __u8 *out)
+ {
+ 	int i;
+-	__u32 extract[16], hash[5], workspace[SHA_WORKSPACE_WORDS];
++	__u32 hash[5], workspace[SHA_WORKSPACE_WORDS];
++	__u8 extract[64];
+ 
+ 	/* Generate a hash across the pool, 16 words (512 bits) at a time */
+ 	sha_init(hash);
+@@ -774,13 +776,13 @@ static void extract_buf(struct entropy_s
+ 	 * brute-forcing the feedback as hard as brute-forcing the
+ 	 * hash.
+ 	 */
+-	__add_entropy_words(r, hash, 5, extract);
++	mix_pool_bytes_extract(r, hash, sizeof(hash), extract);
+ 
+ 	/*
+ 	 * To avoid duplicates, we atomically extract a portion of the
+ 	 * pool while mixing, and hash one final time.
+ 	 */
+-	sha_transform(hash, (__u8 *)extract, workspace);
++	sha_transform(hash, extract, workspace);
+ 	memset(extract, 0, sizeof(extract));
+ 	memset(workspace, 0, sizeof(workspace));
+ 
+@@ -887,9 +889,8 @@ static void init_std_data(struct entropy
+ 	spin_unlock_irqrestore(&r->lock, flags);
+ 
+ 	now = ktime_get_real();
+-	add_entropy_words(r, (__u32 *)&now, sizeof(now)/4);
+-	add_entropy_words(r, (__u32 *)utsname(),
+-			  sizeof(*(utsname()))/4);
++	mix_pool_bytes(r, &now, sizeof(now));
++	mix_pool_bytes(r, utsname(), sizeof(*(utsname())));
+ }
+ 
+ static int rand_initialize(void)
+@@ -1030,7 +1031,7 @@ write_pool(struct entropy_store *r, cons
+ 		count -= bytes;
+ 		p += bytes;
+ 
+-		add_entropy_words(r, buf, (bytes + 3) / 4);
++		mix_pool_bytes(r, buf, bytes);
+ 		cond_resched();
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from ptyser@xes-inc.com are
+Patches currently in -mm which might be from mpm@selenic.com are
 
 origin.patch
 
