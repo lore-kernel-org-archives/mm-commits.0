@@ -1,66 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - random-reuse-rand_initialize.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:48:11 -0700
-Message-ID: <200804300548.m3U5mBHV029861@imap1.linux-foundation.org>
+Subject: - signals-do_tkill-dont-use-tasklist_lock-comment.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 23:07:16 -0700
+Message-ID: <200804300607.m3U67GIi030863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34087 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51954 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756605AbYD3GHh (ORCPT
+	by vger.kernel.org with ESMTP id S1751083AbYD3GIU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:07:37 -0400
+	Wed, 30 Apr 2008 02:08:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, hch@lst.de, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     random: reuse rand_initialize
+     signals-do_tkill-dont-use-tasklist_lock-comment
 has been removed from the -mm tree.  Its filename was
-     random-reuse-rand_initialize.patch
+     signals-do_tkill-dont-use-tasklist_lock-comment.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into signals-do_tkill-dont-use-tasklist_lock.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: reuse rand_initialize
-From: Matt Mackall <mpm@selenic.com>
+Subject: signals-do_tkill-dont-use-tasklist_lock-comment
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+On 03/07, Christoph Hellwig wrote:
+>
+> On Fri, Mar 07, 2008 at 12:58:13PM +0300, Oleg Nesterov wrote:
+> > Note that we don't return an error if lock_task_sighand() fails, we pretend the
+> > task dies after receiving the signal. Otherwise, we should fight with the nasty
+> > races with mt-exec without having any advantage.
+>
+> This should be mentioned in a comment in the code.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/signal.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/char/random.c~random-reuse-rand_initialize drivers/char/random.c
---- a/drivers/char/random.c~random-reuse-rand_initialize
-+++ a/drivers/char/random.c
-@@ -899,7 +899,7 @@ static void init_std_data(struct entropy
- 			  sizeof(*(utsname()))/4);
- }
- 
--static int __init rand_initialize(void)
-+static int rand_initialize(void)
- {
- 	init_std_data(&input_pool);
- 	init_std_data(&blocking_pool);
-@@ -1101,9 +1101,7 @@ static long random_ioctl(struct file *f,
- 		/* Clear the entropy pool counters. */
- 		if (!capable(CAP_SYS_ADMIN))
- 			return -EPERM;
--		init_std_data(&input_pool);
--		init_std_data(&blocking_pool);
--		init_std_data(&nonblocking_pool);
-+		rand_initialize();
- 		return 0;
- 	default:
- 		return -EINVAL;
+diff -puN kernel/signal.c~signals-do_tkill-dont-use-tasklist_lock-comment kernel/signal.c
+--- a/kernel/signal.c~signals-do_tkill-dont-use-tasklist_lock-comment
++++ a/kernel/signal.c
+@@ -2222,6 +2222,10 @@ static int do_tkill(int tgid, int pid, i
+ 		/*
+ 		 * The null signal is a permissions and process existence
+ 		 * probe.  No signal is actually delivered.
++		 *
++		 * If lock_task_sighand() fails we pretend the task dies
++		 * after receiving the signal. The window is tiny, and the
++		 * signal is private anyway.
+ 		 */
+ 		if (!error && sig && lock_task_sighand(p, &flags)) {
+ 			error = specific_send_sig_info(sig, &info, p);
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+signals-do_signal_stop-use-signal_group_exit.patch
+signals-do_group_exit-use-signal_group_exit-more-consistently.patch
+lock_task_sighand-add-rcu-lock-unlock.patch
+k_getrusage-dont-take-rcu_read_lock.patch
+do_task_stat-dont-take-rcu_read_lock.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-re-assign-cld_continued-notification-from-the-sender-to-reciever.patch
+kill_pid_info-dont-take-now-unneeded-tasklist_lock.patch
+handle_stop_signal-unify-partial-full-stop-handling.patch
+handle_stop_signal-use-the-cached-p-signal-value.patch
+get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
+signals-send_sigqueue-dont-take-rcu-lock.patch
+signals-send_sigqueue-dont-forget-about-handle_stop_signal.patch
+signals-__group_complete_signal-cache-the-value-of-p-signal.patch
+signals-send_group_sigqueue-dont-take-tasklist_lock.patch
+signals-move-handle_stop_signal-into-send_signal.patch
+signals-do_tkill-dont-use-tasklist_lock.patch
+signals-do_tkill-dont-use-tasklist_lock-comment.patch
+signals-send_sig_info-dont-take-tasklist_lock.patch
+signals-microoptimize-the-usage-of-curr_target.patch
+signals-move-the-definition-of-__group_complete_signal-up.patch
+signals-change-send_signal-do_send_sigqueue-to-take-boolean-group-parameter.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+signals-join-send_sigqueue-with-send_group_sigqueue.patch
+signals-handle_stop_signal-dont-worry-about-sigkill.patch
+signals-cleanup-the-usage-of-print_fatal_signal.patch
+signals-fold-sig_ignored-into-handle_stop_signal.patch
+signals-fold-sig_ignored-into-handle_stop_signal-comment.patch
+signals-document-cld_continued-notification-mechanics.patch
+signals-document-cld_continued-notification-mechanics-more.patch
+signals-send_signal-be-paranoid-about-signalfd_notify.patch
+signals-check_kill_permission-check-session-under-tasklist_lock.patch
+signals-check_kill_permission-remove-tasklist_lock.patch
+signals-fix-sbin-init-protection-from-unwanted-signals.patch
+signals-de_thread-simplify-the-child_reaper-switching.patch
+signals-allow-the-kernel-to-actually-kill-sbin-init.patch
+signals-add-set_restore_sigmask.patch
+signals-set_restore_sigmask-tif_sigpending.patch
+signals-s390-renumber-tif_restore_sigmask.patch
+signals-ia64-renumber-tif_restore_sigmask.patch
+signals-use-have_set_restore_sigmask.patch
+signals-x86-ts_restore_sigmask.patch
+posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
+ptrace-introduce-task_detached-helper.patch
+reparent_thread-use-same_thread_group.patch
+document-de_thread-with-exit_notify-connection.patch
+ptrace-introduce-ptrace_reparented-helper.patch
+ptrace-__ptrace_unlink-use-the-ptrace_reparented-helper.patch
+ptrace-ptrace_attach-use-send_sig_info-instead-force_sig_specific.patch
+ptrace-allow-to-ptrace-sbin-init.patch
+workqueue-remove-redundant-function-invocation.patch
+redo-locking-of-tty-pgrp.patch
+resume-tty-on-susp-and-fix-crnl-order-in-n_tty-line-discipline.patch
+tty_io-fix-remaining-pid-struct-locking.patch
+tty_io-fix-remaining-pid-struct-locking-small-cleanup.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
+pids-introduce-change_pid-helper.patch
+pids-sys_setpgid-use-change_pid-helper.patch
+pids-__set_special_pids-use-change_pid-helper.patch
+pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
+pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
