@@ -1,97 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - remove-the-macro-get_personality.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:40:17 -0700
-Message-ID: <200804300540.m3U5eHMt028948@imap1.linux-foundation.org>
+Subject: - hfs-handle-match_strdup-failure.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:39:56 -0700
+Message-ID: <200804300539.m3U5duOw028890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40835 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754785AbYD3Fkq (ORCPT
+	by vger.kernel.org with ESMTP id S1754764AbYD3Fkm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:40:46 -0400
+	Wed, 30 Apr 2008 01:40:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, adobriyan@gmail.com, bryan.wu@analog.com, dhowells@redhat.com, hch@infradead.org, mm-commits@vger.kernel.org
+To: jim@meyering.net, meyering@redhat.com, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Remove the macro get_personality
+     hfs: handle match_strdup failure
 has been removed from the -mm tree.  Its filename was
-     remove-the-macro-get_personality.patch
+     hfs-handle-match_strdup-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove the macro get_personality
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: hfs: handle match_strdup failure
+From: Jim Meyering <jim@meyering.net>
 
-Remove the macro get_personality, use ->personality instead.
+fs/hfs/super.c (parse_options): Handle match_strdup failure, twice.
 
-Cc: Christoph Hellwig <hch@infradead.org
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Bryan Wu <bryan.wu@analog.com>
-Signed-off-by: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Jim Meyering <meyering@redhat.com>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/kernel/signal.c |    2 +-
- arch/frv/kernel/signal.c      |    4 ++--
- include/linux/personality.h   |    4 ----
- 3 files changed, 3 insertions(+), 7 deletions(-)
+ fs/hfs/super.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/blackfin/kernel/signal.c~remove-the-macro-get_personality arch/blackfin/kernel/signal.c
---- a/arch/blackfin/kernel/signal.c~remove-the-macro-get_personality
-+++ a/arch/blackfin/kernel/signal.c
-@@ -212,7 +212,7 @@ setup_rt_frame(int sig, struct k_sigacti
- 
- 	/* Set up registers for signal handler */
- 	wrusp((unsigned long)frame);
--	if (get_personality & FDPIC_FUNCPTRS) {
-+	if (current->personality & FDPIC_FUNCPTRS) {
- 		struct fdpic_func_descriptor __user *funcptr =
- 			(struct fdpic_func_descriptor *) ka->sa.sa_handler;
- 		__get_user(regs->pc, &funcptr->text);
-diff -puN arch/frv/kernel/signal.c~remove-the-macro-get_personality arch/frv/kernel/signal.c
---- a/arch/frv/kernel/signal.c~remove-the-macro-get_personality
-+++ a/arch/frv/kernel/signal.c
-@@ -297,7 +297,7 @@ static int setup_frame(int sig, struct k
- 	__frame->lr   = (unsigned long) &frame->retcode;
- 	__frame->gr8  = sig;
- 
--	if (get_personality & FDPIC_FUNCPTRS) {
-+	if (current->personality & FDPIC_FUNCPTRS) {
- 		struct fdpic_func_descriptor __user *funcptr =
- 			(struct fdpic_func_descriptor __user *) ka->sa.sa_handler;
- 		__get_user(__frame->pc, &funcptr->text);
-@@ -396,7 +396,7 @@ static int setup_rt_frame(int sig, struc
- 	__frame->gr8 = sig;
- 	__frame->gr9 = (unsigned long) &frame->info;
- 
--	if (get_personality & FDPIC_FUNCPTRS) {
-+	if (current->personality & FDPIC_FUNCPTRS) {
- 		struct fdpic_func_descriptor __user *funcptr =
- 			(struct fdpic_func_descriptor __user *) ka->sa.sa_handler;
- 		__get_user(__frame->pc, &funcptr->text);
-diff -puN include/linux/personality.h~remove-the-macro-get_personality include/linux/personality.h
---- a/include/linux/personality.h~remove-the-macro-get_personality
-+++ a/include/linux/personality.h
-@@ -105,10 +105,6 @@ struct exec_domain {
-  */
- #define personality(pers)	(pers & PER_MASK)
- 
--/*
-- * Personality of the currently running process.
-- */
--#define get_personality		(current->personality)
- 
- /*
-  * Change personality of the currently running process.
+diff -puN fs/hfs/super.c~hfs-handle-match_strdup-failure fs/hfs/super.c
+--- a/fs/hfs/super.c~hfs-handle-match_strdup-failure
++++ a/fs/hfs/super.c
+@@ -297,7 +297,8 @@ static int parse_options(char *options, 
+ 				return 0;
+ 			}
+ 			p = match_strdup(&args[0]);
+-			hsb->nls_disk = load_nls(p);
++			if (p)
++				hsb->nls_disk = load_nls(p);
+ 			if (!hsb->nls_disk) {
+ 				printk(KERN_ERR "hfs: unable to load codepage \"%s\"\n", p);
+ 				kfree(p);
+@@ -311,7 +312,8 @@ static int parse_options(char *options, 
+ 				return 0;
+ 			}
+ 			p = match_strdup(&args[0]);
+-			hsb->nls_io = load_nls(p);
++			if (p)
++				hsb->nls_io = load_nls(p);
+ 			if (!hsb->nls_io) {
+ 				printk(KERN_ERR "hfs: unable to load iocharset \"%s\"\n", p);
+ 				kfree(p);
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from jim@meyering.net are
 
 origin.patch
+git-v9fs.patch
 
