@@ -1,251 +1,279 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-use-a-hash-table-for-css_set-finding.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:42:44 -0700
-Message-ID: <200804300542.m3U5gi6g029171@imap1.linux-foundation.org>
+Subject: - add-a-document-describing-the-resource-counter-abstraction-v2.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:42:59 -0700
+Message-ID: <200804300542.m3U5gxA6029189@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35905 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49568 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758251AbYD3FoG (ORCPT
+	by vger.kernel.org with ESMTP id S1758281AbYD3FoI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:44:06 -0400
+	Wed, 30 Apr 2008 01:44:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: xemul@openvz.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, lizf@cn.fujitsu.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cgroups: use a hash table for css_set finding
+     memcgroups: add a document describing the resource counter abstraction
 has been removed from the -mm tree.  Its filename was
-     cgroups-use-a-hash-table-for-css_set-finding.patch
+     add-a-document-describing-the-resource-counter-abstraction-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: use a hash table for css_set finding
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: memcgroups: add a document describing the resource counter abstraction
+From: Pavel Emelyanov <xemul@openvz.org>
 
-When we attach a process to a different cgroup, the css_set linked-list will
-be run through to find a suitable existing css_set to use.  This patch
-implements a hash table for better performance.
+The resource counter is supposed to facilitate the resource accounting of
+arbitrary resource (and it already does this for memory controller).
 
-The following benchmarks have been tested:
+However, it is about to be used in other resources controllers (swap, kernel
+memory, networking, etc), so provide a doc describing how to work with it. 
+This will eliminate all the possible future duplications in the appropriate
+controllers' docs.
 
-For N in 1, 5, 10, 50, 100, 500, 1000, create N cgroups with one sleeping
-task in each, and then move an additional task through each cgroup in
-turn.
+Fixed errors pointed out by Randy.
 
-Here is a test result:
-
-N	Loop	orig - Time(s)	hash - Time(s)
-----------------------------------------------
-1	10000	1.201231728	1.196311177
-5	2000	1.065743872	1.040566424
-10	1000	0.991054735	0.986876440
-50	200	0.976554203	0.969608733
-100	100	0.998504680	0.969218270
-500	20	1.157347764	0.962602963
-1000	10	1.619521852	1.085140172
-
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Reviewed-by: Paul Menage <menage@google.com>
+[akpm@linux-foundation.org: fix documentation tpyo]
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>
 Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    7 +++-
- kernel/cgroup.c        |   59 +++++++++++++++++++++++++++++++--------
- 2 files changed, 53 insertions(+), 13 deletions(-)
+ Documentation/controllers/resource_counter.txt |  181 +++++++++++++++
+ include/linux/res_counter.h                    |    2 
+ 2 files changed, 183 insertions(+)
 
-diff -puN include/linux/cgroup.h~cgroups-use-a-hash-table-for-css_set-finding include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-use-a-hash-table-for-css_set-finding
-+++ a/include/linux/cgroup.h
-@@ -156,6 +156,12 @@ struct css_set {
- 	struct list_head list;
- 
- 	/*
-+	 * List running through all cgroup groups in the same hash
-+	 * slot. Protected by css_set_lock
-+	 */
-+	struct hlist_node hlist;
+diff -puN /dev/null Documentation/controllers/resource_counter.txt
+--- /dev/null
++++ a/Documentation/controllers/resource_counter.txt
+@@ -0,0 +1,181 @@
 +
-+	/*
- 	 * List running through all tasks using this cgroup
- 	 * group. Protected by css_set_lock
- 	 */
-@@ -174,7 +180,6 @@ struct css_set {
- 	 * during subsystem registration (at boot time).
- 	 */
- 	struct cgroup_subsys_state *subsys[CGROUP_SUBSYS_COUNT];
--
- };
- 
- /*
-diff -puN kernel/cgroup.c~cgroups-use-a-hash-table-for-css_set-finding kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-use-a-hash-table-for-css_set-finding
-+++ a/kernel/cgroup.c
-@@ -44,6 +44,7 @@
- #include <linux/kmod.h>
- #include <linux/delayacct.h>
- #include <linux/cgroupstats.h>
-+#include <linux/hash.h>
- 
- #include <asm/atomic.h>
- 
-@@ -193,6 +194,27 @@ static struct cg_cgroup_link init_css_se
- static DEFINE_RWLOCK(css_set_lock);
- static int css_set_count;
- 
-+/* hash table for cgroup groups. This improves the performance to
-+ * find an existing css_set */
-+#define CSS_SET_HASH_BITS	7
-+#define CSS_SET_TABLE_SIZE	(1 << CSS_SET_HASH_BITS)
-+static struct hlist_head css_set_table[CSS_SET_TABLE_SIZE];
++		The Resource Counter
 +
-+static struct hlist_head *css_set_hash(struct cgroup_subsys_state *css[])
-+{
-+	int i;
-+	int index;
-+	unsigned long tmp = 0UL;
++The resource counter, declared at include/linux/res_counter.h,
++is supposed to facilitate the resource management by controllers
++by providing common stuff for accounting.
 +
-+	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++)
-+		tmp += (unsigned long)css[i];
-+	tmp = (tmp >> 16) ^ tmp;
++This "stuff" includes the res_counter structure and routines
++to work with it.
 +
-+	index = hash_long(tmp, CSS_SET_HASH_BITS);
 +
-+	return &css_set_table[index];
-+}
 +
- /* We don't maintain the lists running through each css_set to its
-  * task until after the first call to cgroup_iter_start(). This
-  * reduces the fork()/exit() overhead for people who have cgroups
-@@ -219,6 +241,7 @@ static int use_task_css_set_links;
- static void unlink_css_set(struct css_set *cg)
- {
- 	write_lock(&css_set_lock);
-+	hlist_del(&cg->hlist);
- 	list_del(&cg->list);
- 	css_set_count--;
- 	while (!list_empty(&cg->cg_links)) {
-@@ -284,9 +307,7 @@ static inline void put_css_set_taskexit(
- /*
-  * find_existing_css_set() is a helper for
-  * find_css_set(), and checks to see whether an existing
-- * css_set is suitable. This currently walks a linked-list for
-- * simplicity; a later patch will use a hash table for better
-- * performance
-+ * css_set is suitable.
-  *
-  * oldcg: the cgroup group that we're using before the cgroup
-  * transition
-@@ -303,7 +324,9 @@ static struct css_set *find_existing_css
- {
- 	int i;
- 	struct cgroupfs_root *root = cgrp->root;
--	struct list_head *l = &init_css_set.list;
-+	struct hlist_head *hhead;
-+	struct hlist_node *node;
-+	struct css_set *cg;
- 
- 	/* Built the set of subsystem state objects that we want to
- 	 * see in the new css_set */
-@@ -320,18 +343,13 @@ static struct css_set *find_existing_css
- 		}
- 	}
- 
--	/* Look through existing cgroup groups to find one to reuse */
--	do {
--		struct css_set *cg =
--			list_entry(l, struct css_set, list);
--
-+	hhead = css_set_hash(template);
-+	hlist_for_each_entry(cg, node, hhead, hlist) {
- 		if (!memcmp(template, cg->subsys, sizeof(cg->subsys))) {
- 			/* All subsystems matched */
- 			return cg;
- 		}
--		/* Try the next cgroup group */
--		l = l->next;
--	} while (l != &init_css_set.list);
++1. Crucial parts of the res_counter structure
++
++ a. unsigned long long usage
++
++ 	The usage value shows the amount of a resource that is consumed
++	by a group at a given time. The units of measurement should be
++	determined by the controller that uses this counter. E.g. it can
++	be bytes, items or any other unit the controller operates on.
++
++ b. unsigned long long max_usage
++
++ 	The maximal value of the usage over time.
++
++ 	This value is useful when gathering statistical information about
++	the particular group, as it shows the actual resource requirements
++	for a particular group, not just some usage snapshot.
++
++ c. unsigned long long limit
++
++ 	The maximal allowed amount of resource to consume by the group. In
++	case the group requests for more resources, so that the usage value
++	would exceed the limit, the resource allocation is rejected (see
++	the next section).
++
++ d. unsigned long long failcnt
++
++ 	The failcnt stands for "failures counter". This is the number of
++	resource allocation attempts that failed.
++
++ c. spinlock_t lock
++
++ 	Protects changes of the above values.
++
++
++
++2. Basic accounting routines
++
++ a. void res_counter_init(struct res_counter *rc)
++
++ 	Initializes the resource counter. As usual, should be the first
++	routine called for a new counter.
++
++ b. int res_counter_charge[_locked]
++			(struct res_counter *rc, unsigned long val)
++
++	When a resource is about to be allocated it has to be accounted
++	with the appropriate resource counter (controller should determine
++	which one to use on its own). This operation is called "charging".
++
++	This is not very important which operation - resource allocation
++	or charging - is performed first, but
++	  * if the allocation is performed first, this may create a
++	    temporary resource over-usage by the time resource counter is
++	    charged;
++	  * if the charging is performed first, then it should be uncharged
++	    on error path (if the one is called).
++
++ c. void res_counter_uncharge[_locked]
++			(struct res_counter *rc, unsigned long val)
++
++	When a resource is released (freed) it should be de-accounted
++	from the resource counter it was accounted to.  This is called
++	"uncharging".
++
++    The _locked routines imply that the res_counter->lock is taken.
++
++
++ 2.1 Other accounting routines
++
++    There are more routines that may help you with common needs, like
++    checking whether the limit is reached or resetting the max_usage
++    value. They are all declared in include/linux/res_counter.h.
++
++
++
++3. Analyzing the resource counter registrations
++
++ a. If the failcnt value constantly grows, this means that the counter's
++    limit is too tight. Either the group is misbehaving and consumes too
++    many resources, or the configuration is not suitable for the group
++    and the limit should be increased.
++
++ b. The max_usage value can be used to quickly tune the group. One may
++    set the limits to maximal values and either load the container with
++    a common pattern or leave one for a while. After this the max_usage
++    value shows the amount of memory the container would require during
++    its common activity.
++
++    Setting the limit a bit above this value gives a pretty good
++    configuration that works in most of the cases.
++
++ c. If the max_usage is much less than the limit, but the failcnt value
++    is growing, then the group tries to allocate a big chunk of resource
++    at once.
++
++ d. If the max_usage is much less than the limit, but the failcnt value
++    is 0, then this group is given too high limit, that it does not
++    require. It is better to lower the limit a bit leaving more resource
++    for other groups.
++
++
++
++4. Communication with the control groups subsystem (cgroups)
++
++All the resource controllers that are using cgroups and resource counters
++should provide files (in the cgroup filesystem) to work with the resource
++counter fields. They are recommended to adhere to the following rules:
++
++ a. File names
++
++ 	Field name	File name
++	---------------------------------------------------
++	usage		usage_in_<unit_of_measurement>
++	max_usage	max_usage_in_<unit_of_measurement>
++	limit		limit_in_<unit_of_measurement>
++	failcnt		failcnt
++	lock		no file :)
++
++ b. Reading from file should show the corresponding field value in the
++    appropriate format.
++
++ c. Writing to file
++
++ 	Field		Expected behavior
++	----------------------------------
++	usage		prohibited
++	max_usage	reset to usage
++	limit		set the limit
++	failcnt		reset to zero
++
++
++
++5. Usage example
++
++ a. Declare a task group (take a look at cgroups subsystem for this) and
++    fold a res_counter into it
++
++	struct my_group {
++		struct res_counter res;
++
++		<other fields>
 +	}
- 
- 	/* No existing cgroup group matched */
- 	return NULL;
-@@ -393,6 +411,8 @@ static struct css_set *find_css_set(
- 	struct list_head tmp_cg_links;
- 	struct cg_cgroup_link *link;
- 
-+	struct hlist_head *hhead;
 +
- 	/* First see if we already have a cgroup group that matches
- 	 * the desired set */
- 	write_lock(&css_set_lock);
-@@ -417,6 +437,7 @@ static struct css_set *find_css_set(
- 	kref_init(&res->ref);
- 	INIT_LIST_HEAD(&res->cg_links);
- 	INIT_LIST_HEAD(&res->tasks);
-+	INIT_HLIST_NODE(&res->hlist);
- 
- 	/* Copy the set of subsystem state objects generated in
- 	 * find_existing_css_set() */
-@@ -459,6 +480,11 @@ static struct css_set *find_css_set(
- 	/* Link this cgroup group into the list */
- 	list_add(&res->list, &init_css_set.list);
- 	css_set_count++;
++ b. Put hooks in resource allocation/release paths
 +
-+	/* Add this cgroup group to the hash table */
-+	hhead = css_set_hash(res->subsys);
-+	hlist_add_head(&res->hlist, hhead);
++ 	int alloc_something(...)
++	{
++		if (res_counter_charge(res_counter_ptr, amount) < 0)
++			return -ENOMEM;
 +
- 	write_unlock(&css_set_lock);
- 
- 	return res;
-@@ -2508,6 +2534,7 @@ int __init cgroup_init_early(void)
- 	INIT_LIST_HEAD(&init_css_set.list);
- 	INIT_LIST_HEAD(&init_css_set.cg_links);
- 	INIT_LIST_HEAD(&init_css_set.tasks);
-+	INIT_HLIST_NODE(&init_css_set.hlist);
- 	css_set_count = 1;
- 	init_cgroup_root(&rootnode);
- 	list_add(&rootnode.root_list, &roots);
-@@ -2520,6 +2547,9 @@ int __init cgroup_init_early(void)
- 	list_add(&init_css_set_link.cg_link_list,
- 		 &init_css_set.cg_links);
- 
-+	for (i = 0; i < CSS_SET_TABLE_SIZE; i++)
-+		INIT_HLIST_HEAD(&css_set_table[i]);
++		<allocate the resource and return to the caller>
++	}
 +
- 	for (i = 0; i < CGROUP_SUBSYS_COUNT; i++) {
- 		struct cgroup_subsys *ss = subsys[i];
- 
-@@ -2549,6 +2579,7 @@ int __init cgroup_init(void)
- {
- 	int err;
- 	int i;
-+	struct hlist_head *hhead;
- 
- 	err = bdi_init(&cgroup_backing_dev_info);
- 	if (err)
-@@ -2560,6 +2591,10 @@ int __init cgroup_init(void)
- 			cgroup_init_subsys(ss);
- 	}
- 
-+	/* Add init_css_set to the hash table */
-+	hhead = css_set_hash(init_css_set.subsys);
-+	hlist_add_head(&init_css_set.hlist, hhead);
++	void release_something(...)
++	{
++		res_counter_uncharge(res_counter_ptr, amount);
 +
- 	err = register_filesystem(&cgroup_fs_type);
- 	if (err < 0)
- 		goto out;
++		<release the resource>
++	}
++
++    In order to keep the usage value self-consistent, both the
++    "res_counter_ptr" and the "amount" in release_something() should be
++    the same as they were in the alloc_something() when the releasing
++    resource was allocated.
++
++ c. Provide the way to read res_counter values and set them (the cgroups
++    still can help with it).
++
++ c. Compile and run :)
+diff -puN include/linux/res_counter.h~add-a-document-describing-the-resource-counter-abstraction-v2 include/linux/res_counter.h
+--- a/include/linux/res_counter.h~add-a-document-describing-the-resource-counter-abstraction-v2
++++ a/include/linux/res_counter.h
+@@ -9,6 +9,8 @@
+  *
+  * Author: Pavel Emelianov <xemul@openvz.org>
+  *
++ * See Documentation/controllers/resource_counter.txt for more
++ * info about what this counter is.
+  */
+ 
+ #include <linux/cgroup.h>
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
-git-acpi.patch
+disable-the-memory-controller-by-default-v3.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+ptrace-allow-to-ptrace-sbin-init.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+use-find_task_by_vpid-in-taskstats.patch
+deprecate-find_task_by_pid.patch
+deprecate-find_task_by_pid-warning-fix.patch
+pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
+pids-introduce-change_pid-helper.patch
+pids-sys_setpgid-use-change_pid-helper.patch
+pids-__set_special_pids-use-change_pid-helper.patch
+pidns-make-pid-level-and-pid_ns-level-unsigned.patch
+reiser4.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
