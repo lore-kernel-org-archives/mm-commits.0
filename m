@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-fix-permission-checking-in-sys_utimensat.patch added to -mm tree
-Date: Wed, 30 Apr 2008 10:33:19 -0700
-Message-ID: <200804301733.m3UHXJx9025920@imap1.linux-foundation.org>
+Subject: + git-x86-fixup.patch added to -mm tree
+Date: Wed, 30 Apr 2008 10:36:25 -0700
+Message-ID: <200804301736.m3UHaPgo026099@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47737 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757836AbYD3Ree (ORCPT
+	by vger.kernel.org with ESMTP id S1758002AbYD3RhH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 13:34:34 -0400
+	Wed, 30 Apr 2008 13:37:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, drepper@redhat.com, mtk-manpages@gmx.net, stable@kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     vfs: fix permission checking in sys_utimensat
+     git-x86-fixup
 has been added to the -mm tree.  Its filename is
-     vfs-fix-permission-checking-in-sys_utimensat.patch
+     git-x86-fixup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,94 +34,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vfs: fix permission checking in sys_utimensat
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: git-x86-fixup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-If utimensat() is called with both times set to UTIME_NOW or one of them to
-UTIME_NOW and the other to UTIME_OMIT, then it will update the file time
-without any permission checking.
-
-I don't think this can be used for anything other than a local DoS, but could
-be quite bewildering at that (e.g.  "Why was that large source tree rebuilt
-when I didn't modify anything???")
-
-This affects all kernels from 2.6.22, when the utimensat() syscall was
-introduced.
-
-Fix by doing the same permission checking as for the "times == NULL" case.
-
-Thanks to Michael Kerrisk, whose utimensat-non-conformances-and-fixes.patch in
--mm also fixes this (and breaks other stuff), only he didn't realize the
-security implications of this bug.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Michael Kerrisk <mtk-manpages@gmx.net>
-Cc: <stable@kernel.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |   17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
+ arch/x86/mm/ioremap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/utimes.c~vfs-fix-permission-checking-in-sys_utimensat fs/utimes.c
---- a/fs/utimes.c~vfs-fix-permission-checking-in-sys_utimensat
-+++ a/fs/utimes.c
-@@ -40,9 +40,14 @@ asmlinkage long sys_utime(char __user *f
+diff -puN arch/x86/mm/ioremap.c~git-x86-fixup arch/x86/mm/ioremap.c
+--- a/arch/x86/mm/ioremap.c~git-x86-fixup
++++ a/arch/x86/mm/ioremap.c
+@@ -148,7 +148,7 @@ static void __iomem *__ioremap_caller(re
+ 	/*
+ 	 * Don't allow anybody to remap normal RAM that we're using..
+ 	 */
+-	for (pfn = phys_addr >> PAGE_SHIFT;
++	for (pfn = phys_addr >> PAGE_SHIFT; pfn < max_pfn_mapped &&
+ 				(pfn << PAGE_SHIFT) < (last_addr & PAGE_MASK);
+ 				pfn++) {
  
- #endif
- 
-+static bool nsec_special(long nsec)
-+{
-+	return nsec == UTIME_OMIT || nsec == UTIME_NOW;
-+}
-+
- static bool nsec_valid(long nsec)
- {
--	if (nsec == UTIME_OMIT || nsec == UTIME_NOW)
-+	if (nsec_special(nsec))
- 		return true;
- 
- 	return nsec >= 0 && nsec <= 999999999;
-@@ -119,7 +124,15 @@ long do_utimes(int dfd, char __user *fil
- 			newattrs.ia_mtime.tv_nsec = times[1].tv_nsec;
- 			newattrs.ia_valid |= ATTR_MTIME_SET;
- 		}
--	} else {
-+	}
-+
-+	/*
-+	 * If times is NULL or both times are either UTIME_OMIT or
-+	 * UTIME_NOW, then need to check permissions, because
-+	 * inode_change_ok() won't do it.
-+	 */
-+	if (!times || (nsec_special(times[0].tv_nsec) &&
-+		       nsec_special(times[1].tv_nsec))) {
- 		error = -EACCES;
-                 if (IS_IMMUTABLE(inode))
- 			goto mnt_drop_write_and_out;
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+isicom-bring-into-coding-style.patch
+tty-the-big-operations-rework.patch
+devpts-factor-out-pty-index-allocation.patch
 mm-bdi-export-bdi-attributes-in-sysfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-nfs.patch
-mm-bdi-expose-the-bdi-object-in-sysfs-for-fuse.patch
-mm-bdi-allow-setting-a-minimum-for-the-bdi-dirty-limit.patch
-mm-bdi-allow-setting-a-maximum-for-the-bdi-dirty-limit.patch
-mm-bdi-move-statistics-to-debugfs.patch
-mm-bdi-add-separate-writeback-accounting-capability.patch
-mm-bdi-export-bdi_writeout_inc.patch
-mm-add-nr_writeback_temp-counter.patch
-mm-document-missing-fields-for-proc-meminfo.patch
-fuse-support-writable-mmap.patch
-fuse-clean-up-setting-i_size-in-write.patch
-fuse-implement-perform_write.patch
-fuse-update-file-size-on-short-read.patch
-fuse-fix-max-i-o-size-calculation.patch
-fuse-fix-node-id-type.patch
 fuse-fix-race-in-llseek.patch
-fuse-fix-sparse-warnings.patch
-vfs-fix-permission-checking-in-sys_utimensat.patch
+basic-braille-screen-reader-support.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+revert-memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
+disable-the-memory-controller-by-default-v3.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86-fixup.patch
+rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
+git-arm-fixup.patch
+cifs-suppress-warning.patch
+devres-support-addresses-greater-than-an-unsigned-long-via-dev_ioremap-checkpatch-fixes.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed.patch
+drivers-media-video-tuner-corec-tuner_probe-fix-error-check.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-hwmon.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-kvm.patch
+pata_atiixp-simplex-clear.patch
+git-m32r.patch
+git-mips.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+sched-add-debug-checks-to-idle-functions.patch
+drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+add-rcu_assign_index-if-ever-needed.patch
+git-scsi-misc.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+aic79xx_core-remove-ascii-art.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+ext4-is-busted-on-m68k.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
+add-warn_on_secs-macro.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+x86-ioremap-add-checks-for-virtual-addresses-fix.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
