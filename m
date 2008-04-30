@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch added to -mm tree
-Date: Wed, 30 Apr 2008 10:50:03 -0700
-Message-ID: <200804301750.m3UHo3A2026664@imap1.linux-foundation.org>
+Subject: + ext4-fix-typos-in-messages-and-comments-journalled-journaled.patch added to -mm tree
+Date: Wed, 30 Apr 2008 10:50:07 -0700
+Message-ID: <200804301750.m3UHo7vd026671__48054.3091697202$1209577931$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41049 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45598 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762923AbYD3Rui (ORCPT
+	by vger.kernel.org with ESMTP id S1763450AbYD3Run (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 13:50:38 -0400
+	Wed, 30 Apr 2008 13:50:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, reiserfs-devel@vger.kernel.org
+Cc: jack@suse.cz, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     reiserfs: fix synchronization of quota files in journal=data mode
+     ext4: fix typos in messages and comments (journalled -> journaled)
 has been added to the -mm tree.  Its filename is
-     reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+     ext4-fix-typos-in-messages-and-comments-journalled-journaled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: fix synchronization of quota files in journal=data mode
+Subject: ext4: fix typos in messages and comments (journalled -> journaled)
 From: Jan Kara <jack@suse.cz>
 
-In journal=data mode, it is not enough to do write_inode_now() as done in
-vfs_quota_on() to write all data to their final location (which is needed for
-quota_read to work correctly).  Calling journal_end_sync() before calling
-vfs_quota_on() does it's job because transactions are committed to the journal
-and data marked as dirty in memory so write_inode_now() writes them to their
-final locations.
-
-Cc: <reiserfs-devel@vger.kernel.org>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/super.c |   30 +++++++++++++++++++++---------
- 1 file changed, 21 insertions(+), 9 deletions(-)
+ fs/ext4/super.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/reiserfs/super.c~reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode
-+++ a/fs/reiserfs/super.c
-@@ -2026,6 +2026,7 @@ static int reiserfs_quota_on(struct supe
- 	int err;
- 	struct nameidata nd;
- 	struct inode *inode;
-+	struct reiserfs_transaction_handle th;
- 
- 	if (!(REISERFS_SB(sb)->s_mount_opt & (1 << REISERFS_QUOTA)))
- 		return -EINVAL;
-@@ -2053,17 +2054,28 @@ static int reiserfs_quota_on(struct supe
+diff -puN fs/ext4/super.c~ext4-fix-typos-in-messages-and-comments-journalled-journaled fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-fix-typos-in-messages-and-comments-journalled-journaled
++++ a/fs/ext4/super.c
+@@ -1167,7 +1167,7 @@ static int parse_options (char *options,
+ set_qf_name:
+ 			if (sb_any_quota_enabled(sb)) {
+ 				printk(KERN_ERR
+-					"EXT4-fs: Cannot change journalled "
++					"EXT4-fs: Cannot change journaled "
+ 					"quota options when quota turned on.\n");
+ 				return 0;
+ 			}
+@@ -1205,7 +1205,7 @@ set_qf_name:
+ clear_qf_name:
+ 			if (sb_any_quota_enabled(sb)) {
+ 				printk(KERN_ERR "EXT4-fs: Cannot change "
+-					"journalled quota options when "
++					"journaled quota options when "
+ 					"quota turned on.\n");
+ 				return 0;
+ 			}
+@@ -1339,14 +1339,14 @@ clear_qf_name:
  		}
- 		mark_inode_dirty(inode);
+ 
+ 		if (!sbi->s_jquota_fmt) {
+-			printk(KERN_ERR "EXT4-fs: journalled quota format "
++			printk(KERN_ERR "EXT4-fs: journaled quota format "
+ 					"not specified.\n");
+ 			return 0;
+ 		}
+ 	} else {
+ 		if (sbi->s_jquota_fmt) {
+-			printk(KERN_ERR "EXT4-fs: journalled quota format "
+-					"specified with no journalling "
++			printk(KERN_ERR "EXT4-fs: journaled quota format "
++					"specified with no journaling "
+ 					"enabled.\n");
+ 			return 0;
+ 		}
+@@ -1587,7 +1587,7 @@ static void ext4_orphan_cleanup (struct 
+ 			int ret = ext4_quota_on_mount(sb, i);
+ 			if (ret < 0)
+ 				printk(KERN_ERR
+-					"EXT4-fs: Cannot turn on journalled "
++					"EXT4-fs: Cannot turn on journaled "
+ 					"quota: error %d\n", ret);
+ 		}
  	}
--	/* Not journalling quota? No more tests needed... */
--	if (!REISERFS_SB(sb)->s_qf_names[USRQUOTA] &&
--	    !REISERFS_SB(sb)->s_qf_names[GRPQUOTA]) {
--		path_put(&nd.path);
--		return vfs_quota_on(sb, type, format_id, path, 0);
--	}
--	/* Quotafile not of fs root? */
--	if (nd.path.dentry->d_parent->d_inode != sb->s_root->d_inode)
--		reiserfs_warning(sb,
-+	/* Journaling quota? */
-+	if (REISERFS_SB(sb)->s_qf_names[type]) {
-+		/* Quotafile not of fs root? */
-+		if (nd.path.dentry->d_parent->d_inode != sb->s_root->d_inode)
-+			reiserfs_warning(sb,
- 				 "reiserfs: Quota file not on filesystem root. "
- 				 "Journalled quota will not work.");
-+	}
-+
-+	/*
-+	 * When we journal data on quota file, we have to flush journal to see
-+	 * all updates to the file when we bypass pagecache...
-+	 */
-+	if (reiserfs_file_data_log(inode)) {
-+		/* Just start temporary transaction and finish it */
-+		err = journal_begin(&th, sb, 1);
-+		if (err)
-+			return err;
-+		err = journal_end_sync(&th, sb, 1);
-+		if (err)
-+			return err;
-+	}
- 	path_put(&nd.path);
- 	return vfs_quota_on(sb, type, format_id, path, 0);
- }
+@@ -3112,7 +3112,7 @@ static int ext4_release_dquot(struct dqu
+ 
+ static int ext4_mark_dquot_dirty(struct dquot *dquot)
+ {
+-	/* Are we journalling quotas? */
++	/* Are we journaling quotas? */
+ 	if (EXT4_SB(dquot->dq_sb)->s_qf_names[USRQUOTA] ||
+ 	    EXT4_SB(dquot->dq_sb)->s_qf_names[GRPQUOTA]) {
+ 		dquot_mark_dquot_dirty(dquot);
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
