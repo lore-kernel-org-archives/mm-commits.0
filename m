@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch added to -mm tree
-Date: Wed, 30 Apr 2008 10:50:09 -0700
-Message-ID: <200804301750.m3UHo992026674@imap1.linux-foundation.org>
+Subject: + ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch added to -mm tree
+Date: Wed, 30 Apr 2008 10:50:05 -0700
+Message-ID: <200804301750.m3UHo53E026668@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39841 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59272 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763478AbYD3Ruo (ORCPT
+	by vger.kernel.org with ESMTP id S1763336AbYD3Ruk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 13:50:44 -0400
+	Wed, 30 Apr 2008 13:50:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, reiserfs-devel@vger.kernel.org
+Cc: jack@suse.cz, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     reiserfs: fix typos in messages and comments (journalled -> journaled)
+     ext3: fix typos in messages and comments (journalled -> journaled)
 has been added to the -mm tree.  Its filename is
-     reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
+     ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,64 +34,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: fix typos in messages and comments (journalled -> journaled)
+Subject: ext3: fix typos in messages and comments (journalled -> journaled)
 From: Jan Kara <jack@suse.cz>
 
-Cc: <reiserfs-devel@vger.kernel.org>
+Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/super.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/ext3/super.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/reiserfs/super.c~reiserfs-fix-typos-in-messages-and-comments-journalled-journaled fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiserfs-fix-typos-in-messages-and-comments-journalled-journaled
-+++ a/fs/reiserfs/super.c
-@@ -182,7 +182,7 @@ static int finish_unfinished(struct supe
- 			int ret = reiserfs_quota_on_mount(s, i);
- 			if (ret < 0)
- 				reiserfs_warning(s,
--						 "reiserfs: cannot turn on journalled quota: error %d",
-+						 "reiserfs: cannot turn on journaled quota: error %d",
- 						 ret);
- 		}
- 	}
-@@ -994,7 +994,7 @@ static int reiserfs_parse_options(struct
- 
- 			if (sb_any_quota_enabled(s)) {
- 				reiserfs_warning(s,
--						 "reiserfs_parse_options: cannot change journalled quota options when quota turned on.");
-+						 "reiserfs_parse_options: cannot change journaled quota options when quota turned on.");
+diff -puN fs/ext3/super.c~ext3-fix-typos-in-messages-and-comments-journalled-journaled fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-fix-typos-in-messages-and-comments-journalled-journaled
++++ a/fs/ext3/super.c
+@@ -1020,7 +1020,7 @@ static int parse_options (char *options,
+ set_qf_name:
+ 			if (sb_any_quota_enabled(sb)) {
+ 				printk(KERN_ERR
+-					"EXT3-fs: Cannot change journalled "
++					"EXT3-fs: Cannot change journaled "
+ 					"quota options when quota turned on.\n");
  				return 0;
  			}
- 			if (*arg) {	/* Some filename specified? */
-@@ -1039,7 +1039,7 @@ static int reiserfs_parse_options(struct
- #else
- 		if (c == 'u' || c == 'g' || c == 'f') {
- 			reiserfs_warning(s,
--					 "reiserfs_parse_options: journalled quota options not supported.");
-+					 "reiserfs_parse_options: journaled quota options not supported.");
+@@ -1058,7 +1058,7 @@ set_qf_name:
+ clear_qf_name:
+ 			if (sb_any_quota_enabled(sb)) {
+ 				printk(KERN_ERR "EXT3-fs: Cannot change "
+-					"journalled quota options when "
++					"journaled quota options when "
+ 					"quota turned on.\n");
+ 				return 0;
+ 			}
+@@ -1169,14 +1169,14 @@ clear_qf_name:
+ 		}
+ 
+ 		if (!sbi->s_jquota_fmt) {
+-			printk(KERN_ERR "EXT3-fs: journalled quota format "
++			printk(KERN_ERR "EXT3-fs: journaled quota format "
+ 					"not specified.\n");
  			return 0;
  		}
- #endif
-@@ -1050,7 +1050,7 @@ static int reiserfs_parse_options(struct
- 	    && (REISERFS_SB(s)->s_qf_names[USRQUOTA]
- 		|| REISERFS_SB(s)->s_qf_names[GRPQUOTA])) {
- 		reiserfs_warning(s,
--				 "reiserfs_parse_options: journalled quota format not specified.");
-+				 "reiserfs_parse_options: journaled quota format not specified.");
- 		return 0;
+ 	} else {
+ 		if (sbi->s_jquota_fmt) {
+-			printk(KERN_ERR "EXT3-fs: journalled quota format "
+-					"specified with no journalling "
++			printk(KERN_ERR "EXT3-fs: journaled quota format "
++					"specified with no journaling "
+ 					"enabled.\n");
+ 			return 0;
+ 		}
+@@ -1370,7 +1370,7 @@ static void ext3_orphan_cleanup (struct 
+ 			int ret = ext3_quota_on_mount(sb, i);
+ 			if (ret < 0)
+ 				printk(KERN_ERR
+-					"EXT3-fs: Cannot turn on journalled "
++					"EXT3-fs: Cannot turn on journaled "
+ 					"quota: error %d\n", ret);
+ 		}
  	}
- 	/* This checking is not precise wrt the quota type but for our purposes it is sufficient */
-@@ -1980,7 +1980,7 @@ static int reiserfs_release_dquot(struct
+@@ -2712,7 +2712,7 @@ static int ext3_release_dquot(struct dqu
  
- static int reiserfs_mark_dquot_dirty(struct dquot *dquot)
+ static int ext3_mark_dquot_dirty(struct dquot *dquot)
  {
 -	/* Are we journalling quotas? */
 +	/* Are we journaling quotas? */
- 	if (REISERFS_SB(dquot->dq_sb)->s_qf_names[USRQUOTA] ||
- 	    REISERFS_SB(dquot->dq_sb)->s_qf_names[GRPQUOTA]) {
+ 	if (EXT3_SB(dquot->dq_sb)->s_qf_names[USRQUOTA] ||
+ 	    EXT3_SB(dquot->dq_sb)->s_qf_names[GRPQUOTA]) {
  		dquot_mark_dquot_dirty(dquot);
 _
 
