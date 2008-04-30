@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch added to -mm tree
-Date: Wed, 30 Apr 2008 10:50:15 -0700
-Message-ID: <200804301750.m3UHoFj1026688__17685.5280450129$1209578438$gmane$org@imap1.linux-foundation.org>
+Subject: + isdn-hysdn_procconfc-build-fix.patch added to -mm tree
+Date: Wed, 30 Apr 2008 11:11:18 -0700
+Message-ID: <200804301811.m3UIBI3M027676@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56721 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46599 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762411AbYD3R7Y (ORCPT
+	by vger.kernel.org with ESMTP id S1759549AbYD3SMD (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 13:59:24 -0400
+	Wed, 30 Apr 2008 14:12:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, linux-ext4@vger.kernel.org
+Cc: mingo@elte.hu, den@openvz.org, kkeil@suse.de
 
 
 The patch titled
-     ext4: correct mount option parsing to detect when quota options can be changed
+     isdn: hysdn_procconf.c build fix
 has been added to the -mm tree.  Its filename is
-     ext4-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+     isdn-hysdn_procconfc-build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,104 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: correct mount option parsing to detect when quota options can be changed
-From: Jan Kara <jack@suse.cz>
+Subject: isdn: hysdn_procconf.c build fix
+From: Ingo Molnar <mingo@elte.hu>
 
-We should not allow user to change quota mount options when quota is just
-suspended.  I would make mount options and internal quota state inconsistent. 
-Also we should not allow user to change quota format when quota is turned on. 
-On the other hand we can just silently ignore when some option is set to the
-value it already has (mount does this on remount).
+x86.git randconfig testing found the following build error in latest
+-git:
 
-Cc: <linux-ext4@vger.kernel.org>
-Signed-off-by: Jan Kara <jack@suse.cz>
+  CC [M]  drivers/isdn/hysdn/hysdn_procconf.o
+  CC [M]  drivers/isdn/hysdn/hysdn_init.o
+  drivers/isdn/hysdn/hysdn_procconf.c: In function 'hysdn_procconf_init':
+  drivers/isdn/hysdn/hysdn_procconf.c:408: error: too few arguments to function 'proc_create'
+
+with the following config:
+
+  http://redhat.com/~mingo/misc/config-Wed_Apr_30_15_12_48_CEST_2008.bad
+
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Cc: "Denis V. Lunev" <den@openvz.org>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/super.c |   26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+ drivers/isdn/hysdn/hysdn_procconf.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext4/super.c~ext4-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed fs/ext4/super.c
---- a/fs/ext4/super.c~ext4-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed
-+++ a/fs/ext4/super.c
-@@ -982,7 +982,7 @@ static int parse_options (char *options,
- 	int data_opt = 0;
- 	int option;
- #ifdef CONFIG_QUOTA
--	int qtype;
-+	int qtype, qfmt;
- 	char *qname;
- #endif
- 
-@@ -1165,7 +1165,9 @@ static int parse_options (char *options,
- 		case Opt_grpjquota:
- 			qtype = GRPQUOTA;
- set_qf_name:
--			if (sb_any_quota_enabled(sb)) {
-+			if ((sb_any_quota_enabled(sb) ||
-+			     sb_any_quota_suspended(sb)) &&
-+			    !sbi->s_qf_names[qtype]) {
- 				printk(KERN_ERR
- 					"EXT4-fs: Cannot change journaled "
- 					"quota options when quota turned on.\n");
-@@ -1203,7 +1205,9 @@ set_qf_name:
- 		case Opt_offgrpjquota:
- 			qtype = GRPQUOTA;
- clear_qf_name:
--			if (sb_any_quota_enabled(sb)) {
-+			if ((sb_any_quota_enabled(sb) ||
-+			     sb_any_quota_suspended(sb)) &&
-+			    sbi->s_qf_names[qtype]) {
- 				printk(KERN_ERR "EXT4-fs: Cannot change "
- 					"journaled quota options when "
- 					"quota turned on.\n");
-@@ -1216,10 +1220,20 @@ clear_qf_name:
- 			sbi->s_qf_names[qtype] = NULL;
- 			break;
- 		case Opt_jqfmt_vfsold:
--			sbi->s_jquota_fmt = QFMT_VFS_OLD;
--			break;
-+			qfmt = QFMT_VFS_OLD;
-+			goto set_qf_format;
- 		case Opt_jqfmt_vfsv0:
--			sbi->s_jquota_fmt = QFMT_VFS_V0;
-+			qfmt = QFMT_VFS_V0;
-+set_qf_format:
-+			if ((sb_any_quota_enabled(sb) ||
-+			     sb_any_quota_suspended(sb)) &&
-+			    sbi->s_jquota_fmt != qfmt) {
-+				printk(KERN_ERR "EXT4-fs: Cannot change "
-+					"journaled quota options when "
-+					"quota turned on.\n");
-+				return 0;
-+			}
-+			sbi->s_jquota_fmt = qfmt;
- 			break;
- 		case Opt_quota:
- 		case Opt_usrquota:
+diff -puN drivers/isdn/hysdn/hysdn_procconf.c~isdn-hysdn_procconfc-build-fix drivers/isdn/hysdn/hysdn_procconf.c
+--- a/drivers/isdn/hysdn/hysdn_procconf.c~isdn-hysdn_procconfc-build-fix
++++ a/drivers/isdn/hysdn/hysdn_procconf.c
+@@ -405,7 +405,8 @@ hysdn_procconf_init(void)
+ 		sprintf(conf_name, "%s%d", PROC_CONF_BASENAME, card->myid);
+ 		if ((card->procconf = (void *) proc_create(conf_name,
+ 						S_IFREG | S_IRUGO | S_IWUSR,
+-						hysdn_proc_entry)) != NULL) {
++						hysdn_proc_entry,
++						&conf_fops)) != NULL) {
+ 			hysdn_proclog_init(card);	/* init the log file entry */
+ 		}
+ 		card = card->next;	/* next entry */
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from mingo@elte.hu are
 
 origin.patch
-isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem.patch
-quota-le_add_cpu-conversion.patch
-ext4-fix-mount-messages-when-quota-disabled.patch
-ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
-ext4-fix-synchronization-of-quota-files-in-journal=data-mode.patch
-reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
-ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
-ext4-fix-typos-in-messages-and-comments-journalled-journaled.patch
-reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
-quota-add-a-convenience-macro-for-filesystems.patch
-ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
-ext4-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
-reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+signals-add-set_restore_sigmask.patch
+signals-set_restore_sigmask-tif_sigpending.patch
+signals-s390-renumber-tif_restore_sigmask.patch
+signals-ia64-renumber-tif_restore_sigmask.patch
+signals-use-have_set_restore_sigmask.patch
+signals-x86-ts_restore_sigmask.patch
+char-serial-switch-drivers-to-ioremap_nocache.patch
+make-marker_debug-static.patch
+asm-futexh-should-include-linux-uaccessh.patch
+slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
+kernel-replace-remaining-__function__-occurances.patch
+cpusets-update-maintainers.patch
+fix-cpu-hotplug-problem-in-softirq-code.patch
+rename-div64_64-to-div64_u64.patch
+remove-div_long_long_rem.patch
+isdn-hysdn_procconfc-build-fix.patch
+pci-export-resource_wc-in-pci-sysfs.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
+mm-filemapc-generic_write_checks-mustnt-be-inline.patch
+x86-ioremap-ram-check-fix.patch
+git-x86.patch
+git-x86-fixup.patch
+x86_64-restore-mask_bits-in-msi-shutdown.patch
+arch-x86-video-fbdevc-add-module_license.patch
+rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
+fix-drivers-media-common-tuners-build-bug.patch
+git-kvm.patch
+git-sched.patch
+sched-add-debug-checks-to-idle-functions.patch
+mutex-debug-check-mutex-magic-before-owner.patch
+show_schedstat-fix-memleak.patch
+drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+rcu-fix-rcu_try_flip_waitack_needed-to-prevent-grace-period-stall.patch
+rcu-add-call_rcu_sched.patch
+rcu-add-memory-barriers-and-comments-to-rcu_check_callbacks.patch
+rcu-add-call_rcu_sched-and-friends-to-rcutorture.patch
+rcu-1q08-rcu-doc-update-add-call_rcu_sched.patch
+aes-x86_64-asm-implementation-optimization.patch
+generic-irq-let-setup_irq-reenable-a-shared-irq.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
+posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
+workqueue-remove-redundant-function-invocation.patch
+detect-atomic-counter-underflows.patch
+make-frame_pointer-default=y.patch
+mutex-subsystem-synchro-test-module.patch
+x86-ioremap-add-checks-for-virtual-addresses.patch
+x86-ioremap-add-checks-for-virtual-addresses-fix.patch
 
