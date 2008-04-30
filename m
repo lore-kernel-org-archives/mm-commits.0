@@ -1,29 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - git-arm-fixup.patch removed from -mm tree
-Date: Wed, 30 Apr 2008 01:01:42 -0700
-Message-ID: <200804300801.m3U81gsr003698@imap1.linux-foundation.org>
+Subject: + git-arm-fixup.patch added to -mm tree
+Date: Wed, 30 Apr 2008 01:02:57 -0700
+Message-ID: <200804300802.m3U82vpH003734@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52305 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58741 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757354AbYD3ICP (ORCPT
+	by vger.kernel.org with ESMTP id S1756970AbYD3IDa (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 04:02:15 -0400
+	Wed, 30 Apr 2008 04:03:30 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3U81h1e016732
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m3U82vqW016793
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 30 Apr 2008 01:01:44 -0700
+	for <mm-commits@vger.kernel.org>; Wed, 30 Apr 2008 01:02:58 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
      git-arm-fixup
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      git-arm-fixup.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -34,24 +44,35 @@ From: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-arm/arch-at91/board.h |    3 ---
- 1 file changed, 3 deletions(-)
+ arch/arm/mach-pxa/zylonite.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN include/asm-arm/arch-at91/board.h~git-arm-fixup include/asm-arm/arch-at91/board.h
---- a/include/asm-arm/arch-at91/board.h~git-arm-fixup
-+++ a/include/asm-arm/arch-at91/board.h
-@@ -132,11 +132,8 @@ extern u8 at91_leds_cpu;
- extern u8 at91_leds_timer;
- extern void __init at91_init_leds(u8 cpu_led, u8 timer_led);
+diff -puN arch/arm/mach-pxa/zylonite.c~git-arm-fixup arch/arm/mach-pxa/zylonite.c
+--- a/arch/arm/mach-pxa/zylonite.c~git-arm-fixup
++++ a/arch/arm/mach-pxa/zylonite.c
+@@ -109,7 +109,6 @@ static struct pxafb_mode_info toshiba_lt
+ static struct pxafb_mach_info zylonite_toshiba_lcd_info = {
+ 	.num_modes      	= 1,
+ 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
+-	.pxafb_backlight_power	= zylonite_backlight_power,
+ };
  
--<<<<<<< HEAD:include/asm-arm/arch-at91/board.h
- /* FIXME: this needs a better location, but gets stuff building again */
- extern int at91_suspend_entering_slow_clock(void);
--=======
- extern void __init at91_gpio_leds(struct gpio_led *leds, int nr);
-->>>>>>> FETCH_HEAD:include/asm-arm/arch-at91/board.h
+ static struct pxafb_mode_info sharp_ls037_modes[] = {
+@@ -145,13 +144,11 @@ static struct pxafb_mach_info zylonite_s
+ 	.modes			= sharp_ls037_modes,
+ 	.num_modes		= 2,
+ 	.lcd_conn		= LCD_COLOR_TFT_16BPP | LCD_PCLK_EDGE_FALL,
+-	.pxafb_backlight_power	= zylonite_backlight_power,
+ };
  
- #endif
+ static void __init zylonite_init_lcd(void)
+ {
+-	/* backlight GPIO: output, default on */
+-	gpio_direction_output(gpio_backlight, 1);
++	platform_device_register(&zylonite_backlight_device);
+ 
+ 	if (lcd_id & 0x20) {
+ 		set_pxa_fb_info(&zylonite_sharp_lcd_info);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,6 +98,7 @@ acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 x86-ptrace-pebs-support-warning-fix.patch
 rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
 x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
+git-arm-fixup.patch
 cifs-suppress-warning.patch
 devres-support-addresses-greater-than-an-unsigned-long-via-dev_ioremap-checkpatch-fixes.patch
 sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
