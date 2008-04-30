@@ -1,118 +1,176 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-_s64-files-use-read_s64-write_s64-in-cfs-cgroup-for-rt_runtime-file.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:42:33 -0700
-Message-ID: <200804300542.m3U5gXmi029156@imap1.linux-foundation.org>
+Subject: - ipc-semaphores-code-factorisation.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:44:07 -0700
+Message-ID: <200804300544.m3U5i70s029378@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42728 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51430 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760649AbYD3GM0 (ORCPT
+	by vger.kernel.org with ESMTP id S1760732AbYD3GMm (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:12:26 -0400
+	Wed, 30 Apr 2008 02:12:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
+To: pierre.peiffer@bull.net, Nadia.Derbey@bull.net, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CGroups _s64 files: use read_s64/write_s64 in CFS cgroup for rt_runtime file
+     IPC/semaphores: code factorisation
 has been removed from the -mm tree.  Its filename was
-     cgroups-_s64-files-use-read_s64-write_s64-in-cfs-cgroup-for-rt_runtime-file.patch
+     ipc-semaphores-code-factorisation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CGroups _s64 files: use read_s64/write_s64 in CFS cgroup for rt_runtime file
-From: Paul Menage <menage@google.com>
+Subject: IPC/semaphores: code factorisation
+From: Pierre Peiffer <pierre.peiffer@bull.net>
 
-This removes some filesystem boilerplate from the CFS cgroup subsystem.
+Trivial patch which adds some small locking functions and makes use of them to
+factorize some part of the code and to make it cleaner.
 
-Signed-off-by: Paul Menage <menage@google.com>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Pierre Peiffer <pierre.peiffer@bull.net>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
+Cc: Nadia Derbey <Nadia.Derbey@bull.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |   52 ++++++++---------------------------------------
- 1 file changed, 9 insertions(+), 43 deletions(-)
+ ipc/sem.c |   61 ++++++++++++++++++++++++++--------------------------
+ 1 file changed, 31 insertions(+), 30 deletions(-)
 
-diff -puN kernel/sched.c~cgroups-_s64-files-use-read_s64-write_s64-in-cfs-cgroup-for-rt_runtime-file kernel/sched.c
---- a/kernel/sched.c~cgroups-_s64-files-use-read_s64-write_s64-in-cfs-cgroup-for-rt_runtime-file
-+++ a/kernel/sched.c
-@@ -9073,48 +9073,14 @@ static u64 cpu_shares_read_u64(struct cg
- 
- #ifdef CONFIG_RT_GROUP_SCHED
- static ssize_t cpu_rt_runtime_write(struct cgroup *cgrp, struct cftype *cft,
--				struct file *file,
--				const char __user *userbuf,
--				size_t nbytes, loff_t *unused_ppos)
--{
--	char buffer[64];
--	int retval = 0;
--	s64 val;
--	char *end;
--
--	if (!nbytes)
--		return -EINVAL;
--	if (nbytes >= sizeof(buffer))
--		return -E2BIG;
--	if (copy_from_user(buffer, userbuf, nbytes))
--		return -EFAULT;
--
--	buffer[nbytes] = 0;     /* nul-terminate */
--
--	/* strip newline if necessary */
--	if (nbytes && (buffer[nbytes-1] == '\n'))
--		buffer[nbytes-1] = 0;
--	val = simple_strtoll(buffer, &end, 0);
--	if (*end)
--		return -EINVAL;
--
--	/* Pass to subsystem */
--	retval = sched_group_set_rt_runtime(cgroup_tg(cgrp), val);
--	if (!retval)
--		retval = nbytes;
--	return retval;
--}
--
--static ssize_t cpu_rt_runtime_read(struct cgroup *cgrp, struct cftype *cft,
--				   struct file *file,
--				   char __user *buf, size_t nbytes,
--				   loff_t *ppos)
--{
--	char tmp[64];
--	long val = sched_group_rt_runtime(cgroup_tg(cgrp));
--	int len = sprintf(tmp, "%ld\n", val);
-+				s64 val)
-+{
-+	return sched_group_set_rt_runtime(cgroup_tg(cgrp), val);
-+}
- 
--	return simple_read_from_buffer(buf, nbytes, ppos, tmp, len);
-+static s64 cpu_rt_runtime_read(struct cgroup *cgrp, struct cftype *cft)
-+{
-+	return sched_group_rt_runtime(cgroup_tg(cgrp));
+diff -puN ipc/sem.c~ipc-semaphores-code-factorisation ipc/sem.c
+--- a/ipc/sem.c~ipc-semaphores-code-factorisation
++++ a/ipc/sem.c
+@@ -180,6 +180,25 @@ static inline struct sem_array *sem_lock
+ 	return container_of(ipcp, struct sem_array, sem_perm);
  }
  
- static int cpu_rt_period_write_uint(struct cgroup *cgrp, struct cftype *cftype,
-@@ -9140,8 +9106,8 @@ static struct cftype cpu_files[] = {
- #ifdef CONFIG_RT_GROUP_SCHED
- 	{
- 		.name = "rt_runtime_us",
--		.read = cpu_rt_runtime_read,
--		.write = cpu_rt_runtime_write,
-+		.read_s64 = cpu_rt_runtime_read,
-+		.write_s64 = cpu_rt_runtime_write,
- 	},
- 	{
- 		.name = "rt_period_us",
++static inline void sem_lock_and_putref(struct sem_array *sma)
++{
++	ipc_lock_by_ptr(&sma->sem_perm);
++	ipc_rcu_putref(sma);
++}
++
++static inline void sem_getref_and_unlock(struct sem_array *sma)
++{
++	ipc_rcu_getref(sma);
++	ipc_unlock(&(sma)->sem_perm);
++}
++
++static inline void sem_putref(struct sem_array *sma)
++{
++	ipc_lock_by_ptr(&sma->sem_perm);
++	ipc_rcu_putref(sma);
++	ipc_unlock(&(sma)->sem_perm);
++}
++
+ static inline void sem_rmid(struct ipc_namespace *ns, struct sem_array *s)
+ {
+ 	ipc_rmid(&sem_ids(ns), &s->sem_perm);
+@@ -698,19 +717,15 @@ static int semctl_main(struct ipc_namesp
+ 		int i;
+ 
+ 		if(nsems > SEMMSL_FAST) {
+-			ipc_rcu_getref(sma);
+-			sem_unlock(sma);			
++			sem_getref_and_unlock(sma);
+ 
+ 			sem_io = ipc_alloc(sizeof(ushort)*nsems);
+ 			if(sem_io == NULL) {
+-				ipc_lock_by_ptr(&sma->sem_perm);
+-				ipc_rcu_putref(sma);
+-				sem_unlock(sma);
++				sem_putref(sma);
+ 				return -ENOMEM;
+ 			}
+ 
+-			ipc_lock_by_ptr(&sma->sem_perm);
+-			ipc_rcu_putref(sma);
++			sem_lock_and_putref(sma);
+ 			if (sma->sem_perm.deleted) {
+ 				sem_unlock(sma);
+ 				err = -EIDRM;
+@@ -731,38 +746,30 @@ static int semctl_main(struct ipc_namesp
+ 		int i;
+ 		struct sem_undo *un;
+ 
+-		ipc_rcu_getref(sma);
+-		sem_unlock(sma);
++		sem_getref_and_unlock(sma);
+ 
+ 		if(nsems > SEMMSL_FAST) {
+ 			sem_io = ipc_alloc(sizeof(ushort)*nsems);
+ 			if(sem_io == NULL) {
+-				ipc_lock_by_ptr(&sma->sem_perm);
+-				ipc_rcu_putref(sma);
+-				sem_unlock(sma);
++				sem_putref(sma);
+ 				return -ENOMEM;
+ 			}
+ 		}
+ 
+ 		if (copy_from_user (sem_io, arg.array, nsems*sizeof(ushort))) {
+-			ipc_lock_by_ptr(&sma->sem_perm);
+-			ipc_rcu_putref(sma);
+-			sem_unlock(sma);
++			sem_putref(sma);
+ 			err = -EFAULT;
+ 			goto out_free;
+ 		}
+ 
+ 		for (i = 0; i < nsems; i++) {
+ 			if (sem_io[i] > SEMVMX) {
+-				ipc_lock_by_ptr(&sma->sem_perm);
+-				ipc_rcu_putref(sma);
+-				sem_unlock(sma);
++				sem_putref(sma);
+ 				err = -ERANGE;
+ 				goto out_free;
+ 			}
+ 		}
+-		ipc_lock_by_ptr(&sma->sem_perm);
+-		ipc_rcu_putref(sma);
++		sem_lock_and_putref(sma);
+ 		if (sma->sem_perm.deleted) {
+ 			sem_unlock(sma);
+ 			err = -EIDRM;
+@@ -1042,14 +1049,11 @@ static struct sem_undo *find_undo(struct
+ 		return ERR_PTR(PTR_ERR(sma));
+ 
+ 	nsems = sma->sem_nsems;
+-	ipc_rcu_getref(sma);
+-	sem_unlock(sma);
++	sem_getref_and_unlock(sma);
+ 
+ 	new = kzalloc(sizeof(struct sem_undo) + sizeof(short)*nsems, GFP_KERNEL);
+ 	if (!new) {
+-		ipc_lock_by_ptr(&sma->sem_perm);
+-		ipc_rcu_putref(sma);
+-		sem_unlock(sma);
++		sem_putref(sma);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 	new->semadj = (short *) &new[1];
+@@ -1060,13 +1064,10 @@ static struct sem_undo *find_undo(struct
+ 	if (un) {
+ 		spin_unlock(&ulp->lock);
+ 		kfree(new);
+-		ipc_lock_by_ptr(&sma->sem_perm);
+-		ipc_rcu_putref(sma);
+-		sem_unlock(sma);
++		sem_putref(sma);
+ 		goto out;
+ 	}
+-	ipc_lock_by_ptr(&sma->sem_perm);
+-	ipc_rcu_putref(sma);
++	sem_lock_and_putref(sma);
+ 	if (sma->sem_perm.deleted) {
+ 		sem_unlock(sma);
+ 		spin_unlock(&ulp->lock);
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from pierre.peiffer@bull.net are
 
 origin.patch
-disable-the-memory-controller-by-default-v3.patch
-add-a-refcount-check-in-dput.patch
 
