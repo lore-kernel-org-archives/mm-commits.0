@@ -1,158 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: - utimensat-non-conformances-and-fixes-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 30 Apr 2008 10:49:00 -0700
-Message-ID: <200804301749.m3UHn0uj026630@imap1.linux-foundation.org>
+Subject: + ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch added to -mm tree
+Date: Wed, 30 Apr 2008 10:49:58 -0700
+Message-ID: <200804301749.m3UHnwrI026652__30905.9074534618$1209577888$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34256 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32955 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758246AbYD3Rtd (ORCPT
+	by vger.kernel.org with ESMTP id S1760669AbYD3Rub (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 13:49:33 -0400
+	Wed, 30 Apr 2008 13:50:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mtk.manpages@gmail.com, mtk.manpages@googlemail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jack@suse.cz, gentuu@gmail.com, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     utimensat-non-conformances-and-fixes-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
+     ext3: fix synchronization of quota files in journal=data mode
+has been added to the -mm tree.  Its filename is
+     ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: utimensat-non-conformances-and-fixes-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ext3: fix synchronization of quota files in journal=data mode
+From: Jan Kara <jack@suse.cz>
 
-ERROR: space prohibited after that '!' (ctx:WxW)
-#429: FILE: fs/utimes.c:102:
-+	if (times && ! ((times[0].tv_nsec == UTIME_NOW &&
- 	             ^
+In journal=data mode, it is not enough to do write_inode_now as done in
+vfs_quota_on() to write all data to their final location (which is needed for
+quota_read to work correctly).  Calling journal_flush() does its job.
 
-ERROR: code indent should use tabs where possible
-#436: FILE: fs/utimes.c:108:
-+                        goto mnt_drop_write_and_out;$
-
-total: 2 errors, 0 warnings, 59 lines checked
-
-./patches/utimensat-non-conformances-and-fixes.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Reported-by: Nick <gentuu@gmail.com>
+Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/utimes.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ext3/super.c |   35 +++++++++++++++++++++++++++--------
+ 1 file changed, 27 insertions(+), 8 deletions(-)
 
-diff -puN fs/utimes.c~utimensat-non-conformances-and-fixes-checkpatch-fixes fs/utimes.c
---- a/fs/utimes.c~utimensat-non-conformances-and-fixes-checkpatch-fixes
-+++ a/fs/utimes.c
-@@ -99,13 +99,13 @@ long do_utimes(int dfd, char __user *fil
+diff -puN fs/ext3/super.c~ext3-fix-synchronization-of-quota-files-in-journal=data-mode fs/ext3/super.c
+--- a/fs/ext3/super.c~ext3-fix-synchronization-of-quota-files-in-journal=data-mode
++++ a/fs/ext3/super.c
+@@ -2759,23 +2759,42 @@ static int ext3_quota_on(struct super_bl
  
- 	/* Don't worry, the checks are done in inode_change_ok() */
- 	newattrs.ia_valid = ATTR_CTIME | ATTR_MTIME | ATTR_ATIME;
--	if (times && ! ((times[0].tv_nsec == UTIME_NOW &&
-+	if (times && !((times[0].tv_nsec == UTIME_NOW &&
- 			 times[1].tv_nsec == UTIME_NOW) ||
- 			(times[0].tv_nsec == UTIME_OMIT &&
- 			 times[1].tv_nsec == UTIME_OMIT))) {
- 		error = -EPERM;
-                 if (IS_APPEND(inode) || IS_IMMUTABLE(inode))
--                        goto mnt_drop_write_and_out;
-+			goto mnt_drop_write_and_out;
- 
- 		if (times[0].tv_nsec == UTIME_OMIT) {
- 			newattrs.ia_atime = inode->i_atime;
+ 	if (!test_opt(sb, QUOTA))
+ 		return -EINVAL;
+-	/* Not journalling quota or remount? */
+-	if ((!EXT3_SB(sb)->s_qf_names[USRQUOTA] &&
+-	    !EXT3_SB(sb)->s_qf_names[GRPQUOTA]) || remount)
++	/* When remounting, no checks are needed and in fact, path is NULL */
++	if (remount)
+ 		return vfs_quota_on(sb, type, format_id, path, remount);
++
+ 	err = path_lookup(path, LOOKUP_FOLLOW, &nd);
+ 	if (err)
+ 		return err;
++
+ 	/* Quotafile not on the same filesystem? */
+ 	if (nd.path.mnt->mnt_sb != sb) {
+ 		path_put(&nd.path);
+ 		return -EXDEV;
+ 	}
+-	/* Quotafile not in fs root? */
+-	if (nd.path.dentry->d_parent->d_inode != sb->s_root->d_inode)
+-		printk(KERN_WARNING
+-			"EXT3-fs: Quota file not on filesystem root. "
+-			"Journalled quota will not work.\n");
++	/* Journaling quota? */
++	if (EXT3_SB(sb)->s_qf_names[type]) {
++		/* Quotafile not of fs root? */
++		if (nd.path.dentry->d_parent->d_inode != sb->s_root->d_inode)
++			printk(KERN_WARNING
++				"EXT3-fs: Quota file not on filesystem root. "
++				"Journaled quota will not work.\n");
++	}
++
++	/*
++	 * When we journal data on quota file, we have to flush journal to see
++	 * all updates to the file when we bypass pagecache...
++	 */
++	if (ext3_should_journal_data(nd.path.dentry->d_inode)) {
++		/*
++		 * We don't need to lock updates but journal_flush() could
++		 * otherwise be livelocked...
++		 */
++		journal_lock_updates(EXT3_SB(sb)->s_journal);
++		journal_flush(EXT3_SB(sb)->s_journal);
++		journal_unlock_updates(EXT3_SB(sb)->s_journal);
++	}
++
+ 	path_put(&nd.path);
+ 	return vfs_quota_on(sb, type, format_id, path, remount);
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
-epcac-static-functions-and-integer-as-null-pointer-fixes.patch
-isicom-bring-into-coding-style.patch
-tty-the-big-operations-rework.patch
-devpts-factor-out-pty-index-allocation.patch
-mm-bdi-export-bdi-attributes-in-sysfs.patch
-fuse-fix-race-in-llseek.patch
-basic-braille-screen-reader-support.patch
-hfs-fix-warning-with-64k-page_size.patch
-hfsplus-fix-warning-with-64k-page_size.patch
-alloc_uid-cleanup.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-revert-memory-hotplug-allocate-usemap-on-the-section-with-pgdat.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-disable-the-memory-controller-by-default-v3.patch
-git-acpi.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-git-x86-fixup.patch
-rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
-git-arm-fixup.patch
-cifs-suppress-warning.patch
-devres-support-addresses-greater-than-an-unsigned-long-via-dev_ioremap-checkpatch-fixes.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed.patch
-drivers-media-video-tuner-corec-tuner_probe-fix-error-check.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-hwmon.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-kvm.patch
-pata_atiixp-simplex-clear.patch
-git-m32r.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-sched-add-debug-checks-to-idle-functions.patch
-drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
-add-rcu_assign_index-if-ever-needed.patch
-git-scsi-misc.patch
-scsi-fix-section-mismatch-in-aic94xx.patch
-drivers-scsi-mvsasc-fix-build-warnings.patch
-aic79xx_core-remove-ascii-art.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-ext4-is-busted-on-m68k.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
-add-warn_on_secs-macro.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-reiser4.patch
-jens-broke-reiser4patch-added-to-mm-tree.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-x86-ioremap-add-checks-for-virtual-addresses-fix.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem.patch
+quota-le_add_cpu-conversion.patch
+ext4-fix-mount-messages-when-quota-disabled.patch
+ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+ext4-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
+ext4-fix-typos-in-messages-and-comments-journalled-journaled.patch
+reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
+quota-add-a-convenience-macro-for-filesystems.patch
+ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+ext4-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
 
