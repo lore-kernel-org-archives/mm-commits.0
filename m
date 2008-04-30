@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-simple-stats-for-memory-resource-controller.patch added to -mm tree
-Date: Wed, 30 Apr 2008 13:20:55 -0700
-Message-ID: <200804302020.m3UKKt6g000976@imap1.linux-foundation.org>
+Subject: + pmu-battery-filenames-in-sysfs-with-spaces.patch added to -mm tree
+Date: Wed, 30 Apr 2008 13:25:39 -0700
+Message-ID: <200804302025.m3UKPdNQ001148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32946 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40488 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759052AbYD3UV0 (ORCPT
+	by vger.kernel.org with ESMTP id S1758772AbYD3U0X (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 16:21:26 -0400
+	Wed, 30 Apr 2008 16:26:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: balajirrao@gmail.com, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com
+Cc: lists@nerdbynature.de, cbou@mail.ru, dwmw2@infradead.org
 
 
 The patch titled
-     memcg: simple stats for memory resource controller
+     PMU battery: filenames in sysfs with spaces
 has been added to the -mm tree.  Its filename is
-     memcg-simple-stats-for-memory-resource-controller.patch
+     pmu-battery-filenames-in-sysfs-with-spaces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: simple stats for memory resource controller
-From: Balaji Rao <balajirrao@gmail.com>
+Subject: PMU battery: filenames in sysfs with spaces
+From: Christian Kujau <lists@nerdbynature.de>
 
-Implement trivial statistics for the memory resource controller.
+By changing drivers/power/pmu_battery.c I now have '_' instead of
+' ' (spaces) in /sys:
 
-Signed-off-by: Balaji Rao <balajirrao@gmail.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+/sys/devices/platform/pmu-battery.0/power_supply/PMU_battery_0
+/sys/class/power_supply/PMU_battery_0
+
+I'm still not sure if some userspace tool out there uses the old paths and
+will break now.
+
+Signed-off-by: Christian Kujau <lists@nerdbynature.de>
+Signed-off-by: David Woodhouse <dwmw2@infradead.org>
+Cc: Anton Vorontsov <cbou@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/power/pmu_battery.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~memcg-simple-stats-for-memory-resource-controller mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-simple-stats-for-memory-resource-controller
-+++ a/mm/memcontrol.c
-@@ -48,6 +48,8 @@ enum mem_cgroup_stat_index {
- 	 */
- 	MEM_CGROUP_STAT_CACHE, 	   /* # of pages charged as cache */
- 	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as rss */
-+	MEM_CGROUP_STAT_PGPGIN_COUNT,	/* # of pages paged in */
-+	MEM_CGROUP_STAT_PGPGOUT_COUNT,	/* # of pages paged out */
+diff -puN drivers/power/pmu_battery.c~pmu-battery-filenames-in-sysfs-with-spaces drivers/power/pmu_battery.c
+--- a/drivers/power/pmu_battery.c~pmu-battery-filenames-in-sysfs-with-spaces
++++ a/drivers/power/pmu_battery.c
+@@ -159,7 +159,7 @@ static int __init pmu_bat_init(void)
+ 		if (!pbat)
+ 			break;
  
- 	MEM_CGROUP_STAT_NSTATS,
- };
-@@ -199,6 +201,13 @@ static void mem_cgroup_charge_statistics
- 		__mem_cgroup_stat_add_safe(stat, MEM_CGROUP_STAT_CACHE, val);
- 	else
- 		__mem_cgroup_stat_add_safe(stat, MEM_CGROUP_STAT_RSS, val);
-+
-+	if (charge)
-+		__mem_cgroup_stat_add_safe(stat,
-+				MEM_CGROUP_STAT_PGPGIN_COUNT, 1);
-+	else
-+		__mem_cgroup_stat_add_safe(stat,
-+				MEM_CGROUP_STAT_PGPGOUT_COUNT, 1);
- }
- 
- static struct mem_cgroup_per_zone *
-@@ -884,6 +893,8 @@ static const struct mem_cgroup_stat_desc
- } mem_cgroup_stat_desc[] = {
- 	[MEM_CGROUP_STAT_CACHE] = { "cache", PAGE_SIZE, },
- 	[MEM_CGROUP_STAT_RSS] = { "rss", PAGE_SIZE, },
-+	[MEM_CGROUP_STAT_PGPGIN_COUNT] = {"pgpgin", 1, },
-+	[MEM_CGROUP_STAT_PGPGOUT_COUNT] = {"pgpgout", 1, },
- };
- 
- static int mem_control_stat_show(struct cgroup *cont, struct cftype *cft,
+-		sprintf(pbat->name, "PMU battery %d", i);
++		sprintf(pbat->name, "PMU_battery_%d", i);
+ 		pbat->bat.name = pbat->name;
+ 		pbat->bat.properties = pmu_bat_props;
+ 		pbat->bat.num_properties = ARRAY_SIZE(pmu_bat_props);
 _
 
-Patches currently in -mm which might be from balajirrao@gmail.com are
+Patches currently in -mm which might be from lists@nerdbynature.de are
 
-memcg-simple-stats-for-memory-resource-controller.patch
+pmu-battery-filenames-in-sysfs-with-spaces.patch
 
