@@ -1,163 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - cgroups-_s64-files-add-cgroups-read_s64-write_s64-file-methods.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:42:31 -0700
-Message-ID: <200804300542.m3U5gVW1029153@imap1.linux-foundation.org>
+Subject: - memcgroup-implement-failcounter-reset.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:43:07 -0700
+Message-ID: <200804300543.m3U5h7SA029293@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45130 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52071 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758315AbYD3GM3 (ORCPT
+	by vger.kernel.org with ESMTP id S1758330AbYD3GMk (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:12:29 -0400
+	Wed, 30 Apr 2008 02:12:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, a.p.zijlstra@chello.nl, mingo@elte.hu, mm-commits@vger.kernel.org
+To: xemul@openvz.org, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     CGroups _s64 files: add cgroups read_s64/write_s64 file methods
+     memcgroup: implement failcounter reset
 has been removed from the -mm tree.  Its filename was
-     cgroups-_s64-files-add-cgroups-read_s64-write_s64-file-methods.patch
+     memcgroup-implement-failcounter-reset.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: CGroups _s64 files: add cgroups read_s64/write_s64 file methods
-From: Paul Menage <menage@google.com>
+Subject: memcgroup: implement failcounter reset
+From: Pavel Emelyanov <xemul@openvz.org>
 
-These patches add cgroups read_s64 and write_s64 control file methods (the
-signed equivalent of read_u64/write_u64) and use them to implement the
-cpu.rt_runtime_us control file in the CFS cgroup subsystem.
+This is a very common requirement from people using the resource accounting
+facilities (not only memcgroup but also OpenVZ beancounters).  They want to
+put the cgroup in an initial state without re-creating it.
 
+For example after re-configuring a group people want to observe how this new
+configuration fits the group needs without saving the previous failcnt value.
 
-This patch:
+Merge two resets into one mem_cgroup_reset() function to demonstrate how
+multiplexing work.
 
-These are the signed equivalents of the read_u64/write_u64 methods
+Besides, I have plans to move the files, that correspond to res_counter to the
+res_counter.c file and somehow "import" them into controller.  I don't know
+how to make it gracefully yet, but merging resets of max_usage and failcnt in
+one function will be there for sure.
 
-Signed-off-by: Paul Menage <menage@google.com>
-Acked-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cgroup.h |    8 ++++++++
- kernel/cgroup.c        |   38 ++++++++++++++++++++++++++++----------
- 2 files changed, 36 insertions(+), 10 deletions(-)
+ include/linux/res_counter.h |    8 ++++++++
+ mm/memcontrol.c             |   14 +++++++++++---
+ 2 files changed, 19 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/cgroup.h~cgroups-_s64-files-add-cgroups-read_s64-write_s64-file-methods include/linux/cgroup.h
---- a/include/linux/cgroup.h~cgroups-_s64-files-add-cgroups-read_s64-write_s64-file-methods
-+++ a/include/linux/cgroup.h
-@@ -216,6 +216,10 @@ struct cftype {
- 	 */
- 	u64 (*read_u64) (struct cgroup *cgrp, struct cftype *cft);
- 	/*
-+	 * read_s64() is a signed version of read_u64()
-+	 */
-+	s64 (*read_s64) (struct cgroup *cgrp, struct cftype *cft);
-+	/*
- 	 * read_map() is used for defining a map of key/value
- 	 * pairs. It should call cb->fill(cb, key, value) for each
- 	 * entry. The key/value pairs (and their ordering) should not
-@@ -234,6 +238,10 @@ struct cftype {
- 	 * userspace. Use in place of write(); return 0 or error.
- 	 */
- 	int (*write_u64) (struct cgroup *cgrp, struct cftype *cft, u64 val);
-+	/*
-+	 * write_s64() is a signed version of write_u64()
-+	 */
-+	int (*write_s64) (struct cgroup *cgrp, struct cftype *cft, s64 val);
- 
- 	int (*release) (struct inode *inode, struct file *file);
- };
-diff -puN kernel/cgroup.c~cgroups-_s64-files-add-cgroups-read_s64-write_s64-file-methods kernel/cgroup.c
---- a/kernel/cgroup.c~cgroups-_s64-files-add-cgroups-read_s64-write_s64-file-methods
-+++ a/kernel/cgroup.c
-@@ -1299,14 +1299,13 @@ enum cgroup_filetype {
- 	FILE_RELEASE_AGENT,
- };
- 
--static ssize_t cgroup_write_u64(struct cgroup *cgrp, struct cftype *cft,
-+static ssize_t cgroup_write_X64(struct cgroup *cgrp, struct cftype *cft,
- 				struct file *file,
- 				const char __user *userbuf,
- 				size_t nbytes, loff_t *unused_ppos)
- {
- 	char buffer[64];
- 	int retval = 0;
--	u64 val;
- 	char *end;
- 
- 	if (!nbytes)
-@@ -1318,12 +1317,17 @@ static ssize_t cgroup_write_u64(struct c
- 
- 	buffer[nbytes] = 0;     /* nul-terminate */
- 	strstrip(buffer);
--	val = simple_strtoull(buffer, &end, 0);
--	if (*end)
--		return -EINVAL;
--
--	/* Pass to subsystem */
--	retval = cft->write_u64(cgrp, cft, val);
-+	if (cft->write_u64) {
-+		u64 val = simple_strtoull(buffer, &end, 0);
-+		if (*end)
-+			return -EINVAL;
-+		retval = cft->write_u64(cgrp, cft, val);
-+	} else {
-+		s64 val = simple_strtoll(buffer, &end, 0);
-+		if (*end)
-+			return -EINVAL;
-+		retval = cft->write_s64(cgrp, cft, val);
-+	}
- 	if (!retval)
- 		retval = nbytes;
- 	return retval;
-@@ -1404,8 +1408,8 @@ static ssize_t cgroup_file_write(struct 
- 		return -ENODEV;
- 	if (cft->write)
- 		return cft->write(cgrp, cft, file, buf, nbytes, ppos);
--	if (cft->write_u64)
--		return cgroup_write_u64(cgrp, cft, file, buf, nbytes, ppos);
-+	if (cft->write_u64 || cft->write_s64)
-+		return cgroup_write_X64(cgrp, cft, file, buf, nbytes, ppos);
- 	return -EINVAL;
+diff -puN include/linux/res_counter.h~memcgroup-implement-failcounter-reset include/linux/res_counter.h
+--- a/include/linux/res_counter.h~memcgroup-implement-failcounter-reset
++++ a/include/linux/res_counter.h
+@@ -143,4 +143,12 @@ static inline void res_counter_reset_max
+ 	spin_unlock_irqrestore(&cnt->lock, flags);
  }
  
-@@ -1421,6 +1425,18 @@ static ssize_t cgroup_read_u64(struct cg
- 	return simple_read_from_buffer(buf, nbytes, ppos, tmp, len);
- }
- 
-+static ssize_t cgroup_read_s64(struct cgroup *cgrp, struct cftype *cft,
-+			       struct file *file,
-+			       char __user *buf, size_t nbytes,
-+			       loff_t *ppos)
++static inline void res_counter_reset_failcnt(struct res_counter *cnt)
 +{
-+	char tmp[64];
-+	s64 val = cft->read_s64(cgrp, cft);
-+	int len = sprintf(tmp, "%lld\n", (long long) val);
++	unsigned long flags;
 +
-+	return simple_read_from_buffer(buf, nbytes, ppos, tmp, len);
++	spin_lock_irqsave(&cnt->lock, flags);
++	cnt->failcnt = 0;
++	spin_unlock_irqrestore(&cnt->lock, flags);
 +}
-+
- static ssize_t cgroup_common_file_read(struct cgroup *cgrp,
- 					  struct cftype *cft,
- 					  struct file *file,
-@@ -1477,6 +1493,8 @@ static ssize_t cgroup_file_read(struct f
- 		return cft->read(cgrp, cft, file, buf, nbytes, ppos);
- 	if (cft->read_u64)
- 		return cgroup_read_u64(cgrp, cft, file, buf, nbytes, ppos);
-+	if (cft->read_s64)
-+		return cgroup_read_s64(cgrp, cft, file, buf, nbytes, ppos);
- 	return -EINVAL;
+ #endif
+diff -puN mm/memcontrol.c~memcgroup-implement-failcounter-reset mm/memcontrol.c
+--- a/mm/memcontrol.c~memcgroup-implement-failcounter-reset
++++ a/mm/memcontrol.c
+@@ -857,12 +857,19 @@ static ssize_t mem_cgroup_write(struct c
+ 				mem_cgroup_write_strategy);
  }
  
+-static int mem_cgroup_max_reset(struct cgroup *cont, unsigned int event)
++static int mem_cgroup_reset(struct cgroup *cont, unsigned int event)
+ {
+ 	struct mem_cgroup *mem;
+ 
+ 	mem = mem_cgroup_from_cont(cont);
+-	res_counter_reset_max(&mem->res);
++	switch (event) {
++	case RES_MAX_USAGE:
++		res_counter_reset_max(&mem->res);
++		break;
++	case RES_FAILCNT:
++		res_counter_reset_failcnt(&mem->res);
++		break;
++	}
+ 	return 0;
+ }
+ 
+@@ -916,7 +923,7 @@ static struct cftype mem_cgroup_files[] 
+ 	{
+ 		.name = "max_usage_in_bytes",
+ 		.private = RES_MAX_USAGE,
+-		.trigger = mem_cgroup_max_reset,
++		.trigger = mem_cgroup_reset,
+ 		.read_u64 = mem_cgroup_read,
+ 	},
+ 	{
+@@ -928,6 +935,7 @@ static struct cftype mem_cgroup_files[] 
+ 	{
+ 		.name = "failcnt",
+ 		.private = RES_FAILCNT,
++		.trigger = mem_cgroup_reset,
+ 		.read_u64 = mem_cgroup_read,
+ 	},
+ 	{
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
 disable-the-memory-controller-by-default-v3.patch
-add-a-refcount-check-in-dput.patch
+remove-unused-variable-from-send_signal.patch
+turn-legacy_queue-macro-into-static-inline-function.patch
+consolidate-checking-for-ignored-legacy-signals.patch
+consolidate-checking-for-ignored-legacy-signals-simplify.patch
+signals-consolidate-checks-for-whether-or-not-to-ignore-a-signal.patch
+signals-clean-dequeue_signal-from-excess-checks-and-assignments.patch
+signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+signals-cleanup-security_task_kill-usage-implementation.patch
+signals-use-__group_complete_signal-for-the-specific-signals-too.patch
+signals-fold-complete_signal-into-send_signal-do_send_sigqueue.patch
+signals-unify-send_sigqueue-send_group_sigqueue-completely.patch
+ptrace-allow-to-ptrace-sbin-init.patch
+free_pidmap-turn-it-into-free_pidmapstruct-upid.patch
+use-find_task_by_vpid-in-taskstats.patch
+deprecate-find_task_by_pid.patch
+deprecate-find_task_by_pid-warning-fix.patch
+pids-de_thread-dont-clear-session-pgrp-pids-for-the-old-leader.patch
+pids-introduce-change_pid-helper.patch
+pids-sys_setpgid-use-change_pid-helper.patch
+pids-__set_special_pids-use-change_pid-helper.patch
+pidns-make-pid-level-and-pid_ns-level-unsigned.patch
+reiser4.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
