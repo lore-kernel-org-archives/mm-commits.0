@@ -1,148 +1,294 @@
 From: akpm@linux-foundation.org
-Subject: - cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:50:54 -0700
-Message-ID: <200804300550.m3U5osJp030167@imap1.linux-foundation.org>
+Subject: - rapidio-add-of-tree-support-to-rapidio-controller-driver.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:51:11 -0700
+Message-ID: <200804300551.m3U5pBhW030200@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34350 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759172AbYD3FvF (ORCPT
+	by vger.kernel.org with ESMTP id S1759305AbYD3FvR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:51:05 -0400
+	Wed, 30 Apr 2008 01:51:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: djwong@us.ibm.com, davej@codemonkey.org.uk, mm-commits@vger.kernel.org
+To: wei.zhang@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpufreq: expose cpufreq coordination requirements regardless of coordination mechanism
+     rapidio: add OF-tree support to RapidIO controller driver
 has been removed from the -mm tree.  Its filename was
-     cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism.patch
+     rapidio-add-of-tree-support-to-rapidio-controller-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: expose cpufreq coordination requirements regardless of coordination mechanism
-From: "Darrick J. Wong" <djwong@us.ibm.com>
+Subject: rapidio: add OF-tree support to RapidIO controller driver
+From: Zhang Wei <wei.zhang@freescale.com>
 
-Currently, affected_cpus shows which CPUs need to have their frequency
-coordinated in software.  When hardware coordination is in use, the contents
-of this file appear the same as when no coordination is required.  This can
-lead to some confusion among user-space programs, for example, that do not
-know that extra coordination is required to force a CPU core to a particular
-speed to control power consumption.
-
-To fix this, create a "related_cpus" attribute that always displays the
-coordination map regardless of whatever coordination strategy the cpufreq
-driver uses (sw or hw).  If the cpufreq driver does not provide a value, fall
-back to policy->cpus.
-
-Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
+Signed-off-by: Zhang Wei <wei.zhang@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c |    1 
- drivers/cpufreq/cpufreq.c                  |   29 +++++++++++++++----
- include/linux/cpufreq.h                    |    3 +
- 3 files changed, 27 insertions(+), 6 deletions(-)
+ arch/powerpc/kernel/Makefile  |    1 
+ arch/powerpc/kernel/rio.c     |   52 ---------------
+ arch/powerpc/sysdev/fsl_rio.c |  110 +++++++++++++++++++++++++++++---
+ arch/powerpc/sysdev/fsl_rio.h |   20 -----
+ 4 files changed, 102 insertions(+), 81 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
---- a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism
-+++ a/arch/x86/kernel/cpu/cpufreq/acpi-cpufreq.c
-@@ -591,6 +591,7 @@ static int acpi_cpufreq_cpu_init(struct 
- 	    policy->shared_type == CPUFREQ_SHARED_TYPE_ANY) {
- 		policy->cpus = perf->shared_cpu_map;
- 	}
-+	policy->related_cpus = perf->shared_cpu_map;
- 
- #ifdef CONFIG_SMP
- 	dmi_check_system(sw_any_bug_dmi_table);
-diff -puN drivers/cpufreq/cpufreq.c~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -583,15 +583,13 @@ out:
- 	i += sprintf(&buf[i], "\n");
- 	return i;
- }
--/**
-- * show_affected_cpus - show the CPUs affected by each transition
+diff -puN arch/powerpc/kernel/Makefile~rapidio-add-of-tree-support-to-rapidio-controller-driver arch/powerpc/kernel/Makefile
+--- a/arch/powerpc/kernel/Makefile~rapidio-add-of-tree-support-to-rapidio-controller-driver
++++ a/arch/powerpc/kernel/Makefile
+@@ -72,7 +72,6 @@ pci64-$(CONFIG_PPC64)		+= pci_dn.o isa-b
+ obj-$(CONFIG_PCI)		+= pci_$(CONFIG_WORD_SIZE).o $(pci64-y) \
+ 				   pci-common.o
+ obj-$(CONFIG_PCI_MSI)		+= msi.o
+-obj-$(CONFIG_RAPIDIO)		+= rio.o
+ obj-$(CONFIG_KEXEC)		+= machine_kexec.o crash.o \
+ 				   machine_kexec_$(CONFIG_WORD_SIZE).o
+ obj-$(CONFIG_AUDIT)		+= audit.o
+diff -puN arch/powerpc/kernel/rio.c~rapidio-add-of-tree-support-to-rapidio-controller-driver /dev/null
+--- a/arch/powerpc/kernel/rio.c
++++ /dev/null
+@@ -1,52 +0,0 @@
+-/*
+- * RapidIO PPC32 support
+- *
+- * Copyright 2005 MontaVista Software, Inc.
+- * Matt Porter <mporter@kernel.crashing.org>
+- *
+- * This program is free software; you can redistribute  it and/or modify it
+- * under  the terms of  the GNU General  Public License as published by the
+- * Free Software Foundation;  either version 2 of the  License, or (at your
+- * option) any later version.
 - */
--static ssize_t show_affected_cpus(struct cpufreq_policy *policy, char *buf)
-+
-+static ssize_t show_cpus(cpumask_t mask, char *buf)
- {
- 	ssize_t i = 0;
- 	unsigned int cpu;
+-
+-#include <linux/init.h>
+-#include <linux/kernel.h>
+-#include <linux/rio.h>
+-
+-#include <asm/rio.h>
+-
+-/**
+- * platform_rio_init - Do platform specific RIO init
+- *
+- * Any platform specific initialization of RapdIO
+- * hardware is done here as well as registration
+- * of any active master ports in the system.
+- */
+-void __attribute__ ((weak))
+-    platform_rio_init(void)
+-{
+-	printk(KERN_WARNING "RIO: No platform_rio_init() present\n");
+-}
+-
+-/**
+- * ppc_rio_init - Do PPC32 RIO init
+- *
+- * Calls platform-specific RIO init code and then calls
+- * rio_init_mports() to initialize any master ports that
+- * have been registered with the RIO subsystem.
+- */
+-static int __init ppc_rio_init(void)
+-{
+-	printk(KERN_INFO "RIO: RapidIO init\n");
+-
+-	/* Platform specific initialization */
+-	platform_rio_init();
+-
+-	/* Enumerate all registered ports */
+-	rio_init_mports();
+-
+-	return 0;
+-}
+-
+-subsys_initcall(ppc_rio_init);
+diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-add-of-tree-support-to-rapidio-controller-driver arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-add-of-tree-support-to-rapidio-controller-driver
++++ a/arch/powerpc/sysdev/fsl_rio.c
+@@ -20,6 +20,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/rio.h>
+ #include <linux/rio_drv.h>
++#include <linux/of_platform.h>
  
--	for_each_cpu_mask(cpu, policy->cpus) {
-+	for_each_cpu_mask(cpu, mask) {
- 		if (i)
- 			i += scnprintf(&buf[i], (PAGE_SIZE - i - 2), " ");
- 		i += scnprintf(&buf[i], (PAGE_SIZE - i - 2), "%u", cpu);
-@@ -602,6 +600,25 @@ static ssize_t show_affected_cpus(struct
- 	return i;
+ #include <asm/io.h>
+ 
+@@ -28,7 +29,6 @@
+ #define IRQ_RIO_TX(m)		(((struct rio_priv *)(m->priv))->txirq)
+ #define IRQ_RIO_RX(m)		(((struct rio_priv *)(m->priv))->rxirq)
+ 
+-#define RIO_REGS_BASE		(CCSRBAR + 0xc0000)
+ #define RIO_ATMU_REGS_OFFSET	0x10c00
+ #define RIO_MSG_REGS_OFFSET	0x11000
+ #define RIO_MAINT_WIN_SIZE	0x400000
+@@ -905,19 +905,66 @@ __setup("riohdid=", fsl_rio_get_cmdline)
+ 
+ /**
+  * fsl_rio_setup - Setup MPC85xx RapidIO interface
+- * @law_start: Starting physical address of RapidIO LAW
+- * @law_size: Size of RapidIO LAW
++ * @fsl_rio_setup - Setup Freescale PowerPC RapidIO interface
+  *
+  * Initializes MPC85xx RapidIO hardware interface, configures
+  * master port with system-specific info, and registers the
+  * master port with the RapidIO subsystem.
+  */
+-void fsl_rio_setup(int law_start, int law_size)
++int fsl_rio_setup(struct of_device *dev)
+ {
+ 	struct rio_ops *ops;
+ 	struct rio_mport *port;
+-	struct rio_priv *priv = NULL;
+-	int rc;
++	struct rio_priv *priv;
++	int rc = 0;
++	const u32 *dt_range, *cell;
++	struct resource regs;
++	int rlen;
++	u64 law_start, law_size;
++	int paw, aw, sw;
++
++	if (!dev->node) {
++		dev_err(&dev->dev, "Device OF-Node is NULL");
++		return -EFAULT;
++	}
++
++	rc = of_address_to_resource(dev->node, 0, &regs);
++	if (rc) {
++		dev_err(&dev->dev, "Can't get %s property 'reg'\n",
++				dev->node->full_name);
++		return -EFAULT;
++	}
++	dev_info(&dev->dev, "Of-device full name %s\n", dev->node->full_name);
++	dev_info(&dev->dev, "Regs start 0x%08x size 0x%08x\n",	regs.start,
++						regs.end - regs.start + 1);
++
++	dt_range = of_get_property(dev->node, "ranges", &rlen);
++	if (!dt_range) {
++		dev_err(&dev->dev, "Can't get %s property 'ranges'\n",
++				dev->node->full_name);
++		return -EFAULT;
++	}
++
++	/* Get node address wide */
++	cell = of_get_property(dev->node, "#address-cells", NULL);
++	if (cell)
++		aw = *cell;
++	else
++		aw = of_n_addr_cells(dev->node);
++	/* Get node size wide */
++	cell = of_get_property(dev->node, "#size-cells", NULL);
++	if (cell)
++		sw = *cell;
++	else
++		sw = of_n_size_cells(dev->node);
++	/* Get parent address wide wide */
++	paw = of_n_addr_cells(dev->node);
++
++	law_start = of_read_number(dt_range + aw, paw);
++	law_size = of_read_number(dt_range + aw + paw, sw);
++
++	dev_info(&dev->dev, "LAW start 0x%016llx, size 0x%016llx.\n",
++			law_start, law_size);
+ 
+ 	ops = kmalloc(sizeof(struct rio_ops), GFP_KERNEL);
+ 	ops->lcread = fsl_local_config_read;
+@@ -942,6 +989,12 @@ void fsl_rio_setup(int law_start, int la
+ 	port->iores.end = law_start + law_size;
+ 	port->iores.flags = IORESOURCE_MEM;
+ 
++	priv->bellirq = irq_of_parse_and_map(dev->node, 2);
++	priv->txirq = irq_of_parse_and_map(dev->node, 3);
++	priv->rxirq = irq_of_parse_and_map(dev->node, 4);
++	dev_info(&dev->dev, "bellirq: %d, txirq: %d, rxirq %d\n", priv->bellirq,
++				priv->txirq, priv->rxirq);
++
+ 	rio_init_dbell_res(&port->riores[RIO_DOORBELL_RESOURCE], 0, 0xffff);
+ 	rio_init_mbox_res(&port->riores[RIO_INB_MBOX_RESOURCE], 0, 0);
+ 	rio_init_mbox_res(&port->riores[RIO_OUTB_MBOX_RESOURCE], 0, 0);
+@@ -953,7 +1006,7 @@ void fsl_rio_setup(int law_start, int la
+ 	port->priv = priv;
+ 	rio_register_mport(port);
+ 
+-	priv->regs_win = ioremap(RIO_REGS_BASE, 0x20000);
++	priv->regs_win = ioremap(regs.start, regs.end - regs.start + 1);
+ 	priv->atmu_regs = (struct rio_atmu_regs *)(priv->regs_win
+ 					+ RIO_ATMU_REGS_OFFSET);
+ 	priv->maint_atmu_regs = priv->atmu_regs + 1;
+@@ -972,10 +1025,51 @@ void fsl_rio_setup(int law_start, int la
+ 	out_be32(&priv->dbell_atmu_regs->rowar, 0x8004200b);
+ 	fsl_rio_doorbell_init(port);
+ 
+-	return;
++	return 0;
+ err:
+ 	if (priv)
+ 		iounmap(priv->regs_win);
++	kfree(ops);
+ 	kfree(priv);
+ 	kfree(port);
++	return rc;
++}
++
++/* The probe function for RapidIO peer-to-peer network.
++ */
++static int __devinit fsl_of_rio_rpn_probe(struct of_device *dev,
++				     const struct of_device_id *match)
++{
++	int rc;
++	printk(KERN_INFO "Setting up RapidIO peer-to-peer network %s\n",
++			dev->node->full_name);
++
++	rc = fsl_rio_setup(dev);
++	if (rc)
++		goto out;
++
++	/* Enumerate all registered ports */
++	rc = rio_init_mports();
++out:
++	return rc;
++};
++
++static const struct of_device_id fsl_of_rio_rpn_ids[] = {
++	{
++		.compatible = "fsl,rapidio-delta",
++	},
++	{},
++};
++
++static struct of_platform_driver fsl_of_rio_rpn_driver = {
++	.name = "fsl-of-rio",
++	.match_table = fsl_of_rio_rpn_ids,
++	.probe = fsl_of_rio_rpn_probe,
++};
++
++static __init int fsl_of_rio_rpn_init(void)
++{
++	return of_register_platform_driver(&fsl_of_rio_rpn_driver);
  }
- 
-+/**
-+ * show_related_cpus - show the CPUs affected by each transition even if
-+ * hw coordination is in use
-+ */
-+static ssize_t show_related_cpus(struct cpufreq_policy *policy, char *buf)
-+{
-+	if (cpus_empty(policy->related_cpus))
-+		return show_cpus(policy->cpus, buf);
-+	return show_cpus(policy->related_cpus, buf);
-+}
 +
-+/**
-+ * show_affected_cpus - show the CPUs affected by each transition
-+ */
-+static ssize_t show_affected_cpus(struct cpufreq_policy *policy, char *buf)
-+{
-+	return show_cpus(policy->cpus, buf);
-+}
-+
- static ssize_t store_scaling_setspeed(struct cpufreq_policy *policy,
- 					const char *buf, size_t count)
- {
-@@ -646,6 +663,7 @@ define_one_ro(cpuinfo_max_freq);
- define_one_ro(scaling_available_governors);
- define_one_ro(scaling_driver);
- define_one_ro(scaling_cur_freq);
-+define_one_ro(related_cpus);
- define_one_ro(affected_cpus);
- define_one_rw(scaling_min_freq);
- define_one_rw(scaling_max_freq);
-@@ -658,6 +676,7 @@ static struct attribute *default_attrs[]
- 	&scaling_min_freq.attr,
- 	&scaling_max_freq.attr,
- 	&affected_cpus.attr,
-+	&related_cpus.attr,
- 	&scaling_governor.attr,
- 	&scaling_driver.attr,
- 	&scaling_available_governors.attr,
-diff -puN include/linux/cpufreq.h~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism include/linux/cpufreq.h
---- a/include/linux/cpufreq.h~cpufreq-expose-cpufreq-coordination-requirements-regardless-of-coordination-mechanism
-+++ a/include/linux/cpufreq.h
-@@ -83,7 +83,8 @@ struct cpufreq_real_policy {
- };
- 
- struct cpufreq_policy {
--	cpumask_t		cpus;	/* affected CPUs */
-+	cpumask_t		cpus;	/* CPUs requiring sw coordination */
-+	cpumask_t		related_cpus; /* CPUs with any coordination */
- 	unsigned int		shared_type; /* ANY or ALL affected CPUs
- 						should set cpufreq */
- 	unsigned int		cpu;    /* cpu nr of registered CPU */
-_
-
-Patches currently in -mm which might be from djwong@us.ibm.com are
-
-origin.patch
-git-hwmon.patch
-adt746x-logical-bitwise-confusion-in-set_max_duty_at_crit.patch
-adt7473-minor-documentation-update.patch
-
++subsys_initcall(fsl_of_rio_rpn_init);
+diff -puN arch/powerpc/sysdev/fsl_rio.h~rapidio-add-of-tree-support-to-rapidio-controller-driver /dev/null
+--- a/arch/powerpc/sysdev/fsl_rio.h
++++ /dev/null
+@@ -1,20 +0,0 @@
+-/*
+- * MPC85xx RapidIO definitions
+- *
+- * Copyright 2005 MontaVista Software, Inc.
+- * Matt Porter <mporter@kernel.crashing.org>
+- *
+- * This program is free software; you can redistribute  it and/or modify it
+- * under  the terms of  the GNU General  Public License as published by the
+- * Free Software Foundation;  either version 2 of the  License, or (at your
+- * option) any later version.
+- */
+-
+-#ifndef __PPC_SYSLIB_PPC85XX_RIO_H
+-#define __PPC_SYSLIB_PPC85XX_RIO_H
+-
+-#include <linux/init.h>
+-
+-extern void mpc85xx_rio_setup(int law_start, int law_size);
