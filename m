@@ -1,95 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - basic-braille-screen-reader-support-fixes.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 23:24:15 -0700
-Message-ID: <200804300624.m3U6OFZM031658@imap1.linux-foundation.org>
+Subject: - basic-braille-screen-reader-support-ppc-fix.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 23:24:18 -0700
+Message-ID: <200804300624.m3U6OI8p031661@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33769 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38233 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757375AbYD3GZ0 (ORCPT
+	by vger.kernel.org with ESMTP id S1757686AbYD3GZ1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:25:26 -0400
+	Wed, 30 Apr 2008 02:25:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samuel.thibault@ens-lyon.org, dtor@mail.ru, jikos@jikos.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, dtor@mail.ru, jikos@jikos.cz, paulus@samba.org, samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Braille screen reader fixes
+     basic-braille-screen-reader-support-ppc-fix
 has been removed from the -mm tree.  Its filename was
-     basic-braille-screen-reader-support-fixes.patch
+     basic-braille-screen-reader-support-ppc-fix.patch
 
 This patch was dropped because it was folded into basic-braille-screen-reader-support.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Braille screen reader fixes
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: basic-braille-screen-reader-support-ppc-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Braille screen reader fixes:
-- console_cmdline's brl_options field is only required when braille
-console support is enabled.
-- Use strlcpy to copy the console name.
-- braille console support depends on VT support.
+- As this patch exports kd_mksound we remove the pc-private esports.
 
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: Jiri Kosina <jikos@jikos.cz>
+- switch the export to non-gpl, as that was what powerpc was using.
+
 Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Jiri Kosina <jikos@jikos.cz>
+Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/accessibility/Kconfig |    1 +
- kernel/printk.c               |    7 +++++--
- 2 files changed, 6 insertions(+), 2 deletions(-)
+ arch/powerpc/kernel/ppc_ksyms.c |    3 ---
+ arch/ppc/kernel/ppc_ksyms.c     |    3 ---
+ drivers/char/keyboard.c         |    2 +-
+ 3 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN drivers/accessibility/Kconfig~basic-braille-screen-reader-support-fixes drivers/accessibility/Kconfig
---- a/drivers/accessibility/Kconfig~basic-braille-screen-reader-support-fixes
-+++ a/drivers/accessibility/Kconfig
-@@ -8,6 +8,7 @@ menuconfig ACCESSIBILITY
- if ACCESSIBILITY
- config A11Y_BRAILLE_CONSOLE
- 	bool "Console on braille device"
-+	depends on VT
- 	depends on SERIAL_CORE_CONSOLE
- 	---help---
- 	  Enables console output on a braille device connected to a 8250
-diff -puN kernel/printk.c~basic-braille-screen-reader-support-fixes kernel/printk.c
---- a/kernel/printk.c~basic-braille-screen-reader-support-fixes
-+++ a/kernel/printk.c
-@@ -111,7 +111,9 @@ struct console_cmdline
- 	char	name[8];			/* Name of the driver	    */
- 	int	index;				/* Minor dev. to use	    */
- 	char	*options;			/* Options for the driver   */
-+#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
- 	char	*brl_options;			/* Options for braille driver */
-+#endif
- };
+diff -puN arch/powerpc/kernel/ppc_ksyms.c~basic-braille-screen-reader-support-ppc-fix arch/powerpc/kernel/ppc_ksyms.c
+--- a/arch/powerpc/kernel/ppc_ksyms.c~basic-braille-screen-reader-support-ppc-fix
++++ a/arch/powerpc/kernel/ppc_ksyms.c
+@@ -137,9 +137,6 @@ EXPORT_SYMBOL(adb_try_handler_change);
+ EXPORT_SYMBOL(cuda_request);
+ EXPORT_SYMBOL(cuda_poll);
+ #endif /* CONFIG_ADB_CUDA */
+-#ifdef CONFIG_VT
+-EXPORT_SYMBOL(kd_mksound);
+-#endif
+ EXPORT_SYMBOL(to_tm);
  
- #define MAX_CMDLINECONSOLES 8
-@@ -829,10 +831,11 @@ static int __add_preferred_console(char 
- 	if (!brl_options)
- 		selected_console = i;
- 	c = &console_cmdline[i];
--	memcpy(c->name, name, sizeof(c->name));
--	c->name[sizeof(c->name) - 1] = 0;
-+	strlcpy(c->name, name, sizeof(c->name));
- 	c->options = options;
-+#ifdef CONFIG_A11Y_BRAILLE_CONSOLE
- 	c->brl_options = brl_options;
-+#endif
- 	c->index = idx;
- 	return 0;
+ #ifdef CONFIG_PPC32
+diff -puN arch/ppc/kernel/ppc_ksyms.c~basic-braille-screen-reader-support-ppc-fix arch/ppc/kernel/ppc_ksyms.c
+--- a/arch/ppc/kernel/ppc_ksyms.c~basic-braille-screen-reader-support-ppc-fix
++++ a/arch/ppc/kernel/ppc_ksyms.c
+@@ -182,9 +182,6 @@ EXPORT_SYMBOL(cuda_poll);
+ #if defined(CONFIG_BOOTX_TEXT)
+ EXPORT_SYMBOL(btext_update_display);
+ #endif
+-#ifdef CONFIG_VT
+-EXPORT_SYMBOL(kd_mksound);
+-#endif
+ EXPORT_SYMBOL(to_tm);
+ 
+ EXPORT_SYMBOL(pm_power_off);
+diff -puN drivers/char/keyboard.c~basic-braille-screen-reader-support-ppc-fix drivers/char/keyboard.c
+--- a/drivers/char/keyboard.c~basic-braille-screen-reader-support-ppc-fix
++++ a/drivers/char/keyboard.c
+@@ -260,7 +260,7 @@ void kd_mksound(unsigned int hz, unsigne
+ 	} else
+ 		kd_nosound(0);
  }
+-EXPORT_SYMBOL_GPL(kd_mksound);
++EXPORT_SYMBOL(kd_mksound);
+ 
+ /*
+  * Setting the keyboard rate.
 _
 
-Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-consoles-switch-to-int-put_char-method.patch
+blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-uart-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes.patch
+isicom-bring-into-coding-style.patch
+tty-the-big-operations-rework.patch
+devpts-factor-out-pty-index-allocation.patch
+mm-bdi-export-bdi-attributes-in-sysfs.patch
+fuse-fix-race-in-llseek.patch
 basic-braille-screen-reader-support.patch
-basic-braille-screen-reader-support-fixes.patch
 basic-braille-screen-reader-support-ppc-fix.patch
-basic-braille-screen-reader-support-doc.patch
-basic-braille-screen-reader-support-makefile-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+x86-ioremap-add-checks-for-virtual-addresses-fix.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
