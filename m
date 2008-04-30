@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ext4-fix-synchronization-of-quota-files-in-journal=data-mode.patch added to -mm tree
-Date: Wed, 30 Apr 2008 10:50:00 -0700
-Message-ID: <200804301750.m3UHo00a026655__14491.9613878757$1209577895$gmane$org@imap1.linux-foundation.org>
+Subject: + quota-add-a-convenience-macro-for-filesystems.patch added to -mm tree
+Date: Wed, 30 Apr 2008 10:50:11 -0700
+Message-ID: <200804301750.m3UHoBmg026679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51015 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46571 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761209AbYD3Rue (ORCPT
+	by vger.kernel.org with ESMTP id S1763522AbYD3Rur (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 13:50:34 -0400
+	Wed, 30 Apr 2008 13:50:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jack@suse.cz, linux-ext4@vger.kernel.org
+Cc: jack@suse.cz
 
 
 The patch titled
-     ext4: fix synchronization of quota files in journal=data mode
+     quota: add a convenience macro for filesystems
 has been added to the -mm tree.  Its filename is
-     ext4-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+     quota-add-a-convenience-macro-for-filesystems.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,75 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ext4: fix synchronization of quota files in journal=data mode
+Subject: quota: add a convenience macro for filesystems
 From: Jan Kara <jack@suse.cz>
 
-In journal=data mode, it is not enough to do write_inode_now as done in
-vfs_quota_on() to write all data to their final location (which is needed for
-quota_read to work correctly).  Calling journal_flush() does its job.
+Note that it cannot be an inline function because we don't have struct
+super_block prototype...
 
-Cc: <linux-ext4@vger.kernel.org>
 Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/super.c |   35 +++++++++++++++++++++++++++--------
- 1 file changed, 27 insertions(+), 8 deletions(-)
+ include/linux/quota.h |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/ext4/super.c~ext4-fix-synchronization-of-quota-files-in-journal=data-mode fs/ext4/super.c
---- a/fs/ext4/super.c~ext4-fix-synchronization-of-quota-files-in-journal=data-mode
-+++ a/fs/ext4/super.c
-@@ -3159,23 +3159,42 @@ static int ext4_quota_on(struct super_bl
+diff -puN include/linux/quota.h~quota-add-a-convenience-macro-for-filesystems include/linux/quota.h
+--- a/include/linux/quota.h~quota-add-a-convenience-macro-for-filesystems
++++ a/include/linux/quota.h
+@@ -347,6 +347,9 @@ struct quota_info {
+ 	((type) == USRQUOTA ? (sb_dqopt(sb)->flags & DQUOT_USR_SUSPENDED) : \
+ 			      (sb_dqopt(sb)->flags & DQUOT_GRP_SUSPENDED))
  
- 	if (!test_opt(sb, QUOTA))
- 		return -EINVAL;
--	/* Not journalling quota? */
--	if ((!EXT4_SB(sb)->s_qf_names[USRQUOTA] &&
--	    !EXT4_SB(sb)->s_qf_names[GRPQUOTA]) || remount)
-+	/* When remounting, no checks are needed and in fact, path is NULL */
-+	if (remount)
- 		return vfs_quota_on(sb, type, format_id, path, remount);
++#define sb_any_quota_suspended(sb) (sb_has_quota_suspended(sb, USRQUOTA) | \
++				  sb_has_quota_suspended(sb, GRPQUOTA))
 +
- 	err = path_lookup(path, LOOKUP_FOLLOW, &nd);
- 	if (err)
- 		return err;
-+
- 	/* Quotafile not on the same filesystem? */
- 	if (nd.path.mnt->mnt_sb != sb) {
- 		path_put(&nd.path);
- 		return -EXDEV;
- 	}
--	/* Quotafile not of fs root? */
--	if (nd.path.dentry->d_parent->d_inode != sb->s_root->d_inode)
--		printk(KERN_WARNING
--			"EXT4-fs: Quota file not on filesystem root. "
--			"Journalled quota will not work.\n");
-+	/* Journaling quota? */
-+	if (EXT4_SB(sb)->s_qf_names[type]) {
-+		/* Quotafile not of fs root? */
-+		if (nd.path.dentry->d_parent->d_inode != sb->s_root->d_inode)
-+			printk(KERN_WARNING
-+				"EXT4-fs: Quota file not on filesystem root. "
-+				"Journaled quota will not work.\n");
-+ 	}
-+
-+	/*
-+	 * When we journal data on quota file, we have to flush journal to see
-+	 * all updates to the file when we bypass pagecache...
-+	 */
-+	if (ext4_should_journal_data(nd.path.dentry->d_inode)) {
-+		/*
-+		 * We don't need to lock updates but journal_flush() could
-+		 * otherwise be livelocked...
-+		 */
-+		jbd2_journal_lock_updates(EXT4_SB(sb)->s_journal);
-+		jbd2_journal_flush(EXT4_SB(sb)->s_journal);
-+		jbd2_journal_unlock_updates(EXT4_SB(sb)->s_journal);
-+	}
-+
- 	path_put(&nd.path);
- 	return vfs_quota_on(sb, type, format_id, path, remount);
- }
+ int register_quota_format(struct quota_format_type *fmt);
+ void unregister_quota_format(struct quota_format_type *fmt);
+ 
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
