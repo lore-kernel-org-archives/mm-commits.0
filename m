@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fbdev-bugfix-for-multiprocess-defio.patch added to -mm tree
-Date: Wed, 30 Apr 2008 13:38:29 -0700
-Message-ID: <200804302038.m3UKcTiq001801@imap1.linux-foundation.org>
+Subject: + fix-gregkh-usb-usb-isp1760-hcd-driver.patch added to -mm tree
+Date: Wed, 30 Apr 2008 14:14:35 -0700
+Message-ID: <200804302114.m3ULEZa7003416@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45163 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58586 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760476AbYD3Uio (ORCPT
+	by vger.kernel.org with ESMTP id S1757858AbYD3VPd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 16:38:44 -0400
+	Wed, 30 Apr 2008 17:15:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jayakumar.lkml@gmail.com, adaplas@pol.net, bernard@largestprime.net, geert@linux-m68k.org
+Cc: randy.dunlap@oracle.com, greg@kroah.com
 
 
 The patch titled
-     fbdev: bugfix for multiprocess defio
+     gregkh-usb-usb-isp1760-hcd-driver: fix printk format
 has been added to the -mm tree.  Its filename is
-     fbdev-bugfix-for-multiprocess-defio.patch
+     fix-gregkh-usb-usb-isp1760-hcd-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,73 +34,67 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: bugfix for multiprocess defio
-From: Jaya Kumar <jayakumar.lkml@gmail.com>
+Subject: gregkh-usb-usb-isp1760-hcd-driver: fix printk format
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-This is a bugfix for how defio handles multiple processes manipulating
-the same framebuffer.
+Fix printk format warnings in isp1760 (in linux-next):
 
-Thanks to Bernard Blackham for identifying this bug.
+next-20080430/drivers/usb/host/isp1760-hcd.c:994: warning: format '%d' expects type 'int', but argument 6 has type 'size_t'
+next-20080430/drivers/usb/host/isp1760-hcd.c:1092: warning: format '%d' expects type 'int', but argument 3 has type 'size_t'
 
-It occurs when two applications mmap the same framebuffer and concurrently
-write to the same page.  Normally, this doesn't occur since only a single
-process mmaps the framebuffer.  The symptom of the bug is that the mapping
-applications will hang.  The cause is that defio incorrectly tries to add the
-same page twice to the pagelist.  The solution I have is to walk the pagelist
-and check for a duplicate before adding.  Since I needed to walk the pagelist,
-I now also keep the pagelist in sorted order.
-
-Signed-off-by: Jaya Kumar <jayakumar.lkml@gmail.com>
-Cc: Bernard Blackham <bernard@largestprime.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fb_defio.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ drivers/usb/host/isp1760-hcd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/fb_defio.c~fbdev-bugfix-for-multiprocess-defio drivers/video/fb_defio.c
---- a/drivers/video/fb_defio.c~fbdev-bugfix-for-multiprocess-defio
-+++ a/drivers/video/fb_defio.c
-@@ -74,6 +74,7 @@ static int fb_deferred_io_mkwrite(struct
- {
- 	struct fb_info *info = vma->vm_private_data;
- 	struct fb_deferred_io *fbdefio = info->fbdefio;
-+	struct page *cur;
+diff -puN drivers/usb/host/isp1760-hcd.c~fix-gregkh-usb-usb-isp1760-hcd-driver drivers/usb/host/isp1760-hcd.c
+--- a/drivers/usb/host/isp1760-hcd.c~fix-gregkh-usb-usb-isp1760-hcd-driver
++++ a/drivers/usb/host/isp1760-hcd.c
+@@ -988,7 +988,7 @@ static void do_atl_int(struct usb_hcd *u
+ 			 * This did not trigger for a long time now.
+ 			 */
+ 			printk(KERN_ERR "Reloading ptd %p/%p... qh %p readed: "
+-					"%d of %d done: %08x cur: %08x\n", qtd,
++					"%d of %zu done: %08x cur: %08x\n", qtd,
+ 					urb, qh, PTD_XFERRED_LENGTH(dw3),
+ 					qtd->length, done_map,
+ 					(1 << queue_entry));
+@@ -1088,7 +1088,7 @@ static void do_atl_int(struct usb_hcd *u
+ 		} else if (usb_pipebulk(urb->pipe) && (length < qtd->length)) {
+ 			/* short BULK received */
  
- 	/* this is a callback we get when userspace first tries to
- 	write to the page. we schedule a workqueue. that workqueue
-@@ -83,7 +84,24 @@ static int fb_deferred_io_mkwrite(struct
- 
- 	/* protect against the workqueue changing the page list */
- 	mutex_lock(&fbdefio->lock);
--	list_add(&page->lru, &fbdefio->pagelist);
-+
-+	/* we loop through the pagelist before adding in order
-+	to keep the pagelist sorted */
-+	list_for_each_entry(cur, &fbdefio->pagelist, lru) {
-+		/* this check is to catch the case where a new
-+		process could start writing to the same page
-+		through a new pte. this new access can cause the
-+		mkwrite even when the original ps's pte is marked
-+		writable */
-+		if (unlikely(cur == page))
-+			goto page_already_added;
-+		else if (cur->index > page->index)
-+			break;
-+	}
-+
-+	list_add_tail(&page->lru, &cur->lru);
-+
-+page_already_added:
- 	mutex_unlock(&fbdefio->lock);
- 
- 	/* come back after delay to process the deferred IO */
+-			printk(KERN_ERR "short bulk, %d instead %d\n", length,
++			printk(KERN_ERR "short bulk, %d instead %zu\n", length,
+ 					qtd->length);
+ 			if (urb->transfer_flags & URB_SHORT_NOT_OK) {
+ 				urb->status = -EREMOTEIO;
 _
 
-Patches currently in -mm which might be from jayakumar.lkml@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-fbdev-bugfix-for-multiprocess-defio.patch
+basic-braille-screen-reader-support.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
+sysfs-sysfs_update_group-stub-for-config_sysfs=n.patch
+docbook-fix-fatal-rapidio-yet-again-and-more-to-come.patch
+docbook-fix-vmalloc-missing-parameter-notation.patch
+rapidio-fix-docbook-references.patch
+rapidio-fix-kernel-doc-problems.patch
+git-kvm.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-ocfs2.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-isp1760-hcd-driver.patch
+docbook-some-kernel-locking-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+profile-likely-unlikely-macros.patch
 
