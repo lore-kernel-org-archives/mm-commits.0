@@ -1,85 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - random-use-unlocked_ioctl.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:48:09 -0700
-Message-ID: <200804300548.m3U5m9kk029858@imap1.linux-foundation.org>
+Subject: - cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:42:08 -0700
+Message-ID: <200804300542.m3U5g8Ag029120@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34808 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42219 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757350AbYD3GKm (ORCPT
+	by vger.kernel.org with ESMTP id S1757420AbYD3GKr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 02:10:42 -0400
+	Wed, 30 Apr 2008 02:10:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mpm@selenic.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: bunk@kernel.org, serue@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     random: use unlocked_ioctl
+     cgroups: kernel/ns_cgroup.c should #include <linux/nsproxy.h>
 has been removed from the -mm tree.  Its filename was
-     random-use-unlocked_ioctl.patch
+     cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: random: use unlocked_ioctl
-From: Matt Mackall <mpm@selenic.com>
+Subject: cgroups: kernel/ns_cgroup.c should #include <linux/nsproxy.h>
+From: Adrian Bunk <bunk@kernel.org>
 
-No locking actually needed.
+Every file should include the headers containing the externs its global
+functions (in this case for ns_cgroup_clone()).
 
-Signed-off-by: Matt Mackall <mpm@selenic.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ kernel/ns_cgroup.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/char/random.c~random-use-unlocked_ioctl drivers/char/random.c
---- a/drivers/char/random.c~random-use-unlocked_ioctl
-+++ a/drivers/char/random.c
-@@ -1062,8 +1062,7 @@ static ssize_t random_write(struct file 
- 	return (ssize_t)count;
- }
+diff -puN kernel/ns_cgroup.c~cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh kernel/ns_cgroup.c
+--- a/kernel/ns_cgroup.c~cgroups-kernel-ns_cgroupc-should-include-linux-nsproxyh
++++ a/kernel/ns_cgroup.c
+@@ -8,6 +8,7 @@
+ #include <linux/cgroup.h>
+ #include <linux/fs.h>
+ #include <linux/slab.h>
++#include <linux/nsproxy.h>
  
--static int random_ioctl(struct inode *inode, struct file *file,
--			unsigned int cmd, unsigned long arg)
-+static long random_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
- {
- 	int size, ent_count;
- 	int __user *p = (int __user *)arg;
-@@ -1071,8 +1070,8 @@ static int random_ioctl(struct inode *in
- 
- 	switch (cmd) {
- 	case RNDGETENTCNT:
--		ent_count = input_pool.entropy_count;
--		if (put_user(ent_count, p))
-+		/* inherently racy, no point locking */
-+		if (put_user(input_pool.entropy_count, p))
- 			return -EFAULT;
- 		return 0;
- 	case RNDADDTOENTCNT:
-@@ -1115,13 +1114,13 @@ const struct file_operations random_fops
- 	.read  = random_read,
- 	.write = random_write,
- 	.poll  = random_poll,
--	.ioctl = random_ioctl,
-+	.unlocked_ioctl = random_ioctl,
- };
- 
- const struct file_operations urandom_fops = {
- 	.read  = urandom_read,
- 	.write = random_write,
--	.ioctl = random_ioctl,
-+	.unlocked_ioctl = random_ioctl,
- };
- 
- /***************************************************************
+ struct ns_cgroup {
+ 	struct cgroup_subsys_state css;
 _
 
-Patches currently in -mm which might be from mpm@selenic.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
+mm-filemapc-generic_write_checks-mustnt-be-inline.patch
+fs-block_devc-i_bdev-mustnt-be-inline.patch
+frv-fix-arch-frv-mm-unalignedo-build-error.patch
+reiserfs-some-functions-mustnt-be-inline.patch
+git-acpi.patch
+git-x86.patch
+arch-x86-video-fbdevc-add-module_license.patch
+md-make-dm_dirty_log_initexit-static.patch
+drm-make-drm_minors_cleanup-static.patch
+git-m32r.patch
+net-ipv4-ip_outputc-ip_send_check-mustnt-be-inline.patch
+nfs-make-nfs4_drop_state_owner-static.patch
+git-ocfs2.patch
+show_schedstat-fix-memleak.patch
+git-sh.patch
+if-0-ses_match_host.patch
+git-watchdog.patch
+xen-drivers-xen-balloonc-make-a-function-static.patch
+make-marker_debug-static.patch
+reiser4.patch
 
