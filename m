@@ -1,97 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - dell-cerc-support-for-megaraid_mbox.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:51:51 -0700
-Message-ID: <200804300551.m3U5ppTt030252@imap1.linux-foundation.org>
+Subject: - usb-libusual-kthread_run-called-with-wrong-format.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:51:59 -0700
+Message-ID: <200804300551.m3U5pxOs030262@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46107 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53500 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759321AbYD3Fwa (ORCPT
+	by vger.kernel.org with ESMTP id S1759351AbYD3Fwd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:52:30 -0400
+	Wed, 30 Apr 2008 01:52:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hare@suse.de, Bo.Yang@lsi.com, James.Bottomley@SteelEye.com, Sumant.Patro@lsi.com, mm-commits@vger.kernel.org
+To: rusty@rustcorp.com.au, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Dell CERC support for megaraid_mbox
+     usb: libusual kthread_run() called with wrong format.
 has been removed from the -mm tree.  Its filename was
-     dell-cerc-support-for-megaraid_mbox.patch
+     usb-libusual-kthread_run-called-with-wrong-format.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Dell CERC support for megaraid_mbox
-From: Hannes Reinecke <hare@suse.de>
+Subject: usb: libusual kthread_run() called with wrong format.
+From: Rusty Russell <rusty@rustcorp.com.au>
 
-Newer Dell CERC firmware (>= 6.62) implement a random deletion handling
-compatible with the legacy megaraid driver.  The legacy handling shifted
-the target ID by 0x80 only for I/O commands (READ/WRITE/etc), whereas
-megaraid_mbox shifts the target ID always if random deletion is supported. 
-The resulted in megaraid_mbox sending an INQUIRY to the wrong channel, and
-not finding any devices, obviously.
-
-So we disable the random deletion support if the offending firmware is
-found.
-
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=6695
-
-Signed-off-by: Hannes Reinecke <hare@suse.de>
-Cc: "Patro, Sumant" <Sumant.Patro@lsi.com>
-Cc: James Bottomley <James.Bottomley@SteelEye.com>
-Cc: "Yang, Bo" <Bo.Yang@lsi.com>
+Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/megaraid/megaraid_mbox.c |   17 +++++++++++++++++
- drivers/scsi/megaraid/megaraid_mbox.h |    1 +
- 2 files changed, 18 insertions(+)
+ drivers/usb/storage/libusual.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/megaraid/megaraid_mbox.c~dell-cerc-support-for-megaraid_mbox drivers/scsi/megaraid/megaraid_mbox.c
---- a/drivers/scsi/megaraid/megaraid_mbox.c~dell-cerc-support-for-megaraid_mbox
-+++ a/drivers/scsi/megaraid/megaraid_mbox.c
-@@ -3168,6 +3168,23 @@ megaraid_mbox_support_random_del(adapter
- 	uint8_t		raw_mbox[sizeof(mbox_t)];
- 	int		rval;
+diff -puN drivers/usb/storage/libusual.c~usb-libusual-kthread_run-called-with-wrong-format drivers/usb/storage/libusual.c
+--- a/drivers/usb/storage/libusual.c~usb-libusual-kthread_run-called-with-wrong-format
++++ a/drivers/usb/storage/libusual.c
+@@ -135,7 +135,7 @@ static int usu_probe(struct usb_interfac
+ 	stat[type].fls |= USU_MOD_FL_THREAD;
+ 	spin_unlock_irqrestore(&usu_lock, flags);
  
-+	/*
-+	 * Newer firmware on Dell CERC expect a different
-+	 * random deletion handling, so disable it.
-+	 */
-+	if (adapter->pdev->vendor == PCI_VENDOR_ID_AMI &&
-+	    adapter->pdev->device == PCI_DEVICE_ID_AMI_MEGARAID3 &&
-+	    adapter->pdev->subsystem_vendor == PCI_VENDOR_ID_DELL &&
-+	    adapter->pdev->subsystem_device == PCI_SUBSYS_ID_CERC_ATA100_4CH &&
-+	    (adapter->fw_version[0] > '6' ||
-+	     (adapter->fw_version[0] == '6' &&
-+	      adapter->fw_version[2] > '6') ||
-+	     (adapter->fw_version[0] == '6'
-+	      && adapter->fw_version[2] == '6'
-+	      && adapter->fw_version[3] > '1'))) {
-+		con_log(CL_DLEVEL1, ("megaraid: disable random deletion\n"));
-+		return 0;
-+	}
- 
- 	mbox = (mbox_t *)raw_mbox;
- 
-diff -puN drivers/scsi/megaraid/megaraid_mbox.h~dell-cerc-support-for-megaraid_mbox drivers/scsi/megaraid/megaraid_mbox.h
---- a/drivers/scsi/megaraid/megaraid_mbox.h~dell-cerc-support-for-megaraid_mbox
-+++ a/drivers/scsi/megaraid/megaraid_mbox.h
-@@ -88,6 +88,7 @@
- #define PCI_SUBSYS_ID_PERC3_QC				0x0471
- #define PCI_SUBSYS_ID_PERC3_DC				0x0493
- #define PCI_SUBSYS_ID_PERC3_SC				0x0475
-+#define PCI_SUBSYS_ID_CERC_ATA100_4CH			0x0511
- 
- 
- #define MBOX_MAX_SCSI_CMDS	128	// number of cmds reserved for kernel
+-	task = kthread_run(usu_probe_thread, (void*)type, "libusual_%d", type);
++	task = kthread_run(usu_probe_thread, (void*)type, "libusual_%ld", type);
+ 	if (IS_ERR(task)) {
+ 		rc = PTR_ERR(task);
+ 		printk(KERN_WARNING "libusual: "
 _
 
-Patches currently in -mm which might be from hare@suse.de are
+Patches currently in -mm which might be from rusty@rustcorp.com.au are
 
 origin.patch
-git-scsi-misc.patch
+git-kvm.patch
+revert-rusty-misc-timer-typesafe.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+git-semaphore.patch
+docbook-some-kernel-locking-fixes.patch
+reiser4.patch
 
