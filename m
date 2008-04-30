@@ -1,82 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - remove-mca_is_adapter_used.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:39:43 -0700
-Message-ID: <200804300539.m3U5dhVl028875@imap1.linux-foundation.org>
+Subject: - make-binfmt_flat-a-bool.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:39:41 -0700
+Message-ID: <200804300539.m3U5df7O028872@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50245 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36520 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754411AbYD3FkC (ORCPT
+	by vger.kernel.org with ESMTP id S1754205AbYD3Fj7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:40:02 -0400
+	Wed, 30 Apr 2008 01:39:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, James.Bottomley@steeleye.com, mm-commits@vger.kernel.org
+To: bunk@kernel.org, cooloney.lkml@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     remove mca_is_adapter_used()
+     make BINFMT_FLAT a bool
 has been removed from the -mm tree.  Its filename was
-     remove-mca_is_adapter_used.patch
+     make-binfmt_flat-a-bool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove mca_is_adapter_used()
+Subject: make BINFMT_FLAT a bool
 From: Adrian Bunk <bunk@kernel.org>
 
-Remove the no longer used mca_is_adapter_used().
+I have not yet seen anyone saying he has a reasonable use case for using
+BINFMT_FLAT modular on his embedded device.
+
+Considering that fs/binfmt_flat.c even lacks a MODULE_LICENSE() I really doubt
+there is any, and this patch therefore makes BINFMT_FLAT a bool.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Cc: James Bottomley <James.Bottomley@steeleye.com>
+Acked-by: Bryan Wu <cooloney.lkml@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mca/mca-legacy.c   |   18 ------------------
- include/linux/mca-legacy.h |    1 -
- 2 files changed, 19 deletions(-)
+ fs/Kconfig.binfmt |    2 +-
+ fs/binfmt_flat.c  |    6 ------
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
-diff -puN drivers/mca/mca-legacy.c~remove-mca_is_adapter_used drivers/mca/mca-legacy.c
---- a/drivers/mca/mca-legacy.c~remove-mca_is_adapter_used
-+++ a/drivers/mca/mca-legacy.c
-@@ -282,24 +282,6 @@ void mca_set_adapter_name(int slot, char
- EXPORT_SYMBOL(mca_set_adapter_name);
+diff -puN fs/Kconfig.binfmt~make-binfmt_flat-a-bool fs/Kconfig.binfmt
+--- a/fs/Kconfig.binfmt~make-binfmt_flat-a-bool
++++ a/fs/Kconfig.binfmt
+@@ -41,7 +41,7 @@ config BINFMT_ELF_FDPIC
+ 	  It is also possible to run FDPIC ELF binaries on MMU linux also.
  
- /**
-- *	mca_is_adapter_used - check if claimed by driver
-- *	@slot:	slot to check
-- *
-- *	Returns 1 if the slot has been claimed by a driver
-- */
--
--int mca_is_adapter_used(int slot)
+ config BINFMT_FLAT
+-	tristate "Kernel support for flat binaries"
++	bool "Kernel support for flat binaries"
+ 	depends on !MMU
+ 	help
+ 	  Support uClinux FLAT format binaries.
+diff -puN fs/binfmt_flat.c~make-binfmt_flat-a-bool fs/binfmt_flat.c
+--- a/fs/binfmt_flat.c~make-binfmt_flat-a-bool
++++ a/fs/binfmt_flat.c
+@@ -932,14 +932,8 @@ static int __init init_flat_binfmt(void)
+ 	return register_binfmt(&flat_format);
+ }
+ 
+-static void __exit exit_flat_binfmt(void)
 -{
--	struct mca_device *mca_dev = mca_find_device_by_slot(slot);
--
--	if(!mca_dev)
--		return 0;
--
--	return mca_device_claimed(mca_dev);
+-	unregister_binfmt(&flat_format);
 -}
--EXPORT_SYMBOL(mca_is_adapter_used);
 -
--/**
-  *	mca_mark_as_used - claim an MCA device
-  *	@slot:	slot to claim
-  *	FIXME:  should we make this threadsafe
-diff -puN include/linux/mca-legacy.h~remove-mca_is_adapter_used include/linux/mca-legacy.h
---- a/include/linux/mca-legacy.h~remove-mca_is_adapter_used
-+++ a/include/linux/mca-legacy.h
-@@ -34,7 +34,6 @@
- extern int mca_find_adapter(int id, int start);
- extern int mca_find_unused_adapter(int id, int start);
+ /****************************************************************************/
  
--extern int mca_is_adapter_used(int slot);
- extern int mca_mark_as_used(int slot);
- extern void mca_mark_as_unused(int slot);
+ core_initcall(init_flat_binfmt);
+-module_exit(exit_flat_binfmt);
  
+ /****************************************************************************/
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
