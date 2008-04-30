@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + rename-div64_64-to-div64_u64-ia64.patch added to -mm tree
-Date: Wed, 30 Apr 2008 05:52:08 -0700
-Message-ID: <200804301252.m3UCq8CN014403@imap1.linux-foundation.org>
+Subject: + rename-div64_64-to-div64_u64-dvb.patch added to -mm tree
+Date: Wed, 30 Apr 2008 05:52:50 -0700
+Message-ID: <200804301252.m3UCqo5E014415@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52575 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37168 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753519AbYD3Mwr (ORCPT
+	by vger.kernel.org with ESMTP id S1755023AbYD3MxW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 08:52:47 -0400
+	Wed, 30 Apr 2008 08:53:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: zippel@linux-m68k.org, avi@qumranet.com, tglx@linutronix.de
+Cc: zippel@linux-m68k.org, mchehab@infradead.org
 
 
 The patch titled
      2.6.25-rc5-mm1 specifc div64_u64 fixes
 has been added to the -mm tree.  Its filename is
-     rename-div64_64-to-div64_u64-ia64.patch
+     rename-div64_64-to-div64_u64-dvb.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,31 +40,32 @@ From: Roman Zippel <zippel@linux-m68k.org>
 Rename a few more div64_u64 which are only in -mm.
 
 Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kvm/kvm-ia64.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/media/dvb/frontends/drx397xD.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/ia64/kvm/kvm-ia64.c~rename-div64_64-to-div64_u64-ia64 arch/ia64/kvm/kvm-ia64.c
---- a/arch/ia64/kvm/kvm-ia64.c~rename-div64_64-to-div64_u64-ia64
-+++ a/arch/ia64/kvm/kvm-ia64.c
-@@ -1,4 +1,3 @@
--
- /*
-  * kvm_ia64.c: Basic KVM suppport On Itanium series processors
-  *
-@@ -431,7 +430,7 @@ int kvm_emulate_halt(struct kvm_vcpu *vc
- 	if (itc_diff < 0)
- 		itc_diff = -itc_diff;
+diff -puN drivers/media/dvb/frontends/drx397xD.c~rename-div64_64-to-div64_u64-dvb drivers/media/dvb/frontends/drx397xD.c
+--- a/drivers/media/dvb/frontends/drx397xD.c~rename-div64_64-to-div64_u64-dvb
++++ a/drivers/media/dvb/frontends/drx397xD.c
+@@ -1026,13 +1026,13 @@ static int drx_tune(struct drx397xD_stat
  
--	expires = div64_64(itc_diff, cyc_per_usec);
-+	expires = div64_u64(itc_diff, cyc_per_usec);
- 	kt = ktime_set(0, 1000 * expires);
- 	vcpu->arch.ht_active = 1;
- 	hrtimer_start(p_ht, kt, HRTIMER_MODE_ABS);
+ 	{
+ 		/* Configure bandwidth specific factor */
+-		ebx = div64_64(((u64) (s->f_osc) << 21) + (ebx >> 1),
++		ebx = div64_u64(((u64) (s->f_osc) << 21) + (ebx >> 1),
+ 				     (u64)ebx) - 0x800000;
+ 		EXIT_RC(WR16(s, 0x0c50010, ebx & 0xffff));
+ 		EXIT_RC(WR16(s, 0x0c50011, ebx >> 16));
+ 
+ 		/* drx397xD oscillator calibration */
+-		ebx = div64_64(((u64) (s->config.f_if + df_tuner) << 28) +
++		ebx = div64_u64(((u64) (s->config.f_if + df_tuner) << 28) +
+ 				     (s->f_osc >> 1), (u64)s->f_osc);
+ 	}
+ 	ebx &= 0xfffffff;
 _
 
 Patches currently in -mm which might be from zippel@linux-m68k.org are
