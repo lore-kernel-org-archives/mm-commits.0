@@ -1,96 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - jbd2-fix-kernel-doc-notation.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:52:11 -0700
-Message-ID: <200804300552.m3U5qB4J030295@imap1.linux-foundation.org>
+Subject: - tpm-fix-section-mismatch-warning.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:48:58 -0700
+Message-ID: <200804300548.m3U5mwgn029931@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60601 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37553 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757949AbYD3Fxl (ORCPT
+	by vger.kernel.org with ESMTP id S1751159AbYD3Fyv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:53:41 -0400
+	Wed, 30 Apr 2008 01:54:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: randy.dunlap@oracle.com, cmm@us.ibm.com, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, kjhall@us.ibm.com, tpm@selhorst.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     jbd2: fix kernel-doc notation
+     tpm: fix section mismatch warning
 has been removed from the -mm tree.  Its filename was
-     jbd2-fix-kernel-doc-notation.patch
+     tpm-fix-section-mismatch-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd2: fix kernel-doc notation
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: tpm: fix section mismatch warning
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Fix kernel-doc notation in jbd2.
+Fix following warning:
+WARNING: vmlinux.o(.init.text+0x32804): Section mismatch in reference from the function init_nsc() to the function .devexit.text:tpm_nsc_remove()
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Mingming Cao <cmm@us.ibm.com>
+The function tpm_nsc_remove() are used outside __exit, so remove the __exit
+annotation to make sure the function is always avilable.
+
+Note: Trying to compare this module with other users of platform_device gve me
+the impression that this driver needs some work to match other users.
+
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Kylene Hall <kjhall@us.ibm.com>
+Cc: Marcel Selhorst <tpm@selhorst.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/journal.c     |    5 +++--
- fs/jbd2/transaction.c |    3 ++-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/char/tpm/tpm_nsc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jbd2/journal.c~jbd2-fix-kernel-doc-notation fs/jbd2/journal.c
---- a/fs/jbd2/journal.c~jbd2-fix-kernel-doc-notation
-+++ a/fs/jbd2/journal.c
-@@ -1006,13 +1006,14 @@ fail:
-  */
+diff -puN drivers/char/tpm/tpm_nsc.c~tpm-fix-section-mismatch-warning drivers/char/tpm/tpm_nsc.c
+--- a/drivers/char/tpm/tpm_nsc.c~tpm-fix-section-mismatch-warning
++++ a/drivers/char/tpm/tpm_nsc.c
+@@ -264,7 +264,7 @@ static const struct tpm_vendor_specific 
  
- /**
-- *  journal_t * jbd2_journal_init_dev() - creates an initialises a journal structure
-+ *  journal_t * jbd2_journal_init_dev() - creates and initialises a journal structure
-  *  @bdev: Block device on which to create the journal
-  *  @fs_dev: Device which hold journalled filesystem for this journal.
-  *  @start: Block nr Start of journal.
-  *  @len:  Length of the journal in blocks.
-  *  @blocksize: blocksize of journalling device
-- *  @returns: a newly created journal_t *
-+ *
-+ *  Returns: a newly created journal_t *
-  *
-  *  jbd2_journal_init_dev creates a journal which maps a fixed contiguous
-  *  range of blocks on an arbitrary block device.
-diff -puN fs/jbd2/transaction.c~jbd2-fix-kernel-doc-notation fs/jbd2/transaction.c
---- a/fs/jbd2/transaction.c~jbd2-fix-kernel-doc-notation
-+++ a/fs/jbd2/transaction.c
-@@ -1462,7 +1462,8 @@ int jbd2_journal_stop(handle_t *handle)
- 	return err;
- }
+ static struct platform_device *pdev = NULL;
  
--/**int jbd2_journal_force_commit() - force any uncommitted transactions
-+/**
-+ * int jbd2_journal_force_commit() - force any uncommitted transactions
-  * @journal: journal to force
-  *
-  * For synchronous operations: force any uncommitted transactions
+-static void __devexit tpm_nsc_remove(struct device *dev)
++static void tpm_nsc_remove(struct device *dev)
+ {
+ 	struct tpm_chip *chip = dev_get_drvdata(dev);
+ 	if ( chip ) {
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 origin.patch
-rapidio-fix-docbook-references.patch
-rapidio-fix-kernel-doc-problems.patch
-git-kvm.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-ocfs2.patch
-git-unionfs.patch
-docbook-some-kernel-locking-fixes.patch
+git-x86.patch
+git-m32r.patch
+pcmcia-silence-section-mismatch-warnings-from-class_interface-variables.patch
+pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
+pcmcia-annotate-cb_alloc-with-__ref.patch
+git-pci.patch
+git-s390.patch
+git-sh.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+git-watchdog.patch
 documentation-build-source-files-in-documentation-sub-dir.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-basic-braille-screen-reader-support-makefile-fix.patch
-add-macros-similar-to-min-max-min_t-max_t-doc.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
-profile-likely-unlikely-macros.patch
+remove-ifdef-__kernel__-checks-from-unexported-headers.patch
 
