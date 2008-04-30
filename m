@@ -1,91 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - reiserfs-use-non-racy-method-for-proc-entries-creation.patch removed from -mm tree
-Date: Tue, 29 Apr 2008 22:46:51 -0700
-Message-ID: <200804300546.m3U5kpDq029646@imap1.linux-foundation.org>
+Subject: - proc-switch-proc-apm-to-seq_file-interface.patch removed from -mm tree
+Date: Tue, 29 Apr 2008 22:46:08 -0700
+Message-ID: <200804300546.m3U5k84h029578@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55060 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33803 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757765AbYD3Fre (ORCPT
+	by vger.kernel.org with ESMTP id S1758545AbYD3Frn (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 01:47:34 -0400
+	Wed, 30 Apr 2008 01:47:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: den@openvz.org, adobriyan@gmail.com, chris.mason@oracle.com, ebiederm@xmission.com, jeffm@suse.com, mm-commits@vger.kernel.org
+To: adobriyan@sw.ru, len.brown@intel.com, mingo@elte.hu, ralf@linux-mips.org, rjw@sisk.pl, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     reiserfs: use non-racy method for proc entries creation
+     proc: switch /proc/apm to seq_file interface
 has been removed from the -mm tree.  Its filename was
-     reiserfs-use-non-racy-method-for-proc-entries-creation.patch
+     proc-switch-proc-apm-to-seq_file-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: use non-racy method for proc entries creation
-From: "Denis V. Lunev" <den@openvz.org>
+Subject: proc: switch /proc/apm to seq_file interface
+From: Alexey Dobriyan <adobriyan@sw.ru>
 
-Use proc_create()/proc_create_data() to make sure that ->proc_fops and ->data
-be setup before gluing PDE to main tree.
-
-/proc entry owner is also added.
-
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@sw.ru>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Len Brown <len.brown@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/procfs.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ drivers/char/apm-emulation.c |   23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
 
-diff -puN fs/reiserfs/procfs.c~reiserfs-use-non-racy-method-for-proc-entries-creation fs/reiserfs/procfs.c
---- a/fs/reiserfs/procfs.c~reiserfs-use-non-racy-method-for-proc-entries-creation
-+++ a/fs/reiserfs/procfs.c
-@@ -467,6 +467,7 @@ static const struct file_operations r_fi
- 	.read = seq_read,
- 	.llseek = seq_lseek,
- 	.release = seq_release,
-+	.owner = THIS_MODULE,
- };
- 
- static struct proc_dir_entry *proc_info_root = NULL;
-@@ -475,12 +476,8 @@ static const char proc_info_root_name[] 
- static void add_file(struct super_block *sb, char *name,
- 		     int (*func) (struct seq_file *, struct super_block *))
+diff -puN drivers/char/apm-emulation.c~proc-switch-proc-apm-to-seq_file-interface drivers/char/apm-emulation.c
+--- a/drivers/char/apm-emulation.c~proc-switch-proc-apm-to-seq_file-interface
++++ a/drivers/char/apm-emulation.c
+@@ -14,6 +14,7 @@
+ #include <linux/poll.h>
+ #include <linux/slab.h>
+ #include <linux/proc_fs.h>
++#include <linux/seq_file.h>
+ #include <linux/miscdevice.h>
+ #include <linux/apm_bios.h>
+ #include <linux/capability.h>
+@@ -493,11 +494,10 @@ static struct miscdevice apm_device = {
+  *	-1: Unknown
+  *   8) min = minutes; sec = seconds
+  */
+-static int apm_get_info(char *buf, char **start, off_t fpos, int length)
++static int proc_apm_show(struct seq_file *m, void *v)
  {
--	struct proc_dir_entry *de;
--	de = create_proc_entry(name, 0, REISERFS_SB(sb)->procdir);
--	if (de) {
--		de->data = func;
--		de->proc_fops = &r_file_operations;
--	}
-+	proc_create_data(name, 0, REISERFS_SB(sb)->procdir,
-+			 &r_file_operations, func);
- }
+ 	struct apm_power_info info;
+ 	char *units;
+-	int ret;
  
- int reiserfs_proc_info_init(struct super_block *sb)
+ 	info.ac_line_status = 0xff;
+ 	info.battery_status = 0xff;
+@@ -515,14 +515,27 @@ static int apm_get_info(char *buf, char 
+ 	case 1: 	units = "sec";	break;
+ 	}
+ 
+-	ret = sprintf(buf, "%s 1.2 0x%02x 0x%02x 0x%02x 0x%02x %d%% %d %s\n",
++	seq_printf(m, "%s 1.2 0x%02x 0x%02x 0x%02x 0x%02x %d%% %d %s\n",
+ 		     driver_version, APM_32_BIT_SUPPORT,
+ 		     info.ac_line_status, info.battery_status,
+ 		     info.battery_flag, info.battery_life,
+ 		     info.time, units);
+ 
+-	return ret;
++	return 0;
+ }
++
++static int proc_apm_open(struct inode *inode, struct file *file)
++{
++	return single_open(file, proc_apm_show, NULL);
++}
++
++static const struct file_operations apm_proc_fops = {
++	.owner		= THIS_MODULE,
++	.open		= proc_apm_open,
++	.read		= seq_read,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
+ #endif
+ 
+ static int kapmd(void *arg)
+@@ -593,7 +606,7 @@ static int __init apm_init(void)
+ 	wake_up_process(kapmd_tsk);
+ 
+ #ifdef CONFIG_PROC_FS
+-	create_proc_info_entry("apm", 0, NULL, apm_get_info);
++	proc_create("apm", 0, NULL, &apm_proc_fops);
+ #endif
+ 
+ 	ret = misc_register(&apm_device);
 _
 
-Patches currently in -mm which might be from den@openvz.org are
+Patches currently in -mm which might be from adobriyan@sw.ru are
 
 origin.patch
-drivers-use-non-racy-method-for-proc-entries-creation-2-rio.patch
-sunrpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-netfilter-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-net-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-ipv6-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-atm-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-vlan-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-cciss-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-powerpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-ipv4-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-netfilter-assign-pde-fops-before-gluing-pde-into-proc-tree.patch
-netfilter-assign-pde-data-before-gluing-pde-into-proc-tree-2.patch
-netns-assign-pde-data-before-gluing-entry-into-proc-tree.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+single_open-seq_release-leak-diagnostics.patch
 
