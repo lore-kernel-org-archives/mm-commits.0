@@ -1,27 +1,27 @@
 From: akpm@linux-foundation.org
-Subject: + rtc-class-driver-for-ppc_md-rtc-functions.patch added to -mm tree
-Date: Tue, 29 Apr 2008 17:22:12 -0700
-Message-ID: <200804300022.m3U0MC1d017730@imap1.linux-foundation.org>
+Subject: + rtc-class-driver-for-ppc_md-rtc-functions-fix.patch added to -mm tree
+Date: Tue, 29 Apr 2008 17:29:04 -0700
+Message-ID: <200804300029.m3U0T4Bs018010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54729 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42505 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755037AbYD3AXB (ORCPT
+	by vger.kernel.org with ESMTP id S1754598AbYD3AaF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 29 Apr 2008 20:23:01 -0400
+	Tue, 29 Apr 2008 20:30:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwmw2@infradead.org, a.zummo@towertech.it, benh@kernel.crashing.org, david-b@pacbell.net, paulus@samba.org
+Cc: akpm@linux-foundation.org, a.zummo@towertech.it, benh@kernel.crashing.org, david-b@pacbell.net, dwmw2@infradead.org, paulus@samba.org
 
 
 The patch titled
-     RTC class driver for ppc_md RTC functions
+     rtc-class-driver-for-ppc_md-rtc-functions-fix
 has been added to the -mm tree.  Its filename is
-     rtc-class-driver-for-ppc_md-rtc-functions.patch
+     rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,141 +40,164 @@ The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
 otm/
 
 ------------------------------------------------------
-Subject: RTC class driver for ppc_md RTC functions
-=46rom: David Woodhouse <dwmw2@infradead.org>
+Subject: rtc-class-driver-for-ppc_md-rtc-functions-fix
+=46rom: Andrew Morton <akpm@linux-foundation.org>
 
-This hooks up the platform-specific [gs]et_rtc_time functions so that k=
-ernels
-using CONFIG_RTC_CLASS have RTC support on most PowerPC platforms.
-
-Signed-off-by: David Woodhouse <dwmw2@infradead.org>
-Signed-off-by: Paul Mackerras <paulus@samba.org>
-Acked-by: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/Kconfig   |    8 ++++
- drivers/rtc/Makefile  |    1=20
- drivers/rtc/rtc-ppc.c |   69 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 78 insertions(+)
+ drivers/rtc/rtc-ppc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/Kconfig~rtc-class-driver-for-ppc_md-rtc-functions=
- drivers/rtc/Kconfig
---- a/drivers/rtc/Kconfig~rtc-class-driver-for-ppc_md-rtc-functions
-+++ a/drivers/rtc/Kconfig
-@@ -544,4 +544,12 @@ config RTC_DRV_RS5C313
- 	help
- 	  If you say yes here you get support for the Ricoh RS5C313 RTC chips=
-=2E
-=20
-+config RTC_DRV_PPC
-+       tristate "PowerPC machine dependent RTC support"
-+       depends on PPC_MERGE
-+       help
-+         The PowerPC kernel has machine-specific functions for accessi=
-ng
-+	 the RTC. This exposes that functionality through the generic RTC
-+	 class.
-+
- endif # RTC_CLASS
-diff -puN drivers/rtc/Makefile~rtc-class-driver-for-ppc_md-rtc-function=
-s drivers/rtc/Makefile
---- a/drivers/rtc/Makefile~rtc-class-driver-for-ppc_md-rtc-functions
-+++ a/drivers/rtc/Makefile
-@@ -55,3 +55,4 @@ obj-$(CONFIG_RTC_DRV_TEST)	+=3D rtc-test.o
- obj-$(CONFIG_RTC_DRV_V3020)	+=3D rtc-v3020.o
- obj-$(CONFIG_RTC_DRV_VR41XX)	+=3D rtc-vr41xx.o
- obj-$(CONFIG_RTC_DRV_X1205)	+=3D rtc-x1205.o
-+obj-$(CONFIG_RTC_DRV_PPC)	+=3D rtc-ppc.o
-diff -puN /dev/null drivers/rtc/rtc-ppc.c
---- /dev/null
+diff -puN drivers/rtc/rtc-ppc.c~rtc-class-driver-for-ppc_md-rtc-functio=
+ns-fix drivers/rtc/rtc-ppc.c
+--- a/drivers/rtc/rtc-ppc.c~rtc-class-driver-for-ppc_md-rtc-functions-f=
+ix
 +++ a/drivers/rtc/rtc-ppc.c
-@@ -0,0 +1,69 @@
-+/*
-+ * RTC driver for ppc_md RTC functions
-+ *
-+ * =C2=A9 2007 Red Hat, Inc.
-+ *
-+ * Author: David Woodhouse <dwmw2@infradead.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modif=
-y
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+
-+#include <linux/module.h>
-+#include <linux/err.h>
-+#include <linux/rtc.h>
-+#include <linux/platform_device.h>
-+#include <asm/machdep.h>
-+
-+static int ppc_rtc_read_time(struct device *dev, struct rtc_time *tm)
-+{
-+	ppc_md.get_rtc_time(tm);
-+	return 0;
-+}
-+
-+static int ppc_rtc_set_time(struct device *dev, struct rtc_time *tm)
-+{
-+	return ppc_md.set_rtc_time(tm);
-+}
-+
-+static const struct rtc_class_ops ppc_rtc_ops =3D {
-+	.set_time =3D ppc_rtc_set_time,
-+	.read_time =3D ppc_rtc_read_time,
-+};
-+
-+static struct rtc_device *rtc;
-+static struct platform_device *ppc_rtc_pdev;
-+
-+static int __init ppc_rtc_init(void)
-+{
-+	if (!ppc_md.get_rtc_time || !ppc_md.set_rtc_time)
-+		return -ENODEV;
-+
-+	ppc_rtc_pdev =3D platform_device_register_simple("ppc-rtc", 0, NULL, =
-0);
-+	if (IS_ERR(ppc_rtc_pdev))
-+		return PTR_ERR(ppc_rtc_pdev);
-+
-+	rtc =3D rtc_device_register("ppc_md", &ppc_rtc_pdev->dev,
-+				  &ppc_rtc_ops, THIS_MODULE);
-+	if (IS_ERR(rtc)) {
-+		platform_device_unregister(ppc_rtc_pdev);
-+		return PTR_ERR(rtc);
-+	}
-+
-+	return 0;
-+}
-+
-+static void __exit ppc_rtc_exit(void)
-+{
-+	rtc_device_unregister(rtc);
-+	platform_device_unregister(ppc_rtc_pdev);
-+}
-+
-+module_init(ppc_rtc_init);
-+module_exit(ppc_rtc_exit);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("David Woodhouse <dwmw2@infradead.org>");
-+MODULE_DESCRIPTION("Generic RTC class driver for PowerPC");
+@@ -1,7 +1,7 @@
+ /*
+  * RTC driver for ppc_md RTC functions
+  *
+- * =C2=A9 2007 Red Hat, Inc.
++ * Copyright 2008 Red Hat, Inc.
+  *
+  * Author: David Woodhouse <dwmw2@infradead.org>
+  *
 _
 
-Patches currently in -mm which might be from dwmw2@infradead.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org =
+are
 
 origin.patch
-kbuild-remove-duplicate-conflicting-entry-for-oomh.patch
-kbuild-move-files-that-dont-check-__kernel__.patch
-audit-let-userspace-fully-control-tty-input-auditing.patch
-git-mtd.patch
-jffs2-summary-allocation-dont-use-vmalloc.patch
-remove-ifdef-__kernel__-checks-from-unexported-headers.patch
-rtc-class-driver-for-ppc_md-rtc-functions.patch
+make-dev-kmem-a-config-option.patch
+misc-phantom-add-compat-ioctl.patch
+sysrq-add-show-backtrace-on-all-cpus-function.patch
+codafs-fix-build-warning.patch
+lists-add-const-qualifier-to-first-arg-of-list_splice-operations.patch
+lib-swiotlbc-cleanups.patch
+fs-inodec-use-hlist_for_each_entry.patch
+ecryptfs-integrate-ecryptfs-device-handle-into-the-module.patch
+ecryptfs-make-key-module-subsystem-respect-namespaces.patch
+x86-olpc-add-one-laptop-per-child-architecture-support.patch
+cgroup-api-files-update-cpusets-to-use-cgroup-structured-file-api.patch
+cgroups-implement-device-whitelist-v6.patch
+add-a-document-describing-the-resource-counter-abstraction-v2.patch
+memcgroup-implement-failcounter-reset.patch
+use-vmalloc-for-mem_cgroup-allocation-v3.patch
+workqueues-shrink-cpu_populated_map-when-cpu-dies.patch
+ipc-use-ipc_buildid-directly-from-ipc_addid.patch
+ipc-add-definitions-of-ushort_max-and-others.patch
+ipc-sysvsem-refuse-cloneclone_sysvsemclone_newipc.patch
+ipmi-run-to-completion-fixes.patch
+ipmi-style-fixes-in-the-system-interface-code.patch
+elf-fix-shadowed-variables-in-fs-binfmt_elfc.patch
+keys-add-keyctl-function-to-get-a-security-label.patch
+procfs-task-exe-symlink.patch
+edd-add-default-mode-config_edd_off=3Dn-override-with-edd=3Donoff.patch
+idr-create-idr_layer_cache-at-boot-time.patch
+edac-add-e752x-parameter-for-sysbus_parity-selection.patch
+ncpfs-use-get-put_unaligned_-helpers.patch
+relayfs-support-larger-relay-buffer-take-3.patch
+blackfin-serial-driver-this-driver-enable-sports-on-blackfin-emulate-ua=
+rt-fix.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
+disable-the-memory-controller-by-default-v3.patch
+git-acpi.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+git-x86-fix-warning-in-arch-x86-kernel-vsmp_64c.patch
+x86-ptrace-pebs-support-warning-fix.patch
+rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
+cifs-suppress-warning.patch
+devres-support-addresses-greater-than-an-unsigned-long-via-dev_ioremap-=
+checkpatch-fixes.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=3Dy.p=
+atch
+drivers-media-dvb-frontends-s5h1420c-printk-fix.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-hwmon.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-kvm.patch
+pata_atiixp-simplex-clear.patch
+git-m32r.patch
+git-mips.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-nfsd.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex=
+-and-make-it-static.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-sched.patch
+sched-add-debug-checks-to-idle-functions.patch
+drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+add-rcu_assign_index-if-ever-needed.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+aic79xx_core-remove-ascii-art.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-ohci-port-reset-paranoia-timeout.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+revert-rusty-misc-timer-typesafe.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+ext4-is-busted-on-m68k.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-t=
+he-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+utimensat-non-conformances-and-fixes-checkpatch-fixes.patch
+add-warn_on_secs-macro.patch
+rtc-class-driver-for-ppc_md-rtc-functions-fix.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix.patch
+sgi-altix-mmtimer-allow-larger-number-of-timers-per-node-fix-2.patch
+epcac-static-functions-and-integer-as-null-pointer-fixes-checkpatch-fix=
+es.patch
+isicom-bring-into-coding-style-fix.patch
+tty-the-big-operations-rework-fix-2.patch
+tty-the-big-operations-rework-isicom-fix.patch
+tty-the-big-operations-rework-simserial-fix.patch
+tty-the-big-operations-rework-vs-git-kgdb-light.patch
+tty-the-big-operations-rework-vs-kgdb-2.patch
+devpts-factor-out-pty-index-allocation-fix.patch
+mm-bdi-export-bdi-attributes-in-sysfs-ia64-fix.patch
+fuse-fix-race-in-llseek-fix.patch
+basic-braille-screen-reader-support-ppc-fix.patch
+hfs-fix-warning-with-64k-page_size.patch
+hfsplus-fix-warning-with-64k-page_size.patch
+alloc_uid-cleanup.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+rename-div64_64-to-div64_u64-fix.patch
+reiser4.patch
+jens-broke-reiser4patch-added-to-mm-tree.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+x86-ioremap-add-checks-for-virtual-addresses-fix.patch
+profile-likely-unlikely-macros-fix.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patc=
+h
+w1-build-fix.patch
 
 --
 To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
