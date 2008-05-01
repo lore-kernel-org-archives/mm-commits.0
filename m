@@ -1,125 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - pids-introduce-change_pid-helper.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:31:21 -0700
-Message-ID: <200805010931.m419VLJM030863@imap1.linux-foundation.org>
+Subject: - pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:31:27 -0700
+Message-ID: <200805010931.m419VRvv030875@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33279 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59946 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757671AbYEAJbl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:41 -0400
+	by vger.kernel.org with ESMTP id S1757651AbYEAJbq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ebiederm@xmission.com, roland@redhat.com, xemul@openvz.org, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pids: introduce change_pid() helper
+     pids: sys_getsid: fix unsafe *pid usage, fix possible 0 instead of -ESRCH
 has been removed from the -mm tree.  Its filename was
-     pids-introduce-change_pid-helper.patch
+     pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pids: introduce change_pid() helper
+Subject: pids: sys_getsid: fix unsafe *pid usage, fix possible 0 instead of -ESRCH
 From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Based on Eric W. Biederman's idea.
+1. sys_getsid() needs rcu_read_lock() to derive the session _nr, even if
+   the task is current, otherwise we can race with another thread which
+   does sys_setsid().
 
-Without tasklist_lock held task_session()/task_pgrp() can return NULL if the
-caller races with setprgp()/setsid() which does detach_pid() + attach_pid(). 
-This can happen even if task == current.
-
-Intoduce the new helper, change_pid(), which should be used instead.  This way
-the caller always sees the special pid != NULL, either old or new.
-
-Also change the prototype of attach_pid(), it always returns 0 and nobody
-check the returned value.
+2. The task can exit between find_task_by_vpid() and task_session_vnr(),
+   in that unlikely case sys_getsid() returns 0 instead of -ESRCH.
 
 Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc:  "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
 Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pid.h |    6 ++++--
- kernel/pid.c        |   21 ++++++++++++++++-----
- 2 files changed, 20 insertions(+), 7 deletions(-)
+ kernel/sys.c |   33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/pid.h~pids-introduce-change_pid-helper include/linux/pid.h
---- a/include/linux/pid.h~pids-introduce-change_pid-helper
-+++ a/include/linux/pid.h
-@@ -89,9 +89,11 @@ extern struct pid *get_task_pid(struct t
-  * attach_pid() and detach_pid() must be called with the tasklist_lock
-  * write-held.
-  */
--extern int attach_pid(struct task_struct *task, enum pid_type type,
--		      struct pid *pid);
-+extern void attach_pid(struct task_struct *task, enum pid_type type,
-+			struct pid *pid);
- extern void detach_pid(struct task_struct *task, enum pid_type);
-+extern void change_pid(struct task_struct *task, enum pid_type,
-+			struct pid *pid);
- extern void transfer_pid(struct task_struct *old, struct task_struct *new,
- 			 enum pid_type);
+diff -puN kernel/sys.c~pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch kernel/sys.c
+--- a/kernel/sys.c~pids-sys_getsid-fix-unsafe-pid-usage-fix-possible-0-instead-of-esrch
++++ a/kernel/sys.c
+@@ -1022,23 +1022,30 @@ asmlinkage long sys_getpgrp(void)
  
-diff -puN kernel/pid.c~pids-introduce-change_pid-helper kernel/pid.c
---- a/kernel/pid.c~pids-introduce-change_pid-helper
-+++ a/kernel/pid.c
-@@ -317,7 +317,7 @@ EXPORT_SYMBOL_GPL(find_pid);
- /*
-  * attach_pid() must be called with the tasklist_lock write-held.
-  */
--int attach_pid(struct task_struct *task, enum pid_type type,
-+void attach_pid(struct task_struct *task, enum pid_type type,
- 		struct pid *pid)
+ asmlinkage long sys_getsid(pid_t pid)
  {
- 	struct pid_link *link;
-@@ -325,11 +325,10 @@ int attach_pid(struct task_struct *task,
- 	link = &task->pids[type];
- 	link->pid = pid;
- 	hlist_add_head_rcu(&link->node, &pid->tasks[type]);
++	struct task_struct *p;
++	struct pid *sid;
++	int retval;
++
++	rcu_read_lock();
+ 	if (!pid)
+-		return task_session_vnr(current);
++		sid = task_session(current);
+ 	else {
+-		int retval;
+-		struct task_struct *p;
 -
--	return 0;
+-		rcu_read_lock();
+-		p = find_task_by_vpid(pid);
+ 		retval = -ESRCH;
+-		if (p) {
+-			retval = security_task_getsid(p);
+-			if (!retval)
+-				retval = task_session_vnr(p);
+-		}
+-		rcu_read_unlock();
+-		return retval;
++		p = find_task_by_vpid(pid);
++		if (!p)
++			goto out;
++		sid = task_session(p);
++		if (!sid)
++			goto out;
++
++		retval = security_task_getsid(p);
++		if (retval)
++			goto out;
+ 	}
++	retval = pid_vnr(sid);
++out:
++	rcu_read_unlock();
++	return retval;
  }
  
--void detach_pid(struct task_struct *task, enum pid_type type)
-+static void __change_pid(struct task_struct *task, enum pid_type type,
-+			struct pid *new)
- {
- 	struct pid_link *link;
- 	struct pid *pid;
-@@ -339,7 +338,7 @@ void detach_pid(struct task_struct *task
- 	pid = link->pid;
- 
- 	hlist_del_rcu(&link->node);
--	link->pid = NULL;
-+	link->pid = new;
- 
- 	for (tmp = PIDTYPE_MAX; --tmp >= 0; )
- 		if (!hlist_empty(&pid->tasks[tmp]))
-@@ -348,6 +347,18 @@ void detach_pid(struct task_struct *task
- 	free_pid(pid);
- }
- 
-+void detach_pid(struct task_struct *task, enum pid_type type)
-+{
-+	__change_pid(task, type, NULL);
-+}
-+
-+void change_pid(struct task_struct *task, enum pid_type type,
-+		struct pid *pid)
-+{
-+	__change_pid(task, type, pid);
-+	attach_pid(task, type, pid);
-+}
-+
- /* transfer_pid is an optimization of attach_pid(new), detach_pid(old) */
- void transfer_pid(struct task_struct *old, struct task_struct *new,
- 			   enum pid_type type)
+ asmlinkage long sys_setsid(void)
 _
 
 Patches currently in -mm which might be from oleg@tv-sign.ru are
