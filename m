@@ -1,54 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-media-video-tuner-corec-tuner_probe-fix-error-check.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:33:59 -0700
-Message-ID: <200805010933.m419XxBU031170@imap1.linux-foundation.org>
+Subject: - tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:33:56 -0700
+Message-ID: <200805010933.m419XuIa031167@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53698 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757425AbYEAJeu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:34:50 -0400
+	by vger.kernel.org with ESMTP id S1757783AbYEAJev (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:34:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, efault@gmx.de, mchehab@infradead.org, mkrufky@linuxtv.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/media/video/tuner-core.c: tuner_probe(): fix error check
+     tuner_symbol_probe(): don't do symbol_put() if symbol_request() failed
 has been removed from the -mm tree.  Its filename was
-     drivers-media-video-tuner-corec-tuner_probe-fix-error-check.patch
+     tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/media/video/tuner-core.c: tuner_probe(): fix error check
+Subject: tuner_symbol_probe(): don't do symbol_put() if symbol_request() failed
 From: Andrew Morton <akpm@linux-foundation.org>
 
-It should have been -EINVAL, not +EINVAL.
+Because it goes BUG.
 
 Cc: Mike Galbraith <efault@gmx.de>
 Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Michael Krufky <mkrufky@linuxtv.org>
+Acked-by: Michael Krufky <mkrufky@linuxtv.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  drivers/media/video/tuner-core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/tuner-core.c~drivers-media-video-tuner-corec-tuner_probe-fix-error-check drivers/media/video/tuner-core.c
---- a/drivers/media/video/tuner-core.c~drivers-media-video-tuner-corec-tuner_probe-fix-error-check
+diff -puN drivers/media/video/tuner-core.c~tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed drivers/media/video/tuner-core.c
+--- a/drivers/media/video/tuner-core.c~tuner_symbol_probe-dont-do-symbol_put-if-symbol_request-failed
 +++ a/drivers/media/video/tuner-core.c
-@@ -1181,7 +1181,7 @@ static int tuner_probe(struct i2c_client
- 		case 0x60:
- 			if (tuner_symbol_probe(tea5767_autodetection,
- 					       t->i2c->adapter, t->i2c->addr)
--					!= EINVAL) {
-+					!= -EINVAL) {
- 				t->type = TUNER_TEA5767;
- 				t->mode_mask = T_RADIO;
- 				t->mode = T_STANDBY;
+@@ -40,11 +40,11 @@
+ 	typeof(&FUNCTION) __a = symbol_request(FUNCTION); \
+ 	if (__a) { \
+ 		__r = (int) __a(ARGS); \
++		symbol_put(FUNCTION); \
+ 	} else { \
+ 		printk(KERN_ERR "TUNER: Unable to find " \
+ 				"symbol "#FUNCTION"()\n"); \
+ 	} \
+-	symbol_put(FUNCTION); \
+ 	__r; \
+ })
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
