@@ -1,80 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: - mm-filemapc-generic_write_checks-mustnt-be-inline.patch removed from -mm tree
-Date: Thu, 01 May 2008 01:16:03 -0700
-Message-ID: <200805010816.m418G3fq027823@imap1.linux-foundation.org>
+Subject: + spi_s3c24xx-signedness-fix.patch added to -mm tree
+Date: Thu, 01 May 2008 01:24:01 -0700
+Message-ID: <200805010824.m418O1hV028118@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56823 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57027 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754434AbYEAIQ2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 04:16:28 -0400
+	by vger.kernel.org with ESMTP id S1753633AbYEAIYR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 04:24:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bunk@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: matthew@wil.cx, dbrownell@users.sourceforge.net, julia@diku.dk, willy@linux.intel.com
 
 
 The patch titled
-     mm/filemap.c:generic_write_checks() mustn't be inline
-has been removed from the -mm tree.  Its filename was
-     mm-filemapc-generic_write_checks-mustnt-be-inline.patch
+     spi_s3c24xx signedness fix
+has been added to the -mm tree.  Its filename is
+     spi_s3c24xx-signedness-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/filemap.c:generic_write_checks() mustn't be inline
-From: Adrian Bunk <bunk@kernel.org>
+Subject: spi_s3c24xx signedness fix
+From: Matthew Wilcox <matthew@wil.cx>
 
-Fix the following build error with UML and gcc 4.3:
+On Fri, Apr 18, 2008 at 09:08:55PM +0200, Julia Lawall wrote:
+> I found 63 occurrences of this problem with the following semantic match
+> (http://www.emn.fr/x-info/coccinelle/):
+>
+> @@ unsigned int i; @@
+>
+> * i < 0
+>
 
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/filemap.c: In function `__generic_file_aio_write_nolock':
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/filemap.c:1831: sorry, unimplemented: inlining failed in call to `generic_write_checks': function body not available
-/home/bunk/linux/kernel-2.6/git/linux-2.6/mm/filemap.c:2383: sorry, unimplemented: called from here
+Since this one's always in the range 0-255, it could probably be made
+signed, but it's just as easy to make it work unsigned.
 
-Reported-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Reported-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/spi/spi_s3c24xx.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/filemap.c~mm-filemapc-generic_write_checks-mustnt-be-inline mm/filemap.c
---- a/mm/filemap.c~mm-filemapc-generic_write_checks-mustnt-be-inline
-+++ a/mm/filemap.c
-@@ -1829,7 +1829,8 @@ EXPORT_SYMBOL(iov_iter_single_seg_count)
-  * Returns appropriate error code that caller should return or
-  * zero in case that write should be allowed.
-  */
--inline int generic_write_checks(struct file *file, loff_t *pos, size_t *count, int isblk)
-+int generic_write_checks(struct file *file, loff_t *pos, size_t *count,
-+			 int isblk)
- {
- 	struct inode *inode = file->f_mapping->host;
- 	unsigned long limit = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
+diff -puN drivers/spi/spi_s3c24xx.c~spi_s3c24xx-signedness-fix drivers/spi/spi_s3c24xx.c
+--- a/drivers/spi/spi_s3c24xx.c~spi_s3c24xx-signedness-fix
++++ a/drivers/spi/spi_s3c24xx.c
+@@ -125,10 +125,10 @@ static int s3c24xx_spi_setupxfer(struct 
+ 	/* is clk = pclk / (2 * (pre+1)), or is it
+ 	 *    clk = (pclk * 2) / ( pre + 1) */
+ 
+-	div = (div / 2) - 1;
++	div /= 2;
+ 
+-	if (div < 0)
+-		div = 1;
++	if (div > 0)
++		div -= 1;
+ 
+ 	if (div > 255)
+ 		div = 255;
 _
 
-Patches currently in -mm which might be from bunk@kernel.org are
+Patches currently in -mm which might be from matthew@wil.cx are
 
 origin.patch
-make-marker_debug-static.patch
-mm-filemapc-generic_write_checks-mustnt-be-inline.patch
-fs-block_devc-i_bdev-mustnt-be-inline.patch
-reiserfs-some-functions-mustnt-be-inline.patch
-git-acpi.patch
-git-x86.patch
-arch-x86-video-fbdevc-add-module_license.patch
-md-make-dm_dirty_log_initexit-static.patch
-drm-make-drm_minors_cleanup-static.patch
-git-m32r.patch
-net-ipv4-ip_outputc-ip_send_check-mustnt-be-inline.patch
-nfs-make-nfs4_drop_state_owner-static.patch
-git-ocfs2.patch
-show_schedstat-fix-memleak.patch
-git-sh.patch
-if-0-ses_match_host.patch
-git-watchdog.patch
-xen-drivers-xen-balloonc-make-a-function-static.patch
-reiser4.patch
+parisc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-construct-one-fakephp-slot-per-pci-slot.patch
+pci-hotplug-introduce-pci_slot.patch
+git-semaphore.patch
+spi_s3c24xx-signedness-fix.patch
+make-sure-nobodys-leaking-resources.patch
 
