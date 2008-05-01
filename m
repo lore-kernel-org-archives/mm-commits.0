@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-irq-flags-for-iuu_phoenixc.patch added to -mm tree
-Date: Thu, 01 May 2008 15:58:24 -0700
-Message-ID: <200805012258.m41MwOV6029848@imap1.linux-foundation.org>
+Subject: + fix-irq-flags-in-saa7134.patch added to -mm tree
+Date: Thu, 01 May 2008 15:58:19 -0700
+Message-ID: <200805012258.m41MwJ9e029842@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37915 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41848 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754704AbYEAW6q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 18:58:46 -0400
+	by vger.kernel.org with ESMTP id S1760978AbYEAW6r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 18:58:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rostedt@goodmis.org, greg@kroah.com, srostedt@redhat.com
+Cc: rostedt@goodmis.org, mchehab@infradead.org, srostedt@redhat.com
 
 
 The patch titled
-     fix irq flags for iuu_phoenix.c
+     fix irq flags in saa7134
 has been added to the -mm tree.  Its filename is
-     fix-irq-flags-for-iuu_phoenixc.patch
+     fix-irq-flags-in-saa7134.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix irq flags for iuu_phoenix.c
+Subject: fix irq flags in saa7134
 From: Steven Rostedt <rostedt@goodmis.org>
 
-The file drivers/usb/serial/iuu_phoenix.c uses "int" for flags.  This can
-cause hard to find bugs on some architectures.  This patch converts the flags
-to use "long" instead.
+Some files in the drivers/media/video/saa7134 directory uses "int" for flags. 
+This can cause hard to find bugs on some architectures.  This patch converts
+the flags to use "long" instead.
 
 This bug was discovered by doing an allyesconfig make on the -rt kernel where
 checks are done to ensure all flags are of size sizeof(long).
 
 Signed-off-by: Steven Rostedt <srostedt@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/iuu_phoenix.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/video/saa7134/saa7134-video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/iuu_phoenix.c~fix-irq-flags-for-iuu_phoenixc drivers/usb/serial/iuu_phoenix.c
---- a/drivers/usb/serial/iuu_phoenix.c~fix-irq-flags-for-iuu_phoenixc
-+++ a/drivers/usb/serial/iuu_phoenix.c
-@@ -643,7 +643,7 @@ static void read_buf_callback(struct urb
- static int iuu_bulk_write(struct usb_serial_port *port)
- {
- 	struct iuu_private *priv = usb_get_serial_port_data(port);
+diff -puN drivers/media/video/saa7134/saa7134-video.c~fix-irq-flags-in-saa7134 drivers/media/video/saa7134/saa7134-video.c
+--- a/drivers/media/video/saa7134/saa7134-video.c~fix-irq-flags-in-saa7134
++++ a/drivers/media/video/saa7134/saa7134-video.c
+@@ -1634,7 +1634,7 @@ static int saa7134_s_fmt_overlay(struct 
+ 	struct saa7134_fh *fh = priv;
+ 	struct saa7134_dev *dev = fh->dev;
+ 	int err;
 -	unsigned int flags;
 +	unsigned long flags;
- 	int result;
- 	int i;
- 	char *buf_ptr = port->write_urb->transfer_buffer;
-@@ -694,7 +694,7 @@ static void iuu_uart_read_callback(struc
- {
- 	struct usb_serial_port *port = urb->context;
- 	struct iuu_private *priv = usb_get_serial_port_data(port);
--	unsigned int flags;
-+	unsigned long flags;
- 	int status;
- 	int error = 0;
- 	int len = 0;
-@@ -759,7 +759,7 @@ static int iuu_uart_write(struct usb_ser
- 			  int count)
- {
- 	struct iuu_private *priv = usb_get_serial_port_data(port);
--	unsigned int flags;
-+	unsigned long flags;
- 	dbg("%s - enter", __func__);
  
- 	if (count > 256)
+ 	if (saa7134_no_overlay > 0) {
+ 		printk(KERN_ERR "V4L2_BUF_TYPE_VIDEO_OVERLAY: no_overlay\n");
 _
 
 Patches currently in -mm which might be from rostedt@goodmis.org are
