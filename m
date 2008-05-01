@@ -1,125 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - signals-fix-sbin-init-protection-from-unwanted-signals.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:27:07 -0700
-Message-ID: <200805010927.m419R70E030370@imap1.linux-foundation.org>
+Subject: - amiserial-prepare-for-locking-relaxation-in-caller.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:27:43 -0700
+Message-ID: <200805010927.m419RhI6030442@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56748 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55540 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755511AbYEAJ15 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:27:57 -0400
+	by vger.kernel.org with ESMTP id S1755825AbYEAJ2E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:28:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, ebiederm@xmission.com, roland@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: fix /sbin/init protection from unwanted signals
+     amiserial: prepare for locking relaxation in caller
 has been removed from the -mm tree.  Its filename was
-     signals-fix-sbin-init-protection-from-unwanted-signals.patch
+     amiserial-prepare-for-locking-relaxation-in-caller.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: fix /sbin/init protection from unwanted signals
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: amiserial: prepare for locking relaxation in caller
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The global init has a lot of long standing problems with the unhandled fatal
-signals.
+Just wrap this one in a lock_kernel. As I understand it there is no M68K
+SMP anyway.
 
-	- The "is_global_init(current)" check in get_signal_to_deliver()
-	  protects only the main thread. Sub-thread can dequee the fatal
-	  signal and shutdown the whole thread group except the main thread.
-	  If it dequeues SIGSTOP /sbin/init will be stopped, this is not
-	  right too. Note that we can't use is_global_init(->group_leader),
-	  this breaks exec and this can't solve other problems we have.
-
-	- Even if afterwards ignored, the fatal signals sets SIGNAL_GROUP_EXIT
-	  on delivery. This breaks exec, has other bad implications, and this
-	  is just wrong.
-
-Introduce the new SIGNAL_UNKILLABLE flag to fix these problems.  It also helps
-to solve some other problems addressed by the subsequent patches.
-
-Currently we use this flag for the global init only, but it could also be used
-by kthreads and (perhaps) by the sub-namespace inits.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 ++
- init/main.c           |    2 ++
- kernel/signal.c       |    9 ++++++---
- 3 files changed, 10 insertions(+), 3 deletions(-)
+ drivers/char/amiserial.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/sched.h~signals-fix-sbin-init-protection-from-unwanted-signals include/linux/sched.h
---- a/include/linux/sched.h~signals-fix-sbin-init-protection-from-unwanted-signals
-+++ a/include/linux/sched.h
-@@ -561,6 +561,8 @@ struct signal_struct {
- #define SIGNAL_CLD_CONTINUED	0x00000020
- #define SIGNAL_CLD_MASK		(SIGNAL_CLD_STOPPED|SIGNAL_CLD_CONTINUED)
+diff -puN drivers/char/amiserial.c~amiserial-prepare-for-locking-relaxation-in-caller drivers/char/amiserial.c
+--- a/drivers/char/amiserial.c~amiserial-prepare-for-locking-relaxation-in-caller
++++ a/drivers/char/amiserial.c
+@@ -1074,6 +1074,7 @@ static int get_serial_info(struct async_
+ 	if (!retinfo)
+ 		return -EFAULT;
+ 	memset(&tmp, 0, sizeof(tmp));
++	lock_kernel();
+ 	tmp.type = state->type;
+ 	tmp.line = state->line;
+ 	tmp.port = state->port;
+@@ -1084,6 +1085,7 @@ static int get_serial_info(struct async_
+ 	tmp.close_delay = state->close_delay;
+ 	tmp.closing_wait = state->closing_wait;
+ 	tmp.custom_divisor = state->custom_divisor;
++	unlock_kernel();
+ 	if (copy_to_user(retinfo,&tmp,sizeof(*retinfo)))
+ 		return -EFAULT;
+ 	return 0;
+@@ -1099,13 +1101,17 @@ static int set_serial_info(struct async_
  
-+#define SIGNAL_UNKILLABLE	0x00000040 /* for init: ignore fatal signals */
+ 	if (copy_from_user(&new_serial,new_info,sizeof(new_serial)))
+ 		return -EFAULT;
 +
- /* If true, all threads except ->group_exit_task have pending SIGKILL */
- static inline int signal_group_exit(const struct signal_struct *sig)
- {
-diff -puN init/main.c~signals-fix-sbin-init-protection-from-unwanted-signals init/main.c
---- a/init/main.c~signals-fix-sbin-init-protection-from-unwanted-signals
-+++ a/init/main.c
-@@ -802,6 +802,8 @@ static int noinline init_post(void)
- 	(void) sys_dup(0);
- 	(void) sys_dup(0);
++	lock_kernel();
+ 	state = info->state;
+ 	old_state = *state;
+   
+ 	change_irq = new_serial.irq != state->irq;
+ 	change_port = (new_serial.port != state->port);
+-	if(change_irq || change_port || (new_serial.xmit_fifo_size != state->xmit_fifo_size))
++	if(change_irq || change_port || (new_serial.xmit_fifo_size != state->xmit_fifo_size)) {
++	  unlock_kernel();
+ 	  return -EINVAL;
++	}
+   
+ 	if (!serial_isroot()) {
+ 		if ((new_serial.baud_base != state->baud_base) ||
+@@ -1122,8 +1128,10 @@ static int set_serial_info(struct async_
+ 		goto check_and_exit;
+ 	}
  
-+	current->signal->flags |= SIGNAL_UNKILLABLE;
-+
- 	if (ramdisk_execute_command) {
- 		run_init_process(ramdisk_execute_command);
- 		printk(KERN_WARNING "Failed to execute %s\n",
-diff -puN kernel/signal.c~signals-fix-sbin-init-protection-from-unwanted-signals kernel/signal.c
---- a/kernel/signal.c~signals-fix-sbin-init-protection-from-unwanted-signals
-+++ a/kernel/signal.c
-@@ -728,7 +728,8 @@ static void complete_signal(int sig, str
- 	 * Found a killable thread.  If the signal will be fatal,
- 	 * then start taking the whole group down immediately.
- 	 */
--	if (sig_fatal(p, sig) && !(signal->flags & SIGNAL_GROUP_EXIT) &&
-+	if (sig_fatal(p, sig) &&
-+	    !(signal->flags & (SIGNAL_UNKILLABLE | SIGNAL_GROUP_EXIT)) &&
- 	    !sigismember(&t->real_blocked, sig) &&
- 	    (sig == SIGKILL || !(t->ptrace & PT_PTRACED))) {
- 		/*
-@@ -1615,7 +1616,8 @@ static int do_signal_stop(int signr)
- 	} else {
- 		struct task_struct *t;
+-	if (new_serial.baud_base < 9600)
++	if (new_serial.baud_base < 9600) {
++		unlock_kernel();
+ 		return -EINVAL;
++	}
  
--		if (!likely(sig->flags & SIGNAL_STOP_DEQUEUED) ||
-+		if (unlikely((sig->flags & (SIGNAL_STOP_DEQUEUED | SIGNAL_UNKILLABLE))
-+					 != SIGNAL_STOP_DEQUEUED) ||
- 		    unlikely(signal_group_exit(sig)))
- 			return 0;
- 		/*
-@@ -1761,7 +1763,8 @@ relock:
- 		/*
- 		 * Global init gets no signals it doesn't want.
- 		 */
--		if (is_global_init(current))
-+		if (unlikely(signal->flags & SIGNAL_UNKILLABLE) &&
-+		    !signal_group_exit(signal))
- 			continue;
+ 	/*
+ 	 * OK, past this point, all the error checking has been done.
+@@ -1157,6 +1165,7 @@ check_and_exit:
+ 		}
+ 	} else
+ 		retval = startup(info);
++	unlock_kernel();
+ 	return retval;
+ }
  
- 		if (sig_kernel_stop(signr)) {
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
-workqueue-remove-redundant-function-invocation.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+pata_atiixp-simplex-clear.patch
+pata_atiixp-dont-disable.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+generic-irq-let-setup_irq-reenable-a-shared-irq.patch
+8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
+sxc-fix-printk-warnings-on-sparc32.patch
 put_pid-make-sure-we-dont-free-the-live-pid.patch
 
