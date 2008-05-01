@@ -1,208 +1,197 @@
 From: akpm@linux-foundation.org
-Subject: - synclink-series-prepare-for-bkl-pushdown.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:28:10 -0700
-Message-ID: <200805010928.m419SAPL030559@imap1.linux-foundation.org>
+Subject: - char-moxa-timer-cleanup.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:29:12 -0700
+Message-ID: <200805010929.m419TCsq030653@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46763 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756857AbYEAJ2m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:28:42 -0400
+	by vger.kernel.org with ESMTP id S1757130AbYEAJ3Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:29:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, paulkf@microgate.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, Oyvind.Aabling@uni-c.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     synclink series: Prepare for BKL pushdown
+     Char: moxa, timer cleanup
 has been removed from the -mm tree.  Its filename was
-     synclink-series-prepare-for-bkl-pushdown.patch
+     char-moxa-timer-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: synclink series: Prepare for BKL pushdown
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Char: moxa, timer cleanup
+From: Jiri Slaby <jirislaby@gmail.com>
 
-As these are quite complex I've simply pushed the BKL down into the ioctl
-handler not tried to do anything neater.
+- schedule timer even after some card is installed, not after insmod
+- cleanup timer functions
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Paul Fulghum <paulkf@microgate.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Tested-by: Oyvind Aabling <Oyvind.Aabling@uni-c.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink.c    |    6 +++
- drivers/char/synclink_gt.c |   58 +++++++++++++++++++++++------------
- drivers/char/synclinkmp.c  |   12 ++++++-
- 3 files changed, 55 insertions(+), 21 deletions(-)
+ drivers/char/moxa.c |   62 ++++++++++++++----------------------------
+ 1 file changed, 21 insertions(+), 41 deletions(-)
 
-diff -puN drivers/char/synclink.c~synclink-series-prepare-for-bkl-pushdown drivers/char/synclink.c
---- a/drivers/char/synclink.c~synclink-series-prepare-for-bkl-pushdown
-+++ a/drivers/char/synclink.c
-@@ -2942,6 +2942,7 @@ static int mgsl_ioctl(struct tty_struct 
- 		    unsigned int cmd, unsigned long arg)
- {
- 	struct mgsl_struct * info = (struct mgsl_struct *)tty->driver_data;
-+	int ret;
- 	
- 	if (debug_level >= DEBUG_LEVEL_INFO)
- 		printk("%s(%d):mgsl_ioctl %s cmd=%08X\n", __FILE__,__LINE__,
-@@ -2956,7 +2957,10 @@ static int mgsl_ioctl(struct tty_struct 
- 		    return -EIO;
- 	}
- 
--	return mgsl_ioctl_common(info, cmd, arg);
-+	lock_kernel();
-+	ret = mgsl_ioctl_common(info, cmd, arg);
-+	unlock_kernel();
-+	return ret;
- }
- 
- static int mgsl_ioctl_common(struct mgsl_struct *info, unsigned int cmd, unsigned long arg)
-diff -puN drivers/char/synclink_gt.c~synclink-series-prepare-for-bkl-pushdown drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~synclink-series-prepare-for-bkl-pushdown
-+++ a/drivers/char/synclink_gt.c
-@@ -1097,6 +1097,7 @@ static int ioctl(struct tty_struct *tty,
- 	struct serial_icounter_struct __user *p_cuser;	/* user space */
- 	unsigned long flags;
- 	void __user *argp = (void __user *)arg;
-+	int ret;
- 
- 	if (sanity_check(info, tty->name, "ioctl"))
- 		return -ENODEV;
-@@ -1108,37 +1109,54 @@ static int ioctl(struct tty_struct *tty,
- 		    return -EIO;
- 	}
- 
-+	lock_kernel();
-+
- 	switch (cmd) {
- 	case MGSL_IOCGPARAMS:
--		return get_params(info, argp);
-+		ret = get_params(info, argp);
-+		break;
- 	case MGSL_IOCSPARAMS:
--		return set_params(info, argp);
-+		ret = set_params(info, argp);
-+		break;
- 	case MGSL_IOCGTXIDLE:
--		return get_txidle(info, argp);
-+		ret = get_txidle(info, argp);
-+		break;
- 	case MGSL_IOCSTXIDLE:
--		return set_txidle(info, (int)arg);
-+		ret = set_txidle(info, (int)arg);
-+		break;
- 	case MGSL_IOCTXENABLE:
--		return tx_enable(info, (int)arg);
-+		ret = tx_enable(info, (int)arg);
-+		break;
- 	case MGSL_IOCRXENABLE:
--		return rx_enable(info, (int)arg);
-+		ret = rx_enable(info, (int)arg);
-+		break;
- 	case MGSL_IOCTXABORT:
--		return tx_abort(info);
-+		ret = tx_abort(info);
-+		break;
- 	case MGSL_IOCGSTATS:
--		return get_stats(info, argp);
-+		ret = get_stats(info, argp);
-+		break;
- 	case MGSL_IOCWAITEVENT:
--		return wait_mgsl_event(info, argp);
-+		ret = wait_mgsl_event(info, argp);
-+		break;
- 	case TIOCMIWAIT:
--		return modem_input_wait(info,(int)arg);
-+		ret = modem_input_wait(info,(int)arg);
-+		break;
- 	case MGSL_IOCGIF:
--		return get_interface(info, argp);
-+		ret = get_interface(info, argp);
-+		break;
- 	case MGSL_IOCSIF:
--		return set_interface(info,(int)arg);
-+		ret = set_interface(info,(int)arg);
-+		break;
- 	case MGSL_IOCSGPIO:
--		return set_gpio(info, argp);
-+		ret = set_gpio(info, argp);
-+		break;
- 	case MGSL_IOCGGPIO:
--		return get_gpio(info, argp);
-+		ret = get_gpio(info, argp);
-+		break;
- 	case MGSL_IOCWAITGPIO:
--		return wait_gpio(info, argp);
-+		ret = wait_gpio(info, argp);
-+		break;
- 	case TIOCGICOUNT:
- 		spin_lock_irqsave(&info->lock,flags);
- 		cnow = info->icount;
-@@ -1155,12 +1173,14 @@ static int ioctl(struct tty_struct *tty,
- 		    put_user(cnow.parity, &p_cuser->parity) ||
- 		    put_user(cnow.brk, &p_cuser->brk) ||
- 		    put_user(cnow.buf_overrun, &p_cuser->buf_overrun))
--			return -EFAULT;
--		return 0;
-+			ret = -EFAULT;
-+		ret = 0;
-+		break;
- 	default:
--		return -ENOIOCTLCMD;
-+		ret = -ENOIOCTLCMD;
- 	}
--	return 0;
-+	unlock_kernel();
-+	return ret;
- }
- 
- /*
-diff -puN drivers/char/synclinkmp.c~synclink-series-prepare-for-bkl-pushdown drivers/char/synclinkmp.c
---- a/drivers/char/synclinkmp.c~synclink-series-prepare-for-bkl-pushdown
-+++ a/drivers/char/synclinkmp.c
-@@ -1303,7 +1303,7 @@ static void tx_release(struct tty_struct
-  *
-  * Return Value:	0 if success, otherwise error code
+diff -puN drivers/char/moxa.c~char-moxa-timer-cleanup drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-timer-cleanup
++++ a/drivers/char/moxa.c
+@@ -215,7 +215,6 @@ static void moxa_receive_data(struct mox
   */
--static int ioctl(struct tty_struct *tty, struct file *file,
-+static int do_ioctl(struct tty_struct *tty, struct file *file,
- 		 unsigned int cmd, unsigned long arg)
- {
- 	SLMP_INFO *info = (SLMP_INFO *)tty->driver_data;
-@@ -1393,6 +1393,16 @@ static int ioctl(struct tty_struct *tty,
+ static int MoxaDriverIoctl(struct tty_struct *, unsigned int, unsigned long);
+ static int MoxaDriverPoll(void);
+-static int MoxaPortsOfCard(int);
+ static void MoxaPortEnable(struct moxa_port *);
+ static void MoxaPortDisable(struct moxa_port *);
+ static int MoxaPortSetTermio(struct moxa_port *, struct ktermios *, speed_t);
+@@ -715,6 +714,9 @@ static int moxa_init_board(struct moxa_b
+ 
+ 	brd->ready = 1;
+ 
++	if (!timer_pending(&moxaTimer))
++		mod_timer(&moxaTimer, jiffies + HZ / 50);
++
  	return 0;
+ err_free:
+ 	kfree(brd->ports);
+@@ -856,8 +858,6 @@ static int __init moxa_init(void)
+ 		return -1;
+ 	}
+ 
+-	mod_timer(&moxaTimer, jiffies + HZ / 50);
+-
+ 	/* Find the boards defined from module args. */
+ #ifdef MODULE
+ 	{
+@@ -1285,10 +1285,10 @@ static void moxa_hangup(struct tty_struc
+ 
+ static void moxa_poll(unsigned long ignored)
+ {
+-	register int card;
+ 	struct moxa_port *ch;
+-	struct tty_struct *tp;
+-	int i, ports;
++	struct tty_struct *tty;
++	unsigned int card;
++	int i;
+ 
+ 	del_timer(&moxaTimer);
+ 
+@@ -1296,36 +1296,38 @@ static void moxa_poll(unsigned long igno
+ 		mod_timer(&moxaTimer, jiffies + HZ / 50);
+ 		return;
+ 	}
++
+ 	for (card = 0; card < MAX_BOARDS; card++) {
+-		if ((ports = MoxaPortsOfCard(card)) <= 0)
++		if (!moxa_boards[card].ready)
+ 			continue;
+ 		ch = moxa_boards[card].ports;
+-		for (i = 0; i < ports; i++, ch++) {
++		for (i = 0; i < moxa_boards[card].numPorts; i++, ch++) {
+ 			if ((ch->asyncflags & ASYNC_INITIALIZED) == 0)
+ 				continue;
+ 			if (!(ch->statusflags & THROTTLE) &&
+ 			    (MoxaPortRxQueue(ch) > 0))
+ 				moxa_receive_data(ch);
+-			if ((tp = ch->tty) == 0)
++			tty = ch->tty;
++			if (tty == NULL)
+ 				continue;
+ 			if (ch->statusflags & LOWWAIT) {
+ 				if (MoxaPortTxQueue(ch) <= WAKEUP_CHARS) {
+-					if (!tp->stopped) {
++					if (!tty->stopped) {
+ 						ch->statusflags &= ~LOWWAIT;
+-						tty_wakeup(tp);
++						tty_wakeup(tty);
+ 					}
+ 				}
+ 			}
+-			if (!I_IGNBRK(tp) && (MoxaPortResetBrkCnt(ch) > 0)) {
+-				tty_insert_flip_char(tp, 0, TTY_BREAK);
+-				tty_schedule_flip(tp);
++			if (!I_IGNBRK(tty) && (MoxaPortResetBrkCnt(ch) > 0)) {
++				tty_insert_flip_char(tty, 0, TTY_BREAK);
++				tty_schedule_flip(tty);
+ 			}
+ 			if (MoxaPortDCDChange(ch)) {
+ 				if (ch->asyncflags & ASYNC_CHECK_CD) {
+ 					if (MoxaPortDCDON(ch))
+ 						wake_up_interruptible(&ch->open_wait);
+ 					else {
+-						tty_hangup(tp);
++						tty_hangup(tty);
+ 						wake_up_interruptible(&ch->open_wait);
+ 						ch->asyncflags &= ~ASYNC_NORMAL_ACTIVE;
+ 					}
+@@ -1671,15 +1673,14 @@ copy:
+ 	return -ENOIOCTLCMD;
  }
  
-+static int ioctl(struct tty_struct *tty, struct file *file,
-+		 unsigned int cmd, unsigned long arg)
-+{
-+	int ret;
-+	lock_kernel();
-+	ret = do_ioctl(tty, file, cmd, arg);
-+	unlock_kernel();
-+	return ret;
-+}
-+
- /*
-  * /proc fs routines....
-  */
+-int MoxaDriverPoll(void)
++static int MoxaDriverPoll(void)
+ {
+ 	struct moxa_board_conf *brd;
+ 	struct moxa_port *p;
+-	register ushort temp;
+-	register int card;
+ 	void __iomem *ofsAddr;
+ 	void __iomem *ip;
+-	int port, ports;
++	unsigned int port, ports, card;
++	ushort temp;
+ 
+ 	for (card = 0; card < MAX_BOARDS; card++) {
+ 		brd = &moxa_boards[card];
+@@ -1729,19 +1730,8 @@ int MoxaDriverPoll(void)
+ 		}
+ 	}
+ 	moxaLowWaterChk = 0;
+-	return (0);
+-}
+-
+-/*****************************************************************************
+- *	Card level function:						     *
+- *	1. MoxaPortsOfCard(int cardno); 				     *
+- *****************************************************************************/
+-int MoxaPortsOfCard(int cardno)
+-{
+ 
+-	if (moxa_boards[cardno].boardType == 0)
+-		return (0);
+-	return (moxa_boards[cardno].numPorts);
++	return 0;
+ }
+ 
+ /*****************************************************************************
+@@ -1812,16 +1802,6 @@ int MoxaPortsOfCard(int cardno)
+  *                      -1      : no any Moxa card.             
+  *
+  *
+- *      Function 4:     Get the ports of this card.
+- *      Syntax:
+- *      int  MoxaPortsOfCard(int cardno);
+- *
+- *           int cardno         : card number (0 - 3)
+- *
+- *           return:    0       : this card is invalid
+- *                      8/16/24/32
+- *
+- *
+  *      Function 6:     Enable this port to start Tx/Rx data.
+  *      Syntax:
+  *      void MoxaPortEnable(int port);
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-pata_atiixp-simplex-clear.patch
-pata_atiixp-dont-disable.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-generic-irq-let-setup_irq-reenable-a-shared-irq.patch
-8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
