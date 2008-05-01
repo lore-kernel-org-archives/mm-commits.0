@@ -1,94 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: - turn-legacy_queue-macro-into-static-inline-function.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:25:48 -0700
-Message-ID: <200805010925.m419PmMx030239@imap1.linux-foundation.org>
+Subject: - handle_stop_signal-use-the-cached-p-signal-value.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:26:21 -0700
+Message-ID: <200805010926.m419QLJ3030291@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42973 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48093 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758213AbYEAJqG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:46:06 -0400
+	by vger.kernel.org with ESMTP id S1758257AbYEAJqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:46:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, jkosina@suse.cz, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: turn LEGACY_QUEUE macro into static inline function
+     handle_stop_signal: use the cached p->signal value
 has been removed from the -mm tree.  Its filename was
-     turn-legacy_queue-macro-into-static-inline-function.patch
+     handle_stop_signal-use-the-cached-p-signal-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: turn LEGACY_QUEUE macro into static inline function
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: handle_stop_signal: use the cached p->signal value
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-This makes the code more readable, due to less brackets and small letters in
-name.
+Cache the value of p->signal, and change the code to use while_each_thread()
+helper.
 
-I also move it above the send_signal() as a preparation for the 3rd patch.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Cc: Roland McGrath <roland@redhat.com>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ kernel/signal.c |   28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
-diff -puN kernel/signal.c~turn-legacy_queue-macro-into-static-inline-function kernel/signal.c
---- a/kernel/signal.c~turn-legacy_queue-macro-into-static-inline-function
+diff -puN kernel/signal.c~handle_stop_signal-use-the-cached-p-signal-value kernel/signal.c
+--- a/kernel/signal.c~handle_stop_signal-use-the-cached-p-signal-value
 +++ a/kernel/signal.c
-@@ -657,6 +657,11 @@ static void handle_stop_signal(int sig, 
+@@ -566,9 +566,10 @@ static void do_notify_parent_cldstop(str
+  */
+ static void handle_stop_signal(int sig, struct task_struct *p)
+ {
++	struct signal_struct *signal = p->signal;
+ 	struct task_struct *t;
+ 
+-	if (p->signal->flags & SIGNAL_GROUP_EXIT)
++	if (signal->flags & SIGNAL_GROUP_EXIT)
+ 		/*
+ 		 * The process is in the middle of dying already.
+ 		 */
+@@ -578,19 +579,18 @@ static void handle_stop_signal(int sig, 
+ 		/*
+ 		 * This is a stop signal.  Remove SIGCONT from all queues.
+ 		 */
+-		rm_from_queue(sigmask(SIGCONT), &p->signal->shared_pending);
++		rm_from_queue(sigmask(SIGCONT), &signal->shared_pending);
+ 		t = p;
+ 		do {
+ 			rm_from_queue(sigmask(SIGCONT), &t->pending);
+-			t = next_thread(t);
+-		} while (t != p);
++		} while_each_thread(p, t);
+ 	} else if (sig == SIGCONT) {
+ 		unsigned int why;
+ 		/*
+ 		 * Remove all stop signals from all queues,
+ 		 * and wake all threads.
+ 		 */
+-		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
++		rm_from_queue(SIG_KERNEL_STOP_MASK, &signal->shared_pending);
+ 		t = p;
+ 		do {
+ 			unsigned int state;
+@@ -615,9 +615,7 @@ static void handle_stop_signal(int sig, 
+ 				state |= TASK_INTERRUPTIBLE;
+ 			}
+ 			wake_up_state(t, state);
+-
+-			t = next_thread(t);
+-		} while (t != p);
++		} while_each_thread(p, t);
+ 
+ 		/*
+ 		 * Notify the parent with CLD_CONTINUED if we were stopped.
+@@ -628,29 +626,29 @@ static void handle_stop_signal(int sig, 
+ 		 * CLD_CONTINUED was dropped.
+ 		 */
+ 		why = 0;
+-		if (p->signal->flags & SIGNAL_STOP_STOPPED)
++		if (signal->flags & SIGNAL_STOP_STOPPED)
+ 			why |= SIGNAL_CLD_CONTINUED;
+-		else if (p->signal->group_stop_count)
++		else if (signal->group_stop_count)
+ 			why |= SIGNAL_CLD_STOPPED;
+ 
+ 		if (why) {
+-			p->signal->flags = why | SIGNAL_STOP_CONTINUED;
+-			p->signal->group_stop_count = 0;
+-			p->signal->group_exit_code = 0;
++			signal->flags = why | SIGNAL_STOP_CONTINUED;
++			signal->group_stop_count = 0;
++			signal->group_exit_code = 0;
+ 		} else {
+ 			/*
+ 			 * We are not stopped, but there could be a stop
+ 			 * signal in the middle of being processed after
+ 			 * being removed from the queue.  Clear that too.
+ 			 */
+-			p->signal->flags &= ~SIGNAL_STOP_DEQUEUED;
++			signal->flags &= ~SIGNAL_STOP_DEQUEUED;
+ 		}
+ 	} else if (sig == SIGKILL) {
+ 		/*
+ 		 * Make sure that any pending stop signal already dequeued
+ 		 * is undone by the wakeup for SIGKILL.
+ 		 */
+-		p->signal->flags &= ~SIGNAL_STOP_DEQUEUED;
++		signal->flags &= ~SIGNAL_STOP_DEQUEUED;
  	}
  }
  
-+static inline int legacy_queue(struct sigpending *signals, int sig)
-+{
-+	return (sig < SIGRTMIN) && sigismember(&signals->signal, sig);
-+}
-+
- static int send_signal(int sig, struct siginfo *info, struct task_struct *t,
- 			struct sigpending *signals)
- {
-@@ -721,9 +726,6 @@ out_set:
- 	return 0;
- }
- 
--#define LEGACY_QUEUE(sigptr, sig) \
--	(((sig) < SIGRTMIN) && sigismember(&(sigptr)->signal, (sig)))
--
- int print_fatal_signals;
- 
- static void print_fatal_signal(struct pt_regs *regs, int signr)
-@@ -771,7 +773,7 @@ specific_send_sig_info(int sig, struct s
- 	/* Support queueing exactly one non-rt signal, so that we
- 	   can get more detailed information about the cause of
- 	   the signal. */
--	if (LEGACY_QUEUE(&t->pending, sig))
-+	if (legacy_queue(&t->pending, sig))
- 		goto out;
- 
- 	ret = send_signal(sig, info, t, &t->pending);
-@@ -932,7 +934,7 @@ __group_send_sig_info(int sig, struct si
- 	if (sig_ignored(p, sig))
- 		return ret;
- 
--	if (LEGACY_QUEUE(&p->signal->shared_pending, sig))
-+	if (legacy_queue(&p->signal->shared_pending, sig))
- 		/* This is a non-RT signal and we already have one queued.  */
- 		return ret;
- 
 _
 
-Patches currently in -mm which might be from xemul@openvz.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-disable-the-memory-controller-by-default-v3.patch
-reiser4.patch
+posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
+workqueue-remove-redundant-function-invocation.patch
 put_pid-make-sure-we-dont-free-the-live-pid.patch
 
