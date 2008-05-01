@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-ncr53c8xxc-fix-warning.patch added to -mm tree
-Date: Thu, 01 May 2008 03:45:50 -0700
-Message-ID: <200805011045.m41Ajo58001336@imap1.linux-foundation.org>
+Subject: + drivers-scsi-mvsasc-fix-printk-warnings.patch added to -mm tree
+Date: Thu, 01 May 2008 04:30:37 -0700
+Message-ID: <200805011130.m41BUbJ2002851@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35421 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48473 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754248AbYEAKpy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 06:45:54 -0400
+	by vger.kernel.org with ESMTP id S1752538AbYEALbN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 07:31:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, harvey.harrison@gmail.com
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, kewei@marvell.com
 
 
 The patch titled
-     drivers/scsi/ncr53c8xx.c: fix warning
+     drivers/scsi/mvsas.c: fix printk warnings
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-ncr53c8xxc-fix-warning.patch
+     drivers-scsi-mvsasc-fix-printk-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,40 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/ncr53c8xx.c: fix warning
+Subject: drivers/scsi/mvsas.c: fix printk warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/ncr53c8xx.c: In function 'process_waiting_list':
-drivers/scsi/ncr53c8xx.c:8225: warning: suggest parentheses around assignment used as truth value
+drivers/scsi/mvsas.c: In function `mvs_update_phyinfo':
+drivers/scsi/mvsas.c:2822: warning: long long unsigned int format, u64 arg (arg 5)
+drivers/scsi/mvsas.c:2822: warning: long long unsigned int format, u64 arg (arg 6)
 
-recently added by
+We do not know what type the arch uses to implement u64
 
-commit 172c122df5186e7cbd413d61757ff90267331002
-Author: Harvey Harrison <harvey.harrison@gmail.com>
-Date:   Mon Apr 28 16:50:03 2008 -0700
-
-    scsi: fix integer as NULL pointer warnings
-
+Cc: Ke Wei <kewei@marvell.com>
 Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ncr53c8xx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/scsi/mvsas.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/ncr53c8xx.c~drivers-scsi-ncr53c8xxc-fix-warning drivers/scsi/ncr53c8xx.c
---- a/drivers/scsi/ncr53c8xx.c~drivers-scsi-ncr53c8xxc-fix-warning
-+++ a/drivers/scsi/ncr53c8xx.c
-@@ -8222,7 +8222,7 @@ static void process_waiting_list(struct 
- #ifdef DEBUG_WAITING_LIST
- 	if (waiting_list) printk("%s: waiting_list=%lx processing sts=%d\n", ncr_name(np), (u_long) waiting_list, sts);
- #endif
--	while (wcmd = waiting_list) {
-+	while ((wcmd = waiting_list)) {
- 		waiting_list = (struct scsi_cmnd *) wcmd->next_wcmd;
- 		wcmd->next_wcmd = NULL;
- 		if (sts == DID_OK) {
+diff -puN drivers/scsi/mvsas.c~drivers-scsi-mvsasc-fix-printk-warnings drivers/scsi/mvsas.c
+--- a/drivers/scsi/mvsas.c~drivers-scsi-mvsasc-fix-printk-warnings
++++ a/drivers/scsi/mvsas.c
+@@ -2822,7 +2822,9 @@ static void mvs_update_phyinfo(struct mv
+ 		dev_printk(KERN_DEBUG, &pdev->dev,
+ 			"phy[%d] Get Attached Address 0x%llX ,"
+ 			" SAS Address 0x%llX\n",
+-			i, phy->att_dev_sas_addr, phy->dev_sas_addr);
++			i,
++			(unsigned long long)phy->att_dev_sas_addr,
++			(unsigned long long)phy->dev_sas_addr);
+ 		dev_printk(KERN_DEBUG, &pdev->dev,
+ 			"Rate = %x , type = %d\n",
+ 			sas_phy->linkrate, phy->phy_type);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,4 +74,5 @@ pnp-fix-printk-format-warnings.patch
 drivers-char-synclinkc-inbreak-mgsl_put_char.patch
 drivers-char-synclinkc-inbreak-mgsl_put_char-fix.patch
 drivers-scsi-ncr53c8xxc-fix-warning.patch
+drivers-scsi-mvsasc-fix-printk-warnings.patch
 
