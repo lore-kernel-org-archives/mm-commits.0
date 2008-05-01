@@ -1,71 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-fix-sparse-warnings.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:32:16 -0700
-Message-ID: <200805010932.m419WGHt030971@imap1.linux-foundation.org>
+Subject: - fuse-fix-race-in-llseek.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:32:14 -0700
+Message-ID: <200805010932.m419WEYd030968@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60463 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56884 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758000AbYEAJcU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:32:20 -0400
+	by vger.kernel.org with ESMTP id S1756912AbYEAJcS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:32:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: fix sparse warnings
+     fuse: fix race in llseek
 has been removed from the -mm tree.  Its filename was
-     fuse-fix-sparse-warnings.patch
+     fuse-fix-race-in-llseek.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fuse: fix sparse warnings
+Subject: fuse: fix race in llseek
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-fs/fuse/dev.c:306:2: warning: context imbalance in 'wait_answer_interruptible' - unexpected unlock
-fs/fuse/dev.c:361:2: warning: context imbalance in 'request_wait_answer' - unexpected unlock
-fs/fuse/dev.c:1002:4: warning: context imbalance in 'end_io_requests' - unexpected unlock
+Fuse doesn't use i_mutex to protect setting i_size, and so
+generic_file_llseek() can be racy: it doesn't use i_size_read().
 
+So do a fuse specific llseek method, which does use i_size_read().
+
+[akpm@linux-foundation.org: make `retval' loff_t]
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/dev.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/fuse/file.c |   29 +++++++++++++++++++++++++++--
+ 1 file changed, 27 insertions(+), 2 deletions(-)
 
-diff -puN fs/fuse/dev.c~fuse-fix-sparse-warnings fs/fuse/dev.c
---- a/fs/fuse/dev.c~fuse-fix-sparse-warnings
-+++ a/fs/fuse/dev.c
-@@ -299,6 +299,7 @@ static void request_end(struct fuse_conn
- 
- static void wait_answer_interruptible(struct fuse_conn *fc,
- 				      struct fuse_req *req)
-+	__releases(fc->lock) __acquires(fc->lock)
- {
- 	if (signal_pending(current))
- 		return;
-@@ -315,8 +316,8 @@ static void queue_interrupt(struct fuse_
- 	kill_fasync(&fc->fasync, SIGIO, POLL_IN);
+diff -puN fs/fuse/file.c~fuse-fix-race-in-llseek fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-fix-race-in-llseek
++++ a/fs/fuse/file.c
+@@ -1431,8 +1431,33 @@ static sector_t fuse_bmap(struct address
+ 	return err ? 0 : outarg.block;
  }
  
--/* Called with fc->lock held.  Releases, and then reacquires it. */
- static void request_wait_answer(struct fuse_conn *fc, struct fuse_req *req)
-+	__releases(fc->lock) __acquires(fc->lock)
- {
- 	if (!fc->no_interrupt) {
- 		/* Any signal may interrupt this */
-@@ -987,6 +988,7 @@ static void end_requests(struct fuse_con
-  * locked).
-  */
- static void end_io_requests(struct fuse_conn *fc)
-+	__releases(fc->lock) __acquires(fc->lock)
- {
- 	while (!list_empty(&fc->io)) {
- 		struct fuse_req *req =
++static loff_t fuse_file_llseek(struct file *file, loff_t offset, int origin)
++{
++	loff_t retval;
++	struct inode *inode = file->f_path.dentry->d_inode;
++
++	mutex_lock(&inode->i_mutex);
++	switch (origin) {
++	case SEEK_END:
++		offset += i_size_read(inode);
++		break;
++	case SEEK_CUR:
++		offset += file->f_pos;
++	}
++	retval = -EINVAL;
++	if (offset >= 0 && offset <= inode->i_sb->s_maxbytes) {
++		if (offset != file->f_pos) {
++			file->f_pos = offset;
++			file->f_version = 0;
++		}
++		retval = offset;
++	}
++	mutex_unlock(&inode->i_mutex);
++	return retval;
++}
++
+ static const struct file_operations fuse_file_operations = {
+-	.llseek		= generic_file_llseek,
++	.llseek		= fuse_file_llseek,
+ 	.read		= do_sync_read,
+ 	.aio_read	= fuse_file_aio_read,
+ 	.write		= do_sync_write,
+@@ -1448,7 +1473,7 @@ static const struct file_operations fuse
+ };
+ 
+ static const struct file_operations fuse_direct_io_file_operations = {
+-	.llseek		= generic_file_llseek,
++	.llseek		= fuse_file_llseek,
+ 	.read		= fuse_direct_read,
+ 	.write		= fuse_direct_write,
+ 	.open		= fuse_open,
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
