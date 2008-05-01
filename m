@@ -1,278 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: - char-serial-switch-drivers-to-ioremap_nocache.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:31:02 -0700
-Message-ID: <200805010931.m419V2ZD030832@imap1.linux-foundation.org>
+Subject: - pids-introduce-change_pid-helper.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:31:21 -0700
+Message-ID: <200805010931.m419VLJM030863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38815 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33279 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757110AbYEAJbi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:38 -0400
+	by vger.kernel.org with ESMTP id S1757671AbYEAJbl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mingo@elte.hu, paulkf@microgate.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, ebiederm@xmission.com, roland@redhat.com, xemul@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     char serial: switch drivers to ioremap_nocache
+     pids: introduce change_pid() helper
 has been removed from the -mm tree.  Its filename was
-     char-serial-switch-drivers-to-ioremap_nocache.patch
+     pids-introduce-change_pid-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char serial: switch drivers to ioremap_nocache
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: pids: introduce change_pid() helper
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Simple search/replace except for synclink.c where I noticed a real bug and
-fixed it too.  It was doing NULL + offset, then checking for NULL if the remap
-failed.
+Based on Eric W. Biederman's idea.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Paul Fulghum <paulkf@microgate.com>
-Acked-by: Jiri Slaby <jirislaby@gmail.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Without tasklist_lock held task_session()/task_pgrp() can return NULL if the
+caller races with setprgp()/setsid() which does detach_pid() + attach_pid(). 
+This can happen even if task == current.
+
+Intoduce the new helper, change_pid(), which should be used instead.  This way
+the caller always sees the special pid != NULL, either old or new.
+
+Also change the prototype of attach_pid(), it always returns 0 and nobody
+check the returned value.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc:  "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/applicom.c    |    4 ++--
- drivers/char/istallion.c   |    6 +++---
- drivers/char/moxa.c        |    4 ++--
- drivers/char/nozomi.c      |    2 +-
- drivers/char/sx.c          |   10 +++++-----
- drivers/char/synclink.c    |    7 +++++--
- drivers/char/synclink_gt.c |    2 +-
- drivers/char/synclinkmp.c  |   10 ++++++----
- 8 files changed, 25 insertions(+), 20 deletions(-)
+ include/linux/pid.h |    6 ++++--
+ kernel/pid.c        |   21 ++++++++++++++++-----
+ 2 files changed, 20 insertions(+), 7 deletions(-)
 
-diff -puN drivers/char/applicom.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/applicom.c
---- a/drivers/char/applicom.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/applicom.c
-@@ -199,7 +199,7 @@ static int __init applicom_init(void)
- 		if (pci_enable_device(dev))
- 			return -EIO;
- 
--		RamIO = ioremap(pci_resource_start(dev, 0), LEN_RAM_IO);
-+		RamIO = ioremap_nocache(pci_resource_start(dev, 0), LEN_RAM_IO);
- 
- 		if (!RamIO) {
- 			printk(KERN_INFO "ac.o: Failed to ioremap PCI memory "
-@@ -254,7 +254,7 @@ static int __init applicom_init(void)
- 	/* Now try the specified ISA cards */
- 
- 	for (i = 0; i < MAX_ISA_BOARD; i++) {
--		RamIO = ioremap(mem + (LEN_RAM_IO * i), LEN_RAM_IO);
-+		RamIO = ioremap_nocache(mem + (LEN_RAM_IO * i), LEN_RAM_IO);
- 
- 		if (!RamIO) {
- 			printk(KERN_INFO "ac.o: Failed to ioremap the ISA card's memory space (slot #%d)\n", i + 1);
-diff -puN drivers/char/istallion.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/istallion.c
---- a/drivers/char/istallion.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/istallion.c
-@@ -3257,7 +3257,7 @@ static int stli_initecp(struct stlibrd *
+diff -puN include/linux/pid.h~pids-introduce-change_pid-helper include/linux/pid.h
+--- a/include/linux/pid.h~pids-introduce-change_pid-helper
++++ a/include/linux/pid.h
+@@ -89,9 +89,11 @@ extern struct pid *get_task_pid(struct t
+  * attach_pid() and detach_pid() must be called with the tasklist_lock
+  * write-held.
   */
- 	EBRDINIT(brdp);
+-extern int attach_pid(struct task_struct *task, enum pid_type type,
+-		      struct pid *pid);
++extern void attach_pid(struct task_struct *task, enum pid_type type,
++			struct pid *pid);
+ extern void detach_pid(struct task_struct *task, enum pid_type);
++extern void change_pid(struct task_struct *task, enum pid_type,
++			struct pid *pid);
+ extern void transfer_pid(struct task_struct *old, struct task_struct *new,
+ 			 enum pid_type);
  
--	brdp->membase = ioremap(brdp->memaddr, brdp->memsize);
-+	brdp->membase = ioremap_nocache(brdp->memaddr, brdp->memsize);
- 	if (brdp->membase == NULL) {
- 		retval = -ENOMEM;
- 		goto err_reg;
-@@ -3414,7 +3414,7 @@ static int stli_initonb(struct stlibrd *
+diff -puN kernel/pid.c~pids-introduce-change_pid-helper kernel/pid.c
+--- a/kernel/pid.c~pids-introduce-change_pid-helper
++++ a/kernel/pid.c
+@@ -317,7 +317,7 @@ EXPORT_SYMBOL_GPL(find_pid);
+ /*
+  * attach_pid() must be called with the tasklist_lock write-held.
   */
- 	EBRDINIT(brdp);
+-int attach_pid(struct task_struct *task, enum pid_type type,
++void attach_pid(struct task_struct *task, enum pid_type type,
+ 		struct pid *pid)
+ {
+ 	struct pid_link *link;
+@@ -325,11 +325,10 @@ int attach_pid(struct task_struct *task,
+ 	link = &task->pids[type];
+ 	link->pid = pid;
+ 	hlist_add_head_rcu(&link->node, &pid->tasks[type]);
+-
+-	return 0;
+ }
  
--	brdp->membase = ioremap(brdp->memaddr, brdp->memsize);
-+	brdp->membase = ioremap_nocache(brdp->memaddr, brdp->memsize);
- 	if (brdp->membase == NULL) {
- 		retval = -ENOMEM;
- 		goto err_reg;
-@@ -3665,7 +3665,7 @@ static int stli_eisamemprobe(struct stli
-  */
- 	for (i = 0; (i < stli_eisamempsize); i++) {
- 		brdp->memaddr = stli_eisamemprobeaddrs[i];
--		brdp->membase = ioremap(brdp->memaddr, brdp->memsize);
-+		brdp->membase = ioremap_nocache(brdp->memaddr, brdp->memsize);
- 		if (brdp->membase == NULL)
- 			continue;
+-void detach_pid(struct task_struct *task, enum pid_type type)
++static void __change_pid(struct task_struct *task, enum pid_type type,
++			struct pid *new)
+ {
+ 	struct pid_link *link;
+ 	struct pid *pid;
+@@ -339,7 +338,7 @@ void detach_pid(struct task_struct *task
+ 	pid = link->pid;
  
-diff -puN drivers/char/moxa.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/moxa.c
---- a/drivers/char/moxa.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/moxa.c
-@@ -937,7 +937,7 @@ static int __devinit moxa_pci_probe(stru
- 		goto err;
- 	}
+ 	hlist_del_rcu(&link->node);
+-	link->pid = NULL;
++	link->pid = new;
  
--	board->basemem = ioremap(pci_resource_start(pdev, 2), 0x4000);
-+	board->basemem = ioremap_nocache(pci_resource_start(pdev, 2), 0x4000);
- 	if (board->basemem == NULL) {
- 		dev_err(&pdev->dev, "can't remap io space 2\n");
- 		goto err_reg;
-@@ -1042,7 +1042,7 @@ static int __init moxa_init(void)
- 			brd->numPorts = type[i] == MOXA_BOARD_C218_ISA ? 8 :
- 					numports[i];
- 			brd->busType = MOXA_BUS_TYPE_ISA;
--			brd->basemem = ioremap(baseaddr[i], 0x4000);
-+			brd->basemem = ioremap_nocache(baseaddr[i], 0x4000);
- 			if (!brd->basemem) {
- 				printk(KERN_ERR "MOXA: can't remap %lx\n",
- 						baseaddr[i]);
-diff -puN drivers/char/nozomi.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/nozomi.c
---- a/drivers/char/nozomi.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/nozomi.c
-@@ -1407,7 +1407,7 @@ static int __devinit nozomi_card_init(st
- 	/* Find out what card type it is */
- 	nozomi_get_card_type(dc);
+ 	for (tmp = PIDTYPE_MAX; --tmp >= 0; )
+ 		if (!hlist_empty(&pid->tasks[tmp]))
+@@ -348,6 +347,18 @@ void detach_pid(struct task_struct *task
+ 	free_pid(pid);
+ }
  
--	dc->base_addr = ioremap(start, dc->card_type);
-+	dc->base_addr = ioremap_nocache(start, dc->card_type);
- 	if (!dc->base_addr) {
- 		dev_err(&pdev->dev, "Unable to map card MMIO\n");
- 		ret = -ENODEV;
-diff -puN drivers/char/sx.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/sx.c
---- a/drivers/char/sx.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/sx.c
-@@ -2540,7 +2540,7 @@ static int __devinit sx_eisa_probe(struc
- 		goto err_flag;
- 	}
- 	board->base2 =
--	board->base = ioremap(board->hw_base, SI2_EISA_WINDOW_LEN);
-+	board->base = ioremap_nocache(board->hw_base, SI2_EISA_WINDOW_LEN);
- 	if (!board->base) {
- 		dev_err(dev, "can't remap memory\n");
- 		goto err_reg;
-@@ -2617,7 +2617,7 @@ static void __devinit fix_sx_pci(struct 
- 
- 	pci_read_config_dword(pdev, PCI_BASE_ADDRESS_0, &hwbase);
- 	hwbase &= PCI_BASE_ADDRESS_MEM_MASK;
--	rebase = ioremap(hwbase, 0x80);
-+	rebase = ioremap_nocache(hwbase, 0x80);
- 	t = readl(rebase + CNTRL_REG_OFFSET);
- 	if (t != CNTRL_REG_GOODVALUE) {
- 		printk(KERN_DEBUG "sx: performing cntrl reg fix: %08x -> "
-@@ -2761,7 +2761,7 @@ static int __init sx_init(void)
- 		if (!request_region(board->hw_base, board->hw_len, "sx"))
- 			continue;
- 		board->base2 =
--		board->base = ioremap(board->hw_base, board->hw_len);
-+		board->base = ioremap_nocache(board->hw_base, board->hw_len);
- 		if (!board->base)
- 			goto err_sx_reg;
- 		board->flags &= ~SX_BOARD_TYPE;
-@@ -2785,7 +2785,7 @@ err_sx_reg:
- 		if (!request_region(board->hw_base, board->hw_len, "sx"))
- 			continue;
- 		board->base2 =
--		board->base = ioremap(board->hw_base, board->hw_len);
-+		board->base = ioremap_nocache(board->hw_base, board->hw_len);
- 		if (!board->base)
- 			goto err_si_reg;
- 		board->flags &= ~SX_BOARD_TYPE;
-@@ -2808,7 +2808,7 @@ err_si_reg:
- 		if (!request_region(board->hw_base, board->hw_len, "sx"))
- 			continue;
- 		board->base2 =
--		board->base = ioremap(board->hw_base, board->hw_len);
-+		board->base = ioremap_nocache(board->hw_base, board->hw_len);
- 		if (!board->base)
- 			goto err_si1_reg;
- 		board->flags &= ~SX_BOARD_TYPE;
-diff -puN drivers/char/synclink.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/synclink.c
---- a/drivers/char/synclink.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/synclink.c
-@@ -4150,7 +4150,8 @@ static int mgsl_claim_resources(struct m
- 		}
- 		info->lcr_mem_requested = true;
- 
--		info->memory_base = ioremap(info->phys_memory_base,0x40000);
-+		info->memory_base = ioremap_nocache(info->phys_memory_base,
-+								0x40000);
- 		if (!info->memory_base) {
- 			printk( "%s(%d):Cant map shared memory on device %s MemAddr=%08X\n",
- 				__FILE__,__LINE__,info->device_name, info->phys_memory_base );
-@@ -4163,12 +4164,14 @@ static int mgsl_claim_resources(struct m
- 			goto errout;
- 		}
- 		
--		info->lcr_base = ioremap(info->phys_lcr_base,PAGE_SIZE) + info->lcr_offset;
-+		info->lcr_base = ioremap_nocache(info->phys_lcr_base,
-+								PAGE_SIZE);
- 		if (!info->lcr_base) {
- 			printk( "%s(%d):Cant map LCR memory on device %s MemAddr=%08X\n",
- 				__FILE__,__LINE__,info->device_name, info->phys_lcr_base );
- 			goto errout;
- 		}
-+		info->lcr_base += info->lcr_offset;
- 		
- 	} else {
- 		/* claim DMA channel */
-diff -puN drivers/char/synclink_gt.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/synclink_gt.c
-@@ -3350,7 +3350,7 @@ static int claim_resources(struct slgt_i
- 	else
- 		info->reg_addr_requested = true;
- 
--	info->reg_addr = ioremap(info->phys_reg_addr, SLGT_REG_SIZE);
-+	info->reg_addr = ioremap_nocache(info->phys_reg_addr, SLGT_REG_SIZE);
- 	if (!info->reg_addr) {
- 		DBGERR(("%s cant map device registers, addr=%08X\n",
- 			info->device_name, info->phys_reg_addr));
-diff -puN drivers/char/synclinkmp.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/synclinkmp.c
---- a/drivers/char/synclinkmp.c~char-serial-switch-drivers-to-ioremap_nocache
-+++ a/drivers/char/synclinkmp.c
-@@ -3643,7 +3643,8 @@ static int claim_resources(SLMP_INFO *in
- 	else
- 		info->sca_statctrl_requested = true;
- 
--	info->memory_base = ioremap(info->phys_memory_base,SCA_MEM_SIZE);
-+	info->memory_base = ioremap_nocache(info->phys_memory_base,
-+								SCA_MEM_SIZE);
- 	if (!info->memory_base) {
- 		printk( "%s(%d):%s Cant map shared memory, MemAddr=%08X\n",
- 			__FILE__,__LINE__,info->device_name, info->phys_memory_base );
-@@ -3651,7 +3652,7 @@ static int claim_resources(SLMP_INFO *in
- 		goto errout;
- 	}
- 
--	info->lcr_base = ioremap(info->phys_lcr_base,PAGE_SIZE);
-+	info->lcr_base = ioremap_nocache(info->phys_lcr_base, PAGE_SIZE);
- 	if (!info->lcr_base) {
- 		printk( "%s(%d):%s Cant map LCR memory, MemAddr=%08X\n",
- 			__FILE__,__LINE__,info->device_name, info->phys_lcr_base );
-@@ -3660,7 +3661,7 @@ static int claim_resources(SLMP_INFO *in
- 	}
- 	info->lcr_base += info->lcr_offset;
- 
--	info->sca_base = ioremap(info->phys_sca_base,PAGE_SIZE);
-+	info->sca_base = ioremap_nocache(info->phys_sca_base, PAGE_SIZE);
- 	if (!info->sca_base) {
- 		printk( "%s(%d):%s Cant map SCA memory, MemAddr=%08X\n",
- 			__FILE__,__LINE__,info->device_name, info->phys_sca_base );
-@@ -3669,7 +3670,8 @@ static int claim_resources(SLMP_INFO *in
- 	}
- 	info->sca_base += info->sca_offset;
- 
--	info->statctrl_base = ioremap(info->phys_statctrl_base,PAGE_SIZE);
-+	info->statctrl_base = ioremap_nocache(info->phys_statctrl_base,
-+								PAGE_SIZE);
- 	if (!info->statctrl_base) {
- 		printk( "%s(%d):%s Cant map SCA Status/Control memory, MemAddr=%08X\n",
- 			__FILE__,__LINE__,info->device_name, info->phys_statctrl_base );
++void detach_pid(struct task_struct *task, enum pid_type type)
++{
++	__change_pid(task, type, NULL);
++}
++
++void change_pid(struct task_struct *task, enum pid_type type,
++		struct pid *pid)
++{
++	__change_pid(task, type, pid);
++	attach_pid(task, type, pid);
++}
++
+ /* transfer_pid is an optimization of attach_pid(new), detach_pid(old) */
+ void transfer_pid(struct task_struct *old, struct task_struct *new,
+ 			   enum pid_type type)
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-pata_atiixp-simplex-clear.patch
-pata_atiixp-dont-disable.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-generic-irq-let-setup_irq-reenable-a-shared-irq.patch
-8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
-sxc-fix-printk-warnings-on-sparc32.patch
+posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
+workqueue-remove-redundant-function-invocation.patch
 put_pid-make-sure-we-dont-free-the-live-pid.patch
 
