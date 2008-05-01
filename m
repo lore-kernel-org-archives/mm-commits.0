@@ -1,93 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: - slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:32:51 -0700
-Message-ID: <200805010932.m419Wp8N031017@imap1.linux-foundation.org>
+Subject: - mm-remove-remaining-__function__-occurances.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:33:07 -0700
+Message-ID: <200805010933.m419X71b031112@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39154 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40941 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758070AbYEAJdP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:33:15 -0400
+	by vger.kernel.org with ESMTP id S1753811AbYEAJdJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:33:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tglx@linutronix.de, clameter@sgi.com, mingo@elte.hu, penberg@cs.helsinki.fi, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     slab: add a flag to prevent debug_free checks on a kmem_cache
+     mm: remove remaining __FUNCTION__ occurrences
 has been removed from the -mm tree.  Its filename was
-     slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache.patch
+     mm-remove-remaining-__function__-occurances.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: slab: add a flag to prevent debug_free checks on a kmem_cache
-From: Thomas Gleixner <tglx@linutronix.de>
+Subject: mm: remove remaining __FUNCTION__ occurrences
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-This is a preperatory patch for the debugobjects infrastructure.  The flag
-prevents debug_free checks on kmem_caches.  This is necessary to avoid
-resursive calls into a debug mechanism which uses a kmem_cache itself.
+__FUNCTION__ is gcc-specific, use __func__
 
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Ingo Molnar <mingo@elte.hu>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/slab.c   |    4 ++--
+ mm/sparse.c |    4 ++--
+ mm/vmscan.c |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/slab.h~slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache include/linux/slab.h
---- a/include/linux/slab.h~slab-add-a-flag-to-prevent-debug_free-checks-on-a-kmem_cache
-+++ a/include/linux/slab.h
-@@ -29,6 +29,13 @@
- #define SLAB_MEM_SPREAD		0x00100000UL	/* Spread some memory over cpuset */
- #define SLAB_TRACE		0x00200000UL	/* Trace allocations and frees */
+diff -puN mm/slab.c~mm-remove-remaining-__function__-occurances mm/slab.c
+--- a/mm/slab.c~mm-remove-remaining-__function__-occurances
++++ a/mm/slab.c
+@@ -861,7 +861,7 @@ static void cache_estimate(unsigned long
+ 	*left_over = slab_size - nr_objs*buffer_size - mgmt_size;
+ }
  
-+/* Flag to prevent checks on free */
-+#ifdef CONFIG_DEBUG_OBJECTS
-+# define SLAB_DEBUG_OBJECTS	0x00400000UL
-+#else
-+# define SLAB_DEBUG_OBJECTS	0x00000000UL
-+#endif
-+
- /* The following flags affect the page allocator grouping pages by mobility */
- #define SLAB_RECLAIM_ACCOUNT	0x00020000UL		/* Objects are reclaimable */
- #define SLAB_TEMPORARY		SLAB_RECLAIM_ACCOUNT	/* Objects are short-lived */
+-#define slab_error(cachep, msg) __slab_error(__FUNCTION__, cachep, msg)
++#define slab_error(cachep, msg) __slab_error(__func__, cachep, msg)
+ 
+ static void __slab_error(const char *function, struct kmem_cache *cachep,
+ 			char *msg)
+@@ -2156,7 +2156,7 @@ kmem_cache_create (const char *name, siz
+ 	 */
+ 	if (!name || in_interrupt() || (size < BYTES_PER_WORD) ||
+ 	    size > KMALLOC_MAX_SIZE) {
+-		printk(KERN_ERR "%s: Early error in slab %s\n", __FUNCTION__,
++		printk(KERN_ERR "%s: Early error in slab %s\n", __func__,
+ 				name);
+ 		BUG();
+ 	}
+diff -puN mm/sparse.c~mm-remove-remaining-__function__-occurances mm/sparse.c
+--- a/mm/sparse.c~mm-remove-remaining-__function__-occurances
++++ a/mm/sparse.c
+@@ -272,7 +272,7 @@ static unsigned long *__init sparse_earl
+ 	/* Stupid: suppress gcc warning for SPARSEMEM && !NUMA */
+ 	nid = 0;
+ 
+-	printk(KERN_WARNING "%s: allocation failed\n", __FUNCTION__);
++	printk(KERN_WARNING "%s: allocation failed\n", __func__);
+ 	return NULL;
+ }
+ 
+@@ -302,7 +302,7 @@ struct page __init *sparse_early_mem_map
+ 		return map;
+ 
+ 	printk(KERN_ERR "%s: sparsemem memory map backing failed "
+-			"some memory will not be available.\n", __FUNCTION__);
++			"some memory will not be available.\n", __func__);
+ 	ms->section_mem_map = 0;
+ 	return NULL;
+ }
+diff -puN mm/vmscan.c~mm-remove-remaining-__function__-occurances mm/vmscan.c
+--- a/mm/vmscan.c~mm-remove-remaining-__function__-occurances
++++ a/mm/vmscan.c
+@@ -191,7 +191,7 @@ unsigned long shrink_slab(unsigned long 
+ 		shrinker->nr += delta;
+ 		if (shrinker->nr < 0) {
+ 			printk(KERN_ERR "%s: nr=%ld\n",
+-					__FUNCTION__, shrinker->nr);
++					__func__, shrinker->nr);
+ 			shrinker->nr = max_pass;
+ 		}
+ 
+@@ -339,7 +339,7 @@ static pageout_t pageout(struct page *pa
+ 		if (PagePrivate(page)) {
+ 			if (try_to_free_buffers(page)) {
+ 				ClearPageDirty(page);
+-				printk("%s: orphaned page\n", __FUNCTION__);
++				printk("%s: orphaned page\n", __func__);
+ 				return PAGE_CLEAN;
+ 			}
+ 		}
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-introduce-explicit-signed-unsigned-64bit-divide.patch
-convert-a-few-do_div-user.patch
-rename-div64_64-to-div64_u64-ia64.patch
-remove-div_long_long_rem.patch
-ntp-cleanup-ntpc.patch
-ntp-ntp4-user-space-bits-update.patch
-ntp-increase-time_freq-resolution.patch
-ntp-increase-time_offset-resolution.patch
-ntp-support-for-tai.patch
-ntp-rename-tick_length_shift-to-ntp_scale_shift.patch
-ntp-remove-current_tick_length.patch
-ntp-handle-leap-second-via-timer.patch
-git-x86.patch
-git-x86-fixup.patch
-x86_64-restore-mask_bits-in-msi-shutdown.patch
-arch-x86-video-fbdevc-add-module_license.patch
-rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+frv-unbreak-misalignment-handling-changes.patch
+git-acpi.patch
+cifs-remove-global_extern-macro.patch
+input-replace-remaining-__function__-occurrences.patch
+input-make-one-bit-signed-bitfields-unsigned.patch
 git-kvm.patch
-rename-div64_64-to-div64_u64-kvm.patch
+git-mips.patch
+mmc-make-one-bit-signed-bitfields-unsigned.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
 git-sched.patch
-aes-x86_64-asm-implementation-optimization.patch
-generic-irq-let-setup_irq-reenable-a-shared-irq.patch
-posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
-x86-ioremap-add-checks-for-virtual-addresses.patch
-x86-ioremap-add-checks-for-virtual-addresses-fix.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+git-watchdog.patch
+mac80211-michaelc-use-kernel-provided-infrastructure.patch
+mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
+mac80211-tkipc-use-kernel-provided-infrastructure.patch
+mac80211-add-const-remove-unused-function-make-one-function-static.patch
+mac80211-add-a-struct-to-hold-tkip-context.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
+git-xfs.patch
+xtensa-replace-remaining-__function__-occurences.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+autofs4-fix-sparse-warning-in-waitqc-autofs4_expire_indirect.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+block-remove-remaining-__function__-occurances.patch
 
