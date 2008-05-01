@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-synclinkc-inbreak-mgsl_put_char-fix.patch added to -mm tree
-Date: Thu, 01 May 2008 03:33:48 -0700
-Message-ID: <200805011033.m41AXmnr000947@imap1.linux-foundation.org>
+Subject: + drivers-scsi-ncr53c8xxc-fix-warning.patch added to -mm tree
+Date: Thu, 01 May 2008 03:45:50 -0700
+Message-ID: <200805011045.m41Ajo58001336@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48459 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35421 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752787AbYEAKeb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 06:34:31 -0400
+	by vger.kernel.org with ESMTP id S1754248AbYEAKpy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 06:45:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, jirislaby@gmail.com, paulkf@microgate.com
+Cc: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, harvey.harrison@gmail.com
 
 
 The patch titled
-     drivers-char-synclinkc-inbreak-mgsl_put_char-fix
+     drivers/scsi/ncr53c8xx.c: fix warning
 has been added to the -mm tree.  Its filename is
-     drivers-char-synclinkc-inbreak-mgsl_put_char-fix.patch
+     drivers-scsi-ncr53c8xxc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers-char-synclinkc-inbreak-mgsl_put_char-fix
+Subject: drivers/scsi/ncr53c8xx.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Paul Fulghum <paulkf@microgate.com>
+drivers/scsi/ncr53c8xx.c: In function 'process_waiting_list':
+drivers/scsi/ncr53c8xx.c:8225: warning: suggest parentheses around assignment used as truth value
+
+recently added by
+
+commit 172c122df5186e7cbd413d61757ff90267331002
+Author: Harvey Harrison <harvey.harrison@gmail.com>
+Date:   Mon Apr 28 16:50:03 2008 -0700
+
+    scsi: fix integer as NULL pointer warnings
+
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink.c |    2 +-
+ drivers/scsi/ncr53c8xx.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/synclink.c~drivers-char-synclinkc-inbreak-mgsl_put_char-fix drivers/char/synclink.c
---- a/drivers/char/synclink.c~drivers-char-synclinkc-inbreak-mgsl_put_char-fix
-+++ a/drivers/char/synclink.c
-@@ -2033,7 +2033,7 @@ static int mgsl_put_char(struct tty_stru
- 	int ret = 0;
- 
- 	if (debug_level >= DEBUG_LEVEL_INFO) {
--		printk("%s(%d):mgsl_put_char(%d) on %s\n",
-+		printk(KERN_DEBUG "%s(%d):mgsl_put_char(%d) on %s\n",
- 			__FILE__, __LINE__, ch, info->device_name);
- 	}		
- 	
+diff -puN drivers/scsi/ncr53c8xx.c~drivers-scsi-ncr53c8xxc-fix-warning drivers/scsi/ncr53c8xx.c
+--- a/drivers/scsi/ncr53c8xx.c~drivers-scsi-ncr53c8xxc-fix-warning
++++ a/drivers/scsi/ncr53c8xx.c
+@@ -8222,7 +8222,7 @@ static void process_waiting_list(struct 
+ #ifdef DEBUG_WAITING_LIST
+ 	if (waiting_list) printk("%s: waiting_list=%lx processing sts=%d\n", ncr_name(np), (u_long) waiting_list, sts);
+ #endif
+-	while (wcmd = waiting_list) {
++	while ((wcmd = waiting_list)) {
+ 		waiting_list = (struct scsi_cmnd *) wcmd->next_wcmd;
+ 		wcmd->next_wcmd = NULL;
+ 		if (sts == DID_OK) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,4 +76,5 @@ drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make
 pnp-fix-printk-format-warnings.patch
 drivers-char-synclinkc-inbreak-mgsl_put_char.patch
 drivers-char-synclinkc-inbreak-mgsl_put_char-fix.patch
+drivers-scsi-ncr53c8xxc-fix-warning.patch
 
