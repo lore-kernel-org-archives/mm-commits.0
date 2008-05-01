@@ -1,135 +1,123 @@
 From: akpm@linux-foundation.org
-Subject: - handle_stop_signal-use-the-cached-p-signal-value.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:26:21 -0700
-Message-ID: <200805010926.m419QLJ3030291@imap1.linux-foundation.org>
+Subject: - consolidate-checking-for-ignored-legacy-signals.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:25:50 -0700
+Message-ID: <200805010925.m419PohC030242@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48093 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44037 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758257AbYEAJqI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:46:08 -0400
+	by vger.kernel.org with ESMTP id S1758199AbYEAJqG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:46:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, jkosina@suse.cz, roland@redhat.com, mm-commits@vger.kernel.org
+To: xemul@openvz.org, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     handle_stop_signal: use the cached p->signal value
+     signals: consolidate checking for ignored/legacy signals
 has been removed from the -mm tree.  Its filename was
-     handle_stop_signal-use-the-cached-p-signal-value.patch
+     consolidate-checking-for-ignored-legacy-signals.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: handle_stop_signal: use the cached p->signal value
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: signals: consolidate checking for ignored/legacy signals
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Cache the value of p->signal, and change the code to use while_each_thread()
-helper.
+Two callers for send_signal() - the specific_send_sig_info and the
+__group_send_sig_info - both check for sig to be ignored or already queued.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Move these checks into send_signal() and make it return 1 to indicate that the
+signal is dropped, but there's no error in this.
+
+Besides, merge comments and spell-check them.
+
+[oleg@tv-sign.ru: simplifications]
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Roland McGrath <roland@redhat.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ kernel/signal.c |   42 +++++++++++++++++-------------------------
+ 1 file changed, 17 insertions(+), 25 deletions(-)
 
-diff -puN kernel/signal.c~handle_stop_signal-use-the-cached-p-signal-value kernel/signal.c
---- a/kernel/signal.c~handle_stop_signal-use-the-cached-p-signal-value
+diff -puN kernel/signal.c~consolidate-checking-for-ignored-legacy-signals kernel/signal.c
+--- a/kernel/signal.c~consolidate-checking-for-ignored-legacy-signals
 +++ a/kernel/signal.c
-@@ -566,9 +566,10 @@ static void do_notify_parent_cldstop(str
-  */
- static void handle_stop_signal(int sig, struct task_struct *p)
- {
-+	struct signal_struct *signal = p->signal;
- 	struct task_struct *t;
+@@ -668,6 +668,14 @@ static int send_signal(int sig, struct s
+ 	struct sigqueue * q = NULL;
  
--	if (p->signal->flags & SIGNAL_GROUP_EXIT)
-+	if (signal->flags & SIGNAL_GROUP_EXIT)
- 		/*
- 		 * The process is in the middle of dying already.
- 		 */
-@@ -578,19 +579,18 @@ static void handle_stop_signal(int sig, 
- 		/*
- 		 * This is a stop signal.  Remove SIGCONT from all queues.
- 		 */
--		rm_from_queue(sigmask(SIGCONT), &p->signal->shared_pending);
-+		rm_from_queue(sigmask(SIGCONT), &signal->shared_pending);
- 		t = p;
- 		do {
- 			rm_from_queue(sigmask(SIGCONT), &t->pending);
--			t = next_thread(t);
--		} while (t != p);
-+		} while_each_thread(p, t);
- 	} else if (sig == SIGCONT) {
- 		unsigned int why;
- 		/*
- 		 * Remove all stop signals from all queues,
- 		 * and wake all threads.
- 		 */
--		rm_from_queue(SIG_KERNEL_STOP_MASK, &p->signal->shared_pending);
-+		rm_from_queue(SIG_KERNEL_STOP_MASK, &signal->shared_pending);
- 		t = p;
- 		do {
- 			unsigned int state;
-@@ -615,9 +615,7 @@ static void handle_stop_signal(int sig, 
- 				state |= TASK_INTERRUPTIBLE;
- 			}
- 			wake_up_state(t, state);
--
--			t = next_thread(t);
--		} while (t != p);
-+		} while_each_thread(p, t);
+ 	/*
++	 * Short-circuit ignored signals and support queuing
++	 * exactly one non-rt signal, so that we can get more
++	 * detailed information about the cause of the signal.
++	 */
++	if (sig_ignored(t, sig) || legacy_queue(signals, sig))
++		return 0;
++
++	/*
+ 	 * Deliver the signal to listening signalfds. This must be called
+ 	 * with the sighand lock held.
+ 	 */
+@@ -723,7 +731,7 @@ static int send_signal(int sig, struct s
  
- 		/*
- 		 * Notify the parent with CLD_CONTINUED if we were stopped.
-@@ -628,29 +626,29 @@ static void handle_stop_signal(int sig, 
- 		 * CLD_CONTINUED was dropped.
- 		 */
- 		why = 0;
--		if (p->signal->flags & SIGNAL_STOP_STOPPED)
-+		if (signal->flags & SIGNAL_STOP_STOPPED)
- 			why |= SIGNAL_CLD_CONTINUED;
--		else if (p->signal->group_stop_count)
-+		else if (signal->group_stop_count)
- 			why |= SIGNAL_CLD_STOPPED;
- 
- 		if (why) {
--			p->signal->flags = why | SIGNAL_STOP_CONTINUED;
--			p->signal->group_stop_count = 0;
--			p->signal->group_exit_code = 0;
-+			signal->flags = why | SIGNAL_STOP_CONTINUED;
-+			signal->group_stop_count = 0;
-+			signal->group_exit_code = 0;
- 		} else {
- 			/*
- 			 * We are not stopped, but there could be a stop
- 			 * signal in the middle of being processed after
- 			 * being removed from the queue.  Clear that too.
- 			 */
--			p->signal->flags &= ~SIGNAL_STOP_DEQUEUED;
-+			signal->flags &= ~SIGNAL_STOP_DEQUEUED;
- 		}
- 	} else if (sig == SIGKILL) {
- 		/*
- 		 * Make sure that any pending stop signal already dequeued
- 		 * is undone by the wakeup for SIGKILL.
- 		 */
--		p->signal->flags &= ~SIGNAL_STOP_DEQUEUED;
-+		signal->flags &= ~SIGNAL_STOP_DEQUEUED;
- 	}
+ out_set:
+ 	sigaddset(&signals->signal, sig);
+-	return 0;
++	return 1;
  }
  
-_
-
-Patches currently in -mm which might be from oleg@tv-sign.ru are
-
-origin.patch
-posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
-workqueue-remove-redundant-function-invocation.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
-
+ int print_fatal_signals;
+@@ -761,26 +769,18 @@ __setup("print-fatal-signals=", setup_pr
+ static int
+ specific_send_sig_info(int sig, struct siginfo *info, struct task_struct *t)
+ {
+-	int ret = 0;
++	int ret;
+ 
+ 	BUG_ON(!irqs_disabled());
+ 	assert_spin_locked(&t->sighand->siglock);
+ 
+-	/* Short-circuit ignored signals.  */
+-	if (sig_ignored(t, sig))
+-		goto out;
+-
+-	/* Support queueing exactly one non-rt signal, so that we
+-	   can get more detailed information about the cause of
+-	   the signal. */
+-	if (legacy_queue(&t->pending, sig))
+-		goto out;
+-
+ 	ret = send_signal(sig, info, t, &t->pending);
+-	if (!ret && !sigismember(&t->blocked, sig))
++	if (ret <= 0)
++		return ret;
++
++	if (!sigismember(&t->blocked, sig))
+ 		signal_wake_up(t, sig == SIGKILL);
+-out:
+-	return ret;
++	return 0;
+ }
+ 
+ /*
+@@ -925,26 +925,18 @@ __group_complete_signal(int sig, struct 
+ int
+ __group_send_sig_info(int sig, struct siginfo *info, struct task_struct *p)
+ {
+-	int ret = 0;
++	int ret;
+ 
+ 	assert_spin_locked(&p->sighand->siglock);
+ 	handle_stop_signal(sig, p);
+ 
+-	/* Short-circuit ignored signals.  */
+-	if (sig_ignored(p, sig))
+-		return ret;
+-
+-	if (legacy_queue(&p->signal->shared_pending, sig))
+-		/* This is a non-RT signal and we already have one queued.  */
+-		return ret;
