@@ -1,181 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - char-moxa-introduce-moxa_is_320-macro.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:29:28 -0700
-Message-ID: <200805010929.m419TS53030682@imap1.linux-foundation.org>
+Subject: - char-moxa-serialise-timer.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:29:20 -0700
+Message-ID: <200805010929.m419TKP2030665@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40780 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48980 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756795AbYEAJ3c (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:29:32 -0400
+	by vger.kernel.org with ESMTP id S1757135AbYEAJ3Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:29:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jirislaby@gmail.com, Oyvind.Aabling@uni-c.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Char: moxa, introduce MOXA_IS_320 macro
+     Char: moxa, serialise timer
 has been removed from the -mm tree.  Its filename was
-     char-moxa-introduce-moxa_is_320-macro.patch
+     char-moxa-serialise-timer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Char: moxa, introduce MOXA_IS_320 macro
+Subject: Char: moxa, serialise timer
 From: Jiri Slaby <jirislaby@gmail.com>
 
-It allows to simplify the code, especially MoxaPortSetBaud.
+- del timer after we are sure it won't be fired again
+- make timer scheduling atomic
+- don't reschedule timer when all cards have gone
 
 Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
 Tested-by: Oyvind Aabling <Oyvind.Aabling@uni-c.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/moxa.c |   65 ++++++++++++------------------------------
- 1 file changed, 19 insertions(+), 46 deletions(-)
+ drivers/char/moxa.c |   26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN drivers/char/moxa.c~char-moxa-introduce-moxa_is_320-macro drivers/char/moxa.c
---- a/drivers/char/moxa.c~char-moxa-introduce-moxa_is_320-macro
+diff -puN drivers/char/moxa.c~char-moxa-serialise-timer drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-serialise-timer
 +++ a/drivers/char/moxa.c
-@@ -59,6 +59,9 @@
- #define MAX_PORTS_PER_BOARD	32	/* Don't change this value */
- #define MAX_PORTS		(MAX_BOARDS * MAX_PORTS_PER_BOARD)
+@@ -846,10 +846,11 @@ static int moxa_init_board(struct moxa_b
+ 	if (ret)
+ 		goto err_free;
  
-+#define MOXA_IS_320(brd) ((brd)->boardType == MOXA_BOARD_C320_ISA || \
-+		(brd)->boardType == MOXA_BOARD_C320_PCI)
++	spin_lock_bh(&moxa_lock);
+ 	brd->ready = 1;
+-
+ 	if (!timer_pending(&moxaTimer))
+ 		mod_timer(&moxaTimer, jiffies + HZ / 50);
++	spin_unlock_bh(&moxa_lock);
+ 
+ 	return 0;
+ err_free:
+@@ -1041,13 +1042,6 @@ static void __exit moxa_exit(void)
+ {
+ 	int i;
+ 
+-	del_timer_sync(&moxaTimer);
+-
+-	if (tty_unregister_driver(moxaDriver))
+-		printk(KERN_ERR "Couldn't unregister MOXA Intellio family "
+-				"serial driver\n");
+-	put_tty_driver(moxaDriver);
+-
+ #ifdef CONFIG_PCI
+ 	pci_unregister_driver(&moxa_pci_driver);
+ #endif
+@@ -1055,6 +1049,13 @@ static void __exit moxa_exit(void)
+ 	for (i = 0; i < MAX_BOARDS; i++) /* ISA boards */
+ 		if (moxa_boards[i].ready)
+ 			moxa_board_deinit(&moxa_boards[i]);
 +
- /*
-  *    Define the Moxa PCI vendor and device IDs.
-  */
-@@ -512,11 +515,9 @@ static int moxa_real_load_code(struct mo
- 	const u16 *uptr = ptr;
- 	size_t wlen, len2, j;
- 	unsigned long key, loadbuf, loadlen, checksum, checksum_ok;
--	unsigned int i, retry, c320;
-+	unsigned int i, retry;
- 	u16 usum, keycode;
- 
--	c320 = brd->boardType == MOXA_BOARD_C320_PCI ||
--			brd->boardType == MOXA_BOARD_C320_ISA;
- 	keycode = (brd->boardType == MOXA_BOARD_CP204J) ? CP204J_KeyCode :
- 				C218_KeyCode;
- 
-@@ -586,7 +587,7 @@ static int moxa_real_load_code(struct mo
- 	if (readw(baseAddr + Magic_no) != Magic_code)
- 		return -EIO;
- 
--	if (c320) {
-+	if (MOXA_IS_320(brd)) {
- 		if (brd->busType == MOXA_BUS_TYPE_PCI) {	/* ASIC board */
- 			writew(0x3800, baseAddr + TMS320_PORT1);
- 			writew(0x3900, baseAddr + TMS320_PORT2);
-@@ -607,7 +608,7 @@ static int moxa_real_load_code(struct mo
- 	if (readw(baseAddr + Magic_no) != Magic_code)
- 		return -EIO;
- 
--	if (c320) {
-+	if (MOXA_IS_320(brd)) {
- 		j = readw(baseAddr + Module_cnt);
- 		if (j <= 0)
- 			return -EIO;
-@@ -1635,18 +1636,9 @@ static void MoxaPortFlushData(struct mox
-  *           int port           : port number (0 - 127)
-  *
-  *
-- *      Function 8:     Get the maximun available baud rate of this port.
-- *      Syntax:
-- *      long MoxaPortGetMaxBaud(int port);
-- *           int port           : port number (0 - 127)
-- *
-- *           return:    0       : this port is invalid
-- *                      38400/57600/115200 bps
-- *
-- *
-  *      Function 10:    Setting baud rate of this port.
-  *      Syntax:
-- *      long MoxaPortSetBaud(int port, long baud);
-+ *      speed_t MoxaPortSetBaud(int port, speed_t baud);
-  *           int port           : port number (0 - 127)
-  *           long baud          : baud rate (50 - 115200)
-  *
-@@ -1795,8 +1787,7 @@ static void MoxaPortEnable(struct moxa_p
- 
- 	ofsAddr = port->tableAddr;
- 	writew(lowwater, ofsAddr + Low_water);
--	if (port->board->boardType == MOXA_BOARD_C320_ISA ||
--			port->board->boardType == MOXA_BOARD_C320_PCI)
-+	if (MOXA_IS_320(port->board))
- 		moxafunc(ofsAddr, FC_SetBreakIrq, 0);
- 	else
- 		writew(readw(ofsAddr + HostStat) | WakeupBreak,
-@@ -1819,33 +1810,18 @@ static void MoxaPortDisable(struct moxa_
- 	moxafunc(ofsAddr, FC_DisableCH, Magic_code);
++	del_timer_sync(&moxaTimer);
++
++	if (tty_unregister_driver(moxaDriver))
++		printk(KERN_ERR "Couldn't unregister MOXA Intellio family "
++				"serial driver\n");
++	put_tty_driver(moxaDriver);
  }
  
--static long MoxaPortGetMaxBaud(struct moxa_port *port)
--{
--	if (port->board->boardType == MOXA_BOARD_C320_ISA ||
--			port->board->boardType == MOXA_BOARD_C320_PCI)
--		return 460800L;
--	else
--		return 921600L;
--}
--
--
--static long MoxaPortSetBaud(struct moxa_port *port, long baud)
-+static speed_t MoxaPortSetBaud(struct moxa_port *port, speed_t baud)
+ module_init(moxa_init);
+@@ -1432,7 +1433,7 @@ static void moxa_poll(unsigned long igno
  {
--	void __iomem *ofsAddr;
--	long max, clock;
--	unsigned int val;
-+	void __iomem *ofsAddr = port->tableAddr;
-+	unsigned int clock, val;
-+	speed_t max;
+ 	struct moxa_board_conf *brd;
+ 	u16 __iomem *ip;
+-	unsigned int card, port;
++	unsigned int card, port, served = 0;
  
--	if (baud < 50L || (max = MoxaPortGetMaxBaud(port)) == 0)
-+	max = MOXA_IS_320(port->board) ? 460800 : 921600;
-+	if (baud < 50)
- 		return 0;
--	ofsAddr = port->tableAddr;
- 	if (baud > max)
- 		baud = max;
--	if (max == 38400L)
--		clock = 614400L;	/* for 9.8304 Mhz : max. 38400 bps */
--	else if (max == 57600L)
--		clock = 691200L;	/* for 11.0592 Mhz : max. 57600 bps */
--	else
--		clock = 921600L;	/* for 14.7456 Mhz : max. 115200 bps */
-+	clock = 921600;
- 	val = clock / baud;
- 	moxafunc(ofsAddr, FC_SetBaud, val);
- 	baud = clock / val;
-@@ -1890,11 +1866,9 @@ static int MoxaPortSetTermio(struct moxa
+ 	spin_lock(&moxa_lock);
+ 	for (card = 0; card < MAX_BOARDS; card++) {
+@@ -1440,6 +1441,8 @@ static void moxa_poll(unsigned long igno
+ 		if (!brd->ready)
+ 			continue;
  
- 	moxafunc(ofsAddr, FC_SetDataMode, (u16)mode);
- 
--	if (port->board->boardType == MOXA_BOARD_C320_ISA ||
--			port->board->boardType == MOXA_BOARD_C320_PCI) {
--		if (baud >= 921600L)
--			return -1;
--	}
-+	if (MOXA_IS_320(port->board) && baud >= 921600)
-+		return -1;
++		served++;
 +
- 	baud = MoxaPortSetBaud(port, baud);
+ 		ip = NULL;
+ 		if (readb(brd->intPend) == 0xff)
+ 			ip = brd->intTable + readb(brd->intNdx);
+@@ -1460,9 +1463,10 @@ static void moxa_poll(unsigned long igno
+ 		}
+ 	}
+ 	moxaLowWaterChk = 0;
+-	spin_unlock(&moxa_lock);
  
- 	if (termio->c_iflag & (IXON | IXOFF | IXANY)) {
-@@ -1954,8 +1928,7 @@ static int MoxaPortLineStatus(struct mox
- 	int val;
+-	mod_timer(&moxaTimer, jiffies + HZ / 50);
++	if (served)
++		mod_timer(&moxaTimer, jiffies + HZ / 50);
++	spin_unlock(&moxa_lock);
+ }
  
- 	ofsAddr = port->tableAddr;
--	if (port->board->boardType == MOXA_BOARD_C320_ISA ||
--			port->board->boardType == MOXA_BOARD_C320_PCI) {
-+	if (MOXA_IS_320(port->board)) {
- 		moxafunc(ofsAddr, FC_LineStatus, 0);
- 		val = readw(ofsAddr + FuncArg);
- 	} else {
+ /******************************************************************************/
 _
 
 Patches currently in -mm which might be from jirislaby@gmail.com are
