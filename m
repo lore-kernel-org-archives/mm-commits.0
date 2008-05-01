@@ -1,126 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: - afs-replace-remaining-__function__-occurrences.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:33:13 -0700
-Message-ID: <200805010933.m419XD9a031121@imap1.linux-foundation.org>
+Subject: - alloc_uid-cleanup.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:32:43 -0700
+Message-ID: <200805010932.m419Whrw031007@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46176 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45679 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758078AbYEAJdR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:33:17 -0400
+	by vger.kernel.org with ESMTP id S1758131AbYEAJda (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:33:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dhowells@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     afs: replace remaining __FUNCTION__ occurrences
+     alloc_uid: cleanup
 has been removed from the -mm tree.  Its filename was
-     afs-replace-remaining-__function__-occurrences.patch
+     alloc_uid-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: afs: replace remaining __FUNCTION__ occurrences
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: alloc_uid: cleanup
+From: Andrew Morton <akpm@linux-foundation.org>
 
-__FUNCTION__ is gcc-specific, use __func__
+Use kmem_cache_zalloc(), remove large amounts of initialisation code and
+ifdeffery.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Note: this assumes that memset(*atomic_t, 0) correctly initialises the
+atomic_t.  This is true for all present archtiectures and if it becomes false
+for a future architecture then we'll need to make large changes all over the
+place anyway.
+
+Acked-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/afs/dir.c      |    4 ++--
- fs/afs/internal.h |    8 ++++----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ kernel/user.c |   18 ++----------------
+ 1 file changed, 2 insertions(+), 16 deletions(-)
 
-diff -puN fs/afs/dir.c~afs-replace-remaining-__function__-occurrences fs/afs/dir.c
---- a/fs/afs/dir.c~afs-replace-remaining-__function__-occurrences
-+++ a/fs/afs/dir.c
-@@ -140,7 +140,7 @@ static inline void afs_dir_check_page(st
- 
- 	if (page->index == 0 && qty != ntohs(dbuf->blocks[0].pagehdr.npages)) {
- 		printk("kAFS: %s(%lu): wrong number of dir blocks %d!=%hu\n",
--		       __FUNCTION__, dir->i_ino, qty,
-+		       __func__, dir->i_ino, qty,
- 		       ntohs(dbuf->blocks[0].pagehdr.npages));
- 		goto error;
- 	}
-@@ -159,7 +159,7 @@ static inline void afs_dir_check_page(st
- 	for (tmp = 0; tmp < qty; tmp++) {
- 		if (dbuf->blocks[tmp].pagehdr.magic != AFS_DIR_MAGIC) {
- 			printk("kAFS: %s(%lu): bad magic %d/%d is %04hx\n",
--			       __FUNCTION__, dir->i_ino, tmp, qty,
-+			       __func__, dir->i_ino, tmp, qty,
- 			       ntohs(dbuf->blocks[tmp].pagehdr.magic));
- 			goto error;
- 		}
-diff -puN fs/afs/internal.h~afs-replace-remaining-__function__-occurrences fs/afs/internal.h
---- a/fs/afs/internal.h~afs-replace-remaining-__function__-occurrences
-+++ a/fs/afs/internal.h
-@@ -757,8 +757,8 @@ void _dbprintk(const char *fmt, ...)
- {
+diff -puN kernel/user.c~alloc_uid-cleanup kernel/user.c
+--- a/kernel/user.c~alloc_uid-cleanup
++++ a/kernel/user.c
+@@ -384,7 +384,7 @@ void free_uid(struct user_struct *up)
+ 		local_irq_restore(flags);
  }
  
--#define kenter(FMT,...)	dbgprintk("==> %s("FMT")",__FUNCTION__ ,##__VA_ARGS__)
--#define kleave(FMT,...)	dbgprintk("<== %s()"FMT"",__FUNCTION__ ,##__VA_ARGS__)
-+#define kenter(FMT,...)	dbgprintk("==> %s("FMT")",__func__ ,##__VA_ARGS__)
-+#define kleave(FMT,...)	dbgprintk("<== %s()"FMT"",__func__ ,##__VA_ARGS__)
- #define kdebug(FMT,...)	dbgprintk("    "FMT ,##__VA_ARGS__)
+-struct user_struct * alloc_uid(struct user_namespace *ns, uid_t uid)
++struct user_struct *alloc_uid(struct user_namespace *ns, uid_t uid)
+ {
+ 	struct hlist_head *hashent = uidhashentry(ns, uid);
+ 	struct user_struct *up, *new;
+@@ -399,26 +399,12 @@ struct user_struct * alloc_uid(struct us
+ 	spin_unlock_irq(&uidhash_lock);
  
+ 	if (!up) {
+-		new = kmem_cache_alloc(uid_cachep, GFP_KERNEL);
++		new = kmem_cache_zalloc(uid_cachep, GFP_KERNEL);
+ 		if (!new)
+ 			goto out_unlock;
  
-@@ -791,8 +791,8 @@ do {							\
- } while (0)
+ 		new->uid = uid;
+ 		atomic_set(&new->__count, 1);
+-		atomic_set(&new->processes, 0);
+-		atomic_set(&new->files, 0);
+-		atomic_set(&new->sigpending, 0);
+-#ifdef CONFIG_INOTIFY_USER
+-		atomic_set(&new->inotify_watches, 0);
+-		atomic_set(&new->inotify_devs, 0);
+-#endif
+-#ifdef CONFIG_POSIX_MQUEUE
+-		new->mq_bytes = 0;
+-#endif
+-		new->locked_shm = 0;
+-#ifdef CONFIG_KEYS
+-		new->uid_keyring = new->session_keyring = NULL;
+-#endif
  
- #else
--#define _enter(FMT,...)	_dbprintk("==> %s("FMT")",__FUNCTION__ ,##__VA_ARGS__)
--#define _leave(FMT,...)	_dbprintk("<== %s()"FMT"",__FUNCTION__ ,##__VA_ARGS__)
-+#define _enter(FMT,...)	_dbprintk("==> %s("FMT")",__func__ ,##__VA_ARGS__)
-+#define _leave(FMT,...)	_dbprintk("<== %s()"FMT"",__func__ ,##__VA_ARGS__)
- #define _debug(FMT,...)	_dbprintk("    "FMT ,##__VA_ARGS__)
- #endif
- 
+ 		if (sched_create_user(new) < 0)
+ 			goto out_free_user;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-frv-unbreak-misalignment-handling-changes.patch
-git-acpi.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-input-make-one-bit-signed-bitfields-unsigned.patch
+drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+revert-memory-hotplug-register-section-node-id-to-free.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
+disable-the-memory-controller-by-default-v3.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+pnp-fix-printk-format-warnings-fix-checkpatch-fixes.patch
+git-x86-fixup.patch
+rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+git-dvb.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-hwmon.patch
+touch-screen-driver-for-the-superh-migor-board.patch
 git-kvm.patch
+pata_atiixp-simplex-clear.patch
+git-m32r.patch
 git-mips.patch
-mmc-make-one-bit-signed-bitfields-unsigned.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
 git-sched.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
+drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+add-rcu_assign_index-if-ever-needed.patch
+git-scsi-misc.patch
+scsi-fix-section-mismatch-in-aic94xx.patch
+drivers-scsi-mvsasc-fix-build-warnings.patch
+aic79xx_core-remove-ascii-art.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+git-v9fs.patch
 git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-tkipc-use-kernel-provided-infrastructure.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-autofs4-fix-sparse-warning-in-waitqc-autofs4_expire_indirect.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-block-remove-remaining-__function__-occurances.patch
+git-watchdog-git-rejects.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+ext4-is-busted-on-m68k.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+add-warn_on_secs-macro.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+x86-ioremap-add-checks-for-virtual-addresses-fix.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
