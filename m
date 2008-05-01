@@ -1,113 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_spi-clean-up-baud-rate-divisor-calculation.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:24:57 -0700
-Message-ID: <200805010924.m419OvG8030151@imap1.linux-foundation.org>
+Subject: - isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:25:43 -0700
+Message-ID: <200805010925.m419Ph8E030233@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40701 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40624 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755339AbYEAJ0E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:26:04 -0400
+	by vger.kernel.org with ESMTP id S1755416AbYEAJ0S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:26:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: haavard.skinnemoen@atmel.com, david-b@pacbell.net, jramakrishnan@neuropace.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_spi: clean up baud rate divisor calculation
+     isofs: fix access to unallocated memory when reading corrupted filesystem
 has been removed from the -mm tree.  Its filename was
-     atmel_spi-clean-up-baud-rate-divisor-calculation.patch
+     isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_spi: clean up baud rate divisor calculation
-From: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
+Subject: isofs: fix access to unallocated memory when reading corrupted filesystem
+From: Jan Kara <jack@suse.cz>
 
-Make the baud rate divisor calculation code a bit more readable and add a
-few comments.
+When a directory on isofs is corrupted, we did not check whether length of the
+name in a directory entry and the length of the directory entry itself are
+consistent.  This could lead to possible access beyond the end of buffer when
+the length of the name was too big.  Add this sanity check to directory
+reading code.
 
-Also fix wrong debug information being displayed when !new_1 and
-max_speed_hz == 0.
-
-[david-b@pacbell.net: fix it]
-Signed-off-by: Haavard Skinnemoen <haavard.skinnemoen@atmel.com>
-Cc: "Janesh Ramakrishnan" <jramakrishnan@neuropace.com>
-Acked-by David Brownell <david-b@pacbell.net>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/atmel_spi.c |   29 ++++++++++++++++++++---------
- 1 file changed, 20 insertions(+), 9 deletions(-)
+ fs/isofs/dir.c   |    8 ++++++++
+ fs/isofs/namei.c |    7 +++++++
+ 2 files changed, 15 insertions(+)
 
-diff -puN drivers/spi/atmel_spi.c~atmel_spi-clean-up-baud-rate-divisor-calculation drivers/spi/atmel_spi.c
---- a/drivers/spi/atmel_spi.c~atmel_spi-clean-up-baud-rate-divisor-calculation
-+++ a/drivers/spi/atmel_spi.c
-@@ -497,7 +497,7 @@ static int atmel_spi_setup(struct spi_de
- 	struct atmel_spi	*as;
- 	u32			scbr, csr;
- 	unsigned int		bits = spi->bits_per_word;
--	unsigned long		bus_hz, sck_hz;
-+	unsigned long		bus_hz;
- 	unsigned int		npcs_pin;
- 	int			ret;
- 
-@@ -536,14 +536,25 @@ static int atmel_spi_setup(struct spi_de
- 		return -EINVAL;
- 	}
- 
--	/* speed zero convention is used by some upper layers */
-+	/*
-+	 * Pre-new_1 chips start out at half the peripheral
-+	 * bus speed.
-+	 */
- 	bus_hz = clk_get_rate(as->clk);
-+	if (!as->new_1)
-+		bus_hz /= 2;
-+
- 	if (spi->max_speed_hz) {
--		/* assume div32/fdiv/mbz == 0 */
--		if (!as->new_1)
--			bus_hz /= 2;
--		scbr = ((bus_hz + spi->max_speed_hz - 1)
--			/ spi->max_speed_hz);
-+		/*
-+		 * Calculate the lowest divider that satisfies the
-+		 * constraint, assuming div32/fdiv/mbz == 0.
-+		 */
-+		scbr = DIV_ROUND_UP(bus_hz, spi->max_speed_hz);
-+
-+		/*
-+		 * If the resulting divider doesn't fit into the
-+		 * register bitfield, we can't satisfy the constraint.
-+		 */
- 		if (scbr >= (1 << SPI_SCBR_SIZE)) {
- 			dev_dbg(&spi->dev,
- 				"setup: %d Hz too slow, scbr %u; min %ld Hz\n",
-@@ -551,8 +562,8 @@ static int atmel_spi_setup(struct spi_de
- 			return -EINVAL;
+diff -puN fs/isofs/dir.c~isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem fs/isofs/dir.c
+--- a/fs/isofs/dir.c~isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem
++++ a/fs/isofs/dir.c
+@@ -145,6 +145,14 @@ static int do_isofs_readdir(struct inode
+ 			}
+ 			de = tmpde;
  		}
- 	} else
-+		/* speed zero means "as slow as possible" */
- 		scbr = 0xff;
--	sck_hz = bus_hz / scbr;
++		/* Basic sanity check, whether name doesn't exceed dir entry */
++		if (de_len < de->name_len[0] +
++					sizeof(struct iso_directory_record)) {
++			printk(KERN_NOTICE "iso9660: Corrupted directory entry"
++			       " in block %lu of inode %lu\n", block,
++			       inode->i_ino);
++			return -EIO;
++		}
  
- 	csr = SPI_BF(SCBR, scbr) | SPI_BF(BITS, bits - 8);
- 	if (spi->mode & SPI_CPOL)
-@@ -589,7 +600,7 @@ static int atmel_spi_setup(struct spi_de
+ 		if (first_de) {
+ 			isofs_normalize_block_and_offset(de,
+diff -puN fs/isofs/namei.c~isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem fs/isofs/namei.c
+--- a/fs/isofs/namei.c~isofs-fix-access-to-unallocated-memory-when-reading-corrupted-filesystem
++++ a/fs/isofs/namei.c
+@@ -111,6 +111,13 @@ isofs_find_entry(struct inode *dir, stru
  
- 	dev_dbg(&spi->dev,
- 		"setup: %lu Hz bpw %u mode 0x%x -> csr%d %08x\n",
--		sck_hz, bits, spi->mode, spi->chip_select, csr);
-+		bus_hz / scbr, bits, spi->mode, spi->chip_select, csr);
+ 		dlen = de->name_len[0];
+ 		dpnt = de->name;
++		/* Basic sanity check, whether name doesn't exceed dir entry */
++		if (de_len < dlen + sizeof(struct iso_directory_record)) {
++			printk(KERN_NOTICE "iso9660: Corrupted directory entry"
++			       " in block %lu of inode %lu\n", block,
++			       dir->i_ino);
++			return 0;
++		}
  
- 	spi_writel(as, CSR0 + 4 * spi->chip_select, csr);
- 
+ 		if (sbi->s_rock &&
+ 		    ((i = get_rock_ridge_filename(de, tmpname, dir)))) {
 _
 
-Patches currently in -mm which might be from haavard.skinnemoen@atmel.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
+git-udf.patch
+quota-add-a-convenience-macro-for-filesystems.patch
+ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
+ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
+reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+ext4-fix-mount-messages-when-quota-disabled.patch
+ext4-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+ext4-fix-typos-in-messages-and-comments-journalled-journaled.patch
+ext4-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
 
