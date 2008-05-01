@@ -1,181 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - ptrace-introduce-task_detached-helper.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:27:28 -0700
-Message-ID: <200805010927.m419RSZj030421@imap1.linux-foundation.org>
+Subject: - md-reinitialise-more-mddev-fields-in-do_md_stop.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:25:31 -0700
+Message-ID: <200805010925.m419PV65030208@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43927 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39069 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754075AbYEAJjO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:39:14 -0400
+	by vger.kernel.org with ESMTP id S1757106AbYEAJj2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:39:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: neilb@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: introduce task_detached() helper
+     md: reinitialise more mddev fields in do_md_stop.
 has been removed from the -mm tree.  Its filename was
-     ptrace-introduce-task_detached-helper.patch
+     md-reinitialise-more-mddev-fields-in-do_md_stop.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: introduce task_detached() helper
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: md: reinitialise more mddev fields in do_md_stop.
+From: NeilBrown <neilb@suse.de>
 
-exit.c has numerous "->exit_signal == -1" comparisons, this check is subtle
-and deserves a helper.  Imho makes the code more parseable for humans.  At
-least it's surely more greppable.
+I keep finding problems where an mddev gets reused and some fields has a value
+from a previous usage that confuses the new usage.  So clear all fields that
+could possible need clearing when calling do_md_stop.
 
-Also, a couple of whitespace cleanups. No functional changes.
+Also initialise the 'level' of a new array to LEVEL_NONE (which isn't 0).
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Neil Brown <neilb@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |   45 +++++++++++++++++++++++++--------------------
- 1 file changed, 25 insertions(+), 20 deletions(-)
+ drivers/md/md.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-diff -puN kernel/exit.c~ptrace-introduce-task_detached-helper kernel/exit.c
---- a/kernel/exit.c~ptrace-introduce-task_detached-helper
-+++ a/kernel/exit.c
-@@ -52,6 +52,11 @@
+diff -puN drivers/md/md.c~md-reinitialise-more-mddev-fields-in-do_md_stop drivers/md/md.c
+--- a/drivers/md/md.c~md-reinitialise-more-mddev-fields-in-do_md_stop
++++ a/drivers/md/md.c
+@@ -276,6 +276,7 @@ static mddev_t * mddev_find(dev_t unit)
+ 	init_waitqueue_head(&new->sb_wait);
+ 	new->reshape_position = MaxSector;
+ 	new->resync_max = MaxSector;
++	new->level = LEVEL_NONE;
  
- static void exit_mm(struct task_struct * tsk);
+ 	new->queue = blk_alloc_queue(GFP_KERNEL);
+ 	if (!new->queue) {
+@@ -3714,6 +3715,30 @@ static int do_md_stop(mddev_t * mddev, i
+ 		mddev->reshape_position = MaxSector;
+ 		mddev->external = 0;
+ 		mddev->persistent = 0;
++		mddev->level = LEVEL_NONE;
++		mddev->clevel[0] = 0;
++		mddev->flags = 0;
++		mddev->ro = 0;
++		mddev->metadata_type[0] = 0;
++		mddev->chunk_size = 0;
++		mddev->ctime = mddev->utime = 0;
++		mddev->layout = 0;
++		mddev->max_disks = 0;
++		mddev->events = 0;
++		mddev->delta_disks = 0;
++		mddev->new_level = LEVEL_NONE;
++		mddev->new_layout = 0;
++		mddev->new_chunk = 0;
++		mddev->curr_resync = 0;
++		mddev->resync_mismatches = 0;
++		mddev->suspend_lo = mddev->suspend_hi = 0;
++		mddev->sync_speed_min = mddev->sync_speed_max = 0;
++		mddev->recovery = 0;
++		mddev->in_sync = 0;
++		mddev->changed = 0;
++		mddev->degraded = 0;
++		mddev->barriers_work = 0;
++		mddev->safemode = 0;
  
-+static inline int task_detached(struct task_struct *p)
-+{
-+	return p->exit_signal == -1;
-+}
-+
- static void __unhash_process(struct task_struct *p)
- {
- 	nr_threads--;
-@@ -160,7 +165,7 @@ repeat:
- 	zap_leader = 0;
- 	leader = p->group_leader;
- 	if (leader != p && thread_group_empty(leader) && leader->exit_state == EXIT_ZOMBIE) {
--		BUG_ON(leader->exit_signal == -1);
-+		BUG_ON(task_detached(leader));
- 		do_notify_parent(leader, leader->exit_signal);
- 		/*
- 		 * If we were the last child thread and the leader has
-@@ -170,7 +175,7 @@ repeat:
- 		 * do_notify_parent() will have marked it self-reaping in
- 		 * that case.
- 		 */
--		zap_leader = (leader->exit_signal == -1);
-+		zap_leader = task_detached(leader);
- 	}
- 
- 	write_unlock_irq(&tasklist_lock);
-@@ -721,14 +726,14 @@ reparent_thread(struct task_struct *p, s
- 		return;
- 
- 	/* We don't want people slaying init.  */
--	if (p->exit_signal != -1)
-+	if (!task_detached(p))
- 		p->exit_signal = SIGCHLD;
- 
- 	/* If we'd notified the old parent about this child's death,
- 	 * also notify the new parent.
- 	 */
- 	if (!traced && p->exit_state == EXIT_ZOMBIE &&
--	    p->exit_signal != -1 && thread_group_empty(p))
-+	    !task_detached(p) && thread_group_empty(p))
- 		do_notify_parent(p, p->exit_signal);
- 
- 	kill_orphaned_pgrp(p, father);
-@@ -781,18 +786,18 @@ static void forget_original_parent(struc
- 		} else {
- 			/* reparent ptraced task to its real parent */
- 			__ptrace_unlink (p);
--			if (p->exit_state == EXIT_ZOMBIE && p->exit_signal != -1 &&
-+			if (p->exit_state == EXIT_ZOMBIE && !task_detached(p) &&
- 			    thread_group_empty(p))
- 				do_notify_parent(p, p->exit_signal);
- 		}
- 
- 		/*
--		 * if the ptraced child is a zombie with exit_signal == -1
--		 * we must collect it before we exit, or it will remain
--		 * zombie forever since we prevented it from self-reap itself
--		 * while it was being traced by us, to be able to see it in wait4.
-+		 * if the ptraced child is a detached zombie we must collect
-+		 * it before we exit, or it will remain zombie forever since
-+		 * we prevented it from self-reap itself while it was being
-+		 * traced by us, to be able to see it in wait4.
- 		 */
--		if (unlikely(ptrace && p->exit_state == EXIT_ZOMBIE && p->exit_signal == -1))
-+		if (unlikely(ptrace && p->exit_state == EXIT_ZOMBIE && task_detached(p)))
- 			list_add(&p->ptrace_list, &ptrace_dead);
- 	}
- 
-@@ -849,26 +854,26 @@ static void exit_notify(struct task_stru
- 	 * we have changed execution domain as these two values started
- 	 * the same after a fork.
- 	 */
--	if (tsk->exit_signal != SIGCHLD && tsk->exit_signal != -1 &&
-+	if (tsk->exit_signal != SIGCHLD && !task_detached(tsk) &&
- 	    (tsk->parent_exec_id != tsk->real_parent->self_exec_id ||
--	     tsk->self_exec_id != tsk->parent_exec_id)
--	    && !capable(CAP_KILL))
-+	     tsk->self_exec_id != tsk->parent_exec_id) &&
-+	    !capable(CAP_KILL))
- 		tsk->exit_signal = SIGCHLD;
- 
--
- 	/* If something other than our normal parent is ptracing us, then
- 	 * send it a SIGCHLD instead of honoring exit_signal.  exit_signal
- 	 * only has special meaning to our real parent.
- 	 */
--	if (tsk->exit_signal != -1 && thread_group_empty(tsk)) {
--		int signal = tsk->parent == tsk->real_parent ? tsk->exit_signal : SIGCHLD;
-+	if (!task_detached(tsk) && thread_group_empty(tsk)) {
-+		int signal = (tsk->parent == tsk->real_parent)
-+				? tsk->exit_signal : SIGCHLD;
- 		do_notify_parent(tsk, signal);
- 	} else if (tsk->ptrace) {
- 		do_notify_parent(tsk, SIGCHLD);
- 	}
- 
- 	state = EXIT_ZOMBIE;
--	if (tsk->exit_signal == -1 && likely(!tsk->ptrace))
-+	if (task_detached(tsk) && likely(!tsk->ptrace))
- 		state = EXIT_DEAD;
- 	tsk->exit_state = state;
- 
-@@ -1173,7 +1178,7 @@ static int eligible_child(enum pid_type 
- 	 * Do not consider detached threads that are
- 	 * not ptraced:
- 	 */
--	if (p->exit_signal == -1 && !p->ptrace)
-+	if (task_detached(p) && !p->ptrace)
- 		return 0;
- 
- 	/* Wait for all children (clone and not) if __WALL is set;
-@@ -1365,9 +1370,9 @@ static int wait_task_zombie(struct task_
- 		 * If it's still not detached after that, don't release
- 		 * it now.
- 		 */
--		if (p->exit_signal != -1) {
-+		if (!task_detached(p)) {
- 			do_notify_parent(p, p->exit_signal);
--			if (p->exit_signal != -1) {
-+			if (!task_detached(p)) {
- 				p->exit_state = EXIT_ZOMBIE;
- 				p = NULL;
- 			}
+ 	} else if (mddev->pers)
+ 		printk(KERN_INFO "md: %s switched to read-only mode.\n",
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from neilb@suse.de are
 
 origin.patch
-posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
-workqueue-remove-redundant-function-invocation.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+sunrpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
 
