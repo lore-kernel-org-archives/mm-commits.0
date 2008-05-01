@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + 9p-use-correct-type-for-processor-flags.patch added to -mm tree
-Date: Thu, 01 May 2008 14:20:06 -0700
-Message-ID: <200805012120.m41LK6Yc025888@imap1.linux-foundation.org>
+Subject: + clocksource-shift-helper.patch added to -mm tree
+Date: Thu, 01 May 2008 14:21:21 -0700
+Message-ID: <200805012121.m41LLLRb025925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48665 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46852 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760841AbYEAVVE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 17:21:04 -0400
+	by vger.kernel.org with ESMTP id S1759593AbYEAVYB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 17:24:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rostedt@goodmis.org, ericvh@gmail.com, lucho@ionkov.net, srostedt@redhat.com
+Cc: dwalker@mvista.com, johnstul@us.ibm.com, tglx@linutronix.de
 
 
 The patch titled
-     9p: use correct type for processor flags
+     clocksource: shift helper
 has been added to the -mm tree.  Its filename is
-     9p-use-correct-type-for-processor-flags.patch
+     clocksource-shift-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,111 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 9p: use correct type for processor flags
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: clocksource: shift helper
+From: Daniel Walker <dwalker@mvista.com>
 
-Some files in the net/9p directory uses "int" for flags.  This can cause hard
-to find bugs on some architectures.  This patch converts the flags to use
-"long" instead.
+This is a little helper I pulled from the mips tree.  I've seen a couple of
+bogus shift values, and this helper calculates the shift.  This should move
+the shift selection away from the user, and systematically pick the value base
+on the hz.
 
-This bug was discovered by doing an allyesconfig make on the -rt kernel where
-checks are done to ensure all flags are of size sizeof(long).
+I also modified the acpi_pm timer to use this new interface.  The original
+shift was 22 , and after this patch it's increased to 23.  Which should make
+the clocksource slightly more accurate, but shouldn't have much of a visible
+effect.
 
-Signed-off-by: Steven Rostedt <srostedt@redhat.com>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/trans_virtio.c |    2 +-
- net/9p/util.c         |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/clocksource/acpi_pm.c |    5 ++++-
+ include/linux/acpi_pmtmr.h    |    5 +++--
+ include/linux/clocksource.h   |   21 +++++++++++++++++++++
+ 3 files changed, 28 insertions(+), 3 deletions(-)
 
-diff -puN net/9p/trans_virtio.c~9p-use-correct-type-for-processor-flags net/9p/trans_virtio.c
---- a/net/9p/trans_virtio.c~9p-use-correct-type-for-processor-flags
-+++ a/net/9p/trans_virtio.c
-@@ -134,7 +134,7 @@ static void p9_virtio_close(struct p9_tr
- {
- 	struct virtio_chan *chan = trans->priv;
- 	int count;
--	unsigned int flags;
-+	unsigned long flags;
+diff -puN drivers/clocksource/acpi_pm.c~clocksource-shift-helper drivers/clocksource/acpi_pm.c
+--- a/drivers/clocksource/acpi_pm.c~clocksource-shift-helper
++++ a/drivers/clocksource/acpi_pm.c
+@@ -72,7 +72,7 @@ static struct clocksource clocksource_ac
+ 	.read		= acpi_pm_read,
+ 	.mask		= (cycle_t)ACPI_PM_MASK,
+ 	.mult		= 0, /*to be calculated*/
+-	.shift		= 22,
++	.shift		= 0,
+ 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
  
- 	spin_lock_irqsave(&chan->lock, flags);
- 	p9_idpool_destroy(chan->tagpool);
-diff -puN net/9p/util.c~9p-use-correct-type-for-processor-flags net/9p/util.c
---- a/net/9p/util.c~9p-use-correct-type-for-processor-flags
-+++ a/net/9p/util.c
-@@ -71,7 +71,7 @@ int p9_idpool_get(struct p9_idpool *p)
- {
- 	int i = 0;
- 	int error;
--	unsigned int flags;
-+	unsigned long flags;
+ };
+@@ -183,6 +183,9 @@ static int __init init_acpi_pm_clocksour
+ 	if (!pmtmr_ioport)
+ 		return -ENODEV;
  
- retry:
- 	if (idr_pre_get(&p->pool, GFP_KERNEL) == 0)
-@@ -102,7 +102,7 @@ EXPORT_SYMBOL(p9_idpool_get);
++	clocksource_acpi_pm.shift =
++		clocksource_hz2shift(ACPI_PM_BITS, PMTMR_TICKS_PER_SEC);
++
+ 	clocksource_acpi_pm.mult = clocksource_hz2mult(PMTMR_TICKS_PER_SEC,
+ 						clocksource_acpi_pm.shift);
  
- void p9_idpool_put(int id, struct p9_idpool *p)
- {
--	unsigned int flags;
-+	unsigned long flags;
- 	spin_lock_irqsave(&p->lock, flags);
- 	idr_remove(&p->pool, id);
- 	spin_unlock_irqrestore(&p->lock, flags);
+diff -puN include/linux/acpi_pmtmr.h~clocksource-shift-helper include/linux/acpi_pmtmr.h
+--- a/include/linux/acpi_pmtmr.h~clocksource-shift-helper
++++ a/include/linux/acpi_pmtmr.h
+@@ -7,10 +7,11 @@
+ #define PMTMR_TICKS_PER_SEC 3579545
+ 
+ /* limit it to 24 bits */
+-#define ACPI_PM_MASK CLOCKSOURCE_MASK(24)
++#define ACPI_PM_BITS	24
++#define ACPI_PM_MASK CLOCKSOURCE_MASK(ACPI_PM_BITS)
+ 
+ /* Overrun value */
+-#define ACPI_PM_OVRRUN	(1<<24)
++#define ACPI_PM_OVRRUN	(1 << ACPI_PM_BITS)
+ 
+ #ifdef CONFIG_X86_PM_TIMER
+ 
+diff -puN include/linux/clocksource.h~clocksource-shift-helper include/linux/clocksource.h
+--- a/include/linux/clocksource.h~clocksource-shift-helper
++++ a/include/linux/clocksource.h
+@@ -159,6 +159,27 @@ static inline u32 clocksource_hz2mult(u3
+ }
+ 
+ /**
++ * clocksource_hz2shift - calculates shift from hz and # of bits
++ * @bits:		Number of bits this clocksource uses
++ * @hz:			Clocksource frequency in Hz
++ *
++ * Helper functions that calculates the best shift value
++ * based on the hz and # of bits of any given clock.
++ */
++static inline u32 clocksource_hz2shift(u32 bits, u32 hz)
++{
++	u64 temp;
++
++	for (; bits > 0; bits--) {
++		temp = (u64) NSEC_PER_SEC << bits;
++		do_div(temp, hz);
++		if ((temp >> 32) == 0)
++			break;
++	}
++	return bits;
++}
++
++/**
+  * clocksource_read: - Access the clocksource's current cycle value
+  * @cs:		pointer to clocksource being read
+  *
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
 origin.patch
-git-sched.patch
-9p-use-correct-type-for-processor-flags.patch
+git-x86.patch
+macintosh-therm_pm72-driver_lock-semaphore-to-mutex.patch
+macintosh-qindfarm_smu_sat-semaphore-to-mutex.patch
+machintosh-adb-driver-adb_handler_sem-semaphore-to-mutex.patch
+clocksource-shift-helper.patch
+profile-likely-unlikely-macros.patch
+likely_prof-changed-to-use-proc_create.patch
+likeliness-accounting-change-and-cleanup.patch
 
