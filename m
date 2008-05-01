@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-fix-missing-kernel-doc-notation.patch added to -mm tree
-Date: Thu, 01 May 2008 16:00:44 -0700
-Message-ID: <200805012300.m41N0iZi030000@imap1.linux-foundation.org>
+Subject: + usb-fix-integer-as-null-pointer-sparse-warnings.patch added to -mm tree
+Date: Thu, 01 May 2008 16:01:53 -0700
+Message-ID: <200805012301.m41N1rs5030015@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60927 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39753 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761696AbYEAXBD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 19:01:03 -0400
+	by vger.kernel.org with ESMTP id S1755299AbYEAXB4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 19:01:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com, bjorn.helgaas@hp.com
+Cc: harvey.harrison@gmail.com, greg@kroah.com
 
 
 The patch titled
-     pnp: fix missing kernel-doc notation
+     usb: fix integer as NULL pointer sparse warnings
 has been added to the -mm tree.  Its filename is
-     pnp-fix-missing-kernel-doc-notation.patch
+     usb-fix-integer-as-null-pointer-sparse-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,64 +33,126 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: fix missing kernel-doc notation
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: usb: fix integer as NULL pointer sparse warnings
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Fix missing PNP kernel-doc notation:
+drivers/usb/host/ohci-sm501.c:93:24: warning: Using plain integer as NULL pointer
+drivers/usb/gadget/amd5536udc.c:3254:9: warning: Using plain integer as NULL pointer
+drivers/usb/gadget/amd5536udc.c:3267:9: warning: Using plain integer as NULL pointer
+drivers/usb/gadget/amd5536udc.c:3277:9: warning: Using plain integer as NULL pointer
+drivers/usb/gadget/amd5536udc.c:3285:9: warning: Using plain integer as NULL pointer
+drivers/usb/gadget/amd5536udc.c:3293:9: warning: Using plain integer as NULL pointer
 
-Warning(linux-2.6.25-git16//drivers/pnp/manager.c:261): No description found for parameter 'dev'
-Warning(linux-2.6.25-git16//drivers/pnp/manager.c:292): No description found for parameter 'dev'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/manager.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/usb/gadget/amd5536udc.c |   10 +++++-----
+ drivers/usb/host/ohci-sm501.c   |    2 +-
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/pnp/manager.c~pnp-fix-missing-kernel-doc-notation drivers/pnp/manager.c
---- a/drivers/pnp/manager.c~pnp-fix-missing-kernel-doc-notation
-+++ a/drivers/pnp/manager.c
-@@ -255,7 +255,7 @@ void pnp_init_resource(struct resource *
+diff -puN drivers/usb/gadget/amd5536udc.c~usb-fix-integer-as-null-pointer-sparse-warnings drivers/usb/gadget/amd5536udc.c
+--- a/drivers/usb/gadget/amd5536udc.c~usb-fix-integer-as-null-pointer-sparse-warnings
++++ a/drivers/usb/gadget/amd5536udc.c
+@@ -3251,7 +3251,7 @@ static int udc_pci_probe(
+ 	/* pci setup */
+ 	if (pci_enable_device(pdev) < 0) {
+ 		kfree(dev);
+-		dev = 0;
++		dev = NULL;
+ 		retval = -ENODEV;
+ 		goto finished;
+ 	}
+@@ -3264,7 +3264,7 @@ static int udc_pci_probe(
+ 	if (!request_mem_region(resource, len, name)) {
+ 		dev_dbg(&pdev->dev, "pci device used already\n");
+ 		kfree(dev);
+-		dev = 0;
++		dev = NULL;
+ 		retval = -EBUSY;
+ 		goto finished;
+ 	}
+@@ -3274,7 +3274,7 @@ static int udc_pci_probe(
+ 	if (dev->virt_addr == NULL) {
+ 		dev_dbg(&pdev->dev, "start address cannot be mapped\n");
+ 		kfree(dev);
+-		dev = 0;
++		dev = NULL;
+ 		retval = -EFAULT;
+ 		goto finished;
+ 	}
+@@ -3282,7 +3282,7 @@ static int udc_pci_probe(
+ 	if (!pdev->irq) {
+ 		dev_err(&dev->pdev->dev, "irq not set\n");
+ 		kfree(dev);
+-		dev = 0;
++		dev = NULL;
+ 		retval = -ENODEV;
+ 		goto finished;
+ 	}
+@@ -3290,7 +3290,7 @@ static int udc_pci_probe(
+ 	if (request_irq(pdev->irq, udc_irq, IRQF_SHARED, name, dev) != 0) {
+ 		dev_dbg(&dev->pdev->dev, "request_irq(%d) fail\n", pdev->irq);
+ 		kfree(dev);
+-		dev = 0;
++		dev = NULL;
+ 		retval = -EBUSY;
+ 		goto finished;
+ 	}
+diff -puN drivers/usb/host/ohci-sm501.c~usb-fix-integer-as-null-pointer-sparse-warnings drivers/usb/host/ohci-sm501.c
+--- a/drivers/usb/host/ohci-sm501.c~usb-fix-integer-as-null-pointer-sparse-warnings
++++ a/drivers/usb/host/ohci-sm501.c
+@@ -90,7 +90,7 @@ static int ohci_hcd_sm501_drv_probe(stru
+ 	struct device *dev = &pdev->dev;
+ 	struct resource	*res, *mem;
+ 	int retval, irq;
+-	struct usb_hcd *hcd = 0;
++	struct usb_hcd *hcd = NULL;
  
- /**
-  * pnp_init_resources - Resets a resource table to default values.
-- * @table: pointer to the desired resource table
-+ * @dev: pointer to the owning &pnp_dev
-  */
- void pnp_init_resources(struct pnp_dev *dev)
- {
-@@ -286,7 +286,7 @@ void pnp_init_resources(struct pnp_dev *
- 
- /**
-  * pnp_clean_resources - clears resources that were not manually set
-- * @res: the resources to clean
-+ * @dev: &pnp_dev for the resources to clean
-  */
- static void pnp_clean_resource_table(struct pnp_dev *dev)
- {
+ 	irq = retval = platform_get_irq(pdev, 0);
+ 	if (retval < 0)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-sysfs-sysfs_update_group-stub-for-config_sysfs=n.patch
-docbook-fix-vmalloc-missing-parameter-notation.patch
-pnp-fix-printk-format-warnings.patch
-pnp-fix-missing-kernel-doc-notation.patch
-x86-fix-setup-printk-format-warning.patch
+frv-unbreak-misalignment-handling-changes.patch
+pcmcia-replace-remaining-__function__-occurrences.patch
+autofs4-fix-sparse-warning-in-waitqc-autofs4_expire_indirect.patch
+fuse-use-clamp-rather-than-nested-min-max.patch
+block-remove-remaining-__function__-occurances.patch
+drivers-scsi-ncr53c8xxc-fix-warning.patch
+git-acpi.patch
+cifs-remove-global_extern-macro.patch
+input-replace-remaining-__function__-occurrences.patch
+input-make-one-bit-signed-bitfields-unsigned.patch
 git-kvm.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
-git-ocfs2.patch
+git-mips.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
 git-sched.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-isp1760-hcd-driver.patch
-uwb-fix-kconfig-causing-undefined-references.patch
-uwb-fix-all-printk-format-warnings.patch
-docbook-some-kernel-locking-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-profile-likely-unlikely-macros.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+usb-fix-integer-as-null-pointer-sparse-warnings.patch
+git-watchdog.patch
+mac80211-michaelc-use-kernel-provided-infrastructure.patch
+mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
+mac80211-tkipc-use-kernel-provided-infrastructure.patch
+mac80211-add-const-remove-unused-function-make-one-function-static.patch
+mac80211-add-a-struct-to-hold-tkip-context.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
+git-xfs.patch
+xtensa-replace-remaining-__function__-occurences.patch
+mmc-make-one-bit-signed-bitfields-unsigned.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
 
