@@ -1,244 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - signals-move-the-definition-of-__group_complete_signal-up.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:26:41 -0700
-Message-ID: <200805010926.m419QfF9030321@imap1.linux-foundation.org>
+Subject: - remove-unused-variable-from-send_signal.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:25:45 -0700
+Message-ID: <200805010925.m419PjD7030236@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49576 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32775 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757502AbYEAJon (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:44:43 -0400
+	by vger.kernel.org with ESMTP id S1758173AbYEAJpT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:45:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: xemul@openvz.org, oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: move the definition of __group_complete_signal() up
+     signals: remove unused variable from send_signal()
 has been removed from the -mm tree.  Its filename was
-     signals-move-the-definition-of-__group_complete_signal-up.patch
+     remove-unused-variable-from-send_signal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: move the definition of __group_complete_signal() up
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: signals: remove unused variable from send_signal()
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Move the unchanged definition of __group_complete_signal() so that send_signal
-can see it.  To simplify the reading of the next patches.
+This function doesn't change the ret's value and thus always returns 0, with a
+single exception of returning -EAGAIN explicitly.
 
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Roland McGrath <roland@redhat.com>
+Cc: Oleg Nesterov <oleg@tv-sign.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |  192 +++++++++++++++++++++++-----------------------
- 1 file changed, 96 insertions(+), 96 deletions(-)
+ kernel/signal.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/signal.c~signals-move-the-definition-of-__group_complete_signal-up kernel/signal.c
---- a/kernel/signal.c~signals-move-the-definition-of-__group_complete_signal-up
+diff -puN kernel/signal.c~remove-unused-variable-from-send_signal kernel/signal.c
+--- a/kernel/signal.c~remove-unused-variable-from-send_signal
 +++ a/kernel/signal.c
-@@ -652,6 +652,102 @@ static void handle_stop_signal(int sig, 
- 	}
- }
- 
-+/*
-+ * Test if P wants to take SIG.  After we've checked all threads with this,
-+ * it's equivalent to finding no threads not blocking SIG.  Any threads not
-+ * blocking SIG were ruled out because they are not running and already
-+ * have pending signals.  Such threads will dequeue from the shared queue
-+ * as soon as they're available, so putting the signal on the shared queue
-+ * will be equivalent to sending it to one such thread.
-+ */
-+static inline int wants_signal(int sig, struct task_struct *p)
-+{
-+	if (sigismember(&p->blocked, sig))
-+		return 0;
-+	if (p->flags & PF_EXITING)
-+		return 0;
-+	if (sig == SIGKILL)
-+		return 1;
-+	if (task_is_stopped_or_traced(p))
-+		return 0;
-+	return task_curr(p) || !signal_pending(p);
-+}
-+
-+static void
-+__group_complete_signal(int sig, struct task_struct *p)
-+{
-+	struct signal_struct *signal = p->signal;
-+	struct task_struct *t;
-+
-+	/*
-+	 * Now find a thread we can wake up to take the signal off the queue.
-+	 *
-+	 * If the main thread wants the signal, it gets first crack.
-+	 * Probably the least surprising to the average bear.
-+	 */
-+	if (wants_signal(sig, p))
-+		t = p;
-+	else if (thread_group_empty(p))
-+		/*
-+		 * There is just one thread and it does not need to be woken.
-+		 * It will dequeue unblocked signals before it runs again.
-+		 */
-+		return;
-+	else {
-+		/*
-+		 * Otherwise try to find a suitable thread.
-+		 */
-+		t = signal->curr_target;
-+		while (!wants_signal(sig, t)) {
-+			t = next_thread(t);
-+			if (t == signal->curr_target)
-+				/*
-+				 * No thread needs to be woken.
-+				 * Any eligible threads will see
-+				 * the signal in the queue soon.
-+				 */
-+				return;
-+		}
-+		signal->curr_target = t;
-+	}
-+
-+	/*
-+	 * Found a killable thread.  If the signal will be fatal,
-+	 * then start taking the whole group down immediately.
-+	 */
-+	if (sig_fatal(p, sig) && !(signal->flags & SIGNAL_GROUP_EXIT) &&
-+	    !sigismember(&t->real_blocked, sig) &&
-+	    (sig == SIGKILL || !(t->ptrace & PT_PTRACED))) {
-+		/*
-+		 * This signal will be fatal to the whole group.
-+		 */
-+		if (!sig_kernel_coredump(sig)) {
-+			/*
-+			 * Start a group exit and wake everybody up.
-+			 * This way we don't have other threads
-+			 * running and doing things after a slower
-+			 * thread has the fatal signal pending.
-+			 */
-+			signal->flags = SIGNAL_GROUP_EXIT;
-+			signal->group_exit_code = sig;
-+			signal->group_stop_count = 0;
-+			t = p;
-+			do {
-+				sigaddset(&t->pending.signal, SIGKILL);
-+				signal_wake_up(t, 1);
-+			} while_each_thread(p, t);
-+			return;
-+		}
-+	}
-+
-+	/*
-+	 * The signal is already in the shared-pending queue.
-+	 * Tell the chosen thread to wake up and dequeue it.
-+	 */
-+	signal_wake_up(t, sig == SIGKILL);
-+	return;
-+}
-+
- static inline int legacy_queue(struct sigpending *signals, int sig)
+@@ -661,7 +661,6 @@ static int send_signal(int sig, struct s
+ 			struct sigpending *signals)
  {
- 	return (sig < SIGRTMIN) && sigismember(&signals->signal, sig);
-@@ -817,102 +913,6 @@ force_sig_specific(int sig, struct task_
- 	force_sig_info(sig, SEND_SIG_FORCED, t);
+ 	struct sigqueue * q = NULL;
+-	int ret = 0;
+ 
+ 	/*
+ 	 * Deliver the signal to listening signalfds. This must be called
+@@ -719,7 +718,7 @@ static int send_signal(int sig, struct s
+ 
+ out_set:
+ 	sigaddset(&signals->signal, sig);
+-	return ret;
++	return 0;
  }
  
--/*
-- * Test if P wants to take SIG.  After we've checked all threads with this,
-- * it's equivalent to finding no threads not blocking SIG.  Any threads not
-- * blocking SIG were ruled out because they are not running and already
-- * have pending signals.  Such threads will dequeue from the shared queue
-- * as soon as they're available, so putting the signal on the shared queue
-- * will be equivalent to sending it to one such thread.
-- */
--static inline int wants_signal(int sig, struct task_struct *p)
--{
--	if (sigismember(&p->blocked, sig))
--		return 0;
--	if (p->flags & PF_EXITING)
--		return 0;
--	if (sig == SIGKILL)
--		return 1;
--	if (task_is_stopped_or_traced(p))
--		return 0;
--	return task_curr(p) || !signal_pending(p);
--}
--
--static void
--__group_complete_signal(int sig, struct task_struct *p)
--{
--	struct signal_struct *signal = p->signal;
--	struct task_struct *t;
--
--	/*
--	 * Now find a thread we can wake up to take the signal off the queue.
--	 *
--	 * If the main thread wants the signal, it gets first crack.
--	 * Probably the least surprising to the average bear.
--	 */
--	if (wants_signal(sig, p))
--		t = p;
--	else if (thread_group_empty(p))
--		/*
--		 * There is just one thread and it does not need to be woken.
--		 * It will dequeue unblocked signals before it runs again.
--		 */
--		return;
--	else {
--		/*
--		 * Otherwise try to find a suitable thread.
--		 */
--		t = signal->curr_target;
--		while (!wants_signal(sig, t)) {
--			t = next_thread(t);
--			if (t == signal->curr_target)
--				/*
--				 * No thread needs to be woken.
--				 * Any eligible threads will see
--				 * the signal in the queue soon.
--				 */
--				return;
--		}
--		signal->curr_target = t;
--	}
--
--	/*
--	 * Found a killable thread.  If the signal will be fatal,
--	 * then start taking the whole group down immediately.
--	 */
--	if (sig_fatal(p, sig) && !(signal->flags & SIGNAL_GROUP_EXIT) &&
--	    !sigismember(&t->real_blocked, sig) &&
--	    (sig == SIGKILL || !(t->ptrace & PT_PTRACED))) {
--		/*
--		 * This signal will be fatal to the whole group.
--		 */
--		if (!sig_kernel_coredump(sig)) {
--			/*
--			 * Start a group exit and wake everybody up.
--			 * This way we don't have other threads
--			 * running and doing things after a slower
--			 * thread has the fatal signal pending.
--			 */
--			signal->flags = SIGNAL_GROUP_EXIT;
--			signal->group_exit_code = sig;
--			signal->group_stop_count = 0;
--			t = p;
--			do {
--				sigaddset(&t->pending.signal, SIGKILL);
--				signal_wake_up(t, 1);
--			} while_each_thread(p, t);
--			return;
--		}
--	}
--
--	/*
--	 * The signal is already in the shared-pending queue.
--	 * Tell the chosen thread to wake up and dequeue it.
--	 */
--	signal_wake_up(t, sig == SIGKILL);
--	return;
--}
+ #define LEGACY_QUEUE(sigptr, sig) \
+_
+
+Patches currently in -mm which might be from xemul@openvz.org are
+
+origin.patch
+disable-the-memory-controller-by-default-v3.patch
+reiser4.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
+
