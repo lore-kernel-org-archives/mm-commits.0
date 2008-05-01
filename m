@@ -1,109 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:31:29 -0700
-Message-ID: <200805010931.m419VTnq030878@imap1.linux-foundation.org>
+Subject: - fuse-fix-node-id-type.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:32:12 -0700
+Message-ID: <200805010932.m419WCIN030965@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41640 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53624 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758000AbYEAJbz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:55 -0400
+	by vger.kernel.org with ESMTP id S1757994AbYEAJcQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:32:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pids: sys_getpgid: fix unsafe *pid usage, s/tasklist/rcu/
+     fuse: fix node ID type
 has been removed from the -mm tree.  Its filename was
-     pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu.patch
+     fuse-fix-node-id-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pids: sys_getpgid: fix unsafe *pid usage, s/tasklist/rcu/
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: fuse: fix node ID type
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-1. sys_getpgid() needs rcu_read_lock() to derive the pgrp _nr, even if
-   the task is current, otherwise we can race with another thread which
-   does sys_setpgid().
+Node ID is 64bit but it is passed as unsigned long to some functions.  This
+breakage wasn't noticed, because libfuse uses unsigned long too.
 
-2. Use rcu_read_lock() instead of tasklist_lock when pid != 0, make sure
-   that we don't use the NULL pid if the task exits right after successful
-   find_task_by_vpid().
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |   36 +++++++++++++++++++++---------------
- 1 file changed, 21 insertions(+), 15 deletions(-)
+ fs/fuse/fuse_i.h |    4 ++--
+ fs/fuse/inode.c  |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN kernel/sys.c~pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu kernel/sys.c
---- a/kernel/sys.c~pids-sys_getpgid-fix-unsafe-pid-usage-s-tasklist-rcu
-+++ a/kernel/sys.c
-@@ -991,31 +991,37 @@ out:
+diff -puN fs/fuse/fuse_i.h~fuse-fix-node-id-type fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-fix-node-id-type
++++ a/fs/fuse/fuse_i.h
+@@ -464,7 +464,7 @@ extern const struct file_operations fuse
+ /**
+  * Get a filled in inode
+  */
+-struct inode *fuse_iget(struct super_block *sb, unsigned long nodeid,
++struct inode *fuse_iget(struct super_block *sb, u64 nodeid,
+ 			int generation, struct fuse_attr *attr,
+ 			u64 attr_valid, u64 attr_version);
  
- asmlinkage long sys_getpgid(pid_t pid)
- {
-+	struct task_struct *p;
-+	struct pid *grp;
-+	int retval;
-+
-+	rcu_read_lock();
- 	if (!pid)
--		return task_pgrp_vnr(current);
-+		grp = task_pgrp(current);
- 	else {
--		int retval;
--		struct task_struct *p;
--
--		read_lock(&tasklist_lock);
--		p = find_task_by_vpid(pid);
- 		retval = -ESRCH;
--		if (p) {
--			retval = security_task_getpgid(p);
--			if (!retval)
--				retval = task_pgrp_vnr(p);
--		}
--		read_unlock(&tasklist_lock);
--		return retval;
-+		p = find_task_by_vpid(pid);
-+		if (!p)
-+			goto out;
-+		grp = task_pgrp(p);
-+		if (!grp)
-+			goto out;
-+
-+		retval = security_task_getpgid(p);
-+		if (retval)
-+			goto out;
- 	}
-+	retval = pid_vnr(grp);
-+out:
-+	rcu_read_unlock();
-+	return retval;
+@@ -472,7 +472,7 @@ struct inode *fuse_iget(struct super_blo
+  * Send FORGET command
+  */
+ void fuse_send_forget(struct fuse_conn *fc, struct fuse_req *req,
+-		      unsigned long nodeid, u64 nlookup);
++		      u64 nodeid, u64 nlookup);
+ 
+ /**
+  * Initialize READ or READDIR request
+diff -puN fs/fuse/inode.c~fuse-fix-node-id-type fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-fix-node-id-type
++++ a/fs/fuse/inode.c
+@@ -84,7 +84,7 @@ static void fuse_destroy_inode(struct in
  }
  
- #ifdef __ARCH_WANT_SYS_GETPGRP
- 
- asmlinkage long sys_getpgrp(void)
+ void fuse_send_forget(struct fuse_conn *fc, struct fuse_req *req,
+-		      unsigned long nodeid, u64 nlookup)
++		      u64 nodeid, u64 nlookup)
  {
--	/* SMP - assuming writes are word atomic this is fine */
--	return task_pgrp_vnr(current);
-+	return sys_getpgid(0);
+ 	struct fuse_forget_in *inarg = &req->misc.forget_in;
+ 	inarg->nlookup = nlookup;
+@@ -207,7 +207,7 @@ static void fuse_init_inode(struct inode
+ 
+ static int fuse_inode_eq(struct inode *inode, void *_nodeidp)
+ {
+-	unsigned long nodeid = *(unsigned long *) _nodeidp;
++	u64 nodeid = *(u64 *) _nodeidp;
+ 	if (get_node_id(inode) == nodeid)
+ 		return 1;
+ 	else
+@@ -216,12 +216,12 @@ static int fuse_inode_eq(struct inode *i
+ 
+ static int fuse_inode_set(struct inode *inode, void *_nodeidp)
+ {
+-	unsigned long nodeid = *(unsigned long *) _nodeidp;
++	u64 nodeid = *(u64 *) _nodeidp;
+ 	get_fuse_inode(inode)->nodeid = nodeid;
+ 	return 0;
  }
  
- #endif
+-struct inode *fuse_iget(struct super_block *sb, unsigned long nodeid,
++struct inode *fuse_iget(struct super_block *sb, u64 nodeid,
+ 			int generation, struct fuse_attr *attr,
+ 			u64 attr_valid, u64 attr_version)
+ {
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
-workqueue-remove-redundant-function-invocation.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+vfs-fix-permission-checking-in-sys_utimensat.patch
 
