@@ -1,87 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-fix-max-i-o-size-calculation.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:32:10 -0700
-Message-ID: <200805010932.m419WAbi030962@imap1.linux-foundation.org>
+Subject: - fuse-fix-sparse-warnings.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:32:16 -0700
+Message-ID: <200805010932.m419WGHt030971@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50076 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60463 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755288AbYEAJcO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:32:14 -0400
+	by vger.kernel.org with ESMTP id S1758000AbYEAJcU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:32:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: fix max i/o size calculation
+     fuse: fix sparse warnings
 has been removed from the -mm tree.  Its filename was
-     fuse-fix-max-i-o-size-calculation.patch
+     fuse-fix-sparse-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fuse: fix max i/o size calculation
+Subject: fuse: fix sparse warnings
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Fix a bug that Werner Baumann reported: fuse can send a bigger write request
-than the maximum specified.  This only affected direct_io operation.
-
-In addition set a sane minimum for the max_read and max_write tunables, so I/O
-always makes some progress.
+fs/fuse/dev.c:306:2: warning: context imbalance in 'wait_answer_interruptible' - unexpected unlock
+fs/fuse/dev.c:361:2: warning: context imbalance in 'request_wait_answer' - unexpected unlock
+fs/fuse/dev.c:1002:4: warning: context imbalance in 'end_io_requests' - unexpected unlock
 
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c  |    7 ++++---
- fs/fuse/inode.c |    3 ++-
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ fs/fuse/dev.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/fuse/file.c~fuse-fix-max-i-o-size-calculation fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-fix-max-i-o-size-calculation
-+++ a/fs/fuse/file.c
-@@ -966,14 +966,15 @@ static ssize_t fuse_direct_io(struct fil
+diff -puN fs/fuse/dev.c~fuse-fix-sparse-warnings fs/fuse/dev.c
+--- a/fs/fuse/dev.c~fuse-fix-sparse-warnings
++++ a/fs/fuse/dev.c
+@@ -299,6 +299,7 @@ static void request_end(struct fuse_conn
  
- 	while (count) {
- 		size_t nres;
--		size_t nbytes = min(count, nmax);
--		int err = fuse_get_user_pages(req, buf, nbytes, !write);
-+		size_t nbytes_limit = min(count, nmax);
-+		size_t nbytes;
-+		int err = fuse_get_user_pages(req, buf, nbytes_limit, !write);
- 		if (err) {
- 			res = err;
- 			break;
- 		}
- 		nbytes = (req->num_pages << PAGE_SHIFT) - req->page_offset;
--		nbytes = min(count, nbytes);
-+		nbytes = min(nbytes_limit, nbytes);
- 		if (write)
- 			nres = fuse_send_write(req, file, inode, pos, nbytes,
- 					       current->files);
-diff -puN fs/fuse/inode.c~fuse-fix-max-i-o-size-calculation fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-fix-max-i-o-size-calculation
-+++ a/fs/fuse/inode.c
-@@ -584,6 +584,7 @@ static void process_init_reply(struct fu
- 		fc->bdi.ra_pages = min(fc->bdi.ra_pages, ra_pages);
- 		fc->minor = arg->minor;
- 		fc->max_write = arg->minor < 5 ? 4096 : arg->max_write;
-+		fc->max_write = min_t(unsigned, 4096, fc->max_write);
- 		fc->conn_init = 1;
- 	}
- 	fuse_put_request(fc, req);
-@@ -658,7 +659,7 @@ static int fuse_fill_super(struct super_
- 	fc->flags = d.flags;
- 	fc->user_id = d.user_id;
- 	fc->group_id = d.group_id;
--	fc->max_read = d.max_read;
-+	fc->max_read = min_t(unsigned, 4096, d.max_read);
+ static void wait_answer_interruptible(struct fuse_conn *fc,
+ 				      struct fuse_req *req)
++	__releases(fc->lock) __acquires(fc->lock)
+ {
+ 	if (signal_pending(current))
+ 		return;
+@@ -315,8 +316,8 @@ static void queue_interrupt(struct fuse_
+ 	kill_fasync(&fc->fasync, SIGIO, POLL_IN);
+ }
  
- 	/* Used by get_root_inode() */
- 	sb->s_fs_info = fc;
+-/* Called with fc->lock held.  Releases, and then reacquires it. */
+ static void request_wait_answer(struct fuse_conn *fc, struct fuse_req *req)
++	__releases(fc->lock) __acquires(fc->lock)
+ {
+ 	if (!fc->no_interrupt) {
+ 		/* Any signal may interrupt this */
+@@ -987,6 +988,7 @@ static void end_requests(struct fuse_con
+  * locked).
+  */
+ static void end_io_requests(struct fuse_conn *fc)
++	__releases(fc->lock) __acquires(fc->lock)
+ {
+ 	while (!list_empty(&fc->io)) {
+ 		struct fuse_req *req =
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
