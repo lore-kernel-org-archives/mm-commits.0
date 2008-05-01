@@ -1,104 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: - pty-prepare-for-tty-ops-changes.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:30:36 -0700
-Message-ID: <200805010930.m419UarE030780@imap1.linux-foundation.org>
+Subject: - synclink-series-switch-to-int-put_char-method.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:30:29 -0700
+Message-ID: <200805010930.m419UTlB030769@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33231 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757454AbYEAJa5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:30:57 -0400
+	by vger.kernel.org with ESMTP id S1757329AbYEAJa4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:30:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, hpa@zytor.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pty: prepare for tty->ops changes
+     synclink series: switch to int put_char method
 has been removed from the -mm tree.  Its filename was
-     pty-prepare-for-tty-ops-changes.patch
+     synclink-series-switch-to-int-put_char-method.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pty: prepare for tty->ops changes
+Subject: synclink series: switch to int put_char method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-We are about to change the tty layer to avoid keeping private copies of all
-the methods in each tty.  We have to update the pty layer first as it
-currently patches the ioctl method according to the tty type.  Use multiple
-tty operations sets instead.
-
 Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Paul Fulghum <paulkf@microgate.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/pty.c |   29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+ drivers/char/synclink.c    |   11 ++++++-----
+ drivers/char/synclink_gt.c |   14 +++++++++-----
+ drivers/char/synclinkmp.c  |   11 +++++++----
+ 3 files changed, 22 insertions(+), 14 deletions(-)
 
-diff -puN drivers/char/pty.c~pty-prepare-for-tty-ops-changes drivers/char/pty.c
---- a/drivers/char/pty.c~pty-prepare-for-tty-ops-changes
-+++ a/drivers/char/pty.c
-@@ -254,6 +254,18 @@ static int pty_bsd_ioctl(struct tty_stru
- static int legacy_count = CONFIG_LEGACY_PTY_COUNT;
- module_param(legacy_count, int, 0);
- 
-+static const struct tty_operations pty_ops_bsd = {
-+	.open = pty_open,
-+	.close = pty_close,
-+	.write = pty_write,
-+	.write_room = pty_write_room,
-+	.flush_buffer = pty_flush_buffer,
-+	.chars_in_buffer = pty_chars_in_buffer,
-+	.unthrottle = pty_unthrottle,
-+	.set_termios = pty_set_termios,
-+	.ioctl = pty_bsd_ioctl,
-+};
-+
- static void __init legacy_pty_init(void)
+diff -puN drivers/char/synclink.c~synclink-series-switch-to-int-put_char-method drivers/char/synclink.c
+--- a/drivers/char/synclink.c~synclink-series-switch-to-int-put_char-method
++++ a/drivers/char/synclink.c
+@@ -2026,10 +2026,11 @@ static void mgsl_change_params(struct mg
+  * 		
+  * Return Value:	None
+  */
+-static void mgsl_put_char(struct tty_struct *tty, unsigned char ch)
++static int mgsl_put_char(struct tty_struct *tty, unsigned char ch)
  {
- 	if (legacy_count <= 0)
-@@ -284,7 +296,6 @@ static void __init legacy_pty_init(void)
- 	pty_driver->flags = TTY_DRIVER_RESET_TERMIOS | TTY_DRIVER_REAL_RAW;
- 	pty_driver->other = pty_slave_driver;
- 	tty_set_operations(pty_driver, &pty_ops);
--	pty_driver->ioctl = pty_bsd_ioctl;
+ 	struct mgsl_struct *info = (struct mgsl_struct *)tty->driver_data;
+ 	unsigned long flags;
++	int ret;
  
- 	pty_slave_driver->owner = THIS_MODULE;
- 	pty_slave_driver->driver_name = "pty_slave";
-@@ -377,6 +388,19 @@ static int pty_unix98_ioctl(struct tty_s
- 	return -ENOIOCTLCMD;
+ 	if ( debug_level >= DEBUG_LEVEL_INFO ) {
+ 		printk( "%s(%d):mgsl_put_char(%d) on %s\n",
+@@ -2037,23 +2038,23 @@ static void mgsl_put_char(struct tty_str
+ 	}		
+ 	
+ 	if (mgsl_paranoia_check(info, tty->name, "mgsl_put_char"))
+-		return;
++		return 0;
+ 
+ 	if (!tty || !info->xmit_buf)
+-		return;
++		return 0;
+ 
+ 	spin_lock_irqsave(&info->irq_spinlock,flags);
+ 	
+ 	if ( (info->params.mode == MGSL_MODE_ASYNC ) || !info->tx_active ) {
+-	
+ 		if (info->xmit_cnt < SERIAL_XMIT_SIZE - 1) {
+ 			info->xmit_buf[info->xmit_head++] = ch;
+ 			info->xmit_head &= SERIAL_XMIT_SIZE-1;
+ 			info->xmit_cnt++;
++			ret = 1;
+ 		}
+ 	}
+-	
+ 	spin_unlock_irqrestore(&info->irq_spinlock,flags);
++	return ret;
+ 	
+ }	/* end of mgsl_put_char() */
+ 
+diff -puN drivers/char/synclink_gt.c~synclink-series-switch-to-int-put_char-method drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~synclink-series-switch-to-int-put_char-method
++++ a/drivers/char/synclink_gt.c
+@@ -151,7 +151,7 @@ static void hangup(struct tty_struct *tt
+ static void set_termios(struct tty_struct *tty, struct ktermios *old_termios);
+ 
+ static int  write(struct tty_struct *tty, const unsigned char *buf, int count);
+-static void put_char(struct tty_struct *tty, unsigned char ch);
++static int put_char(struct tty_struct *tty, unsigned char ch);
+ static void send_xchar(struct tty_struct *tty, char ch);
+ static void wait_until_sent(struct tty_struct *tty, int timeout);
+ static int  write_room(struct tty_struct *tty);
+@@ -912,20 +912,24 @@ cleanup:
+ 	return ret;
  }
  
-+static const struct tty_operations pty_unix98_ops = {
-+	.open = pty_open,
-+	.close = pty_close,
-+	.write = pty_write,
-+	.write_room = pty_write_room,
-+	.flush_buffer = pty_flush_buffer,
-+	.chars_in_buffer = pty_chars_in_buffer,
-+	.unthrottle = pty_unthrottle,
-+	.set_termios = pty_set_termios,
-+	.ioctl = pty_unix98_ioctl
-+};
-+
-+
- static void __init unix98_pty_init(void)
+-static void put_char(struct tty_struct *tty, unsigned char ch)
++static int put_char(struct tty_struct *tty, unsigned char ch)
  {
- 	ptm_driver = alloc_tty_driver(NR_UNIX98_PTY_MAX);
-@@ -403,8 +427,7 @@ static void __init unix98_pty_init(void)
- 	ptm_driver->flags = TTY_DRIVER_RESET_TERMIOS | TTY_DRIVER_REAL_RAW |
- 		TTY_DRIVER_DYNAMIC_DEV | TTY_DRIVER_DEVPTS_MEM;
- 	ptm_driver->other = pts_driver;
--	tty_set_operations(ptm_driver, &pty_ops);
--	ptm_driver->ioctl = pty_unix98_ioctl;
-+	tty_set_operations(ptm_driver, &pty_unix98_ops);
+ 	struct slgt_info *info = tty->driver_data;
+ 	unsigned long flags;
++	int ret;
  
- 	pts_driver->owner = THIS_MODULE;
- 	pts_driver->driver_name = "pty_slave";
+ 	if (sanity_check(info, tty->name, "put_char"))
+-		return;
++		return 0;
+ 	DBGINFO(("%s put_char(%d)\n", info->device_name, ch));
+ 	if (!info->tx_buf)
+-		return;
++		return 0;
+ 	spin_lock_irqsave(&info->lock,flags);
+-	if (!info->tx_active && (info->tx_count < info->max_frame_size))
++	if (!info->tx_active && (info->tx_count < info->max_frame_size)) {
+ 		info->tx_buf[info->tx_count++] = ch;
++		ret = 1;
++	}
+ 	spin_unlock_irqrestore(&info->lock,flags);
++	return ret;
+ }
+ 
+ static void send_xchar(struct tty_struct *tty, char ch)
+diff -puN drivers/char/synclinkmp.c~synclink-series-switch-to-int-put_char-method drivers/char/synclinkmp.c
+--- a/drivers/char/synclinkmp.c~synclink-series-switch-to-int-put_char-method
++++ a/drivers/char/synclinkmp.c
+@@ -519,7 +519,7 @@ static void hangup(struct tty_struct *tt
+ static void set_termios(struct tty_struct *tty, struct ktermios *old_termios);
+ 
+ static int  write(struct tty_struct *tty, const unsigned char *buf, int count);
+-static void put_char(struct tty_struct *tty, unsigned char ch);
++static int put_char(struct tty_struct *tty, unsigned char ch);
+ static void send_xchar(struct tty_struct *tty, char ch);
+ static void wait_until_sent(struct tty_struct *tty, int timeout);
+ static int  write_room(struct tty_struct *tty);
+@@ -1045,10 +1045,11 @@ cleanup:
+ 
+ /* Add a character to the transmit buffer.
+  */
+-static void put_char(struct tty_struct *tty, unsigned char ch)
++static int put_char(struct tty_struct *tty, unsigned char ch)
+ {
+ 	SLMP_INFO *info = (SLMP_INFO *)tty->driver_data;
+ 	unsigned long flags;
++	int ret = 0;
+ 
+ 	if ( debug_level >= DEBUG_LEVEL_INFO ) {
+ 		printk( "%s(%d):%s put_char(%d)\n",
+@@ -1056,10 +1057,10 @@ static void put_char(struct tty_struct *
+ 	}
+ 
+ 	if (sanity_check(info, tty->name, "put_char"))
+-		return;
++		return 0;
+ 
+ 	if (!info->tx_buf)
+-		return;
++		return 0;
+ 
+ 	spin_lock_irqsave(&info->lock,flags);
+ 
+@@ -1071,10 +1072,12 @@ static void put_char(struct tty_struct *
+ 			if (info->tx_put >= info->max_frame_size)
+ 				info->tx_put -= info->max_frame_size;
+ 			info->tx_count++;
++			ret = 1;
+ 		}
+ 	}
+ 
+ 	spin_unlock_irqrestore(&info->lock,flags);
++	return ret;
+ }
+ 
+ /* Send a high-priority XON/XOFF character
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
