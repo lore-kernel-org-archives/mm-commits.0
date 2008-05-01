@@ -1,177 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: - signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:26:07 -0700
-Message-ID: <200805010926.m419Q7FR030276@imap1.linux-foundation.org>
+Subject: - signals-use-have_set_restore_sigmask.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:27:24 -0700
+Message-ID: <200805010927.m419ROwE030414@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43190 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758286AbYEAJqb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:46:31 -0400
+	by vger.kernel.org with ESMTP id S1758779AbYEAJqn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:46:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xemul@openvz.org, oleg@tv-sign.ru, roland@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: roland@redhat.com, heiko.carstens@de.ibm.com, mingo@elte.hu, oleg@tv-sign.ru, schwidefsky@de.ibm.com, tglx@linutronix.de, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     signals: consolidate send_sigqueue and send_group_sigqueue
+     signals: use HAVE_SET_RESTORE_SIGMASK
 has been removed from the -mm tree.  Its filename was
-     signals-consolidate-send_sigqueue-and-send_group_sigqueue.patch
+     signals-use-have_set_restore_sigmask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: signals: consolidate send_sigqueue and send_group_sigqueue
-From: Pavel Emelyanov <xemul@openvz.org>
+Subject: signals: use HAVE_SET_RESTORE_SIGMASK
+From: Roland McGrath <roland@redhat.com>
 
-Both functions do the same thing after proper locking, but with different
-sigpening structs, so move the common code into a helper.
+Change all the #ifdef TIF_RESTORE_SIGMASK conditionals in non-arch code to
+#ifdef HAVE_SET_RESTORE_SIGMASK.  If arch code defines it first, the generic
+set_restore_sigmask() using TIF_RESTORE_SIGMASK is not defined.
 
-After this we have 4 places that look very similar: send_sigqueue: calls
-do_send_sigqueue and signal_wakeup send_group_sigqueue: calls do_send_sigqueue
-and __group_complete_signal __group_send_sig_info: calls send_signal and
-__group_complete_signal specific_send_sig_info: calls send_signal and
-signal_wakeup
-
-Besides, send_signal performs actions similar to do_send_sigqueue's
-and __group_complete_signal - to signal_wakeup.
-
-It looks like they can be consolidated gracefully.
-
-Oleg said:
-
-  Personally, I think this change is very good.  But send_sigqueue() and
-  send_group_sigqueue() have a very subtle difference which I was never able
-  to understand.
-
-  Let's suppose that sigqueue is already queued, and the signal is ignored
-  (the latter means we should re-schedule cpu timer or handle overrruns).  In
-  that case send_sigqueue() returns 0, but send_group_sigqueue() returns 1.
-
-  I think this is not the problem (in fact, I think this patch makes the
-  behaviour more correct), but I hope Thomas can take a look and confirm.
-
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Signed-off-by: Roland McGrath <roland@redhat.com>
 Cc: Oleg Nesterov <oleg@tv-sign.ru>
-Cc: Roland McGrath <roland@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |   86 +++++++++++++++-------------------------------
- 1 file changed, 29 insertions(+), 57 deletions(-)
+ fs/compat.c                 |    8 ++++----
+ fs/eventpoll.c              |    4 ++--
+ fs/select.c                 |    8 ++++----
+ include/linux/sched.h       |    2 +-
+ include/linux/thread_info.h |   10 ++++++++--
+ 5 files changed, 19 insertions(+), 13 deletions(-)
 
-diff -puN kernel/signal.c~signals-consolidate-send_sigqueue-and-send_group_sigqueue kernel/signal.c
---- a/kernel/signal.c~signals-consolidate-send_sigqueue-and-send_group_sigqueue
-+++ a/kernel/signal.c
-@@ -1290,10 +1290,33 @@ void sigqueue_free(struct sigqueue *q)
- 	__sigqueue_free(q);
+diff -puN fs/compat.c~signals-use-have_set_restore_sigmask fs/compat.c
+--- a/fs/compat.c~signals-use-have_set_restore_sigmask
++++ a/fs/compat.c
+@@ -1634,7 +1634,7 @@ sticky:
+ 	return ret;
  }
  
-+static int do_send_sigqueue(int sig, struct sigqueue *q, struct task_struct *t,
-+		struct sigpending *pending)
-+{
-+	if (unlikely(!list_empty(&q->list))) {
-+		/*
-+		 * If an SI_TIMER entry is already queue just increment
-+		 * the overrun count.
-+		 */
-+
-+		BUG_ON(q->info.si_code != SI_TIMER);
-+		q->info.si_overrun++;
-+		return 0;
-+	}
-+
-+	if (sig_ignored(t, sig))
-+		return 1;
-+
-+	signalfd_notify(t, sig);
-+	list_add_tail(&q->list, &pending->list);
-+	sigaddset(&pending->signal, sig);
-+	return 0;
-+}
-+
- int send_sigqueue(int sig, struct sigqueue *q, struct task_struct *p)
+-#ifdef TIF_RESTORE_SIGMASK
++#ifdef HAVE_SET_RESTORE_SIGMASK
+ asmlinkage long compat_sys_pselect7(int n, compat_ulong_t __user *inp,
+ 	compat_ulong_t __user *outp, compat_ulong_t __user *exp,
+ 	struct compat_timespec __user *tsp, compat_sigset_t __user *sigmask,
+@@ -1825,7 +1825,7 @@ sticky:
+ 
+ 	return ret;
+ }
+-#endif /* TIF_RESTORE_SIGMASK */
++#endif /* HAVE_SET_RESTORE_SIGMASK */
+ 
+ #if defined(CONFIG_NFSD) || defined(CONFIG_NFSD_MODULE)
+ /* Stuff for NFS server syscalls... */
+@@ -2080,7 +2080,7 @@ long asmlinkage compat_sys_nfsservctl(in
+ 
+ #ifdef CONFIG_EPOLL
+ 
+-#ifdef TIF_RESTORE_SIGMASK
++#ifdef HAVE_SET_RESTORE_SIGMASK
+ asmlinkage long compat_sys_epoll_pwait(int epfd,
+ 			struct compat_epoll_event __user *events,
+ 			int maxevents, int timeout,
+@@ -2124,7 +2124,7 @@ asmlinkage long compat_sys_epoll_pwait(i
+ 
+ 	return err;
+ }
+-#endif /* TIF_RESTORE_SIGMASK */
++#endif /* HAVE_SET_RESTORE_SIGMASK */
+ 
+ #endif /* CONFIG_EPOLL */
+ 
+diff -puN fs/eventpoll.c~signals-use-have_set_restore_sigmask fs/eventpoll.c
+--- a/fs/eventpoll.c~signals-use-have_set_restore_sigmask
++++ a/fs/eventpoll.c
+@@ -1241,7 +1241,7 @@ error_return:
+ 	return error;
+ }
+ 
+-#ifdef TIF_RESTORE_SIGMASK
++#ifdef HAVE_SET_RESTORE_SIGMASK
+ 
+ /*
+  * Implement the event wait interface for the eventpoll file. It is the kernel
+@@ -1287,7 +1287,7 @@ asmlinkage long sys_epoll_pwait(int epfd
+ 	return error;
+ }
+ 
+-#endif /* #ifdef TIF_RESTORE_SIGMASK */
++#endif /* HAVE_SET_RESTORE_SIGMASK */
+ 
+ static int __init eventpoll_init(void)
  {
- 	unsigned long flags;
--	int ret = 0;
-+	int ret = -1;
+diff -puN fs/select.c~signals-use-have_set_restore_sigmask fs/select.c
+--- a/fs/select.c~signals-use-have_set_restore_sigmask
++++ a/fs/select.c
+@@ -425,7 +425,7 @@ sticky:
+ 	return ret;
+ }
  
- 	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
+-#ifdef TIF_RESTORE_SIGMASK
++#ifdef HAVE_SET_RESTORE_SIGMASK
+ asmlinkage long sys_pselect7(int n, fd_set __user *inp, fd_set __user *outp,
+ 		fd_set __user *exp, struct timespec __user *tsp,
+ 		const sigset_t __user *sigmask, size_t sigsetsize)
+@@ -528,7 +528,7 @@ asmlinkage long sys_pselect6(int n, fd_s
  
-@@ -1307,37 +1330,14 @@ int send_sigqueue(int sig, struct sigque
- 	 */
- 	rcu_read_lock();
+ 	return sys_pselect7(n, inp, outp, exp, tsp, up, sigsetsize);
+ }
+-#endif /* TIF_RESTORE_SIGMASK */
++#endif /* HAVE_SET_RESTORE_SIGMASK */
  
--	if (!likely(lock_task_sighand(p, &flags))) {
--		ret = -1;
-+	if (!likely(lock_task_sighand(p, &flags)))
- 		goto out_err;
--	}
+ struct poll_list {
+ 	struct poll_list *next;
+@@ -759,7 +759,7 @@ asmlinkage long sys_poll(struct pollfd _
+ 	return ret;
+ }
  
--	if (unlikely(!list_empty(&q->list))) {
--		/*
--		 * If an SI_TIMER entry is already queue just increment
--		 * the overrun count.
--		 */
--		BUG_ON(q->info.si_code != SI_TIMER);
--		q->info.si_overrun++;
--		goto out;
--	}
--	/* Short-circuit ignored signals.  */
--	if (sig_ignored(p, sig)) {
--		ret = 1;
--		goto out;
--	}
--	/*
--	 * Deliver the signal to listening signalfds. This must be called
--	 * with the sighand lock held.
--	 */
--	signalfd_notify(p, sig);
-+	ret = do_send_sigqueue(sig, q, p, &p->pending);
+-#ifdef TIF_RESTORE_SIGMASK
++#ifdef HAVE_SET_RESTORE_SIGMASK
+ asmlinkage long sys_ppoll(struct pollfd __user *ufds, unsigned int nfds,
+ 	struct timespec __user *tsp, const sigset_t __user *sigmask,
+ 	size_t sigsetsize)
+@@ -839,4 +839,4 @@ asmlinkage long sys_ppoll(struct pollfd 
  
--	list_add_tail(&q->list, &p->pending.list);
--	sigaddset(&p->pending.signal, sig);
- 	if (!sigismember(&p->blocked, sig))
- 		signal_wake_up(p, sig == SIGKILL);
+ 	return ret;
+ }
+-#endif /* TIF_RESTORE_SIGMASK */
++#endif /* HAVE_SET_RESTORE_SIGMASK */
+diff -puN include/linux/sched.h~signals-use-have_set_restore_sigmask include/linux/sched.h
+--- a/include/linux/sched.h~signals-use-have_set_restore_sigmask
++++ a/include/linux/sched.h
+@@ -1175,7 +1175,7 @@ struct task_struct {
+ 	struct sighand_struct *sighand;
  
--out:
- 	unlock_task_sighand(p, &flags);
- out_err:
- 	rcu_read_unlock();
-@@ -1349,7 +1349,7 @@ int
- send_group_sigqueue(int sig, struct sigqueue *q, struct task_struct *p)
- {
- 	unsigned long flags;
--	int ret = 0;
-+	int ret;
+ 	sigset_t blocked, real_blocked;
+-	sigset_t saved_sigmask;		/* To be restored with TIF_RESTORE_SIGMASK */
++	sigset_t saved_sigmask;	/* restored if set_restore_sigmask() was used */
+ 	struct sigpending pending;
  
- 	BUG_ON(!(q->flags & SIGQUEUE_PREALLOC));
+ 	unsigned long sas_ss_sp;
+diff -puN include/linux/thread_info.h~signals-use-have_set_restore_sigmask include/linux/thread_info.h
+--- a/include/linux/thread_info.h~signals-use-have_set_restore_sigmask
++++ a/include/linux/thread_info.h
+@@ -92,7 +92,13 @@ static inline int test_ti_thread_flag(st
+ #define set_need_resched()	set_thread_flag(TIF_NEED_RESCHED)
+ #define clear_need_resched()	clear_thread_flag(TIF_NEED_RESCHED)
  
-@@ -1358,38 +1358,10 @@ send_group_sigqueue(int sig, struct sigq
- 	spin_lock_irqsave(&p->sighand->siglock, flags);
- 	handle_stop_signal(sig, p);
+-#ifdef TIF_RESTORE_SIGMASK
++#if defined TIF_RESTORE_SIGMASK && !defined HAVE_SET_RESTORE_SIGMASK
++/*
++ * An arch can define its own version of set_restore_sigmask() to get the
++ * job done however works, with or without TIF_RESTORE_SIGMASK.
++ */
++#define HAVE_SET_RESTORE_SIGMASK	1
++
+ /**
+  * set_restore_sigmask() - make sure saved_sigmask processing gets done
+  *
+@@ -109,7 +115,7 @@ static inline void set_restore_sigmask(v
+ 	set_thread_flag(TIF_RESTORE_SIGMASK);
+ 	set_thread_flag(TIF_SIGPENDING);
+ }
+-#endif	/* TIF_RESTORE_SIGMASK */
++#endif	/* TIF_RESTORE_SIGMASK && !HAVE_SET_RESTORE_SIGMASK */
  
--	/* Short-circuit ignored signals.  */
--	if (sig_ignored(p, sig)) {
--		ret = 1;
--		goto out;
--	}
--
--	if (unlikely(!list_empty(&q->list))) {
--		/*
--		 * If an SI_TIMER entry is already queue just increment
--		 * the overrun count.  Other uses should not try to
--		 * send the signal multiple times.
--		 */
--		BUG_ON(q->info.si_code != SI_TIMER);
--		q->info.si_overrun++;
--		goto out;
--	} 
--	/*
--	 * Deliver the signal to listening signalfds. This must be called
--	 * with the sighand lock held.
--	 */
--	signalfd_notify(p, sig);
+ #endif	/* __KERNEL__ */
+ 
+_
+
+Patches currently in -mm which might be from roland@redhat.com are
+
+origin.patch
+posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
+
