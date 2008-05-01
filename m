@@ -1,382 +1,892 @@
 From: akpm@linux-foundation.org
-Subject: - mm-bdi-export-bdi-attributes-in-sysfs.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:31:38 -0700
-Message-ID: <200805010931.m419Vcu6030890@imap1.linux-foundation.org>
+Subject: - fuse-support-writable-mmap.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:32:02 -0700
+Message-ID: <200805010932.m419W2x1030930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57264 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48491 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757994AbYEAJby (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:54 -0400
+	by vger.kernel.org with ESMTP id S1757714AbYEAJcK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:32:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.p.zijlstra@chello.nl, greg@kroah.com, kay.sievers@vrfy.org, mszeredi@suse.cz, trond.myklebust@fys.uio.no, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, a.p.zijlstra@chello.nl, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: bdi: export BDI attributes in sysfs
+     fuse: support writable mmap
 has been removed from the -mm tree.  Its filename was
-     mm-bdi-export-bdi-attributes-in-sysfs.patch
+     fuse-support-writable-mmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: bdi: export BDI attributes in sysfs
-From: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Subject: fuse: support writable mmap
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-Provide a place in sysfs (/sys/class/bdi) for the backing_dev_info object. 
-This allows us to see and set the various BDI specific variables.
+Quoting Linus (3 years ago, FUSE inclusion discussions):
 
-In particular this properly exposes the read-ahead window for all relevant
-users and /sys/block/<block>/queue/read_ahead_kb should be deprecated.
+  "User-space filesystems are hard to get right. I'd claim that they
+   are almost impossible, unless you limit them somehow (shared
+   writable mappings are the nastiest part - if you don't have those,
+   you can reasonably limit your problems by limiting the number of
+   dirty pages you accept through normal "write()" calls)."
 
-With patient help from Kay Sievers and Greg KH
+Instead of attempting the impossible, I've just waited for the dirty page
+accounting infrastructure to materialize (thanks to Peter Zijlstra and
+others).  This nicely solved the biggest problem: limiting the number of pages
+used for write caching.
 
-[mszeredi@suse.cz]
+Some small details remained, however, which this largish patch attempts to
+address.  It provides a page writeback implementation for fuse, which is
+completely safe against VM related deadlocks.  Performance may not be very
+good for certain usage patterns, but generally it should be acceptable.
 
- - split off NFS and FUSE changes into separate patches
- - document new sysfs attributes under Documentation/ABI
- - do bdi_class_init as a core_initcall, otherwise the "default" BDI
-   won't be initialized
- - remove bdi_init_fmt macro, it's not used very much
+It has been tested extensively with fsx-linux and bash-shared-mapping.
 
-[akpm@linux-foundation.org: fix ia64 warning]
-Signed-off-by: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Acked-by: Greg KH <greg@kroah.com>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
+Fuse page writeback design
+--------------------------
+
+fuse_writepage() allocates a new temporary page with GFP_NOFS|__GFP_HIGHMEM. 
+It copies the contents of the original page, and queues a WRITE request to the
+userspace filesystem using this temp page.
+
+The writeback is finished instantly from the MM's point of view: the page is
+removed from the radix trees, and the PageDirty and PageWriteback flags are
+cleared.
+
+For the duration of the actual write, the NR_WRITEBACK_TEMP counter is
+incremented.  The per-bdi writeback count is not decremented until the actual
+write completes.
+
+On dirtying the page, fuse waits for a previous write to finish before
+proceeding.  This makes sure, there can only be one temporary page used at a
+time for one cached page.
+
+This approach is wasteful in both memory and CPU bandwidth, so why is this
+complication needed?
+
+The basic problem is that there can be no guarantee about the time in which
+the userspace filesystem will complete a write.  It may be buggy or even
+malicious, and fail to complete WRITE requests.  We don't want unrelated parts
+of the system to grind to a halt in such cases.
+
+Also a filesystem may need additional resources (particularly memory) to
+complete a WRITE request.  There's a great danger of a deadlock if that
+allocation may wait for the writepage to finish.
+
+Currently there are several cases where the kernel can block on page
+writeback:
+
+  - allocation order is larger than PAGE_ALLOC_COSTLY_ORDER
+  - page migration
+  - throttle_vm_writeout (through NR_WRITEBACK)
+  - sync(2)
+
+Of course in some cases (fsync, msync) we explicitly want to allow blocking. 
+So for these cases new code has to be added to fuse, since the VM is not
+tracking writeback pages for us any more.
+
+As an extra safetly measure, the maximum dirty ratio allocated to a single
+fuse filesystem is set to 1% by default.  This way one (or several) buggy or
+malicious fuse filesystems cannot slow down the rest of the system by hogging
+dirty memory.
+
+With appropriate privileges, this limit can be raised through
+'/sys/class/bdi/<bdi>/max_ratio'.
+
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-class-bdi |   46 +++++++
- block/genhd.c                             |    8 +
- include/linux/backing-dev.h               |    9 +
- include/linux/writeback.h                 |    3 
- lib/percpu_counter.c                      |    1 
- mm/backing-dev.c                          |  119 ++++++++++++++++++++
- mm/page-writeback.c                       |    2 
- mm/readahead.c                            |    8 +
- 8 files changed, 194 insertions(+), 2 deletions(-)
+ fs/fuse/dev.c    |   19 ++
+ fs/fuse/dir.c    |   84 +++++++++++
+ fs/fuse/file.c   |  321 ++++++++++++++++++++++++++++++++++++++++++---
+ fs/fuse/fuse_i.h |   37 +++++
+ fs/fuse/inode.c  |   49 +++++-
+ 5 files changed, 481 insertions(+), 29 deletions(-)
 
-diff -puN /dev/null Documentation/ABI/testing/sysfs-class-bdi
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-class-bdi
-@@ -0,0 +1,46 @@
-+What:		/sys/class/bdi/<bdi>/
-+Date:		January 2008
-+Contact:	Peter Zijlstra <a.p.zijlstra@chello.nl>
-+Description:
-+
-+Provide a place in sysfs for the backing_dev_info object.
-+This allows us to see and set the various BDI specific variables.
-+
-+The <bdi> identifier can be either of the following:
-+
-+MAJOR:MINOR
-+
-+	Device number for block devices, or value of st_dev on
-+	non-block filesystems which provide their own BDI, such as NFS
-+	and FUSE.
-+
-+default
-+
-+	The default backing dev, used for non-block device backed
-+	filesystems which do not provide their own BDI.
-+
-+Files under /sys/class/bdi/<bdi>/
-+---------------------------------
-+
-+read_ahead_kb (read-write)
-+
-+	Size of the read-ahead window in kilobytes
-+
-+reclaimable_kb (read-only)
-+
-+	Reclaimable (dirty or unstable) memory destined for writeback
-+	to this device
-+
-+writeback_kb (read-only)
-+
-+	Memory currently under writeback to this device
-+
-+dirty_kb (read-only)
-+
-+	Global threshold for reclaimable + writeback memory
-+
-+bdi_dirty_kb (read-only)
-+
-+	Current threshold on this BDI for reclaimable + writeback
-+	memory
-+
-diff -puN block/genhd.c~mm-bdi-export-bdi-attributes-in-sysfs block/genhd.c
---- a/block/genhd.c~mm-bdi-export-bdi-attributes-in-sysfs
-+++ a/block/genhd.c
-@@ -182,11 +182,17 @@ static int exact_lock(dev_t devt, void *
-  */
- void add_disk(struct gendisk *disk)
- {
-+	struct backing_dev_info *bdi;
-+
- 	disk->flags |= GENHD_FL_UP;
- 	blk_register_region(MKDEV(disk->major, disk->first_minor),
- 			    disk->minors, NULL, exact_match, exact_lock, disk);
- 	register_disk(disk);
- 	blk_register_queue(disk);
-+
-+	bdi = &disk->queue->backing_dev_info;
-+	bdi_register_dev(bdi, MKDEV(disk->major, disk->first_minor));
-+	sysfs_create_link(&disk->dev.kobj, &bdi->dev->kobj, "bdi");
+diff -puN fs/fuse/dev.c~fuse-support-writable-mmap fs/fuse/dev.c
+--- a/fs/fuse/dev.c~fuse-support-writable-mmap
++++ a/fs/fuse/dev.c
+@@ -47,6 +47,14 @@ struct fuse_req *fuse_request_alloc(void
+ 	return req;
  }
  
- EXPORT_SYMBOL(add_disk);
-@@ -194,6 +200,8 @@ EXPORT_SYMBOL(del_gendisk);	/* in partit
- 
- void unlink_gendisk(struct gendisk *disk)
++struct fuse_req *fuse_request_alloc_nofs(void)
++{
++	struct fuse_req *req = kmem_cache_alloc(fuse_req_cachep, GFP_NOFS);
++	if (req)
++		fuse_request_init(req);
++	return req;
++}
++
+ void fuse_request_free(struct fuse_req *req)
  {
-+	sysfs_remove_link(&disk->dev.kobj, "bdi");
-+	bdi_unregister(&disk->queue->backing_dev_info);
- 	blk_unregister_queue(disk);
- 	blk_unregister_region(MKDEV(disk->major, disk->first_minor),
- 			      disk->minors);
-diff -puN include/linux/backing-dev.h~mm-bdi-export-bdi-attributes-in-sysfs include/linux/backing-dev.h
---- a/include/linux/backing-dev.h~mm-bdi-export-bdi-attributes-in-sysfs
-+++ a/include/linux/backing-dev.h
-@@ -11,9 +11,11 @@
- #include <linux/percpu_counter.h>
- #include <linux/log2.h>
- #include <linux/proportions.h>
-+#include <linux/kernel.h>
- #include <asm/atomic.h>
- 
- struct page;
-+struct device;
+ 	kmem_cache_free(fuse_req_cachep, req);
+@@ -430,6 +438,17 @@ void request_send_background(struct fuse
+ }
  
  /*
-  * Bits in backing_dev_info.state
-@@ -48,11 +50,18 @@ struct backing_dev_info {
- 
- 	struct prop_local_percpu completions;
- 	int dirty_exceeded;
-+
-+	struct device *dev;
- };
- 
- int bdi_init(struct backing_dev_info *bdi);
- void bdi_destroy(struct backing_dev_info *bdi);
- 
-+int bdi_register(struct backing_dev_info *bdi, struct device *parent,
-+		const char *fmt, ...);
-+int bdi_register_dev(struct backing_dev_info *bdi, dev_t dev);
-+void bdi_unregister(struct backing_dev_info *bdi);
-+
- static inline void __add_bdi_stat(struct backing_dev_info *bdi,
- 		enum bdi_stat_item item, s64 amount)
- {
-diff -puN include/linux/writeback.h~mm-bdi-export-bdi-attributes-in-sysfs include/linux/writeback.h
---- a/include/linux/writeback.h~mm-bdi-export-bdi-attributes-in-sysfs
-+++ a/include/linux/writeback.h
-@@ -114,6 +114,9 @@ struct file;
- int dirty_writeback_centisecs_handler(struct ctl_table *, int, struct file *,
- 				      void __user *, size_t *, loff_t *);
- 
-+void get_dirty_limits(long *pbackground, long *pdirty, long *pbdi_dirty,
-+		 struct backing_dev_info *bdi);
-+
- void page_writeback_init(void);
- void balance_dirty_pages_ratelimited_nr(struct address_space *mapping,
- 					unsigned long nr_pages_dirtied);
-diff -puN lib/percpu_counter.c~mm-bdi-export-bdi-attributes-in-sysfs lib/percpu_counter.c
---- a/lib/percpu_counter.c~mm-bdi-export-bdi-attributes-in-sysfs
-+++ a/lib/percpu_counter.c
-@@ -102,6 +102,7 @@ void percpu_counter_destroy(struct percp
- 		return;
- 
- 	free_percpu(fbc->counters);
-+	fbc->counters = NULL;
- #ifdef CONFIG_HOTPLUG_CPU
- 	mutex_lock(&percpu_counters_lock);
- 	list_del(&fbc->list);
-diff -puN mm/backing-dev.c~mm-bdi-export-bdi-attributes-in-sysfs mm/backing-dev.c
---- a/mm/backing-dev.c~mm-bdi-export-bdi-attributes-in-sysfs
-+++ a/mm/backing-dev.c
-@@ -4,12 +4,129 @@
- #include <linux/fs.h>
- #include <linux/sched.h>
- #include <linux/module.h>
-+#include <linux/writeback.h>
-+#include <linux/device.h>
-+
-+
-+static struct class *bdi_class;
-+
-+static ssize_t read_ahead_kb_store(struct device *dev,
-+				  struct device_attribute *attr,
-+				  const char *buf, size_t count)
++ * Called under fc->lock
++ *
++ * fc->connected must have been checked previously
++ */
++void request_send_background_locked(struct fuse_conn *fc, struct fuse_req *req)
 +{
-+	struct backing_dev_info *bdi = dev_get_drvdata(dev);
-+	char *end;
-+	unsigned long read_ahead_kb;
-+	ssize_t ret = -EINVAL;
-+
-+	read_ahead_kb = simple_strtoul(buf, &end, 10);
-+	if (*buf && (end[0] == '\0' || (end[0] == '\n' && end[1] == '\0'))) {
-+		bdi->ra_pages = read_ahead_kb >> (PAGE_SHIFT - 10);
-+		ret = count;
-+	}
-+	return ret;
++	req->isreply = 1;
++	request_send_nowait_locked(fc, req);
 +}
 +
-+#define K(pages) ((pages) << (PAGE_SHIFT - 10))
-+
-+#define BDI_SHOW(name, expr)						\
-+static ssize_t name##_show(struct device *dev,				\
-+			   struct device_attribute *attr, char *page)	\
-+{									\
-+	struct backing_dev_info *bdi = dev_get_drvdata(dev);		\
-+									\
-+	return snprintf(page, PAGE_SIZE-1, "%lld\n", (long long)expr);	\
-+}
-+
-+BDI_SHOW(read_ahead_kb, K(bdi->ra_pages))
-+
-+BDI_SHOW(reclaimable_kb, K(bdi_stat(bdi, BDI_RECLAIMABLE)))
-+BDI_SHOW(writeback_kb, K(bdi_stat(bdi, BDI_WRITEBACK)))
-+
-+static inline unsigned long get_dirty(struct backing_dev_info *bdi, int i)
-+{
-+	unsigned long thresh[3];
-+
-+	get_dirty_limits(&thresh[0], &thresh[1], &thresh[2], bdi);
-+
-+	return thresh[i];
-+}
-+
-+BDI_SHOW(dirty_kb, K(get_dirty(bdi, 1)))
-+BDI_SHOW(bdi_dirty_kb, K(get_dirty(bdi, 2)))
-+
-+#define __ATTR_RW(attr) __ATTR(attr, 0644, attr##_show, attr##_store)
-+
-+static struct device_attribute bdi_dev_attrs[] = {
-+	__ATTR_RW(read_ahead_kb),
-+	__ATTR_RO(reclaimable_kb),
-+	__ATTR_RO(writeback_kb),
-+	__ATTR_RO(dirty_kb),
-+	__ATTR_RO(bdi_dirty_kb),
-+	__ATTR_NULL,
-+};
-+
-+static __init int bdi_class_init(void)
-+{
-+	bdi_class = class_create(THIS_MODULE, "bdi");
-+	bdi_class->dev_attrs = bdi_dev_attrs;
-+	return 0;
-+}
-+
-+core_initcall(bdi_class_init);
-+
-+int bdi_register(struct backing_dev_info *bdi, struct device *parent,
-+		const char *fmt, ...)
-+{
-+	char *name;
-+	va_list args;
-+	int ret = 0;
-+	struct device *dev;
-+
-+	va_start(args, fmt);
-+	name = kvasprintf(GFP_KERNEL, fmt, args);
-+	va_end(args);
-+
-+	if (!name)
-+		return -ENOMEM;
-+
-+	dev = device_create(bdi_class, parent, MKDEV(0, 0), name);
-+	if (IS_ERR(dev)) {
-+		ret = PTR_ERR(dev);
-+		goto exit;
-+	}
-+
-+	bdi->dev = dev;
-+	dev_set_drvdata(bdi->dev, bdi);
-+
-+exit:
-+	kfree(name);
-+	return ret;
-+}
-+EXPORT_SYMBOL(bdi_register);
-+
-+int bdi_register_dev(struct backing_dev_info *bdi, dev_t dev)
-+{
-+	return bdi_register(bdi, NULL, "%u:%u", MAJOR(dev), MINOR(dev));
-+}
-+EXPORT_SYMBOL(bdi_register_dev);
-+
-+void bdi_unregister(struct backing_dev_info *bdi)
-+{
-+	if (bdi->dev) {
-+		device_unregister(bdi->dev);
-+		bdi->dev = NULL;
-+	}
-+}
-+EXPORT_SYMBOL(bdi_unregister);
- 
- int bdi_init(struct backing_dev_info *bdi)
- {
- 	int i;
- 	int err;
- 
-+	bdi->dev = NULL;
-+
- 	for (i = 0; i < NR_BDI_STAT_ITEMS; i++) {
- 		err = percpu_counter_init_irq(&bdi->bdi_stat[i], 0);
- 		if (err)
-@@ -33,6 +150,8 @@ void bdi_destroy(struct backing_dev_info
- {
- 	int i;
- 
-+	bdi_unregister(bdi);
-+
- 	for (i = 0; i < NR_BDI_STAT_ITEMS; i++)
- 		percpu_counter_destroy(&bdi->bdi_stat[i]);
- 
-diff -puN mm/page-writeback.c~mm-bdi-export-bdi-attributes-in-sysfs mm/page-writeback.c
---- a/mm/page-writeback.c~mm-bdi-export-bdi-attributes-in-sysfs
-+++ a/mm/page-writeback.c
-@@ -300,7 +300,7 @@ static unsigned long determine_dirtyable
- 	return x + 1;	/* Ensure that we never return 0 */
++/*
+  * Lock the request.  Up to the next unlock_request() there mustn't be
+  * anything that could cause a page-fault.  If the request was already
+  * aborted bail out.
+diff -puN fs/fuse/dir.c~fuse-support-writable-mmap fs/fuse/dir.c
+--- a/fs/fuse/dir.c~fuse-support-writable-mmap
++++ a/fs/fuse/dir.c
+@@ -1107,6 +1107,50 @@ static void iattr_to_fattr(struct iattr 
  }
  
--static void
-+void
- get_dirty_limits(long *pbackground, long *pdirty, long *pbdi_dirty,
- 		 struct backing_dev_info *bdi)
- {
-diff -puN mm/readahead.c~mm-bdi-export-bdi-attributes-in-sysfs mm/readahead.c
---- a/mm/readahead.c~mm-bdi-export-bdi-attributes-in-sysfs
-+++ a/mm/readahead.c
-@@ -235,7 +235,13 @@ unsigned long max_sane_readahead(unsigne
- 
- static int __init readahead_init(void)
- {
--	return bdi_init(&default_backing_dev_info);
-+	int err;
+ /*
++ * Prevent concurrent writepages on inode
++ *
++ * This is done by adding a negative bias to the inode write counter
++ * and waiting for all pending writes to finish.
++ */
++void fuse_set_nowrite(struct inode *inode)
++{
++	struct fuse_conn *fc = get_fuse_conn(inode);
++	struct fuse_inode *fi = get_fuse_inode(inode);
 +
-+	err = bdi_init(&default_backing_dev_info);
-+	if (!err)
-+		bdi_register(&default_backing_dev_info, NULL, "default");
++	BUG_ON(!mutex_is_locked(&inode->i_mutex));
++
++	spin_lock(&fc->lock);
++	BUG_ON(fi->writectr < 0);
++	fi->writectr += FUSE_NOWRITE;
++	spin_unlock(&fc->lock);
++	wait_event(fi->page_waitq, fi->writectr == FUSE_NOWRITE);
++}
++
++/*
++ * Allow writepages on inode
++ *
++ * Remove the bias from the writecounter and send any queued
++ * writepages.
++ */
++static void __fuse_release_nowrite(struct inode *inode)
++{
++	struct fuse_inode *fi = get_fuse_inode(inode);
++
++	BUG_ON(fi->writectr != FUSE_NOWRITE);
++	fi->writectr = 0;
++	fuse_flush_writepages(inode);
++}
++
++void fuse_release_nowrite(struct inode *inode)
++{
++	struct fuse_conn *fc = get_fuse_conn(inode);
++
++	spin_lock(&fc->lock);
++	__fuse_release_nowrite(inode);
++	spin_unlock(&fc->lock);
++}
++
++/*
+  * Set attributes, and at the same time refresh them.
+  *
+  * Truncation is slightly complicated, because the 'truncate' request
+@@ -1122,6 +1166,8 @@ static int fuse_do_setattr(struct dentry
+ 	struct fuse_req *req;
+ 	struct fuse_setattr_in inarg;
+ 	struct fuse_attr_out outarg;
++	bool is_truncate = false;
++	loff_t oldsize;
+ 	int err;
+ 
+ 	if (!fuse_allow_task(fc, current))
+@@ -1145,12 +1191,16 @@ static int fuse_do_setattr(struct dentry
+ 			send_sig(SIGXFSZ, current, 0);
+ 			return -EFBIG;
+ 		}
++		is_truncate = true;
+ 	}
+ 
+ 	req = fuse_get_req(fc);
+ 	if (IS_ERR(req))
+ 		return PTR_ERR(req);
+ 
++	if (is_truncate)
++		fuse_set_nowrite(inode);
++
+ 	memset(&inarg, 0, sizeof(inarg));
+ 	memset(&outarg, 0, sizeof(outarg));
+ 	iattr_to_fattr(attr, &inarg);
+@@ -1181,16 +1231,44 @@ static int fuse_do_setattr(struct dentry
+ 	if (err) {
+ 		if (err == -EINTR)
+ 			fuse_invalidate_attr(inode);
+-		return err;
++		goto error;
+ 	}
+ 
+ 	if ((inode->i_mode ^ outarg.attr.mode) & S_IFMT) {
+ 		make_bad_inode(inode);
+-		return -EIO;
++		err = -EIO;
++		goto error;
++	}
++
++	spin_lock(&fc->lock);
++	fuse_change_attributes_common(inode, &outarg.attr,
++				      attr_timeout(&outarg));
++	oldsize = inode->i_size;
++	i_size_write(inode, outarg.attr.size);
++
++	if (is_truncate) {
++		/* NOTE: this may release/reacquire fc->lock */
++		__fuse_release_nowrite(inode);
++	}
++	spin_unlock(&fc->lock);
++
++	/*
++	 * Only call invalidate_inode_pages2() after removing
++	 * FUSE_NOWRITE, otherwise fuse_launder_page() would deadlock.
++	 */
++	if (S_ISREG(inode->i_mode) && oldsize != outarg.attr.size) {
++		if (outarg.attr.size < oldsize)
++			fuse_truncate(inode->i_mapping, outarg.attr.size);
++		invalidate_inode_pages2(inode->i_mapping);
+ 	}
+ 
+-	fuse_change_attributes(inode, &outarg.attr, attr_timeout(&outarg), 0);
+ 	return 0;
++
++error:
++	if (is_truncate)
++		fuse_release_nowrite(inode);
 +
 +	return err;
  }
- subsys_initcall(readahead_init);
  
+ static int fuse_setattr(struct dentry *entry, struct iattr *attr)
+diff -puN fs/fuse/file.c~fuse-support-writable-mmap fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-support-writable-mmap
++++ a/fs/fuse/file.c
+@@ -210,6 +210,49 @@ u64 fuse_lock_owner_id(struct fuse_conn 
+ 	return (u64) v0 + ((u64) v1 << 32);
+ }
+ 
++/*
++ * Check if page is under writeback
++ *
++ * This is currently done by walking the list of writepage requests
++ * for the inode, which can be pretty inefficient.
++ */
++static bool fuse_page_is_writeback(struct inode *inode, pgoff_t index)
++{
++	struct fuse_conn *fc = get_fuse_conn(inode);
++	struct fuse_inode *fi = get_fuse_inode(inode);
++	struct fuse_req *req;
++	bool found = false;
++
++	spin_lock(&fc->lock);
++	list_for_each_entry(req, &fi->writepages, writepages_entry) {
++		pgoff_t curr_index;
++
++		BUG_ON(req->inode != inode);
++		curr_index = req->misc.write.in.offset >> PAGE_CACHE_SHIFT;
++		if (curr_index == index) {
++			found = true;
++			break;
++		}
++	}
++	spin_unlock(&fc->lock);
++
++	return found;
++}
++
++/*
++ * Wait for page writeback to be completed.
++ *
++ * Since fuse doesn't rely on the VM writeback tracking, this has to
++ * use some other means.
++ */
++static int fuse_wait_on_page_writeback(struct inode *inode, pgoff_t index)
++{
++	struct fuse_inode *fi = get_fuse_inode(inode);
++
++	wait_event(fi->page_waitq, !fuse_page_is_writeback(inode, index));
++	return 0;
++}
++
+ static int fuse_flush(struct file *file, fl_owner_t id)
+ {
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+@@ -245,6 +288,21 @@ static int fuse_flush(struct file *file,
+ 	return err;
+ }
+ 
++/*
++ * Wait for all pending writepages on the inode to finish.
++ *
++ * This is currently done by blocking further writes with FUSE_NOWRITE
++ * and waiting for all sent writes to complete.
++ *
++ * This must be called under i_mutex, otherwise the FUSE_NOWRITE usage
++ * could conflict with truncation.
++ */
++static void fuse_sync_writes(struct inode *inode)
++{
++	fuse_set_nowrite(inode);
++	fuse_release_nowrite(inode);
++}
++
+ int fuse_fsync_common(struct file *file, struct dentry *de, int datasync,
+ 		      int isdir)
+ {
+@@ -261,6 +319,17 @@ int fuse_fsync_common(struct file *file,
+ 	if ((!isdir && fc->no_fsync) || (isdir && fc->no_fsyncdir))
+ 		return 0;
+ 
++	/*
++	 * Start writeback against all dirty pages of the inode, then
++	 * wait for all outstanding writes, before sending the FSYNC
++	 * request.
++	 */
++	err = write_inode_now(inode, 0);
++	if (err)
++		return err;
++
++	fuse_sync_writes(inode);
++
+ 	req = fuse_get_req(fc);
+ 	if (IS_ERR(req))
+ 		return PTR_ERR(req);
+@@ -340,6 +409,13 @@ static int fuse_readpage(struct file *fi
+ 	if (is_bad_inode(inode))
+ 		goto out;
+ 
++	/*
++	 * Page writeback can extend beyond the liftime of the
++	 * page-cache page, so make sure we read a properly synced
++	 * page.
++	 */
++	fuse_wait_on_page_writeback(inode, page->index);
++
+ 	req = fuse_get_req(fc);
+ 	err = PTR_ERR(req);
+ 	if (IS_ERR(req))
+@@ -411,6 +487,8 @@ static int fuse_readpages_fill(void *_da
+ 	struct inode *inode = data->inode;
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+ 
++	fuse_wait_on_page_writeback(inode, page->index);
++
+ 	if (req->num_pages &&
+ 	    (req->num_pages == FUSE_MAX_PAGES_PER_REQ ||
+ 	     (req->num_pages + 1) * PAGE_CACHE_SIZE > fc->max_read ||
+@@ -477,11 +555,10 @@ static ssize_t fuse_file_aio_read(struct
+ }
+ 
+ static void fuse_write_fill(struct fuse_req *req, struct file *file,
+-			    struct inode *inode, loff_t pos, size_t count,
+-			    int writepage)
++			    struct fuse_file *ff, struct inode *inode,
++			    loff_t pos, size_t count, int writepage)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	struct fuse_file *ff = file->private_data;
+ 	struct fuse_write_in *inarg = &req->misc.write.in;
+ 	struct fuse_write_out *outarg = &req->misc.write.out;
+ 
+@@ -490,7 +567,7 @@ static void fuse_write_fill(struct fuse_
+ 	inarg->offset = pos;
+ 	inarg->size = count;
+ 	inarg->write_flags = writepage ? FUSE_WRITE_CACHE : 0;
+-	inarg->flags = file->f_flags;
++	inarg->flags = file ? file->f_flags : 0;
+ 	req->in.h.opcode = FUSE_WRITE;
+ 	req->in.h.nodeid = get_node_id(inode);
+ 	req->in.argpages = 1;
+@@ -511,7 +588,7 @@ static size_t fuse_send_write(struct fus
+ 			      fl_owner_t owner)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+-	fuse_write_fill(req, file, inode, pos, count, 0);
++	fuse_write_fill(req, file, file->private_data, inode, pos, count, 0);
+ 	if (owner != NULL) {
+ 		struct fuse_write_in *inarg = &req->misc.write.in;
+ 		inarg->write_flags |= FUSE_WRITE_LOCKOWNER;
+@@ -546,6 +623,12 @@ static int fuse_buffered_write(struct fi
+ 	if (is_bad_inode(inode))
+ 		return -EIO;
+ 
++	/*
++	 * Make sure writepages on the same page are not mixed up with
++	 * plain writes.
++	 */
++	fuse_wait_on_page_writeback(inode, page->index);
++
+ 	req = fuse_get_req(fc);
+ 	if (IS_ERR(req))
+ 		return PTR_ERR(req);
+@@ -716,21 +799,225 @@ static ssize_t fuse_direct_write(struct 
+ 	return res;
+ }
+ 
+-static int fuse_file_mmap(struct file *file, struct vm_area_struct *vma)
++static void fuse_writepage_free(struct fuse_conn *fc, struct fuse_req *req)
+ {
+-	if ((vma->vm_flags & VM_SHARED)) {
+-		if ((vma->vm_flags & VM_WRITE))
+-			return -ENODEV;
+-		else
+-			vma->vm_flags &= ~VM_MAYWRITE;
++	__free_page(req->pages[0]);
++	fuse_file_put(req->ff);
++	fuse_put_request(fc, req);
++}
++
++static void fuse_writepage_finish(struct fuse_conn *fc, struct fuse_req *req)
++{
++	struct inode *inode = req->inode;
++	struct fuse_inode *fi = get_fuse_inode(inode);
++	struct backing_dev_info *bdi = inode->i_mapping->backing_dev_info;
++
++	list_del(&req->writepages_entry);
++	dec_bdi_stat(bdi, BDI_WRITEBACK);
++	dec_zone_page_state(req->pages[0], NR_WRITEBACK_TEMP);
++	bdi_writeout_inc(bdi);
++	wake_up(&fi->page_waitq);
++}
++
++/* Called under fc->lock, may release and reacquire it */
++static void fuse_send_writepage(struct fuse_conn *fc, struct fuse_req *req)
++{
++	struct fuse_inode *fi = get_fuse_inode(req->inode);
++	loff_t size = i_size_read(req->inode);
++	struct fuse_write_in *inarg = &req->misc.write.in;
++
++	if (!fc->connected)
++		goto out_free;
++
++	if (inarg->offset + PAGE_CACHE_SIZE <= size) {
++		inarg->size = PAGE_CACHE_SIZE;
++	} else if (inarg->offset < size) {
++		inarg->size = size & (PAGE_CACHE_SIZE - 1);
++	} else {
++		/* Got truncated off completely */
++		goto out_free;
++	}
++
++	req->in.args[1].size = inarg->size;
++	fi->writectr++;
++	request_send_background_locked(fc, req);
++	return;
++
++ out_free:
++	fuse_writepage_finish(fc, req);
++	spin_unlock(&fc->lock);
++	fuse_writepage_free(fc, req);
++	spin_lock(&fc->lock);
++}
++
++/*
++ * If fi->writectr is positive (no truncate or fsync going on) send
++ * all queued writepage requests.
++ *
++ * Called with fc->lock
++ */
++void fuse_flush_writepages(struct inode *inode)
++{
++	struct fuse_conn *fc = get_fuse_conn(inode);
++	struct fuse_inode *fi = get_fuse_inode(inode);
++	struct fuse_req *req;
++
++	while (fi->writectr >= 0 && !list_empty(&fi->queued_writes)) {
++		req = list_entry(fi->queued_writes.next, struct fuse_req, list);
++		list_del_init(&req->list);
++		fuse_send_writepage(fc, req);
+ 	}
+-	return generic_file_mmap(file, vma);
+ }
+ 
+-static int fuse_set_page_dirty(struct page *page)
++static void fuse_writepage_end(struct fuse_conn *fc, struct fuse_req *req)
+ {
+-	printk("fuse_set_page_dirty: should not happen\n");
+-	dump_stack();
++	struct inode *inode = req->inode;
++	struct fuse_inode *fi = get_fuse_inode(inode);
++
++	mapping_set_error(inode->i_mapping, req->out.h.error);
++	spin_lock(&fc->lock);
++	fi->writectr--;
++	fuse_writepage_finish(fc, req);
++	spin_unlock(&fc->lock);
++	fuse_writepage_free(fc, req);
++}
++
++static int fuse_writepage_locked(struct page *page)
++{
++	struct address_space *mapping = page->mapping;
++	struct inode *inode = mapping->host;
++	struct fuse_conn *fc = get_fuse_conn(inode);
++	struct fuse_inode *fi = get_fuse_inode(inode);
++	struct fuse_req *req;
++	struct fuse_file *ff;
++	struct page *tmp_page;
++
++	set_page_writeback(page);
++
++	req = fuse_request_alloc_nofs();
++	if (!req)
++		goto err;
++
++	tmp_page = alloc_page(GFP_NOFS | __GFP_HIGHMEM);
++	if (!tmp_page)
++		goto err_free;
++
++	spin_lock(&fc->lock);
++	BUG_ON(list_empty(&fi->write_files));
++	ff = list_entry(fi->write_files.next, struct fuse_file, write_entry);
++	req->ff = fuse_file_get(ff);
++	spin_unlock(&fc->lock);
++
++	fuse_write_fill(req, NULL, ff, inode, page_offset(page), 0, 1);
++
++	copy_highpage(tmp_page, page);
++	req->num_pages = 1;
++	req->pages[0] = tmp_page;
++	req->page_offset = 0;
++	req->end = fuse_writepage_end;
++	req->inode = inode;
++
++	inc_bdi_stat(mapping->backing_dev_info, BDI_WRITEBACK);
++	inc_zone_page_state(tmp_page, NR_WRITEBACK_TEMP);
++	end_page_writeback(page);
++
++	spin_lock(&fc->lock);
++	list_add(&req->writepages_entry, &fi->writepages);
++	list_add_tail(&req->list, &fi->queued_writes);
++	fuse_flush_writepages(inode);
++	spin_unlock(&fc->lock);
++
++	return 0;
++
++err_free:
++	fuse_request_free(req);
++err:
++	end_page_writeback(page);
++	return -ENOMEM;
++}
++
++static int fuse_writepage(struct page *page, struct writeback_control *wbc)
++{
++	int err;
++
++	err = fuse_writepage_locked(page);
++	unlock_page(page);
++
++	return err;
++}
++
++static int fuse_launder_page(struct page *page)
++{
++	int err = 0;
++	if (clear_page_dirty_for_io(page)) {
++		struct inode *inode = page->mapping->host;
++		err = fuse_writepage_locked(page);
++		if (!err)
++			fuse_wait_on_page_writeback(inode, page->index);
++	}
++	return err;
++}
++
++/*
++ * Write back dirty pages now, because there may not be any suitable
++ * open files later
++ */
++static void fuse_vma_close(struct vm_area_struct *vma)
++{
++	filemap_write_and_wait(vma->vm_file->f_mapping);
++}
++
++/*
++ * Wait for writeback against this page to complete before allowing it
++ * to be marked dirty again, and hence written back again, possibly
++ * before the previous writepage completed.
++ *
++ * Block here, instead of in ->writepage(), so that the userspace fs
++ * can only block processes actually operating on the filesystem.
++ *
++ * Otherwise unprivileged userspace fs would be able to block
++ * unrelated:
++ *
++ * - page migration
++ * - sync(2)
++ * - try_to_free_pages() with order > PAGE_ALLOC_COSTLY_ORDER
++ */
++static int fuse_page_mkwrite(struct vm_area_struct *vma, struct page *page)
++{
++	/*
++	 * Don't use page->mapping as it may become NULL from a
++	 * concurrent truncate.
++	 */
++	struct inode *inode = vma->vm_file->f_mapping->host;
++
++	fuse_wait_on_page_writeback(inode, page->index);
++	return 0;
++}
++
++static struct vm_operations_struct fuse_file_vm_ops = {
++	.close		= fuse_vma_close,
++	.fault		= filemap_fault,
++	.page_mkwrite	= fuse_page_mkwrite,
++};
++
++static int fuse_file_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	if ((vma->vm_flags & VM_SHARED) && (vma->vm_flags & VM_MAYWRITE)) {
++		struct inode *inode = file->f_dentry->d_inode;
++		struct fuse_conn *fc = get_fuse_conn(inode);
++		struct fuse_inode *fi = get_fuse_inode(inode);
++		struct fuse_file *ff = file->private_data;
++		/*
++		 * file may be written through mmap, so chain it onto the
++		 * inodes's write_file list
++		 */
++		spin_lock(&fc->lock);
++		if (list_empty(&ff->write_entry))
++			list_add(&ff->write_entry, &fi->write_files);
++		spin_unlock(&fc->lock);
++	}
++	file_accessed(file);
++	vma->vm_ops = &fuse_file_vm_ops;
+ 	return 0;
+ }
+ 
+@@ -940,10 +1227,12 @@ static const struct file_operations fuse
+ 
+ static const struct address_space_operations fuse_file_aops  = {
+ 	.readpage	= fuse_readpage,
++	.writepage	= fuse_writepage,
++	.launder_page	= fuse_launder_page,
+ 	.write_begin	= fuse_write_begin,
+ 	.write_end	= fuse_write_end,
+ 	.readpages	= fuse_readpages,
+-	.set_page_dirty	= fuse_set_page_dirty,
++	.set_page_dirty	= __set_page_dirty_nobuffers,
+ 	.bmap		= fuse_bmap,
+ };
+ 
+diff -puN fs/fuse/fuse_i.h~fuse-support-writable-mmap fs/fuse/fuse_i.h
+--- a/fs/fuse/fuse_i.h~fuse-support-writable-mmap
++++ a/fs/fuse/fuse_i.h
+@@ -15,6 +15,7 @@
+ #include <linux/mm.h>
+ #include <linux/backing-dev.h>
+ #include <linux/mutex.h>
++#include <linux/rwsem.h>
+ 
+ /** Max number of pages that can be used in a single read request */
+ #define FUSE_MAX_PAGES_PER_REQ 32
+@@ -25,6 +26,9 @@
+ /** Congestion starts at 75% of maximum */
+ #define FUSE_CONGESTION_THRESHOLD (FUSE_MAX_BACKGROUND * 75 / 100)
+ 
++/** Bias for fi->writectr, meaning new writepages must not be sent */
++#define FUSE_NOWRITE INT_MIN
++
+ /** It could be as large as PATH_MAX, but would that have any uses? */
+ #define FUSE_NAME_MAX 1024
+ 
+@@ -73,6 +77,19 @@ struct fuse_inode {
+ 
+ 	/** Files usable in writepage.  Protected by fc->lock */
+ 	struct list_head write_files;
++
++	/** Writepages pending on truncate or fsync */
++	struct list_head queued_writes;
++
++	/** Number of sent writes, a negative bias (FUSE_NOWRITE)
++	 * means more writes are blocked */
++	int writectr;
++
++	/** Waitq for writepage completion */
++	wait_queue_head_t page_waitq;
++
++	/** List of writepage requestst (pending or sent) */
++	struct list_head writepages;
+ };
+ 
+ /** FUSE specific file data */
+@@ -242,6 +259,12 @@ struct fuse_req {
+ 	/** File used in the request (or NULL) */
+ 	struct fuse_file *ff;
+ 
++	/** Inode used in the request or NULL */
++	struct inode *inode;
++
++	/** Link on fi->writepages */
++	struct list_head writepages_entry;
++
+ 	/** Request completion callback */
+ 	void (*end)(struct fuse_conn *, struct fuse_req *);
+ 
+@@ -504,6 +527,11 @@ void fuse_init_symlink(struct inode *ino
+ void fuse_change_attributes(struct inode *inode, struct fuse_attr *attr,
+ 			    u64 attr_valid, u64 attr_version);
+ 
++void fuse_change_attributes_common(struct inode *inode, struct fuse_attr *attr,
++				   u64 attr_valid);
++
++void fuse_truncate(struct address_space *mapping, loff_t offset);
++
+ /**
+  * Initialize the client device
+  */
+@@ -522,6 +550,8 @@ void fuse_ctl_cleanup(void);
+  */
+ struct fuse_req *fuse_request_alloc(void);
+ 
++struct fuse_req *fuse_request_alloc_nofs(void);
++
+ /**
+  * Free a request
+  */
+@@ -558,6 +588,8 @@ void request_send_noreply(struct fuse_co
+  */
+ void request_send_background(struct fuse_conn *fc, struct fuse_req *req);
+ 
++void request_send_background_locked(struct fuse_conn *fc, struct fuse_req *req);
++
+ /* Abort all requests */
+ void fuse_abort_conn(struct fuse_conn *fc);
+ 
+@@ -600,3 +632,8 @@ u64 fuse_lock_owner_id(struct fuse_conn 
+ 
+ int fuse_update_attributes(struct inode *inode, struct kstat *stat,
+ 			   struct file *file, bool *refreshed);
++
++void fuse_flush_writepages(struct inode *inode);
++
++void fuse_set_nowrite(struct inode *inode);
++void fuse_release_nowrite(struct inode *inode);
+diff -puN fs/fuse/inode.c~fuse-support-writable-mmap fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-support-writable-mmap
++++ a/fs/fuse/inode.c
+@@ -59,7 +59,11 @@ static struct inode *fuse_alloc_inode(st
+ 	fi->nodeid = 0;
+ 	fi->nlookup = 0;
+ 	fi->attr_version = 0;
++	fi->writectr = 0;
+ 	INIT_LIST_HEAD(&fi->write_files);
++	INIT_LIST_HEAD(&fi->queued_writes);
++	INIT_LIST_HEAD(&fi->writepages);
++	init_waitqueue_head(&fi->page_waitq);
+ 	fi->forget_req = fuse_request_alloc();
+ 	if (!fi->forget_req) {
+ 		kmem_cache_free(fuse_inode_cachep, inode);
+@@ -73,6 +77,7 @@ static void fuse_destroy_inode(struct in
+ {
+ 	struct fuse_inode *fi = get_fuse_inode(inode);
+ 	BUG_ON(!list_empty(&fi->write_files));
++	BUG_ON(!list_empty(&fi->queued_writes));
+ 	if (fi->forget_req)
+ 		fuse_request_free(fi->forget_req);
+ 	kmem_cache_free(fuse_inode_cachep, inode);
+@@ -109,7 +114,7 @@ static int fuse_remount_fs(struct super_
+ 	return 0;
+ }
+ 
+-static void fuse_truncate(struct address_space *mapping, loff_t offset)
++void fuse_truncate(struct address_space *mapping, loff_t offset)
+ {
+ 	/* See vmtruncate() */
+ 	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
+@@ -117,19 +122,12 @@ static void fuse_truncate(struct address
+ 	unmap_mapping_range(mapping, offset + PAGE_SIZE - 1, 0, 1);
+ }
+ 
+-
+-void fuse_change_attributes(struct inode *inode, struct fuse_attr *attr,
+-			    u64 attr_valid, u64 attr_version)
++void fuse_change_attributes_common(struct inode *inode, struct fuse_attr *attr,
++				   u64 attr_valid)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+ 	struct fuse_inode *fi = get_fuse_inode(inode);
+-	loff_t oldsize;
+ 
+-	spin_lock(&fc->lock);
+-	if (attr_version != 0 && fi->attr_version > attr_version) {
+-		spin_unlock(&fc->lock);
+-		return;
+-	}
+ 	fi->attr_version = ++fc->attr_version;
+ 	fi->i_time = attr_valid;
+ 
+@@ -159,6 +157,22 @@ void fuse_change_attributes(struct inode
+ 	fi->orig_i_mode = inode->i_mode;
+ 	if (!(fc->flags & FUSE_DEFAULT_PERMISSIONS))
+ 		inode->i_mode &= ~S_ISVTX;
++}
++
++void fuse_change_attributes(struct inode *inode, struct fuse_attr *attr,
++			    u64 attr_valid, u64 attr_version)
++{
++	struct fuse_conn *fc = get_fuse_conn(inode);
++	struct fuse_inode *fi = get_fuse_inode(inode);
++	loff_t oldsize;
++
++	spin_lock(&fc->lock);
++	if (attr_version != 0 && fi->attr_version > attr_version) {
++		spin_unlock(&fc->lock);
++		return;
++	}
++
++	fuse_change_attributes_common(inode, attr, attr_valid);
+ 
+ 	oldsize = inode->i_size;
+ 	i_size_write(inode, attr->size);
+@@ -468,6 +482,8 @@ static struct fuse_conn *new_conn(struct
+ 		atomic_set(&fc->num_waiting, 0);
+ 		fc->bdi.ra_pages = (VM_MAX_READAHEAD * 1024) / PAGE_CACHE_SIZE;
+ 		fc->bdi.unplug_io_fn = default_unplug_io_fn;
++		/* fuse does it's own writeback accounting */
++		fc->bdi.capabilities = BDI_CAP_NO_ACCT_WB;
+ 		fc->dev = sb->s_dev;
+ 		err = bdi_init(&fc->bdi);
+ 		if (err)
+@@ -475,6 +491,19 @@ static struct fuse_conn *new_conn(struct
+ 		err = bdi_register_dev(&fc->bdi, fc->dev);
+ 		if (err)
+ 			goto error_bdi_destroy;
++		/*
++		 * For a single fuse filesystem use max 1% of dirty +
++		 * writeback threshold.
++		 *
++		 * This gives about 1M of write buffer for memory maps on a
++		 * machine with 1G and 10% dirty_ratio, which should be more
++		 * than enough.
++		 *
++		 * Privileged users can raise it by writing to
++		 *
++		 *    /sys/class/bdi/<bdi>/max_ratio
++		 */
++		bdi_set_max_ratio(&fc->bdi, 1);
+ 		fc->reqctr = 0;
+ 		fc->blocked = 1;
+ 		fc->attr_version = 1;
 _
 
-Patches currently in -mm which might be from a.p.zijlstra@chello.nl are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
-git-sched.patch
-mutex-debug-check-mutex-magic-before-owner.patch
-rcu-fix-rcu_try_flip_waitack_needed-to-prevent-grace-period-stall.patch
+vfs-fix-permission-checking-in-sys_utimensat.patch
 
