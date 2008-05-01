@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + clocksource-shift-helper.patch added to -mm tree
-Date: Thu, 01 May 2008 14:21:21 -0700
-Message-ID: <200805012121.m41LLLRb025925@imap1.linux-foundation.org>
+Subject: + scsi-megaraid-fix-suspend-resume-sections.patch added to -mm tree
+Date: Thu, 01 May 2008 14:23:55 -0700
+Message-ID: <200805012123.m41LNt5W025980@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46852 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35523 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759593AbYEAVYB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 17:24:01 -0400
+	by vger.kernel.org with ESMTP id S1754219AbYEAVYa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 17:24:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com, johnstul@us.ibm.com, tglx@linutronix.de
+Cc: jirislaby@gmail.com, Bo.Yang@lsi.com, James.Bottomley@HansenPartnership.com, megaraidlinux@lsi.com
 
 
 The patch titled
-     clocksource: shift helper
+     scsi: megaraid, fix suspend/resume sections
 has been added to the -mm tree.  Its filename is
-     clocksource-shift-helper.patch
+     scsi-megaraid-fix-suspend-resume-sections.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,111 +33,78 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource: shift helper
-From: Daniel Walker <dwalker@mvista.com>
+Subject: scsi: megaraid, fix suspend/resume sections
+From: Jiri Slaby <jirislaby@gmail.com>
 
-This is a little helper I pulled from the mips tree.  I've seen a couple of
-bogus shift values, and this helper calculates the shift.  This should move
-the shift selection away from the user, and systematically pick the value base
-on the hz.
+megaraid_sas suspend and resume are incorrectly placed in the __devinit
+section.  Remove those placements and make the stuff dependent on CONFIG_PM.
 
-I also modified the acpi_pm timer to use this new interface.  The original
-shift was 22 , and after this patch it's increased to 23.  Which should make
-the clocksource slightly more accurate, but shouldn't have much of a visible
-effect.
+While at it, mark remove function as __devexit.
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Neela Syam Kolli <megaraidlinux@lsi.com>
+Cc: "Yang, Bo" <Bo.Yang@lsi.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clocksource/acpi_pm.c |    5 ++++-
- include/linux/acpi_pmtmr.h    |    5 +++--
- include/linux/clocksource.h   |   21 +++++++++++++++++++++
- 3 files changed, 28 insertions(+), 3 deletions(-)
+ drivers/scsi/megaraid/megaraid_sas.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN drivers/clocksource/acpi_pm.c~clocksource-shift-helper drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~clocksource-shift-helper
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -72,7 +72,7 @@ static struct clocksource clocksource_ac
- 	.read		= acpi_pm_read,
- 	.mask		= (cycle_t)ACPI_PM_MASK,
- 	.mult		= 0, /*to be calculated*/
--	.shift		= 22,
-+	.shift		= 0,
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
- 
- };
-@@ -183,6 +183,9 @@ static int __init init_acpi_pm_clocksour
- 	if (!pmtmr_ioport)
- 		return -ENODEV;
- 
-+	clocksource_acpi_pm.shift =
-+		clocksource_hz2shift(ACPI_PM_BITS, PMTMR_TICKS_PER_SEC);
-+
- 	clocksource_acpi_pm.mult = clocksource_hz2mult(PMTMR_TICKS_PER_SEC,
- 						clocksource_acpi_pm.shift);
- 
-diff -puN include/linux/acpi_pmtmr.h~clocksource-shift-helper include/linux/acpi_pmtmr.h
---- a/include/linux/acpi_pmtmr.h~clocksource-shift-helper
-+++ a/include/linux/acpi_pmtmr.h
-@@ -7,10 +7,11 @@
- #define PMTMR_TICKS_PER_SEC 3579545
- 
- /* limit it to 24 bits */
--#define ACPI_PM_MASK CLOCKSOURCE_MASK(24)
-+#define ACPI_PM_BITS	24
-+#define ACPI_PM_MASK CLOCKSOURCE_MASK(ACPI_PM_BITS)
- 
- /* Overrun value */
--#define ACPI_PM_OVRRUN	(1<<24)
-+#define ACPI_PM_OVRRUN	(1 << ACPI_PM_BITS)
- 
- #ifdef CONFIG_X86_PM_TIMER
- 
-diff -puN include/linux/clocksource.h~clocksource-shift-helper include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-shift-helper
-+++ a/include/linux/clocksource.h
-@@ -159,6 +159,27 @@ static inline u32 clocksource_hz2mult(u3
+diff -puN drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid-fix-suspend-resume-sections drivers/scsi/megaraid/megaraid_sas.c
+--- a/drivers/scsi/megaraid/megaraid_sas.c~scsi-megaraid-fix-suspend-resume-sections
++++ a/drivers/scsi/megaraid/megaraid_sas.c
+@@ -2650,12 +2650,13 @@ static void megasas_shutdown_controller(
+ 	return;
  }
  
++#ifdef CONFIG_PM
  /**
-+ * clocksource_hz2shift - calculates shift from hz and # of bits
-+ * @bits:		Number of bits this clocksource uses
-+ * @hz:			Clocksource frequency in Hz
-+ *
-+ * Helper functions that calculates the best shift value
-+ * based on the hz and # of bits of any given clock.
-+ */
-+static inline u32 clocksource_hz2shift(u32 bits, u32 hz)
-+{
-+	u64 temp;
-+
-+	for (; bits > 0; bits--) {
-+		temp = (u64) NSEC_PER_SEC << bits;
-+		do_div(temp, hz);
-+		if ((temp >> 32) == 0)
-+			break;
-+	}
-+	return bits;
-+}
-+
-+/**
-  * clocksource_read: - Access the clocksource's current cycle value
-  * @cs:		pointer to clocksource being read
-  *
+  * megasas_suspend -	driver suspend entry point
+  * @pdev:		PCI device structure
+  * @state:		PCI power state to suspend routine
+  */
+-static int __devinit
++static int
+ megasas_suspend(struct pci_dev *pdev, pm_message_t state)
+ {
+ 	struct Scsi_Host *host;
+@@ -2687,7 +2688,7 @@ megasas_suspend(struct pci_dev *pdev, pm
+  * megasas_resume-      driver resume entry point
+  * @pdev:               PCI device structure
+  */
+-static int __devinit
++static int
+ megasas_resume(struct pci_dev *pdev)
+ {
+ 	int rval;
+@@ -2782,12 +2783,16 @@ fail_ready_state:
+ 
+ 	return -ENODEV;
+ }
++#else
++#define megasas_suspend	NULL
++#define megasas_resume	NULL
++#endif
+ 
+ /**
+  * megasas_detach_one -	PCI hot"un"plug entry point
+  * @pdev:		PCI device structure
+  */
+-static void megasas_detach_one(struct pci_dev *pdev)
++static void __devexit megasas_detach_one(struct pci_dev *pdev)
+ {
+ 	int i;
+ 	struct Scsi_Host *host;
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from jirislaby@gmail.com are
 
 origin.patch
-git-x86.patch
-macintosh-therm_pm72-driver_lock-semaphore-to-mutex.patch
-macintosh-qindfarm_smu_sat-semaphore-to-mutex.patch
-machintosh-adb-driver-adb_handler_sem-semaphore-to-mutex.patch
-clocksource-shift-helper.patch
-profile-likely-unlikely-macros.patch
-likely_prof-changed-to-use-proc_create.patch
-likeliness-accounting-change-and-cleanup.patch
+drivers-char-synclinkc-inbreak-mgsl_put_char.patch
+drivers-char-synclinkc-inbreak-mgsl_put_char-fix.patch
+input-add-debouncing-for-generic-gpio-input-device-gpio_keyc.patch
+scsi-megaraid-fix-suspend-resume-sections.patch
+reiser4.patch
+shrink_slab-handle-bad-shrinkers.patch
 
