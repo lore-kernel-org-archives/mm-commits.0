@@ -1,101 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - riscom-rocket-switch-to-int-put_char-method.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:30:22 -0700
-Message-ID: <200805010930.m419UMaH030760@imap1.linux-foundation.org>
+Subject: - usb-gadget-switch-to-put_char-returning-int.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:30:11 -0700
+Message-ID: <200805010930.m419UBFk030745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36438 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757964AbYEAJah (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:30:37 -0400
+	by vger.kernel.org with ESMTP id S1758143AbYEAJan (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:30:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, dbrownell@users.sourceforge.net, gregkh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     riscom/rocket: switch to int put_char method
+     usb gadget: switch to put_char returning int
 has been removed from the -mm tree.  Its filename was
-     riscom-rocket-switch-to-int-put_char-method.patch
+     usb-gadget-switch-to-put_char-returning-int.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: riscom/rocket: switch to int put_char method
+Subject: usb gadget: switch to put_char returning int
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Acked-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/riscom8.c |    9 ++++++---
- drivers/char/rocket.c  |    5 +++--
- 2 files changed, 9 insertions(+), 5 deletions(-)
+ drivers/usb/gadget/serial.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/char/riscom8.c~riscom-rocket-switch-to-int-put_char-method drivers/char/riscom8.c
---- a/drivers/char/riscom8.c~riscom-rocket-switch-to-int-put_char-method
-+++ a/drivers/char/riscom8.c
-@@ -1161,16 +1161,17 @@ static int rc_write(struct tty_struct * 
- 	return total;
- }
- 
--static void rc_put_char(struct tty_struct * tty, unsigned char ch)
-+static int rc_put_char(struct tty_struct * tty, unsigned char ch)
+diff -puN drivers/usb/gadget/serial.c~usb-gadget-switch-to-put_char-returning-int drivers/usb/gadget/serial.c
+--- a/drivers/usb/gadget/serial.c~usb-gadget-switch-to-put_char-returning-int
++++ a/drivers/usb/gadget/serial.c
+@@ -170,7 +170,7 @@ static int gs_open(struct tty_struct *tt
+ static void gs_close(struct tty_struct *tty, struct file *file);
+ static int gs_write(struct tty_struct *tty,
+ 	const unsigned char *buf, int count);
+-static void gs_put_char(struct tty_struct *tty, unsigned char ch);
++static int gs_put_char(struct tty_struct *tty, unsigned char ch);
+ static void gs_flush_chars(struct tty_struct *tty);
+ static int gs_write_room(struct tty_struct *tty);
+ static int gs_chars_in_buffer(struct tty_struct *tty);
+@@ -883,14 +883,15 @@ exit:
+ /*
+  * gs_put_char
+  */
+-static void gs_put_char(struct tty_struct *tty, unsigned char ch)
++static int gs_put_char(struct tty_struct *tty, unsigned char ch)
  {
- 	struct riscom_port *port = (struct riscom_port *)tty->driver_data;
  	unsigned long flags;
+ 	struct gs_port *port = tty->driver_data;
 +	int ret = 0;
  
- 	if (rc_paranoia_check(port, tty->name, "rc_put_char"))
+ 	if (port == NULL) {
+ 		pr_err("gs_put_char: NULL port pointer\n");
 -		return;
 +		return 0;
- 
- 	if (!tty || !port->xmit_buf)
--		return;
-+		return 0;
- 
- 	spin_lock_irqsave(&riscom_lock, flags);
- 	
-@@ -1180,9 +1181,11 @@ static void rc_put_char(struct tty_struc
- 	port->xmit_buf[port->xmit_head++] = ch;
- 	port->xmit_head &= SERIAL_XMIT_SIZE - 1;
- 	port->xmit_cnt++;
-+	ret = 1;
- 
- out:
- 	spin_unlock_irqrestore(&riscom_lock, flags);
-+	return ret;
- }
- 
- static void rc_flush_chars(struct tty_struct * tty)
-diff -puN drivers/char/rocket.c~riscom-rocket-switch-to-int-put_char-method drivers/char/rocket.c
---- a/drivers/char/rocket.c~riscom-rocket-switch-to-int-put_char-method
-+++ a/drivers/char/rocket.c
-@@ -1663,14 +1663,14 @@ static void rp_hangup(struct tty_struct 
-  *  writing routines will write directly to transmit FIFO.
-  *  Write buffer and counters protected by spinlocks
-  */
--static void rp_put_char(struct tty_struct *tty, unsigned char ch)
-+static int rp_put_char(struct tty_struct *tty, unsigned char ch)
- {
- 	struct r_port *info = (struct r_port *) tty->driver_data;
- 	CHANNEL_t *cp;
- 	unsigned long flags;
- 
- 	if (rocket_paranoia_check(info, "rp_put_char"))
--		return;
-+		return 0;
- 
- 	/*
- 	 * Grab the port write mutex, locking out other processes that try to
-@@ -1699,6 +1699,7 @@ static void rp_put_char(struct tty_struc
  	}
- 	spin_unlock_irqrestore(&info->slock, flags);
- 	mutex_unlock(&info->write_mtx);
-+	return 1;
+ 
+ 	gs_debug("gs_put_char: (%d,%p) char=0x%x, called from %p\n",
+@@ -910,10 +911,11 @@ static void gs_put_char(struct tty_struc
+ 		goto exit;
+ 	}
+ 
+-	gs_buf_put(port->port_write_buf, &ch, 1);
++	ret = gs_buf_put(port->port_write_buf, &ch, 1);
+ 
+ exit:
+ 	spin_unlock_irqrestore(&port->port_lock, flags);
++	return ret;
  }
  
  /*
