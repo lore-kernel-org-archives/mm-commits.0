@@ -1,91 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: - serial167-prepare-to-push-bkl-down-into-drivers.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:28:02 -0700
-Message-ID: <200805010928.m419S2ON030542@imap1.linux-foundation.org>
+Subject: - reparent_thread-use-same_thread_group.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:27:30 -0700
+Message-ID: <200805010927.m419RUYn030424@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51669 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57895 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757509AbYEAJ2X (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:28:23 -0400
+	by vger.kernel.org with ESMTP id S1757495AbYEAJ2Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:28:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     serial167: prepare to push BKL down into drivers
+     reparent_thread: use same_thread_group()
 has been removed from the -mm tree.  Its filename was
-     serial167-prepare-to-push-bkl-down-into-drivers.patch
+     reparent_thread-use-same_thread_group.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial167: prepare to push BKL down into drivers
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: reparent_thread: use same_thread_group()
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Kill the softcar handlers again, wrap the ioctl handler in the BKL
+Trivial, use same_thread_group() in reparent_thread().
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/serial167.c |   15 +++------------
- 1 file changed, 3 insertions(+), 12 deletions(-)
+ kernel/exit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/serial167.c~serial167-prepare-to-push-bkl-down-into-drivers drivers/char/serial167.c
---- a/drivers/char/serial167.c~serial167-prepare-to-push-bkl-down-into-drivers
-+++ a/drivers/char/serial167.c
-@@ -1539,6 +1539,8 @@ cy_ioctl(struct tty_struct *tty, struct 
- 	printk("cy_ioctl %s, cmd = %x arg = %lx\n", tty->name, cmd, arg);	/* */
- #endif
+diff -puN kernel/exit.c~reparent_thread-use-same_thread_group kernel/exit.c
+--- a/kernel/exit.c~reparent_thread-use-same_thread_group
++++ a/kernel/exit.c
+@@ -722,7 +722,7 @@ reparent_thread(struct task_struct *p, s
+ 	/* If this is a threaded reparent there is no need to
+ 	 * notify anyone anything has happened.
+ 	 */
+-	if (p->real_parent->group_leader == father->group_leader)
++	if (same_thread_group(p->real_parent, father))
+ 		return;
  
-+	lock_kernel();
-+
- 	switch (cmd) {
- 	case CYGETMON:
- 		ret_val = get_mon_info(info, argp);
-@@ -1584,18 +1586,6 @@ cy_ioctl(struct tty_struct *tty, struct 
- 		break;
- 
- /* The following commands are incompletely implemented!!! */
--	case TIOCGSOFTCAR:
--		ret_val =
--		    put_user(C_CLOCAL(tty) ? 1 : 0,
--			     (unsigned long __user *)argp);
--		break;
--	case TIOCSSOFTCAR:
--		ret_val = get_user(val, (unsigned long __user *)argp);
--		if (ret_val)
--			break;
--		tty->termios->c_cflag =
--		    ((tty->termios->c_cflag & ~CLOCAL) | (val ? CLOCAL : 0));
--		break;
- 	case TIOCGSERIAL:
- 		ret_val = get_serial_info(info, argp);
- 		break;
-@@ -1605,6 +1595,7 @@ cy_ioctl(struct tty_struct *tty, struct 
- 	default:
- 		ret_val = -ENOIOCTLCMD;
- 	}
-+	unlock_kernel();
- 
- #ifdef SERIAL_DEBUG_OTHER
- 	printk("cy_ioctl done\n");
+ 	/* We don't want people slaying init.  */
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-pata_atiixp-simplex-clear.patch
-pata_atiixp-dont-disable.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-generic-irq-let-setup_irq-reenable-a-shared-irq.patch
-8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
-sxc-fix-printk-warnings-on-sparc32.patch
+posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
+workqueue-remove-redundant-function-invocation.patch
 put_pid-make-sure-we-dont-free-the-live-pid.patch
 
