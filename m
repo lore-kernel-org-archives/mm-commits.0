@@ -1,103 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-ds1286c-use-time_before-time_before_eq-etc.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:30:00 -0700
-Message-ID: <200805010930.m419U0Pq030727@imap1.linux-foundation.org>
+Subject: - istallion-tiocg-ssoftcar-handling-removal.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:29:51 -0700
+Message-ID: <200805010929.m419TpOJ030715@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43812 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56059 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753717AbYEAJaG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:30:06 -0400
+	by vger.kernel.org with ESMTP id S1755757AbYEAJaQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:30:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/ds1286.c: use time_before, time_before_eq, etc
+     istallion: TIOCG/SSOFTCAR handling removal
 has been removed from the -mm tree.  Its filename was
-     drivers-char-ds1286c-use-time_before-time_before_eq-etc.patch
+     istallion-tiocg-ssoftcar-handling-removal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/ds1286.c: use time_before, time_before_eq, etc
-From: Julia Lawall <julia@diku.dk>
+Subject: istallion: TIOCG/SSOFTCAR handling removal
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-The functions time_before, time_before_eq, time_after, and time_after_eq
-are more robust for comparing jiffies against other values.
+This is handled (and correctly) by the core code so does not belong
+incorrectly in the driver.
 
-A simplified version of the semantic patch making this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@ change_compare_np @
-expression E;
-@@
-
-(
-- jiffies <= E
-+ time_before_eq(jiffies,E)
-|
-- jiffies >= E
-+ time_after_eq(jiffies,E)
-|
-- jiffies < E
-+ time_before(jiffies,E)
-|
-- jiffies > E
-+ time_after(jiffies,E)
-)
-
-@ include depends on change_compare_np @
-@@
-
-#include <linux/jiffies.h>
-
-@ no_include depends on !include && change_compare_np @
-@@
-
-  #include <linux/...>
-+ #include <linux/jiffies.h>
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ds1286.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/char/istallion.c |   10 ----------
+ 1 file changed, 10 deletions(-)
 
-diff -puN drivers/char/ds1286.c~drivers-char-ds1286c-use-time_before-time_before_eq-etc drivers/char/ds1286.c
---- a/drivers/char/ds1286.c~drivers-char-ds1286c-use-time_before-time_before_eq-etc
-+++ a/drivers/char/ds1286.c
-@@ -39,6 +39,7 @@
- #include <linux/spinlock.h>
- #include <linux/bcd.h>
- #include <linux/proc_fs.h>
-+#include <linux/jiffies.h>
+diff -puN drivers/char/istallion.c~istallion-tiocg-ssoftcar-handling-removal drivers/char/istallion.c
+--- a/drivers/char/istallion.c~istallion-tiocg-ssoftcar-handling-removal
++++ a/drivers/char/istallion.c
+@@ -1682,16 +1682,6 @@ static int stli_ioctl(struct tty_struct 
+ 	rc = 0;
  
- #include <asm/uaccess.h>
- #include <asm/system.h>
-@@ -451,7 +452,7 @@ static void ds1286_get_time(struct rtc_t
- 	 */
- 
- 	if (ds1286_is_updating() != 0)
--		while (jiffies - uip_watchdog < 2*HZ/100)
-+		while (time_before(jiffies, uip_watchdog + 2*HZ/100))
- 			barrier();
- 
- 	/*
+ 	switch (cmd) {
+-	case TIOCGSOFTCAR:
+-		rc = put_user(((tty->termios->c_cflag & CLOCAL) ? 1 : 0),
+-			(unsigned __user *) arg);
+-		break;
+-	case TIOCSSOFTCAR:
+-		if ((rc = get_user(ival, (unsigned __user *) arg)) == 0)
+-			tty->termios->c_cflag =
+-				(tty->termios->c_cflag & ~CLOCAL) |
+-				(ival ? CLOCAL : 0);
+-		break;
+ 	case TIOCGSERIAL:
+ 		rc = stli_getserial(portp, argp);
+ 		break;
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-drivers-scsi-use-time_before-time_before_eq-etc.patch
-git-cryptodev.patch
-spi_s3c24xx-signedness-fix.patch
-fs-ext4-use-bug_on.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+pata_atiixp-simplex-clear.patch
+pata_atiixp-dont-disable.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+generic-irq-let-setup_irq-reenable-a-shared-irq.patch
+8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
