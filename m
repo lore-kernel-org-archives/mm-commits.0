@@ -1,61 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - istallion-tiocg-ssoftcar-handling-removal.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:29:51 -0700
-Message-ID: <200805010929.m419TpOJ030715@imap1.linux-foundation.org>
+Subject: - serial-m68k-put_char-returns.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:30:08 -0700
+Message-ID: <200805010930.m419U8Kn030742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33033 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755757AbYEAJaQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:30:16 -0400
+	by vger.kernel.org with ESMTP id S1757500AbYEAJae (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:30:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, gerg@uclinux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     istallion: TIOCG/SSOFTCAR handling removal
+     serial m68k: put_char returns
 has been removed from the -mm tree.  Its filename was
-     istallion-tiocg-ssoftcar-handling-removal.patch
+     serial-m68k-put_char-returns.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: istallion: TIOCG/SSOFTCAR handling removal
+Subject: serial m68k: put_char returns
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-This is handled (and correctly) by the core code so does not belong
-incorrectly in the driver.
-
 Signed-off-by: Alan Cox <alan@redhat.com>
+Acked-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/istallion.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ drivers/serial/68328serial.c |    3 ++-
+ drivers/serial/68360serial.c |    5 +++--
+ drivers/serial/mcfserial.c   |    4 ++--
+ 3 files changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/istallion.c~istallion-tiocg-ssoftcar-handling-removal drivers/char/istallion.c
---- a/drivers/char/istallion.c~istallion-tiocg-ssoftcar-handling-removal
-+++ a/drivers/char/istallion.c
-@@ -1682,16 +1682,6 @@ static int stli_ioctl(struct tty_struct 
- 	rc = 0;
+diff -puN drivers/serial/68328serial.c~serial-m68k-put_char-returns drivers/serial/68328serial.c
+--- a/drivers/serial/68328serial.c~serial-m68k-put_char-returns
++++ a/drivers/serial/68328serial.c
+@@ -200,7 +200,7 @@ static void rs_stop(struct tty_struct *t
+ 	local_irq_restore(flags);
+ }
  
- 	switch (cmd) {
--	case TIOCGSOFTCAR:
--		rc = put_user(((tty->termios->c_cflag & CLOCAL) ? 1 : 0),
--			(unsigned __user *) arg);
--		break;
--	case TIOCSSOFTCAR:
--		if ((rc = get_user(ival, (unsigned __user *) arg)) == 0)
--			tty->termios->c_cflag =
--				(tty->termios->c_cflag & ~CLOCAL) |
--				(ival ? CLOCAL : 0);
--		break;
- 	case TIOCGSERIAL:
- 		rc = stli_getserial(portp, argp);
- 		break;
+-static void rs_put_char(char ch)
++static int rs_put_char(char ch)
+ {
+         int flags, loops = 0;
+ 
+@@ -214,6 +214,7 @@ static void rs_put_char(char ch)
+ 	UTX_TXDATA = ch;
+         udelay(5);
+         local_irq_restore(flags);
++        return 1;
+ }
+ 
+ static void rs_start(struct tty_struct *tty)
+diff -puN drivers/serial/68360serial.c~serial-m68k-put_char-returns drivers/serial/68360serial.c
+--- a/drivers/serial/68360serial.c~serial-m68k-put_char-returns
++++ a/drivers/serial/68360serial.c
+@@ -995,10 +995,10 @@ static void rs_360_put_char(struct tty_s
+ 	volatile QUICC_BD	*bdp;
+ 
+ 	if (serial_paranoia_check(info, tty->name, "rs_put_char"))
+-		return;
++		return 0;
+ 
+ 	if (!tty)
+-		return;
++		return 0;
+ 
+ 	bdp = info->tx_cur;
+ 	while (bdp->status & BD_SC_READY);
+@@ -1016,6 +1016,7 @@ static void rs_360_put_char(struct tty_s
+ 		bdp++;
+ 
+ 	info->tx_cur = (QUICC_BD *)bdp;
++	return 1;
+ 
+ }
+ 
+diff -puN drivers/serial/mcfserial.c~serial-m68k-put_char-returns drivers/serial/mcfserial.c
+--- a/drivers/serial/mcfserial.c~serial-m68k-put_char-returns
++++ a/drivers/serial/mcfserial.c
+@@ -1897,7 +1897,7 @@ static struct tty_driver *mcfrs_console_
+  *	This is used for console output.
+  */
+ 
+-void mcfrs_put_char(char ch)
++int mcfrs_put_char(char ch)
+ {
+ 	volatile unsigned char	*uartp;
+ 	unsigned long		flags;
+@@ -1921,7 +1921,7 @@ void mcfrs_put_char(char ch)
+ 		mcfrs_init_console(); /* try and get it back */
+ 	local_irq_restore(flags);
+ 
+-	return;
++	return 1;
+ }
+ 
+ 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
