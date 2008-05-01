@@ -1,80 +1,143 @@
 From: akpm@linux-foundation.org
-Subject: - rename-div64_64-to-div64_u64-ia64.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:45:06 -0700
-Message-ID: <200805010945.m419j6sv031528@imap1.linux-foundation.org>
+Subject: - get_signal_to_deliver-use-the-cached-signal-sighand-values.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:26:23 -0700
+Message-ID: <200805010926.m419QNpL030294@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36531 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33574 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758193AbYEAJp4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:45:56 -0400
+	by vger.kernel.org with ESMTP id S1758268AbYEAJqI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:46:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zippel@linux-m68k.org, avi@qumranet.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, jkosina@suse.cz, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     2.6.25-rc5-mm1 specifc div64_u64 fixes
+     get_signal_to_deliver: use the cached ->signal/sighand values
 has been removed from the -mm tree.  Its filename was
-     rename-div64_64-to-div64_u64-ia64.patch
+     get_signal_to_deliver-use-the-cached-signal-sighand-values.patch
 
-This patch was dropped because it was folded into rename-div64_64-to-div64_u64.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 2.6.25-rc5-mm1 specifc div64_u64 fixes
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: get_signal_to_deliver: use the cached ->signal/sighand values
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Rename a few more div64_u64 which are only in -mm.
+Cache the values of current->signal/sighand.  Shrinks .text a bit and makes
+the code more readable.  Also, remove "sigset_t *mask", it is pointless
+because in fact we save the constant offset.
 
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: Avi Kivity <avi@qumranet.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kvm/kvm-ia64.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/signal.c |   30 +++++++++++++++---------------
+ 1 file changed, 15 insertions(+), 15 deletions(-)
 
-diff -puN arch/ia64/kvm/kvm-ia64.c~rename-div64_64-to-div64_u64-ia64 arch/ia64/kvm/kvm-ia64.c
---- a/arch/ia64/kvm/kvm-ia64.c~rename-div64_64-to-div64_u64-ia64
-+++ a/arch/ia64/kvm/kvm-ia64.c
-@@ -1,4 +1,3 @@
--
- /*
-  * kvm_ia64.c: Basic KVM suppport On Itanium series processors
-  *
-@@ -431,7 +430,7 @@ int kvm_emulate_halt(struct kvm_vcpu *vc
- 	if (itc_diff < 0)
- 		itc_diff = -itc_diff;
+diff -puN kernel/signal.c~get_signal_to_deliver-use-the-cached-signal-sighand-values kernel/signal.c
+--- a/kernel/signal.c~get_signal_to_deliver-use-the-cached-signal-sighand-values
++++ a/kernel/signal.c
+@@ -1753,8 +1753,9 @@ static int ptrace_signal(int signr, sigi
+ int get_signal_to_deliver(siginfo_t *info, struct k_sigaction *return_ka,
+ 			  struct pt_regs *regs, void *cookie)
+ {
+-	sigset_t *mask = &current->blocked;
+-	int signr = 0;
++	struct sighand_struct *sighand = current->sighand;
++	struct signal_struct *signal = current->signal;
++	int signr;
  
--	expires = div64_64(itc_diff, cyc_per_usec);
-+	expires = div64_u64(itc_diff, cyc_per_usec);
- 	kt = ktime_set(0, 1000 * expires);
- 	vcpu->arch.ht_active = 1;
- 	hrtimer_start(p_ht, kt, HRTIMER_MODE_ABS);
+ relock:
+ 	/*
+@@ -1765,13 +1766,13 @@ relock:
+ 	 */
+ 	try_to_freeze();
+ 
+-	spin_lock_irq(&current->sighand->siglock);
++	spin_lock_irq(&sighand->siglock);
+ 
+-	if (unlikely(current->signal->flags & SIGNAL_CLD_MASK)) {
+-		int why = (current->signal->flags & SIGNAL_STOP_CONTINUED)
++	if (unlikely(signal->flags & SIGNAL_CLD_MASK)) {
++		int why = (signal->flags & SIGNAL_STOP_CONTINUED)
+ 				? CLD_CONTINUED : CLD_STOPPED;
+-		current->signal->flags &= ~SIGNAL_CLD_MASK;
+-		spin_unlock_irq(&current->sighand->siglock);
++		signal->flags &= ~SIGNAL_CLD_MASK;
++		spin_unlock_irq(&sighand->siglock);
+ 
+ 		read_lock(&tasklist_lock);
+ 		do_notify_parent_cldstop(current->group_leader, why);
+@@ -1782,12 +1783,11 @@ relock:
+ 	for (;;) {
+ 		struct k_sigaction *ka;
+ 
+-		if (unlikely(current->signal->group_stop_count > 0) &&
++		if (unlikely(signal->group_stop_count > 0) &&
+ 		    do_signal_stop(0))
+ 			goto relock;
+ 
+-		signr = dequeue_signal(current, mask, info);
+-
++		signr = dequeue_signal(current, &current->blocked, info);
+ 		if (!signr)
+ 			break; /* will return 0 */
+ 
+@@ -1797,7 +1797,7 @@ relock:
+ 				continue;
+ 		}
+ 
+-		ka = &current->sighand->action[signr-1];
++		ka = &sighand->action[signr-1];
+ 		if (ka->sa.sa_handler == SIG_IGN) /* Do nothing.  */
+ 			continue;
+ 		if (ka->sa.sa_handler != SIG_DFL) {
+@@ -1834,14 +1834,14 @@ relock:
+ 			 * We need to check for that and bail out if necessary.
+ 			 */
+ 			if (signr != SIGSTOP) {
+-				spin_unlock_irq(&current->sighand->siglock);
++				spin_unlock_irq(&sighand->siglock);
+ 
+ 				/* signals can be posted during this window */
+ 
+ 				if (is_current_pgrp_orphaned())
+ 					goto relock;
+ 
+-				spin_lock_irq(&current->sighand->siglock);
++				spin_lock_irq(&sighand->siglock);
+ 			}
+ 
+ 			if (likely(do_signal_stop(signr))) {
+@@ -1856,7 +1856,7 @@ relock:
+ 			continue;
+ 		}
+ 
+-		spin_unlock_irq(&current->sighand->siglock);
++		spin_unlock_irq(&sighand->siglock);
+ 
+ 		/*
+ 		 * Anything else is fatal, maybe with a core dump.
+@@ -1882,7 +1882,7 @@ relock:
+ 		do_group_exit(signr);
+ 		/* NOTREACHED */
+ 	}
+-	spin_unlock_irq(&current->sighand->siglock);
++	spin_unlock_irq(&sighand->siglock);
+ 	return signr;
+ }
+ 
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-introduce-explicit-signed-unsigned-64bit-divide.patch
-convert-a-few-do_div-user.patch
-rename-div64_64-to-div64_u64.patch
-rename-div64_64-to-div64_u64-ia64.patch
-remove-div_long_long_rem.patch
-ntp-cleanup-ntpc.patch
-ntp-ntp4-user-space-bits-update.patch
-ntp-increase-time_freq-resolution.patch
-ntp-increase-time_offset-resolution.patch
-ntp-support-for-tai.patch
-ntp-rename-tick_length_shift-to-ntp_scale_shift.patch
-ntp-remove-current_tick_length.patch
-ntp-handle-leap-second-via-timer.patch
-rename-div64_64-to-div64_u64-dvb.patch
-rename-div64_64-to-div64_u64-kvm.patch
-git-watchdog.patch
-affs-fix-reservation-discarding.patch
-vfs-kill-put_inode.patch
+posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
+workqueue-remove-redundant-function-invocation.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
