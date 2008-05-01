@@ -1,92 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-fix-printk-format-warnings-fix-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:49:35 -0700
-Message-ID: <200805010949.m419nZwJ031752@imap1.linux-foundation.org>
+Subject: - x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:52:23 -0700
+Message-ID: <200805010952.m419qN0R031850@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58244 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46436 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757599AbYEAJuX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:50:23 -0400
+	by vger.kernel.org with ESMTP id S1756771AbYEAJwx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:52:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bjorn.helgaas@hp.com, joe@perches.com, randy.dunlap@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dilinger@debian.org, dilinger@queued.net, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pnp-fix-printk-format-warnings-fix-checkpatch-fixes
+     x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup
 has been removed from the -mm tree.  Its filename was
-     pnp-fix-printk-format-warnings-fix-checkpatch-fixes.patch
+     x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
 
-This patch was dropped because it was folded into pnp-fix-printk-format-warnings.patch
+This patch was dropped because it was folded into x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp-fix-printk-format-warnings-fix-checkpatch-fixes
+Subject: x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#28: FILE: drivers/pnp/pnpbios/rsparser.c:594:
-+	dev_dbg(&dev->dev, "  encode irq %llu\n", (unsigned long long)res->start);
-
-WARNING: line over 80 characters
-#37: FILE: drivers/pnp/pnpbios/rsparser.c:605:
-+	dev_dbg(&dev->dev, "  encode dma %llu\n", (unsigned long long)res->start);
-
-total: 0 errors, 2 warnings, 16 lines checked
-
-./patches/pnp-fix-printk-format-warnings-fix.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Andres Salomon <dilinger@debian.org>
+Cc: Andres Salomon <dilinger@queued.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/pnpbios/rsparser.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/kernel/geode_32.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/pnp/pnpbios/rsparser.c~pnp-fix-printk-format-warnings-fix-checkpatch-fixes drivers/pnp/pnpbios/rsparser.c
---- a/drivers/pnp/pnpbios/rsparser.c~pnp-fix-printk-format-warnings-fix-checkpatch-fixes
-+++ a/drivers/pnp/pnpbios/rsparser.c
-@@ -591,7 +591,8 @@ static void pnpbios_encode_irq(struct pn
- 	p[1] = map & 0xff;
- 	p[2] = (map >> 8) & 0xff;
- 
--	dev_dbg(&dev->dev, "  encode irq %llu\n", (unsigned long long)res->start);
-+	dev_dbg(&dev->dev, "  encode irq %llu\n",
-+		(unsigned long long)res->start);
+diff -puN arch/x86/kernel/geode_32.c~x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup arch/x86/kernel/geode_32.c
+--- a/arch/x86/kernel/geode_32.c~x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup
++++ a/arch/x86/kernel/geode_32.c
+@@ -161,10 +161,10 @@ void geode_gpio_setup_event(unsigned int
  }
+ EXPORT_SYMBOL_GPL(geode_gpio_setup_event);
  
- static void pnpbios_encode_dma(struct pnp_dev *dev, unsigned char *p,
-@@ -602,7 +603,8 @@ static void pnpbios_encode_dma(struct pn
- 	map = 1 << res->start;
- 	p[1] = map & 0xff;
- 
--	dev_dbg(&dev->dev, "  encode dma %llu\n", (unsigned long long)res->start);
-+	dev_dbg(&dev->dev, "  encode dma %llu\n",
-+		(unsigned long long)res->start);
- }
- 
- static void pnpbios_encode_port(struct pnp_dev *dev, unsigned char *p,
+-static int has_vsa2 = -1;
+-
+ int geode_has_vsa2(void)
+ {
++	static int has_vsa2 = -1;
++
+ 	if (has_vsa2 == -1) {
+ 		/*
+ 		 * The VSA has virtual registers that we can query for a
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 drivers-pcmcia-soc_commonc-convert-soc_pcmcia_sockets_lock-into-a-mutex-and-make-it-static.patch
+pnp-fix-printk-format-warnings.patch
 revert-memory-hotplug-register-section-node-id-to-free.patch
 pci-export-resource_wc-in-pci-sysfs-fix.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-pnp-fix-printk-format-warnings.patch
-pnp-fix-printk-format-warnings-fix-checkpatch-fixes.patch
 git-x86-fixup.patch
 rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
 x86-geode-cache-results-from-geode_has_vsa2-and-uninline-cleanup.patch
 cifs-suppress-warning.patch
 sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
