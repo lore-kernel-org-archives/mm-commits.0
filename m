@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + devres-add-devm_ioremap_prot.patch added to -mm tree
-Date: Thu, 01 May 2008 15:55:47 -0700
-Message-ID: <200805012255.m41MtlM8029751@imap1.linux-foundation.org>
+Subject: + fix-irq-flags-for-iuu_phoenixc.patch added to -mm tree
+Date: Thu, 01 May 2008 15:58:24 -0700
+Message-ID: <200805012258.m41MwOV6029848@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57604 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37915 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757079AbYEAW40 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 18:56:26 -0400
+	by vger.kernel.org with ESMTP id S1754704AbYEAW6q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 18:58:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: Emilian.Medve@Freescale.com, benh@kernel.crashing.org, galak@kernel.crashing.org, htejun@gmail.com, paulus@samba.org
+Cc: rostedt@goodmis.org, greg@kroah.com, srostedt@redhat.com
 
 
 The patch titled
-     powerpc: devres: Add devm_ioremap_prot()
+     fix irq flags for iuu_phoenix.c
 has been added to the -mm tree.  Its filename is
-     devres-add-devm_ioremap_prot.patch
+     fix-irq-flags-for-iuu_phoenixc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,139 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: devres: Add devm_ioremap_prot()
-From: Emil Medve <Emilian.Medve@Freescale.com>
+Subject: fix irq flags for iuu_phoenix.c
+From: Steven Rostedt <rostedt@goodmis.org>
 
-We provide an ioremap_flags so provide a corresponding devm_ioremap_prot.  The
-slight name difference is at Ben Herrenschmidt request as he plans on changing
-ioremap_flags to ioremap_prot in the future.
+The file drivers/usb/serial/iuu_phoenix.c uses "int" for flags.  This can
+cause hard to find bugs on some architectures.  This patch converts the flags
+to use "long" instead.
 
-Signed-off-by: Emil Medve <Emilian.Medve@Freescale.com>
-Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
-Acked-by: Tejun Heo <htejun@gmail.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+This bug was discovered by doing an allyesconfig make on the -rt kernel where
+checks are done to ensure all flags are of size sizeof(long).
+
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/lib/Makefile |    1 
- arch/powerpc/lib/devres.c |   42 ++++++++++++++++++++++++++++++++++++
- include/asm-powerpc/io.h  |    8 ++++++
- include/linux/io.h        |    1 
- lib/devres.c              |    2 -
- 5 files changed, 52 insertions(+), 2 deletions(-)
+ drivers/usb/serial/iuu_phoenix.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/lib/Makefile~devres-add-devm_ioremap_prot arch/powerpc/lib/Makefile
---- a/arch/powerpc/lib/Makefile~devres-add-devm_ioremap_prot
-+++ a/arch/powerpc/lib/Makefile
-@@ -23,3 +23,4 @@ obj-$(CONFIG_SMP)	+= locks.o
- endif
- 
- obj-$(CONFIG_PPC_LIB_RHEAP) += rheap.o
-+obj-$(CONFIG_HAS_IOMEM)	+= devres.o
-diff -puN /dev/null arch/powerpc/lib/devres.c
---- /dev/null
-+++ a/arch/powerpc/lib/devres.c
-@@ -0,0 +1,42 @@
-+/*
-+ * Copyright (C) 2008 Freescale Semiconductor, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-+ */
-+
-+#include <linux/device.h>	/* devres_*(), devm_ioremap_release() */
-+#include <linux/io.h>		/* ioremap_flags() */
-+#include <linux/module.h>	/* EXPORT_SYMBOL() */
-+
-+/**
-+ * devm_ioremap_prot - Managed ioremap_flags()
-+ * @dev: Generic device to remap IO address for
-+ * @offset: BUS offset to map
-+ * @size: Size of map
-+ * @flags: Page flags
-+ *
-+ * Managed ioremap_prot().  Map is automatically unmapped on driver
-+ * detach.
-+ */
-+void __iomem *devm_ioremap_prot(struct device *dev, resource_size_t offset,
-+				 size_t size, unsigned long flags)
-+{
-+	void __iomem **ptr, *addr;
-+
-+	ptr = devres_alloc(devm_ioremap_release, sizeof(*ptr), GFP_KERNEL);
-+	if (!ptr)
-+		return NULL;
-+
-+	addr = ioremap_flags(offset, size, flags);
-+	if (addr) {
-+		*ptr = addr;
-+		devres_add(dev, ptr);
-+	} else
-+		devres_free(ptr);
-+
-+	return addr;
-+}
-+EXPORT_SYMBOL(devm_ioremap_prot);
-diff -puN include/asm-powerpc/io.h~devres-add-devm_ioremap_prot include/asm-powerpc/io.h
---- a/include/asm-powerpc/io.h~devres-add-devm_ioremap_prot
-+++ a/include/asm-powerpc/io.h
-@@ -2,7 +2,7 @@
- #define _ASM_POWERPC_IO_H
- #ifdef __KERNEL__
- 
--/* 
-+/*
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-  * as published by the Free Software Foundation; either version
-@@ -18,6 +18,9 @@ extern int check_legacy_ioport(unsigned 
- #define _PNPWRP		0xa79
- #define PNPBIOS_BASE	0xf000
- 
-+#include <linux/device.h>
-+#include <linux/io.h>
-+
- #include <linux/compiler.h>
- #include <asm/page.h>
- #include <asm/byteorder.h>
-@@ -744,6 +747,9 @@ static inline void * bus_to_virt(unsigne
- 
- #define clrsetbits_8(addr, clear, set) clrsetbits(8, addr, clear, set)
- 
-+void __iomem *devm_ioremap_prot(struct device *dev, resource_size_t offset,
-+				size_t size, unsigned long flags);
-+
- #endif /* __KERNEL__ */
- 
- #endif /* _ASM_POWERPC_IO_H */
-diff -puN include/linux/io.h~devres-add-devm_ioremap_prot include/linux/io.h
---- a/include/linux/io.h~devres-add-devm_ioremap_prot
-+++ a/include/linux/io.h
-@@ -65,5 +65,6 @@ void __iomem *devm_ioremap_nocache(struc
- void devm_iounmap(struct device *dev, void __iomem *addr);
- int check_signature(const volatile void __iomem *io_addr,
- 			const unsigned char *signature, int length);
-+void devm_ioremap_release(struct device *dev, void *res);
- 
- #endif /* _LINUX_IO_H */
-diff -puN lib/devres.c~devres-add-devm_ioremap_prot lib/devres.c
---- a/lib/devres.c~devres-add-devm_ioremap_prot
-+++ a/lib/devres.c
-@@ -2,7 +2,7 @@
- #include <linux/io.h>
- #include <linux/module.h>
- 
--static void devm_ioremap_release(struct device *dev, void *res)
-+void devm_ioremap_release(struct device *dev, void *res)
+diff -puN drivers/usb/serial/iuu_phoenix.c~fix-irq-flags-for-iuu_phoenixc drivers/usb/serial/iuu_phoenix.c
+--- a/drivers/usb/serial/iuu_phoenix.c~fix-irq-flags-for-iuu_phoenixc
++++ a/drivers/usb/serial/iuu_phoenix.c
+@@ -643,7 +643,7 @@ static void read_buf_callback(struct urb
+ static int iuu_bulk_write(struct usb_serial_port *port)
  {
- 	iounmap(*(void __iomem **)res);
- }
+ 	struct iuu_private *priv = usb_get_serial_port_data(port);
+-	unsigned int flags;
++	unsigned long flags;
+ 	int result;
+ 	int i;
+ 	char *buf_ptr = port->write_urb->transfer_buffer;
+@@ -694,7 +694,7 @@ static void iuu_uart_read_callback(struc
+ {
+ 	struct usb_serial_port *port = urb->context;
+ 	struct iuu_private *priv = usb_get_serial_port_data(port);
+-	unsigned int flags;
++	unsigned long flags;
+ 	int status;
+ 	int error = 0;
+ 	int len = 0;
+@@ -759,7 +759,7 @@ static int iuu_uart_write(struct usb_ser
+ 			  int count)
+ {
+ 	struct iuu_private *priv = usb_get_serial_port_data(port);
+-	unsigned int flags;
++	unsigned long flags;
+ 	dbg("%s - enter", __func__);
+ 
+ 	if (count > 256)
 _
 
-Patches currently in -mm which might be from Emilian.Medve@Freescale.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-devres-add-devm_ioremap_prot.patch
+origin.patch
+9p-use-correct-type-for-processor-flags.patch
+fix-irq-flags-in-mac80211-code.patch
+fix-irq-flags-in-saa7134.patch
+fix-irq-flags-in-rtc-ds1511.patch
+fix-irq-flags-for-iuu_phoenixc.patch
+git-sched.patch
 
