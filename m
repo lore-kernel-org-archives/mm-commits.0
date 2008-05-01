@@ -1,98 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: - ptrace-introduce-ptrace_reparented-helper.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:27:35 -0700
-Message-ID: <200805010927.m419RZqW030430@imap1.linux-foundation.org>
+Subject: - rocket-prepare-for-bkl-pushdown.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:28:00 -0700
+Message-ID: <200805010928.m419S0pm030467@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35620 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47735 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757353AbYEAJ2V (ORCPT
+	by vger.kernel.org with ESMTP id S1757419AbYEAJ2V (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:28:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ptrace: introduce ptrace_reparented() helper
+     rocket: Prepare for BKL pushdown
 has been removed from the -mm tree.  Its filename was
-     ptrace-introduce-ptrace_reparented-helper.patch
+     rocket-prepare-for-bkl-pushdown.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ptrace: introduce ptrace_reparented() helper
-From: Oleg Nesterov <oleg@tv-sign.ru>
+Subject: rocket: Prepare for BKL pushdown
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Add another trivial helper for the sake of grep.  It also auto-documents the
-fact that ->parent != real_parent implies ->ptrace.
+Wrap the ioctl code in lock_kernel calls
 
-No functional changes.
-
-Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
-Acked-by: Roland McGrath <roland@redhat.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/ptrace.h |    4 ++++
- kernel/exit.c          |    9 ++++-----
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ drivers/char/rocket.c |   27 ++++++++++++++++++---------
+ 1 file changed, 18 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/ptrace.h~ptrace-introduce-ptrace_reparented-helper include/linux/ptrace.h
---- a/include/linux/ptrace.h~ptrace-introduce-ptrace_reparented-helper
-+++ a/include/linux/ptrace.h
-@@ -98,6 +98,10 @@ extern void ptrace_untrace(struct task_s
- extern int ptrace_may_attach(struct task_struct *task);
- extern int __ptrace_may_attach(struct task_struct *task);
- 
-+static inline int ptrace_reparented(struct task_struct *child)
-+{
-+	return child->real_parent != child->parent;
-+}
- static inline void ptrace_link(struct task_struct *child,
- 			       struct task_struct *new_parent)
+diff -puN drivers/char/rocket.c~rocket-prepare-for-bkl-pushdown drivers/char/rocket.c
+--- a/drivers/char/rocket.c~rocket-prepare-for-bkl-pushdown
++++ a/drivers/char/rocket.c
+@@ -1433,29 +1433,38 @@ static int rp_ioctl(struct tty_struct *t
  {
-diff -puN kernel/exit.c~ptrace-introduce-ptrace_reparented-helper kernel/exit.c
---- a/kernel/exit.c~ptrace-introduce-ptrace_reparented-helper
-+++ a/kernel/exit.c
-@@ -698,7 +698,7 @@ reparent_thread(struct task_struct *p, s
- 	if (unlikely(traced)) {
- 		/* Preserve ptrace links if someone else is tracing this child.  */
- 		list_del_init(&p->ptrace_list);
--		if (p->parent != p->real_parent)
-+		if (ptrace_reparented(p))
- 			list_add(&p->ptrace_list, &p->real_parent->ptrace_children);
- 	} else {
- 		/* If this child is being traced, then we're the one tracing it
-@@ -865,8 +865,8 @@ static void exit_notify(struct task_stru
- 	 * only has special meaning to our real parent.
- 	 */
- 	if (!task_detached(tsk) && thread_group_empty(tsk)) {
--		int signal = (tsk->parent == tsk->real_parent)
--				? tsk->exit_signal : SIGCHLD;
-+		int signal = ptrace_reparented(tsk) ?
-+				SIGCHLD : tsk->exit_signal;
- 		do_notify_parent(tsk, signal);
- 	} else if (tsk->ptrace) {
- 		do_notify_parent(tsk, SIGCHLD);
-@@ -1269,8 +1269,7 @@ static int wait_task_zombie(struct task_
- 		return 0;
+ 	struct r_port *info = (struct r_port *) tty->driver_data;
+ 	void __user *argp = (void __user *)arg;
++	int ret = 0;
+ 
+ 	if (cmd != RCKP_GET_PORTS && rocket_paranoia_check(info, "rp_ioctl"))
+ 		return -ENXIO;
+ 
++	lock_kernel();
++
+ 	switch (cmd) {
+ 	case RCKP_GET_STRUCT:
+ 		if (copy_to_user(argp, info, sizeof (struct r_port)))
+-			return -EFAULT;
+-		return 0;
++			ret = -EFAULT;
++		break;
+ 	case RCKP_GET_CONFIG:
+-		return get_config(info, argp);
++		ret = get_config(info, argp);
++		break;
+ 	case RCKP_SET_CONFIG:
+-		return set_config(info, argp);
++		ret = set_config(info, argp);
++		break;
+ 	case RCKP_GET_PORTS:
+-		return get_ports(info, argp);
++		ret = get_ports(info, argp);
++		break;
+ 	case RCKP_RESET_RM2:
+-		return reset_rm2(info, argp);
++		ret = reset_rm2(info, argp);
++		break;
+ 	case RCKP_GET_VERSION:
+-		return get_version(info, argp);
++		ret = get_version(info, argp);
++		break;
+ 	default:
+-		return -ENOIOCTLCMD;
++		ret = -ENOIOCTLCMD;
  	}
+-	return 0;
++	unlock_kernel();
++	return ret;
+ }
  
--	/* traced means p->ptrace, but not vice versa */
--	traced = (p->real_parent != p->parent);
-+	traced = ptrace_reparented(p);
- 
- 	if (likely(!traced)) {
- 		struct signal_struct *psig;
+ static void rp_send_xchar(struct tty_struct *tty, char ch)
 _
 
-Patches currently in -mm which might be from oleg@tv-sign.ru are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
-workqueue-remove-redundant-function-invocation.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+pata_atiixp-simplex-clear.patch
+pata_atiixp-dont-disable.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+generic-irq-let-setup_irq-reenable-a-shared-irq.patch
+8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
+sxc-fix-printk-warnings-on-sparc32.patch
 put_pid-make-sure-we-dont-free-the-live-pid.patch
 
