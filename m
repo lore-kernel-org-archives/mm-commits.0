@@ -1,156 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-fix-current-kernel-doc-notation.patch added to -mm tree
-Date: Wed, 30 Apr 2008 17:22:08 -0700
-Message-ID: <200805010022.m410M8wn011425@imap1.linux-foundation.org>
+Subject: - fs-block_devc-i_bdev-mustnt-be-inline.patch removed from -mm tree
+Date: Thu, 01 May 2008 01:16:06 -0700
+Message-ID: <200805010816.m418G6hn027826@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48869 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57805 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751500AbYEAAWU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 30 Apr 2008 20:22:20 -0400
+	by vger.kernel.org with ESMTP id S1753446AbYEAIQV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 04:16:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: randy.dunlap@oracle.com
+To: bunk@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rapidio: fix current kernel-doc notation
-has been added to the -mm tree.  Its filename is
-     rapidio-fix-current-kernel-doc-notation.patch
+     fs/block_dev.c:I_BDEV() mustn't be inline
+has been removed from the -mm tree.  Its filename was
+     fs-block_devc-i_bdev-mustnt-be-inline.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rapidio: fix current kernel-doc notation
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: fs/block_dev.c:I_BDEV() mustn't be inline
+From: Adrian Bunk <bunk@kernel.org>
 
-Fix current (-git16) missing docbook/kernel-doc notation in RapidIO files.
+Fix the following build error with UML and gcc 4.3:
 
-Warning(linux-2.6.25-git16//include/linux/rio.h:187): No description found for parameter 'sys_size'
-Warning(linux-2.6.25-git16//include/linux/rio.h:187): No description found for parameter 'phy_type'
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/block_dev.c: In function `blkdev_get_block':
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/block_dev.c:42: sorry, unimplemented: inlining failed in call to `I_BDEV': function body not available
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/block_dev.c:119: sorry, unimplemented: called from here
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/block_dev.c:42: sorry, unimplemented: inlining failed in call to `I_BDEV': function body not available
+/home/bunk/linux/kernel-2.6/git/linux-2.6/fs/block_dev.c:131: sorry, unimplemented: called from here
 
-Warning(linux-2.6.25-git16//arch/powerpc/sysdev/fsl_rio.c:188): No description found for parameter 'mport'
-Warning(linux-2.6.25-git16//arch/powerpc/sysdev/fsl_rio.c:224): No description found for parameter 'mport'
-Warning(linux-2.6.25-git16//arch/powerpc/sysdev/fsl_rio.c:245): No description found for parameter 'mport'
-Warning(linux-2.6.25-git16//arch/powerpc/sysdev/fsl_rio.c:270): No description found for parameter 'mport'
-Warning(linux-2.6.25-git16//arch/powerpc/sysdev/fsl_rio.c:311): No description found for parameter 'mport'
-Warning(linux-2.6.25-git16//arch/powerpc/sysdev/fsl_rio.c:996): No description found for parameter 'dev'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |    9 +++++++--
- include/linux/rio.h           |    2 ++
- 2 files changed, 9 insertions(+), 2 deletions(-)
+ fs/block_dev.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-fix-current-kernel-doc-notation arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-fix-current-kernel-doc-notation
-+++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -176,6 +176,7 @@ struct rio_priv {
- 
- /**
-  * fsl_rio_doorbell_send - Send a MPC85xx doorbell message
-+ * @mport: RapidIO master port info
-  * @index: ID of RapidIO interface
-  * @destid: Destination ID of target device
-  * @data: 16-bit info field of RapidIO doorbell message
-@@ -211,6 +212,7 @@ static int fsl_rio_doorbell_send(struct 
- 
- /**
-  * fsl_local_config_read - Generate a MPC85xx local config space read
-+ * @mport: RapidIO master port info
-  * @index: ID of RapdiIO interface
-  * @offset: Offset into configuration space
-  * @len: Length (in bytes) of the maintenance transaction
-@@ -232,6 +234,7 @@ static int fsl_local_config_read(struct 
- 
- /**
-  * fsl_local_config_write - Generate a MPC85xx local config space write
-+ * @mport: RapidIO master port info
-  * @index: ID of RapdiIO interface
-  * @offset: Offset into configuration space
-  * @len: Length (in bytes) of the maintenance transaction
-@@ -254,6 +257,7 @@ static int fsl_local_config_write(struct
- 
- /**
-  * fsl_rio_config_read - Generate a MPC85xx read maintenance transaction
-+ * @mport: RapidIO master port info
-  * @index: ID of RapdiIO interface
-  * @destid: Destination ID of transaction
-  * @hopcount: Number of hops to target device
-@@ -295,6 +299,7 @@ fsl_rio_config_read(struct rio_mport *mp
- 
- /**
-  * fsl_rio_config_write - Generate a MPC85xx write maintenance transaction
-+ * @mport: RapidIO master port info
-  * @index: ID of RapdiIO interface
-  * @destid: Destination ID of transaction
-  * @hopcount: Number of hops to target device
-@@ -985,8 +990,8 @@ static inline void fsl_rio_info(struct d
+diff -puN fs/block_dev.c~fs-block_devc-i_bdev-mustnt-be-inline fs/block_dev.c
+--- a/fs/block_dev.c~fs-block_devc-i_bdev-mustnt-be-inline
++++ a/fs/block_dev.c
+@@ -38,11 +38,10 @@ static inline struct bdev_inode *BDEV_I(
+ 	return container_of(inode, struct bdev_inode, vfs_inode);
  }
  
- /**
-- * fsl_rio_setup - Setup MPC85xx RapidIO interface
-- * @fsl_rio_setup - Setup Freescale PowerPC RapidIO interface
-+ * fsl_rio_setup - Setup Freescale PowerPC RapidIO interface
-+ * @dev: of_device pointer
-  *
-  * Initializes MPC85xx RapidIO hardware interface, configures
-  * master port with system-specific info, and registers the
-diff -puN include/linux/rio.h~rapidio-fix-current-kernel-doc-notation include/linux/rio.h
---- a/include/linux/rio.h~rapidio-fix-current-kernel-doc-notation
-+++ a/include/linux/rio.h
-@@ -161,6 +161,8 @@ enum rio_phy_type {
-  * @ops: configuration space functions
-  * @id: Port ID, unique among all ports
-  * @index: Port index, unique among all port interfaces of the same type
-+ * @sys_size: RapidIO common transport system size
-+ * @phy_type: RapidIO phy type
-  * @name: Port name string
-  * @priv: Master port private data
-  */
+-inline struct block_device *I_BDEV(struct inode *inode)
++struct block_device *I_BDEV(struct inode *inode)
+ {
+ 	return &BDEV_I(inode)->bdev;
+ }
+-
+ EXPORT_SYMBOL(I_BDEV);
+ 
+ static sector_t max_block(struct block_device *bdev)
 _
 
-Patches currently in -mm which might be from randy.dunlap@oracle.com are
+Patches currently in -mm which might be from bunk@kernel.org are
 
 origin.patch
-basic-braille-screen-reader-support.patch
-add-macros-similar-to-min-max-min_t-max_t.patch
-infrastructure-to-debug-dynamic-objects.patch
-debugobjects-add-documentation.patch
-debugobjects-add-timer-specific-object-debugging-code.patch
-add-hrtimer-specific-debugobjects-code.patch
-sysfs-sysfs_update_group-stub-for-config_sysfs=n.patch
-docbook-fix-fatal-rapidio-yet-again-and-more-to-come.patch
-docbook-fix-vmalloc-missing-parameter-notation.patch
-pnp-fix-printk-format-warnings.patch
-pnp-fix-printk-format-warnings-fix.patch
-pnp-fix-printk-format-warnings-fix-checkpatch-fixes.patch
-x86-fix-setup-printk-format-warning.patch
-rapidio-fix-current-kernel-doc-notation.patch
-git-kvm.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+make-marker_debug-static.patch
+fs-block_devc-i_bdev-mustnt-be-inline.patch
+reiserfs-some-functions-mustnt-be-inline.patch
+git-acpi.patch
+git-x86.patch
+arch-x86-video-fbdevc-add-module_license.patch
+md-make-dm_dirty_log_initexit-static.patch
+drm-make-drm_minors_cleanup-static.patch
+git-m32r.patch
+net-ipv4-ip_outputc-ip_send_check-mustnt-be-inline.patch
+nfs-make-nfs4_drop_state_owner-static.patch
 git-ocfs2.patch
-git-unionfs.patch
-fix-gregkh-usb-usb-isp1760-hcd-driver.patch
-uwb-fix-kconfig-causing-undefined-references.patch
-docbook-some-kernel-locking-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-profile-likely-unlikely-macros.patch
+show_schedstat-fix-memleak.patch
+git-sh.patch
+if-0-ses_match_host.patch
+git-watchdog.patch
+xen-drivers-xen-balloonc-make-a-function-static.patch
+reiser4.patch
 
