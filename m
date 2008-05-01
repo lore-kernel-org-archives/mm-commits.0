@@ -1,117 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - char-fix-sparse-shadowed-variable-warnings-in-espc.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:29:36 -0700
-Message-ID: <200805010929.m419Taoj030694@imap1.linux-foundation.org>
+Subject: - char-moxa-remove-useless-tty-functions.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:29:26 -0700
+Message-ID: <200805010929.m419TQKB030679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40661 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757348AbYEAJ3i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:29:38 -0400
+	by vger.kernel.org with ESMTP id S1756405AbYEAJ3a (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:29:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: jirislaby@gmail.com, Oyvind.Aabling@uni-c.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     char: fix sparse shadowed variable warnings in esp.c
+     Char: moxa, remove useless tty functions
 has been removed from the -mm tree.  Its filename was
-     char-fix-sparse-shadowed-variable-warnings-in-espc.patch
+     char-moxa-remove-useless-tty-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: char: fix sparse shadowed variable warnings in esp.c
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: Char: moxa, remove useless tty functions
+From: Jiri Slaby <jirislaby@gmail.com>
 
-flags only use was in spin_lock_irqsave/spin_lock_irgrestore pairs, no
-need to redeclare for each one.
+- moxa_flush_chars -- no code; ldics handle this well
+- moxa_put_char -- only wrapper to moxa_write (same code), tty does this
+  the same way if tty->driver->put_char is NULL
 
-drivers/char/esp.c:1599:17: warning: symbol 'flags' shadows an earlier one
-drivers/char/esp.c:1517:16: originally declared here
-drivers/char/esp.c:1615:17: warning: symbol 'flags' shadows an earlier one
-drivers/char/esp.c:1517:16: originally declared here
-drivers/char/esp.c:1631:17: warning: symbol 'flags' shadows an earlier one
-drivers/char/esp.c:1517:16: originally declared here
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+Tested-by: Oyvind Aabling <Oyvind.Aabling@uni-c.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/esp.c |    6 ------
- 1 file changed, 6 deletions(-)
+ drivers/char/moxa.c |   25 -------------------------
+ 1 file changed, 25 deletions(-)
 
-diff -puN drivers/char/esp.c~char-fix-sparse-shadowed-variable-warnings-in-espc drivers/char/esp.c
---- a/drivers/char/esp.c~char-fix-sparse-shadowed-variable-warnings-in-espc
-+++ a/drivers/char/esp.c
-@@ -1600,8 +1600,6 @@ static int set_esp_config(struct esp_str
+diff -puN drivers/char/moxa.c~char-moxa-remove-useless-tty-functions drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-moxa-remove-useless-tty-functions
++++ a/drivers/char/moxa.c
+@@ -193,8 +193,6 @@ static int moxa_write(struct tty_struct 
+ static int moxa_write_room(struct tty_struct *);
+ static void moxa_flush_buffer(struct tty_struct *);
+ static int moxa_chars_in_buffer(struct tty_struct *);
+-static void moxa_flush_chars(struct tty_struct *);
+-static void moxa_put_char(struct tty_struct *, unsigned char);
+ static void moxa_throttle(struct tty_struct *);
+ static void moxa_unthrottle(struct tty_struct *);
+ static void moxa_set_termios(struct tty_struct *, struct ktermios *);
+@@ -391,8 +389,6 @@ static const struct tty_operations moxa_
+ 	.write_room = moxa_write_room,
+ 	.flush_buffer = moxa_flush_buffer,
+ 	.chars_in_buffer = moxa_chars_in_buffer,
+-	.flush_chars = moxa_flush_chars,
+-	.put_char = moxa_put_char,
+ 	.ioctl = moxa_ioctl,
+ 	.throttle = moxa_throttle,
+ 	.unthrottle = moxa_unthrottle,
+@@ -1284,27 +1280,6 @@ static int moxa_chars_in_buffer(struct t
+ 	return chars;
+ }
  
- 	if ((new_config.flow_off != info->config.flow_off) ||
- 	    (new_config.flow_on != info->config.flow_on)) {
--		unsigned long flags;
+-static void moxa_flush_chars(struct tty_struct *tty)
+-{
+-	/*
+-	 * Don't think I need this, because this is called to empty the TX
+-	 * buffer for the 16450, 16550, etc.
+-	 */
+-}
 -
- 		info->config.flow_off = new_config.flow_off;
- 		info->config.flow_on = new_config.flow_on;
- 
-@@ -1616,8 +1614,6 @@ static int set_esp_config(struct esp_str
- 
- 	if ((new_config.rx_trigger != info->config.rx_trigger) ||
- 	    (new_config.tx_trigger != info->config.tx_trigger)) {
--		unsigned long flags;
+-static void moxa_put_char(struct tty_struct *tty, unsigned char c)
+-{
+-	struct moxa_port *ch = tty->driver_data;
 -
- 		info->config.rx_trigger = new_config.rx_trigger;
- 		info->config.tx_trigger = new_config.tx_trigger;
- 		spin_lock_irqsave(&info->lock, flags);
-@@ -1632,8 +1628,6 @@ static int set_esp_config(struct esp_str
- 	}
- 
- 	if (new_config.rx_timeout != info->config.rx_timeout) {
--		unsigned long flags;
+-	if (ch == NULL)
+-		return;
+-	spin_lock_bh(&moxa_lock);
+-	MoxaPortWriteData(ch, &c, 1);
+-	spin_unlock_bh(&moxa_lock);
 -
- 		info->config.rx_timeout = new_config.rx_timeout;
- 		spin_lock_irqsave(&info->lock, flags);
- 
-_
-
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
-
-origin.patch
-frv-unbreak-misalignment-handling-changes.patch
-git-acpi.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-input-make-one-bit-signed-bitfields-unsigned.patch
-git-kvm.patch
-git-mips.patch
-mmc-make-one-bit-signed-bitfields-unsigned.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-git-sched.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-tkipc-use-kernel-provided-infrastructure.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-autofs4-fix-sparse-warning-in-waitqc-autofs4_expire_indirect.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-block-remove-remaining-__function__-occurances.patch
-
+-	ch->statusflags |= LOWWAIT;
+-}
