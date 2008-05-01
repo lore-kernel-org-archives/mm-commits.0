@@ -1,117 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - acpi-use-__init-on-everything-in-tables-tbfadtc.patch removed from -mm tree
-Date: Thu, 01 May 2008 12:36:23 -0700
-Message-ID: <200805011936.m41JaN1r021769@imap1.linux-foundation.org>
+Subject: - x86-ioremap-add-checks-for-virtual-addresses.patch removed from -mm tree
+Date: Thu, 01 May 2008 13:48:07 -0700
+Message-ID: <200805012048.m41Km7CA024564@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48938 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763044AbYEATgi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 15:36:38 -0400
+	by vger.kernel.org with ESMTP id S1753218AbYEAUtK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 16:49:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbeulich@novell.com, lenb@kernel.org, mm-commits@vger.kernel.org
+To: clameter@sgi.com, andi@firstfloor.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     acpi: use __init* on everything in tables/tbfadt.c
+     x86 ioremap(): add checks for virtual addresses
 has been removed from the -mm tree.  Its filename was
-     acpi-use-__init-on-everything-in-tables-tbfadtc.patch
+     x86-ioremap-add-checks-for-virtual-addresses.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: use __init* on everything in tables/tbfadt.c
-From: "Jan Beulich" <jbeulich@novell.com>
+Subject: x86 ioremap(): add checks for virtual addresses
+From: Christoph Lameter <clameter@sgi.com>
 
-All of the code in this file is use at boot time only.
+Add checks to ensure that virtual addresses are not used in invalid contexts.
 
-Additionally, acpi_tb_create_local_fadt() doesn't need a globally visible
-declaration.
-
-Signed-off-by: Jan Beulich <jbeulich@novell.com>
-Cc: Len Brown <lenb@kernel.org>
+Signed-off-by: Christoph Lameter <clameter@sgi.com>
+Cc: Andi Kleen <ak@suse.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/tables/tbfadt.c |   15 +++++++++------
- include/acpi/actables.h      |    2 --
- 2 files changed, 9 insertions(+), 8 deletions(-)
+ arch/x86/mm/ioremap.c     |    1 +
+ include/asm-x86/page_32.h |    7 ++++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN drivers/acpi/tables/tbfadt.c~acpi-use-__init-on-everything-in-tables-tbfadtc drivers/acpi/tables/tbfadt.c
---- a/drivers/acpi/tables/tbfadt.c~acpi-use-__init-on-everything-in-tables-tbfadtc
-+++ a/drivers/acpi/tables/tbfadt.c
-@@ -52,6 +52,8 @@ static void inline
- acpi_tb_init_generic_address(struct acpi_generic_address *generic_address,
- 			     u8 bit_width, u64 address);
+diff -puN arch/x86/mm/ioremap.c~x86-ioremap-add-checks-for-virtual-addresses arch/x86/mm/ioremap.c
+--- a/arch/x86/mm/ioremap.c~x86-ioremap-add-checks-for-virtual-addresses
++++ a/arch/x86/mm/ioremap.c
+@@ -25,6 +25,7 @@
  
-+static void acpi_tb_create_local_fadt(struct acpi_table_header *, u32 length);
+ unsigned long __phys_addr(unsigned long x)
+ {
++	VM_BUG_ON(is_vmalloc_addr((void *)x));
+ 	if (x >= __START_KERNEL_map)
+ 		return x - __START_KERNEL_map + phys_base;
+ 	return x - PAGE_OFFSET;
+diff -puN include/asm-x86/page_32.h~x86-ioremap-add-checks-for-virtual-addresses include/asm-x86/page_32.h
+--- a/include/asm-x86/page_32.h~x86-ioremap-add-checks-for-virtual-addresses
++++ a/include/asm-x86/page_32.h
+@@ -64,7 +64,12 @@ typedef struct page *pgtable_t;
+ #endif
+ 
+ #ifndef __ASSEMBLY__
+-#define __phys_addr(x)		((x) - PAGE_OFFSET)
++static inline unsigned long __phys_addr(unsigned long x)
++{
++	VM_BUG_ON(is_vmalloc_addr((void *)x));
++	return x - PAGE_OFFSET;
++}
 +
- static void acpi_tb_convert_fadt(void);
+ #define __phys_reloc_hide(x)	RELOC_HIDE((x), 0)
  
- static void acpi_tb_validate_fadt(void);
-@@ -59,7 +61,7 @@ static void acpi_tb_validate_fadt(void);
- /* Table for conversion of FADT to common internal format and FADT validation */
- 
- typedef struct acpi_fadt_info {
--	char *name;
-+	const char *name;
- 	u8 target;
- 	u8 source;
- 	u8 length;
-@@ -70,7 +72,7 @@ typedef struct acpi_fadt_info {
- #define ACPI_FADT_REQUIRED          1
- #define ACPI_FADT_SEPARATE_LENGTH   2
- 
--static struct acpi_fadt_info fadt_info_table[] = {
-+static struct acpi_fadt_info __initdata fadt_info_table[] = {
- 	{"Pm1aEventBlock", ACPI_FADT_OFFSET(xpm1a_event_block),
- 	 ACPI_FADT_OFFSET(pm1a_event_block),
- 	 ACPI_FADT_OFFSET(pm1_event_length), ACPI_FADT_REQUIRED},
-@@ -155,7 +157,7 @@ acpi_tb_init_generic_address(struct acpi
-  *
-  ******************************************************************************/
- 
--void acpi_tb_parse_fadt(acpi_native_uint table_index, u8 flags)
-+void __init acpi_tb_parse_fadt(acpi_native_uint table_index, u8 flags)
- {
- 	u32 length;
- 	struct acpi_table_header *table;
-@@ -215,7 +217,8 @@ void acpi_tb_parse_fadt(acpi_native_uint
-  *
-  ******************************************************************************/
- 
--void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length)
-+static void __init
-+acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length)
- {
- 
- 	/*
-@@ -276,7 +279,7 @@ void acpi_tb_create_local_fadt(struct ac
-  *
-  ******************************************************************************/
- 
--static void acpi_tb_convert_fadt(void)
-+static void __init acpi_tb_convert_fadt(void)
- {
- 	u8 pm1_register_length;
- 	struct acpi_generic_address *target;
-@@ -397,7 +400,7 @@ static void acpi_tb_convert_fadt(void)
-  *
-  ******************************************************************************/
- 
--static void acpi_tb_validate_fadt(void)
-+static void __init acpi_tb_validate_fadt(void)
- {
- 	u32 *address32;
- 	struct acpi_generic_address *address64;
-diff -puN include/acpi/actables.h~acpi-use-__init-on-everything-in-tables-tbfadtc include/acpi/actables.h
---- a/include/acpi/actables.h~acpi-use-__init-on-everything-in-tables-tbfadtc
-+++ a/include/acpi/actables.h
-@@ -51,8 +51,6 @@ acpi_status acpi_allocate_root_table(u32
-  */
- void acpi_tb_parse_fadt(acpi_native_uint table_index, u8 flags);
- 
--void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length);
+ #ifdef CONFIG_FLATMEM
+_
+
+Patches currently in -mm which might be from clameter@sgi.com are
+
+origin.patch
+remove-div_long_long_rem.patch
+git-unionfs.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+x86-ioremap-add-checks-for-virtual-addresses.patch
+x86-ioremap-add-checks-for-virtual-addresses-fix.patch
+
