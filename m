@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-irq-flags-in-rtc-ds1511.patch added to -mm tree
-Date: Thu, 01 May 2008 15:58:21 -0700
-Message-ID: <200805012258.m41MwLmX029845@imap1.linux-foundation.org>
+Subject: + pnp-fix-missing-kernel-doc-notation.patch added to -mm tree
+Date: Thu, 01 May 2008 16:00:44 -0700
+Message-ID: <200805012300.m41N0iZi030000@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40334 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60927 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761696AbYEAW7B (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 18:59:01 -0400
+	by vger.kernel.org with ESMTP id S1761696AbYEAXBD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 19:01:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rostedt@goodmis.org, a.zummo@towertech.it, david-b@pacbell.net, srostedt@redhat.com
+Cc: randy.dunlap@oracle.com, bjorn.helgaas@hp.com
 
 
 The patch titled
-     fix irq flags in rtc-ds1511
+     pnp: fix missing kernel-doc notation
 has been added to the -mm tree.  Its filename is
-     fix-irq-flags-in-rtc-ds1511.patch
+     pnp-fix-missing-kernel-doc-notation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix irq flags in rtc-ds1511
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: pnp: fix missing kernel-doc notation
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-The file in drivers/rtc/rtc-ds1551.c uses "int" for flags.  This can cause
-hard to find bugs on some architectures.  This patch converts the flags to use
-"long" instead.
+Fix missing PNP kernel-doc notation:
 
-This bug was discovered by doing an allyesconfig make on the -rt kernel where
-checks are done to ensure all flags are of size sizeof(long).
+Warning(linux-2.6.25-git16//drivers/pnp/manager.c:261): No description found for parameter 'dev'
+Warning(linux-2.6.25-git16//drivers/pnp/manager.c:292): No description found for parameter 'dev'
 
-Signed-off-by: Steven Rostedt <srostedt@redhat.com>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-ds1511.c |    4 ++--
+ drivers/pnp/manager.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-ds1511.c~fix-irq-flags-in-rtc-ds1511 drivers/rtc/rtc-ds1511.c
---- a/drivers/rtc/rtc-ds1511.c~fix-irq-flags-in-rtc-ds1511
-+++ a/drivers/rtc/rtc-ds1511.c
-@@ -184,7 +184,7 @@ ds1511_wdog_disable(void)
- static int ds1511_rtc_set_time(struct device *dev, struct rtc_time *rtc_tm)
- {
- 	u8 mon, day, dow, hrs, min, sec, yrs, cen;
--	unsigned int flags;
-+	unsigned long flags;
+diff -puN drivers/pnp/manager.c~pnp-fix-missing-kernel-doc-notation drivers/pnp/manager.c
+--- a/drivers/pnp/manager.c~pnp-fix-missing-kernel-doc-notation
++++ a/drivers/pnp/manager.c
+@@ -255,7 +255,7 @@ void pnp_init_resource(struct resource *
  
- 	/*
- 	 * won't have to change this for a while
-@@ -247,7 +247,7 @@ static int ds1511_rtc_set_time(struct de
- static int ds1511_rtc_read_time(struct device *dev, struct rtc_time *rtc_tm)
+ /**
+  * pnp_init_resources - Resets a resource table to default values.
+- * @table: pointer to the desired resource table
++ * @dev: pointer to the owning &pnp_dev
+  */
+ void pnp_init_resources(struct pnp_dev *dev)
  {
- 	unsigned int century;
--	unsigned int flags;
-+	unsigned long flags;
+@@ -286,7 +286,7 @@ void pnp_init_resources(struct pnp_dev *
  
- 	spin_lock_irqsave(&ds1511_lock, flags);
- 	rtc_disable_update();
+ /**
+  * pnp_clean_resources - clears resources that were not manually set
+- * @res: the resources to clean
++ * @dev: &pnp_dev for the resources to clean
+  */
+ static void pnp_clean_resource_table(struct pnp_dev *dev)
+ {
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-9p-use-correct-type-for-processor-flags.patch
-fix-irq-flags-in-mac80211-code.patch
-fix-irq-flags-in-saa7134.patch
-fix-irq-flags-in-rtc-ds1511.patch
-fix-irq-flags-for-iuu_phoenixc.patch
+sysfs-sysfs_update_group-stub-for-config_sysfs=n.patch
+docbook-fix-vmalloc-missing-parameter-notation.patch
+pnp-fix-printk-format-warnings.patch
+pnp-fix-missing-kernel-doc-notation.patch
+x86-fix-setup-printk-format-warning.patch
+git-kvm.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-ocfs2.patch
 git-sched.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-isp1760-hcd-driver.patch
+uwb-fix-kconfig-causing-undefined-references.patch
+uwb-fix-all-printk-format-warnings.patch
+docbook-some-kernel-locking-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+profile-likely-unlikely-macros.patch
 
