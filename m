@@ -1,126 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: - esp-lock_kernel-push-down.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:27:50 -0700
-Message-ID: <200805010927.m419RoOi030451@imap1.linux-foundation.org>
+Subject: - signals-allow-the-kernel-to-actually-kill-sbin-init.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:27:11 -0700
+Message-ID: <200805010927.m419RBv7030396@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56100 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55600 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755777AbYEAJ2M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:28:12 -0400
+	by vger.kernel.org with ESMTP id S1753939AbYEAJ17 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:27:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
+To: oleg@tv-sign.ru, roland@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     esp: lock_kernel push down
+     signals: allow the kernel to actually kill /sbin/init
 has been removed from the -mm tree.  Its filename was
-     esp-lock_kernel-push-down.patch
+     signals-allow-the-kernel-to-actually-kill-sbin-init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: esp: lock_kernel push down
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: signals: allow the kernel to actually kill /sbin/init
+From: Oleg Nesterov <oleg@tv-sign.ru>
 
-Push the BKL down into a few internal bits of code in this driver.
+Currently the buggy /sbin/init hangs if SIGSEGV/etc happens.  The kernel sends
+the signal, init dequeues it and ignores, returns from the exception, repeats
+the faulting instruction, and so on forever.
 
-Signed-off-by: Alan Cox <alan@redhat.com>
+Imho, such a behaviour is not good.  I think that the explicit loud death of
+the buggy /sbin/init is better than the silent hang.
+
+Change force_sig_info() to clear SIGNAL_UNKILLABLE when the task should be
+really killed.
+
+Signed-off-by: Oleg Nesterov <oleg@tv-sign.ru>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/esp.c |   22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+ kernel/signal.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/esp.c~esp-lock_kernel-push-down drivers/char/esp.c
---- a/drivers/char/esp.c~esp-lock_kernel-push-down
-+++ a/drivers/char/esp.c
-@@ -1355,6 +1355,7 @@ static int get_serial_info(struct esp_st
- {
- 	struct serial_struct tmp;
-   
-+	lock_kernel();
- 	memset(&tmp, 0, sizeof(tmp));
- 	tmp.type = PORT_16550A;
- 	tmp.line = info->line;
-@@ -1367,6 +1368,7 @@ static int get_serial_info(struct esp_st
- 	tmp.closing_wait = info->closing_wait;
- 	tmp.custom_divisor = info->custom_divisor;
- 	tmp.hub6 = 0;
-+	unlock_kernel();
- 	if (copy_to_user(retinfo,&tmp,sizeof(*retinfo)))
- 		return -EFAULT;
- 	return 0;
-@@ -1381,6 +1383,7 @@ static int get_esp_config(struct esp_str
- 		return -EFAULT;
- 
- 	memset(&tmp, 0, sizeof(tmp));
-+	lock_kernel();
- 	tmp.rx_timeout = info->config.rx_timeout;
- 	tmp.rx_trigger = info->config.rx_trigger;
- 	tmp.tx_trigger = info->config.tx_trigger;
-@@ -1388,6 +1391,7 @@ static int get_esp_config(struct esp_str
- 	tmp.flow_on = info->config.flow_on;
- 	tmp.pio_threshold = info->config.pio_threshold;
- 	tmp.dma_channel = (info->stat_flags & ESP_STAT_NEVER_DMA ? 0 : dma);
-+	unlock_kernel();
- 
- 	return copy_to_user(retinfo, &tmp, sizeof(*retinfo)) ? -EFAULT : 0;
- }
-@@ -1766,6 +1770,7 @@ static int rs_ioctl(struct tty_struct *t
- 	struct serial_icounter_struct __user *p_cuser;	/* user space */
- 	void __user *argp = (void __user *)arg;
- 	unsigned long flags;
-+	int ret;
- 
- 	if (serial_paranoia_check(info, tty->name, "rs_ioctl"))
- 		return -ENODEV;
-@@ -1783,7 +1788,10 @@ static int rs_ioctl(struct tty_struct *t
- 		case TIOCGSERIAL:
- 			return get_serial_info(info, argp);
- 		case TIOCSSERIAL:
--			return set_serial_info(info, argp);
-+			lock_kernel();
-+			ret = set_serial_info(info, argp);
-+			unlock_kernel();
-+			return ret;
- 		case TIOCSERCONFIG:
- 			/* do not reconfigure after initial configuration */
- 			return 0;
-@@ -1855,11 +1863,13 @@ static int rs_ioctl(struct tty_struct *t
- 				return -EFAULT;
- 
- 			return 0;
--	case TIOCGHAYESESP:
--		return get_esp_config(info, argp);
--	case TIOCSHAYESESP:
--		return set_esp_config(info, argp);
--
-+		case TIOCGHAYESESP:
-+			return get_esp_config(info, argp);
-+		case TIOCSHAYESESP:
-+			lock_kernel();
-+			ret = set_esp_config(info, argp);
-+			unlock_kernel();
-+			return ret;
- 		default:
- 			return -ENOIOCTLCMD;
+diff -puN kernel/signal.c~signals-allow-the-kernel-to-actually-kill-sbin-init kernel/signal.c
+--- a/kernel/signal.c~signals-allow-the-kernel-to-actually-kill-sbin-init
++++ a/kernel/signal.c
+@@ -892,7 +892,8 @@ specific_send_sig_info(int sig, struct s
+  * since we do not want to have a signal handler that was blocked
+  * be invoked when user space had explicitly blocked it.
+  *
+- * We don't want to have recursive SIGSEGV's etc, for example.
++ * We don't want to have recursive SIGSEGV's etc, for example,
++ * that is why we also clear SIGNAL_UNKILLABLE.
+  */
+ int
+ force_sig_info(int sig, struct siginfo *info, struct task_struct *t)
+@@ -912,6 +913,8 @@ force_sig_info(int sig, struct siginfo *
+ 			recalc_sigpending_and_wake(t);
  		}
+ 	}
++	if (action->sa.sa_handler == SIG_DFL)
++		t->signal->flags &= ~SIGNAL_UNKILLABLE;
+ 	ret = specific_send_sig_info(sig, info, t);
+ 	spin_unlock_irqrestore(&t->sighand->siglock, flags);
+ 
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from oleg@tv-sign.ru are
 
 origin.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-pata_atiixp-simplex-clear.patch
-pata_atiixp-dont-disable.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-generic-irq-let-setup_irq-reenable-a-shared-irq.patch
-8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
-sxc-fix-printk-warnings-on-sparc32.patch
+posix-timers-bug-10460-discard-the-pending-signal-when-the-timer-is-destroyed.patch
+workqueue-remove-redundant-function-invocation.patch
 put_pid-make-sure-we-dont-free-the-live-pid.patch
 
