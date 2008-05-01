@@ -1,83 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - specialix-switch-to-int-put_char-method.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:30:27 -0700
-Message-ID: <200805010930.m419URcZ030766@imap1.linux-foundation.org>
+Subject: - serial167-switch-to-int-put_char-method.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:30:24 -0700
+Message-ID: <200805010930.m419UOUN030763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39075 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44178 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758469AbYEAJat (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:30:49 -0400
+	by vger.kernel.org with ESMTP id S1757700AbYEAJbD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, geert@linux-m68k.org, jdike@addtoit.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     specialix: Switch to int put_char method
+     serial167: switch to int put_char method
 has been removed from the -mm tree.  Its filename was
-     specialix-switch-to-int-put_char-method.patch
+     serial167-switch-to-int-put_char-method.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: specialix: Switch to int put_char method
+Subject: serial167: switch to int put_char method
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Cc: Jiri Slaby <jirislaby@gmail.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/specialix.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/char/serial167.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/specialix.c~specialix-switch-to-int-put_char-method drivers/char/specialix.c
---- a/drivers/char/specialix.c~specialix-switch-to-int-put_char-method
-+++ a/drivers/char/specialix.c
-@@ -1690,7 +1690,7 @@ static int sx_write(struct tty_struct * 
- }
+diff -puN drivers/char/serial167.c~serial167-switch-to-int-put_char-method drivers/char/serial167.c
+--- a/drivers/char/serial167.c~serial167-switch-to-int-put_char-method
++++ a/drivers/char/serial167.c
+@@ -1060,7 +1060,7 @@ static void config_setup(struct cyclades
  
+ }				/* config_setup */
  
--static void sx_put_char(struct tty_struct * tty, unsigned char ch)
-+static int sx_put_char(struct tty_struct * tty, unsigned char ch)
+-static void cy_put_char(struct tty_struct *tty, unsigned char ch)
++static int cy_put_char(struct tty_struct *tty, unsigned char ch)
  {
- 	struct specialix_port *port = (struct specialix_port *)tty->driver_data;
+ 	struct cyclades_port *info = (struct cyclades_port *)tty->driver_data;
  	unsigned long flags;
-@@ -1700,12 +1700,12 @@ static void sx_put_char(struct tty_struc
+@@ -1070,7 +1070,7 @@ static void cy_put_char(struct tty_struc
+ #endif
  
- 	if (sx_paranoia_check(port, tty->name, "sx_put_char")) {
- 		func_exit();
+ 	if (serial_paranoia_check(info, tty->name, "cy_put_char"))
 -		return;
 +		return 0;
- 	}
- 	dprintk (SX_DEBUG_TX, "check tty: %p %p\n", tty, port->xmit_buf);
- 	if (!port->xmit_buf) {
- 		func_exit();
--		return;
-+		return 0;
- 	}
- 	bp = port_Board(port);
- 	spin_lock_irqsave(&port->lock, flags);
-@@ -1715,7 +1715,7 @@ static void sx_put_char(struct tty_struc
- 		spin_unlock_irqrestore(&port->lock, flags);
- 		dprintk (SX_DEBUG_TX, "Exit size\n");
- 		func_exit();
--		return;
-+		return 0;
- 	}
- 	dprintk (SX_DEBUG_TX, "Handle xmit: %p %p\n", port, port->xmit_buf);
- 	port->xmit_buf[port->xmit_head++] = ch;
-@@ -1724,6 +1724,7 @@ static void sx_put_char(struct tty_struc
- 	spin_unlock_irqrestore(&port->lock, flags);
  
- 	func_exit();
+ 	if (!info->xmit_buf)
+ 		return;
+@@ -1078,13 +1078,14 @@ static void cy_put_char(struct tty_struc
+ 	local_irq_save(flags);
+ 	if (info->xmit_cnt >= PAGE_SIZE - 1) {
+ 		local_irq_restore(flags);
+-		return;
++		return 0;
+ 	}
+ 
+ 	info->xmit_buf[info->xmit_head++] = ch;
+ 	info->xmit_head &= PAGE_SIZE - 1;
+ 	info->xmit_cnt++;
+ 	local_irq_restore(flags);
 +	return 1;
- }
+ }				/* cy_put_char */
  
- 
+ static void cy_flush_chars(struct tty_struct *tty)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
