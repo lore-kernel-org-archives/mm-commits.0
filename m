@@ -1,224 +1,386 @@
 From: akpm@linux-foundation.org
-Subject: - devpts-factor-out-pty-index-allocation.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:31:09 -0700
-Message-ID: <200805010931.m419V9sJ030845@imap1.linux-foundation.org>
+Subject: - isicom-bring-into-coding-style.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:30:42 -0700
+Message-ID: <200805010930.m419UgXb030794@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58980 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56944 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755538AbYEAJb2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:28 -0400
+	by vger.kernel.org with ESMTP id S1755356AbYEAJbV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sukadev@us.ibm.com, hpa@zytor.com, matthltc@us.ibm.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     devpts: factor out PTY index allocation
+     isicom: bring into coding style
 has been removed from the -mm tree.  Its filename was
-     devpts-factor-out-pty-index-allocation.patch
+     isicom-bring-into-coding-style.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devpts: factor out PTY index allocation
-From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Subject: isicom: bring into coding style
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Factor out the code used to allocate/free a pts index into new interfaces,
-devpts_new_index() and devpts_kill_index().  This localizes the external data
-structures used in managing the pts indices.
-
-[akpm@linux-foundation.org: undo accidental mutex2sem conversion]
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Signed-off-by: Serge Hallyn <serue@us.ibm.com>
-Signed-off-by: Matt Helsley <matthltc@us.ibm.com>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
+[akpm@linux-foundation.org: fix arm, cleanups]
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c     |   40 +++++----------------------------
- fs/devpts/inode.c         |   43 +++++++++++++++++++++++++++++++++++-
- include/linux/devpts_fs.h |    4 +++
- 3 files changed, 52 insertions(+), 35 deletions(-)
+ drivers/char/isicom.c |  109 ++++++++++++++++++++--------------------
+ 1 file changed, 56 insertions(+), 53 deletions(-)
 
-diff -puN drivers/char/tty_io.c~devpts-factor-out-pty-index-allocation drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~devpts-factor-out-pty-index-allocation
-+++ a/drivers/char/tty_io.c
-@@ -91,7 +91,6 @@
- #include <linux/module.h>
- #include <linux/smp_lock.h>
- #include <linux/device.h>
--#include <linux/idr.h>
- #include <linux/wait.h>
- #include <linux/bitops.h>
+diff -puN drivers/char/isicom.c~isicom-bring-into-coding-style drivers/char/isicom.c
+--- a/drivers/char/isicom.c~isicom-bring-into-coding-style
++++ a/drivers/char/isicom.c
+@@ -126,8 +126,8 @@
  #include <linux/delay.h>
-@@ -137,9 +136,6 @@ EXPORT_SYMBOL(tty_mutex);
+ #include <linux/ioport.h>
  
- #ifdef CONFIG_UNIX98_PTYS
- extern struct tty_driver *ptm_driver;	/* Unix98 pty masters; for /dev/ptmx */
--extern int pty_limit;			/* Config limit on Unix98 ptys */
--static DEFINE_IDR(allocated_ptys);
--static DEFINE_MUTEX(allocated_ptys_lock);
- static int ptmx_open(struct inode *, struct file *);
- #endif
+-#include <asm/uaccess.h>
+-#include <asm/io.h>
++#include <linux/uaccess.h>
++#include <linux/io.h>
+ #include <asm/system.h>
  
-@@ -2639,15 +2635,9 @@ static void release_dev(struct file *fil
- 	 */
- 	release_tty(tty, idx);
+ #include <linux/pci.h>
+@@ -189,7 +189,7 @@ struct	isi_board {
+ 	unsigned short		status;
+ 	unsigned short		port_status; /* each bit for each port */
+ 	unsigned short		shift_count;
+-	struct isi_port		* ports;
++	struct isi_port		*ports;
+ 	signed char		count;
+ 	spinlock_t		card_lock; /* Card wide lock 11/5/00 -sameer */
+ 	unsigned long		flags;
+@@ -205,11 +205,11 @@ struct	isi_port {
+ 	u16			channel;
+ 	u16			status;
+ 	u16			closing_wait;
+-	struct isi_board	* card;
+-	struct tty_struct 	* tty;
++	struct isi_board	*card;
++	struct tty_struct 	*tty;
+ 	wait_queue_head_t	close_wait;
+ 	wait_queue_head_t	open_wait;
+-	unsigned char		* xmit_buf;
++	unsigned char		*xmit_buf;
+ 	int			xmit_head;
+ 	int			xmit_tail;
+ 	int			xmit_cnt;
+@@ -405,7 +405,7 @@ static void isicom_tx(unsigned long _dat
  
--#ifdef CONFIG_UNIX98_PTYS
- 	/* Make this pty number available for reallocation */
--	if (devpts) {
--		mutex_lock(&allocated_ptys_lock);
--		idr_remove(&allocated_ptys, idx);
--		mutex_unlock(&allocated_ptys_lock);
+ 	/*	find next active board	*/
+ 	card = (prev_card + 1) & 0x0003;
+-	while(count-- > 0) {
++	while (count-- > 0) {
+ 		if (isi_card[card].status & BOARD_ACTIVE)
+ 			break;
+ 		card = (card + 1) & 0x0003;
+@@ -428,7 +428,7 @@ static void isicom_tx(unsigned long _dat
+ 	if (retries >= 100)
+ 		goto unlock;
+ 
+-	for (;count > 0;count--, port++) {
++	for (; count > 0; count--, port++) {
+ 		/* port not active or tx disabled to force flow control */
+ 		if (!(port->flags & ASYNC_INITIALIZED) ||
+ 				!(port->status & ISI_TXOK))
+@@ -471,9 +471,10 @@ static void isicom_tx(unsigned long _dat
+ 					break;
+ 				}
+ 			}
+-			if (cnt <= 0) break;
++			if (cnt <= 0)
++				break;
+ 			word_count = cnt >> 1;
+-			outsw(base, port->xmit_buf+port->xmit_tail,word_count);
++			outsw(base, port->xmit_buf+port->xmit_tail, word_count);
+ 			port->xmit_tail = (port->xmit_tail
+ 				+ (word_count << 1)) & (SERIAL_XMIT_SIZE - 1);
+ 			txcount -= (word_count << 1);
+@@ -556,7 +557,7 @@ static irqreturn_t isicom_interrupt(int 
+ 	tty = port->tty;
+ 	if (tty == NULL) {
+ 		word_count = byte_count >> 1;
+-		while(byte_count > 1) {
++		while (byte_count > 1) {
+ 			inw(base);
+ 			byte_count -= 2;
+ 		}
+@@ -569,7 +570,7 @@ static irqreturn_t isicom_interrupt(int 
+ 
+ 	if (header & 0x8000) {		/* Status Packet */
+ 		header = inw(base);
+-		switch(header & 0xff) {
++		switch (header & 0xff) {
+ 		case 0:	/* Change in EIA signals */
+ 			if (port->flags & ASYNC_CHECK_CD) {
+ 				if (port->status & ISI_DCD) {
+@@ -656,7 +657,8 @@ static irqreturn_t isicom_interrupt(int 
+ 		if (byte_count > 0) {
+ 			pr_dbg("Intr(0x%lx:%d): Flip buffer overflow! dropping "
+ 				"bytes...\n", base, channel + 1);
+-			while(byte_count > 0) { /* drain out unread xtra data */
++		/* drain out unread xtra data */
++		while (byte_count > 0) {
+ 				inw(base);
+ 				byte_count -= 2;
+ 			}
+@@ -679,8 +681,11 @@ static void isicom_config_port(struct is
+ 		shift_count = card->shift_count;
+ 	unsigned char flow_ctrl;
+ 
+-	if (!(tty = port->tty) || !tty->termios)
++	tty = port->tty;
++
++	if (tty == NULL)
+ 		return;
++	/* FIXME: Switch to new tty baud API */
+ 	baud = C_BAUD(tty);
+ 	if (baud & CBAUDEX) {
+ 		baud &= ~CBAUDEX;
+@@ -706,7 +711,7 @@ static void isicom_config_port(struct is
+ 		if ((port->flags & ASYNC_SPD_MASK) == ASYNC_SPD_HI)
+ 			baud++; /*  57.6 Kbps */
+ 		if ((port->flags & ASYNC_SPD_MASK) == ASYNC_SPD_VHI)
+-			baud +=2; /*  115  Kbps */
++			baud += 2; /*  115  Kbps */
+ 		if ((port->flags & ASYNC_SPD_MASK) == ASYNC_SPD_SHI)
+ 			baud += 3; /* 230 kbps*/
+ 		if ((port->flags & ASYNC_SPD_MASK) == ASYNC_SPD_WARP)
+@@ -716,15 +721,14 @@ static void isicom_config_port(struct is
+ 		/* hang up */
+ 		drop_dtr(port);
+ 		return;
 -	}
--#endif
+-	else
++	} else
+ 		raise_dtr(port);
+ 
+ 	if (WaitTillCardIsFree(base) == 0) {
+-		outw(0x8000 | (channel << shift_count) |0x03, base);
++		outw(0x8000 | (channel << shift_count) | 0x03, base);
+ 		outw(linuxb_to_isib[baud] << 8 | 0x03, base);
+ 		channel_setup = 0;
+-		switch(C_CSIZE(tty)) {
++		switch (C_CSIZE(tty)) {
+ 		case CS5:
+ 			channel_setup |= ISICOM_CS5;
+ 			break;
+@@ -767,7 +771,7 @@ static void isicom_config_port(struct is
+ 		flow_ctrl |= ISICOM_INITIATE_XONXOFF;
+ 
+ 	if (WaitTillCardIsFree(base) == 0) {
+-		outw(0x8000 | (channel << shift_count) |0x04, base);
++		outw(0x8000 | (channel << shift_count) | 0x04, base);
+ 		outw(flow_ctrl << 8 | 0x05, base);
+ 		outw((STOP_CHAR(tty)) << 8 | (START_CHAR(tty)), base);
+ 		InterruptTheCard(base);
+@@ -805,20 +809,19 @@ static int isicom_setup_port(struct isi_
+ 	struct isi_board *card = port->card;
+ 	unsigned long flags;
+ 
+-	if (port->flags & ASYNC_INITIALIZED) {
++	if (port->flags & ASYNC_INITIALIZED)
+ 		return 0;
+-	}
+ 	if (!port->xmit_buf) {
+-		unsigned long page;
++		/* Relies on BKL */
++		void *xmit_buf = (void *)get_zeroed_page(GFP_KERNEL);
+ 
+-		if (!(page = get_zeroed_page(GFP_KERNEL)))
++		if (xmit_buf == NULL)
+ 			return -ENOMEM;
 -
-+	if (devpts)
-+		devpts_kill_index(idx);
+ 		if (port->xmit_buf) {
+-			free_page(page);
++			free_page((unsigned long)xmit_buf);
+ 			return -ERESTARTSYS;
+ 		}
+-		port->xmit_buf = (unsigned char *) page;
++		port->xmit_buf = xmit_buf;
+ 	}
+ 
+ 	spin_lock_irqsave(&card->card_lock, flags);
+@@ -949,21 +952,18 @@ static int isicom_open(struct tty_struct
+ 	port->count++;
+ 	tty->driver_data = port;
+ 	port->tty = tty;
+-	if ((error = isicom_setup_port(port))!=0)
+-		return error;
+-	if ((error = block_til_ready(tty, filp, port))!=0)
+-		return error;
+-
+-	return 0;
++	error = isicom_setup_port(port);
++	if (error == 0)
++		error = block_til_ready(tty, filp, port);
++	return error;
  }
  
- /**
-@@ -2803,29 +2793,13 @@ static int ptmx_open(struct inode *inode
- 	struct tty_struct *tty;
- 	int retval;
- 	int index;
--	int idr_ret;
+ /* close et all */
  
- 	nonseekable_open(inode, filp);
- 
- 	/* find a device that is not in use. */
--	mutex_lock(&allocated_ptys_lock);
--	if (!idr_pre_get(&allocated_ptys, GFP_KERNEL)) {
--		mutex_unlock(&allocated_ptys_lock);
--		return -ENOMEM;
--	}
--	idr_ret = idr_get_new(&allocated_ptys, NULL, &index);
--	if (idr_ret < 0) {
--		mutex_unlock(&allocated_ptys_lock);
--		if (idr_ret == -EAGAIN)
--			return -ENOMEM;
--		return -EIO;
--	}
--	if (index >= pty_limit) {
--		idr_remove(&allocated_ptys, index);
--		mutex_unlock(&allocated_ptys_lock);
--		return -EIO;
--	}
--	mutex_unlock(&allocated_ptys_lock);
-+	index = devpts_new_index();
-+	if (index < 0)
-+		return index;
- 
- 	mutex_lock(&tty_mutex);
- 	retval = init_dev(ptm_driver, index, &tty);
-@@ -2850,9 +2824,7 @@ out1:
- 	release_dev(filp);
- 	return retval;
- out:
--	mutex_lock(&allocated_ptys_lock);
--	idr_remove(&allocated_ptys, index);
--	mutex_unlock(&allocated_ptys_lock);
-+	devpts_kill_index(index);
- 	return retval;
- }
- #endif
-diff -puN fs/devpts/inode.c~devpts-factor-out-pty-index-allocation fs/devpts/inode.c
---- a/fs/devpts/inode.c~devpts-factor-out-pty-index-allocation
-+++ a/fs/devpts/inode.c
-@@ -17,6 +17,8 @@
- #include <linux/namei.h>
- #include <linux/mount.h>
- #include <linux/tty.h>
-+#include <linux/mutex.h>
-+#include <linux/idr.h>
- #include <linux/devpts_fs.h>
- #include <linux/parser.h>
- #include <linux/fsnotify.h>
-@@ -26,6 +28,10 @@
- 
- #define DEVPTS_DEFAULT_MODE 0600
- 
-+extern int pty_limit;			/* Config limit on Unix98 ptys */
-+static DEFINE_IDR(allocated_ptys);
-+static DEFINE_MUTEX(allocated_ptys_lock);
-+
- static struct vfsmount *devpts_mnt;
- static struct dentry *devpts_root;
- 
-@@ -171,9 +177,44 @@ static struct dentry *get_node(int num)
- 	return lookup_one_len(s, root, sprintf(s, "%d", num));
- }
- 
-+int devpts_new_index(void)
-+{
-+	int index;
-+	int idr_ret;
-+
-+retry:
-+	if (!idr_pre_get(&allocated_ptys, GFP_KERNEL)) {
-+		return -ENOMEM;
-+	}
-+
-+	mutex_lock(&allocated_ptys_lock);
-+	idr_ret = idr_get_new(&allocated_ptys, NULL, &index);
-+	if (idr_ret < 0) {
-+		mutex_unlock(&allocated_ptys_lock);
-+		if (idr_ret == -EAGAIN)
-+			goto retry;
-+		return -EIO;
-+	}
-+
-+	if (index >= pty_limit) {
-+		idr_remove(&allocated_ptys, index);
-+		mutex_unlock(&allocated_ptys_lock);
-+		return -EIO;
-+	}
-+	mutex_unlock(&allocated_ptys_lock);
-+	return index;
-+}
-+
-+void devpts_kill_index(int idx)
-+{
-+	mutex_lock(&allocated_ptys_lock);
-+	idr_remove(&allocated_ptys, idx);
-+	mutex_unlock(&allocated_ptys_lock);
-+}
-+
- int devpts_pty_new(struct tty_struct *tty)
+ static inline void isicom_shutdown_board(struct isi_board *bp)
  {
--	int number = tty->index;
-+	int number = tty->index; /* tty layer puts index from devpts_new_index() in here */
- 	struct tty_driver *driver = tty->driver;
- 	dev_t device = MKDEV(driver->major, driver->minor_start+number);
- 	struct dentry *dentry;
-diff -puN include/linux/devpts_fs.h~devpts-factor-out-pty-index-allocation include/linux/devpts_fs.h
---- a/include/linux/devpts_fs.h~devpts-factor-out-pty-index-allocation
-+++ a/include/linux/devpts_fs.h
-@@ -17,6 +17,8 @@
+-	if (bp->status & BOARD_ACTIVE) {
++	if (bp->status & BOARD_ACTIVE)
+ 		bp->status &= ~BOARD_ACTIVE;
+-	}
+ }
  
- #ifdef CONFIG_UNIX98_PTYS
+ /* card->lock HAS to be held */
+@@ -1119,7 +1119,7 @@ static int isicom_write(struct tty_struc
  
-+int devpts_new_index(void);
-+void devpts_kill_index(int idx);
- int devpts_pty_new(struct tty_struct *tty);      /* mknod in devpts */
- struct tty_struct *devpts_get_tty(int number);	 /* get tty structure */
- void devpts_pty_kill(int number);		 /* unlink */
-@@ -24,6 +26,8 @@ void devpts_pty_kill(int number);		 /* u
- #else
+ 	spin_lock_irqsave(&card->card_lock, flags);
  
- /* Dummy stubs in the no-pty case */
-+static inline int devpts_new_index(void) { return -EINVAL; }
-+static inline void devpts_kill_index(int idx) { }
- static inline int devpts_pty_new(struct tty_struct *tty) { return -EINVAL; }
- static inline struct tty_struct *devpts_get_tty(int number) { return NULL; }
- static inline void devpts_pty_kill(int number) { }
+-	while(1) {
++	while (1) {
+ 		cnt = min_t(int, count, min(SERIAL_XMIT_SIZE - port->xmit_cnt
+ 				- 1, SERIAL_XMIT_SIZE - port->xmit_head));
+ 		if (cnt <= 0)
+@@ -1153,15 +1153,15 @@ static void isicom_put_char(struct tty_s
+ 		return;
+ 
+ 	spin_lock_irqsave(&card->card_lock, flags);
+-	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1) {
+-		spin_unlock_irqrestore(&card->card_lock, flags);
+-		return;
+-	}
++	if (port->xmit_cnt >= SERIAL_XMIT_SIZE - 1)
++		goto out;
+ 
+ 	port->xmit_buf[port->xmit_head++] = ch;
+ 	port->xmit_head &= (SERIAL_XMIT_SIZE - 1);
+ 	port->xmit_cnt++;
+ 	spin_unlock_irqrestore(&card->card_lock, flags);
++out:
++	return;
+ }
+ 
+ /* flush_chars et all */
+@@ -1286,10 +1286,9 @@ static int isicom_set_serial_info(struct
+ 			unlock_kernel();
+ 			return -EPERM;
+ 		}
+-		port->flags = ((port->flags & ~ ASYNC_USR_MASK) |
++		port->flags = ((port->flags & ~ASYNC_USR_MASK) |
+ 				(newinfo.flags & ASYNC_USR_MASK));
+-	}
+-	else {
++	} else {
+ 		port->close_delay = newinfo.close_delay;
+ 		port->closing_wait = newinfo.closing_wait;
+ 		port->flags = ((port->flags & ~ASYNC_FLAGS) |
+@@ -1336,7 +1335,7 @@ static int isicom_ioctl(struct tty_struc
+ 	if (isicom_paranoia_check(port, tty->name, "isicom_ioctl"))
+ 		return -ENODEV;
+ 
+-	switch(cmd) {
++	switch (cmd) {
+ 	case TCSBRK:
+ 		retval = tty_check_change(tty);
+ 		if (retval)
+@@ -1585,7 +1584,7 @@ static int __devinit load_firmware(struc
+ 	default:
+ 		dev_err(&pdev->dev, "Unknown signature.\n");
+ 		goto end;
+- 	}
++	}
+ 
+ 	retval = request_firmware(&fw, name, &pdev->dev);
+ 	if (retval)
+@@ -1613,7 +1612,8 @@ static int __devinit load_firmware(struc
+ 		if (WaitTillCardIsFree(base))
+ 			goto errrelfw;
+ 
+-		if ((status = inw(base + 0x4)) != 0) {
++		status = inw(base + 0x4);
++		if (status != 0) {
+ 			dev_warn(&pdev->dev, "Card%d rejected load header:\n"
+ 				KERN_WARNING "Address:0x%x\n"
+ 				KERN_WARNING "Count:0x%x\n"
+@@ -1630,12 +1630,13 @@ static int __devinit load_firmware(struc
+ 		if (WaitTillCardIsFree(base))
+ 			goto errrelfw;
+ 
+-		if ((status = inw(base + 0x4)) != 0) {
++		status = inw(base + 0x4);
++		if (status != 0) {
+ 			dev_err(&pdev->dev, "Card%d got out of sync.Card "
+ 				"Status:0x%x\n", index + 1, status);
+ 			goto errrelfw;
+ 		}
+- 	}
++	}
+ 
+ /* XXX: should we test it by reading it back and comparing with original like
+  * in load firmware package? */
+@@ -1659,7 +1660,8 @@ static int __devinit load_firmware(struc
+ 		if (WaitTillCardIsFree(base))
+ 			goto errrelfw;
+ 
+-		if ((status = inw(base + 0x4)) != 0) {
++		status = inw(base + 0x4);
++		if (status != 0) {
+ 			dev_warn(&pdev->dev, "Card%d rejected verify header:\n"
+ 				KERN_WARNING "Address:0x%x\n"
+ 				KERN_WARNING "Count:0x%x\n"
+@@ -1692,7 +1694,8 @@ static int __devinit load_firmware(struc
+ 		if (WaitTillCardIsFree(base))
+ 			goto errrelfw;
+ 
+-		if ((status = inw(base + 0x4)) != 0) {
++		status = inw(base + 0x4);
++		if (status != 0) {
+ 			dev_err(&pdev->dev, "Card%d verify got out of sync. "
+ 				"Card Status:0x%x\n", index + 1, status);
+ 			goto errrelfw;
+@@ -1757,7 +1760,7 @@ static int __devinit isicom_probe(struct
+ 			index + 1);
+ 		retval = -EBUSY;
+ 		goto errdec;
+- 	}
++	}
+ 
+ 	retval = request_irq(board->irq, isicom_interrupt,
+ 			IRQF_SHARED | IRQF_DISABLED, ISICOM_NAME, board);
+@@ -1811,7 +1814,7 @@ static int __init isicom_init(void)
+ 	int retval, idx, channel;
+ 	struct isi_port *port;
+ 
+-	for(idx = 0; idx < BOARD_COUNT; idx++) {
++	for (idx = 0; idx < BOARD_COUNT; idx++) {
+ 		port = &isi_ports[idx * 16];
+ 		isi_card[idx].ports = port;
+ 		spin_lock_init(&isi_card[idx].card_lock);
+@@ -1825,7 +1828,7 @@ static int __init isicom_init(void)
+ 			init_waitqueue_head(&port->open_wait);
+ 			init_waitqueue_head(&port->close_wait);
+ 			/*  . . .  */
+- 		}
++		}
+ 		isi_card[idx].base = 0;
+ 		isi_card[idx].irq = 0;
+ 	}
 _
 
-Patches currently in -mm which might be from sukadev@us.ibm.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+pata_atiixp-simplex-clear.patch
+pata_atiixp-dont-disable.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+generic-irq-let-setup_irq-reenable-a-shared-irq.patch
+8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
