@@ -1,60 +1,278 @@
 From: akpm@linux-foundation.org
-Subject: - devpts-propagate-error-code-from-devpts_pty_new.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:31:07 -0700
-Message-ID: <200805010931.m419V7wV030842@imap1.linux-foundation.org>
+Subject: - char-serial-switch-drivers-to-ioremap_nocache.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:31:02 -0700
+Message-ID: <200805010931.m419V2ZD030832@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43462 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38815 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757624AbYEAJbl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:41 -0400
+	by vger.kernel.org with ESMTP id S1757110AbYEAJbi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sukadev@us.ibm.com, hpa@zytor.com, serue@us.ibm.com, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mingo@elte.hu, paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     devpts: propagate error code from devpts_pty_new
+     char serial: switch drivers to ioremap_nocache
 has been removed from the -mm tree.  Its filename was
-     devpts-propagate-error-code-from-devpts_pty_new.patch
+     char-serial-switch-drivers-to-ioremap_nocache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: devpts: propagate error code from devpts_pty_new
-From: Sukadev Bhattiprolu <sukadev@us.ibm.com>
+Subject: char serial: switch drivers to ioremap_nocache
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-Have ptmx_open() propagate any error code returned by devpts_pty_new()
-(which returns either 0 or -ENOMEM anyway).
+Simple search/replace except for synclink.c where I noticed a real bug and
+fixed it too.  It was doing NULL + offset, then checking for NULL if the remap
+failed.
 
-Signed-off-by: Sukadev Bhattiprolu <sukadev@us.ibm.com>
-Acked-by: Serge Hallyn <serue@us.ibm.com>
-Acked-by: H. Peter Anvin <hpa@zytor.com>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Paul Fulghum <paulkf@microgate.com>
+Acked-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/char/applicom.c    |    4 ++--
+ drivers/char/istallion.c   |    6 +++---
+ drivers/char/moxa.c        |    4 ++--
+ drivers/char/nozomi.c      |    2 +-
+ drivers/char/sx.c          |   10 +++++-----
+ drivers/char/synclink.c    |    7 +++++--
+ drivers/char/synclink_gt.c |    2 +-
+ drivers/char/synclinkmp.c  |   10 ++++++----
+ 8 files changed, 25 insertions(+), 20 deletions(-)
 
-diff -puN drivers/char/tty_io.c~devpts-propagate-error-code-from-devpts_pty_new drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~devpts-propagate-error-code-from-devpts_pty_new
-+++ a/drivers/char/tty_io.c
-@@ -2838,8 +2838,8 @@ static int ptmx_open(struct inode *inode
- 	filp->private_data = tty;
- 	file_move(filp, &tty->tty_files);
+diff -puN drivers/char/applicom.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/applicom.c
+--- a/drivers/char/applicom.c~char-serial-switch-drivers-to-ioremap_nocache
++++ a/drivers/char/applicom.c
+@@ -199,7 +199,7 @@ static int __init applicom_init(void)
+ 		if (pci_enable_device(dev))
+ 			return -EIO;
  
--	retval = -ENOMEM;
--	if (devpts_pty_new(tty->link))
-+	retval = devpts_pty_new(tty->link);
-+	if (retval)
- 		goto out1;
+-		RamIO = ioremap(pci_resource_start(dev, 0), LEN_RAM_IO);
++		RamIO = ioremap_nocache(pci_resource_start(dev, 0), LEN_RAM_IO);
  
- 	check_tty_count(tty, "ptmx_open");
+ 		if (!RamIO) {
+ 			printk(KERN_INFO "ac.o: Failed to ioremap PCI memory "
+@@ -254,7 +254,7 @@ static int __init applicom_init(void)
+ 	/* Now try the specified ISA cards */
+ 
+ 	for (i = 0; i < MAX_ISA_BOARD; i++) {
+-		RamIO = ioremap(mem + (LEN_RAM_IO * i), LEN_RAM_IO);
++		RamIO = ioremap_nocache(mem + (LEN_RAM_IO * i), LEN_RAM_IO);
+ 
+ 		if (!RamIO) {
+ 			printk(KERN_INFO "ac.o: Failed to ioremap the ISA card's memory space (slot #%d)\n", i + 1);
+diff -puN drivers/char/istallion.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/istallion.c
+--- a/drivers/char/istallion.c~char-serial-switch-drivers-to-ioremap_nocache
++++ a/drivers/char/istallion.c
+@@ -3257,7 +3257,7 @@ static int stli_initecp(struct stlibrd *
+  */
+ 	EBRDINIT(brdp);
+ 
+-	brdp->membase = ioremap(brdp->memaddr, brdp->memsize);
++	brdp->membase = ioremap_nocache(brdp->memaddr, brdp->memsize);
+ 	if (brdp->membase == NULL) {
+ 		retval = -ENOMEM;
+ 		goto err_reg;
+@@ -3414,7 +3414,7 @@ static int stli_initonb(struct stlibrd *
+  */
+ 	EBRDINIT(brdp);
+ 
+-	brdp->membase = ioremap(brdp->memaddr, brdp->memsize);
++	brdp->membase = ioremap_nocache(brdp->memaddr, brdp->memsize);
+ 	if (brdp->membase == NULL) {
+ 		retval = -ENOMEM;
+ 		goto err_reg;
+@@ -3665,7 +3665,7 @@ static int stli_eisamemprobe(struct stli
+  */
+ 	for (i = 0; (i < stli_eisamempsize); i++) {
+ 		brdp->memaddr = stli_eisamemprobeaddrs[i];
+-		brdp->membase = ioremap(brdp->memaddr, brdp->memsize);
++		brdp->membase = ioremap_nocache(brdp->memaddr, brdp->memsize);
+ 		if (brdp->membase == NULL)
+ 			continue;
+ 
+diff -puN drivers/char/moxa.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/moxa.c
+--- a/drivers/char/moxa.c~char-serial-switch-drivers-to-ioremap_nocache
++++ a/drivers/char/moxa.c
+@@ -937,7 +937,7 @@ static int __devinit moxa_pci_probe(stru
+ 		goto err;
+ 	}
+ 
+-	board->basemem = ioremap(pci_resource_start(pdev, 2), 0x4000);
++	board->basemem = ioremap_nocache(pci_resource_start(pdev, 2), 0x4000);
+ 	if (board->basemem == NULL) {
+ 		dev_err(&pdev->dev, "can't remap io space 2\n");
+ 		goto err_reg;
+@@ -1042,7 +1042,7 @@ static int __init moxa_init(void)
+ 			brd->numPorts = type[i] == MOXA_BOARD_C218_ISA ? 8 :
+ 					numports[i];
+ 			brd->busType = MOXA_BUS_TYPE_ISA;
+-			brd->basemem = ioremap(baseaddr[i], 0x4000);
++			brd->basemem = ioremap_nocache(baseaddr[i], 0x4000);
+ 			if (!brd->basemem) {
+ 				printk(KERN_ERR "MOXA: can't remap %lx\n",
+ 						baseaddr[i]);
+diff -puN drivers/char/nozomi.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/nozomi.c
+--- a/drivers/char/nozomi.c~char-serial-switch-drivers-to-ioremap_nocache
++++ a/drivers/char/nozomi.c
+@@ -1407,7 +1407,7 @@ static int __devinit nozomi_card_init(st
+ 	/* Find out what card type it is */
+ 	nozomi_get_card_type(dc);
+ 
+-	dc->base_addr = ioremap(start, dc->card_type);
++	dc->base_addr = ioremap_nocache(start, dc->card_type);
+ 	if (!dc->base_addr) {
+ 		dev_err(&pdev->dev, "Unable to map card MMIO\n");
+ 		ret = -ENODEV;
+diff -puN drivers/char/sx.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/sx.c
+--- a/drivers/char/sx.c~char-serial-switch-drivers-to-ioremap_nocache
++++ a/drivers/char/sx.c
+@@ -2540,7 +2540,7 @@ static int __devinit sx_eisa_probe(struc
+ 		goto err_flag;
+ 	}
+ 	board->base2 =
+-	board->base = ioremap(board->hw_base, SI2_EISA_WINDOW_LEN);
++	board->base = ioremap_nocache(board->hw_base, SI2_EISA_WINDOW_LEN);
+ 	if (!board->base) {
+ 		dev_err(dev, "can't remap memory\n");
+ 		goto err_reg;
+@@ -2617,7 +2617,7 @@ static void __devinit fix_sx_pci(struct 
+ 
+ 	pci_read_config_dword(pdev, PCI_BASE_ADDRESS_0, &hwbase);
+ 	hwbase &= PCI_BASE_ADDRESS_MEM_MASK;
+-	rebase = ioremap(hwbase, 0x80);
++	rebase = ioremap_nocache(hwbase, 0x80);
+ 	t = readl(rebase + CNTRL_REG_OFFSET);
+ 	if (t != CNTRL_REG_GOODVALUE) {
+ 		printk(KERN_DEBUG "sx: performing cntrl reg fix: %08x -> "
+@@ -2761,7 +2761,7 @@ static int __init sx_init(void)
+ 		if (!request_region(board->hw_base, board->hw_len, "sx"))
+ 			continue;
+ 		board->base2 =
+-		board->base = ioremap(board->hw_base, board->hw_len);
++		board->base = ioremap_nocache(board->hw_base, board->hw_len);
+ 		if (!board->base)
+ 			goto err_sx_reg;
+ 		board->flags &= ~SX_BOARD_TYPE;
+@@ -2785,7 +2785,7 @@ err_sx_reg:
+ 		if (!request_region(board->hw_base, board->hw_len, "sx"))
+ 			continue;
+ 		board->base2 =
+-		board->base = ioremap(board->hw_base, board->hw_len);
++		board->base = ioremap_nocache(board->hw_base, board->hw_len);
+ 		if (!board->base)
+ 			goto err_si_reg;
+ 		board->flags &= ~SX_BOARD_TYPE;
+@@ -2808,7 +2808,7 @@ err_si_reg:
+ 		if (!request_region(board->hw_base, board->hw_len, "sx"))
+ 			continue;
+ 		board->base2 =
+-		board->base = ioremap(board->hw_base, board->hw_len);
++		board->base = ioremap_nocache(board->hw_base, board->hw_len);
+ 		if (!board->base)
+ 			goto err_si1_reg;
+ 		board->flags &= ~SX_BOARD_TYPE;
+diff -puN drivers/char/synclink.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/synclink.c
+--- a/drivers/char/synclink.c~char-serial-switch-drivers-to-ioremap_nocache
++++ a/drivers/char/synclink.c
+@@ -4150,7 +4150,8 @@ static int mgsl_claim_resources(struct m
+ 		}
+ 		info->lcr_mem_requested = true;
+ 
+-		info->memory_base = ioremap(info->phys_memory_base,0x40000);
++		info->memory_base = ioremap_nocache(info->phys_memory_base,
++								0x40000);
+ 		if (!info->memory_base) {
+ 			printk( "%s(%d):Cant map shared memory on device %s MemAddr=%08X\n",
+ 				__FILE__,__LINE__,info->device_name, info->phys_memory_base );
+@@ -4163,12 +4164,14 @@ static int mgsl_claim_resources(struct m
+ 			goto errout;
+ 		}
+ 		
+-		info->lcr_base = ioremap(info->phys_lcr_base,PAGE_SIZE) + info->lcr_offset;
++		info->lcr_base = ioremap_nocache(info->phys_lcr_base,
++								PAGE_SIZE);
+ 		if (!info->lcr_base) {
+ 			printk( "%s(%d):Cant map LCR memory on device %s MemAddr=%08X\n",
+ 				__FILE__,__LINE__,info->device_name, info->phys_lcr_base );
+ 			goto errout;
+ 		}
++		info->lcr_base += info->lcr_offset;
+ 		
+ 	} else {
+ 		/* claim DMA channel */
+diff -puN drivers/char/synclink_gt.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~char-serial-switch-drivers-to-ioremap_nocache
++++ a/drivers/char/synclink_gt.c
+@@ -3350,7 +3350,7 @@ static int claim_resources(struct slgt_i
+ 	else
+ 		info->reg_addr_requested = true;
+ 
+-	info->reg_addr = ioremap(info->phys_reg_addr, SLGT_REG_SIZE);
++	info->reg_addr = ioremap_nocache(info->phys_reg_addr, SLGT_REG_SIZE);
+ 	if (!info->reg_addr) {
+ 		DBGERR(("%s cant map device registers, addr=%08X\n",
+ 			info->device_name, info->phys_reg_addr));
+diff -puN drivers/char/synclinkmp.c~char-serial-switch-drivers-to-ioremap_nocache drivers/char/synclinkmp.c
+--- a/drivers/char/synclinkmp.c~char-serial-switch-drivers-to-ioremap_nocache
++++ a/drivers/char/synclinkmp.c
+@@ -3643,7 +3643,8 @@ static int claim_resources(SLMP_INFO *in
+ 	else
+ 		info->sca_statctrl_requested = true;
+ 
+-	info->memory_base = ioremap(info->phys_memory_base,SCA_MEM_SIZE);
++	info->memory_base = ioremap_nocache(info->phys_memory_base,
++								SCA_MEM_SIZE);
+ 	if (!info->memory_base) {
+ 		printk( "%s(%d):%s Cant map shared memory, MemAddr=%08X\n",
+ 			__FILE__,__LINE__,info->device_name, info->phys_memory_base );
+@@ -3651,7 +3652,7 @@ static int claim_resources(SLMP_INFO *in
+ 		goto errout;
+ 	}
+ 
+-	info->lcr_base = ioremap(info->phys_lcr_base,PAGE_SIZE);
++	info->lcr_base = ioremap_nocache(info->phys_lcr_base, PAGE_SIZE);
+ 	if (!info->lcr_base) {
+ 		printk( "%s(%d):%s Cant map LCR memory, MemAddr=%08X\n",
+ 			__FILE__,__LINE__,info->device_name, info->phys_lcr_base );
+@@ -3660,7 +3661,7 @@ static int claim_resources(SLMP_INFO *in
+ 	}
+ 	info->lcr_base += info->lcr_offset;
+ 
+-	info->sca_base = ioremap(info->phys_sca_base,PAGE_SIZE);
++	info->sca_base = ioremap_nocache(info->phys_sca_base, PAGE_SIZE);
+ 	if (!info->sca_base) {
+ 		printk( "%s(%d):%s Cant map SCA memory, MemAddr=%08X\n",
+ 			__FILE__,__LINE__,info->device_name, info->phys_sca_base );
+@@ -3669,7 +3670,8 @@ static int claim_resources(SLMP_INFO *in
+ 	}
+ 	info->sca_base += info->sca_offset;
+ 
+-	info->statctrl_base = ioremap(info->phys_statctrl_base,PAGE_SIZE);
++	info->statctrl_base = ioremap_nocache(info->phys_statctrl_base,
++								PAGE_SIZE);
+ 	if (!info->statctrl_base) {
+ 		printk( "%s(%d):%s Cant map SCA Status/Control memory, MemAddr=%08X\n",
+ 			__FILE__,__LINE__,info->device_name, info->phys_statctrl_base );
 _
 
-Patches currently in -mm which might be from sukadev@us.ibm.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+pata_atiixp-simplex-clear.patch
+pata_atiixp-dont-disable.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+generic-irq-let-setup_irq-reenable-a-shared-irq.patch
+8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
