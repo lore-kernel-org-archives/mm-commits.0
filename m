@@ -1,85 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-switch-to-int-put_char-method.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:30:34 -0700
-Message-ID: <200805010930.m419UYkg030777@imap1.linux-foundation.org>
+Subject: - pc300-update-to-tty_set_operations.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:30:38 -0700
+Message-ID: <200805010930.m419UcDZ030783@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39324 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59598 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757657AbYEAJbD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:03 -0400
+	by vger.kernel.org with ESMTP id S1757454AbYEAJa7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:30:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, kkeil@suse.de, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn: switch to int put_char method
+     pc300: Update to tty_set_operations
 has been removed from the -mm tree.  Its filename was
-     isdn-switch-to-int-put_char-method.patch
+     pc300-update-to-tty_set_operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: switch to int put_char method
+Subject: pc300: Update to tty_set_operations
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
+This driver somehow escaped the tty operations changes way back when.  Update
+it so that we can switch to tty->ops shortly.
+
 Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/capi.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/net/wan/pc300_tty.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff -puN drivers/isdn/capi/capi.c~isdn-switch-to-int-put_char-method drivers/isdn/capi/capi.c
---- a/drivers/isdn/capi/capi.c~isdn-switch-to-int-put_char-method
-+++ a/drivers/isdn/capi/capi.c
-@@ -1111,11 +1111,12 @@ static int capinc_tty_write(struct tty_s
- 	return count;
+diff -puN drivers/net/wan/pc300_tty.c~pc300-update-to-tty_set_operations drivers/net/wan/pc300_tty.c
+--- a/drivers/net/wan/pc300_tty.c~pc300-update-to-tty_set_operations
++++ a/drivers/net/wan/pc300_tty.c
+@@ -178,6 +178,20 @@ static void cpc_tty_signal_on(pc300dev_t
+ 	CPC_TTY_UNLOCK(card,flags); 
  }
  
--static void capinc_tty_put_char(struct tty_struct *tty, unsigned char ch)
-+static int capinc_tty_put_char(struct tty_struct *tty, unsigned char ch)
- {
- 	struct capiminor *mp = (struct capiminor *)tty->driver_data;
- 	struct sk_buff *skb;
- 	unsigned long flags;
-+	int ret = 1;
++
++static const struct tty_operations pc300_ops = {
++	.open = cpc_tty_open,
++	.close = cpc_tty_close,
++	.write = cpc_tty_write,
++	.write_room = cpc_tty_write_room,
++	.chars_in_buffer = cpc_tty_chars_in_buffer,
++	.tiocmset = pc300_tiocmset,
++	.tiocmget = pc300_tiocmget,
++	.flush_buffer = cpc_tty_flush_buffer,
++	.hangup = cpc_tty_hangup,
++};
++
++
+ /*
+  * PC300 TTY initialization routine
+  *
+@@ -225,15 +239,7 @@ void cpc_tty_init(pc300dev_t *pc300dev)
+ 		serial_drv.flags = TTY_DRIVER_REAL_RAW;
  
- #ifdef _DEBUG_TTYFUNCS
- 	printk(KERN_DEBUG "capinc_put_char(%u)\n", ch);
-@@ -1125,7 +1126,7 @@ static void capinc_tty_put_char(struct t
- #ifdef _DEBUG_TTYFUNCS
- 		printk(KERN_DEBUG "capinc_tty_put_char: mp or mp->ncci NULL\n");
- #endif
--		return;
-+		return 0;
- 	}
+ 		/* interface routines from the upper tty layer to the tty driver */
+-		serial_drv.open = cpc_tty_open;
+-		serial_drv.close = cpc_tty_close;
+-		serial_drv.write = cpc_tty_write; 
+-		serial_drv.write_room = cpc_tty_write_room; 
+-		serial_drv.chars_in_buffer = cpc_tty_chars_in_buffer; 
+-		serial_drv.tiocmset = pc300_tiocmset;
+-		serial_drv.tiocmget = pc300_tiocmget;
+-		serial_drv.flush_buffer = cpc_tty_flush_buffer; 
+-		serial_drv.hangup = cpc_tty_hangup;
++		tty_set_operations(&serial_drv, &pc300_ops);
  
- 	spin_lock_irqsave(&workaround_lock, flags);
-@@ -1134,7 +1135,7 @@ static void capinc_tty_put_char(struct t
- 		if (skb_tailroom(skb) > 0) {
- 			*(skb_put(skb, 1)) = ch;
- 			spin_unlock_irqrestore(&workaround_lock, flags);
--			return;
-+			return 1;
- 		}
- 		mp->ttyskb = NULL;
- 		skb_queue_tail(&mp->outqueue, skb);
-@@ -1148,8 +1149,10 @@ static void capinc_tty_put_char(struct t
- 		mp->ttyskb = skb;
- 	} else {
- 		printk(KERN_ERR "capinc_put_char: char %u lost\n", ch);
-+		ret = 0;
- 	}
- 	spin_unlock_irqrestore(&workaround_lock, flags);
-+	return ret;
- }
- 
- static void capinc_tty_flush_chars(struct tty_struct *tty)
+ 		/* register the TTY driver */
+ 		if (tty_register_driver(&serial_drv)) { 
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
