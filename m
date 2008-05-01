@@ -1,129 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - mm-add-nr_writeback_temp-counter.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:31:56 -0700
-Message-ID: <200805010931.m419VuDf030918@imap1.linux-foundation.org>
+Subject: - fuse-fix-max-i-o-size-calculation.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:32:10 -0700
+Message-ID: <200805010932.m419WAbi030962@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37486 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50076 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757828AbYEAJce (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:32:34 -0400
+	by vger.kernel.org with ESMTP id S1755288AbYEAJcO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:32:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mszeredi@suse.cz, clameter@sgi.com, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm: Add NR_WRITEBACK_TEMP counter
+     fuse: fix max i/o size calculation
 has been removed from the -mm tree.  Its filename was
-     mm-add-nr_writeback_temp-counter.patch
+     fuse-fix-max-i-o-size-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: Add NR_WRITEBACK_TEMP counter
+Subject: fuse: fix max i/o size calculation
 From: Miklos Szeredi <mszeredi@suse.cz>
 
-Fuse will use temporary buffers to write back dirty data from memory mappings
-(normal writes are done synchronously).  This is needed, because there cannot
-be any guarantee about the time in which a write will complete.
+Fix a bug that Werner Baumann reported: fuse can send a bigger write request
+than the maximum specified.  This only affected direct_io operation.
 
-By using temporary buffers, from the MM's point if view the page is written
-back immediately.  If the writeout was due to memory pressure, this
-effectively migrates data from a full zone to a less full zone.
+In addition set a sane minimum for the max_read and max_write tunables, so I/O
+always makes some progress.
 
-This patch adds a new counter (NR_WRITEBACK_TEMP) for the number of pages used
-as temporary buffers.
-
-[Lee.Schermerhorn@hp.com: add vmstat_text for NR_WRITEBACK_TEMP]
 Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Lee Schermerhorn <lee.schermerhorn@hp.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c    |    2 ++
- fs/proc/proc_misc.c    |    2 ++
- include/linux/mmzone.h |    1 +
- mm/page-writeback.c    |    3 ++-
- mm/vmstat.c            |    1 +
- 5 files changed, 8 insertions(+), 1 deletion(-)
+ fs/fuse/file.c  |    7 ++++---
+ fs/fuse/inode.c |    3 ++-
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN drivers/base/node.c~mm-add-nr_writeback_temp-counter drivers/base/node.c
---- a/drivers/base/node.c~mm-add-nr_writeback_temp-counter
-+++ a/drivers/base/node.c
-@@ -77,6 +77,7 @@ static ssize_t node_read_meminfo(struct 
- 		       "Node %d PageTables:   %8lu kB\n"
- 		       "Node %d NFS_Unstable: %8lu kB\n"
- 		       "Node %d Bounce:       %8lu kB\n"
-+		       "Node %d WritebackTmp: %8lu kB\n"
- 		       "Node %d Slab:         %8lu kB\n"
- 		       "Node %d SReclaimable: %8lu kB\n"
- 		       "Node %d SUnreclaim:   %8lu kB\n",
-@@ -99,6 +100,7 @@ static ssize_t node_read_meminfo(struct 
- 		       nid, K(node_page_state(nid, NR_PAGETABLE)),
- 		       nid, K(node_page_state(nid, NR_UNSTABLE_NFS)),
- 		       nid, K(node_page_state(nid, NR_BOUNCE)),
-+		       nid, K(node_page_state(nid, NR_WRITEBACK_TEMP)),
- 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE) +
- 				node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
- 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE)),
-diff -puN fs/proc/proc_misc.c~mm-add-nr_writeback_temp-counter fs/proc/proc_misc.c
---- a/fs/proc/proc_misc.c~mm-add-nr_writeback_temp-counter
-+++ a/fs/proc/proc_misc.c
-@@ -179,6 +179,7 @@ static int meminfo_read_proc(char *page,
- 		"PageTables:   %8lu kB\n"
- 		"NFS_Unstable: %8lu kB\n"
- 		"Bounce:       %8lu kB\n"
-+		"WritebackTmp: %8lu kB\n"
- 		"CommitLimit:  %8lu kB\n"
- 		"Committed_AS: %8lu kB\n"
- 		"VmallocTotal: %8lu kB\n"
-@@ -210,6 +211,7 @@ static int meminfo_read_proc(char *page,
- 		K(global_page_state(NR_PAGETABLE)),
- 		K(global_page_state(NR_UNSTABLE_NFS)),
- 		K(global_page_state(NR_BOUNCE)),
-+		K(global_page_state(NR_WRITEBACK_TEMP)),
- 		K(allowed),
- 		K(committed),
- 		(unsigned long)VMALLOC_TOTAL >> 10,
-diff -puN include/linux/mmzone.h~mm-add-nr_writeback_temp-counter include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-add-nr_writeback_temp-counter
-+++ a/include/linux/mmzone.h
-@@ -97,6 +97,7 @@ enum zone_stat_item {
- 	NR_UNSTABLE_NFS,	/* NFS unstable pages */
- 	NR_BOUNCE,
- 	NR_VMSCAN_WRITE,
-+	NR_WRITEBACK_TEMP,	/* Writeback using temporary buffers */
- #ifdef CONFIG_NUMA
- 	NUMA_HIT,		/* allocated in intended node */
- 	NUMA_MISS,		/* allocated in non intended node */
-diff -puN mm/page-writeback.c~mm-add-nr_writeback_temp-counter mm/page-writeback.c
---- a/mm/page-writeback.c~mm-add-nr_writeback_temp-counter
-+++ a/mm/page-writeback.c
-@@ -211,7 +211,8 @@ clip_bdi_dirty_limit(struct backing_dev_
- 	avail_dirty = dirty -
- 		(global_page_state(NR_FILE_DIRTY) +
- 		 global_page_state(NR_WRITEBACK) +
--		 global_page_state(NR_UNSTABLE_NFS));
-+		 global_page_state(NR_UNSTABLE_NFS) +
-+		 global_page_state(NR_WRITEBACK_TEMP));
+diff -puN fs/fuse/file.c~fuse-fix-max-i-o-size-calculation fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-fix-max-i-o-size-calculation
++++ a/fs/fuse/file.c
+@@ -966,14 +966,15 @@ static ssize_t fuse_direct_io(struct fil
  
- 	if (avail_dirty < 0)
- 		avail_dirty = 0;
-diff -puN mm/vmstat.c~mm-add-nr_writeback_temp-counter mm/vmstat.c
---- a/mm/vmstat.c~mm-add-nr_writeback_temp-counter
-+++ a/mm/vmstat.c
-@@ -612,6 +612,7 @@ static const char * const vmstat_text[] 
- 	"nr_unstable",
- 	"nr_bounce",
- 	"nr_vmscan_write",
-+	"nr_writeback_temp",
+ 	while (count) {
+ 		size_t nres;
+-		size_t nbytes = min(count, nmax);
+-		int err = fuse_get_user_pages(req, buf, nbytes, !write);
++		size_t nbytes_limit = min(count, nmax);
++		size_t nbytes;
++		int err = fuse_get_user_pages(req, buf, nbytes_limit, !write);
+ 		if (err) {
+ 			res = err;
+ 			break;
+ 		}
+ 		nbytes = (req->num_pages << PAGE_SHIFT) - req->page_offset;
+-		nbytes = min(count, nbytes);
++		nbytes = min(nbytes_limit, nbytes);
+ 		if (write)
+ 			nres = fuse_send_write(req, file, inode, pos, nbytes,
+ 					       current->files);
+diff -puN fs/fuse/inode.c~fuse-fix-max-i-o-size-calculation fs/fuse/inode.c
+--- a/fs/fuse/inode.c~fuse-fix-max-i-o-size-calculation
++++ a/fs/fuse/inode.c
+@@ -584,6 +584,7 @@ static void process_init_reply(struct fu
+ 		fc->bdi.ra_pages = min(fc->bdi.ra_pages, ra_pages);
+ 		fc->minor = arg->minor;
+ 		fc->max_write = arg->minor < 5 ? 4096 : arg->max_write;
++		fc->max_write = min_t(unsigned, 4096, fc->max_write);
+ 		fc->conn_init = 1;
+ 	}
+ 	fuse_put_request(fc, req);
+@@ -658,7 +659,7 @@ static int fuse_fill_super(struct super_
+ 	fc->flags = d.flags;
+ 	fc->user_id = d.user_id;
+ 	fc->group_id = d.group_id;
+-	fc->max_read = d.max_read;
++	fc->max_read = min_t(unsigned, 4096, d.max_read);
  
- #ifdef CONFIG_NUMA
- 	"numa_hit",
+ 	/* Used by get_root_inode() */
+ 	sb->s_fs_info = fc;
 _
 
 Patches currently in -mm which might be from mszeredi@suse.cz are
