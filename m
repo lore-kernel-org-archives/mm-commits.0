@@ -1,89 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: + spi_s3c24xx-signedness-fix.patch added to -mm tree
-Date: Thu, 01 May 2008 01:24:01 -0700
-Message-ID: <200805010824.m418O1hV028118@imap1.linux-foundation.org>
+Subject: - docbook-fix-fatal-rapidio-yet-again-and-more-to-come.patch removed from -mm tree
+Date: Thu, 01 May 2008 01:29:59 -0700
+Message-ID: <200805010829.m418TxdW028300@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57027 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36132 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753633AbYEAIYR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 04:24:17 -0400
+	by vger.kernel.org with ESMTP id S1754638AbYEAIaJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 04:30:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: matthew@wil.cx, dbrownell@users.sourceforge.net, julia@diku.dk, willy@linux.intel.com
+To: randy.dunlap@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_s3c24xx signedness fix
-has been added to the -mm tree.  Its filename is
-     spi_s3c24xx-signedness-fix.patch
+     docbook: fix fatal rapidio yet again (and more to come)
+has been removed from the -mm tree.  Its filename was
+     docbook-fix-fatal-rapidio-yet-again-and-more-to-come.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi_s3c24xx signedness fix
-From: Matthew Wilcox <matthew@wil.cx>
+Subject: docbook: fix fatal rapidio yet again (and more to come)
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-On Fri, Apr 18, 2008 at 09:08:55PM +0200, Julia Lawall wrote:
-> I found 63 occurrences of this problem with the following semantic match
-> (http://www.emn.fr/x-info/coccinelle/):
->
-> @@ unsigned int i; @@
->
-> * i < 0
->
+Don't refer to file that no longer exists:
+docproc: linux-2.6.25-git14/arch/powerpc/kernel/rio.c: No such file or directory
 
-Since this one's always in the range 0-255, it could probably be made
-signed, but it's just as easy to make it work unsigned.
-
-Reported-by: Julia Lawall <julia@diku.dk>
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_s3c24xx.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/DocBook/rapidio.tmpl |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/spi/spi_s3c24xx.c~spi_s3c24xx-signedness-fix drivers/spi/spi_s3c24xx.c
---- a/drivers/spi/spi_s3c24xx.c~spi_s3c24xx-signedness-fix
-+++ a/drivers/spi/spi_s3c24xx.c
-@@ -125,10 +125,10 @@ static int s3c24xx_spi_setupxfer(struct 
- 	/* is clk = pclk / (2 * (pre+1)), or is it
- 	 *    clk = (pclk * 2) / ( pre + 1) */
- 
--	div = (div / 2) - 1;
-+	div /= 2;
- 
--	if (div < 0)
--		div = 1;
-+	if (div > 0)
-+		div -= 1;
- 
- 	if (div > 255)
- 		div = 255;
+diff -puN Documentation/DocBook/rapidio.tmpl~docbook-fix-fatal-rapidio-yet-again-and-more-to-come Documentation/DocBook/rapidio.tmpl
+--- a/Documentation/DocBook/rapidio.tmpl~docbook-fix-fatal-rapidio-yet-again-and-more-to-come
++++ a/Documentation/DocBook/rapidio.tmpl
+@@ -133,7 +133,6 @@
+ !Idrivers/rapidio/rio-sysfs.c
+      </sect1>
+      <sect1 id="PPC32_support"><title>PPC32 support</title>
+-!Iarch/powerpc/kernel/rio.c
+ !Earch/powerpc/sysdev/fsl_rio.c
+ !Iarch/powerpc/sysdev/fsl_rio.c
+      </sect1>
 _
 
-Patches currently in -mm which might be from matthew@wil.cx are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
-parisc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-construct-one-fakephp-slot-per-pci-slot.patch
-pci-hotplug-introduce-pci_slot.patch
-git-semaphore.patch
-spi_s3c24xx-signedness-fix.patch
-make-sure-nobodys-leaking-resources.patch
+basic-braille-screen-reader-support.patch
+add-macros-similar-to-min-max-min_t-max_t.patch
+infrastructure-to-debug-dynamic-objects.patch
+debugobjects-add-documentation.patch
+debugobjects-add-timer-specific-object-debugging-code.patch
+add-hrtimer-specific-debugobjects-code.patch
+sysfs-sysfs_update_group-stub-for-config_sysfs=n.patch
+docbook-fix-fatal-rapidio-yet-again-and-more-to-come.patch
+docbook-fix-vmalloc-missing-parameter-notation.patch
+pnp-fix-printk-format-warnings.patch
+pnp-fix-printk-format-warnings-fix.patch
+pnp-fix-printk-format-warnings-fix-checkpatch-fixes.patch
+x86-fix-setup-printk-format-warning.patch
+git-kvm.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-ocfs2.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-isp1760-hcd-driver.patch
+uwb-fix-kconfig-causing-undefined-references.patch
+docbook-some-kernel-locking-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+profile-likely-unlikely-macros.patch
 
