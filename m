@@ -1,78 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - isicom-istallion-prepare-for-lock_kernel-pushdown.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:27:54 -0700
-Message-ID: <200805010927.m419RsXp030457@imap1.linux-foundation.org>
+Subject: - sx-prepare-for-bkl-pushdown.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:28:08 -0700
+Message-ID: <200805010928.m419S8CA030556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53849 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44139 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756707AbYEAJ2P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:28:15 -0400
+	by vger.kernel.org with ESMTP id S1757755AbYEAJ23 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:28:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isicom: istallion prepare for lock_kernel pushdown
+     sx: prepare for BKL pushdown
 has been removed from the -mm tree.  Its filename was
-     isicom-istallion-prepare-for-lock_kernel-pushdown.patch
+     sx-prepare-for-bkl-pushdown.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isicom: istallion prepare for lock_kernel pushdown
+Subject: sx: prepare for BKL pushdown
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-This is an ancient driver so just wrap it in lock_kernel internally and
-be done.
+Wrap the ioctl handler, and in this case the break handler also in the
+BKL. Remove bogus softcar handlers.
 
 Signed-off-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/istallion.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/char/sx.c |   17 ++++-------------
+ 1 file changed, 4 insertions(+), 13 deletions(-)
 
-diff -puN drivers/char/istallion.c~isicom-istallion-prepare-for-lock_kernel-pushdown drivers/char/istallion.c
---- a/drivers/char/istallion.c~isicom-istallion-prepare-for-lock_kernel-pushdown
-+++ a/drivers/char/istallion.c
-@@ -4433,6 +4433,8 @@ static int stli_memioctl(struct inode *i
- 	done = 0;
- 	rc = 0;
+diff -puN drivers/char/sx.c~sx-prepare-for-bkl-pushdown drivers/char/sx.c
+--- a/drivers/char/sx.c~sx-prepare-for-bkl-pushdown
++++ a/drivers/char/sx.c
+@@ -1844,6 +1844,7 @@ static void sx_break(struct tty_struct *
+ 	int rv;
  
+ 	func_enter();
 +	lock_kernel();
-+
- 	switch (cmd) {
- 	case COM_GETPORTSTATS:
- 		rc = stli_getportstats(NULL, argp);
-@@ -4455,6 +4457,7 @@ static int stli_memioctl(struct inode *i
- 		done++;
- 		break;
- 	}
+ 
+ 	if (flag)
+ 		rv = sx_send_command(port, HS_START, -1, HS_IDLE_BREAK);
+@@ -1852,7 +1853,7 @@ static void sx_break(struct tty_struct *
+ 	if (rv != 1)
+ 		printk(KERN_ERR "sx: couldn't send break (%x).\n",
+ 			read_sx_byte(port->board, CHAN_OFFSET(port, hi_hstat)));
+-
 +	unlock_kernel();
+ 	func_exit();
+ }
  
- 	if (done)
- 		return rc;
-@@ -4472,6 +4475,8 @@ static int stli_memioctl(struct inode *i
- 	if (brdp->state == 0)
- 		return -ENODEV;
+@@ -1888,23 +1889,12 @@ static int sx_ioctl(struct tty_struct *t
+ 	int rc;
+ 	struct sx_port *port = tty->driver_data;
+ 	void __user *argp = (void __user *)arg;
+-	int ival;
  
+ 	/* func_enter2(); */
+ 
+ 	rc = 0;
 +	lock_kernel();
-+
  	switch (cmd) {
- 	case STL_BINTR:
- 		EBRDINTR(brdp);
-@@ -4494,6 +4499,7 @@ static int stli_memioctl(struct inode *i
+-	case TIOCGSOFTCAR:
+-		rc = put_user(((tty->termios->c_cflag & CLOCAL) ? 1 : 0),
+-				(unsigned __user *)argp);
+-		break;
+-	case TIOCSSOFTCAR:
+-		if ((rc = get_user(ival, (unsigned __user *)argp)) == 0) {
+-			tty->termios->c_cflag =
+-				(tty->termios->c_cflag & ~CLOCAL) |
+-				(ival ? CLOCAL : 0);
+-		}
+-		break;
+ 	case TIOCGSERIAL:
+ 		rc = gs_getserial(&port->gs, argp);
+ 		break;
+@@ -1915,6 +1905,7 @@ static int sx_ioctl(struct tty_struct *t
  		rc = -ENOIOCTLCMD;
  		break;
  	}
 +	unlock_kernel();
- 	return rc;
- }
  
+ 	/* func_exit(); */
+ 	return rc;
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
