@@ -1,102 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - consoles-switch-to-int-put_char-method.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:30:31 -0700
-Message-ID: <200805010930.m419UV8W030772@imap1.linux-foundation.org>
+Subject: - pidns-make-pid-level-and-pid_ns-level-unsigned.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:31:36 -0700
+Message-ID: <200805010931.m419Vah6030887@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42735 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38076 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757050AbYEAJbi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:38 -0400
+	by vger.kernel.org with ESMTP id S1757263AbYEAJbj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:31:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, adaplas@pol.net, alan@redhat.com, jirislaby@gmail.com, kelly@au.ibm.com, paulus@samba.org, samuel.thibault@ens-lyon.org, sfr@canb.auug.org.au, mm-commits@vge
+To: xemul@openvz.org, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     consoles: switch to int put_char method
+     pidns: make pid->level and pid_ns->level unsigned
 has been removed from the -mm tree.  Its filename was
-     consoles-switch-to-int-put_char-method.patch
+     pidns-make-pid-level-and-pid_ns-level-unsigned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: consoles: switch to int put_char method
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: pidns: make pid->level and pid_ns->level unsigned
+From: Pavel Emelyanov <xemul@openvz.org>
 
-Signed-off-by: Alan Cox <alan@redhat.com>
-Cc: Antonino Daplas <adaplas@pol.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Kelly Daly <kelly@au.ibm.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Jiri Slaby <jirislaby@gmail.com>
-Cc: Samuel Thibault <samuel.thibault@ens-lyon.org>
+These values represent the nesting level of a namespace and pids living in it,
+and it's always non-negative.
+
+Turning this from int to unsigned int saves some space in pid.c (11 bytes on
+x86 and 64 on ia64) by letting the compiler optimize the pid_nr_ns a bit. 
+E.g.  on ia64 this removes the sign extension calls, which compiler adds to
+optimize access to pid->nubers[ns->level].
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/viocons.c |    5 +++--
- drivers/char/vt.c      |    6 +++---
- 2 files changed, 6 insertions(+), 5 deletions(-)
+ include/linux/pid.h           |    2 +-
+ include/linux/pid_namespace.h |    2 +-
+ kernel/pid_namespace.c        |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/viocons.c~consoles-switch-to-int-put_char-method drivers/char/viocons.c
---- a/drivers/char/viocons.c~consoles-switch-to-int-put_char-method
-+++ a/drivers/char/viocons.c
-@@ -628,13 +628,13 @@ static int viotty_write(struct tty_struc
- /*
-  * TTY put_char method
-  */
--static void viotty_put_char(struct tty_struct *tty, unsigned char ch)
-+static int viotty_put_char(struct tty_struct *tty, unsigned char ch)
+diff -puN include/linux/pid.h~pidns-make-pid-level-and-pid_ns-level-unsigned include/linux/pid.h
+--- a/include/linux/pid.h~pidns-make-pid-level-and-pid_ns-level-unsigned
++++ a/include/linux/pid.h
+@@ -60,7 +60,7 @@ struct pid
+ 	/* lists of tasks that use this pid */
+ 	struct hlist_head tasks[PIDTYPE_MAX];
+ 	struct rcu_head rcu;
+-	int level;
++	unsigned int level;
+ 	struct upid numbers[1];
+ };
+ 
+diff -puN include/linux/pid_namespace.h~pidns-make-pid-level-and-pid_ns-level-unsigned include/linux/pid_namespace.h
+--- a/include/linux/pid_namespace.h~pidns-make-pid-level-and-pid_ns-level-unsigned
++++ a/include/linux/pid_namespace.h
+@@ -20,7 +20,7 @@ struct pid_namespace {
+ 	int last_pid;
+ 	struct task_struct *child_reaper;
+ 	struct kmem_cache *pid_cachep;
+-	int level;
++	unsigned int level;
+ 	struct pid_namespace *parent;
+ #ifdef CONFIG_PROC_FS
+ 	struct vfsmount *proc_mnt;
+diff -puN kernel/pid_namespace.c~pidns-make-pid-level-and-pid_ns-level-unsigned kernel/pid_namespace.c
+--- a/kernel/pid_namespace.c~pidns-make-pid-level-and-pid_ns-level-unsigned
++++ a/kernel/pid_namespace.c
+@@ -66,7 +66,7 @@ err_alloc:
+ 	return NULL;
+ }
+ 
+-static struct pid_namespace *create_pid_namespace(int level)
++static struct pid_namespace *create_pid_namespace(unsigned int level)
  {
- 	struct port_info *pi;
- 
- 	pi = get_port_data(tty);
- 	if (pi == NULL)
--		return;
-+		return 0;
- 
- 	/* This will append '\r' as well if the char is '\n' */
- 	if (viochar_is_console(pi))
-@@ -642,6 +642,7 @@ static void viotty_put_char(struct tty_s
- 
- 	if (viopath_isactive(pi->lp))
- 		internal_write(pi, &ch, 1);
-+	return 1;
- }
- 
- /*
-diff -puN drivers/char/vt.c~consoles-switch-to-int-put_char-method drivers/char/vt.c
---- a/drivers/char/vt.c~consoles-switch-to-int-put_char-method
-+++ a/drivers/char/vt.c
-@@ -2642,11 +2642,11 @@ static int con_write(struct tty_struct *
- 	return retval;
- }
- 
--static void con_put_char(struct tty_struct *tty, unsigned char ch)
-+static int con_put_char(struct tty_struct *tty, unsigned char ch)
- {
- 	if (in_interrupt())
--		return;	/* n_r3964 calls put_char() from interrupt context */
--	do_con_write(tty, &ch, 1);
-+		return 0;	/* n_r3964 calls put_char() from interrupt context */
-+	return do_con_write(tty, &ch, 1);
- }
- 
- static int con_write_room(struct tty_struct *tty)
+ 	struct pid_namespace *ns;
+ 	int i;
 _
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from xemul@openvz.org are
 
 origin.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-pata_atiixp-simplex-clear.patch
-pata_atiixp-dont-disable.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-generic-irq-let-setup_irq-reenable-a-shared-irq.patch
-8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
-sxc-fix-printk-warnings-on-sparc32.patch
+disable-the-memory-controller-by-default-v3.patch
+reiser4.patch
 put_pid-make-sure-we-dont-free-the-live-pid.patch
 
