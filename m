@@ -1,268 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-implement-perform_write.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:32:06 -0700
-Message-ID: <200805010932.m419W67x030936@imap1.linux-foundation.org>
+Subject: - quota-le_add_cpu-conversion.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:32:25 -0700
+Message-ID: <200805010932.m419WPqX030984@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51569 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60781 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750873AbYEAJcS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:32:18 -0400
+	by vger.kernel.org with ESMTP id S1757071AbYEAJca (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:32:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: npiggin@suse.de, hch@infradead.org, mszeredi@suse.cz, mm-commits@vger.kernel.org
+To: marcin.slusarz@gmail.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: implement perform_write
+     quota: le*_add_cpu conversion
 has been removed from the -mm tree.  Its filename was
-     fuse-implement-perform_write.patch
+     quota-le_add_cpu-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fuse: implement perform_write
-From: Nick Piggin <npiggin@suse.de>
+Subject: quota: le*_add_cpu conversion
+From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-Introduce fuse_perform_write.  With fusexmp (a passthrough filesystem), large
-(1MB) writes into a backing tmpfs filesystem are sped up by almost 4 times
-(256MB/s vs 71MB/s).
+replace all:
+little_endian_variable = cpu_to_leX(leX_to_cpu(little_endian_variable) +
+					expression_in_cpu_byteorder);
+with:
+	leX_add_cpu(&little_endian_variable, expression_in_cpu_byteorder);
+generated with semantic patch
 
-[mszeredi@suse.cz]:
-
- - split into smaller functions
- - testing
- - duplicate generic_file_aio_write(), so that there's no need to add a
-   new ->perform_write() a_op.  Comment from hch.
-
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Christoph Hellwig <hch@infradead.org>
+Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
+Acked-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c |  194 ++++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 193 insertions(+), 1 deletion(-)
+ fs/quota_v2.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/fuse/file.c~fuse-implement-perform_write fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-implement-perform_write
-+++ a/fs/fuse/file.c
-@@ -677,6 +677,198 @@ static int fuse_write_end(struct file *f
- 	return res;
- }
- 
-+static size_t fuse_send_write_pages(struct fuse_req *req, struct file *file,
-+				    struct inode *inode, loff_t pos,
-+				    size_t count)
-+{
-+	size_t res;
-+	unsigned offset;
-+	unsigned i;
-+
-+	for (i = 0; i < req->num_pages; i++)
-+		fuse_wait_on_page_writeback(inode, req->pages[i]->index);
-+
-+	res = fuse_send_write(req, file, inode, pos, count, NULL);
-+
-+	offset = req->page_offset;
-+	count = res;
-+	for (i = 0; i < req->num_pages; i++) {
-+		struct page *page = req->pages[i];
-+
-+		if (!req->out.h.error && !offset && count >= PAGE_CACHE_SIZE)
-+			SetPageUptodate(page);
-+
-+		if (count > PAGE_CACHE_SIZE - offset)
-+			count -= PAGE_CACHE_SIZE - offset;
-+		else
-+			count = 0;
-+		offset = 0;
-+
-+		unlock_page(page);
-+		page_cache_release(page);
-+	}
-+
-+	return res;
-+}
-+
-+static ssize_t fuse_fill_write_pages(struct fuse_req *req,
-+			       struct address_space *mapping,
-+			       struct iov_iter *ii, loff_t pos)
-+{
-+	struct fuse_conn *fc = get_fuse_conn(mapping->host);
-+	unsigned offset = pos & (PAGE_CACHE_SIZE - 1);
-+	size_t count = 0;
-+	int err;
-+
-+	req->page_offset = offset;
-+
-+	do {
-+		size_t tmp;
-+		struct page *page;
-+		pgoff_t index = pos >> PAGE_CACHE_SHIFT;
-+		size_t bytes = min_t(size_t, PAGE_CACHE_SIZE - offset,
-+				     iov_iter_count(ii));
-+
-+		bytes = min_t(size_t, bytes, fc->max_write - count);
-+
-+ again:
-+		err = -EFAULT;
-+		if (iov_iter_fault_in_readable(ii, bytes))
-+			break;
-+
-+		err = -ENOMEM;
-+		page = __grab_cache_page(mapping, index);
-+		if (!page)
-+			break;
-+
-+		pagefault_disable();
-+		tmp = iov_iter_copy_from_user_atomic(page, ii, offset, bytes);
-+		pagefault_enable();
-+		flush_dcache_page(page);
-+
-+		if (!tmp) {
-+			unlock_page(page);
-+			page_cache_release(page);
-+			bytes = min(bytes, iov_iter_single_seg_count(ii));
-+			goto again;
-+		}
-+
-+		err = 0;
-+		req->pages[req->num_pages] = page;
-+		req->num_pages++;
-+
-+		iov_iter_advance(ii, tmp);
-+		count += tmp;
-+		pos += tmp;
-+		offset += tmp;
-+		if (offset == PAGE_CACHE_SIZE)
-+			offset = 0;
-+
-+	} while (iov_iter_count(ii) && count < fc->max_write &&
-+		 req->num_pages < FUSE_MAX_PAGES_PER_REQ && offset == 0);
-+
-+	return count > 0 ? count : err;
-+}
-+
-+static ssize_t fuse_perform_write(struct file *file,
-+				  struct address_space *mapping,
-+				  struct iov_iter *ii, loff_t pos)
-+{
-+	struct inode *inode = mapping->host;
-+	struct fuse_conn *fc = get_fuse_conn(inode);
-+	int err = 0;
-+	ssize_t res = 0;
-+
-+	if (is_bad_inode(inode))
-+		return -EIO;
-+
-+	do {
-+		struct fuse_req *req;
-+		ssize_t count;
-+
-+		req = fuse_get_req(fc);
-+		if (IS_ERR(req)) {
-+			err = PTR_ERR(req);
-+			break;
-+		}
-+
-+		count = fuse_fill_write_pages(req, mapping, ii, pos);
-+		if (count <= 0) {
-+			err = count;
-+		} else {
-+			size_t num_written;
-+
-+			num_written = fuse_send_write_pages(req, file, inode,
-+							    pos, count);
-+			err = req->out.h.error;
-+			if (!err) {
-+				res += num_written;
-+				pos += num_written;
-+
-+				/* break out of the loop on short write */
-+				if (num_written != count)
-+					err = -EIO;
-+			}
-+		}
-+		fuse_put_request(fc, req);
-+	} while (!err && iov_iter_count(ii));
-+
-+	if (res > 0)
-+		fuse_write_update_size(inode, pos);
-+
-+	fuse_invalidate_attr(inode);
-+
-+	return res > 0 ? res : err;
-+}
-+
-+static ssize_t fuse_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
-+				   unsigned long nr_segs, loff_t pos)
-+{
-+	struct file *file = iocb->ki_filp;
-+	struct address_space *mapping = file->f_mapping;
-+	size_t count = 0;
-+	ssize_t written = 0;
-+	struct inode *inode = mapping->host;
-+	ssize_t err;
-+	struct iov_iter i;
-+
-+	WARN_ON(iocb->ki_pos != pos);
-+
-+	err = generic_segment_checks(iov, &nr_segs, &count, VERIFY_READ);
-+	if (err)
-+		return err;
-+
-+	mutex_lock(&inode->i_mutex);
-+	vfs_check_frozen(inode->i_sb, SB_FREEZE_WRITE);
-+
-+	/* We can write back this queue in page reclaim */
-+	current->backing_dev_info = mapping->backing_dev_info;
-+
-+	err = generic_write_checks(file, &pos, &count, S_ISBLK(inode->i_mode));
-+	if (err)
-+		goto out;
-+
-+	if (count == 0)
-+		goto out;
-+
-+	err = remove_suid(file->f_path.dentry);
-+	if (err)
-+		goto out;
-+
-+	file_update_time(file);
-+
-+	iov_iter_init(&i, iov, nr_segs, count, 0);
-+	written = fuse_perform_write(file, mapping, &i, pos);
-+	if (written >= 0)
-+		iocb->ki_pos = pos + written;
-+
-+out:
-+	current->backing_dev_info = NULL;
-+	mutex_unlock(&inode->i_mutex);
-+
-+	return written ? written : err;
-+}
-+
- static void fuse_release_user_pages(struct fuse_req *req, int write)
- {
- 	unsigned i;
-@@ -1203,7 +1395,7 @@ static const struct file_operations fuse
- 	.read		= do_sync_read,
- 	.aio_read	= fuse_file_aio_read,
- 	.write		= do_sync_write,
--	.aio_write	= generic_file_aio_write,
-+	.aio_write	= fuse_file_aio_write,
- 	.mmap		= fuse_file_mmap,
- 	.open		= fuse_open,
- 	.flush		= fuse_flush,
+diff -puN fs/quota_v2.c~quota-le_add_cpu-conversion fs/quota_v2.c
+--- a/fs/quota_v2.c~quota-le_add_cpu-conversion
++++ a/fs/quota_v2.c
+@@ -306,7 +306,7 @@ static uint find_free_dqentry(struct dqu
+ 			printk(KERN_ERR "VFS: find_free_dqentry(): Can't remove block (%u) from entry free list.\n", blk);
+ 			goto out_buf;
+ 		}
+-	dh->dqdh_entries = cpu_to_le16(le16_to_cpu(dh->dqdh_entries)+1);
++	le16_add_cpu(&dh->dqdh_entries, 1);
+ 	memset(&fakedquot, 0, sizeof(struct v2_disk_dqblk));
+ 	/* Find free structure in block */
+ 	for (i = 0; i < V2_DQSTRINBLK && memcmp(&fakedquot, ddquot+i, sizeof(struct v2_disk_dqblk)); i++);
+@@ -448,7 +448,7 @@ static int free_dqentry(struct dquot *dq
+ 		goto out_buf;
+ 	}
+ 	dh = (struct v2_disk_dqdbheader *)buf;
+-	dh->dqdh_entries = cpu_to_le16(le16_to_cpu(dh->dqdh_entries)-1);
++	le16_add_cpu(&dh->dqdh_entries, -1);
+ 	if (!le16_to_cpu(dh->dqdh_entries)) {	/* Block got free? */
+ 		if ((ret = remove_free_dqentry(sb, type, buf, blk)) < 0 ||
+ 		    (ret = put_free_dqblk(sb, type, buf, blk)) < 0) {
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from marcin.slusarz@gmail.com are
 
 origin.patch
-git-kvm.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+ntfs-le_add_cpu-conversion.patch
 
