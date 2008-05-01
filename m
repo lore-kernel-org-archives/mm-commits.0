@@ -1,51 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - cyclades-use-ioremap_nocache-for-clarity-as-proposed.patch removed from -mm tree
-Date: Thu, 01 May 2008 02:29:56 -0700
-Message-ID: <200805010929.m419Tu0t030721@imap1.linux-foundation.org>
+Subject: - amiserial-switch-put-char-to-return-success-fail.patch removed from -mm tree
+Date: Thu, 01 May 2008 02:30:13 -0700
+Message-ID: <200805010930.m419UDM9030748@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56351 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53351 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757419AbYEAJaW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:30:22 -0400
+	by vger.kernel.org with ESMTP id S1757454AbYEAJae (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 05:30:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cyclades: use ioremap_nocache for clarity as proposed
+     amiserial: Switch put char to return success/fail
 has been removed from the -mm tree.  Its filename was
-     cyclades-use-ioremap_nocache-for-clarity-as-proposed.patch
+     amiserial-switch-put-char-to-return-success-fail.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cyclades: use ioremap_nocache for clarity as proposed
+Subject: amiserial: Switch put char to return success/fail
 From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
 Signed-off-by: Alan Cox <alan@redhat.com>
-Acked-by: Jiri Slaby <jirislaby@gmail.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/cyclades.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/amiserial.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/char/cyclades.c~cyclades-use-ioremap_nocache-for-clarity-as-proposed drivers/char/cyclades.c
---- a/drivers/char/cyclades.c~cyclades-use-ioremap_nocache-for-clarity-as-proposed
-+++ a/drivers/char/cyclades.c
-@@ -4556,7 +4556,7 @@ static int __init cy_detect_isa(void)
- 			return nboard;
+diff -puN drivers/char/amiserial.c~amiserial-switch-put-char-to-return-success-fail drivers/char/amiserial.c
+--- a/drivers/char/amiserial.c~amiserial-switch-put-char-to-return-success-fail
++++ a/drivers/char/amiserial.c
+@@ -832,33 +832,34 @@ static void change_speed(struct async_st
+ 	local_irq_restore(flags);
+ }
  
- 		/* probe for CD1400... */
--		cy_isa_address = ioremap(isa_address, CyISA_Ywin);
-+		cy_isa_address = ioremap_nocache(isa_address, CyISA_Ywin);
- 		if (cy_isa_address == NULL) {
- 			printk(KERN_ERR "Cyclom-Y/ISA: can't remap base "
- 					"address\n");
+-static void rs_put_char(struct tty_struct *tty, unsigned char ch)
++static int rs_put_char(struct tty_struct *tty, unsigned char ch)
+ {
+ 	struct async_struct *info;
+ 	unsigned long flags;
+ 
+ 	if (!tty)
+-		return;
++		return 0;
+ 
+ 	info = tty->driver_data;
+ 
+ 	if (serial_paranoia_check(info, tty->name, "rs_put_char"))
+-		return;
++		return 0;
+ 
+ 	if (!info->xmit.buf)
+-		return;
++		return 0;
+ 
+ 	local_irq_save(flags);
+ 	if (CIRC_SPACE(info->xmit.head,
+ 		       info->xmit.tail,
+ 		       SERIAL_XMIT_SIZE) == 0) {
+ 		local_irq_restore(flags);
+-		return;
++		return 0;
+ 	}
+ 
+ 	info->xmit.buf[info->xmit.head++] = ch;
+ 	info->xmit.head &= SERIAL_XMIT_SIZE-1;
+ 	local_irq_restore(flags);
++	return 1;
+ }
+ 
+ static void rs_flush_chars(struct tty_struct *tty)
 _
 
 Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
