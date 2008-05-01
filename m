@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hid-disable-numlock-emulation-for-apple-aluminium-keyboards.patch added to -mm tree
-Date: Thu, 01 May 2008 15:12:31 -0700
-Message-ID: <200805012212.m41MCVNb028099@imap1.linux-foundation.org>
+Subject: + pnp-set-irq-index-in-sysfs-set-irq-interface.patch added to -mm tree
+Date: Thu, 01 May 2008 15:16:18 -0700
+Message-ID: <200805012216.m41MGIov028258@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48598 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49685 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754077AbYEAWMe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 18:12:34 -0400
+	by vger.kernel.org with ESMTP id S1760856AbYEAWQl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 18:16:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: flameeyes@gmail.com
+Cc: bjorn.helgaas@hp.com, lenb@kernel.org
 
 
 The patch titled
-     HID: disable numlock emulation for Apple Aluminium keyboards
+     PNP: set IRQ index in sysfs "set irq" interface
 has been added to the -mm tree.  Its filename is
-     hid-disable-numlock-emulation-for-apple-aluminium-keyboards.patch
+     pnp-set-irq-index-in-sysfs-set-irq-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: HID: disable numlock emulation for Apple Aluminium keyboards
-From: "Diego 'Flameeyes' Petteno" <flameeyes@gmail.com>
+Subject: PNP: set IRQ index in sysfs "set irq" interface
+From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
+We have to set the ISAPNP register index when setting an IRQ via the sysfs
+interface.  We already do it for IO, MEM, and DMA resources; I just missed the
+IRQ one.
 
-
+Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Len Brown <lenb@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-input.c         |    5 ++--
- drivers/hid/usbhid/hid-quirks.c |   32 +++++++++++++++---------------
- include/linux/hid.h             |    1 
- 3 files changed, 20 insertions(+), 18 deletions(-)
+ drivers/pnp/interface.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/hid/hid-input.c~hid-disable-numlock-emulation-for-apple-aluminium-keyboards drivers/hid/hid-input.c
---- a/drivers/hid/hid-input.c~hid-disable-numlock-emulation-for-apple-aluminium-keyboards
-+++ a/drivers/hid/hid-input.c
-@@ -218,8 +218,9 @@ int hidinput_apple_event(struct hid_devi
+diff -puN drivers/pnp/interface.c~pnp-set-irq-index-in-sysfs-set-irq-interface drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~pnp-set-irq-index-in-sysfs-set-irq-interface
++++ a/drivers/pnp/interface.c
+@@ -424,7 +424,7 @@ pnp_set_current_resources(struct device 
+ 				start = simple_strtoul(buf, &buf, 0);
+ 				pnp_res = pnp_add_irq_resource(dev, start, 0);
+ 				if (pnp_res)
+-					nirq++;
++					pnp_res->index = nirq++;
+ 				continue;
  			}
- 		}
- 
--		if (test_bit(usage->code, hid->pb_pressed_numlock) ||
--				test_bit(LED_NUML, input->led)) {
-+		if (hid->quirks & HID_QUIRK_APPLE_NUMLOCK_EMULATION && (
-+				test_bit(usage->code, hid->pb_pressed_numlock) ||
-+				test_bit(LED_NUML, input->led))) {
- 			trans = find_translation(powerbook_numlock_keys, usage->code);
- 
- 			if (trans) {
-diff -puN drivers/hid/usbhid/hid-quirks.c~hid-disable-numlock-emulation-for-apple-aluminium-keyboards drivers/hid/usbhid/hid-quirks.c
---- a/drivers/hid/usbhid/hid-quirks.c~hid-disable-numlock-emulation-for-apple-aluminium-keyboards
-+++ a/drivers/hid/usbhid/hid-quirks.c
-@@ -611,28 +611,28 @@ static const struct hid_blacklist {
- 
- 	{ USB_VENDOR_ID_WISEGROUP_LTD, USB_DEVICE_ID_SMARTJOY_DUAL_PLUS, HID_QUIRK_NOGET | HID_QUIRK_MULTI_INPUT },
- 
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_ANSI, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER_ANSI, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE | HID_QUIRK_APPLE_ISO_KEYBOARD},
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER_JIS, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER3_ANSI, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER3_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE | HID_QUIRK_APPLE_ISO_KEYBOARD},
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER3_JIS, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_ANSI, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE | HID_QUIRK_APPLE_ISO_KEYBOARD},
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_JIS, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_ANSI, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_ISO, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER_ANSI, HID_QUIRK_APPLE_NUMLOCK_EMULATION | QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER_ISO, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE | HID_QUIRK_APPLE_ISO_KEYBOARD},
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER_JIS, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER3_ANSI, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER3_ISO, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE | HID_QUIRK_APPLE_ISO_KEYBOARD},
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER3_JIS, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_ANSI, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_ISO, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE | HID_QUIRK_APPLE_ISO_KEYBOARD},
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_JIS, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
- 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_ANSI, HID_QUIRK_APPLE_HAS_FN },
- 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_APPLE_ISO_KEYBOARD },
- 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_JIS, HID_QUIRK_APPLE_HAS_FN },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_HF_ANSI, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_HF_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_HF_JIS, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_HF_ANSI, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_HF_ISO, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_HF_JIS, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
- 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_ANSI, HID_QUIRK_APPLE_HAS_FN },
- 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_APPLE_ISO_KEYBOARD },
- 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_JIS, HID_QUIRK_APPLE_HAS_FN },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_TP_ONLY, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
--	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER1_TP_ONLY, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_TP_ONLY, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
-+	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER1_TP_ONLY, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
- 
- 	{ USB_VENDOR_ID_DELL, USB_DEVICE_ID_DELL_W7658, HID_QUIRK_RESET_LEDS },
- 	{ USB_VENDOR_ID_LOGITECH, USB_DEVICE_ID_LOGITECH_KBD, HID_QUIRK_RESET_LEDS },
-diff -puN include/linux/hid.h~hid-disable-numlock-emulation-for-apple-aluminium-keyboards include/linux/hid.h
---- a/include/linux/hid.h~hid-disable-numlock-emulation-for-apple-aluminium-keyboards
-+++ a/include/linux/hid.h
-@@ -285,6 +285,7 @@ struct hid_item {
- #define HID_QUIRK_HWHEEL_WHEEL_INVERT		0x04000000
- #define HID_QUIRK_MICROSOFT_KEYS		0x08000000
- #define HID_QUIRK_FULLSPEED_INTERVAL		0x10000000
-+#define HID_QUIRK_APPLE_NUMLOCK_EMULATION	0x20000000
- 
- /*
-  * Separate quirks for runtime report descriptor fixup
+ 			if (!strnicmp(buf, "dma", 3)) {
 _
 
-Patches currently in -mm which might be from flameeyes@gmail.com are
+Patches currently in -mm which might be from bjorn.helgaas@hp.com are
 
-hid-disable-numlock-emulation-for-apple-aluminium-keyboards.patch
+origin.patch
+pnp-fix-printk-format-warnings.patch
+acpi_pm_device_sleep_state-cleanup.patch
+acpi-fix-drivers-acpi-gluec-build-error.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+nsc-ircc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+pnp-set-irq-index-in-sysfs-set-irq-interface.patch
 
