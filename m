@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + misc-fix-integer-as-null-pointer-warnings.patch added to -mm tree
-Date: Thu, 01 May 2008 16:03:54 -0700
-Message-ID: <200805012303.m41N3sep030071@imap1.linux-foundation.org>
+Subject: + video-fix-integer-as-null-pointer-warnings.patch added to -mm tree
+Date: Thu, 01 May 2008 16:05:19 -0700
+Message-ID: <200805012305.m41N5JHH030171@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46806 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758507AbYEAXEP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 19:04:15 -0400
+	by vger.kernel.org with ESMTP id S1763652AbYEAXFV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 19:05:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, bfields@fieldses.org, mchehab@infradead.org, neilb@suse.de
+Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     misc: fix integer as NULL pointer warnings
+     fbdev: fix integer as NULL pointer warnings
 has been added to the -mm tree.  Its filename is
-     misc-fix-integer-as-null-pointer-warnings.patch
+     video-fix-integer-as-null-pointer-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,61 +33,72 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: misc: fix integer as NULL pointer warnings
+Subject: fbdev: fix integer as NULL pointer warnings
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-drivers/md/raid10.c:889:17: warning: Using plain integer as NULL pointer
-drivers/media/video/cx18/cx18-driver.c:616:12: warning: Using plain integer as NULL pointer
-sound/oss/kahlua.c:70:12: warning: Using plain integer as NULL pointer
+drivers/video/aty/atyfb_base.c:3359:26: warning: Using plain integer as NULL pointer
+drivers/video/aty/radeon_base.c:2280:32: warning: Using plain integer as NULL pointer
+drivers/video/matrox/matroxfb_base.h:203:25: warning: Using plain integer as NULL pointer
+drivers/video/matrox/matroxfb_base.h:203:25: warning: Using plain integer as NULL pointer
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Neil Brown <neilb@suse.de>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/md/raid10.c                    |    2 +-
- drivers/media/video/cx18/cx18-driver.c |    2 +-
- sound/oss/kahlua.c                     |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/aty/atyfb_base.c       |    2 +-
+ drivers/video/aty/radeon_base.c      |    2 +-
+ drivers/video/matrox/matroxfb_base.h |    2 +-
+ drivers/video/sis/sis_main.c         |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/md/raid10.c~misc-fix-integer-as-null-pointer-warnings drivers/md/raid10.c
---- a/drivers/md/raid10.c~misc-fix-integer-as-null-pointer-warnings
-+++ a/drivers/md/raid10.c
-@@ -886,7 +886,7 @@ static int make_request(struct request_q
- 	 */
- 	raid10_find_phys(conf, r10_bio);
-  retry_write:
--	blocked_rdev = 0;
-+	blocked_rdev = NULL;
- 	rcu_read_lock();
- 	for (i = 0;  i < conf->copies; i++) {
- 		int d = r10_bio->devs[i].devnum;
-diff -puN drivers/media/video/cx18/cx18-driver.c~misc-fix-integer-as-null-pointer-warnings drivers/media/video/cx18/cx18-driver.c
---- a/drivers/media/video/cx18/cx18-driver.c~misc-fix-integer-as-null-pointer-warnings
-+++ a/drivers/media/video/cx18/cx18-driver.c
-@@ -613,7 +613,7 @@ static int __devinit cx18_probe(struct p
+diff -puN drivers/video/aty/atyfb_base.c~video-fix-integer-as-null-pointer-warnings drivers/video/aty/atyfb_base.c
+--- a/drivers/video/aty/atyfb_base.c~video-fix-integer-as-null-pointer-warnings
++++ a/drivers/video/aty/atyfb_base.c
+@@ -3356,7 +3356,7 @@ static int __devinit atyfb_setup_generic
+ 
+ 	info->fix.mmio_start = raddr;
+ 	par->ati_regbase = ioremap(info->fix.mmio_start, 0x1000);
+-	if (par->ati_regbase == 0)
++	if (!par->ati_regbase)
+ 		return -ENOMEM;
+ 
+ 	info->fix.mmio_start += par->aux_start ? 0x400 : 0xc00;
+diff -puN drivers/video/aty/radeon_base.c~video-fix-integer-as-null-pointer-warnings drivers/video/aty/radeon_base.c
+--- a/drivers/video/aty/radeon_base.c~video-fix-integer-as-null-pointer-warnings
++++ a/drivers/video/aty/radeon_base.c
+@@ -2277,7 +2277,7 @@ static int __devinit radeonfb_pci_regist
+ 	do {
+ 		rinfo->fb_base = ioremap (rinfo->fb_base_phys,
+ 					  rinfo->mapped_vram);
+-	} while (   rinfo->fb_base == 0 &&
++	} while (!rinfo->fb_base &&
+ 		  ((rinfo->mapped_vram /=2) >= MIN_MAPPED_VRAM) );
+ 
+ 	if (rinfo->fb_base == NULL) {
+diff -puN drivers/video/matrox/matroxfb_base.h~video-fix-integer-as-null-pointer-warnings drivers/video/matrox/matroxfb_base.h
+--- a/drivers/video/matrox/matroxfb_base.h~video-fix-integer-as-null-pointer-warnings
++++ a/drivers/video/matrox/matroxfb_base.h
+@@ -200,7 +200,7 @@ static inline int mga_ioremap(unsigned l
+ 		virt->vaddr = ioremap_nocache(phys, size);
+ 	else
+ 		virt->vaddr = ioremap(phys, size);
+-	return (virt->vaddr == 0); /* 0, !0... 0, error_code in future */
++	return (virt->vaddr == NULL); /* 0, !0... 0, error_code in future */
+ }
+ 
+ static inline void mga_iounmap(vaddr_t va) {
+diff -puN drivers/video/sis/sis_main.c~video-fix-integer-as-null-pointer-warnings drivers/video/sis/sis_main.c
+--- a/drivers/video/sis/sis_main.c~video-fix-integer-as-null-pointer-warnings
++++ a/drivers/video/sis/sis_main.c
+@@ -5787,7 +5787,7 @@ sisfb_probe(struct pci_dev *pdev, const 
+ 	} else {
+ 		struct sis_video_info *countvideo = card_list;
+ 		ivideo->cardnumber = 1;
+-		while((countvideo = countvideo->next) != 0)
++		while((countvideo = countvideo->next) != NULL)
+ 			ivideo->cardnumber++;
  	}
  
- 	cx = kzalloc(sizeof(struct cx18), GFP_ATOMIC);
--	if (cx == 0) {
-+	if (!cx) {
- 		spin_unlock(&cx18_cards_lock);
- 		return -ENOMEM;
- 	}
-diff -puN sound/oss/kahlua.c~misc-fix-integer-as-null-pointer-warnings sound/oss/kahlua.c
---- a/sound/oss/kahlua.c~misc-fix-integer-as-null-pointer-warnings
-+++ a/sound/oss/kahlua.c
-@@ -67,7 +67,7 @@ static int __devinit probe_one(struct pc
- 		return 1;
- 	
- 	mem = ioremap(base, 128);
--	if(mem == 0UL)
-+	if(!mem)
- 		return 1;
- 	map = readw(mem + 0x18);	/* Read the SMI enables */
- 	iounmap(mem);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -132,4 +143,5 @@ b43legacy-replace-limit_value-macro-with-clamp_val.patch
 ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
 input-ff-memlessc-use-clamp_val-macro.patch
 dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+video-fix-integer-as-null-pointer-warnings.patch
 
