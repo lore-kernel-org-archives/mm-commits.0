@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + bluetooth-use-get-put_unaligned_-helpers.patch added to -mm tree
-Date: Fri, 02 May 2008 16:09:40 -0700
-Message-ID: <200805022309.m42N9enC019879@imap1.linux-foundation.org>
+Subject: + fs_enet-fix-a-memory-leak-in-fs_enet_mdio_probe.patch added to -mm tree
+Date: Fri, 02 May 2008 16:11:40 -0700
+Message-ID: <200805022311.m42NBeXE019925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38817 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51682 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S936002AbYEBXKQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:10:16 -0400
+	by vger.kernel.org with ESMTP id S937198AbYEBXMr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:12:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, hidave.darkstar@gmail.com, marcel@holtmann.org
+Cc: scottwood@freescale.com, danielm77@spray.se
 
 
 The patch titled
-     bluetooth: use get/put_unaligned_* helpers
+     fs_enet: fix a memory leak in fs_enet_mdio_probe
 has been added to the -mm tree.  Its filename is
-     bluetooth-use-get-put_unaligned_-helpers.patch
+     fs_enet-fix-a-memory-leak-in-fs_enet_mdio_probe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,169 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bluetooth: use get/put_unaligned_* helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: fs_enet: fix a memory leak in fs_enet_mdio_probe
+From: Scott Wood <scottwood@freescale.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Acked-by: Marcel Holtmann <marcel@holtmann.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
+There are more memory leaks in the !PPC_CPM_NEW_BINDING case, but that code
+will disappear soon along with arch/ppc.
+
+Reported by Daniel Marjamki <danielm77@spray.se> at
+http://bugzilla.kernel.org/show_bug.cgi?id=10591
+
+Signed-off-by: Scott Wood <scottwood@freescale.com>
+Cc: Daniel Marjamki <danielm77@spray.se>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/bluetooth/bnep/core.c |    8 ++++----
- net/bluetooth/hci_event.c |    9 ++++-----
- net/bluetooth/hci_sock.c  |    2 +-
- net/bluetooth/l2cap.c     |    2 +-
- 4 files changed, 10 insertions(+), 11 deletions(-)
+ drivers/net/fs_enet/mii-fec.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN net/bluetooth/bnep/core.c~bluetooth-use-get-put_unaligned_-helpers net/bluetooth/bnep/core.c
---- a/net/bluetooth/bnep/core.c~bluetooth-use-get-put_unaligned_-helpers
-+++ a/net/bluetooth/bnep/core.c
-@@ -135,7 +135,7 @@ static int bnep_ctrl_set_netfilter(struc
- 	if (len < 2)
- 		return -EILSEQ;
+diff -puN drivers/net/fs_enet/mii-fec.c~fs_enet-fix-a-memory-leak-in-fs_enet_mdio_probe drivers/net/fs_enet/mii-fec.c
+--- a/drivers/net/fs_enet/mii-fec.c~fs_enet-fix-a-memory-leak-in-fs_enet_mdio_probe
++++ a/drivers/net/fs_enet/mii-fec.c
+@@ -194,7 +194,7 @@ static int __devinit fs_enet_mdio_probe(
  
--	n = ntohs(get_unaligned(data));
-+	n = get_unaligned_be16(data);
- 	data++; len -= 2;
+ 	ret = of_address_to_resource(ofdev->node, 0, &res);
+ 	if (ret)
+-		return ret;
++		goto out_res;
  
- 	if (len < n)
-@@ -150,8 +150,8 @@ static int bnep_ctrl_set_netfilter(struc
- 		int i;
+ 	snprintf(new_bus->id, MII_BUS_ID_SIZE, "%x", res.start);
  
- 		for (i = 0; i < n; i++) {
--			f[i].start = ntohs(get_unaligned(data++));
--			f[i].end   = ntohs(get_unaligned(data++));
-+			f[i].start = get_unaligned_be16(data++);
-+			f[i].end   = get_unaligned_be16(data++);
- 
- 			BT_DBG("proto filter start %d end %d",
- 				f[i].start, f[i].end);
-@@ -180,7 +180,7 @@ static int bnep_ctrl_set_mcfilter(struct
- 	if (len < 2)
- 		return -EILSEQ;
- 
--	n = ntohs(get_unaligned((__be16 *) data));
-+	n = get_unaligned_be16(data);
- 	data += 2; len -= 2;
- 
- 	if (len < n)
-diff -puN net/bluetooth/hci_event.c~bluetooth-use-get-put_unaligned_-helpers net/bluetooth/hci_event.c
---- a/net/bluetooth/hci_event.c~bluetooth-use-get-put_unaligned_-helpers
-+++ a/net/bluetooth/hci_event.c
-@@ -129,8 +129,7 @@ static void hci_cc_write_link_policy(str
- 
- 	conn = hci_conn_hash_lookup_handle(hdev, __le16_to_cpu(rp->handle));
- 	if (conn) {
--		__le16 policy = get_unaligned((__le16 *) (sent + 2));
--		conn->link_policy = __le16_to_cpu(policy);
-+		conn->link_policy = get_unaligned_le16(sent + 2);
- 	}
- 
- 	hci_dev_unlock(hdev);
-@@ -313,7 +312,7 @@ static void hci_cc_write_voice_setting(s
- 		return;
- 
- 	if (!status) {
--		__u16 setting = __le16_to_cpu(get_unaligned((__le16 *) sent));
-+		__u16 setting = get_unaligned_le16(sent);
- 
- 		if (hdev->voice_setting != setting) {
- 			hdev->voice_setting = setting;
-@@ -1152,8 +1151,8 @@ static inline void hci_num_comp_pkts_evt
- 		struct hci_conn *conn;
- 		__u16  handle, count;
- 
--		handle = __le16_to_cpu(get_unaligned(ptr++));
--		count  = __le16_to_cpu(get_unaligned(ptr++));
-+		handle = get_unaligned_le16(ptr++);
-+		count  = get_unaligned_le16(ptr++);
- 
- 		conn = hci_conn_hash_lookup_handle(hdev, handle);
- 		if (conn) {
-diff -puN net/bluetooth/hci_sock.c~bluetooth-use-get-put_unaligned_-helpers net/bluetooth/hci_sock.c
---- a/net/bluetooth/hci_sock.c~bluetooth-use-get-put_unaligned_-helpers
-+++ a/net/bluetooth/hci_sock.c
-@@ -440,7 +440,7 @@ static int hci_sock_sendmsg(struct kiocb
- 	skb->dev = (void *) hdev;
- 
- 	if (bt_cb(skb)->pkt_type == HCI_COMMAND_PKT) {
--		u16 opcode = __le16_to_cpu(get_unaligned((__le16 *) skb->data));
-+		u16 opcode = get_unaligned_le16(skb->data);
- 		u16 ogf = hci_opcode_ogf(opcode);
- 		u16 ocf = hci_opcode_ocf(opcode);
- 
-diff -puN net/bluetooth/l2cap.c~bluetooth-use-get-put_unaligned_-helpers net/bluetooth/l2cap.c
---- a/net/bluetooth/l2cap.c~bluetooth-use-get-put_unaligned_-helpers
-+++ a/net/bluetooth/l2cap.c
-@@ -1827,7 +1827,7 @@ static inline int l2cap_information_rsp(
- 	del_timer(&conn->info_timer);
- 
- 	if (type == L2CAP_IT_FEAT_MASK)
--		conn->feat_mask = __le32_to_cpu(get_unaligned((__le32 *) rsp->data));
-+		conn->feat_mask = get_unaligned_le32(rsp->data);
- 
- 	l2cap_conn_start(conn);
- 
+@@ -236,6 +236,7 @@ out_free_irqs:
+ 	kfree(new_bus->irq);
+ out_unmap_regs:
+ 	iounmap(fec->fecp);
++out_res:
+ out_fec:
+ 	kfree(fec);
+ out_mii:
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from scottwood@freescale.com are
 
 origin.patch
-linux-next.patch
-misc-fix-integer-as-null-pointer-warnings.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-input-make-one-bit-signed-bitfields-unsigned.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-ata-remove-fit-macro.patch
-ide-eliminate-fit-macro.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-git-mips.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-usb-fix-integer-as-null-pointer-sparse-warnings.patch
-git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-tkipc-use-kernel-provided-infrastructure.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-xtensa-replace-remaining-__function__-occurences.patch
-mmc-make-one-bit-signed-bitfields-unsigned.patch
-lib-add-ascii-hex-helper-functions.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-cris-use-the-common-ascii-hex-helpers.patch
-kgdb-use-the-common-ascii-hex-helpers.patch
-frv-gdb-stubc-use-the-common-ascii-hex-helpers.patch
-mn10300-gdb-stubc-use-the-common-ascii-hex-helpers.patch
-mips-gdb-stubc-use-the-common-ascii-hex-helpers.patch
-sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-video-fix-integer-as-null-pointer-warnings.patch
-block-use-get_unaligned_-helpers.patch
-ide-use-get_unaligned_-helpers.patch
-media-use-get_unaligned_-helpers.patch
-scsi-use-get_unaligned_-helpers.patch
-usb-use-get_unaligned_-helpers.patch
-xfs-use-get_unaligned_-helpers.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-irda-use-get_unaligned_-helpers.patch
-hid-use-get-put_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-bluetooth-use-get-put_unaligned_-helpers.patch
-wireless-use-get-put_unaligned_-helpers.patch
-net-use-get-put_unaligned_-helpers.patch
+fs_enet-fix-a-memory-leak-in-fs_enet_mdio_probe.patch
 
