@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + wireless-use-get-put_unaligned_-helpers.patch added to -mm tree
-Date: Fri, 02 May 2008 16:09:44 -0700
-Message-ID: <200805022309.m42N9iTM019882@imap1.linux-foundation.org>
+Subject: + include-use-get-put_unaligned_-helpers.patch added to -mm tree
+Date: Fri, 02 May 2008 16:09:36 -0700
+Message-ID: <200805022309.m42N9aXI019871@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60945 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58525 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932417AbYEBXTO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:19:14 -0400
+	by vger.kernel.org with ESMTP id S932535AbYEBXTn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:19:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: harvey.harrison@gmail.com, linville@tuxdriver.com
 
 
 The patch titled
-     wireless: use get/put_unaligned_* helpers
+     include: use get/put_unaligned_* helpers
 has been added to the -mm tree.  Its filename is
-     wireless-use-get-put_unaligned_-helpers.patch
+     include-use-get-put_unaligned_-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wireless: use get/put_unaligned_* helpers
+Subject: include: use get/put_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
@@ -41,65 +41,66 @@ Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/mesh_hwmp.c |    2 +-
- net/wireless/radiotap.c  |   16 +++++++---------
- 2 files changed, 8 insertions(+), 10 deletions(-)
+ include/linux/reiserfs_fs.h      |    4 ++--
+ include/linux/smb_fs.h           |   19 +++++++------------
+ include/net/ieee80211_radiotap.h |    2 +-
+ 3 files changed, 10 insertions(+), 15 deletions(-)
 
-diff -puN net/mac80211/mesh_hwmp.c~wireless-use-get-put_unaligned_-helpers net/mac80211/mesh_hwmp.c
---- a/net/mac80211/mesh_hwmp.c~wireless-use-get-put_unaligned_-helpers
-+++ a/net/mac80211/mesh_hwmp.c
-@@ -26,7 +26,7 @@ static inline u32 u32_field_get(u8 *preq
- {
- 	if (ae)
- 		offset += 6;
--	return le32_to_cpu(get_unaligned((__le32 *) (preq_elem + offset)));
-+	return get_unaligned_le32(preq_elem + offset);
+diff -puN include/linux/reiserfs_fs.h~include-use-get-put_unaligned_-helpers include/linux/reiserfs_fs.h
+--- a/include/linux/reiserfs_fs.h~include-use-get-put_unaligned_-helpers
++++ a/include/linux/reiserfs_fs.h
+@@ -526,8 +526,8 @@ struct item_head {
+ ** p is the array of __u32, i is the index into the array, v is the value
+ ** to store there.
+ */
+-#define get_block_num(p, i) le32_to_cpu(get_unaligned((p) + (i)))
+-#define put_block_num(p, i, v) put_unaligned(cpu_to_le32(v), (p) + (i))
++#define get_block_num(p, i) get_unaligned_le32((p) + (i))
++#define put_block_num(p, i, v) put_unaligned_le32((v), (p) + (i))
+ 
+ //
+ // in old version uniqueness field shows key type
+diff -puN include/linux/smb_fs.h~include-use-get-put_unaligned_-helpers include/linux/smb_fs.h
+--- a/include/linux/smb_fs.h~include-use-get-put_unaligned_-helpers
++++ a/include/linux/smb_fs.h
+@@ -43,18 +43,13 @@ static inline struct smb_inode_info *SMB
  }
  
- /* HWMP IE processing macros */
-diff -puN net/wireless/radiotap.c~wireless-use-get-put_unaligned_-helpers net/wireless/radiotap.c
---- a/net/wireless/radiotap.c~wireless-use-get-put_unaligned_-helpers
-+++ a/net/wireless/radiotap.c
-@@ -59,23 +59,21 @@ int ieee80211_radiotap_iterator_init(
- 		return -EINVAL;
+ /* macro names are short for word, double-word, long value (?) */
+-#define WVAL(buf,pos) \
+-	(le16_to_cpu(get_unaligned((__le16 *)((u8 *)(buf) + (pos)))))
+-#define DVAL(buf,pos) \
+-	(le32_to_cpu(get_unaligned((__le32 *)((u8 *)(buf) + (pos)))))
+-#define LVAL(buf,pos) \
+-	(le64_to_cpu(get_unaligned((__le64 *)((u8 *)(buf) + (pos)))))
+-#define WSET(buf,pos,val) \
+-	put_unaligned(cpu_to_le16((u16)(val)), (__le16 *)((u8 *)(buf) + (pos)))
+-#define DSET(buf,pos,val) \
+-	put_unaligned(cpu_to_le32((u32)(val)), (__le32 *)((u8 *)(buf) + (pos)))
+-#define LSET(buf,pos,val) \
+-	put_unaligned(cpu_to_le64((u64)(val)), (__le64 *)((u8 *)(buf) + (pos)))
++#define WVAL(buf, pos) (get_unaligned_le16((u8 *)(buf) + (pos)))
++#define DVAL(buf, pos) (get_unaligned_le32((u8 *)(buf) + (pos)))
++#define LVAL(buf, pos) (get_unaligned_le64((u8 *)(buf) + (pos)))
++
++#define WSET(buf, pos, val) put_unaligned_le16((val), (u8 *)(buf) + (pos))
++#define DSET(buf, pos, val) put_unaligned_le32((val), (u8 *)(buf) + (pos))
++#define LSET(buf, pos, val) put_unaligned_le64((val), (u8 *)(buf) + (pos))
  
- 	/* sanity check for allowed length and radiotap length field */
--	if (max_length < le16_to_cpu(get_unaligned(&radiotap_header->it_len)))
-+	if (max_length < get_unaligned_le16(&radiotap_header->it_len))
- 		return -EINVAL;
+ /* where to find the base of the SMB packet proper */
+ #define smb_base(buf) ((u8 *)(((u8 *)(buf))+4))
+diff -puN include/net/ieee80211_radiotap.h~include-use-get-put_unaligned_-helpers include/net/ieee80211_radiotap.h
+--- a/include/net/ieee80211_radiotap.h~include-use-get-put_unaligned_-helpers
++++ a/include/net/ieee80211_radiotap.h
+@@ -262,7 +262,7 @@ static inline int ieee80211_get_radiotap
+ 	struct ieee80211_radiotap_header *hdr =
+ 		(struct ieee80211_radiotap_header *)data;
  
- 	iterator->rtheader = radiotap_header;
--	iterator->max_length = le16_to_cpu(get_unaligned(
--						&radiotap_header->it_len));
-+	iterator->max_length = get_unaligned_le16(&radiotap_header->it_len);
- 	iterator->arg_index = 0;
--	iterator->bitmap_shifter = le32_to_cpu(get_unaligned(
--						&radiotap_header->it_present));
-+	iterator->bitmap_shifter = get_unaligned_le32(&radiotap_header->it_present);
- 	iterator->arg = (u8 *)radiotap_header + sizeof(*radiotap_header);
- 	iterator->this_arg = NULL;
+-	return le16_to_cpu(get_unaligned(&hdr->it_len));
++	return get_unaligned_le16(&hdr->it_len);
+ }
  
- 	/* find payload start allowing for extended bitmap(s) */
- 
- 	if (unlikely(iterator->bitmap_shifter & (1<<IEEE80211_RADIOTAP_EXT))) {
--		while (le32_to_cpu(get_unaligned((__le32 *)iterator->arg)) &
--				   (1<<IEEE80211_RADIOTAP_EXT)) {
-+		while (get_unaligned_le32(iterator->arg) &
-+		       (1 << IEEE80211_RADIOTAP_EXT)) {
- 			iterator->arg += sizeof(u32);
- 
- 			/*
-@@ -241,8 +239,8 @@ int ieee80211_radiotap_iterator_next(
- 			if (iterator->bitmap_shifter & 1) {
- 				/* b31 was set, there is more */
- 				/* move to next u32 bitmap */
--				iterator->bitmap_shifter = le32_to_cpu(
--					get_unaligned(iterator->next_bitmap));
-+				iterator->bitmap_shifter =
-+				    get_unaligned_le32(iterator->next_bitmap);
- 				iterator->next_bitmap++;
- 			} else
- 				/* no more bitmaps: end */
+ #endif				/* IEEE80211_RADIOTAP_H */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
