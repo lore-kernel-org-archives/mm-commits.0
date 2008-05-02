@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + kgdb-use-the-common-ascii-hex-helpers.patch added to -mm tree
-Date: Fri, 02 May 2008 15:56:40 -0700
-Message-ID: <200805022256.m42MueOW019289@imap1.linux-foundation.org>
+Subject: + mips-gdb-stubc-use-the-common-ascii-hex-helpers.patch added to -mm tree
+Date: Fri, 02 May 2008 15:56:46 -0700
+Message-ID: <200805022256.m42Muktj019298@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54109 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935064AbYEBW5P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 18:57:15 -0400
+	by vger.kernel.org with ESMTP id S935068AbYEBW5T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 18:57:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     kgdb: use the common ascii hex helpers
+     mips: gdb-stub.c use the common ascii hex helpers
 has been added to the -mm tree.  Its filename is
-     kgdb-use-the-common-ascii-hex-helpers.patch
+     mips-gdb-stubc-use-the-common-ascii-hex-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,126 +33,169 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kgdb: use the common ascii hex helpers
+Subject: mips: gdb-stub.c use the common ascii hex helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/kgdbts.c |    5 ++---
- kernel/kgdb.c         |   36 +++++++++++-------------------------
- 2 files changed, 13 insertions(+), 28 deletions(-)
+ arch/mips/kernel/gdb-stub.c |   56 ++++++++++++----------------------
+ 1 file changed, 20 insertions(+), 36 deletions(-)
 
-diff -puN drivers/misc/kgdbts.c~kgdb-use-the-common-ascii-hex-helpers drivers/misc/kgdbts.c
---- a/drivers/misc/kgdbts.c~kgdb-use-the-common-ascii-hex-helpers
-+++ a/drivers/misc/kgdbts.c
-@@ -118,7 +118,6 @@
- 	} while (0)
- #define MAX_CONFIG_LEN		40
+diff -puN arch/mips/kernel/gdb-stub.c~mips-gdb-stubc-use-the-common-ascii-hex-helpers arch/mips/kernel/gdb-stub.c
+--- a/arch/mips/kernel/gdb-stub.c~mips-gdb-stubc-use-the-common-ascii-hex-helpers
++++ a/arch/mips/kernel/gdb-stub.c
+@@ -164,7 +164,6 @@ extern void adel(void);
+ static void getpacket(char *buffer);
+ static void putpacket(char *buffer);
+ static int computeSignal(int tt);
+-static int hex(unsigned char ch);
+ static int hexToInt(char **ptr, int *intValue);
+ static int hexToLong(char **ptr, long *longValue);
+ static unsigned char *mem2hex(char *mem, char *buf, int count, int may_fault);
+@@ -190,7 +189,6 @@ static char input_buffer[BUFMAX];
+ static char output_buffer[BUFMAX];
+ static int initialized;	/* !0 means we've been initialized */
+ static int kgdb_started;
+-static const char hexchars[]="0123456789abcdef";
  
--static const char hexchars[] = "0123456789abcdef";
- static struct kgdb_io kgdbts_io_ops;
- static char get_buf[BUFMAX];
- static int get_buf_cnt;
-@@ -618,8 +617,8 @@ static void fill_get_buf(char *buf)
- 		count++;
- 	}
- 	strcat(get_buf, "#");
--	get_buf[count + 2] = hexchars[checksum >> 4];
--	get_buf[count + 3] = hexchars[checksum & 0xf];
-+	get_buf[count + 2] = hex_asc_hi(checksum);
-+	get_buf[count + 3] = hex_asc_lo(checksum);
- 	get_buf[count + 4] = '\0';
- 	v2printk("get%i: %s\n", ts.idx, get_buf);
- }
-diff -puN kernel/kgdb.c~kgdb-use-the-common-ascii-hex-helpers kernel/kgdb.c
---- a/kernel/kgdb.c~kgdb-use-the-common-ascii-hex-helpers
-+++ a/kernel/kgdb.c
-@@ -226,20 +226,6 @@ void __weak kgdb_disable_hw_debug(struct
+ /* Used to prevent crashes in memory access.  Note that they'll crash anyway if
+    we haven't set up fault handlers yet... */
+@@ -198,20 +196,6 @@ int kgdb_read_byte(unsigned char *addres
+ int kgdb_write_byte(unsigned char val, unsigned char *dest);
+ 
  /*
-  * GDB remote protocol parser:
-  */
--
--static const char	hexchars[] = "0123456789abcdef";
--
--static int hex(char ch)
+- * Convert ch from a hex digit to an int
+- */
+-static int hex(unsigned char ch)
 -{
--	if ((ch >= 'a') && (ch <= 'f'))
--		return ch - 'a' + 10;
--	if ((ch >= '0') && (ch <= '9'))
--		return ch - '0';
--	if ((ch >= 'A') && (ch <= 'F'))
--		return ch - 'A' + 10;
+-	if (ch >= 'a' && ch <= 'f')
+-		return ch-'a'+10;
+-	if (ch >= '0' && ch <= '9')
+-		return ch-'0';
+-	if (ch >= 'A' && ch <= 'F')
+-		return ch-'A'+10;
 -	return -1;
 -}
 -
- /* scan for the sequence $<data>#<checksum> */
- static void get_packet(char *buffer)
- {
-@@ -276,8 +262,8 @@ static void get_packet(char *buffer)
+-/*
+  * scan for the sequence $<data>#<checksum>
+  */
+ static void getpacket(char *buffer)
+@@ -251,8 +235,8 @@ static void getpacket(char *buffer)
  		buffer[count] = 0;
  
  		if (ch == '#') {
--			xmitcsum = hex(kgdb_io_ops->read_char()) << 4;
--			xmitcsum += hex(kgdb_io_ops->read_char());
-+			xmitcsum = hex_to_int(kgdb_io_ops->read_char()) << 4;
-+			xmitcsum += hex_to_int(kgdb_io_ops->read_char());
+-			xmitcsum = hex(getDebugChar() & 0x7f) << 4;
+-			xmitcsum |= hex(getDebugChar() & 0x7f);
++			xmitcsum = hex_to_int(getDebugChar() & 0x7f) << 4;
++			xmitcsum |= hex_to_int(getDebugChar() & 0x7f);
  
  			if (checksum != xmitcsum)
- 				/* failed checksum */
-@@ -316,8 +302,8 @@ static void put_packet(char *buffer)
+ 				putDebugChar('-');	/* failed checksum */
+@@ -306,8 +290,8 @@ static void putpacket(char *buffer)
  		}
  
- 		kgdb_io_ops->write_char('#');
--		kgdb_io_ops->write_char(hexchars[checksum >> 4]);
--		kgdb_io_ops->write_char(hexchars[checksum & 0xf]);
-+		kgdb_io_ops->write_char(hex_asc_hi(checksum));
-+		kgdb_io_ops->write_char(hex_asc_lo(checksum));
- 		if (kgdb_io_ops->flush)
- 			kgdb_io_ops->flush();
+ 		putDebugChar('#');
+-		putDebugChar(hexchars[checksum >> 4]);
+-		putDebugChar(hexchars[checksum & 0xf]);
++		putDebugChar(hex_asc_hi(checksum));
++		putDebugChar(hex_asc_lo(checksum));
  
-@@ -348,8 +334,8 @@ static void put_packet(char *buffer)
- 
- static char *pack_hex_byte(char *pkt, u8 byte)
- {
--	*pkt++ = hexchars[byte >> 4];
--	*pkt++ = hexchars[byte & 0xf];
-+	*pkt++ = hex_asc_hi(byte);
-+	*pkt++ = hex_asc_lo(byte);
- 
- 	return pkt;
- }
-@@ -427,8 +413,8 @@ int kgdb_hex2mem(char *buf, char *mem, i
- 	tmp_hex = tmp_raw - 1;
- 	while (tmp_hex >= buf) {
- 		tmp_raw--;
--		*tmp_raw = hex(*tmp_hex--);
--		*tmp_raw |= hex(*tmp_hex--) << 4;
-+		*tmp_raw = hex_to_int(*tmp_hex--);
-+		*tmp_raw |= hex_to_int(*tmp_hex--) << 4;
+ 	}
+ 	while ((getDebugChar() & 0x7f) != '+');
+@@ -328,8 +312,8 @@ static unsigned char *mem2hex(char *mem,
+ 	while (count-- > 0) {
+ 		if (kgdb_read_byte(mem++, &ch) != 0)
+ 			return 0;
+-		*buf++ = hexchars[ch >> 4];
+-		*buf++ = hexchars[ch & 0xf];
++		*buf++ = hex_asc_hi(ch);
++		*buf++ = hex_asc_lo(ch);
  	}
  
- 	return probe_kernel_write(mem, tmp_raw, count);
-@@ -446,7 +432,7 @@ int kgdb_hex2long(char **ptr, long *long
- 	*long_val = 0;
+ 	*buf = 0;
+@@ -356,8 +340,8 @@ static char *hex2mem(char *buf, char *me
+ 				ch = 0x20 ^ *buf++;
+ 		}
+ 		else {
+-			ch = hex(*buf++) << 4;
+-			ch |= hex(*buf++);
++			ch = hex_to_int(*buf++) << 4;
++			ch |= hex_to_int(*buf++);
+ 		}
+ 		if (kgdb_write_byte(ch, mem++) != 0)
+ 			return 0;
+@@ -457,7 +441,7 @@ static int hexToInt(char **ptr, int *int
+ 	*intValue = 0;
  
  	while (**ptr) {
--		hex_val = hex(**ptr);
-+		hex_val = hex_to_int(**ptr);
- 		if (hex_val < 0)
+-		hexValue = hex(**ptr);
++		hexValue = hex_to_int(**ptr);
+ 		if (hexValue < 0)
  			break;
  
-@@ -486,8 +472,8 @@ static void error_packet(char *pkt, int 
- {
- 	error = -error;
- 	pkt[0] = 'E';
--	pkt[1] = hexchars[(error / 10)];
--	pkt[2] = hexchars[(error % 10)];
-+	pkt[1] = hex_asc[(error / 10)];
-+	pkt[2] = hex_asc[(error % 10)];
- 	pkt[3] = '\0';
- }
+@@ -478,7 +462,7 @@ static int hexToLong(char **ptr, long *l
+ 	*longValue = 0;
+ 
+ 	while (**ptr) {
+-		hexValue = hex(**ptr);
++		hexValue = hex_to_int(**ptr);
+ 		if (hexValue < 0)
+ 			break;
+ 
+@@ -812,14 +796,14 @@ void handle_exception(struct gdb_regs *r
+ 	 * Send trap type (converted to signal)
+ 	 */
+ 	*ptr++ = 'T';
+-	*ptr++ = hexchars[sigval >> 4];
+-	*ptr++ = hexchars[sigval & 0xf];
++	*ptr++ = hex_asc_hi(sigval);
++	*ptr++ = hex_asc_lo(sigval);
+ 
+ 	/*
+ 	 * Send Error PC
+ 	 */
+-	*ptr++ = hexchars[REG_EPC >> 4];
+-	*ptr++ = hexchars[REG_EPC & 0xf];
++	*ptr++ = hex_asc_hi(REG_EPC);
++	*ptr++ = hex_asc_lo(REG_EPC);
+ 	*ptr++ = ':';
+ 	ptr = mem2hex((char *)&regs->cp0_epc, ptr, sizeof(long), 0);
+ 	*ptr++ = ';';
+@@ -827,8 +811,8 @@ void handle_exception(struct gdb_regs *r
+ 	/*
+ 	 * Send frame pointer
+ 	 */
+-	*ptr++ = hexchars[REG_FP >> 4];
+-	*ptr++ = hexchars[REG_FP & 0xf];
++	*ptr++ = hex_asc_hi(REG_FP);
++	*ptr++ = hex_asc_lo(REG_FP);
+ 	*ptr++ = ':';
+ 	ptr = mem2hex((char *)&regs->reg30, ptr, sizeof(long), 0);
+ 	*ptr++ = ';';
+@@ -836,8 +820,8 @@ void handle_exception(struct gdb_regs *r
+ 	/*
+ 	 * Send stack pointer
+ 	 */
+-	*ptr++ = hexchars[REG_SP >> 4];
+-	*ptr++ = hexchars[REG_SP & 0xf];
++	*ptr++ = hex_asc_hi(REG_SP);
++	*ptr++ = hex_asc_lo(REG_SP);
+ 	*ptr++ = ':';
+ 	ptr = mem2hex((char *)&regs->reg29, ptr, sizeof(long), 0);
+ 	*ptr++ = ';';
+@@ -856,8 +840,8 @@ void handle_exception(struct gdb_regs *r
+ 		{
+ 		case '?':
+ 			output_buffer[0] = 'S';
+-			output_buffer[1] = hexchars[sigval >> 4];
+-			output_buffer[2] = hexchars[sigval & 0xf];
++			output_buffer[1] = hex_asc_hi(sigval);
++			output_buffer[2] = hex_asc_lo(sigval);
+ 			output_buffer[3] = 0;
+ 			break;
  
 _
 
