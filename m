@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + regulator-core-kbuild-files.patch added to -mm tree
-Date: Fri, 02 May 2008 16:57:50 -0700
-Message-ID: <200805022357.m42Nvofj021831@imap1.linux-foundation.org>
+Subject: + regulator-documentation-overview.patch added to -mm tree
+Date: Fri, 02 May 2008 16:57:52 -0700
+Message-ID: <200805022357.m42NvqZL021834@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60493 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41629 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935368AbYEBX6C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:58:02 -0400
+	by vger.kernel.org with ESMTP id S935255AbYEBX56 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:57:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: lg@opensource.wolfsonmicro.com, broonie@opensource.wolfsonmicro.com, david-b
 
 
 The patch titled
-     regulator: core kbuild files
+     regulator: documentation - overview
 has been added to the -mm tree.  Its filename is
-     regulator-core-kbuild-files.patch
+     regulator-documentation-overview.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: core kbuild files
+Subject: regulator: documentation - overview
 From: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 
-This patch adds kernel build support for the regulator core.
+This adds overview documentation describing the regulator framework and
+nomenclature used in the interface specific documentation and code.
 
 Signed-off-by: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
@@ -45,90 +46,184 @@ Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig           |    2 +
- drivers/regulator/Kconfig  |   49 +++++++++++++++++++++++++++++++++++
- drivers/regulator/Makefile |   10 +++++++
- 3 files changed, 61 insertions(+)
+ Documentation/power/regulator/overview.txt |  171 +++++++++++++++++++
+ 1 file changed, 171 insertions(+)
 
-diff -puN arch/arm/Kconfig~regulator-core-kbuild-files arch/arm/Kconfig
---- a/arch/arm/Kconfig~regulator-core-kbuild-files
-+++ a/arch/arm/Kconfig
-@@ -1166,6 +1166,8 @@ source "drivers/dma/Kconfig"
- 
- source "drivers/dca/Kconfig"
- 
-+source "drivers/regulator/Kconfig"
-+
- source "drivers/uio/Kconfig"
- 
- endmenu
-diff -puN /dev/null drivers/regulator/Kconfig
+diff -puN /dev/null Documentation/power/regulator/overview.txt
 --- /dev/null
-+++ a/drivers/regulator/Kconfig
-@@ -0,0 +1,49 @@
-+menu "Voltage and Current regulators"
++++ a/Documentation/power/regulator/overview.txt
+@@ -0,0 +1,171 @@
++Linux voltage and current regulator framework
++=============================================
 +
-+config REGULATOR
-+	bool "Voltage and Current Regulator Support"
-+	default n
-+	help
-+	  Generic Voltage and Current Regulator support.
++About
++=====
 +
-+	  This framework is designed to provide a generic interface to voltage
-+	  and current regulators within the Linux kernel. It's intended to
-+	  provide voltage and current control to client or consumer drivers and
-+	  also provide status information to user space applications through a
-+	  sysfs interface.
++This framework is designed to provide a standard kernel interface to control
++voltage and current regulators.
 +
-+	  The intention is to allow systems to dynamically control regulator
-+	  output in order to save power and prolong battery life. This applies
-+	  to both voltage regulators (where voltage output is controllable) and
-+	  current sinks (where current output is controllable).
++The intention is to allow systems to dynamically control regulator power output
++in order to save power and prolong battery life. This applies to both voltage
++regulators (where voltage output is controllable) and current sinks (where
++current limit is controllable).
 +
-+	  This framework safely compiles out if not selected so that client
-+	  drivers can still be used in systems with no software controllable
-+	  regulators.
-+
-+	  If unsure, say no.
-+
-+config REGULATOR_DEBUG
-+	bool "Regulator debug support"
-+	depends on REGULATOR
-+	help
-+	  Say yes here to enable debugging support.
-+
-+config REGULATOR_FIXED_VOLTAGE
-+	tristate
-+	default n
-+	select REGULATOR
-+
-+config REGULATOR_VIRTUAL_CONSUMER
-+	tristate "Virtual regulator consumer support"
-+	default n
-+	select REGULATOR
-+	help
-+	  This driver provides a virtual consumer for the voltage and
-+          current regulator API which provides sysfs controls for
-+          configuring the supplies requested.  This is mainly useful
-+          for test purposes.
-+
-+          If unsure, say no.
-+
-+endmenu
-diff -puN /dev/null drivers/regulator/Makefile
---- /dev/null
-+++ a/drivers/regulator/Makefile
-@@ -0,0 +1,10 @@
-+#
-+# Makefile for regulator drivers.
-+#
++(C) 2008  Wolfson Microelectronics PLC.
++Author: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 +
 +
-+obj-$(CONFIG_REGULATOR) += core.o
-+obj-$(CONFIG_REGULATOR_FIXED_VOLTAGE) += fixed.o
-+obj-$(CONFIG_REGULATOR_VIRTUAL_CONSUMER) += virtual.o
++Nomenclature
++============
 +
-+ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
++Some terms used in this document:-
++
++  o Regulator    - Electronic device that supplies power to other devices.
++                   Most regulators can enable and disable their output whilst
++                   some can control their output voltage and or current.
++
++                   Input Voltage -> Regulator -> Output Voltage
++
++
++  o PMIC         - Power Management IC. An IC that contains numerous regulators
++                   and often contains other susbsystems.
++
++
++  o Consumer     - Electronic device that is supplied power by a regulator.
++                   Consumers can be classified into two types:-
++
++                   Static: consumer does not change it's supply voltage or
++                   current limit. It only needs to enable or disable it's
++                   power supply. It's supply voltage is set by the hardware,
++                   bootloader, firmware or kernel board initialisation code.
++
++                   Dynamic: consumer needs to change it's supply voltage or
++                   current limit to meet operation demands.
++
++
++  o Power Domain - Electronic circuit that is supplied it's input power by the
++                   output power of a regulator, switch or by another power
++                   domain.
++
++                   The supply regulator may be behind a switch(s). i.e.
++
++                   Regulator -+-> Switch-1 -+-> Switch-2 --> [Consumer A]
++                              |             |
++                              |             +-> [Consumer B], [Consumer C]
++                              |
++                              +-> [Consumer D], [Consumer E]
++
++                   That is one regulator and three power domains:
++
++                   Domain 1: Switch-1, Consumers D & E.
++                   Domain 2: Switch-2, Consumers B & C.
++                   Domain 3: Consumer A.
++
++                   and this represents a "supplies" relationship:
++
++                   Domain-1 --> Domain-2 --> Domain-3.
++
++                   A power domain may have regulators that are supplied power
++                   by other regulators. i.e.
++
++                   Regulator-1 -+-> Regulator-2 -+-> [Consumer A]
++                                |
++                                +-> [Consumer B]
++
++                   This gives us two regulators and two power domains:
++
++                   Domain 1: Regulator-2, Consumer B.
++                   Domain 2: Consumer A.
++
++                   and a "supplies" relationship:
++
++                   Domain-1 --> Domain-2
++
++
++  o Constraints  - Constraints are used to define power levels for performance
++                   and hardware protection. Constraints exist at three levels:
++
++                   Regulator Level: This is defined by the regulator hardware
++                   operating parameters and is specified in the regulator
++                   datasheet. i.e.
++
++                     - voltage output is in the range 800mV -> 3500mV.
++                     - regulator current output limit is 20mA @ 5V but is
++                       10mA @ 10V.
++
++                   Power Domain Level: This is defined in software by kernel
++                   level board initialisation code. It is used to constrain a
++                   power domain to a particular power range. i.e.
++
++                     - Domain-1 voltage is 3300mV
++                     - Domain-2 voltage is 1400mV -> 1600mV
++                     - Domain-3 current limit is 0mA -> 20mA.
++
++                   Consumer Level: This is defined by consumer drivers
++                   dynamically setting voltage or current limit levels.
++
++                   e.g. a consumer backlight driver asks for a current increase
++                   from 5mA to 10mA to increase LCD illumination. This passes
++                   to through the levels as follows :-
++
++                   Consumer: need to increase LCD brightness. Lookup and
++                   request next current mA value in brightness table (the
++                   consumer driver could be used on several different
++                   personalities based upon the same reference device).
++
++                   Power Domain: is the new current limit within the domain
++                   operating limits for this domain and system state (e.g.
++                   battery power, USB power)
++
++                   Regulator Domains: is the new current limit within the
++                   regulator operating parameters for input/ouput voltage.
++
++                   If the regulator request passes all the constraint tests
++                   then the new regulator value is applied.
++
++
++Design
++======
++
++The framework is designed and targeted at SoC based devices but may also be
++relevant to non SoC devices and is split into the following four interfaces:-
++
++
++   1. Consumer driver interface.
++
++      This uses a similar API to the kernel clock interface in that consumer
++      drivers can get and put a regulator (like they can with clocks atm) and
++      get/set voltage, current limit, mode, enable and disable. This should
++      allow consumers complete control over their supply voltage and current
++      limit. This also compiles out if not in use so drivers can be reused in
++      systems with no regulator based power control.
++
++        See Documentation/power/regulator/consumer.txt
++
++   2. Regulator driver interface.
++
++      This allows regulator drivers to register their regulators and provide
++      operations to the core. It also has a notifier call chain for propagating
++      regulator events to clients.
++
++        See Documentation/power/regulator/regulator.txt
++
++   3. Machine interface.
++
++      This interface is for machine specific code and allows the creation of
++      voltage/current domains (with constraints) for each regulator. It can
++      provide regulator constraints that will prevent device damage through
++      overvoltage or over current caused by buggy client drivers. It also
++      allows the creation of a regulator tree whereby some regulators are
++      supplied by others (similar to a clock tree).
++
++        See Documentation/power/regulator/machine.txt
++
++   4. Userspace ABI.
++
++      The framework also exports a lot of useful voltage/current/opmode data to
++      userspace via sysfs. This could be used to help monitor device power
++      consumption and status.
++
++        See Documentation/ABI/testing/regulator-sysfs.txt
 _
 
 Patches currently in -mm which might be from lg@opensource.wolfsonmicro.com are
