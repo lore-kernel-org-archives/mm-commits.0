@@ -1,67 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: - rename-div64_64-to-div64_u64-dvb.patch removed from -mm tree
-Date: Fri, 02 May 2008 12:43:44 -0700
-Message-ID: <200805021943.m42JhiPS011315@imap1.linux-foundation.org>
+Subject: - autofs-path_getput-cleanups.patch removed from -mm tree
+Date: Fri, 02 May 2008 12:43:17 -0700
+Message-ID: <200805021943.m42JhHGA011274@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33070 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36624 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932555AbYEBTuL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:50:11 -0400
+	by vger.kernel.org with ESMTP id S1763624AbYEBTue (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:50:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zippel@linux-m68k.org, mchehab@infradead.org, mm-commits@vger.kernel.org
+To: jblunck@suse.de, raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     2.6.25-rc5-mm1 specifc div64_u64 fixes
+     autofs: path_{get,put}() cleanups
 has been removed from the -mm tree.  Its filename was
-     rename-div64_64-to-div64_u64-dvb.patch
+     autofs-path_getput-cleanups.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 2.6.25-rc5-mm1 specifc div64_u64 fixes
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: autofs: path_{get,put}() cleanups
+From: Jan Blunck <jblunck@suse.de>
 
-Rename a few more div64_u64 which are only in -mm.
+Here are some more places where path_{get,put}() can be used instead of
+dput()/mntput() pair.  Besides that it fixes a bug in autofs4_mount_busy()
+where mntput() was called before dput().
 
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Jan Blunck <jblunck@suse.de>
+Cc: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb/frontends/drx397xD.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/autofs4/expire.c |    2 +-
+ fs/autofs4/root.c   |   12 ++++++------
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN drivers/media/dvb/frontends/drx397xD.c~rename-div64_64-to-div64_u64-dvb drivers/media/dvb/frontends/drx397xD.c
---- a/drivers/media/dvb/frontends/drx397xD.c~rename-div64_64-to-div64_u64-dvb
-+++ a/drivers/media/dvb/frontends/drx397xD.c
-@@ -1026,13 +1026,13 @@ static int drx_tune(struct drx397xD_stat
+diff -puN fs/autofs4/expire.c~autofs-path_getput-cleanups fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c~autofs-path_getput-cleanups
++++ a/fs/autofs4/expire.c
+@@ -73,8 +73,8 @@ static int autofs4_mount_busy(struct vfs
+ 	status = 0;
+ done:
+ 	DPRINTK("returning = %d", status);
+-	mntput(mnt);
+ 	dput(dentry);
++	mntput(mnt);
+ 	return status;
+ }
  
- 	{
- 		/* Configure bandwidth specific factor */
--		ebx = div64_64(((u64) (s->f_osc) << 21) + (ebx >> 1),
-+		ebx = div64_u64(((u64) (s->f_osc) << 21) + (ebx >> 1),
- 				     (u64)ebx) - 0x800000;
- 		EXIT_RC(WR16(s, 0x0c50010, ebx & 0xffff));
- 		EXIT_RC(WR16(s, 0x0c50011, ebx >> 16));
+diff -puN fs/autofs4/root.c~autofs-path_getput-cleanups fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs-path_getput-cleanups
++++ a/fs/autofs4/root.c
+@@ -146,17 +146,17 @@ static int autofs4_dir_open(struct inode
  
- 		/* drx397xD oscillator calibration */
--		ebx = div64_64(((u64) (s->config.f_if + df_tuner) << 28) +
-+		ebx = div64_u64(((u64) (s->config.f_if + df_tuner) << 28) +
- 				     (s->f_osc >> 1), (u64)s->f_osc);
- 	}
- 	ebx &= 0xfffffff;
+ 	if (d_mountpoint(dentry)) {
+ 		struct file *fp = NULL;
+-		struct vfsmount *fp_mnt = mntget(mnt);
+-		struct dentry *fp_dentry = dget(dentry);
++		struct path fp_path = { .dentry = dentry, .mnt = mnt };
+ 
+-		if (!autofs4_follow_mount(&fp_mnt, &fp_dentry)) {
+-			dput(fp_dentry);
+-			mntput(fp_mnt);
++		path_get(&fp_path);
++
++		if (!autofs4_follow_mount(&fp_path.mnt, &fp_path.dentry)) {
++			path_put(&fp_path);
+ 			dcache_dir_close(inode, file);
+ 			goto out;
+ 		}
+ 
+-		fp = dentry_open(fp_dentry, fp_mnt, file->f_flags);
++		fp = dentry_open(fp_path.dentry, fp_path.mnt, file->f_flags);
+ 		status = PTR_ERR(fp);
+ 		if (IS_ERR(fp)) {
+ 			dcache_dir_close(inode, file);
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from jblunck@suse.de are
 
 origin.patch
-affs-fix-reservation-discarding.patch
-vfs-kill-put_inode.patch
-git-dvb.patch
-git-watchdog.patch
+nfs-path_getput-cleanups.patch
+git-unionfs.patch
+vfs-path_getput-cleanups.patch
 
