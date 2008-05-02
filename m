@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + media-use-get_unaligned_-helpers.patch added to -mm tree
-Date: Fri, 02 May 2008 16:09:22 -0700
-Message-ID: <200805022309.m42N9MK7019846@imap1.linux-foundation.org>
+Subject: + hid-use-get-put_unaligned_-helpers.patch added to -mm tree
+Date: Fri, 02 May 2008 16:09:34 -0700
+Message-ID: <200805022309.m42N9YNZ019866@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58703 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932448AbYEBXKA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:10:00 -0400
+	by vger.kernel.org with ESMTP id S932424AbYEBXKF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:10:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, mchehab@infradead.org
+Cc: harvey.harrison@gmail.com, jkosina@suse.cz
 
 
 The patch titled
-     media: use get_unaligned_* helpers
+     hid: use get/put_unaligned_* helpers
 has been added to the -mm tree.  Its filename is
-     media-use-get_unaligned_-helpers.patch
+     hid-use-get-put_unaligned_-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: media: use get_unaligned_* helpers
+Subject: hid: use get/put_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/radio/radio-si470x.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ drivers/hid/hid-core.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/media/radio/radio-si470x.c~media-use-get_unaligned_-helpers drivers/media/radio/radio-si470x.c
---- a/drivers/media/radio/radio-si470x.c~media-use-get_unaligned_-helpers
-+++ a/drivers/media/radio/radio-si470x.c
-@@ -521,8 +521,7 @@ static int si470x_get_register(struct si
- 	retval = si470x_get_report(radio, (void *) &buf, sizeof(buf));
+diff -puN drivers/hid/hid-core.c~hid-use-get-put_unaligned_-helpers drivers/hid/hid-core.c
+--- a/drivers/hid/hid-core.c~hid-use-get-put_unaligned_-helpers
++++ a/drivers/hid/hid-core.c
+@@ -780,7 +780,7 @@ static __inline__ __u32 extract(__u8 *re
+  */
+ static __inline__ void implement(__u8 *report, unsigned offset, unsigned n, __u32 value)
+ {
+-	__le64 x;
++	u64 x;
+ 	u64 m = (1ULL << n) - 1;
  
- 	if (retval >= 0)
--		radio->registers[regnr] = be16_to_cpu(get_unaligned(
--			(unsigned short *) &buf[1]));
-+		radio->registers[regnr] = get_unaligned_be16(&buf[1]);
+ 	if (n > 32)
+@@ -796,10 +796,10 @@ static __inline__ void implement(__u8 *r
+ 	report += offset >> 3;
+ 	offset &= 7;
  
- 	return (retval < 0) ? -EINVAL : 0;
+-	x = get_unaligned((__le64 *)report);
+-	x &= cpu_to_le64(~(m << offset));
+-	x |= cpu_to_le64(((u64) value) << offset);
+-	put_unaligned(x, (__le64 *) report);
++	x = get_unaligned_le64(report);
++	x &= ~(m << offset);
++	x |= ((u64)value) << offset;
++	put_unaligned_le64(x, report);
  }
-@@ -561,9 +560,8 @@ static int si470x_get_all_registers(stru
  
- 	if (retval >= 0)
- 		for (regnr = 0; regnr < RADIO_REGISTER_NUM; regnr++)
--			radio->registers[regnr] = be16_to_cpu(get_unaligned(
--				(unsigned short *)
--				&buf[regnr * RADIO_REGISTER_SIZE + 1]));
-+			radio->registers[regnr] = get_unaligned_be16(
-+				&buf[regnr * RADIO_REGISTER_SIZE + 1]);
- 
- 	return (retval < 0) ? -EINVAL : 0;
- }
-@@ -593,9 +591,8 @@ static int si470x_get_rds_registers(stru
- 
- 	if (retval >= 0)
- 		for (regnr = 0; regnr < RDS_REGISTER_NUM; regnr++)
--			radio->registers[STATUSRSSI + regnr] =
--				be16_to_cpu(get_unaligned((unsigned short *)
--				&buf[regnr * RADIO_REGISTER_SIZE + 1]));
-+			radio->registers[STATUSRSSI + regnr] = get_unaligned_be16(
-+				&buf[regnr * RADIO_REGISTER_SIZE + 1]);
- 
- 	return (retval < 0) ? -EINVAL : 0;
- }
+ /*
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
