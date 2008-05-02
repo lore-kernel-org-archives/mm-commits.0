@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hid-use-get-put_unaligned_-helpers.patch added to -mm tree
-Date: Fri, 02 May 2008 16:09:34 -0700
-Message-ID: <200805022309.m42N9YNZ019866@imap1.linux-foundation.org>
+Subject: + irda-use-get_unaligned_-helpers.patch added to -mm tree
+Date: Fri, 02 May 2008 16:09:32 -0700
+Message-ID: <200805022309.m42N9WrJ019862@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50164 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47041 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932424AbYEBXKF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:10:05 -0400
+	by vger.kernel.org with ESMTP id S932439AbYEBXKH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:10:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jkosina@suse.cz
+Cc: harvey.harrison@gmail.com, samuel@sortiz.org
 
 
 The patch titled
-     hid: use get/put_unaligned_* helpers
+     irda: use get_unaligned_* helpers
 has been added to the -mm tree.  Its filename is
-     hid-use-get-put_unaligned_-helpers.patch
+     irda-use-get_unaligned_-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hid: use get/put_unaligned_* helpers
+Subject: irda: use get_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/hid-core.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ net/irda/iriap.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/hid/hid-core.c~hid-use-get-put_unaligned_-helpers drivers/hid/hid-core.c
---- a/drivers/hid/hid-core.c~hid-use-get-put_unaligned_-helpers
-+++ a/drivers/hid/hid-core.c
-@@ -780,7 +780,7 @@ static __inline__ __u32 extract(__u8 *re
-  */
- static __inline__ void implement(__u8 *report, unsigned offset, unsigned n, __u32 value)
- {
--	__le64 x;
-+	u64 x;
- 	u64 m = (1ULL << n) - 1;
+diff -puN net/irda/iriap.c~irda-use-get_unaligned_-helpers net/irda/iriap.c
+--- a/net/irda/iriap.c~irda-use-get_unaligned_-helpers
++++ a/net/irda/iriap.c
+@@ -451,12 +451,14 @@ static void iriap_getvaluebyclass_confir
+ 	n = 2;
  
- 	if (n > 32)
-@@ -796,10 +796,10 @@ static __inline__ void implement(__u8 *r
- 	report += offset >> 3;
- 	offset &= 7;
+ 	/* Get length, MSB first */
+-	len = be16_to_cpu(get_unaligned((__be16 *)(fp+n))); n += 2;
++	len = get_unaligned_be16(fp + n);
++	n += 2;
  
--	x = get_unaligned((__le64 *)report);
--	x &= cpu_to_le64(~(m << offset));
--	x |= cpu_to_le64(((u64) value) << offset);
--	put_unaligned(x, (__le64 *) report);
-+	x = get_unaligned_le64(report);
-+	x &= ~(m << offset);
-+	x |= ((u64)value) << offset;
-+	put_unaligned_le64(x, report);
- }
+ 	IRDA_DEBUG(4, "%s(), len=%d\n", __func__, len);
  
- /*
+ 	/* Get object ID, MSB first */
+-	obj_id = be16_to_cpu(get_unaligned((__be16 *)(fp+n))); n += 2;
++	obj_id = get_unaligned_be16(fp + n);
++	n += 2;
+ 
+ 	type = fp[n++];
+ 	IRDA_DEBUG(4, "%s(), Value type = %d\n", __func__, type);
+@@ -506,7 +508,7 @@ static void iriap_getvaluebyclass_confir
+ 		value = irias_new_string_value(fp+n);
+ 		break;
+ 	case IAS_OCT_SEQ:
+-		value_len = be16_to_cpu(get_unaligned((__be16 *)(fp+n)));
++		value_len = get_unaligned_be16(fp + n);
+ 		n += 2;
+ 
+ 		/* Will truncate to IAS_MAX_OCTET_STRING bytes */
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
