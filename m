@@ -1,67 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - aic79xx_core-remove-ascii-art.patch removed from -mm tree
-Date: Fri, 02 May 2008 14:16:51 -0700
-Message-ID: <200805022116.m42LGprc015383@imap1.linux-foundation.org>
+Subject: + git-unionfs-fixup.patch added to -mm tree
+Date: Fri, 02 May 2008 14:40:50 -0700
+Message-ID: <200805022140.m42LeoFY016317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58300 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57429 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759252AbYEBVQy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 17:16:54 -0400
+	by vger.kernel.org with ESMTP id S1764707AbYEBVla (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 17:41:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu
 
 
 The patch titled
-     aic79xx_core: remove ascii art
-has been removed from the -mm tree.  Its filename was
-     aic79xx_core-remove-ascii-art.patch
+     git-unionfs-fixup
+has been added to the -mm tree.  Its filename is
+     git-unionfs-fixup.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aic79xx_core: remove ascii art
+Subject: git-unionfs-fixup
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Those '<<<<<<<' lines keep on emitting false-positives when I'm grepping for
-git conflicts.  Replace them with '='.
+y'know, the worst possible place to add new stuff is at the end of the list,
+because that's where everyone else adds stuff.
 
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+random insertion wins.  Or alphabetic.
+
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aic7xxx/aic79xx_core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/Makefile |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/scsi/aic7xxx/aic79xx_core.c~aic79xx_core-remove-ascii-art drivers/scsi/aic7xxx/aic79xx_core.c
---- a/drivers/scsi/aic7xxx/aic79xx_core.c~aic79xx_core-remove-ascii-art
-+++ a/drivers/scsi/aic7xxx/aic79xx_core.c
-@@ -9745,7 +9745,7 @@ ahd_dump_card_state(struct ahd_softc *ah
- 	}
- 	saved_modes = ahd_save_modes(ahd);
- 	ahd_set_modes(ahd, AHD_MODE_SCSI, AHD_MODE_SCSI);
--	printf(">>>>>>>>>>>>>>>>>> Dump Card State Begins <<<<<<<<<<<<<<<<<\n"
-+	printf("================== Dump Card State Begins =================\n"
- 	       "%s: Dumping Card State at program address 0x%x Mode 0x%x\n",
- 	       ahd_name(ahd), 
- 	       ahd_inw(ahd, CURADDR),
-@@ -9981,7 +9981,7 @@ ahd_dump_card_state(struct ahd_softc *ah
- 		ahd_outb(ahd, STACK, ahd->saved_stack[i] & 0xFF);
- 		ahd_outb(ahd, STACK, (ahd->saved_stack[i] >> 8) & 0xFF);
- 	}
--	printf("\n<<<<<<<<<<<<<<<<< Dump Card State Ends >>>>>>>>>>>>>>>>>>\n");
-+	printf("\n================= Dump Card State Ends ==================\n");
- 	ahd_restore_modes(ahd, saved_modes);
- 	if (paused == 0)
- 		ahd_unpause(ahd);
+diff -puN fs/Makefile~git-unionfs-fixup fs/Makefile
+--- a/fs/Makefile~git-unionfs-fixup
++++ a/fs/Makefile
+@@ -94,6 +94,7 @@ obj-$(CONFIG_NLS)		+= nls/
+ obj-$(CONFIG_SYSV_FS)		+= sysv/
+ obj-$(CONFIG_SMB_FS)		+= smbfs/
+ obj-$(CONFIG_CIFS)		+= cifs/
++obj-$(CONFIG_UNION_FS)		+= unionfs/
+ obj-$(CONFIG_NCP_FS)		+= ncpfs/
+ obj-$(CONFIG_HPFS_FS)		+= hpfs/
+ obj-$(CONFIG_NTFS_FS)		+= ntfs/
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+linux-next.patch
 sxc-fix-printk-warnings-on-sparc32.patch
 revert-memory-hotplug-register-section-node-id-to-free.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
@@ -71,10 +74,8 @@ rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
 x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
 cifs-suppress-warning.patch
 sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-git-dvb.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 touch-screen-driver-for-the-superh-migor-board.patch
-git-kvm.patch
 pata_atiixp-simplex-clear.patch
 git-mips.patch
 git-mips-git-rejects.patch
@@ -85,12 +86,10 @@ fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 arch-parisc-kernel-unalignedc-use-time_-macros.patch
 pci-hotplug-introduce-pci_slot.patch
 pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-sched.patch
 drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
 add-rcu_assign_index-if-ever-needed.patch
-git-scsi-misc.patch
-aic79xx_core-remove-ascii-art.patch
 git-unionfs.patch
+git-unionfs-fixup.patch
 git-v9fs.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
