@@ -1,91 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: - fuse-use-clamp-rather-than-nested-min-max.patch removed from -mm tree
-Date: Fri, 02 May 2008 12:43:28 -0700
-Message-ID: <200805021943.m42JhSwA011294@imap1.linux-foundation.org>
+Subject: - 8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch removed from -mm tree
+Date: Fri, 02 May 2008 12:42:54 -0700
+Message-ID: <200805021942.m42JgsTO011238@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57743 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57119 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932625AbYEBToO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:44:14 -0400
+	by vger.kernel.org with ESMTP id S932449AbYEBToD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:44:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, miklos@szeredi.hu, mm-commits@vger.kernel.org
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, mingo@elte.hu, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fuse: use clamp() rather than nested min/max
+     8250: switch 8250 drivers to use _nocache ioremaps
 has been removed from the -mm tree.  Its filename was
-     fuse-use-clamp-rather-than-nested-min-max.patch
+     8250-switch-8250-drivers-to-use-_nocache-ioremaps.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fuse: use clamp() rather than nested min/max
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: 8250: switch 8250 drivers to use _nocache ioremaps
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-clamp() exists for this use.
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Miklos Szeredi <miklos@szeredi.hu>
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/serial/8250.c       |    3 ++-
+ drivers/serial/8250_early.c |    2 +-
+ drivers/serial/8250_pci.c   |   14 ++++++++------
+ 3 files changed, 11 insertions(+), 8 deletions(-)
 
-diff -puN fs/fuse/file.c~fuse-use-clamp-rather-than-nested-min-max fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-use-clamp-rather-than-nested-min-max
-+++ a/fs/fuse/file.c
-@@ -934,7 +934,7 @@ static int fuse_get_user_pages(struct fu
+diff -puN drivers/serial/8250.c~8250-switch-8250-drivers-to-use-_nocache-ioremaps drivers/serial/8250.c
+--- a/drivers/serial/8250.c~8250-switch-8250-drivers-to-use-_nocache-ioremaps
++++ a/drivers/serial/8250.c
+@@ -2271,7 +2271,8 @@ static int serial8250_request_std_resour
+ 		}
  
- 	nbytes = min(nbytes, (unsigned) FUSE_MAX_PAGES_PER_REQ << PAGE_SHIFT);
- 	npages = (nbytes + offset + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	npages = min(max(npages, 1), FUSE_MAX_PAGES_PER_REQ);
-+	npages = clamp(npages, 1, FUSE_MAX_PAGES_PER_REQ);
- 	down_read(&current->mm->mmap_sem);
- 	npages = get_user_pages(current, current->mm, user_addr, npages, write,
- 				0, req->pages, NULL);
+ 		if (up->port.flags & UPF_IOREMAP) {
+-			up->port.membase = ioremap(up->port.mapbase, size);
++			up->port.membase = ioremap_nocache(up->port.mapbase,
++									size);
+ 			if (!up->port.membase) {
+ 				release_mem_region(up->port.mapbase, size);
+ 				ret = -ENOMEM;
+diff -puN drivers/serial/8250_early.c~8250-switch-8250-drivers-to-use-_nocache-ioremaps drivers/serial/8250_early.c
+--- a/drivers/serial/8250_early.c~8250-switch-8250-drivers-to-use-_nocache-ioremaps
++++ a/drivers/serial/8250_early.c
+@@ -153,7 +153,7 @@ static int __init parse_options(struct e
+ 			(void __iomem *)__fix_to_virt(FIX_EARLYCON_MEM_BASE);
+ 		port->membase += port->mapbase & ~PAGE_MASK;
+ #else
+-		port->membase = ioremap(port->mapbase, 64);
++		port->membase = ioremap_nocache(port->mapbase, 64);
+ 		if (!port->membase) {
+ 			printk(KERN_ERR "%s: Couldn't ioremap 0x%llx\n",
+ 				__func__,
+diff -puN drivers/serial/8250_pci.c~8250-switch-8250-drivers-to-use-_nocache-ioremaps drivers/serial/8250_pci.c
+--- a/drivers/serial/8250_pci.c~8250-switch-8250-drivers-to-use-_nocache-ioremaps
++++ a/drivers/serial/8250_pci.c
+@@ -86,7 +86,7 @@ setup_port(struct serial_private *priv, 
+ 		len =  pci_resource_len(dev, bar);
+ 
+ 		if (!priv->remapped_bar[bar])
+-			priv->remapped_bar[bar] = ioremap(base, len);
++			priv->remapped_bar[bar] = ioremap_nocache(base, len);
+ 		if (!priv->remapped_bar[bar])
+ 			return -ENOMEM;
+ 
+@@ -270,7 +270,7 @@ static int pci_plx9050_init(struct pci_d
+ 	/*
+ 	 * enable/disable interrupts
+ 	 */
+-	p = ioremap(pci_resource_start(dev, 0), 0x80);
++	p = ioremap_nocache(pci_resource_start(dev, 0), 0x80);
+ 	if (p == NULL)
+ 		return -ENOMEM;
+ 	writel(irq_config, p + 0x4c);
+@@ -294,7 +294,7 @@ static void __devexit pci_plx9050_exit(s
+ 	/*
+ 	 * disable interrupts
+ 	 */
+-	p = ioremap(pci_resource_start(dev, 0), 0x80);
++	p = ioremap_nocache(pci_resource_start(dev, 0), 0x80);
+ 	if (p != NULL) {
+ 		writel(0, p + 0x4c);
+ 
+@@ -341,7 +341,8 @@ static int sbs_init(struct pci_dev *dev)
+ {
+ 	u8 __iomem *p;
+ 
+-	p = ioremap(pci_resource_start(dev, 0), pci_resource_len(dev, 0));
++	p = ioremap_nocache(pci_resource_start(dev, 0),
++						pci_resource_len(dev, 0));
+ 
+ 	if (p == NULL)
+ 		return -ENOMEM;
+@@ -365,7 +366,8 @@ static void __devexit sbs_exit(struct pc
+ {
+ 	u8 __iomem *p;
+ 
+-	p = ioremap(pci_resource_start(dev, 0), pci_resource_len(dev, 0));
++	p = ioremap_nocache(pci_resource_start(dev, 0),
++					pci_resource_len(dev, 0));
+ 	/* FIXME: What if resource_len < OCT_REG_CR_OFF */
+ 	if (p != NULL)
+ 		writeb(0, p + OCT_REG_CR_OFF);
+@@ -419,7 +421,7 @@ static int pci_siig10x_init(struct pci_d
+ 		break;
+ 	}
+ 
+-	p = ioremap(pci_resource_start(dev, 0), 0x80);
++	p = ioremap_nocache(pci_resource_start(dev, 0), 0x80);
+ 	if (p == NULL)
+ 		return -ENOMEM;
+ 
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
-misc-fix-integer-as-null-pointer-warnings.patch
-git-acpi.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-input-make-one-bit-signed-bitfields-unsigned.patch
-git-kvm.patch
-git-mips.patch
-git-net.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-git-sched.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-usb-fix-integer-as-null-pointer-sparse-warnings.patch
-git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-tkipc-use-kernel-provided-infrastructure.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-mmc-make-one-bit-signed-bitfields-unsigned.patch
-video-fix-integer-as-null-pointer-warnings.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+git-gfs2-nmw.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+pata_atiixp-simplex-clear.patch
+pata_atiixp-dont-disable.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+git-scsi-misc.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
