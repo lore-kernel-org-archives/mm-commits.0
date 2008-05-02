@@ -1,111 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - rcu-fix-rcu_try_flip_waitack_needed-to-prevent-grace-period-stall.patch removed from -mm tree
-Date: Fri, 02 May 2008 15:43:45 -0700
-Message-ID: <200805022243.m42Mhjp3018814@imap1.linux-foundation.org>
+Subject: + acpi-handle-invalid-acpi-slit-table.patch added to -mm tree
+Date: Fri, 02 May 2008 15:48:12 -0700
+Message-ID: <200805022248.m42MmCjL019006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57490 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41821 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759308AbYEBWox (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 18:44:53 -0400
+	by vger.kernel.org with ESMTP id S1756751AbYEBWss (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 18:48:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: paulmck@linux.vnet.ibm.com, a.p.zijlstra@chello.nl, dipankar@in.ibm.com, josh@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: fenghua.yu@intel.com
 
 
 The patch titled
-     rcu: fix rcu_try_flip_waitack_needed() to prevent grace-period stall
-has been removed from the -mm tree.  Its filename was
-     rcu-fix-rcu_try_flip_waitack_needed-to-prevent-grace-period-stall.patch
+     acpi: handle invalid ACPI SLIT table
+has been added to the -mm tree.  Its filename is
+     acpi-handle-invalid-acpi-slit-table.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rcu: fix rcu_try_flip_waitack_needed() to prevent grace-period stall
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: acpi: handle invalid ACPI SLIT table
+From: Fenghua Yu <fenghua.yu@intel.com>
 
-The comment was correct -- need to make the code match the comment.
-Without this patch, if a CPU goes dynticks idle (and stays there forever)
-in just the right phase of preemptible-RCU grace-period processing,
-grace periods stall.  The offending sequence of events (courtesy
-of Promela/spin, at least after I got the liveness criterion coded
-correctly...) is as follows:
+This is a SLIT sanity checking patch.  It moves slit_valid() function to
+generic ACPI code and does sanity checking for both x86 and ia64.  It sets up
+node_distance with LOCAL_DISTANCE and REMOTE_DISTANCE when hitting invalid
+SLIT table on ia64.  It also cleans up unused variable localities in
+acpi_parse_slit() on x86.
 
-o	CPU 0 is in dynticks-idle mode.  Its dynticks_progress_counter
-	is (say) 10.
-
-o	CPU 0 takes an interrupt, so rcu_irq_enter() increments CPU 0's
-	dynticks_progress_counter to 11.
-
-o	CPU 1 is doing RCU grace-period processing in rcu_try_flip_idle(),
-	sees rcu_pending(), so invokes dyntick_save_progress_counter(),
-	which in turn takes a snapshot of CPU 0's dynticks_progress_counter
-	into CPU 0's rcu_dyntick_snapshot -- now set to 11.  CPU 1 then
-	updates the RCU grace-period state to rcu_try_flip_waitack().
-
-o	CPU 0 returns from its interrupt, so rcu_irq_exit() increments
-	CPU 0's dynticks_progress_counter to 12.
-
-o	CPU 1 later invokes rcu_try_flip_waitack(), which notices that
-	CPU 0 has not yet responded, and hence in turn invokes
-	rcu_try_flip_waitack_needed().  This function examines the
-	state of CPU 0's dynticks_progress_counter and rcu_dyntick_snapshot
-	variables, which it copies to curr (== 12) and snap (== 11),
-	respectively.
-
-	Because curr!=snap, the first condition fails.
-
-	Because curr-snap is only 1 and snap is odd, the second
-	condition fails.
-
-	rcu_try_flip_waitack_needed() therefore incorrectly concludes
-	that it must wait for CPU 0 to explicitly acknowledge the
-	counter flip.
-
-o	CPU 0 remains forever in dynticks-idle mode, never taking
-	any more hardware interrupts or any NMIs, and never running
-	any more tasks.  (Of course, -something- will usually eventually
-	happen, which might be why we haven't seen this one in the
-	wild.  Still should be fixed!)
-
-Therefore the grace period never ends.  Fix is to make the code match
-the comment, as shown below.  With this fix, the above scenario
-would be satisfied with curr being even, and allow the grace period
-to proceed.
-
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Josh Triplett <josh@kernel.org>
-Cc: Dipankar Sarma <dipankar@in.ibm.com>
+Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/rcupreempt.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/kernel/acpi.c |    9 +++++++--
+ arch/x86/mm/srat_64.c   |   27 ---------------------------
+ drivers/acpi/numa.c     |   31 +++++++++++++++++++++++++++----
+ 3 files changed, 34 insertions(+), 33 deletions(-)
 
-diff -puN kernel/rcupreempt.c~rcu-fix-rcu_try_flip_waitack_needed-to-prevent-grace-period-stall kernel/rcupreempt.c
---- a/kernel/rcupreempt.c~rcu-fix-rcu_try_flip_waitack_needed-to-prevent-grace-period-stall
-+++ a/kernel/rcupreempt.c
-@@ -569,7 +569,7 @@ rcu_try_flip_waitack_needed(int cpu)
- 	 * that this CPU already acknowledged the counter.
- 	 */
+diff -puN arch/ia64/kernel/acpi.c~acpi-handle-invalid-acpi-slit-table arch/ia64/kernel/acpi.c
+--- a/arch/ia64/kernel/acpi.c~acpi-handle-invalid-acpi-slit-table
++++ a/arch/ia64/kernel/acpi.c
+@@ -460,7 +460,6 @@ void __init acpi_numa_slit_init(struct a
+ 		printk(KERN_ERR
+ 		       "ACPI 2.0 SLIT: size mismatch: %d expected, %d actual\n",
+ 		       len, slit->header.length);
+-		memset(numa_slit, 10, sizeof(numa_slit));
+ 		return;
+ 	}
+ 	slit_table = slit;
+@@ -569,8 +568,14 @@ void __init acpi_numa_arch_fixup(void)
+ 	printk(KERN_INFO "Number of memory chunks in system = %d\n",
+ 	       num_node_memblks);
  
--	if ((curr - snap) > 2 || (snap & 0x1) == 0)
-+	if ((curr - snap) > 2 || (curr & 0x1) == 0)
- 		return 0;
+-	if (!slit_table)
++	if (!slit_table) {
++		for (i = 0; i < MAX_NUMNODES; i++)
++			for (j = 0; j < MAX_NUMNODES; j++)
++				node_distance(i, j) = i == j ? LOCAL_DISTANCE :
++							REMOTE_DISTANCE;
+ 		return;
++	}
++
+ 	memset(numa_slit, -1, sizeof(numa_slit));
+ 	for (i = 0; i < slit_table->locality_count; i++) {
+ 		if (!pxm_bit_test(i))
+diff -puN arch/x86/mm/srat_64.c~acpi-handle-invalid-acpi-slit-table arch/x86/mm/srat_64.c
+--- a/arch/x86/mm/srat_64.c~acpi-handle-invalid-acpi-slit-table
++++ a/arch/x86/mm/srat_64.c
+@@ -97,36 +97,9 @@ static __init inline int srat_disabled(v
+ 	return numa_off || acpi_numa < 0;
+ }
  
- 	/* We need this CPU to explicitly acknowledge the counter flip. */
-_
-
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
-
-origin.patch
-linux-next.patch
-add-rcu_assign_index-if-ever-needed.patch
-rcu-fix-rcu_try_flip_waitack_needed-to-prevent-grace-period-stall.patch
-add-warn_on_secs-macro.patch
-use-warn_on_secs-in-rcupreempth.patch
-
+-/*
+- * A lot of BIOS fill in 10 (= no distance) everywhere. This messes
+- * up the NUMA heuristics which wants the local node to have a smaller
+- * distance than the others.
+- * Do some quick checks here and only use the SLIT if it passes.
+- */
+-static __init int slit_valid(struct acpi_table_slit *slit)
+-{
+-	int i, j;
+-	int d = slit->locality_count;
+-	for (i = 0; i < d; i++) {
+-		for (j = 0; j < d; j++)  {
+-			u8 val = slit->entry[d*i + j];
+-			if (i == j) {
+-				if (val != LOCAL_DISTANCE)
+-					return 0;
+-			} else if (val <= LOCAL_DISTANCE)
+-				return 0;
+-		}
+-	}
+-	return 1;
+-}
+-
+ /* Callback for SLIT parsing */
+ void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+ {
+-	if (!slit_valid(slit)) {
+-		printk(KERN_INFO "ACPI: SLIT table looks invalid. Not used.\n");
+-		return;
+-	}
+ 	acpi_slit = slit;
+ }
+ 
+diff -puN drivers/acpi/numa.c~acpi-handle-invalid-acpi-slit-table drivers/acpi/numa.c
+--- a/drivers/acpi/numa.c~acpi-handle-invalid-acpi-slit-table
++++ a/drivers/acpi/numa.c
+@@ -140,19 +140,42 @@ acpi_table_print_srat_entry(struct acpi_
+ 	}
+ }
+ 
++/*
++ * A lot of BIOS fill in 10 (= no distance) everywhere. This messes
++ * up the NUMA heuristics which wants the local node to have a smaller
++ * distance than the others.
++ * Do some quick checks here and only use the SLIT if it passes.
++ */
++static __init int slit_valid(struct acpi_table_slit *slit)
++{
++	int i, j;
++	int d = slit->locality_count;
++	for (i = 0; i < d; i++) {
++		for (j = 0; j < d; j++)  {
++			u8 val = slit->entry[d*i + j];
++			if (i == j) {
++				if (val != LOCAL_DISTANCE)
++					return 0;
++			} else if (val <= LOCAL_DISTANCE)
++				return 0;
++		}
++	}
++	return 1;
++}
++
+ static int __init acpi_parse_slit(struct acpi_table_header *table)
+ {
+ 	struct acpi_table_slit *slit;
+-	u32 localities;
+ 
+ 	if (!table)
+ 		return -EINVAL;
+ 
+ 	slit = (struct acpi_table_slit *)table;
+ 
+-	/* downcast just for %llu vs %lu for i386/ia64  */
+-	localities = (u32) slit->locality_count;
