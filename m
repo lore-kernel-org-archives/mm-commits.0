@@ -1,29 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: - nsc-ircc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch removed from -mm tree
-Date: Fri, 02 May 2008 15:20:20 -0700
-Message-ID: <200805022220.m42MKK2d017832@imap1.linux-foundation.org>
+Subject: - smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch removed from -mm tree
+Date: Fri, 02 May 2008 15:20:17 -0700
+Message-ID: <200805022220.m42MKHNm017829@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51078 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59124 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932866AbYEBWUl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 18:20:41 -0400
+	by vger.kernel.org with ESMTP id S1760412AbYEBWUe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 18:20:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bjorn.helgaas@hp.com, kamalesh@linux.vnet.ibm.com, samuel@sortiz.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     nsc-ircc: wrap PNP probe code in #ifdef CONFIG_PNP
+     smsc-ircc2: wrap PNP probe code in #ifdef CONFIG_PNP
 has been removed from the -mm tree.  Its filename was
-     nsc-ircc-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+     smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: nsc-ircc: wrap PNP probe code in #ifdef CONFIG_PNP
+Subject: smsc-ircc2: wrap PNP probe code in #ifdef CONFIG_PNP
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
 Wrap PNP probe code in #ifdef CONFIG_PNP.
@@ -39,65 +39,57 @@ Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/nsc-ircc.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ drivers/net/irda/smsc-ircc2.c |   14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/irda/nsc-ircc.c~nsc-ircc-wrap-pnp-probe-code-in-ifdef-config_pnp drivers/net/irda/nsc-ircc.c
---- a/drivers/net/irda/nsc-ircc.c~nsc-ircc-wrap-pnp-probe-code-in-ifdef-config_pnp
-+++ a/drivers/net/irda/nsc-ircc.c
-@@ -100,7 +100,6 @@ static int nsc_ircc_probe_39x(nsc_chip_t
- static int nsc_ircc_init_108(nsc_chip_t *chip, chipio_t *info);
- static int nsc_ircc_init_338(nsc_chip_t *chip, chipio_t *info);
- static int nsc_ircc_init_39x(nsc_chip_t *chip, chipio_t *info);
--static int nsc_ircc_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *id);
+diff -puN drivers/net/irda/smsc-ircc2.c~smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp drivers/net/irda/smsc-ircc2.c
+--- a/drivers/net/irda/smsc-ircc2.c~smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp
++++ a/drivers/net/irda/smsc-ircc2.c
+@@ -79,9 +79,13 @@ MODULE_AUTHOR("Daniele Peri <peri@csai.u
+ MODULE_DESCRIPTION("SMC IrCC SIR/FIR controller driver");
+ MODULE_LICENSE("GPL");
  
- /* These are the known NSC chips */
- static nsc_chip_t chips[] = {
-@@ -145,8 +144,10 @@ static char *dongle_types[] = {
- 	"No dongle connected",
- };
- 
--/* PNP probing */
- static chipio_t pnp_info;
-+
 +#ifdef CONFIG_PNP
-+/* PNP probing */
- static const struct pnp_device_id nsc_ircc_pnp_table[] = {
- 	{ .id = "NSC6001", .driver_data = 0 },
- 	{ .id = "IBM0071", .driver_data = 0 },
-@@ -155,11 +156,16 @@ static const struct pnp_device_id nsc_ir
- 
- MODULE_DEVICE_TABLE(pnp, nsc_ircc_pnp_table);
- 
-+static int nsc_ircc_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *id);
-+
- static struct pnp_driver nsc_ircc_pnp_driver = {
- 	.name = "nsc-ircc",
- 	.id_table = nsc_ircc_pnp_table,
- 	.probe = nsc_ircc_pnp_probe,
- };
+ static int smsc_nopnp = 1;
+ module_param_named(nopnp, smsc_nopnp, bool, 0);
+ MODULE_PARM_DESC(nopnp, "Do not use PNP to detect controller settings, defaults to true");
 +#else
-+static struct pnp_driver nsc_ircc_pnp_driver;
++#define smsc_nopnp 1
 +#endif
  
- /* Some prototypes */
- static int  nsc_ircc_open(chipio_t *info);
-@@ -916,6 +922,7 @@ static int nsc_ircc_probe_39x(nsc_chip_t
- 	return 0;
+ #define DMA_INVAL 255
+ static int ircc_dma = DMA_INVAL;
+@@ -366,6 +370,10 @@ static inline void register_bank(int iob
+                iobase + IRCC_MASTER);
  }
  
++static int pnp_driver_registered;
++
 +#ifdef CONFIG_PNP
- /* PNP probing */
- static int nsc_ircc_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *id)
++
+ /* PNP hotplug support */
+ static const struct pnp_device_id smsc_ircc_pnp_table[] = {
+ 	{ .id = "SMCf010", .driver_data = 0 },
+@@ -374,8 +382,6 @@ static const struct pnp_device_id smsc_i
+ };
+ MODULE_DEVICE_TABLE(pnp, smsc_ircc_pnp_table);
+ 
+-static int pnp_driver_registered;
+-
+ static int __init smsc_ircc_pnp_probe(struct pnp_dev *dev,
+ 				      const struct pnp_device_id *dev_id)
  {
-@@ -952,6 +959,7 @@ static int nsc_ircc_pnp_probe(struct pnp
+@@ -403,6 +409,10 @@ static struct pnp_driver smsc_ircc_pnp_d
+ 	.probe		= smsc_ircc_pnp_probe,
+ };
  
- 	return 0;
- }
++#else
++static struct pnp_driver smsc_ircc_pnp_driver;
 +#endif
++
  
- /*
-  * Function nsc_ircc_setup (info)
+ /*******************************************************************************
+  *
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
