@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + acpi-handle-invalid-acpi-slit-table.patch added to -mm tree
-Date: Fri, 02 May 2008 15:48:12 -0700
-Message-ID: <200805022248.m42MmCjL019006@imap1.linux-foundation.org>
+Subject: + md-fix-raid5-repair-operations.patch added to -mm tree
+Date: Fri, 02 May 2008 15:48:47 -0700
+Message-ID: <200805022248.m42MmlNi019023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41821 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53360 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756751AbYEBWss (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 18:48:48 -0400
+	by vger.kernel.org with ESMTP id S933107AbYEBWth (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 18:49:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: fenghua.yu@intel.com
+Cc: dan.j.williams@intel.com, linux@horizon.com, neilb@suse.de, stable@kernel.org
 
 
 The patch titled
-     acpi: handle invalid ACPI SLIT table
+     md: fix raid5 'repair' operations
 has been added to the -mm tree.  Its filename is
-     acpi-handle-invalid-acpi-slit-table.patch
+     md-fix-raid5-repair-operations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,130 +33,93 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: acpi: handle invalid ACPI SLIT table
-From: Fenghua Yu <fenghua.yu@intel.com>
+Subject: md: fix raid5 'repair' operations
+From: Dan Williams <dan.j.williams@intel.com>
 
-This is a SLIT sanity checking patch.  It moves slit_valid() function to
-generic ACPI code and does sanity checking for both x86 and ia64.  It sets up
-node_distance with LOCAL_DISTANCE and REMOTE_DISTANCE when hitting invalid
-SLIT table on ia64.  It also cleans up unused variable localities in
-acpi_parse_slit() on x86.
+commit bd2ab67030e9116f1e4aae1289220255412b37fd "md: close a livelock window
+in handle_parity_checks5" introduced a bug in handling 'repair' operations. 
+After a repair operation completes we clear the state bits tracking this
+operation.  However, they are cleared too early and this results in the code
+deciding to re-run the parity check operation.  Since we have done the repair
+in memory the second check does not find a mismatch and thus does not do a
+writeback.
 
-Signed-off-by: Fenghua Yu <fenghua.yu@intel.com>
+Test results:
+$ echo repair > /sys/block/md0/md/sync_action
+$ cat /sys/block/md0/md/mismatch_cnt
+51072
+$ echo repair > /sys/block/md0/md/sync_action
+$ cat /sys/block/md0/md/mismatch_cnt
+0
+
+(also fix incorrect indentation)
+
+Cc: <stable@kernel.org>
+Tested-by: George Spelvin <linux@horizon.com>
+Acked-by: NeilBrown <neilb@suse.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/acpi.c |    9 +++++++--
- arch/x86/mm/srat_64.c   |   27 ---------------------------
- drivers/acpi/numa.c     |   31 +++++++++++++++++++++++++++----
- 3 files changed, 34 insertions(+), 33 deletions(-)
+ drivers/md/raid5.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN arch/ia64/kernel/acpi.c~acpi-handle-invalid-acpi-slit-table arch/ia64/kernel/acpi.c
---- a/arch/ia64/kernel/acpi.c~acpi-handle-invalid-acpi-slit-table
-+++ a/arch/ia64/kernel/acpi.c
-@@ -460,7 +460,6 @@ void __init acpi_numa_slit_init(struct a
- 		printk(KERN_ERR
- 		       "ACPI 2.0 SLIT: size mismatch: %d expected, %d actual\n",
- 		       len, slit->header.length);
--		memset(numa_slit, 10, sizeof(numa_slit));
- 		return;
+diff -puN drivers/md/raid5.c~md-fix-raid5-repair-operations drivers/md/raid5.c
+--- a/drivers/md/raid5.c~md-fix-raid5-repair-operations
++++ a/drivers/md/raid5.c
+@@ -2369,8 +2369,8 @@ static void handle_parity_checks5(raid5_
+ 
+ 	/* complete a check operation */
+ 	if (test_and_clear_bit(STRIPE_OP_CHECK, &sh->ops.complete)) {
+-	    clear_bit(STRIPE_OP_CHECK, &sh->ops.ack);
+-	    clear_bit(STRIPE_OP_CHECK, &sh->ops.pending);
++		clear_bit(STRIPE_OP_CHECK, &sh->ops.ack);
++		clear_bit(STRIPE_OP_CHECK, &sh->ops.pending);
+ 		if (s->failed == 0) {
+ 			if (sh->ops.zero_sum_result == 0)
+ 				/* parity is correct (on disc,
+@@ -2400,16 +2400,6 @@ static void handle_parity_checks5(raid5_
+ 			canceled_check = 1; /* STRIPE_INSYNC is not set */
  	}
- 	slit_table = slit;
-@@ -569,8 +568,14 @@ void __init acpi_numa_arch_fixup(void)
- 	printk(KERN_INFO "Number of memory chunks in system = %d\n",
- 	       num_node_memblks);
  
--	if (!slit_table)
-+	if (!slit_table) {
-+		for (i = 0; i < MAX_NUMNODES; i++)
-+			for (j = 0; j < MAX_NUMNODES; j++)
-+				node_distance(i, j) = i == j ? LOCAL_DISTANCE :
-+							REMOTE_DISTANCE;
- 		return;
-+	}
-+
- 	memset(numa_slit, -1, sizeof(numa_slit));
- 	for (i = 0; i < slit_table->locality_count; i++) {
- 		if (!pxm_bit_test(i))
-diff -puN arch/x86/mm/srat_64.c~acpi-handle-invalid-acpi-slit-table arch/x86/mm/srat_64.c
---- a/arch/x86/mm/srat_64.c~acpi-handle-invalid-acpi-slit-table
-+++ a/arch/x86/mm/srat_64.c
-@@ -97,36 +97,9 @@ static __init inline int srat_disabled(v
- 	return numa_off || acpi_numa < 0;
- }
- 
--/*
-- * A lot of BIOS fill in 10 (= no distance) everywhere. This messes
-- * up the NUMA heuristics which wants the local node to have a smaller
-- * distance than the others.
-- * Do some quick checks here and only use the SLIT if it passes.
-- */
--static __init int slit_valid(struct acpi_table_slit *slit)
--{
--	int i, j;
--	int d = slit->locality_count;
--	for (i = 0; i < d; i++) {
--		for (j = 0; j < d; j++)  {
--			u8 val = slit->entry[d*i + j];
--			if (i == j) {
--				if (val != LOCAL_DISTANCE)
--					return 0;
--			} else if (val <= LOCAL_DISTANCE)
--				return 0;
--		}
--	}
--	return 1;
--}
+-	/* check if we can clear a parity disk reconstruct */
+-	if (test_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.complete) &&
+-		test_bit(STRIPE_OP_MOD_REPAIR_PD, &sh->ops.pending)) {
 -
- /* Callback for SLIT parsing */
- void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
- {
--	if (!slit_valid(slit)) {
--		printk(KERN_INFO "ACPI: SLIT table looks invalid. Not used.\n");
--		return;
+-		clear_bit(STRIPE_OP_MOD_REPAIR_PD, &sh->ops.pending);
+-		clear_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.complete);
+-		clear_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.ack);
+-		clear_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.pending);
 -	}
- 	acpi_slit = slit;
- }
- 
-diff -puN drivers/acpi/numa.c~acpi-handle-invalid-acpi-slit-table drivers/acpi/numa.c
---- a/drivers/acpi/numa.c~acpi-handle-invalid-acpi-slit-table
-+++ a/drivers/acpi/numa.c
-@@ -140,19 +140,42 @@ acpi_table_print_srat_entry(struct acpi_
+-
+ 	/* start a new check operation if there are no failures, the stripe is
+ 	 * not insync, and a repair is not in flight
+ 	 */
+@@ -2424,6 +2414,17 @@ static void handle_parity_checks5(raid5_
+ 		}
  	}
- }
  
-+/*
-+ * A lot of BIOS fill in 10 (= no distance) everywhere. This messes
-+ * up the NUMA heuristics which wants the local node to have a smaller
-+ * distance than the others.
-+ * Do some quick checks here and only use the SLIT if it passes.
-+ */
-+static __init int slit_valid(struct acpi_table_slit *slit)
-+{
-+	int i, j;
-+	int d = slit->locality_count;
-+	for (i = 0; i < d; i++) {
-+		for (j = 0; j < d; j++)  {
-+			u8 val = slit->entry[d*i + j];
-+			if (i == j) {
-+				if (val != LOCAL_DISTANCE)
-+					return 0;
-+			} else if (val <= LOCAL_DISTANCE)
-+				return 0;
-+		}
-+	}
-+	return 1;
-+}
++	/* check if we can clear a parity disk reconstruct */
++	if (test_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.complete) &&
++	    test_bit(STRIPE_OP_MOD_REPAIR_PD, &sh->ops.pending)) {
 +
- static int __init acpi_parse_slit(struct acpi_table_header *table)
- {
- 	struct acpi_table_slit *slit;
--	u32 localities;
- 
- 	if (!table)
- 		return -EINVAL;
- 
- 	slit = (struct acpi_table_slit *)table;
- 
--	/* downcast just for %llu vs %lu for i386/ia64  */
--	localities = (u32) slit->locality_count;
++		clear_bit(STRIPE_OP_MOD_REPAIR_PD, &sh->ops.pending);
++		clear_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.complete);
++		clear_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.ack);
++		clear_bit(STRIPE_OP_COMPUTE_BLK, &sh->ops.pending);
++	}
++
++
+ 	/* Wait for check parity and compute block operations to complete
+ 	 * before write-back.  If a failure occurred while the check operation
+ 	 * was in flight we need to cycle this stripe through handle_stripe
+_
+
+Patches currently in -mm which might be from dan.j.williams@intel.com are
+
+origin.patch
+linux-next.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+fsldma-the-mpc8377mds-board-device-tree-node-for-fsldma-driver.patch
+md-fix-raid5-repair-operations.patch
+
