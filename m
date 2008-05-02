@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + video-fix-integer-as-null-pointer-warnings.patch added to -mm tree
-Date: Thu, 01 May 2008 16:05:19 -0700
-Message-ID: <200805012305.m41N5JHH030171@imap1.linux-foundation.org>
+Subject: + locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch added to -mm tree
+Date: Thu, 01 May 2008 17:28:14 -0700
+Message-ID: <200805020028.m420SElK000900@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36432 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50116 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763652AbYEAXFV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 19:05:21 -0400
+	by vger.kernel.org with ESMTP id S932237AbYEBA3T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 May 2008 20:29:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: rostedt@goodmis.org, mingo@elte.hu, srostedt@redhat.com
 
 
 The patch titled
-     fbdev: fix integer as NULL pointer warnings
+     locking: add typecheck on irqsave and friends for correct flags
 has been added to the -mm tree.  Its filename is
-     video-fix-integer-as-null-pointer-warnings.patch
+     locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,115 +33,218 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: fix integer as NULL pointer warnings
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: locking: add typecheck on irqsave and friends for correct flags
+From: Steven Rostedt <rostedt@goodmis.org>
 
-drivers/video/aty/atyfb_base.c:3359:26: warning: Using plain integer as NULL pointer
-drivers/video/aty/radeon_base.c:2280:32: warning: Using plain integer as NULL pointer
-drivers/video/matrox/matroxfb_base.h:203:25: warning: Using plain integer as NULL pointer
-drivers/video/matrox/matroxfb_base.h:203:25: warning: Using plain integer as NULL pointer
+There haave been several areas in the kernel where an int has been used for
+flags in local_irq_save() and friends instead of a long.  This can cause some
+hard to debug problems on some architectures.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+This patch adds a typecheck inside the irqsave and restore functions to flag
+these cases.
+
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/atyfb_base.c       |    2 +-
- drivers/video/aty/radeon_base.c      |    2 +-
- drivers/video/matrox/matroxfb_base.h |    2 +-
- drivers/video/sis/sis_main.c         |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/irqflags.h |   52 +++++++++++++++++++--------
+ include/linux/spinlock.h |   71 ++++++++++++++++++++++++++++---------
+ 2 files changed, 92 insertions(+), 31 deletions(-)
 
-diff -puN drivers/video/aty/atyfb_base.c~video-fix-integer-as-null-pointer-warnings drivers/video/aty/atyfb_base.c
---- a/drivers/video/aty/atyfb_base.c~video-fix-integer-as-null-pointer-warnings
-+++ a/drivers/video/aty/atyfb_base.c
-@@ -3356,7 +3356,7 @@ static int __devinit atyfb_setup_generic
+diff -puN include/linux/irqflags.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags include/linux/irqflags.h
+--- a/include/linux/irqflags.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags
++++ a/include/linux/irqflags.h
+@@ -58,18 +58,24 @@
+ 	do { trace_hardirqs_on(); raw_local_irq_enable(); } while (0)
+ #define local_irq_disable() \
+ 	do { raw_local_irq_disable(); trace_hardirqs_off(); } while (0)
+-#define local_irq_save(flags) \
+-	do { raw_local_irq_save(flags); trace_hardirqs_off(); } while (0)
++#define local_irq_save(flags)				\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		raw_local_irq_save(flags);		\
++		trace_hardirqs_off();			\
++	} while (0)
  
- 	info->fix.mmio_start = raddr;
- 	par->ati_regbase = ioremap(info->fix.mmio_start, 0x1000);
--	if (par->ati_regbase == 0)
-+	if (!par->ati_regbase)
- 		return -ENOMEM;
+-#define local_irq_restore(flags)				\
+-	do {							\
+-		if (raw_irqs_disabled_flags(flags)) {		\
+-			raw_local_irq_restore(flags);		\
+-			trace_hardirqs_off();			\
+-		} else {					\
+-			trace_hardirqs_on();			\
+-			raw_local_irq_restore(flags);		\
+-		}						\
++
++#define local_irq_restore(flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		if (raw_irqs_disabled_flags(flags)) {	\
++			raw_local_irq_restore(flags);	\
++			trace_hardirqs_off();		\
++		} else {				\
++			trace_hardirqs_on();		\
++			raw_local_irq_restore(flags);	\
++		}					\
+ 	} while (0)
+ #else /* !CONFIG_TRACE_IRQFLAGS_SUPPORT */
+ /*
+@@ -78,8 +84,16 @@
+  */
+ # define raw_local_irq_disable()	local_irq_disable()
+ # define raw_local_irq_enable()		local_irq_enable()
+-# define raw_local_irq_save(flags)	local_irq_save(flags)
+-# define raw_local_irq_restore(flags)	local_irq_restore(flags)
++# define raw_local_irq_save(flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		local_irq_save(flags);			\
++	} while (0)
++# define raw_local_irq_restore(flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		local_irq_restore(flags);		\
++	} while (0)
+ #endif /* CONFIG_TRACE_IRQFLAGS_SUPPORT */
  
- 	info->fix.mmio_start += par->aux_start ? 0x400 : 0xc00;
-diff -puN drivers/video/aty/radeon_base.c~video-fix-integer-as-null-pointer-warnings drivers/video/aty/radeon_base.c
---- a/drivers/video/aty/radeon_base.c~video-fix-integer-as-null-pointer-warnings
-+++ a/drivers/video/aty/radeon_base.c
-@@ -2277,7 +2277,7 @@ static int __devinit radeonfb_pci_regist
- 	do {
- 		rinfo->fb_base = ioremap (rinfo->fb_base_phys,
- 					  rinfo->mapped_vram);
--	} while (   rinfo->fb_base == 0 &&
-+	} while (!rinfo->fb_base &&
- 		  ((rinfo->mapped_vram /=2) >= MIN_MAPPED_VRAM) );
+ #ifdef CONFIG_TRACE_IRQFLAGS_SUPPORT
+@@ -89,7 +103,11 @@
+ 		raw_safe_halt();				\
+ 	} while (0)
  
- 	if (rinfo->fb_base == NULL) {
-diff -puN drivers/video/matrox/matroxfb_base.h~video-fix-integer-as-null-pointer-warnings drivers/video/matrox/matroxfb_base.h
---- a/drivers/video/matrox/matroxfb_base.h~video-fix-integer-as-null-pointer-warnings
-+++ a/drivers/video/matrox/matroxfb_base.h
-@@ -200,7 +200,7 @@ static inline int mga_ioremap(unsigned l
- 		virt->vaddr = ioremap_nocache(phys, size);
- 	else
- 		virt->vaddr = ioremap(phys, size);
--	return (virt->vaddr == 0); /* 0, !0... 0, error_code in future */
-+	return (virt->vaddr == NULL); /* 0, !0... 0, error_code in future */
- }
+-#define local_save_flags(flags)		raw_local_save_flags(flags)
++#define local_save_flags(flags)				\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		raw_local_save_flags(flags);		\
++	} while(0)
  
- static inline void mga_iounmap(vaddr_t va) {
-diff -puN drivers/video/sis/sis_main.c~video-fix-integer-as-null-pointer-warnings drivers/video/sis/sis_main.c
---- a/drivers/video/sis/sis_main.c~video-fix-integer-as-null-pointer-warnings
-+++ a/drivers/video/sis/sis_main.c
-@@ -5787,7 +5787,7 @@ sisfb_probe(struct pci_dev *pdev, const 
- 	} else {
- 		struct sis_video_info *countvideo = card_list;
- 		ivideo->cardnumber = 1;
--		while((countvideo = countvideo->next) != 0)
-+		while((countvideo = countvideo->next) != NULL)
- 			ivideo->cardnumber++;
- 	}
+ #define irqs_disabled()						\
+ ({								\
+@@ -99,7 +117,11 @@
+ 	raw_irqs_disabled_flags(_flags);			\
+ })
  
+-#define irqs_disabled_flags(flags)	raw_irqs_disabled_flags(flags)
++#define irqs_disabled_flags(flags)		\
++({						\
++	typecheck(unsigned long, flags);	\
++	raw_irqs_disabled_flags(flags);		\
++})
+ #endif		/* CONFIG_X86 */
+ 
+ #endif
+diff -puN include/linux/spinlock.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags include/linux/spinlock.h
+--- a/include/linux/spinlock.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags
++++ a/include/linux/spinlock.h
+@@ -191,23 +191,53 @@ do {								\
+ 
+ #if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_SPINLOCK)
+ 
+-#define spin_lock_irqsave(lock, flags)	flags = _spin_lock_irqsave(lock)
+-#define read_lock_irqsave(lock, flags)	flags = _read_lock_irqsave(lock)
+-#define write_lock_irqsave(lock, flags)	flags = _write_lock_irqsave(lock)
++#define spin_lock_irqsave(lock, flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		flags = _spin_lock_irqsave(lock);	\
++	} while (0)
++#define read_lock_irqsave(lock, flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		flags = _read_lock_irqsave(lock);	\
++	} while (0)
++#define write_lock_irqsave(lock, flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		flags = _write_lock_irqsave(lock);	\
++	} while (0)
+ 
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+-#define spin_lock_irqsave_nested(lock, flags, subclass) \
+-	flags = _spin_lock_irqsave_nested(lock, subclass)
++#define spin_lock_irqsave_nested(lock, flags, subclass)			\
++	do {								\
++		typecheck(unsigned long, flags);			\
++		flags = _spin_lock_irqsave_nested(lock, subclass);	\
++	} while (0)
+ #else
+-#define spin_lock_irqsave_nested(lock, flags, subclass) \
+-	flags = _spin_lock_irqsave(lock)
++#define spin_lock_irqsave_nested(lock, flags, subclass)			\
++	do {								\
++		typecheck(unsigned long, flags);			\
++		flags = _spin_lock_irqsave(lock);			\
++	} while (0)
+ #endif
+ 
+ #else
+ 
+-#define spin_lock_irqsave(lock, flags)	_spin_lock_irqsave(lock, flags)
+-#define read_lock_irqsave(lock, flags)	_read_lock_irqsave(lock, flags)
+-#define write_lock_irqsave(lock, flags)	_write_lock_irqsave(lock, flags)
++#define spin_lock_irqsave(lock, flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		_spin_lock_irqsave(lock, flags);	\
++	} while (0)
++#define read_lock_irqsave(lock, flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		_read_lock_irqsave(lock, flags);	\
++	} while (0)
++#define write_lock_irqsave(lock, flags)			\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		_write_lock_irqsave(lock, flags);	\
++	} while (0)
+ #define spin_lock_irqsave_nested(lock, flags, subclass)	\
+ 	spin_lock_irqsave(lock, flags)
+ 
+@@ -260,16 +290,25 @@ do {						\
+ } while (0)
+ #endif
+ 
+-#define spin_unlock_irqrestore(lock, flags) \
+-					_spin_unlock_irqrestore(lock, flags)
++#define spin_unlock_irqrestore(lock, flags)		\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		_spin_unlock_irqrestore(lock, flags);	\
++	} while (0)
+ #define spin_unlock_bh(lock)		_spin_unlock_bh(lock)
+ 
+-#define read_unlock_irqrestore(lock, flags) \
+-					_read_unlock_irqrestore(lock, flags)
++#define read_unlock_irqrestore(lock, flags)		\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		_read_unlock_irqrestore(lock, flags);	\
++	} while (0)
+ #define read_unlock_bh(lock)		_read_unlock_bh(lock)
+ 
+-#define write_unlock_irqrestore(lock, flags) \
+-					_write_unlock_irqrestore(lock, flags)
++#define write_unlock_irqrestore(lock, flags)		\
++	do {						\
++		typecheck(unsigned long, flags);	\
++		_write_unlock_irqrestore(lock, flags);	\
++	} while (0)
+ #define write_unlock_bh(lock)		_write_unlock_bh(lock)
+ 
+ #define spin_trylock_bh(lock)	__cond_lock(lock, _spin_trylock_bh(lock))
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
 origin.patch
-frv-unbreak-misalignment-handling-changes.patch
-pcmcia-replace-remaining-__function__-occurrences.patch
-autofs4-fix-sparse-warning-in-waitqc-autofs4_expire_indirect.patch
-fuse-use-clamp-rather-than-nested-min-max.patch
-block-remove-remaining-__function__-occurances.patch
-drivers-scsi-ncr53c8xxc-fix-warning.patch
-misc-fix-integer-as-null-pointer-warnings.patch
-git-acpi.patch
-cifs-remove-global_extern-macro.patch
-input-replace-remaining-__function__-occurrences.patch
-input-make-one-bit-signed-bitfields-unsigned.patch
-git-kvm.patch
-git-mips.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
+9p-use-correct-type-for-processor-flags.patch
+fix-irq-flags-in-mac80211-code.patch
+fix-irq-flags-in-saa7134.patch
+fix-irq-flags-in-rtc-ds1511.patch
+fix-irq-flags-for-iuu_phoenixc.patch
 git-sched.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-usb-fix-integer-as-null-pointer-sparse-warnings.patch
-git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-tkipc-use-kernel-provided-infrastructure.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-git-xfs.patch
-xtensa-replace-remaining-__function__-occurences.patch
-mmc-make-one-bit-signed-bitfields-unsigned.patch
-ide-eliminate-fit-macro.patch
-ata-remove-fit-macro.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-video-fix-integer-as-null-pointer-warnings.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
 
