@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + mips-gdb-stubc-use-the-common-ascii-hex-helpers.patch added to -mm tree
-Date: Fri, 02 May 2008 15:56:46 -0700
-Message-ID: <200805022256.m42Muktj019298@imap1.linux-foundation.org>
+Subject: + ppc-use-the-common-ascii-hex-helpers.patch added to -mm tree
+Date: Fri, 02 May 2008 15:56:50 -0700
+Message-ID: <200805022256.m42MuoVm019308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54109 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37068 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935068AbYEBW5T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 18:57:19 -0400
+	by vger.kernel.org with ESMTP id S934999AbYEBW6D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 18:58:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     mips: gdb-stub.c use the common ascii hex helpers
+     ppc: use the common ascii hex helpers
 has been added to the -mm tree.  Its filename is
-     mips-gdb-stubc-use-the-common-ascii-hex-helpers.patch
+     ppc-use-the-common-ascii-hex-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,145 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: gdb-stub.c use the common ascii hex helpers
+Subject: ppc: use the common ascii hex helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/gdb-stub.c |   56 ++++++++++++----------------------
- 1 file changed, 20 insertions(+), 36 deletions(-)
+ arch/powerpc/kernel/btext.c     |   34 +++++++++----------
+ arch/powerpc/kernel/prom_init.c |    3 -
+ arch/ppc/kernel/ppc-stub.c      |   53 +++++++++++++-----------------
+ arch/ppc/syslib/btext.c         |   18 ++++------
+ arch/ppc/xmon/start_8xx.c       |    2 -
+ 5 files changed, 50 insertions(+), 60 deletions(-)
 
-diff -puN arch/mips/kernel/gdb-stub.c~mips-gdb-stubc-use-the-common-ascii-hex-helpers arch/mips/kernel/gdb-stub.c
---- a/arch/mips/kernel/gdb-stub.c~mips-gdb-stubc-use-the-common-ascii-hex-helpers
-+++ a/arch/mips/kernel/gdb-stub.c
-@@ -164,7 +164,6 @@ extern void adel(void);
- static void getpacket(char *buffer);
- static void putpacket(char *buffer);
- static int computeSignal(int tt);
--static int hex(unsigned char ch);
- static int hexToInt(char **ptr, int *intValue);
- static int hexToLong(char **ptr, long *longValue);
- static unsigned char *mem2hex(char *mem, char *buf, int count, int may_fault);
-@@ -190,7 +189,6 @@ static char input_buffer[BUFMAX];
- static char output_buffer[BUFMAX];
- static int initialized;	/* !0 means we've been initialized */
- static int kgdb_started;
--static const char hexchars[]="0123456789abcdef";
+diff -puN arch/powerpc/kernel/btext.c~ppc-use-the-common-ascii-hex-helpers arch/powerpc/kernel/btext.c
+--- a/arch/powerpc/kernel/btext.c~ppc-use-the-common-ascii-hex-helpers
++++ a/arch/powerpc/kernel/btext.c
+@@ -443,28 +443,26 @@ void btext_drawtext(const char *c, unsig
  
- /* Used to prevent crashes in memory access.  Note that they'll crash anyway if
-    we haven't set up fault handlers yet... */
-@@ -198,20 +196,6 @@ int kgdb_read_byte(unsigned char *addres
- int kgdb_write_byte(unsigned char val, unsigned char *dest);
- 
- /*
-- * Convert ch from a hex digit to an int
-- */
--static int hex(unsigned char ch)
--{
--	if (ch >= 'a' && ch <= 'f')
--		return ch-'a'+10;
--	if (ch >= '0' && ch <= '9')
--		return ch-'0';
--	if (ch >= 'A' && ch <= 'F')
--		return ch-'A'+10;
--	return -1;
--}
+ void btext_drawhex(unsigned long v)
+ {
+-	char *hex_table = "0123456789abcdef";
 -
--/*
-  * scan for the sequence $<data>#<checksum>
-  */
- static void getpacket(char *buffer)
-@@ -251,8 +235,8 @@ static void getpacket(char *buffer)
- 		buffer[count] = 0;
+ 	if (!boot_text_mapped)
+ 		return;
+ #ifdef CONFIG_PPC64
+-	btext_drawchar(hex_table[(v >> 60) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 56) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 52) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 48) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 44) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 40) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 36) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 32) & 0x0000000FUL]);
++	btext_drawchar(hex_asc_hi(v >> 56));
++	btext_drawchar(hex_asc_lo(v >> 56));
++	btext_drawchar(hex_asc_hi(v >> 48));
++	btext_drawchar(hex_asc_lo(v >> 48));
++	btext_drawchar(hex_asc_hi(v >> 40));
++	btext_drawchar(hex_asc_lo(v >> 40));
++	btext_drawchar(hex_asc_hi(v >> 32));
++	btext_drawchar(hex_asc_lo(v >> 32));
+ #endif
+-	btext_drawchar(hex_table[(v >> 28) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 24) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 20) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 16) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 12) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >>  8) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >>  4) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >>  0) & 0x0000000FUL]);
++	btext_drawchar(hex_asc_hi(v >> 24));
++	btext_drawchar(hex_asc_lo(v >> 24));
++	btext_drawchar(hex_asc_hi(v >> 16));
++	btext_drawchar(hex_asc_lo(v >> 16));
++	btext_drawchar(hex_asc_hi(v >> 8));
++	btext_drawchar(hex_asc_lo(v >> 8));
++	btext_drawchar(hex_asc_hi(v));
++	btext_drawchar(hex_asc_lo(v));
+ 	btext_drawchar(' ');
+ }
  
- 		if (ch == '#') {
--			xmitcsum = hex(getDebugChar() & 0x7f) << 4;
--			xmitcsum |= hex(getDebugChar() & 0x7f);
-+			xmitcsum = hex_to_int(getDebugChar() & 0x7f) << 4;
-+			xmitcsum |= hex_to_int(getDebugChar() & 0x7f);
+diff -puN arch/powerpc/kernel/prom_init.c~ppc-use-the-common-ascii-hex-helpers arch/powerpc/kernel/prom_init.c
+--- a/arch/powerpc/kernel/prom_init.c~ppc-use-the-common-ascii-hex-helpers
++++ a/arch/powerpc/kernel/prom_init.c
+@@ -453,7 +453,6 @@ static void add_string(char **str, const
  
- 			if (checksum != xmitcsum)
- 				putDebugChar('-');	/* failed checksum */
-@@ -306,8 +290,8 @@ static void putpacket(char *buffer)
+ static char *tohex(unsigned int x)
+ {
+-	static char digits[] = "0123456789abcdef";
+ 	static char result[9];
+ 	int i;
+ 
+@@ -461,7 +460,7 @@ static char *tohex(unsigned int x)
+ 	i = 8;
+ 	do {
+ 		--i;
+-		result[i] = digits[x & 0xf];
++		result[i] = hex_asc_lo(x);
+ 		x >>= 4;
+ 	} while (x != 0 && i > 0);
+ 	return &result[i];
+diff -puN arch/ppc/kernel/ppc-stub.c~ppc-use-the-common-ascii-hex-helpers arch/ppc/kernel/ppc-stub.c
+--- a/arch/ppc/kernel/ppc-stub.c~ppc-use-the-common-ascii-hex-helpers
++++ a/arch/ppc/kernel/ppc-stub.c
+@@ -130,9 +130,6 @@ static int kgdb_started;
+ static u_int fault_jmp_buf[100];
+ static int kdebug;
+ 
+-
+-static const char hexchars[]="0123456789abcdef";
+-
+ /* Place where we save old trap entries for restoration - sparc*/
+ /* struct tt_entry kgdb_savettable[256]; */
+ /* typedef void (*trapfunc_t)(void); */
+@@ -205,28 +202,26 @@ mem2hex(const char *mem, char *buf, int 
+ 		if ((count == 2) && (((long)mem & 1) == 0)) {
+ 			tmp_s = *(unsigned short *)mem;
+ 			mem += 2;
+-			*buf++ = hexchars[(tmp_s >> 12) & 0xf];
+-			*buf++ = hexchars[(tmp_s >> 8) & 0xf];
+-			*buf++ = hexchars[(tmp_s >> 4) & 0xf];
+-			*buf++ = hexchars[tmp_s & 0xf];
+-
++			*buf++ = hex_asc_hi(tmp_s >> 8);
++			*buf++ = hex_asc_lo(tmp_s >> 8);
++			*buf++ = hex_asc_hi(tmp_s);
++			*buf++ = hex_asc_lo(tmp_s);
+ 		} else if ((count == 4) && (((long)mem & 3) == 0)) {
+ 			tmp_l = *(unsigned int *)mem;
+ 			mem += 4;
+-			*buf++ = hexchars[(tmp_l >> 28) & 0xf];
+-			*buf++ = hexchars[(tmp_l >> 24) & 0xf];
+-			*buf++ = hexchars[(tmp_l >> 20) & 0xf];
+-			*buf++ = hexchars[(tmp_l >> 16) & 0xf];
+-			*buf++ = hexchars[(tmp_l >> 12) & 0xf];
+-			*buf++ = hexchars[(tmp_l >> 8) & 0xf];
+-			*buf++ = hexchars[(tmp_l >> 4) & 0xf];
+-			*buf++ = hexchars[tmp_l & 0xf];
+-
++			*buf++ = hex_asc_hi(tmp_l >> 24);
++			*buf++ = hex_asc_lo(tmp_l >> 24);
++			*buf++ = hex_asc_hi(tmp_l >> 16);
++			*buf++ = hex_asc_lo(tmp_l >> 16);
++			*buf++ = hex_asc_hi(tmp_l >> 8);
++			*buf++ = hex_asc_lo(tmp_l >> 8);
++			*buf++ = hex_asc_hi(tmp_l);
++			*buf++ = hex_asc_lo(tmp_l);
+ 		} else {
+ 			while (count-- > 0) {
+ 				ch = *mem++;
+-				*buf++ = hexchars[ch >> 4];
+-				*buf++ = hexchars[ch & 0xf];
++				*buf++ = hex_asc_hi(ch);
++				*buf++ = hex_asc_lo(ch);
+ 			}
+ 		}
+ 
+@@ -411,8 +406,8 @@ static void putpacket(unsigned char *buf
  		}
  
  		putDebugChar('#');
@@ -102,101 +179,84 @@ diff -puN arch/mips/kernel/gdb-stub.c~mips-gdb-stubc-use-the-common-ascii-hex-he
 -		putDebugChar(hexchars[checksum & 0xf]);
 +		putDebugChar(hex_asc_hi(checksum));
 +		putDebugChar(hex_asc_lo(checksum));
+ 		recv = getDebugChar();
+ 	} while ((recv & 0x7f) != '+');
+ }
+@@ -602,15 +597,15 @@ handle_exception (struct pt_regs *regs)
+ 	ptr = remcomOutBuffer;
  
- 	}
- 	while ((getDebugChar() & 0x7f) != '+');
-@@ -328,8 +312,8 @@ static unsigned char *mem2hex(char *mem,
- 	while (count-- > 0) {
- 		if (kgdb_read_byte(mem++, &ch) != 0)
- 			return 0;
--		*buf++ = hexchars[ch >> 4];
--		*buf++ = hexchars[ch & 0xf];
-+		*buf++ = hex_asc_hi(ch);
-+		*buf++ = hex_asc_lo(ch);
- 	}
- 
- 	*buf = 0;
-@@ -356,8 +340,8 @@ static char *hex2mem(char *buf, char *me
- 				ch = 0x20 ^ *buf++;
- 		}
- 		else {
--			ch = hex(*buf++) << 4;
--			ch |= hex(*buf++);
-+			ch = hex_to_int(*buf++) << 4;
-+			ch |= hex_to_int(*buf++);
- 		}
- 		if (kgdb_write_byte(ch, mem++) != 0)
- 			return 0;
-@@ -457,7 +441,7 @@ static int hexToInt(char **ptr, int *int
- 	*intValue = 0;
- 
- 	while (**ptr) {
--		hexValue = hex(**ptr);
-+		hexValue = hex_to_int(**ptr);
- 		if (hexValue < 0)
- 			break;
- 
-@@ -478,7 +462,7 @@ static int hexToLong(char **ptr, long *l
- 	*longValue = 0;
- 
- 	while (**ptr) {
--		hexValue = hex(**ptr);
-+		hexValue = hex_to_int(**ptr);
- 		if (hexValue < 0)
- 			break;
- 
-@@ -812,14 +796,14 @@ void handle_exception(struct gdb_regs *r
- 	 * Send trap type (converted to signal)
- 	 */
  	*ptr++ = 'T';
 -	*ptr++ = hexchars[sigval >> 4];
 -	*ptr++ = hexchars[sigval & 0xf];
+-	*ptr++ = hexchars[PC_REGNUM >> 4];
+-	*ptr++ = hexchars[PC_REGNUM & 0xf];
 +	*ptr++ = hex_asc_hi(sigval);
 +	*ptr++ = hex_asc_lo(sigval);
- 
- 	/*
- 	 * Send Error PC
- 	 */
--	*ptr++ = hexchars[REG_EPC >> 4];
--	*ptr++ = hexchars[REG_EPC & 0xf];
-+	*ptr++ = hex_asc_hi(REG_EPC);
-+	*ptr++ = hex_asc_lo(REG_EPC);
++	*ptr++ = hex_asc_hi(PC_REGNUM);
++	*ptr++ = hex_asc_lo(PC_REGNUM);
  	*ptr++ = ':';
- 	ptr = mem2hex((char *)&regs->cp0_epc, ptr, sizeof(long), 0);
+ 	ptr = mem2hex((char *)&regs->nip, ptr, 4);
  	*ptr++ = ';';
-@@ -827,8 +811,8 @@ void handle_exception(struct gdb_regs *r
- 	/*
- 	 * Send frame pointer
- 	 */
--	*ptr++ = hexchars[REG_FP >> 4];
--	*ptr++ = hexchars[REG_FP & 0xf];
-+	*ptr++ = hex_asc_hi(REG_FP);
-+	*ptr++ = hex_asc_lo(REG_FP);
+-	*ptr++ = hexchars[SP_REGNUM >> 4];
+-	*ptr++ = hexchars[SP_REGNUM & 0xf];
++	*ptr++ = hex_asc_hi(SP_REGNUM);
++	*ptr++ = hex_asc_lo(SP_REGNUM);
  	*ptr++ = ':';
- 	ptr = mem2hex((char *)&regs->reg30, ptr, sizeof(long), 0);
+ 	ptr = mem2hex(((char *)regs) + SP_REGNUM*4, ptr, 4);
  	*ptr++ = ';';
-@@ -836,8 +820,8 @@ void handle_exception(struct gdb_regs *r
- 	/*
- 	 * Send stack pointer
- 	 */
--	*ptr++ = hexchars[REG_SP >> 4];
--	*ptr++ = hexchars[REG_SP & 0xf];
-+	*ptr++ = hex_asc_hi(REG_SP);
-+	*ptr++ = hex_asc_lo(REG_SP);
- 	*ptr++ = ':';
- 	ptr = mem2hex((char *)&regs->reg29, ptr, sizeof(long), 0);
- 	*ptr++ = ';';
-@@ -856,8 +840,8 @@ void handle_exception(struct gdb_regs *r
- 		{
- 		case '?':
- 			output_buffer[0] = 'S';
--			output_buffer[1] = hexchars[sigval >> 4];
--			output_buffer[2] = hexchars[sigval & 0xf];
-+			output_buffer[1] = hex_asc_hi(sigval);
-+			output_buffer[2] = hex_asc_lo(sigval);
- 			output_buffer[3] = 0;
+@@ -632,8 +627,8 @@ handle_exception (struct pt_regs *regs)
+ 		switch (remcomInBuffer[0]) {
+ 		case '?': /* report most recent signal */
+ 			remcomOutBuffer[0] = 'S';
+-			remcomOutBuffer[1] = hexchars[sigval >> 4];
+-			remcomOutBuffer[2] = hexchars[sigval & 0xf];
++			remcomOutBuffer[1] = hex_asc_hi(sigval);
++			remcomOutBuffer[2] = hex_asc_lo(sigval);
+ 			remcomOutBuffer[3] = 0;
  			break;
+ #if 0
+diff -puN arch/ppc/syslib/btext.c~ppc-use-the-common-ascii-hex-helpers arch/ppc/syslib/btext.c
+--- a/arch/ppc/syslib/btext.c~ppc-use-the-common-ascii-hex-helpers
++++ a/arch/ppc/syslib/btext.c
+@@ -391,18 +391,16 @@ btext_drawstring(const char *c)
+ void BTEXT
+ btext_drawhex(unsigned long v)
+ {
+-	static char hex_table[] = "0123456789abcdef";
+-
+ 	if (!boot_text_mapped)
+ 		return;
+-	btext_drawchar(hex_table[(v >> 28) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 24) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 20) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 16) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >> 12) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >>  8) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >>  4) & 0x0000000FUL]);
+-	btext_drawchar(hex_table[(v >>  0) & 0x0000000FUL]);
++	btext_drawchar(hex_asc_hi(v >> 24));
++	btext_drawchar(hex_asc_lo(v >> 24));
++	btext_drawchar(hex_asc_hi(v >> 16));
++	btext_drawchar(hex_asc_lo(v >> 16));
++	btext_drawchar(hex_asc_hi(v >> 8));
++	btext_drawchar(hex_asc_lo(v >> 8));
++	btext_drawchar(hex_asc_hi(v));
++	btext_drawchar(hex_asc_lo(v));
+ 	btext_drawchar(' ');
+ }
  
+diff -puN arch/ppc/xmon/start_8xx.c~ppc-use-the-common-ascii-hex-helpers arch/ppc/xmon/start_8xx.c
+--- a/arch/ppc/xmon/start_8xx.c~ppc-use-the-common-ascii-hex-helpers
++++ a/arch/ppc/xmon/start_8xx.c
+@@ -273,7 +273,7 @@ prom_drawhex(uint val)
+ 	int i;
+ 	for (i = 7;  i >= 0;  i--)
+ 	{
+-		buf[i] = "0123456789abcdef"[val & 0x0f];
++		buf[i] = hex_asc_lo(val);
+ 		val >>= 4;
+ 	}
+ 	buf[8] = '\0';
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
