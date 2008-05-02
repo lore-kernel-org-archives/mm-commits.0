@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-use-get_unaligned_-helpers.patch added to -mm tree
-Date: Fri, 02 May 2008 16:09:28 -0700
-Message-ID: <200805022309.m42N9SBm019855@imap1.linux-foundation.org>
+Subject: + media-use-get_unaligned_-helpers.patch added to -mm tree
+Date: Fri, 02 May 2008 16:09:22 -0700
+Message-ID: <200805022309.m42N9MK7019846@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41423 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58703 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932488AbYEBXKB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:10:01 -0400
+	by vger.kernel.org with ESMTP id S932448AbYEBXKA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:10:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dgc@sgi.com, lachlan@sgi.com, tes@sgi.com
+Cc: harvey.harrison@gmail.com, mchehab@infradead.org
 
 
 The patch titled
-     xfs: use get_unaligned_* helpers
+     media: use get_unaligned_* helpers
 has been added to the -mm tree.  Its filename is
-     xfs-use-get_unaligned_-helpers.patch
+     media-use-get_unaligned_-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xfs: use get_unaligned_* helpers
+Subject: media: use get_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Timothy Shimmin <tes@sgi.com>
-Cc: David Chinner <dgc@sgi.com>
-Cc: Lachlan McIlroy <lachlan@sgi.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_inode.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/radio/radio-si470x.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN fs/xfs/xfs_inode.c~xfs-use-get_unaligned_-helpers fs/xfs/xfs_inode.c
---- a/fs/xfs/xfs_inode.c~xfs-use-get_unaligned_-helpers
-+++ a/fs/xfs/xfs_inode.c
-@@ -580,8 +580,8 @@ xfs_iformat_extents(
- 		xfs_validate_extents(ifp, nex, XFS_EXTFMT_INODE(ip));
- 		for (i = 0; i < nex; i++, dp++) {
- 			xfs_bmbt_rec_host_t *ep = xfs_iext_get_ext(ifp, i);
--			ep->l0 = be64_to_cpu(get_unaligned(&dp->l0));
--			ep->l1 = be64_to_cpu(get_unaligned(&dp->l1));
-+			ep->l0 = get_unaligned_be64(&dp->l0);
-+			ep->l1 = get_unaligned_be64(&dp->l1);
- 		}
- 		XFS_BMAP_TRACE_EXLIST(ip, nex, whichfork);
- 		if (whichfork != XFS_DATA_FORK ||
+diff -puN drivers/media/radio/radio-si470x.c~media-use-get_unaligned_-helpers drivers/media/radio/radio-si470x.c
+--- a/drivers/media/radio/radio-si470x.c~media-use-get_unaligned_-helpers
++++ a/drivers/media/radio/radio-si470x.c
+@@ -521,8 +521,7 @@ static int si470x_get_register(struct si
+ 	retval = si470x_get_report(radio, (void *) &buf, sizeof(buf));
+ 
+ 	if (retval >= 0)
+-		radio->registers[regnr] = be16_to_cpu(get_unaligned(
+-			(unsigned short *) &buf[1]));
++		radio->registers[regnr] = get_unaligned_be16(&buf[1]);
+ 
+ 	return (retval < 0) ? -EINVAL : 0;
+ }
+@@ -561,9 +560,8 @@ static int si470x_get_all_registers(stru
+ 
+ 	if (retval >= 0)
+ 		for (regnr = 0; regnr < RADIO_REGISTER_NUM; regnr++)
+-			radio->registers[regnr] = be16_to_cpu(get_unaligned(
+-				(unsigned short *)
+-				&buf[regnr * RADIO_REGISTER_SIZE + 1]));
++			radio->registers[regnr] = get_unaligned_be16(
++				&buf[regnr * RADIO_REGISTER_SIZE + 1]);
+ 
+ 	return (retval < 0) ? -EINVAL : 0;
+ }
+@@ -593,9 +591,8 @@ static int si470x_get_rds_registers(stru
+ 
+ 	if (retval >= 0)
+ 		for (regnr = 0; regnr < RDS_REGISTER_NUM; regnr++)
+-			radio->registers[STATUSRSSI + regnr] =
+-				be16_to_cpu(get_unaligned((unsigned short *)
+-				&buf[regnr * RADIO_REGISTER_SIZE + 1]));
++			radio->registers[STATUSRSSI + regnr] = get_unaligned_be16(
++				&buf[regnr * RADIO_REGISTER_SIZE + 1]);
+ 
+ 	return (retval < 0) ? -EINVAL : 0;
+ }
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
