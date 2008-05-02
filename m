@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + regulator-regulator-test-harness.patch added to -mm tree
-Date: Fri, 02 May 2008 16:57:48 -0700
-Message-ID: <200805022357.m42NvmqP021828@imap1.linux-foundation.org>
+Subject: + regulator-core-kbuild-files.patch added to -mm tree
+Date: Fri, 02 May 2008 16:57:50 -0700
+Message-ID: <200805022357.m42Nvofj021831@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37044 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60493 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934674AbYEBX55 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:57:57 -0400
+	by vger.kernel.org with ESMTP id S935368AbYEBX6C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:58:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: lg@opensource.wolfsonmicro.com, broonie@opensource.wolfsonmicro.com, david-b
 
 
 The patch titled
-     regulator: regulator test harness
+     regulator: core kbuild files
 has been added to the -mm tree.  Its filename is
-     regulator-regulator-test-harness.patch
+     regulator-core-kbuild-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,278 +33,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: regulator test harness
+Subject: regulator: core kbuild files
 From: Liam Girdwood <lg@opensource.wolfsonmicro.com>
 
-This provides a virtual regulator test harness which exposes a sysfs interface
-for setting power requirements for test purposes only.
+This patch adds kernel build support for the regulator core.
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Signed-off-by: Liam Girdwood <lg@opensource.wolfsonmicro.com>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
 Cc: Greg KH <greg@kroah.com>
 Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/regulator/virtual.c |  252 ++++++++++++++++++++++++++++++++++
- 1 file changed, 252 insertions(+)
+ arch/arm/Kconfig           |    2 +
+ drivers/regulator/Kconfig  |   49 +++++++++++++++++++++++++++++++++++
+ drivers/regulator/Makefile |   10 +++++++
+ 3 files changed, 61 insertions(+)
 
-diff -puN /dev/null drivers/regulator/virtual.c
+diff -puN arch/arm/Kconfig~regulator-core-kbuild-files arch/arm/Kconfig
+--- a/arch/arm/Kconfig~regulator-core-kbuild-files
++++ a/arch/arm/Kconfig
+@@ -1166,6 +1166,8 @@ source "drivers/dma/Kconfig"
+ 
+ source "drivers/dca/Kconfig"
+ 
++source "drivers/regulator/Kconfig"
++
+ source "drivers/uio/Kconfig"
+ 
+ endmenu
+diff -puN /dev/null drivers/regulator/Kconfig
 --- /dev/null
-+++ a/drivers/regulator/virtual.c
-@@ -0,0 +1,252 @@
-+/*
-+ * reg-virtual-consumer.c
-+ *
-+ * Copyright 2008 Wolfson Microelectronics PLC.
-+ *
-+ * Author: Mark Brown <broonie@opensource.wolfsonmicro.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of the
-+ * License, or (at your option) any later version.
-+ */
++++ a/drivers/regulator/Kconfig
+@@ -0,0 +1,49 @@
++menu "Voltage and Current regulators"
 +
-+#include <linux/err.h>
-+#include <linux/mutex.h>
-+#include <linux/platform_device.h>
-+#include <linux/regulator/regulator.h>
++config REGULATOR
++	bool "Voltage and Current Regulator Support"
++	default n
++	help
++	  Generic Voltage and Current Regulator support.
 +
-+struct virtual_consumer_data {
-+	struct mutex lock;
-+	struct regulator *regulator;
-+	int enabled;
-+	int min_uV;
-+	int max_uV;
-+	unsigned int mode;
-+};
++	  This framework is designed to provide a generic interface to voltage
++	  and current regulators within the Linux kernel. It's intended to
++	  provide voltage and current control to client or consumer drivers and
++	  also provide status information to user space applications through a
++	  sysfs interface.
 +
-+static void update_constraints(struct virtual_consumer_data *data)
-+{
-+	int ret;
++	  The intention is to allow systems to dynamically control regulator
++	  output in order to save power and prolong battery life. This applies
++	  to both voltage regulators (where voltage output is controllable) and
++	  current sinks (where current output is controllable).
 +
-+	if (data->min_uV && data->max_uV
-+	    && data->min_uV <= data->max_uV) {
-+		ret = regulator_set_voltage(data->regulator,
-+					    data->min_uV, data->max_uV);
-+		if (ret != 0) {
-+			printk(KERN_ERR "regulator_set_voltage() failed: %d\n",
-+			       ret);
-+			return;
-+		}
-+	}
++	  This framework safely compiles out if not selected so that client
++	  drivers can still be used in systems with no software controllable
++	  regulators.
 +
-+	if (data->min_uV && data->max_uV && !data->enabled) {
-+		ret = regulator_enable(data->regulator);
-+		if (ret == 0)
-+			data->enabled = 1;
-+		else
-+			printk(KERN_ERR "regulator_enable() failed: %d\n",
-+				ret);
-+	}
++	  If unsure, say no.
 +
-+	if (!(data->min_uV && data->max_uV) && data->enabled) {
-+		ret = regulator_disable(data->regulator);
-+		if (ret == 0)
-+			data->enabled = 0;
-+		else
-+			printk(KERN_ERR "regulator_disable() failed: %d\n",
-+				ret);
-+	}
-+}
++config REGULATOR_DEBUG
++	bool "Regulator debug support"
++	depends on REGULATOR
++	help
++	  Say yes here to enable debugging support.
 +
-+static ssize_t show_min_uV(struct device *dev,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct virtual_consumer_data *data = dev_get_drvdata(dev);
-+	return sprintf(buf, "%d\n", data->min_uV);
-+}
++config REGULATOR_FIXED_VOLTAGE
++	tristate
++	default n
++	select REGULATOR
 +
-+static ssize_t set_min_uV(struct device *dev, struct device_attribute *attr,
-+			  const char *buf, size_t count)
-+{
-+	struct virtual_consumer_data *data = dev_get_drvdata(dev);
-+	long val;
++config REGULATOR_VIRTUAL_CONSUMER
++	tristate "Virtual regulator consumer support"
++	default n
++	select REGULATOR
++	help
++	  This driver provides a virtual consumer for the voltage and
++          current regulator API which provides sysfs controls for
++          configuring the supplies requested.  This is mainly useful
++          for test purposes.
 +
-+	if (strict_strtol(buf, 10, &val) != 0)
-+		return count;
++          If unsure, say no.
 +
-+	mutex_lock(&data->lock);
-+
-+	data->min_uV = val;
-+	update_constraints(data);
-+
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_max_uV(struct device *dev,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct virtual_consumer_data *data = dev_get_drvdata(dev);
-+	return sprintf(buf, "%d\n", data->max_uV);
-+}
-+
-+static ssize_t set_max_uV(struct device *dev, struct device_attribute *attr,
-+			  const char *buf, size_t count)
-+{
-+	struct virtual_consumer_data *data = dev_get_drvdata(dev);
-+	long val;
-+
-+	if (strict_strtol(buf, 10, &val) != 0)
-+		return count;
-+
-+	mutex_lock(&data->lock);
-+
-+	data->max_uV = val;
-+	update_constraints(data);
-+
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static ssize_t show_mode(struct device *dev,
-+			 struct device_attribute *attr, char *buf)
-+{
-+	struct virtual_consumer_data *data = dev_get_drvdata(dev);
-+
-+	switch (data->mode) {
-+	case REGULATOR_MODE_FAST:
-+		return sprintf(buf, "fast\n");
-+	case REGULATOR_MODE_NORMAL:
-+		return sprintf(buf, "normal\n");
-+	case REGULATOR_MODE_IDLE:
-+		return sprintf(buf, "idle\n");
-+	case REGULATOR_MODE_STANDBY:
-+		return sprintf(buf, "standby\n");
-+	default:
-+		return sprintf(buf, "unknown\n");
-+	}
-+}
-+
-+static ssize_t set_mode(struct device *dev, struct device_attribute *attr,
-+			const char *buf, size_t count)
-+{
-+	struct virtual_consumer_data *data = dev_get_drvdata(dev);
-+	unsigned int mode;
-+	int ret;
-+
-+	if (strncmp(buf, "fast", strlen("fast")) == 0)
-+		mode = REGULATOR_MODE_FAST;
-+	else if (strncmp(buf, "normal", strlen("normal")) == 0)
-+		mode = REGULATOR_MODE_NORMAL;
-+	else if (strncmp(buf, "idle", strlen("idle")) == 0)
-+		mode = REGULATOR_MODE_IDLE;
-+	else if (strncmp(buf, "standby", strlen("standby")) == 0)
-+		mode = REGULATOR_MODE_STANDBY;
-+	else {
-+		dev_err(dev, "Configuring invalid mode\n");
-+		return count;
-+	}
-+
-+	mutex_lock(&data->lock);
-+	ret = regulator_set_mode(data->regulator, mode);
-+	if (ret == 0)
-+		data->mode = mode;
-+	else
-+		dev_err(dev, "Failed to configure mode: %d\n", ret);
-+	mutex_unlock(&data->lock);
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR(min_microvolts, 0666, show_min_uV, set_min_uV);
-+static DEVICE_ATTR(max_microvolts, 0666, show_max_uV, set_max_uV);
-+static DEVICE_ATTR(mode, 0666, show_mode, set_mode);
-+
-+struct device_attribute *attributes[] = {
-+	&dev_attr_min_microvolts,
-+	&dev_attr_max_microvolts,
-+	&dev_attr_mode,
-+};
-+
-+static int regulator_virtual_consumer_probe(struct platform_device *pdev)
-+{
-+	char *reg_id = pdev->dev.platform_data;
-+	struct virtual_consumer_data *drvdata;
-+	int ret, i;
-+
-+	drvdata = kzalloc(sizeof(struct virtual_consumer_data), GFP_KERNEL);
-+	if (drvdata == NULL) {
-+		ret = -ENOMEM;
-+		goto err;
-+	}
-+
-+	mutex_init(&drvdata->lock);
-+
-+	drvdata->regulator = regulator_get(&pdev->dev, reg_id);
-+	if (IS_ERR(drvdata->regulator)) {
-+		ret = PTR_ERR(drvdata->regulator);
-+		goto err;
-+	}
-+
-+	for (i = 0; i < ARRAY_SIZE(attributes); i++) {
-+		ret = device_create_file(&pdev->dev, attributes[i]);
-+		if (ret != 0)
-+			goto err;
-+	}
-+
-+	drvdata->mode = regulator_get_mode(drvdata->regulator);
-+
-+	platform_set_drvdata(pdev, drvdata);
-+
-+	return 0;
-+
-+err:
-+	for (i = 0; i < ARRAY_SIZE(attributes); i++)
-+		device_remove_file(&pdev->dev, attributes[i]);
-+	kfree(drvdata);
-+	return ret;
-+}
-+
-+static int regulator_virtual_consumer_remove(struct platform_device *pdev)
-+{
-+	struct virtual_consumer_data *drvdata = platform_get_drvdata(pdev);
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(attributes); i++)
-+		device_remove_file(&pdev->dev, attributes[i]);
-+	if (drvdata->enabled)
-+		regulator_disable(drvdata->regulator);
-+	regulator_put(drvdata->regulator);
-+
-+	kfree(drvdata);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver regulator_virtual_consumer_driver = {
-+	.probe		= regulator_virtual_consumer_probe,
-+	.remove		= regulator_virtual_consumer_remove,
-+	.driver		= {
-+		.name		= "reg-virt-consumer",
-+	},
-+};
++endmenu
+diff -puN /dev/null drivers/regulator/Makefile
+--- /dev/null
++++ a/drivers/regulator/Makefile
+@@ -0,0 +1,10 @@
++#
++# Makefile for regulator drivers.
++#
 +
 +
-+static int __init regulator_virtual_consumer_init(void)
-+{
-+	return platform_driver_register(&regulator_virtual_consumer_driver);
-+}
-+module_init(regulator_virtual_consumer_init);
++obj-$(CONFIG_REGULATOR) += core.o
++obj-$(CONFIG_REGULATOR_FIXED_VOLTAGE) += fixed.o
++obj-$(CONFIG_REGULATOR_VIRTUAL_CONSUMER) += virtual.o
 +
-+static void __exit regulator_virtual_consumer_exit(void)
-+{
-+	platform_driver_unregister(&regulator_virtual_consumer_driver);
-+}
-+module_exit(regulator_virtual_consumer_exit);
-+
-+MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
-+MODULE_DESCRIPTION("Virtual regulator consumer");
-+MODULE_LICENSE("GPL");
++ccflags-$(CONFIG_REGULATOR_DEBUG) += -DDEBUG
 _
 
 Patches currently in -mm which might be from lg@opensource.wolfsonmicro.com are
