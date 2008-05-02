@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + block-use-get_unaligned_-helpers.patch added to -mm tree
-Date: Fri, 02 May 2008 16:09:18 -0700
-Message-ID: <200805022309.m42N9IU5019835@imap1.linux-foundation.org>
+Subject: + usb-use-get_unaligned_-helpers.patch added to -mm tree
+Date: Fri, 02 May 2008 16:09:26 -0700
+Message-ID: <200805022309.m42N9Qe4019852@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42386 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45207 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765907AbYEBXJ6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:09:58 -0400
+	by vger.kernel.org with ESMTP id S932394AbYEBXJ7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:09:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, jens.axboe@oracle.com
+Cc: harvey.harrison@gmail.com, greg@kroah.com
 
 
 The patch titled
-     block: use get_unaligned_* helpers
+     usb: use get_unaligned_* helpers
 has been added to the -mm tree.  Its filename is
-     block-use-get_unaligned_-helpers.patch
+     usb-use-get_unaligned_-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: block: use get_unaligned_* helpers
+Subject: usb: use get_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/aoe/aoecmd.c |    2 +-
+ drivers/usb/serial/kl5kusb105.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/aoe/aoecmd.c~block-use-get_unaligned_-helpers drivers/block/aoe/aoecmd.c
---- a/drivers/block/aoe/aoecmd.c~block-use-get_unaligned_-helpers
-+++ a/drivers/block/aoe/aoecmd.c
-@@ -1001,7 +1001,7 @@ aoecmd_cfg_rsp(struct sk_buff *skb)
- 	 * Enough people have their dip switches set backwards to
- 	 * warrant a loud message for this special case.
- 	 */
--	aoemajor = be16_to_cpu(get_unaligned(&h->major));
-+	aoemajor = get_unaligned_be16(&h->major);
- 	if (aoemajor == 0xfff) {
- 		printk(KERN_ERR "aoe: Warning: shelf address is all ones.  "
- 			"Check shelf dip switches.\n");
+diff -puN drivers/usb/serial/kl5kusb105.c~usb-use-get_unaligned_-helpers drivers/usb/serial/kl5kusb105.c
+--- a/drivers/usb/serial/kl5kusb105.c~usb-use-get_unaligned_-helpers
++++ a/drivers/usb/serial/kl5kusb105.c
+@@ -236,7 +236,7 @@ static int klsi_105_get_line_state(struc
+ 	if (rc < 0)
+ 		err("Reading line status failed (error = %d)", rc);
+ 	else {
+-		status = le16_to_cpu(get_unaligned((__le16 *)status_buf));
++		status = get_unaligned_le16(status_buf);
+ 
+ 		info("%s - read status %x %x", __func__,
+ 		     status_buf[0], status_buf[1]);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
