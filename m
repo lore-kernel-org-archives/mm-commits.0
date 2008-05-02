@@ -1,162 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-char-synclinkc-inbreak-mgsl_put_char.patch removed from -mm tree
-Date: Fri, 02 May 2008 12:43:36 -0700
-Message-ID: <200805021943.m42Jha5B011303@imap1.linux-foundation.org>
+Subject: - scsi-fix-section-mismatch-in-aic94xx.patch removed from -mm tree
+Date: Fri, 02 May 2008 12:43:48 -0700
+Message-ID: <200805021943.m42JhmvI011322@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49557 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47265 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765479AbYEBTwa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:52:30 -0400
+	by vger.kernel.org with ESMTP id S936071AbYEBTwh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:52:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, paulkf@microgate.com, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, James.Bottomley@SteelEye.com, gilbert_wu@adaptec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/char/synclink.c: unbreak mgsl_put_char()
+     scsi: fix section mismatch in aic94xx
 has been removed from the -mm tree.  Its filename was
-     drivers-char-synclinkc-inbreak-mgsl_put_char.patch
+     scsi-fix-section-mismatch-in-aic94xx.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/synclink.c: unbreak mgsl_put_char()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: scsi: fix section mismatch in aic94xx
+From: Sam Ravnborg <sam@ravnborg.org>
 
-Repair the effects of
+Fix following warnings:
+WARNING: vmlinux.o(.data+0x17aa88): Section mismatch in reference from the variable asd_pcidev_data to the function .devinit.text:asd_aic9410_setup()
+WARNING: vmlinux.o(.data+0x17aa98): Section mismatch in reference from the variable asd_pcidev_data to the function .devinit.text:asd_aic9410_setup()
+WARNING: vmlinux.o(.data+0x17aaa8): Section mismatch in reference from the variable asd_pcidev_data to the function .devinit.text:asd_aic9405_setup()
 
-commit 55da77899c1472d83452c914fa179d00ea96df65
-Author: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Date:   Wed Apr 30 00:54:07 2008 -0700
+asd_pcidev_data is only used by __devinit asd_pci_probe.  So mark is const and
+annotate it __devinitconst to fix the warnings.
 
-    synclink series: switch to int put_char method
-    
-    Signed-off-by: Alan Cox <alan@redhat.com>
-    Cc: Paul Fulghum <paulkf@microgate.com>
-    Cc: Jiri Slaby <jirislaby@gmail.com>
-
-drivers/char/synclink_gt.c: In function 'put_char':
-drivers/char/synclink_gt.c:919: warning: 'ret' may be used uninitialized in this function
-
-and do some whitespace repair and unneeded-cast-removal in there as well.
-
-Cc: Paul Fulghum <paulkf@microgate.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+[akpm@linux-foundation.org: fix warning]
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Gilbert Wu <gilbert_wu@adaptec.com>
+Cc: James Bottomley <James.Bottomley@SteelEye.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/scsi/aic94xx/aic94xx_init.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/synclink.c~drivers-char-synclinkc-inbreak-mgsl_put_char drivers/char/synclink.c
---- a/drivers/char/synclink.c~drivers-char-synclinkc-inbreak-mgsl_put_char
-+++ a/drivers/char/synclink.c
-@@ -2028,13 +2028,13 @@ static void mgsl_change_params(struct mg
+diff -puN drivers/scsi/aic94xx/aic94xx_init.c~scsi-fix-section-mismatch-in-aic94xx drivers/scsi/aic94xx/aic94xx_init.c
+--- a/drivers/scsi/aic94xx/aic94xx_init.c~scsi-fix-section-mismatch-in-aic94xx
++++ a/drivers/scsi/aic94xx/aic94xx_init.c
+@@ -529,10 +529,10 @@ static void asd_remove_dev_attrs(struct 
+ /* The first entry, 0, is used for dynamic ids, the rest for devices
+  * we know about.
   */
- static int mgsl_put_char(struct tty_struct *tty, unsigned char ch)
+-static struct asd_pcidev_struct {
++static const struct asd_pcidev_struct {
+ 	const char * name;
+ 	int (*setup)(struct asd_ha_struct *asd_ha);
+-} asd_pcidev_data[] = {
++} asd_pcidev_data[] __devinitconst = {
+ 	/* Id 0 is used for dynamic ids. */
+ 	{ .name  = "Adaptec AIC-94xx SAS/SATA Host Adapter",
+ 	  .setup = asd_aic9410_setup
+@@ -735,7 +735,7 @@ static int asd_unregister_sas_ha(struct 
+ static int __devinit asd_pci_probe(struct pci_dev *dev,
+ 				   const struct pci_device_id *id)
  {
--	struct mgsl_struct *info = (struct mgsl_struct *)tty->driver_data;
-+	struct mgsl_struct *info = tty->driver_data;
- 	unsigned long flags;
--	int ret;
-+	int ret = 0;
- 
--	if ( debug_level >= DEBUG_LEVEL_INFO ) {
--		printk( "%s(%d):mgsl_put_char(%d) on %s\n",
--			__FILE__,__LINE__,ch,info->device_name);
-+	if (debug_level >= DEBUG_LEVEL_INFO) {
-+		printk("%s(%d):mgsl_put_char(%d) on %s\n",
-+			__FILE__, __LINE__, ch, info->device_name);
- 	}		
- 	
- 	if (mgsl_paranoia_check(info, tty->name, "mgsl_put_char"))
-@@ -2043,9 +2043,9 @@ static int mgsl_put_char(struct tty_stru
- 	if (!tty || !info->xmit_buf)
- 		return 0;
- 
--	spin_lock_irqsave(&info->irq_spinlock,flags);
-+	spin_lock_irqsave(&info->irq_spinlock, flags);
- 	
--	if ( (info->params.mode == MGSL_MODE_ASYNC ) || !info->tx_active ) {
-+	if ((info->params.mode == MGSL_MODE_ASYNC ) || !info->tx_active) {
- 		if (info->xmit_cnt < SERIAL_XMIT_SIZE - 1) {
- 			info->xmit_buf[info->xmit_head++] = ch;
- 			info->xmit_head &= SERIAL_XMIT_SIZE-1;
-@@ -2053,7 +2053,7 @@ static int mgsl_put_char(struct tty_stru
- 			ret = 1;
- 		}
- 	}
--	spin_unlock_irqrestore(&info->irq_spinlock,flags);
-+	spin_unlock_irqrestore(&info->irq_spinlock, flags);
- 	return ret;
- 	
- }	/* end of mgsl_put_char() */
+-	struct asd_pcidev_struct *asd_dev;
++	const struct asd_pcidev_struct *asd_dev;
+ 	unsigned asd_id = (unsigned) id->driver_data;
+ 	struct asd_ha_struct *asd_ha;
+ 	struct Scsi_Host *shost;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 origin.patch
-revert-memory-hotplug-register-section-node-id-to-free.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-git-dvb.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-kvm.patch
-pata_atiixp-simplex-clear.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-sched.patch
-drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
-add-rcu_assign_index-if-ever-needed.patch
+git-pci-current.patch
+git-sh.patch
 git-scsi-misc.patch
-aic79xx_core-remove-ascii-art.patch
-sparc32-export-empty_zero_page.patch
-git-unionfs.patch
-git-v9fs.patch
 git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system-fix.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system-fix-checkpatch-fixes.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
-ext4-is-busted-on-m68k.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-add-warn_on_secs-macro.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
 
