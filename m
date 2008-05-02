@@ -1,89 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: - workqueue-remove-redundant-function-invocation.patch removed from -mm tree
-Date: Fri, 02 May 2008 12:43:23 -0700
-Message-ID: <200805021943.m42JhNoI011285@imap1.linux-foundation.org>
+Subject: - net-assign-pde-data-before-gluing-pde-into-proc-tree.patch removed from -mm tree
+Date: Fri, 02 May 2008 12:44:02 -0700
+Message-ID: <200805021944.m42Ji2sb011346@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47901 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49749 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932920AbYEBToP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:44:15 -0400
+	by vger.kernel.org with ESMTP id S933080AbYEBTof (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:44:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shengping.liu@windriver.com, mingo@elte.hu, oleg@tv-sign.ru, pavel@ucw.cz, mm-commits@vger.kernel.org
+To: den@openvz.org, adobriyan@openvz.org, davem@davemloft.net, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     workqueue: remove redundant function invocation
+     net: assign PDE->data before gluing PDE into /proc tree
 has been removed from the -mm tree.  Its filename was
-     workqueue-remove-redundant-function-invocation.patch
+     net-assign-pde-data-before-gluing-pde-into-proc-tree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: workqueue: remove redundant function invocation
-From: Andrew Liu <shengping.liu@windriver.com>
+Subject: net: assign PDE->data before gluing PDE into /proc tree
+From: "Denis V. Lunev" <den@openvz.org>
 
-timer_stats_timer_set_start_info is invoked twice, additionally, the
-invocation of this function can be moved to where it is only called when a
-delay is really required.
+Simply replace proc_create and further data assigned with proc_create_data. 
+Additionally, there is no need to assign NULL to PDE->data after creation,
+/proc generic has already done this for us.
 
-Signed-off-by: Andrew Liu <shengping.liu@windriver.com>
-Cc: Pavel Machek <pavel@ucw.cz>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Oleg Nesterov <oleg@tv-sign.ru>
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: Alexey Dobriyan <adobriyan@openvz.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ net/core/neighbour.c |    5 ++---
+ net/core/pktgen.c    |   12 ++++--------
+ 2 files changed, 6 insertions(+), 11 deletions(-)
 
-diff -puN kernel/workqueue.c~workqueue-remove-redundant-function-invocation kernel/workqueue.c
---- a/kernel/workqueue.c~workqueue-remove-redundant-function-invocation
-+++ a/kernel/workqueue.c
-@@ -195,7 +195,6 @@ static void delayed_work_timer_fn(unsign
- int queue_delayed_work(struct workqueue_struct *wq,
- 			struct delayed_work *dwork, unsigned long delay)
- {
--	timer_stats_timer_set_start_info(&dwork->timer);
- 	if (delay == 0)
- 		return queue_work(wq, &dwork->work);
+diff -puN net/core/neighbour.c~net-assign-pde-data-before-gluing-pde-into-proc-tree net/core/neighbour.c
+--- a/net/core/neighbour.c~net-assign-pde-data-before-gluing-pde-into-proc-tree
++++ a/net/core/neighbour.c
+@@ -1430,11 +1430,10 @@ void neigh_table_init_no_netlink(struct 
+ 		panic("cannot create neighbour cache statistics");
  
-@@ -219,11 +218,12 @@ int queue_delayed_work_on(int cpu, struc
- 	struct timer_list *timer = &dwork->timer;
- 	struct work_struct *work = &dwork->work;
+ #ifdef CONFIG_PROC_FS
+-	tbl->pde = proc_create(tbl->id, 0, init_net.proc_net_stat,
+-			       &neigh_stat_seq_fops);
++	tbl->pde = proc_create_data(tbl->id, 0, init_net.proc_net_stat,
++				    &neigh_stat_seq_fops, tbl);
+ 	if (!tbl->pde)
+ 		panic("cannot create neighbour proc dir entry");
+-	tbl->pde->data = tbl;
+ #endif
  
--	timer_stats_timer_set_start_info(&dwork->timer);
- 	if (!test_and_set_bit(WORK_STRUCT_PENDING, work_data_bits(work))) {
- 		BUG_ON(timer_pending(timer));
- 		BUG_ON(!list_empty(&work->entry));
+ 	tbl->hash_mask = 1;
+diff -puN net/core/pktgen.c~net-assign-pde-data-before-gluing-pde-into-proc-tree net/core/pktgen.c
+--- a/net/core/pktgen.c~net-assign-pde-data-before-gluing-pde-into-proc-tree
++++ a/net/core/pktgen.c
+@@ -3570,15 +3570,14 @@ static int pktgen_add_device(struct pktg
+ 	if (err)
+ 		goto out1;
  
-+		timer_stats_timer_set_start_info(&dwork->timer);
-+
- 		/* This stores cwq for the moment, for the timer_fn */
- 		set_wq_data(work, wq_per_cpu(wq, raw_smp_processor_id()));
- 		timer->expires = jiffies + delay;
-@@ -564,7 +564,6 @@ EXPORT_SYMBOL(schedule_work);
- int schedule_delayed_work(struct delayed_work *dwork,
- 					unsigned long delay)
- {
--	timer_stats_timer_set_start_info(&dwork->timer);
- 	return queue_delayed_work(keventd_wq, dwork, delay);
- }
- EXPORT_SYMBOL(schedule_delayed_work);
-@@ -581,7 +580,6 @@ EXPORT_SYMBOL(schedule_delayed_work);
- int schedule_delayed_work_on(int cpu,
- 			struct delayed_work *dwork, unsigned long delay)
- {
--	timer_stats_timer_set_start_info(&dwork->timer);
- 	return queue_delayed_work_on(cpu, keventd_wq, dwork, delay);
- }
- EXPORT_SYMBOL(schedule_delayed_work_on);
-_
-
-Patches currently in -mm which might be from shengping.liu@windriver.com are
-
-origin.patch
-
+-	pkt_dev->entry = proc_create(ifname, 0600,
+-				     pg_proc_dir, &pktgen_if_fops);
++	pkt_dev->entry = proc_create_data(ifname, 0600, pg_proc_dir,
++					  &pktgen_if_fops, pkt_dev);
+ 	if (!pkt_dev->entry) {
+ 		printk(KERN_ERR "pktgen: cannot create %s/%s procfs entry.\n",
+ 		       PG_PROC_DIR, ifname);
+ 		err = -EINVAL;
+ 		goto out2;
+ 	}
+-	pkt_dev->entry->data = pkt_dev;
+ #ifdef CONFIG_XFRM
+ 	pkt_dev->ipsmode = XFRM_MODE_TRANSPORT;
+ 	pkt_dev->ipsproto = IPPROTO_ESP;
+@@ -3628,7 +3627,8 @@ static int __init pktgen_create_thread(i
+ 	kthread_bind(p, cpu);
+ 	t->tsk = p;
+ 
+-	pe = proc_create(t->tsk->comm, 0600, pg_proc_dir, &pktgen_thread_fops);
++	pe = proc_create_data(t->tsk->comm, 0600, pg_proc_dir,
++			      &pktgen_thread_fops, t);
+ 	if (!pe) {
+ 		printk(KERN_ERR "pktgen: cannot create %s/%s procfs entry.\n",
+ 		       PG_PROC_DIR, t->tsk->comm);
+@@ -3638,8 +3638,6 @@ static int __init pktgen_create_thread(i
+ 		return -EINVAL;
+ 	}
+ 
+-	pe->data = t;
+-
+ 	wake_up_process(p);
+ 
+ 	return 0;
+@@ -3716,8 +3714,6 @@ static int __init pg_init(void)
+ 		return -EINVAL;
+ 	}
+ 
+-	pe->data = NULL;
