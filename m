@@ -1,76 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - s2ram-warn-when-interrupts-should-be-disabled-but-are-not.patch removed from -mm tree
-Date: Fri, 02 May 2008 13:34:23 -0700
-Message-ID: <200805022034.m42KYNWq013283@imap1.linux-foundation.org>
+Subject: - power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes.patch removed from -mm tree
+Date: Fri, 02 May 2008 13:41:01 -0700
+Message-ID: <200805022041.m42Kf2vG013699@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40816 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49941 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935855AbYEBUli (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 16:41:38 -0400
+	by vger.kernel.org with ESMTP id S935830AbYEBUln (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 16:41:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, greg@kroah.com, pavel@suse.cz, rjw@sisk.pl, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cbou@mail.ru, dilinger@debian.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     s2ram: warn when interrupts should be disabled but are not
+     power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     s2ram-warn-when-interrupts-should-be-disabled-but-are-not.patch
+     power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was folded into power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: s2ram: warn when interrupts should be disabled but are not
-From: Pavel Machek <pavel@ucw.cz>
+Subject: power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-sysdevs should be suspended/resumed with IRQs disabled; if something
-reenables them by mistake, we want to know early.
+total: 0 errors, 0 warnings, 13 lines checked
 
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Greg KH <greg@kroah.com>
+./patches/power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery.patch has no obvious style problems and is ready for submission.
+
+Please run checkpatch prior to sending patches
+
+Cc: Andres Salomon <dilinger@debian.org>
+Cc: Anton Vorontsov <cbou@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/sys.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/power/olpc_battery.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/sys.c~s2ram-warn-when-interrupts-should-be-disabled-but-are-not drivers/base/sys.c
---- a/drivers/base/sys.c~s2ram-warn-when-interrupts-should-be-disabled-but-are-not
-+++ a/drivers/base/sys.c
-@@ -22,6 +22,7 @@
- #include <linux/pm.h>
- #include <linux/device.h>
- #include <linux/mutex.h>
-+#include <linux/hardirq.h>
- 
- #include "base.h"
- 
-@@ -383,6 +384,7 @@ int sysdev_suspend(pm_message_t state)
- 			/* Call auxillary drivers first */
- 			list_for_each_entry(drv, &cls->drivers, entry) {
- 				if (drv->suspend) {
-+					WARN_ON(!irqs_disabled());
- 					ret = drv->suspend(sysdev, state);
- 					if (ret)
- 						goto aux_driver;
-@@ -458,6 +460,7 @@ int sysdev_resume(void)
- 		list_for_each_entry(sysdev, &cls->kset.list, kobj.entry) {
- 			pr_debug(" %s\n", kobject_name(&sysdev->kobj));
- 
-+			WARN_ON(!irqs_disabled());
- 			__sysdev_resume(sysdev);
- 		}
+diff -puN drivers/power/olpc_battery.c~power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes drivers/power/olpc_battery.c
+--- a/drivers/power/olpc_battery.c~power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes
++++ a/drivers/power/olpc_battery.c
+@@ -404,7 +404,8 @@ static int __init olpc_bat_init(void)
+ 	 * the latest EC protocol, supported by 0x44 and above.
+ 	 */
+ 	if (olpc_platform_info.ecver < 0x44) {
+-		printk(KERN_NOTICE "OLPC EC version 0x%02x too old for battery driver.\n", olpc_platform_info.ecver);
++		printk(KERN_NOTICE "OLPC EC version 0x%02x too old for "
++			"battery driver.\n", olpc_platform_info.ecver);
+ 		return -ENXIO;
  	}
+ 
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-acpi_pm_device_sleep_state-cleanup.patch
-s2ram-warn-when-interrupts-should-be-disabled-but-are-not.patch
-hci_usbh-fix-hard-to-trigger-race.patch
+revert-memory-hotplug-register-section-node-id-to-free.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+git-dvb.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-kvm.patch
+pata_atiixp-simplex-clear.patch
+git-mips.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery.patch
+power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-sched.patch
+drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+add-rcu_assign_index-if-ever-needed.patch
+git-scsi-misc.patch
+aic79xx_core-remove-ascii-art.patch
+sparc32-export-empty_zero_page.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+git-unionfs.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system-fix.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system-fix-checkpatch-fixes.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+add-warn_on_secs-macro.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
