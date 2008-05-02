@@ -1,112 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - netfilter-assign-pde-data-before-gluing-pde-into-proc-tree.patch removed from -mm tree
-Date: Fri, 02 May 2008 12:44:00 -0700
-Message-ID: <200805021944.m42Ji0mA011337@imap1.linux-foundation.org>
+Subject: - fuse-use-clamp-rather-than-nested-min-max.patch removed from -mm tree
+Date: Fri, 02 May 2008 12:43:28 -0700
+Message-ID: <200805021943.m42JhSwA011294@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36237 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57743 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765875AbYEBToc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:44:32 -0400
+	by vger.kernel.org with ESMTP id S932625AbYEBToO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:44:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: den@openvz.org, adobriyan@openvz.org, ebiederm@xmission.com, kaber@trash.net, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, miklos@szeredi.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     netfilter: assign PDE->data before gluing PDE into /proc tree
+     fuse: use clamp() rather than nested min/max
 has been removed from the -mm tree.  Its filename was
-     netfilter-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+     fuse-use-clamp-rather-than-nested-min-max.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: netfilter: assign PDE->data before gluing PDE into /proc tree
-From: "Denis V. Lunev" <den@openvz.org>
+Subject: fuse: use clamp() rather than nested min/max
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Simply replace proc_create and further data assigned with proc_create_data.
+clamp() exists for this use.
 
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Acked-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/netfilter/ipt_CLUSTERIP.c |    6 +++---
- net/netfilter/xt_hashlimit.c       |   12 ++++++------
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ fs/fuse/file.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/ipv4/netfilter/ipt_CLUSTERIP.c~netfilter-assign-pde-data-before-gluing-pde-into-proc-tree net/ipv4/netfilter/ipt_CLUSTERIP.c
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c~netfilter-assign-pde-data-before-gluing-pde-into-proc-tree
-+++ a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -169,14 +169,14 @@ clusterip_config_init(const struct ipt_c
+diff -puN fs/fuse/file.c~fuse-use-clamp-rather-than-nested-min-max fs/fuse/file.c
+--- a/fs/fuse/file.c~fuse-use-clamp-rather-than-nested-min-max
++++ a/fs/fuse/file.c
+@@ -934,7 +934,7 @@ static int fuse_get_user_pages(struct fu
  
- 		/* create proc dir entry */
- 		sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(ip));
--		c->pde = proc_create(buffer, S_IWUSR|S_IRUSR,
--				     clusterip_procdir, &clusterip_proc_fops);
-+		c->pde = proc_create_data(buffer, S_IWUSR|S_IRUSR,
-+					  clusterip_procdir,
-+					  &clusterip_proc_fops, c);
- 		if (!c->pde) {
- 			kfree(c);
- 			return NULL;
- 		}
- 	}
--	c->pde->data = c;
- #endif
- 
- 	write_lock_bh(&clusterip_lock);
-diff -puN net/netfilter/xt_hashlimit.c~netfilter-assign-pde-data-before-gluing-pde-into-proc-tree net/netfilter/xt_hashlimit.c
---- a/net/netfilter/xt_hashlimit.c~netfilter-assign-pde-data-before-gluing-pde-into-proc-tree
-+++ a/net/netfilter/xt_hashlimit.c
-@@ -237,15 +237,15 @@ static int htable_create_v0(struct xt_ha
- 	hinfo->family = family;
- 	hinfo->rnd_initialized = 0;
- 	spin_lock_init(&hinfo->lock);
--	hinfo->pde = proc_create(minfo->name, 0,
-+	hinfo->pde =
-+		proc_create_data(minfo->name, 0,
- 				 family == AF_INET ? hashlimit_procdir4 :
- 						     hashlimit_procdir6,
--				 &dl_file_ops);
-+				 &dl_file_ops, hinfo);
- 	if (!hinfo->pde) {
- 		vfree(hinfo);
- 		return -1;
- 	}
--	hinfo->pde->data = hinfo;
- 
- 	setup_timer(&hinfo->timer, htable_gc, (unsigned long )hinfo);
- 	hinfo->timer.expires = jiffies + msecs_to_jiffies(hinfo->cfg.gc_interval);
-@@ -301,15 +301,15 @@ static int htable_create(struct xt_hashl
- 	hinfo->rnd_initialized = 0;
- 	spin_lock_init(&hinfo->lock);
- 
--	hinfo->pde = proc_create(minfo->name, 0,
-+	hinfo->pde =
-+		proc_create_data(minfo->name, 0,
- 				 family == AF_INET ? hashlimit_procdir4 :
- 						     hashlimit_procdir6,
--				 &dl_file_ops);
-+				 &dl_file_ops, hinfo);
- 	if (hinfo->pde == NULL) {
- 		vfree(hinfo);
- 		return -1;
- 	}
--	hinfo->pde->data = hinfo;
- 
- 	setup_timer(&hinfo->timer, htable_gc, (unsigned long)hinfo);
- 	hinfo->timer.expires = jiffies + msecs_to_jiffies(hinfo->cfg.gc_interval);
+ 	nbytes = min(nbytes, (unsigned) FUSE_MAX_PAGES_PER_REQ << PAGE_SHIFT);
+ 	npages = (nbytes + offset + PAGE_SIZE - 1) >> PAGE_SHIFT;
+-	npages = min(max(npages, 1), FUSE_MAX_PAGES_PER_REQ);
++	npages = clamp(npages, 1, FUSE_MAX_PAGES_PER_REQ);
+ 	down_read(&current->mm->mmap_sem);
+ 	npages = get_user_pages(current, current->mm, user_addr, npages, write,
+ 				0, req->pages, NULL);
 _
 
-Patches currently in -mm which might be from den@openvz.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
+misc-fix-integer-as-null-pointer-warnings.patch
+git-acpi.patch
+cifs-remove-global_extern-macro.patch
+input-replace-remaining-__function__-occurrences.patch
+input-make-one-bit-signed-bitfields-unsigned.patch
+git-kvm.patch
+git-mips.patch
 git-net.patch
-powerpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+git-sched.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+usb-fix-integer-as-null-pointer-sparse-warnings.patch
+git-watchdog.patch
+mac80211-michaelc-use-kernel-provided-infrastructure.patch
+mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
+mac80211-tkipc-use-kernel-provided-infrastructure.patch
+mac80211-add-const-remove-unused-function-make-one-function-static.patch
+mac80211-add-a-struct-to-hold-tkip-context.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
+git-xfs.patch
+xtensa-replace-remaining-__function__-occurences.patch
+mmc-make-one-bit-signed-bitfields-unsigned.patch
+video-fix-integer-as-null-pointer-warnings.patch
+ide-eliminate-fit-macro.patch
+ata-remove-fit-macro.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
 
