@@ -1,183 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-scsi-use-time_before-time_before_eq-etc.patch removed from -mm tree
-Date: Fri, 02 May 2008 13:56:36 -0700
-Message-ID: <200805022056.m42Kubuj014564@imap1.linux-foundation.org>
+Subject: - x86_64-restore-mask_bits-in-msi-shutdown.patch removed from -mm tree
+Date: Fri, 02 May 2008 14:10:20 -0700
+Message-ID: <200805022110.m42LAKDC015126@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34599 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35385 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758318AbYEBU4l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 16:56:41 -0400
+	by vger.kernel.org with ESMTP id S936367AbYEBVLR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 17:11:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, mm-commits@vger.kernel.org
+To: yhlu.kernel.send@gmail.com, aabdulla@nvidia.com, ebiederm@xmission.com, jeff@garzik.org, mingo@elte.hu, tglx@linutronix.de, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/scsi: use time_before, time_before_eq, etc
+     x86_64: restore mask_bits in msi shutdown
 has been removed from the -mm tree.  Its filename was
-     drivers-scsi-use-time_before-time_before_eq-etc.patch
+     x86_64-restore-mask_bits-in-msi-shutdown.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi: use time_before, time_before_eq, etc
-From: Julia Lawall <julia@diku.dk>
+Subject: x86_64: restore mask_bits in msi shutdown
+From: Yinghai Lu <yhlu.kernel.send@gmail.com>
 
-The functions time_before, time_before_eq, time_after, and time_after_eq
-are more robust for comparing jiffies against other values.
+I can not kexec RHEL 5.1 from 2.6.25-rc3 later
 
-A simplified version of the semantic patch making this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
+caused by:
+commit 89d694b9dbe769ca1004e01db0ca43964806a611
+Author: Thomas Gleixner <tglx@linutronix.de>
+Date:   Mon Feb 18 18:25:17 2008 +0100
 
-// <smpl>
-@ change_compare_np @
-expression E;
-@@
+    genirq: do not leave interupts enabled on free_irq
 
-(
-- jiffies <= E
-+ time_before_eq(jiffies,E)
-|
-- jiffies >= E
-+ time_after_eq(jiffies,E)
-|
-- jiffies < E
-+ time_before(jiffies,E)
-|
-- jiffies > E
-+ time_after(jiffies,E)
-)
+    The default_disable() function was changed in commit:
 
-@ include depends on change_compare_np @
-@@
+     76d2160147f43f982dfe881404cfde9fd0a9da21
+     genirq: do not mask interrupts by default
 
-#include <linux/jiffies.h>
+    It removed the mask function in favour of the default delayed
+    interrupt disabling. Unfortunately this also broke the shutdown in
+    free_irq() when the last handler is removed from the interrupt for
+    those architectures which rely on the default implementations. Now we
+    can end up with a enabled interrupt line after the last handler was
+    removed, which can result in spurious interrupts.
 
-@ no_include depends on !include && change_compare_np @
-@@
+    Fix this by adding a default_shutdown function, which is only
+    installed, when the irqchip implementation does provide neither a
+    shutdown nor a disable function.
 
-  #include <linux/...>
-+ #include <linux/jiffies.h>
-// </smpl>
+    [@stable: affected versions: .21 - .24 ]
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
+for MSI, default_shutdown will call mask_bit for msi device.  so all mask bits
+will left disabled after free_irq.  then if kexec next kernel that only can
+use msi_enable bit.  all device's MSI can not be used.
+
+So try to restore MSI mask bits that is saved before using msi in first
+kernel.
+
+Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Ayaz Abdulla <aabdulla@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/eata.c           |    3 ++-
- drivers/scsi/lpfc/lpfc_scsi.c |   20 +++++++++++++-------
- drivers/scsi/u14-34f.c        |    6 ++++--
- 3 files changed, 19 insertions(+), 10 deletions(-)
+ arch/x86/kernel/io_apic_64.c |    9 +++++++++
+ drivers/pci/msi.c            |   26 ++++++++++++++++++++++++++
+ include/linux/msi.h          |    2 ++
+ 3 files changed, 37 insertions(+)
 
-diff -puN drivers/scsi/eata.c~drivers-scsi-use-time_before-time_before_eq-etc drivers/scsi/eata.c
---- a/drivers/scsi/eata.c~drivers-scsi-use-time_before-time_before_eq-etc
-+++ a/drivers/scsi/eata.c
-@@ -927,6 +927,7 @@ static char boot_options[MAX_BOOT_OPTION
- #if defined(MODULE)
- #include <linux/module.h>
- #include <linux/moduleparam.h>
-+#include <linux/jiffies.h>
+diff -puN arch/x86/kernel/io_apic_64.c~x86_64-restore-mask_bits-in-msi-shutdown arch/x86/kernel/io_apic_64.c
+--- a/arch/x86/kernel/io_apic_64.c~x86_64-restore-mask_bits-in-msi-shutdown
++++ a/arch/x86/kernel/io_apic_64.c
+@@ -2001,6 +2001,14 @@ static void set_msi_irq_affinity(unsigne
+ }
+ #endif /* CONFIG_SMP */
  
- module_param_string(eata, boot_options, MAX_BOOT_OPTIONS_SIZE, 0);
- MODULE_PARM_DESC(eata, " equivalent to the \"eata=...\" kernel boot option."
-@@ -1995,7 +1996,7 @@ static int eata2x_eh_host_reset(struct s
- 
- 	/* FIXME: use a sleep instead */
- 	time = jiffies;
--	while ((jiffies - time) < (10 * HZ) && limit++ < 200000)
-+	while (time_before(jiffies, time + 10 * HZ) && limit++ < 200000)
- 		udelay(100L);
- 
- 	spin_lock_irq(shost->host_lock);
-diff -puN drivers/scsi/lpfc/lpfc_scsi.c~drivers-scsi-use-time_before-time_before_eq-etc drivers/scsi/lpfc/lpfc_scsi.c
---- a/drivers/scsi/lpfc/lpfc_scsi.c~drivers-scsi-use-time_before-time_before_eq-etc
-+++ a/drivers/scsi/lpfc/lpfc_scsi.c
-@@ -22,6 +22,7 @@
- #include <linux/pci.h>
- #include <linux/interrupt.h>
- #include <linux/delay.h>
-+#include <linux/jiffies.h>
- 
- #include <scsi/scsi.h>
- #include <scsi/scsi_device.h>
-@@ -55,7 +56,8 @@ lpfc_adjust_queue_depth(struct lpfc_hba 
- 	atomic_inc(&phba->num_rsrc_err);
- 	phba->last_rsrc_error_time = jiffies;
- 
--	if ((phba->last_ramp_down_time + QUEUE_RAMP_DOWN_INTERVAL) > jiffies) {
-+	if (time_before(jiffies,
-+			phba->last_ramp_down_time + QUEUE_RAMP_DOWN_INTERVAL)){
- 		spin_unlock_irqrestore(&phba->hbalock, flags);
- 		return;
++static void msi_shutdown(unsigned int irq)
++{
++	struct irq_desc *desc = irq_desc + irq;
++
++	msi_restore_mask_bits(irq);
++	desc->status |= IRQ_MASKED;
++}
++
+ /*
+  * IRQ Chip for MSI PCI/PCI-X/PCI-Express Devices,
+  * which implement the MSI or MSI-X Capability Structure.
+@@ -2010,6 +2018,7 @@ static struct irq_chip msi_chip = {
+ 	.unmask		= unmask_msi_irq,
+ 	.mask		= mask_msi_irq,
+ 	.ack		= ack_apic_edge,
++	.shutdown	= msi_shutdown,
+ #ifdef CONFIG_SMP
+ 	.set_affinity	= set_msi_irq_affinity,
+ #endif
+diff -puN drivers/pci/msi.c~x86_64-restore-mask_bits-in-msi-shutdown drivers/pci/msi.c
+--- a/drivers/pci/msi.c~x86_64-restore-mask_bits-in-msi-shutdown
++++ a/drivers/pci/msi.c
+@@ -123,6 +123,31 @@ static void msix_flush_writes(unsigned i
  	}
-@@ -94,8 +96,10 @@ lpfc_rampup_queue_depth(struct lpfc_vpor
- 	if (vport->cfg_lun_queue_depth <= sdev->queue_depth)
- 		return;
- 	spin_lock_irqsave(&phba->hbalock, flags);
--	if (((phba->last_ramp_up_time + QUEUE_RAMP_UP_INTERVAL) > jiffies) ||
--	 ((phba->last_rsrc_error_time + QUEUE_RAMP_UP_INTERVAL ) > jiffies)) {
-+	if ((time_before(jiffies,
-+			 phba->last_ramp_up_time + QUEUE_RAMP_UP_INTERVAL)) ||
-+	 (time_before(jiffies,
-+		      phba->last_rsrc_error_time + QUEUE_RAMP_UP_INTERVAL))) {
- 		spin_unlock_irqrestore(&phba->hbalock, flags);
- 		return;
- 	}
-@@ -632,10 +636,12 @@ lpfc_scsi_cmd_iocb_cmpl(struct lpfc_hba 
- 		lpfc_rampup_queue_depth(vport, sdev);
+ }
  
- 	if (!result && pnode && NLP_CHK_NODE_ACT(pnode) &&
--	   ((jiffies - pnode->last_ramp_up_time) >
--		LPFC_Q_RAMP_UP_INTERVAL * HZ) &&
--	   ((jiffies - pnode->last_q_full_time) >
--		LPFC_Q_RAMP_UP_INTERVAL * HZ) &&
-+	   (time_after(jiffies,
-+		       pnode->last_ramp_up_time +
-+		       LPFC_Q_RAMP_UP_INTERVAL * HZ)) &&
-+	   (time_after(jiffies,
-+		       pnode->last_q_full_time +
-+		       LPFC_Q_RAMP_UP_INTERVAL * HZ)) &&
- 	   (vport->cfg_lun_queue_depth > sdev->queue_depth)) {
- 		shost_for_each_device(tmp_sdev, sdev->host) {
- 			if (vport->cfg_lun_queue_depth > tmp_sdev->queue_depth){
-diff -puN drivers/scsi/u14-34f.c~drivers-scsi-use-time_before-time_before_eq-etc drivers/scsi/u14-34f.c
---- a/drivers/scsi/u14-34f.c~drivers-scsi-use-time_before-time_before_eq-etc
-+++ a/drivers/scsi/u14-34f.c
-@@ -672,6 +672,7 @@ static char boot_options[MAX_BOOT_OPTION
- #if defined(MODULE)
- #include <linux/module.h>
- #include <linux/moduleparam.h>
-+#include <linux/jiffies.h>
++void msi_restore_mask_bits(unsigned int irq)
++{
++	struct msi_desc *entry;
++
++	entry = get_irq_msi(irq);
++	BUG_ON(!entry || !entry->dev);
++	switch (entry->msi_attrib.type) {
++	case PCI_CAP_ID_MSI:
++		if (entry->msi_attrib.maskbit) {
++			int pos;
++			u32 mask_bits;
++
++			pos = (long)entry->mask_base;
++			mask_bits = entry->orig_mask_bits;
++			pci_write_config_dword(entry->dev, pos, mask_bits);
++		}
++		break;
++	case PCI_CAP_ID_MSIX:
++		break;
++	default:
++		BUG();
++		break;
++	}
++}
++
+ static void msi_set_mask_bits(unsigned int irq, u32 mask, u32 flag)
+ {
+ 	struct msi_desc *entry;
+@@ -377,6 +402,7 @@ static int msi_capability_init(struct pc
+ 		pci_read_config_dword(dev,
+ 			msi_mask_bits_reg(pos, is_64bit_address(control)),
+ 			&maskbits);
++		entry->orig_mask_bits = maskbits;
+ 		temp = (1 << multi_msi_capable(control));
+ 		temp = ((temp - 1) & ~temp);
+ 		maskbits |= temp;
+diff -puN include/linux/msi.h~x86_64-restore-mask_bits-in-msi-shutdown include/linux/msi.h
+--- a/include/linux/msi.h~x86_64-restore-mask_bits-in-msi-shutdown
++++ a/include/linux/msi.h
+@@ -14,6 +14,7 @@ extern void mask_msi_irq(unsigned int ir
+ extern void unmask_msi_irq(unsigned int irq);
+ extern void read_msi_msg(unsigned int irq, struct msi_msg *msg);
+ extern void write_msi_msg(unsigned int irq, struct msi_msg *msg);
++extern void msi_restore_mask_bits(unsigned int irq);
  
- module_param_string(u14_34f, boot_options, MAX_BOOT_OPTIONS_SIZE, 0);
- MODULE_PARM_DESC(u14_34f, " equivalent to the \"u14-34f=...\" kernel boot " \
-@@ -778,7 +779,7 @@ static int board_inquiry(unsigned int j)
+ struct msi_desc {
+ 	struct {
+@@ -31,6 +32,7 @@ struct msi_desc {
+ 	struct list_head list;
  
-    spin_unlock_irq(&driver_lock);
-    time = jiffies;
--   while ((jiffies - time) < HZ && limit++ < 20000) udelay(100L);
-+   while (time_before(jiffies, time + HZ) && limit++ < 20000) udelay(100L);
-    spin_lock_irq(&driver_lock);
+ 	void __iomem *mask_base;
++	u32 orig_mask_bits;  /* restoring it for freeing */
+ 	struct pci_dev *dev;
  
-    if (cpp->adapter_status || HD(j)->cp_stat[0] != FREE) {
-@@ -1480,7 +1481,8 @@ static int u14_34f_eh_host_reset(struct 
- 
-    spin_unlock_irq(sh[j]->host_lock);
-    time = jiffies;
--   while ((jiffies - time) < (10 * HZ) && limit++ < 200000) udelay(100L);
-+   while (time_before(jiffies, time + 10 * HZ) && limit++ < 200000)
-+      udelay(100L);
-    spin_lock_irq(sh[j]->host_lock);
- 
-    printk("%s: reset, interrupts disabled, loops %d.\n", BN(j), limit);
+ 	/* Last set MSI message */
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from yhlu.kernel.send@gmail.com are
 
 origin.patch
-drivers-scsi-use-time_before-time_before_eq-etc.patch
-fs-ext4-use-bug_on.patch
+x86_64-restore-mask_bits-in-msi-shutdown.patch
+git-pci-current.patch
 
