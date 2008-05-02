@@ -1,104 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: - smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch removed from -mm tree
-Date: Fri, 02 May 2008 15:20:17 -0700
-Message-ID: <200805022220.m42MKHNm017829@imap1.linux-foundation.org>
+Subject: - pci-export-resource_wc-in-pci-sysfs.patch removed from -mm tree
+Date: Fri, 02 May 2008 15:20:31 -0700
+Message-ID: <200805022220.m42MKVkf017847@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59124 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58617 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760412AbYEBWUe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 18:20:34 -0400
+	by vger.kernel.org with ESMTP id S936781AbYEBWUw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 18:20:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, kamalesh@linux.vnet.ibm.com, samuel@sortiz.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: venkatesh.pallipadi@intel.com, jbarnes@virtuousgeek.org, mingo@elte.hu, suresh.b.siddha@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     smsc-ircc2: wrap PNP probe code in #ifdef CONFIG_PNP
+     PCI: export resource_wc in pci sysfs
 has been removed from the -mm tree.  Its filename was
-     smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp.patch
+     pci-export-resource_wc-in-pci-sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: smsc-ircc2: wrap PNP probe code in #ifdef CONFIG_PNP
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: PCI: export resource_wc in pci sysfs
+From: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 
-Wrap PNP probe code in #ifdef CONFIG_PNP.
+For the ranges with IORESOURCE_PREFETCH, export a new resource_wc interface in
+pci /sysfs along with resource (which is uncached).
 
-Without this change, we'll have unresolved references to pnp_get_resource()
-function when CONFIG_PNP=n.  (This is a new interface that's not in mainline
-yet.)
-
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
-Cc: Samuel Ortiz <samuel@sortiz.org>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Acked-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/irda/smsc-ircc2.c |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ Documentation/filesystems/sysfs-pci.txt |    1 
+ drivers/pci/pci-sysfs.c                 |   82 ++++++++++++++++------
+ include/linux/pci.h                     |    1 
+ 3 files changed, 63 insertions(+), 21 deletions(-)
 
-diff -puN drivers/net/irda/smsc-ircc2.c~smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp drivers/net/irda/smsc-ircc2.c
---- a/drivers/net/irda/smsc-ircc2.c~smsc-ircc2-wrap-pnp-probe-code-in-ifdef-config_pnp
-+++ a/drivers/net/irda/smsc-ircc2.c
-@@ -79,9 +79,13 @@ MODULE_AUTHOR("Daniele Peri <peri@csai.u
- MODULE_DESCRIPTION("SMC IrCC SIR/FIR controller driver");
- MODULE_LICENSE("GPL");
+diff -puN Documentation/filesystems/sysfs-pci.txt~pci-export-resource_wc-in-pci-sysfs Documentation/filesystems/sysfs-pci.txt
+--- a/Documentation/filesystems/sysfs-pci.txt~pci-export-resource_wc-in-pci-sysfs
++++ a/Documentation/filesystems/sysfs-pci.txt
+@@ -36,6 +36,7 @@ files, each with their own function.
+        local_cpus	   nearby CPU mask (cpumask, ro)
+        resource		   PCI resource host addresses (ascii, ro)
+        resource0..N	   PCI resource N, if present (binary, mmap)
++       resource0_wc..N_wc  PCI WC map resource N, if prefetchable (binary, mmap)
+        rom		   PCI ROM resource, if present (binary, ro)
+        subsystem_device	   PCI subsystem device (ascii, ro)
+        subsystem_vendor	   PCI subsystem vendor (ascii, ro)
+diff -puN drivers/pci/pci-sysfs.c~pci-export-resource_wc-in-pci-sysfs drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~pci-export-resource_wc-in-pci-sysfs
++++ a/drivers/pci/pci-sysfs.c
+@@ -489,13 +489,14 @@ pci_mmap_legacy_mem(struct kobject *kobj
+  * @kobj: kobject for mapping
+  * @attr: struct bin_attribute for the file being mapped
+  * @vma: struct vm_area_struct passed into the mmap
++ * @write_combine: 1 for write_combine mapping
+  *
+  * Use the regular PCI mapping routines to map a PCI resource into userspace.
+  * FIXME: write combining?  maybe automatic for prefetchable regions?
+  */
+ static int
+ pci_mmap_resource(struct kobject *kobj, struct bin_attribute *attr,
+-		  struct vm_area_struct *vma)
++		  struct vm_area_struct *vma, int write_combine)
+ {
+ 	struct pci_dev *pdev = to_pci_dev(container_of(kobj,
+ 						       struct device, kobj));
+@@ -518,7 +519,21 @@ pci_mmap_resource(struct kobject *kobj, 
+ 	vma->vm_pgoff += start >> PAGE_SHIFT;
+ 	mmap_type = res->flags & IORESOURCE_MEM ? pci_mmap_mem : pci_mmap_io;
  
-+#ifdef CONFIG_PNP
- static int smsc_nopnp = 1;
- module_param_named(nopnp, smsc_nopnp, bool, 0);
- MODULE_PARM_DESC(nopnp, "Do not use PNP to detect controller settings, defaults to true");
-+#else
-+#define smsc_nopnp 1
-+#endif
- 
- #define DMA_INVAL 255
- static int ircc_dma = DMA_INVAL;
-@@ -366,6 +370,10 @@ static inline void register_bank(int iob
-                iobase + IRCC_MASTER);
+-	return pci_mmap_page_range(pdev, vma, mmap_type, 0);
++	return pci_mmap_page_range(pdev, vma, mmap_type, write_combine);
++}
++
++static int
++pci_mmap_resource_uc(struct kobject *kobj, struct bin_attribute *attr,
++		     struct vm_area_struct *vma)
++{
++	return pci_mmap_resource(kobj, attr, vma, 0);
++}
++
++static int
++pci_mmap_resource_wc(struct kobject *kobj, struct bin_attribute *attr,
++		     struct vm_area_struct *vma)
++{
++	return pci_mmap_resource(kobj, attr, vma, 1);
  }
  
-+static int pnp_driver_registered;
+ /**
+@@ -541,9 +556,46 @@ pci_remove_resource_files(struct pci_dev
+ 			sysfs_remove_bin_file(&pdev->dev.kobj, res_attr);
+ 			kfree(res_attr);
+ 		}
 +
-+#ifdef CONFIG_PNP
++		res_attr = pdev->res_attr_wc[i];
++		if (res_attr) {
++			sysfs_remove_bin_file(&pdev->dev.kobj, res_attr);
++			kfree(res_attr);
++		}
+ 	}
+ }
+ 
++static int pci_create_attr(struct pci_dev *pdev, int num, int write_combine)
++{
++	/* allocate attribute structure, piggyback attribute name */
++	int name_len = write_combine ? 13 : 10;
++	struct bin_attribute *res_attr;
++	int retval;
 +
- /* PNP hotplug support */
- static const struct pnp_device_id smsc_ircc_pnp_table[] = {
- 	{ .id = "SMCf010", .driver_data = 0 },
-@@ -374,8 +382,6 @@ static const struct pnp_device_id smsc_i
- };
- MODULE_DEVICE_TABLE(pnp, smsc_ircc_pnp_table);
- 
--static int pnp_driver_registered;
--
- static int __init smsc_ircc_pnp_probe(struct pnp_dev *dev,
- 				      const struct pnp_device_id *dev_id)
- {
-@@ -403,6 +409,10 @@ static struct pnp_driver smsc_ircc_pnp_d
- 	.probe		= smsc_ircc_pnp_probe,
- };
- 
-+#else
-+static struct pnp_driver smsc_ircc_pnp_driver;
-+#endif
++	res_attr = kzalloc(sizeof(*res_attr) + name_len, GFP_ATOMIC);
++	if (res_attr) {
++		char *res_attr_name = (char *)(res_attr + 1);
 +
++		if (write_combine) {
++			pdev->res_attr_wc[num] = res_attr;
++			sprintf(res_attr_name, "resource%d_wc", num);
++			res_attr->mmap = pci_mmap_resource_wc;
++		} else {
++			pdev->res_attr[num] = res_attr;
++			sprintf(res_attr_name, "resource%d", num);
++			res_attr->mmap = pci_mmap_resource_uc;
++		}
++		res_attr->attr.name = res_attr_name;
++		res_attr->attr.mode = S_IRUSR | S_IWUSR;
++		res_attr->size = pci_resource_len(pdev, num);
++		res_attr->private = &pdev->resource[num];
++		retval = sysfs_create_bin_file(&pdev->dev.kobj, res_attr);
++	} else
++		retval = -ENOMEM;
++
++	return retval;
++}
++
+ /**
+  * pci_create_resource_files - create resource files in sysfs for @dev
+  * @dev: dev in question
+@@ -557,31 +609,19 @@ static int pci_create_resource_files(str
  
- /*******************************************************************************
-  *
+ 	/* Expose the PCI resources from this device as files */
+ 	for (i = 0; i < PCI_ROM_RESOURCE; i++) {
+-		struct bin_attribute *res_attr;
+ 
+ 		/* skip empty resources */
+ 		if (!pci_resource_len(pdev, i))
+ 			continue;
+ 
+-		/* allocate attribute structure, piggyback attribute name */
+-		res_attr = kzalloc(sizeof(*res_attr) + 10, GFP_ATOMIC);
+-		if (res_attr) {
+-			char *res_attr_name = (char *)(res_attr + 1);
++		retval = pci_create_attr(pdev, i, 0);
++		/* for prefetchable resources, create a WC mappable file */
++		if (!retval && pdev->resource[i].flags & IORESOURCE_PREFETCH)
++			retval = pci_create_attr(pdev, i, 1);
+ 
+-			pdev->res_attr[i] = res_attr;
+-			sprintf(res_attr_name, "resource%d", i);
+-			res_attr->attr.name = res_attr_name;
+-			res_attr->attr.mode = S_IRUSR | S_IWUSR;
+-			res_attr->size = pci_resource_len(pdev, i);
+-			res_attr->mmap = pci_mmap_resource;
+-			res_attr->private = &pdev->resource[i];
+-			retval = sysfs_create_bin_file(&pdev->dev.kobj, res_attr);
+-			if (retval) {
+-				pci_remove_resource_files(pdev);
+-				return retval;
+-			}
+-		} else {
+-			return -ENOMEM;
++		if (retval) {
++			pci_remove_resource_files(pdev);
++			return retval;
+ 		}
+ 	}
+ 	return 0;
+diff -puN include/linux/pci.h~pci-export-resource_wc-in-pci-sysfs include/linux/pci.h
+--- a/include/linux/pci.h~pci-export-resource_wc-in-pci-sysfs
++++ a/include/linux/pci.h
+@@ -215,6 +215,7 @@ struct pci_dev {
+ 	struct bin_attribute *rom_attr; /* attribute descriptor for sysfs ROM entry */
+ 	int rom_attr_enabled;		/* has display of the rom attribute been enabled? */
+ 	struct bin_attribute *res_attr[DEVICE_COUNT_RESOURCE]; /* sysfs file for resources */
++	struct bin_attribute *res_attr_wc[DEVICE_COUNT_RESOURCE]; /* sysfs file for WC mapping of resources */
+ #ifdef CONFIG_PCI_MSI
+ 	struct list_head msi_list;
+ #endif
 _
 
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
 origin.patch
 linux-next.patch
-pnp-fix-missing-kernel-doc-notation.patch
-acpi_pm_device_sleep_state-cleanup.patch
-acpi-fix-drivers-acpi-gluec-build-error.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-pnp-set-irq-index-in-sysfs-set-irq-interface.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
 
