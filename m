@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-unionfs-fixup.patch added to -mm tree
-Date: Fri, 02 May 2008 14:40:50 -0700
-Message-ID: <200805022140.m42LeoFY016317@imap1.linux-foundation.org>
+Subject: + revert-9p-convert-from-semaphore-to-spinlock.patch added to -mm tree
+Date: Fri, 02 May 2008 14:50:59 -0700
+Message-ID: <200805022150.m42Lox35016709@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57429 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33305 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764707AbYEBVla (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 17:41:30 -0400
+	by vger.kernel.org with ESMTP id S1752521AbYEBVvg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 17:51:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu
+Cc: akpm@linux-foundation.org, matthew@wil.cx, sfr@canb.auug.org.au, willy@linux.intel.com
 
 
 The patch titled
-     git-unionfs-fixup
+     revert 9p: Convert from semaphore to spinlock
 has been added to the -mm tree.  Its filename is
-     git-unionfs-fixup.patch
+     revert-9p-convert-from-semaphore-to-spinlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,142 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-unionfs-fixup
+Subject: revert 9p: Convert from semaphore to spinlock
 From: Andrew Morton <akpm@linux-foundation.org>
 
-y'know, the worst possible place to add new stuff is at the end of the list,
-because that's where everyone else adds stuff.
+revert
 
-random insertion wins.  Or alphabetic.
+commit 2c77d192c68a95a188dd326db1315b3492487c41
+Author: Matthew Wilcox <matthew@wil.cx>
+Date:   Wed Apr 23 08:41:35 2008 -0400
 
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+    9p: Convert from semaphore to spinlock
+    
+    The virtio_9p_lock is only held for very short periods of time and
+    never does a blocking operation while it's held, so it really should be
+    a spinlock.
+    
+    Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+
+because it craps all over the maintainer's tree.
+
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ net/9p/trans_virtio.c |   44 +++++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 23 deletions(-)
 
-diff -puN fs/Makefile~git-unionfs-fixup fs/Makefile
---- a/fs/Makefile~git-unionfs-fixup
-+++ a/fs/Makefile
-@@ -94,6 +94,7 @@ obj-$(CONFIG_NLS)		+= nls/
- obj-$(CONFIG_SYSV_FS)		+= sysv/
- obj-$(CONFIG_SMB_FS)		+= smbfs/
- obj-$(CONFIG_CIFS)		+= cifs/
-+obj-$(CONFIG_UNION_FS)		+= unionfs/
- obj-$(CONFIG_NCP_FS)		+= ncpfs/
- obj-$(CONFIG_HPFS_FS)		+= hpfs/
- obj-$(CONFIG_NTFS_FS)		+= ntfs/
+diff -puN net/9p/trans_virtio.c~revert-9p-convert-from-semaphore-to-spinlock net/9p/trans_virtio.c
+--- a/net/9p/trans_virtio.c~revert-9p-convert-from-semaphore-to-spinlock
++++ a/net/9p/trans_virtio.c
+@@ -28,30 +28,28 @@
+  *
+  */
+ 
+-#include <linux/errno.h>
+-#include <linux/file.h>
+-#include <linux/idr.h>
+-#include <linux/inet.h>
+ #include <linux/in.h>
+-#include <linux/ipv6.h>
+-#include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/net.h>
+-#include <linux/parser.h>
+-#include <linux/scatterlist.h>
+-#include <linux/spinlock.h>
+-#include <linux/uaccess.h>
++#include <linux/ipv6.h>
++#include <linux/errno.h>
++#include <linux/kernel.h>
+ #include <linux/un.h>
+-#include <linux/virtio_9p.h>
+-#include <linux/virtio.h>
+-
++#include <linux/uaccess.h>
++#include <linux/inet.h>
++#include <linux/idr.h>
++#include <linux/file.h>
+ #include <net/9p/9p.h>
++#include <linux/parser.h>
+ #include <net/9p/transport.h>
++#include <linux/scatterlist.h>
++#include <linux/virtio.h>
++#include <linux/virtio_9p.h>
+ 
+ #define VIRTQUEUE_NUM	128
+ 
+-/* a single lock to manage channel initialization and attachment */
+-static DEFINE_SPINLOCK(virtio_9p_lock);
++/* a single mutex to manage channel initialization and attachment */
++static DECLARE_MUTEX(virtio_9p_lock);
+ /* global which tracks highest initialized channel */
+ static int chan_index;
+ 
+@@ -146,9 +144,9 @@ static void p9_virtio_close(struct p9_tr
+ 	chan->max_tag = 0;
+ 	spin_unlock_irqrestore(&chan->lock, flags);
+ 
+-	spin_lock(&virtio_9p_lock);
++	down(&virtio_9p_lock);
+ 	chan->inuse = false;
+-	spin_unlock(&virtio_9p_lock);
++	up(&virtio_9p_lock);
+ 
+ 	kfree(trans);
+ }
+@@ -271,10 +269,10 @@ static int p9_virtio_probe(struct virtio
+ 	struct virtio_chan *chan;
+ 	int index;
+ 
+-	spin_lock(&virtio_9p_lock);
++	down(&virtio_9p_lock);
+ 	index = chan_index++;
+ 	chan = &channels[index];
+-	spin_unlock(&virtio_9p_lock);
++	up(&virtio_9p_lock);
+ 
+ 	if (chan_index > MAX_9P_CHAN) {
+ 		printk(KERN_ERR "9p: virtio: Maximum channels exceeded\n");
+@@ -303,9 +301,9 @@ static int p9_virtio_probe(struct virtio
+ out_free_vq:
+ 	vdev->config->del_vq(chan->vq);
+ fail:
+-	spin_lock(&virtio_9p_lock);
++	down(&virtio_9p_lock);
+ 	chan_index--;
+-	spin_unlock(&virtio_9p_lock);
++	up(&virtio_9p_lock);
+ 	return err;
+ }
+ 
+@@ -322,7 +320,7 @@ p9_virtio_create(const char *devname, ch
+ 	struct virtio_chan *chan = channels;
+ 	int index = 0;
+ 
+-	spin_lock(&virtio_9p_lock);
++	down(&virtio_9p_lock);
+ 	while (index < MAX_9P_CHAN) {
+ 		if (chan->initialized && !chan->inuse) {
+ 			chan->inuse = true;
+@@ -332,7 +330,7 @@ p9_virtio_create(const char *devname, ch
+ 			chan = &channels[index];
+ 		}
+ 	}
+-	spin_unlock(&virtio_9p_lock);
++	up(&virtio_9p_lock);
+ 
+ 	if (index >= MAX_9P_CHAN) {
+ 		printk(KERN_ERR "9p: no channels available\n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
 sxc-fix-printk-warnings-on-sparc32.patch
 revert-memory-hotplug-register-section-node-id-to-free.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
