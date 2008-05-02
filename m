@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + include-use-get-put_unaligned_-helpers.patch added to -mm tree
-Date: Fri, 02 May 2008 16:09:36 -0700
-Message-ID: <200805022309.m42N9aXI019871@imap1.linux-foundation.org>
+Subject: + net-use-get-put_unaligned_-helpers.patch added to -mm tree
+Date: Fri, 02 May 2008 16:09:46 -0700
+Message-ID: <200805022309.m42N9kGD019885@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58525 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44902 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932535AbYEBXTn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:19:43 -0400
+	by vger.kernel.org with ESMTP id S932650AbYEBXT6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:19:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, linville@tuxdriver.com
+Cc: harvey.harrison@gmail.com, davem@davemloft.net
 
 
 The patch titled
-     include: use get/put_unaligned_* helpers
+     net: use get/put_unaligned_* helpers
 has been added to the -mm tree.  Its filename is
-     include-use-get-put_unaligned_-helpers.patch
+     net-use-get-put_unaligned_-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,74 +33,180 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: include: use get/put_unaligned_* helpers
+Subject: net: use get/put_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/reiserfs_fs.h      |    4 ++--
- include/linux/smb_fs.h           |   19 +++++++------------
- include/net/ieee80211_radiotap.h |    2 +-
- 3 files changed, 10 insertions(+), 15 deletions(-)
+ net/bridge/br_stp_bpdu.c |    4 ++--
+ net/core/filter.c        |    4 ++--
+ net/ipv4/cipso_ipv4.c    |   18 ++++++++----------
+ net/ipv4/tcp_input.c     |   18 +++++++++---------
+ 4 files changed, 21 insertions(+), 23 deletions(-)
 
-diff -puN include/linux/reiserfs_fs.h~include-use-get-put_unaligned_-helpers include/linux/reiserfs_fs.h
---- a/include/linux/reiserfs_fs.h~include-use-get-put_unaligned_-helpers
-+++ a/include/linux/reiserfs_fs.h
-@@ -526,8 +526,8 @@ struct item_head {
- ** p is the array of __u32, i is the index into the array, v is the value
- ** to store there.
- */
--#define get_block_num(p, i) le32_to_cpu(get_unaligned((p) + (i)))
--#define put_block_num(p, i, v) put_unaligned(cpu_to_le32(v), (p) + (i))
-+#define get_block_num(p, i) get_unaligned_le32((p) + (i))
-+#define put_block_num(p, i, v) put_unaligned_le32((v), (p) + (i))
+diff -puN net/bridge/br_stp_bpdu.c~net-use-get-put_unaligned_-helpers net/bridge/br_stp_bpdu.c
+--- a/net/bridge/br_stp_bpdu.c~net-use-get-put_unaligned_-helpers
++++ a/net/bridge/br_stp_bpdu.c
+@@ -58,12 +58,12 @@ static inline void br_set_ticks(unsigned
+ {
+ 	unsigned long ticks = (STP_HZ * j)/ HZ;
  
- //
- // in old version uniqueness field shows key type
-diff -puN include/linux/smb_fs.h~include-use-get-put_unaligned_-helpers include/linux/smb_fs.h
---- a/include/linux/smb_fs.h~include-use-get-put_unaligned_-helpers
-+++ a/include/linux/smb_fs.h
-@@ -43,18 +43,13 @@ static inline struct smb_inode_info *SMB
+-	put_unaligned(htons(ticks), (__be16 *)dest);
++	put_unaligned_be16(ticks, dest);
  }
  
- /* macro names are short for word, double-word, long value (?) */
--#define WVAL(buf,pos) \
--	(le16_to_cpu(get_unaligned((__le16 *)((u8 *)(buf) + (pos)))))
--#define DVAL(buf,pos) \
--	(le32_to_cpu(get_unaligned((__le32 *)((u8 *)(buf) + (pos)))))
--#define LVAL(buf,pos) \
--	(le64_to_cpu(get_unaligned((__le64 *)((u8 *)(buf) + (pos)))))
--#define WSET(buf,pos,val) \
--	put_unaligned(cpu_to_le16((u16)(val)), (__le16 *)((u8 *)(buf) + (pos)))
--#define DSET(buf,pos,val) \
--	put_unaligned(cpu_to_le32((u32)(val)), (__le32 *)((u8 *)(buf) + (pos)))
--#define LSET(buf,pos,val) \
--	put_unaligned(cpu_to_le64((u64)(val)), (__le64 *)((u8 *)(buf) + (pos)))
-+#define WVAL(buf, pos) (get_unaligned_le16((u8 *)(buf) + (pos)))
-+#define DVAL(buf, pos) (get_unaligned_le32((u8 *)(buf) + (pos)))
-+#define LVAL(buf, pos) (get_unaligned_le64((u8 *)(buf) + (pos)))
-+
-+#define WSET(buf, pos, val) put_unaligned_le16((val), (u8 *)(buf) + (pos))
-+#define DSET(buf, pos, val) put_unaligned_le32((val), (u8 *)(buf) + (pos))
-+#define LSET(buf, pos, val) put_unaligned_le64((val), (u8 *)(buf) + (pos))
+ static inline int br_get_ticks(const unsigned char *src)
+ {
+-	unsigned long ticks = ntohs(get_unaligned((__be16 *)src));
++	unsigned long ticks = get_unaligned_be16(src);
  
- /* where to find the base of the SMB packet proper */
- #define smb_base(buf) ((u8 *)(((u8 *)(buf))+4))
-diff -puN include/net/ieee80211_radiotap.h~include-use-get-put_unaligned_-helpers include/net/ieee80211_radiotap.h
---- a/include/net/ieee80211_radiotap.h~include-use-get-put_unaligned_-helpers
-+++ a/include/net/ieee80211_radiotap.h
-@@ -262,7 +262,7 @@ static inline int ieee80211_get_radiotap
- 	struct ieee80211_radiotap_header *hdr =
- 		(struct ieee80211_radiotap_header *)data;
- 
--	return le16_to_cpu(get_unaligned(&hdr->it_len));
-+	return get_unaligned_le16(&hdr->it_len);
+ 	return DIV_ROUND_UP(ticks * HZ, STP_HZ);
  }
+diff -puN net/core/filter.c~net-use-get-put_unaligned_-helpers net/core/filter.c
+--- a/net/core/filter.c~net-use-get-put_unaligned_-helpers
++++ a/net/core/filter.c
+@@ -213,7 +213,7 @@ unsigned int sk_run_filter(struct sk_buf
+ load_w:
+ 			ptr = load_pointer(skb, k, 4, &tmp);
+ 			if (ptr != NULL) {
+-				A = ntohl(get_unaligned((__be32 *)ptr));
++				A = get_unaligned_be32(ptr);
+ 				continue;
+ 			}
+ 			break;
+@@ -222,7 +222,7 @@ load_w:
+ load_h:
+ 			ptr = load_pointer(skb, k, 2, &tmp);
+ 			if (ptr != NULL) {
+-				A = ntohs(get_unaligned((__be16 *)ptr));
++				A = get_unaligned_be16(ptr);
+ 				continue;
+ 			}
+ 			break;
+diff -puN net/ipv4/cipso_ipv4.c~net-use-get-put_unaligned_-helpers net/ipv4/cipso_ipv4.c
+--- a/net/ipv4/cipso_ipv4.c~net-use-get-put_unaligned_-helpers
++++ a/net/ipv4/cipso_ipv4.c
+@@ -983,7 +983,7 @@ static int cipso_v4_map_cat_enum_valid(c
+ 		return -EFAULT;
  
- #endif				/* IEEE80211_RADIOTAP_H */
+ 	for (iter = 0; iter < enumcat_len; iter += 2) {
+-		cat = ntohs(get_unaligned((__be16 *)&enumcat[iter]));
++		cat = get_unaligned_be16(&enumcat[iter]);
+ 		if (cat <= cat_prev)
+ 			return -EFAULT;
+ 		cat_prev = cat;
+@@ -1052,7 +1052,7 @@ static int cipso_v4_map_cat_enum_ntoh(co
+ 
+ 	for (iter = 0; iter < net_cat_len; iter += 2) {
+ 		ret_val = netlbl_secattr_catmap_setbit(secattr->attr.mls.cat,
+-				ntohs(get_unaligned((__be16 *)&net_cat[iter])),
++				get_unaligned_be16(&net_cat[iter]),
+ 				GFP_ATOMIC);
+ 		if (ret_val != 0)
+ 			return ret_val;
+@@ -1086,10 +1086,9 @@ static int cipso_v4_map_cat_rng_valid(co
+ 		return -EFAULT;
+ 
+ 	for (iter = 0; iter < rngcat_len; iter += 4) {
+-		cat_high = ntohs(get_unaligned((__be16 *)&rngcat[iter]));
++		cat_high = get_unaligned_be16(&rngcat[iter]);
+ 		if ((iter + 4) <= rngcat_len)
+-			cat_low = ntohs(
+-				get_unaligned((__be16 *)&rngcat[iter + 2]));
++			cat_low = get_unaligned_be16(&rngcat[iter + 2]);
+ 		else
+ 			cat_low = 0;
+ 
+@@ -1188,10 +1187,9 @@ static int cipso_v4_map_cat_rng_ntoh(con
+ 	u16 cat_high;
+ 
+ 	for (net_iter = 0; net_iter < net_cat_len; net_iter += 4) {
+-		cat_high = ntohs(get_unaligned((__be16 *)&net_cat[net_iter]));
++		cat_high = get_unaligned_be16(&net_cat[net_iter]);
+ 		if ((net_iter + 4) <= net_cat_len)
+-			cat_low = ntohs(
+-			      get_unaligned((__be16 *)&net_cat[net_iter + 2]));
++			cat_low = get_unaligned_be16(&net_cat[net_iter + 2]);
+ 		else
+ 			cat_low = 0;
+ 
+@@ -1562,7 +1560,7 @@ int cipso_v4_validate(unsigned char **op
+ 	}
+ 
+ 	rcu_read_lock();
+-	doi_def = cipso_v4_doi_search(ntohl(get_unaligned((__be32 *)&opt[2])));
++	doi_def = cipso_v4_doi_search(get_unaligned_be32(&opt[2]));
+ 	if (doi_def == NULL) {
+ 		err_offset = 2;
+ 		goto validate_return_locked;
+@@ -1843,7 +1841,7 @@ static int cipso_v4_getattr(const unsign
+ 	if (cipso_v4_cache_check(cipso, cipso[1], secattr) == 0)
+ 		return 0;
+ 
+-	doi = ntohl(get_unaligned((__be32 *)&cipso[2]));
++	doi = get_unaligned_be32(&cipso[2]);
+ 	rcu_read_lock();
+ 	doi_def = cipso_v4_doi_search(doi);
+ 	if (doi_def == NULL)
+diff -puN net/ipv4/tcp_input.c~net-use-get-put_unaligned_-helpers net/ipv4/tcp_input.c
+--- a/net/ipv4/tcp_input.c~net-use-get-put_unaligned_-helpers
++++ a/net/ipv4/tcp_input.c
+@@ -1172,8 +1172,8 @@ static int tcp_check_dsack(struct tcp_so
+ 			   struct tcp_sack_block_wire *sp, int num_sacks,
+ 			   u32 prior_snd_una)
+ {
+-	u32 start_seq_0 = ntohl(get_unaligned(&sp[0].start_seq));
+-	u32 end_seq_0 = ntohl(get_unaligned(&sp[0].end_seq));
++	u32 start_seq_0 = get_unaligned_be32(&sp[0].start_seq);
++	u32 end_seq_0 = get_unaligned_be32(&sp[0].end_seq);
+ 	int dup_sack = 0;
+ 
+ 	if (before(start_seq_0, TCP_SKB_CB(ack_skb)->ack_seq)) {
+@@ -1181,8 +1181,8 @@ static int tcp_check_dsack(struct tcp_so
+ 		tcp_dsack_seen(tp);
+ 		NET_INC_STATS_BH(LINUX_MIB_TCPDSACKRECV);
+ 	} else if (num_sacks > 1) {
+-		u32 end_seq_1 = ntohl(get_unaligned(&sp[1].end_seq));
+-		u32 start_seq_1 = ntohl(get_unaligned(&sp[1].start_seq));
++		u32 end_seq_1 = get_unaligned_be32(&sp[1].end_seq);
++		u32 start_seq_1 = get_unaligned_be32(&sp[1].start_seq);
+ 
+ 		if (!after(end_seq_0, end_seq_1) &&
+ 		    !before(start_seq_0, start_seq_1)) {
+@@ -1453,8 +1453,8 @@ tcp_sacktag_write_queue(struct sock *sk,
+ 	for (i = 0; i < num_sacks; i++) {
+ 		int dup_sack = !i && found_dup_sack;
+ 
+-		sp[used_sacks].start_seq = ntohl(get_unaligned(&sp_wire[i].start_seq));
+-		sp[used_sacks].end_seq = ntohl(get_unaligned(&sp_wire[i].end_seq));
++		sp[used_sacks].start_seq = get_unaligned_be32(&sp_wire[i].start_seq);
++		sp[used_sacks].end_seq = get_unaligned_be32(&sp_wire[i].end_seq);
+ 
+ 		if (!tcp_is_sackblock_valid(tp, dup_sack,
+ 					    sp[used_sacks].start_seq,
+@@ -3340,7 +3340,7 @@ void tcp_parse_options(struct sk_buff *s
+ 			switch (opcode) {
+ 			case TCPOPT_MSS:
+ 				if (opsize == TCPOLEN_MSS && th->syn && !estab) {
+-					u16 in_mss = ntohs(get_unaligned((__be16 *)ptr));
++					u16 in_mss = get_unaligned_be16(ptr);
+ 					if (in_mss) {
+ 						if (opt_rx->user_mss &&
+ 						    opt_rx->user_mss < in_mss)
+@@ -3369,8 +3369,8 @@ void tcp_parse_options(struct sk_buff *s
+ 				    ((estab && opt_rx->tstamp_ok) ||
+ 				     (!estab && sysctl_tcp_timestamps))) {
+ 					opt_rx->saw_tstamp = 1;
+-					opt_rx->rcv_tsval = ntohl(get_unaligned((__be32 *)ptr));
+-					opt_rx->rcv_tsecr = ntohl(get_unaligned((__be32 *)(ptr+4)));
++					opt_rx->rcv_tsval = get_unaligned_be32(ptr);
++					opt_rx->rcv_tsecr = get_unaligned_be32(ptr + 4);
+ 				}
+ 				break;
+ 			case TCPOPT_SACK_PERM:
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
