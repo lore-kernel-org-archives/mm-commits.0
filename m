@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-fix-inconsistence-due-to-tty_operation-change.patch added to -mm tree
-Date: Fri, 02 May 2008 05:15:45 -0700
-Message-ID: <200805021215.m42CFjim025666@imap1.linux-foundation.org>
+Subject: + tridentfb-remove-misplaced-enable_mmio.patch added to -mm tree
+Date: Fri, 02 May 2008 05:30:58 -0700
+Message-ID: <200805021230.m42CUwY6026246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45124 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934657AbYEBMQd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 08:16:33 -0400
+	by vger.kernel.org with ESMTP id S1761810AbYEBMbC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 08:31:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, jdike@addtoit.com, wangcong@zeuux.org
+Cc: krzysztof.h1@wp.pl, adaplas@pol.net
 
 
 The patch titled
-     uml: fix inconsistence due to tty_operation change
+     tridentfb: remove misplaced enable_mmio()
 has been added to the -mm tree.  Its filename is
-     uml-fix-inconsistence-due-to-tty_operation-change.patch
+     tridentfb-remove-misplaced-enable_mmio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: fix inconsistence due to tty_operation change
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: tridentfb: remove misplaced enable_mmio()
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-'put_char' of 'struct tty_operations' has changed from 'void' into 'int'. 
-This can also shut up comipler warnings.
+Remove redundant enable_mmio() call as the mmio mode is enabled in the probe
+function earlier.
 
-Cc: Jeff Dike <jdike@addtoit.com>
-Signed-off-by: WANG Cong <wangcong@zeuux.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/line.c |    4 ++--
- arch/um/include/line.h |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/video/tridentfb.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/um/drivers/line.c~uml-fix-inconsistence-due-to-tty_operation-change arch/um/drivers/line.c
---- a/arch/um/drivers/line.c~uml-fix-inconsistence-due-to-tty_operation-change
-+++ a/arch/um/drivers/line.c
-@@ -191,9 +191,9 @@ void line_flush_chars(struct tty_struct 
- 	line_flush_buffer(tty);
- }
+diff -puN drivers/video/tridentfb.c~tridentfb-remove-misplaced-enable_mmio drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-remove-misplaced-enable_mmio
++++ a/drivers/video/tridentfb.c
+@@ -905,7 +905,6 @@ static int tridentfb_set_par(struct fb_i
+ 	vblankstart = var->yres;
+ 	vblankend = vtotal + 2;
  
--void line_put_char(struct tty_struct *tty, unsigned char ch)
-+int line_put_char(struct tty_struct *tty, unsigned char ch)
- {
--	line_write(tty, &ch, sizeof(ch));
-+	return line_write(tty, &ch, sizeof(ch));
- }
+-	enable_mmio();
+ 	crtc_unlock();
+ 	write3CE(CyberControl, 8);
  
- int line_write(struct tty_struct *tty, const unsigned char *buf, int len)
-diff -puN arch/um/include/line.h~uml-fix-inconsistence-due-to-tty_operation-change arch/um/include/line.h
---- a/arch/um/include/line.h~uml-fix-inconsistence-due-to-tty_operation-change
-+++ a/arch/um/include/line.h
-@@ -71,7 +71,7 @@ extern int line_setup(struct line *lines
- 		      char *init, char **error_out);
- extern int line_write(struct tty_struct *tty, const unsigned char *buf,
- 		      int len);
--extern void line_put_char(struct tty_struct *tty, unsigned char ch);
-+extern int line_put_char(struct tty_struct *tty, unsigned char ch);
- extern void line_set_termios(struct tty_struct *tty, struct ktermios * old);
- extern int line_chars_in_buffer(struct tty_struct *tty);
- extern void line_flush_buffer(struct tty_struct *tty);
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
 origin.patch
-uml-fix-inconsistence-due-to-tty_operation-change.patch
+tridentfb-remove-misplaced-enable_mmio.patch
+tridentfb-improve-clock-setting-accuracy.patch
 
