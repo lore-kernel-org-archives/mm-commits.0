@@ -1,101 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: - alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex.patch removed from -mm tree
-Date: Fri, 02 May 2008 12:42:41 -0700
-Message-ID: <200805021942.m42Jgfwj011212@imap1.linux-foundation.org>
+Subject: - ntp-remove-current_tick_length.patch removed from -mm tree
+Date: Fri, 02 May 2008 12:42:12 -0700
+Message-ID: <200805021942.m42JgC4K011172@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53174 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60044 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932207AbYEBTm4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:42:56 -0400
+	by vger.kernel.org with ESMTP id S932200AbYEBTmt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:42:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias@kaehlcke.net, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: zippel@linux-m68k.org, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Alchemy Semi Au1000 pcmcia driver: convert pcmcia_sockets_lock in a mutex
+     ntp: remove current_tick_length()
 has been removed from the -mm tree.  Its filename was
-     alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex.patch
+     ntp-remove-current_tick_length.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Alchemy Semi Au1000 pcmcia driver: convert pcmcia_sockets_lock in a mutex
-From: Matthias Kaehlcke <matthias@kaehlcke.net>
+Subject: ntp: remove current_tick_length()
+From: Roman Zippel <zippel@linux-m68k.org>
 
-Alchemy Semi Au1000 pcmcia driver: The semaphore pcmcia_sockets_lock
-is used as a mutex, convert it to the mutex API
+current_tick_length used to do a little more, but now it just returns
+tick_length, which we can also access directly at the few places, where it's
+needed.
 
-(akpm: make it static too)
-
-Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
+Cc: john stultz <johnstul@us.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/au1000_generic.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ include/linux/timex.h     |    4 ++--
+ kernel/time/ntp.c         |   16 ++--------------
+ kernel/time/timekeeping.c |    5 ++---
+ 3 files changed, 6 insertions(+), 19 deletions(-)
 
-diff -puN drivers/pcmcia/au1000_generic.c~alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex drivers/pcmcia/au1000_generic.c
---- a/drivers/pcmcia/au1000_generic.c~alchemy-semi-au1000-pcmcia-driver-convert-pcmcia_sockets_lock-in-a-mutex
-+++ a/drivers/pcmcia/au1000_generic.c
-@@ -41,6 +41,7 @@
- #include <linux/notifier.h>
- #include <linux/interrupt.h>
- #include <linux/spinlock.h>
-+#include <linux/mutex.h>
- #include <linux/platform_device.h>
+diff -puN include/linux/timex.h~ntp-remove-current_tick_length include/linux/timex.h
+--- a/include/linux/timex.h~ntp-remove-current_tick_length
++++ a/include/linux/timex.h
+@@ -239,8 +239,8 @@ static inline int ntp_synced(void)
+ #endif
+ #define NTP_INTERVAL_LENGTH (NSEC_PER_SEC/NTP_INTERVAL_FREQ)
  
- #include <asm/io.h>
-@@ -71,7 +72,7 @@ extern struct au1000_pcmcia_socket au100
- u32 *pcmcia_base_vaddrs[2];
- extern const unsigned long mips_io_port_base;
+-/* Returns how long ticks are at present, in ns / 2^(SHIFT_SCALE-10). */
+-extern u64 current_tick_length(void);
++/* Returns how long ticks are at present, in ns / 2^NTP_SCALE_SHIFT. */
++extern u64 tick_length;
  
--DECLARE_MUTEX(pcmcia_sockets_lock);
-+static DEFINE_MUTEX(pcmcia_sockets_lock);
+ extern void second_overflow(void);
+ extern void update_ntp_one_tick(void);
+diff -puN kernel/time/ntp.c~ntp-remove-current_tick_length kernel/time/ntp.c
+--- a/kernel/time/ntp.c~ntp-remove-current_tick_length
++++ a/kernel/time/ntp.c
+@@ -23,7 +23,8 @@
+  */
+ unsigned long tick_usec = TICK_USEC; 		/* USER_HZ period (usec) */
+ unsigned long tick_nsec;			/* ACTHZ period (nsec) */
+-static u64 tick_length, tick_length_base;
++u64 tick_length;
++static u64 tick_length_base;
  
- static int (*au1x00_pcmcia_hw_init[])(struct device *dev) = {
- 	au1x_board_init,
-@@ -472,7 +473,7 @@ int au1x00_drv_pcmcia_remove(struct devi
- 	struct skt_dev_info *sinfo = dev_get_drvdata(dev);
- 	int i;
- 
--	down(&pcmcia_sockets_lock);
-+	mutex_lock(&pcmcia_sockets_lock);
- 	dev_set_drvdata(dev, NULL);
- 
- 	for (i = 0; i < sinfo->nskt; i++) {
-@@ -488,7 +489,7 @@ int au1x00_drv_pcmcia_remove(struct devi
+ #define MAX_TICKADJ		500		/* microsecs */
+ #define MAX_TICKADJ_SCALED	(((u64)(MAX_TICKADJ * NSEC_PER_USEC) << \
+@@ -203,19 +204,6 @@ void second_overflow(void)
  	}
- 
- 	kfree(sinfo);
--	up(&pcmcia_sockets_lock);
-+	mutex_unlock(&pcmcia_sockets_lock);
- 	return 0;
  }
  
-@@ -501,13 +502,13 @@ static int au1x00_drv_pcmcia_probe(struc
- {
- 	int i, ret = -ENODEV;
+-/*
+- * Return how long ticks are at the moment, that is, how much time
+- * update_wall_time_one_tick will add to xtime next time we call it
+- * (assuming no calls to do_adjtimex in the meantime).
+- * The return value is in fixed-point nanoseconds shifted by the
+- * specified number of bits to the right of the binary point.
+- * This function has no side-effects.
+- */
+-u64 current_tick_length(void)
+-{
+-	return tick_length;
+-}
+-
+ #ifdef CONFIG_GENERIC_CMOS_UPDATE
  
--	down(&pcmcia_sockets_lock);
-+	mutex_lock(&pcmcia_sockets_lock);
- 	for (i=0; i < ARRAY_SIZE(au1x00_pcmcia_hw_init); i++) {
- 		ret = au1x00_pcmcia_hw_init[i](dev);
- 		if (ret == 0)
- 			break;
+ /* Disable the cmos update - used by virtualization and embedded */
+diff -puN kernel/time/timekeeping.c~ntp-remove-current_tick_length kernel/time/timekeeping.c
+--- a/kernel/time/timekeeping.c~ntp-remove-current_tick_length
++++ a/kernel/time/timekeeping.c
+@@ -380,8 +380,7 @@ static __always_inline int clocksource_b
+ 	 * Now calculate the error in (1 << look_ahead) ticks, but first
+ 	 * remove the single look ahead already included in the error.
+ 	 */
+-	tick_error = current_tick_length() >>
+-		(NTP_SCALE_SHIFT - clock->shift + 1);
++	tick_error = tick_length >> (NTP_SCALE_SHIFT - clock->shift + 1);
+ 	tick_error -= clock->xtime_interval >> 1;
+ 	error = ((error - tick_error) >> look_ahead) + tick_error;
+ 
+@@ -473,7 +472,7 @@ void update_wall_time(void)
+ 		}
+ 
+ 		/* accumulate error between NTP and clock interval */
+-		clock->error += current_tick_length();
++		clock->error += tick_length;
+ 		clock->error -= clock->xtime_interval << (NTP_SCALE_SHIFT - clock->shift);
  	}
--	up(&pcmcia_sockets_lock);
-+	mutex_unlock(&pcmcia_sockets_lock);
- 	return ret;
- }
  
 _
 
-Patches currently in -mm which might be from matthias@kaehlcke.net are
+Patches currently in -mm which might be from zippel@linux-m68k.org are
 
 origin.patch
+affs-fix-reservation-discarding.patch
+vfs-kill-put_inode.patch
+git-dvb.patch
+git-watchdog.patch
 
