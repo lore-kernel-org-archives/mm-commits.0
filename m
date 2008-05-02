@@ -1,213 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: - introduce-explicit-signed-unsigned-64bit-divide.patch removed from -mm tree
-Date: Fri, 02 May 2008 12:41:49 -0700
-Message-ID: <200805021941.m42Jfnhn011112@imap1.linux-foundation.org>
+Subject: - frv-unbreak-misalignment-handling-changes.patch removed from -mm tree
+Date: Fri, 02 May 2008 12:41:47 -0700
+Message-ID: <200805021941.m42Jfl8t011109@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39332 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43462 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760729AbYEBTmS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:42:18 -0400
+	by vger.kernel.org with ESMTP id S1757578AbYEBTmH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:42:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zippel@linux-m68k.org, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     introduce explicit signed/unsigned 64bit divide
+     frv: unbreak misalignment handling changes
 has been removed from the -mm tree.  Its filename was
-     introduce-explicit-signed-unsigned-64bit-divide.patch
+     frv-unbreak-misalignment-handling-changes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: introduce explicit signed/unsigned 64bit divide
-From: Roman Zippel <zippel@linux-m68k.org>
+Subject: frv: unbreak misalignment handling changes
+From: David Howells <dhowells@redhat.com>
 
-The current do_div doesn't explicitly say that it's unsigned and the signed
-counterpart is missing, which is e.g.  needed when dealing with time values.
+Fix a reference in a arch/frv/mm/Makefile to unaligned.c which has now been
+deleted.
 
-This introduces 64bit signed/unsigned divide functions which also attempts to
-cleanup the somewhat awkward calling API, which often requires the use of
-temporary variables for the dividend.  To avoid the need for temporary
-variables everywhere for the remainder, each divide variant also provides a
-version which doesn't return the remainder.
+Also revert the change to the guard macro name in include/asm-frv/unaligned.h.
 
-Each architecture can now provide optimized versions of these function,
-otherwise generic fallback implementations will be used.
-
-As an example I provided an alternative for the current x86 divide, which
-avoids the asm casts and using an union allows gcc to generate better code. 
-It also avoids the upper divde in a few more cases, where the result is known
-(i.e.  upper quotient is zero).
-
-Signed-off-by: Roman Zippel <zippel@linux-m68k.org>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: David Howells <dhowells@redhat.com>
+Cc: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/div64.h |   20 ++++++++++
- include/linux/math64.h  |   72 ++++++++++++++++++++++++++++++++++++++
- lib/div64.c             |   23 +++++++++++-
- 3 files changed, 113 insertions(+), 2 deletions(-)
+ arch/frv/mm/Makefile        |    2 +-
+ include/asm-frv/unaligned.h |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-x86/div64.h~introduce-explicit-signed-unsigned-64bit-divide include/asm-x86/div64.h
---- a/include/asm-x86/div64.h~introduce-explicit-signed-unsigned-64bit-divide
-+++ a/include/asm-x86/div64.h
-@@ -51,6 +51,26 @@ static inline long div_ll_X_l_rem(long l
+diff -puN arch/frv/mm/Makefile~frv-unbreak-misalignment-handling-changes arch/frv/mm/Makefile
+--- a/arch/frv/mm/Makefile~frv-unbreak-misalignment-handling-changes
++++ a/arch/frv/mm/Makefile
+@@ -6,4 +6,4 @@ obj-y := init.o kmap.o
  
- }
- 
-+static inline u64 div_u64_rem(u64 dividend, u32 divisor, u32 *remainder)
-+{
-+	union {
-+		u64 v64;
-+		u32 v32[2];
-+	} d = { dividend };
-+	u32 upper;
-+
-+	upper = d.v32[1];
-+	d.v32[1] = 0;
-+	if (upper >= divisor) {
-+		d.v32[1] = upper / divisor;
-+		upper %= divisor;
-+	}
-+	asm ("divl %2" : "=a" (d.v32[0]), "=d" (*remainder) :
-+		"rm" (divisor), "0" (d.v32[0]), "1" (upper));
-+	return d.v64;
-+}
-+#define div_u64_rem	div_u64_rem
-+
- extern uint64_t div64_64(uint64_t dividend, uint64_t divisor);
- 
- #else
-diff -puN /dev/null include/linux/math64.h
---- /dev/null
-+++ a/include/linux/math64.h
-@@ -0,0 +1,72 @@
-+#ifndef _LINUX_MATH64_H
-+#define _LINUX_MATH64_H
-+
-+#include <linux/types.h>
-+#include <asm/div64.h>
-+
-+#if BITS_PER_LONG == 64
-+
-+/**
-+ * div_u64_rem - unsigned 64bit divide with 32bit divisor with remainder
-+ *
-+ * This is commonly provided by 32bit archs to provide an optimized 64bit
-+ * divide.
-+ */
-+static inline u64 div_u64_rem(u64 dividend, u32 divisor, u32 *remainder)
-+{
-+	*remainder = dividend % divisor;
-+	return dividend / divisor;
-+}
-+
-+/**
-+ * div_s64_rem - signed 64bit divide with 32bit divisor with remainder
-+ */
-+static inline s64 div_s64_rem(s64 dividend, s32 divisor, s32 *remainder)
-+{
-+	*remainder = dividend % divisor;
-+	return dividend / divisor;
-+}
-+
-+#elif BITS_PER_LONG == 32
-+
-+#ifndef div_u64_rem
-+static inline u64 div_u64_rem(u64 dividend, u32 divisor, u32 *remainder)
-+{
-+	*remainder = do_div(dividend, divisor);
-+	return dividend;
-+}
-+#endif
-+
-+#ifndef div_s64_rem
-+extern s64 div_s64_rem(s64 dividend, s32 divisor, s32 *remainder);
-+#endif
-+
-+#endif /* BITS_PER_LONG */
-+
-+/**
-+ * div_u64 - unsigned 64bit divide with 32bit divisor
-+ *
-+ * This is the most common 64bit divide and should be used if possible,
-+ * as many 32bit archs can optimize this variant better than a full 64bit
-+ * divide.
-+ */
-+#ifndef div_u64
-+static inline u64 div_u64(u64 dividend, u32 divisor)
-+{
-+	u32 remainder;
-+	return div_u64_rem(dividend, divisor, &remainder);
-+}
-+#endif
-+
-+/**
-+ * div_s64 - signed 64bit divide with 32bit divisor
-+ */
-+#ifndef div_s64
-+static inline s64 div_s64(s64 dividend, s32 divisor)
-+{
-+	s32 remainder;
-+	return div_s64_rem(dividend, divisor, &remainder);
-+}
-+#endif
-+
-+#endif /* _LINUX_MATH64_H */
-diff -puN lib/div64.c~introduce-explicit-signed-unsigned-64bit-divide lib/div64.c
---- a/lib/div64.c~introduce-explicit-signed-unsigned-64bit-divide
-+++ a/lib/div64.c
-@@ -16,9 +16,8 @@
-  * assembly versions such as arch/ppc/lib/div64.S and arch/sh/lib/div64.S.
+ obj-$(CONFIG_MMU) += \
+ 	pgalloc.o highmem.o fault.o extable.o cache-page.o tlb-flush.o tlb-miss.o \
+-	mmu-context.o dma-alloc.o unaligned.o elf-fdpic.o
++	mmu-context.o dma-alloc.o elf-fdpic.o
+diff -puN include/asm-frv/unaligned.h~frv-unbreak-misalignment-handling-changes include/asm-frv/unaligned.h
+--- a/include/asm-frv/unaligned.h~frv-unbreak-misalignment-handling-changes
++++ a/include/asm-frv/unaligned.h
+@@ -9,8 +9,8 @@
+  * 2 of the License, or (at your option) any later version.
   */
  
--#include <linux/types.h>
- #include <linux/module.h>
--#include <asm/div64.h>
-+#include <linux/math64.h>
+-#ifndef _ASM_FRV_UNALIGNED_H
+-#define _ASM_FRV_UNALIGNED_H
++#ifndef _ASM_UNALIGNED_H
++#define _ASM_UNALIGNED_H
  
- /* Not needed on 64bit architectures */
- #if BITS_PER_LONG == 32
-@@ -58,6 +57,26 @@ uint32_t __attribute__((weak)) __div64_3
+ #include <linux/unaligned/le_byteshift.h>
+ #include <linux/unaligned/be_byteshift.h>
+@@ -19,4 +19,4 @@
+ #define get_unaligned	__get_unaligned_be
+ #define put_unaligned	__put_unaligned_be
  
- EXPORT_SYMBOL(__div64_32);
- 
-+#ifndef div_s64_rem
-+s64 div_s64_rem(s64 dividend, s32 divisor, s32 *remainder)
-+{
-+	u64 quotient;
-+
-+	if (dividend < 0) {
-+		quotient = div_u64_rem(-dividend, abs(divisor), (u32 *)remainder);
-+		*remainder = -*remainder;
-+		if (divisor > 0)
-+			quotient = -quotient;
-+	} else {
-+		quotient = div_u64_rem(dividend, abs(divisor), (u32 *)remainder);
-+		if (divisor < 0)
-+			quotient = -quotient;
-+	}
-+	return quotient;
-+}
-+EXPORT_SYMBOL(div_s64_rem);
-+#endif
-+
- /* 64bit divisor, dividend and result. dynamic precision */
- uint64_t div64_64(uint64_t dividend, uint64_t divisor)
- {
+-#endif /* _ASM_FRV_UNALIGNED_H */
++#endif /* _ASM_UNALIGNED_H */
 _
 
-Patches currently in -mm which might be from zippel@linux-m68k.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
 origin.patch
-affs-fix-reservation-discarding.patch
-vfs-kill-put_inode.patch
-git-dvb.patch
-git-watchdog.patch
+git-unionfs.patch
+mutex-subsystem-synchro-test-module.patch
 
