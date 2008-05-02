@@ -1,223 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: + revert-9p-convert-from-semaphore-to-spinlock.patch added to -mm tree
-Date: Fri, 02 May 2008 14:50:59 -0700
-Message-ID: <200805022150.m42Lox35016709@imap1.linux-foundation.org>
+Subject: - pata_atiixp-simplex-clear.patch removed from -mm tree
+Date: Fri, 02 May 2008 15:12:54 -0700
+Message-ID: <200805022212.m42MCs9V017556@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33305 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58467 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752521AbYEBVvg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 17:51:36 -0400
+	by vger.kernel.org with ESMTP id S1758019AbYEBWN4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 18:13:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, matthew@wil.cx, sfr@canb.auug.org.au, willy@linux.intel.com
+To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert 9p: Convert from semaphore to spinlock
-has been added to the -mm tree.  Its filename is
-     revert-9p-convert-from-semaphore-to-spinlock.patch
+     pata_atiixp: simplex clear
+has been removed from the -mm tree.  Its filename was
+     pata_atiixp-simplex-clear.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert 9p: Convert from semaphore to spinlock
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pata_atiixp: simplex clear
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
 
-revert
+Some of the other quirks changes seem to have left some users with the simplex
+bits mis-set by the time the driver loads.  Clear simplex mode before we probe
+the controller therefore.
 
-commit 2c77d192c68a95a188dd326db1315b3492487c41
-Author: Matthew Wilcox <matthew@wil.cx>
-Date:   Wed Apr 23 08:41:35 2008 -0400
+[akpm@linux-foundation.org: fix build after upstream renamed things]
+Signed-off-by: Alan Cox <alan@redhat.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 
-    9p: Convert from semaphore to spinlock
-    
-    The virtio_9p_lock is only held for very short periods of time and
-    never does a blocking operation while it's held, so it really should be
-    a spinlock.
-    
-    Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+On Sat, 29 Mar 2008 12:15:40 -0400 Jeff Garzik <jeff@garzik.org> wrote:
+> This patch triggered an audit which led me to... bug city.
+> 
+> 1) This call occurs before resources are guaranteed to be present, which 
+> happens when pci[m]_enable_device() is called.
+> 
+> 2) Auditing the other ata_pci_clear_simplex() uses, it seems the others 
+> are equally broken.
+> 
+> 3) Further, looking at pata_amd, I notice that the resume code twiddles 
+> bits before the PCI device is even bought into D0 state!
+> 
+> 4) ata_pci_clear_simplex() does its work before resources are mapped, 
+> and assumes PCI IDE and PCI BAR #4 behavior.  This works at present, but 
+> is less robust than it could be.
+> 
+> 
+> Anyway, my suggestion would be to add a "post-enable" function pointer 
+> to ata_pci_init_one() arguments, and call ata_pci_clear_simplex() from 
+> that hook.  That would permit this patch and other 
+> ata_pci_clear_simplex() callsites to be fixed.
+> 
+> 	Jeff
+> 
 
-because it craps all over the maintainer's tree.
-
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/trans_virtio.c |   44 +++++++++++++++++++---------------------
- 1 file changed, 21 insertions(+), 23 deletions(-)
+ drivers/ata/pata_atiixp.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN net/9p/trans_virtio.c~revert-9p-convert-from-semaphore-to-spinlock net/9p/trans_virtio.c
---- a/net/9p/trans_virtio.c~revert-9p-convert-from-semaphore-to-spinlock
-+++ a/net/9p/trans_virtio.c
-@@ -28,30 +28,28 @@
-  *
-  */
+diff -puN drivers/ata/pata_atiixp.c~pata_atiixp-simplex-clear drivers/ata/pata_atiixp.c
+--- a/drivers/ata/pata_atiixp.c~pata_atiixp-simplex-clear
++++ a/drivers/ata/pata_atiixp.c
+@@ -22,7 +22,7 @@
+ #include <linux/libata.h>
  
--#include <linux/errno.h>
--#include <linux/file.h>
--#include <linux/idr.h>
--#include <linux/inet.h>
- #include <linux/in.h>
--#include <linux/ipv6.h>
--#include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/net.h>
--#include <linux/parser.h>
--#include <linux/scatterlist.h>
--#include <linux/spinlock.h>
--#include <linux/uaccess.h>
-+#include <linux/ipv6.h>
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
- #include <linux/un.h>
--#include <linux/virtio_9p.h>
--#include <linux/virtio.h>
--
-+#include <linux/uaccess.h>
-+#include <linux/inet.h>
-+#include <linux/idr.h>
-+#include <linux/file.h>
- #include <net/9p/9p.h>
-+#include <linux/parser.h>
- #include <net/9p/transport.h>
-+#include <linux/scatterlist.h>
-+#include <linux/virtio.h>
-+#include <linux/virtio_9p.h>
+ #define DRV_NAME "pata_atiixp"
+-#define DRV_VERSION "0.4.6"
++#define DRV_VERSION "0.4.7"
  
- #define VIRTQUEUE_NUM	128
- 
--/* a single lock to manage channel initialization and attachment */
--static DEFINE_SPINLOCK(virtio_9p_lock);
-+/* a single mutex to manage channel initialization and attachment */
-+static DECLARE_MUTEX(virtio_9p_lock);
- /* global which tracks highest initialized channel */
- static int chan_index;
- 
-@@ -146,9 +144,9 @@ static void p9_virtio_close(struct p9_tr
- 	chan->max_tag = 0;
- 	spin_unlock_irqrestore(&chan->lock, flags);
- 
--	spin_lock(&virtio_9p_lock);
-+	down(&virtio_9p_lock);
- 	chan->inuse = false;
--	spin_unlock(&virtio_9p_lock);
-+	up(&virtio_9p_lock);
- 
- 	kfree(trans);
- }
-@@ -271,10 +269,10 @@ static int p9_virtio_probe(struct virtio
- 	struct virtio_chan *chan;
- 	int index;
- 
--	spin_lock(&virtio_9p_lock);
-+	down(&virtio_9p_lock);
- 	index = chan_index++;
- 	chan = &channels[index];
--	spin_unlock(&virtio_9p_lock);
-+	up(&virtio_9p_lock);
- 
- 	if (chan_index > MAX_9P_CHAN) {
- 		printk(KERN_ERR "9p: virtio: Maximum channels exceeded\n");
-@@ -303,9 +301,9 @@ static int p9_virtio_probe(struct virtio
- out_free_vq:
- 	vdev->config->del_vq(chan->vq);
- fail:
--	spin_lock(&virtio_9p_lock);
-+	down(&virtio_9p_lock);
- 	chan_index--;
--	spin_unlock(&virtio_9p_lock);
-+	up(&virtio_9p_lock);
- 	return err;
+ enum {
+ 	ATIIXP_IDE_PIO_TIMING	= 0x40,
+@@ -243,6 +243,9 @@ static int atiixp_init_one(struct pci_de
+ 		.port_ops = &atiixp_port_ops
+ 	};
+ 	const struct ata_port_info *ppi[] = { &info, NULL };
++	/* Some of the quirk reconfiguration messes up the simplex flag, so
++	   clear it again */
++	ata_pci_bmdma_clear_simplex(dev);
+ 	return ata_pci_sff_init_one(dev, ppi, &atiixp_sht, NULL);
  }
  
-@@ -322,7 +320,7 @@ p9_virtio_create(const char *devname, ch
- 	struct virtio_chan *chan = channels;
- 	int index = 0;
+@@ -279,7 +282,7 @@ static void __exit atiixp_exit(void)
+ }
  
--	spin_lock(&virtio_9p_lock);
-+	down(&virtio_9p_lock);
- 	while (index < MAX_9P_CHAN) {
- 		if (chan->initialized && !chan->inuse) {
- 			chan->inuse = true;
-@@ -332,7 +330,7 @@ p9_virtio_create(const char *devname, ch
- 			chan = &channels[index];
- 		}
- 	}
--	spin_unlock(&virtio_9p_lock);
-+	up(&virtio_9p_lock);
- 
- 	if (index >= MAX_9P_CHAN) {
- 		printk(KERN_ERR "9p: no channels available\n");
+ MODULE_AUTHOR("Alan Cox");
+-MODULE_DESCRIPTION("low-level driver for ATI IXP200/300/400");
++MODULE_DESCRIPTION("low-level driver for ATI IXP series");
+ MODULE_LICENSE("GPL");
+ MODULE_DEVICE_TABLE(pci, atiixp);
+ MODULE_VERSION(DRV_VERSION);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
 
 origin.patch
 linux-next.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
 sxc-fix-printk-warnings-on-sparc32.patch
-revert-memory-hotplug-register-section-node-id-to-free.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-touch-screen-driver-for-the-superh-migor-board.patch
+git-gfs2-nmw.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
 pata_atiixp-simplex-clear.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
-add-rcu_assign_index-if-ever-needed.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-add-warn_on_secs-macro.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+pata_atiixp-dont-disable.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+parisc-new-termios-definitions.patch
+put_pid-make-sure-we-dont-free-the-live-pid.patch
 
