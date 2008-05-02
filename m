@@ -1,69 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: - atm-assign-pde-data-before-gluing-pde-into-proc-tree.patch removed from -mm tree
-Date: Fri, 02 May 2008 12:44:07 -0700
-Message-ID: <200805021944.m42Ji7HI011352@imap1.linux-foundation.org>
+Subject: - cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch removed from -mm tree
+Date: Fri, 02 May 2008 12:43:31 -0700
+Message-ID: <200805021943.m42JhVOZ011297@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37258 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43270 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933465AbYEBTos (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:44:48 -0400
+	by vger.kernel.org with ESMTP id S932508AbYEBToL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:44:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: den@openvz.org, adobriyan@openvz.org, chas@cmf.nrl.navy.mil, davem@davemloft.net, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: travis@sgi.com, ashok.raj@intel.com, gregkh@suse.de, kay.sievers@vrfy.org, suresh.b.siddha@intel.com, vgoyal@in.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atm: assign PDE->data before gluing PDE into /proc tree
+     cpu: change cpu_sys_devices from array to per_cpu variable
 has been removed from the -mm tree.  Its filename was
-     atm-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+     cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atm: assign PDE->data before gluing PDE into /proc tree
-From: "Denis V. Lunev" <den@openvz.org>
+Subject: cpu: change cpu_sys_devices from array to per_cpu variable
+From: Mike Travis <travis@sgi.com>
 
-Simply replace proc_create and further data assigned with proc_create_data. 
-proc_atm_dev_ops holds proper referrence.
+Change cpu_sys_devices from array to per_cpu variable in drivers/base/cpu.c.
 
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Chas Williams <chas@cmf.nrl.navy.mil>
-Cc: "David S. Miller" <davem@davemloft.net>
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: Ashok Raj <ashok.raj@intel.com>
+Cc: Vivek Goyal <vgoyal@in.ibm.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/atm/proc.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/base/cpu.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN net/atm/proc.c~atm-assign-pde-data-before-gluing-pde-into-proc-tree net/atm/proc.c
---- a/net/atm/proc.c~atm-assign-pde-data-before-gluing-pde-into-proc-tree
-+++ a/net/atm/proc.c
-@@ -417,12 +417,10 @@ int atm_proc_dev_register(struct atm_dev
- 		goto err_out;
- 	sprintf(dev->proc_name,"%s:%d",dev->type, dev->number);
+diff -puN drivers/base/cpu.c~cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable drivers/base/cpu.c
+--- a/drivers/base/cpu.c~cpu-change-cpu_sys_devices-from-array-to-per_cpu-variable
++++ a/drivers/base/cpu.c
+@@ -18,7 +18,7 @@ struct sysdev_class cpu_sysdev_class = {
+ };
+ EXPORT_SYMBOL(cpu_sysdev_class);
  
--	dev->proc_entry = proc_create(dev->proc_name, 0, atm_proc_root,
--				      &proc_atm_dev_ops);
-+	dev->proc_entry = proc_create_data(dev->proc_name, 0, atm_proc_root,
-+					   &proc_atm_dev_ops, dev);
- 	if (!dev->proc_entry)
- 		goto err_free_name;
--	dev->proc_entry->data = dev;
--	dev->proc_entry->owner = THIS_MODULE;
- 	return 0;
- err_free_name:
- 	kfree(dev->proc_name);
+-static struct sys_device *cpu_sys_devices[NR_CPUS];
++static DEFINE_PER_CPU(struct sys_device *, cpu_sys_devices);
+ 
+ #ifdef CONFIG_HOTPLUG_CPU
+ static ssize_t show_online(struct sys_device *dev, char *buf)
+@@ -68,7 +68,7 @@ void unregister_cpu(struct cpu *cpu)
+ 	sysdev_remove_file(&cpu->sysdev, &attr_online);
+ 
+ 	sysdev_unregister(&cpu->sysdev);
+-	cpu_sys_devices[logical_cpu] = NULL;
++	per_cpu(cpu_sys_devices, logical_cpu) = NULL;
+ 	return;
+ }
+ #else /* ... !CONFIG_HOTPLUG_CPU */
+@@ -167,7 +167,7 @@ int __cpuinit register_cpu(struct cpu *c
+ 	if (!error && cpu->hotpluggable)
+ 		register_cpu_control(cpu);
+ 	if (!error)
+-		cpu_sys_devices[num] = &cpu->sysdev;
++		per_cpu(cpu_sys_devices, num) = &cpu->sysdev;
+ 	if (!error)
+ 		register_cpu_under_node(num, cpu_to_node(num));
+ 
+@@ -180,8 +180,8 @@ int __cpuinit register_cpu(struct cpu *c
+ 
+ struct sys_device *get_cpu_sysdev(unsigned cpu)
+ {
+-	if (cpu < NR_CPUS)
+-		return cpu_sys_devices[cpu];
++	if (cpu < nr_cpu_ids && cpu_possible(cpu))
++		return per_cpu(cpu_sys_devices, cpu);
+ 	else
+ 		return NULL;
+ }
 _
 
-Patches currently in -mm which might be from den@openvz.org are
+Patches currently in -mm which might be from travis@sgi.com are
 
 origin.patch
-git-net.patch
-powerpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+show_schedstat-fix-memleak.patch
+drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+cpufreq-change-cpu-freq-arrays-to-per_cpu-variables.patch
+acpi-change-processors-from-array-to-per_cpu-variable.patch
+net-remove-nr_cpus-arrays-in-net-core-devc-v2.patch
 
