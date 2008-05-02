@@ -1,68 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: - i8k-make-fan-multiplier-tunable-with-a-module-parameter.patch removed from -mm tree
-Date: Fri, 02 May 2008 12:42:51 -0700
-Message-ID: <200805021942.m42Jgp3A011231@imap1.linux-foundation.org>
+Subject: - spi_s3c24xx-signedness-fix.patch removed from -mm tree
+Date: Fri, 02 May 2008 12:43:03 -0700
+Message-ID: <200805021943.m42Jh35r011256@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52597 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764608AbYEBTnk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:43:40 -0400
+	by vger.kernel.org with ESMTP id S932280AbYEBTnq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:43:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jochen@penguin-breeder.org, mm-commits@vger.kernel.org
+To: matthew@wil.cx, dbrownell@users.sourceforge.net, julia@diku.dk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     i8k: make fan multiplier tunable with a module parameter
+     spi_s3c24xx signedness fix
 has been removed from the -mm tree.  Its filename was
-     i8k-make-fan-multiplier-tunable-with-a-module-parameter.patch
+     spi_s3c24xx-signedness-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i8k: make fan multiplier tunable with a module parameter
-From: Jochen Eisinger <jochen@penguin-breeder.org>
+Subject: spi_s3c24xx signedness fix
+From: Matthew Wilcox <matthew@wil.cx>
 
-The i8k driver multiplies the fan speed reported by the BIOS with a factor of
-30.  On my Dell Latitude D800, this factor is not required.
+On Fri, Apr 18, 2008 at 09:08:55PM +0200, Julia Lawall wrote:
+> I found 63 occurrences of this problem with the following semantic match
+> (http://www.emn.fr/x-info/coccinelle/):
+>
+> @@ unsigned int i; @@
+>
+> * i < 0
+>
 
-I'd suggest to make this configurable.
+Since this one's always in the range 0-255, it could probably be made
+signed, but it's just as easy to make it work unsigned.
 
+Reported-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/i8k.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ drivers/spi/spi_s3c24xx.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/i8k.c~i8k-make-fan-multiplier-tunable-with-a-module-parameter drivers/char/i8k.c
---- a/drivers/char/i8k.c~i8k-make-fan-multiplier-tunable-with-a-module-parameter
-+++ a/drivers/char/i8k.c
-@@ -77,6 +77,10 @@ static int power_status;
- module_param(power_status, bool, 0600);
- MODULE_PARM_DESC(power_status, "Report power status in /proc/i8k");
+diff -puN drivers/spi/spi_s3c24xx.c~spi_s3c24xx-signedness-fix drivers/spi/spi_s3c24xx.c
+--- a/drivers/spi/spi_s3c24xx.c~spi_s3c24xx-signedness-fix
++++ a/drivers/spi/spi_s3c24xx.c
+@@ -125,10 +125,10 @@ static int s3c24xx_spi_setupxfer(struct 
+ 	/* is clk = pclk / (2 * (pre+1)), or is it
+ 	 *    clk = (pclk * 2) / ( pre + 1) */
  
-+static int fan_mult = I8K_FAN_MULT;
-+module_param(fan_mult, int, 0);
-+MODULE_PARM_DESC(fan_mult, "Factor to multiply fan speed with");
-+
- static int i8k_open_fs(struct inode *inode, struct file *file);
- static int i8k_ioctl(struct inode *, struct file *, unsigned int,
- 		     unsigned long);
-@@ -239,7 +243,7 @@ static int i8k_get_fan_speed(int fan)
- 	struct smm_regs regs = { .eax = I8K_SMM_GET_SPEED, };
+-	div = (div / 2) - 1;
++	div /= 2;
  
- 	regs.ebx = fan & 0xff;
--	return i8k_smm(&regs) ? : (regs.eax & 0xffff) * I8K_FAN_MULT;
-+	return i8k_smm(&regs) ? : (regs.eax & 0xffff) * fan_mult;
- }
+-	if (div < 0)
+-		div = 1;
++	if (div > 0)
++		div -= 1;
  
- /*
+ 	if (div > 255)
+ 		div = 255;
 _
 
-Patches currently in -mm which might be from jochen@penguin-breeder.org are
+Patches currently in -mm which might be from matthew@wil.cx are
 
 origin.patch
+parisc-remove-redundant-display-of-free-swap-space-in-show_mem.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-construct-one-fakephp-slot-per-pci-slot.patch
+pci-hotplug-introduce-pci_slot.patch
+git-semaphore.patch
+make-sure-nobodys-leaking-resources.patch
 
