@@ -1,103 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - isdn-hysdn_procconfc-build-fix.patch removed from -mm tree
-Date: Fri, 02 May 2008 12:42:27 -0700
-Message-ID: <200805021942.m42JgR48011193@imap1.linux-foundation.org>
+Subject: - pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch removed from -mm tree
+Date: Fri, 02 May 2008 12:42:37 -0700
+Message-ID: <200805021942.m42JgbL9011205@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42375 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45671 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932190AbYEBTms (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:42:48 -0400
+	by vger.kernel.org with ESMTP id S932201AbYEBTmt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:42:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mingo@elte.hu, den@openvz.org, kkeil@suse.de, mm-commits@vger.kernel.org
+To: sam@ravnborg.org, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     isdn: hysdn_procconf.c build fix
+     pcmcia: silence section mismatch warnings from pci_driver variables
 has been removed from the -mm tree.  Its filename was
-     isdn-hysdn_procconfc-build-fix.patch
+     pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: hysdn_procconf.c build fix
-From: Ingo Molnar <mingo@elte.hu>
+Subject: pcmcia: silence section mismatch warnings from pci_driver variables
+From: Sam Ravnborg <sam@ravnborg.org>
 
-x86.git randconfig testing found the following build error in latest
--git:
+Silence following warnings:
+WARNING: drivers/pcmcia/built-in.o(.data+0x14e0): Section mismatch in reference from the variable pd6729_pci_drv to the function .devinit.text:pd6729_pci_probe()
+WARNING: drivers/pcmcia/built-in.o(.data+0x14e8): Section mismatch in reference from the variable pd6729_pci_drv to the function .devexit.text:pd6729_pci_remove()
+WARNING: drivers/pcmcia/built-in.o(.data+0x16c0): Section mismatch in reference from the variable i82092aa_pci_drv to the function .devinit.text:i82092aa_pci_probe()
+WARNING: drivers/pcmcia/built-in.o(.data+0x16c8): Section mismatch in reference from the variable i82092aa_pci_drv to the function .devexit.text:i82092aa_pci_remove()
 
-  CC [M]  drivers/isdn/hysdn/hysdn_procconf.o
-  CC [M]  drivers/isdn/hysdn/hysdn_init.o
-  drivers/isdn/hysdn/hysdn_procconf.c: In function 'hysdn_procconf_init':
-  drivers/isdn/hysdn/hysdn_procconf.c:408: error: too few arguments to function 'proc_create'
+Rename the variables from *_drv to *_driver so modpost ignore the OK
+references to __devinit/__devexit functions.
 
-with the following config:
-
-  http://redhat.com/~mingo/misc/config-Wed_Apr_30_15_12_48_CEST_2008.bad
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Cc: "Denis V. Lunev" <den@openvz.org>
-Cc: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Sam Ravnborg <sam@ravnborg.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hysdn/hysdn_procconf.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/pcmcia/i82092.c |    6 +++---
+ drivers/pcmcia/pd6729.c |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN drivers/isdn/hysdn/hysdn_procconf.c~isdn-hysdn_procconfc-build-fix drivers/isdn/hysdn/hysdn_procconf.c
---- a/drivers/isdn/hysdn/hysdn_procconf.c~isdn-hysdn_procconfc-build-fix
-+++ a/drivers/isdn/hysdn/hysdn_procconf.c
-@@ -405,7 +405,8 @@ hysdn_procconf_init(void)
- 		sprintf(conf_name, "%s%d", PROC_CONF_BASENAME, card->myid);
- 		if ((card->procconf = (void *) proc_create(conf_name,
- 						S_IFREG | S_IRUGO | S_IWUSR,
--						hysdn_proc_entry)) != NULL) {
-+						hysdn_proc_entry,
-+						&conf_fops)) != NULL) {
- 			hysdn_proclog_init(card);	/* init the log file entry */
- 		}
- 		card = card->next;	/* next entry */
+diff -puN drivers/pcmcia/i82092.c~pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables drivers/pcmcia/i82092.c
+--- a/drivers/pcmcia/i82092.c~pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables
++++ a/drivers/pcmcia/i82092.c
+@@ -53,7 +53,7 @@ static int i82092aa_socket_resume (struc
+ }
+ #endif
+ 
+-static struct pci_driver i82092aa_pci_drv = {
++static struct pci_driver i82092aa_pci_driver = {
+ 	.name           = "i82092aa",
+ 	.id_table       = i82092aa_pci_ids,
+ 	.probe          = i82092aa_pci_probe,
+@@ -714,13 +714,13 @@ static int i82092aa_set_mem_map(struct p
+ 
+ static int i82092aa_module_init(void)
+ {
+-	return pci_register_driver(&i82092aa_pci_drv);
++	return pci_register_driver(&i82092aa_pci_driver);
+ }
+ 
+ static void i82092aa_module_exit(void)
+ {
+ 	enter("i82092aa_module_exit");
+-	pci_unregister_driver(&i82092aa_pci_drv);
++	pci_unregister_driver(&i82092aa_pci_driver);
+ 	if (sockets[0].io_base>0)
+ 			 release_region(sockets[0].io_base, 2);
+ 	leave("i82092aa_module_exit");
+diff -puN drivers/pcmcia/pd6729.c~pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables drivers/pcmcia/pd6729.c
+--- a/drivers/pcmcia/pd6729.c~pcmcia-silence-section-mismatch-warnings-from-pci_driver-variables
++++ a/drivers/pcmcia/pd6729.c
+@@ -778,7 +778,7 @@ static struct pci_device_id pd6729_pci_i
+ };
+ MODULE_DEVICE_TABLE(pci, pd6729_pci_ids);
+ 
+-static struct pci_driver pd6729_pci_drv = {
++static struct pci_driver pd6729_pci_driver = {
+ 	.name		= "pd6729",
+ 	.id_table	= pd6729_pci_ids,
+ 	.probe		= pd6729_pci_probe,
+@@ -791,12 +791,12 @@ static struct pci_driver pd6729_pci_drv 
+ 
+ static int pd6729_module_init(void)
+ {
+-	return pci_register_driver(&pd6729_pci_drv);
++	return pci_register_driver(&pd6729_pci_driver);
+ }
+ 
+ static void pd6729_module_exit(void)
+ {
+-	pci_unregister_driver(&pd6729_pci_drv);
++	pci_unregister_driver(&pd6729_pci_driver);
+ }
+ 
+ module_init(pd6729_module_init);
 _
 
-Patches currently in -mm which might be from mingo@elte.hu are
+Patches currently in -mm which might be from sam@ravnborg.org are
 
 origin.patch
-acpi-acpi_numa_init-build-fix.patch
-acpi-fix-drivers-acpi-gluec-build-error.patch
-git-x86-fixup.patch
-x86_64-restore-mask_bits-in-msi-shutdown.patch
-arch-x86-video-fbdevc-add-module_license.patch
-rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-git-kvm.patch
-git-sched.patch
-mutex-debug-check-mutex-magic-before-owner.patch
-show_schedstat-fix-memleak.patch
-drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
-rcu-fix-rcu_try_flip_waitack_needed-to-prevent-grace-period-stall.patch
-rcu-add-call_rcu_sched.patch
-rcu-add-memory-barriers-and-comments-to-rcu_check_callbacks.patch
-rcu-add-call_rcu_sched-and-friends-to-rcutorture.patch
-rcu-1q08-rcu-doc-update-add-call_rcu_sched.patch
-aes-x86_64-asm-implementation-optimization.patch
-pci-export-resource_wc-in-pci-sysfs.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
-mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
-mm-print-out-the-zonelists-on-request-for-manual-verification.patch
-mm-move-bootmem-descriptors-definition-to-a-single-place.patch
-mm-fix-free_all_bootmem_core-alignment-check.patch
-mm-normalize-internal-argument-passing-of-bootmem-data.patch
-mm-unexport-__alloc_bootmem_core.patch
-accounting-account-for-user-time-when-updating-memory-integrals.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-detect-atomic-counter-underflows.patch
-make-frame_pointer-default=y.patch
-mutex-subsystem-synchro-test-module.patch
+git-pci-current.patch
+git-sh.patch
+git-scsi-misc.patch
+git-watchdog.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
 
