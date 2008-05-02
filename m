@@ -1,80 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: - memcg-simple-stats-for-memory-resource-controller.patch removed from -mm tree
-Date: Fri, 02 May 2008 12:43:21 -0700
-Message-ID: <200805021943.m42JhLvE011281@imap1.linux-foundation.org>
+Subject: - atm-assign-pde-data-before-gluing-pde-into-proc-tree.patch removed from -mm tree
+Date: Fri, 02 May 2008 12:44:07 -0700
+Message-ID: <200805021944.m42Ji7HI011352@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42880 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37258 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932496AbYEBToJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:44:09 -0400
+	by vger.kernel.org with ESMTP id S933465AbYEBTos (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:44:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: balajirrao@gmail.com, balbir@linux.vnet.ibm.com, dhaval@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: den@openvz.org, adobriyan@openvz.org, chas@cmf.nrl.navy.mil, davem@davemloft.net, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memcg: simple stats for memory resource controller
+     atm: assign PDE->data before gluing PDE into /proc tree
 has been removed from the -mm tree.  Its filename was
-     memcg-simple-stats-for-memory-resource-controller.patch
+     atm-assign-pde-data-before-gluing-pde-into-proc-tree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: simple stats for memory resource controller
-From: Balaji Rao <balajirrao@gmail.com>
+Subject: atm: assign PDE->data before gluing PDE into /proc tree
+From: "Denis V. Lunev" <den@openvz.org>
 
-Implement trivial statistics for the memory resource controller.
+Simply replace proc_create and further data assigned with proc_create_data. 
+proc_atm_dev_ops holds proper referrence.
 
-Signed-off-by: Balaji Rao <balajirrao@gmail.com>
-Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
-Cc: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: Alexey Dobriyan <adobriyan@openvz.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Chas Williams <chas@cmf.nrl.navy.mil>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ net/atm/proc.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-simple-stats-for-memory-resource-controller mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-simple-stats-for-memory-resource-controller
-+++ a/mm/memcontrol.c
-@@ -48,6 +48,8 @@ enum mem_cgroup_stat_index {
- 	 */
- 	MEM_CGROUP_STAT_CACHE, 	   /* # of pages charged as cache */
- 	MEM_CGROUP_STAT_RSS,	   /* # of pages charged as rss */
-+	MEM_CGROUP_STAT_PGPGIN_COUNT,	/* # of pages paged in */
-+	MEM_CGROUP_STAT_PGPGOUT_COUNT,	/* # of pages paged out */
+diff -puN net/atm/proc.c~atm-assign-pde-data-before-gluing-pde-into-proc-tree net/atm/proc.c
+--- a/net/atm/proc.c~atm-assign-pde-data-before-gluing-pde-into-proc-tree
++++ a/net/atm/proc.c
+@@ -417,12 +417,10 @@ int atm_proc_dev_register(struct atm_dev
+ 		goto err_out;
+ 	sprintf(dev->proc_name,"%s:%d",dev->type, dev->number);
  
- 	MEM_CGROUP_STAT_NSTATS,
- };
-@@ -199,6 +201,13 @@ static void mem_cgroup_charge_statistics
- 		__mem_cgroup_stat_add_safe(stat, MEM_CGROUP_STAT_CACHE, val);
- 	else
- 		__mem_cgroup_stat_add_safe(stat, MEM_CGROUP_STAT_RSS, val);
-+
-+	if (charge)
-+		__mem_cgroup_stat_add_safe(stat,
-+				MEM_CGROUP_STAT_PGPGIN_COUNT, 1);
-+	else
-+		__mem_cgroup_stat_add_safe(stat,
-+				MEM_CGROUP_STAT_PGPGOUT_COUNT, 1);
- }
- 
- static struct mem_cgroup_per_zone *
-@@ -884,6 +893,8 @@ static const struct mem_cgroup_stat_desc
- } mem_cgroup_stat_desc[] = {
- 	[MEM_CGROUP_STAT_CACHE] = { "cache", PAGE_SIZE, },
- 	[MEM_CGROUP_STAT_RSS] = { "rss", PAGE_SIZE, },
-+	[MEM_CGROUP_STAT_PGPGIN_COUNT] = {"pgpgin", 1, },
-+	[MEM_CGROUP_STAT_PGPGOUT_COUNT] = {"pgpgout", 1, },
- };
- 
- static int mem_control_stat_show(struct cgroup *cont, struct cftype *cft,
+-	dev->proc_entry = proc_create(dev->proc_name, 0, atm_proc_root,
+-				      &proc_atm_dev_ops);
++	dev->proc_entry = proc_create_data(dev->proc_name, 0, atm_proc_root,
++					   &proc_atm_dev_ops, dev);
+ 	if (!dev->proc_entry)
+ 		goto err_free_name;
+-	dev->proc_entry->data = dev;
+-	dev->proc_entry->owner = THIS_MODULE;
+ 	return 0;
+ err_free_name:
+ 	kfree(dev->proc_name);
 _
 
-Patches currently in -mm which might be from balajirrao@gmail.com are
+Patches currently in -mm which might be from den@openvz.org are
 
 origin.patch
+git-net.patch
+powerpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
 
