@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-use-get_unaligned_-helpers.patch added to -mm tree
-Date: Fri, 02 May 2008 16:09:24 -0700
-Message-ID: <200805022309.m42N9OJj019849@imap1.linux-foundation.org>
+Subject: + xfs-use-get_unaligned_-helpers.patch added to -mm tree
+Date: Fri, 02 May 2008 16:09:28 -0700
+Message-ID: <200805022309.m42N9SBm019855@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54562 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41423 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932215AbYEBXJ7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:09:59 -0400
+	by vger.kernel.org with ESMTP id S932488AbYEBXKB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:10:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, James.Bottomley@HansenPartnership.com
+Cc: harvey.harrison@gmail.com, dgc@sgi.com, lachlan@sgi.com, tes@sgi.com
 
 
 The patch titled
-     scsi: use get_unaligned_* helpers
+     xfs: use get_unaligned_* helpers
 has been added to the -mm tree.  Its filename is
-     scsi-use-get_unaligned_-helpers.patch
+     xfs-use-get_unaligned_-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,29 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: use get_unaligned_* helpers
+Subject: xfs: use get_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Lachlan McIlroy <lachlan@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/libiscsi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/xfs/xfs_inode.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/libiscsi.c~scsi-use-get_unaligned_-helpers drivers/scsi/libiscsi.c
---- a/drivers/scsi/libiscsi.c~scsi-use-get_unaligned_-helpers
-+++ a/drivers/scsi/libiscsi.c
-@@ -508,7 +508,7 @@ invalid_datalen:
- 			goto out;
+diff -puN fs/xfs/xfs_inode.c~xfs-use-get_unaligned_-helpers fs/xfs/xfs_inode.c
+--- a/fs/xfs/xfs_inode.c~xfs-use-get_unaligned_-helpers
++++ a/fs/xfs/xfs_inode.c
+@@ -580,8 +580,8 @@ xfs_iformat_extents(
+ 		xfs_validate_extents(ifp, nex, XFS_EXTFMT_INODE(ip));
+ 		for (i = 0; i < nex; i++, dp++) {
+ 			xfs_bmbt_rec_host_t *ep = xfs_iext_get_ext(ifp, i);
+-			ep->l0 = be64_to_cpu(get_unaligned(&dp->l0));
+-			ep->l1 = be64_to_cpu(get_unaligned(&dp->l1));
++			ep->l0 = get_unaligned_be64(&dp->l0);
++			ep->l1 = get_unaligned_be64(&dp->l1);
  		}
- 
--		senselen = be16_to_cpu(get_unaligned((__be16 *) data));
-+		senselen = get_unaligned_be16(data);
- 		if (datalen < senselen)
- 			goto invalid_datalen;
- 
+ 		XFS_BMAP_TRACE_EXLIST(ip, nex, whichfork);
+ 		if (whichfork != XFS_DATA_FORK ||
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
