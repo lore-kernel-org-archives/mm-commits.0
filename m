@@ -1,116 +1,162 @@
 From: akpm@linux-foundation.org
-Subject: - autofs4-fix-execution-order-race-in-mount-request-code.patch removed from -mm tree
-Date: Fri, 02 May 2008 12:43:12 -0700
-Message-ID: <200805021943.m42JhC6L011268@imap1.linux-foundation.org>
+Subject: - drivers-char-synclinkc-inbreak-mgsl_put_char.patch removed from -mm tree
+Date: Fri, 02 May 2008 12:43:36 -0700
+Message-ID: <200805021943.m42Jha5B011303@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56450 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49557 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758493AbYEBTv5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:51:57 -0400
+	by vger.kernel.org with ESMTP id S1765479AbYEBTwa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:52:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jmoyer@redhat.com, raven@themaw.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, alan@redhat.com, jirislaby@gmail.com, paulkf@microgate.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     autofs4: fix execution order race in mount request code
+     drivers/char/synclink.c: unbreak mgsl_put_char()
 has been removed from the -mm tree.  Its filename was
-     autofs4-fix-execution-order-race-in-mount-request-code.patch
+     drivers-char-synclinkc-inbreak-mgsl_put_char.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: autofs4: fix execution order race in mount request code
-From: Jeff Moyer <jmoyer@redhat.com>
+Subject: drivers/char/synclink.c: unbreak mgsl_put_char()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Jeff Moyer has identified a race in due to an execution order dependency
-in the autofs4 function root.c:try_to_fill_dentry().
+Repair the effects of
 
-Jeff's description of this race is:
+commit 55da77899c1472d83452c914fa179d00ea96df65
+Author: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Date:   Wed Apr 30 00:54:07 2008 -0700
 
-"P1 does a lookup of /mount/submount/foo.  Since the VFS can't find an entry
-for "foo" under /mount/submount, it calls into the autofs4 kernel module to
-allocate a new dentry, D1.  The kernel creates a new waitq for this lookup and
-calls the daemon to perform the mount.
+    synclink series: switch to int put_char method
+    
+    Signed-off-by: Alan Cox <alan@redhat.com>
+    Cc: Paul Fulghum <paulkf@microgate.com>
+    Cc: Jiri Slaby <jirislaby@gmail.com>
 
-The daemon performs a mkdir of the "foo" directory under /mount/submount,
-which ends up creating a *new* dentry, D2.
+drivers/char/synclink_gt.c: In function 'put_char':
+drivers/char/synclink_gt.c:919: warning: 'ret' may be used uninitialized in this function
 
-Then, P2 does a lookup of /mount/submount/foo.  The VFS path walking logic
-finds a dentry in the dcache, D2, and calls the revalidate function with this.
- In the autofs4 revalidate code, we then trigger a mount, since the dentry is
-an empty directory that isn't a mountpoint, and so set DCACHE_AUTOFS_PENDING
-and call into the wait code to trigger the mount.
+and do some whitespace repair and unneeded-cast-removal in there as well.
 
-The wait code finds our existing waitq entry (since it is keyed off of the
-directory name) and adds itself to the list of waiters.
-
-After the daemon finishes the mount, it calls back into the kernel to release
-the waiters.  When this happens, P1 is woken up and goes about clearing the
-DCACHE_AUTOFS_PENDING flag, but it does this in D1!  So, given that P1 in our
-case is a program that will immediately try to access a file under
-/mount/submount/foo, we end up finding the dentry D2 which still has the
-pending flag set, and we set out to wait for a mount *again*!
-
-So, one way to address this is to re-do the lookup at the end of
-try_to_fill_dentry, and to clear the pending flag on the hashed dentry.  This
-seems a sane approach to me."
-
-And Jeff's patch does this.
-
-Signed-off-by: Jeff Moyer <jmoyer@redhat.com>
-Signed-off-by-by: Ian Kent <raven@themaw.net>
+Cc: Paul Fulghum <paulkf@microgate.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/autofs4/root.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/char/synclink.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/autofs4/root.c~autofs4-fix-execution-order-race-in-mount-request-code fs/autofs4/root.c
---- a/fs/autofs4/root.c~autofs4-fix-execution-order-race-in-mount-request-code
-+++ a/fs/autofs4/root.c
-@@ -242,6 +242,7 @@ static int try_to_fill_dentry(struct den
+diff -puN drivers/char/synclink.c~drivers-char-synclinkc-inbreak-mgsl_put_char drivers/char/synclink.c
+--- a/drivers/char/synclink.c~drivers-char-synclinkc-inbreak-mgsl_put_char
++++ a/drivers/char/synclink.c
+@@ -2028,13 +2028,13 @@ static void mgsl_change_params(struct mg
+  */
+ static int mgsl_put_char(struct tty_struct *tty, unsigned char ch)
  {
- 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
- 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
-+	struct dentry *new;
- 	int status = 0;
+-	struct mgsl_struct *info = (struct mgsl_struct *)tty->driver_data;
++	struct mgsl_struct *info = tty->driver_data;
+ 	unsigned long flags;
+-	int ret;
++	int ret = 0;
  
- 	/* Block on any pending expiry here; invalidate the dentry
-@@ -318,6 +319,27 @@ static int try_to_fill_dentry(struct den
- 	spin_lock(&dentry->d_lock);
- 	dentry->d_flags &= ~DCACHE_AUTOFS_PENDING;
- 	spin_unlock(&dentry->d_lock);
-+
-+	/*
-+	 * The dentry that is passed in from lookup may not be the one
-+	 * we end up using, as mkdir can create a new one.  If this
-+	 * happens, and another process tries the lookup at the same time,
-+	 * it will set the PENDING flag on this new dentry, but add itself
-+	 * to our waitq.  Then, if after the lookup succeeds, the first
-+	 * process that requested the mount performs another lookup of the
-+	 * same directory, it will show up as still pending!  So, we need
-+	 * to redo the lookup here and clear pending on that dentry.
-+	 */
-+	if (d_unhashed(dentry)) {
-+		new = d_lookup(dentry->d_parent, &dentry->d_name);
-+		if (new) {
-+			spin_lock(&new->d_lock);
-+			new->d_flags &= ~DCACHE_AUTOFS_PENDING;
-+			spin_unlock(&new->d_lock);
-+			dput(new);
-+		}
-+	}
-+
- 	return status;
- }
+-	if ( debug_level >= DEBUG_LEVEL_INFO ) {
+-		printk( "%s(%d):mgsl_put_char(%d) on %s\n",
+-			__FILE__,__LINE__,ch,info->device_name);
++	if (debug_level >= DEBUG_LEVEL_INFO) {
++		printk("%s(%d):mgsl_put_char(%d) on %s\n",
++			__FILE__, __LINE__, ch, info->device_name);
+ 	}		
+ 	
+ 	if (mgsl_paranoia_check(info, tty->name, "mgsl_put_char"))
+@@ -2043,9 +2043,9 @@ static int mgsl_put_char(struct tty_stru
+ 	if (!tty || !info->xmit_buf)
+ 		return 0;
  
+-	spin_lock_irqsave(&info->irq_spinlock,flags);
++	spin_lock_irqsave(&info->irq_spinlock, flags);
+ 	
+-	if ( (info->params.mode == MGSL_MODE_ASYNC ) || !info->tx_active ) {
++	if ((info->params.mode == MGSL_MODE_ASYNC ) || !info->tx_active) {
+ 		if (info->xmit_cnt < SERIAL_XMIT_SIZE - 1) {
+ 			info->xmit_buf[info->xmit_head++] = ch;
+ 			info->xmit_head &= SERIAL_XMIT_SIZE-1;
+@@ -2053,7 +2053,7 @@ static int mgsl_put_char(struct tty_stru
+ 			ret = 1;
+ 		}
+ 	}
+-	spin_unlock_irqrestore(&info->irq_spinlock,flags);
++	spin_unlock_irqrestore(&info->irq_spinlock, flags);
+ 	return ret;
+ 	
+ }	/* end of mgsl_put_char() */
 _
 
-Patches currently in -mm which might be from jmoyer@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+revert-memory-hotplug-register-section-node-id-to-free.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+git-dvb.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-kvm.patch
+pata_atiixp-simplex-clear.patch
+git-mips.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-sched.patch
+drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+add-rcu_assign_index-if-ever-needed.patch
+git-scsi-misc.patch
+aic79xx_core-remove-ascii-art.patch
+sparc32-export-empty_zero_page.patch
+git-unionfs.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system-fix.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system-fix-checkpatch-fixes.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+make-module_sect_attrs-private-to-kernel-modulec-checkpatch-fixes.patch
+ext4-is-busted-on-m68k.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+add-warn_on_secs-macro.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
