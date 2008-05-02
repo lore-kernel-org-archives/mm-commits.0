@@ -1,83 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: - spi_bfin5xx-use-pio-for-full-duplex-not-dma.patch removed from -mm tree
-Date: Fri, 02 May 2008 12:43:01 -0700
-Message-ID: <200805021943.m42Jh1qs011247@imap1.linux-foundation.org>
+Subject: - pnp-fix-printk-format-warnings.patch removed from -mm tree
+Date: Fri, 02 May 2008 12:42:47 -0700
+Message-ID: <200805021942.m42JglsF011224@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43900 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45420 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932429AbYEBTnt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:43:49 -0400
+	by vger.kernel.org with ESMTP id S1757649AbYEBTnh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 15:43:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vitja.makarov@gmail.com, cooloney@kernel.org, dbrownell@users.sourceforge.net, mm-commits@vger.kernel.org
+To: randy.dunlap@oracle.com, bjorn.helgaas@hp.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi_bfin5xx: use PIO for full duplex, not DMA
+     PNP: fix printk format warnings
 has been removed from the -mm tree.  Its filename was
-     spi_bfin5xx-use-pio-for-full-duplex-not-dma.patch
+     pnp-fix-printk-format-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi_bfin5xx: use PIO for full duplex, not DMA
-From: Vitja Makarov <vitja.makarov@gmail.com>
+Subject: PNP: fix printk format warnings
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Use PIO for full-duplex transfers, instead of DMA.
+next-20080430/drivers/pnp/pnpbios/rsparser.c:594: warning: format '%d' expects type 'int', but argument 4 has type 'resource_size_t'
+next-20080430/drivers/pnp/pnpbios/rsparser.c:605: warning: format '%d' expects type 'int', but argument 4 has type 'resource_size_t'
 
-Signed-off-by: Vitja Makarov <vitja.makarov@gmail.com>
-Signed-off-by: Bryan Wu <cooloney@kernel.org>
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
+[joe@perches.com: fix it]
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Signed-off-by: Joe Perches <joe@perches.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi_bfin5xx.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/pnp/pnpbios/rsparser.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/spi/spi_bfin5xx.c~spi_bfin5xx-use-pio-for-full-duplex-not-dma drivers/spi/spi_bfin5xx.c
---- a/drivers/spi/spi_bfin5xx.c~spi_bfin5xx-use-pio-for-full-duplex-not-dma
-+++ a/drivers/spi/spi_bfin5xx.c
-@@ -608,6 +608,7 @@ static void pump_transfers(unsigned long
- 	u8 width;
- 	u16 cr, dma_width, dma_config;
- 	u32 tranf_success = 1;
-+	u8 full_duplex = 0;
+diff -puN drivers/pnp/pnpbios/rsparser.c~pnp-fix-printk-format-warnings drivers/pnp/pnpbios/rsparser.c
+--- a/drivers/pnp/pnpbios/rsparser.c~pnp-fix-printk-format-warnings
++++ a/drivers/pnp/pnpbios/rsparser.c
+@@ -591,7 +591,8 @@ static void pnpbios_encode_irq(struct pn
+ 	p[1] = map & 0xff;
+ 	p[2] = (map >> 8) & 0xff;
  
- 	/* Get current state information */
- 	message = drv_data->cur_msg;
-@@ -658,6 +659,7 @@ static void pump_transfers(unsigned long
- 	}
+-	dev_dbg(&dev->dev, "  encode irq %d\n", res->start);
++	dev_dbg(&dev->dev, "  encode irq %llu\n",
++		(unsigned long long)res->start);
+ }
  
- 	if (transfer->rx_buf != NULL) {
-+		full_duplex = transfer->tx_buf != NULL;
- 		drv_data->rx = transfer->rx_buf;
- 		drv_data->rx_end = drv_data->rx + transfer->len;
- 		dev_dbg(&drv_data->pdev->dev, "rx_buf is %p, rx_end is %p\n",
-@@ -740,7 +742,8 @@ static void pump_transfers(unsigned long
- 	 * successful use different way to r/w according to
- 	 * drv_data->cur_chip->enable_dma
- 	 */
--	if (drv_data->cur_chip->enable_dma && drv_data->len > 6) {
-+	if (!full_duplex && drv_data->cur_chip->enable_dma
-+				&& drv_data->len > 6) {
+ static void pnpbios_encode_dma(struct pnp_dev *dev, unsigned char *p,
+@@ -602,7 +603,8 @@ static void pnpbios_encode_dma(struct pn
+ 	map = 1 << res->start;
+ 	p[1] = map & 0xff;
  
- 		disable_dma(drv_data->dma_channel);
- 		clear_dma_irqstat(drv_data->dma_channel);
-@@ -828,7 +831,7 @@ static void pump_transfers(unsigned long
- 		/* IO mode write then read */
- 		dev_dbg(&drv_data->pdev->dev, "doing IO transfer\n");
+-	dev_dbg(&dev->dev, "  encode dma %d\n", res->start);
++	dev_dbg(&dev->dev, "  encode dma %llu\n",
++		(unsigned long long)res->start);
+ }
  
--		if (drv_data->tx != NULL && drv_data->rx != NULL) {
-+		if (full_duplex) {
- 			/* full duplex mode */
- 			BUG_ON((drv_data->tx_end - drv_data->tx) !=
- 			       (drv_data->rx_end - drv_data->rx));
+ static void pnpbios_encode_port(struct pnp_dev *dev, unsigned char *p,
 _
 
-Patches currently in -mm which might be from vitja.makarov@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
 origin.patch
+pnp-fix-missing-kernel-doc-notation.patch
+x86-fix-setup-printk-format-warning.patch
+git-kvm.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-ocfs2.patch
+git-sched.patch
+git-unionfs.patch
+fix-gregkh-usb-usb-isp1760-hcd-driver.patch
+uwb-fix-kconfig-causing-undefined-references.patch
+uwb-fix-all-printk-format-warnings.patch
+docbook-some-kernel-locking-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+profile-likely-unlikely-macros.patch
 
