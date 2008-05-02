@@ -1,63 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 02 May 2008 13:41:01 -0700
-Message-ID: <200805022041.m42Kf2vG013699@imap1.linux-foundation.org>
+Subject: - sparc32-export-empty_zero_page.patch removed from -mm tree
+Date: Fri, 02 May 2008 13:45:46 -0700
+Message-ID: <200805022045.m42Kjkap014017@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49941 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59004 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935830AbYEBUln (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 16:41:43 -0400
+	by vger.kernel.org with ESMTP id S935858AbYEBUpt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 16:45:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cbou@mail.ru, dilinger@debian.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes
+     sparc32: export empty_zero_page
 has been removed from the -mm tree.  Its filename was
-     power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes.patch
+     sparc32-export-empty_zero_page.patch
 
-This patch was dropped because it was folded into power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes
+Subject: sparc32: export empty_zero_page
 From: Andrew Morton <akpm@linux-foundation.org>
 
-total: 0 errors, 0 warnings, 13 lines checked
+ERROR: "empty_zero_page" [fs/ext4/ext4dev.ko] undefined!
 
-./patches/power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery.patch has no obvious style problems and is ready for submission.
-
-Please run checkpatch prior to sending patches
-
-Cc: Andres Salomon <dilinger@debian.org>
-Cc: Anton Vorontsov <cbou@mail.ru>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/olpc_battery.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/sparc/kernel/sparc_ksyms.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/power/olpc_battery.c~power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes drivers/power/olpc_battery.c
---- a/drivers/power/olpc_battery.c~power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes
-+++ a/drivers/power/olpc_battery.c
-@@ -404,7 +404,8 @@ static int __init olpc_bat_init(void)
- 	 * the latest EC protocol, supported by 0x44 and above.
- 	 */
- 	if (olpc_platform_info.ecver < 0x44) {
--		printk(KERN_NOTICE "OLPC EC version 0x%02x too old for battery driver.\n", olpc_platform_info.ecver);
-+		printk(KERN_NOTICE "OLPC EC version 0x%02x too old for "
-+			"battery driver.\n", olpc_platform_info.ecver);
- 		return -ENXIO;
- 	}
+diff -puN arch/sparc/kernel/sparc_ksyms.c~sparc32-export-empty_zero_page arch/sparc/kernel/sparc_ksyms.c
+--- a/arch/sparc/kernel/sparc_ksyms.c~sparc32-export-empty_zero_page
++++ a/arch/sparc/kernel/sparc_ksyms.c
+@@ -254,6 +254,7 @@ EXPORT_SYMBOL(__memscan_generic);
+ EXPORT_SYMBOL(__memcmp);
+ EXPORT_SYMBOL(__strncmp);
+ EXPORT_SYMBOL(__memmove);
++EXPORT_SYMBOL(empty_zero_page);
  
+ /* Moving data to/from userspace. */
+ EXPORT_SYMBOL(__copy_user);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+sxc-fix-printk-warnings-on-sparc32.patch
 revert-memory-hotplug-register-section-node-id-to-free.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-video-balcklist-fujitsu-lifebook-s6410.patch
@@ -76,8 +70,6 @@ git-mips-git-rejects.patch
 git-mmc.patch
 sundance-set-carrier-status-on-link-change-events.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
-power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery.patch
-power_supply-bump-ec-version-check-that-we-refuse-to-run-with-in-olpc_battery-checkpatch-fixes.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 arch-parisc-kernel-unalignedc-use-time_-macros.patch
 pci-hotplug-introduce-pci_slot.patch
@@ -88,7 +80,6 @@ add-rcu_assign_index-if-ever-needed.patch
 git-scsi-misc.patch
 aic79xx_core-remove-ascii-art.patch
 sparc32-export-empty_zero_page.patch
-sxc-fix-printk-warnings-on-sparc32.patch
 git-unionfs.patch
 git-v9fs.patch
 git-watchdog.patch
