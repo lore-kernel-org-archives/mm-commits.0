@@ -1,260 +1,178 @@
 From: akpm@linux-foundation.org
-Subject: + regulator-documentation-abi.patch added to -mm tree
-Date: Fri, 02 May 2008 16:58:00 -0700
-Message-ID: <200805022358.m42Nw01m021846@imap1.linux-foundation.org>
+Subject: - lib-add-ascii-hex-helper-functions.patch removed from -mm tree
+Date: Fri, 02 May 2008 17:08:27 -0700
+Message-ID: <200805030008.m4308RwC022227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764833AbYEBX6Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 19:58:16 -0400
+	by vger.kernel.org with ESMTP id S1760971AbYECAIa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 20:08:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: lg@opensource.wolfsonmicro.com, broonie@opensource.wolfsonmicro.com, david-b@pacbell.net, greg@kroah.com
+To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     regulator: documentation - ABI
-has been added to the -mm tree.  Its filename is
-     regulator-documentation-abi.patch
+     lib: add ascii hex helper functions
+has been removed from the -mm tree.  Its filename was
+     lib-add-ascii-hex-helper-functions.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: regulator: documentation - ABI
-From: Liam Girdwood <lg@opensource.wolfsonmicro.com>
+Subject: lib: add ascii hex helper functions
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-This adds documentation describing the sysfs ABI used by the regulator
-framework.
+Everyone rolls their own version around the tree, centralize in lib/hexdump.c.
+ Move the only existing users of hex_asc over to the hi/lo helpers.
 
-Signed-off-by: Liam Girdwood <lg@opensource.wolfsonmicro.com>
-Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-class-regulator |  187 ++++++++++++++
- 1 file changed, 187 insertions(+)
+ drivers/pnp/support.c  |    8 ++++----
+ include/linux/kernel.h |    6 +++++-
+ lib/hexdump.c          |   25 +++++++++++++++++++++++--
+ 3 files changed, 32 insertions(+), 7 deletions(-)
 
-diff -puN /dev/null Documentation/ABI/testing/sysfs-class-regulator
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-class-regulator
-@@ -0,0 +1,187 @@
-+What:		/sys/class/regulator/.../state
-+Date:		April 2008
-+KernelVersion:	2.6.26
-+Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+Description:
-+		Each regulator directory will contain a field called
-+		state. This holds the regulator output state.
+diff -puN drivers/pnp/support.c~lib-add-ascii-hex-helper-functions drivers/pnp/support.c
+--- a/drivers/pnp/support.c~lib-add-ascii-hex-helper-functions
++++ a/drivers/pnp/support.c
+@@ -45,10 +45,10 @@ void pnp_eisa_id_to_string(u32 id, char 
+ 	str[0] = 'A' + ((id >> 26) & 0x3f) - 1;
+ 	str[1] = 'A' + ((id >> 21) & 0x1f) - 1;
+ 	str[2] = 'A' + ((id >> 16) & 0x1f) - 1;
+-	str[3] = hex_asc((id >> 12) & 0xf);
+-	str[4] = hex_asc((id >>  8) & 0xf);
+-	str[5] = hex_asc((id >>  4) & 0xf);
+-	str[6] = hex_asc((id >>  0) & 0xf);
++	str[3] = hex_asc_hi(id >> 8);
++	str[4] = hex_asc_lo(id >> 8);
++	str[5] = hex_asc_hi(id);
++	str[6] = hex_asc_lo(id);
+ 	str[7] = '\0';
+ }
+ 
+diff -puN include/linux/kernel.h~lib-add-ascii-hex-helper-functions include/linux/kernel.h
+--- a/include/linux/kernel.h~lib-add-ascii-hex-helper-functions
++++ a/include/linux/kernel.h
+@@ -270,7 +270,11 @@ extern void print_hex_dump(const char *l
+ 				const void *buf, size_t len, bool ascii);
+ extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
+ 			const void *buf, size_t len);
+-#define hex_asc(x)	"0123456789abcdef"[x]
 +
-+		This will be one of the following strings:
++extern const char hex_asc[];
++extern int hex_to_int(char c);
++#define hex_asc_lo(x)	hex_asc[((x) & 0x0f)]
++#define hex_asc_hi(x)	hex_asc[((x) & 0xf0) >> 4]
+ 
+ #define pr_emerg(fmt, arg...) \
+ 	printk(KERN_EMERG fmt, ##arg)
+diff -puN lib/hexdump.c~lib-add-ascii-hex-helper-functions lib/hexdump.c
+--- a/lib/hexdump.c~lib-add-ascii-hex-helper-functions
++++ a/lib/hexdump.c
+@@ -12,6 +12,27 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ 
++const char hex_asc[] = "0123456789abcdef";
 +
-+		'enabled'
-+		'disabled'
-+		'unknown'
++/**
++ * hex_to_int - convert a single hex ASCII char to an integer value
++ * @ch: char to convert, not case sensitive [a-f][A-F][0-9]
++ *
++ * Returns -1 if the char is not a valid hexadecimal character
++ */
++int hex_to_int(char ch)
++{
++	/*
++	 * Make ch lower-case, works only for digits and letters
++	 */
++	ch |= 0x20;
++	if (ch >= 'a' && ch <= 'f')
++		return ch - 'a' + 10;
++	if (ch >= '0' && ch <= '9')
++		return ch - '0';
++	return -1;
++}
 +
-+		'enabled' means the regulator output is ON and is supplying
-+		power to the system.
-+
-+		'disabled' means the regulator output is OFF and is not
-+		supplying power to the system..
-+
-+		'unknown' means software cannot determine the state.
-+
-+		NOTE: this field can be used in conjunction with microvolts
-+		and microamps to determine regulator output levels.
-+
-+
-+What:		/sys/class/regulator/.../type
-+Date:		April 2008
-+KernelVersion:	2.6.26
-+Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+Description:
-+		Each regulator directory will contain a field called
-+		type. This holds the regulator type.
-+
-+		This will be one of the following strings:
-+
-+		'voltage'
-+		'current'
-+		'unknown'
-+
-+		'voltage' means the regulator output voltage can be controlled
-+		by software.
-+
-+		'current' means the regulator output current limit can be
-+		controlled by software.
-+
-+		'unknown' means software cannot control either voltage or
-+		current limit.
-+
-+
-+What:		/sys/class/regulator/.../microvolts
-+Date:		April 2008
-+KernelVersion:	2.6.26
-+Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+Description:
-+		Each regulator directory will contain a field called
-+		microvolts. This holds the regulator output voltage setting
-+		measured in microvolts (i.e. E-6 Volts).
-+
-+		NOTE: This value should not be used to determine the regulator
-+		output voltage level as this value is the same regardless of
-+		whether the regulator is enabled or disabled.
-+
-+
-+What:		/sys/class/regulator/.../microamps
-+Date:		April 2008
-+KernelVersion:	2.6.26
-+Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+Description:
-+		Each regulator directory will contain a field called
-+		microamps. This holds the regulator output current limit
-+		setting measured in microamps (i.e. E-6 Amps).
-+
-+		NOTE: This value should not be used to determine the regulator
-+		output current level as this value is the same regardless of
-+		whether the regulator is enabled or disabled.
-+
-+
-+What:		/sys/class/regulator/.../opmode
-+Date:		April 2008
-+KernelVersion:	2.6.26
-+Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+Description:
-+		Each regulator directory will contain a field called
-+		opmode. This holds the regulator operating mode setting.
-+
-+		The opmode value can be one of the following strings:
-+
-+		'fast'
-+		'normal'
-+		'idle'
-+		'standby'
-+		'unknown'
-+
-+		The modes are described in include/linux/regulator/regulator.h
-+
-+		NOTE: This value should not be used to determine the regulator
-+		output operating mode as this value is the same regardless of
-+		whether the regulator is enabled or disabled.
-+
-+
-+What:		/sys/class/regulator/.../min_microvolts
-+Date:		April 2008
-+KernelVersion:	2.6.26
-+Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+Description:
-+		Each regulator directory will contain a field called
-+		min_microvolts. This holds the minimum safe working regulator
-+		output voltage setting for this domain measured in microvolts.
-+
-+		NOTE: this will return the string 'constraint not defined' if
-+		the power domain has no min microvolts constraint defined by
-+		platform code.
-+
-+
-+What:		/sys/class/regulator/.../max_microvolts
-+Date:		April 2008
-+KernelVersion:	2.6.26
-+Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+Description:
-+		Each regulator directory will contain a field called
-+		max_microvolts. This holds the maximum safe working regulator
-+		output voltage setting for this domain measured in microvolts.
-+
-+		NOTE: this will return the string 'constraint not defined' if
-+		the power domain has no max microvolts constraint defined by
-+		platform code.
-+
-+
-+What:		/sys/class/regulator/.../min_microamps
-+Date:		April 2008
-+KernelVersion:	2.6.26
-+Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+Description:
-+		Each regulator directory will contain a field called
-+		min_microamps. This holds the minimum safe working regulator
-+		output current limit setting for this domain measured in
-+		microamps.
-+
-+		NOTE: this will return the string 'constraint not defined' if
-+		the power domain has no min microamps constraint defined by
-+		platform code.
-+
-+
-+What:		/sys/class/regulator/.../max_microamps
-+Date:		April 2008
-+KernelVersion:	2.6.26
-+Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+Description:
-+		Each regulator directory will contain a field called
-+		max_microamps. This holds the maximum safe working regulator
-+		output current limit setting for this domain measured in
-+		microamps.
-+
-+		NOTE: this will return the string 'constraint not defined' if
-+		the power domain has no max microamps constraint defined by
-+		platform code.
-+
-+
-+What:		/sys/class/regulator/.../num_users
-+Date:		April 2008
-+KernelVersion:	2.6.26
-+Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+Description:
-+		Each regulator directory will contain a field called
-+		num_users. This holds the number of consumer devices that
-+		have called regulator_enable() on this regulator.
-+
-+
-+What:		/sys/class/regulator/.../requested_microamps
-+Date:		April 2008
-+KernelVersion:	2.6.26
-+Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+Description:
-+		Each regulator directory will contain a field called
-+		requested_microamps. This holds the total requested load
-+		current in microamps for this regulator from all its consumer
-+		devices.
-+
-+
-+What:		/sys/class/regulator/.../parent
-+Date:		April 2008
-+KernelVersion:	2.6.26
-+Contact:	Liam Girdwood <lg@opensource.wolfsonmicro.com>
-+Description:
-+		Some regulator directories will contain a link called parent.
-+		This points to the parent or supply regulator if one exists.
+ /**
+  * hex_dump_to_buffer - convert a blob of data to "hex ASCII" in memory
+  * @buf: data blob to dump
+@@ -93,8 +114,8 @@ void hex_dump_to_buffer(const void *buf,
+ 		for (j = 0; (j < rowsize) && (j < len) && (lx + 4) < linebuflen;
+ 		     j++) {
+ 			ch = ptr[j];
+-			linebuf[lx++] = hex_asc(ch >> 4);
+-			linebuf[lx++] = hex_asc(ch & 0x0f);
++			linebuf[lx++] = hex_asc_hi(ch);
++			linebuf[lx++] = hex_asc_lo(ch);
+ 			linebuf[lx++] = ' ';
+ 		}
+ 		ascii_column = 3 * rowsize + 2;
 _
 
-Patches currently in -mm which might be from lg@opensource.wolfsonmicro.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-regulator-consumer-device-interface.patch
-regulator-regulator-driver-interface.patch
-regulator-machine-driver-interface.patch
-regulator-fixed-regulator-interface.patch
-regulator-regulator-framework-core.patch
-regulator-add-support-for-fixed-regulators.patch
-regulator-regulator-test-harness.patch
-regulator-core-kbuild-files.patch
-regulator-documentation-overview.patch
-regulator-documentation-consumer-interface.patch
-regulator-documentation-regulator-driver.patch
-regulator-documentation-machine.patch
-regulator-documentation-abi.patch
+origin.patch
+linux-next.patch
+misc-fix-integer-as-null-pointer-warnings.patch
+cifs-remove-global_extern-macro.patch
+media-use-get_unaligned_-helpers.patch
+hid-use-get-put_unaligned_-helpers.patch
+input-replace-remaining-__function__-occurrences.patch
+input-make-one-bit-signed-bitfields-unsigned.patch
+input-ff-memlessc-use-clamp_val-macro.patch
+ata-remove-fit-macro.patch
+ide-eliminate-fit-macro.patch
+ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+ide-use-get_unaligned_-helpers.patch
+git-mips.patch
+dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
+net-use-get-put_unaligned_-helpers.patch
+bluetooth-use-get-put_unaligned_-helpers.patch
+irda-use-get_unaligned_-helpers.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-get_unaligned_-helpers.patch
+block-use-get_unaligned_-helpers.patch
+usb-fix-integer-as-null-pointer-sparse-warnings.patch
+usb-use-get_unaligned_-helpers.patch
+git-watchdog.patch
+mac80211-michaelc-use-kernel-provided-infrastructure.patch
+mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
+mac80211-tkipc-use-kernel-provided-infrastructure.patch
+mac80211-add-const-remove-unused-function-make-one-function-static.patch
+mac80211-add-a-struct-to-hold-tkip-context.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+wireless-use-get-put_unaligned_-helpers.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+mmc-make-one-bit-signed-bitfields-unsigned.patch
+lib-add-ascii-hex-helper-functions.patch
+net-use-the-common-ascii-hex-helpers.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+cris-use-the-common-ascii-hex-helpers.patch
+kgdb-use-the-common-ascii-hex-helpers.patch
+frv-gdb-stubc-use-the-common-ascii-hex-helpers.patch
+mn10300-gdb-stubc-use-the-common-ascii-hex-helpers.patch
+mips-gdb-stubc-use-the-common-ascii-hex-helpers.patch
+sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+video-fix-integer-as-null-pointer-warnings.patch
 
