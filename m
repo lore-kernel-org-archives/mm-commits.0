@@ -1,192 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - mips-gdb-stubc-use-the-common-ascii-hex-helpers.patch removed from -mm tree
-Date: Fri, 02 May 2008 17:08:42 -0700
-Message-ID: <200805030008.m4308gcg022248@imap1.linux-foundation.org>
+Subject: - isdn-use-the-common-ascii-hex-helpers.patch removed from -mm tree
+Date: Fri, 02 May 2008 17:08:51 -0700
+Message-ID: <200805030008.m4308pGk022257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38587 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50380 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965169AbYECAIo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 20:08:44 -0400
+	by vger.kernel.org with ESMTP id S965379AbYECAIx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 20:08:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mips: gdb-stub.c use the common ascii hex helpers
+     isdn: use the common ascii hex helpers
 has been removed from the -mm tree.  Its filename was
-     mips-gdb-stubc-use-the-common-ascii-hex-helpers.patch
+     isdn-use-the-common-ascii-hex-helpers.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mips: gdb-stub.c use the common ascii hex helpers
+Subject: isdn: use the common ascii hex helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/gdb-stub.c |   56 ++++++++++++----------------------
- 1 file changed, 20 insertions(+), 36 deletions(-)
+ drivers/isdn/gigaset/isocdata.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN arch/mips/kernel/gdb-stub.c~mips-gdb-stubc-use-the-common-ascii-hex-helpers arch/mips/kernel/gdb-stub.c
---- a/arch/mips/kernel/gdb-stub.c~mips-gdb-stubc-use-the-common-ascii-hex-helpers
-+++ a/arch/mips/kernel/gdb-stub.c
-@@ -164,7 +164,6 @@ extern void adel(void);
- static void getpacket(char *buffer);
- static void putpacket(char *buffer);
- static int computeSignal(int tt);
--static int hex(unsigned char ch);
- static int hexToInt(char **ptr, int *intValue);
- static int hexToLong(char **ptr, long *longValue);
- static unsigned char *mem2hex(char *mem, char *buf, int count, int may_fault);
-@@ -190,7 +189,6 @@ static char input_buffer[BUFMAX];
- static char output_buffer[BUFMAX];
- static int initialized;	/* !0 means we've been initialized */
- static int kgdb_started;
--static const char hexchars[]="0123456789abcdef";
- 
- /* Used to prevent crashes in memory access.  Note that they'll crash anyway if
-    we haven't set up fault handlers yet... */
-@@ -198,20 +196,6 @@ int kgdb_read_byte(unsigned char *addres
- int kgdb_write_byte(unsigned char val, unsigned char *dest);
- 
- /*
-- * Convert ch from a hex digit to an int
-- */
--static int hex(unsigned char ch)
--{
--	if (ch >= 'a' && ch <= 'f')
--		return ch-'a'+10;
--	if (ch >= '0' && ch <= '9')
--		return ch-'0';
--	if (ch >= 'A' && ch <= 'F')
--		return ch-'A'+10;
--	return -1;
--}
--
--/*
-  * scan for the sequence $<data>#<checksum>
-  */
- static void getpacket(char *buffer)
-@@ -251,8 +235,8 @@ static void getpacket(char *buffer)
- 		buffer[count] = 0;
- 
- 		if (ch == '#') {
--			xmitcsum = hex(getDebugChar() & 0x7f) << 4;
--			xmitcsum |= hex(getDebugChar() & 0x7f);
-+			xmitcsum = hex_to_int(getDebugChar() & 0x7f) << 4;
-+			xmitcsum |= hex_to_int(getDebugChar() & 0x7f);
- 
- 			if (checksum != xmitcsum)
- 				putDebugChar('-');	/* failed checksum */
-@@ -306,8 +290,8 @@ static void putpacket(char *buffer)
- 		}
- 
- 		putDebugChar('#');
--		putDebugChar(hexchars[checksum >> 4]);
--		putDebugChar(hexchars[checksum & 0xf]);
-+		putDebugChar(hex_asc_hi(checksum));
-+		putDebugChar(hex_asc_lo(checksum));
- 
- 	}
- 	while ((getDebugChar() & 0x7f) != '+');
-@@ -328,8 +312,8 @@ static unsigned char *mem2hex(char *mem,
+diff -puN drivers/isdn/gigaset/isocdata.c~isdn-use-the-common-ascii-hex-helpers drivers/isdn/gigaset/isocdata.c
+--- a/drivers/isdn/gigaset/isocdata.c~isdn-use-the-common-ascii-hex-helpers
++++ a/drivers/isdn/gigaset/isocdata.c
+@@ -247,7 +247,6 @@ static inline void dump_bytes(enum debug
+ #ifdef CONFIG_GIGASET_DEBUG
+ 	unsigned char c;
+ 	static char dbgline[3 * 32 + 1];
+-	static const char hexdigit[] = "0123456789abcdef";
+ 	int i = 0;
  	while (count-- > 0) {
- 		if (kgdb_read_byte(mem++, &ch) != 0)
- 			return 0;
--		*buf++ = hexchars[ch >> 4];
--		*buf++ = hexchars[ch & 0xf];
-+		*buf++ = hex_asc_hi(ch);
-+		*buf++ = hex_asc_lo(ch);
+ 		if (i > sizeof(dbgline) - 4) {
+@@ -258,8 +257,8 @@ static inline void dump_bytes(enum debug
+ 		c = *bytes++;
+ 		dbgline[i] = (i && !(i % 12)) ? '-' : ' ';
+ 		i++;
+-		dbgline[i++] = hexdigit[(c >> 4) & 0x0f];
+-		dbgline[i++] = hexdigit[c & 0x0f];
++		dbgline[i++] = hex_asc_hi(c);
++		dbgline[i++] = hex_asc_lo(c);
  	}
- 
- 	*buf = 0;
-@@ -356,8 +340,8 @@ static char *hex2mem(char *buf, char *me
- 				ch = 0x20 ^ *buf++;
- 		}
- 		else {
--			ch = hex(*buf++) << 4;
--			ch |= hex(*buf++);
-+			ch = hex_to_int(*buf++) << 4;
-+			ch |= hex_to_int(*buf++);
- 		}
- 		if (kgdb_write_byte(ch, mem++) != 0)
- 			return 0;
-@@ -457,7 +441,7 @@ static int hexToInt(char **ptr, int *int
- 	*intValue = 0;
- 
- 	while (**ptr) {
--		hexValue = hex(**ptr);
-+		hexValue = hex_to_int(**ptr);
- 		if (hexValue < 0)
- 			break;
- 
-@@ -478,7 +462,7 @@ static int hexToLong(char **ptr, long *l
- 	*longValue = 0;
- 
- 	while (**ptr) {
--		hexValue = hex(**ptr);
-+		hexValue = hex_to_int(**ptr);
- 		if (hexValue < 0)
- 			break;
- 
-@@ -812,14 +796,14 @@ void handle_exception(struct gdb_regs *r
- 	 * Send trap type (converted to signal)
- 	 */
- 	*ptr++ = 'T';
--	*ptr++ = hexchars[sigval >> 4];
--	*ptr++ = hexchars[sigval & 0xf];
-+	*ptr++ = hex_asc_hi(sigval);
-+	*ptr++ = hex_asc_lo(sigval);
- 
- 	/*
- 	 * Send Error PC
- 	 */
--	*ptr++ = hexchars[REG_EPC >> 4];
--	*ptr++ = hexchars[REG_EPC & 0xf];
-+	*ptr++ = hex_asc_hi(REG_EPC);
-+	*ptr++ = hex_asc_lo(REG_EPC);
- 	*ptr++ = ':';
- 	ptr = mem2hex((char *)&regs->cp0_epc, ptr, sizeof(long), 0);
- 	*ptr++ = ';';
-@@ -827,8 +811,8 @@ void handle_exception(struct gdb_regs *r
- 	/*
- 	 * Send frame pointer
- 	 */
--	*ptr++ = hexchars[REG_FP >> 4];
--	*ptr++ = hexchars[REG_FP & 0xf];
-+	*ptr++ = hex_asc_hi(REG_FP);
-+	*ptr++ = hex_asc_lo(REG_FP);
- 	*ptr++ = ':';
- 	ptr = mem2hex((char *)&regs->reg30, ptr, sizeof(long), 0);
- 	*ptr++ = ';';
-@@ -836,8 +820,8 @@ void handle_exception(struct gdb_regs *r
- 	/*
- 	 * Send stack pointer
- 	 */
--	*ptr++ = hexchars[REG_SP >> 4];
--	*ptr++ = hexchars[REG_SP & 0xf];
-+	*ptr++ = hex_asc_hi(REG_SP);
-+	*ptr++ = hex_asc_lo(REG_SP);
- 	*ptr++ = ':';
- 	ptr = mem2hex((char *)&regs->reg29, ptr, sizeof(long), 0);
- 	*ptr++ = ';';
-@@ -856,8 +840,8 @@ void handle_exception(struct gdb_regs *r
- 		{
- 		case '?':
- 			output_buffer[0] = 'S';
--			output_buffer[1] = hexchars[sigval >> 4];
--			output_buffer[2] = hexchars[sigval & 0xf];
-+			output_buffer[1] = hex_asc_hi(sigval);
-+			output_buffer[2] = hex_asc_lo(sigval);
- 			output_buffer[3] = 0;
- 			break;
- 
+ 	dbgline[i] = '\0';
+ 	gig_dbg(level, "%s:%s", tag, dbgline);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -233,9 +101,6 @@ wireless-use-get-put_unaligned_-helpers.patch
 xfs-use-get_unaligned_-helpers.patch
 xtensa-replace-remaining-__function__-occurences.patch
 mmc-make-one-bit-signed-bitfields-unsigned.patch
-mips-gdb-stubc-use-the-common-ascii-hex-helpers.patch
-sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
 isdn-use-the-common-ascii-hex-helpers.patch
 fs-ldm-use-get_unaligned_-helpers.patch
 include-use-get-put_unaligned_-helpers.patch
