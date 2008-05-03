@@ -1,252 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: - ppc-use-the-common-ascii-hex-helpers.patch removed from -mm tree
-Date: Fri, 02 May 2008 17:08:49 -0700
-Message-ID: <200805030008.m4308n2s022254@imap1.linux-foundation.org>
+Subject: - sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers.patch removed from -mm tree
+Date: Fri, 02 May 2008 17:08:47 -0700
+Message-ID: <200805030008.m4308lEm022251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35159 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39470 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965356AbYECAIv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 20:08:51 -0400
+	by vger.kernel.org with ESMTP id S965356AbYECAIt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 20:08:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ppc: use the common ascii hex helpers
+     sh: kgdb-stub.c, sh-sci.c use the common ascii hex helpers
 has been removed from the -mm tree.  Its filename was
-     ppc-use-the-common-ascii-hex-helpers.patch
+     sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ppc: use the common ascii hex helpers
+Subject: sh: kgdb-stub.c, sh-sci.c use the common ascii hex helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/btext.c     |   34 +++++++++----------
- arch/powerpc/kernel/prom_init.c |    3 -
- arch/ppc/kernel/ppc-stub.c      |   53 +++++++++++++-----------------
- arch/ppc/syslib/btext.c         |   18 ++++------
- arch/ppc/xmon/start_8xx.c       |    2 -
- 5 files changed, 50 insertions(+), 60 deletions(-)
+ arch/sh/kernel/kgdb_stub.c |   16 ++++++++--------
+ drivers/serial/sh-sci.c    |    8 ++++----
+ include/asm-sh/kgdb.h      |   14 --------------
+ 3 files changed, 12 insertions(+), 26 deletions(-)
 
-diff -puN arch/powerpc/kernel/btext.c~ppc-use-the-common-ascii-hex-helpers arch/powerpc/kernel/btext.c
---- a/arch/powerpc/kernel/btext.c~ppc-use-the-common-ascii-hex-helpers
-+++ a/arch/powerpc/kernel/btext.c
-@@ -443,28 +443,26 @@ void btext_drawtext(const char *c, unsig
- 
- void btext_drawhex(unsigned long v)
- {
--	char *hex_table = "0123456789abcdef";
--
- 	if (!boot_text_mapped)
- 		return;
- #ifdef CONFIG_PPC64
--	btext_drawchar(hex_table[(v >> 60) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 56) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 52) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 48) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 44) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 40) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 36) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 32) & 0x0000000FUL]);
-+	btext_drawchar(hex_asc_hi(v >> 56));
-+	btext_drawchar(hex_asc_lo(v >> 56));
-+	btext_drawchar(hex_asc_hi(v >> 48));
-+	btext_drawchar(hex_asc_lo(v >> 48));
-+	btext_drawchar(hex_asc_hi(v >> 40));
-+	btext_drawchar(hex_asc_lo(v >> 40));
-+	btext_drawchar(hex_asc_hi(v >> 32));
-+	btext_drawchar(hex_asc_lo(v >> 32));
- #endif
--	btext_drawchar(hex_table[(v >> 28) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 24) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 20) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 16) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 12) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >>  8) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >>  4) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >>  0) & 0x0000000FUL]);
-+	btext_drawchar(hex_asc_hi(v >> 24));
-+	btext_drawchar(hex_asc_lo(v >> 24));
-+	btext_drawchar(hex_asc_hi(v >> 16));
-+	btext_drawchar(hex_asc_lo(v >> 16));
-+	btext_drawchar(hex_asc_hi(v >> 8));
-+	btext_drawchar(hex_asc_lo(v >> 8));
-+	btext_drawchar(hex_asc_hi(v));
-+	btext_drawchar(hex_asc_lo(v));
- 	btext_drawchar(' ');
- }
- 
-diff -puN arch/powerpc/kernel/prom_init.c~ppc-use-the-common-ascii-hex-helpers arch/powerpc/kernel/prom_init.c
---- a/arch/powerpc/kernel/prom_init.c~ppc-use-the-common-ascii-hex-helpers
-+++ a/arch/powerpc/kernel/prom_init.c
-@@ -453,7 +453,6 @@ static void add_string(char **str, const
- 
- static char *tohex(unsigned int x)
- {
--	static char digits[] = "0123456789abcdef";
- 	static char result[9];
- 	int i;
- 
-@@ -461,7 +460,7 @@ static char *tohex(unsigned int x)
- 	i = 8;
- 	do {
- 		--i;
--		result[i] = digits[x & 0xf];
-+		result[i] = hex_asc_lo(x);
- 		x >>= 4;
- 	} while (x != 0 && i > 0);
- 	return &result[i];
-diff -puN arch/ppc/kernel/ppc-stub.c~ppc-use-the-common-ascii-hex-helpers arch/ppc/kernel/ppc-stub.c
---- a/arch/ppc/kernel/ppc-stub.c~ppc-use-the-common-ascii-hex-helpers
-+++ a/arch/ppc/kernel/ppc-stub.c
-@@ -130,9 +130,6 @@ static int kgdb_started;
- static u_int fault_jmp_buf[100];
- static int kdebug;
- 
--
--static const char hexchars[]="0123456789abcdef";
--
- /* Place where we save old trap entries for restoration - sparc*/
- /* struct tt_entry kgdb_savettable[256]; */
- /* typedef void (*trapfunc_t)(void); */
-@@ -205,28 +202,26 @@ mem2hex(const char *mem, char *buf, int 
- 		if ((count == 2) && (((long)mem & 1) == 0)) {
- 			tmp_s = *(unsigned short *)mem;
- 			mem += 2;
--			*buf++ = hexchars[(tmp_s >> 12) & 0xf];
--			*buf++ = hexchars[(tmp_s >> 8) & 0xf];
--			*buf++ = hexchars[(tmp_s >> 4) & 0xf];
--			*buf++ = hexchars[tmp_s & 0xf];
--
-+			*buf++ = hex_asc_hi(tmp_s >> 8);
-+			*buf++ = hex_asc_lo(tmp_s >> 8);
-+			*buf++ = hex_asc_hi(tmp_s);
-+			*buf++ = hex_asc_lo(tmp_s);
- 		} else if ((count == 4) && (((long)mem & 3) == 0)) {
- 			tmp_l = *(unsigned int *)mem;
- 			mem += 4;
--			*buf++ = hexchars[(tmp_l >> 28) & 0xf];
--			*buf++ = hexchars[(tmp_l >> 24) & 0xf];
--			*buf++ = hexchars[(tmp_l >> 20) & 0xf];
--			*buf++ = hexchars[(tmp_l >> 16) & 0xf];
--			*buf++ = hexchars[(tmp_l >> 12) & 0xf];
--			*buf++ = hexchars[(tmp_l >> 8) & 0xf];
--			*buf++ = hexchars[(tmp_l >> 4) & 0xf];
--			*buf++ = hexchars[tmp_l & 0xf];
--
-+			*buf++ = hex_asc_hi(tmp_l >> 24);
-+			*buf++ = hex_asc_lo(tmp_l >> 24);
-+			*buf++ = hex_asc_hi(tmp_l >> 16);
-+			*buf++ = hex_asc_lo(tmp_l >> 16);
-+			*buf++ = hex_asc_hi(tmp_l >> 8);
-+			*buf++ = hex_asc_lo(tmp_l >> 8);
-+			*buf++ = hex_asc_hi(tmp_l);
-+			*buf++ = hex_asc_lo(tmp_l);
- 		} else {
- 			while (count-- > 0) {
- 				ch = *mem++;
--				*buf++ = hexchars[ch >> 4];
--				*buf++ = hexchars[ch & 0xf];
-+				*buf++ = hex_asc_hi(ch);
-+				*buf++ = hex_asc_lo(ch);
- 			}
- 		}
- 
-@@ -411,8 +406,8 @@ static void putpacket(unsigned char *buf
- 		}
- 
- 		putDebugChar('#');
--		putDebugChar(hexchars[checksum >> 4]);
--		putDebugChar(hexchars[checksum & 0xf]);
-+		putDebugChar(hex_asc_hi(checksum));
-+		putDebugChar(hex_asc_lo(checksum));
- 		recv = getDebugChar();
- 	} while ((recv & 0x7f) != '+');
- }
-@@ -602,15 +597,15 @@ handle_exception (struct pt_regs *regs)
- 	ptr = remcomOutBuffer;
- 
- 	*ptr++ = 'T';
--	*ptr++ = hexchars[sigval >> 4];
--	*ptr++ = hexchars[sigval & 0xf];
--	*ptr++ = hexchars[PC_REGNUM >> 4];
--	*ptr++ = hexchars[PC_REGNUM & 0xf];
-+	*ptr++ = hex_asc_hi(sigval);
-+	*ptr++ = hex_asc_lo(sigval);
-+	*ptr++ = hex_asc_hi(PC_REGNUM);
-+	*ptr++ = hex_asc_lo(PC_REGNUM);
- 	*ptr++ = ':';
- 	ptr = mem2hex((char *)&regs->nip, ptr, 4);
- 	*ptr++ = ';';
--	*ptr++ = hexchars[SP_REGNUM >> 4];
--	*ptr++ = hexchars[SP_REGNUM & 0xf];
-+	*ptr++ = hex_asc_hi(SP_REGNUM);
-+	*ptr++ = hex_asc_lo(SP_REGNUM);
- 	*ptr++ = ':';
- 	ptr = mem2hex(((char *)regs) + SP_REGNUM*4, ptr, 4);
- 	*ptr++ = ';';
-@@ -632,8 +627,8 @@ handle_exception (struct pt_regs *regs)
- 		switch (remcomInBuffer[0]) {
- 		case '?': /* report most recent signal */
- 			remcomOutBuffer[0] = 'S';
--			remcomOutBuffer[1] = hexchars[sigval >> 4];
--			remcomOutBuffer[2] = hexchars[sigval & 0xf];
-+			remcomOutBuffer[1] = hex_asc_hi(sigval);
-+			remcomOutBuffer[2] = hex_asc_lo(sigval);
- 			remcomOutBuffer[3] = 0;
- 			break;
- #if 0
-diff -puN arch/ppc/syslib/btext.c~ppc-use-the-common-ascii-hex-helpers arch/ppc/syslib/btext.c
---- a/arch/ppc/syslib/btext.c~ppc-use-the-common-ascii-hex-helpers
-+++ a/arch/ppc/syslib/btext.c
-@@ -391,18 +391,16 @@ btext_drawstring(const char *c)
- void BTEXT
- btext_drawhex(unsigned long v)
- {
--	static char hex_table[] = "0123456789abcdef";
--
- 	if (!boot_text_mapped)
- 		return;
--	btext_drawchar(hex_table[(v >> 28) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 24) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 20) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 16) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >> 12) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >>  8) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >>  4) & 0x0000000FUL]);
--	btext_drawchar(hex_table[(v >>  0) & 0x0000000FUL]);
-+	btext_drawchar(hex_asc_hi(v >> 24));
-+	btext_drawchar(hex_asc_lo(v >> 24));
-+	btext_drawchar(hex_asc_hi(v >> 16));
-+	btext_drawchar(hex_asc_lo(v >> 16));
-+	btext_drawchar(hex_asc_hi(v >> 8));
-+	btext_drawchar(hex_asc_lo(v >> 8));
-+	btext_drawchar(hex_asc_hi(v));
-+	btext_drawchar(hex_asc_lo(v));
- 	btext_drawchar(' ');
- }
- 
-diff -puN arch/ppc/xmon/start_8xx.c~ppc-use-the-common-ascii-hex-helpers arch/ppc/xmon/start_8xx.c
---- a/arch/ppc/xmon/start_8xx.c~ppc-use-the-common-ascii-hex-helpers
-+++ a/arch/ppc/xmon/start_8xx.c
-@@ -273,7 +273,7 @@ prom_drawhex(uint val)
- 	int i;
- 	for (i = 7;  i >= 0;  i--)
- 	{
--		buf[i] = "0123456789abcdef"[val & 0x0f];
-+		buf[i] = hex_asc_lo(val);
- 		val >>= 4;
+diff -puN arch/sh/kernel/kgdb_stub.c~sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers arch/sh/kernel/kgdb_stub.c
+--- a/arch/sh/kernel/kgdb_stub.c~sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers
++++ a/arch/sh/kernel/kgdb_stub.c
+@@ -274,8 +274,8 @@ static char *mem_to_hex(const char *mem,
  	}
- 	buf[8] = '\0';
+ 	for (i = 0; i < count; i++) {
+ 		ch = *mem++;
+-		*buf++ = highhex(ch);
+-		*buf++ = lowhex(ch);
++		*buf++ = hex_asc_hi(ch);
++		*buf++ = hex_asc_lo(ch);
+ 	}
+ 	*buf = 0;
+ 	return (buf);
+@@ -333,8 +333,8 @@ static char *ebin_to_mem(const char *buf
+ /* Pack a hex byte */
+ static char *pack_hex_byte(char *pkt, int byte)
+ {
+-	*pkt++ = hexchars[(byte >> 4) & 0xf];
+-	*pkt++ = hexchars[(byte & 0xf)];
++	*pkt++ = hex_asc_hi(byte);
++	*pkt++ = hex_asc_lo(byte);
+ 	return pkt;
+ }
+ 
+@@ -435,8 +435,8 @@ static void put_packet(char *buffer)
+ 
+ 		/* '#' Separator, put high and low components of checksum */
+ 		put_debug_char('#');
+-		put_debug_char(highhex(checksum));
+-		put_debug_char(lowhex(checksum));
++		put_debug_char(hex_asc_hi(checksum));
++		put_debug_char(hex_asc_lo(checksum));
+ 	}
+ 	while ((get_debug_char()) != '+');	/* While no ack */
+ }
+@@ -658,8 +658,8 @@ static void undo_single_step(void)
+ static void send_signal_msg(const int signum)
+ {
+ 	out_buffer[0] = 'S';
+-	out_buffer[1] = highhex(signum);
+-	out_buffer[2] = lowhex(signum);
++	out_buffer[1] = hex_asc_hi(signum);
++	out_buffer[2] = hex_asc_lo(signum);
+ 	out_buffer[3] = 0;
+ 	put_packet(out_buffer);
+ }
+diff -puN drivers/serial/sh-sci.c~sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers drivers/serial/sh-sci.c
+--- a/drivers/serial/sh-sci.c~sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers
++++ a/drivers/serial/sh-sci.c
+@@ -184,15 +184,15 @@ static void put_string(struct sci_port *
+ 			int h, l;
+ 
+ 			c = *p++;
+-			h = highhex(c);
+-			l = lowhex(c);
++			h = hex_asc_hi(c);
++			l = hex_asc_lo(c);
+ 			put_char(port, h);
+ 			put_char(port, l);
+ 			checksum += h + l;
+ 		}
+ 		put_char(port, '#');
+-		put_char(port, highhex(checksum));
+-		put_char(port, lowhex(checksum));
++		put_char(port, hex_asc_hi(checksum));
++		put_char(port, hex_asc_lo(checksum));
+ 	    } while  (get_char(port) != '+');
+ 	} else
+ #endif /* CONFIG_SH_STANDARD_BIOS || CONFIG_SH_KGDB */
+diff -puN include/asm-sh/kgdb.h~sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers include/asm-sh/kgdb.h
+--- a/include/asm-sh/kgdb.h~sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers
++++ a/include/asm-sh/kgdb.h
+@@ -66,18 +66,4 @@ extern int     setjmp(jmp_buf __jmpb);
+ /* Forced breakpoint */
+ #define breakpoint()	__asm__ __volatile__("trapa   #0x3c")
+ 
+-/* Taken from sh-stub.c of GDB 4.18 */
+-static const char hexchars[] = "0123456789abcdef";
+-
+-/* Get high hex bits */
+-static inline char highhex(const int x)
+-{
+-	return hexchars[(x >> 4) & 0xf];
+-}
+-
+-/* Get low hex bits */
+-static inline char lowhex(const int x)
+-{
+-	return hexchars[x & 0xf];
+-}
+ #endif
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -293,6 +173,7 @@ wireless-use-get-put_unaligned_-helpers.patch
 xfs-use-get_unaligned_-helpers.patch
 xtensa-replace-remaining-__function__-occurences.patch
 mmc-make-one-bit-signed-bitfields-unsigned.patch
+sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers.patch
 ppc-use-the-common-ascii-hex-helpers.patch
 isdn-use-the-common-ascii-hex-helpers.patch
 fs-ldm-use-get_unaligned_-helpers.patch
