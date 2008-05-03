@@ -1,119 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: - lib-add-ascii-hex-helper-functions.patch removed from -mm tree
-Date: Fri, 02 May 2008 17:08:27 -0700
-Message-ID: <200805030008.m4308RwC022227@imap1.linux-foundation.org>
+Subject: - net-use-the-common-ascii-hex-helpers.patch removed from -mm tree
+Date: Fri, 02 May 2008 17:08:30 -0700
+Message-ID: <200805030008.m4308UdB022230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56948 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760971AbYECAIa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 20:08:30 -0400
+	by vger.kernel.org with ESMTP id S1765054AbYECAIc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 20:08:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     lib: add ascii hex helper functions
+     net: use the common ascii hex helpers
 has been removed from the -mm tree.  Its filename was
-     lib-add-ascii-hex-helper-functions.patch
+     net-use-the-common-ascii-hex-helpers.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib: add ascii hex helper functions
+Subject: net: use the common ascii hex helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
-
-Everyone rolls their own version around the tree, centralize in lib/hexdump.c.
- Move the only existing users of hex_asc over to the hi/lo helpers.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/support.c  |    8 ++++----
- include/linux/kernel.h |    6 +++++-
- lib/hexdump.c          |   25 +++++++++++++++++++++++--
- 3 files changed, 32 insertions(+), 7 deletions(-)
+ drivers/net/skfp/smt.c             |   13 ++++++-------
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |    5 ++---
+ 2 files changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN drivers/pnp/support.c~lib-add-ascii-hex-helper-functions drivers/pnp/support.c
---- a/drivers/pnp/support.c~lib-add-ascii-hex-helper-functions
-+++ a/drivers/pnp/support.c
-@@ -45,10 +45,10 @@ void pnp_eisa_id_to_string(u32 id, char 
- 	str[0] = 'A' + ((id >> 26) & 0x3f) - 1;
- 	str[1] = 'A' + ((id >> 21) & 0x1f) - 1;
- 	str[2] = 'A' + ((id >> 16) & 0x1f) - 1;
--	str[3] = hex_asc((id >> 12) & 0xf);
--	str[4] = hex_asc((id >>  8) & 0xf);
--	str[5] = hex_asc((id >>  4) & 0xf);
--	str[6] = hex_asc((id >>  0) & 0xf);
-+	str[3] = hex_asc_hi(id >> 8);
-+	str[4] = hex_asc_lo(id >> 8);
-+	str[5] = hex_asc_hi(id);
-+	str[6] = hex_asc_lo(id);
- 	str[7] = '\0';
+diff -puN drivers/net/skfp/smt.c~net-use-the-common-ascii-hex-helpers drivers/net/skfp/smt.c
+--- a/drivers/net/skfp/smt.c~net-use-the-common-ascii-hex-helpers
++++ a/drivers/net/skfp/smt.c
+@@ -19,6 +19,7 @@
+ #include "h/smc.h"
+ #include "h/smt_p.h"
+ #include <linux/bitrev.h>
++#include <linux/kernel.h>
+ 
+ #define KERNEL
+ #include "h/smtstate.h"
+@@ -1730,20 +1731,18 @@ void fddi_send_antc(struct s_smc *smc, s
+ #endif
+ 
+ #ifdef	DEBUG
+-#define hextoasc(x)	"0123456789abcdef"[x]
+-
+ char *addr_to_string(struct fddi_addr *addr)
+ {
+ 	int	i ;
+ 	static char	string[6*3] = "****" ;
+ 
+ 	for (i = 0 ; i < 6 ; i++) {
+-		string[i*3] = hextoasc((addr->a[i]>>4)&0xf) ;
+-		string[i*3+1] = hextoasc((addr->a[i])&0xf) ;
+-		string[i*3+2] = ':' ;
++		string[i * 3] = hex_asc_hi(addr->a[i]);
++		string[i * 3 + 1] = hex_asc_lo(addr->a[i]);
++		string[i * 3 + 2] = ':';
+ 	}
+-	string[5*3+2] = 0 ;
+-	return(string) ;
++	string[5 * 3 + 2] = 0;
++	return(string);
  }
+ #endif
  
-diff -puN include/linux/kernel.h~lib-add-ascii-hex-helper-functions include/linux/kernel.h
---- a/include/linux/kernel.h~lib-add-ascii-hex-helper-functions
-+++ a/include/linux/kernel.h
-@@ -270,7 +270,11 @@ extern void print_hex_dump(const char *l
- 				const void *buf, size_t len, bool ascii);
- extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
- 			const void *buf, size_t len);
--#define hex_asc(x)	"0123456789abcdef"[x]
-+
-+extern const char hex_asc[];
-+extern int hex_to_int(char c);
-+#define hex_asc_lo(x)	hex_asc[((x) & 0x0f)]
-+#define hex_asc_hi(x)	hex_asc[((x) & 0xf0) >> 4]
+diff -puN net/ipv4/netfilter/ipt_CLUSTERIP.c~net-use-the-common-ascii-hex-helpers net/ipv4/netfilter/ipt_CLUSTERIP.c
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c~net-use-the-common-ascii-hex-helpers
++++ a/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -475,11 +475,10 @@ static void arp_print(struct arp_payload
+ #define HBUFFERLEN 30
+ 	char hbuffer[HBUFFERLEN];
+ 	int j,k;
+-	const char hexbuf[]= "0123456789abcdef";
  
- #define pr_emerg(fmt, arg...) \
- 	printk(KERN_EMERG fmt, ##arg)
-diff -puN lib/hexdump.c~lib-add-ascii-hex-helper-functions lib/hexdump.c
---- a/lib/hexdump.c~lib-add-ascii-hex-helper-functions
-+++ a/lib/hexdump.c
-@@ -12,6 +12,27 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- 
-+const char hex_asc[] = "0123456789abcdef";
-+
-+/**
-+ * hex_to_int - convert a single hex ASCII char to an integer value
-+ * @ch: char to convert, not case sensitive [a-f][A-F][0-9]
-+ *
-+ * Returns -1 if the char is not a valid hexadecimal character
-+ */
-+int hex_to_int(char ch)
-+{
-+	/*
-+	 * Make ch lower-case, works only for digits and letters
-+	 */
-+	ch |= 0x20;
-+	if (ch >= 'a' && ch <= 'f')
-+		return ch - 'a' + 10;
-+	if (ch >= '0' && ch <= '9')
-+		return ch - '0';
-+	return -1;
-+}
-+
- /**
-  * hex_dump_to_buffer - convert a blob of data to "hex ASCII" in memory
-  * @buf: data blob to dump
-@@ -93,8 +114,8 @@ void hex_dump_to_buffer(const void *buf,
- 		for (j = 0; (j < rowsize) && (j < len) && (lx + 4) < linebuflen;
- 		     j++) {
- 			ch = ptr[j];
--			linebuf[lx++] = hex_asc(ch >> 4);
--			linebuf[lx++] = hex_asc(ch & 0x0f);
-+			linebuf[lx++] = hex_asc_hi(ch);
-+			linebuf[lx++] = hex_asc_lo(ch);
- 			linebuf[lx++] = ' ';
- 		}
- 		ascii_column = 3 * rowsize + 2;
+ 	for (k=0, j=0; k < HBUFFERLEN-3 && j < ETH_ALEN; j++) {
+-		hbuffer[k++]=hexbuf[(payload->src_hw[j]>>4)&15];
+-		hbuffer[k++]=hexbuf[payload->src_hw[j]&15];
++		hbuffer[k++] = hex_asc_hi(payload->src_hw[j]);
++		hbuffer[k++] = hex_asc_lo(payload->src_hw[j]);
+ 		hbuffer[k++]=':';
+ 	}
+ 	hbuffer[--k]='\0';
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -160,7 +134,6 @@ wireless-use-get-put_unaligned_-helpers.patch
 xfs-use-get_unaligned_-helpers.patch
 xtensa-replace-remaining-__function__-occurences.patch
 mmc-make-one-bit-signed-bitfields-unsigned.patch
-lib-add-ascii-hex-helper-functions.patch
 net-use-the-common-ascii-hex-helpers.patch
 scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
 cris-use-the-common-ascii-hex-helpers.patch
