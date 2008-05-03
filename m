@@ -1,93 +1,149 @@
 From: akpm@linux-foundation.org
-Subject: - net-use-the-common-ascii-hex-helpers.patch removed from -mm tree
-Date: Fri, 02 May 2008 17:08:30 -0700
-Message-ID: <200805030008.m4308UdB022230@imap1.linux-foundation.org>
+Subject: - kgdb-use-the-common-ascii-hex-helpers.patch removed from -mm tree
+Date: Fri, 02 May 2008 17:08:36 -0700
+Message-ID: <200805030008.m4308akH022239@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56948 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54425 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765054AbYECAIc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 20:08:32 -0400
+	by vger.kernel.org with ESMTP id S964922AbYECAIi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 20:08:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net: use the common ascii hex helpers
+     kgdb: use the common ascii hex helpers
 has been removed from the -mm tree.  Its filename was
-     net-use-the-common-ascii-hex-helpers.patch
+     kgdb-use-the-common-ascii-hex-helpers.patch
 
 This patch was dropped because an updated version will be merged
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net: use the common ascii hex helpers
+Subject: kgdb: use the common ascii hex helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/skfp/smt.c             |   13 ++++++-------
- net/ipv4/netfilter/ipt_CLUSTERIP.c |    5 ++---
- 2 files changed, 8 insertions(+), 10 deletions(-)
+ drivers/misc/kgdbts.c |    5 ++---
+ kernel/kgdb.c         |   36 +++++++++++-------------------------
+ 2 files changed, 13 insertions(+), 28 deletions(-)
 
-diff -puN drivers/net/skfp/smt.c~net-use-the-common-ascii-hex-helpers drivers/net/skfp/smt.c
---- a/drivers/net/skfp/smt.c~net-use-the-common-ascii-hex-helpers
-+++ a/drivers/net/skfp/smt.c
-@@ -19,6 +19,7 @@
- #include "h/smc.h"
- #include "h/smt_p.h"
- #include <linux/bitrev.h>
-+#include <linux/kernel.h>
+diff -puN drivers/misc/kgdbts.c~kgdb-use-the-common-ascii-hex-helpers drivers/misc/kgdbts.c
+--- a/drivers/misc/kgdbts.c~kgdb-use-the-common-ascii-hex-helpers
++++ a/drivers/misc/kgdbts.c
+@@ -118,7 +118,6 @@
+ 	} while (0)
+ #define MAX_CONFIG_LEN		40
  
- #define KERNEL
- #include "h/smtstate.h"
-@@ -1730,20 +1731,18 @@ void fddi_send_antc(struct s_smc *smc, s
- #endif
- 
- #ifdef	DEBUG
--#define hextoasc(x)	"0123456789abcdef"[x]
--
- char *addr_to_string(struct fddi_addr *addr)
- {
- 	int	i ;
- 	static char	string[6*3] = "****" ;
- 
- 	for (i = 0 ; i < 6 ; i++) {
--		string[i*3] = hextoasc((addr->a[i]>>4)&0xf) ;
--		string[i*3+1] = hextoasc((addr->a[i])&0xf) ;
--		string[i*3+2] = ':' ;
-+		string[i * 3] = hex_asc_hi(addr->a[i]);
-+		string[i * 3 + 1] = hex_asc_lo(addr->a[i]);
-+		string[i * 3 + 2] = ':';
+-static const char hexchars[] = "0123456789abcdef";
+ static struct kgdb_io kgdbts_io_ops;
+ static char get_buf[BUFMAX];
+ static int get_buf_cnt;
+@@ -618,8 +617,8 @@ static void fill_get_buf(char *buf)
+ 		count++;
  	}
--	string[5*3+2] = 0 ;
--	return(string) ;
-+	string[5 * 3 + 2] = 0;
-+	return(string);
+ 	strcat(get_buf, "#");
+-	get_buf[count + 2] = hexchars[checksum >> 4];
+-	get_buf[count + 3] = hexchars[checksum & 0xf];
++	get_buf[count + 2] = hex_asc_hi(checksum);
++	get_buf[count + 3] = hex_asc_lo(checksum);
+ 	get_buf[count + 4] = '\0';
+ 	v2printk("get%i: %s\n", ts.idx, get_buf);
  }
- #endif
+diff -puN kernel/kgdb.c~kgdb-use-the-common-ascii-hex-helpers kernel/kgdb.c
+--- a/kernel/kgdb.c~kgdb-use-the-common-ascii-hex-helpers
++++ a/kernel/kgdb.c
+@@ -226,20 +226,6 @@ void __weak kgdb_disable_hw_debug(struct
+ /*
+  * GDB remote protocol parser:
+  */
+-
+-static const char	hexchars[] = "0123456789abcdef";
+-
+-static int hex(char ch)
+-{
+-	if ((ch >= 'a') && (ch <= 'f'))
+-		return ch - 'a' + 10;
+-	if ((ch >= '0') && (ch <= '9'))
+-		return ch - '0';
+-	if ((ch >= 'A') && (ch <= 'F'))
+-		return ch - 'A' + 10;
+-	return -1;
+-}
+-
+ /* scan for the sequence $<data>#<checksum> */
+ static void get_packet(char *buffer)
+ {
+@@ -276,8 +262,8 @@ static void get_packet(char *buffer)
+ 		buffer[count] = 0;
  
-diff -puN net/ipv4/netfilter/ipt_CLUSTERIP.c~net-use-the-common-ascii-hex-helpers net/ipv4/netfilter/ipt_CLUSTERIP.c
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c~net-use-the-common-ascii-hex-helpers
-+++ a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -475,11 +475,10 @@ static void arp_print(struct arp_payload
- #define HBUFFERLEN 30
- 	char hbuffer[HBUFFERLEN];
- 	int j,k;
--	const char hexbuf[]= "0123456789abcdef";
+ 		if (ch == '#') {
+-			xmitcsum = hex(kgdb_io_ops->read_char()) << 4;
+-			xmitcsum += hex(kgdb_io_ops->read_char());
++			xmitcsum = hex_to_int(kgdb_io_ops->read_char()) << 4;
++			xmitcsum += hex_to_int(kgdb_io_ops->read_char());
  
- 	for (k=0, j=0; k < HBUFFERLEN-3 && j < ETH_ALEN; j++) {
--		hbuffer[k++]=hexbuf[(payload->src_hw[j]>>4)&15];
--		hbuffer[k++]=hexbuf[payload->src_hw[j]&15];
-+		hbuffer[k++] = hex_asc_hi(payload->src_hw[j]);
-+		hbuffer[k++] = hex_asc_lo(payload->src_hw[j]);
- 		hbuffer[k++]=':';
+ 			if (checksum != xmitcsum)
+ 				/* failed checksum */
+@@ -316,8 +302,8 @@ static void put_packet(char *buffer)
+ 		}
+ 
+ 		kgdb_io_ops->write_char('#');
+-		kgdb_io_ops->write_char(hexchars[checksum >> 4]);
+-		kgdb_io_ops->write_char(hexchars[checksum & 0xf]);
++		kgdb_io_ops->write_char(hex_asc_hi(checksum));
++		kgdb_io_ops->write_char(hex_asc_lo(checksum));
+ 		if (kgdb_io_ops->flush)
+ 			kgdb_io_ops->flush();
+ 
+@@ -348,8 +334,8 @@ static void put_packet(char *buffer)
+ 
+ static char *pack_hex_byte(char *pkt, u8 byte)
+ {
+-	*pkt++ = hexchars[byte >> 4];
+-	*pkt++ = hexchars[byte & 0xf];
++	*pkt++ = hex_asc_hi(byte);
++	*pkt++ = hex_asc_lo(byte);
+ 
+ 	return pkt;
+ }
+@@ -427,8 +413,8 @@ int kgdb_hex2mem(char *buf, char *mem, i
+ 	tmp_hex = tmp_raw - 1;
+ 	while (tmp_hex >= buf) {
+ 		tmp_raw--;
+-		*tmp_raw = hex(*tmp_hex--);
+-		*tmp_raw |= hex(*tmp_hex--) << 4;
++		*tmp_raw = hex_to_int(*tmp_hex--);
++		*tmp_raw |= hex_to_int(*tmp_hex--) << 4;
  	}
- 	hbuffer[--k]='\0';
+ 
+ 	return probe_kernel_write(mem, tmp_raw, count);
+@@ -446,7 +432,7 @@ int kgdb_hex2long(char **ptr, long *long
+ 	*long_val = 0;
+ 
+ 	while (**ptr) {
+-		hex_val = hex(**ptr);
++		hex_val = hex_to_int(**ptr);
+ 		if (hex_val < 0)
+ 			break;
+ 
+@@ -486,8 +472,8 @@ static void error_packet(char *pkt, int 
+ {
+ 	error = -error;
+ 	pkt[0] = 'E';
+-	pkt[1] = hexchars[(error / 10)];
+-	pkt[2] = hexchars[(error % 10)];
++	pkt[1] = hex_asc[(error / 10)];
++	pkt[2] = hex_asc[(error % 10)];
+ 	pkt[3] = '\0';
+ }
+ 
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
@@ -134,9 +190,6 @@ wireless-use-get-put_unaligned_-helpers.patch
 xfs-use-get_unaligned_-helpers.patch
 xtensa-replace-remaining-__function__-occurences.patch
 mmc-make-one-bit-signed-bitfields-unsigned.patch
-net-use-the-common-ascii-hex-helpers.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-cris-use-the-common-ascii-hex-helpers.patch
 kgdb-use-the-common-ascii-hex-helpers.patch
 frv-gdb-stubc-use-the-common-ascii-hex-helpers.patch
 mn10300-gdb-stubc-use-the-common-ascii-hex-helpers.patch
