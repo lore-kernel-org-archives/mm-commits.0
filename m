@@ -1,183 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: - sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers.patch removed from -mm tree
-Date: Fri, 02 May 2008 17:08:47 -0700
-Message-ID: <200805030008.m4308lEm022251@imap1.linux-foundation.org>
+Subject: + find-dynamic-stack-allocations-in-checkstackpl.patch added to -mm tree
+Date: Fri, 02 May 2008 19:30:15 -0700
+Message-ID: <200805030230.m432UFad026973@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39470 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33843 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965356AbYECAIt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 20:08:49 -0400
+	by vger.kernel.org with ESMTP id S1751590AbYECCbF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 May 2008 22:31:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: sandeen@redhat.com
 
 
 The patch titled
-     sh: kgdb-stub.c, sh-sci.c use the common ascii hex helpers
-has been removed from the -mm tree.  Its filename was
-     sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers.patch
+     find dynamic stack allocations in checkstack.pl
+has been added to the -mm tree.  Its filename is
+     find-dynamic-stack-allocations-in-checkstackpl.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sh: kgdb-stub.c, sh-sci.c use the common ascii hex helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: find dynamic stack allocations in checkstack.pl
+From: Eric Sandeen <sandeen@redhat.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Currently, checkstack.pl only looks for fixed subtractions from the stack
+pointer.  However, things like this:
+
+void function(int size)
+{
+        char stackbuster[size << 2];
+...
+
+are certainly worth pointing out, I think.
+
+This could perhaps be done more cleanly, and the following patch only
+adds "dynamic" REs for x86 and x86_64, but it works:
+
+0x00b0 crypto_cbc_decrypt_inplace [cbc]:                Dynamic (%rax)
+0x00ad crypto_pcbc_decrypt_inplace [pcbc]:              Dynamic (%rax)
+0x02f6 crypto_pcbc_encrypt_inplace [pcbc]:              Dynamic (%rax)
+0x036c _crypto_xcbc_digest_setkey [xcbc]:               Dynamic (%rax)
+...
+
+(Inspired by Keith Owens' old stack-check script)
+
+Signed-off-by: Eric Sandeen <sandeen@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/kgdb_stub.c |   16 ++++++++--------
- drivers/serial/sh-sci.c    |    8 ++++----
- include/asm-sh/kgdb.h      |   14 --------------
- 3 files changed, 12 insertions(+), 26 deletions(-)
+ scripts/checkstack.pl |   24 +++++++++++++++++++++++-
+ 1 file changed, 23 insertions(+), 1 deletion(-)
 
-diff -puN arch/sh/kernel/kgdb_stub.c~sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers arch/sh/kernel/kgdb_stub.c
---- a/arch/sh/kernel/kgdb_stub.c~sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers
-+++ a/arch/sh/kernel/kgdb_stub.c
-@@ -274,8 +274,8 @@ static char *mem_to_hex(const char *mem,
- 	}
- 	for (i = 0; i < count; i++) {
- 		ch = *mem++;
--		*buf++ = highhex(ch);
--		*buf++ = lowhex(ch);
-+		*buf++ = hex_asc_hi(ch);
-+		*buf++ = hex_asc_lo(ch);
- 	}
- 	*buf = 0;
- 	return (buf);
-@@ -333,8 +333,8 @@ static char *ebin_to_mem(const char *buf
- /* Pack a hex byte */
- static char *pack_hex_byte(char *pkt, int byte)
+diff -puN scripts/checkstack.pl~find-dynamic-stack-allocations-in-checkstackpl scripts/checkstack.pl
+--- a/scripts/checkstack.pl~find-dynamic-stack-allocations-in-checkstackpl
++++ a/scripts/checkstack.pl
+@@ -26,8 +26,12 @@
+ # $& (whole re) matches the complete objdump line with the stack growth
+ # $1 (first bracket) matches the size of the stack growth
+ #
++# $dre is similar, but for dynamic stack redutions:
++# $& (whole re) matches the complete objdump line with the stack growth
++# $1 (first bracket) matches the dynamic amount of the stack growth
++#
+ # use anything else and feel the pain ;)
+-my (@stack, $re, $x, $xs);
++my (@stack, $re, $dre, $x, $xs);
  {
--	*pkt++ = hexchars[(byte >> 4) & 0xf];
--	*pkt++ = hexchars[(byte & 0xf)];
-+	*pkt++ = hex_asc_hi(byte);
-+	*pkt++ = hex_asc_lo(byte);
- 	return pkt;
- }
- 
-@@ -435,8 +435,8 @@ static void put_packet(char *buffer)
- 
- 		/* '#' Separator, put high and low components of checksum */
- 		put_debug_char('#');
--		put_debug_char(highhex(checksum));
--		put_debug_char(lowhex(checksum));
-+		put_debug_char(hex_asc_hi(checksum));
-+		put_debug_char(hex_asc_lo(checksum));
+ 	my $arch = shift;
+ 	if ($arch eq "") {
+@@ -46,9 +50,11 @@ my (@stack, $re, $x, $xs);
+ 	} elsif ($arch =~ /^i[3456]86$/) {
+ 		#c0105234:       81 ec ac 05 00 00       sub    $0x5ac,%esp
+ 		$re = qr/^.*[as][du][db]    \$(0x$x{1,8}),\%esp$/o;
++		$dre = qr/^.*[as][du][db]    (%.*),\%esp$/o;
+ 	} elsif ($arch eq 'x86_64') {
+ 		#    2f60:	48 81 ec e8 05 00 00 	sub    $0x5e8,%rsp
+ 		$re = qr/^.*[as][du][db]    \$(0x$x{1,8}),\%rsp$/o;
++		$dre = qr/^.*[as][du][db]    (\%.*),\%rsp$/o;
+ 	} elsif ($arch eq 'ia64') {
+ 		#e0000000044011fc:       01 0f fc 8c     adds r12=-384,r12
+ 		$re = qr/.*adds.*r12=-(([0-9]{2}|[3-9])[0-9]{2}),r12/o;
+@@ -141,6 +147,22 @@ while (my $line = <STDIN>) {
+ 		next if ($size < 100);
+ 		push @stack, "$intro$size\n";
  	}
- 	while ((get_debug_char()) != '+');	/* While no ack */
++	elsif (defined $dre && $line =~ m/$dre/) {
++		my $size = "Dynamic ($1)";
++
++		next if $line !~ m/^($xs*)/;
++		my $addr = $1;
++		$addr =~ s/ /0/g;
++		$addr = "0x$addr";
++
++		my $intro = "$addr $func [$file]:";
++		my $padlen = 56 - length($intro);
++		while ($padlen > 0) {
++			$intro .= '	';
++			$padlen -= 8;
++		}
++		push @stack, "$intro$size\n";
++	}
  }
-@@ -658,8 +658,8 @@ static void undo_single_step(void)
- static void send_signal_msg(const int signum)
- {
- 	out_buffer[0] = 'S';
--	out_buffer[1] = highhex(signum);
--	out_buffer[2] = lowhex(signum);
-+	out_buffer[1] = hex_asc_hi(signum);
-+	out_buffer[2] = hex_asc_lo(signum);
- 	out_buffer[3] = 0;
- 	put_packet(out_buffer);
- }
-diff -puN drivers/serial/sh-sci.c~sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers drivers/serial/sh-sci.c
---- a/drivers/serial/sh-sci.c~sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers
-+++ a/drivers/serial/sh-sci.c
-@@ -184,15 +184,15 @@ static void put_string(struct sci_port *
- 			int h, l;
  
- 			c = *p++;
--			h = highhex(c);
--			l = lowhex(c);
-+			h = hex_asc_hi(c);
-+			l = hex_asc_lo(c);
- 			put_char(port, h);
- 			put_char(port, l);
- 			checksum += h + l;
- 		}
- 		put_char(port, '#');
--		put_char(port, highhex(checksum));
--		put_char(port, lowhex(checksum));
-+		put_char(port, hex_asc_hi(checksum));
-+		put_char(port, hex_asc_lo(checksum));
- 	    } while  (get_char(port) != '+');
- 	} else
- #endif /* CONFIG_SH_STANDARD_BIOS || CONFIG_SH_KGDB */
-diff -puN include/asm-sh/kgdb.h~sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers include/asm-sh/kgdb.h
---- a/include/asm-sh/kgdb.h~sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers
-+++ a/include/asm-sh/kgdb.h
-@@ -66,18 +66,4 @@ extern int     setjmp(jmp_buf __jmpb);
- /* Forced breakpoint */
- #define breakpoint()	__asm__ __volatile__("trapa   #0x3c")
- 
--/* Taken from sh-stub.c of GDB 4.18 */
--static const char hexchars[] = "0123456789abcdef";
--
--/* Get high hex bits */
--static inline char highhex(const int x)
--{
--	return hexchars[(x >> 4) & 0xf];
--}
--
--/* Get low hex bits */
--static inline char lowhex(const int x)
--{
--	return hexchars[x & 0xf];
--}
- #endif
+ print sort bysize @stack;
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from sandeen@redhat.com are
 
 origin.patch
 linux-next.patch
-misc-fix-integer-as-null-pointer-warnings.patch
-cifs-remove-global_extern-macro.patch
-media-use-get_unaligned_-helpers.patch
-hid-use-get-put_unaligned_-helpers.patch
-input-replace-remaining-__function__-occurrences.patch
-input-make-one-bit-signed-bitfields-unsigned.patch
-input-ff-memlessc-use-clamp_val-macro.patch
-ata-remove-fit-macro.patch
-ide-eliminate-fit-macro.patch
-ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
-ide-use-get_unaligned_-helpers.patch
-git-mips.patch
-dccp-ccid2c-ccid3c-use-clamp-clamp_t.patch
-net-use-get-put_unaligned_-helpers.patch
-bluetooth-use-get-put_unaligned_-helpers.patch
-irda-use-get_unaligned_-helpers.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-get_unaligned_-helpers.patch
-block-use-get_unaligned_-helpers.patch
-usb-fix-integer-as-null-pointer-sparse-warnings.patch
-usb-use-get_unaligned_-helpers.patch
-git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-tkipc-use-kernel-provided-infrastructure.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-wireless-use-get-put_unaligned_-helpers.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-mmc-make-one-bit-signed-bitfields-unsigned.patch
-sh-kgdb-stubc-sh-scic-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-video-fix-integer-as-null-pointer-warnings.patch
+find-dynamic-stack-allocations-in-checkstackpl.patch
+fix-checkstackpl-arch-detection.patch
 
