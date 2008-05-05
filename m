@@ -1,92 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - hci_usbh-fix-hard-to-trigger-race.patch removed from -mm tree
-Date: Mon, 05 May 2008 12:16:43 -0700
-Message-ID: <200805051916.m45JGhHU000324@imap1.linux-foundation.org>
+Subject: - irda-use-get_unaligned_-helpers.patch removed from -mm tree
+Date: Mon, 05 May 2008 12:16:49 -0700
+Message-ID: <200805051916.m45JGnNr000330@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45222 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35250 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760741AbYEETQz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 15:16:55 -0400
+	by vger.kernel.org with ESMTP id S1752172AbYEETQ6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 15:16:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pavel@ucw.cz, hidave.darkstar@gmail.com, marcel@holtmann.org, pavel@suse.cz, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, samuel@sortiz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     hci_usb.h: fix hard-to-trigger race
+     irda: use get_unaligned_* helpers
 has been removed from the -mm tree.  Its filename was
-     hci_usbh-fix-hard-to-trigger-race.patch
+     irda-use-get_unaligned_-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hci_usb.h: fix hard-to-trigger race
-From: Pavel Machek <pavel@ucw.cz>
+Subject: irda: use get_unaligned_* helpers
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-If someone tries to _urb_unlink while _urb_queue_head is running, he'll see
-_urb->queue == NULL and fail to do any locking.  Prevent that from happening
-by strategically placed barriers.
-
-Signed-off-by: Pavel Machek <pavel@suse.cz>
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Dave Young <hidave.darkstar@gmail.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Samuel Ortiz <samuel@sortiz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bluetooth/hci_usb.h |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ net/irda/iriap.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN drivers/bluetooth/hci_usb.h~hci_usbh-fix-hard-to-trigger-race drivers/bluetooth/hci_usb.h
---- a/drivers/bluetooth/hci_usb.h~hci_usbh-fix-hard-to-trigger-race
-+++ a/drivers/bluetooth/hci_usb.h
-@@ -70,7 +70,8 @@ static inline void _urb_queue_head(struc
- {
- 	unsigned long flags;
- 	spin_lock_irqsave(&q->lock, flags);
--	list_add(&_urb->list, &q->head); _urb->queue = q;
-+	/* _urb_unlink needs to know which spinlock to use, thus mb(). */
-+	_urb->queue = q; mb(); list_add(&_urb->list, &q->head);
- 	spin_unlock_irqrestore(&q->lock, flags);
- }
+diff -puN net/irda/iriap.c~irda-use-get_unaligned_-helpers net/irda/iriap.c
+--- a/net/irda/iriap.c~irda-use-get_unaligned_-helpers
++++ a/net/irda/iriap.c
+@@ -451,12 +451,14 @@ static void iriap_getvaluebyclass_confir
+ 	n = 2;
  
-@@ -78,19 +79,23 @@ static inline void _urb_queue_tail(struc
- {
- 	unsigned long flags;
- 	spin_lock_irqsave(&q->lock, flags);
--	list_add_tail(&_urb->list, &q->head); _urb->queue = q;
-+	/* _urb_unlink needs to know which spinlock to use, thus mb(). */
-+	_urb->queue = q; mb(); list_add_tail(&_urb->list, &q->head);
- 	spin_unlock_irqrestore(&q->lock, flags);
- }
+ 	/* Get length, MSB first */
+-	len = be16_to_cpu(get_unaligned((__be16 *)(fp+n))); n += 2;
++	len = get_unaligned_be16(fp + n);
++	n += 2;
  
- static inline void _urb_unlink(struct _urb *_urb)
- {
--	struct _urb_queue *q = _urb->queue;
-+	struct _urb_queue *q;
- 	unsigned long flags;
--	if (q) {
--		spin_lock_irqsave(&q->lock, flags);
--		list_del(&_urb->list); _urb->queue = NULL;
--		spin_unlock_irqrestore(&q->lock, flags);
--	}
-+
-+	mb();
-+	q = _urb->queue;
-+	/* If q is NULL, it will die at easy-to-debug NULL pointer dereference.
-+	   No need to BUG(). */
-+	spin_lock_irqsave(&q->lock, flags);
-+	list_del(&_urb->list); _urb->queue = NULL;
-+	spin_unlock_irqrestore(&q->lock, flags);
- }
+ 	IRDA_DEBUG(4, "%s(), len=%d\n", __func__, len);
  
- struct hci_usb {
+ 	/* Get object ID, MSB first */
+-	obj_id = be16_to_cpu(get_unaligned((__be16 *)(fp+n))); n += 2;
++	obj_id = get_unaligned_be16(fp + n);
++	n += 2;
+ 
+ 	type = fp[n++];
+ 	IRDA_DEBUG(4, "%s(), Value type = %d\n", __func__, type);
+@@ -506,7 +508,7 @@ static void iriap_getvaluebyclass_confir
+ 		value = irias_new_string_value(fp+n);
+ 		break;
+ 	case IAS_OCT_SEQ:
+-		value_len = be16_to_cpu(get_unaligned((__be16 *)(fp+n)));
++		value_len = get_unaligned_be16(fp + n);
+ 		n += 2;
+ 
+ 		/* Will truncate to IAS_MAX_OCTET_STRING bytes */
 _
 
-Patches currently in -mm which might be from pavel@ucw.cz are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
+origin.patch
 linux-next.patch
-acpi_pm_device_sleep_state-cleanup.patch
+misc-fix-integer-as-null-pointer-warnings.patch
+cifs-remove-global_extern-macro.patch
+media-use-get_unaligned_-helpers.patch
+hid-use-get-put_unaligned_-helpers.patch
+git-input.patch
+ata-remove-fit-macro.patch
+git-mips.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-get_unaligned_-helpers.patch
+block-use-get_unaligned_-helpers.patch
+usb-fix-integer-as-null-pointer-sparse-warnings.patch
+usb-use-get_unaligned_-helpers.patch
+git-watchdog.patch
+mac80211-michaelc-use-kernel-provided-infrastructure.patch
+mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
+mac80211-tkipc-use-kernel-provided-infrastructure.patch
+mac80211-add-const-remove-unused-function-make-one-function-static.patch
+mac80211-add-a-struct-to-hold-tkip-context.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+wireless-use-get-put_unaligned_-helpers.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+mmc-make-one-bit-signed-bitfields-unsigned.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+video-fix-integer-as-null-pointer-warnings.patch
 
