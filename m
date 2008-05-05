@@ -1,61 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: - clocksource-fix-permissions-for-available_clocksource.patch removed from -mm tree
-Date: Mon, 05 May 2008 12:17:17 -0700
-Message-ID: <200805051917.m45JHH9E000464@imap1.linux-foundation.org>
+Subject: + execve-filename-document-and-export-via-auxiliary-vector.patch added to -mm tree
+Date: Mon, 05 May 2008 12:52:22 -0700
+Message-ID: <200805051952.m45JqNXU001921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40625 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50211 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751475AbYEETSs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 15:18:48 -0400
+	by vger.kernel.org with ESMTP id S1755474AbYEETwt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 15:52:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: jreiser@BitWagon.com, drepper@redhat.com, jakub@redhat.com, roland@redhat.com
 
 
 The patch titled
-     clocksource: fix permissions for available_clocksource
-has been removed from the -mm tree.  Its filename was
-     clocksource-fix-permissions-for-available_clocksource.patch
+     execve filename: document and export via auxiliary vector
+has been added to the -mm tree.  Its filename is
+     execve-filename-document-and-export-via-auxiliary-vector.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource: fix permissions for available_clocksource
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: execve filename: document and export via auxiliary vector
+From: John Reiser <jreiser@BitWagon.com>
 
-File permissions for
-/sys/devices/system/clocksource/clocksource0/available_clocksource are 600
-which allows write access.  But this is in fact a read only file.  So change
-permissions to 400.
+The Linux kernel puts the filename argument of execve() into the
+new address space.  Many developers are surprised to learn this.
+Those who know and could use it, object "But it's not documented."
+Those who want to use it dislike the expression
+  (char *)(1+ strlen(env[-1+ n_env]) + env[-1+ n_env])
+because it requires locating the last original environment variable,
+and assumes that the filename follows the characters.
 
-Cc: John Stultz <johnstul@us.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+This patch documents the insertion of the filename, and makes it easier to
+find by adding a new tag AT_EXECFN in the ElfXX_auxv_t; see <elf.h>.
+
+In many cases readlink("/proc/self/exe",) gives the same answer.  But if all
+the original pages get unmapped, then the kernel erases the symlink for
+/proc/self/exe.  This can happen when a program decompressor does a good job
+of cleaning up after uncompressing directly to memory, so that the address
+space of the target program looks the same as if compression had never
+happened.  One example is http://upx.sourceforge.net .
+
+One notable use of the underlying concept (what path containED the executable)
+is glibc expanding $ORIGIN in DT_RUNPATH.  In practice for the near term, it
+may be a good idea for user-mode code to use both /proc/self/exe and AT_EXECFN
+as fall-back methods for each other.  /proc/self/exe can fail due to
+unmapping, AT_EXECFN can fail because it won't be present on non-new systems. 
+The auxvec or {AT_EXECFN}.d_val also can get overwritten, although in nearly
+all cases this would be the result of a bug.
+
+The runtime cost is one NEW_AUX_ENT using two words of stack space.  The
+underlying value is maintained already as bprm->exec; setup_arg_pages() in
+fs/exec.c slides it for stack_shift, etc.
+
+Signed-off-by: John Reiser <jreiser@BitWagon.com>
+Cc: Roland McGrath <roland@redhat.com>
+Cc: Jakub Jelinek <jakub@redhat.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/clocksource.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/binfmt_elf.c        |    1 +
+ include/linux/auxvec.h |    4 +++-
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/time/clocksource.c~clocksource-fix-permissions-for-available_clocksource kernel/time/clocksource.c
---- a/kernel/time/clocksource.c~clocksource-fix-permissions-for-available_clocksource
-+++ a/kernel/time/clocksource.c
-@@ -474,7 +474,7 @@ sysfs_show_available_clocksources(struct
- static SYSDEV_ATTR(current_clocksource, 0600, sysfs_show_current_clocksources,
- 		   sysfs_override_clocksource);
+diff -puN fs/binfmt_elf.c~execve-filename-document-and-export-via-auxiliary-vector fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~execve-filename-document-and-export-via-auxiliary-vector
++++ a/fs/binfmt_elf.c
+@@ -205,6 +205,7 @@ create_elf_tables(struct linux_binprm *b
+ 	NEW_AUX_ENT(AT_GID, tsk->gid);
+ 	NEW_AUX_ENT(AT_EGID, tsk->egid);
+  	NEW_AUX_ENT(AT_SECURE, security_bprm_secureexec(bprm));
++	NEW_AUX_ENT(AT_EXECFN, bprm->exec);
+ 	if (k_platform) {
+ 		NEW_AUX_ENT(AT_PLATFORM,
+ 			    (elf_addr_t)(unsigned long)u_platform);
+diff -puN include/linux/auxvec.h~execve-filename-document-and-export-via-auxiliary-vector include/linux/auxvec.h
+--- a/include/linux/auxvec.h~execve-filename-document-and-export-via-auxiliary-vector
++++ a/include/linux/auxvec.h
+@@ -26,8 +26,10 @@
  
--static SYSDEV_ATTR(available_clocksource, 0600,
-+static SYSDEV_ATTR(available_clocksource, 0400,
- 		   sysfs_show_available_clocksources, NULL);
+ #define AT_SECURE 23   /* secure mode boolean */
  
- static struct sysdev_class clocksource_sysclass = {
++#define AT_EXECFN  31	/* filename of program */
+ #ifdef __KERNEL__
+-#define AT_VECTOR_SIZE_BASE (14 + 2) /* NEW_AUX_ENT entries in auxiliary table */
++#define AT_VECTOR_SIZE_BASE 17 /* NEW_AUX_ENT entries in auxiliary table */
++  /* number of "#define AT_.*" above, minus {AT_NULL, AT_IGNORE, AT_NOTELF} */
+ #endif
+ 
+ #endif /* _LINUX_AUXVEC_H */
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from jreiser@BitWagon.com are
 
-origin.patch
-linux-next.patch
+execve-filename-document-and-export-via-auxiliary-vector.patch
 
