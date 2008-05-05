@@ -1,81 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: - docbook-some-kernel-locking-fixes.patch removed from -mm tree
-Date: Sun, 04 May 2008 18:53:08 -0700
-Message-ID: <200805050153.m451r8rl025264@imap1.linux-foundation.org>
+Subject: - rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch removed from -mm tree
+Date: Sun, 04 May 2008 19:09:55 -0700
+Message-ID: <200805050209.m4529tVw025870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36030 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56612 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754225AbYEEBxZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sun, 4 May 2008 21:53:25 -0400
+	by vger.kernel.org with ESMTP id S1753910AbYEECNx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sun, 4 May 2008 22:13:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mattilinnanvuori@yahoo.com, randy.dunlap@oracle.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     docbook: some kernel-locking fixes
+     rtc: remove unneeded declarations of hpet_rtc_interrupt()
 has been removed from the -mm tree.  Its filename was
-     docbook-some-kernel-locking-fixes.patch
+     rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: docbook: some kernel-locking fixes
-From: Matti Linnanvuori <mattilinnanvuori@yahoo.com>
+Subject: rtc: remove unneeded declarations of hpet_rtc_interrupt()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Fix a wrong path. Add a chapter about try functions.
+Should already be available via the hpet.h inclusion.
 
-http://bugzilla.kernel.org/show_bug.cgi?id=9011
+Could go further, by defining the do-nothing stub in hpet.h as well, perhaps.
 
-Signed-off-by: Matti Linnanvuori <mattilinnanvuori@yahoo.com>
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DocBook/kernel-locking.tmpl |   23 ++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+ drivers/char/rtc.c     |    2 --
+ drivers/rtc/rtc-cmos.c |    1 -
+ 2 files changed, 3 deletions(-)
 
-diff -puN Documentation/DocBook/kernel-locking.tmpl~docbook-some-kernel-locking-fixes Documentation/DocBook/kernel-locking.tmpl
---- a/Documentation/DocBook/kernel-locking.tmpl~docbook-some-kernel-locking-fixes
-+++ a/Documentation/DocBook/kernel-locking.tmpl
-@@ -694,6 +694,29 @@
- </sect1>
- </chapter>
+diff -puN drivers/char/rtc.c~rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt drivers/char/rtc.c
+--- a/drivers/char/rtc.c~rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt
++++ a/drivers/char/rtc.c
+@@ -119,8 +119,6 @@ static irqreturn_t hpet_rtc_interrupt(in
+ 	return 0;
+ }
+ #endif
+-#else
+-extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
+ #endif
  
-+<chapter id="try-variants">
-+ <title>The try variants</title>
-+
-+  <para>
-+    <function>spin_trylock()</function> does not spin but returns non-zero if
-+    it acquires the spinlock on the first try or 0 if not.
-+  </para>
-+
-+  <para>
-+    <function>mutex_trylock()</function> does not suspend your task
-+    but returns non-zero if it could lock the mutex on the first try
-+    or 0 if not.
-+  </para>
-+
-+  <para>
-+    <function>down_trylock()</function> does not suspend your task
-+    but returns 0 if it could get the semaphore on the first try or
-+    non-zero if not. The return value is the inverse of that of
-+    <function>spin_trylock()</function> and <function>mutex_trylock()
-+    </function>.
-+  </para>
-+</chapter>
-+
-   <chapter id="Examples">
-    <title>Common Examples</title>
-     <para>
+ /*
+diff -puN drivers/rtc/rtc-cmos.c~rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt
++++ a/drivers/rtc/rtc-cmos.c
+@@ -52,7 +52,6 @@
+ #define hpet_rtc_timer_init() 			do { } while (0)
+ #define hpet_register_irq_handler(h) 		0
+ #define hpet_unregister_irq_handler(h)		do { } while (0)
+-extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
+ #endif
+ 
+ struct cmos_rtc {
 _
 
-Patches currently in -mm which might be from mattilinnanvuori@yahoo.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-docbook-some-kernel-locking-fixes.patch
+linux-next.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+revert-memory-hotplug-register-section-node-id-to-free.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+rtc-remove-unneeded-declarations-of-hpet_rtc_interrupt.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-mips.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+add-warn_on_secs-macro.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
