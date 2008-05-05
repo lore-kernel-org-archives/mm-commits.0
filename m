@@ -1,201 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: - idr-introduce-ridr_remove.patch removed from -mm tree
-Date: Mon, 05 May 2008 09:28:51 -0700
-Message-ID: <200805051628.m45GSpcD025501@imap1.linux-foundation.org>
+Subject: + git-net-git-rejects.patch added to -mm tree
+Date: Mon, 05 May 2008 12:05:40 -0700
+Message-ID: <200805051905.m45J5eG7032280@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43633 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44537 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755231AbYEEQkY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 12:40:24 -0400
+	by vger.kernel.org with ESMTP id S932852AbYEETGK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 15:06:10 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m45J5ep2014295
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 5 May 2008 12:05:41 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, nickpiggin@yahoo.com.au, paulmck@us.ibm.com, peifferp@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     idr: introduce ridr_remove()
-has been removed from the -mm tree.  Its filename was
-     idr-introduce-ridr_remove.patch
+     git-net-git-rejects
+has been added to the -mm tree.  Its filename is
+     git-net-git-rejects.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: introduce ridr_remove()
-From: Nadia Derbey <Nadia.Derbey@bull.net>
+Subject: git-net-git-rejects
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Introduce the ridr_remove() routine.
 
-Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
-Cc: Jim Houston <jim.houston@comcast.net>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
-Cc: Nick Piggin <nickpiggin@yahoo.com.au>
-Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/idr.h  |    1 
- include/linux/ridr.h |    1 
- lib/idr.c            |    7 +--
- lib/ridr.c           |   83 +++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 89 insertions(+), 3 deletions(-)
+ drivers/net/irda/nsc-ircc.c   |    3 ---
+ drivers/net/irda/smsc-ircc2.c |   11 -----------
+ 2 files changed, 14 deletions(-)
 
-diff -puN include/linux/idr.h~idr-introduce-ridr_remove include/linux/idr.h
---- a/include/linux/idr.h~idr-introduce-ridr_remove
-+++ a/include/linux/idr.h
-@@ -91,6 +91,7 @@ static inline void _idr_set_new_slot(str
+diff -puN drivers/net/irda/nsc-ircc.c~git-net-git-rejects drivers/net/irda/nsc-ircc.c
+--- a/drivers/net/irda/nsc-ircc.c~git-net-git-rejects
++++ a/drivers/net/irda/nsc-ircc.c
+@@ -100,12 +100,9 @@ static int nsc_ircc_probe_39x(nsc_chip_t
+ static int nsc_ircc_init_108(nsc_chip_t *chip, chipio_t *info);
+ static int nsc_ircc_init_338(nsc_chip_t *chip, chipio_t *info);
+ static int nsc_ircc_init_39x(nsc_chip_t *chip, chipio_t *info);
+-<<<<<<< HEAD:drivers/net/irda/nsc-ircc.c
+-=======
+ #ifdef CONFIG_PNP
+ static int nsc_ircc_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *id);
+ #endif
+->>>>>>> FETCH_HEAD:drivers/net/irda/nsc-ircc.c
  
- void _idr_mark_full(struct idr_layer **, int);
- int _idr_sub_alloc(int *, int *, struct idr_layer **, struct idr_layer **);
-+void _idr_remove_warning(const char *, int);
+ /* These are the known NSC chips */
+ static nsc_chip_t chips[] = {
+diff -puN drivers/net/irda/smsc-ircc2.c~git-net-git-rejects drivers/net/irda/smsc-ircc2.c
+--- a/drivers/net/irda/smsc-ircc2.c~git-net-git-rejects
++++ a/drivers/net/irda/smsc-ircc2.c
+@@ -382,12 +382,9 @@ static const struct pnp_device_id smsc_i
+ };
+ MODULE_DEVICE_TABLE(pnp, smsc_ircc_pnp_table);
  
- /*
-  * This is what we export.
-diff -puN include/linux/ridr.h~idr-introduce-ridr_remove include/linux/ridr.h
---- a/include/linux/ridr.h~idr-introduce-ridr_remove
-+++ a/include/linux/ridr.h
-@@ -63,6 +63,7 @@ void *ridr_find(struct ridr *, int);
- int ridr_pre_get(struct ridr *, gfp_t);
- int ridr_get_new(struct ridr *, void *, int *);
- int ridr_get_new_above(struct ridr *, void *, int, int *);
-+void ridr_remove(struct ridr *, int);
- void ridr_init(struct ridr *);
+-<<<<<<< HEAD:drivers/net/irda/smsc-ircc2.c
+-=======
+ static int pnp_driver_registered;
  
- 
-diff -puN lib/idr.c~idr-introduce-ridr_remove lib/idr.c
---- a/lib/idr.c~idr-introduce-ridr_remove
-+++ a/lib/idr.c
-@@ -356,9 +356,10 @@ int idr_get_new(struct idr *idp, void *p
- }
- EXPORT_SYMBOL(idr_get_new);
- 
--static void idr_remove_warning(int id)
-+void _idr_remove_warning(const char *caller, int id)
+ #ifdef CONFIG_PNP
+->>>>>>> FETCH_HEAD:drivers/net/irda/smsc-ircc2.c
+ static int __init smsc_ircc_pnp_probe(struct pnp_dev *dev,
+ 				      const struct pnp_device_id *dev_id)
  {
--	printk("idr_remove called for id=%d which is not allocated.\n", id);
-+	printk(KERN_INFO "%s called for id=%d which is not allocated.\n",
-+		caller, id);
- 	dump_stack();
- }
+@@ -414,17 +411,9 @@ static struct pnp_driver smsc_ircc_pnp_d
+ 	.id_table	= smsc_ircc_pnp_table,
+ 	.probe		= smsc_ircc_pnp_probe,
+ };
+-<<<<<<< HEAD:drivers/net/irda/smsc-ircc2.c
+-
+-#else
+-static struct pnp_driver smsc_ircc_pnp_driver;
+-#endif
+-
+-=======
+ #else /* CONFIG_PNP */
+ static struct pnp_driver smsc_ircc_pnp_driver;
+ #endif
+->>>>>>> FETCH_HEAD:drivers/net/irda/smsc-ircc2.c
  
-@@ -390,7 +391,7 @@ static void sub_remove(struct idr *idp, 
- 		if (!*paa)
- 			idp->layers = 0;
- 	} else
--		idr_remove_warning(id);
-+		_idr_remove_warning("idr_remove", id);
- }
- 
- /**
-diff -puN lib/ridr.c~idr-introduce-ridr_remove lib/ridr.c
---- a/lib/ridr.c~idr-introduce-ridr_remove
-+++ a/lib/ridr.c
-@@ -28,6 +28,19 @@ static struct ridr_layer *get_from_free_
- 	return(q);
- }
- 
-+static void ridr_layer_rcu_free(struct rcu_head *head)
-+{
-+	struct ridr_layer *layer;
-+
-+	layer = container_of(head, struct ridr_layer, rcu_head);
-+	kmem_cache_free(ridr_layer_cache, layer);
-+}
-+
-+static inline void free_layer(struct ridr_layer *p)
-+{
-+	call_rcu(&p->rcu_head, ridr_layer_rcu_free);
-+}
-+
- /* only called when idp->lock is held */
- /* moves an ridr_layer to the free list */
- static void __move_to_free_list(struct ridr *idp, struct ridr_layer *p)
-@@ -259,6 +272,76 @@ int ridr_get_new(struct ridr *idp, void 
- }
- EXPORT_SYMBOL(ridr_get_new);
- 
-+static void sub_remove(struct ridr *idp, int shift, int id)
-+{
-+	struct ridr_layer *p = idp->top;
-+	struct ridr_layer **pa[MAX_LEVEL];
-+	struct ridr_layer ***paa = &pa[0];
-+	struct ridr_layer *to_free;
-+	int n;
-+
-+	*paa = NULL;
-+	*++paa = &idp->top;
-+
-+	while ((shift > 0) && p) {
-+		n = (id >> shift) & IDR_MASK;
-+		__clear_bit(n, &p->idr.bitmap);
-+		*++paa = (struct ridr_layer **) &(p->idr.ary[n]);
-+		p = p->idr.ary[n];
-+		shift -= IDR_BITS;
-+	}
-+	n = id & IDR_MASK;
-+	if (likely(p != NULL && test_bit(n, &p->idr.bitmap))) {
-+		__clear_bit(n, &p->idr.bitmap);
-+		rcu_assign_pointer(p->idr.ary[n], NULL);
-+		to_free = NULL;
-+		while (*paa && !--((**paa)->idr.count)) {
-+			if (to_free)
-+				free_layer(to_free);
-+			to_free = **paa;
-+			**paa-- = NULL;
-+		}
-+		if (!*paa)
-+			idp->layers = 0;
-+		if (to_free)
-+			free_layer(to_free);
-+	} else
-+		_idr_remove_warning("ridr_remove", id);
-+}
-+/**
-+ * ridr_remove - remove the given id and free it's slot
-+ * @idp: ridr handle
-+ * @id: unique key
-+ */
-+void ridr_remove(struct ridr *idp, int id)
-+{
-+	struct ridr_layer *p;
-+	struct ridr_layer *to_free;
-+
-+	/* Mask off upper bits we don't use for the search. */
-+	id &= MAX_ID_MASK;
-+
-+	sub_remove(idp, (idp->layers - 1) * IDR_BITS, id);
-+	if (idp->top && idp->top->idr.count == 1 && (idp->layers > 1) &&
-+	    idp->top->idr.ary[0]) {
-+		/*
-+		 * Single child at leftmost slot: we can shrink the tree.
-+		 * This level is not needed anymore since when layers are
-+		 * inserted, they are inserted at the top of the existing
-+		 * tree.
-+		 */
-+		to_free = idp->top;
-+		p = idp->top->idr.ary[0];
-+		rcu_assign_pointer(idp->top, p);
-+		--idp->layers;
-+		to_free->idr.bitmap = to_free->idr.count = 0;
-+		to_free->idr.ary[0] = NULL;
-+		free_layer(to_free);
-+	}
-+	return;
-+}
-+EXPORT_SYMBOL(ridr_remove);
-+
- /**
-  * ridr_find - return pointer for given id
-  * @idp: ridr handle
+ /*******************************************************************************
+  *
 _
 
-Patches currently in -mm which might be from Nadia.Derbey@bull.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-idr-introduce-ridr_remove.patch
-ipc-integrate-the-ridr-code-into-ipc-code.patch
-ipc-get-rid-of-ipc_lock_down.patch
+linux-next.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+revert-memory-hotplug-register-section-node-id-to-free.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-input.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-mips.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+git-net-git-rejects.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-sched.patch
+drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+add-warn_on_secs-macro.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
