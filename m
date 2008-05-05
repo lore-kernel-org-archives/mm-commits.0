@@ -1,115 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-base-topologyc-add-conditionals-around-show_cpumap.patch removed from -mm tree
-Date: Mon, 05 May 2008 12:17:07 -0700
-Message-ID: <200805051917.m45JH7PM000435@imap1.linux-foundation.org>
+Subject: - power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs.patch removed from -mm tree
+Date: Mon, 05 May 2008 12:16:56 -0700
+Message-ID: <200805051916.m45JGuJJ000343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36767 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54439 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754396AbYEETRY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 15:17:24 -0400
+	by vger.kernel.org with ESMTP id S1761333AbYEETRP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 15:17:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, travis@sgi.com, mm-commits@vger.kernel.org
+To: dilinger@queued.net, cbou@mail.ru, dilinger@debian.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/base/topology.c: add conditionals around show_cpumap()
+     power_supply: add eeprom dump file to olpc_battery's sysfs
 has been removed from the -mm tree.  Its filename was
-     drivers-base-topologyc-add-conditionals-around-show_cpumap.patch
+     power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/base/topology.c: add conditionals around show_cpumap()
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: power_supply: add eeprom dump file to olpc_battery's sysfs
+From: Andres Salomon <dilinger@queued.net>
 
-drivers/base/topology.c:44: warning: 'show_cpumap' defined but not used
+This allows you to dump 0x60 bytes from the battery's EEPROM (starting at
+address 0x20).  Note that it does an EC command for each byte, so it's pretty
+slow.  OTOH, if you want to grab just a single byte from somewhere in the
+EEPROM, you can do something like:
 
-Cc: Mike Travis <travis@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+dd bs=1 count=1 skip=16 if=/sys/class/power_supply/olpc-battery/eeprom | od -x
+
+Userspace battery collection/logging information needs this.
+
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: Anton Vorontsov <cbou@mail.ru>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/topology.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/power/olpc_battery.c |   49 +++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
-diff -puN drivers/base/topology.c~drivers-base-topologyc-add-conditionals-around-show_cpumap drivers/base/topology.c
---- a/drivers/base/topology.c~drivers-base-topologyc-add-conditionals-around-show_cpumap
-+++ a/drivers/base/topology.c
-@@ -40,6 +40,7 @@ static ssize_t show_##name(struct sys_de
- 	return sprintf(buf, "%d\n", topology_##name(cpu));	\
- }
+diff -puN drivers/power/olpc_battery.c~power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs drivers/power/olpc_battery.c
+--- a/drivers/power/olpc_battery.c~power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs
++++ a/drivers/power/olpc_battery.c
+@@ -283,6 +283,48 @@ static enum power_supply_property olpc_b
+ 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
+ };
  
-+#if defined(topology_thread_siblings) || defined(topology_core_siblings)
- static ssize_t show_cpumap(int type, cpumask_t *mask, char *buf)
++/* EEPROM reading goes completely around the power_supply API, sadly */
++
++#define EEPROM_START	0x20
++#define EEPROM_END	0x80
++#define EEPROM_SIZE	(EEPROM_END - EEPROM_START)
++
++static ssize_t olpc_bat_eeprom_read(struct kobject *kobj,
++		struct bin_attribute *attr, char *buf, loff_t off, size_t count)
++{
++	uint8_t ec_byte;
++	int ret, end;
++
++	if (off >= EEPROM_SIZE)
++		return 0;
++	if (off + count > EEPROM_SIZE)
++		count = EEPROM_SIZE - off;
++
++	end = EEPROM_START + off + count;
++	for (ec_byte = EEPROM_START + off; ec_byte < end; ec_byte++) {
++		ret = olpc_ec_cmd(EC_BAT_EEPROM, &ec_byte, 1,
++				&buf[ec_byte - EEPROM_START], 1);
++		if (ret) {
++			printk(KERN_ERR "olpc-battery:  EC command "
++					"EC_BAT_EEPROM @ 0x%x failed -"
++					" %d!\n", ec_byte, ret);
++			return -EIO;
++		}
++	}
++
++	return count;
++}
++
++static struct bin_attribute olpc_bat_eeprom = {
++	.attr = {
++		.name = "eeprom",
++		.mode = S_IRUGO,
++		.owner = THIS_MODULE,
++	},
++	.size = 0,
++	.read = olpc_bat_eeprom_read,
++};
++
+ /*********************************************************************
+  *		Initialisation
+  *********************************************************************/
+@@ -336,8 +378,14 @@ static int __init olpc_bat_init(void)
+ 	if (ret)
+ 		goto battery_failed;
+ 
++	ret = device_create_bin_file(olpc_bat.dev, &olpc_bat_eeprom);
++	if (ret)
++		goto eeprom_failed;
++
+ 	goto success;
+ 
++eeprom_failed:
++	power_supply_unregister(&olpc_bat);
+ battery_failed:
+ 	power_supply_unregister(&olpc_ac);
+ ac_failed:
+@@ -348,6 +396,7 @@ success:
+ 
+ static void __exit olpc_bat_exit(void)
  {
- 	ptrdiff_t len = PTR_ALIGN(buf + PAGE_SIZE - 1, PAGE_SIZE) - buf;
-@@ -54,6 +55,7 @@ static ssize_t show_cpumap(int type, cpu
- 	}
- 	return n;
- }
-+#endif
- 
- #define define_siblings_show_map(name)					\
- static inline ssize_t show_##name(struct sys_device *dev, char *buf)	\
++	device_remove_bin_file(olpc_bat.dev, &olpc_bat_eeprom);
+ 	power_supply_unregister(&olpc_bat);
+ 	power_supply_unregister(&olpc_ac);
+ 	platform_device_unregister(bat_pdev);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-origin.patch
-linux-next.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-revert-memory-hotplug-register-section-node-id-to-free.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
 x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-input.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-git-net-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
 git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-add-warn_on_secs-macro.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
