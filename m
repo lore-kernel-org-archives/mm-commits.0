@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-geode-define-geode_has_vsa2-even-if-config_mgeode_lx-is-not-set.patch added to -mm tree
-Date: Mon, 05 May 2008 16:03:21 -0700
-Message-ID: <200805052303.m45N3Loq009876@imap1.linux-foundation.org>
+Subject: + page-allocator-inlnie-some-__alloc_pages-wrappers.patch added to -mm tree
+Date: Mon, 05 May 2008 16:05:08 -0700
+Message-ID: <200805052305.m45N58A9009930@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37463 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57707 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752582AbYEEXEI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 19:04:08 -0400
+	by vger.kernel.org with ESMTP id S1752057AbYEEXGf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 19:06:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, dilinger@debian.org, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de
+Cc: kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie
 
 
 The patch titled
-     x86: geode: define geode_has_vsa2() even if CONFIG_MGEODE_LX is not set
+     page allocator: inlnie some __alloc_pages() wrappers
 has been added to the -mm tree.  Its filename is
-     x86-geode-define-geode_has_vsa2-even-if-config_mgeode_lx-is-not-set.patch
+     page-allocator-inlnie-some-__alloc_pages-wrappers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,82 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: geode: define geode_has_vsa2() even if CONFIG_MGEODE_LX is not set
-From: Andres Salomon <dilinger@queued.net>
+Subject: page allocator: inlnie some __alloc_pages() wrappers
+From: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 
-We want drivers to be able to use geode_has_vsa2 without having to worry
-about what model geode is being compiled for.  This patch ensures that
-geode_has_vsa2 is always defined.
+Two zonelist patch series rewrote __page_alloc() largely.  Now, it is just
+a wrapper function.  Inlining them will save a function call.
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/geode.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/linux/gfp.h |   21 +++++++++++++++++----
+ mm/page_alloc.c     |   18 +-----------------
+ 2 files changed, 18 insertions(+), 21 deletions(-)
 
-diff -puN include/asm-x86/geode.h~x86-geode-define-geode_has_vsa2-even-if-config_mgeode_lx-is-not-set include/asm-x86/geode.h
---- a/include/asm-x86/geode.h~x86-geode-define-geode_has_vsa2-even-if-config_mgeode_lx-is-not-set
-+++ a/include/asm-x86/geode.h
-@@ -185,7 +185,14 @@ static inline int is_geode(void)
- 	return (is_geode_gx() || is_geode_lx());
+diff -puN include/linux/gfp.h~page-allocator-inlnie-some-__alloc_pages-wrappers include/linux/gfp.h
+--- a/include/linux/gfp.h~page-allocator-inlnie-some-__alloc_pages-wrappers
++++ a/include/linux/gfp.h
+@@ -174,11 +174,24 @@ static inline void arch_free_page(struct
+ static inline void arch_alloc_page(struct page *page, int order) { }
+ #endif
+ 
+-extern struct page *__alloc_pages(gfp_t, unsigned int, struct zonelist *);
++struct page *
++__alloc_pages_internal(gfp_t gfp_mask, unsigned int order,
++		       struct zonelist *zonelist, nodemask_t *nodemask);
++
++static inline struct page *
++__alloc_pages(gfp_t gfp_mask, unsigned int order,
++		struct zonelist *zonelist)
++{
++	return __alloc_pages_internal(gfp_mask, order, zonelist, NULL);
++}
++
++static inline struct page *
++__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
++		struct zonelist *zonelist, nodemask_t *nodemask)
++{
++	return __alloc_pages_internal(gfp_mask, order, zonelist, nodemask);
++}
+ 
+-extern struct page *
+-__alloc_pages_nodemask(gfp_t, unsigned int,
+-				struct zonelist *, nodemask_t *nodemask);
+ 
+ static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
+ 						unsigned int order)
+diff -puN mm/page_alloc.c~page-allocator-inlnie-some-__alloc_pages-wrappers mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-inlnie-some-__alloc_pages-wrappers
++++ a/mm/page_alloc.c
+@@ -1460,7 +1460,7 @@ try_next_zone:
+ /*
+  * This is the 'heart' of the zoned buddy allocator.
+  */
+-static struct page *
++struct page *
+ __alloc_pages_internal(gfp_t gfp_mask, unsigned int order,
+ 			struct zonelist *zonelist, nodemask_t *nodemask)
+ {
+@@ -1667,22 +1667,6 @@ got_pg:
+ 	return page;
  }
  
-+#ifdef CONFIG_MGEODE_LX
- extern int geode_has_vsa2(void);
-+#else
-+static inline int geode_has_vsa2(void)
-+{
-+	return 0;
-+}
-+#endif
- 
- /* MFGPTs */
- 
-_
-
-Patches currently in -mm which might be from dilinger@queued.net are
-
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-x86-geode-define-geode_has_vsa2-even-if-config_mgeode_lx-is-not-set.patch
-git-battery.patch
-
+-struct page *
+-__alloc_pages(gfp_t gfp_mask, unsigned int order,
+-		struct zonelist *zonelist)
+-{
+-	return __alloc_pages_internal(gfp_mask, order, zonelist, NULL);
+-}
+-
+-struct page *
+-__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
+-		struct zonelist *zonelist, nodemask_t *nodemask)
+-{
+-	return __alloc_pages_internal(gfp_mask, order, zonelist, nodemask);
+-}
+-
+-EXPORT_SYMBOL(__alloc_pages);
