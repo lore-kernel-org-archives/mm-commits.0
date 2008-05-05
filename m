@@ -1,128 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: - power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs.patch removed from -mm tree
-Date: Mon, 05 May 2008 12:16:56 -0700
-Message-ID: <200805051916.m45JGuJJ000343@imap1.linux-foundation.org>
+Subject: - 9p-use-correct-type-for-processor-flags.patch removed from -mm tree
+Date: Mon, 05 May 2008 12:17:12 -0700
+Message-ID: <200805051917.m45JHCqB000439@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54439 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48828 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761333AbYEETRP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 15:17:15 -0400
+	by vger.kernel.org with ESMTP id S1751049AbYEETRl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 15:17:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dilinger@queued.net, cbou@mail.ru, dilinger@debian.org, dwmw2@infradead.org, mm-commits@vger.kernel.org
+To: rostedt@goodmis.org, ericvh@gmail.com, lucho@ionkov.net, srostedt@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     power_supply: add eeprom dump file to olpc_battery's sysfs
+     9p: use correct type for processor flags
 has been removed from the -mm tree.  Its filename was
-     power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs.patch
+     9p-use-correct-type-for-processor-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: power_supply: add eeprom dump file to olpc_battery's sysfs
-From: Andres Salomon <dilinger@queued.net>
+Subject: 9p: use correct type for processor flags
+From: Steven Rostedt <rostedt@goodmis.org>
 
-This allows you to dump 0x60 bytes from the battery's EEPROM (starting at
-address 0x20).  Note that it does an EC command for each byte, so it's pretty
-slow.  OTOH, if you want to grab just a single byte from somewhere in the
-EEPROM, you can do something like:
+Some files in the net/9p directory uses "int" for flags.  This can cause hard
+to find bugs on some architectures.  This patch converts the flags to use
+"long" instead.
 
-dd bs=1 count=1 skip=16 if=/sys/class/power_supply/olpc-battery/eeprom | od -x
+This bug was discovered by doing an allyesconfig make on the -rt kernel where
+checks are done to ensure all flags are of size sizeof(long).
 
-Userspace battery collection/logging information needs this.
-
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: Anton Vorontsov <cbou@mail.ru>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Signed-off-by: Steven Rostedt <srostedt@redhat.com>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/olpc_battery.c |   49 +++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+ net/9p/trans_virtio.c |    2 +-
+ net/9p/util.c         |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/power/olpc_battery.c~power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs drivers/power/olpc_battery.c
---- a/drivers/power/olpc_battery.c~power_supply-add-eeprom-dump-file-to-olpc_batterys-sysfs
-+++ a/drivers/power/olpc_battery.c
-@@ -283,6 +283,48 @@ static enum power_supply_property olpc_b
- 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
- };
- 
-+/* EEPROM reading goes completely around the power_supply API, sadly */
-+
-+#define EEPROM_START	0x20
-+#define EEPROM_END	0x80
-+#define EEPROM_SIZE	(EEPROM_END - EEPROM_START)
-+
-+static ssize_t olpc_bat_eeprom_read(struct kobject *kobj,
-+		struct bin_attribute *attr, char *buf, loff_t off, size_t count)
-+{
-+	uint8_t ec_byte;
-+	int ret, end;
-+
-+	if (off >= EEPROM_SIZE)
-+		return 0;
-+	if (off + count > EEPROM_SIZE)
-+		count = EEPROM_SIZE - off;
-+
-+	end = EEPROM_START + off + count;
-+	for (ec_byte = EEPROM_START + off; ec_byte < end; ec_byte++) {
-+		ret = olpc_ec_cmd(EC_BAT_EEPROM, &ec_byte, 1,
-+				&buf[ec_byte - EEPROM_START], 1);
-+		if (ret) {
-+			printk(KERN_ERR "olpc-battery:  EC command "
-+					"EC_BAT_EEPROM @ 0x%x failed -"
-+					" %d!\n", ec_byte, ret);
-+			return -EIO;
-+		}
-+	}
-+
-+	return count;
-+}
-+
-+static struct bin_attribute olpc_bat_eeprom = {
-+	.attr = {
-+		.name = "eeprom",
-+		.mode = S_IRUGO,
-+		.owner = THIS_MODULE,
-+	},
-+	.size = 0,
-+	.read = olpc_bat_eeprom_read,
-+};
-+
- /*********************************************************************
-  *		Initialisation
-  *********************************************************************/
-@@ -336,8 +378,14 @@ static int __init olpc_bat_init(void)
- 	if (ret)
- 		goto battery_failed;
- 
-+	ret = device_create_bin_file(olpc_bat.dev, &olpc_bat_eeprom);
-+	if (ret)
-+		goto eeprom_failed;
-+
- 	goto success;
- 
-+eeprom_failed:
-+	power_supply_unregister(&olpc_bat);
- battery_failed:
- 	power_supply_unregister(&olpc_ac);
- ac_failed:
-@@ -348,6 +396,7 @@ success:
- 
- static void __exit olpc_bat_exit(void)
+diff -puN net/9p/trans_virtio.c~9p-use-correct-type-for-processor-flags net/9p/trans_virtio.c
+--- a/net/9p/trans_virtio.c~9p-use-correct-type-for-processor-flags
++++ a/net/9p/trans_virtio.c
+@@ -134,7 +134,7 @@ static void p9_virtio_close(struct p9_tr
  {
-+	device_remove_bin_file(olpc_bat.dev, &olpc_bat_eeprom);
- 	power_supply_unregister(&olpc_bat);
- 	power_supply_unregister(&olpc_ac);
- 	platform_device_unregister(bat_pdev);
+ 	struct virtio_chan *chan = trans->priv;
+ 	int count;
+-	unsigned int flags;
++	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&chan->lock, flags);
+ 	p9_idpool_destroy(chan->tagpool);
+diff -puN net/9p/util.c~9p-use-correct-type-for-processor-flags net/9p/util.c
+--- a/net/9p/util.c~9p-use-correct-type-for-processor-flags
++++ a/net/9p/util.c
+@@ -71,7 +71,7 @@ int p9_idpool_get(struct p9_idpool *p)
+ {
+ 	int i = 0;
+ 	int error;
+-	unsigned int flags;
++	unsigned long flags;
+ 
+ retry:
+ 	if (idr_pre_get(&p->pool, GFP_KERNEL) == 0)
+@@ -102,7 +102,7 @@ EXPORT_SYMBOL(p9_idpool_get);
+ 
+ void p9_idpool_put(int id, struct p9_idpool *p)
+ {
+-	unsigned int flags;
++	unsigned long flags;
+ 	spin_lock_irqsave(&p->lock, flags);
+ 	idr_remove(&p->pool, id);
+ 	spin_unlock_irqrestore(&p->lock, flags);
 _
 
-Patches currently in -mm which might be from dilinger@queued.net are
+Patches currently in -mm which might be from rostedt@goodmis.org are
 
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-git-battery.patch
+linux-next.patch
+fix-irq-flags-in-mac80211-code.patch
+fix-irq-flags-in-saa7134.patch
+fix-irq-flags-in-rtc-ds1511.patch
+fix-irq-flags-for-iuu_phoenixc.patch
+git-v9fs.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
 
