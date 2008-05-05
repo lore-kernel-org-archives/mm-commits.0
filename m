@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vt-fix-canonical-input-in-utf-8-mode.patch added to -mm tree
-Date: Mon, 05 May 2008 16:01:49 -0700
-Message-ID: <200805052301.m45N1n9w009754@imap1.linux-foundation.org>
+Subject: + x86-geode-define-geode_has_vsa2-even-if-config_mgeode_lx-is-not-set.patch added to -mm tree
+Date: Mon, 05 May 2008 16:03:21 -0700
+Message-ID: <200805052303.m45N3Loq009876@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48794 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37463 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752554AbYEEXCe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 19:02:34 -0400
+	by vger.kernel.org with ESMTP id S1752582AbYEEXEI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 19:04:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: samuel.thibault@ens-lyon.org, stable@kernel.org, w@1wt.eu
+Cc: dilinger@queued.net, dilinger@debian.org, jordan.crouse@amd.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     VT : fix canonical input in UTF-8 mode
+     x86: geode: define geode_has_vsa2() even if CONFIG_MGEODE_LX is not set
 has been added to the -mm tree.  Its filename is
-     vt-fix-canonical-input-in-utf-8-mode.patch
+     x86-geode-define-geode_has_vsa2-even-if-config_mgeode_lx-is-not-set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,50 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: VT : fix canonical input in UTF-8 mode
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: x86: geode: define geode_has_vsa2() even if CONFIG_MGEODE_LX is not set
+From: Andres Salomon <dilinger@queued.net>
 
-Awaiting complete changelog..
+We want drivers to be able to use geode_has_vsa2 without having to worry
+about what model geode is being compiled for.  This patch ensures that
+geode_has_vsa2 is always defined.
 
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
-Cc: Willy Tarreau <w@1wt.eu>
-Cc> <stable@kernel.org>
+Signed-off-by: Andres Salomon <dilinger@debian.org>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jordan Crouse <jordan.crouse@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- char/vt.c.orig    |    0 
- drivers/char/vt.c |    6 ++++++
- 2 files changed, 6 insertions(+)
+ include/asm-x86/geode.h |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN drivers/char/vt.c~vt-fix-canonical-input-in-utf-8-mode drivers/char/vt.c
---- a/drivers/char/vt.c~vt-fix-canonical-input-in-utf-8-mode
-+++ a/drivers/char/vt.c
-@@ -2742,6 +2742,10 @@ static int con_open(struct tty_struct *t
- 				tty->winsize.ws_row = vc_cons[currcons].d->vc_rows;
- 				tty->winsize.ws_col = vc_cons[currcons].d->vc_cols;
- 			}
-+			if (vc->vc_utf)
-+				tty->termios->c_iflag |= IUTF8;
-+			else
-+				tty->termios->c_iflag &= ~IUTF8;
- 			release_console_sem();
- 			vcs_make_sysfs(tty);
- 			return ret;
-@@ -2918,6 +2922,8 @@ int __init vty_init(void)
- 	console_driver->minor_start = 1;
- 	console_driver->type = TTY_DRIVER_TYPE_CONSOLE;
- 	console_driver->init_termios = tty_std_termios;
-+	if (default_utf8)
-+		console_driver->init_termios.c_iflag |= IUTF8;
- 	console_driver->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_RESET_TERMIOS;
- 	tty_set_operations(console_driver, &con_ops);
- 	if (tty_register_driver(console_driver))
-diff -puN drivers/char/vt.c.orig~vt-fix-canonical-input-in-utf-8-mode drivers/char/vt.c.orig
+diff -puN include/asm-x86/geode.h~x86-geode-define-geode_has_vsa2-even-if-config_mgeode_lx-is-not-set include/asm-x86/geode.h
+--- a/include/asm-x86/geode.h~x86-geode-define-geode_has_vsa2-even-if-config_mgeode_lx-is-not-set
++++ a/include/asm-x86/geode.h
+@@ -185,7 +185,14 @@ static inline int is_geode(void)
+ 	return (is_geode_gx() || is_geode_lx());
+ }
+ 
++#ifdef CONFIG_MGEODE_LX
+ extern int geode_has_vsa2(void);
++#else
++static inline int geode_has_vsa2(void)
++{
++	return 0;
++}
++#endif
+ 
+ /* MFGPTs */
+ 
 _
 
-Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
+Patches currently in -mm which might be from dilinger@queued.net are
 
-kconfig-improved-help-for-config_accessibility.patch
-kconfig-improved-help-for-config_accessibility-fix.patch
-vt-fix-canonical-input-in-utf-8-mode.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
+x86-geode-define-geode_has_vsa2-even-if-config_mgeode_lx-is-not-set.patch
+git-battery.patch
 
