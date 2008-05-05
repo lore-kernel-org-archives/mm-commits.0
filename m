@@ -1,91 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: - 9p-use-correct-type-for-processor-flags.patch removed from -mm tree
-Date: Mon, 05 May 2008 12:17:12 -0700
-Message-ID: <200805051917.m45JHCqB000439@imap1.linux-foundation.org>
+Subject: - net-remove-nr_cpus-arrays-in-net-core-devc-v2.patch removed from -mm tree
+Date: Mon, 05 May 2008 12:16:36 -0700
+Message-ID: <200805051916.m45JGaSI000313@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48828 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45805 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751049AbYEETRl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 15:17:41 -0400
+	by vger.kernel.org with ESMTP id S1751759AbYEETRu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 15:17:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, ericvh@gmail.com, lucho@ionkov.net, srostedt@redhat.com, mm-commits@vger.kernel.org
+To: travis@sgi.com, davem@davemloft.net, jmorris@namei.org, kaber@trash.net, kuznet@ms2.inr.ac.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     9p: use correct type for processor flags
+     net: remove NR_CPUS arrays in net/core/dev.c
 has been removed from the -mm tree.  Its filename was
-     9p-use-correct-type-for-processor-flags.patch
+     net-remove-nr_cpus-arrays-in-net-core-devc-v2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: 9p: use correct type for processor flags
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: net: remove NR_CPUS arrays in net/core/dev.c
+From: Mike Travis <travis@sgi.com>
 
-Some files in the net/9p directory uses "int" for flags.  This can cause hard
-to find bugs on some architectures.  This patch converts the flags to use
-"long" instead.
+Remove the fixed size channels[NR_CPUS] array in net/core/dev.c and
+dynamically allocate array based on nr_cpu_ids.
 
-This bug was discovered by doing an allyesconfig make on the -rt kernel where
-checks are done to ensure all flags are of size sizeof(long).
-
-Signed-off-by: Steven Rostedt <srostedt@redhat.com>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>
+Cc: James Morris <jmorris@namei.org>
+Cc: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/9p/trans_virtio.c |    2 +-
- net/9p/util.c         |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ net/core/dev.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN net/9p/trans_virtio.c~9p-use-correct-type-for-processor-flags net/9p/trans_virtio.c
---- a/net/9p/trans_virtio.c~9p-use-correct-type-for-processor-flags
-+++ a/net/9p/trans_virtio.c
-@@ -134,7 +134,7 @@ static void p9_virtio_close(struct p9_tr
- {
- 	struct virtio_chan *chan = trans->priv;
- 	int count;
--	unsigned int flags;
-+	unsigned long flags;
+diff -puN net/core/dev.c~net-remove-nr_cpus-arrays-in-net-core-devc-v2 net/core/dev.c
+--- a/net/core/dev.c~net-remove-nr_cpus-arrays-in-net-core-devc-v2
++++ a/net/core/dev.c
+@@ -162,7 +162,7 @@ struct net_dma {
+ 	struct dma_client client;
+ 	spinlock_t lock;
+ 	cpumask_t channel_mask;
+-	struct dma_chan *channels[NR_CPUS];
++	struct dma_chan **channels;
+ };
  
- 	spin_lock_irqsave(&chan->lock, flags);
- 	p9_idpool_destroy(chan->tagpool);
-diff -puN net/9p/util.c~9p-use-correct-type-for-processor-flags net/9p/util.c
---- a/net/9p/util.c~9p-use-correct-type-for-processor-flags
-+++ a/net/9p/util.c
-@@ -71,7 +71,7 @@ int p9_idpool_get(struct p9_idpool *p)
+ static enum dma_state_client
+@@ -2444,7 +2444,7 @@ static struct netif_rx_stats *softnet_ge
  {
- 	int i = 0;
- 	int error;
--	unsigned int flags;
-+	unsigned long flags;
+ 	struct netif_rx_stats *rc = NULL;
  
- retry:
- 	if (idr_pre_get(&p->pool, GFP_KERNEL) == 0)
-@@ -102,7 +102,7 @@ EXPORT_SYMBOL(p9_idpool_get);
- 
- void p9_idpool_put(int id, struct p9_idpool *p)
+-	while (*pos < NR_CPUS)
++	while (*pos < nr_cpu_ids)
+ 		if (cpu_online(*pos)) {
+ 			rc = &per_cpu(netdev_rx_stat, *pos);
+ 			break;
+@@ -4324,7 +4324,7 @@ netdev_dma_event(struct dma_client *clie
+ 	spin_lock(&net_dma->lock);
+ 	switch (state) {
+ 	case DMA_RESOURCE_AVAILABLE:
+-		for (i = 0; i < NR_CPUS; i++)
++		for (i = 0; i < nr_cpu_ids; i++)
+ 			if (net_dma->channels[i] == chan) {
+ 				found = 1;
+ 				break;
+@@ -4339,7 +4339,7 @@ netdev_dma_event(struct dma_client *clie
+ 		}
+ 		break;
+ 	case DMA_RESOURCE_REMOVED:
+-		for (i = 0; i < NR_CPUS; i++)
++		for (i = 0; i < nr_cpu_ids; i++)
+ 			if (net_dma->channels[i] == chan) {
+ 				found = 1;
+ 				pos = i;
+@@ -4366,6 +4366,13 @@ netdev_dma_event(struct dma_client *clie
+  */
+ static int __init netdev_dma_register(void)
  {
--	unsigned int flags;
-+	unsigned long flags;
- 	spin_lock_irqsave(&p->lock, flags);
- 	idr_remove(&p->pool, id);
- 	spin_unlock_irqrestore(&p->lock, flags);
++	net_dma.channels = kzalloc(nr_cpu_ids * sizeof(struct net_dma),
++								GFP_KERNEL);
++	if (unlikely(!net_dma.channels)) {
++		printk(KERN_NOTICE
++				"netdev_dma: no memory for net_dma.channels\n");
++		return -ENOMEM;
++	}
+ 	spin_lock_init(&net_dma.lock);
+ 	dma_cap_set(DMA_MEMCPY, net_dma.client.cap_mask);
+ 	dma_async_client_register(&net_dma.client);
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from travis@sgi.com are
 
 linux-next.patch
-fix-irq-flags-in-mac80211-code.patch
-fix-irq-flags-in-saa7134.patch
-fix-irq-flags-in-rtc-ds1511.patch
-fix-irq-flags-for-iuu_phoenixc.patch
-git-v9fs.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+acpi-change-processors-from-array-to-per_cpu-variable.patch
+cpufreq-change-cpu-freq-arrays-to-per_cpu-variables.patch
+show_schedstat-fix-memleak.patch
 
