@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lib-add-ascii-hex-helper-functions.patch added to -mm tree
-Date: Mon, 05 May 2008 14:58:25 -0700
-Message-ID: <200805052158.m45LwPex007226@imap1.linux-foundation.org>
+Subject: + vt-fix-canonical-input-in-utf-8-mode.patch added to -mm tree
+Date: Mon, 05 May 2008 16:01:49 -0700
+Message-ID: <200805052301.m45N1n9w009754@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49099 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48794 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759406AbYEEV62 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 17:58:28 -0400
+	by vger.kernel.org with ESMTP id S1752554AbYEEXCe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 19:02:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: samuel.thibault@ens-lyon.org, stable@kernel.org, w@1wt.eu
 
 
 The patch titled
-     lib: add ascii hex helper functions
+     VT : fix canonical input in UTF-8 mode
 has been added to the -mm tree.  Its filename is
-     lib-add-ascii-hex-helper-functions.patch
+     vt-fix-canonical-input-in-utf-8-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,264 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib: add ascii hex helper functions
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: VT : fix canonical input in UTF-8 mode
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
-Everyone rolls their own version around the tree, centralize in lib/hexdump.c.
- Move the only existing users of hex_asc over to the hi/lo helpers.
+Awaiting complete changelog..
 
-Add helpers for reading binary values from a stream of hex chars.  Most
-existing users want to know how many chars were read as well.  This
-implementation chooses to return the number of chars read and takes a pointer
-to the value being read.
-
-As an alternative, a char **buf could be passed and the value could be
-returned and the pointer updated by reference.
-
-Fixed size helpers for u8, u16, u32 and u64 have been added with another
-helper that takes an argument specifying the max number of chars to read
-(capped to the size that will fit in an unsigned long)
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc> <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/support.c  |    8 +-
- include/linux/kernel.h |    6 +
- lib/hexdump.c          |  139 ++++++++++++++++++++++++++++++++++++++-
- 3 files changed, 146 insertions(+), 7 deletions(-)
+ char/vt.c.orig    |    0 
+ drivers/char/vt.c |    6 ++++++
+ 2 files changed, 6 insertions(+)
 
-diff -puN drivers/pnp/support.c~lib-add-ascii-hex-helper-functions drivers/pnp/support.c
---- a/drivers/pnp/support.c~lib-add-ascii-hex-helper-functions
-+++ a/drivers/pnp/support.c
-@@ -45,10 +45,10 @@ void pnp_eisa_id_to_string(u32 id, char 
- 	str[0] = 'A' + ((id >> 26) & 0x3f) - 1;
- 	str[1] = 'A' + ((id >> 21) & 0x1f) - 1;
- 	str[2] = 'A' + ((id >> 16) & 0x1f) - 1;
--	str[3] = hex_asc((id >> 12) & 0xf);
--	str[4] = hex_asc((id >>  8) & 0xf);
--	str[5] = hex_asc((id >>  4) & 0xf);
--	str[6] = hex_asc((id >>  0) & 0xf);
-+	str[3] = hex_asc_hi(id >> 8);
-+	str[4] = hex_asc_lo(id >> 8);
-+	str[5] = hex_asc_hi(id);
-+	str[6] = hex_asc_lo(id);
- 	str[7] = '\0';
- }
- 
-diff -puN include/linux/kernel.h~lib-add-ascii-hex-helper-functions include/linux/kernel.h
---- a/include/linux/kernel.h~lib-add-ascii-hex-helper-functions
-+++ a/include/linux/kernel.h
-@@ -270,7 +270,11 @@ extern void print_hex_dump(const char *l
- 				const void *buf, size_t len, bool ascii);
- extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
- 			const void *buf, size_t len);
--#define hex_asc(x)	"0123456789abcdef"[x]
-+
-+extern const char hex_asc[];
-+extern int hex_to_int(char c);
-+#define hex_asc_lo(x)	hex_asc[((x) & 0x0f)]
-+#define hex_asc_hi(x)	hex_asc[((x) & 0xf0) >> 4]
- 
- #define pr_emerg(fmt, arg...) \
- 	printk(KERN_EMERG fmt, ##arg)
-diff -puN lib/hexdump.c~lib-add-ascii-hex-helper-functions lib/hexdump.c
---- a/lib/hexdump.c~lib-add-ascii-hex-helper-functions
-+++ a/lib/hexdump.c
-@@ -12,6 +12,141 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- 
-+const char hex_asc[] = "0123456789abcdef";
-+
-+/**
-+ * hex_char_to_int - convert a single hex ASCII char to an integer value
-+ * @ch: char to convert, not case sensitive [a-f][A-F][0-9]
-+ *
-+ * Returns -1 if the char is not a valid hexadecimal character
-+ */
-+int hex_char_to_int(char ch)
-+{
-+	/*
-+	 * Make ch lower-case, works only for digits and letters
-+	 */
-+	ch |= 0x20;
-+	if (ch >= 'a' && ch <= 'f')
-+		return ch - 'a' + 10;
-+	if (ch >= '0' && ch <= '9')
-+		return ch - '0';
-+	return -1;
-+}
-+EXPORT_SYMBOL(hex_char_to_int);
-+
-+/**
-+ * hex_to_val - read a unsigned long from an ascii hex buffer
-+ * @buf: buffer containing text
-+ * @val: result read form the buffer
-+ * @maxchars: maximum number of ascii chars to read
-+ *
-+ * The number of valid hex chars read is returned. In the event that the
-+ * first character read is not a valid hex char @val will be zeroed.
-+ * The number of chars read is capped at sizeof(unsigned long) * 2.
-+ */
-+int hex_to_val(const char *buf, unsigned long *val, unsigned int maxchars)
-+{
-+	int numread;
-+	int tmp;
-+	unsigned long res = 0;
-+
-+	if (maxchars > sizeof(unsigned long) * 2)
-+		maxchars = sizeof(unsigned long) * 2;
-+
-+	for (numread = 0; numread < maxchars; numread++) {
-+		tmp = hex_char_to_int(*buf++);
-+		if (tmp < 0)
-+			break;
-+		else
-+			res = (res << 4) | (tmp & 0x0f);
-+	}
-+	*val = res;
-+
-+	return numread;
-+}
-+EXPORT_SYMBOL(hex_to_val);
-+
-+/**
-+ * hex_to_u8 - read a u8 from an ascii hex buffer
-+ * @buf: buffer containing text
-+ * @val: result read form the buffer
-+ *
-+ * The number of valid hex chars read is returned. In the event that the
-+ * first character read is not a valid hex char @val will be zeroed.
-+ */
-+int hex_to_u8(const char *buf, u8 *val)
-+{
-+	unsigned long temp;
-+	int numread = hex_to_val(buf, &temp, 2);
-+
-+	*val = (u8)temp;
-+	return numread;
-+}
-+EXPORT_SYMBOL(hex_to_u8);
-+
-+/**
-+ * hex_to_u16 - read a u16 from an ascii hex buffer
-+ * @buf: buffer containing text
-+ * @val: result read form the buffer
-+ *
-+ * The number of valid hex chars read is returned. In the event that the
-+ * first character read is not a valid hex char @val will be zeroed.
-+ */
-+int hex_to_u16(const char *buf, u16 *val)
-+{
-+	unsigned long temp;
-+	int numread = hex_to_val(buf, &temp, 4);
-+
-+	*val = (u16)temp;
-+	return numread;
-+}
-+EXPORT_SYMBOL(hex_to_u16);
-+
-+/**
-+ * hex_to_u32 - read a u32 from an ascii hex buffer
-+ * @buf: buffer containing text
-+ * @val: result read form the buffer
-+ *
-+ * The number of valid hex chars read is returned. In the event that the
-+ * first character read is not a valid hex char @val will be zeroed.
-+ */
-+int hex_to_u32(const char *buf, u32 *val)
-+{
-+	unsigned long temp;
-+	int numread = hex_to_val(buf, &temp, 8);
-+
-+	*val = (u32)temp;
-+	return numread;
-+}
-+EXPORT_SYMBOL(hex_to_u32);
-+
-+/**
-+ * hex_to_u64 - read a u32 from an ascii hex buffer
-+ * @buf: buffer containing text
-+ * @val: result read form the buffer
-+ *
-+ * The number of valid hex chars read is returned. In the event that the
-+ * first character read is not a valid hex char @val will be zeroed.
-+ */
-+int hex_to_u64(const char *buf, u64 *val)
-+{
-+	int numread;
-+	int tmp;
-+	u64 res = 0;
-+
-+	for (numread = 0; numread < 16; numread++) {
-+		tmp = hex_char_to_int(*buf++);
-+		if (tmp < 0)
-+			break;
-+		else
-+			res = (res << 4) | (tmp & 0x0f);
-+	}
-+	*val = res;
-+
-+	return numread;
-+}
-+EXPORT_SYMBOL(hex_to_u64);
-+
- /**
-  * hex_dump_to_buffer - convert a blob of data to "hex ASCII" in memory
-  * @buf: data blob to dump
-@@ -93,8 +228,8 @@ void hex_dump_to_buffer(const void *buf,
- 		for (j = 0; (j < rowsize) && (j < len) && (lx + 4) < linebuflen;
- 		     j++) {
- 			ch = ptr[j];
--			linebuf[lx++] = hex_asc(ch >> 4);
--			linebuf[lx++] = hex_asc(ch & 0x0f);
-+			linebuf[lx++] = hex_asc_hi(ch);
-+			linebuf[lx++] = hex_asc_lo(ch);
- 			linebuf[lx++] = ' ';
- 		}
- 		ascii_column = 3 * rowsize + 2;
+diff -puN drivers/char/vt.c~vt-fix-canonical-input-in-utf-8-mode drivers/char/vt.c
+--- a/drivers/char/vt.c~vt-fix-canonical-input-in-utf-8-mode
++++ a/drivers/char/vt.c
+@@ -2742,6 +2742,10 @@ static int con_open(struct tty_struct *t
+ 				tty->winsize.ws_row = vc_cons[currcons].d->vc_rows;
+ 				tty->winsize.ws_col = vc_cons[currcons].d->vc_cols;
+ 			}
++			if (vc->vc_utf)
++				tty->termios->c_iflag |= IUTF8;
++			else
++				tty->termios->c_iflag &= ~IUTF8;
+ 			release_console_sem();
+ 			vcs_make_sysfs(tty);
+ 			return ret;
+@@ -2918,6 +2922,8 @@ int __init vty_init(void)
+ 	console_driver->minor_start = 1;
+ 	console_driver->type = TTY_DRIVER_TYPE_CONSOLE;
+ 	console_driver->init_termios = tty_std_termios;
++	if (default_utf8)
++		console_driver->init_termios.c_iflag |= IUTF8;
+ 	console_driver->flags = TTY_DRIVER_REAL_RAW | TTY_DRIVER_RESET_TERMIOS;
+ 	tty_set_operations(console_driver, &con_ops);
+ 	if (tty_register_driver(console_driver))
+diff -puN drivers/char/vt.c.orig~vt-fix-canonical-input-in-utf-8-mode drivers/char/vt.c.orig
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
 
-origin.patch
-linux-next.patch
-misc-fix-integer-as-null-pointer-warnings.patch
-kgdb-use-put_unaligned_be32-helper.patch
-cifs-remove-global_extern-macro.patch
-media-use-get_unaligned_-helpers.patch
-hid-use-get-put_unaligned_-helpers.patch
-git-input.patch
-ata-remove-fit-macro.patch
-git-mips.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-get_unaligned_-helpers.patch
-block-use-get_unaligned_-helpers.patch
-usb-fix-integer-as-null-pointer-sparse-warnings.patch
-usb-use-get_unaligned_-helpers.patch
-git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-tkipc-use-kernel-provided-infrastructure.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-wireless-use-get-put_unaligned_-helpers.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-lib-add-ascii-hex-helper-functions.patch
-mmc-make-one-bit-signed-bitfields-unsigned.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-video-fix-integer-as-null-pointer-warnings.patch
+kconfig-improved-help-for-config_accessibility.patch
+kconfig-improved-help-for-config_accessibility-fix.patch
+vt-fix-canonical-input-in-utf-8-mode.patch
 
