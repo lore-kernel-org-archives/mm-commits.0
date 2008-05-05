@@ -1,57 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: - input-ff-memlessc-use-clamp_val-macro.patch removed from -mm tree
-Date: Mon, 05 May 2008 12:16:34 -0700
-Message-ID: <200805051916.m45JGYrp000310@imap1.linux-foundation.org>
+Subject: - input-make-one-bit-signed-bitfields-unsigned.patch removed from -mm tree
+Date: Mon, 05 May 2008 12:16:32 -0700
+Message-ID: <200805051916.m45JGWLm000304@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49964 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56495 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754370AbYEETQl (ORCPT
+	by vger.kernel.org with ESMTP id S1761804AbYEETQl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 15:16:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, dtor@mail.ru, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, dtor@mail.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     input: ff-memless.c use clamp_val() macro
+     input: make one-bit signed bitfields unsigned
 has been removed from the -mm tree.  Its filename was
-     input-ff-memlessc-use-clamp_val-macro.patch
+     input-make-one-bit-signed-bitfields-unsigned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: ff-memless.c use clamp_val() macro
+Subject: input: make one-bit signed bitfields unsigned
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Replace two opencoded nested min/max macros with clamp_val().
+Otherwise it can only take the values 0/-1 which doesn't seem to
+have been intended.
+
+drivers/input/tablet/wacom.h:108:12: error: dubious one-bit signed bitfield
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Jiri Kosina <jkosina@suse.cz>
+CcL Dmitry Torokhov <dtor@mail.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/ff-memless.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/input/tablet/wacom.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/input/ff-memless.c~input-ff-memlessc-use-clamp_val-macro drivers/input/ff-memless.c
---- a/drivers/input/ff-memless.c~input-ff-memlessc-use-clamp_val-macro
-+++ a/drivers/input/ff-memless.c
-@@ -247,9 +247,9 @@ static void ml_combine_effects(struct ff
- 		 * in s8, this should be changed to something more generic
- 		 */
- 		effect->u.ramp.start_level =
--			max(min(effect->u.ramp.start_level + x, 0x7f), -0x80);
-+			clamp_val(effect->u.ramp.start_level + x, -0x80, 0x7f);
- 		effect->u.ramp.end_level =
--			max(min(effect->u.ramp.end_level + y, 0x7f), -0x80);
-+			clamp_val(effect->u.ramp.end_level + y, -0x80, 0x7f);
- 		break;
+diff -puN drivers/input/tablet/wacom.h~input-make-one-bit-signed-bitfields-unsigned drivers/input/tablet/wacom.h
+--- a/drivers/input/tablet/wacom.h~input-make-one-bit-signed-bitfields-unsigned
++++ a/drivers/input/tablet/wacom.h
+@@ -105,7 +105,7 @@ struct wacom {
+ 	struct urb *irq;
+ 	struct wacom_wac * wacom_wac;
+ 	struct mutex lock;
+-	int open:1;
++	unsigned int open:1;
+ 	char phys[32];
+ };
  
- 	case FF_RUMBLE:
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
