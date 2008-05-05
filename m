@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arm-lubbock-fix-compilation.patch added to -mm tree
-Date: Mon, 05 May 2008 14:01:59 -0700
-Message-ID: <200805052101.m45L1xiJ004816@imap1.linux-foundation.org>
+Subject: + add-the-carmine-fb-driver-update.patch added to -mm tree
+Date: Mon, 05 May 2008 14:04:01 -0700
+Message-ID: <200805052104.m45L428S004951@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41388 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59321 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754908AbYEEVCS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 17:02:18 -0400
+	by vger.kernel.org with ESMTP id S1760922AbYEEVEL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 17:04:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: adobriyan@gmail.com, rmk@arm.linux.org.uk
+Cc: bigeasy@linutronix.de
 
 
 The patch titled
-     arm-lubbock: fix compilation
+     add-the-carmine-fb-driver update
 has been added to the -mm tree.  Its filename is
-     arm-lubbock-fix-compilation.patch
+     add-the-carmine-fb-driver-update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm-lubbock: fix compilation
-From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: add-the-carmine-fb-driver update
+From: Sebastian Siewior <bigeasy@linutronix.de>
 
-arch/arm/mach-pxa/lubbock.c:399: error: expected '}' before ';' token
+v8: removed init 0 from static carmine_modedb
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-pxa/lubbock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/carminefb.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
-diff -puN arch/arm/mach-pxa/lubbock.c~arm-lubbock-fix-compilation arch/arm/mach-pxa/lubbock.c
---- a/arch/arm/mach-pxa/lubbock.c~arm-lubbock-fix-compilation
-+++ a/arch/arm/mach-pxa/lubbock.c
-@@ -396,7 +396,7 @@ static struct pxafb_mach_info sharp_lm8v
- 	.cmap_inverse	= 0,
- 	.cmap_static	= 0,
- 	.lcd_conn	= LCD_COLOR_DSTN_16BPP | LCD_PCLK_EDGE_FALL |
--			  LCD_AC_BIAS_FREQ(255);
-+			  LCD_AC_BIAS_FREQ(255),
+diff -puN drivers/video/carminefb.c~add-the-carmine-fb-driver-update drivers/video/carminefb.c
+--- a/drivers/video/carminefb.c~add-the-carmine-fb-driver-update
++++ a/drivers/video/carminefb.c
+@@ -88,21 +88,10 @@ static const struct fb_videomode carmine
+ 		.name		= "640x480",
+ 		.xres		= 640,
+ 		.yres		= 480,
+-		.pixclock	= 0,
+-		.left_margin	= 0,
+-		.right_margin	= 0,
+-		.upper_margin	= 0,
+-		.lower_margin	= 0,
+-		.hsync_len	= 0,
+-		.vsync_len	= 0,
+-		.sync		= 0,
+-		.vmode		= 0,
+-		.flag		= 0,
+ 	}, {
+ 		.name		= "800x600",
+ 		.xres		= 800,
+ 		.yres		= 600,
+-		.pixclock	= 0,
+ 	},
  };
  
- #define	MMC_POLL_RATE		msecs_to_jiffies(1000)
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
 linux-next.patch
-arm-lubbock-fix-compilation.patch
-mpt-remove-unused-struct-mpt_proc_entry_t.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
-likely_prof-changed-to-use-proc_create.patch
-proc-remove-proc_root-from-drivers-likelyprof.patch
+add-the-carmine-fb-driver.patch
+add-the-carmine-fb-driver-update.patch
 
