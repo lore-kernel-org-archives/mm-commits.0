@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mspec-convert-nopfn-to-fault.patch added to -mm tree
-Date: Mon, 05 May 2008 13:20:45 -0700
-Message-ID: <200805052020.m45KKjis003080@imap1.linux-foundation.org>
+Subject: + arch-um-kernel-irqc-clean-up-some-functions.patch added to -mm tree
+Date: Mon, 05 May 2008 13:24:58 -0700
+Message-ID: <200805052024.m45KOwAY003282@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41972 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50470 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757047AbYEEUVU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 16:21:20 -0400
+	by vger.kernel.org with ESMTP id S1761280AbYEEUZL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 16:25:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de, jes@sgi.com
+Cc: xiyou.wangcong@gmail.com, jdike@addtoit.com, wangcong@zeuux.org
 
 
 The patch titled
-     mspec: convert nopfn to fault
+     arch/um/kernel/irq.c: clean up some functions
 has been added to the -mm tree.  Its filename is
-     mspec-convert-nopfn-to-fault.patch
+     arch-um-kernel-irqc-clean-up-some-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,81 +33,98 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mspec: convert nopfn to fault
-From: Nick Piggin <npiggin@suse.de>
+Subject: arch/um/kernel/irq.c: clean up some functions
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
-Acked-by: Jes Sorensen <jes@sgi.com>
+Make activate_fd() and free_irq_by_irq_and_dev() static.  Remove
+init_aio_irq() since it has no users.
+
+Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: WANG Cong <wangcong@zeuux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mspec.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ arch/um/include/irq_kern.h |    2 --
+ arch/um/include/irq_user.h |    2 --
+ arch/um/kernel/irq.c       |   35 ++---------------------------------
+ 3 files changed, 2 insertions(+), 37 deletions(-)
 
-diff -puN drivers/char/mspec.c~mspec-convert-nopfn-to-fault drivers/char/mspec.c
---- a/drivers/char/mspec.c~mspec-convert-nopfn-to-fault
-+++ a/drivers/char/mspec.c
-@@ -193,25 +193,24 @@ mspec_close(struct vm_area_struct *vma)
- }
+diff -puN arch/um/include/irq_kern.h~arch-um-kernel-irqc-clean-up-some-functions arch/um/include/irq_kern.h
+--- a/arch/um/include/irq_kern.h~arch-um-kernel-irqc-clean-up-some-functions
++++ a/arch/um/include/irq_kern.h
+@@ -13,8 +13,6 @@ extern int um_request_irq(unsigned int i
+ 			  irq_handler_t handler,
+ 			  unsigned long irqflags,  const char * devname,
+ 			  void *dev_id);
+-extern int init_aio_irq(int irq, char *name,
+-			irq_handler_t handler);
  
- /*
-- * mspec_nopfn
-+ * mspec_fault
-  *
-  * Creates a mspec page and maps it to user space.
-  */
--static unsigned long
--mspec_nopfn(struct vm_area_struct *vma, unsigned long address)
-+static int
-+mspec_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ #endif
+ 
+diff -puN arch/um/include/irq_user.h~arch-um-kernel-irqc-clean-up-some-functions arch/um/include/irq_user.h
+--- a/arch/um/include/irq_user.h~arch-um-kernel-irqc-clean-up-some-functions
++++ a/arch/um/include/irq_user.h
+@@ -21,8 +21,6 @@ struct irq_fd {
+ enum { IRQ_READ, IRQ_WRITE };
+ 
+ extern void sigio_handler(int sig, struct uml_pt_regs *regs);
+-extern int activate_fd(int irq, int fd, int type, void *dev_id);
+-extern void free_irq_by_irq_and_dev(unsigned int irq, void *dev_id);
+ extern void free_irq_by_fd(int fd);
+ extern void reactivate_fd(int fd, int irqnum);
+ extern void deactivate_fd(int fd, int irqnum);
+diff -puN arch/um/kernel/irq.c~arch-um-kernel-irqc-clean-up-some-functions arch/um/kernel/irq.c
+--- a/arch/um/kernel/irq.c~arch-um-kernel-irqc-clean-up-some-functions
++++ a/arch/um/kernel/irq.c
+@@ -102,7 +102,7 @@ void sigio_handler(int sig, struct uml_p
+ 
+ static DEFINE_SPINLOCK(irq_lock);
+ 
+-int activate_fd(int irq, int fd, int type, void *dev_id)
++static int activate_fd(int irq, int fd, int type, void *dev_id)
  {
- 	unsigned long paddr, maddr;
- 	unsigned long pfn;
-+	pgoff_t index = vmf->pgoff;
- 	int index;
- 	struct vma_data *vdata = vma->vm_private_data;
- 
--	BUG_ON(address < vdata->vm_start || address >= vdata->vm_end);
--	index = (address - vdata->vm_start) >> PAGE_SHIFT;
- 	maddr = (volatile unsigned long) vdata->maddr[index];
- 	if (maddr == 0) {
- 		maddr = uncached_alloc_page(numa_node_id(), 1);
- 		if (maddr == 0)
--			return NOPFN_OOM;
-+			return VM_FAULT_OOM;
- 
- 		spin_lock(&vdata->lock);
- 		if (vdata->maddr[index] == 0) {
-@@ -231,13 +230,20 @@ mspec_nopfn(struct vm_area_struct *vma, 
- 
- 	pfn = paddr >> PAGE_SHIFT;
- 
--	return pfn;
-+	/*
-+	 * vm_insert_pfn can fail with -EBUSY, but in that case it will
-+	 * be because another thread has installed the pte first, so it
-+	 * is no problem.
-+	 */
-+	vm_insert_pfn(vma, (unsigned long)vmf->virtual_address, pfn);
-+
-+	return VM_FAULT_NOPAGE;
+ 	struct pollfd *tmp_pfd;
+ 	struct irq_fd *new_fd, *irq_fd;
+@@ -216,7 +216,7 @@ static int same_irq_and_dev(struct irq_f
+ 	return ((irq->irq == data->irq) && (irq->id == data->dev));
  }
  
- static struct vm_operations_struct mspec_vm_ops = {
- 	.open = mspec_open,
- 	.close = mspec_close,
--	.nopfn = mspec_nopfn
-+	.fault = mspec_fault,
- };
+-void free_irq_by_irq_and_dev(unsigned int irq, void *dev)
++static void free_irq_by_irq_and_dev(unsigned int irq, void *dev)
+ {
+ 	struct irq_and_dev data = ((struct irq_and_dev) { .irq  = irq,
+ 							  .dev  = dev });
+@@ -403,37 +403,6 @@ void __init init_IRQ(void)
+ 	}
+ }
  
- /*
-_
-
-Patches currently in -mm which might be from npiggin@suse.de are
-
-linux-next.patch
-mm-allow-pfnmap-faults.patch
-mspec-convert-nopfn-to-fault.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
-
+-int init_aio_irq(int irq, char *name, irq_handler_t handler)
+-{
+-	int fds[2], err;
+-
+-	err = os_pipe(fds, 1, 1);
+-	if (err) {
+-		printk(KERN_ERR "init_aio_irq - os_pipe failed, err = %d\n",
+-		       -err);
+-		goto out;
+-	}
+-
+-	err = um_request_irq(irq, fds[0], IRQ_READ, handler,
+-			     IRQF_DISABLED | IRQF_SAMPLE_RANDOM, name,
+-			     (void *) (long) fds[0]);
+-	if (err) {
+-		printk(KERN_ERR "init_aio_irq - : um_request_irq failed, "
+-		       "err = %d\n",
+-		       err);
+-		goto out_close;
+-	}
+-
+-	err = fds[1];
+-	goto out;
+-
+- out_close:
+-	os_close_file(fds[0]);
+-	os_close_file(fds[1]);
+- out:
+-	return err;
+-}
