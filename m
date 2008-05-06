@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dlm-convert-connections_lock-in-a-mutex-fix.patch added to -mm tree
-Date: Tue, 06 May 2008 13:52:33 -0700
-Message-ID: <200805062052.m46KqXQi026753@imap1.linux-foundation.org>
+Subject: + mmc-fix-clock-off-in-pxa255-270.patch added to -mm tree
+Date: Tue, 06 May 2008 13:55:17 -0700
+Message-ID: <200805062055.m46KtHIk026879@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38028 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34519 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757527AbYEFUx2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:53:28 -0400
+	by vger.kernel.org with ESMTP id S1756171AbYEFUz4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:55:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ccaulfie@redhat.com, matthias@kaehlcke.net, swhiteho@redhat.com, teigland@redhat.com
+Cc: rifx@o2.pl, drzeus-list@drzeus.cx
 
 
 The patch titled
-     dlm-convert-connections_lock-in-a-mutex-fix
+     mmc: fix clock-off in PXA255/270
 has been added to the -mm tree.  Its filename is
-     dlm-convert-connections_lock-in-a-mutex-fix.patch
+     mmc-fix-clock-off-in-pxa255-270.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,74 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dlm-convert-connections_lock-in-a-mutex-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mmc: fix clock-off in PXA255/270
+From: rifx <rifx@o2.pl>
 
-Cc: Christine Caulfield <ccaulfie@redhat.com>
-Cc: David Teigland <teigland@redhat.com>
-Cc: Matthias Kaehlcke <matthias@kaehlcke.net>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+It solves the problems with clock-off in the PXA255/270 MMC/SD hardware.  This
+solution was tested with our devices and works good.
+
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/lowcomms.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mmc/host/pxamci.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN fs/dlm/lowcomms.c~dlm-convert-connections_lock-in-a-mutex-fix fs/dlm/lowcomms.c
---- a/fs/dlm/lowcomms.c~dlm-convert-connections_lock-in-a-mutex-fix
-+++ a/fs/dlm/lowcomms.c
-@@ -50,6 +50,7 @@
- #include <linux/pagemap.h>
- #include <linux/idr.h>
- #include <linux/file.h>
-+#include <linux/mutex.h>
- #include <linux/sctp.h>
- #include <net/sctp/user.h>
+diff -puN drivers/mmc/host/pxamci.c~mmc-fix-clock-off-in-pxa255-270 drivers/mmc/host/pxamci.c
+--- a/drivers/mmc/host/pxamci.c~mmc-fix-clock-off-in-pxa255-270
++++ a/drivers/mmc/host/pxamci.c
+@@ -26,6 +26,7 @@
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/mmc/host.h>
++#include <linux/mmc/mmc.h>
  
+ #include <asm/dma.h>
+ #include <asm/io.h>
+@@ -69,6 +70,8 @@ struct pxamci_host {
+ 	unsigned int		dma_drcmrtx;
+ };
+ 
++static int local_cmd = -1;
++
+ static void pxamci_stop_clock(struct pxamci_host *host)
+ {
+ 	if (readl(host->base + MMC_STAT) & STAT_CLK_EN) {
+@@ -86,6 +89,7 @@ static void pxamci_stop_clock(struct pxa
+ 
+ 		if (v & STAT_CLK_EN)
+ 			dev_err(mmc_dev(host->mmc), "unable to stop clock\n");
++		local_cmd = -1;
+ 	}
+ }
+ 
+@@ -234,6 +238,14 @@ static int pxamci_cmd_done(struct pxamci
+ 		v = w2;
+ 	}
+ 
++	local_cmd = cmd->opcode;
++	if ((local_cmd == MMC_GO_IDLE_STATE) ||
++	    (local_cmd == MMC_GO_INACTIVE_STATE) ||
++	    (local_cmd == MMC_SEND_STATUS) ||
++	    (local_cmd == MMC_STOP_TRANSMISSION) ||
++	    (local_cmd == MMC_SET_BLOCKLEN)
++	    ) pxamci_stop_clock(host);
++
+ 	if (stat & STAT_TIME_OUT_RESPONSE) {
+ 		cmd->error = -ETIMEDOUT;
+ 	} else if (stat & STAT_RES_CRC_ERR && cmd->flags & MMC_RSP_CRC) {
+@@ -292,7 +304,7 @@ static int pxamci_data_done(struct pxamc
+ 
+ 	host->data = NULL;
+ 	if (host->mrq->stop) {
+-		pxamci_stop_clock(host);
++		//pxamci_stop_clock(host);
+ 		pxamci_start_cmd(host, host->mrq->stop, host->cmdat);
+ 	} else {
+ 		pxamci_finish_request(host, host->mrq);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rifx@o2.pl are
 
-origin.patch
-linux-next.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-revert-memory-hotplug-register-section-node-id-to-free.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-dlm-convert-connections_lock-in-a-mutex-fix.patch
-git-input.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-jg-misc-git-rejects.patch
-revert-git-kbuild.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-git-net-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mmc-fix-clock-off-in-pxa255-270.patch
 
