@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-mm-rmapc-anon_vma_cachep-static.patch added to -mm tree
-Date: Tue, 06 May 2008 11:36:50 -0700
-Message-ID: <200805061836.m46Iaob5021246@imap1.linux-foundation.org>
+Subject: + drivers-char-rtcc-make-2-functions-static.patch added to -mm tree
+Date: Tue, 06 May 2008 11:37:04 -0700
+Message-ID: <200805061837.m46Ib4RU021273@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40456 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51973 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761139AbYEFShc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:32 -0400
+	by vger.kernel.org with ESMTP id S1756293AbYEFShU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
+Cc: bunk@kernel.org, bwalle@suse.de, p_gortmaker@yahoo.com
 
 
 The patch titled
-     make mm/rmap.c:anon_vma_cachep static
+     drivers/char/rtc.c: make 2 functions static
 has been added to the -mm tree.  Its filename is
-     make-mm-rmapc-anon_vma_cachep-static.patch
+     drivers-char-rtcc-make-2-functions-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,65 +33,64 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make mm/rmap.c:anon_vma_cachep static
+Subject: drivers/char/rtc.c: make 2 functions static
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch makes the needlessly global anon_vma_cachep static.
+The following functions can now become static:
+- rtc_interrupt()
+- rtc_get_rtc_time()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Acked-by: Rik van Riel <riel@redhat.com>
+Acked-by: Bernhard Walle <bwalle@suse.de>
+Acked-by: Paul Gortmaker <p_gortmaker@yahoo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   12 ------------
- mm/rmap.c            |   12 +++++++++++-
- 2 files changed, 11 insertions(+), 13 deletions(-)
+ drivers/char/rtc.c  |    5 +++--
+ include/linux/rtc.h |    2 --
+ 2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/rmap.h~make-mm-rmapc-anon_vma_cachep-static include/linux/rmap.h
---- a/include/linux/rmap.h~make-mm-rmapc-anon_vma_cachep-static
-+++ a/include/linux/rmap.h
-@@ -31,18 +31,6 @@ struct anon_vma {
+diff -puN drivers/char/rtc.c~drivers-char-rtcc-make-2-functions-static drivers/char/rtc.c
+--- a/drivers/char/rtc.c~drivers-char-rtcc-make-2-functions-static
++++ a/drivers/char/rtc.c
+@@ -145,6 +145,7 @@ static ssize_t rtc_read(struct file *fil
  
- #ifdef CONFIG_MMU
+ static int rtc_ioctl(struct inode *inode, struct file *file,
+ 		     unsigned int cmd, unsigned long arg);
++static void rtc_get_rtc_time(struct rtc_time *rtc_tm);
  
--extern struct kmem_cache *anon_vma_cachep;
--
--static inline struct anon_vma *anon_vma_alloc(void)
--{
--	return kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
--}
--
--static inline void anon_vma_free(struct anon_vma *anon_vma)
--{
--	kmem_cache_free(anon_vma_cachep, anon_vma);
--}
--
- static inline void anon_vma_lock(struct vm_area_struct *vma)
+ #ifdef RTC_IRQ
+ static unsigned int rtc_poll(struct file *file, poll_table *wait);
+@@ -236,7 +237,7 @@ static inline unsigned char rtc_is_updat
+  *	(See ./arch/XXXX/kernel/time.c for the set_rtc_mmss() function.)
+  */
+ 
+-irqreturn_t rtc_interrupt(int irq, void *dev_id)
++static irqreturn_t rtc_interrupt(int irq, void *dev_id)
  {
- 	struct anon_vma *anon_vma = vma->anon_vma;
-diff -puN mm/rmap.c~make-mm-rmapc-anon_vma_cachep-static mm/rmap.c
---- a/mm/rmap.c~make-mm-rmapc-anon_vma_cachep-static
-+++ a/mm/rmap.c
-@@ -52,7 +52,17 @@
+ 	/*
+ 	 *	Can be an alarm interrupt, update complete interrupt,
+@@ -1297,7 +1298,7 @@ static int rtc_proc_open(struct inode *i
+ }
+ #endif
  
- #include <asm/tlbflush.h>
+-void rtc_get_rtc_time(struct rtc_time *rtc_tm)
++static void rtc_get_rtc_time(struct rtc_time *rtc_tm)
+ {
+ 	unsigned long uip_watchdog = jiffies, flags;
+ 	unsigned char ctrl;
+diff -puN include/linux/rtc.h~drivers-char-rtcc-make-2-functions-static include/linux/rtc.h
+--- a/include/linux/rtc.h~drivers-char-rtcc-make-2-functions-static
++++ a/include/linux/rtc.h
+@@ -208,8 +208,6 @@ typedef struct rtc_task {
+ int rtc_register(rtc_task_t *task);
+ int rtc_unregister(rtc_task_t *task);
+ int rtc_control(rtc_task_t *t, unsigned int cmd, unsigned long arg);
+-void rtc_get_rtc_time(struct rtc_time *rtc_tm);
+-irqreturn_t rtc_interrupt(int irq, void *dev_id);
  
--struct kmem_cache *anon_vma_cachep;
-+static struct kmem_cache *anon_vma_cachep;
-+
-+static inline struct anon_vma *anon_vma_alloc(void)
-+{
-+	return kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
-+}
-+
-+static inline void anon_vma_free(struct anon_vma *anon_vma)
-+{
-+	kmem_cache_free(anon_vma_cachep, anon_vma);
-+}
+ #endif /* __KERNEL__ */
  
- /* This must be called under the mmap_sem. */
- int anon_vma_prepare(struct vm_area_struct *vma)
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
