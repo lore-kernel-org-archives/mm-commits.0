@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-migratec-should-include-linux-syscallsh.patch added to -mm tree
-Date: Tue, 06 May 2008 11:36:40 -0700
-Message-ID: <200805061836.m46IaeZH021230@imap1.linux-foundation.org>
+Subject: + mfd-sm501c-if-0-unused-functions.patch added to -mm tree
+Date: Tue, 06 May 2008 11:36:21 -0700
+Message-ID: <200805061836.m46IaLIu021198@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46904 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37739 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754511AbYEFSgx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:53 -0400
+	by vger.kernel.org with ESMTP id S1756293AbYEFSg6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, clameter@sgi.com
+Cc: bunk@kernel.org, ben@simtec.co.uk, vince@simtec.co.uk
 
 
 The patch titled
-     mm/migrate.c should #include <linux/syscalls.h>
+     mfd/sm501.c: #if 0 unused functions
 has been added to the -mm tree.  Its filename is
-     mm-migratec-should-include-linux-syscallsh.patch
+     mfd-sm501c-if-0-unused-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,97 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/migrate.c should #include <linux/syscalls.h>
+Subject: mfd/sm501.c: #if 0 unused functions
 From: Adrian Bunk <bunk@kernel.org>
 
-Every file should include the headers containing the externs for its
-global functions (in this case for sys_move_pages()).
+This patch #if 0's the following unused functions:
+- sm501_find_clock()
+- sm501_gpio_get()
+- sm501_gpio_set()
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Christoph Lameter <clameter@sgi.com>
+Cc: Ben Dooks <ben@simtec.co.uk>
+Cc: Vincent Sanders <vince@simtec.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mfd/sm501.c   |    5 +++++
+ include/linux/sm501.h |   21 ---------------------
+ 2 files changed, 5 insertions(+), 21 deletions(-)
 
-diff -puN mm/migrate.c~mm-migratec-should-include-linux-syscallsh mm/migrate.c
---- a/mm/migrate.c~mm-migratec-should-include-linux-syscallsh
-+++ a/mm/migrate.c
-@@ -30,6 +30,7 @@
- #include <linux/vmalloc.h>
- #include <linux/security.h>
- #include <linux/memcontrol.h>
-+#include <linux/syscalls.h>
+diff -puN drivers/mfd/sm501.c~mfd-sm501c-if-0-unused-functions drivers/mfd/sm501.c
+--- a/drivers/mfd/sm501.c~mfd-sm501c-if-0-unused-functions
++++ a/drivers/mfd/sm501.c
+@@ -276,6 +276,8 @@ unsigned long sm501_modify_reg(struct de
  
- #include "internal.h"
+ EXPORT_SYMBOL_GPL(sm501_modify_reg);
+ 
++#if 0
++
+ unsigned long sm501_gpio_get(struct device *dev,
+ 			     unsigned long gpio)
+ {
+@@ -327,6 +329,7 @@ void sm501_gpio_set(struct device *dev,
+ 
+ EXPORT_SYMBOL_GPL(sm501_gpio_set);
+ 
++#endif  /*  0  */
+ 
+ /* sm501_unit_power
+  *
+@@ -658,6 +661,7 @@ unsigned long sm501_set_clock(struct dev
+ 
+ EXPORT_SYMBOL_GPL(sm501_set_clock);
+ 
++#if 0
+ /* sm501_find_clock
+  *
+  * finds the closest available frequency for a given clock
+@@ -700,6 +704,7 @@ unsigned long sm501_find_clock(struct de
+ }
+ 
+ EXPORT_SYMBOL_GPL(sm501_find_clock);
++#endif  /*  0  */
+ 
+ static struct sm501_device *to_sm_device(struct platform_device *pdev)
+ {
+diff -puN include/linux/sm501.h~mfd-sm501c-if-0-unused-functions include/linux/sm501.h
+--- a/include/linux/sm501.h~mfd-sm501c-if-0-unused-functions
++++ a/include/linux/sm501.h
+@@ -24,9 +24,6 @@ extern int sm501_unit_power(struct devic
+ extern unsigned long sm501_set_clock(struct device *dev,
+ 				     int clksrc, unsigned long freq);
+ 
+-extern unsigned long sm501_find_clock(struct device *dev,
+-				      int clksrc, unsigned long req_freq);
+-
+ /* sm501_misc_control
+  *
+  * Modify the SM501's MISC_CONTROL register
+@@ -46,24 +43,6 @@ extern unsigned long sm501_modify_reg(st
+ 				      unsigned long set,
+ 				      unsigned long clear);
+ 
+-/* sm501_gpio_set
+- *
+- * set the state of the given GPIO line
+-*/
+-
+-extern void sm501_gpio_set(struct device *dev,
+-			   unsigned long gpio,
+-			   unsigned int to,
+-			   unsigned int dir);
+-
+-/* sm501_gpio_get
+- *
+- * get the state of the given GPIO line
+-*/
+-
+-extern unsigned long sm501_gpio_get(struct device *dev,
+-				    unsigned long gpio);
+-
+ 
+ /* Platform data definitions */
  
 _
 
