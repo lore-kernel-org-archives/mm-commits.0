@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + proper-spawn_ksoftirqd-prototype.patch added to -mm tree
-Date: Tue, 06 May 2008 11:36:36 -0700
-Message-ID: <200805061836.m46IaaX5021224@imap1.linux-foundation.org>
+Subject: + remove-include-asm-h8300-keyboardh.patch added to -mm tree
+Date: Tue, 06 May 2008 11:36:34 -0700
+Message-ID: <200805061836.m46IaY7e021221@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40712 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34531 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754511AbYEFSgt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:49 -0400
+	by vger.kernel.org with ESMTP id S1754208AbYEFShD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, ysato@users.sourceforge.jp
 
 
 The patch titled
-     proper spawn_ksoftirqd() prototype
+     remove include/asm-h8300/keyboard.h
 has been added to the -mm tree.  Its filename is
-     proper-spawn_ksoftirqd-prototype.patch
+     remove-include-asm-h8300-keyboardh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: proper spawn_ksoftirqd() prototype
+Subject: remove include/asm-h8300/keyboard.h
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch adds a proper prototype for spawn_ksoftirqd() in
-include/linux/interrupt.h
+This patch removes the unused include/asm-h8300/keyboard.h
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/interrupt.h |    1 +
- init/main.c               |    2 --
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ include/asm-h8300/keyboard.h |   24 ------------------------
+ 1 file changed, 24 deletions(-)
 
-diff -puN include/linux/interrupt.h~proper-spawn_ksoftirqd-prototype include/linux/interrupt.h
---- a/include/linux/interrupt.h~proper-spawn_ksoftirqd-prototype
-+++ a/include/linux/interrupt.h
-@@ -305,6 +305,7 @@ extern void softirq_init(void);
- #define __raise_softirq_irqoff(nr) do { or_softirq_pending(1UL << (nr)); } while (0)
- extern void raise_softirq_irqoff(unsigned int nr);
- extern void raise_softirq(unsigned int nr);
-+extern int spawn_ksoftirqd(void);
- 
- 
- /* Tasklets --- multithreaded analogue of BHs.
-diff -puN init/main.c~proper-spawn_ksoftirqd-prototype init/main.c
---- a/init/main.c~proper-spawn_ksoftirqd-prototype
-+++ a/init/main.c
-@@ -792,8 +792,6 @@ __setup("nosoftlockup", nosoftlockup_set
- 
- static void __init do_pre_smp_initcalls(void)
- {
--	extern int spawn_ksoftirqd(void);
+diff -puN include/asm-h8300/keyboard.h~remove-include-asm-h8300-keyboardh /dev/null
+--- a/include/asm-h8300/keyboard.h
++++ /dev/null
+@@ -1,24 +0,0 @@
+-/*
+- *  linux/include/asm-h8300/keyboard.h
+- *  Created 04 Dec 2001 by Khaled Hassounah <khassounah@mediumware.net>
+- *  This file contains the Dragonball architecture specific keyboard definitions
+- */
 -
- 	kmemcheck_init();
- 	migration_init();
- 	spawn_ksoftirqd();
+-#ifndef _H8300_KEYBOARD_H
+-#define _H8300_KEYBOARD_H
+-
+-
+-/* dummy i.e. no real keyboard */
+-#define kbd_setkeycode(x...)	(-ENOSYS)
+-#define kbd_getkeycode(x...)	(-ENOSYS)
+-#define kbd_translate(x...)	(0)
+-#define kbd_unexpected_up(x...)	(1)
+-#define kbd_leds(x...)		do {;} while (0)
+-#define kbd_init_hw(x...)	do {;} while (0)
+-#define kbd_enable_irq(x...)	do {;} while (0)
+-#define kbd_disable_irq(x...)	do {;} while (0)
+-
+-#endif  /* _H8300_KEYBOARD_H */
+-
+-
+-
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
