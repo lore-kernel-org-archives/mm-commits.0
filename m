@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-kprobe_blacklist-static.patch added to -mm tree
-Date: Tue, 06 May 2008 11:36:17 -0700
-Message-ID: <200805061836.m46IaHhe021192@imap1.linux-foundation.org>
+Subject: + mm-migratec-should-include-linux-syscallsh.patch added to -mm tree
+Date: Tue, 06 May 2008 11:36:40 -0700
+Message-ID: <200805061836.m46IaeZH021230@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52563 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46904 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755256AbYEFSgz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:55 -0400
+	by vger.kernel.org with ESMTP id S1754511AbYEFSgx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, mhiramat@redhat.com
+Cc: bunk@kernel.org, clameter@sgi.com
 
 
 The patch titled
-     make kprobe_blacklist[] static
+     mm/migrate.c should #include <linux/syscalls.h>
 has been added to the -mm tree.  Its filename is
-     make-kprobe_blacklist-static.patch
+     mm-migratec-should-include-linux-syscallsh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make kprobe_blacklist[] static
+Subject: mm/migrate.c should #include <linux/syscalls.h>
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch makes the needlessly global kprobe_blacklist[] static.
+Every file should include the headers containing the externs for its
+global functions (in this case for sys_move_pages()).
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Masami Hiramatsu <mhiramat@redhat.com>
+Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kprobes.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/migrate.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN kernel/kprobes.c~make-kprobe_blacklist-static kernel/kprobes.c
---- a/kernel/kprobes.c~make-kprobe_blacklist-static
-+++ a/kernel/kprobes.c
-@@ -80,7 +80,7 @@ static DEFINE_PER_CPU(struct kprobe *, k
-  *
-  * For such cases, we now have a blacklist
-  */
--struct kprobe_blackpoint kprobe_blacklist[] = {
-+static struct kprobe_blackpoint kprobe_blacklist[] = {
- 	{"preempt_schedule",},
- 	{NULL}    /* Terminator */
- };
+diff -puN mm/migrate.c~mm-migratec-should-include-linux-syscallsh mm/migrate.c
+--- a/mm/migrate.c~mm-migratec-should-include-linux-syscallsh
++++ a/mm/migrate.c
+@@ -30,6 +30,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/security.h>
+ #include <linux/memcontrol.h>
++#include <linux/syscalls.h>
+ 
+ #include "internal.h"
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
