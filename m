@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-rtcc-make-2-functions-static.patch added to -mm tree
-Date: Tue, 06 May 2008 11:37:04 -0700
-Message-ID: <200805061837.m46Ib4RU021273@imap1.linux-foundation.org>
+Subject: + unexport-proc_clear_tty.patch added to -mm tree
+Date: Tue, 06 May 2008 11:37:35 -0700
+Message-ID: <200805061837.m46IbZFq021323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51973 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56989 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756293AbYEFShU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:20 -0400
+	by vger.kernel.org with ESMTP id S1753111AbYEFSiR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:38:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, bwalle@suse.de, p_gortmaker@yahoo.com
+Cc: bunk@kernel.org, alan@redhat.com, davem@davemloft.net
 
 
 The patch titled
-     drivers/char/rtc.c: make 2 functions static
+     unexport proc_clear_tty
 has been added to the -mm tree.  Its filename is
-     drivers-char-rtcc-make-2-functions-static.patch
+     unexport-proc_clear_tty.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,63 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/rtc.c: make 2 functions static
+Subject: unexport proc_clear_tty
 From: Adrian Bunk <bunk@kernel.org>
 
-The following functions can now become static:
-- rtc_interrupt()
-- rtc_get_rtc_time()
+With the removal of the Solaris binary emulation the export of
+proc_clear_tty became unused.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Bernhard Walle <bwalle@suse.de>
-Acked-by: Paul Gortmaker <p_gortmaker@yahoo.com>
+Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rtc.c  |    5 +++--
- include/linux/rtc.h |    2 --
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/char/tty_io.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/char/rtc.c~drivers-char-rtcc-make-2-functions-static drivers/char/rtc.c
---- a/drivers/char/rtc.c~drivers-char-rtcc-make-2-functions-static
-+++ a/drivers/char/rtc.c
-@@ -145,6 +145,7 @@ static ssize_t rtc_read(struct file *fil
- 
- static int rtc_ioctl(struct inode *inode, struct file *file,
- 		     unsigned int cmd, unsigned long arg);
-+static void rtc_get_rtc_time(struct rtc_time *rtc_tm);
- 
- #ifdef RTC_IRQ
- static unsigned int rtc_poll(struct file *file, poll_table *wait);
-@@ -236,7 +237,7 @@ static inline unsigned char rtc_is_updat
-  *	(See ./arch/XXXX/kernel/time.c for the set_rtc_mmss() function.)
-  */
- 
--irqreturn_t rtc_interrupt(int irq, void *dev_id)
-+static irqreturn_t rtc_interrupt(int irq, void *dev_id)
- {
- 	/*
- 	 *	Can be an alarm interrupt, update complete interrupt,
-@@ -1297,7 +1298,7 @@ static int rtc_proc_open(struct inode *i
+diff -puN drivers/char/tty_io.c~unexport-proc_clear_tty drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~unexport-proc_clear_tty
++++ a/drivers/char/tty_io.c
+@@ -4061,7 +4061,6 @@ void proc_clear_tty(struct task_struct *
+ 	p->signal->tty = NULL;
+ 	spin_unlock_irq(&p->sighand->siglock);
  }
- #endif
+-EXPORT_SYMBOL(proc_clear_tty);
  
--void rtc_get_rtc_time(struct rtc_time *rtc_tm)
-+static void rtc_get_rtc_time(struct rtc_time *rtc_tm)
- {
- 	unsigned long uip_watchdog = jiffies, flags;
- 	unsigned char ctrl;
-diff -puN include/linux/rtc.h~drivers-char-rtcc-make-2-functions-static include/linux/rtc.h
---- a/include/linux/rtc.h~drivers-char-rtcc-make-2-functions-static
-+++ a/include/linux/rtc.h
-@@ -208,8 +208,6 @@ typedef struct rtc_task {
- int rtc_register(rtc_task_t *task);
- int rtc_unregister(rtc_task_t *task);
- int rtc_control(rtc_task_t *t, unsigned int cmd, unsigned long arg);
--void rtc_get_rtc_time(struct rtc_time *rtc_tm);
--irqreturn_t rtc_interrupt(int irq, void *dev_id);
- 
- #endif /* __KERNEL__ */
+ /* Called under the sighand lock */
  
 _
 
