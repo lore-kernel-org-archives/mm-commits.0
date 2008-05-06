@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + uml-random-driver-style-fixes.patch added to -mm tree
-Date: Tue, 06 May 2008 13:49:10 -0700
-Message-ID: <200805062049.m46KnAtX026547@imap1.linux-foundation.org>
+Subject: + uml-style-fixes.patch added to -mm tree
+Date: Tue, 06 May 2008 13:49:05 -0700
+Message-ID: <200805062049.m46Kn55C026540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54274 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46350 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761396AbYEFUtP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:49:15 -0400
+	by vger.kernel.org with ESMTP id S1756649AbYEFUtK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:49:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     uml: random driver style fixes
+     uml: style fixes
 has been added to the -mm tree.  Its filename is
-     uml-random-driver-style-fixes.patch
+     uml-style-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,150 +33,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: random driver style fixes
+Subject: uml: style fixes
 From: Jeff Dike <jdike@addtoit.com>
 
-Give random.c a style workover while I'm changing it.
+A few random style fixes.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/random.c |   77 +++++++++++++++++++------------------
- 1 file changed, 40 insertions(+), 37 deletions(-)
+ arch/um/include/skas_ptrace.h            |   13 +------------
+ arch/um/include/sysdep-i386/sigcontext.h |    2 +-
+ arch/um/kernel/um_arch.c                 |    2 +-
+ arch/um/os-Linux/skas/process.c          |    2 +-
+ 4 files changed, 4 insertions(+), 15 deletions(-)
 
-diff -puN arch/um/drivers/random.c~uml-random-driver-style-fixes arch/um/drivers/random.c
---- a/arch/um/drivers/random.c~uml-random-driver-style-fixes
-+++ a/arch/um/drivers/random.c
-@@ -1,4 +1,5 @@
--/* Copyright (C) 2005 Jeff Dike <jdike@addtoit.com> */
-+/* Copyright (C) 2005 - 2008 Jeff Dike <jdike@{linux.intel,addtoit}.com> */
-+
- /* Much of this ripped from drivers/char/hw_random.c, see there for other
-  * copyright.
-  *
-@@ -35,7 +36,7 @@ static int rng_dev_open (struct inode *i
- 	/* enforce read-only access to this chrdev */
- 	if ((filp->f_mode & FMODE_READ) == 0)
- 		return -EINVAL;
--	if (filp->f_mode & FMODE_WRITE)
-+	if ((filp->f_mode & FMODE_WRITE) != 0)
- 		return -EINVAL;
+diff -puN arch/um/include/skas_ptrace.h~uml-style-fixes arch/um/include/skas_ptrace.h
+--- a/arch/um/include/skas_ptrace.h~uml-style-fixes
++++ a/arch/um/include/skas_ptrace.h
+@@ -1,5 +1,5 @@
+ /* 
+- * Copyright (C) 2000, 2001, 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2000 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+@@ -12,14 +12,3 @@
+ #include "sysdep/skas_ptrace.h"
+ 
+ #endif
+-
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
+diff -puN arch/um/include/sysdep-i386/sigcontext.h~uml-style-fixes arch/um/include/sysdep-i386/sigcontext.h
+--- a/arch/um/include/sysdep-i386/sigcontext.h~uml-style-fixes
++++ a/arch/um/include/sysdep-i386/sigcontext.h
+@@ -10,7 +10,7 @@
+ 
+ #define IP_RESTART_SYSCALL(ip) ((ip) -= 2)
+ 
+-#define GET_FAULTINFO_FROM_SC(fi,sc) \
++#define GET_FAULTINFO_FROM_SC(fi, sc) \
+ 	{ \
+ 		(fi).cr2 = SC_CR2(sc); \
+ 		(fi).error_code = SC_ERR(sc); \
+diff -puN arch/um/kernel/um_arch.c~uml-style-fixes arch/um/kernel/um_arch.c
+--- a/arch/um/kernel/um_arch.c~uml-style-fixes
++++ a/arch/um/kernel/um_arch.c
+@@ -150,7 +150,7 @@ __uml_setup("root=", uml_root_setup,
+ static int __init no_skas_debug_setup(char *line, int *add)
+ {
+ 	printf("'debug' is not necessary to gdb UML in skas mode - run \n");
+-	printf("'gdb linux'");
++	printf("'gdb linux'\n");
  
  	return 0;
-@@ -44,31 +45,31 @@ static int rng_dev_open (struct inode *i
- static atomic_t host_sleep_count = ATOMIC_INIT(0);
- 
- static ssize_t rng_dev_read (struct file *filp, char __user *buf, size_t size,
--                             loff_t * offp)
-+			     loff_t *offp)
- {
--        u32 data;
--        int n, ret = 0, have_data;
-+	u32 data;
-+	int n, ret = 0, have_data;
- 
--        while(size){
--                n = os_read_file(random_fd, &data, sizeof(data));
--                if(n > 0){
--                        have_data = n;
--                        while (have_data && size) {
--                                if (put_user((u8)data, buf++)) {
--                                        ret = ret ? : -EFAULT;
--                                        break;
--                                }
--                                size--;
--                                ret++;
--                                have_data--;
--                                data>>=8;
--                        }
--                }
--                else if(n == -EAGAIN){
-+	while (size) {
-+		n = os_read_file(random_fd, &data, sizeof(data));
-+		if (n > 0) {
-+			have_data = n;
-+			while (have_data && size) {
-+				if (put_user((u8) data, buf++)) {
-+					ret = ret ? : -EFAULT;
-+					break;
-+				}
-+				size--;
-+				ret++;
-+				have_data--;
-+				data >>= 8;
-+			}
-+		}
-+		else if (n == -EAGAIN) {
- 			DECLARE_WAITQUEUE(wait, current);
- 
--                        if (filp->f_flags & O_NONBLOCK)
--                                return ret ? : -EAGAIN;
-+			if (filp->f_flags & O_NONBLOCK)
-+				return ret ? : -EAGAIN;
- 
- 			atomic_inc(&host_sleep_count);
- 			reactivate_fd(random_fd, RANDOM_IRQ);
-@@ -85,8 +86,10 @@ static ssize_t rng_dev_read (struct file
- 				ignore_sigio_fd(random_fd);
- 				deactivate_fd(random_fd, RANDOM_IRQ);
- 			}
--                }
--                else return n;
-+		}
-+		else
-+			return n;
-+
- 		if (signal_pending (current))
- 			return ret ? : -ERESTARTSYS;
- 	}
-@@ -120,33 +123,33 @@ static int __init rng_init (void)
- {
- 	int err;
- 
--        err = os_open_file("/dev/random", of_read(OPENFLAGS()), 0);
--        if(err < 0)
--                goto out;
-+	err = os_open_file("/dev/random", of_read(OPENFLAGS()), 0);
-+	if (err < 0)
-+		goto out;
- 
--        random_fd = err;
-+	random_fd = err;
- 
- 	err = um_request_irq(RANDOM_IRQ, random_fd, IRQ_READ, random_interrupt,
- 			     IRQF_DISABLED | IRQF_SAMPLE_RANDOM, "random",
- 			     NULL);
--        if(err)
-+	if (err)
- 		goto err_out_cleanup_hw;
- 
- 	sigio_broken(random_fd, 1);
- 
- 	err = misc_register (&rng_miscdev);
- 	if (err) {
--		printk (KERN_ERR RNG_MODULE_NAME ": misc device register failed\n");
-+		printk (KERN_ERR RNG_MODULE_NAME ": misc device register "
-+			"failed\n");
- 		goto err_out_cleanup_hw;
- 	}
-+out:
-+	return err;
- 
-- out:
--        return err;
--
-- err_out_cleanup_hw:
-+err_out_cleanup_hw:
- 	os_close_file(random_fd);
--        random_fd = -1;
--        goto out;
-+	random_fd = -1;
-+	goto out;
  }
- 
- /*
+diff -puN arch/um/os-Linux/skas/process.c~uml-style-fixes arch/um/os-Linux/skas/process.c
+--- a/arch/um/os-Linux/skas/process.c~uml-style-fixes
++++ a/arch/um/os-Linux/skas/process.c
+@@ -442,7 +442,7 @@ void userspace(struct uml_pt_regs *regs)
+ 				unblock_signals();
+ 				break;
+ 			default:
+-			        printk(UM_KERN_ERR "userspace - child stopped "
++				printk(UM_KERN_ERR "userspace - child stopped "
+ 				       "with signal %d\n", sig);
+ 				fatal_sigsegv();
+ 			}
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
