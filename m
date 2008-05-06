@@ -1,94 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: - fbdev-bugfix-for-multiprocess-defio.patch removed from -mm tree
-Date: Mon, 05 May 2008 19:25:09 -0700
-Message-ID: <200805060225.m462P9GJ017218@imap1.linux-foundation.org>
+Subject: + sys_pipe-fix-file-descriptor-leaks.patch added to -mm tree
+Date: Mon, 05 May 2008 19:34:40 -0700
+Message-ID: <200805060234.m462Ye26017576@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45077 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51477 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754757AbYEFC0V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 22:26:21 -0400
+	by vger.kernel.org with ESMTP id S1759248AbYEFCfY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 May 2008 22:35:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jayakumar.lkml@gmail.com, adaplas@pol.net, bernard@largestprime.net, geert@linux-m68k.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: drepper@redhat.com, dm.n9107@gmail.com, stable@kernel.org
 
 
 The patch titled
-     fbdev: bugfix for multiprocess defio
-has been removed from the -mm tree.  Its filename was
-     fbdev-bugfix-for-multiprocess-defio.patch
+     sys_pipe(): fix file descriptor leaks
+has been added to the -mm tree.  Its filename is
+     sys_pipe-fix-file-descriptor-leaks.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fbdev: bugfix for multiprocess defio
-From: Jaya Kumar <jayakumar.lkml@gmail.com>
+Subject: sys_pipe(): fix file descriptor leaks
+From: Ulrich Drepper <drepper@redhat.com>
 
-This is a bugfix for how defio handles multiple processes manipulating
-the same framebuffer.
+Remember to close the files if copy_to_user() failed.
 
-Thanks to Bernard Blackham for identifying this bug.
+Spotted by dm.n9107@gmail.com.
 
-It occurs when two applications mmap the same framebuffer and concurrently
-write to the same page.  Normally, this doesn't occur since only a single
-process mmaps the framebuffer.  The symptom of the bug is that the mapping
-applications will hang.  The cause is that defio incorrectly tries to add the
-same page twice to the pagelist.  The solution I have is to walk the pagelist
-and check for a duplicate before adding.  Since I needed to walk the pagelist,
-I now also keep the pagelist in sorted order.
-
-Signed-off-by: Jaya Kumar <jayakumar.lkml@gmail.com>
-Cc: Bernard Blackham <bernard@largestprime.net>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Ulrich Drepper <drepper@redhat.com>
+Cc: DM <dm.n9107@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/fb_defio.c |   20 +++++++++++++++++++-
- 1 file changed, 19 insertions(+), 1 deletion(-)
+ arch/cris/kernel/sys_cris.c |    5 ++++-
+ arch/m32r/kernel/sys_m32r.c |    5 ++++-
+ fs/pipe.c                   |    6 +++++-
+ 3 files changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN drivers/video/fb_defio.c~fbdev-bugfix-for-multiprocess-defio drivers/video/fb_defio.c
---- a/drivers/video/fb_defio.c~fbdev-bugfix-for-multiprocess-defio
-+++ a/drivers/video/fb_defio.c
-@@ -74,6 +74,7 @@ static int fb_deferred_io_mkwrite(struct
- {
- 	struct fb_info *info = vma->vm_private_data;
- 	struct fb_deferred_io *fbdefio = info->fbdefio;
-+	struct page *cur;
+diff -puN arch/cris/kernel/sys_cris.c~sys_pipe-fix-file-descriptor-leaks arch/cris/kernel/sys_cris.c
+--- a/arch/cris/kernel/sys_cris.c~sys_pipe-fix-file-descriptor-leaks
++++ a/arch/cris/kernel/sys_cris.c
+@@ -40,8 +40,11 @@ asmlinkage int sys_pipe(unsigned long __
+         error = do_pipe(fd);
+         unlock_kernel();
+         if (!error) {
+-                if (copy_to_user(fildes, fd, 2*sizeof(int)))
++                if (copy_to_user(fildes, fd, 2*sizeof(int))) {
++			sys_close(fd[0]);
++			sys_close(fd[1]);
+                         error = -EFAULT;
++		}
+         }
+         return error;
+ }
+diff -puN arch/m32r/kernel/sys_m32r.c~sys_pipe-fix-file-descriptor-leaks arch/m32r/kernel/sys_m32r.c
+--- a/arch/m32r/kernel/sys_m32r.c~sys_pipe-fix-file-descriptor-leaks
++++ a/arch/m32r/kernel/sys_m32r.c
+@@ -90,8 +90,11 @@ sys_pipe(unsigned long r0, unsigned long
  
- 	/* this is a callback we get when userspace first tries to
- 	write to the page. we schedule a workqueue. that workqueue
-@@ -83,7 +84,24 @@ static int fb_deferred_io_mkwrite(struct
+ 	error = do_pipe(fd);
+ 	if (!error) {
+-		if (copy_to_user((void __user *)r0, fd, 2*sizeof(int)))
++		if (copy_to_user((void __user *)r0, fd, 2*sizeof(int))) {
++			sys_close(fd[0]);
++			sys_close(fd[1]);
+ 			error = -EFAULT;
++		}
+ 	}
+ 	return error;
+ }
+diff -puN fs/pipe.c~sys_pipe-fix-file-descriptor-leaks fs/pipe.c
+--- a/fs/pipe.c~sys_pipe-fix-file-descriptor-leaks
++++ a/fs/pipe.c
+@@ -17,6 +17,7 @@
+ #include <linux/highmem.h>
+ #include <linux/pagemap.h>
+ #include <linux/audit.h>
++#include <linux/syscalls.h>
  
- 	/* protect against the workqueue changing the page list */
- 	mutex_lock(&fbdefio->lock);
--	list_add(&page->lru, &fbdefio->pagelist);
-+
-+	/* we loop through the pagelist before adding in order
-+	to keep the pagelist sorted */
-+	list_for_each_entry(cur, &fbdefio->pagelist, lru) {
-+		/* this check is to catch the case where a new
-+		process could start writing to the same page
-+		through a new pte. this new access can cause the
-+		mkwrite even when the original ps's pte is marked
-+		writable */
-+		if (unlikely(cur == page))
-+			goto page_already_added;
-+		else if (cur->index > page->index)
-+			break;
-+	}
-+
-+	list_add_tail(&page->lru, &cur->lru);
-+
-+page_already_added:
- 	mutex_unlock(&fbdefio->lock);
+ #include <asm/uaccess.h>
+ #include <asm/ioctls.h>
+@@ -1086,8 +1087,11 @@ asmlinkage long __weak sys_pipe(int __us
  
- 	/* come back after delay to process the deferred IO */
+ 	error = do_pipe(fd);
+ 	if (!error) {
+-		if (copy_to_user(fildes, fd, sizeof(fd)))
++		if (copy_to_user(fildes, fd, sizeof(fd))) {
++			sys_close(fd[0]);
++			sys_close(fd[1]);
+ 			error = -EFAULT;
++		}
+ 	}
+ 	return error;
+ }
 _
 
-Patches currently in -mm which might be from jayakumar.lkml@gmail.com are
+Patches currently in -mm which might be from drepper@redhat.com are
 
-fbdev-bugfix-for-multiprocess-defio.patch
+origin.patch
+sys_pipe-fix-file-descriptor-leaks.patch
+execve-filename-document-and-export-via-auxiliary-vector.patch
 
