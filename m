@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + colibri-fix-support-for-dm9000-ethernet-device-fix.patch added to -mm tree
-Date: Tue, 06 May 2008 14:27:04 -0700
-Message-ID: <200805062127.m46LR4FC028171@imap1.linux-foundation.org>
+Subject: + dm9000-restore-mii-physical-polling-timer.patch added to -mm tree
+Date: Tue, 06 May 2008 14:26:58 -0700
+Message-ID: <200805062126.m46LQwE9028159@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42193 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54315 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933719AbYEFV2R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 17:28:17 -0400
+	by vger.kernel.org with ESMTP id S933636AbYEFV2S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 17:28:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ben-linux@fluff.org, daniel@caiaq.org, jeff@garzik.org, michael.abbott@diamond.ac.uk, rmk@arm.linux.org.uk
+Cc: michael.abbott@diamond.ac.uk, ben-linux@fluff.org, daniel@caiaq.org, jeff@garzik.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     colibri-fix-support-for-dm9000-ethernet-device-fix
+     DM9000: restore MII physical polling timer
 has been added to the -mm tree.  Its filename is
-     colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+     dm9000-restore-mii-physical-polling-timer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,96 +33,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: colibri-fix-support-for-dm9000-ethernet-device-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: DM9000: restore MII physical polling timer
+From: Michael Abbott <michael.abbott@diamond.ac.uk>
 
-Ben Dooks <ben-linux@fluff.org> wrote:
-> The set_irq_type() call here should be removed.
+In commit fcfa81aa3e8d885356139122fcb281487b983468 the timer for polling the
+MII physical layer was removed because of conflicts with newly added mutexes. 
+Unfortunately a side effect of this change is that the corresponding ethernet
+layer is permanently reported as down: there is no other way to read the link
+status.
 
-Cc: Ben Dooks <ben-linux@fluff.org>
+This commit restores the timer, but uses the default work queue for polling.
+
+Signed-off-by: Michael Abbott <michael.abbott@diamond.ac.uk>
 Cc: Daniel Mack <daniel@caiaq.org>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Michael Abbott <michael.abbott@diamond.ac.uk>
 Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-pxa/colibri.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/net/dm9000.c |   21 +++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
 
-diff -puN arch/arm/mach-pxa/colibri.c~colibri-fix-support-for-dm9000-ethernet-device-fix arch/arm/mach-pxa/colibri.c
---- a/arch/arm/mach-pxa/colibri.c~colibri-fix-support-for-dm9000-ethernet-device-fix
-+++ a/arch/arm/mach-pxa/colibri.c
-@@ -119,7 +119,6 @@ static void __init colibri_init(void)
- 	/* DM9000 LAN */
- 	pxa_gpio_mode(GPIO78_nCS_2_MD);
- 	pxa_gpio_mode(GPIO_DM9000 | GPIO_IN);
--	set_irq_type(COLIBRI_ETH_IRQ, IRQT_RISING);
+diff -puN drivers/net/dm9000.c~dm9000-restore-mii-physical-polling-timer drivers/net/dm9000.c
+--- a/drivers/net/dm9000.c~dm9000-restore-mii-physical-polling-timer
++++ a/drivers/net/dm9000.c
+@@ -43,6 +43,7 @@
+ /* Board/System/Debug information/definition ---------------- */
  
- 	platform_add_devices(colibri_devices, ARRAY_SIZE(colibri_devices));
+ #define DM9000_PHY		0x40	/* PHY address 0x01 */
++#define DM9000_TIMER_WUT	(HZ*2)	/* timer wakeup time : 2 second */
+ 
+ #define CARDNAME "dm9000"
+ #define PFX CARDNAME ": "
+@@ -117,6 +118,8 @@ typedef struct board_info {
+ 
+ 	struct mutex	 addr_lock;	/* phy and eeprom access lock */
+ 
++	struct delayed_work timer;	/* Interface status timer. */
++
+ 	spinlock_t lock;
+ 
+ 	struct mii_if_info mii;
+@@ -144,6 +147,7 @@ static int dm9000_start_xmit(struct sk_b
+ static int dm9000_stop(struct net_device *);
+ static int dm9000_ioctl(struct net_device *dev, struct ifreq *req, int cmd);
+ 
++static void dm9000_timer(struct work_struct * work);
+ static void dm9000_init_dm9000(struct net_device *);
+ 
+ static irqreturn_t dm9000_interrupt(int, void *);
+@@ -762,6 +766,10 @@ dm9000_open(struct net_device *dev)
+ 	mii_check_media(&db->mii, netif_msg_link(db), 1);
+ 	netif_start_queue(dev);
+ 
++	/* Start the media status timer running. */
++	INIT_DELAYED_WORK(&db->timer, dm9000_timer);
++	schedule_delayed_work(&db->timer, DM9000_TIMER_WUT);
++
+ 	return 0;
  }
+ 
+@@ -876,6 +884,9 @@ dm9000_stop(struct net_device *ndev)
+ {
+ 	board_info_t *db = (board_info_t *) ndev->priv;
+ 
++	/* Delete the timer and make sure it's not running right now! */
++	cancel_delayed_work_sync(&db->timer);
++
+ 	if (netif_msg_ifdown(db))
+ 		dev_dbg(db->dev, "shutting down %s\n", ndev->name);
+ 
+@@ -965,6 +976,16 @@ dm9000_interrupt(int irq, void *dev_id)
+ 	return IRQ_HANDLED;
+ }
+ 
++
++/* Two second timer to poll the media status -- the DM9000 doesn't provide a
++ * status interrupt, so this has to be polled. */
++static void dm9000_timer(struct work_struct * work)
++{
++	board_info_t *db = container_of(work, board_info_t, timer);
++	mii_check_media(&db->mii, netif_msg_link(db), 0);
++	schedule_delayed_work(&db->timer, DM9000_TIMER_WUT);
++}
++
+ struct dm9000_rxhdr {
+ 	u8	RxPktReady;
+ 	u8	RxStatus;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from michael.abbott@diamond.ac.uk are
 
-origin.patch
-linux-next.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-revert-memory-hotplug-register-section-node-id-to-free.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-dlm-convert-connections_lock-in-a-mutex-fix.patch
-git-input.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-jg-misc-git-rejects.patch
-revert-git-kbuild.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-git-net-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
+dm9000-restore-mii-physical-polling-timer.patch
+colibri-fix-support-for-dm9000-ethernet-device.patch
 colibri-fix-support-for-dm9000-ethernet-device-fix.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
