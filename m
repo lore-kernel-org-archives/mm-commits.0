@@ -1,209 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-add-ad1815-and-ad1816-quirks.patch added to -mm tree
-Date: Tue, 06 May 2008 12:08:36 -0700
-Message-ID: <200805061908.m46J8bmY022512@imap1.linux-foundation.org>
+Subject: - add-warn_on_secs-macro.patch removed from -mm tree
+Date: Tue, 06 May 2008 12:24:27 -0700
+Message-ID: <200805061924.m46JOSFT023111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56151 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52255 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752074AbYEFTIv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 15:08:51 -0400
+	by vger.kernel.org with ESMTP id S1757277AbYEFTZH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 15:25:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: rene.herman@keyaccess.nl, bjorn.helgaas@hp.com, len.brown@intel.com, rene.herman@gmail.com, tiwai@suse.de, uwe.bugla@gmx.de
+To: hidave.darkstar@gmail.com, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pnp: add AD1815 and AD1816 quirks
-has been added to the -mm tree.  Its filename is
-     pnp-add-ad1815-and-ad1816-quirks.patch
+     add WARN_ON_SECS macro
+has been removed from the -mm tree.  Its filename was
+     add-warn_on_secs-macro.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: add AD1815 and AD1816 quirks
-From: Rene Herman <rene.herman@keyaccess.nl>
+Subject: add WARN_ON_SECS macro
+From: Dave Young <hidave.darkstar@gmail.com>
 
-The AD181x chip doesn't support an IRQ-less MPU401 option but works fine
-without one.  This adds (priority: functional) IRQ-less options for each port
-option to help systems with few available IRQs.
+Add WARN_ON_SECS macro for some serious cases which need to repeat the
+warnings, but with some ratelimiting.
 
-The AD1815 quirk can't use pnp_register_irq_resource() due to doubly
-penalizing the IRQ.  Also, while not a practical issue due to no IRQ option
-being present for the dependents, this needs to add in front, not back.
-
-Doesn't use pnp_register_port_resource() for symetry with above.
-
-This does not delete the AD1815 independent option even though it should be
-empty after the IRQ transfer due to AD1816 coming with an empty but still
-present independent option by default.
-
-Was tested on AD1815 and AD1816.  The ALSA driver also support the AZT2002 ID
-for MPU401 but this doesn't as I was unable to test it.
-
-Signed-off-by: Rene Herman <rene.herman@gmail.com>
-Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Tested-by: Uwe Bugla <uwe.bugla@gmx.de>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Len Brown <len.brown@intel.com>
+[akpm@linux-foundation.org: fix a few things]
+Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Tested-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/quirks.c |  112 +++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 112 insertions(+)
+ include/asm-generic/bug.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN drivers/pnp/quirks.c~pnp-add-ad1815-and-ad1816-quirks drivers/pnp/quirks.c
---- a/drivers/pnp/quirks.c~pnp-add-ad1815-and-ad1816-quirks
-+++ a/drivers/pnp/quirks.c
-@@ -111,6 +111,114 @@ static void quirk_sb16audio_resources(st
- 		dev_info(&dev->dev, "SB audio device quirk - increased port range\n");
- }
+diff -puN include/asm-generic/bug.h~add-warn_on_secs-macro include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~add-warn_on_secs-macro
++++ a/include/asm-generic/bug.h
+@@ -2,6 +2,7 @@
+ #define _ASM_GENERIC_BUG_H
  
-+static struct pnp_option *quirk_ad181x_mpu_resources(struct pnp_dev *dev)
-+{
-+	struct pnp_option *head = NULL;
-+	struct pnp_option *prev = NULL;
-+	struct pnp_option *res;
-+
-+	/*
-+	 * Build a functional IRQ-less variant of each MPU option.
-+	 */
-+
-+	for (res = dev->dependent; res; res = res->next) {
-+		struct pnp_option *curr;
-+		struct pnp_port *port;
-+		struct pnp_port *copy;
-+
-+		port = res->port;
-+		if (!port || !res->irq)
-+			continue;
-+
-+		copy = pnp_alloc(sizeof *copy);
-+		if (!copy)
-+			break;
-+
-+		copy->min = port->min;
-+		copy->max = port->max;
-+		copy->align = port->align;
-+		copy->size = port->size;
-+		copy->flags = port->flags;
-+
-+		curr = pnp_build_option(PNP_RES_PRIORITY_FUNCTIONAL);
-+		if (!curr) {
-+			kfree(copy);
-+			break;
-+		}
-+		curr->port = copy;
-+
-+		if (prev)
-+			prev->next = curr;
-+		else
-+			head = curr;
-+		prev = curr;
-+	}
-+	return head;
-+}
-+
-+static void quirk_ad1815_mpu_resources(struct pnp_dev *dev)
-+{
-+	struct pnp_option *res;
-+	struct pnp_irq *irq;
-+
-+	/*
-+	 * Distribute the independent IRQ over the dependent options
-+	 */
-+
-+	res = dev->independent;
-+	if (!res)
-+		return;
-+
-+	irq = res->irq;
-+	if (!irq || irq->next)
-+		return;
-+
-+	res = dev->dependent;
-+	if (!res)
-+		return;
-+
-+	while (1) {
-+		struct pnp_irq *copy;
-+
-+		copy = pnp_alloc(sizeof *copy);
-+		if (!copy)
-+			return;
-+
-+		memcpy(copy->map, irq->map, sizeof copy->map);
-+		copy->flags = irq->flags;
-+
-+		copy->next = res->irq; /* Yes, this is NULL */
-+		res->irq = copy;
-+
-+		if (!res->next)
-+			break;
-+		res = res->next;
-+	}
-+	kfree(irq);
-+
-+	res->next = quirk_ad181x_mpu_resources(dev);
-+
-+	res = dev->independent;
-+	res->irq = NULL;
-+
-+	printk(KERN_INFO "pnp: adding IRQ-less AD1815 MPU options\n");
-+}
-+
-+static void quirk_ad1816_mpu_resources(struct pnp_dev *dev)
-+{
-+	struct pnp_option *res;
-+
-+	res = dev->dependent;
-+	if (!res)
-+		return;
-+
-+	while (res->next)
-+		res = res->next;
-+
-+	res->next = quirk_ad181x_mpu_resources(dev);
-+
-+	printk(KERN_INFO "pnp: adding IRQ-less AD1816 MPU options\n");
-+}
+ #include <linux/compiler.h>
++#include <linux/param.h>
  
- #include <linux/pci.h>
+ #ifdef CONFIG_BUG
  
-@@ -205,6 +313,10 @@ static struct pnp_fixup pnp_fixups[] = {
- 	{"CTL0043", quirk_sb16audio_resources},
- 	{"CTL0044", quirk_sb16audio_resources},
- 	{"CTL0045", quirk_sb16audio_resources},
-+	/* Add IRQ-less AD1815 MPU options */
-+	{"ADS7151", quirk_ad1815_mpu_resources},
-+	/* Add IRQ-less AD1816 MPU options */
-+	{"ADS7181", quirk_ad1816_mpu_resources},
- 	{"PNP0c01", quirk_system_pci_resources},
- 	{"PNP0c02", quirk_system_pci_resources},
- 	{""}
+@@ -75,6 +76,9 @@ extern void warn_on_slowpath(const char 
+ 	unlikely(__ret_warn_once);				\
+ })
+ 
++#define WARN_ON_SECS(condition, secs)				\
++		WARN_ON((condition) && __ratelimit((secs) * HZ, 1))
++
+ #ifdef CONFIG_SMP
+ # define WARN_ON_SMP(x)			WARN_ON(x)
+ #else
 _
 
-Patches currently in -mm which might be from rene.herman@keyaccess.nl are
+Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
-pnp-add-pnp_build_option-to-the-api.patch
-pnp-add-ad1815-and-ad1816-quirks.patch
-pnp-add-detail-to-debug-resource-dump.patch
-pnp-remove-pnp_resourceindex.patch
-pnp-add-pnp_resource_type-internal-interface.patch
-pnp-add-pnp_resource_type_name-helper-function.patch
-pnp-replace-pnp_resource_table-with-dynamically-allocated-resources.patch
-pnp-remove-ratelimit-on-add-resource-failures.patch
-pnp-dont-sort-by-type-in-sys-resources.patch
+add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
+printk-ratelimiting-rewrite.patch
+add-warn_on_secs-macro.patch
+use-warn_on_secs-in-rcupreempth.patch
 
