@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tridentfb-move-global-acceleration-hooks-into-structure.patch added to -mm tree
-Date: Mon, 05 May 2008 23:12:29 -0700
-Message-ID: <200805060612.m466CTRQ025140@imap1.linux-foundation.org>
+Subject: + mm-pdflushc-merge-the-same-code-in-two-path.patch added to -mm tree
+Date: Mon, 05 May 2008 23:14:12 -0700
+Message-ID: <200805060614.m466ECaw025227@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43892 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754399AbYEFGNE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 02:13:04 -0400
+	by vger.kernel.org with ESMTP id S1752166AbYEFGOs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 02:14:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@pol.net
+Cc: crquan@gmail.com
 
 
 The patch titled
-     tridentfb: move global acceleration hooks into structure
+     mm/pdflush.c: merge the same code in two path
 has been added to the -mm tree.  Its filename is
-     tridentfb-move-global-acceleration-hooks-into-structure.patch
+     mm-pdflushc-merge-the-same-code-in-two-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,171 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: move global acceleration hooks into structure
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: mm/pdflush.c: merge the same code in two path
+From: Denis Cheng <crquan@gmail.com>
 
-This patch moves acceleration hooks into the tridentfb_par structure and
-removes global hooks.
-
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: Denis Cheng <crquan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |   63 +++++++++++++-----------------------
- 1 file changed, 24 insertions(+), 39 deletions(-)
+ mm/pdflush.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-move-global-acceleration-hooks-into-structure drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-move-global-acceleration-hooks-into-structure
-+++ a/drivers/video/tridentfb.c
-@@ -31,6 +31,12 @@ struct tridentfb_par {
- 	u32 pseudo_pal[16];
- 	int chip_id;
- 	int flatpanel;
-+	void (*init_accel) (struct tridentfb_par *, int, int);
-+	void (*wait_engine) (struct tridentfb_par *);
-+	void (*fill_rect)
-+		(struct tridentfb_par *par, u32, u32, u32, u32, u32, u32);
-+	void (*copy_rect)
-+		(struct tridentfb_par *par, u32, u32, u32, u32, u32, u32);
- };
+diff -puN mm/pdflush.c~mm-pdflushc-merge-the-same-code-in-two-path mm/pdflush.c
+--- a/mm/pdflush.c~mm-pdflushc-merge-the-same-code-in-two-path
++++ a/mm/pdflush.c
+@@ -207,7 +207,6 @@ int pdflush_operation(void (*fn)(unsigne
  
- static unsigned char eng_oper;	/* engine operation... */
-@@ -155,15 +161,6 @@ static inline u8 t_inb(struct tridentfb_
- 	return fb_readb(p->io_virt + reg);
- }
- 
--static struct accel_switch {
--	void (*init_accel) (struct tridentfb_par *, int, int);
--	void (*wait_engine) (struct tridentfb_par *);
--	void (*fill_rect)
--		(struct tridentfb_par *par, u32, u32, u32, u32, u32, u32);
--	void (*copy_rect)
--		(struct tridentfb_par *par, u32, u32, u32, u32, u32, u32);
--} *acc;
--
- static inline void writemmr(struct tridentfb_par *par, u16 r, u32 v)
- {
- 	fb_writel(v, par->io_virt + r);
-@@ -259,13 +256,6 @@ static void blade_copy_rect(struct tride
- 	writemmr(par, DR2, direction ? d1 : d2);
- }
- 
--static struct accel_switch accel_blade = {
--	blade_init_accel,
--	blade_wait_engine,
--	blade_fill_rect,
--	blade_copy_rect,
--};
--
- /*
-  * BladeXP specific acceleration functions
-  */
-@@ -405,13 +395,6 @@ static void xp_copy_rect(struct tridentf
- 	t_outb(par, 0x01, 0x2124);
- }
- 
--static struct accel_switch accel_xp = {
--	xp_init_accel,
--	xp_wait_engine,
--	xp_fill_rect,
--	xp_copy_rect,
--};
--
- /*
-  * Image specific acceleration functions
-  */
-@@ -491,13 +474,6 @@ static void image_copy_rect(struct tride
- 		 0x80000000 | 1 << 22 | 1 << 10 | 1 << 7 | direction);
- }
- 
--static struct accel_switch accel_image = {
--	image_init_accel,
--	image_wait_engine,
--	image_fill_rect,
--	image_copy_rect,
--};
--
- /*
-  * Accel functions called by the upper layers
-  */
-@@ -524,18 +500,18 @@ static void tridentfb_fillrect(struct fb
- 		break;
- 	}
- 
--	acc->fill_rect(par, fr->dx, fr->dy, fr->width,
-+	par->fill_rect(par, fr->dx, fr->dy, fr->width,
- 		       fr->height, col, fr->rop);
--	acc->wait_engine(par);
-+	par->wait_engine(par);
- }
- static void tridentfb_copyarea(struct fb_info *info,
- 			       const struct fb_copyarea *ca)
- {
- 	struct tridentfb_par *par = info->par;
- 
--	acc->copy_rect(par, ca->sx, ca->sy, ca->dx, ca->dy,
-+	par->copy_rect(par, ca->sx, ca->sy, ca->dx, ca->dy,
- 		       ca->width, ca->height);
--	acc->wait_engine(par);
-+	par->wait_engine(par);
- }
- #else /* !CONFIG_FB_TRIDENT_ACCEL */
- #define tridentfb_fillrect cfb_fillrect
-@@ -1029,7 +1005,7 @@ static int tridentfb_set_par(struct fb_i
- 	write3X4(par, GraphEngReg, 0x80);
- 
- #ifdef CONFIG_FB_TRIDENT_ACCEL
--	acc->init_accel(par, info->var.xres, bpp);
-+	par->init_accel(par, info->var.xres, bpp);
- #endif
- 
- 	switch (bpp) {
-@@ -1290,11 +1266,20 @@ static int __devinit trident_pci_probe(s
- 	chip3D = is3Dchip(chip_id);
- 
- 	if (is_xp(chip_id)) {
--		acc = &accel_xp;
-+		default_par->init_accel = xp_init_accel;
-+		default_par->wait_engine = xp_wait_engine;
-+		default_par->fill_rect = xp_fill_rect;
-+		default_par->copy_rect = xp_copy_rect;
- 	} else if (is_blade(chip_id)) {
--		acc = &accel_blade;
-+		default_par->init_accel = blade_init_accel;
-+		default_par->wait_engine = blade_wait_engine;
-+		default_par->fill_rect = blade_fill_rect;
-+		default_par->copy_rect = blade_copy_rect;
+ 	spin_lock_irqsave(&pdflush_lock, flags);
+ 	if (list_empty(&pdflush_list)) {
+-		spin_unlock_irqrestore(&pdflush_lock, flags);
+ 		ret = -1;
  	} else {
--		acc = &accel_image;
-+		default_par->init_accel = image_init_accel;
-+		default_par->wait_engine = image_wait_engine;
-+		default_par->fill_rect = image_fill_rect;
-+		default_par->copy_rect = image_copy_rect;
+ 		struct pdflush_work *pdf;
+@@ -219,8 +218,9 @@ int pdflush_operation(void (*fn)(unsigne
+ 		pdf->fn = fn;
+ 		pdf->arg0 = arg0;
+ 		wake_up_process(pdf->who);
+-		spin_unlock_irqrestore(&pdflush_lock, flags);
  	}
++	spin_unlock_irqrestore(&pdflush_lock, flags);
++
+ 	return ret;
+ }
  
- 	default_par->chip_id = chip_id;
-@@ -1365,7 +1350,7 @@ static int __devinit trident_pci_probe(s
- 	if (err < 0)
- 		goto out_unmap2;
- 
--	if (defaultaccel && acc)
-+	if (defaultaccel && default_par->init_accel)
- 		info->var.accel_flags |= FB_ACCELF_TEXT;
- 	else
- 		info->var.accel_flags &= ~FB_ACCELF_TEXT;
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from crquan@gmail.com are
 
-tridentfb-remove-misplaced-enable_mmio.patch
-tridentfb-improve-clock-setting-accuracy.patch
-tridentfb-replace-macros-with-functions.patch
-tridentfb-convert-fb_info-into-allocated-one.patch
-tridentfb-move-global-pseudo-palette-into-structure.patch
-tridentfb-move-global-chip_id-into-structure.patch
-tridentfb-move-global-flat-panel-variable-into-structure.patch
-tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
-tridentfb-move-global-acceleration-hooks-into-structure.patch
-tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
+mm-pdflushc-merge-the-same-code-in-two-path.patch
 
