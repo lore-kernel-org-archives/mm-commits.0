@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ufs-remove-unneeded-ufs_put_inode-prototype.patch added to -mm tree
-Date: Tue, 06 May 2008 12:32:08 -0700
-Message-ID: <200805061932.m46JW8sw023444@imap1.linux-foundation.org>
+Subject: + quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch added to -mm tree
+Date: Tue, 06 May 2008 12:33:30 -0700
+Message-ID: <200805061933.m46JXUPQ023476@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42187 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57157 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757144AbYEFTcV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 15:32:21 -0400
+	by vger.kernel.org with ESMTP id S1757000AbYEFTdf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 15:33:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de, dushistov@mail.ru
+Cc: jack@suse.cz
 
 
 The patch titled
-     ufs: remove unneeded ufs_put_inode prototype
+     quota: don't call sync_fs() from vfs_quota_off() when there's no quota turn off
 has been added to the -mm tree.  Its filename is
-     ufs-remove-unneeded-ufs_put_inode-prototype.patch
+     quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ufs: remove unneeded ufs_put_inode prototype
-From: Christoph Hellwig <hch@lst.de>
+Subject: quota: don't call sync_fs() from vfs_quota_off() when there's no quota turn off
+From: Jan Kara <jack@suse.cz>
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Evgeniy Dushistov <dushistov@mail.ru>
+Sometimes, vfs_quota_off() is called on a partially set up super block (for
+example when fill_super() fails for some reason).  In such cases we cannot
+call ->sync_fs() because it can Oops because of not properly filled in super
+block.  So in case we find there's not quota to turn off, we just skip
+everything and return which fixes the above problem.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ufs/ufs.h |    1 -
- 1 file changed, 1 deletion(-)
+ fs/dquot.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN fs/ufs/ufs.h~ufs-remove-unneeded-ufs_put_inode-prototype fs/ufs/ufs.h
---- a/fs/ufs/ufs.h~ufs-remove-unneeded-ufs_put_inode-prototype
-+++ a/fs/ufs/ufs.h
-@@ -107,7 +107,6 @@ extern struct inode * ufs_new_inode (str
+diff -puN fs/dquot.c~quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off fs/dquot.c
+--- a/fs/dquot.c~quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off
++++ a/fs/dquot.c
+@@ -1491,6 +1491,16 @@ int vfs_quota_off(struct super_block *sb
  
- /* inode.c */
- extern struct inode *ufs_iget(struct super_block *, unsigned long);
--extern void ufs_put_inode (struct inode *);
- extern int ufs_write_inode (struct inode *, int);
- extern int ufs_sync_inode (struct inode *);
- extern void ufs_delete_inode (struct inode *);
+ 	/* We need to serialize quota_off() for device */
+ 	mutex_lock(&dqopt->dqonoff_mutex);
++
++	/*
++	 * Skip everything if there's nothing to do. We have to do this becase
++	 * sometimes we are called when fill_super() failed and calling
++	 * sync_fs() in such cases does no good.
++	 */
++	if (!sb_any_quota_enabled(sb) && !sb_any_quota_suspended(sb)) {
++		mutex_unlock(&dqopt->dqonoff_mutex);
++		return 0;
++	}
+ 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
+ 		toputinode[cnt] = NULL;
+ 		if (type != -1 && cnt != type)
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from jack@suse.cz are
 
 linux-next.patch
-git-cifs.patch
-git-unionfs.patch
-ufs-remove-unneeded-ufs_put_inode-prototype.patch
+git-udf.patch
+quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
+ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
+ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
+reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+ext4-fix-mount-messages-when-quota-disabled.patch
+ext4-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+ext4-fix-typos-in-messages-and-comments-journalled-journaled.patch
+ext4-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
 
