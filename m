@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-video-pnx4008-eliminate-double-free.patch added to -mm tree
-Date: Tue, 06 May 2008 13:01:26 -0700
-Message-ID: <200805062001.m46K1R6t024692@imap1.linux-foundation.org>
+Subject: + remove-apparently-unused-fd1772h-header-file.patch added to -mm tree
+Date: Tue, 06 May 2008 13:03:57 -0700
+Message-ID: <200805062003.m46K3vhK024745@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42784 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47616 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754851AbYEFUBi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:01:38 -0400
+	by vger.kernel.org with ESMTP id S1758456AbYEFUEd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:04:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: julia@diku.dk, adaplas@gmail.com, gtolstolytkin@ru.mvista.com, krzysztof.h1@wp.pl, vitalywool@gmail.com
+Cc: rpjday@crashcourse.ca, akpm@linux-foundation.org, bunk@stusta.de, spyro@f2s.com, torvalds@linux-foundation.org
 
 
 The patch titled
-     drivers/video/pnx4008: eliminate double free
+     Remove apparently unused fd1772.h header file.
 has been added to the -mm tree.  Its filename is
-     drivers-video-pnx4008-eliminate-double-free.patch
+     remove-apparently-unused-fd1772h-header-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,117 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/pnx4008: eliminate double free
-From: Julia Lawall <julia@diku.dk>
+Subject: Remove apparently unused fd1772.h header file.
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-The function framebuffer_release just calls kfree, so calling kfree
-subsequently on the same argument represents a double free.  The comments with
-the definition of framebuffer_release in drivers/video/fbsysfs.c suggest that
-a more elaborate definition of this function is planned, such that the
-splitting up of framebuffer_release and kfree as done in the second instance
-might someday make sense, but it does not make sense now.
+This header file has been unused for quite some time, and the
+corresponding source files appear to have been removed back in commit
+99eb8a550d.
 
-This was found using the following semantic match.
-(http://www.emn.fr/x-info/coccinelle/)
+commit 99eb8a550dbccc0e1f6c7e866fe421810e0585f6
+Author: Adrian Bunk <bunk@stusta.de>
+Date:   Tue Jul 31 00:38:19 2007 -0700
 
-// <smpl>
-@@
-expression E;
-@@
+    Remove the arm26 port
 
-* kfree(E);
-...
-* framebuffer_release(E);
+    The arm26 port has been in a state where it was far from even compiling
+    for quite some time.
 
-@@
-expression E;
-@@
+    Ian Molton agreed with the removal.
 
-* framebuffer_release(E);
-...
-* kfree(E);
-// </smpl>
+    Signed-off-by: Adrian Bunk <bunk@stusta.de>
+    Cc: Ian Molton <spyro@f2s.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Vitaly Wool <vitalywool@gmail.com>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Grigory Tolstolytkin <gtolstolytkin@ru.mvista.com>
-Cc: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Cc: Adrian Bunk <bunk@stusta.de>
+Cc: Ian Molton <spyro@f2s.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pnx4008/pnxrgbfb.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ include/linux/fd1772.h |   80 ---------------------------------------
+ 1 file changed, 80 deletions(-)
 
-diff -puN drivers/video/pnx4008/pnxrgbfb.c~drivers-video-pnx4008-eliminate-double-free drivers/video/pnx4008/pnxrgbfb.c
---- a/drivers/video/pnx4008/pnxrgbfb.c~drivers-video-pnx4008-eliminate-double-free
-+++ a/drivers/video/pnx4008/pnxrgbfb.c
-@@ -100,7 +100,6 @@ static int rgbfb_remove(struct platform_
- 		fb_dealloc_cmap(&info->cmap);
- 		framebuffer_release(info);
- 		platform_set_drvdata(pdev, NULL);
--		kfree(info);
- 	}
- 
- 	pnx4008_free_dum_channel(channel_owned, pdev->id);
-@@ -168,23 +167,21 @@ static int __devinit rgbfb_probe(struct 
- 
- 	ret = fb_alloc_cmap(&info->cmap, 256, 0);
- 	if (ret < 0)
--		goto err2;
-+		goto err1;
- 
- 	ret = register_framebuffer(info);
- 	if (ret < 0)
--		goto err3;
-+		goto err2;
- 	platform_set_drvdata(pdev, info);
- 
- 	return 0;
- 
--err3:
--	fb_dealloc_cmap(&info->cmap);
- err2:
--	framebuffer_release(info);
-+	fb_dealloc_cmap(&info->cmap);
- err1:
- 	pnx4008_free_dum_channel(channel_owned, pdev->id);
- err0:
--	kfree(info);
-+	framebuffer_release(info);
- err:
- 	return ret;
- }
-_
-
-Patches currently in -mm which might be from julia@diku.dk are
-
-drivers-video-pnx4008-eliminate-double-free.patch
-fs-ext4-use-bug_on.patch
-
+diff -puN include/linux/fd1772.h~remove-apparently-unused-fd1772h-header-file /dev/null
+--- a/include/linux/fd1772.h
++++ /dev/null
+@@ -1,80 +0,0 @@
+-#ifndef _LINUX_FD1772REG_H
+-#define _LINUX_FD1772REG_H
+-
+-/*
+-** WD1772 stuff - originally from the M68K Linux
+- * Modified for Archimedes by Dave Gilbert (gilbertd@cs.man.ac.uk)
+- */
+-
+-/* register codes */
+-
+-#define FDC1772SELREG_STP   (0x80)   /* command/status register */
+-#define FDC1772SELREG_TRA   (0x82)   /* track register */
+-#define FDC1772SELREG_SEC   (0x84)   /* sector register */
+-#define FDC1772SELREG_DTA   (0x86)   /* data register */
+-
+-/* register names for FDC1772_READ/WRITE macros */
+-
+-#define FDC1772REG_CMD         0
+-#define FDC1772REG_STATUS      0
+-#define FDC1772REG_TRACK       2
+-#define FDC1772REG_SECTOR      4
+-#define FDC1772REG_DATA                6
+-
+-/* command opcodes */
+-
+-#define FDC1772CMD_RESTORE  (0x00)   /*  -                   */
+-#define FDC1772CMD_SEEK     (0x10)   /*   |                  */
+-#define FDC1772CMD_STEP     (0x20)   /*   |  TYP 1 Commands  */
+-#define FDC1772CMD_STIN     (0x40)   /*   |                  */
+-#define FDC1772CMD_STOT     (0x60)   /*  -                   */
+-#define FDC1772CMD_RDSEC    (0x80)   /*  -   TYP 2 Commands  */
+-#define FDC1772CMD_WRSEC    (0xa0)   /*  -          "        */
+-#define FDC1772CMD_RDADR    (0xc0)   /*  -                   */
+-#define FDC1772CMD_RDTRA    (0xe0)   /*   |  TYP 3 Commands  */
+-#define FDC1772CMD_WRTRA    (0xf0)   /*  -                   */
+-#define FDC1772CMD_FORCI    (0xd0)   /*  -   TYP 4 Command   */
+-
+-/* command modifier bits */
+-
+-#define FDC1772CMDADD_SR6   (0x00)   /* step rate settings */
+-#define FDC1772CMDADD_SR12  (0x01)
+-#define FDC1772CMDADD_SR2   (0x02)
+-#define FDC1772CMDADD_SR3   (0x03)
+-#define FDC1772CMDADD_V     (0x04)   /* verify */
+-#define FDC1772CMDADD_H     (0x08)   /* wait for spin-up */
+-#define FDC1772CMDADD_U     (0x10)   /* update track register */
+-#define FDC1772CMDADD_M     (0x10)   /* multiple sector access */
+-#define FDC1772CMDADD_E     (0x04)   /* head settling flag */
+-#define FDC1772CMDADD_P     (0x02)   /* precompensation */
+-#define FDC1772CMDADD_A0    (0x01)   /* DAM flag */
+-
+-/* status register bits */
+-
+-#define        FDC1772STAT_MOTORON     (0x80)   /* motor on */
+-#define        FDC1772STAT_WPROT       (0x40)   /* write protected (FDC1772CMD_WR*) */
+-#define        FDC1772STAT_SPINUP      (0x20)   /* motor speed stable (Type I) */
+-#define        FDC1772STAT_DELDAM      (0x20)   /* sector has deleted DAM (Type II+III) */
+-#define        FDC1772STAT_RECNF       (0x10)   /* record not found */
+-#define        FDC1772STAT_CRC         (0x08)   /* CRC error */
+-#define        FDC1772STAT_TR00        (0x04)   /* Track 00 flag (Type I) */
+-#define        FDC1772STAT_LOST        (0x04)   /* Lost Data (Type II+III) */
+-#define        FDC1772STAT_IDX         (0x02)   /* Index status (Type I) */
+-#define        FDC1772STAT_DRQ         (0x02)   /* DRQ status (Type II+III) */
+-#define        FDC1772STAT_BUSY        (0x01)   /* FDC1772 is busy */
+-
+-
+-/* PSG Port A Bit Nr 0 .. Side Sel .. 0 -> Side 1  1 -> Side 2 */
+-#define DSKSIDE     (0x01)
+-        
+-#define DSKDRVNONE  (0x06)
+-#define DSKDRV0     (0x02)
+-#define DSKDRV1     (0x04)
+-
+-/* step rates */
+-#define        FDC1772STEP_6   0x00
+-#define        FDC1772STEP_12  0x01
+-#define        FDC1772STEP_2   0x02
+-#define        FDC1772STEP_3   0x03
