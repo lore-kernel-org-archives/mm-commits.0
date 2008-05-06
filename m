@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dm9000-restore-mii-physical-polling-timer.patch added to -mm tree
-Date: Tue, 06 May 2008 14:26:58 -0700
-Message-ID: <200805062126.m46LQwE9028159@imap1.linux-foundation.org>
+Subject: + drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed.patch added to -mm tree
+Date: Tue, 06 May 2008 14:39:40 -0700
+Message-ID: <200805062139.m46Lde66028686@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54315 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44836 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933636AbYEFV2S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 17:28:18 -0400
+	by vger.kernel.org with ESMTP id S1765185AbYEFVkS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 17:40:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: michael.abbott@diamond.ac.uk, ben-linux@fluff.org, daniel@caiaq.org, jeff@garzik.org, rmk@arm.linux.org.uk
+Cc: tony@bakeyournoodle.com, adaplas@pol.net, benh@kernel.crashing.org
 
 
 The patch titled
-     DM9000: restore MII physical polling timer
+     drivers/video/aty/radeon_base.c: notify user if sysfs_create_bin_file() failed
 has been added to the -mm tree.  Its filename is
-     dm9000-restore-mii-physical-polling-timer.patch
+     drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,99 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: DM9000: restore MII physical polling timer
-From: Michael Abbott <michael.abbott@diamond.ac.uk>
+Subject: drivers/video/aty/radeon_base.c: notify user if sysfs_create_bin_file() failed
+From: tony@bakeyournoodle.com (Tony Breeds)
 
-In commit fcfa81aa3e8d885356139122fcb281487b983468 the timer for polling the
-MII physical layer was removed because of conflicts with newly added mutexes. 
-Unfortunately a side effect of this change is that the corresponding ethernet
-layer is permanently reported as down: there is no other way to read the link
-status.
+Current kernel builds warn about:
+drivers/video/aty/radeon_base.c: In function 'radeonfb_pci_register':
+drivers/video/aty/radeon_base.c:2334: warning: ignoring return value of 'sysfs_create_bin_file', declared with attribute warn_unused_result
+drivers/video/aty/radeon_base.c:2336: warning: ignoring return value of 'sysfs_create_bin_file', declared with attribute warn_unused_result
 
-This commit restores the timer, but uses the default work queue for polling.
+Do minimal checking of these functions and issue a warning if either
+fails.  They don't seem to be critical..
 
-Signed-off-by: Michael Abbott <michael.abbott@diamond.ac.uk>
-Cc: Daniel Mack <daniel@caiaq.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Jeff Garzik <jeff@garzik.org>
-Cc: Ben Dooks <ben-linux@fluff.org>
+Signed-off-by: Tony Breeds <tony@bakeyournoodle.com>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/dm9000.c |   21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ drivers/video/aty/radeon_base.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/dm9000.c~dm9000-restore-mii-physical-polling-timer drivers/net/dm9000.c
---- a/drivers/net/dm9000.c~dm9000-restore-mii-physical-polling-timer
-+++ a/drivers/net/dm9000.c
-@@ -43,6 +43,7 @@
- /* Board/System/Debug information/definition ---------------- */
+diff -puN drivers/video/aty/radeon_base.c~drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed drivers/video/aty/radeon_base.c
+--- a/drivers/video/aty/radeon_base.c~drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed
++++ a/drivers/video/aty/radeon_base.c
+@@ -2161,6 +2161,7 @@ static int __devinit radeonfb_pci_regist
+ 	struct radeonfb_info *rinfo;
+ 	int ret;
+ 	unsigned char c1, c2;
++	int err = 0;
  
- #define DM9000_PHY		0x40	/* PHY address 0x01 */
-+#define DM9000_TIMER_WUT	(HZ*2)	/* timer wakeup time : 2 second */
+ 	pr_debug("radeonfb_pci_register BEGIN\n");
+ 	
+@@ -2340,9 +2341,12 @@ static int __devinit radeonfb_pci_regist
  
- #define CARDNAME "dm9000"
- #define PFX CARDNAME ": "
-@@ -117,6 +118,8 @@ typedef struct board_info {
+ 	/* Register some sysfs stuff (should be done better) */
+ 	if (rinfo->mon1_EDID)
+-		sysfs_create_bin_file(&rinfo->pdev->dev.kobj, &edid1_attr);
++		err |= sysfs_create_bin_file(&rinfo->pdev->dev.kobj, &edid1_attr);
+ 	if (rinfo->mon2_EDID)
+-		sysfs_create_bin_file(&rinfo->pdev->dev.kobj, &edid2_attr);
++		err |= sysfs_create_bin_file(&rinfo->pdev->dev.kobj, &edid2_attr);
++	if (err)
++		pr_warning("%s() Creating sysfs files failed, continuing\n",
++		           __func__);
  
- 	struct mutex	 addr_lock;	/* phy and eeprom access lock */
- 
-+	struct delayed_work timer;	/* Interface status timer. */
-+
- 	spinlock_t lock;
- 
- 	struct mii_if_info mii;
-@@ -144,6 +147,7 @@ static int dm9000_start_xmit(struct sk_b
- static int dm9000_stop(struct net_device *);
- static int dm9000_ioctl(struct net_device *dev, struct ifreq *req, int cmd);
- 
-+static void dm9000_timer(struct work_struct * work);
- static void dm9000_init_dm9000(struct net_device *);
- 
- static irqreturn_t dm9000_interrupt(int, void *);
-@@ -762,6 +766,10 @@ dm9000_open(struct net_device *dev)
- 	mii_check_media(&db->mii, netif_msg_link(db), 1);
- 	netif_start_queue(dev);
- 
-+	/* Start the media status timer running. */
-+	INIT_DELAYED_WORK(&db->timer, dm9000_timer);
-+	schedule_delayed_work(&db->timer, DM9000_TIMER_WUT);
-+
- 	return 0;
- }
- 
-@@ -876,6 +884,9 @@ dm9000_stop(struct net_device *ndev)
- {
- 	board_info_t *db = (board_info_t *) ndev->priv;
- 
-+	/* Delete the timer and make sure it's not running right now! */
-+	cancel_delayed_work_sync(&db->timer);
-+
- 	if (netif_msg_ifdown(db))
- 		dev_dbg(db->dev, "shutting down %s\n", ndev->name);
- 
-@@ -965,6 +976,16 @@ dm9000_interrupt(int irq, void *dev_id)
- 	return IRQ_HANDLED;
- }
- 
-+
-+/* Two second timer to poll the media status -- the DM9000 doesn't provide a
-+ * status interrupt, so this has to be polled. */
-+static void dm9000_timer(struct work_struct * work)
-+{
-+	board_info_t *db = container_of(work, board_info_t, timer);
-+	mii_check_media(&db->mii, netif_msg_link(db), 0);
-+	schedule_delayed_work(&db->timer, DM9000_TIMER_WUT);
-+}
-+
- struct dm9000_rxhdr {
- 	u8	RxPktReady;
- 	u8	RxStatus;
+ 	/* save current mode regs before we switch into the new one
+ 	 * so we can restore this upon __exit
 _
 
-Patches currently in -mm which might be from michael.abbott@diamond.ac.uk are
+Patches currently in -mm which might be from tony@bakeyournoodle.com are
 
-dm9000-restore-mii-physical-polling-timer.patch
-colibri-fix-support-for-dm9000-ethernet-device.patch
-colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+revert-memory-hotplug-register-section-node-id-to-free.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed.patch
 
