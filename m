@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + make-mm-memoryc-print_bad_pte-static.patch added to -mm tree
-Date: Tue, 06 May 2008 11:36:46 -0700
-Message-ID: <200805061836.m46IakLR021239@imap1.linux-foundation.org>
+Subject: + mm-hugetlbc-fix-duplicate-variable.patch added to -mm tree
+Date: Tue, 06 May 2008 11:37:02 -0700
+Message-ID: <200805061837.m46Ib2wJ021270@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36167 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55663 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756370AbYEFShA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:00 -0400
+	by vger.kernel.org with ESMTP id S1755040AbYEFShR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org, kosaki.motohiro@jp.fujitsu.com
 
 
 The patch titled
-     make mm/memory.c:print_bad_pte() static
+     mm/hugetlb.c: fix duplicate variable
 has been added to the -mm tree.  Its filename is
-     make-mm-memoryc-print_bad_pte-static.patch
+     mm-hugetlbc-fix-duplicate-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make mm/memory.c:print_bad_pte() static
+Subject: mm/hugetlb.c: fix duplicate variable
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch makes the needlessly global print_bad_pte() static.
+It's confusing that set_max_huge_pages() contained two different
+variables named "ret", and although the code works correctly this should
+be fixed.
+
+The inner of the two variables can simply be removed.
+
+Spotted by sparse.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc:  "KOSAKI Motohiro" <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 -
- mm/memory.c        |    3 ++-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/mm.h~make-mm-memoryc-print_bad_pte-static include/linux/mm.h
---- a/include/linux/mm.h~make-mm-memoryc-print_bad_pte-static
-+++ a/include/linux/mm.h
-@@ -807,7 +807,6 @@ extern int access_process_vm(struct task
+diff -puN mm/hugetlb.c~mm-hugetlbc-fix-duplicate-variable mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-fix-duplicate-variable
++++ a/mm/hugetlb.c
+@@ -606,7 +606,6 @@ static unsigned long set_max_huge_pages(
+ 	}
  
- int get_user_pages(struct task_struct *tsk, struct mm_struct *mm, unsigned long start,
- 		int len, int write, int force, struct page **pages, struct vm_area_struct **vmas);
--void print_bad_pte(struct vm_area_struct *, pte_t, unsigned long);
- 
- extern int try_to_release_page(struct page * page, gfp_t gfp_mask);
- extern void do_invalidatepage(struct page *page, unsigned long offset);
-diff -puN mm/memory.c~make-mm-memoryc-print_bad_pte-static mm/memory.c
---- a/mm/memory.c~make-mm-memoryc-print_bad_pte-static
-+++ a/mm/memory.c
-@@ -364,7 +364,8 @@ static inline void add_mm_rss(struct mm_
-  *
-  * The calling function must still handle the error.
-  */
--void print_bad_pte(struct vm_area_struct *vma, pte_t pte, unsigned long vaddr)
-+static void print_bad_pte(struct vm_area_struct *vma, pte_t pte,
-+			  unsigned long vaddr)
- {
- 	printk(KERN_ERR "Bad pte = %08llx, process = %s, "
- 			"vm_flags = %lx, vaddr = %lx\n",
+ 	while (count > persistent_huge_pages) {
+-		int ret;
+ 		/*
+ 		 * If this allocation races such that we no longer need the
+ 		 * page, free_huge_page will handle it by freeing the page
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
