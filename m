@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + input-remove-unused-defines.patch added to -mm tree
-Date: Tue, 06 May 2008 14:44:32 -0700
-Message-ID: <200805062144.m46LiWfg028915@imap1.linux-foundation.org>
+Subject: + list_for_each_rcu-must-die-networking.patch added to -mm tree
+Date: Tue, 06 May 2008 14:47:16 -0700
+Message-ID: <200805062147.m46LlGGf029048@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48028 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52584 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763676AbYEFVp0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 17:45:26 -0400
+	by vger.kernel.org with ESMTP id S1751386AbYEFVrk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 17:47:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: joe@perches.com, dtor@mail.ru
+Cc: paulmck@linux.vnet.ibm.com, davem@davemloft.net
 
 
 The patch titled
-     input: remove unused defines
+     list_for_each_rcu() must die: networking
 has been added to the -mm tree.  Its filename is
-     input-remove-unused-defines.patch
+     list_for_each_rcu-must-die-networking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,85 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: input: remove unused defines
-From: Joe Perches <joe@perches.com>
+Subject: list_for_each_rcu() must die: networking
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
-Remove unused to_dev, to_handler, to_handle from include/linux/input.h
-Move to_handle_h from include/linux/input.h to drivers/char/keyboard.c
+All uses of list_for_each_rcu() can be profitably replaced by the
+easier-to-use list_for_each_entry_rcu().  This patch makes this change for
+networking, in preparation for removing the list_for_each_rcu() API entirely.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Dmitry Torokhov <dtor@mail.ru>
+Acked-by: David S. Miller <davem@davemloft.net>
+Signed_off_by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/keyboard.c |    2 ++
- include/linux/input.h   |    5 -----
- 2 files changed, 2 insertions(+), 5 deletions(-)
+ net/802/psnap.c     |    4 +---
+ net/ipv4/af_inet.c  |    4 +---
+ net/ipv6/af_inet6.c |    4 +---
+ 3 files changed, 3 insertions(+), 9 deletions(-)
 
-diff -puN drivers/char/keyboard.c~input-remove-unused-defines drivers/char/keyboard.c
---- a/drivers/char/keyboard.c~input-remove-unused-defines
-+++ a/drivers/char/keyboard.c
-@@ -46,6 +46,8 @@
- 
- extern void ctrl_alt_del(void);
- 
-+#define to_handle_h(n) container_of(n, struct input_handle, h_node)
-+
- /*
-  * Exported functions/variables
+diff -puN net/802/psnap.c~list_for_each_rcu-must-die-networking net/802/psnap.c
+--- a/net/802/psnap.c~list_for_each_rcu-must-die-networking
++++ a/net/802/psnap.c
+@@ -31,11 +31,9 @@ static struct llc_sap *snap_sap;
   */
-diff -puN include/linux/input.h~input-remove-unused-defines include/linux/input.h
---- a/include/linux/input.h~input-remove-unused-defines
-+++ a/include/linux/input.h
-@@ -1213,11 +1213,6 @@ struct input_handle {
- 	struct list_head	h_node;
- };
+ static struct datalink_proto *find_snap_client(unsigned char *desc)
+ {
+-	struct list_head *entry;
+ 	struct datalink_proto *proto = NULL, *p;
  
--#define to_dev(n) container_of(n, struct input_dev, node)
--#define to_handler(n) container_of(n, struct input_handler, node)
--#define to_handle(n) container_of(n, struct input_handle, d_node)
--#define to_handle_h(n) container_of(n, struct input_handle, h_node)
+-	list_for_each_rcu(entry, &snap_list) {
+-		p = list_entry(entry, struct datalink_proto, node);
++	list_for_each_entry_rcu(p, &snap_list, node) {
+ 		if (!memcmp(p->type, desc, 5)) {
+ 			proto = p;
+ 			break;
+diff -puN net/ipv4/af_inet.c~list_for_each_rcu-must-die-networking net/ipv4/af_inet.c
+--- a/net/ipv4/af_inet.c~list_for_each_rcu-must-die-networking
++++ a/net/ipv4/af_inet.c
+@@ -267,7 +267,6 @@ static inline int inet_netns_ok(struct n
+ static int inet_create(struct net *net, struct socket *sock, int protocol)
+ {
+ 	struct sock *sk;
+-	struct list_head *p;
+ 	struct inet_protosw *answer;
+ 	struct inet_sock *inet;
+ 	struct proto *answer_prot;
+@@ -288,8 +287,7 @@ static int inet_create(struct net *net, 
+ lookup_protocol:
+ 	err = -ESOCKTNOSUPPORT;
+ 	rcu_read_lock();
+-	list_for_each_rcu(p, &inetsw[sock->type]) {
+-		answer = list_entry(p, struct inet_protosw, list);
++	list_for_each_entry_rcu(answer, &inetsw[sock->type], list) {
+ 
+ 		/* Check the non-wild match. */
+ 		if (protocol == answer->protocol) {
+diff -puN net/ipv6/af_inet6.c~list_for_each_rcu-must-die-networking net/ipv6/af_inet6.c
+--- a/net/ipv6/af_inet6.c~list_for_each_rcu-must-die-networking
++++ a/net/ipv6/af_inet6.c
+@@ -87,7 +87,6 @@ static int inet6_create(struct net *net,
+ 	struct inet_sock *inet;
+ 	struct ipv6_pinfo *np;
+ 	struct sock *sk;
+-	struct list_head *p;
+ 	struct inet_protosw *answer;
+ 	struct proto *answer_prot;
+ 	unsigned char answer_flags;
+@@ -105,8 +104,7 @@ static int inet6_create(struct net *net,
+ lookup_protocol:
+ 	err = -ESOCKTNOSUPPORT;
+ 	rcu_read_lock();
+-	list_for_each_rcu(p, &inetsw6[sock->type]) {
+-		answer = list_entry(p, struct inet_protosw, list);
++	list_for_each_entry_rcu(answer, &inetsw6[sock->type], list) {
+ 
+ 		/* Check the non-wild match. */
+ 		if (protocol == answer->protocol) {
+_
+
+Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+
+linux-next.patch
+list_for_each_rcu-must-die-networking.patch
+
