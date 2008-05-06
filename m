@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mdacon-messing-up-default-vcs-set-default-to-vc13-16-again.patch added to -mm tree
-Date: Mon, 05 May 2008 23:23:01 -0700
-Message-ID: <200805060623.m466N1GE025576@imap1.linux-foundation.org>
+Subject: + pcmcia-kill-in_card_services.patch added to -mm tree
+Date: Tue, 06 May 2008 11:36:23 -0700
+Message-ID: <200805061836.m46IaNIU021201@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58622 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48861 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753381AbYEFGXT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 02:23:19 -0400
+	by vger.kernel.org with ESMTP id S1752966AbYEFSgg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: devzero@web.de, adaplas@pol.net, jengelh@gmx.de, jsimmons@infradead.org, tim@physik3.uni-rostock.de
+Cc: bunk@kernel.org
 
 
 The patch titled
-     mdacon messing up default vc's - set default to vc13-16 again
+     pcmcia: kill IN_CARD_SERVICES
 has been added to the -mm tree.  Its filename is
-     mdacon-messing-up-default-vcs-set-default-to-vc13-16-again.patch
+     pcmcia-kill-in_card_services.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,86 +33,137 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mdacon messing up default vc's - set default to vc13-16 again
-From: Roland Kletzing <devzero@web.de>
+Subject: pcmcia: kill IN_CARD_SERVICES
+From: Adrian Bunk <bunk@kernel.org>
 
-mdacon incorrectly detects MDA hardware on systems without such graphics card.
+IN_CARD_SERVICES was #define'd but not used, so let's remove it.
 
-One may load this module by chance, for example when doing some systematical
-module-testing, and if there is no Monochrome Display Adapter attached ,
-module init renders vc1-16 completely unusable.
-
-I and others have run into this more than once.  see [Bug 224522 - modprobe
-mdacon freezes machine -> https://bugzilla.novell.com/show_bug.cgi?id=224522 ]
-for example
-
-Apparently  proper MDA detection seems to be broken for a long time - seems to
-be related to those #ifdef TEST_MDA_B statements added by Edward Betts.
-
-this commit back in 2002 made things even worse :
-http://git.kernel.org/?p=linux/kernel/git/tglx/history.git;a=commit;h=c72757b49c88914433244757fb4967fc63546685
-
-It changed default vc allocation from 13-16 to 1-16 for no apparent reason
-(!?) , and with that (and without X), mdacon grabs the vc you`re currently
-sitting on and locks you out.
-
-this is from Kconfig :
->config MDA_CONSOLE
->        depends on !M68K && !PARISC && ISA
->        tristate "MDA text console (dual-headed) (EXPERIMENTAL)"
->        ---help---
->          Say Y here if you have an old MDA or monochrome Hercules graphics
->          adapter in your system acting as a second head ( = video card). You
->          will then be able to use two monitors with your Linux system. Do not
->          say Y here if your MDA card is the primary card in your system; the
->          normal VGA driver will handle it.
-
-As we can see mdacon is just meant as an additional driver for dual-head
-setup, and since kernel 2.4.36 still defaults to vc13-16 , setting the default
-back to that value again shouldn`t do any harm.
-
-Hereby i'm reverting that change, setting default back to to vc13-16 again.
-
-Besides the fact that mdacon may be rarely or never be used these days and
-could perhaps put to trash anyway (pre-dinosaur hardware!), indeed this is not
-a real solution, but at least it removes the unfortunate side-effect of
-messing up the vc you`re working on.
-
-Signed-off-by: Roland Kletzing <devzero@web.de>
-Cc: James Simmons <jsimmons@infradead.org>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
-Cc: Tim Schmielau <tim@physik3.uni-rostock.de>
-Cc: Jan Engelhardt <jengelh@gmx.de>
+Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/mdacon.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/pcmcia/cardbus.c         |    1 -
+ drivers/pcmcia/cs.c              |    1 -
+ drivers/pcmcia/ds.c              |    1 -
+ drivers/pcmcia/pcmcia_ioctl.c    |    1 -
+ drivers/pcmcia/pcmcia_resource.c |    1 -
+ drivers/pcmcia/socket_sysfs.c    |    1 -
+ 6 files changed, 6 deletions(-)
 
-diff -puN drivers/video/console/mdacon.c~mdacon-messing-up-default-vcs-set-default-to-vc13-16-again drivers/video/console/mdacon.c
---- a/drivers/video/console/mdacon.c~mdacon-messing-up-default-vcs-set-default-to-vc13-16-again
-+++ a/drivers/video/console/mdacon.c
-@@ -71,13 +71,15 @@ static char *mda_type_name;
+diff -puN drivers/pcmcia/cardbus.c~pcmcia-kill-in_card_services drivers/pcmcia/cardbus.c
+--- a/drivers/pcmcia/cardbus.c~pcmcia-kill-in_card_services
++++ a/drivers/pcmcia/cardbus.c
+@@ -30,7 +30,6 @@
+ #include <asm/irq.h>
+ #include <asm/io.h>
  
- /* console information */
+-#define IN_CARD_SERVICES
+ #include <pcmcia/cs_types.h>
+ #include <pcmcia/ss.h>
+ #include <pcmcia/cs.h>
+diff -puN drivers/pcmcia/cs.c~pcmcia-kill-in_card_services drivers/pcmcia/cs.c
+--- a/drivers/pcmcia/cs.c~pcmcia-kill-in_card_services
++++ a/drivers/pcmcia/cs.c
+@@ -32,7 +32,6 @@
+ #include <asm/system.h>
+ #include <asm/irq.h>
  
--static int	mda_first_vc = 1;
-+static int	mda_first_vc = 13;
- static int	mda_last_vc  = 16;
+-#define IN_CARD_SERVICES
+ #include <pcmcia/cs_types.h>
+ #include <pcmcia/ss.h>
+ #include <pcmcia/cs.h>
+diff -puN drivers/pcmcia/ds.c~pcmcia-kill-in_card_services drivers/pcmcia/ds.c
+--- a/drivers/pcmcia/ds.c~pcmcia-kill-in_card_services
++++ a/drivers/pcmcia/ds.c
+@@ -25,7 +25,6 @@
+ #include <linux/kref.h>
+ #include <linux/dma-mapping.h>
  
- static struct vc_data	*mda_display_fg = NULL;
+-#define IN_CARD_SERVICES
+ #include <pcmcia/cs_types.h>
+ #include <pcmcia/cs.h>
+ #include <pcmcia/cistpl.h>
+diff -puN drivers/pcmcia/pcmcia_ioctl.c~pcmcia-kill-in_card_services drivers/pcmcia/pcmcia_ioctl.c
+--- a/drivers/pcmcia/pcmcia_ioctl.c~pcmcia-kill-in_card_services
++++ a/drivers/pcmcia/pcmcia_ioctl.c
+@@ -29,7 +29,6 @@
+ #include <linux/pci.h>
+ #include <linux/workqueue.h>
  
- module_param(mda_first_vc, int, 0);
-+MODULE_PARM_DESC(mda_first_vc, "First virtual console. Default: 13");
- module_param(mda_last_vc, int, 0);
-+MODULE_PARM_DESC(mda_last_vc, "Last virtual console. Default: 16");
+-#define IN_CARD_SERVICES
+ #include <pcmcia/cs_types.h>
+ #include <pcmcia/cs.h>
+ #include <pcmcia/cistpl.h>
+diff -puN drivers/pcmcia/pcmcia_resource.c~pcmcia-kill-in_card_services drivers/pcmcia/pcmcia_resource.c
+--- a/drivers/pcmcia/pcmcia_resource.c~pcmcia-kill-in_card_services
++++ a/drivers/pcmcia/pcmcia_resource.c
+@@ -21,7 +21,6 @@
+ #include <linux/pci.h>
+ #include <linux/device.h>
  
- /* MDA register values
-  */
+-#define IN_CARD_SERVICES
+ #include <pcmcia/cs_types.h>
+ #include <pcmcia/ss.h>
+ #include <pcmcia/cs.h>
+diff -puN drivers/pcmcia/socket_sysfs.c~pcmcia-kill-in_card_services drivers/pcmcia/socket_sysfs.c
+--- a/drivers/pcmcia/socket_sysfs.c~pcmcia-kill-in_card_services
++++ a/drivers/pcmcia/socket_sysfs.c
+@@ -27,7 +27,6 @@
+ #include <asm/system.h>
+ #include <asm/irq.h>
+ 
+-#define IN_CARD_SERVICES
+ #include <pcmcia/cs_types.h>
+ #include <pcmcia/ss.h>
+ #include <pcmcia/cs.h>
 _
 
-Patches currently in -mm which might be from devzero@web.de are
+Patches currently in -mm which might be from bunk@kernel.org are
 
+origin.patch
 linux-next.patch
-mdacon-messing-up-default-vcs-set-default-to-vc13-16-again.patch
+md-make-dm_dirty_log_initexit-static.patch
+drm-make-drm_minors_cleanup-static.patch
+git-udf.patch
+nfs-make-nfs4_drop_state_owner-static.patch
+show_schedstat-fix-memleak.patch
+if-0-ses_match_host.patch
+git-watchdog.patch
+xen-drivers-xen-balloonc-make-a-function-static.patch
+reiser4.patch
+remove-is_tty.patch
+make-cgroup_seqfile_release-static.patch
+make-kprobe_blacklist-static.patch
+make-pnp_add_card_id-static.patch
+mfd-sm501c-if-0-unused-functions.patch
+pcmcia-kill-in_card_services.patch
+video-sis-remove-compat-code.patch
+make-struct-mpt_proc_root_dir-static.patch
+make-parport_cs_release-static.patch
+parport-sharec-proper-externs.patch
+remove-include-asm-h8300-keyboardh.patch
+proper-spawn_ksoftirqd-prototype.patch
+proper-pidhashmap_init-prototypes.patch
+mm-migratec-should-include-linux-syscallsh.patch
+make-mm-sparsec-make-a-function-static.patch
+mm-allocpercpuc-make-4-functions-static.patch
+make-mm-memoryc-print_bad_pte-static.patch
+mm-swapfilec-make-code-static.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
+minix-remove-no_truncate-code.patch
+remove-the-v850-port.patch
+mm-vmstatc-proper-externs.patch
+mm-hugetlbc-fix-duplicate-variable.patch
+drivers-char-rtcc-make-2-functions-static.patch
+make-init-do_mountsc-root_device_name-static.patch
+init-do_mountsc-should-include-linux-initrdh.patch
+proper-prototype-for-acpi_processor_tstate_has_changed.patch
+if-0-hpet_unregister.patch
+tpm_biosc-make-2-structs-static.patch
+proper-extern-for-mwave_s_mdd.patch
+xtensa-remove-the-nonexisting-highmem-support.patch
+serial-8250_gscc-add-module_license.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+unexport-proc_clear_tty.patch
+unexport-uts_sem.patch
 
