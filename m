@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + uml-hppfs-fixes.patch added to -mm tree
-Date: Tue, 06 May 2008 13:49:12 -0700
-Message-ID: <200805062049.m46KnDk3026551@imap1.linux-foundation.org>
+Subject: + uml-random-driver-fixes.patch added to -mm tree
+Date: Tue, 06 May 2008 13:49:08 -0700
+Message-ID: <200805062049.m46Kn8GV026543@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42084 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44328 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762898AbYEFUtR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:49:17 -0400
+	by vger.kernel.org with ESMTP id S1762898AbYEFUtN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:49:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     uml: hppfs fixes
+     uml: random driver fixes
 has been added to the -mm tree.  Its filename is
-     uml-hppfs-fixes.patch
+     uml-random-driver-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,246 +33,324 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: hppfs fixes
+Subject: uml: random driver fixes
 From: Jeff Dike <jdike@addtoit.com>
 
-hppfs tidying and fixes noticed during hch's get_inode work -
-      style fixes
-      a copy_to_user got its return value checked
-      hppfs_write no longer fiddles file->f_pos because it gets and
-returns pos in its arguments
-      hppfs_delete_inode dputs the underlyng procfs dentry stored in
-its private data and mntputs the vfsmnt stashed in s_fs_info
-      hppfs_put_super no longer needs to mntput the s_fs_info, so it
-no longer needs to exist
-      hppfs_readlink and hppfs_follow_link were doing a bunch of stuff
-with a struct file which they didn't use
-      there is now a ->permission which calls generic_permission
-      get_inode was always returning 0 for some reason - it now
-returns an inode if nothing bad happened
+The random driver would essentially hang if the host's /dev/random
+returned -EAGAIN.  There was a test of need_resched followed by a
+schedule inside the loop, but that didn't help and it's the wrong way
+to work anyway.
+
+The right way is to ask for an interrupt when there is input available
+from the host and handle it then rather than polling.
+
+Now, when the host's /dev/random returns -EAGAIN, the driver asks for
+a wakeup when there's randomness available again and sleeps.  The
+interrupt routine just wakes up whatever processes are sleeping on
+host_read_wait.
+
+There is an atomic_t, host_sleep_count, which counts the number of
+processes waiting for randomness.  When this reaches zero, the
+interrupt is disabled.
+
+An added complication is that async I/O notification was only recently
+added to /dev/random (by me), so essentially all hosts will lack it.
+So, we use the sigio workaround here, which is to have a separate
+thread poll on the descriptor and send an interrupt when there is
+input on it.  This mechanism is activated when a process gets -EAGAIN
+(activating this multiple times is harmless, if a bit wasteful) and
+deactivated by the last process still waiting.
+
+The module name was changed from "random" to "hw_random" in order for
+udev to recognize it.
+
+The sigio workaround needed some changes.  sigio_broken was added for
+cases when we know that async notification doesn't work.  This is now
+called from maybe_sigio_broken, which deals with pts devices.
+
+While I was in sigio.c, I unvolatiled a variable, sticking a barrier()
+in instead.  I moved the definition of barrier to process.h and
+cleaned that up while I was there.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hppfs/hppfs_kern.c |   82 ++++++++++++++--------------------------
- 1 file changed, 30 insertions(+), 52 deletions(-)
+ arch/um/drivers/random.c  |   41 ++++++++++++++++++++++++++++++++----
+ arch/um/include/os.h      |    1 
+ arch/um/include/process.h |   20 +++++------------
+ arch/um/os-Linux/sigio.c  |   35 ++++++++++++++++++------------
+ arch/um/os-Linux/signal.c |    1 
+ include/asm-um/irq.h      |    3 +-
+ 6 files changed, 68 insertions(+), 33 deletions(-)
 
-diff -puN fs/hppfs/hppfs_kern.c~uml-hppfs-fixes fs/hppfs/hppfs_kern.c
---- a/fs/hppfs/hppfs_kern.c~uml-hppfs-fixes
-+++ a/fs/hppfs/hppfs_kern.c
-@@ -33,7 +33,7 @@ struct hppfs_private {
- };
+diff -puN arch/um/drivers/random.c~uml-random-driver-fixes arch/um/drivers/random.c
+--- a/arch/um/drivers/random.c~uml-random-driver-fixes
++++ a/arch/um/drivers/random.c
+@@ -8,16 +8,18 @@
+ #include <linux/sched.h>
+ #include <linux/module.h>
+ #include <linux/fs.h>
++#include <linux/interrupt.h>
+ #include <linux/miscdevice.h>
+ #include <linux/delay.h>
+ #include <asm/uaccess.h>
++#include "irq_kern.h"
+ #include "os.h"
  
- struct hppfs_inode_info {
--        struct dentry *proc_dentry;
-+	struct dentry *proc_dentry;
- 	struct inode vfs_inode;
- };
+ /*
+  * core module and version information
+  */
+ #define RNG_VERSION "1.0.0"
+-#define RNG_MODULE_NAME "random"
++#define RNG_MODULE_NAME "hw_random"
  
-@@ -52,7 +52,7 @@ static int is_pid(struct dentry *dentry)
- 	int i;
+ #define RNG_MISCDEV_MINOR		183 /* official */
  
- 	sb = dentry->d_sb;
--	if ((sb->s_op != &hppfs_sbops) || (dentry->d_parent != sb->s_root))
-+	if (dentry->d_parent != sb->s_root)
- 		return 0;
+@@ -26,6 +28,7 @@
+  * protects against a module being loaded twice at the same time.
+  */
+ static int random_fd = -1;
++static DECLARE_WAIT_QUEUE_HEAD(host_read_wait);
  
- 	for (i = 0; i < dentry->d_name.len; i++) {
-@@ -136,7 +136,7 @@ static int file_removed(struct dentry *d
+ static int rng_dev_open (struct inode *inode, struct file *filp)
+ {
+@@ -38,6 +41,8 @@ static int rng_dev_open (struct inode *i
+ 	return 0;
  }
  
- static struct dentry *hppfs_lookup(struct inode *ino, struct dentry *dentry,
--                                  struct nameidata *nd)
-+				   struct nameidata *nd)
- {
- 	struct dentry *proc_dentry, *new, *parent;
- 	struct inode *inode;
-@@ -254,6 +254,8 @@ static ssize_t hppfs_read(struct file *f
- 	int err;
- 
- 	if (hppfs->contents != NULL) {
-+		int rem;
++static atomic_t host_sleep_count = ATOMIC_INIT(0);
 +
- 		if (*ppos >= hppfs->len)
- 			return 0;
- 
-@@ -267,8 +269,10 @@ static ssize_t hppfs_read(struct file *f
- 
- 		if (off + count > hppfs->len)
- 			count = hppfs->len - off;
--		copy_to_user(buf, &data->contents[off], count);
--		*ppos += count;
-+		rem = copy_to_user(buf, &data->contents[off], count);
-+		*ppos += count - rem;
-+		if (rem > 0)
-+			return -EFAULT;
- 	} else if (hppfs->host_fd != -1) {
- 		err = os_seek_file(hppfs->host_fd, *ppos);
- 		if (err) {
-@@ -285,21 +289,15 @@ static ssize_t hppfs_read(struct file *f
- 	return count;
- }
- 
--static ssize_t hppfs_write(struct file *file, const char __user *buf, size_t len,
--			   loff_t *ppos)
-+static ssize_t hppfs_write(struct file *file, const char __user *buf,
-+			   size_t len, loff_t *ppos)
+ static ssize_t rng_dev_read (struct file *filp, char __user *buf, size_t size,
+                              loff_t * offp)
  {
- 	struct hppfs_private *data = file->private_data;
- 	struct file *proc_file = data->proc_file;
- 	ssize_t (*write)(struct file *, const char __user *, size_t, loff_t *);
--	int err;
- 
- 	write = proc_file->f_path.dentry->d_inode->i_fop->write;
--
--	proc_file->f_pos = file->f_pos;
--	err = (*write)(proc_file, buf, len, &proc_file->f_pos);
--	file->f_pos = proc_file->f_pos;
--
--	return err;
-+	return (*write)(proc_file, buf, len, ppos);
- }
- 
- static int open_host_sock(char *host_file, int *filter_out)
-@@ -357,7 +355,7 @@ static struct hppfs_data *hppfs_get_data
- 
- 	if (filter) {
- 		while ((n = read_proc(proc_file, data->contents,
--				     sizeof(data->contents), NULL, 0)) > 0)
-+				      sizeof(data->contents), NULL, 0)) > 0)
- 			os_write_file(fd, data->contents, n);
- 		err = os_shutdown_socket(fd, 0, 1);
- 		if (err) {
-@@ -429,8 +427,8 @@ static int file_mode(int fmode)
- static int hppfs_open(struct inode *inode, struct file *file)
- {
- 	struct hppfs_private *data;
--	struct dentry *proc_dentry;
- 	struct vfsmount *proc_mnt;
-+	struct dentry *proc_dentry;
- 	char *host_file;
- 	int err, fd, type, filter;
- 
-@@ -492,8 +490,8 @@ static int hppfs_open(struct inode *inod
- static int hppfs_dir_open(struct inode *inode, struct file *file)
- {
- 	struct hppfs_private *data;
--	struct dentry *proc_dentry;
- 	struct vfsmount *proc_mnt;
-+	struct dentry *proc_dentry;
- 	int err;
- 
- 	err = -ENOMEM;
-@@ -620,6 +618,9 @@ static struct inode *hppfs_alloc_inode(s
- 
- void hppfs_delete_inode(struct inode *ino)
- {
-+	dput(HPPFS_I(ino)->proc_dentry);
-+	mntput(ino->i_sb->s_fs_info);
+@@ -60,11 +65,26 @@ static ssize_t rng_dev_read (struct file
+                         }
+                 }
+                 else if(n == -EAGAIN){
++			DECLARE_WAITQUEUE(wait, current);
 +
- 	clear_inode(ino);
- }
+                         if (filp->f_flags & O_NONBLOCK)
+                                 return ret ? : -EAGAIN;
  
-@@ -628,69 +629,46 @@ static void hppfs_destroy_inode(struct i
- 	kfree(HPPFS_I(inode));
- }
- 
--static void hppfs_put_super(struct super_block *sb)
--{
--	mntput(sb->s_fs_info);
--}
--
- static const struct super_operations hppfs_sbops = {
- 	.alloc_inode	= hppfs_alloc_inode,
- 	.destroy_inode	= hppfs_destroy_inode,
- 	.delete_inode	= hppfs_delete_inode,
- 	.statfs		= hppfs_statfs,
--	.put_super	= hppfs_put_super,
+-                        if(need_resched())
+-                                schedule_timeout_interruptible(1);
++			atomic_inc(&host_sleep_count);
++			reactivate_fd(random_fd, RANDOM_IRQ);
++			add_sigio_fd(random_fd);
++
++			add_wait_queue(&host_read_wait, &wait);
++			set_task_state(current, TASK_INTERRUPTIBLE);
++
++			schedule();
++			set_task_state(current, TASK_RUNNING);
++			remove_wait_queue(&host_read_wait, &wait);
++
++			if (atomic_dec_and_test(&host_sleep_count)) {
++				ignore_sigio_fd(random_fd);
++				deactivate_fd(random_fd, RANDOM_IRQ);
++			}
+                 }
+                 else return n;
+ 		if (signal_pending (current))
+@@ -86,6 +106,13 @@ static struct miscdevice rng_miscdev = {
+ 	&rng_chrdev_ops,
  };
  
- static int hppfs_readlink(struct dentry *dentry, char __user *buffer,
- 			  int buflen)
- {
--	struct file *proc_file;
- 	struct dentry *proc_dentry;
--	struct vfsmount *proc_mnt;
--	int ret;
- 
- 	proc_dentry = HPPFS_I(dentry->d_inode)->proc_dentry;
--	proc_mnt = dentry->d_sb->s_fs_info;
--
--	proc_file = dentry_open(dget(proc_dentry), mntget(proc_mnt), O_RDONLY);
--	if (IS_ERR(proc_file))
--		return PTR_ERR(proc_file);
--
--	ret = proc_dentry->d_inode->i_op->readlink(proc_dentry, buffer, buflen);
--
--	fput(proc_file);
--
--	return ret;
-+	return proc_dentry->d_inode->i_op->readlink(proc_dentry, buffer,
-+						    buflen);
- }
- 
--static void* hppfs_follow_link(struct dentry *dentry, struct nameidata *nd)
-+static void *hppfs_follow_link(struct dentry *dentry, struct nameidata *nd)
- {
--	struct file *proc_file;
- 	struct dentry *proc_dentry;
--	struct vfsmount *proc_mnt;
--	void *ret;
- 
- 	proc_dentry = HPPFS_I(dentry->d_inode)->proc_dentry;
--	proc_mnt = dentry->d_sb->s_fs_info;
--
--	proc_file = dentry_open(dget(proc_dentry), mntget(proc_mnt), O_RDONLY);
--	if (IS_ERR(proc_file))
--		return proc_file;
--
--	ret = proc_dentry->d_inode->i_op->follow_link(proc_dentry, nd);
- 
--	fput(proc_file);
-+	return proc_dentry->d_inode->i_op->follow_link(proc_dentry, nd);
-+}
- 
--	return ret;
-+int hppfs_permission(struct inode *inode, int mask, struct nameidata *nd)
++static irqreturn_t random_interrupt(int irq, void *data)
 +{
-+	return generic_permission(inode, mask, NULL);
++	wake_up(&host_read_wait);
++
++	return IRQ_HANDLED;
++}
++
+ /*
+  * rng_init - initialize RNG module
+  */
+@@ -99,10 +126,14 @@ static int __init rng_init (void)
+ 
+         random_fd = err;
+ 
+-        err = os_set_fd_block(random_fd, 0);
++	err = um_request_irq(RANDOM_IRQ, random_fd, IRQ_READ, random_interrupt,
++			     IRQF_DISABLED | IRQF_SAMPLE_RANDOM, "random",
++			     NULL);
+         if(err)
+ 		goto err_out_cleanup_hw;
+ 
++	sigio_broken(random_fd, 1);
++
+ 	err = misc_register (&rng_miscdev);
+ 	if (err) {
+ 		printk (KERN_ERR RNG_MODULE_NAME ": misc device register failed\n");
+@@ -113,6 +144,7 @@ static int __init rng_init (void)
+         return err;
+ 
+  err_out_cleanup_hw:
++	os_close_file(random_fd);
+         random_fd = -1;
+         goto out;
+ }
+@@ -122,6 +154,7 @@ static int __init rng_init (void)
+  */
+ static void __exit rng_cleanup (void)
+ {
++	os_close_file(random_fd);
+ 	misc_deregister (&rng_miscdev);
  }
  
- static const struct inode_operations hppfs_dir_iops = {
- 	.lookup		= hppfs_lookup,
-+	.permission	= hppfs_permission,
- };
+diff -puN arch/um/include/os.h~uml-random-driver-fixes arch/um/include/os.h
+--- a/arch/um/include/os.h~uml-random-driver-fixes
++++ a/arch/um/include/os.h
+@@ -290,6 +290,7 @@ extern void os_set_ioignore(void);
+ extern int add_sigio_fd(int fd);
+ extern int ignore_sigio_fd(int fd);
+ extern void maybe_sigio_broken(int fd, int read);
++extern void sigio_broken(int fd, int read);
  
- static const struct inode_operations hppfs_link_iops = {
- 	.readlink	= hppfs_readlink,
- 	.follow_link	= hppfs_follow_link,
-+	.permission	= hppfs_permission,
- };
+ /* sys-x86_64/prctl.c */
+ extern int os_arch_prctl(int pid, int code, unsigned long *addr);
+diff -puN arch/um/include/process.h~uml-random-driver-fixes arch/um/include/process.h
+--- a/arch/um/include/process.h~uml-random-driver-fixes
++++ a/arch/um/include/process.h
+@@ -1,5 +1,5 @@
+ /* 
+- * Copyright (C) 2000, 2001, 2002 Jeff Dike (jdike@karaya.com)
++ * Copyright (C) 2000 - 2008 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
  
- static struct inode *get_inode(struct super_block *sb, struct dentry *dentry)
-@@ -712,7 +690,7 @@ static struct inode *get_inode(struct su
- 		inode->i_fop = &hppfs_file_fops;
- 	}
+@@ -8,18 +8,10 @@
  
--	HPPFS_I(inode)->proc_dentry = dentry;
-+	HPPFS_I(inode)->proc_dentry = dget(dentry);
+ #include <signal.h>
  
- 	inode->i_uid = proc_ino->i_uid;
- 	inode->i_gid = proc_ino->i_gid;
-@@ -725,7 +703,7 @@ static struct inode *get_inode(struct su
- 	inode->i_size = proc_ino->i_size;
- 	inode->i_blocks = proc_ino->i_blocks;
+-extern void sig_handler(int sig, struct sigcontext sc);
+-extern void alarm_handler(int sig, struct sigcontext sc);
++/* Copied from linux/compiler-gcc.h since we can't include it directly */
++#define barrier() __asm__ __volatile__("": : :"memory")
  
--	return 0;
-+	return inode;
+-#endif
++extern void sig_handler(int sig, struct sigcontext *sc);
++extern void alarm_handler(int sig, struct sigcontext *sc);
+ 
+-/*
+- * Overrides for Emacs so that we follow Linus's tabbing style.
+- * Emacs will notice this stuff at the end of the file and automatically
+- * adjust the settings for this buffer only.  This must remain at the end
+- * of the file.
+- * ---------------------------------------------------------------------------
+- * Local variables:
+- * c-file-style: "linux"
+- * End:
+- */
++#endif
+diff -puN arch/um/os-Linux/sigio.c~uml-random-driver-fixes arch/um/os-Linux/sigio.c
+--- a/arch/um/os-Linux/sigio.c~uml-random-driver-fixes
++++ a/arch/um/os-Linux/sigio.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
++ * Copyright (C) 2002 - 2008 Jeff Dike (jdike@{addtoit,linux.intel}.com)
+  * Licensed under the GPL
+  */
+ 
+@@ -15,6 +15,7 @@
+ #include "kern_util.h"
+ #include "init.h"
+ #include "os.h"
++#include "process.h"
+ #include "sigio.h"
+ #include "um_malloc.h"
+ #include "user.h"
+@@ -338,20 +339,10 @@ out_close1:
+ 	close(l_write_sigio_fds[1]);
  }
  
- static int hppfs_fill_super(struct super_block *sb, void *d, int silent)
+-/* Changed during early boot */
+-static int pty_output_sigio = 0;
+-static int pty_close_sigio = 0;
+-
+-void maybe_sigio_broken(int fd, int read)
++void sigio_broken(int fd, int read)
+ {
+ 	int err;
+ 
+-	if (!isatty(fd))
+-		return;
+-
+-	if ((read || pty_output_sigio) && (!read || pty_close_sigio))
+-		return;
+-
+ 	write_sigio_workaround();
+ 
+ 	sigio_lock();
+@@ -370,6 +361,21 @@ out:
+ 	sigio_unlock();
+ }
+ 
++/* Changed during early boot */
++static int pty_output_sigio;
++static int pty_close_sigio;
++
++void maybe_sigio_broken(int fd, int read)
++{
++	if (!isatty(fd))
++		return;
++
++	if ((read || pty_output_sigio) && (!read || pty_close_sigio))
++		return;
++
++	sigio_broken(fd, read);
++}
++
+ static void sigio_cleanup(void)
+ {
+ 	if (write_sigio_pid == -1)
+@@ -383,7 +389,7 @@ static void sigio_cleanup(void)
+ __uml_exitcall(sigio_cleanup);
+ 
+ /* Used as a flag during SIGIO testing early in boot */
+-static volatile int got_sigio = 0;
++static int got_sigio;
+ 
+ static void __init handler(int sig)
+ {
+@@ -498,7 +504,8 @@ static void tty_output(int master, int s
+ 	if (errno != EAGAIN)
+ 		printk(UM_KERN_ERR "tty_output : write failed, errno = %d\n",
+ 		       errno);
+-	while (((n = read(slave, buf, sizeof(buf))) > 0) && !got_sigio)
++	while (((n = read(slave, buf, sizeof(buf))) > 0) &&
++	       !({ barrier(); got_sigio; }))
+ 		;
+ 
+ 	if (got_sigio) {
+diff -puN arch/um/os-Linux/signal.c~uml-random-driver-fixes arch/um/os-Linux/signal.c
+--- a/arch/um/os-Linux/signal.c~uml-random-driver-fixes
++++ a/arch/um/os-Linux/signal.c
+@@ -12,6 +12,7 @@
+ #include "as-layout.h"
+ #include "kern_util.h"
+ #include "os.h"
++#include "process.h"
+ #include "sysdep/barrier.h"
+ #include "sysdep/sigcontext.h"
+ #include "user.h"
+diff -puN include/asm-um/irq.h~uml-random-driver-fixes include/asm-um/irq.h
+--- a/include/asm-um/irq.h~uml-random-driver-fixes
++++ a/include/asm-um/irq.h
+@@ -15,8 +15,9 @@
+ #define SIGIO_WRITE_IRQ 	11
+ #define TELNETD_IRQ 		12
+ #define XTERM_IRQ 		13
++#define RANDOM_IRQ 		14
+ 
+-#define LAST_IRQ XTERM_IRQ
++#define LAST_IRQ RANDOM_IRQ
+ #define NR_IRQS (LAST_IRQ + 1)
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
