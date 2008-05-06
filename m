@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-physical-memory-shouldnt-include-initial-stack.patch added to -mm tree
-Date: Tue, 06 May 2008 13:49:37 -0700
-Message-ID: <200805062049.m46KnbC9026597@imap1.linux-foundation.org>
+Subject: + uml-use-__spin_lock_unlocked.patch added to -mm tree
+Date: Tue, 06 May 2008 13:49:29 -0700
+Message-ID: <200805062049.m46KnTT3026585@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40603 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38030 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759236AbYEFUuX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:50:23 -0400
+	by vger.kernel.org with ESMTP id S1762935AbYEFUuD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:50:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, caker@theshore.net, jdike@linux.intel.com, xiyou.wangcong@gmail.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com, rpjday@crashcourse.ca, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     uml: physical memory shouldn't include initial stack
+     uml: use __SPIN_LOCK_UNLOCKED
 has been added to the -mm tree.  Its filename is
-     uml-physical-memory-shouldnt-include-initial-stack.patch
+     uml-use-__spin_lock_unlocked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: physical memory shouldn't include initial stack
+Subject: uml: use __SPIN_LOCK_UNLOCKED
 From: Jeff Dike <jdike@addtoit.com>
 
-The top of physical memory should be below the initial process stack, not the
-top of the address space, at least for as long as the stack isn't known to the
-kernel VM system and appropriately reserved.
 
-Cc: "Christopher S. Aker" <caker@theshore.net>
+Use newer, non-deprecated __SPIN_LOCK_UNLOCKED macro.
+
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/um_arch.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/um/include/line.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/kernel/um_arch.c~uml-physical-memory-shouldnt-include-initial-stack arch/um/kernel/um_arch.c
---- a/arch/um/kernel/um_arch.c~uml-physical-memory-shouldnt-include-initial-stack
-+++ a/arch/um/kernel/um_arch.c
-@@ -258,6 +258,7 @@ int __init linux_main(int argc, char **a
- {
- 	unsigned long avail, diff;
- 	unsigned long virtmem_size, max_physmem;
-+	unsigned long stack;
- 	unsigned int i;
- 	int add;
- 	char * mode;
-@@ -348,7 +349,9 @@ int __init linux_main(int argc, char **a
- 	}
+diff -puN arch/um/include/line.h~uml-use-__spin_lock_unlocked arch/um/include/line.h
+--- a/arch/um/include/line.h~uml-use-__spin_lock_unlocked
++++ a/arch/um/include/line.h
+@@ -58,11 +58,11 @@ struct line {
+ };
  
- 	virtmem_size = physmem_size;
--	avail = TASK_SIZE - start_vm;
-+	stack = (unsigned long) argv;
-+	stack &= ~(1024 * 1024 - 1);
-+	avail = stack - start_vm;
- 	if (physmem_size > avail)
- 		virtmem_size = avail;
- 	end_vm = start_vm + virtmem_size;
+ #define LINE_INIT(str, d) \
+-	{ .count_lock =	SPIN_LOCK_UNLOCKED, \
++	{ .count_lock =	__SPIN_LOCK_UNLOCKED((str).count_lock), \
+ 	  .init_str =	str,	\
+ 	  .init_pri =	INIT_STATIC, \
+ 	  .valid =	1, \
+-	  .lock =	SPIN_LOCK_UNLOCKED, \
++	  .lock =	__SPIN_LOCK_UNLOCKED((str).lock), \
+ 	  .driver =	d }
+ 
+ extern void line_close(struct tty_struct *tty, struct file * filp);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
