@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-binfmt_elfc-fix-a-wrong-free.patch added to -mm tree
-Date: Tue, 06 May 2008 12:25:50 -0700
-Message-ID: <200805061925.m46JPopQ023214@imap1.linux-foundation.org>
+Subject: + m68knommu-coldfire-add-support-for-kernel-preemption-missing-chunk.patch added to -mm tree
+Date: Tue, 06 May 2008 12:27:04 -0700
+Message-ID: <200805061927.m46JR4OD023257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50041 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36201 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758729AbYEFTZ7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 15:25:59 -0400
+	by vger.kernel.org with ESMTP id S1758080AbYEFT1P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 15:27:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, penberg@cs.helsinki.fi, viro@zeniv.linux.org.uk, wangcong@zeuux.org
+Cc: bigeasy@linutronix.de, gerg@uclinux.org
 
 
 The patch titled
-     fs/binfmt_elf.c: fix a wrong free
+     m68knommu: ColdFire add support for kernel preemption (missing chunk)
 has been added to the -mm tree.  Its filename is
-     fs-binfmt_elfc-fix-a-wrong-free.patch
+     m68knommu-coldfire-add-support-for-kernel-preemption-missing-chunk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/binfmt_elf.c: fix a wrong free
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: m68knommu: ColdFire add support for kernel preemption (missing chunk)
+From: Sebastian Siewior <bigeasy@linutronix.de>
 
-On the kmalloc failure path we shouldn't free pointers in 'info', because the
-struct 'info' is uninitialized when kmalloc is called.
+As the subject says this patch adds the support for kernel preemption on
+m68knommu Coldfire.  I thing the same changes could be applied to 68360 &
+68328 but since I don't have the HW, I don't touch it.  Kconfig enables the
+preemption item only on coldfire.
 
-And when kmalloc returns NULL, it's needless to kfree it.
+This is a missing chunk from Sebastian's original patch that I lost from the
+first submission.
 
-Signed-off-by: WANG Cong <wangcong@zeuux.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Reviewed-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Sebastian Siewior <bigeasy@linutronix.de>
+Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/m68knommu/Kconfig |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/binfmt_elf.c~fs-binfmt_elfc-fix-a-wrong-free fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-binfmt_elfc-fix-a-wrong-free
-+++ a/fs/binfmt_elf.c
-@@ -1900,7 +1900,7 @@ static int elf_core_dump(long signr, str
- 	/* alloc memory for large data structures: too large to be on stack */
- 	elf = kmalloc(sizeof(*elf), GFP_KERNEL);
- 	if (!elf)
--		goto cleanup;
-+		goto out;
- 	
- 	segs = current->mm->map_count;
- #ifdef ELF_CORE_EXTRA_PHDRS
-@@ -2034,8 +2034,9 @@ end_coredump:
- 	set_fs(fs);
+diff -puN arch/m68knommu/Kconfig~m68knommu-coldfire-add-support-for-kernel-preemption-missing-chunk arch/m68knommu/Kconfig
+--- a/arch/m68knommu/Kconfig~m68knommu-coldfire-add-support-for-kernel-preemption-missing-chunk
++++ a/arch/m68knommu/Kconfig
+@@ -671,6 +671,9 @@ config ROMKERNEL
  
- cleanup:
--	kfree(elf);
- 	free_note_info(&info);
-+	kfree(elf);
-+out:
- 	return has_dumped;
- }
+ endchoice
  
++if COLDFIRE
++source "kernel/Kconfig.preempt"
++endif
+ source "mm/Kconfig"
+ 
+ endmenu
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
-uml-fix-inconsistence-due-to-tty_operation-change.patch
-fs-binfmt_elfc-fix-a-wrong-free.patch
-arch-um-kernel-irqc-clean-up-some-functions.patch
-arch-um-kernel-memc-remove-arch_validate.patch
-uml-make-several-more-things-static.patch
+linux-next.patch
+m68knommu-coldfire-add-support-for-kernel-preemption-missing-chunk.patch
+add-the-carmine-fb-driver.patch
+add-the-carmine-fb-driver-update.patch
 
