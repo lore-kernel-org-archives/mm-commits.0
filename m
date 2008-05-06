@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + init-do_mountsc-should-include-linux-initrdh.patch added to -mm tree
-Date: Tue, 06 May 2008 11:37:08 -0700
-Message-ID: <200805061837.m46Ib87x021279@imap1.linux-foundation.org>
+Subject: + make-mm-rmapc-anon_vma_cachep-static.patch added to -mm tree
+Date: Tue, 06 May 2008 11:36:50 -0700
+Message-ID: <200805061836.m46Iaob5021246@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37613 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40456 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756546AbYEFShV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:21 -0400
+	by vger.kernel.org with ESMTP id S1761139AbYEFShc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, kosaki.motohiro@jp.fujitsu.com, riel@redhat.com
 
 
 The patch titled
-     init/do_mounts.c should #include <linux/initrd.h>
+     make mm/rmap.c:anon_vma_cachep static
 has been added to the -mm tree.  Its filename is
-     init-do_mountsc-should-include-linux-initrdh.patch
+     make-mm-rmapc-anon_vma_cachep-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,65 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init/do_mounts.c should #include <linux/initrd.h>
+Subject: make mm/rmap.c:anon_vma_cachep static
 From: Adrian Bunk <bunk@kernel.org>
 
-Every file should include the headers containing the externs for its
-global code (in this case for rd_doload).
+This patch makes the needlessly global anon_vma_cachep static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Reviewed-by: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/rmap.h |   12 ------------
+ mm/rmap.c            |   12 +++++++++++-
+ 2 files changed, 11 insertions(+), 13 deletions(-)
 
-diff -puN init/do_mounts.c~init-do_mountsc-should-include-linux-initrdh init/do_mounts.c
---- a/init/do_mounts.c~init-do_mountsc-should-include-linux-initrdh
-+++ a/init/do_mounts.c
-@@ -12,6 +12,7 @@
- #include <linux/device.h>
- #include <linux/init.h>
- #include <linux/fs.h>
-+#include <linux/initrd.h>
+diff -puN include/linux/rmap.h~make-mm-rmapc-anon_vma_cachep-static include/linux/rmap.h
+--- a/include/linux/rmap.h~make-mm-rmapc-anon_vma_cachep-static
++++ a/include/linux/rmap.h
+@@ -31,18 +31,6 @@ struct anon_vma {
  
- #include <linux/nfs_fs.h>
- #include <linux/nfs_fs_sb.h>
+ #ifdef CONFIG_MMU
+ 
+-extern struct kmem_cache *anon_vma_cachep;
+-
+-static inline struct anon_vma *anon_vma_alloc(void)
+-{
+-	return kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
+-}
+-
+-static inline void anon_vma_free(struct anon_vma *anon_vma)
+-{
+-	kmem_cache_free(anon_vma_cachep, anon_vma);
+-}
+-
+ static inline void anon_vma_lock(struct vm_area_struct *vma)
+ {
+ 	struct anon_vma *anon_vma = vma->anon_vma;
+diff -puN mm/rmap.c~make-mm-rmapc-anon_vma_cachep-static mm/rmap.c
+--- a/mm/rmap.c~make-mm-rmapc-anon_vma_cachep-static
++++ a/mm/rmap.c
+@@ -52,7 +52,17 @@
+ 
+ #include <asm/tlbflush.h>
+ 
+-struct kmem_cache *anon_vma_cachep;
++static struct kmem_cache *anon_vma_cachep;
++
++static inline struct anon_vma *anon_vma_alloc(void)
++{
++	return kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
++}
++
++static inline void anon_vma_free(struct anon_vma *anon_vma)
++{
++	kmem_cache_free(anon_vma_cachep, anon_vma);
++}
+ 
+ /* This must be called under the mmap_sem. */
+ int anon_vma_prepare(struct vm_area_struct *vma)
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
