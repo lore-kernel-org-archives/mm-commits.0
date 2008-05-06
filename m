@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-cgroup_seqfile_release-static.patch added to -mm tree
-Date: Tue, 06 May 2008 11:36:15 -0700
-Message-ID: <200805061836.m46IaFJh021189@imap1.linux-foundation.org>
+Subject: + make-pnp_add_card_id-static.patch added to -mm tree
+Date: Tue, 06 May 2008 11:36:19 -0700
+Message-ID: <200805061836.m46IaJjq021195@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35310 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36005 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752354AbYEFSgd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:33 -0400
+	by vger.kernel.org with ESMTP id S1754230AbYEFSgk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, menage@google.com
+Cc: bunk@kernel.org, bjorn.helgaas@hp.com, rene.herman@gmail.com
 
 
 The patch titled
-     make cgroup_seqfile_release() static
+     make pnp_add_card_id() static
 has been added to the -mm tree.  Its filename is
-     make-cgroup_seqfile_release-static.patch
+     make-pnp_add_card_id-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make cgroup_seqfile_release() static
+Subject: make pnp_add_card_id() static
 From: Adrian Bunk <bunk@kernel.org>
 
-cgroup_seqfile_release() can become static.
+pnp_add_card_id() can now become static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Paul Menage <menage@google.com>
+Cc: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Cc: Rene Herman <rene.herman@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/pnp/base.h |    1 -
+ drivers/pnp/card.c |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN kernel/cgroup.c~make-cgroup_seqfile_release-static kernel/cgroup.c
---- a/kernel/cgroup.c~make-cgroup_seqfile_release-static
-+++ a/kernel/cgroup.c
-@@ -1560,7 +1560,7 @@ static int cgroup_seqfile_show(struct se
- 	return cft->read_seq_string(state->cgroup, cft, m);
- }
+diff -puN drivers/pnp/base.h~make-pnp_add_card_id-static drivers/pnp/base.h
+--- a/drivers/pnp/base.h~make-pnp_add_card_id-static
++++ a/drivers/pnp/base.h
+@@ -14,7 +14,6 @@ struct pnp_id *pnp_add_id(struct pnp_dev
+ int pnp_interface_attach_device(struct pnp_dev *dev);
  
--int cgroup_seqfile_release(struct inode *inode, struct file *file)
-+static int cgroup_seqfile_release(struct inode *inode, struct file *file)
+ int pnp_add_card(struct pnp_card *card);
+-struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id);
+ void pnp_remove_card(struct pnp_card *card);
+ int pnp_add_card_device(struct pnp_card *card, struct pnp_dev *dev);
+ void pnp_remove_card_device(struct pnp_dev *dev);
+diff -puN drivers/pnp/card.c~make-pnp_add_card_id-static drivers/pnp/card.c
+--- a/drivers/pnp/card.c~make-pnp_add_card_id-static
++++ a/drivers/pnp/card.c
+@@ -101,7 +101,7 @@ static int card_probe(struct pnp_card *c
+  * @id: pointer to a pnp_id structure
+  * @card: pointer to the desired card
+  */
+-struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id)
++static struct pnp_id *pnp_add_card_id(struct pnp_card *card, char *id)
  {
- 	struct seq_file *seq = file->private_data;
- 	kfree(seq->private);
+ 	struct pnp_id *dev_id, *ptr;
+ 
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
