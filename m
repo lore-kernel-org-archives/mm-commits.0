@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-allocpercpuc-make-4-functions-static.patch added to -mm tree
-Date: Tue, 06 May 2008 11:36:44 -0700
-Message-ID: <200805061836.m46Iaiel021236@imap1.linux-foundation.org>
+Subject: + proper-spawn_ksoftirqd-prototype.patch added to -mm tree
+Date: Tue, 06 May 2008 11:36:36 -0700
+Message-ID: <200805061836.m46IaaX5021224@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40712 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755889AbYEFSg7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:59 -0400
+	by vger.kernel.org with ESMTP id S1754511AbYEFSgt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, clameter@sgi.com
+Cc: bunk@kernel.org
 
 
 The patch titled
-     mm/allocpercpu.c: make 4 functions static
+     proper spawn_ksoftirqd() prototype
 has been added to the -mm tree.  Its filename is
-     mm-allocpercpuc-make-4-functions-static.patch
+     proper-spawn_ksoftirqd-prototype.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,152 +33,43 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm/allocpercpu.c: make 4 functions static
+Subject: proper spawn_ksoftirqd() prototype
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch makes the following needlessly global functions static:
-- percpu_depopulate()
-- __percpu_depopulate_mask()
-- percpu_populate()
-- __percpu_populate_mask()
+This patch adds a proper prototype for spawn_ksoftirqd() in
+include/linux/interrupt.h
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Christoph Lameter <clameter@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu.h |   29 -----------------------------
- mm/allocpercpu.c       |   20 +++++++++++---------
- 2 files changed, 11 insertions(+), 38 deletions(-)
+ include/linux/interrupt.h |    1 +
+ init/main.c               |    2 --
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/percpu.h~mm-allocpercpuc-make-4-functions-static include/linux/percpu.h
---- a/include/linux/percpu.h~mm-allocpercpuc-make-4-functions-static
-+++ a/include/linux/percpu.h
-@@ -75,11 +75,6 @@ struct percpu_data {
-         (__typeof__(ptr))__p->ptrs[(cpu)];	          \
- })
+diff -puN include/linux/interrupt.h~proper-spawn_ksoftirqd-prototype include/linux/interrupt.h
+--- a/include/linux/interrupt.h~proper-spawn_ksoftirqd-prototype
++++ a/include/linux/interrupt.h
+@@ -305,6 +305,7 @@ extern void softirq_init(void);
+ #define __raise_softirq_irqoff(nr) do { or_softirq_pending(1UL << (nr)); } while (0)
+ extern void raise_softirq_irqoff(unsigned int nr);
+ extern void raise_softirq(unsigned int nr);
++extern int spawn_ksoftirqd(void);
  
--extern void *percpu_populate(void *__pdata, size_t size, gfp_t gfp, int cpu);
--extern void percpu_depopulate(void *__pdata, int cpu);
--extern int __percpu_populate_mask(void *__pdata, size_t size, gfp_t gfp,
--				  cpumask_t *mask);
--extern void __percpu_depopulate_mask(void *__pdata, cpumask_t *mask);
- extern void *__percpu_alloc_mask(size_t size, gfp_t gfp, cpumask_t *mask);
- extern void percpu_free(void *__pdata);
  
-@@ -87,26 +82,6 @@ extern void percpu_free(void *__pdata);
+ /* Tasklets --- multithreaded analogue of BHs.
+diff -puN init/main.c~proper-spawn_ksoftirqd-prototype init/main.c
+--- a/init/main.c~proper-spawn_ksoftirqd-prototype
++++ a/init/main.c
+@@ -792,8 +792,6 @@ __setup("nosoftlockup", nosoftlockup_set
  
- #define percpu_ptr(ptr, cpu) ({ (void)(cpu); (ptr); })
- 
--static inline void percpu_depopulate(void *__pdata, int cpu)
--{
--}
+ static void __init do_pre_smp_initcalls(void)
+ {
+-	extern int spawn_ksoftirqd(void);
 -
--static inline void __percpu_depopulate_mask(void *__pdata, cpumask_t *mask)
--{
--}
--
--static inline void *percpu_populate(void *__pdata, size_t size, gfp_t gfp,
--				    int cpu)
--{
--	return percpu_ptr(__pdata, cpu);
--}
--
--static inline int __percpu_populate_mask(void *__pdata, size_t size, gfp_t gfp,
--					 cpumask_t *mask)
--{
--	return 0;
--}
--
- static __always_inline void *__percpu_alloc_mask(size_t size, gfp_t gfp, cpumask_t *mask)
- {
- 	return kzalloc(size, gfp);
-@@ -119,10 +94,6 @@ static inline void percpu_free(void *__p
- 
- #endif /* CONFIG_SMP */
- 
--#define percpu_populate_mask(__pdata, size, gfp, mask) \
--	__percpu_populate_mask((__pdata), (size), (gfp), &(mask))
--#define percpu_depopulate_mask(__pdata, mask) \
--	__percpu_depopulate_mask((__pdata), &(mask))
- #define percpu_alloc_mask(size, gfp, mask) \
- 	__percpu_alloc_mask((size), (gfp), &(mask))
- 
-diff -puN mm/allocpercpu.c~mm-allocpercpuc-make-4-functions-static mm/allocpercpu.c
---- a/mm/allocpercpu.c~mm-allocpercpuc-make-4-functions-static
-+++ a/mm/allocpercpu.c
-@@ -18,27 +18,28 @@
-  * Depopulating per-cpu data for a cpu going offline would be a typical
-  * use case. You need to register a cpu hotplug handler for that purpose.
-  */
--void percpu_depopulate(void *__pdata, int cpu)
-+static void percpu_depopulate(void *__pdata, int cpu)
- {
- 	struct percpu_data *pdata = __percpu_disguise(__pdata);
- 
- 	kfree(pdata->ptrs[cpu]);
- 	pdata->ptrs[cpu] = NULL;
- }
--EXPORT_SYMBOL_GPL(percpu_depopulate);
- 
- /**
-  * percpu_depopulate_mask - depopulate per-cpu data for some cpu's
-  * @__pdata: per-cpu data to depopulate
-  * @mask: depopulate per-cpu data for cpu's selected through mask bits
-  */
--void __percpu_depopulate_mask(void *__pdata, cpumask_t *mask)
-+static void __percpu_depopulate_mask(void *__pdata, cpumask_t *mask)
- {
- 	int cpu;
- 	for_each_cpu_mask_nr(cpu, *mask)
- 		percpu_depopulate(__pdata, cpu);
- }
--EXPORT_SYMBOL_GPL(__percpu_depopulate_mask);
-+
-+#define percpu_depopulate_mask(__pdata, mask) \
-+	__percpu_depopulate_mask((__pdata), &(mask))
- 
- /**
-  * percpu_populate - populate per-cpu data for given cpu
-@@ -51,7 +52,7 @@ EXPORT_SYMBOL_GPL(__percpu_depopulate_ma
-  * use case. You need to register a cpu hotplug handler for that purpose.
-  * Per-cpu object is populated with zeroed buffer.
-  */
--void *percpu_populate(void *__pdata, size_t size, gfp_t gfp, int cpu)
-+static void *percpu_populate(void *__pdata, size_t size, gfp_t gfp, int cpu)
- {
- 	struct percpu_data *pdata = __percpu_disguise(__pdata);
- 	int node = cpu_to_node(cpu);
-@@ -68,7 +69,6 @@ void *percpu_populate(void *__pdata, siz
- 		pdata->ptrs[cpu] = kzalloc(size, gfp);
- 	return pdata->ptrs[cpu];
- }
--EXPORT_SYMBOL_GPL(percpu_populate);
- 
- /**
-  * percpu_populate_mask - populate per-cpu data for more cpu's
-@@ -79,8 +79,8 @@ EXPORT_SYMBOL_GPL(percpu_populate);
-  *
-  * Per-cpu objects are populated with zeroed buffers.
-  */
--int __percpu_populate_mask(void *__pdata, size_t size, gfp_t gfp,
--			   cpumask_t *mask)
-+static int __percpu_populate_mask(void *__pdata, size_t size, gfp_t gfp,
-+				  cpumask_t *mask)
- {
- 	cpumask_t populated;
- 	int cpu;
-@@ -94,7 +94,9 @@ int __percpu_populate_mask(void *__pdata
- 			cpu_set(cpu, populated);
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(__percpu_populate_mask);
-+
-+#define percpu_populate_mask(__pdata, size, gfp, mask) \
-+	__percpu_populate_mask((__pdata), (size), (gfp), &(mask))
- 
- /**
-  * percpu_alloc_mask - initial setup of per-cpu data
+ 	kmemcheck_init();
+ 	migration_init();
+ 	spawn_ksoftirqd();
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
