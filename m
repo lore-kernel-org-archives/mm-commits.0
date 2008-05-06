@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + unexport-uts_sem.patch added to -mm tree
-Date: Tue, 06 May 2008 11:37:37 -0700
-Message-ID: <200805061837.m46Ibbmt021326@imap1.linux-foundation.org>
+Subject: + serial-8250_gscc-add-module_license.patch added to -mm tree
+Date: Tue, 06 May 2008 11:37:31 -0700
+Message-ID: <200805061837.m46IbVi6021317@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56193 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46754 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758253AbYEFSh5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:57 -0400
+	by vger.kernel.org with ESMTP id S1760959AbYEFSio (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:38:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, davem@davemloft.net
+Cc: bunk@kernel.org, alan@redhat.com
 
 
 The patch titled
-     unexport uts_sem
+     serial/8250_gsc.c: add MODULE_LICENSE
 has been added to the -mm tree.  Its filename is
-     unexport-uts_sem.patch
+     serial-8250_gscc-add-module_license.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,32 +33,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unexport uts_sem
+Subject: serial/8250_gsc.c: add MODULE_LICENSE
 From: Adrian Bunk <bunk@kernel.org>
 
-With the removal of the Solaris binary emulation the export of
-uts_sem became unused.
+This patch adds the missing MODULE_LICENSE("GPL").
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: David S. Miller <davem@davemloft.net>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/serial/8250_gsc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/sys.c~unexport-uts_sem kernel/sys.c
---- a/kernel/sys.c~unexport-uts_sem
-+++ a/kernel/sys.c
-@@ -1343,8 +1343,6 @@ EXPORT_SYMBOL(in_egroup_p);
+diff -puN drivers/serial/8250_gsc.c~serial-8250_gscc-add-module_license drivers/serial/8250_gsc.c
+--- a/drivers/serial/8250_gsc.c~serial-8250_gscc-add-module_license
++++ a/drivers/serial/8250_gsc.c
+@@ -119,3 +119,5 @@ int __init probe_serial_gsc(void)
+ }
  
- DECLARE_RWSEM(uts_sem);
- 
--EXPORT_SYMBOL(uts_sem);
--
- asmlinkage long sys_newuname(struct new_utsname __user * name)
- {
- 	int errno = 0;
+ module_init(probe_serial_gsc);
++
++MODULE_LICENSE("GPL");
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
