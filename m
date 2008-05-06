@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + if-0-hpet_unregister.patch added to -mm tree
-Date: Tue, 06 May 2008 11:37:12 -0700
-Message-ID: <200805061837.m46IbCYu021285@imap1.linux-foundation.org>
+Subject: + move-proc_kmsg_operations-to-fs-proc-internalh.patch added to -mm tree
+Date: Tue, 06 May 2008 11:37:33 -0700
+Message-ID: <200805061837.m46IbX57021320@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47080 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46379 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761779AbYEFShd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:33 -0400
+	by vger.kernel.org with ESMTP id S1756527AbYEFSht (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, clemens@ladisch.de
+Cc: bunk@kernel.org, adobriyan@gmail.com
 
 
 The patch titled
-     #if 0 hpet_unregister()
+     move proc_kmsg_operations to fs/proc/internal.h
 has been added to the -mm tree.  Its filename is
-     if-0-hpet_unregister.patch
+     move-proc_kmsg_operations-to-fs-proc-internalh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,57 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: #if 0 hpet_unregister()
+Subject: move proc_kmsg_operations to fs/proc/internal.h
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch #if 0's the unused hpet_unregister().
+This patch moves the extern of struct proc_kmsg_operations to
+fs/proc/internal.h and adds an #include "internal.h" to fs/proc/kmsg.c
+so that the latter sees the former.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Clemens Ladisch <clemens@ladisch.de>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/hpet.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/proc/internal.h      |    1 +
+ fs/proc/kmsg.c          |    2 ++
+ include/linux/proc_fs.h |    1 -
+ 3 files changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/hpet.c~if-0-hpet_unregister drivers/char/hpet.c
---- a/drivers/char/hpet.c~if-0-hpet_unregister
-+++ a/drivers/char/hpet.c
-@@ -619,6 +619,7 @@ static inline int hpet_tpcheck(struct hp
- 	return -ENXIO;
- }
+diff -puN fs/proc/internal.h~move-proc_kmsg_operations-to-fs-proc-internalh fs/proc/internal.h
+--- a/fs/proc/internal.h~move-proc_kmsg_operations-to-fs-proc-internalh
++++ a/fs/proc/internal.h
+@@ -63,6 +63,7 @@ extern const struct file_operations proc
+ extern const struct file_operations proc_clear_refs_operations;
+ extern const struct file_operations proc_pagemap_operations;
+ extern const struct file_operations proc_net_operations;
++extern const struct file_operations proc_kmsg_operations;
+ extern const struct inode_operations proc_net_inode_operations;
  
-+#if 0
- int hpet_unregister(struct hpet_task *tp)
- {
- 	struct hpet_dev *devp;
-@@ -648,6 +649,7 @@ int hpet_unregister(struct hpet_task *tp
+ void free_proc_entry(struct proc_dir_entry *de);
+diff -puN fs/proc/kmsg.c~move-proc_kmsg_operations-to-fs-proc-internalh fs/proc/kmsg.c
+--- a/fs/proc/kmsg.c~move-proc_kmsg_operations-to-fs-proc-internalh
++++ a/fs/proc/kmsg.c
+@@ -15,6 +15,8 @@
+ #include <asm/uaccess.h>
+ #include <asm/io.h>
  
- 	return 0;
- }
-+#endif  /*  0  */
++#include "internal.h"
++
+ extern wait_queue_head_t log_wait;
  
- static ctl_table hpet_table[] = {
- 	{
+ extern int do_syslog(int type, char __user *bug, int count);
+diff -puN include/linux/proc_fs.h~move-proc_kmsg_operations-to-fs-proc-internalh include/linux/proc_fs.h
+--- a/include/linux/proc_fs.h~move-proc_kmsg_operations-to-fs-proc-internalh
++++ a/include/linux/proc_fs.h
+@@ -138,7 +138,6 @@ extern int proc_readdir(struct file *, v
+ extern struct dentry *proc_lookup(struct inode *, struct dentry *, struct nameidata *);
+ 
+ extern const struct file_operations proc_kcore_operations;
+-extern const struct file_operations proc_kmsg_operations;
+ extern const struct file_operations ppc_htab_operations;
+ 
+ extern int pid_ns_prepare_proc(struct pid_namespace *ns);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
