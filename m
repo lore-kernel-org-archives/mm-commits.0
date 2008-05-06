@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-is_tty.patch added to -mm tree
-Date: Tue, 06 May 2008 11:36:13 -0700
-Message-ID: <200805061836.m46IaD9B021186@imap1.linux-foundation.org>
+Subject: + make-mm-sparsec-make-a-function-static.patch added to -mm tree
+Date: Tue, 06 May 2008 11:36:42 -0700
+Message-ID: <200805061836.m46IagH3021233@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35640 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39740 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754746AbYEFSgz (ORCPT
+	by vger.kernel.org with ESMTP id S1755542AbYEFSgz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, alan@redhat.com
+Cc: bunk@kernel.org
 
 
 The patch titled
-     remove is_tty()
+     make mm/sparse.c: make a function static
 has been added to the -mm tree.  Its filename is
-     remove-is_tty.patch
+     make-mm-sparsec-make-a-function-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove is_tty()
+Subject: make mm/sparse.c: make a function static
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch removes the no longer used is_tty().
+This patch makes the needlessly global sparse_early_mem_map_alloc()
+static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/tty_io.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ mm/sparse.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/tty_io.c~remove-is_tty drivers/char/tty_io.c
---- a/drivers/char/tty_io.c~remove-is_tty
-+++ a/drivers/char/tty_io.c
-@@ -1587,19 +1587,6 @@ int tty_hung_up_p(struct file *filp)
+diff -puN mm/sparse.c~make-mm-sparsec-make-a-function-static mm/sparse.c
+--- a/mm/sparse.c~make-mm-sparsec-make-a-function-static
++++ a/mm/sparse.c
+@@ -302,7 +302,7 @@ struct page __init *sparse_mem_map_popul
+ }
+ #endif /* !CONFIG_SPARSEMEM_VMEMMAP */
  
- EXPORT_SYMBOL(tty_hung_up_p);
- 
--/**
-- *	is_tty	-	checker whether file is a TTY
-- *	@filp:		file handle that may be a tty
-- *
-- *	Check if the file handle is a tty handle.
-- */
--
--int is_tty(struct file *filp)
--{
--	return filp->f_op->read == tty_read
--		|| filp->f_op->read == hung_up_tty_read;
--}
--
- static void session_clear_tty(struct pid *session)
+-struct page __init *sparse_early_mem_map_alloc(unsigned long pnum)
++static struct page __init *sparse_early_mem_map_alloc(unsigned long pnum)
  {
- 	struct task_struct *p;
+ 	struct page *map;
+ 	struct mem_section *ms = __nr_to_section(pnum);
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
