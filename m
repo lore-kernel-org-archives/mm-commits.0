@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 06 May 2008 13:24:41 -0700
-Message-ID: <200805062024.m46KOf77025520@imap1.linux-foundation.org>
+Subject: + lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch added to -mm tree
+Date: Tue, 06 May 2008 13:24:39 -0700
+Message-ID: <200805062024.m46KOd7o025517@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40254 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754765AbYEFUZO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:25:14 -0400
+	by vger.kernel.org with ESMTP id S1754322AbYEFUZN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:25:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, rpjday@crashcourse.ca
+Cc: rpjday@crashcourse.ca
 
 
 The patch titled
-     lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes
+     lib: allow memparse() to accept a NULL and ignorable second parm
 has been added to the -mm tree.  Its filename is
-     lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+     lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,118 +33,80 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib: allow memparse() to accept a NULL and ignorable second parm
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-WARNING: consider using strict_strtoull in preference to simple_strtoull
-#42: FILE: lib/cmdline.c:133:
-+	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
+Extend memparse() to allow the caller to use a NULL second parameter, which
+would represent no interest in returning the address of the end of the parsed
+string.
 
-WARNING: braces {} are not necessary for single statement blocks
-#58: FILE: lib/cmdline.c:150:
-+	if (retptr) {
-+		*retptr = endptr;
-+	}
+In numerous cases, callers invoke memparse() to parse a possibly-suffixed
+string (such as "64K" or "2G" or whatever) and define a character pointer to
+accept the end pointer being returned by memparse() even though they have no
+interest in it and promptly throw it away.
 
-total: 0 errors, 2 warnings, 37 lines checked
+This (backward-compatible) enhancement allows callers to use NULL in the cases
+where they just don't care about getting back that end pointer.
 
-./patches/lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Robert P. J. Day" <rpjday@crashcourse.ca>
-Cc: Robert P. J. Day <rpjday@crashcourse.ca>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ lib/cmdline.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN lib/cmdline.c~lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes lib/cmdline.c
---- a/lib/cmdline.c~lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes
+diff -puN lib/cmdline.c~lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm lib/cmdline.c
+--- a/lib/cmdline.c~lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm
 +++ a/lib/cmdline.c
-@@ -126,7 +126,7 @@ char *get_options(const char *str, int n
-  *	megabyte, or one gigabyte, respectively.
-  */
+@@ -116,7 +116,7 @@ char *get_options(const char *str, int n
+ /**
+  *	memparse - parse a string with mem suffixes into a number
+  *	@ptr: Where parse begins
+- *	@retptr: (output) Pointer to next char after parse completes
++ *	@retptr: (output) Optional pointer to next char after parse completes
+  *
+  *	Parses a string into a number.  The number stored at @ptr is
+  *	potentially suffixed with %K (for kilobytes, or 1024 bytes),
+@@ -128,9 +128,11 @@ char *get_options(const char *str, int n
  
--unsigned long long memparse (char *ptr, char **retptr)
-+unsigned long long memparse(char *ptr, char **retptr)
+ unsigned long long memparse (char *ptr, char **retptr)
  {
- 	char *endptr;	/* local pointer to end of parsed string */
+-	unsigned long long ret = simple_strtoull (ptr, retptr, 0);
++	char *endptr;	/* local pointer to end of parsed string */
  
-@@ -147,9 +147,8 @@ unsigned long long memparse (char *ptr, 
+-	switch (**retptr) {
++	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
++
++	switch (*endptr) {
+ 	case 'G':
+ 	case 'g':
+ 		ret <<= 10;
+@@ -140,10 +142,15 @@ unsigned long long memparse (char *ptr, 
+ 	case 'K':
+ 	case 'k':
+ 		ret <<= 10;
+-		(*retptr)++;
++		endptr++;
+ 	default:
  		break;
  	}
- 
--	if (retptr) {
-+	if (retptr)
- 		*retptr = endptr;
--	}
- 
++
++	if (retptr) {
++		*retptr = endptr;
++	}
++
  	return ret;
  }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
-origin.patch
 linux-next.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-revert-memory-hotplug-register-section-node-id-to-free.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-input.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-jg-misc-git-rejects.patch
-revert-git-kbuild.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-git-net-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
 remove-apparently-unused-fd1772h-header-file.patch
+init-delete-hard-coded-setting-and-testing-of-build_cramdisk.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
 lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
