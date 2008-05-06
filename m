@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-fix-clock-off-in-pxa255-270.patch added to -mm tree
-Date: Tue, 06 May 2008 13:55:17 -0700
-Message-ID: <200805062055.m46KtHIk026879@imap1.linux-foundation.org>
+Subject: + colibri-fix-support-for-dm9000-ethernet-device.patch added to -mm tree
+Date: Tue, 06 May 2008 14:27:02 -0700
+Message-ID: <200805062127.m46LR2nL028168@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34519 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54849 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756171AbYEFUz4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:55:56 -0400
+	by vger.kernel.org with ESMTP id S933636AbYEFV2P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 17:28:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rifx@o2.pl, drzeus-list@drzeus.cx
+Cc: michael.abbott@diamond.ac.uk, ben-linux@fluff.org, daniel@caiaq.org, jeff@garzik.org, rmk@arm.linux.org.uk
 
 
 The patch titled
-     mmc: fix clock-off in PXA255/270
+     colibri: fix support for DM9000 ethernet device
 has been added to the -mm tree.  Its filename is
-     mmc-fix-clock-off-in-pxa255-270.patch
+     colibri-fix-support-for-dm9000-ethernet-device.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,74 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc: fix clock-off in PXA255/270
-From: rifx <rifx@o2.pl>
+Subject: colibri: fix support for DM9000 ethernet device
+From: Michael Abbott <michael.abbott@diamond.ac.uk>
 
-It solves the problems with clock-off in the PXA255/270 MMC/SD hardware.  This
-solution was tested with our devices and works good.
+Two changes are necessary to enable proper operation of the DM9000 device with
+the Colibri PXA 270 board: firstly, the IRQ type needs to be configured for
+rising edge interrupts, and secondly this configuration needs to be
+communicated through to the DM9000.
 
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+Signed-off-by: Michael Abbott <michael.abbott@diamond.ac.uk>
+Cc: Daniel Mack <daniel@caiaq.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Ben Dooks <ben-linux@fluff.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/pxamci.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ arch/arm/mach-pxa/colibri.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mmc/host/pxamci.c~mmc-fix-clock-off-in-pxa255-270 drivers/mmc/host/pxamci.c
---- a/drivers/mmc/host/pxamci.c~mmc-fix-clock-off-in-pxa255-270
-+++ a/drivers/mmc/host/pxamci.c
-@@ -26,6 +26,7 @@
- #include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/mmc/host.h>
-+#include <linux/mmc/mmc.h>
- 
- #include <asm/dma.h>
- #include <asm/io.h>
-@@ -69,6 +70,8 @@ struct pxamci_host {
- 	unsigned int		dma_drcmrtx;
+diff -puN arch/arm/mach-pxa/colibri.c~colibri-fix-support-for-dm9000-ethernet-device arch/arm/mach-pxa/colibri.c
+--- a/arch/arm/mach-pxa/colibri.c~colibri-fix-support-for-dm9000-ethernet-device
++++ a/arch/arm/mach-pxa/colibri.c
+@@ -98,7 +98,7 @@ static struct resource dm9000_resources[
+ 	[2] = {
+ 		.start	= COLIBRI_ETH_IRQ,
+ 		.end	= COLIBRI_ETH_IRQ,
+-		.flags	= IORESOURCE_IRQ,
++		.flags	= IORESOURCE_IRQ | IRQF_TRIGGER_RISING,
+ 	},
  };
  
-+static int local_cmd = -1;
-+
- static void pxamci_stop_clock(struct pxamci_host *host)
- {
- 	if (readl(host->base + MMC_STAT) & STAT_CLK_EN) {
-@@ -86,6 +89,7 @@ static void pxamci_stop_clock(struct pxa
+@@ -119,7 +119,7 @@ static void __init colibri_init(void)
+ 	/* DM9000 LAN */
+ 	pxa_gpio_mode(GPIO78_nCS_2_MD);
+ 	pxa_gpio_mode(GPIO_DM9000 | GPIO_IN);
+-	set_irq_type(COLIBRI_ETH_IRQ, IRQT_FALLING);
++	set_irq_type(COLIBRI_ETH_IRQ, IRQT_RISING);
  
- 		if (v & STAT_CLK_EN)
- 			dev_err(mmc_dev(host->mmc), "unable to stop clock\n");
-+		local_cmd = -1;
- 	}
+ 	platform_add_devices(colibri_devices, ARRAY_SIZE(colibri_devices));
  }
- 
-@@ -234,6 +238,14 @@ static int pxamci_cmd_done(struct pxamci
- 		v = w2;
- 	}
- 
-+	local_cmd = cmd->opcode;
-+	if ((local_cmd == MMC_GO_IDLE_STATE) ||
-+	    (local_cmd == MMC_GO_INACTIVE_STATE) ||
-+	    (local_cmd == MMC_SEND_STATUS) ||
-+	    (local_cmd == MMC_STOP_TRANSMISSION) ||
-+	    (local_cmd == MMC_SET_BLOCKLEN)
-+	    ) pxamci_stop_clock(host);
-+
- 	if (stat & STAT_TIME_OUT_RESPONSE) {
- 		cmd->error = -ETIMEDOUT;
- 	} else if (stat & STAT_RES_CRC_ERR && cmd->flags & MMC_RSP_CRC) {
-@@ -292,7 +304,7 @@ static int pxamci_data_done(struct pxamc
- 
- 	host->data = NULL;
- 	if (host->mrq->stop) {
--		pxamci_stop_clock(host);
-+		//pxamci_stop_clock(host);
- 		pxamci_start_cmd(host, host->mrq->stop, host->cmdat);
- 	} else {
- 		pxamci_finish_request(host, host->mrq);
 _
 
-Patches currently in -mm which might be from rifx@o2.pl are
+Patches currently in -mm which might be from michael.abbott@diamond.ac.uk are
 
-mmc-fix-clock-off-in-pxa255-270.patch
+dm9000-restore-mii-physical-polling-timer.patch
+colibri-fix-support-for-dm9000-ethernet-device.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
 
