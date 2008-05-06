@@ -1,132 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - clocksource-shift-helper.patch removed from -mm tree
-Date: Tue, 06 May 2008 13:34:56 -0700
-Message-ID: <200805062034.m46KYutD025954@imap1.linux-foundation.org>
+Subject: + reiser4-fix-kill_hook_internal.patch added to -mm tree
+Date: Tue, 06 May 2008 13:38:49 -0700
+Message-ID: <200805062038.m46KcnJ1026126@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54269 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40198 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932963AbYEFUiA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:38:00 -0400
+	by vger.kernel.org with ESMTP id S1759900AbYEFUiv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:38:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwalker@mvista.com, johnstul@us.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: edward.shishkin@gmail.com
 
 
 The patch titled
-     clocksource: shift helper
-has been removed from the -mm tree.  Its filename was
-     clocksource-shift-helper.patch
+     reiser4: fix kill_hook_internal
+has been added to the -mm tree.  Its filename is
+     reiser4-fix-kill_hook_internal.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: clocksource: shift helper
-From: Daniel Walker <dwalker@mvista.com>
+Subject: reiser4: fix kill_hook_internal
+From: Edward Shishkin <edward.shishkin@gmail.com>
 
-This is a little helper I pulled from the mips tree.  I've seen a couple of
-bogus shift values, and this helper calculates the shift.  This should move
-the shift selection away from the user, and systematically pick the value base
-on the hz.
+Problem:
+Failed assertion (nikita-2754): child znode is not loaded
+when looking at its number of items in kill_hook_internal().
+Nobody cares about its loading.
 
-I also modified the acpi_pm timer to use this new interface.  The original
-shift was 22 , and after this patch it's increased to 23.  Which should make
-the clocksource slightly more accurate, but shouldn't have much of a visible
-effect.
+Fixup:
+Added missed zload/zrelse of the child.
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/clocksource/acpi_pm.c |    5 ++++-
- include/linux/acpi_pmtmr.h    |    5 +++--
- include/linux/clocksource.h   |   21 +++++++++++++++++++++
- 3 files changed, 28 insertions(+), 3 deletions(-)
+ fs/reiser4/plugin/item/internal.c |   18 +++++++++++++-----
+ 1 file changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN drivers/clocksource/acpi_pm.c~clocksource-shift-helper drivers/clocksource/acpi_pm.c
---- a/drivers/clocksource/acpi_pm.c~clocksource-shift-helper
-+++ a/drivers/clocksource/acpi_pm.c
-@@ -72,7 +72,7 @@ static struct clocksource clocksource_ac
- 	.read		= acpi_pm_read,
- 	.mask		= (cycle_t)ACPI_PM_MASK,
- 	.mult		= 0, /*to be calculated*/
--	.shift		= 22,
-+	.shift		= 0,
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+diff -puN fs/reiser4/plugin/item/internal.c~reiser4-fix-kill_hook_internal fs/reiser4/plugin/item/internal.c
+--- a/fs/reiser4/plugin/item/internal.c~reiser4-fix-kill_hook_internal
++++ a/fs/reiser4/plugin/item/internal.c
+@@ -308,6 +308,7 @@ int kill_hook_internal(const coord_t * i
+ 		       struct carry_kill_data *p UNUSED_ARG)
+ {
+ 	znode *child;
++	int result = 0;
  
- };
-@@ -183,6 +183,9 @@ static int __init init_acpi_pm_clocksour
- 	if (!pmtmr_ioport)
- 		return -ENODEV;
- 
-+	clocksource_acpi_pm.shift =
-+		clocksource_hz2shift(ACPI_PM_BITS, PMTMR_TICKS_PER_SEC);
+ 	assert("nikita-1222", item != NULL);
+ 	assert("nikita-1224", from == 0);
+@@ -316,7 +317,14 @@ int kill_hook_internal(const coord_t * i
+ 	child = znode_at(item, item->node);
+ 	if (IS_ERR(child))
+ 		return PTR_ERR(child);
+-	else if (node_is_empty(child)) {
++	assert("edward-1560", child != NULL);
 +
- 	clocksource_acpi_pm.mult = clocksource_hz2mult(PMTMR_TICKS_PER_SEC,
- 						clocksource_acpi_pm.shift);
++	result = zload(child);
++	if (result) {
++		zput(child);
++		return result;
++	}
++	if (node_is_empty(child)) {
+ 		reiser4_tree *tree;
  
-diff -puN include/linux/acpi_pmtmr.h~clocksource-shift-helper include/linux/acpi_pmtmr.h
---- a/include/linux/acpi_pmtmr.h~clocksource-shift-helper
-+++ a/include/linux/acpi_pmtmr.h
-@@ -7,10 +7,11 @@
- #define PMTMR_TICKS_PER_SEC 3579545
- 
- /* limit it to 24 bits */
--#define ACPI_PM_MASK CLOCKSOURCE_MASK(24)
-+#define ACPI_PM_BITS	24
-+#define ACPI_PM_MASK CLOCKSOURCE_MASK(ACPI_PM_BITS)
- 
- /* Overrun value */
--#define ACPI_PM_OVRRUN	(1<<24)
-+#define ACPI_PM_OVRRUN	(1 << ACPI_PM_BITS)
- 
- #ifdef CONFIG_X86_PM_TIMER
- 
-diff -puN include/linux/clocksource.h~clocksource-shift-helper include/linux/clocksource.h
---- a/include/linux/clocksource.h~clocksource-shift-helper
-+++ a/include/linux/clocksource.h
-@@ -159,6 +159,27 @@ static inline u32 clocksource_hz2mult(u3
+ 		assert("nikita-1397", znode_is_write_locked(child));
+@@ -328,14 +336,14 @@ int kill_hook_internal(const coord_t * i
+ 		init_parent_coord(&child->in_parent, NULL);
+ 		--item->node->c_count;
+ 		write_unlock_tree(tree);
+-		zput(child);
+-		return 0;
+ 	} else {
+ 		warning("nikita-1223",
+ 			"Cowardly refuse to remove link to non-empty node");
+-		zput(child);
+-		return RETERR(-EIO);
++		result = RETERR(-EIO);
+ 	}
++	zrelse(child);
++	zput(child);
++	return result;
  }
  
- /**
-+ * clocksource_hz2shift - calculates shift from hz and # of bits
-+ * @bits:		Number of bits this clocksource uses
-+ * @hz:			Clocksource frequency in Hz
-+ *
-+ * Helper functions that calculates the best shift value
-+ * based on the hz and # of bits of any given clock.
-+ */
-+static inline u32 clocksource_hz2shift(u32 bits, u32 hz)
-+{
-+	u64 temp;
-+
-+	for (; bits > 0; bits--) {
-+		temp = (u64) NSEC_PER_SEC << bits;
-+		do_div(temp, hz);
-+		if ((temp >> 32) == 0)
-+			break;
-+	}
-+	return bits;
-+}
-+
-+/**
-  * clocksource_read: - Access the clocksource's current cycle value
-  * @cs:		pointer to clocksource being read
-  *
+ /* hook called by ->shift() node plugin method when iternal item was just
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from edward.shishkin@gmail.com are
 
-linux-next.patch
-macintosh-therm_pm72-driver_lock-semaphore-to-mutex.patch
-macintosh-qindfarm_smu_sat-semaphore-to-mutex.patch
-machintosh-adb-driver-adb_handler_sem-semaphore-to-mutex.patch
-clocksource-shift-helper.patch
-profile-likely-unlikely-macros.patch
-likely_prof-changed-to-use-proc_create.patch
-likeliness-accounting-change-and-cleanup.patch
+reiser4.patch
+reiser4-fix-handling-enospc-cryptcompress.patch
+reiser4-fix-handling-enospc-unix_file.patch
+reiser4-fix-kill_hook_internal.patch
 
