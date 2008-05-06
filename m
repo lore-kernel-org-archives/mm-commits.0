@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch added to -mm tree
-Date: Tue, 06 May 2008 13:24:39 -0700
-Message-ID: <200805062024.m46KOd7o025517@imap1.linux-foundation.org>
+Subject: + mn10300-replace-deprecated-topdir-with-newer-srctree.patch added to -mm tree
+Date: Tue, 06 May 2008 13:30:10 -0700
+Message-ID: <200805062030.m46KUANI025790@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47797 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754322AbYEFUZN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:25:13 -0400
+	by vger.kernel.org with ESMTP id S1755572AbYEFUb3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:31:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca
+Cc: rpjday@crashcourse.ca, dhowells@redhat.com, sam@ravnborg.org
 
 
 The patch titled
-     lib: allow memparse() to accept a NULL and ignorable second parm
+     mn10300: replace deprecated "TOPDIR" with newer "srctree"
 has been added to the -mm tree.  Its filename is
-     lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
+     mn10300-replace-deprecated-topdir-with-newer-srctree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,71 +33,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lib: allow memparse() to accept a NULL and ignorable second parm
+Subject: mn10300: replace deprecated "TOPDIR" with newer "srctree"
 From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-Extend memparse() to allow the caller to use a NULL second parameter, which
-would represent no interest in returning the address of the end of the parsed
-string.
-
-In numerous cases, callers invoke memparse() to parse a possibly-suffixed
-string (such as "64K" or "2G" or whatever) and define a character pointer to
-accept the end pointer being returned by memparse() even though they have no
-interest in it and promptly throw it away.
-
-This (backward-compatible) enhancement allows callers to use NULL in the cases
-where they just don't care about getting back that end pointer.
+This would appear to be the last reference to TOPDIR in the entire tree, after
+which i'm guessing that variable can be dropped.
 
 Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/cmdline.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+ arch/mn10300/boot/install.sh |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN lib/cmdline.c~lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm lib/cmdline.c
---- a/lib/cmdline.c~lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm
-+++ a/lib/cmdline.c
-@@ -116,7 +116,7 @@ char *get_options(const char *str, int n
- /**
-  *	memparse - parse a string with mem suffixes into a number
-  *	@ptr: Where parse begins
-- *	@retptr: (output) Pointer to next char after parse completes
-+ *	@retptr: (output) Optional pointer to next char after parse completes
-  *
-  *	Parses a string into a number.  The number stored at @ptr is
-  *	potentially suffixed with %K (for kilobytes, or 1024 bytes),
-@@ -128,9 +128,11 @@ char *get_options(const char *str, int n
- 
- unsigned long long memparse (char *ptr, char **retptr)
- {
--	unsigned long long ret = simple_strtoull (ptr, retptr, 0);
-+	char *endptr;	/* local pointer to end of parsed string */
- 
--	switch (**retptr) {
-+	unsigned long long ret = simple_strtoull(ptr, &endptr, 0);
-+
-+	switch (*endptr) {
- 	case 'G':
- 	case 'g':
- 		ret <<= 10;
-@@ -140,10 +142,15 @@ unsigned long long memparse (char *ptr, 
- 	case 'K':
- 	case 'k':
- 		ret <<= 10;
--		(*retptr)++;
-+		endptr++;
- 	default:
- 		break;
- 	}
-+
-+	if (retptr) {
-+		*retptr = endptr;
-+	}
-+
- 	return ret;
- }
- 
+diff -puN arch/mn10300/boot/install.sh~mn10300-replace-deprecated-topdir-with-newer-srctree arch/mn10300/boot/install.sh
+--- a/arch/mn10300/boot/install.sh~mn10300-replace-deprecated-topdir-with-newer-srctree
++++ a/arch/mn10300/boot/install.sh
+@@ -26,42 +26,42 @@ rm -fr $4/../usr/include/linux $4/../usr
+ install -c -m 0755 $2 $4/vmlinuz
+ install -c -m 0755 $5 $4/boot.rom
+ install -c -m 0755 -d $4/../usr/include/linux
+-cd $TOPDIR/include/linux
++cd ${srctree}/include/linux
+ for i in `find . -maxdepth 1 -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux
+ done
+ install -c -m 0755 -d $4/../usr/include/linux/byteorder
+-cd $TOPDIR/include/linux/byteorder
++cd ${srctree}/include/linux/byteorder
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux/byteorder
+ done
+ install -c -m 0755 -d $4/../usr/include/linux/lockd
+-cd $TOPDIR/include/linux/lockd
++cd ${srctree}/include/linux/lockd
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux/lockd
+ done
+ install -c -m 0755 -d $4/../usr/include/linux/netfilter_ipv4
+-cd $TOPDIR/include/linux/netfilter_ipv4
++cd ${srctree}/include/linux/netfilter_ipv4
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux/netfilter_ipv4
+ done
+ install -c -m 0755 -d $4/../usr/include/linux/nfsd
+-cd $TOPDIR/include/linux/nfsd
++cd ${srctree}/include/linux/nfsd
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux/nfsd/$i
+ done
+ install -c -m 0755 -d $4/../usr/include/linux/raid
+-cd $TOPDIR/include/linux/raid
++cd ${srctree}/include/linux/raid
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux/raid
+ done
+ install -c -m 0755 -d $4/../usr/include/linux/sunrpc
+-cd $TOPDIR/include/linux/sunrpc
++cd ${srctree}/include/linux/sunrpc
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux/sunrpc
+ done
+ install -c -m 0755 -d $4/../usr/include/asm
+-cd $TOPDIR/include/asm
++cd ${srctree}/include/asm
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/asm
+ done
 _
 
 Patches currently in -mm which might be from rpjday@crashcourse.ca are
@@ -105,6 +109,7 @@ Patches currently in -mm which might be from rpjday@crashcourse.ca are
 linux-next.patch
 xtensa-warn-about-including-asm-rwsemh-directly.patch
 xtensa-use-newer-__spin_lock_unlocked-macro.patch
+mn10300-replace-deprecated-topdir-with-newer-srctree.patch
 remove-apparently-unused-fd1772h-header-file.patch
 init-delete-hard-coded-setting-and-testing-of-build_cramdisk.patch
 lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
