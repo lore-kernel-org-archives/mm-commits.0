@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + uml-tidy-stub-management-code.patch added to -mm tree
-Date: Tue, 06 May 2008 13:49:03 -0700
-Message-ID: <200805062049.m46Kn3sS026537@imap1.linux-foundation.org>
+Subject: + uml-random-driver-style-fixes.patch added to -mm tree
+Date: Tue, 06 May 2008 13:49:10 -0700
+Message-ID: <200805062049.m46KnAtX026547@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33072 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54274 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757417AbYEFUtJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:49:09 -0400
+	by vger.kernel.org with ESMTP id S1761396AbYEFUtP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:49:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: jdike@addtoit.com, jdike@linux.intel.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     uml: tidy stub management code
+     uml: random driver style fixes
 has been added to the -mm tree.  Its filename is
-     uml-tidy-stub-management-code.patch
+     uml-random-driver-style-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,249 +33,150 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: tidy stub management code
+Subject: uml: random driver style fixes
 From: Jeff Dike <jdike@addtoit.com>
 
-Restructure the stub management code to make it simpler.
-
-syscall_stub_done is extracted from do_syscall_stub.
-
-The counters are gone since I never looked at them.
-
-The common code in run_syscall_stub and syscall_stub_data is extracted
-into flush_syscalls.
+Give random.c a style workover while I'm changing it.
 
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/os-Linux/skas/mem.c |  162 +++++++++++++++++-----------------
- 1 file changed, 85 insertions(+), 77 deletions(-)
+ arch/um/drivers/random.c |   77 +++++++++++++++++++------------------
+ 1 file changed, 40 insertions(+), 37 deletions(-)
 
-diff -puN arch/um/os-Linux/skas/mem.c~uml-tidy-stub-management-code arch/um/os-Linux/skas/mem.c
---- a/arch/um/os-Linux/skas/mem.c~uml-tidy-stub-management-code
-+++ a/arch/um/os-Linux/skas/mem.c
-@@ -40,35 +40,69 @@ static unsigned long syscall_regs[MAX_RE
- 
- static int __init init_syscall_regs(void)
- {
-+	unsigned long *stub_entry;
+diff -puN arch/um/drivers/random.c~uml-random-driver-style-fixes arch/um/drivers/random.c
+--- a/arch/um/drivers/random.c~uml-random-driver-style-fixes
++++ a/arch/um/drivers/random.c
+@@ -1,4 +1,5 @@
+-/* Copyright (C) 2005 Jeff Dike <jdike@addtoit.com> */
++/* Copyright (C) 2005 - 2008 Jeff Dike <jdike@{linux.intel,addtoit}.com> */
 +
- 	get_safe_registers(syscall_regs);
-+	stub_entry = &batch_syscall_stub;
-+
- 	syscall_regs[REGS_IP_INDEX] = STUB_CODE +
--		((unsigned long) &batch_syscall_stub -
-+		((unsigned long) stub_entry -
- 		 (unsigned long) &__syscall_stub_start);
- 	return 0;
- }
- 
- __initcall(init_syscall_regs);
- 
--extern int proc_mm;
-+static int syscall_stub_done(unsigned long stack)
-+{
-+	unsigned long *syscall, *data, offset;
-+	int ret, n;
-+
-+	/*
-+	 * When the stub stops, we find the following values on the
-+	 * beginning of the stack:
-+	 * (long) return_value
-+	 * (long) offset to failed sycall data (0 if no error)
-+	 */
-+	ret = *((unsigned long *) stack);
-+	offset = *((unsigned long *) stack + 1);
-+	if (offset == 0)
-+		return 0;
- 
--int single_count = 0;
--int multi_count = 0;
--int multi_op_count = 0;
-+	data = (unsigned long *)(stack + offset - STUB_DATA);
-+	printk(UM_KERN_ERR "syscall_stub_done : ret = %d, offset = %ld, "
-+	       "data = %p\n", ret, offset, data);
-+	syscall = (unsigned long *)((unsigned long)data + data[0]);
-+	printk(UM_KERN_ERR "syscall_stub_done : syscall %ld failed, "
-+	       "return value = 0x%x, expected return value = 0x%lx\n",
-+	       syscall[0], ret, syscall[7]);
-+	printk(UM_KERN_ERR "    syscall parameters: "
-+	       "0x%lx 0x%lx 0x%lx 0x%lx 0x%lx 0x%lx\n",
-+	       syscall[1], syscall[2], syscall[3],
-+	       syscall[4], syscall[5], syscall[6]);
-+	for (n = 1; n < data[0]/sizeof(long); n++) {
-+		if (n == 1)
-+			printk(UM_KERN_ERR "    additional syscall "
-+			       "data:");
-+		if (n % 4 == 1)
-+			printk(UM_KERN_CONT "\n" UM_KERN_ERR "      ");
-+		printk(UM_KERN_CONT "  0x%lx", data[n]);
-+	}
-+	if (n > 1)
-+		printk("\n");
- 
--static inline long do_syscall_stub(struct mm_id * mm_idp, void **addr)
-+	return ret;
-+}
-+
-+static long do_syscall_stub(struct mm_id *mm_idp, void **addr)
- {
--	int n, i;
--	long ret, offset;
--	unsigned long * data;
--	unsigned long * syscall;
--	int err, pid = mm_idp->u.pid;
-+	long ret;
-+	int n, i, err, pid = mm_idp->u.pid;
- 
- 	if (proc_mm)
- 		/* FIXME: Need to look up userspace_pid by cpu */
- 		pid = userspace_pid[0];
- 
--	multi_count++;
--
- 	n = ptrace_setregs(pid, syscall_regs);
- 	if (n < 0) {
- 		printk(UM_KERN_ERR "Registers - \n");
-@@ -85,52 +119,39 @@ static inline long do_syscall_stub(struc
- 
- 	wait_stub_done(pid);
- 
--	/*
--	 * When the stub stops, we find the following values on the
--	 * beginning of the stack:
--	 * (long )return_value
--	 * (long )offset to failed sycall-data (0, if no error)
--	 */
--	ret = *((unsigned long *) mm_idp->stack);
--	offset = *((unsigned long *) mm_idp->stack + 1);
--	if (offset) {
--		data = (unsigned long *)(mm_idp->stack + offset - STUB_DATA);
--		printk(UM_KERN_ERR "do_syscall_stub : ret = %ld, offset = %ld, "
--		       "data = %p\n", ret, offset, data);
--		syscall = (unsigned long *)((unsigned long)data + data[0]);
--		printk(UM_KERN_ERR "do_syscall_stub: syscall %ld failed, "
--		       "return value = 0x%lx, expected return value = 0x%lx\n",
--		       syscall[0], ret, syscall[7]);
--		printk(UM_KERN_ERR "    syscall parameters: "
--		       "0x%lx 0x%lx 0x%lx 0x%lx 0x%lx 0x%lx\n",
--		       syscall[1], syscall[2], syscall[3],
--		       syscall[4], syscall[5], syscall[6]);
--		for (n = 1; n < data[0]/sizeof(long); n++) {
--			if (n == 1)
--				printk(UM_KERN_ERR "    additional syscall "
--				       "data:");
--			if (n % 4 == 1)
--				printk("\n" UM_KERN_ERR "      ");
--			printk("  0x%lx", data[n]);
--		}
--		if (n > 1)
--			printk("\n");
--	}
--	else ret = 0;
-+	ret = syscall_stub_done(mm_idp->stack);
- 
- 	*addr = check_init_stack(mm_idp, NULL);
- 
- 	return ret;
- }
- 
--long run_syscall_stub(struct mm_id * mm_idp, int syscall,
-+static int flush_syscalls(struct mm_id *mm_idp, void **addr, int extra)
-+{
-+	unsigned long *stack = check_init_stack(mm_idp, *addr);
-+	int current, end;
-+
-+	current = ((unsigned long) stack) & ~UM_KERN_PAGE_MASK;
-+	end = UM_KERN_PAGE_SIZE;
-+
-+	if (current + (10 + extra) * sizeof(long) < end)
-+		return 0;
-+
-+	return do_syscall_stub(mm_idp, addr);
-+}
-+
-+long run_syscall_stub(struct mm_id *mm_idp, int syscall,
- 		      unsigned long *args, long expected, void **addr,
- 		      int done)
- {
--	unsigned long *stack = check_init_stack(mm_idp, *addr);
-+	unsigned long *stack;
-+	int ret;
- 
--	if (done && *addr == NULL)
--		single_count++;
-+	ret = flush_syscalls(mm_idp, addr, 0);
-+	if (ret)
-+		return ret;
-+
-+	stack = check_init_stack(mm_idp, *addr);
- 
- 	*stack += sizeof(long);
- 	stack += *stack / sizeof(long);
-@@ -144,45 +165,32 @@ long run_syscall_stub(struct mm_id * mm_
- 	*stack++ = args[5];
- 	*stack++ = expected;
- 	*stack = 0;
--	multi_op_count++;
- 
--	if (!done && ((((unsigned long) stack) & ~UM_KERN_PAGE_MASK) <
--		     UM_KERN_PAGE_SIZE - 10 * sizeof(long))) {
--		*addr = stack;
--		return 0;
--	}
-+	if (done)
-+		return do_syscall_stub(mm_idp, addr);
- 
--	return do_syscall_stub(mm_idp, addr);
-+	*addr = stack;
-+
-+	return 0;
- }
- 
--long syscall_stub_data(struct mm_id * mm_idp,
--		       unsigned long *data, int data_count,
--		       void **addr, void **stub_addr)
-+long syscall_stub_data(struct mm_id *mm_idp, unsigned long *data,
-+		       int data_count, void **addr, void **stub_addr)
- {
- 	unsigned long *stack;
--	int ret = 0;
-+	int ret;
- 
--	/*
--	 * If *addr still is uninitialized, it *must* contain NULL.
--	 * Thus in this case do_syscall_stub correctly won't be called.
--	 */
--	if ((((unsigned long) *addr) & ~UM_KERN_PAGE_MASK) >=
--	   UM_KERN_PAGE_SIZE - (10 + data_count) * sizeof(long)) {
--		ret = do_syscall_stub(mm_idp, addr);
--		/* in case of error, don't overwrite data on stack */
--		if (ret)
--			return ret;
--	}
-+	ret = flush_syscalls(mm_idp, addr, data_count);
-+	if (ret)
-+		return ret;
- 
- 	stack = check_init_stack(mm_idp, *addr);
--	*addr = stack;
--
--	*stack = data_count * sizeof(long);
-+	*stack++ = data_count * sizeof(long);
- 
--	memcpy(stack + 1, data, data_count * sizeof(long));
-+	memcpy(stack, data, data_count * sizeof(long));
- 
--	*stub_addr = (void *)(((unsigned long)(stack + 1) &
--			       ~UM_KERN_PAGE_MASK) + STUB_DATA);
-+	*stub_addr = (void *)(((unsigned long) stack & ~UM_KERN_PAGE_MASK) +
-+			      STUB_DATA);
+ /* Much of this ripped from drivers/char/hw_random.c, see there for other
+  * copyright.
+  *
+@@ -35,7 +36,7 @@ static int rng_dev_open (struct inode *i
+ 	/* enforce read-only access to this chrdev */
+ 	if ((filp->f_mode & FMODE_READ) == 0)
+ 		return -EINVAL;
+-	if (filp->f_mode & FMODE_WRITE)
++	if ((filp->f_mode & FMODE_WRITE) != 0)
+ 		return -EINVAL;
  
  	return 0;
+@@ -44,31 +45,31 @@ static int rng_dev_open (struct inode *i
+ static atomic_t host_sleep_count = ATOMIC_INIT(0);
+ 
+ static ssize_t rng_dev_read (struct file *filp, char __user *buf, size_t size,
+-                             loff_t * offp)
++			     loff_t *offp)
+ {
+-        u32 data;
+-        int n, ret = 0, have_data;
++	u32 data;
++	int n, ret = 0, have_data;
+ 
+-        while(size){
+-                n = os_read_file(random_fd, &data, sizeof(data));
+-                if(n > 0){
+-                        have_data = n;
+-                        while (have_data && size) {
+-                                if (put_user((u8)data, buf++)) {
+-                                        ret = ret ? : -EFAULT;
+-                                        break;
+-                                }
+-                                size--;
+-                                ret++;
+-                                have_data--;
+-                                data>>=8;
+-                        }
+-                }
+-                else if(n == -EAGAIN){
++	while (size) {
++		n = os_read_file(random_fd, &data, sizeof(data));
++		if (n > 0) {
++			have_data = n;
++			while (have_data && size) {
++				if (put_user((u8) data, buf++)) {
++					ret = ret ? : -EFAULT;
++					break;
++				}
++				size--;
++				ret++;
++				have_data--;
++				data >>= 8;
++			}
++		}
++		else if (n == -EAGAIN) {
+ 			DECLARE_WAITQUEUE(wait, current);
+ 
+-                        if (filp->f_flags & O_NONBLOCK)
+-                                return ret ? : -EAGAIN;
++			if (filp->f_flags & O_NONBLOCK)
++				return ret ? : -EAGAIN;
+ 
+ 			atomic_inc(&host_sleep_count);
+ 			reactivate_fd(random_fd, RANDOM_IRQ);
+@@ -85,8 +86,10 @@ static ssize_t rng_dev_read (struct file
+ 				ignore_sigio_fd(random_fd);
+ 				deactivate_fd(random_fd, RANDOM_IRQ);
+ 			}
+-                }
+-                else return n;
++		}
++		else
++			return n;
++
+ 		if (signal_pending (current))
+ 			return ret ? : -ERESTARTSYS;
+ 	}
+@@ -120,33 +123,33 @@ static int __init rng_init (void)
+ {
+ 	int err;
+ 
+-        err = os_open_file("/dev/random", of_read(OPENFLAGS()), 0);
+-        if(err < 0)
+-                goto out;
++	err = os_open_file("/dev/random", of_read(OPENFLAGS()), 0);
++	if (err < 0)
++		goto out;
+ 
+-        random_fd = err;
++	random_fd = err;
+ 
+ 	err = um_request_irq(RANDOM_IRQ, random_fd, IRQ_READ, random_interrupt,
+ 			     IRQF_DISABLED | IRQF_SAMPLE_RANDOM, "random",
+ 			     NULL);
+-        if(err)
++	if (err)
+ 		goto err_out_cleanup_hw;
+ 
+ 	sigio_broken(random_fd, 1);
+ 
+ 	err = misc_register (&rng_miscdev);
+ 	if (err) {
+-		printk (KERN_ERR RNG_MODULE_NAME ": misc device register failed\n");
++		printk (KERN_ERR RNG_MODULE_NAME ": misc device register "
++			"failed\n");
+ 		goto err_out_cleanup_hw;
+ 	}
++out:
++	return err;
+ 
+- out:
+-        return err;
+-
+- err_out_cleanup_hw:
++err_out_cleanup_hw:
+ 	os_close_file(random_fd);
+-        random_fd = -1;
+-        goto out;
++	random_fd = -1;
++	goto out;
  }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
