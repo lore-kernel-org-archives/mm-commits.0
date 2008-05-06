@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-include-asm-h8300-keyboardh.patch added to -mm tree
-Date: Tue, 06 May 2008 11:36:34 -0700
-Message-ID: <200805061836.m46IaY7e021221@imap1.linux-foundation.org>
+Subject: + minix-remove-no_truncate-code.patch added to -mm tree
+Date: Tue, 06 May 2008 11:36:52 -0700
+Message-ID: <200805061836.m46IaqkS021251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34531 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46204 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754208AbYEFShD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:03 -0400
+	by vger.kernel.org with ESMTP id S1756347AbYEFShF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org, ysato@users.sourceforge.jp
+Cc: bunk@kernel.org
 
 
 The patch titled
-     remove include/asm-h8300/keyboard.h
+     minix: remove !NO_TRUNCATE code
 has been added to the -mm tree.  Its filename is
-     remove-include-asm-h8300-keyboardh.patch
+     minix-remove-no_truncate-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,47 +33,91 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: remove include/asm-h8300/keyboard.h
+Subject: minix: remove !NO_TRUNCATE code
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch removes the unused include/asm-h8300/keyboard.h
+This patch removes the !NO_TRUNCATE code that anyway required a manual
+editing of the code for being used.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
-Acked-by: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-h8300/keyboard.h |   24 ------------------------
- 1 file changed, 24 deletions(-)
+ fs/minix/inode.c |    3 ---
+ fs/minix/minix.h |    6 ------
+ fs/minix/namei.c |   24 ------------------------
+ 3 files changed, 33 deletions(-)
 
-diff -puN include/asm-h8300/keyboard.h~remove-include-asm-h8300-keyboardh /dev/null
---- a/include/asm-h8300/keyboard.h
-+++ /dev/null
-@@ -1,24 +0,0 @@
+diff -puN fs/minix/inode.c~minix-remove-no_truncate-code fs/minix/inode.c
+--- a/fs/minix/inode.c~minix-remove-no_truncate-code
++++ a/fs/minix/inode.c
+@@ -256,9 +256,6 @@ static int minix_fill_super(struct super
+ 	if (!s->s_root)
+ 		goto out_iput;
+ 
+-	if (!NO_TRUNCATE)
+-		s->s_root->d_op = &minix_dentry_operations;
+-
+ 	if (!(s->s_flags & MS_RDONLY)) {
+ 		if (sbi->s_version != MINIX_V3) /* s_state is now out from V3 sb */
+ 			ms->s_state &= ~MINIX_VALID_FS;
+diff -puN fs/minix/minix.h~minix-remove-no_truncate-code fs/minix/minix.h
+--- a/fs/minix/minix.h~minix-remove-no_truncate-code
++++ a/fs/minix/minix.h
+@@ -2,11 +2,6 @@
+ #include <linux/pagemap.h>
+ #include <linux/minix_fs.h>
+ 
 -/*
-- *  linux/include/asm-h8300/keyboard.h
-- *  Created 04 Dec 2001 by Khaled Hassounah <khassounah@mediumware.net>
-- *  This file contains the Dragonball architecture specific keyboard definitions
+- * change the define below to 0 if you want names > info->s_namelen chars to be
+- * truncated. Else they will be disallowed (ENAMETOOLONG).
 - */
+-#define NO_TRUNCATE 1
+ #define INODE_VERSION(inode)	minix_sb(inode->i_sb)->s_version
+ #define MINIX_V1		0x0001		/* original minix fs */
+ #define MINIX_V2		0x0002		/* minix V2 fs */
+@@ -83,7 +78,6 @@ extern const struct inode_operations min
+ extern const struct inode_operations minix_dir_inode_operations;
+ extern const struct file_operations minix_file_operations;
+ extern const struct file_operations minix_dir_operations;
+-extern struct dentry_operations minix_dentry_operations;
+ 
+ static inline struct minix_sb_info *minix_sb(struct super_block *sb)
+ {
+diff -puN fs/minix/namei.c~minix-remove-no_truncate-code fs/minix/namei.c
+--- a/fs/minix/namei.c~minix-remove-no_truncate-code
++++ a/fs/minix/namei.c
+@@ -18,30 +18,6 @@ static int add_nondir(struct dentry *den
+ 	return err;
+ }
+ 
+-static int minix_hash(struct dentry *dentry, struct qstr *qstr)
+-{
+-	unsigned long hash;
+-	int i;
+-	const unsigned char *name;
 -
--#ifndef _H8300_KEYBOARD_H
--#define _H8300_KEYBOARD_H
+-	i = minix_sb(dentry->d_inode->i_sb)->s_namelen;
+-	if (i >= qstr->len)
+-		return 0;
+-	/* Truncate the name in place, avoids having to define a compare
+-	   function. */
+-	qstr->len = i;
+-	name = qstr->name;
+-	hash = init_name_hash();
+-	while (i--)
+-		hash = partial_name_hash(*name++, hash);
+-	qstr->hash = end_name_hash(hash);
+-	return 0;
+-}
 -
+-struct dentry_operations minix_dentry_operations = {
+-	.d_hash		= minix_hash,
+-};
 -
--/* dummy i.e. no real keyboard */
--#define kbd_setkeycode(x...)	(-ENOSYS)
--#define kbd_getkeycode(x...)	(-ENOSYS)
--#define kbd_translate(x...)	(0)
--#define kbd_unexpected_up(x...)	(1)
--#define kbd_leds(x...)		do {;} while (0)
--#define kbd_init_hw(x...)	do {;} while (0)
--#define kbd_enable_irq(x...)	do {;} while (0)
--#define kbd_disable_irq(x...)	do {;} while (0)
--
--#endif  /* _H8300_KEYBOARD_H */
--
--
--
+ static struct dentry *minix_lookup(struct inode * dir, struct dentry *dentry, struct nameidata *nd)
+ {
+ 	struct inode * inode = NULL;
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
