@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + parport-sharec-proper-externs.patch added to -mm tree
-Date: Tue, 06 May 2008 11:36:32 -0700
-Message-ID: <200805061836.m46IaWXj021218@imap1.linux-foundation.org>
+Subject: + make-struct-mpt_proc_root_dir-static.patch added to -mm tree
+Date: Tue, 06 May 2008 11:36:28 -0700
+Message-ID: <200805061836.m46IaSrr021212@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34165 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34548 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754386AbYEFSgq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:46 -0400
+	by vger.kernel.org with ESMTP id S1754326AbYEFSgp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, Eric.Moore@lsil.com, James.Bottomley@HansenPartnership.com
 
 
 The patch titled
-     parport/share.c: proper externs
+     make struct mpt_proc_root_dir static
 has been added to the -mm tree.  Its filename is
-     parport-sharec-proper-externs.patch
+     make-struct-mpt_proc_root_dir-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: parport/share.c: proper externs
+Subject: make struct mpt_proc_root_dir static
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch adds proper externs for parport_default_timeslice and
-parport_default_spintime in include/linux/parport.h
+This patch makes the needlessly global struct mpt_proc_root_dir static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Cc: "Moore, Eric Dean" <Eric.Moore@lsil.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parport/procfs.c |    3 ---
- include/linux/parport.h  |    3 +++
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/message/fusion/mptbase.c |    3 +--
+ drivers/message/fusion/mptbase.h |    1 -
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN drivers/parport/procfs.c~parport-sharec-proper-externs drivers/parport/procfs.c
---- a/drivers/parport/procfs.c~parport-sharec-proper-externs
-+++ a/drivers/parport/procfs.c
-@@ -429,9 +429,6 @@ struct parport_default_sysctl_table
- 	ctl_table dev_dir[2];
- };
+diff -puN drivers/message/fusion/mptbase.c~make-struct-mpt_proc_root_dir-static drivers/message/fusion/mptbase.c
+--- a/drivers/message/fusion/mptbase.c~make-struct-mpt_proc_root_dir-static
++++ a/drivers/message/fusion/mptbase.c
+@@ -103,7 +103,7 @@ static int mfcounter = 0;
+  *  Public data...
+  */
  
--extern unsigned long parport_default_timeslice;
--extern int parport_default_spintime;
--
- static struct parport_default_sysctl_table
- parport_default_sysctl_table = {
- 	.sysctl_header	= NULL,
-diff -puN include/linux/parport.h~parport-sharec-proper-externs include/linux/parport.h
---- a/include/linux/parport.h~parport-sharec-proper-externs
-+++ a/include/linux/parport.h
-@@ -560,5 +560,8 @@ extern int parport_device_proc_unregiste
+-struct proc_dir_entry *mpt_proc_root_dir;
++static struct proc_dir_entry *mpt_proc_root_dir;
  
- #endif /*  !CONFIG_PARPORT_NOT_PC  */
+ #define WHOINIT_UNKNOWN		0xAA
  
-+extern unsigned long parport_default_timeslice;
-+extern int parport_default_spintime;
-+
- #endif /* __KERNEL__ */
- #endif /* _PARPORT_H_ */
+@@ -7451,7 +7451,6 @@ EXPORT_SYMBOL(mpt_resume);
+ EXPORT_SYMBOL(mpt_suspend);
+ #endif
+ EXPORT_SYMBOL(ioc_list);
+-EXPORT_SYMBOL(mpt_proc_root_dir);
+ EXPORT_SYMBOL(mpt_register);
+ EXPORT_SYMBOL(mpt_deregister);
+ EXPORT_SYMBOL(mpt_event_register);
+diff -puN drivers/message/fusion/mptbase.h~make-struct-mpt_proc_root_dir-static drivers/message/fusion/mptbase.h
+--- a/drivers/message/fusion/mptbase.h~make-struct-mpt_proc_root_dir-static
++++ a/drivers/message/fusion/mptbase.h
+@@ -908,7 +908,6 @@ extern int	 mpt_raid_phys_disk_pg0(MPT_A
+  *  Public data decl's...
+  */
+ extern struct list_head	  ioc_list;
+-extern struct proc_dir_entry	*mpt_proc_root_dir;
+ 
+ /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=*/
+ #endif		/* } __KERNEL__ */
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
