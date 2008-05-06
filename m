@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + remove-apparently-unused-fd1772h-header-file.patch added to -mm tree
-Date: Tue, 06 May 2008 13:03:57 -0700
-Message-ID: <200805062003.m46K3vhK024745@imap1.linux-foundation.org>
+Subject: + omfs-define-filesystem-structures.patch added to -mm tree
+Date: Tue, 06 May 2008 13:07:48 -0700
+Message-ID: <200805062007.m46K7mFH024902@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47616 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60854 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758456AbYEFUEd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:04:33 -0400
+	by vger.kernel.org with ESMTP id S1763084AbYEFUIS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:08:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca, akpm@linux-foundation.org, bunk@stusta.de, spyro@f2s.com, torvalds@linux-foundation.org
+Cc: me@bobcopeland.com
 
 
 The patch titled
-     Remove apparently unused fd1772.h header file.
+     omfs: define filesystem structures
 has been added to the -mm tree.  Its filename is
-     remove-apparently-unused-fd1772h-header-file.patch
+     omfs-define-filesystem-structures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,117 +33,184 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove apparently unused fd1772.h header file.
-From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+Subject: omfs: define filesystem structures
+From: Bob Copeland <me@bobcopeland.com>
 
-This header file has been unused for quite some time, and the
-corresponding source files appear to have been removed back in commit
-99eb8a550d.
+Add header files containing OMFS on-disk and memory structures.
 
-commit 99eb8a550dbccc0e1f6c7e866fe421810e0585f6
-Author: Adrian Bunk <bunk@stusta.de>
-Date:   Tue Jul 31 00:38:19 2007 -0700
-
-    Remove the arm26 port
-
-    The arm26 port has been in a state where it was far from even compiling
-    for quite some time.
-
-    Ian Molton agreed with the removal.
-
-    Signed-off-by: Adrian Bunk <bunk@stusta.de>
-    Cc: Ian Molton <spyro@f2s.com>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
-
-Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Cc: Adrian Bunk <bunk@stusta.de>
-Cc: Ian Molton <spyro@f2s.com>
+Signed-off-by: Bob Copeland <me@bobcopeland.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fd1772.h |   80 ---------------------------------------
- 1 file changed, 80 deletions(-)
+ fs/omfs/omfs.h    |   67 ++++++++++++++++++++++++++++++++++++
+ fs/omfs/omfs_fs.h |   80 ++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 147 insertions(+)
 
-diff -puN include/linux/fd1772.h~remove-apparently-unused-fd1772h-header-file /dev/null
---- a/include/linux/fd1772.h
-+++ /dev/null
-@@ -1,80 +0,0 @@
--#ifndef _LINUX_FD1772REG_H
--#define _LINUX_FD1772REG_H
--
--/*
--** WD1772 stuff - originally from the M68K Linux
-- * Modified for Archimedes by Dave Gilbert (gilbertd@cs.man.ac.uk)
-- */
--
--/* register codes */
--
--#define FDC1772SELREG_STP   (0x80)   /* command/status register */
--#define FDC1772SELREG_TRA   (0x82)   /* track register */
--#define FDC1772SELREG_SEC   (0x84)   /* sector register */
--#define FDC1772SELREG_DTA   (0x86)   /* data register */
--
--/* register names for FDC1772_READ/WRITE macros */
--
--#define FDC1772REG_CMD         0
--#define FDC1772REG_STATUS      0
--#define FDC1772REG_TRACK       2
--#define FDC1772REG_SECTOR      4
--#define FDC1772REG_DATA                6
--
--/* command opcodes */
--
--#define FDC1772CMD_RESTORE  (0x00)   /*  -                   */
--#define FDC1772CMD_SEEK     (0x10)   /*   |                  */
--#define FDC1772CMD_STEP     (0x20)   /*   |  TYP 1 Commands  */
--#define FDC1772CMD_STIN     (0x40)   /*   |                  */
--#define FDC1772CMD_STOT     (0x60)   /*  -                   */
--#define FDC1772CMD_RDSEC    (0x80)   /*  -   TYP 2 Commands  */
--#define FDC1772CMD_WRSEC    (0xa0)   /*  -          "        */
--#define FDC1772CMD_RDADR    (0xc0)   /*  -                   */
--#define FDC1772CMD_RDTRA    (0xe0)   /*   |  TYP 3 Commands  */
--#define FDC1772CMD_WRTRA    (0xf0)   /*  -                   */
--#define FDC1772CMD_FORCI    (0xd0)   /*  -   TYP 4 Command   */
--
--/* command modifier bits */
--
--#define FDC1772CMDADD_SR6   (0x00)   /* step rate settings */
--#define FDC1772CMDADD_SR12  (0x01)
--#define FDC1772CMDADD_SR2   (0x02)
--#define FDC1772CMDADD_SR3   (0x03)
--#define FDC1772CMDADD_V     (0x04)   /* verify */
--#define FDC1772CMDADD_H     (0x08)   /* wait for spin-up */
--#define FDC1772CMDADD_U     (0x10)   /* update track register */
--#define FDC1772CMDADD_M     (0x10)   /* multiple sector access */
--#define FDC1772CMDADD_E     (0x04)   /* head settling flag */
--#define FDC1772CMDADD_P     (0x02)   /* precompensation */
--#define FDC1772CMDADD_A0    (0x01)   /* DAM flag */
--
--/* status register bits */
--
--#define        FDC1772STAT_MOTORON     (0x80)   /* motor on */
--#define        FDC1772STAT_WPROT       (0x40)   /* write protected (FDC1772CMD_WR*) */
--#define        FDC1772STAT_SPINUP      (0x20)   /* motor speed stable (Type I) */
--#define        FDC1772STAT_DELDAM      (0x20)   /* sector has deleted DAM (Type II+III) */
--#define        FDC1772STAT_RECNF       (0x10)   /* record not found */
--#define        FDC1772STAT_CRC         (0x08)   /* CRC error */
--#define        FDC1772STAT_TR00        (0x04)   /* Track 00 flag (Type I) */
--#define        FDC1772STAT_LOST        (0x04)   /* Lost Data (Type II+III) */
--#define        FDC1772STAT_IDX         (0x02)   /* Index status (Type I) */
--#define        FDC1772STAT_DRQ         (0x02)   /* DRQ status (Type II+III) */
--#define        FDC1772STAT_BUSY        (0x01)   /* FDC1772 is busy */
--
--
--/* PSG Port A Bit Nr 0 .. Side Sel .. 0 -> Side 1  1 -> Side 2 */
--#define DSKSIDE     (0x01)
--        
--#define DSKDRVNONE  (0x06)
--#define DSKDRV0     (0x02)
--#define DSKDRV1     (0x04)
--
--/* step rates */
--#define        FDC1772STEP_6   0x00
--#define        FDC1772STEP_12  0x01
--#define        FDC1772STEP_2   0x02
--#define        FDC1772STEP_3   0x03
+diff -puN /dev/null fs/omfs/omfs.h
+--- /dev/null
++++ a/fs/omfs/omfs.h
+@@ -0,0 +1,67 @@
++#ifndef _OMFS_H
++#define _OMFS_H
++
++#include <linux/module.h>
++#include <linux/fs.h>
++
++#include "omfs_fs.h"
++
++/* In-memory structures */
++struct omfs_sb_info {
++	u64 s_num_blocks;
++	u64 s_bitmap_ino;
++	u64 s_root_ino;
++	u32 s_blocksize;
++	u32 s_mirrors;
++	u32 s_sys_blocksize;
++	u32 s_clustersize;
++	int s_block_shift;
++	unsigned long **s_imap;
++	int s_imap_size;
++	struct mutex s_bitmap_lock;
++	int s_uid;
++	int s_gid;
++	int s_dmask;
++	int s_fmask;
++};
++
++/* convert a cluster number to a scaled block number */
++static inline sector_t clus_to_blk(struct omfs_sb_info *sbi, sector_t block)
++{
++	return block << sbi->s_block_shift;
++}
++
++static inline struct omfs_sb_info *OMFS_SB(struct super_block *sb)
++{
++	return sb->s_fs_info;
++}
++
++/* bitmap.c */
++extern unsigned long omfs_count_free(struct super_block *sb);
++extern int omfs_allocate_block(struct super_block *sb, u64 block);
++extern int omfs_allocate_range(struct super_block *sb, int min_request,
++			int max_request, u64 *return_block, int *return_size);
++extern int omfs_clear_range(struct super_block *sb, u64 block, int count);
++
++/* dir.c */
++extern struct file_operations omfs_dir_operations;
++extern struct inode_operations omfs_dir_inops;
++extern int omfs_make_empty(struct inode *inode, struct super_block *sb);
++extern int omfs_is_bad(struct omfs_sb_info *sbi, struct omfs_header *header,
++			u64 fsblock);
++
++/* file.c */
++extern struct file_operations omfs_file_operations;
++extern struct inode_operations omfs_file_inops;
++extern struct address_space_operations omfs_aops;
++extern void omfs_make_empty_table(struct buffer_head *bh, int offset);
++extern int omfs_shrink_inode(struct inode *inode);
++
++/* inode.c */
++extern struct inode *omfs_iget(struct super_block *sb, ino_t inode);
++extern struct inode *omfs_new_inode(struct inode *dir, int mode);
++extern int omfs_reserve_block(struct super_block *sb, sector_t block);
++extern int omfs_find_empty_block(struct super_block *sb, int mode, ino_t *ino);
++extern int omfs_sync_inode(struct inode *inode);
++
++#endif
+diff -puN /dev/null fs/omfs/omfs_fs.h
+--- /dev/null
++++ a/fs/omfs/omfs_fs.h
+@@ -0,0 +1,80 @@
++#ifndef _OMFS_FS_H
++#define _OMFS_FS_H
++
++/* OMFS On-disk structures */
++
++#define OMFS_MAGIC 0xC2993D87
++#define OMFS_IMAGIC 0xD2
++
++#define OMFS_DIR 'D'
++#define OMFS_FILE 'F'
++#define OMFS_INODE_NORMAL 'e'
++#define OMFS_INODE_CONTINUATION 'c'
++#define OMFS_INODE_SYSTEM 's'
++#define OMFS_NAMELEN 256
++#define OMFS_DIR_START 0x1b8
++#define OMFS_EXTENT_START 0x1d0
++#define OMFS_EXTENT_CONT 0x40
++#define OMFS_XOR_COUNT 19
++#define OMFS_MAX_BLOCK_SIZE 8192
++
++struct omfs_super_block {
++	char s_fill1[256];
++	__be64 s_root_block;		/* block number of omfs_root_block */
++	__be64 s_num_blocks;		/* total number of FS blocks */
++	__be32 s_magic;			/* OMFS_MAGIC */
++	__be32 s_blocksize;		/* size of a block */
++	__be32 s_mirrors;		/* # of mirrors of system blocks */
++	__be32 s_sys_blocksize;		/* size of non-data blocks */
++};
++
++struct omfs_header {
++	__be64 h_self;			/* FS block where this is located */
++	__be32 h_body_size;		/* size of useful data after header */
++	__be16 h_crc;			/* crc-ccitt of body_size bytes */
++	char h_fill1[2];
++	u8 h_version;			/* version, always 1 */
++	char h_type;			/* OMFS_INODE_X */
++	u8 h_magic;			/* OMFS_IMAGIC */
++	u8 h_check_xor;			/* XOR of header bytes before this */
++	__be32 h_fill2;
++};
++
++struct omfs_root_block {
++	struct omfs_header r_head;	/* header */
++	__be64 r_fill1;
++	__be64 r_num_blocks;		/* total number of FS blocks */
++	__be64 r_root_dir;		/* block # of root directory */
++	__be64 r_bitmap;		/* block # of free space bitmap */
++	__be32 r_blocksize;		/* size of a block */
++	__be32 r_clustersize;		/* size allocated for data blocks */
++	__be64 r_mirrors;		/* # of mirrors of system blocks */
++	char r_name[OMFS_NAMELEN];	/* partition label */
++};
++
++struct omfs_inode {
++	struct omfs_header i_head;	/* header */
++	__be64 i_parent;		/* parent containing this inode */
++	__be64 i_sibling;		/* next inode in hash bucket */
++	__be64 i_ctime;			/* ctime, in milliseconds */
++	char i_fill1[35];
++	char i_type;			/* OMFS_[DIR,FILE] */
++	__be32 i_fill2;
++	char i_fill3[64];
++	char i_name[OMFS_NAMELEN];	/* filename */
++	__be64 i_size;			/* size of file, in bytes */
++};
++
++struct omfs_extent_entry {
++	__be64 e_cluster;		/* start location of a set of blocks */
++	__be64 e_blocks;		/* number of blocks after e_cluster */
++};
++
++struct omfs_extent {
++	__be64 e_next;			/* next extent table location */
++	__be32 e_extent_count;		/* total # extents in this table */
++	__be32 e_fill;
++	struct omfs_extent_entry e_entry;	/* start of extent entries */
++};
++
++#endif
+_
+
+Patches currently in -mm which might be from me@bobcopeland.com are
+
+omfs-add-filesystem-documentation.patch
+omfs-define-filesystem-structures.patch
+omfs-add-inode-routines.patch
+omfs-add-directory-routines.patch
+omfs-add-file-routines.patch
+omfs-add-bitmap-routines.patch
+omfs-update-kbuild-to-include-omfs.patch
+omfs-add-maintainers-entry.patch
+
