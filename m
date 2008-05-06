@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + make-mm-sparsec-make-a-function-static.patch added to -mm tree
-Date: Tue, 06 May 2008 11:36:42 -0700
-Message-ID: <200805061836.m46IagH3021233@imap1.linux-foundation.org>
+Subject: + make-kprobe_blacklist-static.patch added to -mm tree
+Date: Tue, 06 May 2008 11:36:17 -0700
+Message-ID: <200805061836.m46IaHhe021192@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39740 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52563 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755542AbYEFSgz (ORCPT
+	by vger.kernel.org with ESMTP id S1755256AbYEFSgz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: bunk@kernel.org
+Cc: bunk@kernel.org, mhiramat@redhat.com
 
 
 The patch titled
-     make mm/sparse.c: make a function static
+     make kprobe_blacklist[] static
 has been added to the -mm tree.  Its filename is
-     make-mm-sparsec-make-a-function-static.patch
+     make-kprobe_blacklist-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make mm/sparse.c: make a function static
+Subject: make kprobe_blacklist[] static
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch makes the needlessly global sparse_early_mem_map_alloc()
-static.
+This patch makes the needlessly global kprobe_blacklist[] static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
+Acked-by: Masami Hiramatsu <mhiramat@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 +-
+ kernel/kprobes.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/sparse.c~make-mm-sparsec-make-a-function-static mm/sparse.c
---- a/mm/sparse.c~make-mm-sparsec-make-a-function-static
-+++ a/mm/sparse.c
-@@ -302,7 +302,7 @@ struct page __init *sparse_mem_map_popul
- }
- #endif /* !CONFIG_SPARSEMEM_VMEMMAP */
- 
--struct page __init *sparse_early_mem_map_alloc(unsigned long pnum)
-+static struct page __init *sparse_early_mem_map_alloc(unsigned long pnum)
- {
- 	struct page *map;
- 	struct mem_section *ms = __nr_to_section(pnum);
+diff -puN kernel/kprobes.c~make-kprobe_blacklist-static kernel/kprobes.c
+--- a/kernel/kprobes.c~make-kprobe_blacklist-static
++++ a/kernel/kprobes.c
+@@ -80,7 +80,7 @@ static DEFINE_PER_CPU(struct kprobe *, k
+  *
+  * For such cases, we now have a blacklist
+  */
+-struct kprobe_blackpoint kprobe_blacklist[] = {
++static struct kprobe_blackpoint kprobe_blacklist[] = {
+ 	{"preempt_schedule",},
+ 	{NULL}    /* Terminator */
+ };
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
