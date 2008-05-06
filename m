@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + pnp-add-pnp_resource_type_name-helper-function.patch added to -mm tree
-Date: Tue, 06 May 2008 12:00:57 -0700
-Message-ID: <200805061900.m46J0vHF022220@imap1.linux-foundation.org>
+Subject: + pnp-dont-sort-by-type-in-sys-resources.patch added to -mm tree
+Date: Tue, 06 May 2008 12:01:05 -0700
+Message-ID: <200805061901.m46J16Nb022235@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52454 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58886 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756646AbYEFTCO (ORCPT
+	by vger.kernel.org with ESMTP id S1753867AbYEFTCO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 15:02:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.o
 
 
 The patch titled
-     pnp: add pnp_resource_type_name() helper function
+     pnp: dont sort by type in /sys/.../resources
 has been added to the -mm tree.  Its filename is
-     pnp-add-pnp_resource_type_name-helper-function.patch
+     pnp-dont-sort-by-type-in-sys-resources.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: add pnp_resource_type_name() helper function
+Subject: pnp: dont sort by type in /sys/.../resources
 From: Bjorn Helgaas <bjorn.helgaas@hp.com>
 
-This patch adds a "pnp_resource_type_name(struct resource *)" that returns the
-string resource type.  This will be used by the sysfs "show resources"
-function and the debug resource dump function.
+Rather than stepping through all IO resources, then stepping through all MMIO
+resources, etc., we can just iterate over the resource list once directly.
+
+This can change the order in /sys, e.g.,
+
+    # cat /sys/devices/pnp0/00:07/resources     # OLD
+    state = active
+    io 0x3f8-0x3ff
+    irq 4
+
+    # cat /sys/devices/pnp0/00:07/resources     # NEW
+    state = active
+    irq 4
+    io 0x3f8-0x3ff
+
+The old code artificially sorted resources by type; the new code
+just lists them in the order we read them from the ISAPNP hardware
+or the BIOS.
 
 Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
 Cc: Len Brown <lenb@kernel.org>
@@ -52,46 +67,91 @@ Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/base.h    |    1 +
- drivers/pnp/support.c |   15 +++++++++++++++
- 2 files changed, 16 insertions(+)
+ drivers/pnp/interface.c |   58 +++++++++++++++-----------------------
+ 1 file changed, 23 insertions(+), 35 deletions(-)
 
-diff -puN drivers/pnp/base.h~pnp-add-pnp_resource_type_name-helper-function drivers/pnp/base.h
---- a/drivers/pnp/base.h~pnp-add-pnp_resource_type_name-helper-function
-+++ a/drivers/pnp/base.h
-@@ -42,6 +42,7 @@ int pnp_check_mem(struct pnp_dev *dev, s
- int pnp_check_irq(struct pnp_dev *dev, struct resource *res);
- int pnp_check_dma(struct pnp_dev *dev, struct resource *res);
- 
-+char *pnp_resource_type_name(struct resource *res);
- void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc);
- 
- void pnp_init_resource(struct resource *res);
-diff -puN drivers/pnp/support.c~pnp-add-pnp_resource_type_name-helper-function drivers/pnp/support.c
---- a/drivers/pnp/support.c~pnp-add-pnp_resource_type_name-helper-function
-+++ a/drivers/pnp/support.c
-@@ -52,6 +52,21 @@ void pnp_eisa_id_to_string(u32 id, char 
- 	str[7] = '\0';
- }
- 
-+char *pnp_resource_type_name(struct resource *res)
-+{
-+	switch (pnp_resource_type(res)) {
-+	case IORESOURCE_IO:
-+		return "io";
-+	case IORESOURCE_MEM:
-+		return "mem";
-+	case IORESOURCE_IRQ:
-+		return "irq";
-+	case IORESOURCE_DMA:
-+		return "dma";
-+	}
-+	return NULL;
-+}
-+
- void dbg_pnp_show_resources(struct pnp_dev *dev, char *desc)
+diff -puN drivers/pnp/interface.c~pnp-dont-sort-by-type-in-sys-resources drivers/pnp/interface.c
+--- a/drivers/pnp/interface.c~pnp-dont-sort-by-type-in-sys-resources
++++ a/drivers/pnp/interface.c
+@@ -248,8 +248,9 @@ static ssize_t pnp_show_current_resource
+ 					  char *buf)
  {
- #ifdef DEBUG
+ 	struct pnp_dev *dev = to_pnp_dev(dmdev);
++	struct pnp_resource *pnp_res;
+ 	struct resource *res;
+-	int i, ret;
++	int ret;
+ 	pnp_info_buffer_t *buffer;
+ 
+ 	if (!dev)
+@@ -262,46 +263,33 @@ static ssize_t pnp_show_current_resource
+ 	buffer->buffer = buf;
+ 	buffer->curr = buffer->buffer;
+ 
+-	pnp_printf(buffer, "state = ");
+-	if (dev->active)
+-		pnp_printf(buffer, "active\n");
+-	else
+-		pnp_printf(buffer, "disabled\n");
+-
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IO, i)); i++) {
+-		pnp_printf(buffer, "io");
+-		if (res->flags & IORESOURCE_DISABLED)
+-			pnp_printf(buffer, " disabled\n");
+-		else
+-			pnp_printf(buffer, " 0x%llx-0x%llx\n",
+-				   (unsigned long long) res->start,
+-				   (unsigned long long) res->end);
+-	}
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_MEM, i)); i++) {
+-		pnp_printf(buffer, "mem");
+-		if (res->flags & IORESOURCE_DISABLED)
++	pnp_printf(buffer, "state = %s\n", dev->active ? "active" : "disabled");
++
++	list_for_each_entry(pnp_res, &dev->resources, list) {
++		res = &pnp_res->res;
++
++		pnp_printf(buffer, pnp_resource_type_name(res));
++
++		if (res->flags & IORESOURCE_DISABLED) {
+ 			pnp_printf(buffer, " disabled\n");
+-		else
+-			pnp_printf(buffer, " 0x%llx-0x%llx\n",
++			continue;
++		}
++
++		switch (pnp_resource_type(res)) {
++		case IORESOURCE_IO:
++		case IORESOURCE_MEM:
++			pnp_printf(buffer, " %#llx-%#llx\n",
+ 				   (unsigned long long) res->start,
+ 				   (unsigned long long) res->end);
+-	}
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_IRQ, i)); i++) {
+-		pnp_printf(buffer, "irq");
+-		if (res->flags & IORESOURCE_DISABLED)
+-			pnp_printf(buffer, " disabled\n");
+-		else
+-			pnp_printf(buffer, " %lld\n",
+-				   (unsigned long long) res->start);
+-	}
+-	for (i = 0; (res = pnp_get_resource(dev, IORESOURCE_DMA, i)); i++) {
+-		pnp_printf(buffer, "dma");
+-		if (res->flags & IORESOURCE_DISABLED)
+-			pnp_printf(buffer, " disabled\n");
+-		else
++			break;
++		case IORESOURCE_IRQ:
++		case IORESOURCE_DMA:
+ 			pnp_printf(buffer, " %lld\n",
+ 				   (unsigned long long) res->start);
++			break;
++		}
+ 	}
++
+ 	ret = (buffer->curr - buf);
+ 	kfree(buffer);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from bjorn.helgaas@hp.com are
