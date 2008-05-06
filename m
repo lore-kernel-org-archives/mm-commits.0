@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-git-kbuild.patch added to -mm tree
-Date: Mon, 05 May 2008 22:48:33 -0700
-Message-ID: <200805060548.m465mXM5024307@imap1.linux-foundation.org>
+Subject: + tridentfb-move-global-flat-panel-variable-into-structure.patch added to -mm tree
+Date: Mon, 05 May 2008 23:12:25 -0700
+Message-ID: <200805060612.m466CPN5025134@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44517 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762479AbYEFFso (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 01:48:44 -0400
+	by vger.kernel.org with ESMTP id S1754149AbYEFGM5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 02:12:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, sam@ravnborg.org
+Cc: krzysztof.h1@wp.pl, adaplas@pol.net
 
 
 The patch titled
-     revert git-kbuild
+     tridentfb: move global flat panel variable into structure
 has been added to the -mm tree.  Its filename is
-     revert-git-kbuild.patch
+     tridentfb-move-global-flat-panel-variable-into-structure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,836 +33,171 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert git-kbuild
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: tridentfb: move global flat panel variable into structure
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Drop this in a manner which will notify me when git-kbuild changes ;)
+This patch moves flat panel indicator into tridentfb_par structure and removes
+related global variables and macros.
 
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile                   |    2 
- README                     |    8 
- scripts/kconfig/.gitignore |    1 
- scripts/kconfig/Makefile   |   75 +++-----
- scripts/kconfig/aconf.c    |  317 -----------------------------------
- scripts/kconfig/conf.c     |  168 +++++++++++++++++-
- 6 files changed, 194 insertions(+), 377 deletions(-)
+ drivers/video/tridentfb.c |   44 ++++++++++++++++++------------------
+ include/video/trident.h   |    6 ----
+ 2 files changed, 23 insertions(+), 27 deletions(-)
 
-diff -puN Makefile~revert-git-kbuild Makefile
---- a/Makefile~revert-git-kbuild
-+++ a/Makefile
-@@ -473,7 +473,7 @@ $(KCONFIG_CONFIG) include/config/auto.co
- # if auto.conf.cmd is missing then we are probably in a cleaned tree so
- # we execute the config step to be sure to catch updated Kconfig files
- include/config/auto.conf: $(KCONFIG_CONFIG) include/config/auto.conf.cmd
--	$(Q)$(MAKE) -f $(srctree)/Makefile oldconfig
-+	$(Q)$(MAKE) -f $(srctree)/Makefile silentoldconfig
- else
- # external modules needs include/linux/autoconf.h and include/config/auto.conf
- # but do not care if they are up-to-date. Use auto.conf to trigger the test
-diff -puN README~revert-git-kbuild README
---- a/README~revert-git-kbuild
-+++ a/README
-@@ -171,9 +171,11 @@ CONFIGURING the kernel:
- 	"make oldconfig"   Default all questions based on the contents of
- 			   your existing ./.config file and asking about
- 			   new config symbols.
--	"make defconfig"   Create a ./.config file by using the base
--			   configuration found in the file specified by
--			   the environment variable KBUILD_DEFCONFIG.
-+	"make silentoldconfig"
-+			   Like above, but avoids cluttering the screen
-+			   with questions already answered.
-+	"make defconfig"   Create a ./.config file by using the default
-+			   symbol values from arch/$ARCH/defconfig.
- 	"make allyesconfig"
- 			   Create a ./.config file by setting symbol
- 			   values to 'y' as much as possible.
-diff -puN scripts/kconfig/.gitignore~revert-git-kbuild scripts/kconfig/.gitignore
---- a/scripts/kconfig/.gitignore~revert-git-kbuild
-+++ a/scripts/kconfig/.gitignore
-@@ -13,7 +13,6 @@ lkc_defs.h
- # configuration programs
- #
- conf
--aconf
- mconf
- qconf
- gconf
-diff -puN scripts/kconfig/Makefile~revert-git-kbuild scripts/kconfig/Makefile
---- a/scripts/kconfig/Makefile~revert-git-kbuild
-+++ a/scripts/kconfig/Makefile
-@@ -18,9 +18,12 @@ menuconfig: $(obj)/mconf
- config: $(obj)/conf
- 	$< $(Kconfig)
+diff -puN drivers/video/tridentfb.c~tridentfb-move-global-flat-panel-variable-into-structure drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-move-global-flat-panel-variable-into-structure
++++ a/drivers/video/tridentfb.c
+@@ -30,6 +30,7 @@ struct tridentfb_par {
+ 	void __iomem *io_virt;	/* iospace virtual memory address */
+ 	u32 pseudo_pal[16];
+ 	int chip_id;
++	int flatpanel;
+ };
  
--oldconfig silentoldconfig: $(obj)/conf
-+oldconfig: $(obj)/conf
- 	$< -o $(Kconfig)
+ static unsigned char eng_oper;	/* engine operation... */
+@@ -43,24 +44,22 @@ static struct fb_fix_screeninfo tridentf
+ 	.accel = FB_ACCEL_NONE,
+ };
  
-+silentoldconfig: $(obj)/conf
-+	$< -s $(Kconfig)
-+
- # Create new linux.pot file
- # Adjust charset to UTF-8 in .po file to accept UTF-8 in Kconfig files
- # The symlink is used to repair a deficiency in arch/um
-@@ -44,37 +47,30 @@ update-po-config: $(obj)/kxgettext $(obj
- 	$(Q)rm -f arch/um/Kconfig.arch
- 	$(Q)rm -f $(obj)/config.pot
+-static int displaytype;
+-
+ /* defaults which are normally overriden by user values */
  
--#####
--#
--# aconf support
--#
--aconf-targets := allnoconfig allyesconfig allmodconfig alldefconfig randconfig
--PHONY += $(aconf-targets) defconfig
--
--# Optional base file for aconf
--# K= have precedence over KCONFIG_ALLCONFIG
--aconf-file := $(if $(KCONFIG_ALLCONFIG),-b $(KCONFIG_ALLCONFIG))
--aconf-file := $(if $(K),-b $(K), $(aconf-file))
--$(aconf-targets): $(obj)/aconf
--	$< $@ $(aconf-file) $(Kconfig)
--
--# Targets named *_defconfig may be located in arch/.../configs/
--# but try current dir first and always fallback to current dir
--archdef = arch/$(SRCARCH)/configs/$@
--aconf-archdef = $(if $(wildcard $(archdef)),$(if $(wildcard $@),$@,$(archdef)),$@)
--%_defconfig: $(obj)/aconf
--	$< alldefconfig -b $(aconf-archdef) $(Kconfig)
--
--# An arch may use KBUILD_DEFCONFIG to specify defconfig file
--# fallback to arch/$ARCH/defconfig
--defconfig-file := $(if $(KBUILD_DEFCONFIG),            \
--        arch/$(SRCARCH)/configs/$(KBUILD_DEFCONFIG),   \
--        arch/$(SRCARCH)/defconfig)
--defconfig-file := $(strip $(defconfig-file))
-+PHONY += randconfig allyesconfig allnoconfig allmodconfig defconfig
-+
-+randconfig: $(obj)/conf
-+	$< -r $(Kconfig)
+ /* video mode */
+ static char *mode_option __devinitdata = "640x480";
+-static int bpp = 8;
++static int bpp __devinitdata = 8;
  
--defconfig: $(obj)/aconf
--	$< alldefconfig -b $(defconfig-file) $(Kconfig)
-+allyesconfig: $(obj)/conf
-+	$< -y $(Kconfig)
-+
-+allnoconfig: $(obj)/conf
-+	$< -n $(Kconfig)
-+
-+allmodconfig: $(obj)/conf
-+	$< -m $(Kconfig)
-+
-+defconfig: $(obj)/conf
-+ifeq ($(KBUILD_DEFCONFIG),)
-+	$< -d $(Kconfig)
-+else
-+	@echo "*** Default configuration is based on '$(KBUILD_DEFCONFIG)'"
-+	$(Q)$< -D arch/$(SRCARCH)/configs/$(KBUILD_DEFCONFIG) $(Kconfig)
-+endif
+-static int noaccel;
++static int noaccel __devinitdata;
  
-+%_defconfig: $(obj)/conf
-+	$(Q)$< -D arch/$(SRCARCH)/configs/$@ $(Kconfig)
+ static int center;
+ static int stretch;
  
- # Help text used by make help
- help:
-@@ -82,14 +78,13 @@ help:
- 	@echo  '  menuconfig	  - Update current config utilising a menu based program'
- 	@echo  '  xconfig	  - Update current config utilising a QT based front-end'
- 	@echo  '  gconfig	  - Update current config utilising a GTK based front-end'
--	@echo  '  oldconfig	  - Update current config utilising .config as base'
--	@echo  '  defconfig	  - New config based on arch specific base configuration'
--	@echo  '  randconfig	  - New config with random values for all symbols'
--	@echo  '  allnoconfig	  - New config where all values are set to no'
--	@echo  '  allyesconfig	  - New config where all values are set to yes'
--	@echo  '  allmodconfig	  - New config where all values are set to module'
--	@echo  '  alldefconfig	  - New config where all values has their default value'
--	@echo  '  For randconfig and all*config targets use K=file to specify a base configuration'
-+	@echo  '  oldconfig	  - Update current config utilising a provided .config as base'
-+	@echo  '  silentoldconfig - Same as oldconfig, but quietly'
-+	@echo  '  randconfig	  - New config with random answer to all options'
-+	@echo  '  defconfig	  - New config with default answer to all options'
-+	@echo  '  allmodconfig	  - New config selecting modules when possible'
-+	@echo  '  allyesconfig	  - New config where all options are accepted with yes'
-+	@echo  '  allnoconfig	  - New config where all options are answered with no'
+-static int fp;
+-static int crt;
++static int fp __devinitdata;
++static int crt __devinitdata;
  
- # lxdialog stuff
- check-lxdialog  := $(srctree)/$(src)/lxdialog/check-lxdialog.sh
-@@ -105,7 +100,6 @@ HOST_EXTRACFLAGS += -DLOCALE
- # ===========================================================================
- # Shared Makefile for the various kconfig executables:
- # conf:	  Used for defconfig, oldconfig and related targets
--# aconf:  Generate simple configurations (all*config, etc)
- # mconf:  Used for the mconfig target.
- #         Utilizes the lxdialog package
- # qconf:  Used for the xconfig target
-@@ -118,11 +112,10 @@ lxdialog := lxdialog/checklist.o lxdialo
- lxdialog += lxdialog/textbox.o lxdialog/yesno.o lxdialog/menubox.o
+-static int memsize;
+-static int memdiff;
++static int memsize __devinitdata;
++static int memdiff __devinitdata;
+ static int nativex;
  
- conf-objs	:= conf.o  zconf.tab.o
--aconf-objs	:= aconf.o zconf.tab.o
- mconf-objs	:= mconf.o zconf.tab.o $(lxdialog)
- kxgettext-objs	:= kxgettext.o zconf.tab.o
+ module_param(mode_option, charp, 0);
+@@ -75,7 +74,9 @@ module_param(memsize, int, 0);
+ module_param(memdiff, int, 0);
+ module_param(nativex, int, 0);
+ module_param(fp, int, 0);
++MODULE_PARM_DESC(fp, "Define if flatpanel is connected");
+ module_param(crt, int, 0);
++MODULE_PARM_DESC(crt, "Define if CRT is connected");
  
--hostprogs-y := conf aconf qconf gconf kxgettext
-+hostprogs-y := conf qconf gconf kxgettext
- 
- ifeq ($(MAKECMDGOALS),menuconfig)
- 	hostprogs-y += mconf
-diff -puN scripts/kconfig/aconf.c~revert-git-kbuild /dev/null
---- a/scripts/kconfig/aconf.c
-+++ /dev/null
-@@ -1,317 +0,0 @@
--/*
-- * Copyright (C) 2002 Roman Zippel <zippel@linux-m68k.org>
-- * Copyright (C) 2008 Sam Ravnborg <sam@ravnborg.org>
-- * Released under the terms of the GNU GPL v2.0.
-- */
--
--/*
-- * Generate the automated configs
-- */
--
--#include <locale.h>
--#include <ctype.h>
--#include <stdio.h>
--#include <stdlib.h>
--#include <string.h>
--#include <time.h>
--#include <unistd.h>
--#include <sys/stat.h>
--
--#define LKC_DIRECT_LINK
--#include "lkc.h"
--
--static void check_conf(struct menu *menu);
--static void conf(struct menu *menu);
--
--enum {
--	set_default,
--	set_yes,
--	set_mod,
--	set_no,
--	set_random
--} default_value;
--
--
--static int conf_cnt;
--static struct menu *rootEntry;
--
--/* Set strig value - it this a nop as it looks like? */
--static void conf_string(struct menu *menu)
--{
--	struct symbol *sym = menu->sym;
--	const char *def;
--
--
--	if (!sym_is_changable(sym))
--		return;
--
--	if (sym_has_value(sym) && (default_value != set_default))
--		return;
--
--	def = sym_get_string_value(sym);
--	if (def)
--		sym_set_string_value(sym, def);
--}
--
--static void conf_sym(struct menu *menu)
--{
--	struct symbol *sym = menu->sym;
--	int type;
--	tristate val;
--
--	if (!sym_is_changable(sym))
--		return;
--
--	if (sym_has_value(sym) && (default_value != set_default))
--		return;
--
--	type = sym_get_type(sym);
--	switch (default_value) {
--	case set_yes:
--		if (sym_tristate_within_range(sym, yes)) {
--			sym_set_tristate_value(sym, yes);
--			break;
--		}
--	/* fallthrough */
--	case set_mod:
--		if (type == S_TRISTATE) {
--			if (sym_tristate_within_range(sym, mod)) {
--				sym_set_tristate_value(sym, mod);
--				break;
--			}
--		} else if (sym_tristate_within_range(sym, yes)) {
--			sym_set_tristate_value(sym, yes);
--			break;
--		}
--	/* fallthrough */
--	case set_no:
--		if (sym_tristate_within_range(sym, no)) {
--			sym_set_tristate_value(sym, no);
--			break;
--		}
--	/* fallthrough */
--	case set_random:
--		 do {
--			val = (tristate)(rand() % 3);
--		} while (!sym_tristate_within_range(sym, val));
--		switch (val) {
--		case no:  sym_set_tristate_value(sym, no); break;
--		case mod: sym_set_tristate_value(sym, mod); break;
--		case yes: sym_set_tristate_value(sym, yes); break;
--		}
--		break;
--	case set_default:
--		sym_set_tristate_value(sym, sym_get_tristate_value(sym));
--		break;
--	}
--}
--
--static void conf_choice(struct menu *menu)
--{
--	struct symbol *sym, *def_sym;
--	struct menu *child;
--	int type;
--	bool is_new;
--	int cnt, def;
--
--	sym = menu->sym;
--	type = sym_get_type(sym);
--	is_new = !sym_has_value(sym);
--	if (sym_is_changable(sym)) {
--		conf_sym(menu);
--		sym_calc_value(sym);
--	}
--	if (sym_get_tristate_value(sym) != yes)
--		return;
--	def_sym = sym_get_choice_value(sym);
--	cnt = def = 0;
--	for (child = menu->list; child; child = child->next) {
--		if (!child->sym || !menu_is_visible(child))
--			continue;
--		cnt++;
--		if (child->sym == def_sym)
--			def = cnt;
--	}
--	if (cnt == 1)
--		goto conf_childs;
--
--	switch (default_value) {
--	case set_random:
--		if (is_new)
--			def = (rand() % cnt) + 1;
--	/* fallthrough */
--	case set_default:
--	case set_yes:
--	case set_mod:
--	case set_no:
--		cnt = def;
--		break;
--	}
--
--conf_childs:
--	for (child = menu->list; child; child = child->next) {
--		if (!child->sym || !menu_is_visible(child))
--			continue;
--		if (!--cnt)
--			break;
--	}
--	sym_set_choice_value(sym, child->sym);
--	for (child = child->list; child; child = child->next)
--		conf(child);
--}
--
--
--static void conf(struct menu *menu)
--{
--	struct symbol *sym;
--	struct property *prop;
--	struct menu *child;
--
--	if (!menu_is_visible(menu))
--		return;
--
--	sym = menu->sym;
--	prop = menu->prompt;
--	if (prop && prop->type == P_MENU) {
--		if (menu != rootEntry) {
--			check_conf(menu);
--			return;
--		}
--	}
--
--	if (!sym)
--		goto conf_childs;
--
--	if (sym_is_choice(sym)) {
--		conf_choice(menu);
--		if (sym->curr.tri != mod)
--			return;
--		goto conf_childs;
--	}
--
--	switch (sym->type) {
--	case S_INT:
--	case S_HEX:
--	case S_STRING:
--		conf_string(menu);
--		break;
--	default:
--		conf_sym(menu);
--		break;
--	}
--
--conf_childs:
--	for (child = menu->list; child; child = child->next)
--		conf(child);
--}
--
--static void check_conf(struct menu *menu)
--{
--	struct symbol *sym;
--	struct menu *child;
--
--	if (!menu_is_visible(menu))
--		return;
--
--	sym = menu->sym;
--	if (sym && !sym_has_value(sym)) {
--		if (sym_is_changable(sym) ||
--		    (sym_is_choice(sym) &&
--		     sym_get_tristate_value(sym) == yes)) {
--			conf_cnt++;
--			rootEntry = menu_get_parent_menu(menu);
--			conf(rootEntry);
--		}
--	}
--
--	for (child = menu->list; child; child = child->next)
--		check_conf(child);
--}
--
--static void usage(void)
--{
--	printf(_("usage: aconf COMMAND [-b config_file] Kconfig\n"));
--	printf("\n");
--	printf(_("The supported commands are:\n"));
--	printf(_("   allnoconfig  set as many values as possible to 'n'\n"));
--	printf(_("   allyesconfig set as many values as possible to 'y'\n"));
--	printf(_("   allmodconfig set as many values as possible to 'm'\n"));
--	printf(_("   alldefconfig set all vaues to their default value\n"));
--	printf(_("   randconfig   select a random value for all value\n"));
--	printf("\n");
--	printf(_("   -b file      optional base configuration\n"));
--	printf(_("   Kconfig      the kconfig configuration\n"));
--	printf("\n");
--	printf(_("   Output is stored in .config (if not overridden by KCONFIG_CONFIG)\n"));
--	printf("\n");
--}
--
--int main(int ac, char **av)
--{
--	char *config_file = NULL;
--	char *kconfig_file = NULL;
--	struct stat tmpstat;
--
--	setlocale(LC_ALL, "");
--	bindtextdomain(PACKAGE, LOCALEDIR);
--	textdomain(PACKAGE);
--
--	if (ac < 2) {
--		usage();
--		exit(1);
--	}
--	if (strcmp(av[1], "allnoconfig") == 0)
--		default_value = set_no;
--	else if (strcmp(av[1], "allyesconfig") == 0)
--		default_value = set_yes;
--	else if (strcmp(av[1], "allmodconfig") == 0)
--		default_value = set_mod;
--	else if (strcmp(av[1], "alldefconfig") == 0)
--		default_value = set_default;
--	else if (strcmp(av[1], "randconfig") == 0) {
--		default_value = set_random;
--		srand(time(NULL));
--	} else {
--		usage();
--		exit(1);
--	}
--	if (strcmp(av[2], "-b") == 0) {
--		config_file = av[3];
--		kconfig_file = av[4];
--	} else {
--		kconfig_file = av[2];
--	}
--	if (!kconfig_file) {
--		fprintf(stderr, _("%s: Kconfig file missing\n"), av[0]);
--		exit(1);
--	}
--	conf_parse(kconfig_file);
--	/* debug: zconfdump(stdout); */
--	if (config_file && stat(config_file, &tmpstat)) {
--		fprintf(stderr, _("%s: failed to open %s\n"),
--		        av[0], config_file);
--		exit(1);
--	}
--	if (config_file && conf_read_simple(config_file, S_DEF_USER)) {
--		fprintf(stderr, _("%s: failed to read %s\n"),
--		        av[0], config_file);
--		exit(1);
--	}
--	if (config_file) {
--		printf("#\n");
--		printf(_("# configuration is based on '%s'\n"), config_file);
--	}
--	/* generate the config */
--	do {
--		conf_cnt = 0;
--		check_conf(&rootmenu);
--	} while (conf_cnt);
--	/* write out the config */
--	if (conf_write(NULL) || conf_write_autoconf()) {
--		fprintf(stderr,
--		        _("%s: error during write of the configuration.\n"),
--		        av[0]);
--		exit(1);
--	}
--	return 0;
--}
-diff -puN scripts/kconfig/conf.c~revert-git-kbuild scripts/kconfig/conf.c
---- a/scripts/kconfig/conf.c~revert-git-kbuild
-+++ a/scripts/kconfig/conf.c
-@@ -21,7 +21,14 @@ static void check_conf(struct menu *menu
- enum {
- 	ask_all,
- 	ask_new,
-+	ask_silent,
-+	set_default,
-+	set_yes,
-+	set_mod,
-+	set_no,
-+	set_random
- } input_mode = ask_all;
-+char *defconfig_file;
- 
- static int indent = 1;
- static int valid_stdin = 1;
-@@ -58,17 +65,18 @@ static void strip(char *str)
- 
- static void check_stdin(void)
+ static int is3Dchip(int id)
  {
--	if (valid_stdin)
--		return;
--	fprintf(stderr, _("aborted!\n\n"));
--	fprintf(stderr, _("Console input/output is redirected. "));
--	fprintf(stderr, _("Run 'make oldconfig' to update configuration.\n\n"));
--	exit(1);
-+	if (!valid_stdin && input_mode == ask_silent) {
-+		printf(_("aborted!\n\n"));
-+		printf(_("Console input/output is redirected. "));
-+		printf(_("Run 'make oldconfig' to update configuration.\n\n"));
-+		exit(1);
-+	}
- }
+@@ -728,15 +729,15 @@ static void set_number_of_lines(struct t
  
- static int conf_askvalue(struct symbol *sym, const char *def)
+ /*
+  * If we see that FP is active we assume we have one.
+- * Otherwise we have a CRT display.User can override.
++ * Otherwise we have a CRT display. User can override.
+  */
+-static unsigned int __devinit get_displaytype(struct tridentfb_par *par)
++static int __devinit is_flatpanel(struct tridentfb_par *par)
  {
- 	enum symbol_type type = sym_get_type(sym);
-+	tristate val;
- 
- 	if (!sym_has_value(sym))
- 		printf(_("(NEW) "));
-@@ -83,17 +91,32 @@ static int conf_askvalue(struct symbol *
- 		return 0;
- 	}
- 
--	check_stdin();
- 	switch (input_mode) {
-+	case set_no:
-+	case set_mod:
-+	case set_yes:
-+	case set_random:
-+		if (sym_has_value(sym)) {
-+			printf("%s\n", def);
-+			return 0;
-+		}
-+		break;
- 	case ask_new:
-+	case ask_silent:
- 		if (sym_has_value(sym)) {
- 			printf("%s\n", def);
- 			return 0;
- 		}
-+		check_stdin();
- 	case ask_all:
- 		fflush(stdout);
- 		fgets(line, 128, stdin);
- 		return 1;
-+	case set_default:
-+		printf("%s\n", def);
+ 	if (fp)
+-		return DISPLAY_FP;
 +		return 1;
-+	default:
-+		break;
- 	}
- 
- 	switch (type) {
-@@ -105,6 +128,52 @@ static int conf_askvalue(struct symbol *
- 	default:
- 		;
- 	}
-+	switch (input_mode) {
-+	case set_yes:
-+		if (sym_tristate_within_range(sym, yes)) {
-+			line[0] = 'y';
-+			line[1] = '\n';
-+			line[2] = 0;
-+			break;
-+		}
-+	case set_mod:
-+		if (type == S_TRISTATE) {
-+			if (sym_tristate_within_range(sym, mod)) {
-+				line[0] = 'm';
-+				line[1] = '\n';
-+				line[2] = 0;
-+				break;
-+			}
-+		} else {
-+			if (sym_tristate_within_range(sym, yes)) {
-+				line[0] = 'y';
-+				line[1] = '\n';
-+				line[2] = 0;
-+				break;
-+			}
-+		}
-+	case set_no:
-+		if (sym_tristate_within_range(sym, no)) {
-+			line[0] = 'n';
-+			line[1] = '\n';
-+			line[2] = 0;
-+			break;
-+		}
-+	case set_random:
-+		do {
-+			val = (tristate)(rand() % 3);
-+		} while (!sym_tristate_within_range(sym, val));
-+		switch (val) {
-+		case no: line[0] = 'n'; break;
-+		case mod: line[0] = 'm'; break;
-+		case yes: line[0] = 'y'; break;
-+		}
-+		line[1] = '\n';
-+		line[2] = 0;
-+		break;
-+	default:
-+		break;
-+	}
- 	printf("%s", line);
- 	return 1;
+ 	if (crt || !iscyber(par->chip_id))
+-		return DISPLAY_CRT;
+-	return (read3CE(par, FPConfig) & 0x10) ? DISPLAY_FP : DISPLAY_CRT;
++		return 0;
++	return (read3CE(par, FPConfig) & 0x10) ? 1 : 0;
  }
-@@ -283,6 +352,7 @@ static int conf_choice(struct menu *menu
- 		printf("]: ");
- 		switch (input_mode) {
- 		case ask_new:
-+		case ask_silent:
- 			if (!is_new) {
- 				cnt = def;
- 				printf("%d\n", cnt);
-@@ -304,6 +374,16 @@ static int conf_choice(struct menu *menu
- 			else
- 				continue;
- 			break;
-+		case set_random:
-+			if (is_new)
-+				def = (rand() % cnt) + 1;
-+		case set_default:
-+		case set_yes:
-+		case set_mod:
-+		case set_no:
-+			cnt = def;
-+			printf("%d\n", cnt);
-+			break;
- 		}
  
- 	conf_childs:
-@@ -345,7 +425,7 @@ static void conf(struct menu *menu)
+ /* Try detecting the video memory size */
+@@ -824,6 +825,7 @@ static unsigned int __devinit get_memsiz
+ static int tridentfb_check_var(struct fb_var_screeninfo *var,
+ 			       struct fb_info *info)
+ {
++	struct tridentfb_par *par = info->par;
+ 	int bpp = var->bits_per_pixel;
+ 	debug("enter\n");
  
- 		switch (prop->type) {
- 		case P_MENU:
--			if (input_mode != ask_all && rootEntry != menu) {
-+			if (input_mode == ask_silent && rootEntry != menu) {
- 				check_conf(menu);
- 				return;
- 			}
-@@ -424,13 +504,35 @@ int main(int ac, char **av)
- 	bindtextdomain(PACKAGE, LOCALEDIR);
- 	textdomain(PACKAGE);
+@@ -831,7 +833,7 @@ static int tridentfb_check_var(struct fb
+ 	if (bpp == 24)
+ 		bpp = var->bits_per_pixel = 32;
+ 	/* check whether resolution fits on panel and in memory */
+-	if (flatpanel && nativex && var->xres > nativex)
++	if (par->flatpanel && nativex && var->xres > nativex)
+ 		return -EINVAL;
+ 	if (var->xres * var->yres_virtual * bpp / 8 > info->fix.smem_len)
+ 		return -EINVAL;
+@@ -928,7 +930,7 @@ static int tridentfb_set_par(struct fb_i
+ 	crtc_unlock(par);
+ 	write3CE(par, CyberControl, 8);
  
--	valid_stdin = isatty(0) && isatty(1) && isatty(2);
+-	if (flatpanel && var->xres < nativex) {
++	if (par->flatpanel && var->xres < nativex) {
+ 		/*
+ 		 * on flat panels with native size larger
+ 		 * than requested resolution decide whether
+@@ -1097,7 +1099,7 @@ static int tridentfb_set_par(struct fb_i
+ 	t_outb(par, tmp, 0x3C6);
+ 	t_inb(par, 0x3C8);
+ 
+-	if (flatpanel)
++	if (par->flatpanel)
+ 		set_number_of_lines(par, info->var.yres);
+ 	set_lwidth(par, info->var.xres * bpp / (4 * 16));
+ 	info->fix.visual = (bpp == 8) ? FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_TRUECOLOR;
+@@ -1153,7 +1155,7 @@ static int tridentfb_blank(int blank_mod
+ 	struct tridentfb_par *par = info->par;
+ 
+ 	debug("enter\n");
+-	if (flatpanel)
++	if (par->flatpanel)
+ 		return 0;
+ 	t_outb(par, 0x04, 0x83C8); /* Read DPMS Control */
+ 	PMCont = t_inb(par, 0x83C6) & 0xFC;
+@@ -1322,9 +1324,9 @@ static int __devinit trident_pci_probe(s
+ 	}
+ 
+ 	output("%s board found\n", pci_name(dev));
+-	displaytype = get_displaytype(default_par);
++	default_par->flatpanel = is_flatpanel(default_par);
+ 
+-	if (flatpanel)
++	if (default_par->flatpanel)
+ 		nativex = get_nativex(default_par);
+ 
+ 	info->fix = tridentfb_fix;
+@@ -1441,9 +1443,9 @@ static int __init tridentfb_setup(char *
+ 		if (!strncmp(opt, "noaccel", 7))
+ 			noaccel = 1;
+ 		else if (!strncmp(opt, "fp", 2))
+-			displaytype = DISPLAY_FP;
++			fp = 1;
+ 		else if (!strncmp(opt, "crt", 3))
+-			displaytype = DISPLAY_CRT;
++			fp = 0;
+ 		else if (!strncmp(opt, "bpp=", 4))
+ 			bpp = simple_strtoul(opt + 4, NULL, 0);
+ 		else if (!strncmp(opt, "center", 6))
+diff -puN include/video/trident.h~tridentfb-move-global-flat-panel-variable-into-structure include/video/trident.h
+--- a/include/video/trident.h~tridentfb-move-global-flat-panel-variable-into-structure
++++ a/include/video/trident.h
+@@ -63,12 +63,6 @@
+ #define LCD_CENTER	1
+ #define LCD_BIOS	2
+ 
+-/* display types */
+-#define DISPLAY_CRT	0
+-#define DISPLAY_FP	1
 -
--	while ((opt = getopt(ac, av, "oh")) != -1) {
-+	while ((opt = getopt(ac, av, "osdD:nmyrh")) != -1) {
- 		switch (opt) {
- 		case 'o':
- 			input_mode = ask_new;
- 			break;
-+		case 's':
-+			input_mode = ask_silent;
-+			valid_stdin = isatty(0) && isatty(1) && isatty(2);
-+			break;
-+		case 'd':
-+			input_mode = set_default;
-+			break;
-+		case 'D':
-+			input_mode = set_default;
-+			defconfig_file = optarg;
-+			break;
-+		case 'n':
-+			input_mode = set_no;
-+			break;
-+		case 'm':
-+			input_mode = set_mod;
-+			break;
-+		case 'y':
-+			input_mode = set_yes;
-+			break;
-+		case 'r':
-+			input_mode = set_random;
-+			srand(time(NULL));
-+			break;
- 		case 'h':
- 			printf(_("See README for usage info\n"));
- 			exit(0);
-@@ -448,7 +550,17 @@ int main(int ac, char **av)
- 	conf_parse(name);
- 	//zconfdump(stdout);
- 	switch (input_mode) {
--	case ask_new:
-+	case set_default:
-+		if (!defconfig_file)
-+			defconfig_file = conf_get_default_confname();
-+		if (conf_read(defconfig_file)) {
-+			printf(_("***\n"
-+				"*** Can't find default configuration \"%s\"!\n"
-+				"***\n"), defconfig_file);
-+			exit(1);
-+		}
-+		break;
-+	case ask_silent:
- 		if (stat(".config", &tmpstat)) {
- 			printf(_("***\n"
- 				"*** You have not yet configured your kernel!\n"
-@@ -460,13 +572,41 @@ int main(int ac, char **av)
- 			exit(1);
- 		}
- 	case ask_all:
-+	case ask_new:
- 		conf_read(NULL);
- 		break;
-+	case set_no:
-+	case set_mod:
-+	case set_yes:
-+	case set_random:
-+		name = getenv("KCONFIG_ALLCONFIG");
-+		if (name && !stat(name, &tmpstat)) {
-+			conf_read_simple(name, S_DEF_USER);
-+			break;
-+		}
-+		switch (input_mode) {
-+		case set_no:	 name = "allno.config"; break;
-+		case set_mod:	 name = "allmod.config"; break;
-+		case set_yes:	 name = "allyes.config"; break;
-+		case set_random: name = "allrandom.config"; break;
-+		default: break;
-+		}
-+		if (!stat(name, &tmpstat))
-+			conf_read_simple(name, S_DEF_USER);
-+		else if (!stat("all.config", &tmpstat))
-+			conf_read_simple("all.config", S_DEF_USER);
-+		break;
-+	default:
-+		break;
- 	}
- 
--	if (input_mode == ask_all) {
-+	if (input_mode != ask_silent) {
- 		rootEntry = &rootmenu;
- 		conf(&rootmenu);
-+		if (input_mode == ask_all) {
-+			input_mode = ask_silent;
-+			valid_stdin = 1;
-+		}
- 	} else if (conf_get_changed()) {
- 		name = getenv("KCONFIG_NOSILENTUPDATE");
- 		if (name && *name) {
-@@ -485,7 +625,7 @@ int main(int ac, char **av)
- 		return 1;
- 	}
- skip_check:
--	if (conf_write_autoconf()) {
-+	if (input_mode == ask_silent && conf_write_autoconf()) {
- 		fprintf(stderr, _("\n*** Error during writing of the kernel configuration.\n\n"));
- 		return 1;
- 	}
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-linux-next.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-revert-memory-hotplug-register-section-node-id-to-free.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-git-input.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-jg-misc-git-rejects.patch
-revert-git-kbuild.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-git-net-git-rejects.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-add-warn_on_secs-macro.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-
+-#define flatpanel (displaytype == DISPLAY_FP)
