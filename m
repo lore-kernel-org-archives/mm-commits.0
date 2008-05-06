@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + pcmcia-kill-in_card_services.patch added to -mm tree
-Date: Tue, 06 May 2008 11:36:23 -0700
-Message-ID: <200805061836.m46IaNIU021201@imap1.linux-foundation.org>
+Subject: + make-parport_cs_release-static.patch added to -mm tree
+Date: Tue, 06 May 2008 11:36:30 -0700
+Message-ID: <200805061836.m46IaUo5021215@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48861 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48115 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752966AbYEFSgg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:36 -0400
+	by vger.kernel.org with ESMTP id S1754331AbYEFSgm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:36:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org
 
 
 The patch titled
-     pcmcia: kill IN_CARD_SERVICES
+     make parport_cs_release() static
 has been added to the -mm tree.  Its filename is
-     pcmcia-kill-in_card_services.patch
+     make-parport_cs_release-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,89 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcmcia: kill IN_CARD_SERVICES
+Subject: make parport_cs_release() static
 From: Adrian Bunk <bunk@kernel.org>
 
-IN_CARD_SERVICES was #define'd but not used, so let's remove it.
+This patch makes the needlessly global parport_cs_release() static.
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pcmcia/cardbus.c         |    1 -
- drivers/pcmcia/cs.c              |    1 -
- drivers/pcmcia/ds.c              |    1 -
- drivers/pcmcia/pcmcia_ioctl.c    |    1 -
- drivers/pcmcia/pcmcia_resource.c |    1 -
- drivers/pcmcia/socket_sysfs.c    |    1 -
- 6 files changed, 6 deletions(-)
+ drivers/parport/parport_cs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pcmcia/cardbus.c~pcmcia-kill-in_card_services drivers/pcmcia/cardbus.c
---- a/drivers/pcmcia/cardbus.c~pcmcia-kill-in_card_services
-+++ a/drivers/pcmcia/cardbus.c
-@@ -30,7 +30,6 @@
- #include <asm/irq.h>
- #include <asm/io.h>
+diff -puN drivers/parport/parport_cs.c~make-parport_cs_release-static drivers/parport/parport_cs.c
+--- a/drivers/parport/parport_cs.c~make-parport_cs_release-static
++++ a/drivers/parport/parport_cs.c
+@@ -235,7 +235,7 @@ failed:
+     
+ ======================================================================*/
  
--#define IN_CARD_SERVICES
- #include <pcmcia/cs_types.h>
- #include <pcmcia/ss.h>
- #include <pcmcia/cs.h>
-diff -puN drivers/pcmcia/cs.c~pcmcia-kill-in_card_services drivers/pcmcia/cs.c
---- a/drivers/pcmcia/cs.c~pcmcia-kill-in_card_services
-+++ a/drivers/pcmcia/cs.c
-@@ -32,7 +32,6 @@
- #include <asm/system.h>
- #include <asm/irq.h>
+-void parport_cs_release(struct pcmcia_device *link)
++static void parport_cs_release(struct pcmcia_device *link)
+ {
+ 	parport_info_t *info = link->priv;
  
--#define IN_CARD_SERVICES
- #include <pcmcia/cs_types.h>
- #include <pcmcia/ss.h>
- #include <pcmcia/cs.h>
-diff -puN drivers/pcmcia/ds.c~pcmcia-kill-in_card_services drivers/pcmcia/ds.c
---- a/drivers/pcmcia/ds.c~pcmcia-kill-in_card_services
-+++ a/drivers/pcmcia/ds.c
-@@ -25,7 +25,6 @@
- #include <linux/kref.h>
- #include <linux/dma-mapping.h>
- 
--#define IN_CARD_SERVICES
- #include <pcmcia/cs_types.h>
- #include <pcmcia/cs.h>
- #include <pcmcia/cistpl.h>
-diff -puN drivers/pcmcia/pcmcia_ioctl.c~pcmcia-kill-in_card_services drivers/pcmcia/pcmcia_ioctl.c
---- a/drivers/pcmcia/pcmcia_ioctl.c~pcmcia-kill-in_card_services
-+++ a/drivers/pcmcia/pcmcia_ioctl.c
-@@ -29,7 +29,6 @@
- #include <linux/pci.h>
- #include <linux/workqueue.h>
- 
--#define IN_CARD_SERVICES
- #include <pcmcia/cs_types.h>
- #include <pcmcia/cs.h>
- #include <pcmcia/cistpl.h>
-diff -puN drivers/pcmcia/pcmcia_resource.c~pcmcia-kill-in_card_services drivers/pcmcia/pcmcia_resource.c
---- a/drivers/pcmcia/pcmcia_resource.c~pcmcia-kill-in_card_services
-+++ a/drivers/pcmcia/pcmcia_resource.c
-@@ -21,7 +21,6 @@
- #include <linux/pci.h>
- #include <linux/device.h>
- 
--#define IN_CARD_SERVICES
- #include <pcmcia/cs_types.h>
- #include <pcmcia/ss.h>
- #include <pcmcia/cs.h>
-diff -puN drivers/pcmcia/socket_sysfs.c~pcmcia-kill-in_card_services drivers/pcmcia/socket_sysfs.c
---- a/drivers/pcmcia/socket_sysfs.c~pcmcia-kill-in_card_services
-+++ a/drivers/pcmcia/socket_sysfs.c
-@@ -27,7 +27,6 @@
- #include <asm/system.h>
- #include <asm/irq.h>
- 
--#define IN_CARD_SERVICES
- #include <pcmcia/cs_types.h>
- #include <pcmcia/ss.h>
- #include <pcmcia/cs.h>
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
