@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + omfs-add-bitmap-routines.patch added to -mm tree
-Date: Tue, 06 May 2008 13:07:56 -0700
-Message-ID: <200805062007.m46K7uX8024919@imap1.linux-foundation.org>
+Subject: + omfs-add-file-routines.patch added to -mm tree
+Date: Tue, 06 May 2008 13:07:54 -0700
+Message-ID: <200805062007.m46K7sQu024916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44634 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52143 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763706AbYEFUIZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:08:25 -0400
+	by vger.kernel.org with ESMTP id S1761617AbYEFUIY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 16:08:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: me@bobcopeland.com
 
 
 The patch titled
-     omfs: add bitmap routines
+     omfs: add file routines
 has been added to the -mm tree.  Its filename is
-     omfs-add-bitmap-routines.patch
+     omfs-add-file-routines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,214 +33,369 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: omfs: add bitmap routines
+Subject: omfs: add file routines
 From: Bob Copeland <me@bobcopeland.com>
 
-Add block allocation and block bitmap management routines for OMFS.
+Add functions for reading and manipulating the storage of file data in
+the extent-based OMFS.
 
 Signed-off-by: Bob Copeland <me@bobcopeland.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/omfs/bitmap.c |  192 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 192 insertions(+)
+ fs/omfs/file.c |  346 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 346 insertions(+)
 
-diff -puN /dev/null fs/omfs/bitmap.c
+diff -puN /dev/null fs/omfs/file.c
 --- /dev/null
-+++ a/fs/omfs/bitmap.c
-@@ -0,0 +1,192 @@
-+#include <linux/kernel.h>
++++ a/fs/omfs/file.c
+@@ -0,0 +1,346 @@
++/*
++ * OMFS (as used by RIO Karma) file operations.
++ * Copyright (C) 2005 Bob Copeland <me@bobcopeland.com>
++ * Released under GPL v2.
++ */
++
++#include <linux/version.h>
++#include <linux/module.h>
 +#include <linux/fs.h>
 +#include <linux/buffer_head.h>
-+#include <asm/div64.h>
++#include <linux/mpage.h>
 +#include "omfs.h"
 +
-+unsigned long omfs_count_free(struct super_block *sb)
++static int omfs_sync_file(struct file *file, struct dentry *dentry,
++		int datasync)
 +{
-+	unsigned int i;
-+	unsigned long sum = 0;
-+	struct omfs_sb_info *sbi = OMFS_SB(sb);
-+	int nbits = sb->s_blocksize * 8;
-+
-+	for (i = 0; i < sbi->s_imap_size; i++)
-+		sum += nbits - bitmap_weight(sbi->s_imap[i], nbits);
-+
-+	return sum;
-+}
-+
-+/*
-+ *  Counts the run of zero bits starting at bit up to max.
-+ *  It handles the case where a run might spill over a buffer.
-+ *  Called with bitmap lock.
-+ */
-+static int count_run(unsigned long **addr, int nbits,
-+		int addrlen, int bit, int max)
-+{
-+	int count = 0;
-+	int x;
-+
-+	for (; addrlen > 0; addrlen--, addr++) {
-+		x = find_next_bit(*addr, nbits, bit);
-+		count += x - bit;
-+
-+		if (x < nbits || count > max)
-+			return min(count, max);
-+
-+		bit = 0;
-+	}
-+	return min(count, max);
-+}
-+
-+/*
-+ * Sets or clears the run of count bits starting with bit.
-+ * Called with bitmap lock.
-+ */
-+static int set_run(struct super_block *sb, int map,
-+		int nbits, int bit, int count, int set)
-+{
-+	int i;
++	struct inode *inode = dentry->d_inode;
 +	int err;
-+	struct buffer_head *bh;
-+	struct omfs_sb_info *sbi = OMFS_SB(sb);
 +
-+ 	err = -ENOMEM;
-+	bh = sb_bread(sb, clus_to_blk(sbi, sbi->s_bitmap_ino) + map);
++	err = sync_mapping_buffers(inode->i_mapping);
++	if (!(inode->i_state & I_DIRTY))
++		return err;
++	if (datasync && !(inode->i_state & I_DIRTY_DATASYNC))
++		return err;
++	err |= omfs_sync_inode(inode);
++	return err ? -EIO : 0;
++}
++
++void omfs_make_empty_table(struct buffer_head *bh, int offset)
++{
++	struct omfs_extent *oe = (struct omfs_extent *) &bh->b_data[offset];
++
++	oe->e_next = ~0ULL;
++	oe->e_extent_count = cpu_to_be32(1),
++	oe->e_fill = cpu_to_be32(0x22),
++	oe->e_entry.e_cluster = ~0ULL;
++	oe->e_entry.e_blocks = ~0ULL;
++}
++
++int omfs_shrink_inode(struct inode *inode)
++{
++	struct omfs_sb_info *sbi = OMFS_SB(inode->i_sb);
++	struct omfs_extent *oe;
++	struct omfs_extent_entry *entry;
++	struct buffer_head *bh;
++	u64 next, last;
++	u32 extent_count;
++	int ret;
++
++	/* traverse extent table, freeing each entry that is greater
++	 * than inode->i_size;
++	 */
++	next = inode->i_ino;
++
++	/* only support truncate -> 0 for now */
++	ret = -EIO;
++	if (inode->i_size != 0)
++		goto out;
++
++	bh = sb_bread(inode->i_sb, clus_to_blk(sbi, next));
 +	if (!bh)
 +		goto out;
 +
-+	for (i = 0; i < count; i++, bit++) {
-+		if (bit >= nbits) {
-+			bit = 0;
-+			map++;
++	oe = (struct omfs_extent *)(&bh->b_data[OMFS_EXTENT_START]);
 +
-+			mark_buffer_dirty(bh);
++	for (;;) {
++
++		if (omfs_is_bad(sbi, (struct omfs_header *) bh->b_data, next)) {
 +			brelse(bh);
-+			bh = sb_bread(sb,
-+				clus_to_blk(sbi, sbi->s_bitmap_ino) + map);
-+			if (!bh)
-+				goto out;
-+		}
-+		if (set) {
-+			set_bit(bit, sbi->s_imap[map]);
-+			set_bit(bit, (long *) bh->b_data);
-+		} else {
-+			clear_bit(bit, sbi->s_imap[map]);
-+			clear_bit(bit, (long *) bh->b_data);
-+		}
-+	}
-+	mark_buffer_dirty(bh);
-+	brelse(bh);
-+	err = 0;
-+out:
-+	return err;
-+}
-+
-+/*
-+ * Tries to allocate exactly one block.  Returns true if sucessful.
-+ */
-+int omfs_allocate_block(struct super_block *sb, u64 block)
-+{
-+	struct buffer_head *bh;
-+	struct omfs_sb_info *sbi = OMFS_SB(sb);
-+	int bits_per_entry = 8 * sb->s_blocksize;
-+	int map, bit;
-+	int ret = 0;
-+	u64 tmp;
-+
-+	tmp = block;
-+	bit = do_div(tmp, bits_per_entry);
-+	map = tmp;
-+
-+	mutex_lock(&sbi->s_bitmap_lock);
-+	if (map >= sbi->s_imap_size || test_and_set_bit(bit, sbi->s_imap[map]))
-+		goto out;
-+
-+	if (sbi->s_bitmap_ino > 0) {
-+		bh = sb_bread(sb, clus_to_blk(sbi, sbi->s_bitmap_ino) + map);
-+		if (!bh)
 +			goto out;
++		}
 +
-+		set_bit(bit, (long *) bh->b_data);
++		extent_count = be32_to_cpu(oe->e_extent_count);
++		last = next;
++		next = be64_to_cpu(oe->e_next);
++		entry = &oe->e_entry;
++
++		/* ignore last entry as it is the terminator */
++		for (; extent_count > 1; extent_count--) {
++			u64 start, count;
++			start = be64_to_cpu(entry->e_cluster);
++			count = be64_to_cpu(entry->e_blocks);
++
++			omfs_clear_range(inode->i_sb, start, (int) count);
++			entry++;
++		}
++		omfs_make_empty_table(bh, (char *) oe - bh->b_data);
 +		mark_buffer_dirty(bh);
 +		brelse(bh);
++
++		if (last != inode->i_ino)
++			omfs_clear_range(inode->i_sb, last, sbi->s_mirrors);
++
++		if (next == ~0)
++			break;
++
++		bh = sb_bread(inode->i_sb, clus_to_blk(sbi, next));
++		if (!bh)
++			goto out;
++		oe = (struct omfs_extent *) (&bh->b_data[OMFS_EXTENT_CONT]);
 +	}
-+	ret = 1;
++	ret = 0;
 +out:
-+	mutex_unlock(&sbi->s_bitmap_lock);
 +	return ret;
 +}
 +
++static void omfs_truncate(struct inode *inode)
++{
++	omfs_shrink_inode(inode);
++	mark_inode_dirty(inode);
++}
 +
 +/*
-+ *  Tries to allocate a set of blocks.	The request size depends on the
-+ *  type: for inodes, we must allocate sbi->s_mirrors blocks, and for file
-+ *  blocks, we try to allocate sbi->s_clustersize, but can always get away
-+ *  with just one block.
++ * Add new blocks to the current extent, or create new entries/continuations
++ * as necessary.
 + */
-+int omfs_allocate_range(struct super_block *sb,
-+			int min_request,
-+			int max_request,
-+			u64 *return_block,
-+			int *return_size)
++static int omfs_grow_extent(struct inode *inode, struct omfs_extent *oe,
++			u64 *ret_block)
 +{
-+	struct omfs_sb_info *sbi = OMFS_SB(sb);
-+	int bits_per_entry = 8 * sb->s_blocksize;
++	struct omfs_extent_entry *terminator;
++	struct omfs_extent_entry *entry = &oe->e_entry;
++	struct omfs_sb_info *sbi = OMFS_SB(inode->i_sb);
++	u32 extent_count = be32_to_cpu(oe->e_extent_count);
++	u64 new_block = 0;
++	u32 max_count;
++	int new_count;
 +	int ret = 0;
-+	int i, run, bit;
 +
-+	mutex_lock(&sbi->s_bitmap_lock);
-+	for (i = 0; i < sbi->s_imap_size; i++) {
-+		bit = 0;
-+		while (bit < bits_per_entry) {
-+			bit = find_next_zero_bit(sbi->s_imap[i], bits_per_entry,
-+				bit);
++	/* reached the end of the extent table with no blocks mapped.
++	 * there are three possibilities for adding: grow last extent,
++	 * add a new extent to the current extent table, and add a
++	 * continuation inode.  in last two cases need an allocator for
++	 * sbi->s_cluster_size
++	 */
 +
-+			if (bit == bits_per_entry)
-+				break;
++	/* TODO: handle holes */
 +
-+			run = count_run(&sbi->s_imap[i], bits_per_entry,
-+				sbi->s_imap_size-i, bit, max_request);
++	/* should always have a terminator */
++	if (extent_count < 1)
++		return -EIO;
 +
-+			if (run >= min_request)
-+				goto found;
-+			bit += run;
++	/* trivially grow current extent, if next block is not taken */
++	terminator = entry + extent_count - 1;
++	if (extent_count > 1) {
++		entry = terminator-1;
++		new_block = be64_to_cpu(entry->e_cluster) +
++			be64_to_cpu(entry->e_blocks);
++
++		if (omfs_allocate_block(inode->i_sb, new_block)) {
++			entry->e_blocks =
++				cpu_to_be64(be64_to_cpu(entry->e_blocks) + 1);
++			terminator->e_blocks = ~(cpu_to_be64(
++				be64_to_cpu(~terminator->e_blocks) + 1));
++			goto out;
 +		}
 +	}
-+	ret = -ENOSPC;
-+	goto out;
++	max_count = (sbi->s_sys_blocksize - OMFS_EXTENT_START -
++		sizeof(struct omfs_extent)) /
++		sizeof(struct omfs_extent_entry) + 1;
 +
-+found:
-+	*return_block = i * bits_per_entry + bit;
-+	*return_size = run;
-+	ret = set_run(sb, i, bits_per_entry, bit, run, 1);
++	/* TODO: add a continuation block here */
++	if (be32_to_cpu(oe->e_extent_count) > max_count-1)
++		return -EIO;
++
++	/* try to allocate a new cluster */
++	ret = omfs_allocate_range(inode->i_sb, 1, sbi->s_clustersize,
++		&new_block, &new_count);
++	if (ret)
++		goto out_fail;
++
++	/* copy terminator down an entry */
++	entry = terminator;
++	terminator++;
++	memcpy(terminator, entry, sizeof(struct omfs_extent_entry));
++
++	entry->e_cluster = cpu_to_be64(new_block);
++	entry->e_blocks = cpu_to_be64((u64) new_count);
++
++	terminator->e_blocks = ~(cpu_to_be64(
++		be64_to_cpu(~terminator->e_blocks) + (u64) new_count));
++
++	/* write in new entry */
++	oe->e_extent_count = cpu_to_be32(1 + be32_to_cpu(oe->e_extent_count));
 +
 +out:
-+	mutex_unlock(&sbi->s_bitmap_lock);
++	*ret_block = new_block;
++out_fail:
 +	return ret;
 +}
 +
 +/*
-+ * Clears count bits starting at a given block.
++ * Scans across the directory table for a given file block number.
++ * If block not found, return 0.
 + */
-+int omfs_clear_range(struct super_block *sb, u64 block, int count)
++static sector_t find_block(struct inode *inode, struct omfs_extent_entry *ent,
++			sector_t block, int count, int *left)
 +{
-+	struct omfs_sb_info *sbi = OMFS_SB(sb);
-+	int bits_per_entry = 8 * sb->s_blocksize;
-+	u64 tmp;
-+	int map, bit, ret;
++	/* count > 1 because of terminator */
++	sector_t searched = 0;
++	for (; count > 1; count--) {
++		int numblocks = clus_to_blk(OMFS_SB(inode->i_sb),
++			be64_to_cpu(ent->e_blocks));
 +
-+	tmp = block;
-+	bit = do_div(tmp, bits_per_entry);
-+	map = tmp;
++		if (block >= searched  &&
++		    block < searched + numblocks) {
++			/*
++			 * found it at cluster + (block - searched)
++			 * numblocks - (block - searched) is remainder
++			 */
++			*left = numblocks - (block - searched);
++			return clus_to_blk(OMFS_SB(inode->i_sb),
++				be64_to_cpu(ent->e_cluster)) +
++				block - searched;
++		}
++		searched += numblocks;
++		ent++;
++	}
++	return 0;
++}
 +
-+	if (map >= sbi->s_imap_size)
-+		return 0;
++static int omfs_get_block(struct inode *inode, sector_t block,
++			  struct buffer_head *bh_result, int create)
++{
++	struct buffer_head *bh;
++	sector_t next, offset;
++	int ret;
++	u64 new_block;
++	int extent_count;
++	struct omfs_extent *oe;
++	struct omfs_extent_entry *entry;
++	struct omfs_sb_info *sbi = OMFS_SB(inode->i_sb);
++	int max_blocks = bh_result->b_size >> inode->i_blkbits;
++	int remain;
 +
-+	mutex_lock(&sbi->s_bitmap_lock);
-+	ret = set_run(sb, map, bits_per_entry, bit, count, 0);
-+	mutex_unlock(&sbi->s_bitmap_lock);
++	ret = -EIO;
++	bh = sb_bread(inode->i_sb, clus_to_blk(sbi, inode->i_ino));
++	if (!bh)
++		goto out;
++
++	oe = (struct omfs_extent *)(&bh->b_data[OMFS_EXTENT_START]);
++	next = inode->i_ino;
++
++	for (;;) {
++
++		if (omfs_is_bad(sbi, (struct omfs_header *) bh->b_data, next))
++			goto out_brelse;
++
++		extent_count = be32_to_cpu(oe->e_extent_count);
++		next = be64_to_cpu(oe->e_next);
++		entry = &oe->e_entry;
++
++		offset = find_block(inode, entry, block, extent_count, &remain);
++		if (offset > 0) {
++			ret = 0;
++			map_bh(bh_result, inode->i_sb, offset);
++			if (remain > max_blocks)
++				remain = max_blocks;
++			bh_result->b_size = (remain << inode->i_blkbits);
++			goto out_brelse;
++		}
++		if (next == ~0)
++			break;
++
++		brelse(bh);
++		bh = sb_bread(inode->i_sb, clus_to_blk(sbi, next));
++		if (!bh)
++			goto out;
++		oe = (struct omfs_extent *) (&bh->b_data[OMFS_EXTENT_CONT]);
++	}
++	if (create) {
++		ret = omfs_grow_extent(inode, oe, &new_block);
++		if (ret == 0) {
++			mark_buffer_dirty(bh);
++			mark_inode_dirty(inode);
++			map_bh(bh_result, inode->i_sb,
++					clus_to_blk(sbi, new_block));
++		}
++	}
++out_brelse:
++	brelse(bh);
++out:
 +	return ret;
 +}
++
++static int omfs_readpage(struct file *file, struct page *page)
++{
++	return block_read_full_page(page, omfs_get_block);
++}
++
++static int omfs_readpages(struct file *file, struct address_space *mapping,
++		struct list_head *pages, unsigned nr_pages)
++{
++	return mpage_readpages(mapping, pages, nr_pages, omfs_get_block);
++}
++
++static int omfs_writepage(struct page *page, struct writeback_control *wbc)
++{
++	return block_write_full_page(page, omfs_get_block, wbc);
++}
++
++static int
++omfs_writepages(struct address_space *mapping, struct writeback_control *wbc)
++{
++	return mpage_writepages(mapping, wbc, omfs_get_block);
++}
++
++static int omfs_write_begin(struct file *file, struct address_space *mapping,
++			loff_t pos, unsigned len, unsigned flags,
++			struct page **pagep, void **fsdata)
++{
++	*pagep = NULL;
++	return block_write_begin(file, mapping, pos, len, flags,
++				pagep, fsdata, omfs_get_block);
++}
++
++static sector_t omfs_bmap(struct address_space *mapping, sector_t block)
++{
++	return generic_block_bmap(mapping, block, omfs_get_block);
++}
++
++struct file_operations omfs_file_operations = {
++	.llseek = generic_file_llseek,
++	.read = do_sync_read,
++	.write = do_sync_write,
++	.aio_read = generic_file_aio_read,
++	.aio_write = generic_file_aio_write,
++	.mmap = generic_file_mmap,
++	.fsync = omfs_sync_file,
++	.splice_read = generic_file_splice_read,
++};
++
++struct inode_operations omfs_file_inops = {
++	.truncate = omfs_truncate
++};
++
++struct address_space_operations omfs_aops = {
++	.readpage = omfs_readpage,
++	.readpages = omfs_readpages,
++	.writepage = omfs_writepage,
++	.writepages = omfs_writepages,
++	.sync_page = block_sync_page,
++	.write_begin = omfs_write_begin,
++	.write_end = generic_write_end,
++	.bmap = omfs_bmap,
++};
++
 _
 
 Patches currently in -mm which might be from me@bobcopeland.com are
