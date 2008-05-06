@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + sa1100fb-convert-ctrlr_sem-in-a-mutex.patch added to -mm tree
-Date: Tue, 06 May 2008 11:48:46 -0700
-Message-ID: <200805061848.m46Imkun021755@imap1.linux-foundation.org>
+Subject: + pxafb-convert-ctrlr_sem-in-a-mutex.patch added to -mm tree
+Date: Tue, 06 May 2008 11:48:22 -0700
+Message-ID: <200805061848.m46ImMIS021746@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57059 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35773 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754578AbYEFStV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:49:21 -0400
+	by vger.kernel.org with ESMTP id S1754578AbYEFStL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:49:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: matthias@kaehlcke.net
+Cc: matthias@kaehlcke.net, daniel@caiaq.de, eric.miao@marvell.com, rmk@arm.linux.org.uk
 
 
 The patch titled
-     sa1100fb: convert ctrlr_sem in a mutex
+     pxafb: convert ctrlr_sem in a mutex
 has been added to the -mm tree.  Its filename is
-     sa1100fb-convert-ctrlr_sem-in-a-mutex.patch
+     pxafb-convert-ctrlr_sem-in-a-mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sa1100fb: convert ctrlr_sem in a mutex
+Subject: pxafb: convert ctrlr_sem in a mutex
 From: Matthias Kaehlcke <matthias@kaehlcke.net>
 
-The semaphore ctrlr_sem is used as a mutex.  Convert it to the mutex API
+The semaphore ctrlr_sem is used as a mutex.  Convert it to the mutex API.
 
 Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
+Cc: Daniel Mack <daniel@caiaq.de>
+Cc: Eric Miao <eric.miao@marvell.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/sa1100fb.c |    7 ++++---
- drivers/video/sa1100fb.h |    2 +-
+ drivers/video/pxafb.c |    7 ++++---
+ drivers/video/pxafb.h |    2 +-
  2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN drivers/video/sa1100fb.c~sa1100fb-convert-ctrlr_sem-in-a-mutex drivers/video/sa1100fb.c
---- a/drivers/video/sa1100fb.c~sa1100fb-convert-ctrlr_sem-in-a-mutex
-+++ a/drivers/video/sa1100fb.c
-@@ -174,6 +174,7 @@
- #include <linux/cpufreq.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
+diff -puN drivers/video/pxafb.c~pxafb-convert-ctrlr_sem-in-a-mutex drivers/video/pxafb.c
+--- a/drivers/video/pxafb.c~pxafb-convert-ctrlr_sem-in-a-mutex
++++ a/drivers/video/pxafb.c
+@@ -40,6 +40,7 @@
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/completion.h>
 +#include <linux/mutex.h>
+ #include <linux/kthread.h>
+ #include <linux/freezer.h>
  
- #include <asm/hardware.h>
- #include <asm/io.h>
-@@ -1107,7 +1108,7 @@ static void set_ctrlr_state(struct sa110
+@@ -1059,7 +1060,7 @@ static void set_ctrlr_state(struct pxafb
  {
  	u_int old_state;
  
@@ -66,7 +69,7 @@ diff -puN drivers/video/sa1100fb.c~sa1100fb-convert-ctrlr_sem-in-a-mutex drivers
  
  	old_state = fbi->state;
  
-@@ -1192,7 +1193,7 @@ static void set_ctrlr_state(struct sa110
+@@ -1147,7 +1148,7 @@ static void set_ctrlr_state(struct pxafb
  		}
  		break;
  	}
@@ -75,19 +78,19 @@ diff -puN drivers/video/sa1100fb.c~sa1100fb-convert-ctrlr_sem-in-a-mutex drivers
  }
  
  /*
-@@ -1444,7 +1445,7 @@ static struct sa1100fb_info * __init sa1
+@@ -1399,7 +1400,7 @@ static struct pxafb_info * __init pxafb_
  
  	init_waitqueue_head(&fbi->ctrlr_wait);
- 	INIT_WORK(&fbi->task, sa1100fb_task);
+ 	INIT_WORK(&fbi->task, pxafb_task);
 -	init_MUTEX(&fbi->ctrlr_sem);
 +	mutex_init(&fbi->ctrlr_lock);
- 
- 	return fbi;
- }
-diff -puN drivers/video/sa1100fb.h~sa1100fb-convert-ctrlr_sem-in-a-mutex drivers/video/sa1100fb.h
---- a/drivers/video/sa1100fb.h~sa1100fb-convert-ctrlr_sem-in-a-mutex
-+++ a/drivers/video/sa1100fb.h
-@@ -100,7 +100,7 @@ struct sa1100fb_info {
+ 	init_completion(&fbi->disable_done);
+ #ifdef CONFIG_FB_PXA_SMARTPANEL
+ 	init_completion(&fbi->command_done);
+diff -puN drivers/video/pxafb.h~pxafb-convert-ctrlr_sem-in-a-mutex drivers/video/pxafb.h
+--- a/drivers/video/pxafb.h~pxafb-convert-ctrlr_sem-in-a-mutex
++++ a/drivers/video/pxafb.h
+@@ -106,7 +106,7 @@ struct pxafb_info {
  
  	volatile u_char		state;
  	volatile u_char		task_state;
@@ -103,5 +106,4 @@ Patches currently in -mm which might be from matthias@kaehlcke.net are
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
 pxafb-convert-ctrlr_sem-in-a-mutex.patch
-sa1100fb-convert-ctrlr_sem-in-a-mutex.patch
 
