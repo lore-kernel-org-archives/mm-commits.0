@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + make-init-do_mountsc-root_device_name-static.patch added to -mm tree
-Date: Tue, 06 May 2008 11:37:06 -0700
-Message-ID: <200805061837.m46Ib6Pn021276@imap1.linux-foundation.org>
+Subject: + proper-extern-for-mwave_s_mdd.patch added to -mm tree
+Date: Tue, 06 May 2008 11:37:16 -0700
+Message-ID: <200805061837.m46IbGZZ021311@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59885 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53140 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756718AbYEFShT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:19 -0400
+	by vger.kernel.org with ESMTP id S1759595AbYEFSh3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 14:37:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: bunk@kernel.org
 
 
 The patch titled
-     make init/do_mounts.c:root_device_name static
+     proper extern for mwave_s_mdd
 has been added to the -mm tree.  Its filename is
-     make-init-do_mountsc-root_device_name-static.patch
+     proper-extern-for-mwave_s_mdd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: make init/do_mounts.c:root_device_name static
+Subject: proper extern for mwave_s_mdd
 From: Adrian Bunk <bunk@kernel.org>
 
-This patch makes the needlessly global root_device_name static.
+This patch adds a proper extern for mwave_s_mdd in
+drivers/char/mwave/mwavedd.h
 
 Signed-off-by: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/do_mounts.c |    2 +-
- init/do_mounts.h |    1 -
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ drivers/char/mwave/mwavedd.h |    2 ++
+ drivers/char/mwave/tp3780i.c |    2 --
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN init/do_mounts.c~make-init-do_mountsc-root_device_name-static init/do_mounts.c
---- a/init/do_mounts.c~make-init-do_mountsc-root_device_name-static
-+++ a/init/do_mounts.c
-@@ -22,7 +22,7 @@
- int __initdata rd_doload;	/* 1 = load RAM disk, 0 = don't load */
+diff -puN drivers/char/mwave/mwavedd.h~proper-extern-for-mwave_s_mdd drivers/char/mwave/mwavedd.h
+--- a/drivers/char/mwave/mwavedd.h~proper-extern-for-mwave_s_mdd
++++ a/drivers/char/mwave/mwavedd.h
+@@ -147,4 +147,6 @@ typedef struct _MWAVE_DEVICE_DATA {
  
- int root_mountflags = MS_RDONLY | MS_SILENT;
--char * __initdata root_device_name;
-+static char * __initdata root_device_name;
- static char __initdata saved_root_name[64];
- static int __initdata root_wait;
+ } MWAVE_DEVICE_DATA, *pMWAVE_DEVICE_DATA;
  
-diff -puN init/do_mounts.h~make-init-do_mountsc-root_device_name-static init/do_mounts.h
---- a/init/do_mounts.h~make-init-do_mountsc-root_device_name-static
-+++ a/init/do_mounts.h
-@@ -11,7 +11,6 @@ void  change_floppy(char *fmt, ...);
- void  mount_block_root(char *name, int flags);
- void  mount_root(void);
- extern int root_mountflags;
--extern char *root_device_name;
++extern MWAVE_DEVICE_DATA mwave_s_mdd;
++
+ #endif
+diff -puN drivers/char/mwave/tp3780i.c~proper-extern-for-mwave_s_mdd drivers/char/mwave/tp3780i.c
+--- a/drivers/char/mwave/tp3780i.c~proper-extern-for-mwave_s_mdd
++++ a/drivers/char/mwave/tp3780i.c
+@@ -57,8 +57,6 @@
+ #include "3780i.h"
+ #include "mwavepub.h"
  
- static inline int create_dev(char *name, dev_t dev)
- {
+-extern MWAVE_DEVICE_DATA mwave_s_mdd;
+-
+ static unsigned short s_ausThinkpadIrqToField[16] =
+ 	{ 0xFFFF, 0xFFFF, 0xFFFF, 0x0001, 0x0002, 0x0003, 0xFFFF, 0x0004,
+ 	0xFFFF, 0xFFFF, 0x0005, 0x0006, 0xFFFF, 0xFFFF, 0xFFFF, 0x0007 };
 _
 
 Patches currently in -mm which might be from bunk@kernel.org are
