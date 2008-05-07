@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-convert-j_lock-to-mutex.patch added to -mm tree
-Date: Wed, 07 May 2008 12:41:18 -0700
-Message-ID: <200805071941.m47JfI04013201@imap1.linux-foundation.org>
+Subject: + reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 07 May 2008 12:42:24 -0700
+Message-ID: <200805071942.m47JgOSU013328@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45777 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44647 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756281AbYEGTmW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 15:42:22 -0400
+	by vger.kernel.org with ESMTP id S1754585AbYEGTnX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 15:43:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeffm@suse.com, chris.mason@oracle.com, edward.shishkin@gmail.com, matthew@wil.cx
+Cc: akpm@linux-foundation.org, chris.mason@oracle.com, edward.shishkin@gmail.com, jeffm@suse.com, matthew@wil.cx
 
 
 The patch titled
-     reiserfs: convert j_lock to mutex
+     reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     reiserfs-convert-j_lock-to-mutex.patch
+     reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,68 +33,107 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs: convert j_lock to mutex
-From: Jeff Mahoney <jeffm@suse.com>
+Subject: reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-j_lock is a semaphore but uses it as if it were a mutex.  This patch converts
-it to a mutex.
+WARNING: Use #include <linux/uaccess.h> instead of <asm/uaccess.h>
+#40: FILE: fs/reiserfs/journal.c:53:
++#include <asm/uaccess.h>
 
-Signed-off-by: Jeff Mahoney <jeffm@suse.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
+total: 0 errors, 1 warnings, 83 lines checked
+
+./patches/reiserfs-convert-j_commit_lock-to-mutex.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
 Cc: Chris Mason <chris.mason@oracle.com>
 Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c          |    6 +++---
- include/linux/reiserfs_fs_sb.h |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ fs/reiserfs/journal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/reiserfs/journal.c~reiserfs-convert-j_lock-to-mutex fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-convert-j_lock-to-mutex
+diff -puN fs/reiserfs/journal.c~reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes
 +++ a/fs/reiserfs/journal.c
-@@ -558,13 +558,13 @@ static inline void insert_journal_hash(s
- static inline void lock_journal(struct super_block *p_s_sb)
- {
- 	PROC_INFO_INC(p_s_sb, journal.lock_journal);
--	down(&SB_JOURNAL(p_s_sb)->j_lock);
-+	mutex_lock(&SB_JOURNAL(p_s_sb)->j_mutex);
- }
+@@ -49,8 +49,8 @@
+ #include <linux/writeback.h>
+ #include <linux/blkdev.h>
+ #include <linux/backing-dev.h>
++#include <linux/uaccess.h>
  
- /* unlock the current transaction */
- static inline void unlock_journal(struct super_block *p_s_sb)
- {
--	up(&SB_JOURNAL(p_s_sb)->j_lock);
-+	mutex_unlock(&SB_JOURNAL(p_s_sb)->j_mutex);
- }
+-#include <asm/uaccess.h>
+ #include <asm/system.h>
  
- static inline void get_journal_list(struct reiserfs_journal_list *jl)
-@@ -2837,7 +2837,7 @@ int journal_init(struct super_block *p_s
- 	journal->j_last = NULL;
- 	journal->j_first = NULL;
- 	init_waitqueue_head(&(journal->j_join_wait));
--	sema_init(&journal->j_lock, 1);
-+	mutex_init(&journal->j_mutex);
- 	sema_init(&journal->j_flush_sem, 1);
- 
- 	journal->j_trans_id = 10;
-diff -puN include/linux/reiserfs_fs_sb.h~reiserfs-convert-j_lock-to-mutex include/linux/reiserfs_fs_sb.h
---- a/include/linux/reiserfs_fs_sb.h~reiserfs-convert-j_lock-to-mutex
-+++ a/include/linux/reiserfs_fs_sb.h
-@@ -193,7 +193,7 @@ struct reiserfs_journal {
- 	struct buffer_head *j_header_bh;
- 
- 	time_t j_trans_start_time;	/* time this transaction started */
--	struct semaphore j_lock;
-+	struct mutex j_mutex;
- 	struct semaphore j_flush_sem;
- 	wait_queue_head_t j_join_wait;	/* wait for current transaction to finish before starting new one */
- 	atomic_t j_jlock;	/* lock for j_join_wait */
+ /* gets a struct reiserfs_journal_list * from a list head */
 _
 
-Patches currently in -mm which might be from jeffm@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-reiserfs-convert-j_lock-to-mutex.patch
-reiserfs-convert-j_flush_sem-to-mutex.patch
-reiserfs-convert-j_commit_lock-to-mutex.patch
+origin.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+drivers-scsi-dpt_i2oc-fix-build-on-alpha.patch
+quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
+linux-next.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+dlm-convert-connections_lock-in-a-mutex-fix.patch
+git-input.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-jg-misc-git-rejects.patch
+git-mips.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
