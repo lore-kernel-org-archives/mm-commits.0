@@ -1,102 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - powerpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch removed from -mm tree
-Date: Tue, 06 May 2008 22:23:48 -0700
-Message-ID: <200805070523.m475NmxS013225@imap1.linux-foundation.org>
+Subject: - hid-disable-numlock-emulation-for-apple-aluminium-keyboards.patch removed from -mm tree
+Date: Tue, 06 May 2008 22:23:51 -0700
+Message-ID: <200805070523.m475Npbl013228@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40766 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34090 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754636AbYEGFX7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 01:23:59 -0400
+	by vger.kernel.org with ESMTP id S1754055AbYEGFXx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 01:23:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: den@openvz.org, adobriyan@openvz.org, benh@kernel.crashing.org, ebiederm@xmission.com, paulus@au.ibm.com, mm-commits@vger.kernel.org
+To: flameeyes@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: assign PDE->data before gluing PDE into /proc tree
+     HID: disable numlock emulation for Apple Aluminium keyboards
 has been removed from the -mm tree.  Its filename was
-     powerpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
+     hid-disable-numlock-emulation-for-apple-aluminium-keyboards.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: assign PDE->data before gluing PDE into /proc tree
-From: "Denis V. Lunev" <den@openvz.org>
+Subject: HID: disable numlock emulation for Apple Aluminium keyboards
+From: "Diego 'Flameeyes' Petteno" <flameeyes@gmail.com>
 
-Simply replace proc_create and further data assigned with proc_create_data. 
-No need to check for data!=NULL after that.
 
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Cc: Alexey Dobriyan <adobriyan@openvz.org>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Paul Mackerras <paulus@au.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/platforms/pseries/scanlog.c |   19 ++-----------------
- 1 file changed, 2 insertions(+), 17 deletions(-)
+ drivers/hid/hid-input.c         |    5 ++--
+ drivers/hid/usbhid/hid-quirks.c |   32 +++++++++++++++---------------
+ include/linux/hid.h             |    1 
+ 3 files changed, 20 insertions(+), 18 deletions(-)
 
-diff -puN arch/powerpc/platforms/pseries/scanlog.c~powerpc-assign-pde-data-before-gluing-pde-into-proc-tree arch/powerpc/platforms/pseries/scanlog.c
---- a/arch/powerpc/platforms/pseries/scanlog.c~powerpc-assign-pde-data-before-gluing-pde-into-proc-tree
-+++ a/arch/powerpc/platforms/pseries/scanlog.c
-@@ -55,11 +55,6 @@ static ssize_t scanlog_read(struct file 
-         dp = PDE(inode);
-  	data = (unsigned int *)dp->data;
+diff -puN drivers/hid/hid-input.c~hid-disable-numlock-emulation-for-apple-aluminium-keyboards drivers/hid/hid-input.c
+--- a/drivers/hid/hid-input.c~hid-disable-numlock-emulation-for-apple-aluminium-keyboards
++++ a/drivers/hid/hid-input.c
+@@ -218,8 +218,9 @@ int hidinput_apple_event(struct hid_devi
+ 			}
+ 		}
  
--	if (!data) {
--		printk(KERN_ERR "scanlog: read failed no data\n");
--		return -EIO;
--	}
--
- 	if (count > RTAS_DATA_BUF_SIZE)
- 		count = RTAS_DATA_BUF_SIZE;
+-		if (test_bit(usage->code, hid->pb_pressed_numlock) ||
+-				test_bit(LED_NUML, input->led)) {
++		if (hid->quirks & HID_QUIRK_APPLE_NUMLOCK_EMULATION && (
++				test_bit(usage->code, hid->pb_pressed_numlock) ||
++				test_bit(LED_NUML, input->led))) {
+ 			trans = find_translation(powerbook_numlock_keys, usage->code);
  
-@@ -146,11 +141,6 @@ static int scanlog_open(struct inode * i
- 	struct proc_dir_entry *dp = PDE(inode);
- 	unsigned int *data = (unsigned int *)dp->data;
+ 			if (trans) {
+diff -puN drivers/hid/usbhid/hid-quirks.c~hid-disable-numlock-emulation-for-apple-aluminium-keyboards drivers/hid/usbhid/hid-quirks.c
+--- a/drivers/hid/usbhid/hid-quirks.c~hid-disable-numlock-emulation-for-apple-aluminium-keyboards
++++ a/drivers/hid/usbhid/hid-quirks.c
+@@ -613,28 +613,28 @@ static const struct hid_blacklist {
  
--	if (!data) {
--		printk(KERN_ERR "scanlog: open failed no data\n");
--		return -EIO;
--	}
--
- 	if (data[0] != 0) {
- 		/* This imperfect test stops a second copy of the
- 		 * data (or a reset while data is being copied)
-@@ -168,10 +158,6 @@ static int scanlog_release(struct inode 
- 	struct proc_dir_entry *dp = PDE(inode);
- 	unsigned int *data = (unsigned int *)dp->data;
+ 	{ USB_VENDOR_ID_WISEGROUP_LTD, USB_DEVICE_ID_SMARTJOY_DUAL_PLUS, HID_QUIRK_NOGET | HID_QUIRK_MULTI_INPUT },
  
--	if (!data) {
--		printk(KERN_ERR "scanlog: release failed no data\n");
--		return -EIO;
--	}
- 	data[0] = 0;
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_ANSI, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER_ANSI, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE | HID_QUIRK_APPLE_ISO_KEYBOARD},
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER_JIS, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER3_ANSI, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER3_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE | HID_QUIRK_APPLE_ISO_KEYBOARD},
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER3_JIS, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_ANSI, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE | HID_QUIRK_APPLE_ISO_KEYBOARD},
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_JIS, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_ANSI, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_ISO, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER_ANSI, HID_QUIRK_APPLE_NUMLOCK_EMULATION | QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER_ISO, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE | HID_QUIRK_APPLE_ISO_KEYBOARD},
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER_JIS, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER3_ANSI, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER3_ISO, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE | HID_QUIRK_APPLE_ISO_KEYBOARD},
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER3_JIS, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_ANSI, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_ISO, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE | HID_QUIRK_APPLE_ISO_KEYBOARD},
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_JIS, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
+ 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_ANSI, HID_QUIRK_APPLE_HAS_FN },
+ 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_APPLE_ISO_KEYBOARD },
+ 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_JIS, HID_QUIRK_APPLE_HAS_FN },
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_HF_ANSI, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_HF_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_HF_JIS, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_HF_ANSI, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_HF_ISO, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER4_HF_JIS, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
+ 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_ANSI, HID_QUIRK_APPLE_HAS_FN },
+ 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_ISO, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_APPLE_ISO_KEYBOARD },
+ 	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_ALU_WIRELESS_JIS, HID_QUIRK_APPLE_HAS_FN },
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_TP_ONLY, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
+-	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER1_TP_ONLY, HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_FOUNTAIN_TP_ONLY, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
++	{ USB_VENDOR_ID_APPLE, USB_DEVICE_ID_APPLE_GEYSER1_TP_ONLY, HID_QUIRK_APPLE_NUMLOCK_EMULATION | HID_QUIRK_APPLE_HAS_FN | HID_QUIRK_IGNORE_MOUSE },
  
- 	return 0;
-@@ -200,12 +186,11 @@ static int __init scanlog_init(void)
- 	if (!data)
- 		goto err;
+ 	{ USB_VENDOR_ID_DELL, USB_DEVICE_ID_DELL_W7658, HID_QUIRK_RESET_LEDS },
+ 	{ USB_VENDOR_ID_LOGITECH, USB_DEVICE_ID_LOGITECH_KBD, HID_QUIRK_RESET_LEDS },
+diff -puN include/linux/hid.h~hid-disable-numlock-emulation-for-apple-aluminium-keyboards include/linux/hid.h
+--- a/include/linux/hid.h~hid-disable-numlock-emulation-for-apple-aluminium-keyboards
++++ a/include/linux/hid.h
+@@ -285,6 +285,7 @@ struct hid_item {
+ #define HID_QUIRK_HWHEEL_WHEEL_INVERT		0x04000000
+ #define HID_QUIRK_MICROSOFT_KEYS		0x08000000
+ #define HID_QUIRK_FULLSPEED_INTERVAL		0x10000000
++#define HID_QUIRK_APPLE_NUMLOCK_EMULATION	0x20000000
  
--	ent = proc_create("ppc64/rtas/scan-log-dump", S_IRUSR, NULL,
--			  &scanlog_fops);
-+	ent = proc_create_data("ppc64/rtas/scan-log-dump", S_IRUSR, NULL,
-+			       &scanlog_fops, data);
- 	if (!ent)
- 		goto err;
- 
--	ent->data = data;
- 	proc_ppc64_scan_log_dump = ent;
- 
- 	return 0;
+ /*
+  * Separate quirks for runtime report descriptor fixup
 _
 
-Patches currently in -mm which might be from den@openvz.org are
+Patches currently in -mm which might be from flameeyes@gmail.com are
 
-origin.patch
-proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+git-hid.patch
 
