@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + add-a-warn-macro-this-is-warn_on-printk-arguments.patch added to -mm tree
-Date: Wed, 07 May 2008 14:44:42 -0700
-Message-ID: <200805072144.m47LigNW017966@imap1.linux-foundation.org>
+Subject: + example-use-of-warn.patch added to -mm tree
+Date: Wed, 07 May 2008 14:47:40 -0700
+Message-ID: <200805072147.m47Llea1018077@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34463 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35818 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754804AbYEGVpM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 17:45:12 -0400
+	by vger.kernel.org with ESMTP id S1765035AbYEGVsM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 17:48:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: arjan@linux.intel.com, greg@kroah.com
 
 
 The patch titled
-     Add a WARN() macro; this is WARN_ON() + printk arguments
+     Example use of WARN()
 has been added to the -mm tree.  Its filename is
-     add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+     example-use-of-warn.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,91 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Add a WARN() macro; this is WARN_ON() + printk arguments
+Subject: Example use of WARN()
 From: Arjan van de Ven <arjan@linux.intel.com>
 
-Add a WARN() macro that acts like WARN_ON(), with the added feature that it
-takes a printk like argument that is printed as part of the warning message.
+Now that WARN() exists, we can fold some of the printk's into it.
 
 Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |   16 ++++++++++++++++
- kernel/panic.c            |   24 ++++++++++++++++++++++++
- 2 files changed, 40 insertions(+)
+ lib/kobject.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments
-+++ a/include/asm-generic/bug.h
-@@ -34,9 +34,13 @@ struct bug_entry {
- #ifndef __WARN
- #ifndef __ASSEMBLY__
- extern void warn_on_slowpath(const char *file, const int line);
-+extern void warn_slowpath(const char *file, const int line, const char *fmt, ...);
- #define WANT_WARN_ON_SLOWPATH
- #endif
- #define __WARN() warn_on_slowpath(__FILE__, __LINE__)
-+#define __WARN_printf(arg...) warn_slowpath(__FILE__, __LINE__, arg)
-+#else
-+#define __WARN_printf(arg...) __WARN()
- #endif
+diff -puN lib/kobject.c~example-use-of-warn lib/kobject.c
+--- a/lib/kobject.c~example-use-of-warn
++++ a/lib/kobject.c
+@@ -215,9 +215,8 @@ static int kobject_add_internal(struct k
+ 		return -ENOENT;
  
- #ifndef WARN_ON
-@@ -48,6 +52,18 @@ extern void warn_on_slowpath(const char 
- })
- #endif
+ 	if (!kobj->name || !kobj->name[0]) {
+-		pr_debug("kobject: (%p): attempted to be registered with empty "
++		WARN(1, "kobject: (%p): attempted to be registered with empty "
+ 			 "name!\n", kobj);
+-		WARN_ON(1);
+ 		return -EINVAL;
+ 	}
  
-+#ifndef WARN
-+#define WARN(condition, format...) ({						\
-+	int __ret_warn_on = !!(condition);				\
-+	if (unlikely(__ret_warn_on))					\
-+		__WARN_printf(format);					\
-+	unlikely(__ret_warn_on);					\
-+})
-+#endif
-+
-+
-+
-+
- #else /* !CONFIG_BUG */
- #ifndef HAVE_ARCH_BUG
- #define BUG()
-diff -puN kernel/panic.c~add-a-warn-macro-this-is-warn_on-printk-arguments kernel/panic.c
---- a/kernel/panic.c~add-a-warn-macro-this-is-warn_on-printk-arguments
-+++ a/kernel/panic.c
-@@ -321,6 +321,30 @@ void warn_on_slowpath(const char *file, 
- 	add_taint(TAINT_WARN);
+@@ -629,12 +628,10 @@ static void kobject_release(struct kref 
+ void kobject_put(struct kobject *kobj)
+ {
+ 	if (kobj) {
+-		if (!kobj->state_initialized) {
+-			printk(KERN_WARNING "kobject: '%s' (%p): is not "
++		if (!kobj->state_initialized)
++			WARN(1, KERN_WARNING "kobject: '%s' (%p): is not "
+ 			       "initialized, yet kobject_put() is being "
+ 			       "called.\n", kobject_name(kobj), kobj);
+-			WARN_ON(1);
+-		}
+ 		kref_put(&kobj->kref, kobject_release);
+ 	}
  }
- EXPORT_SYMBOL(warn_on_slowpath);
-+
-+
-+void warn_slowpath(const char *file, int line, const char *fmt, ...)
-+{
-+	va_list args;
-+
-+
-+	char function[KSYM_SYMBOL_LEN];
-+	unsigned long caller = (unsigned long) __builtin_return_address(0);
-+	sprint_symbol(function, caller);
-+
-+	printk(KERN_WARNING "------------[ cut here ]------------\n");
-+	printk(KERN_WARNING "WARNING: at %s:%d %s()\n", file,
-+		line, function);
-+	va_start(args, fmt);
-+	vprintk(fmt, args);
-+	va_end(args);
-+
-+	print_modules();
-+	dump_stack();
-+	print_oops_end_marker();
-+	add_taint(TAINT_WARN);
-+}
-+EXPORT_SYMBOL(warn_slowpath);
- #endif
- 
- #ifdef CONFIG_CC_STACKPROTECTOR
 _
 
 Patches currently in -mm which might be from arjan@linux.intel.com are
@@ -126,5 +83,7 @@ origin.patch
 linux-next.patch
 rename-warn-to-warning-to-clear-the-namespace.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes.patch
 example-use-of-warn.patch
 
