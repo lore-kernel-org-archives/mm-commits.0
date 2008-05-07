@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: + flag-parameters-dup2.patch added to -mm tree
-Date: Wed, 07 May 2008 15:05:50 -0700
-Message-ID: <200805072205.m47M5oR8018849__16608.8147474968$1210198054$gmane$org@imap1.linux-foundation.org>
+Subject: + flag-parameters-inotify_init.patch added to -mm tree
+Date: Wed, 07 May 2008 15:05:56 -0700
+Message-ID: <200805072205.m47M5uGZ018859@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45321 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59471 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759257AbYEGWGN (ORCPT
+	by vger.kernel.org with ESMTP id S1759979AbYEGWGN (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 18:06:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: drepper@redhat.com, davidel@xmailserver.org, linux-arch@vger.kernel.org, mtk
 
 
 The patch titled
-     flag parameters: dup2
+     flag parameters: inotify_init
 has been added to the -mm tree.  Its filename is
-     flag-parameters-dup2.patch
+     flag-parameters-inotify_init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,12 +33,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag parameters: dup2
+Subject: flag parameters: inotify_init
 From: Ulrich Drepper <drepper@redhat.com>
 
-This patch adds the new dup3 syscall.  It extends the old dup2 syscall by one
-parameter which is meant to hold a flag value.  Support for the O_CLOEXEC flag
-is added in this patch.
+This patch introduces the new syscall inotify_init1 (note: the 1 stands for
+the one parameter the syscall takes, as opposed to no parameter before).  The
+values accepted for this parameter are function-specific and defined in the
+inotify.h header.  Here the values must match the O_* flags, though.  In this
+patch CLOEXEC support is introduced.
 
 The following test must be adjusted for architectures other than x86 and
 x86-64 and in case the syscall numbers changed.
@@ -46,27 +48,29 @@ x86-64 and in case the syscall numbers changed.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #include <fcntl.h>
 #include <stdio.h>
-#include <time.h>
 #include <unistd.h>
 #include <sys/syscall.h>
 
-#ifndef __NR_dup3
+#ifndef __NR_inotify_init1
 # ifdef __x86_64__
-#  define __NR_dup3 292
+#  define __NR_inotify_init1 294
 # elif defined __i386__
-#  define __NR_dup3 330
+#  define __NR_inotify_init1 332
 # else
-#  error "need __NR_dup3"
+#  error "need __NR_inotify_init1"
 # endif
 #endif
+
+#define IN_CLOEXEC O_CLOEXEC
 
 int
 main (void)
 {
-  int fd = syscall (__NR_dup3, 1, 4, 0);
+  int fd;
+  fd = syscall (__NR_inotify_init1, 0);
   if (fd == -1)
     {
-      puts ("dup3(0) failed");
+      puts ("inotify_init1(0) failed");
       return 1;
     }
   int coe = fcntl (fd, F_GETFD);
@@ -77,15 +81,15 @@ main (void)
     }
   if (coe & FD_CLOEXEC)
     {
-      puts ("dup3(0) set close-on-exec flag");
+      puts ("inotify_init1(0) set close-on-exit");
       return 1;
     }
   close (fd);
 
-  fd = syscall (__NR_dup3, 1, 4, O_CLOEXEC);
+  fd = syscall (__NR_inotify_init1, IN_CLOEXEC);
   if (fd == -1)
     {
-      puts ("dup3(O_CLOEXEC) failed");
+      puts ("inotify_init1(IN_CLOEXEC) failed");
       return 1;
     }
   coe = fcntl (fd, F_GETFD);
@@ -96,7 +100,7 @@ main (void)
     }
   if ((coe & FD_CLOEXEC) == 0)
     {
-      puts ("dup3(O_CLOEXEC) set close-on-exec flag");
+      puts ("inotify_init1(O_CLOEXEC) does not set close-on-exit");
       return 1;
     }
   close (fd);
@@ -116,108 +120,122 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
  arch/x86/ia32/ia32entry.S          |    1 +
  arch/x86/kernel/syscall_table_32.S |    1 +
- fs/fcntl.c                         |   15 +++++++++++++--
+ fs/inotify_user.c                  |   12 ++++++++++--
  include/asm-x86/unistd_32.h        |    1 +
  include/asm-x86/unistd_64.h        |    2 ++
+ include/linux/inotify.h            |    5 +++++
  include/linux/syscalls.h           |    1 +
- 6 files changed, 19 insertions(+), 2 deletions(-)
+ 7 files changed, 21 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/ia32/ia32entry.S~flag-parameters-dup2 arch/x86/ia32/ia32entry.S
---- a/arch/x86/ia32/ia32entry.S~flag-parameters-dup2
+diff -puN arch/x86/ia32/ia32entry.S~flag-parameters-inotify_init arch/x86/ia32/ia32entry.S
+--- a/arch/x86/ia32/ia32entry.S~flag-parameters-inotify_init
 +++ a/arch/x86/ia32/ia32entry.S
-@@ -734,4 +734,5 @@ ia32_sys_call_table:
- 	.quad compat_sys_signalfd4
- 	.quad sys_eventfd2
+@@ -736,4 +736,5 @@ ia32_sys_call_table:
  	.quad sys_epoll_create2
-+	.quad sys_dup3			/* 330 */
+ 	.quad sys_dup3			/* 330 */
+ 	.quad sys_pipe2
++	.quad sys_inotify_init1
  ia32_syscall_end:
-diff -puN arch/x86/kernel/syscall_table_32.S~flag-parameters-dup2 arch/x86/kernel/syscall_table_32.S
---- a/arch/x86/kernel/syscall_table_32.S~flag-parameters-dup2
+diff -puN arch/x86/kernel/syscall_table_32.S~flag-parameters-inotify_init arch/x86/kernel/syscall_table_32.S
+--- a/arch/x86/kernel/syscall_table_32.S~flag-parameters-inotify_init
 +++ a/arch/x86/kernel/syscall_table_32.S
-@@ -329,3 +329,4 @@ ENTRY(sys_call_table)
- 	.long sys_signalfd4
- 	.long sys_eventfd2
+@@ -331,3 +331,4 @@ ENTRY(sys_call_table)
  	.long sys_epoll_create2
-+	.long sys_dup3			/* 330 */
-diff -puN fs/fcntl.c~flag-parameters-dup2 fs/fcntl.c
---- a/fs/fcntl.c~flag-parameters-dup2
-+++ a/fs/fcntl.c
-@@ -126,13 +126,16 @@ static int dupfd(struct file *file, unsi
- 	return fd;
- }
+ 	.long sys_dup3			/* 330 */
+ 	.long sys_pipe2
++	.long sys_inotify_init1
+diff -puN fs/inotify_user.c~flag-parameters-inotify_init fs/inotify_user.c
+--- a/fs/inotify_user.c~flag-parameters-inotify_init
++++ a/fs/inotify_user.c
+@@ -566,7 +566,7 @@ static const struct inotify_operations i
+ 	.destroy_watch	= free_inotify_user_watch,
+ };
  
--asmlinkage long sys_dup2(unsigned int oldfd, unsigned int newfd)
-+asmlinkage long sys_dup3(unsigned int oldfd, unsigned int newfd, int flags)
+-asmlinkage long sys_inotify_init(void)
++asmlinkage long sys_inotify_init1(int flags)
  {
- 	int err = -EBADF;
- 	struct file * file, *tofree;
- 	struct files_struct * files = current->files;
- 	struct fdtable *fdt;
+ 	struct inotify_device *dev;
+ 	struct inotify_handle *ih;
+@@ -574,7 +574,10 @@ asmlinkage long sys_inotify_init(void)
+ 	struct file *filp;
+ 	int fd, ret;
  
-+	if ((flags & ~O_CLOEXEC) != 0)
+-	fd = get_unused_fd();
++	if (flags & ~IN_CLOEXEC)
 +		return -EINVAL;
 +
- 	spin_lock(&files->file_lock);
- 	if (!(file = fcheck(oldfd)))
- 		goto out_unlock;
-@@ -164,7 +167,10 @@ asmlinkage long sys_dup2(unsigned int ol
++	fd = get_unused_fd_flags(flags & O_CLOEXEC);
+ 	if (fd < 0)
+ 		return fd;
  
- 	rcu_assign_pointer(fdt->fd[newfd], file);
- 	FD_SET(newfd, fdt->open_fds);
--	FD_CLR(newfd, fdt->close_on_exec);
-+	if (flags & O_CLOEXEC)
-+		FD_SET(newfd, fdt->close_on_exec);
-+	else
-+		FD_CLR(newfd, fdt->close_on_exec);
- 	spin_unlock(&files->file_lock);
- 
- 	if (tofree)
-@@ -182,6 +188,11 @@ out_fput:
- 	goto out;
+@@ -638,6 +641,11 @@ out_put_fd:
+ 	return ret;
  }
  
-+asmlinkage long sys_dup2(unsigned int oldfd, unsigned int newfd)
++asmlinkage long sys_inotify_init(void)
 +{
-+	return sys_dup3(oldfd, newfd, 0);
++	return sys_inotify_init1(0);
 +}
 +
- asmlinkage long sys_dup(unsigned int fildes)
+ asmlinkage long sys_inotify_add_watch(int fd, const char __user *path, u32 mask)
  {
- 	int ret = -EBADF;
-diff -puN include/asm-x86/unistd_32.h~flag-parameters-dup2 include/asm-x86/unistd_32.h
---- a/include/asm-x86/unistd_32.h~flag-parameters-dup2
+ 	struct inode *inode;
+diff -puN include/asm-x86/unistd_32.h~flag-parameters-inotify_init include/asm-x86/unistd_32.h
+--- a/include/asm-x86/unistd_32.h~flag-parameters-inotify_init
 +++ a/include/asm-x86/unistd_32.h
-@@ -335,6 +335,7 @@
- #define __NR_signalfd4		327
- #define __NR_eventfd2		328
+@@ -337,6 +337,7 @@
  #define __NR_epoll_create2	329
-+#define __NR_dup3		330
+ #define __NR_dup3		330
+ #define __NR_pipe2		331
++#define __NR_inotify_init1	332
  
  #ifdef __KERNEL__
  
-diff -puN include/asm-x86/unistd_64.h~flag-parameters-dup2 include/asm-x86/unistd_64.h
---- a/include/asm-x86/unistd_64.h~flag-parameters-dup2
+diff -puN include/asm-x86/unistd_64.h~flag-parameters-inotify_init include/asm-x86/unistd_64.h
+--- a/include/asm-x86/unistd_64.h~flag-parameters-inotify_init
 +++ a/include/asm-x86/unistd_64.h
-@@ -647,6 +647,8 @@ __SYSCALL(__NR_signalfd4, sys_signalfd4)
- __SYSCALL(__NR_eventfd2, sys_eventfd2)
- #define __NR_epoll_create2			291
- __SYSCALL(__NR_epoll_create2, sys_epoll_create2)
-+#define __NR_dup3				292
-+__SYSCALL(__NR_dup3, sys_dup3)
+@@ -651,6 +651,8 @@ __SYSCALL(__NR_epoll_create2, sys_epoll_
+ __SYSCALL(__NR_dup3, sys_dup3)
+ #define __NR_pipe2				293
+ __SYSCALL(__NR_pipe2, sys_pipe2)
++#define __NR_inotify_init1			294
++__SYSCALL(__NR_inotify_init1, sys_inotify_init1)
  
  
  #ifndef __NO_STUBS
-diff -puN include/linux/syscalls.h~flag-parameters-dup2 include/linux/syscalls.h
---- a/include/linux/syscalls.h~flag-parameters-dup2
+diff -puN include/linux/inotify.h~flag-parameters-inotify_init include/linux/inotify.h
+--- a/include/linux/inotify.h~flag-parameters-inotify_init
++++ a/include/linux/inotify.h
+@@ -7,6 +7,8 @@
+ #ifndef _LINUX_INOTIFY_H
+ #define _LINUX_INOTIFY_H
+ 
++/* For O_CLOEXEC */
++#include <linux/fcntl.h>
+ #include <linux/types.h>
+ 
+ /*
+@@ -63,6 +65,9 @@ struct inotify_event {
+ 			 IN_MOVED_TO | IN_DELETE | IN_CREATE | IN_DELETE_SELF | \
+ 			 IN_MOVE_SELF)
+ 
++/* Flags for sys_inotify_init1.  */
++#define IN_CLOEXEC O_CLOEXEC
++
+ #ifdef __KERNEL__
+ 
+ #include <linux/dcache.h>
+diff -puN include/linux/syscalls.h~flag-parameters-inotify_init include/linux/syscalls.h
+--- a/include/linux/syscalls.h~flag-parameters-inotify_init
 +++ a/include/linux/syscalls.h
-@@ -305,6 +305,7 @@ asmlinkage long sys_fcntl64(unsigned int
- #endif
- asmlinkage long sys_dup(unsigned int fildes);
- asmlinkage long sys_dup2(unsigned int oldfd, unsigned int newfd);
-+asmlinkage long sys_dup3(unsigned int oldfd, unsigned int newfd, int flags);
- asmlinkage long sys_ioperm(unsigned long from, unsigned long num, int on);
- asmlinkage long sys_ioctl(unsigned int fd, unsigned int cmd,
- 				unsigned long arg);
+@@ -547,6 +547,7 @@ asmlinkage long sys_get_mempolicy(int __
+ 				unsigned long addr, unsigned long flags);
+ 
+ asmlinkage long sys_inotify_init(void);
++asmlinkage long sys_inotify_init1(int flags);
+ asmlinkage long sys_inotify_add_watch(int fd, const char __user *path,
+ 					u32 mask);
+ asmlinkage long sys_inotify_rm_watch(int fd, u32 wd);
 _
 
 Patches currently in -mm which might be from drepper@redhat.com are
@@ -243,4 +261,5 @@ flag-parameters-nonblock-in-timerfd_create.patch
 flag-parameters-nonblock-in-pipe.patch
 flag-parameters-nonblock-in-inotify_init.patch
 flag-parameters-check-magic-constants.patch
+flag-parameters-add-on-remove-epoll_create-size-param.patch
 
