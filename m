@@ -1,263 +1,327 @@
 From: akpm@linux-foundation.org
-Subject: + revert-acpica-fixes-for-unload-and-ddbhandles.patch added to -mm tree
-Date: Wed, 07 May 2008 00:47:14 -0700
-Message-ID: <200805070747.m477lEYj018591@imap1.linux-foundation.org>
+Subject: - revert-memory-hotplug-register-section-node-id-to-free.patch removed from -mm tree
+Date: Wed, 07 May 2008 00:46:57 -0700
+Message-ID: <200805070746.m477kv8B018577@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55061 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53560 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759503AbYEGHrc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 03:47:32 -0400
+	by vger.kernel.org with ESMTP id S932099AbYEGHrq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 03:47:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, astarikovskiy@suse.de, len.brown@intel.com, ming.m.lin@intel.com, penberg@cs.helsinki.fi, robert.moore@intel.com, vegard.nossum@gmail.com
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, paulus@samba.org, pbadari@us.ibm.com, tony@bakeyournoodle.com, torvalds@linux-foundation.org, y-goto@jp.fujitsu.com, yhlu.kernel@g
 
 
 The patch titled
-     revert "ACPICA: Fixes for Unload and DDBHandles"
-has been added to the -mm tree.  Its filename is
-     revert-acpica-fixes-for-unload-and-ddbhandles.patch
+     revert "memory hotplug: register section/node id to free"
+has been removed from the -mm tree.  Its filename was
+     revert-memory-hotplug-register-section-node-id-to-free.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "ACPICA: Fixes for Unload and DDBHandles"
+Subject: revert "memory hotplug: register section/node id to free"
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Revert
 
-commit bc7a36ab74e09da7bb63e2477b0740ac992b290e
-Author: Lin Ming <ming.m.lin@intel.com>
-Date:   Thu Apr 10 19:06:42 2008 +0400
+commit 04753278769f3b6c3b79a080edb52f21d83bf6e2
+Author: Yasunori Goto <y-goto@jp.fujitsu.com>
+Date:   Mon Apr 28 02:13:31 2008 -0700
 
-    ACPICA: Fixes for Unload and DDBHandles
-    
-    Implemented support for the use of DDBHandles as an Indexed
-    Reference, as per the ACPI spec.
-    
-    http://www.acpica.org/bugzilla/show_bug.cgi?id=486.
-    
-    Implemented support for UserTerm (Method invocation) for the Unload operator
-    as per the ACPI spec.
-    
-    http://www.acpica.org/bugzilla/show_bug.cgi?id=580
-    
-    Signed-off-by: Bob Moore <robert.moore@intel.com>
-    Signed-off-by: Alexey Starikovskiy <astarikovskiy@suse.de>
-    Signed-off-by: Len Brown <len.brown@intel.com>
+    memory hotplug: register section/node id to free
 
-Due to a use-after-free identified with kmemcheck.
+    This patch set is to free pages which is allocated by bootmem for
+    memory-hotremove.  Some structures of memory management are allocated by
+    bootmem.  ex) memmap, etc.
+    
+    To remove memory physically, some of them must be freed according to
+    circumstance.  This patch set makes basis to free those pages, and free
+    memmaps.
+    
+    Basic my idea is using remain members of struct page to remember information
+    of users of bootmem (section number or node id).  When the section is
+    removing, kernel can confirm it.  By this information, some issues can be
+    solved.
+    
+      1) When the memmap of removing section is allocated on other
+         section by bootmem, it should/can be free.
+      2) When the memmap of removing section is allocated on the
+         same section, it shouldn't be freed. Because the section has to be
+         logical memory offlined already and all pages must be isolated against
+         page allocater. If it is freed, page allocator may use it which will
+         be removed physically soon.
+      3) When removing section has other section's memmap,
+         kernel will be able to show easily which section should be removed
+         before it for user. (Not implemented yet)
+      4) When the above case 2), the page isolation will be able to check and skip
+         memmap's page when logical memory offline (offline_pages()).
+         Current page isolation code fails in this case because this page is
+         just reserved page and it can't distinguish this pages can be
+         removed or not. But, it will be able to do by this patch.
+         (Not implemented yet.)
+      5) The node information like pgdat has similar issues. But, this
+         will be able to be solved too by this.
+         (Not implemented yet, but, remembering node id in the pages.)
+    
+    Fortunately, current bootmem allocator just keeps PageReserved flags,
+    and doesn't use any other members of page struct. The users of
+    bootmem doesn't use them too.
+    
+    This patch:
+    
+    This is to register information which is node or section's id.  Kernel can
+    distinguish which node/section uses the pages allcated by bootmem.  This is
+    basis for hot-remove sections or nodes.
+    
+    Signed-off-by: Yasunori Goto <y-goto@jp.fujitsu.com>
+    Cc: Badari Pulavarty <pbadari@us.ibm.com>
+    Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+    Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
 
+Due to:
 
-Cc: "Vegard Nossum" <vegard.nossum@gmail.com>
-Cc: Pekka Enberg <penberg@cs.helsinki.fi>
-Cc: "Lin Ming" <ming.m.lin@intel.com>
-Cc: "Bob Moore" <robert.moore@intel.com>
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Alexey Starikovskiy <astarikovskiy@suse.de>
-Cc: Len Brown <len.brown@intel.com>
+On Thu, 1 May 2008 15:13:05 +1000 tony@bakeyournoodle.com (Tony Breeds) wrote:
+
+> On Tue, Apr 29, 2008 at 11:12:41PM -0700, David Miller wrote:
+> at this commit.   However reverting just this one comitt doesn't fix the
+> regression.  I also needed to revert
+> 04753278769f3b6c3b79a080edb52f21d83bf6e2 (memory hotplug: register
+> section/node id to free")
+> 
+> Problem seen on power4, power5 and ps3.
+
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Badari Pulavarty <pbadari@us.ibm.com>
+Cc: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: Tony Breeds <tony@bakeyournoodle.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/acpi/executer/exdump.c   |   27 ++++++---------------
- drivers/acpi/executer/exresolv.c |   13 +++-------
- drivers/acpi/executer/exstore.c  |   23 +++---------------
- drivers/acpi/parser/psargs.c     |   37 ++---------------------------
- drivers/acpi/utilities/utcopy.c  |    8 ------
- 5 files changed, 20 insertions(+), 88 deletions(-)
+ include/linux/memory_hotplug.h |   27 --------
+ include/linux/mmzone.h         |    1 
+ mm/bootmem.c                   |    1 
+ mm/memory_hotplug.c            |   99 -------------------------------
+ mm/sparse.c                    |    3 
+ 5 files changed, 3 insertions(+), 128 deletions(-)
 
-diff -puN drivers/acpi/executer/exdump.c~revert-acpica-fixes-for-unload-and-ddbhandles drivers/acpi/executer/exdump.c
---- a/drivers/acpi/executer/exdump.c~revert-acpica-fixes-for-unload-and-ddbhandles
-+++ a/drivers/acpi/executer/exdump.c
-@@ -895,25 +895,14 @@ static void acpi_ex_dump_reference_obj(u
- 	} else if (obj_desc->reference.object) {
- 		if (ACPI_GET_DESCRIPTOR_TYPE(obj_desc) ==
- 		    ACPI_DESC_TYPE_OPERAND) {
--			acpi_os_printf(" Target: %p",
--				       obj_desc->reference.object);
--			if (obj_desc->reference.opcode == AML_LOAD_OP) {
--				/*
--				 * For DDBHandle reference,
--				 * obj_desc->Reference.Object is the table index
--				 */
--				acpi_os_printf(" [DDBHandle]\n");
--			} else {
--				acpi_os_printf(" [%s]\n",
--					       acpi_ut_get_type_name(((union
--								       acpi_operand_object
--								       *)
--								      obj_desc->
--								      reference.
--								      object)->
--								     common.
--								     type));
--			}
-+			acpi_os_printf(" Target: %p [%s]\n",
-+				       obj_desc->reference.object,
-+				       acpi_ut_get_type_name(((union
-+							       acpi_operand_object
-+							       *)obj_desc->
-+							      reference.
-+							      object)->common.
-+							     type));
- 		} else {
- 			acpi_os_printf(" Target: %p\n",
- 				       obj_desc->reference.object);
-diff -puN drivers/acpi/executer/exresolv.c~revert-acpica-fixes-for-unload-and-ddbhandles drivers/acpi/executer/exresolv.c
---- a/drivers/acpi/executer/exresolv.c~revert-acpica-fixes-for-unload-and-ddbhandles
-+++ a/drivers/acpi/executer/exresolv.c
-@@ -382,10 +382,10 @@ acpi_ex_resolve_multiple(struct acpi_wal
- 	}
+diff -puN include/linux/memory_hotplug.h~revert-memory-hotplug-register-section-node-id-to-free include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~revert-memory-hotplug-register-section-node-id-to-free
++++ a/include/linux/memory_hotplug.h
+@@ -11,15 +11,6 @@ struct pglist_data;
+ struct mem_section;
  
- 	/*
--	 * For reference objects created via the ref_of, Index, or Load/load_table
--	 * operators, we need to get to the base object (as per the ACPI
--	 * specification of the object_type and size_of operators). This means
--	 * traversing the list of possibly many nested references.
-+	 * For reference objects created via the ref_of or Index operators,
-+	 * we need to get to the base object (as per the ACPI specification
-+	 * of the object_type and size_of operators). This means traversing
-+	 * the list of possibly many nested references.
- 	 */
- 	while (ACPI_GET_OBJECT_TYPE(obj_desc) == ACPI_TYPE_LOCAL_REFERENCE) {
- 		switch (obj_desc->reference.opcode) {
-@@ -455,11 +455,6 @@ acpi_ex_resolve_multiple(struct acpi_wal
- 			}
- 			break;
- 
--		case AML_LOAD_OP:
+ #ifdef CONFIG_MEMORY_HOTPLUG
 -
--			type = ACPI_TYPE_DDB_HANDLE;
--			goto exit;
+-/*
+- * Magic number for free bootmem.
+- * The normal smallest mapcount is -1. Here is smaller value than it.
+- */
+-#define SECTION_INFO		0xfffffffe
+-#define MIX_INFO		0xfffffffd
+-#define NODE_INFO		0xfffffffc
 -
- 		case AML_LOCAL_OP:
- 		case AML_ARG_OP:
+ /*
+  * pgdat resizing functions
+  */
+@@ -154,18 +145,6 @@ static inline void arch_refresh_nodedata
+ #endif /* CONFIG_NUMA */
+ #endif /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
  
-diff -puN drivers/acpi/executer/exstore.c~revert-acpica-fixes-for-unload-and-ddbhandles drivers/acpi/executer/exstore.c
---- a/drivers/acpi/executer/exstore.c~revert-acpica-fixes-for-unload-and-ddbhandles
-+++ a/drivers/acpi/executer/exstore.c
-@@ -462,24 +462,11 @@ acpi_ex_store_object_to_index(union acpi
- 		 */
- 		obj_desc = *(index_desc->reference.where);
- 
--		if (ACPI_GET_OBJECT_TYPE(source_desc) ==
--		    ACPI_TYPE_LOCAL_REFERENCE
--		    && source_desc->reference.opcode == AML_LOAD_OP) {
+-#ifdef CONFIG_SPARSEMEM_VMEMMAP
+-static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
+-{
+-}
+-static inline void put_page_bootmem(struct page *page)
+-{
+-}
+-#else
+-extern void register_page_bootmem_info_node(struct pglist_data *pgdat);
+-extern void put_page_bootmem(struct page *page);
+-#endif
 -
--			/* This is a DDBHandle, just add a reference to it */
+ #else /* ! CONFIG_MEMORY_HOTPLUG */
+ /*
+  * Stub functions for when hotplug is off
+@@ -193,10 +172,6 @@ static inline int mhp_notimplemented(con
+ 	return -ENOSYS;
+ }
+ 
+-static inline void register_page_bootmem_info_node(struct pglist_data *pgdat)
+-{
+-}
 -
--			acpi_ut_add_reference(source_desc);
--			new_desc = source_desc;
--		} else {
--			/* Normal object, copy it */
+ #endif /* ! CONFIG_MEMORY_HOTPLUG */
+ 
+ extern int add_memory(int nid, u64 start, u64 size);
+@@ -205,7 +180,5 @@ extern int remove_memory(u64 start, u64 
+ extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn,
+ 								int nr_pages);
+ extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
+-extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
+-					  unsigned long pnum);
+ 
+ #endif /* __LINUX_MEMORY_HOTPLUG_H */
+diff -puN include/linux/mmzone.h~revert-memory-hotplug-register-section-node-id-to-free include/linux/mmzone.h
+--- a/include/linux/mmzone.h~revert-memory-hotplug-register-section-node-id-to-free
++++ a/include/linux/mmzone.h
+@@ -896,7 +896,6 @@ static inline struct mem_section *__nr_t
+ 	return &mem_section[SECTION_NR_TO_ROOT(nr)][nr & SECTION_ROOT_MASK];
+ }
+ extern int __section_nr(struct mem_section* ms);
+-extern unsigned long usemap_size(void);
+ 
+ /*
+  * We use the lower bits of the mem_map pointer to store
+diff -puN mm/bootmem.c~revert-memory-hotplug-register-section-node-id-to-free mm/bootmem.c
+--- a/mm/bootmem.c~revert-memory-hotplug-register-section-node-id-to-free
++++ a/mm/bootmem.c
+@@ -461,7 +461,6 @@ void __init free_bootmem_node(pg_data_t 
+ 
+ unsigned long __init free_all_bootmem_node(pg_data_t *pgdat)
+ {
+-	register_page_bootmem_info_node(pgdat);
+ 	return free_all_bootmem_core(pgdat);
+ }
+ 
+diff -puN mm/memory_hotplug.c~revert-memory-hotplug-register-section-node-id-to-free mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~revert-memory-hotplug-register-section-node-id-to-free
++++ a/mm/memory_hotplug.c
+@@ -60,105 +60,8 @@ static void release_memory_resource(stru
+ 	return;
+ }
+ 
+-#ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+-#ifndef CONFIG_SPARSEMEM_VMEMMAP
+-static void get_page_bootmem(unsigned long info,  struct page *page, int magic)
+-{
+-	atomic_set(&page->_mapcount, magic);
+-	SetPagePrivate(page);
+-	set_page_private(page, info);
+-	atomic_inc(&page->_count);
+-}
 -
--			status =
--			    acpi_ut_copy_iobject_to_iobject(source_desc,
--							    &new_desc,
--							    walk_state);
--			if (ACPI_FAILURE(status)) {
--				return_ACPI_STATUS(status);
--			}
-+		status =
-+		    acpi_ut_copy_iobject_to_iobject(source_desc, &new_desc,
-+						    walk_state);
-+		if (ACPI_FAILURE(status)) {
-+			return_ACPI_STATUS(status);
- 		}
- 
- 		if (obj_desc) {
-diff -puN drivers/acpi/parser/psargs.c~revert-acpica-fixes-for-unload-and-ddbhandles drivers/acpi/parser/psargs.c
---- a/drivers/acpi/parser/psargs.c~revert-acpica-fixes-for-unload-and-ddbhandles
-+++ a/drivers/acpi/parser/psargs.c
-@@ -235,7 +235,6 @@ acpi_ps_get_next_namepath(struct acpi_wa
- 	union acpi_parse_object *name_op;
- 	union acpi_operand_object *method_desc;
- 	struct acpi_namespace_node *node;
--	u8 *start = parser_state->aml;
- 
- 	ACPI_FUNCTION_TRACE(ps_get_next_namepath);
- 
-@@ -268,16 +267,6 @@ acpi_ps_get_next_namepath(struct acpi_wa
- 	 */
- 	if (ACPI_SUCCESS(status) &&
- 	    possible_method_call && (node->type == ACPI_TYPE_METHOD)) {
--		if (walk_state->op->common.aml_opcode == AML_UNLOAD_OP) {
--			/*
--			 * acpi_ps_get_next_namestring has increased the AML pointer,
--			 * so we need to restore the saved AML pointer for method call.
--			 */
--			walk_state->parser_state.aml = start;
--			walk_state->arg_count = 1;
--			acpi_ps_init_op(arg, AML_INT_METHODCALL_OP);
--			return_ACPI_STATUS(AE_OK);
+-void put_page_bootmem(struct page *page)
+-{
+-	int magic;
+-
+-	magic = atomic_read(&page->_mapcount);
+-	BUG_ON(magic >= -1);
+-
+-	if (atomic_dec_return(&page->_count) == 1) {
+-		ClearPagePrivate(page);
+-		set_page_private(page, 0);
+-		reset_page_mapcount(page);
+-		__free_pages_bootmem(page, 0);
+-	}
+-
+-}
+-
+-void register_page_bootmem_info_section(unsigned long start_pfn)
+-{
+-	unsigned long *usemap, mapsize, section_nr, i;
+-	struct mem_section *ms;
+-	struct page *page, *memmap;
+-
+-	if (!pfn_valid(start_pfn))
+-		return;
+-
+-	section_nr = pfn_to_section_nr(start_pfn);
+-	ms = __nr_to_section(section_nr);
+-
+-	/* Get section's memmap address */
+-	memmap = sparse_decode_mem_map(ms->section_mem_map, section_nr);
+-
+-	/*
+-	 * Get page for the memmap's phys address
+-	 * XXX: need more consideration for sparse_vmemmap...
+-	 */
+-	page = virt_to_page(memmap);
+-	mapsize = sizeof(struct page) * PAGES_PER_SECTION;
+-	mapsize = PAGE_ALIGN(mapsize) >> PAGE_SHIFT;
+-
+-	/* remember memmap's page */
+-	for (i = 0; i < mapsize; i++, page++)
+-		get_page_bootmem(section_nr, page, SECTION_INFO);
+-
+-	usemap = __nr_to_section(section_nr)->pageblock_flags;
+-	page = virt_to_page(usemap);
+-
+-	mapsize = PAGE_ALIGN(usemap_size()) >> PAGE_SHIFT;
+-
+-	for (i = 0; i < mapsize; i++, page++)
+-		get_page_bootmem(section_nr, page, MIX_INFO);
+-
+-}
+-
+-void register_page_bootmem_info_node(struct pglist_data *pgdat)
+-{
+-	unsigned long i, pfn, end_pfn, nr_pages;
+-	int node = pgdat->node_id;
+-	struct page *page;
+-	struct zone *zone;
+-
+-	nr_pages = PAGE_ALIGN(sizeof(struct pglist_data)) >> PAGE_SHIFT;
+-	page = virt_to_page(pgdat);
+-
+-	for (i = 0; i < nr_pages; i++, page++)
+-		get_page_bootmem(node, page, NODE_INFO);
+-
+-	zone = &pgdat->node_zones[0];
+-	for (; zone < pgdat->node_zones + MAX_NR_ZONES - 1; zone++) {
+-		if (zone->wait_table) {
+-			nr_pages = zone->wait_table_hash_nr_entries
+-				* sizeof(wait_queue_head_t);
+-			nr_pages = PAGE_ALIGN(nr_pages) >> PAGE_SHIFT;
+-			page = virt_to_page(zone->wait_table);
+-
+-			for (i = 0; i < nr_pages; i++, page++)
+-				get_page_bootmem(node, page, NODE_INFO);
 -		}
- 
- 		/* This name is actually a control method invocation */
- 
-@@ -689,29 +678,9 @@ acpi_ps_get_next_arg(struct acpi_walk_st
- 				return_ACPI_STATUS(AE_NO_MEMORY);
- 			}
- 
--			/* To support super_name arg of Unload */
+-	}
 -
--			if (walk_state->op->common.aml_opcode == AML_UNLOAD_OP) {
--				status =
--				    acpi_ps_get_next_namepath(walk_state,
--							      parser_state, arg,
--							      1);
+-	pfn = pgdat->node_start_pfn;
+-	end_pfn = pfn + pgdat->node_spanned_pages;
 -
--				/*
--				 * If the super_name arg of Unload is a method call,
--				 * we have restored the AML pointer, just free this Arg
--				 */
--				if (arg->common.aml_opcode ==
--				    AML_INT_METHODCALL_OP) {
--					acpi_ps_free_op(arg);
--					arg = NULL;
--				}
--			} else {
--				status =
--				    acpi_ps_get_next_namepath(walk_state,
--							      parser_state, arg,
--							      0);
--			}
-+			status =
-+			    acpi_ps_get_next_namepath(walk_state, parser_state,
-+						      arg, 0);
- 		} else {
- 			/* Single complex argument, nothing returned */
- 
-diff -puN drivers/acpi/utilities/utcopy.c~revert-acpica-fixes-for-unload-and-ddbhandles drivers/acpi/utilities/utcopy.c
---- a/drivers/acpi/utilities/utcopy.c~revert-acpica-fixes-for-unload-and-ddbhandles
-+++ a/drivers/acpi/utilities/utcopy.c
-@@ -742,15 +742,7 @@ acpi_ut_copy_simple_object(union acpi_op
- 		/*
- 		 * We copied the reference object, so we now must add a reference
- 		 * to the object pointed to by the reference
--		 *
--		 * DDBHandle reference (from Load/load_table is a special reference,
--		 * it's Reference.Object is the table index, so does not need to
--		 * increase the reference count
- 		 */
--		if (source_desc->reference.opcode == AML_LOAD_OP) {
--			break;
--		}
+-	/* register_section info */
+-	for (; pfn < end_pfn; pfn += PAGES_PER_SECTION)
+-		register_page_bootmem_info_section(pfn);
 -
- 		acpi_ut_add_reference(source_desc->reference.object);
- 		break;
+-}
+-#endif /* !CONFIG_SPARSEMEM_VMEMMAP */
  
++#ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+ static int __add_zone(struct zone *zone, unsigned long phys_start_pfn)
+ {
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+diff -puN mm/sparse.c~revert-memory-hotplug-register-section-node-id-to-free mm/sparse.c
+--- a/mm/sparse.c~revert-memory-hotplug-register-section-node-id-to-free
++++ a/mm/sparse.c
+@@ -211,6 +211,7 @@ static unsigned long sparse_encode_mem_m
+ /*
+  * Decode mem_map from the coded memmap
+  */
++static
+ struct page *sparse_decode_mem_map(unsigned long coded_mem_map, unsigned long pnum)
+ {
+ 	/* mask off the extra low bits of information */
+@@ -233,7 +234,7 @@ static int __meminit sparse_init_one_sec
+ 	return 1;
+ }
+ 
+-unsigned long usemap_size(void)
++static unsigned long usemap_size(void)
+ {
+ 	unsigned long size_bytes;
+ 	size_bytes = roundup(SECTION_BLOCKFLAGS_BITS, 8) / 8;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -268,6 +332,7 @@ drivers-scsi-dpt_i2oc-fix-build-on-alpha.patch
 quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
 linux-next.patch
 revert-9p-convert-from-semaphore-to-spinlock.patch
+revert-memory-hotplug-register-section-node-id-to-free.patch
 revert-acpica-fixes-for-unload-and-ddbhandles.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-video-balcklist-fujitsu-lifebook-s6410.patch
