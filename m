@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + hysdn-remove-cli-sti-calls.patch added to -mm tree
-Date: Wed, 07 May 2008 15:38:09 -0700
-Message-ID: <200805072238.m47Mc9Wo020394@imap1.linux-foundation.org>
+Subject: + fbdev-do-not-let-config_fb_deferred_io-default-to-y.patch added to -mm tree
+Date: Wed, 07 May 2008 15:51:10 -0700
+Message-ID: <200805072251.m47MpAxG020928@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35461 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45757 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758354AbYEGWid (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 18:38:33 -0400
+	by vger.kernel.org with ESMTP id S1762650AbYEGWvv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 18:51:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mark.asselstine@windriver.com, kkeil@suse.de
+Cc: geert@linux-m68k.org, jayakumar.lkml@gmail.com
 
 
 The patch titled
-     hysdn: remove cli()/sti() calls
+     fbdev: do not let CONFIG_FB_DEFERRED_IO default to y
 has been added to the -mm tree.  Its filename is
-     hysdn-remove-cli-sti-calls.patch
+     fbdev-do-not-let-config_fb_deferred_io-default-to-y.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,88 +33,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hysdn: remove cli()/sti() calls
-From: Mark Asselstine <mark.asselstine@windriver.com>
+Subject: fbdev: do not let CONFIG_FB_DEFERRED_IO default to y
+From: Geert Uytterhoeven <geert@linux-m68k.org>
 
-The use of cli()/sti() within the do/while was a way to ensure interrupts were
-only disabled for short periods of time while the bulk of the time interrupts
-were free to occur.  The use of the spin lock has eliminated the need to play
-with interrupts in this way while still allowing for IO to be protected.
+CONFIG_FB_DEFERRED_IO can not be turned off, while it's already selected
+automatically by the drivers that need it.
 
-The remaining 3 sti() calls seem unneeded now that at no other point in the
-driver is there a call to cli().
+Although it's nice to have more compile-coverage, not being able to disable a
+rarely used feature is annoying.
 
-Signed-off-by: Mark Asselstine <mark.asselstine@windriver.com>
-Acked-by: Karsten Keil <kkeil@suse.de>
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Jaya Kumar <jayakumar.lkml@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/hysdn/boardergo.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ drivers/video/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/isdn/hysdn/boardergo.c~hysdn-remove-cli-sti-calls drivers/isdn/hysdn/boardergo.c
---- a/drivers/isdn/hysdn/boardergo.c~hysdn-remove-cli-sti-calls
-+++ a/drivers/isdn/hysdn/boardergo.c
-@@ -64,10 +64,11 @@ ergo_interrupt(int intno, void *dev_id)
- }				/* ergo_interrupt */
+diff -puN drivers/video/Kconfig~fbdev-do-not-let-config_fb_deferred_io-default-to-y drivers/video/Kconfig
+--- a/drivers/video/Kconfig~fbdev-do-not-let-config_fb_deferred_io-default-to-y
++++ a/drivers/video/Kconfig
+@@ -171,7 +171,6 @@ config FB_SYS_FOPS
+ config FB_DEFERRED_IO
+ 	bool
+ 	depends on FB
+-	default y
  
- /******************************************************************************/
--/* ergo_irq_bh is the function called by the immediate kernel task list after */
--/* being activated with queue_task and no interrupts active. This task is the */
--/* only one handling data transfer from or to the card after booting. The task */
--/* may be queued from everywhere (interrupts included).                       */
-+/* ergo_irq_bh will be called as part of the kernel clearing its shared work  */
-+/* queue sometime after a call to schedule_work has been made passing our     */
-+/* work_struct. This task is the only one handling data transfer from or to   */
-+/* the card after booting. The task may be queued from everywhere             */
-+/* (interrupts included).                                                     */
- /******************************************************************************/
- static void
- ergo_irq_bh(struct work_struct *ugli_api)
-@@ -90,7 +91,6 @@ ergo_irq_bh(struct work_struct *ugli_api
- 	card->hw_lock = 1;	/* we now lock the hardware */
- 
- 	do {
--		sti();		/* reenable other ints */
- 		again = 0;	/* assume loop not to be repeated */
- 
- 		if (!dpr->ToHyFlag) {
-@@ -110,7 +110,6 @@ ergo_irq_bh(struct work_struct *ugli_api
- 				again = 1;	/* restart loop */
- 			}
- 		}		/* a message has arrived for us */
--		cli();		/* no further ints */
- 		if (again) {
- 			dpr->ToHyInt = 1;
- 			dpr->ToPcInt = 1;	/* interrupt to E1 for all cards */
-@@ -242,7 +241,6 @@ ergo_writebootimg(struct HYSDN_CARD *car
- 		byteout(card->iobase + PCI9050_USER_IO, PCI9050_E1_RUN);	/* start E1 processor */
- 		/* the interrupts are still masked */
- 
--		sti();
- 		msleep_interruptible(20);		/* Timeout 20ms */
- 
- 		if (((tDpramBootSpooler *) card->dpram)->Len != DPRAM_SPOOLER_DATA_SIZE) {
-@@ -276,7 +274,6 @@ ergo_writebootseq(struct HYSDN_CARD *car
- 	dst = sp->Data;		/* point to data in spool structure */
- 	buflen = sp->Len;	/* maximum len of spooled data */
- 	wr_mirror = sp->WrPtr;	/* only once read */
--	sti();
- 
- 	/* try until all bytes written or error */
- 	i = 0x1000;		/* timeout value */
-@@ -380,7 +377,6 @@ ergo_waitpofready(struct HYSDN_CARD *car
- #endif /* CONFIG_HYSDN_CAPI */
- 			return (0);	/* success */
- 		}		/* data has arrived */
--		sti();
- 		msleep_interruptible(50);		/* Timeout 50ms */
- 	}			/* wait until timeout */
- 
+ config FB_METRONOME
+ 	tristate
 _
 
-Patches currently in -mm which might be from mark.asselstine@windriver.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-hysdn-remove-cli-sti-calls.patch
-hysdn-no-longer-broken-on-smp.patch
+origin.patch
+fbdev-do-not-let-config_fb_deferred_io-default-to-y.patch
+linux-next.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
 
