@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 07 May 2008 14:47:27 -0700
-Message-ID: <200805072147.m47LlRGf018070@imap1.linux-foundation.org>
+Subject: + m68knommu-missing-sections-for-linker-script.patch added to -mm tree
+Date: Wed, 07 May 2008 14:48:19 -0700
+Message-ID: <200805072148.m47LmJg6018169@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50598 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57039 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765392AbYEGVsA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 17:48:00 -0400
+	by vger.kernel.org with ESMTP id S932438AbYEGVtE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 17:49:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@linux.intel.com, greg@kroah.com, jirislaby@gmail.com
+Cc: gerg@snapgear.com, gerg@uclinux.org
 
 
 The patch titled
-     add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes
+     m68knommu: missing sections for linker script
 has been added to the -mm tree.  Its filename is
-     add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes.patch
+     m68knommu-missing-sections-for-linker-script.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,116 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: m68knommu: missing sections for linker script
+From: Greg Ungerer <gerg@snapgear.com>
 
-ERROR: space required after that ',' (ctx:VxV)
-#22: FILE: include/asm-generic/bug.h:37:
-+		__attribute__((format(printf,3,4)));
- 		                            ^
+Include the missing kcrctab and kcrctab_unused sections into the m68knommu
+linker script.
 
-ERROR: space required after that ',' (ctx:VxV)
-#22: FILE: include/asm-generic/bug.h:37:
-+		__attribute__((format(printf,3,4)));
- 		                              ^
-
-total: 2 errors, 0 warnings, 29 lines checked
-
-./patches/add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Jiri Slaby <jirislaby@gmail.com>
+Signed-off-by: Greg Ungerer <gerg@uclinux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/m68knommu/kernel/vmlinux.lds.S |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes
-+++ a/include/asm-generic/bug.h
-@@ -34,7 +34,7 @@ struct bug_entry {
- #ifndef __WARN
- #ifndef __ASSEMBLY__
- extern void warn_on_slowpath(const char *file, const int line)
--		__attribute__((format(printf,3,4)));
-+		__attribute__((format(printf, 3, 4)));
- extern void warn_slowpath(const char *file, const int line, const char *fmt, ...);
- #define WANT_WARN_ON_SLOWPATH
- #endif
+diff -puN arch/m68knommu/kernel/vmlinux.lds.S~m68knommu-missing-sections-for-linker-script arch/m68knommu/kernel/vmlinux.lds.S
+--- a/arch/m68knommu/kernel/vmlinux.lds.S~m68knommu-missing-sections-for-linker-script
++++ a/arch/m68knommu/kernel/vmlinux.lds.S
+@@ -114,6 +114,16 @@ SECTIONS {
+ 		*(__kcrctab_gpl)
+ 		__stop___kcrctab_gpl = .;
+ 
++		/* Kernel symbol table: Normal unused symbols */
++		__start___kcrctab_unused = .;
++		*(__kcrctab_unused)
++		__stop___kcrctab_unused = .;
++
++		/* Kernel symbol table: GPL-only unused symbols */
++		__start___kcrctab_unused_gpl = .;
++		*(__kcrctab_unused_gpl)
++		__stop___kcrctab_unused_gpl = .;
++
+ 		/* Kernel symbol table: GPL-future symbols */
+ 		__start___kcrctab_gpl_future = .;
+ 		*(__kcrctab_gpl_future)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gerg@snapgear.com are
 
-origin.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-drivers-scsi-dpt_i2oc-fix-build-on-alpha.patch
-quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
-mmu-notifier-core-fix.patch
-linux-next.patch
-linux-next-fixup.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-revert-acpica-fixes-for-unload-and-ddbhandles.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-dlm-convert-connections_lock-in-a-mutex-fix.patch
-git-input.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-jg-misc-git-rejects.patch
-revert-libata-improve-post-reset-device-ready-test.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-colibri-fix-support-for-dm9000-ethernet-device-fix.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+m68knommu-missing-sections-for-linker-script.patch
 
