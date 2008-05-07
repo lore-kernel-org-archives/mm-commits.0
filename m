@@ -1,161 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: - devres-add-devm_ioremap_prot.patch removed from -mm tree
-Date: Tue, 06 May 2008 22:23:46 -0700
-Message-ID: <200805070523.m475NkO6013222@imap1.linux-foundation.org>
+Subject: - powerpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch removed from -mm tree
+Date: Tue, 06 May 2008 22:23:48 -0700
+Message-ID: <200805070523.m475NmxS013225@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44006 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40766 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753931AbYEGFXz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 01:23:55 -0400
+	by vger.kernel.org with ESMTP id S1754636AbYEGFX7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 01:23:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Emilian.Medve@Freescale.com, benh@kernel.crashing.org, galak@kernel.crashing.org, htejun@gmail.com, paulus@samba.org, mm-commits@vger.kernel.org
+To: den@openvz.org, adobriyan@openvz.org, benh@kernel.crashing.org, ebiederm@xmission.com, paulus@au.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     powerpc: devres: Add devm_ioremap_prot()
+     powerpc: assign PDE->data before gluing PDE into /proc tree
 has been removed from the -mm tree.  Its filename was
-     devres-add-devm_ioremap_prot.patch
+     powerpc-assign-pde-data-before-gluing-pde-into-proc-tree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: powerpc: devres: Add devm_ioremap_prot()
-From: Emil Medve <Emilian.Medve@Freescale.com>
+Subject: powerpc: assign PDE->data before gluing PDE into /proc tree
+From: "Denis V. Lunev" <den@openvz.org>
 
-We provide an ioremap_flags so provide a corresponding devm_ioremap_prot.  The
-slight name difference is at Ben Herrenschmidt request as he plans on changing
-ioremap_flags to ioremap_prot in the future.
+Simply replace proc_create and further data assigned with proc_create_data. 
+No need to check for data!=NULL after that.
 
-Signed-off-by: Emil Medve <Emilian.Medve@Freescale.com>
-Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
-Acked-by: Tejun Heo <htejun@gmail.com>
-Cc: Paul Mackerras <paulus@samba.org>
+Signed-off-by: Denis V. Lunev <den@openvz.org>
+Cc: Alexey Dobriyan <adobriyan@openvz.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Paul Mackerras <paulus@au.ibm.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/lib/Makefile |    1 
- arch/powerpc/lib/devres.c |   42 ++++++++++++++++++++++++++++++++++++
- include/asm-powerpc/io.h  |    8 ++++++
- include/linux/io.h        |    1 
- lib/devres.c              |    2 -
- 5 files changed, 52 insertions(+), 2 deletions(-)
+ arch/powerpc/platforms/pseries/scanlog.c |   19 ++-----------------
+ 1 file changed, 2 insertions(+), 17 deletions(-)
 
-diff -puN arch/powerpc/lib/Makefile~devres-add-devm_ioremap_prot arch/powerpc/lib/Makefile
---- a/arch/powerpc/lib/Makefile~devres-add-devm_ioremap_prot
-+++ a/arch/powerpc/lib/Makefile
-@@ -23,3 +23,4 @@ obj-$(CONFIG_SMP)	+= locks.o
- endif
+diff -puN arch/powerpc/platforms/pseries/scanlog.c~powerpc-assign-pde-data-before-gluing-pde-into-proc-tree arch/powerpc/platforms/pseries/scanlog.c
+--- a/arch/powerpc/platforms/pseries/scanlog.c~powerpc-assign-pde-data-before-gluing-pde-into-proc-tree
++++ a/arch/powerpc/platforms/pseries/scanlog.c
+@@ -55,11 +55,6 @@ static ssize_t scanlog_read(struct file 
+         dp = PDE(inode);
+  	data = (unsigned int *)dp->data;
  
- obj-$(CONFIG_PPC_LIB_RHEAP) += rheap.o
-+obj-$(CONFIG_HAS_IOMEM)	+= devres.o
-diff -puN /dev/null arch/powerpc/lib/devres.c
---- /dev/null
-+++ a/arch/powerpc/lib/devres.c
-@@ -0,0 +1,42 @@
-+/*
-+ * Copyright (C) 2008 Freescale Semiconductor, Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version
-+ * 2 of the License, or (at your option) any later version.
-+ */
-+
-+#include <linux/device.h>	/* devres_*(), devm_ioremap_release() */
-+#include <linux/io.h>		/* ioremap_flags() */
-+#include <linux/module.h>	/* EXPORT_SYMBOL() */
-+
-+/**
-+ * devm_ioremap_prot - Managed ioremap_flags()
-+ * @dev: Generic device to remap IO address for
-+ * @offset: BUS offset to map
-+ * @size: Size of map
-+ * @flags: Page flags
-+ *
-+ * Managed ioremap_prot().  Map is automatically unmapped on driver
-+ * detach.
-+ */
-+void __iomem *devm_ioremap_prot(struct device *dev, resource_size_t offset,
-+				 size_t size, unsigned long flags)
-+{
-+	void __iomem **ptr, *addr;
-+
-+	ptr = devres_alloc(devm_ioremap_release, sizeof(*ptr), GFP_KERNEL);
-+	if (!ptr)
-+		return NULL;
-+
-+	addr = ioremap_flags(offset, size, flags);
-+	if (addr) {
-+		*ptr = addr;
-+		devres_add(dev, ptr);
-+	} else
-+		devres_free(ptr);
-+
-+	return addr;
-+}
-+EXPORT_SYMBOL(devm_ioremap_prot);
-diff -puN include/asm-powerpc/io.h~devres-add-devm_ioremap_prot include/asm-powerpc/io.h
---- a/include/asm-powerpc/io.h~devres-add-devm_ioremap_prot
-+++ a/include/asm-powerpc/io.h
-@@ -2,7 +2,7 @@
- #define _ASM_POWERPC_IO_H
- #ifdef __KERNEL__
+-	if (!data) {
+-		printk(KERN_ERR "scanlog: read failed no data\n");
+-		return -EIO;
+-	}
+-
+ 	if (count > RTAS_DATA_BUF_SIZE)
+ 		count = RTAS_DATA_BUF_SIZE;
  
--/* 
-+/*
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public License
-  * as published by the Free Software Foundation; either version
-@@ -18,6 +18,9 @@ extern int check_legacy_ioport(unsigned 
- #define _PNPWRP		0xa79
- #define PNPBIOS_BASE	0xf000
+@@ -146,11 +141,6 @@ static int scanlog_open(struct inode * i
+ 	struct proc_dir_entry *dp = PDE(inode);
+ 	unsigned int *data = (unsigned int *)dp->data;
  
-+#include <linux/device.h>
-+#include <linux/io.h>
-+
- #include <linux/compiler.h>
- #include <asm/page.h>
- #include <asm/byteorder.h>
-@@ -744,6 +747,9 @@ static inline void * bus_to_virt(unsigne
+-	if (!data) {
+-		printk(KERN_ERR "scanlog: open failed no data\n");
+-		return -EIO;
+-	}
+-
+ 	if (data[0] != 0) {
+ 		/* This imperfect test stops a second copy of the
+ 		 * data (or a reset while data is being copied)
+@@ -168,10 +158,6 @@ static int scanlog_release(struct inode 
+ 	struct proc_dir_entry *dp = PDE(inode);
+ 	unsigned int *data = (unsigned int *)dp->data;
  
- #define clrsetbits_8(addr, clear, set) clrsetbits(8, addr, clear, set)
+-	if (!data) {
+-		printk(KERN_ERR "scanlog: release failed no data\n");
+-		return -EIO;
+-	}
+ 	data[0] = 0;
  
-+void __iomem *devm_ioremap_prot(struct device *dev, resource_size_t offset,
-+				size_t size, unsigned long flags);
-+
- #endif /* __KERNEL__ */
+ 	return 0;
+@@ -200,12 +186,11 @@ static int __init scanlog_init(void)
+ 	if (!data)
+ 		goto err;
  
- #endif /* _ASM_POWERPC_IO_H */
-diff -puN include/linux/io.h~devres-add-devm_ioremap_prot include/linux/io.h
---- a/include/linux/io.h~devres-add-devm_ioremap_prot
-+++ a/include/linux/io.h
-@@ -65,5 +65,6 @@ void __iomem *devm_ioremap_nocache(struc
- void devm_iounmap(struct device *dev, void __iomem *addr);
- int check_signature(const volatile void __iomem *io_addr,
- 			const unsigned char *signature, int length);
-+void devm_ioremap_release(struct device *dev, void *res);
+-	ent = proc_create("ppc64/rtas/scan-log-dump", S_IRUSR, NULL,
+-			  &scanlog_fops);
++	ent = proc_create_data("ppc64/rtas/scan-log-dump", S_IRUSR, NULL,
++			       &scanlog_fops, data);
+ 	if (!ent)
+ 		goto err;
  
- #endif /* _LINUX_IO_H */
-diff -puN lib/devres.c~devres-add-devm_ioremap_prot lib/devres.c
---- a/lib/devres.c~devres-add-devm_ioremap_prot
-+++ a/lib/devres.c
-@@ -2,7 +2,7 @@
- #include <linux/io.h>
- #include <linux/module.h>
+-	ent->data = data;
+ 	proc_ppc64_scan_log_dump = ent;
  
--static void devm_ioremap_release(struct device *dev, void *res)
-+void devm_ioremap_release(struct device *dev, void *res)
- {
- 	iounmap(*(void __iomem **)res);
- }
+ 	return 0;
 _
 
-Patches currently in -mm which might be from Emilian.Medve@Freescale.com are
+Patches currently in -mm which might be from den@openvz.org are
 
 origin.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
 
