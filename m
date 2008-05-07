@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + net-ipv4-correct-rfc-1122-section-reference-in-comment.patch added to -mm tree
-Date: Wed, 07 May 2008 14:27:31 -0700
-Message-ID: <200805072127.m47LRVDR017266@imap1.linux-foundation.org>
+Subject: + rtc-cmosc-build-fix.patch added to -mm tree
+Date: Wed, 07 May 2008 14:31:21 -0700
+Message-ID: <200805072131.m47LVLkd017429@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46383 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60368 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764163AbYEGV15 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 17:27:57 -0400
+	by vger.kernel.org with ESMTP id S1752186AbYEGVcg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 17:32:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdassen@debian.org
+Cc: crmafra2@gmail.com, crmafra@ift.unesp.br, mingo@elte.hu
 
 
 The patch titled
-     net/ipv4: correct RFC 1122 section reference in comment
+     rtc-cmos.c: build fix
 has been added to the -mm tree.  Its filename is
-     net-ipv4-correct-rfc-1122-section-reference-in-comment.patch
+     rtc-cmosc-build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,56 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/ipv4: correct RFC 1122 section reference in comment
-From: J.H.M. Dassen (Ray) <jdassen@debian.org>
+Subject: rtc-cmos.c: build fix
+From: "Carlos R. Mafra" <crmafra2@gmail.com>
 
-RFC 1122 does not have a section 3.1.2.2. The requirement to silently
-discard datagrams with a bad checksum is in section 3.2.1.2 instead.
+The function hpet_rtc_interrupt(..) is to be used only if
+CONFIG_HPET_EMULATE_RTC is defined (see arch/x86/kernel/hpet.c), so we define
+it to return 0 when !CONFIG_HPET_EMULATE_RTC to avoid build failures.
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10611
+This function will never be used anyways when !CONFIG_HPET_EMULATE_RTC because
+it is inside a if(is_hpet_enabled()) which is never true when
+!CONFIG_HPET_EMULATE_RTC.
 
-Signed-off-by: J.H.M. Dassen (Ray) <jdassen@debian.org>
+Signed-off-by: Carlos R. Mafra <crmafra@ift.unesp.br>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ipv4/ip_input.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/char/rtc.c     |    2 --
+ drivers/rtc/rtc-cmos.c |    5 ++++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN net/ipv4/ip_input.c~net-ipv4-correct-rfc-1122-section-reference-in-comment net/ipv4/ip_input.c
---- a/net/ipv4/ip_input.c~net-ipv4-correct-rfc-1122-section-reference-in-comment
-+++ a/net/ipv4/ip_input.c
-@@ -397,7 +397,7 @@ int ip_rcv(struct sk_buff *skb, struct n
- 	iph = ip_hdr(skb);
+diff -puN drivers/char/rtc.c~rtc-cmosc-build-fix drivers/char/rtc.c
+--- a/drivers/char/rtc.c~rtc-cmosc-build-fix
++++ a/drivers/char/rtc.c
+@@ -119,8 +119,6 @@ static irqreturn_t hpet_rtc_interrupt(in
+ 	return 0;
+ }
+ #endif
+-#else
+-extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
+ #endif
  
- 	/*
--	 *	RFC1122: 3.1.2.2 MUST silently discard any IP frame that fails the checksum.
-+	 *	RFC1122: 3.2.1.2 MUST silently discard any IP frame that fails the checksum.
- 	 *
- 	 *	Is the datagram acceptable?
- 	 *
+ /*
+diff -puN drivers/rtc/rtc-cmos.c~rtc-cmosc-build-fix drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-cmosc-build-fix
++++ a/drivers/rtc/rtc-cmos.c
+@@ -52,7 +52,10 @@
+ #define hpet_rtc_timer_init() 			do { } while (0)
+ #define hpet_register_irq_handler(h) 		0
+ #define hpet_unregister_irq_handler(h)		do { } while (0)
+-extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
++static irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id)
++{
++	return 0;
++}
+ #endif
+ 
+ struct cmos_rtc {
 _
 
-Patches currently in -mm which might be from jdassen@debian.org are
+Patches currently in -mm which might be from crmafra2@gmail.com are
 
-net-ipv4-correct-rfc-1122-section-reference-in-comment.patch
+rtc-cmosc-build-fix.patch
 
