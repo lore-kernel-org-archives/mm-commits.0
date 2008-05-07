@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + idr-fix-a-printk-call.patch added to -mm tree
-Date: Wed, 07 May 2008 13:40:26 -0700
-Message-ID: <200805072040.m47KeQKh015465@imap1.linux-foundation.org>
+Subject: + idr-make-idr_find-rcu-safe.patch added to -mm tree
+Date: Wed, 07 May 2008 13:40:32 -0700
+Message-ID: <200805072040.m47KeW8D015474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36863 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49860 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752552AbYEGUlq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 16:41:46 -0400
+	by vger.kernel.org with ESMTP id S1752954AbYEGUlw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 16:41:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, pa
 
 
 The patch titled
-     idr: fix a printk call
+     idr: make idr_find rcu-safe
 has been added to the -mm tree.  Its filename is
-     idr-fix-a-printk-call.patch
+     idr-make-idr_find-rcu-safe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: fix a printk call
+Subject: idr: make idr_find rcu-safe
 From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-Fix the incomplete printk call.
+Make idr_find rcu-safe: it can now be called inside an rcu_read critical
+section.
 
 Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
 Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
@@ -46,22 +47,85 @@ Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/idr.h |   16 ++++++++++++++++
+ lib/idr.c           |   11 ++++++-----
+ 2 files changed, 22 insertions(+), 5 deletions(-)
 
-diff -puN lib/idr.c~idr-fix-a-printk-call lib/idr.c
---- a/lib/idr.c~idr-fix-a-printk-call
+diff -puN include/linux/idr.h~idr-make-idr_find-rcu-safe include/linux/idr.h
+--- a/include/linux/idr.h~idr-make-idr_find-rcu-safe
++++ a/include/linux/idr.h
+@@ -80,6 +80,22 @@ struct idr {
+ 
+ #define _idr_rc_to_errno(rc) ((rc) == -1 ? -EAGAIN : -ENOSPC)
+ 
++/**
++ * idr synchronization (stolen from radix-tree.h)
++ *
++ * idr_find() is able to be called locklessly, using RCU. The caller must
++ * ensure calls to this function are made within rcu_read_lock() regions.
++ * Other readers (lock-free or otherwise) and modifications may be running
++ * concurrently.
++ *
++ * It is still required that the caller manage the synchronization and
++ * lifetimes of the items. So if RCU lock-free lookups are used, typically
++ * this would mean that the items have their own locks, or are amenable to
++ * lock-free access; and that the items are freed by RCU (or only freed after
++ * having been deleted from the idr tree *and* a synchronize_rcu() grace
++ * period).
++ */
++
+ /*
+  * This is what we export.
+  */
+diff -puN lib/idr.c~idr-make-idr_find-rcu-safe lib/idr.c
+--- a/lib/idr.c~idr-make-idr_find-rcu-safe
 +++ a/lib/idr.c
-@@ -326,7 +326,8 @@ EXPORT_SYMBOL(idr_get_new);
- 
- static void idr_remove_warning(int id)
+@@ -459,7 +459,8 @@ EXPORT_SYMBOL(idr_destroy);
+  * return indicates that @id is not valid or you passed %NULL in
+  * idr_get_new().
+  *
+- * The caller must serialize idr_find() vs idr_get_new() and idr_remove().
++ * This function can be called under rcu_read_lock(), given that the leaf
++ * pointers lifetimes are correctly managed.
+  */
+ void *idr_find(struct idr *idp, int id)
  {
--	printk("idr_remove called for id=%d which is not allocated.\n", id);
-+	printk(KERN_WARNING
-+		"idr_remove called for id=%d which is not allocated.\n", id);
- 	dump_stack();
- }
+@@ -467,7 +468,7 @@ void *idr_find(struct idr *idp, int id)
+ 	struct idr_layer *p;
  
+ 	n = idp->layers * IDR_BITS;
+-	p = idp->top;
++	p = rcu_dereference(idp->top);
+ 
+ 	/* Mask off upper bits we don't use for the search. */
+ 	id &= MAX_ID_MASK;
+@@ -477,7 +478,7 @@ void *idr_find(struct idr *idp, int id)
+ 
+ 	while (n > 0 && p) {
+ 		n -= IDR_BITS;
+-		p = p->ary[(id >> n) & IDR_MASK];
++		p = rcu_dereference(p->ary[(id >> n) & IDR_MASK]);
+ 	}
+ 	return((void *)p);
+ }
+@@ -510,7 +511,7 @@ int idr_for_each(struct idr *idp,
+ 	struct idr_layer **paa = &pa[0];
+ 
+ 	n = idp->layers * IDR_BITS;
+-	p = idp->top;
++	p = rcu_dereference(idp->top);
+ 	max = 1 << n;
+ 
+ 	id = 0;
+@@ -518,7 +519,7 @@ int idr_for_each(struct idr *idp,
+ 		while (n > 0 && p) {
+ 			n -= IDR_BITS;
+ 			*paa++ = p;
+-			p = p->ary[(id >> n) & IDR_MASK];
++			p = rcu_dereference(p->ary[(id >> n) & IDR_MASK]);
+ 		}
+ 
+ 		if (p) {
 _
 
 Patches currently in -mm which might be from Nadia.Derbey@bull.net are
