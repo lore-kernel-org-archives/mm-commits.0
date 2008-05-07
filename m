@@ -1,217 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: + git-mips-git-rejects.patch added to -mm tree
-Date: Tue, 06 May 2008 22:10:13 -0700
-Message-ID: <200805070510.m475ADIB012723@imap1.linux-foundation.org>
+Subject: - devres-add-devm_ioremap_prot.patch removed from -mm tree
+Date: Tue, 06 May 2008 22:23:46 -0700
+Message-ID: <200805070523.m475NkO6013222@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33010 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44006 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754120AbYEGFKy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 01:10:54 -0400
+	by vger.kernel.org with ESMTP id S1753931AbYEGFXz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 01:23:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ralf@linux-mips.org
+To: Emilian.Medve@Freescale.com, benh@kernel.crashing.org, galak@kernel.crashing.org, htejun@gmail.com, paulus@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mips-git-rejects
-has been added to the -mm tree.  Its filename is
-     git-mips-git-rejects.patch
+     powerpc: devres: Add devm_ioremap_prot()
+has been removed from the -mm tree.  Its filename was
+     devres-add-devm_ioremap_prot.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-mips-git-rejects
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: powerpc: devres: Add devm_ioremap_prot()
+From: Emil Medve <Emilian.Medve@Freescale.com>
 
-Probably wrong...
+We provide an ioremap_flags so provide a corresponding devm_ioremap_prot.  The
+slight name difference is at Ben Herrenschmidt request as he plans on changing
+ioremap_flags to ioremap_prot in the future.
 
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Signed-off-by: Emil Medve <Emilian.Medve@Freescale.com>
+Signed-off-by: Kumar Gala <galak@kernel.crashing.org>
+Acked-by: Tejun Heo <htejun@gmail.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/au1000/common/dbg_io.c |    3 ---
- arch/mips/kernel/Makefile        |    6 ------
- arch/mips/kernel/traps.c         |   13 -------------
- arch/mips/mm/c-r4k.c             |    6 ------
- 4 files changed, 28 deletions(-)
+ arch/powerpc/lib/Makefile |    1 
+ arch/powerpc/lib/devres.c |   42 ++++++++++++++++++++++++++++++++++++
+ include/asm-powerpc/io.h  |    8 ++++++
+ include/linux/io.h        |    1 
+ lib/devres.c              |    2 -
+ 5 files changed, 52 insertions(+), 2 deletions(-)
 
-diff -puN arch/mips/kernel/Makefile~git-mips-git-rejects arch/mips/kernel/Makefile
---- a/arch/mips/kernel/Makefile~git-mips-git-rejects
-+++ a/arch/mips/kernel/Makefile
-@@ -4,15 +4,9 @@
+diff -puN arch/powerpc/lib/Makefile~devres-add-devm_ioremap_prot arch/powerpc/lib/Makefile
+--- a/arch/powerpc/lib/Makefile~devres-add-devm_ioremap_prot
++++ a/arch/powerpc/lib/Makefile
+@@ -23,3 +23,4 @@ obj-$(CONFIG_SMP)	+= locks.o
+ endif
  
- extra-y		:= head.o init_task.o vmlinux.lds
+ obj-$(CONFIG_PPC_LIB_RHEAP) += rheap.o
++obj-$(CONFIG_HAS_IOMEM)	+= devres.o
+diff -puN /dev/null arch/powerpc/lib/devres.c
+--- /dev/null
++++ a/arch/powerpc/lib/devres.c
+@@ -0,0 +1,42 @@
++/*
++ * Copyright (C) 2008 Freescale Semiconductor, Inc.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version
++ * 2 of the License, or (at your option) any later version.
++ */
++
++#include <linux/device.h>	/* devres_*(), devm_ioremap_release() */
++#include <linux/io.h>		/* ioremap_flags() */
++#include <linux/module.h>	/* EXPORT_SYMBOL() */
++
++/**
++ * devm_ioremap_prot - Managed ioremap_flags()
++ * @dev: Generic device to remap IO address for
++ * @offset: BUS offset to map
++ * @size: Size of map
++ * @flags: Page flags
++ *
++ * Managed ioremap_prot().  Map is automatically unmapped on driver
++ * detach.
++ */
++void __iomem *devm_ioremap_prot(struct device *dev, resource_size_t offset,
++				 size_t size, unsigned long flags)
++{
++	void __iomem **ptr, *addr;
++
++	ptr = devres_alloc(devm_ioremap_release, sizeof(*ptr), GFP_KERNEL);
++	if (!ptr)
++		return NULL;
++
++	addr = ioremap_flags(offset, size, flags);
++	if (addr) {
++		*ptr = addr;
++		devres_add(dev, ptr);
++	} else
++		devres_free(ptr);
++
++	return addr;
++}
++EXPORT_SYMBOL(devm_ioremap_prot);
+diff -puN include/asm-powerpc/io.h~devres-add-devm_ioremap_prot include/asm-powerpc/io.h
+--- a/include/asm-powerpc/io.h~devres-add-devm_ioremap_prot
++++ a/include/asm-powerpc/io.h
+@@ -2,7 +2,7 @@
+ #define _ASM_POWERPC_IO_H
+ #ifdef __KERNEL__
  
--<<<<<<< HEAD:arch/mips/kernel/Makefile
--obj-y		+= cpu-probe.o branch.o entry.o genex.o irq.o process.o \
--		   ptrace.o reset.o setup.o signal.o syscall.o \
--		   time.o topology.o traps.o unaligned.o
--=======
- obj-y		+= cpu-probe.o branch.o entry.o genex.o irq.o irq-gic.o \
- 		   process.o ptrace.o reset.o semaphore.o setup.o signal.o \
- 		   syscall.o time.o topology.o traps.o unaligned.o
-->>>>>>> FETCH_HEAD:arch/mips/kernel/Makefile
+-/* 
++/*
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * as published by the Free Software Foundation; either version
+@@ -18,6 +18,9 @@ extern int check_legacy_ioport(unsigned 
+ #define _PNPWRP		0xa79
+ #define PNPBIOS_BASE	0xf000
  
- obj-$(CONFIG_CEVT_BCM1480)	+= cevt-bcm1480.o
- obj-$(CONFIG_CEVT_R4K)		+= cevt-r4k.o
-diff -puN arch/mips/au1000/common/dbg_io.c~git-mips-git-rejects arch/mips/au1000/common/dbg_io.c
---- a/arch/mips/au1000/common/dbg_io.c~git-mips-git-rejects
-+++ a/arch/mips/au1000/common/dbg_io.c
-@@ -54,10 +54,7 @@ typedef         unsigned int  uint32;
- #define UART16550_READ(y)    (au_readl(DEBUG_BASE + y) & 0xff)
- #define UART16550_WRITE(y, z) (au_writel(z&0xff, DEBUG_BASE + y))
++#include <linux/device.h>
++#include <linux/io.h>
++
+ #include <linux/compiler.h>
+ #include <asm/page.h>
+ #include <asm/byteorder.h>
+@@ -744,6 +747,9 @@ static inline void * bus_to_virt(unsigne
  
--<<<<<<< HEAD:arch/mips/au1000/common/dbg_io.c
--=======
- extern unsigned long get_au1x00_uart_baud_base(void);
-->>>>>>> FETCH_HEAD:arch/mips/au1000/common/dbg_io.c
- extern unsigned long calc_clock(void);
+ #define clrsetbits_8(addr, clear, set) clrsetbits(8, addr, clear, set)
  
- void debugInit(uint32 baud, uint8 data, uint8 parity, uint8 stop)
-diff -puN arch/mips/kernel/traps.c~git-mips-git-rejects arch/mips/kernel/traps.c
---- a/arch/mips/kernel/traps.c~git-mips-git-rejects
-+++ a/arch/mips/kernel/traps.c
-@@ -196,21 +196,12 @@ EXPORT_SYMBOL(dump_stack);
- static void show_code(unsigned int __user *pc)
++void __iomem *devm_ioremap_prot(struct device *dev, resource_size_t offset,
++				size_t size, unsigned long flags);
++
+ #endif /* __KERNEL__ */
+ 
+ #endif /* _ASM_POWERPC_IO_H */
+diff -puN include/linux/io.h~devres-add-devm_ioremap_prot include/linux/io.h
+--- a/include/linux/io.h~devres-add-devm_ioremap_prot
++++ a/include/linux/io.h
+@@ -65,5 +65,6 @@ void __iomem *devm_ioremap_nocache(struc
+ void devm_iounmap(struct device *dev, void __iomem *addr);
+ int check_signature(const volatile void __iomem *io_addr,
+ 			const unsigned char *signature, int length);
++void devm_ioremap_release(struct device *dev, void *res);
+ 
+ #endif /* _LINUX_IO_H */
+diff -puN lib/devres.c~devres-add-devm_ioremap_prot lib/devres.c
+--- a/lib/devres.c~devres-add-devm_ioremap_prot
++++ a/lib/devres.c
+@@ -2,7 +2,7 @@
+ #include <linux/io.h>
+ #include <linux/module.h>
+ 
+-static void devm_ioremap_release(struct device *dev, void *res)
++void devm_ioremap_release(struct device *dev, void *res)
  {
- 	long i;
--<<<<<<< HEAD:arch/mips/kernel/traps.c
--	unsigned short __user *pc16 = NULL;
--
--	printk("\nCode:");
--
--	if ((unsigned long)pc & 1)
--		pc16 = (unsigned short __user *)((unsigned long)pc & ~1);
--=======
- 	unsigned short *pc16 = NULL;
- 
- 	printk("\nCode:");
- 
- 	if ((unsigned int)pc & 1)
- 		pc16 = (unsigned short *)((unsigned int)pc & ~1);
-->>>>>>> FETCH_HEAD:arch/mips/kernel/traps.c
- 	for(i = -3 ; i < 6 ; i++) {
- 		unsigned int insn;
- 		if (pc16 ? __get_user(insn, pc16 + i) : __get_user(insn, pc + i)) {
-@@ -1389,11 +1380,7 @@ int cp0_compare_irq;
- int cp0_perfcount_irq;
- EXPORT_SYMBOL_GPL(cp0_perfcount_irq);
- 
--<<<<<<< HEAD:arch/mips/kernel/traps.c
--static int __cpuinitdata noulri;
--=======
- static int __initdata noulri;
-->>>>>>> FETCH_HEAD:arch/mips/kernel/traps.c
- 
- static int __init ulri_disable(char *s)
- {
-diff -puN arch/mips/mm/c-r4k.c~git-mips-git-rejects arch/mips/mm/c-r4k.c
---- a/arch/mips/mm/c-r4k.c~git-mips-git-rejects
-+++ a/arch/mips/mm/c-r4k.c
-@@ -1227,11 +1227,8 @@ void au1x00_fixup_config_od(void)
+ 	iounmap(*(void __iomem **)res);
  }
- 
- static int __cpuinitdata cca = -1;
--<<<<<<< HEAD:arch/mips/mm/c-r4k.c
--=======
- unsigned long _page_cachable_default;
- EXPORT_SYMBOL_GPL(_page_cachable_default);
-->>>>>>> FETCH_HEAD:arch/mips/mm/c-r4k.c
- 
- static int __init cca_setup(char *str)
- {
-@@ -1249,8 +1246,6 @@ static void __cpuinit coherency_setup(vo
- 	_page_cachable_default = cca << _CACHE_SHIFT;
- 
- 	pr_debug("Using cache attribute %d\n", cca);
--<<<<<<< HEAD:arch/mips/mm/c-r4k.c
--=======
- 
- 	protection_map[0] = PAGE_NONE;
- 	protection_map[1] = PAGE_READONLY;
-@@ -1269,7 +1264,6 @@ static void __cpuinit coherency_setup(vo
- 	protection_map[14] = PAGE_SHARED;
- 	protection_map[15] = PAGE_SHARED;
- 
-->>>>>>> FETCH_HEAD:arch/mips/mm/c-r4k.c
- 	change_c0_config(CONF_CM_CMASK, cca);
- 
- 	/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Emilian.Medve@Freescale.com are
 
 origin.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-drivers-scsi-dpt_i2oc-fix-build-on-alpha.patch
-quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
-linux-next.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-revert-memory-hotplug-register-section-node-id-to-free.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-dlm-convert-connections_lock-in-a-mutex-fix.patch
-git-input.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-jg-misc-git-rejects.patch
-git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-colibri-fix-support-for-dm9000-ethernet-device-fix.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
 
