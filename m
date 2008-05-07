@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-hfsplus-oops-on-image-without-extents.patch added to -mm tree
-Date: Wed, 07 May 2008 08:11:51 -0700
-Message-ID: <200805071511.m47FBpFY002579@imap1.linux-foundation.org>
+Subject: + mn10300-make-cpu_relax-invoke-barrier.patch added to -mm tree
+Date: Wed, 07 May 2008 09:54:33 -0700
+Message-ID: <200805071654.m47GsXZI006671@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53617 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36143 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753088AbYEGPMf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 11:12:35 -0400
+	by vger.kernel.org with ESMTP id S1753737AbYEGQyz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 12:54:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: snakebyte@gmx.de, zippel@linux-m68k.org
+Cc: dhowells@redhat.com
 
 
 The patch titled
-     Fix hfsplus oops on image without extents
+     MN10300: make cpu_relax() invoke barrier()
 has been added to the -mm tree.  Its filename is
-     fix-hfsplus-oops-on-image-without-extents.patch
+     mn10300-make-cpu_relax-invoke-barrier.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix hfsplus oops on image without extents
-From: Eric Sesterhenn <snakebyte@gmx.de>
+Subject: MN10300: make cpu_relax() invoke barrier()
+From: David Howells <dhowells@redhat.com>
 
-Fix an oops with a corrupted hfs+ image.
+Make cpu_relax() invoke barrier() to be the same as other arches.
 
-See http://bugzilla.kernel.org/show_bug.cgi?id=10548 for details.
-
-Problem is that we call hfs_btree_open() from hfsplus_fill_super() to set
-HFSPLUS_SB(sb).[ext_tree|cat_tree] Both trees are still NULL at this moment. 
-If hfs_btree_open() fails for any reason it calls iput() on the page, which
-gets to hfsplus_releasepage() which tries to access HFSPLUS_SB(sb).* which is
-still NULL and oopses while dereferencing it.
-
-Signed-off-by: Eric Sesterhenn <snakebyte@gmx.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Signed-off-by: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/inode.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/asm-mn10300/processor.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hfsplus/inode.c~fix-hfsplus-oops-on-image-without-extents fs/hfsplus/inode.c
---- a/fs/hfsplus/inode.c~fix-hfsplus-oops-on-image-without-extents
-+++ a/fs/hfsplus/inode.c
-@@ -65,6 +65,8 @@ static int hfsplus_releasepage(struct pa
- 		BUG();
- 		return 0;
- 	}
-+	it (!tree)
-+		return 0;
- 	if (tree->node_size >= PAGE_CACHE_SIZE) {
- 		nidx = page->index >> (tree->node_size_shift - PAGE_CACHE_SHIFT);
- 		spin_lock(&tree->hash_lock);
+diff -puN include/asm-mn10300/processor.h~mn10300-make-cpu_relax-invoke-barrier include/asm-mn10300/processor.h
+--- a/include/asm-mn10300/processor.h~mn10300-make-cpu_relax-invoke-barrier
++++ a/include/asm-mn10300/processor.h
+@@ -58,7 +58,7 @@ extern struct mn10300_cpuinfo boot_cpu_d
+ extern void identify_cpu(struct mn10300_cpuinfo *);
+ extern void print_cpu_info(struct mn10300_cpuinfo *);
+ extern void dodgy_tsc(void);
+-#define cpu_relax() do {} while (0)
++#define cpu_relax() barrier()
+ 
+ /*
+  * User space process size: 1.75GB (default).
 _
 
-Patches currently in -mm which might be from snakebyte@gmx.de are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-origin.patch
-fix-hfsplus-oops-on-image-without-extents.patch
-linux-next.patch
+mn10300-replace-deprecated-topdir-with-newer-srctree.patch
+mn10300-make-cpu_relax-invoke-barrier.patch
+git-unionfs.patch
+mutex-subsystem-synchro-test-module.patch
 
