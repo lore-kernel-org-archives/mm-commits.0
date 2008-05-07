@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + flag-parameters-nonblock-in-pipe.patch added to -mm tree
-Date: Wed, 07 May 2008 15:06:11 -0700
-Message-ID: <200805072206.m47M6BYq018887@imap1.linux-foundation.org>
+Subject: + flag-parameters-add-on-remove-epoll_create-size-param.patch added to -mm tree
+Date: Wed, 07 May 2008 15:07:25 -0700
+Message-ID: <200805072207.m47M7Pes018958@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51324 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39815 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760919AbYEGWGb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 18:06:31 -0400
+	by vger.kernel.org with ESMTP id S1755962AbYEGWIY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 18:08:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: drepper@redhat.com, davidel@xmailserver.org, mtk.manpages@googlemail.com
+Cc: drepper@redhat.com, davidel@xmailserver.org, linux-arch@vger.kernel.org, mtk.manpages@googlemail.com
 
 
 The patch titled
-     flag parameters: NONBLOCK in pipe
+     flag parameters add-on: remove epoll_create size param
 has been added to the -mm tree.  Its filename is
-     flag-parameters-nonblock-in-pipe.patch
+     flag-parameters-add-on-remove-epoll_create-size-param.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,78 +33,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag parameters: NONBLOCK in pipe
+Subject: flag parameters add-on: remove epoll_create size param
 From: Ulrich Drepper <drepper@redhat.com>
 
-This patch adds O_NONBLOCK support to pipe2.  It is minimally more involved
-than the patches for eventfd et.al but still trivial.  The interfaces of the
-create_write_pipe and create_read_pipe helper functions were changed and the
-one other caller as well.
-
-The following test must be adjusted for architectures other than x86 and
-x86-64 and in case the syscall numbers changed.
+Remove the size parameter from the new epoll_create syscall and renames the
+syscall itself.  The updated test program follows.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #include <fcntl.h>
 #include <stdio.h>
+#include <time.h>
 #include <unistd.h>
 #include <sys/syscall.h>
 
-#ifndef __NR_pipe2
+#ifndef __NR_epoll_create2
 # ifdef __x86_64__
-#  define __NR_pipe2 293
+#  define __NR_epoll_create2 291
 # elif defined __i386__
-#  define __NR_pipe2 331
+#  define __NR_epoll_create2 329
 # else
-#  error "need __NR_pipe2"
+#  error "need __NR_epoll_create2"
 # endif
 #endif
+
+#define EPOLL_CLOEXEC O_CLOEXEC
 
 int
 main (void)
 {
-  int fds[2];
-  if (syscall (__NR_pipe2, fds, 0) == -1)
+  int fd = syscall (__NR_epoll_create2, 0);
+  if (fd == -1)
     {
-      puts ("pipe2(0) failed");
+      puts ("epoll_create2(0) failed");
       return 1;
     }
-  for (int i = 0; i < 2; ++i)
+  int coe = fcntl (fd, F_GETFD);
+  if (coe == -1)
     {
-      int fl = fcntl (fds[i], F_GETFL);
-      if (fl == -1)
-        {
-          puts ("fcntl failed");
-          return 1;
-        }
-      if (fl & O_NONBLOCK)
-        {
-          printf ("pipe2(0) set non-blocking mode for fds[%d]\n", i);
-          return 1;
-        }
-      close (fds[i]);
+      puts ("fcntl failed");
+      return 1;
     }
+  if (coe & FD_CLOEXEC)
+    {
+      puts ("epoll_create2(0) set close-on-exec flag");
+      return 1;
+    }
+  close (fd);
 
-  if (syscall (__NR_pipe2, fds, O_NONBLOCK) == -1)
+  fd = syscall (__NR_epoll_create2, EPOLL_CLOEXEC);
+  if (fd == -1)
     {
-      puts ("pipe2(O_NONBLOCK) failed");
+      puts ("epoll_create2(EPOLL_CLOEXEC) failed");
       return 1;
     }
-  for (int i = 0; i < 2; ++i)
+  coe = fcntl (fd, F_GETFD);
+  if (coe == -1)
     {
-      int fl = fcntl (fds[i], F_GETFL);
-      if (fl == -1)
-        {
-          puts ("fcntl failed");
-          return 1;
-        }
-      if ((fl & O_NONBLOCK) == 0)
-        {
-          printf ("pipe2(O_NONBLOCK) does not set non-blocking mode for fds[%d]\n", i);
-          return 1;
-        }
-      close (fds[i]);
+      puts ("fcntl failed");
+      return 1;
     }
+  if ((coe & FD_CLOEXEC) == 0)
+    {
+      puts ("epoll_create2(EPOLL_CLOEXEC) set close-on-exec flag");
+      return 1;
+    }
+  close (fd);
 
   puts ("OK");
 
@@ -115,102 +108,144 @@ main (void)
 Signed-off-by: Ulrich Drepper <drepper@redhat.com>
 Acked-by: Davide Libenzi <davidel@xmailserver.org>
 Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: <linux-arch@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c          |   14 +++++++-------
- include/linux/fs.h |    4 ++--
- kernel/kmod.c      |    4 ++--
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ arch/x86/ia32/ia32entry.S          |    2 +-
+ arch/x86/kernel/syscall_table_32.S |    2 +-
+ fs/eventpoll.c                     |   18 ++++++++++--------
+ include/asm-x86/unistd_32.h        |    2 +-
+ include/asm-x86/unistd_64.h        |    4 ++--
+ include/linux/eventpoll.h          |    2 +-
+ include/linux/syscalls.h           |    2 +-
+ 7 files changed, 17 insertions(+), 15 deletions(-)
 
-diff -puN fs/pipe.c~flag-parameters-nonblock-in-pipe fs/pipe.c
---- a/fs/pipe.c~flag-parameters-nonblock-in-pipe
-+++ a/fs/pipe.c
-@@ -950,7 +950,7 @@ fail_inode:
- 	return NULL;
- }
- 
--struct file *create_write_pipe(void)
-+struct file *create_write_pipe(int flags)
+diff -puN arch/x86/ia32/ia32entry.S~flag-parameters-add-on-remove-epoll_create-size-param arch/x86/ia32/ia32entry.S
+--- a/arch/x86/ia32/ia32entry.S~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/arch/x86/ia32/ia32entry.S
+@@ -733,7 +733,7 @@ ia32_sys_call_table:
+ 	.quad compat_sys_timerfd_gettime
+ 	.quad compat_sys_signalfd4
+ 	.quad sys_eventfd2
+-	.quad sys_epoll_create2
++	.quad sys_epoll_create1
+ 	.quad sys_dup3			/* 330 */
+ 	.quad sys_pipe2
+ 	.quad sys_inotify_init1
+diff -puN arch/x86/kernel/syscall_table_32.S~flag-parameters-add-on-remove-epoll_create-size-param arch/x86/kernel/syscall_table_32.S
+--- a/arch/x86/kernel/syscall_table_32.S~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/arch/x86/kernel/syscall_table_32.S
+@@ -328,7 +328,7 @@ ENTRY(sys_call_table)
+ 	.long sys_timerfd_gettime
+ 	.long sys_signalfd4
+ 	.long sys_eventfd2
+-	.long sys_epoll_create2
++	.long sys_epoll_create1
+ 	.long sys_dup3			/* 330 */
+ 	.long sys_pipe2
+ 	.long sys_inotify_init1
+diff -puN fs/eventpoll.c~flag-parameters-add-on-remove-epoll_create-size-param fs/eventpoll.c
+--- a/fs/eventpoll.c~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/fs/eventpoll.c
+@@ -1046,7 +1046,7 @@ retry:
+  * RB tree. With the current implementation, the "size" parameter is ignored
+  * (besides sanity checks).
+  */
+-asmlinkage long sys_epoll_create2(int size, int flags)
++asmlinkage long sys_epoll_create1(int flags)
  {
- 	int err;
- 	struct inode *inode;
-@@ -983,7 +983,7 @@ struct file *create_write_pipe(void)
- 		goto err_dentry;
- 	f->f_mapping = inode->i_mapping;
- 
--	f->f_flags = O_WRONLY;
-+	f->f_flags = O_WRONLY | (flags & O_NONBLOCK);
- 	f->f_version = 0;
- 
- 	return f;
-@@ -1007,7 +1007,7 @@ void free_write_pipe(struct file *f)
- 	put_filp(f);
- }
- 
--struct file *create_read_pipe(struct file *wrf)
-+struct file *create_read_pipe(struct file *wrf, int flags)
- {
- 	struct file *f = get_empty_filp();
- 	if (!f)
-@@ -1019,7 +1019,7 @@ struct file *create_read_pipe(struct fil
- 	f->f_mapping = wrf->f_path.dentry->d_inode->i_mapping;
- 
- 	f->f_pos = 0;
--	f->f_flags = O_RDONLY;
-+	f->f_flags = O_RDONLY | (flags & O_NONBLOCK);
- 	f->f_op = &read_pipe_fops;
- 	f->f_mode = FMODE_READ;
- 	f->f_version = 0;
-@@ -1033,13 +1033,13 @@ int do_pipe_flags(int *fd, int flags)
- 	int error;
- 	int fdw, fdr;
- 
--	if (flags & ~O_CLOEXEC)
-+	if (flags & ~(O_CLOEXEC | O_NONBLOCK))
+ 	int error, fd = -1;
+ 	struct eventpoll *ep;
+@@ -1058,14 +1058,13 @@ asmlinkage long sys_epoll_create2(int si
  		return -EINVAL;
  
--	fw = create_write_pipe();
-+	fw = create_write_pipe(flags);
- 	if (IS_ERR(fw))
- 		return PTR_ERR(fw);
--	fr = create_read_pipe(fw);
-+	fr = create_read_pipe(fw, flags);
- 	error = PTR_ERR(fr);
- 	if (IS_ERR(fr))
- 		goto err_write_pipe;
-diff -puN include/linux/fs.h~flag-parameters-nonblock-in-pipe include/linux/fs.h
---- a/include/linux/fs.h~flag-parameters-nonblock-in-pipe
-+++ a/include/linux/fs.h
-@@ -1771,8 +1771,8 @@ static inline void allow_write_access(st
+ 	DNPRINTK(3, (KERN_INFO "[%p] eventpoll: sys_epoll_create(%d)\n",
+-		     current, size));
++		     current, flags));
+ 
+ 	/*
+-	 * Sanity check on the size parameter, and create the internal data
+-	 * structure ( "struct eventpoll" ).
++	 * Create the internal data structure ( "struct eventpoll" ).
+ 	 */
+-	error = -EINVAL;
+-	if (size <= 0 || (error = ep_alloc(&ep)) < 0) {
++	error = ep_alloc(&ep);
++	if (error < 0) {
+ 		fd = error;
+ 		goto error_return;
+ 	}
+@@ -1081,14 +1080,17 @@ asmlinkage long sys_epoll_create2(int si
+ 
+ error_return:
+ 	DNPRINTK(3, (KERN_INFO "[%p] eventpoll: sys_epoll_create(%d) = %d\n",
+-		     current, size, fd));
++		     current, flags, fd));
+ 
+ 	return fd;
  }
- extern int do_pipe(int *);
- extern int do_pipe_flags(int *, int);
--extern struct file *create_read_pipe(struct file *f);
--extern struct file *create_write_pipe(void);
-+extern struct file *create_read_pipe(struct file *f, int flags);
-+extern struct file *create_write_pipe(int flags);
- extern void free_write_pipe(struct file *);
  
- extern struct file *do_filp_open(int dfd, const char *pathname,
-diff -puN kernel/kmod.c~flag-parameters-nonblock-in-pipe kernel/kmod.c
---- a/kernel/kmod.c~flag-parameters-nonblock-in-pipe
-+++ a/kernel/kmod.c
-@@ -417,12 +417,12 @@ int call_usermodehelper_stdinpipe(struct
+ asmlinkage long sys_epoll_create(int size)
  {
- 	struct file *f;
+-	return sys_epoll_create2(size, 0);
++	if (size < 0)
++		return -EINVAL;
++
++	return sys_epoll_create1(0);
+ }
  
--	f = create_write_pipe();
-+	f = create_write_pipe(0);
- 	if (IS_ERR(f))
- 		return PTR_ERR(f);
- 	*filp = f;
+ /*
+diff -puN include/asm-x86/unistd_32.h~flag-parameters-add-on-remove-epoll_create-size-param include/asm-x86/unistd_32.h
+--- a/include/asm-x86/unistd_32.h~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/include/asm-x86/unistd_32.h
+@@ -334,7 +334,7 @@
+ #define __NR_timerfd_gettime	326
+ #define __NR_signalfd4		327
+ #define __NR_eventfd2		328
+-#define __NR_epoll_create2	329
++#define __NR_epoll_create1	329
+ #define __NR_dup3		330
+ #define __NR_pipe2		331
+ #define __NR_inotify_init1	332
+diff -puN include/asm-x86/unistd_64.h~flag-parameters-add-on-remove-epoll_create-size-param include/asm-x86/unistd_64.h
+--- a/include/asm-x86/unistd_64.h~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/include/asm-x86/unistd_64.h
+@@ -645,8 +645,8 @@ __SYSCALL(__NR_paccept, sys_paccept)
+ __SYSCALL(__NR_signalfd4, sys_signalfd4)
+ #define __NR_eventfd2				290
+ __SYSCALL(__NR_eventfd2, sys_eventfd2)
+-#define __NR_epoll_create2			291
+-__SYSCALL(__NR_epoll_create2, sys_epoll_create2)
++#define __NR_epoll_create1			291
++__SYSCALL(__NR_epoll_create1, sys_epoll_create1)
+ #define __NR_dup3				292
+ __SYSCALL(__NR_dup3, sys_dup3)
+ #define __NR_pipe2				293
+diff -puN include/linux/eventpoll.h~flag-parameters-add-on-remove-epoll_create-size-param include/linux/eventpoll.h
+--- a/include/linux/eventpoll.h~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/include/linux/eventpoll.h
+@@ -18,7 +18,7 @@
+ #include <linux/fcntl.h>
+ #include <linux/types.h>
  
--	f = create_read_pipe(f);
-+	f = create_read_pipe(f, 0);
- 	if (IS_ERR(f)) {
- 		free_write_pipe(*filp);
- 		return PTR_ERR(f);
+-/* Flags for epoll_create2.  */
++/* Flags for epoll_create1.  */
+ #define EPOLL_CLOEXEC O_CLOEXEC
+ 
+ /* Valid opcodes to issue to sys_epoll_ctl() */
+diff -puN include/linux/syscalls.h~flag-parameters-add-on-remove-epoll_create-size-param include/linux/syscalls.h
+--- a/include/linux/syscalls.h~flag-parameters-add-on-remove-epoll_create-size-param
++++ a/include/linux/syscalls.h
+@@ -431,7 +431,7 @@ asmlinkage long sys_poll(struct pollfd _
+ asmlinkage long sys_select(int n, fd_set __user *inp, fd_set __user *outp,
+ 			fd_set __user *exp, struct timeval __user *tvp);
+ asmlinkage long sys_epoll_create(int size);
+-asmlinkage long sys_epoll_create2(int size, int flags);
++asmlinkage long sys_epoll_create1(int flags);
+ asmlinkage long sys_epoll_ctl(int epfd, int op, int fd,
+ 				struct epoll_event __user *event);
+ asmlinkage long sys_epoll_wait(int epfd, struct epoll_event __user *events,
 _
 
 Patches currently in -mm which might be from drepper@redhat.com are
