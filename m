@@ -1,27 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-fixup.patch added to -mm tree
-Date: Wed, 07 May 2008 13:14:51 -0700
-Message-ID: <200805072014.m47KEpi5014498@imap1.linux-foundation.org>
+Subject: + i2c-cs8427c-use-put_unaligned-helper.patch added to -mm tree
+Date: Wed, 07 May 2008 13:25:23 -0700
+Message-ID: <200805072025.m47KPNNn014891@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40084 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59859 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751878AbYEGUOx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 16:14:53 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m47KEp7K027822
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Wed, 7 May 2008 13:14:53 -0700
+	by vger.kernel.org with ESMTP id S1751401AbYEGUZ3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 16:25:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: harvey.harrison@gmail.com, tiwai@suse.de
 
 
 The patch titled
-     linux-next-fixup
+     i2c: cs8427.c use put_unaligned helper
 has been added to the -mm tree.  Its filename is
-     linux-next-fixup.patch
+     i2c-cs8427c-use-put_unaligned-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -37,162 +33,83 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-fixup
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: i2c: cs8427.c use put_unaligned helper
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |   25 -------------------------
- kernel/fork.c        |    2 ++
- mm/hugetlb.c         |    1 +
- mm/memory.c          |    3 +++
- 4 files changed, 6 insertions(+), 25 deletions(-)
+ sound/i2c/cs8427.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/list.h~linux-next-fixup include/linux/list.h
---- a/include/linux/list.h~linux-next-fixup
-+++ a/include/linux/list.h
-@@ -515,31 +515,6 @@ static inline void hlist_del(struct hlis
- 	n->pprev = LIST_POISON2;
- }
- 
--/**
-- * hlist_del_rcu - deletes entry from hash list without re-initialization
-- * @n: the element to delete from the hash list.
-- *
-- * Note: list_unhashed() on entry does not return true after this,
-- * the entry is in an undefined state. It is useful for RCU based
-- * lockfree traversal.
-- *
-- * In particular, it means that we can not poison the forward
-- * pointers that may still be used for walking the hash list.
-- *
-- * The caller must take whatever precautions are necessary
-- * (such as holding appropriate locks) to avoid racing
-- * with another list-mutation primitive, such as hlist_add_head_rcu()
-- * or hlist_del_rcu(), running on this same list.
-- * However, it is perfectly legal to run concurrently with
-- * the _rcu list-traversal primitives, such as
-- * hlist_for_each_entry_rcu().
-- */
--static inline void hlist_del_rcu(struct hlist_node *n)
--{
--	__hlist_del(n);
--	n->pprev = LIST_POISON2;
--}
--
- static inline void hlist_del_init(struct hlist_node *n)
- {
- 	if (!hlist_unhashed(n)) {
-diff -puN kernel/fork.c~linux-next-fixup kernel/fork.c
---- a/kernel/fork.c~linux-next-fixup
-+++ a/kernel/fork.c
-@@ -55,6 +55,8 @@
- #include <linux/proc_fs.h>
- #include <linux/blkdev.h>
- #include <linux/mmu_notifier.h>
-+#include <linux/magic.h>
-+#include <linux/marker.h>
- 
- #include <asm/pgtable.h>
- #include <asm/pgalloc.h>
-diff -puN mm/hugetlb.c~linux-next-fixup mm/hugetlb.c
---- a/mm/hugetlb.c~linux-next-fixup
-+++ a/mm/hugetlb.c
-@@ -14,6 +14,7 @@
- #include <linux/mempolicy.h>
- #include <linux/cpuset.h>
- #include <linux/mutex.h>
-+#include <linux/marker.h>
- #include <linux/mmu_notifier.h>
- 
- #include <asm/page.h>
-diff -puN mm/memory.c~linux-next-fixup mm/memory.c
---- a/mm/memory.c~linux-next-fixup
-+++ a/mm/memory.c
-@@ -45,6 +45,7 @@
- #include <linux/swap.h>
- #include <linux/highmem.h>
- #include <linux/pagemap.h>
-+#include <linux/marker.h>
- #include <linux/rmap.h>
- #include <linux/module.h>
- #include <linux/delayacct.h>
-@@ -52,6 +53,8 @@
- #include <linux/writeback.h>
- #include <linux/memcontrol.h>
- #include <linux/mmu_notifier.h>
-+#include <linux/kprobes.h>
-+#include <linux/mutex.h>
- 
- #include <asm/pgalloc.h>
- #include <asm/uaccess.h>
+diff -puN sound/i2c/cs8427.c~i2c-cs8427c-use-put_unaligned-helper sound/i2c/cs8427.c
+--- a/sound/i2c/cs8427.c~i2c-cs8427c-use-put_unaligned-helper
++++ a/sound/i2c/cs8427.c
+@@ -23,6 +23,7 @@
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
++#include <asm/unaligned.h>
+ #include <sound/core.h>
+ #include <sound/control.h>
+ #include <sound/pcm.h>
+@@ -264,10 +265,7 @@ int snd_cs8427_create(struct snd_i2c_bus
+ 		goto __fail;
+ 	}
+ 	/* write default channel status bytes */
+-	buf[0] = ((unsigned char)(SNDRV_PCM_DEFAULT_CON_SPDIF >> 0));
+-	buf[1] = ((unsigned char)(SNDRV_PCM_DEFAULT_CON_SPDIF >> 8));
+-	buf[2] = ((unsigned char)(SNDRV_PCM_DEFAULT_CON_SPDIF >> 16));
+-	buf[3] = ((unsigned char)(SNDRV_PCM_DEFAULT_CON_SPDIF >> 24));
++	put_unaligned_le32(SNDRV_PCM_DEFAULT_CON_SPDIF, buf);
+ 	memset(buf + 4, 0, 24 - 4);
+ 	if (snd_cs8427_send_corudata(device, 0, buf, 24) < 0)
+ 		goto __fail;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-drivers-scsi-dpt_i2oc-fix-build-on-alpha.patch
-quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
-mmu-notifier-core-fix.patch
+misc-fix-integer-as-null-pointer-warnings.patch
+mmc-make-one-bit-signed-bitfields-unsigned.patch
 linux-next.patch
-linux-next-fixup.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-revert-acpica-fixes-for-unload-and-ddbhandles.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-dlm-convert-connections_lock-in-a-mutex-fix.patch
+kgdb-use-put_unaligned_be32-helper.patch
+cifs-remove-global_extern-macro.patch
+media-use-get_unaligned_-helpers.patch
+i2c-cs8427c-use-put_unaligned-helper.patch
+hid-use-get-put_unaligned_-helpers.patch
 git-input.patch
-touch-screen-driver-for-the-superh-migor-board.patch
-git-jg-misc-git-rejects.patch
-revert-libata-improve-post-reset-device-ready-test.patch
+ata-remove-fit-macro.patch
 git-mips.patch
-git-mips-git-rejects.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-v9fs.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-get_unaligned_-helpers.patch
+block-use-get_unaligned_-helpers.patch
+usb-fix-integer-as-null-pointer-sparse-warnings.patch
+usb-use-get_unaligned_-helpers.patch
 git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-colibri-fix-support-for-dm9000-ethernet-device-fix.patch
-pci-export-resource_wc-in-pci-sysfs-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+mac80211-michaelc-use-kernel-provided-infrastructure.patch
+mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
+mac80211-tkipc-use-kernel-provided-infrastructure.patch
+mac80211-add-const-remove-unused-function-make-one-function-static.patch
+mac80211-add-a-struct-to-hold-tkip-context.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+wireless-use-get-put_unaligned_-helpers.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+lib-add-ascii-hex-helper-functions.patch
+lib-add-ascii-hex-helper-functions-update.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+video-fix-integer-as-null-pointer-warnings.patch
 
