@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-use-read-lock-to-guard-find_existing_css_set.patch added to -mm tree
-Date: Wed, 07 May 2008 16:25:59 -0700
-Message-ID: <200805072325.m47NPxmM022363@imap1.linux-foundation.org>
+Subject: + mptsas-add-mptsas_shutdown-to-call-pci_disable_msi.patch added to -mm tree
+Date: Wed, 07 May 2008 16:32:01 -0700
+Message-ID: <200805072332.m47NW11j022586@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43857 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32873 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753405AbYEGX1e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:27:34 -0400
+	by vger.kernel.org with ESMTP id S1754524AbYEGXcH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:32:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, menage@google.com
+Cc: yhlu.kernel.send@gmail.com, Eric.Moore@lsi.com, James.Bottomley@HansenPartnership.com, ebiederm@xmission.com, sathya.prakash@lsi.com, yhlu.kernel@gmail.com
 
 
 The patch titled
-     cgroup: use read lock to guard find_existing_css_set()
+     mptsas: add mptsas_shutdown to call pci_disable_msi
 has been added to the -mm tree.  Its filename is
-     cgroup-use-read-lock-to-guard-find_existing_css_set.patch
+     mptsas-add-mptsas_shutdown-to-call-pci_disable_msi.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,68 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroup: use read lock to guard find_existing_css_set()
-From: Li Zefan <lizf@cn.fujitsu.com>
+Subject: mptsas: add mptsas_shutdown to call pci_disable_msi
+From: Yinghai Lu <yhlu.kernel.send@gmail.com>
 
-The function does not modify anything (except the temporary css template), so
-it's sufficient to hold read lock.
+this change
 
-Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+| commit 23a274c8a5adafc74a66f16988776fc7dd6f6e51
+| Author: Prakash, Sathya <sathya.prakash@lsi.com>
+| Date:   Fri Mar 7 15:53:21 2008 +0530
+|
+|     [SCSI] mpt fusion: Enable MSI by default for SAS controllers
+|
+|     This patch modifies the driver to enable MSI by default for all SAS chips.
+|
+
+causes a kexec of the RHEL 5.1 kernel to fail.
+
+root cause: the rhel 5.1 kernel still use INTx emulation.  and
+mptscsih_shutdown doesn't call pci_disable_msi to reenable INTx on kexec path
+
+So try to call mptsas_remove in mptsas_shutdown.  then pci_disable_msi will be
+called via mptsas_remove==>mptscih_remove==> mpt_detach.
+
+Signed-off-by: Yinghai Lu <yhlu.kernel@gmail.com>
+Cc: Prakash, Sathya <sathya.prakash@lsi.com>
+Cc: "Moore, Eric" <Eric.Moore@lsi.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/message/fusion/mptsas.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN kernel/cgroup.c~cgroup-use-read-lock-to-guard-find_existing_css_set kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-use-read-lock-to-guard-find_existing_css_set
-+++ a/kernel/cgroup.c
-@@ -415,11 +415,11 @@ static struct css_set *find_css_set(
+diff -puN drivers/message/fusion/mptsas.c~mptsas-add-mptsas_shutdown-to-call-pci_disable_msi drivers/message/fusion/mptsas.c
+--- a/drivers/message/fusion/mptsas.c~mptsas-add-mptsas_shutdown-to-call-pci_disable_msi
++++ a/drivers/message/fusion/mptsas.c
+@@ -3326,6 +3326,11 @@ static void __devexit mptsas_remove(stru
+ 	mptscsih_remove(pdev);
+ }
  
- 	/* First see if we already have a cgroup group that matches
- 	 * the desired set */
--	write_lock(&css_set_lock);
-+	read_lock(&css_set_lock);
- 	res = find_existing_css_set(oldcg, cgrp, template);
- 	if (res)
- 		get_css_set(res);
--	write_unlock(&css_set_lock);
-+	read_unlock(&css_set_lock);
- 
- 	if (res)
- 		return res;
++static void mptsas_shutdown(struct pci_dev *pdev)
++{
++	mptsas_remove(pdev);
++}
++
+ static struct pci_device_id mptsas_pci_table[] = {
+ 	{ PCI_VENDOR_ID_LSI_LOGIC, MPI_MANUFACTPAGE_DEVID_SAS1064,
+ 		PCI_ANY_ID, PCI_ANY_ID },
+@@ -3347,7 +3352,7 @@ static struct pci_driver mptsas_driver =
+ 	.id_table	= mptsas_pci_table,
+ 	.probe		= mptsas_probe,
+ 	.remove		= __devexit_p(mptsas_remove),
+-	.shutdown	= mptscsih_shutdown,
++	.shutdown	= mptsas_shutdown,
+ #ifdef CONFIG_PM
+ 	.suspend	= mptscsih_suspend,
+ 	.resume		= mptscsih_resume,
 _
 
-Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+Patches currently in -mm which might be from yhlu.kernel.send@gmail.com are
 
-fix-cpuset-sched_relax_domain_level-control-file.patch
-cgroup-use-read-lock-to-guard-find_existing_css_set.patch
+origin.patch
+linux-next.patch
+mptsas-add-mptsas_shutdown-to-call-pci_disable_msi.patch
 
