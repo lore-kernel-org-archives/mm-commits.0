@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch added to -mm tree
-Date: Wed, 07 May 2008 16:06:55 -0700
-Message-ID: <200805072306.m47N6tHp021617@imap1.linux-foundation.org>
+Subject: + atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch added to -mm tree
+Date: Wed, 07 May 2008 16:09:51 -0700
+Message-ID: <200805072309.m47N9pD8021780@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53780 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57091 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933598AbYEGXHH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:07:07 -0400
+	by vger.kernel.org with ESMTP id S1765905AbYEGXKP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:10:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl, adaplas@pol.net, krzysztof.h1@wp.pl
+Cc: 12o3l@tiscali.nl, adaplas@pol.net, geert@linux-m68k.org, krzysztof.h1@wp.pl, tim@physik3.uni-rostock.de
 
 
 The patch titled
-     amifb: test virtual screen range before subtraction on unsigned
+     atafb: test virtual screen range before subtraction on unsigned
 has been added to the -mm tree.  Its filename is
-     amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+     atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,24 +33,26 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: amifb: test virtual screen range before subtraction on unsigned
+Subject: atafb: test virtual screen range before subtraction on unsigned
 From: Roel Kluin <12o3l@tiscali.nl>
 
 dx and dy are u32's, so the test should occur before the subtraction
 
 Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Cc: Antonino Daplas <adaplas@pol.net>
+Cc: Tim Schmielau <tim@physik3.uni-rostock.de>
 Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Antonino Daplas <adaplas@pol.net>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/amifb.c |    7 +++++--
+ drivers/video/atafb.c |    7 +++++--
  1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/amifb.c~amifb-test-virtual-screen-range-before-subtraction-on-unsigned drivers/video/amifb.c
---- a/drivers/video/amifb.c~amifb-test-virtual-screen-range-before-subtraction-on-unsigned
-+++ a/drivers/video/amifb.c
-@@ -2048,13 +2048,16 @@ static void amifb_copyarea(struct fb_inf
+diff -puN drivers/video/atafb.c~atafb-test-virtual-screen-range-before-subtraction-on-unsigned drivers/video/atafb.c
+--- a/drivers/video/atafb.c~atafb-test-virtual-screen-range-before-subtraction-on-unsigned
++++ a/drivers/video/atafb.c
+@@ -2593,13 +2593,16 @@ static void atafb_copyarea(struct fb_inf
  	width = x2 - dx;
  	height = y2 - dy;
  
@@ -82,6 +84,7 @@ xilinx_spi-test-below-0-on-unsigned-irq-in-xilinx_spi_probe.patch
 asic3-platform_get_irq-may-return-signed-unnoticed.patch
 aty128fb-test-below-0-on-unsigned-pll-post_divider.patch
 amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
 likeliness-accounting-change-and-cleanup.patch
 likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
 
