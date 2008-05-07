@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch added to -mm tree
-Date: Wed, 07 May 2008 16:15:38 -0700
-Message-ID: <200805072315.m47NFcZu021988@imap1.linux-foundation.org>
+Subject: + cgroup-use-read-lock-to-guard-find_existing_css_set.patch added to -mm tree
+Date: Wed, 07 May 2008 16:25:59 -0700
+Message-ID: <200805072325.m47NPxmM022363@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47350 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43857 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753067AbYEGXPn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:15:43 -0400
+	by vger.kernel.org with ESMTP id S1753405AbYEGX1e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:27:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: pj@sgi.com, adobriyan@gmail.com, bert.wesarg@googlemail.com, travis@sgi.com, xiyou.wangcong@gmail.com
+Cc: lizf@cn.fujitsu.com, balbir@linux.vnet.ibm.com, menage@google.com
 
 
 The patch titled
-     cpumask: remove bitmap_scnprintf_len and cpumask_scnprintf_len
+     cgroup: use read lock to guard find_existing_css_set()
 has been added to the -mm tree.  Its filename is
-     cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
+     cgroup-use-read-lock-to-guard-find_existing_css_set.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,73 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpumask: remove bitmap_scnprintf_len and cpumask_scnprintf_len
-From: Paul Jackson <pj@sgi.com>
+Subject: cgroup: use read lock to guard find_existing_css_set()
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-They aren't used.  They were briefly used as part of some other patches to
-provide an alternative format for displaying some /proc and /sys cpumasks. 
-They probably should have been removed when those other patches were dropped,
-in favor of a different solution.
+The function does not modify anything (except the temporary css template), so
+it's sufficient to hold read lock.
 
-Signed-off-by: Paul Jackson <pj@sgi.com>
-Cc: "Mike Travis" <travis@sgi.com>
-Cc: "Bert Wesarg" <bert.wesarg@googlemail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Paul Menage <menage@google.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h  |    1 -
- include/linux/cpumask.h |    7 -------
- lib/bitmap.c            |   16 ----------------
- 3 files changed, 24 deletions(-)
+ kernel/cgroup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/bitmap.h~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len include/linux/bitmap.h
---- a/include/linux/bitmap.h~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
-+++ a/include/linux/bitmap.h
-@@ -110,7 +110,6 @@ extern int __bitmap_weight(const unsigne
+diff -puN kernel/cgroup.c~cgroup-use-read-lock-to-guard-find_existing_css_set kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-use-read-lock-to-guard-find_existing_css_set
++++ a/kernel/cgroup.c
+@@ -415,11 +415,11 @@ static struct css_set *find_css_set(
  
- extern int bitmap_scnprintf(char *buf, unsigned int len,
- 			const unsigned long *src, int nbits);
--extern int bitmap_scnprintf_len(unsigned int len);
- extern int __bitmap_parse(const char *buf, unsigned int buflen, int is_user,
- 			unsigned long *dst, int nbits);
- extern int bitmap_parse_user(const char __user *ubuf, unsigned int ulen,
-diff -puN include/linux/cpumask.h~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len include/linux/cpumask.h
---- a/include/linux/cpumask.h~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
-+++ a/include/linux/cpumask.h
-@@ -289,13 +289,6 @@ static inline int __cpumask_scnprintf(ch
- 	return bitmap_scnprintf(buf, len, srcp->bits, nbits);
- }
+ 	/* First see if we already have a cgroup group that matches
+ 	 * the desired set */
+-	write_lock(&css_set_lock);
++	read_lock(&css_set_lock);
+ 	res = find_existing_css_set(oldcg, cgrp, template);
+ 	if (res)
+ 		get_css_set(res);
+-	write_unlock(&css_set_lock);
++	read_unlock(&css_set_lock);
  
--#define cpumask_scnprintf_len(len) \
--			__cpumask_scnprintf_len((len))
--static inline int __cpumask_scnprintf_len(int len)
--{
--	return bitmap_scnprintf_len(len);
--}
--
- #define cpumask_parse_user(ubuf, ulen, dst) \
- 			__cpumask_parse_user((ubuf), (ulen), &(dst), NR_CPUS)
- static inline int __cpumask_parse_user(const char __user *buf, int len,
-diff -puN lib/bitmap.c~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len lib/bitmap.c
---- a/lib/bitmap.c~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
-+++ a/lib/bitmap.c
-@@ -316,22 +316,6 @@ int bitmap_scnprintf(char *buf, unsigned
- EXPORT_SYMBOL(bitmap_scnprintf);
- 
- /**
-- * bitmap_scnprintf_len - return buffer length needed to convert
-- * bitmap to an ASCII hex string.
-- * @len: number of bits to be converted
-- */
--int bitmap_scnprintf_len(unsigned int len)
--{
--	/* we need 9 chars per word for 32 bit words (8 hexdigits + sep/null) */
--	int bitslen = ALIGN(len, CHUNKSZ);
--	int wordlen = CHUNKSZ / 4;
--	int buflen = (bitslen / wordlen) * (wordlen + 1) * sizeof(char);
--
--	return buflen;
--}
--EXPORT_SYMBOL(bitmap_scnprintf_len);
+ 	if (res)
+ 		return res;
+_
+
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
+
+fix-cpuset-sched_relax_domain_level-control-file.patch
+cgroup-use-read-lock-to-guard-find_existing_css_set.patch
+
