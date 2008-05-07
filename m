@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + xilinx_spi-test-below-0-on-unsigned-irq-in-xilinx_spi_probe.patch added to -mm tree
-Date: Wed, 07 May 2008 16:03:32 -0700
-Message-ID: <200805072303.m47N3WWr021513@imap1.linux-foundation.org>
+Subject: + aty128fb-test-below-0-on-unsigned-pll-post_divider.patch added to -mm tree
+Date: Wed, 07 May 2008 16:05:09 -0700
+Message-ID: <200805072305.m47N59x3021569@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40746 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56134 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1763744AbYEGXD5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:03:57 -0400
+	by vger.kernel.org with ESMTP id S1761805AbYEGXFT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:05:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl, akonovalov@ru.mvista.com, dbrownell@users.sourceforge.net, yfrolov@ru.mvista.com
+Cc: 12o3l@tiscali.nl, adaplas@pol.net, benh@kernel.crashing.org
 
 
 The patch titled
-     xilinx_spi: test below 0 on unsigned irq in xilinx_spi_probe()
+     aty128fb: test below 0 on unsigned pll->post_divider
 has been added to the -mm tree.  Its filename is
-     xilinx_spi-test-below-0-on-unsigned-irq-in-xilinx_spi_probe.patch
+     aty128fb-test-below-0-on-unsigned-pll-post_divider.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: xilinx_spi: test below 0 on unsigned irq in xilinx_spi_probe()
+Subject: aty128fb: test below 0 on unsigned pll->post_divider
 From: Roel Kluin <12o3l@tiscali.nl>
 
-xilinx_spi->irq is unsigned, so the test fails
+pll->post_divider is unsigned, so the test fails
 
 Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Cc: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Andrei Konovalov <akonovalov@ru.mvista.com>
-Cc: Yuri Frolov <yfrolov@ru.mvista.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Antonino Daplas <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/xilinx_spi.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/video/aty/aty128fb.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN drivers/spi/xilinx_spi.c~xilinx_spi-test-below-0-on-unsigned-irq-in-xilinx_spi_probe drivers/spi/xilinx_spi.c
---- a/drivers/spi/xilinx_spi.c~xilinx_spi-test-below-0-on-unsigned-irq-in-xilinx_spi_probe
-+++ a/drivers/spi/xilinx_spi.c
-@@ -353,11 +353,12 @@ static int __init xilinx_spi_probe(struc
- 		goto put_master;
+diff -puN drivers/video/aty/aty128fb.c~aty128fb-test-below-0-on-unsigned-pll-post_divider drivers/video/aty/aty128fb.c
+--- a/drivers/video/aty/aty128fb.c~aty128fb-test-below-0-on-unsigned-pll-post_divider
++++ a/drivers/video/aty/aty128fb.c
+@@ -1339,10 +1339,8 @@ static int aty128_var_to_pll(u32 period_
+ 	if (vclk * 12 < c.ppll_min)
+ 		vclk = c.ppll_min/12;
+ 
+-	pll->post_divider = -1;
+-
+ 	/* now, find an acceptable divider */
+-	for (i = 0; i < sizeof(post_dividers); i++) {
++	for (i = 0; i < ARRAY_SIZE(post_dividers); i++) {
+ 		output_freq = post_dividers[i] * vclk;
+ 		if (output_freq >= c.ppll_min && output_freq <= c.ppll_max) {
+ 			pll->post_divider = post_dividers[i];
+@@ -1350,7 +1348,7 @@ static int aty128_var_to_pll(u32 period_
+ 		}
  	}
  
--	xspi->irq = platform_get_irq(dev, 0);
--	if (xspi->irq < 0) {
-+	ret = platform_get_irq(dev, 0);
-+	if (ret < 0) {
- 		ret = -ENXIO;
- 		goto unmap_io;
- 	}
-+	xspi->irq = ret;
+-	if (pll->post_divider < 0)
++	if (i == ARRAY_SIZE(post_dividers))
+ 		return -EINVAL;
  
- 	master->bus_num = pdata->bus_num;
- 	master->num_chipselect = pdata->num_chipselect;
+ 	/* calculate feedback divider */
 _
 
 Patches currently in -mm which might be from 12o3l@tiscali.nl are
@@ -77,6 +82,7 @@ block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn.patch
 spi_mpc83xx-much-improved-driver.patch
 xilinx_spi-test-below-0-on-unsigned-irq-in-xilinx_spi_probe.patch
 asic3-platform_get_irq-may-return-signed-unnoticed.patch
+aty128fb-test-below-0-on-unsigned-pll-post_divider.patch
 likeliness-accounting-change-and-cleanup.patch
 likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
 
