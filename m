@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + vga16fb-test-virtual-screen-range-before-subtraction-on-unsigned.patch added to -mm tree
-Date: Wed, 07 May 2008 16:13:27 -0700
-Message-ID: <200805072313.m47NDR23021951@imap1.linux-foundation.org>
+Subject: + cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch added to -mm tree
+Date: Wed, 07 May 2008 16:14:44 -0700
+Message-ID: <200805072314.m47NEiEq021972@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46211 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37963 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753868AbYEGXNg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:13:36 -0400
+	by vger.kernel.org with ESMTP id S1765832AbYEGXOu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:14:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl, adaplas@pol.net
+Cc: pj@sgi.com, adobriyan@gmail.com, bert.wesarg@googlemail.com, travis@sgi.com, xiyou.wangcong@gmail.com
 
 
 The patch titled
-     vga16fb: test virtual screen range before subtraction on unsigned
+     cpusets: remove bitmap_scnprintf_len and cpumask_scnprintf_len
 has been added to the -mm tree.  Its filename is
-     vga16fb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+     cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,73 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vga16fb: test virtual screen range before subtraction on unsigned
-From: Roel Kluin <12o3l@tiscali.nl>
+Subject: cpusets: remove bitmap_scnprintf_len and cpumask_scnprintf_len
+From: Paul Jackson <pj@sgi.com>
 
-dx and dy are u32's, so the test should occur before the subtraction
+They aren't used.  They were briefly used as part of some other patches to
+provide an alternative format for displaying some /proc and /sys cpumasks. 
+They probably should have been removed when those other patches were dropped,
+in favor of a different solution.
 
-Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Cc: Antonino Daplas <adaplas@pol.net>
+Signed-off-by: Paul Jackson <pj@sgi.com>
+Cc: "Mike Travis" <travis@sgi.com>
+Cc: "Bert Wesarg" <bert.wesarg@googlemail.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/vga16fb.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ include/linux/bitmap.h  |    1 -
+ include/linux/cpumask.h |    7 -------
+ lib/bitmap.c            |   16 ----------------
+ 3 files changed, 24 deletions(-)
 
-diff -puN drivers/video/vga16fb.c~vga16fb-test-virtual-screen-range-before-subtraction-on-unsigned drivers/video/vga16fb.c
---- a/drivers/video/vga16fb.c~vga16fb-test-virtual-screen-range-before-subtraction-on-unsigned
-+++ a/drivers/video/vga16fb.c
-@@ -1087,12 +1087,15 @@ static void vga16fb_copyarea(struct fb_i
- 	width = x2 - dx;
- 	height = y2 - dy;
+diff -puN include/linux/bitmap.h~cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len include/linux/bitmap.h
+--- a/include/linux/bitmap.h~cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
++++ a/include/linux/bitmap.h
+@@ -110,7 +110,6 @@ extern int __bitmap_weight(const unsigne
  
-+	if (sx + dx < old_dx || sy + dy < old_dy)
-+		return;
-+
- 	/* update sx1,sy1 */
- 	sx += (dx - old_dx);
- 	sy += (dy - old_dy);
+ extern int bitmap_scnprintf(char *buf, unsigned int len,
+ 			const unsigned long *src, int nbits);
+-extern int bitmap_scnprintf_len(unsigned int len);
+ extern int __bitmap_parse(const char *buf, unsigned int buflen, int is_user,
+ 			unsigned long *dst, int nbits);
+ extern int bitmap_parse_user(const char __user *ubuf, unsigned int ulen,
+diff -puN include/linux/cpumask.h~cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len include/linux/cpumask.h
+--- a/include/linux/cpumask.h~cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
++++ a/include/linux/cpumask.h
+@@ -289,13 +289,6 @@ static inline int __cpumask_scnprintf(ch
+ 	return bitmap_scnprintf(buf, len, srcp->bits, nbits);
+ }
  
- 	/* the source must be completely inside the virtual screen */
--	if (sx < 0 || sy < 0 || (sx + width) > vxres || (sy + height) > vyres)
-+	if (sx + width > vxres || sy + height > vyres)
- 		return;
+-#define cpumask_scnprintf_len(len) \
+-			__cpumask_scnprintf_len((len))
+-static inline int __cpumask_scnprintf_len(int len)
+-{
+-	return bitmap_scnprintf_len(len);
+-}
+-
+ #define cpumask_parse_user(ubuf, ulen, dst) \
+ 			__cpumask_parse_user((ubuf), (ulen), &(dst), NR_CPUS)
+ static inline int __cpumask_parse_user(const char __user *buf, int len,
+diff -puN lib/bitmap.c~cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len lib/bitmap.c
+--- a/lib/bitmap.c~cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
++++ a/lib/bitmap.c
+@@ -316,22 +316,6 @@ int bitmap_scnprintf(char *buf, unsigned
+ EXPORT_SYMBOL(bitmap_scnprintf);
  
- 	switch (info->fix.type) {
-_
-
-Patches currently in -mm which might be from 12o3l@tiscali.nl are
-
-atmel_lcdfb-fix-pixclok-divider-calculation.patch
-linux-next.patch
-ehca-ret-is-unsigned-ibmebus_request_irq-negative-return-ignored-in-hca_create_eq.patch
-block-blk-mergec-inverted-likeliness-in-ll_back_merge_fn.patch
-spi_mpc83xx-much-improved-driver.patch
-xilinx_spi-test-below-0-on-unsigned-irq-in-xilinx_spi_probe.patch
-asic3-platform_get_irq-may-return-signed-unnoticed.patch
-aty128fb-test-below-0-on-unsigned-pll-post_divider.patch
-amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-vga16fb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-likeliness-accounting-change-and-cleanup.patch
-likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
-
+ /**
+- * bitmap_scnprintf_len - return buffer length needed to convert
+- * bitmap to an ASCII hex string.
+- * @len: number of bits to be converted
+- */
+-int bitmap_scnprintf_len(unsigned int len)
+-{
+-	/* we need 9 chars per word for 32 bit words (8 hexdigits + sep/null) */
+-	int bitslen = ALIGN(len, CHUNKSZ);
+-	int wordlen = CHUNKSZ / 4;
+-	int buflen = (bitslen / wordlen) * (wordlen + 1) * sizeof(char);
+-
+-	return buflen;
+-}
+-EXPORT_SYMBOL(bitmap_scnprintf_len);
