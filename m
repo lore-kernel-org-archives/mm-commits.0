@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + flag-parameters-nonblock-in-eventfd.patch added to -mm tree
-Date: Wed, 07 May 2008 15:06:06 -0700
-Message-ID: <200805072206.m47M67lC018881@imap1.linux-foundation.org>
+Subject: + flag-parameters-nonblock-in-timerfd_create.patch added to -mm tree
+Date: Wed, 07 May 2008 15:06:09 -0700
+Message-ID: <200805072206.m47M69UD018884@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50490 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46472 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759979AbYEGWGd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 18:06:33 -0400
+	by vger.kernel.org with ESMTP id S1761073AbYEGWG3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 18:06:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: drepper@redhat.com, davidel@xmailserver.org, mtk.manpages@googlemail.com
 
 
 The patch titled
-     flag parameters: NONBLOCK in eventfd
+     flag parameters: NONBLOCK in timerfd_create
 has been added to the -mm tree.  Its filename is
-     flag-parameters-nonblock-in-eventfd.patch
+     flag-parameters-nonblock-in-timerfd_create.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag parameters: NONBLOCK in eventfd
+Subject: flag parameters: NONBLOCK in timerfd_create
 From: Ulrich Drepper <drepper@redhat.com>
 
-This patch adds support for the EFD_NONBLOCK flag to eventfd2.  The
+This patch adds support for the TFD_NONBLOCK flag to timerfd_create.  The
 additional changes needed are minimal.
 
 The following test must be adjusted for architectures other than x86 and
@@ -45,28 +45,29 @@ x86-64 and in case the syscall numbers changed.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #include <fcntl.h>
 #include <stdio.h>
+#include <time.h>
 #include <unistd.h>
 #include <sys/syscall.h>
 
-#ifndef __NR_eventfd2
+#ifndef __NR_timerfd_create
 # ifdef __x86_64__
-#  define __NR_eventfd2 290
+#  define __NR_timerfd_create 283
 # elif defined __i386__
-#  define __NR_eventfd2 328
+#  define __NR_timerfd_create 322
 # else
-#  error "need __NR_eventfd2"
+#  error "need __NR_timerfd_create"
 # endif
 #endif
 
-#define EFD_NONBLOCK O_NONBLOCK
+#define TFD_NONBLOCK O_NONBLOCK
 
 int
 main (void)
 {
-  int fd = syscall (__NR_eventfd2, 1, 0);
+  int fd = syscall (__NR_timerfd_create, CLOCK_REALTIME, 0);
   if (fd == -1)
     {
-      puts ("eventfd2(0) failed");
+      puts ("timerfd_create(0) failed");
       return 1;
     }
   int fl = fcntl (fd, F_GETFL);
@@ -77,15 +78,15 @@ main (void)
     }
   if (fl & O_NONBLOCK)
     {
-      puts ("eventfd2(0) sets non-blocking mode");
+      puts ("timerfd_create(0) set non-blocking mode");
       return 1;
     }
   close (fd);
 
-  fd = syscall (__NR_eventfd2, 1, EFD_NONBLOCK);
+  fd = syscall (__NR_timerfd_create, CLOCK_REALTIME, TFD_NONBLOCK);
   if (fd == -1)
     {
-      puts ("eventfd2(EFD_NONBLOCK) failed");
+      puts ("timerfd_create(TFD_NONBLOCK) failed");
       return 1;
     }
   fl = fcntl (fd, F_GETFL);
@@ -96,7 +97,7 @@ main (void)
     }
   if ((fl & O_NONBLOCK) == 0)
     {
-      puts ("eventfd2(EFD_NONBLOCK) does not set non-blocking mode");
+      puts ("timerfd_create(TFD_NONBLOCK) set non-blocking mode");
       return 1;
     }
   close (fd);
@@ -113,48 +114,51 @@ Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventfd.c            |    4 ++--
- include/linux/eventfd.h |    3 ++-
+ fs/timerfd.c            |    4 ++--
+ include/linux/timerfd.h |    3 ++-
  2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/eventfd.c~flag-parameters-nonblock-in-eventfd fs/eventfd.c
---- a/fs/eventfd.c~flag-parameters-nonblock-in-eventfd
-+++ a/fs/eventfd.c
-@@ -203,7 +203,7 @@ asmlinkage long sys_eventfd2(unsigned in
- 	int fd;
- 	struct eventfd_ctx *ctx;
+diff -puN fs/timerfd.c~flag-parameters-nonblock-in-timerfd_create fs/timerfd.c
+--- a/fs/timerfd.c~flag-parameters-nonblock-in-timerfd_create
++++ a/fs/timerfd.c
+@@ -184,7 +184,7 @@ asmlinkage long sys_timerfd_create(int c
+ 	int ufd;
+ 	struct timerfd_ctx *ctx;
  
--	if (flags & ~EFD_CLOEXEC)
-+	if (flags & ~(EFD_CLOEXEC | EFD_NONBLOCK))
+-	if (flags & ~TFD_CLOEXEC)
++	if (flags & ~(TFD_CLOEXEC | TFD_NONBLOCK))
  		return -EINVAL;
+ 	if (clockid != CLOCK_MONOTONIC &&
+ 	    clockid != CLOCK_REALTIME)
+@@ -199,7 +199,7 @@ asmlinkage long sys_timerfd_create(int c
+ 	hrtimer_init(&ctx->tmr, clockid, HRTIMER_MODE_ABS);
  
- 	ctx = kmalloc(sizeof(*ctx), GFP_KERNEL);
-@@ -218,7 +218,7 @@ asmlinkage long sys_eventfd2(unsigned in
- 	 * anon_inode_getfd() will install the fd.
- 	 */
- 	fd = anon_inode_getfd("[eventfd]", &eventfd_fops, ctx,
--			      flags & O_CLOEXEC);
-+			      flags & (O_CLOEXEC | O_NONBLOCK));
- 	if (fd < 0)
+ 	ufd = anon_inode_getfd("[timerfd]", &timerfd_fops, ctx,
+-			       flags & O_CLOEXEC);
++			       flags & (O_CLOEXEC | O_NONBLOCK));
+ 	if (ufd < 0)
  		kfree(ctx);
- 	return fd;
-diff -puN include/linux/eventfd.h~flag-parameters-nonblock-in-eventfd include/linux/eventfd.h
---- a/include/linux/eventfd.h~flag-parameters-nonblock-in-eventfd
-+++ a/include/linux/eventfd.h
-@@ -10,11 +10,12 @@
  
- #ifdef CONFIG_EVENTFD
+diff -puN include/linux/timerfd.h~flag-parameters-nonblock-in-timerfd_create include/linux/timerfd.h
+--- a/include/linux/timerfd.h~flag-parameters-nonblock-in-timerfd_create
++++ a/include/linux/timerfd.h
+@@ -8,7 +8,7 @@
+ #ifndef _LINUX_TIMERFD_H
+ #define _LINUX_TIMERFD_H
  
 -/* For O_CLOEXEC */
 +/* For O_CLOEXEC and O_NONBLOCK */
  #include <linux/fcntl.h>
  
- /* Flags for eventfd2.  */
- #define EFD_CLOEXEC O_CLOEXEC
-+#define EFD_NONBLOCK O_NONBLOCK
+ /* Flags for timerfd_settime.  */
+@@ -16,6 +16,7 @@
  
- struct file *eventfd_fget(int fd);
- int eventfd_signal(struct file *file, int n);
+ /* Flags for timerfd_create.  */
+ #define TFD_CLOEXEC O_CLOEXEC
++#define TFD_NONBLOCK O_NONBLOCK
+ 
+ 
+ #endif /* _LINUX_TIMERFD_H */
 _
 
 Patches currently in -mm which might be from drepper@redhat.com are
