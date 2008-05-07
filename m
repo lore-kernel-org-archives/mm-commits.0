@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + idr-rename-some-of-the-idr-apis-internal-routines.patch added to -mm tree
-Date: Wed, 07 May 2008 13:40:24 -0700
-Message-ID: <200805072040.m47KeOqe015459@imap1.linux-foundation.org>
+Subject: + idr-make-idr_remove-rcu-safe.patch added to -mm tree
+Date: Wed, 07 May 2008 13:40:34 -0700
+Message-ID: <200805072040.m47KeYmT015477@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60511 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36960 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750906AbYEGUvn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 16:51:43 -0400
+	by vger.kernel.org with ESMTP id S1754215AbYEGUvj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 16:51:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, pa
 
 
 The patch titled
-     idr: rename some of the idr APIs internal routines
+     idr: make idr_remove rcu-safe
 has been added to the -mm tree.  Its filename is
-     idr-rename-some-of-the-idr-apis-internal-routines.patch
+     idr-make-idr_remove-rcu-safe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,16 +33,11 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: rename some of the idr APIs internal routines
+Subject: idr: make idr_remove rcu-safe
 From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-This is a trivial patch that renames:
-
-   . alloc_layer to get_from_free_list since it idr_pre_get that actually
-     allocates memory.
-   . free_layer to move_to_free_list since memory is not actually freed there.
-
-This makes things more clear for the next patches.
+Introduce the free_layer() routine: it is the one that actually frees memory
+after a grace period has elapsed.
 
 Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
 Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
@@ -52,144 +47,138 @@ Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |   31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
+ lib/idr.c |   57 +++++++++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 43 insertions(+), 14 deletions(-)
 
-diff -puN lib/idr.c~idr-rename-some-of-the-idr-apis-internal-routines lib/idr.c
---- a/lib/idr.c~idr-rename-some-of-the-idr-apis-internal-routines
+diff -puN lib/idr.c~idr-make-idr_remove-rcu-safe lib/idr.c
+--- a/lib/idr.c~idr-make-idr_remove-rcu-safe
 +++ a/lib/idr.c
-@@ -35,7 +35,7 @@
- 
- static struct kmem_cache *idr_layer_cache;
- 
--static struct idr_layer *alloc_layer(struct idr *idp)
-+static struct idr_layer *get_from_free_list(struct idr *idp)
- {
- 	struct idr_layer *p;
- 	unsigned long flags;
-@@ -51,14 +51,14 @@ static struct idr_layer *alloc_layer(str
+@@ -52,6 +52,19 @@ static struct idr_layer *get_from_free_l
+ 	return(p);
  }
  
++static void idr_layer_rcu_free(struct rcu_head *head)
++{
++	struct idr_layer *layer;
++
++	layer = container_of(head, struct idr_layer, rcu_head);
++	kmem_cache_free(idr_layer_cache, layer);
++}
++
++static inline void free_layer(struct idr_layer *p)
++{
++	call_rcu(&p->rcu_head, idr_layer_rcu_free);
++}
++
  /* only called when idp->lock is held */
--static void __free_layer(struct idr *idp, struct idr_layer *p)
-+static void __move_to_free_list(struct idr *idp, struct idr_layer *p)
+ static void __move_to_free_list(struct idr *idp, struct idr_layer *p)
  {
- 	p->ary[0] = idp->id_free;
- 	idp->id_free = p;
- 	idp->id_free_cnt++;
- }
+@@ -334,6 +347,7 @@ static void sub_remove(struct idr *idp, 
+ 	struct idr_layer *p = idp->top;
+ 	struct idr_layer **pa[MAX_LEVEL];
+ 	struct idr_layer ***paa = &pa[0];
++	struct idr_layer *to_free;
+ 	int n;
  
--static void free_layer(struct idr *idp, struct idr_layer *p)
-+static void move_to_free_list(struct idr *idp, struct idr_layer *p)
- {
- 	unsigned long flags;
- 
-@@ -66,7 +66,7 @@ static void free_layer(struct idr *idp, 
- 	 * Depends on the return element being zeroed.
- 	 */
- 	spin_lock_irqsave(&idp->lock, flags);
--	__free_layer(idp, p);
-+	__move_to_free_list(idp, p);
- 	spin_unlock_irqrestore(&idp->lock, flags);
- }
- 
-@@ -109,7 +109,7 @@ int idr_pre_get(struct idr *idp, gfp_t g
- 		new = kmem_cache_alloc(idr_layer_cache, gfp_mask);
- 		if (new == NULL)
- 			return (0);
--		free_layer(idp, new);
-+		move_to_free_list(idp, new);
- 	}
- 	return 1;
- }
-@@ -167,7 +167,8 @@ static int sub_alloc(struct idr *idp, in
- 		 * Create the layer below if it is missing.
- 		 */
- 		if (!p->ary[m]) {
--			if (!(new = alloc_layer(idp)))
-+			new = get_from_free_list(idp);
-+			if (!new)
- 				return -1;
- 			p->ary[m] = new;
- 			p->count++;
-@@ -192,7 +193,7 @@ build_up:
- 	p = idp->top;
- 	layers = idp->layers;
- 	if (unlikely(!p)) {
--		if (!(p = alloc_layer(idp)))
-+		if (!(p = get_from_free_list(idp)))
- 			return -1;
- 		layers = 1;
- 	}
-@@ -204,7 +205,7 @@ build_up:
- 		layers++;
- 		if (!p->count)
- 			continue;
--		if (!(new = alloc_layer(idp))) {
-+		if (!(new = get_from_free_list(idp))) {
- 			/*
- 			 * The allocation failed.  If we built part of
- 			 * the structure tear it down.
-@@ -214,7 +215,7 @@ build_up:
- 				p = p->ary[0];
- 				new->ary[0] = NULL;
- 				new->bitmap = new->count = 0;
--				__free_layer(idp, new);
-+				__move_to_free_list(idp, new);
- 			}
- 			spin_unlock_irqrestore(&idp->lock, flags);
- 			return -1;
-@@ -351,7 +352,7 @@ static void sub_remove(struct idr *idp, 
+ 	*paa = NULL;
+@@ -349,13 +363,18 @@ static void sub_remove(struct idr *idp, 
+ 	n = id & IDR_MASK;
+ 	if (likely(p != NULL && test_bit(n, &p->bitmap))){
  		__clear_bit(n, &p->bitmap);
- 		p->ary[n] = NULL;
+-		p->ary[n] = NULL;
++		rcu_assign_pointer(p->ary[n], NULL);
++		to_free = NULL;
  		while(*paa && ! --((**paa)->count)){
--			free_layer(idp, **paa);
-+			move_to_free_list(idp, **paa);
+-			move_to_free_list(idp, **paa);
++			if (to_free)
++				free_layer(to_free);
++			to_free = **paa;
  			**paa-- = NULL;
  		}
  		if (!*paa)
-@@ -378,12 +379,12 @@ void idr_remove(struct idr *idp, int id)
+ 			idp->layers = 0;
++		if (to_free)
++			free_layer(to_free);
+ 	} else
+ 		idr_remove_warning(id);
+ }
+@@ -368,22 +387,34 @@ static void sub_remove(struct idr *idp, 
+ void idr_remove(struct idr *idp, int id)
+ {
+ 	struct idr_layer *p;
++	struct idr_layer *to_free;
  
+ 	/* Mask off upper bits we don't use for the search. */
+ 	id &= MAX_ID_MASK;
+ 
+ 	sub_remove(idp, (idp->layers - 1) * IDR_BITS, id);
+ 	if (idp->top && idp->top->count == 1 && (idp->layers > 1) &&
+-	    idp->top->ary[0]) {  // We can drop a layer
+-
++	    idp->top->ary[0]) {
++		/*
++		 * Single child at leftmost slot: we can shrink the tree.
++		 * This level is not needed anymore since when layers are
++		 * inserted, they are inserted at the top of the existing
++		 * tree.
++		 */
++		to_free = idp->top;
  		p = idp->top->ary[0];
- 		idp->top->bitmap = idp->top->count = 0;
--		free_layer(idp, idp->top);
-+		move_to_free_list(idp, idp->top);
- 		idp->top = p;
+-		idp->top->bitmap = idp->top->count = 0;
+-		move_to_free_list(idp, idp->top);
+-		idp->top = p;
++		rcu_assign_pointer(idp->top, p);
  		--idp->layers;
++		to_free->bitmap = to_free->count = 0;
++		free_layer(to_free);
  	}
  	while (idp->id_free_cnt >= IDR_FREE_MAX) {
--		p = alloc_layer(idp);
-+		p = get_from_free_list(idp);
+ 		p = get_from_free_list(idp);
++		/*
++		 * Note: we don't call the rcu callback here, since the only
++		 * layers that fall into the freelist are those that have been
++		 * preallocated.
++		 */
  		kmem_cache_free(idr_layer_cache, p);
  	}
  	return;
-@@ -426,7 +427,7 @@ void idr_remove_all(struct idr *idp)
+@@ -424,15 +455,13 @@ void idr_remove_all(struct idr *idp)
+ 
+ 		id += 1 << n;
  		while (n < fls(id)) {
- 			if (p) {
- 				memset(p, 0, sizeof *p);
--				free_layer(idp, p);
-+				move_to_free_list(idp, p);
- 			}
+-			if (p) {
+-				memset(p, 0, sizeof *p);
+-				move_to_free_list(idp, p);
+-			}
++			if (p)
++				free_layer(p);
  			n += IDR_BITS;
  			p = *--paa;
-@@ -444,7 +445,7 @@ EXPORT_SYMBOL(idr_remove_all);
- void idr_destroy(struct idr *idp)
- {
- 	while (idp->id_free_cnt) {
--		struct idr_layer *p = alloc_layer(idp);
-+		struct idr_layer *p = get_from_free_list(idp);
- 		kmem_cache_free(idr_layer_cache, p);
+ 		}
  	}
+-	idp->top = NULL;
++	rcu_assign_pointer(idp->top, NULL);
+ 	idp->layers = 0;
  }
-@@ -749,7 +750,7 @@ int ida_get_new_above(struct ida *ida, i
- 	 * allocation.
- 	 */
- 	if (ida->idr.id_free_cnt || ida->free_bitmap) {
--		struct idr_layer *p = alloc_layer(&ida->idr);
-+		struct idr_layer *p = get_from_free_list(&ida->idr);
- 		if (p)
- 			kmem_cache_free(idr_layer_cache, p);
- 	}
+ EXPORT_SYMBOL(idr_remove_all);
+@@ -549,7 +578,7 @@ EXPORT_SYMBOL(idr_for_each);
+  * A -ENOENT return indicates that @id was not found.
+  * A -EINVAL return indicates that @id was not within valid constraints.
+  *
+- * The caller must serialize vs idr_find(), idr_get_new(), and idr_remove().
++ * The caller must serialize with writers.
+  */
+ void *idr_replace(struct idr *idp, void *ptr, int id)
+ {
+@@ -575,7 +604,7 @@ void *idr_replace(struct idr *idp, void 
+ 		return ERR_PTR(-ENOENT);
+ 
+ 	old_p = p->ary[n];
+-	p->ary[n] = ptr;
++	rcu_assign_pointer(p->ary[n], ptr);
+ 
+ 	return old_p;
+ }
 _
 
 Patches currently in -mm which might be from Nadia.Derbey@bull.net are
