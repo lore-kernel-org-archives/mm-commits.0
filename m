@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch added to -mm tree
-Date: Wed, 07 May 2008 16:14:44 -0700
-Message-ID: <200805072314.m47NEiEq021972@imap1.linux-foundation.org>
+Subject: + cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch added to -mm tree
+Date: Wed, 07 May 2008 16:15:38 -0700
+Message-ID: <200805072315.m47NFcZu021988@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37963 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47350 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765832AbYEGXOu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:14:50 -0400
+	by vger.kernel.org with ESMTP id S1753067AbYEGXPn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:15:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: pj@sgi.com, adobriyan@gmail.com, bert.wesarg@googlemail.com, travis@sgi.com,
 
 
 The patch titled
-     cpusets: remove bitmap_scnprintf_len and cpumask_scnprintf_len
+     cpumask: remove bitmap_scnprintf_len and cpumask_scnprintf_len
 has been added to the -mm tree.  Its filename is
-     cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
+     cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpusets: remove bitmap_scnprintf_len and cpumask_scnprintf_len
+Subject: cpumask: remove bitmap_scnprintf_len and cpumask_scnprintf_len
 From: Paul Jackson <pj@sgi.com>
 
 They aren't used.  They were briefly used as part of some other patches to
@@ -54,8 +54,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  lib/bitmap.c            |   16 ----------------
  3 files changed, 24 deletions(-)
 
-diff -puN include/linux/bitmap.h~cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len include/linux/bitmap.h
---- a/include/linux/bitmap.h~cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
+diff -puN include/linux/bitmap.h~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len include/linux/bitmap.h
+--- a/include/linux/bitmap.h~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
 +++ a/include/linux/bitmap.h
 @@ -110,7 +110,6 @@ extern int __bitmap_weight(const unsigne
  
@@ -65,8 +65,8 @@ diff -puN include/linux/bitmap.h~cpusets-remove-bitmap_scnprintf_len-and-cpumask
  extern int __bitmap_parse(const char *buf, unsigned int buflen, int is_user,
  			unsigned long *dst, int nbits);
  extern int bitmap_parse_user(const char __user *ubuf, unsigned int ulen,
-diff -puN include/linux/cpumask.h~cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len include/linux/cpumask.h
---- a/include/linux/cpumask.h~cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
+diff -puN include/linux/cpumask.h~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len include/linux/cpumask.h
+--- a/include/linux/cpumask.h~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
 +++ a/include/linux/cpumask.h
 @@ -289,13 +289,6 @@ static inline int __cpumask_scnprintf(ch
  	return bitmap_scnprintf(buf, len, srcp->bits, nbits);
@@ -82,8 +82,8 @@ diff -puN include/linux/cpumask.h~cpusets-remove-bitmap_scnprintf_len-and-cpumas
  #define cpumask_parse_user(ubuf, ulen, dst) \
  			__cpumask_parse_user((ubuf), (ulen), &(dst), NR_CPUS)
  static inline int __cpumask_parse_user(const char __user *buf, int len,
-diff -puN lib/bitmap.c~cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len lib/bitmap.c
---- a/lib/bitmap.c~cpusets-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
+diff -puN lib/bitmap.c~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len lib/bitmap.c
+--- a/lib/bitmap.c~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
 +++ a/lib/bitmap.c
 @@ -316,22 +316,6 @@ int bitmap_scnprintf(char *buf, unsigned
  EXPORT_SYMBOL(bitmap_scnprintf);
