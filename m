@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + example-use-of-warn.patch added to -mm tree
-Date: Wed, 07 May 2008 14:47:40 -0700
-Message-ID: <200805072147.m47Llea1018077@imap1.linux-foundation.org>
+Subject: + add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch added to -mm tree
+Date: Wed, 07 May 2008 14:47:03 -0700
+Message-ID: <200805072147.m47Ll3lX018047@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35818 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35815 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765035AbYEGVsM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 17:48:12 -0400
+	by vger.kernel.org with ESMTP id S1758126AbYEGVre (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 17:47:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: arjan@linux.intel.com, greg@kroah.com
+Cc: akpm@linux-foundation.org, arjan@linux.intel.com, greg@kroah.com, jirislaby@gmail.com
 
 
 The patch titled
-     Example use of WARN()
+     add-a-warn-macro-this-is-warn_on-printk-arguments-fix
 has been added to the -mm tree.  Its filename is
-     example-use-of-warn.patch
+     add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,57 +33,124 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Example use of WARN()
-From: Arjan van de Ven <arjan@linux.intel.com>
+Subject: add-a-warn-macro-this-is-warn_on-printk-arguments-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Now that WARN() exists, we can fold some of the printk's into it.
-
-Signed-off-by: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
 Cc: Greg KH <greg@kroah.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ include/asm-generic/bug.h |    6 ++----
+ kernel/panic.c            |    4 +---
+ 2 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN lib/kobject.c~example-use-of-warn lib/kobject.c
---- a/lib/kobject.c~example-use-of-warn
-+++ a/lib/kobject.c
-@@ -215,9 +215,8 @@ static int kobject_add_internal(struct k
- 		return -ENOENT;
+diff -puN include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments-fix include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments-fix
++++ a/include/asm-generic/bug.h
+@@ -33,7 +33,8 @@ struct bug_entry {
  
- 	if (!kobj->name || !kobj->name[0]) {
--		pr_debug("kobject: (%p): attempted to be registered with empty "
-+		WARN(1, "kobject: (%p): attempted to be registered with empty "
- 			 "name!\n", kobj);
--		WARN_ON(1);
- 		return -EINVAL;
- 	}
+ #ifndef __WARN
+ #ifndef __ASSEMBLY__
+-extern void warn_on_slowpath(const char *file, const int line);
++extern void warn_on_slowpath(const char *file, const int line)
++		__attribute__((format(printf,3,4)));
+ extern void warn_slowpath(const char *file, const int line, const char *fmt, ...);
+ #define WANT_WARN_ON_SLOWPATH
+ #endif
+@@ -61,9 +62,6 @@ extern void warn_slowpath(const char *fi
+ })
+ #endif
  
-@@ -629,12 +628,10 @@ static void kobject_release(struct kref 
- void kobject_put(struct kobject *kobj)
+-
+-
+-
+ #else /* !CONFIG_BUG */
+ #ifndef HAVE_ARCH_BUG
+ #define BUG()
+diff -puN kernel/panic.c~add-a-warn-macro-this-is-warn_on-printk-arguments-fix kernel/panic.c
+--- a/kernel/panic.c~add-a-warn-macro-this-is-warn_on-printk-arguments-fix
++++ a/kernel/panic.c
+@@ -326,10 +326,8 @@ EXPORT_SYMBOL(warn_on_slowpath);
+ void warn_slowpath(const char *file, int line, const char *fmt, ...)
  {
- 	if (kobj) {
--		if (!kobj->state_initialized) {
--			printk(KERN_WARNING "kobject: '%s' (%p): is not "
-+		if (!kobj->state_initialized)
-+			WARN(1, KERN_WARNING "kobject: '%s' (%p): is not "
- 			       "initialized, yet kobject_put() is being "
- 			       "called.\n", kobject_name(kobj), kobj);
--			WARN_ON(1);
--		}
- 		kref_put(&kobj->kref, kobject_release);
- 	}
- }
+ 	va_list args;
+-
+-
+ 	char function[KSYM_SYMBOL_LEN];
+-	unsigned long caller = (unsigned long) __builtin_return_address(0);
++	unsigned long caller = (unsigned long)__builtin_return_address(0);
+ 	sprint_symbol(function, caller);
+ 
+ 	printk(KERN_WARNING "------------[ cut here ]------------\n");
 _
 
-Patches currently in -mm which might be from arjan@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+drivers-scsi-dpt_i2oc-fix-build-on-alpha.patch
+quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
+mmu-notifier-core-fix.patch
 linux-next.patch
-rename-warn-to-warning-to-clear-the-namespace.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments.patch
+linux-next-fixup.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+x86-geode-cache-results-from-geode_has_vsa2-and-uninline.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+dlm-convert-connections_lock-in-a-mutex-fix.patch
+git-input.patch
+touch-screen-driver-for-the-superh-migor-board.patch
+git-jg-misc-git-rejects.patch
+revert-libata-improve-post-reset-device-ready-test.patch
+git-mips.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+pci-export-resource_wc-in-pci-sysfs-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes.patch
-example-use-of-warn.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
