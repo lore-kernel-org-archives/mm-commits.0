@@ -1,30 +1,47 @@
 From: akpm@linux-foundation.org
-Subject: - add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 07 May 2008 15:15:41 -0700
-Message-ID: <200805072215.m47MFfWU019331@imap1.linux-foundation.org>
+Subject: + add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch added to -mm tree
+Date: Wed, 07 May 2008 15:16:08 -0700
+Message-ID: <200805072216.m47MG85k019344@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48269 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41507 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754386AbYEGWQO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 18:16:14 -0400
+	by vger.kernel.org with ESMTP id S1755298AbYEGWQk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 18:16:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arjan@linux.intel.com, greg@kroah.com, jirislaby@gmail.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, arjan@linux.intel.com, greg@kroah.com, jirislaby@gmail.com
 
 
 The patch titled
-     add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes.patch
+     add-a-warn-macro-this-is-warn_on-printk-arguments-fix
+has been added to the -mm tree.  Its filename is
+     add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
 
-This patch was dropped because it was folded into add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes
+Subject: add-a-warn-macro-this-is-warn_on-printk-arguments-fix
 From: Andrew Morton <akpm@linux-foundation.org>
+
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jiri Slaby <jirislaby@gmail.com>
+DESC
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes
+EDESC
 
 ERROR: space required after that ',' (ctx:VxV)
 #22: FILE: include/asm-generic/bug.h:37:
@@ -50,21 +67,48 @@ Cc: Jiri Slaby <jirislaby@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/asm-generic/bug.h |    6 ++----
+ kernel/panic.c            |    4 +---
+ 2 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes
+diff -puN include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments-fix include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~add-a-warn-macro-this-is-warn_on-printk-arguments-fix
 +++ a/include/asm-generic/bug.h
-@@ -34,7 +34,7 @@ struct bug_entry {
+@@ -34,7 +34,8 @@ struct bug_entry {
  #ifndef __WARN
  #ifndef __ASSEMBLY__
- extern void warn_on_slowpath(const char *file, const int line)
--		__attribute__((format(printf,3,4)));
-+		__attribute__((format(printf, 3, 4)));
- extern void warn_slowpath(const char *file, const int line, const char *fmt, ...);
+ extern void warn_on_slowpath(const char *file, const int line);
+-extern void warn_slowpath(const char *file, const int line, const char *fmt, ...);
++extern void warn_slowpath(const char *file, const int line,
++		const char *fmt, ...) __attribute__((format(printf, 3, 4)));
  #define WANT_WARN_ON_SLOWPATH
  #endif
+ #define __WARN() warn_on_slowpath(__FILE__, __LINE__)
+@@ -61,9 +62,6 @@ extern void warn_slowpath(const char *fi
+ })
+ #endif
+ 
+-
+-
+-
+ #else /* !CONFIG_BUG */
+ #ifndef HAVE_ARCH_BUG
+ #define BUG()
+diff -puN kernel/panic.c~add-a-warn-macro-this-is-warn_on-printk-arguments-fix kernel/panic.c
+--- a/kernel/panic.c~add-a-warn-macro-this-is-warn_on-printk-arguments-fix
++++ a/kernel/panic.c
+@@ -326,10 +326,8 @@ EXPORT_SYMBOL(warn_on_slowpath);
+ void warn_slowpath(const char *file, int line, const char *fmt, ...)
+ {
+ 	va_list args;
+-
+-
+ 	char function[KSYM_SYMBOL_LEN];
+-	unsigned long caller = (unsigned long) __builtin_return_address(0);
++	unsigned long caller = (unsigned long)__builtin_return_address(0);
+ 	sprint_symbol(function, caller);
+ 
+ 	printk(KERN_WARNING "------------[ cut here ]------------\n");
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -120,7 +164,6 @@ locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.
 remove-apparently-unused-fd1772h-header-file.patch
 lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix-checkpatch-fixes.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
 reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
 documentation-build-source-files-in-documentation-sub-dir-disable.patch
