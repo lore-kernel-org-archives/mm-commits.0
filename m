@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + idr-make-idr_get_new-rcu-safe.patch added to -mm tree
-Date: Wed, 07 May 2008 13:40:30 -0700
-Message-ID: <200805072040.m47KeU01015471@imap1.linux-foundation.org>
+Subject: + idr-change-the-idr-structure.patch added to -mm tree
+Date: Wed, 07 May 2008 13:41:06 -0700
+Message-ID: <200805072041.m47Kf73t015494@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42349 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47714 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755135AbYEGUmo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 16:42:44 -0400
+	by vger.kernel.org with ESMTP id S1754159AbYEGUoJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 16:44:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: Nadia.Derbey@bull.net, jim.houston@comcast.net, manfred@colorfullife.com, pa
 
 
 The patch titled
-     idr: make idr_get_new* rcu-safe
+     idr: change the idr structure
 has been added to the -mm tree.  Its filename is
-     idr-make-idr_get_new-rcu-safe.patch
+     idr-change-the-idr-structure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,10 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: idr: make idr_get_new* rcu-safe
+Subject: idr: change the idr structure
 From: Nadia Derbey <Nadia.Derbey@bull.net>
 
-Make the idr_get_new* routines rcu-safe.
+After scalability problems have been detected when using the sysV ipcs, I have
+proposed to use an RCU based implementation of the IDR api instead (see
+threads http://lkml.org/lkml/2008/4/11/212 and
+http://lkml.org/lkml/2008/4/29/295).
+
+This resulted in many people asking to convert the idr API and make it rcu
+safe (because most of the code was duplicated and thus unmaintanable and
+unreviewable).
+
+So here is a first attempt.
+
+The important change wrt to the idr API itself is during idr removes: idr
+layers are freed after a grace period, instead of being moved to the free
+list.
+
+The important change wrt to ipcs, is that idr_find() can now be called
+locklessly inside a rcu read critical section.
+
+Here are the results I've got for the pmsg test sent by Manfred: 
+
+   2.6.25-rc3-mm1   2.6.25-rc3-mm1+   2.6.25-mm1   Patched 2.6.25-mm1
+1         1168441           1064021       876000               947488
+2         1094264            921059      1549592              1730685
+3         2082520           1738165      1694370              2324880
+4         2079929           1695521       404553              2400408
+5         2898758            406566       391283              3246580
+6         2921417            261275       263249              3752148
+7         3308761            126056       191742              4243142
+8         3329456            100129       141722              4275780
+
+1st column: stock 2.6.25-rc3-mm1
+2nd column: 2.6.25-rc3-mm1 + ipc patches (store ipcs into idrs)
+3nd column: stock 2.6.25-mm1
+4th column: 2.6.25-mm1 + this pacth series.
+
+
+
+
+This patch:
+
+Add an rcu_head to the idr_layer structure in order to free it after a grace
+period.
 
 Signed-off-by: Nadia Derbey <Nadia.Derbey@bull.net>
 Cc: "Paul E. McKenney" <paulmck@us.ibm.com>
@@ -46,82 +87,28 @@ Cc: Pierre Peiffer <peifferp@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/idr.c |   17 ++++++++++++-----
- 1 file changed, 12 insertions(+), 5 deletions(-)
+ include/linux/idr.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN lib/idr.c~idr-make-idr_get_new-rcu-safe lib/idr.c
---- a/lib/idr.c~idr-make-idr_get_new-rcu-safe
-+++ a/lib/idr.c
-@@ -6,6 +6,8 @@
-  * Modified by George Anzinger to reuse immediately and to use
-  * find bit instructions.  Also removed _irq on spinlocks.
-  *
-+ * Modified by Nadia Derbey to make it RCU safe.
-+ *
-  * Small id to pointer translation service.
-  *
-  * It uses a radix tree like structure as a sparse array indexed
-@@ -96,7 +98,7 @@ static void idr_mark_full(struct idr_lay
-  * @gfp_mask:	memory allocation flags
-  *
-  * This function should be called prior to locking and calling the
-- * following function.  It preallocates enough memory to satisfy
-+ * idr_get_new* functions. It preallocates enough memory to satisfy
-  * the worst possible allocation.
-  *
-  * If the system is REALLY out of memory this function returns 0,
-@@ -170,7 +172,8 @@ static int sub_alloc(struct idr *idp, in
- 			new = get_from_free_list(idp);
- 			if (!new)
- 				return -1;
--			p->ary[m] = new;
-+			INIT_RCU_HEAD(&new->rcu_head);
-+			rcu_assign_pointer(p->ary[m], new);
- 			p->count++;
- 		}
- 		pa[l--] = p;
-@@ -195,6 +198,7 @@ build_up:
- 	if (unlikely(!p)) {
- 		if (!(p = get_from_free_list(idp)))
- 			return -1;
-+		INIT_RCU_HEAD(&p->rcu_head);
- 		layers = 1;
- 	}
- 	/*
-@@ -222,11 +226,12 @@ build_up:
- 		}
- 		new->ary[0] = p;
- 		new->count = 1;
-+		INIT_RCU_HEAD(&new->rcu_head);
- 		if (p->bitmap == IDR_FULL)
- 			__set_bit(0, &new->bitmap);
- 		p = new;
- 	}
--	idp->top = p;
-+	rcu_assign_pointer(idp->top, p);
- 	idp->layers = layers;
- 	v = sub_alloc(idp, &id, pa);
- 	if (v == IDR_NEED_TO_GROW)
-@@ -245,7 +250,8 @@ static int idr_get_new_above_int(struct 
- 		 * Successfully found an empty slot.  Install the user
- 		 * pointer and mark the slot full.
- 		 */
--		pa[0]->ary[id & IDR_MASK] = (struct idr_layer *)ptr;
-+		rcu_assign_pointer(pa[0]->ary[id & IDR_MASK],
-+				(struct idr_layer *)ptr);
- 		pa[0]->count++;
- 		idr_mark_full(pa, id);
- 	}
-@@ -710,7 +716,8 @@ int ida_get_new_above(struct ida *ida, i
- 			return -EAGAIN;
+diff -puN include/linux/idr.h~idr-change-the-idr-structure include/linux/idr.h
+--- a/include/linux/idr.h~idr-change-the-idr-structure
++++ a/include/linux/idr.h
+@@ -16,6 +16,7 @@
+ #include <linux/bitops.h>
+ #include <linux/init.h>
+ #include <linux/spinlock.h>
++#include <linux/rcupdate.h>
  
- 		memset(bitmap, 0, sizeof(struct ida_bitmap));
--		pa[0]->ary[idr_id & IDR_MASK] = (void *)bitmap;
-+		rcu_assign_pointer(pa[0]->ary[idr_id & IDR_MASK],
-+				(void *)bitmap);
- 		pa[0]->count++;
- 	}
+ #if BITS_PER_LONG == 32
+ # define IDR_BITS 5
+@@ -52,6 +53,7 @@ struct idr_layer {
+ 	unsigned long		 bitmap; /* A zero bit means "space here" */
+ 	struct idr_layer	*ary[1<<IDR_BITS];
+ 	int			 count;	 /* When zero, we can release it */
++	struct rcu_head		 rcu_head;
+ };
  
+ struct idr {
 _
 
 Patches currently in -mm which might be from Nadia.Derbey@bull.net are
