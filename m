@@ -1,45 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: - kconfig-improved-help-for-config_accessibility-fix.patch removed from -mm tree
-Date: Tue, 06 May 2008 20:41:04 -0700
-Message-ID: <200805070341.m473f4OS009596@imap1.linux-foundation.org>
+Subject: - cifs-cifs_find_tcp_session-cleanup.patch removed from -mm tree
+Date: Tue, 06 May 2008 21:36:48 -0700
+Message-ID: <200805070436.m474amRI011590@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52453 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50976 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756237AbYEGDla (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 May 2008 23:41:30 -0400
+	by vger.kernel.org with ESMTP id S1753227AbYEGEhS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 00:37:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
+To: gorcunov@gmail.com, sfrench@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     kconfig-improved-help-for-config_accessibility fix
+     cifs: cifs_find_tcp_session() cleanup
 has been removed from the -mm tree.  Its filename was
-     kconfig-improved-help-for-config_accessibility-fix.patch
+     cifs-cifs_find_tcp_session-cleanup.patch
 
-This patch was dropped because it was folded into kconfig-improved-help-for-config_accessibility.patch
+This patch was dropped because it was withdrawn
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kconfig-improved-help-for-config_accessibility fix
-From: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Subject: cifs: cifs_find_tcp_session() cleanup
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Indicate that enabling just CONFIG_ACCESSIBILITY does not add code.
+Remove over-indented code in cifs_find_tcp_session.
 
-Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
+Also memcmp was used wrongly - we would have found the session which IP6
+addresses didn't match.
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Steven French <sfrench@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/accessibility/Kconfig |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ fs/cifs/connect.c |   56 ++++++++++++++++++++++----------------------
+ 1 file changed, 29 insertions(+), 27 deletions(-)
 
-diff -puN drivers/accessibility/Kconfig~kconfig-improved-help-for-config_accessibility-fix drivers/accessibility/Kconfig
---- a/drivers/accessibility/Kconfig~kconfig-improved-help-for-config_accessibility-fix
-+++ a/drivers/accessibility/Kconfig
-@@ -1,8 +1,6 @@
- menuconfig ACCESSIBILITY
- 	bool "Accessibility support"
- 	---help---
--	  Enable a submenu where accessibility items may be enabled.
+diff -puN fs/cifs/connect.c~cifs-cifs_find_tcp_session-cleanup fs/cifs/connect.c
+--- a/fs/cifs/connect.c~cifs-cifs_find_tcp_session-cleanup
++++ a/fs/cifs/connect.c
+@@ -1318,42 +1318,44 @@ cifs_parse_mount_options(char *options, 
+ 
+ static struct cifsSesInfo *
+ cifs_find_tcp_session(struct in_addr *target_ip_addr,
+-		struct in6_addr *target_ip6_addr,
+-		 char *userName, struct TCP_Server_Info **psrvTcp)
++		      struct in6_addr *target_ip6_addr,
++		      char *userName, struct TCP_Server_Info **psrvTcp)
+ {
+ 	struct list_head *tmp;
+ 	struct cifsSesInfo *ses;
++
+ 	*psrvTcp = NULL;
+-	read_lock(&GlobalSMBSeslock);
+ 
++	if (!target_ip_addr)
++		return NULL;
++
++	read_lock(&GlobalSMBSeslock);
+ 	list_for_each(tmp, &GlobalSMBSessionList) {
+ 		ses = list_entry(tmp, struct cifsSesInfo, cifsSessionList);
+-		if (ses->server) {
+-			if ((target_ip_addr &&
+-				(ses->server->addr.sockAddr.sin_addr.s_addr
+-				  == target_ip_addr->s_addr)) || (target_ip6_addr
+-				&& memcmp(&ses->server->addr.sockAddr6.sin6_addr,
+-					target_ip6_addr, sizeof(*target_ip6_addr)))) {
+-				/* BB lock server and tcp session and increment
+-				      use count here?? */
+-
+-				/* found a match on the TCP session */
+-				*psrvTcp = ses->server;
+-
+-				/* BB check if reconnection needed */
+-				if (strncmp
+-				    (ses->userName, userName,
+-				     MAX_USERNAME_SIZE) == 0){
+-					read_unlock(&GlobalSMBSeslock);
+-					/* Found exact match on both TCP and
+-					   SMB sessions */
+-					return ses;
+-				}
+-			}
+-		}
+-		/* else tcp and smb sessions need reconnection */
++		if (!ses->server)
++			continue;
++
++		if (ses->server->addr.sockAddr.sin_addr.s_addr != target_ip_addr->s_addr ||
++		    memcmp(&ses->server->addr.sockAddr6.sin6_addr,
++			   target_ip6_addr, sizeof(*target_ip6_addr)))
++			continue;
++
++		/* BB lock server and tcp session and increment
++		   use count here?? */
++
++		/* found a match on the TCP session */
++		*psrvTcp = ses->server;
++
++		/* BB check if reconnection needed */
++		if (strncmp(ses->userName, userName, MAX_USERNAME_SIZE))
++			continue;
++
++		/* Found exact match on both TCP and SMB sessions */
++		read_unlock(&GlobalSMBSeslock);
++		return ses;
+ 	}
+ 	read_unlock(&GlobalSMBSeslock);
++
+ 	return NULL;
+ }
+ 
+_
+
+Patches currently in -mm which might be from gorcunov@gmail.com are
+
+origin.patch
+uml-use-page_size-in-linker-scripts.patch
+linux-next.patch
+git-cifs.patch
+cifs-find_unc-cleanup.patch
+cifs-cifs_find_tcp_session-cleanup.patch
+mips-elf-handling-use-selfmag-instead-of-numeric-constant.patch
+module-loading-elf-handling-use-selfmag-instead-of-numeric-constant.patch
+
