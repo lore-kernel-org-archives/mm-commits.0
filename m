@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + aty128fb-test-below-0-on-unsigned-pll-post_divider.patch added to -mm tree
-Date: Wed, 07 May 2008 16:05:09 -0700
-Message-ID: <200805072305.m47N59x3021569@imap1.linux-foundation.org>
+Subject: + amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch added to -mm tree
+Date: Wed, 07 May 2008 16:06:55 -0700
+Message-ID: <200805072306.m47N6tHp021617@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56134 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53780 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761805AbYEGXFT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:05:19 -0400
+	by vger.kernel.org with ESMTP id S933598AbYEGXHH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:07:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: 12o3l@tiscali.nl, adaplas@pol.net, benh@kernel.crashing.org
+Cc: 12o3l@tiscali.nl, adaplas@pol.net, krzysztof.h1@wp.pl
 
 
 The patch titled
-     aty128fb: test below 0 on unsigned pll->post_divider
+     amifb: test virtual screen range before subtraction on unsigned
 has been added to the -mm tree.  Its filename is
-     aty128fb-test-below-0-on-unsigned-pll-post_divider.patch
+     amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: aty128fb: test below 0 on unsigned pll->post_divider
+Subject: amifb: test virtual screen range before subtraction on unsigned
 From: Roel Kluin <12o3l@tiscali.nl>
 
-pll->post_divider is unsigned, so the test fails
+dx and dy are u32's, so the test should occur before the subtraction
 
 Signed-off-by: Roel Kluin <12o3l@tiscali.nl>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Antonino Daplas <adaplas@pol.net>
+Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/aty/aty128fb.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/video/amifb.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/aty/aty128fb.c~aty128fb-test-below-0-on-unsigned-pll-post_divider drivers/video/aty/aty128fb.c
---- a/drivers/video/aty/aty128fb.c~aty128fb-test-below-0-on-unsigned-pll-post_divider
-+++ a/drivers/video/aty/aty128fb.c
-@@ -1339,10 +1339,8 @@ static int aty128_var_to_pll(u32 period_
- 	if (vclk * 12 < c.ppll_min)
- 		vclk = c.ppll_min/12;
+diff -puN drivers/video/amifb.c~amifb-test-virtual-screen-range-before-subtraction-on-unsigned drivers/video/amifb.c
+--- a/drivers/video/amifb.c~amifb-test-virtual-screen-range-before-subtraction-on-unsigned
++++ a/drivers/video/amifb.c
+@@ -2048,13 +2048,16 @@ static void amifb_copyarea(struct fb_inf
+ 	width = x2 - dx;
+ 	height = y2 - dy;
  
--	pll->post_divider = -1;
--
- 	/* now, find an acceptable divider */
--	for (i = 0; i < sizeof(post_dividers); i++) {
-+	for (i = 0; i < ARRAY_SIZE(post_dividers); i++) {
- 		output_freq = post_dividers[i] * vclk;
- 		if (output_freq >= c.ppll_min && output_freq <= c.ppll_max) {
- 			pll->post_divider = post_dividers[i];
-@@ -1350,7 +1348,7 @@ static int aty128_var_to_pll(u32 period_
- 		}
- 	}
++	if (area->sx + dx < area->dx || area->sy + dy < area->dy)
++		return;
++
+ 	/* update sx,sy */
+ 	sx = area->sx + (dx - area->dx);
+ 	sy = area->sy + (dy - area->dy);
  
--	if (pll->post_divider < 0)
-+	if (i == ARRAY_SIZE(post_dividers))
- 		return -EINVAL;
+ 	/* the source must be completely inside the virtual screen */
+-	if (sx < 0 || sy < 0 || (sx + width) > info->var.xres_virtual ||
+-	    (sy + height) > info->var.yres_virtual)
++	if (sx + width > info->var.xres_virtual ||
++			sy + height > info->var.yres_virtual)
+ 		return;
  
- 	/* calculate feedback divider */
+ 	if (dy > sy || (dy == sy && dx > sx)) {
 _
 
 Patches currently in -mm which might be from 12o3l@tiscali.nl are
@@ -83,6 +81,7 @@ spi_mpc83xx-much-improved-driver.patch
 xilinx_spi-test-below-0-on-unsigned-irq-in-xilinx_spi_probe.patch
 asic3-platform_get_irq-may-return-signed-unnoticed.patch
 aty128fb-test-below-0-on-unsigned-pll-post_divider.patch
+amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
 likeliness-accounting-change-and-cleanup.patch
 likely_prof-update-to-test_and_set_bit_lock-clear_bit_unlock.patch
 
