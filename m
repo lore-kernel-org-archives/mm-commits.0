@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-cs8427c-use-put_unaligned-helper.patch added to -mm tree
-Date: Wed, 07 May 2008 13:25:23 -0700
-Message-ID: <200805072025.m47KPNNn014891@imap1.linux-foundation.org>
+Subject: + init-dont-loose-initcall-code-returned-v2.patch added to -mm tree
+Date: Wed, 07 May 2008 13:29:36 -0700
+Message-ID: <200805072029.m47KTa7L015049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59859 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36690 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751401AbYEGUZ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 16:25:29 -0400
+	by vger.kernel.org with ESMTP id S1751089AbYEGU3i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 16:29:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, tiwai@suse.de
+Cc: gorcunov@gmail.com
 
 
 The patch titled
-     i2c: cs8427.c use put_unaligned helper
+     init: don't lose initcall return values
 has been added to the -mm tree.  Its filename is
-     i2c-cs8427c-use-put_unaligned-helper.patch
+     init-dont-loose-initcall-code-returned-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,83 +33,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c: cs8427.c use put_unaligned helper
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: init: don't lose initcall return values
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Takashi Iwai <tiwai@suse.de>
+There is an ability to lose an initcall return value if it happened with irq
+disabled or imbalanced preemption (and if we debug initcall).
+
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- sound/i2c/cs8427.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ init/main.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN sound/i2c/cs8427.c~i2c-cs8427c-use-put_unaligned-helper sound/i2c/cs8427.c
---- a/sound/i2c/cs8427.c~i2c-cs8427c-use-put_unaligned-helper
-+++ a/sound/i2c/cs8427.c
-@@ -23,6 +23,7 @@
- #include <linux/slab.h>
- #include <linux/delay.h>
- #include <linux/init.h>
-+#include <asm/unaligned.h>
- #include <sound/core.h>
- #include <sound/control.h>
- #include <sound/pcm.h>
-@@ -264,10 +265,7 @@ int snd_cs8427_create(struct snd_i2c_bus
- 		goto __fail;
+diff -puN init/main.c~init-dont-loose-initcall-code-returned-v2 init/main.c
+--- a/init/main.c~init-dont-loose-initcall-code-returned-v2
++++ a/init/main.c
+@@ -702,7 +702,6 @@ static void __init do_initcalls(void)
+ 
+ 	for (call = __initcall_start; call < __initcall_end; call++) {
+ 		ktime_t t0, t1, delta;
+-		char *msg = NULL;
+ 		char msgbuf[40];
+ 		int result;
+ 
+@@ -724,22 +723,23 @@ static void __init do_initcalls(void)
+ 				(unsigned long long) delta.tv64 >> 20);
+ 		}
+ 
+-		if (result && result != -ENODEV && initcall_debug) {
+-			sprintf(msgbuf, "error code %d", result);
+-			msg = msgbuf;
+-		}
++		msgbuf[0] = 0;
++
++		if (result && result != -ENODEV && initcall_debug)
++			sprintf(msgbuf, "error code %d ", result);
++
+ 		if (preempt_count() != count) {
+-			msg = "preemption imbalance";
++			strncat(msgbuf, "preemption imbalance ", sizeof(msgbuf));
+ 			preempt_count() = count;
+ 		}
+ 		if (irqs_disabled()) {
+-			msg = "disabled interrupts";
++			strncat(msgbuf, "disabled interrupts ", sizeof(msgbuf));
+ 			local_irq_enable();
+ 		}
+-		if (msg) {
++		if (msgbuf[0]) {
+ 			print_fn_descriptor_symbol(KERN_WARNING "initcall %s()",
+ 					(unsigned long) *call);
+-			printk(" returned with %s\n", msg);
++			printk(" returned with %s\n", msgbuf);
+ 		}
  	}
- 	/* write default channel status bytes */
--	buf[0] = ((unsigned char)(SNDRV_PCM_DEFAULT_CON_SPDIF >> 0));
--	buf[1] = ((unsigned char)(SNDRV_PCM_DEFAULT_CON_SPDIF >> 8));
--	buf[2] = ((unsigned char)(SNDRV_PCM_DEFAULT_CON_SPDIF >> 16));
--	buf[3] = ((unsigned char)(SNDRV_PCM_DEFAULT_CON_SPDIF >> 24));
-+	put_unaligned_le32(SNDRV_PCM_DEFAULT_CON_SPDIF, buf);
- 	memset(buf + 4, 0, 24 - 4);
- 	if (snd_cs8427_send_corudata(device, 0, buf, 24) < 0)
- 		goto __fail;
+ 
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
 origin.patch
-misc-fix-integer-as-null-pointer-warnings.patch
-mmc-make-one-bit-signed-bitfields-unsigned.patch
+uml-use-page_size-in-linker-scripts.patch
+init-dont-loose-initcall-code-returned-v2.patch
 linux-next.patch
-kgdb-use-put_unaligned_be32-helper.patch
-cifs-remove-global_extern-macro.patch
-media-use-get_unaligned_-helpers.patch
-i2c-cs8427c-use-put_unaligned-helper.patch
-hid-use-get-put_unaligned_-helpers.patch
-git-input.patch
-ata-remove-fit-macro.patch
-git-mips.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-get_unaligned_-helpers.patch
-block-use-get_unaligned_-helpers.patch
-usb-fix-integer-as-null-pointer-sparse-warnings.patch
-usb-use-get_unaligned_-helpers.patch
-git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-tkipc-use-kernel-provided-infrastructure.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-wireless-use-get-put_unaligned_-helpers.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-lib-add-ascii-hex-helper-functions.patch
-lib-add-ascii-hex-helper-functions-update.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-video-fix-integer-as-null-pointer-warnings.patch
+git-cifs.patch
+mips-elf-handling-use-selfmag-instead-of-numeric-constant.patch
+module-loading-elf-handling-use-selfmag-instead-of-numeric-constant.patch
 
