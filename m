@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + flag-parameters-inotify_init-fix.patch added to -mm tree
-Date: Thu, 08 May 2008 15:43:15 -0700
-Message-ID: <200805082254.m48MsAwK010076@imap1.linux-foundation.org>
+Subject: + flag-parameters-paccept-fix.patch added to -mm tree
+Date: Thu, 08 May 2008 15:43:21 -0700
+Message-ID: <200805082254.m48MsGcK010079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33951 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54575 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751048AbYEHWyf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:54:35 -0400
+	by vger.kernel.org with ESMTP id S1762601AbYEHWyi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:54:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, linux-arch@vger.kernel.org, mtk.manpages@googlemail.com
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com, roland@redhat.com
 
 
 The patch titled
-     flag-parameters-inotify_init-fix
+     flag-parameters-paccept-fix
 has been added to the -mm tree.  Its filename is
-     flag-parameters-inotify_init-fix.patch
+     flag-parameters-paccept-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,54 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag-parameters-inotify_init-fix
+Subject: flag-parameters-paccept-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-CONFIG_INOTIFY=n:
+Make it compile...
 
-arch/x86/kernel/built-in.o: In function `sys_call_table':
-: undefined reference to `sys_inotify_init1'
-
-Cc: <linux-arch@vger.kernel.org>
 Cc: Davide Libenzi <davidel@xmailserver.org>
 Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Roland McGrath <roland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    1 +
- 1 file changed, 1 insertion(+)
+ net/compat.c |    2 +-
+ net/socket.c |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/sys_ni.c~flag-parameters-inotify_init-fix kernel/sys_ni.c
---- a/kernel/sys_ni.c~flag-parameters-inotify_init-fix
-+++ a/kernel/sys_ni.c
-@@ -94,6 +94,7 @@ cond_syscall(sys_keyctl);
- cond_syscall(compat_sys_keyctl);
- cond_syscall(compat_sys_socketcall);
- cond_syscall(sys_inotify_init);
-+cond_syscall(sys_inotify_init1);
- cond_syscall(sys_inotify_add_watch);
- cond_syscall(sys_inotify_rm_watch);
- cond_syscall(sys_migrate_pages);
+diff -puN net/compat.c~flag-parameters-paccept-fix net/compat.c
+--- a/net/compat.c~flag-parameters-paccept-fix
++++ a/net/compat.c
+@@ -769,7 +769,7 @@ asmlinkage long compat_sys_paccept(int f
+ 		if (sigmask) {
+ 			memcpy(&current->saved_sigmask, &sigsaved,
+ 			       sizeof(sigsaved));
+-			set_thread_flag(TIF_RESTORE_SIGMASK);
++			set_restore_sigmask();
+ 		}
+ 	} else if (sigmask)
+ 		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
+diff -puN net/socket.c~flag-parameters-paccept-fix net/socket.c
+--- a/net/socket.c~flag-parameters-paccept-fix
++++ a/net/socket.c
+@@ -63,6 +63,7 @@
+ #include <linux/file.h>
+ #include <linux/net.h>
+ #include <linux/interrupt.h>
++#include <linux/thread_info.h>
+ #include <linux/rcupdate.h>
+ #include <linux/netdevice.h>
+ #include <linux/proc_fs.h>
+@@ -1523,7 +1524,7 @@ asmlinkage long sys_paccept(int fd, stru
+ 		if (sigmask) {
+ 			memcpy(&current->saved_sigmask, &sigsaved,
+ 			       sizeof(sigsaved));
+-			set_thread_flag(TIF_RESTORE_SIGMASK);
++			set_restore_sigmask();
+ 		}
+ 	} else if (sigmask)
+ 		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
