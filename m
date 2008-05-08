@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + flag-parameters-paccept-fix.patch added to -mm tree
-Date: Thu, 08 May 2008 15:28:14 -0700
-Message-ID: <200805082239.m48Md9Zu009474@imap1.linux-foundation.org>
+Subject: + logfs-unbork.patch added to -mm tree
+Date: Thu, 08 May 2008 15:29:36 -0700
+Message-ID: <200805082240.m48MeVCg009522@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60686 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37657 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755365AbYEHWj6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:39:58 -0400
+	by vger.kernel.org with ESMTP id S1753325AbYEHWlO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:41:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com
+Cc: akpm@linux-foundation.org, joern@logfs.org
 
 
 The patch titled
-     flag-parameters-paccept-fix
+     logfs-unbork
 has been added to the -mm tree.  Its filename is
-     flag-parameters-paccept-fix.patch
+     logfs-unbork.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,53 +33,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag-parameters-paccept-fix
+Subject: logfs-unbork
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make it compile...
+eh?
 
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Joern Engel <joern@logfs.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/compat.c |    2 +-
- net/socket.c |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ fs/logfs/logfs.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN net/compat.c~flag-parameters-paccept-fix net/compat.c
---- a/net/compat.c~flag-parameters-paccept-fix
-+++ a/net/compat.c
-@@ -769,7 +769,7 @@ asmlinkage long compat_sys_paccept(int f
- 		if (sigmask) {
- 			memcpy(&current->saved_sigmask, &sigsaved,
- 			       sizeof(sigsaved));
--			set_thread_flag(TIF_RESTORE_SIGMASK);
-+//			set_thread_flag(TIF_RESTORE_SIGMASK);
- 		}
- 	} else if (sigmask)
- 		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
-diff -puN net/socket.c~flag-parameters-paccept-fix net/socket.c
---- a/net/socket.c~flag-parameters-paccept-fix
-+++ a/net/socket.c
-@@ -63,6 +63,7 @@
- #include <linux/file.h>
- #include <linux/net.h>
- #include <linux/interrupt.h>
-+#include <linux/thread_info.h>
- #include <linux/rcupdate.h>
- #include <linux/netdevice.h>
- #include <linux/proc_fs.h>
-@@ -1523,7 +1524,7 @@ asmlinkage long sys_paccept(int fd, stru
- 		if (sigmask) {
- 			memcpy(&current->saved_sigmask, &sigsaved,
- 			       sizeof(sigsaved));
--			set_thread_flag(TIF_RESTORE_SIGMASK);
-+//			set_thread_flag(TIF_RESTORE_SIGMASK);
- 		}
- 	} else if (sigmask)
- 		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
+diff -puN fs/logfs/logfs.h~logfs-unbork fs/logfs/logfs.h
+--- a/fs/logfs/logfs.h~logfs-unbork
++++ a/fs/logfs/logfs.h
+@@ -552,3 +552,5 @@ static inline struct logfs_block *logfs_
+ {
+ 	return (void *)page->private;
+ }
++
++#endif	/* FS_LOGFS_LOGFS_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -157,4 +131,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+logfs-unbork.patch
 
