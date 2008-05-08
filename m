@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + pcnet32-fix-warning.patch added to -mm tree
-Date: Thu, 08 May 2008 15:40:39 -0700
-Message-ID: <200805082251.m48MpYud010006@imap1.linux-foundation.org>
+Subject: + flag-parameters-inotify_init-fix.patch added to -mm tree
+Date: Thu, 08 May 2008 15:43:15 -0700
+Message-ID: <200805082254.m48MsAwK010076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55514 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33951 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934254AbYEHWvn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:51:43 -0400
+	by vger.kernel.org with ESMTP id S1751048AbYEHWyf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:54:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, linux-arch@vger.kernel.org, mtk.manpages@googlemail.com
 
 
 The patch titled
-     pcnet32: fix warning
+     flag-parameters-inotify_init-fix
 has been added to the -mm tree.  Its filename is
-     pcnet32-fix-warning.patch
+     flag-parameters-inotify_init-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pcnet32: fix warning
+Subject: flag-parameters-inotify_init-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-pci_name() will be changed to return `const char *':
+CONFIG_INOTIFY=n:
 
-drivers/net/pcnet32.c: In function 'pcnet32_probe1':
-drivers/net/pcnet32.c:1884: warning: passing argument 2 of 'pcnet32_alloc_ring' discards qualifiers from pointer target type
+arch/x86/kernel/built-in.o: In function `sys_call_table':
+: undefined reference to `sys_inotify_init1'
 
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/pcnet32.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sys_ni.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/net/pcnet32.c~pcnet32-fix-warning drivers/net/pcnet32.c
---- a/drivers/net/pcnet32.c~pcnet32-fix-warning
-+++ a/drivers/net/pcnet32.c
-@@ -329,7 +329,7 @@ static int pcnet32_get_regs_len(struct n
- static void pcnet32_get_regs(struct net_device *dev, struct ethtool_regs *regs,
- 			     void *ptr);
- static void pcnet32_purge_tx_ring(struct net_device *dev);
--static int pcnet32_alloc_ring(struct net_device *dev, char *name);
-+static int pcnet32_alloc_ring(struct net_device *dev, const char *name);
- static void pcnet32_free_ring(struct net_device *dev);
- static void pcnet32_check_media(struct net_device *dev, int verbose);
- 
-@@ -2016,7 +2016,7 @@ pcnet32_probe1(unsigned long ioaddr, int
- }
- 
- /* if any allocation fails, caller must also call pcnet32_free_ring */
--static int pcnet32_alloc_ring(struct net_device *dev, char *name)
-+static int pcnet32_alloc_ring(struct net_device *dev, const char *name)
- {
- 	struct pcnet32_private *lp = netdev_priv(dev);
- 
+diff -puN kernel/sys_ni.c~flag-parameters-inotify_init-fix kernel/sys_ni.c
+--- a/kernel/sys_ni.c~flag-parameters-inotify_init-fix
++++ a/kernel/sys_ni.c
+@@ -94,6 +94,7 @@ cond_syscall(sys_keyctl);
+ cond_syscall(compat_sys_keyctl);
+ cond_syscall(compat_sys_socketcall);
+ cond_syscall(sys_inotify_init);
++cond_syscall(sys_inotify_init1);
+ cond_syscall(sys_inotify_add_watch);
+ cond_syscall(sys_inotify_rm_watch);
+ cond_syscall(sys_migrate_pages);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +96,7 @@ revert-git-kbuild.patch
 git-mmc.patch
 sundance-set-carrier-status-on-link-change-events.patch
 dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-battery.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
@@ -151,5 +145,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-pcnet32-fix-warning.patch
 
