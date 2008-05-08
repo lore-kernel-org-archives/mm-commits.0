@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-kernel-setupc-printk-warning-fix.patch added to -mm tree
-Date: Thu, 08 May 2008 15:38:29 -0700
-Message-ID: <200805082249.m48MnO7c009881@imap1.linux-foundation.org>
+Subject: + pcnet32-fix-warning.patch added to -mm tree
+Date: Thu, 08 May 2008 15:40:39 -0700
+Message-ID: <200805082251.m48MpYud010006@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47431 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55514 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761566AbYEHWtq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:49:46 -0400
+	by vger.kernel.org with ESMTP id S934254AbYEHWvn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:51:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     arch/x86/kernel/setup.c: printk warning fix
+     pcnet32: fix warning
 has been added to the -mm tree.  Its filename is
-     arch-x86-kernel-setupc-printk-warning-fix.patch
+     pcnet32-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,42 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/kernel/setup.c: printk warning fix
+Subject: pcnet32: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/setup.c: In function 'setup_per_cpu_areas':
-arch/x86/kernel/setup.c:99: warning: format '%zd' expects type 'signed size_t', but argument 2 has type 'long unsigned int'
+pci_name() will be changed to return `const char *':
 
-Cc: Ingo Molnar <mingo@elte.hu>
+drivers/net/pcnet32.c: In function 'pcnet32_probe1':
+drivers/net/pcnet32.c:1884: warning: passing argument 2 of 'pcnet32_alloc_ring' discards qualifiers from pointer target type
+
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/pcnet32.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/setup.c~arch-x86-kernel-setupc-printk-warning-fix arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~arch-x86-kernel-setupc-printk-warning-fix
-+++ a/arch/x86/kernel/setup.c
-@@ -95,7 +95,7 @@ void __init setup_per_cpu_areas(void)
+diff -puN drivers/net/pcnet32.c~pcnet32-fix-warning drivers/net/pcnet32.c
+--- a/drivers/net/pcnet32.c~pcnet32-fix-warning
++++ a/drivers/net/pcnet32.c
+@@ -329,7 +329,7 @@ static int pcnet32_get_regs_len(struct n
+ static void pcnet32_get_regs(struct net_device *dev, struct ethtool_regs *regs,
+ 			     void *ptr);
+ static void pcnet32_purge_tx_ring(struct net_device *dev);
+-static int pcnet32_alloc_ring(struct net_device *dev, char *name);
++static int pcnet32_alloc_ring(struct net_device *dev, const char *name);
+ static void pcnet32_free_ring(struct net_device *dev);
+ static void pcnet32_check_media(struct net_device *dev, int verbose);
  
- 	/* Copy section for each CPU (we discard the original) */
- 	size = PERCPU_ENOUGH_ROOM;
--	printk(KERN_INFO "PERCPU: Allocating %zd bytes of per cpu data\n",
-+	printk(KERN_INFO "PERCPU: Allocating %lu bytes of per cpu data\n",
- 			  size);
+@@ -2016,7 +2016,7 @@ pcnet32_probe1(unsigned long ioaddr, int
+ }
  
- 	for_each_possible_cpu(i) {
+ /* if any allocation fails, caller must also call pcnet32_free_ring */
+-static int pcnet32_alloc_ring(struct net_device *dev, char *name)
++static int pcnet32_alloc_ring(struct net_device *dev, const char *name)
+ {
+ 	struct pcnet32_private *lp = netdev_priv(dev);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -140,4 +151,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+pcnet32-fix-warning.patch
 
