@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch added to -mm tree
-Date: Thu, 08 May 2008 15:36:42 -0700
-Message-ID: <200805082247.m48MlbDK009857@imap1.linux-foundation.org>
+Subject: + arch-x86-kernel-setupc-printk-warning-fix.patch added to -mm tree
+Date: Thu, 08 May 2008 15:38:29 -0700
+Message-ID: <200805082249.m48MnO7c009881@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58384 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47431 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756664AbYEHWrj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:47:39 -0400
+	by vger.kernel.org with ESMTP id S1761566AbYEHWtq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:49:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, mingo@elte.hu
 
 
 The patch titled
-     drivers/usb/host/isp1760-hcd.c: procesxor flags have type `unsigned long'
+     arch/x86/kernel/setup.c: printk warning fix
 has been added to the -mm tree.  Its filename is
-     drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+     arch-x86-kernel-setupc-printk-warning-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,37 +33,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/host/isp1760-hcd.c: procesxor flags have type `unsigned long'
+Subject: arch/x86/kernel/setup.c: printk warning fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Greg KH <greg@kroah.com>
+arch/x86/kernel/setup.c: In function 'setup_per_cpu_areas':
+arch/x86/kernel/setup.c:99: warning: format '%zd' expects type 'signed size_t', but argument 2 has type 'long unsigned int'
+
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/host/isp1760-hcd.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/setup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/host/isp1760-hcd.c~drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long drivers/usb/host/isp1760-hcd.c
---- a/drivers/usb/host/isp1760-hcd.c~drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long
-+++ a/drivers/usb/host/isp1760-hcd.c
-@@ -1592,7 +1592,7 @@ static int isp1760_urb_dequeue(struct us
- 	struct inter_packet_info *ints;
- 	u32 i;
- 	u32 reg_base, or_reg, skip_reg;
--	int flags;
-+	unsigned long flags;
- 	struct ptd ptd;
+diff -puN arch/x86/kernel/setup.c~arch-x86-kernel-setupc-printk-warning-fix arch/x86/kernel/setup.c
+--- a/arch/x86/kernel/setup.c~arch-x86-kernel-setupc-printk-warning-fix
++++ a/arch/x86/kernel/setup.c
+@@ -95,7 +95,7 @@ void __init setup_per_cpu_areas(void)
  
- 	switch (usb_pipetype(urb->pipe)) {
-@@ -2061,7 +2061,7 @@ static void isp1760_endpoint_disable(str
- 	struct isp1760_hcd *priv = hcd_to_priv(usb_hcd);
- 	struct isp1760_qh *qh;
- 	struct isp1760_qtd *qtd;
--	u32 flags;
-+	unsigned long flags;
+ 	/* Copy section for each CPU (we discard the original) */
+ 	size = PERCPU_ENOUGH_ROOM;
+-	printk(KERN_INFO "PERCPU: Allocating %zd bytes of per cpu data\n",
++	printk(KERN_INFO "PERCPU: Allocating %lu bytes of per cpu data\n",
+ 			  size);
  
- 	spin_lock_irqsave(&priv->lock, flags);
- 	qh = ep->hcpriv;
+ 	for_each_possible_cpu(i) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -85,6 +79,7 @@ acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 git-x86.patch
 git-x86-fixup.patch
+arch-x86-kernel-setupc-printk-warning-fix.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
 cifs-suppress-warning.patch
 sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
@@ -108,6 +103,7 @@ git-logfs-fixup.patch
 logfs-unbork.patch
 drivers-usb-core-sysfsc-fix-types.patch
 drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 git-v9fs.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
@@ -144,5 +140,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 
