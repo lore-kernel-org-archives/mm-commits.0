@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch added to -mm tree
-Date: Thu, 08 May 2008 15:34:49 -0700
-Message-ID: <200805082245.m48MjiVD009726@imap1.linux-foundation.org>
+Subject: + drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch added to -mm tree
+Date: Thu, 08 May 2008 15:36:42 -0700
+Message-ID: <200805082247.m48MlbDK009857@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51855 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58384 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754254AbYEHWpq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:45:46 -0400
+	by vger.kernel.org with ESMTP id S1756664AbYEHWrj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:47:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     drivers/uwb/neh.c: processor flags have type `unsigned long'
+     drivers/usb/host/isp1760-hcd.c: procesxor flags have type `unsigned long'
 has been added to the -mm tree.  Its filename is
-     drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+     drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/uwb/neh.c: processor flags have type `unsigned long'
+Subject: drivers/usb/host/isp1760-hcd.c: procesxor flags have type `unsigned long'
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uwb/neh.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/usb/host/isp1760-hcd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/uwb/neh.c~drivers-uwb-nehc-processor-flags-have-type-unsigned-long drivers/uwb/neh.c
---- a/drivers/uwb/neh.c~drivers-uwb-nehc-processor-flags-have-type-unsigned-long
-+++ a/drivers/uwb/neh.c
-@@ -329,7 +329,7 @@ struct uwb_rc_neh * uwb_rc_neh_lookup(st
- 				      const struct uwb_rceb *rceb)
- {
- 	struct uwb_rc_neh *neh = NULL, *h;
--	unsigned flags;
+diff -puN drivers/usb/host/isp1760-hcd.c~drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long drivers/usb/host/isp1760-hcd.c
+--- a/drivers/usb/host/isp1760-hcd.c~drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long
++++ a/drivers/usb/host/isp1760-hcd.c
+@@ -1592,7 +1592,7 @@ static int isp1760_urb_dequeue(struct us
+ 	struct inter_packet_info *ints;
+ 	u32 i;
+ 	u32 reg_base, or_reg, skip_reg;
+-	int flags;
++	unsigned long flags;
+ 	struct ptd ptd;
+ 
+ 	switch (usb_pipetype(urb->pipe)) {
+@@ -2061,7 +2061,7 @@ static void isp1760_endpoint_disable(str
+ 	struct isp1760_hcd *priv = hcd_to_priv(usb_hcd);
+ 	struct isp1760_qh *qh;
+ 	struct isp1760_qtd *qtd;
+-	u32 flags;
 +	unsigned long flags;
  
- 	spin_lock_irqsave(&rc->neh_lock, flags);
- 
-@@ -580,7 +580,7 @@ static void uwb_rc_neh_timer(unsigned lo
- {
- 	struct uwb_rc_neh *neh = (struct uwb_rc_neh *)arg;
- 	struct uwb_rc *rc = neh->rc;
--	unsigned flags;
-+	unsigned long flags;
- 
- 	spin_lock_irqsave(&rc->neh_lock, flags);
- 	__uwb_rc_neh_rm(rc, neh);
-@@ -604,7 +604,7 @@ void uwb_rc_neh_create(struct uwb_rc *rc
- /** Release's the @rc's neh subsystem */
- void uwb_rc_neh_destroy(struct uwb_rc *rc)
- {
--	unsigned flags;
-+	unsigned long flags;
- 	struct uwb_rc_neh *neh, *next;
- 
- 	spin_lock_irqsave(&rc->neh_lock, flags);
+ 	spin_lock_irqsave(&priv->lock, flags);
+ 	qh = ep->hcpriv;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -153,4 +144,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 
