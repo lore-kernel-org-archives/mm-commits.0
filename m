@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch added to -mm tree
-Date: Thu, 08 May 2008 13:12:29 -0700
-Message-ID: <200805082012.m48KCTkE003591@imap1.linux-foundation.org>
+Subject: + cgroups-fix-documentation.patch added to -mm tree
+Date: Thu, 08 May 2008 13:13:28 -0700
+Message-ID: <200805082013.m48KDS6b003612@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47258 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755247AbYEHUN4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:13:56 -0400
+	by vger.kernel.org with ESMTP id S1756240AbYEHUWf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:22:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ben-linux@fluff.org, enrico.scholz@sigma-chemnitz.de, jeff@garzik.org
+Cc: dhaval@linux.vnet.ibm.com, balbir@in.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, menage@google.com, skumar@linux.vnet.ibm.com
 
 
 The patch titled
-     dm9000-use-delayed-work-to-update-mii-phy-state-fix
+     cgroups: fix documentation
 has been added to the -mm tree.  Its filename is
-     dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+     cgroups-fix-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,99 +33,39 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dm9000-use-delayed-work-to-update-mii-phy-state-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: cgroups: fix documentation
+From: Dhaval Giani <dhaval@linux.vnet.ibm.com>
 
-use cancel_delayed_work_sync()
+Correct the cgroups documentation to reflect the correct file names.
 
-Cc: Ben Dooks <ben-linux@fluff.org>
-Cc: Enrico Scholz <enrico.scholz@sigma-chemnitz.de>
-Cc: Jeff Garzik <jeff@garzik.org>
+Signed-off-by: Dhaval Giani <dhaval@linux.vnet.ibm.com>
+Cc: Sudhir Kumar <skumar@linux.vnet.ibm.com>
+Cc: Balbir Singh <balbir@in.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Paul Menage <menage@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/dm9000.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/cgroups.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/net/dm9000.c~dm9000-use-delayed-work-to-update-mii-phy-state-fix drivers/net/dm9000.c
---- a/drivers/net/dm9000.c~dm9000-use-delayed-work-to-update-mii-phy-state-fix
-+++ a/drivers/net/dm9000.c
-@@ -903,7 +903,7 @@ dm9000_stop(struct net_device *ndev)
- 	if (netif_msg_ifdown(db))
- 		dev_dbg(db->dev, "shutting down %s\n", ndev->name);
- 
--	cancel_delayed_work(&db->phy_poll);
-+	cancel_delayed_work_sync(&db->phy_poll);
- 
- 	netif_stop_queue(ndev);
- 	netif_carrier_off(ndev);
+diff -puN Documentation/cgroups.txt~cgroups-fix-documentation Documentation/cgroups.txt
+--- a/Documentation/cgroups.txt~cgroups-fix-documentation
++++ a/Documentation/cgroups.txt
+@@ -310,8 +310,8 @@ and then start a subshell 'sh' in that c
+   cd /dev/cgroup
+   mkdir Charlie
+   cd Charlie
+-  /bin/echo 2-3 > cpus
+-  /bin/echo 1 > mems
++  /bin/echo 2-3 > cpuset.cpus
++  /bin/echo 1 > cpuset.mems
+   /bin/echo $$ > tasks
+   sh
+   # The subshell 'sh' is now running in cgroup Charlie
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dhaval@linux.vnet.ibm.com are
 
-origin.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-drivers-scsi-dpt_i2oc-fix-build-on-alpha.patch
-quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
-rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
-atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
-memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
-linux-next.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-revert-vt-fix-background-color-on-line-feed.patch
-revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
-revert-acpica-fixes-for-unload-and-ddbhandles.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86.patch
-git-x86-fixup.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-dlm-convert-connections_lock-in-a-mutex-fix.patch
-git-input.patch
-git-jg-misc-git-rejects.patch
-revert-libata-improve-post-reset-device-ready-test.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-colibri-fix-support-for-dm9000-ethernet-device-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-hysdn-no-longer-broken-on-smp.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+cgroups-fix-documentation.patch
 
