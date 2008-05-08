@@ -1,85 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-hack-hack-hack.patch removed from -mm tree
-Date: Thu, 08 May 2008 14:53:24 -0700
-Message-ID: <200805082204.m48M4J5Y008147@imap1.linux-foundation.org>
+Subject: + flag-parameters-anon_inode_getfd-extension-fix.patch added to -mm tree
+Date: Thu, 08 May 2008 14:57:18 -0700
+Message-ID: <200805082208.m48M8Df3008308@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47239 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55509 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762985AbYEHWE7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:04:59 -0400
+	by vger.kernel.org with ESMTP id S1757098AbYEHWJE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:09:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com
 
 
 The patch titled
-     git-block-hack-hack-hack
-has been removed from the -mm tree.  Its filename was
-     git-block-hack-hack-hack.patch
+     flag-parameters-anon_inode_getfd-extension kvm fix
+has been added to the -mm tree.  Its filename is
+     flag-parameters-anon_inode_getfd-extension-fix.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block-hack-hack-hack
+Subject: flag-parameters-anon_inode_getfd-extension kvm fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-cat Documentation/SubmitChecklist
-
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/smp.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ virt/kvm/kvm_main.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/xen/smp.c~git-block-hack-hack-hack arch/x86/xen/smp.c
---- a/arch/x86/xen/smp.c~git-block-hack-hack-hack
-+++ a/arch/x86/xen/smp.c
-@@ -111,12 +111,16 @@ static int xen_smp_intr_init(unsigned in
- 	per_cpu(debug_irq, cpu) = rc;
- 
- 	callfunc_name = kasprintf(GFP_KERNEL, "callfuncsingle%d", cpu);
-+#if 0
- 	rc = bind_ipi_to_irqhandler(XEN_CALL_FUNCTION_SINGLE_VECTOR,
- 				    cpu,
- 				    xen_call_function_single_interrupt,
- 				    IRQF_DISABLED|IRQF_PERCPU|IRQF_NOBALANCING,
- 				    callfunc_name,
- 				    NULL);
-+#else
-+	BUG();
-+#endif
- 	if (rc < 0)
- 		goto fail;
- 	per_cpu(callfuncsingle_irq, cpu) = rc;
-@@ -354,8 +358,11 @@ void xen_smp_send_call_function_ipi(cpum
+diff -puN virt/kvm/kvm_main.c~flag-parameters-anon_inode_getfd-extension-fix virt/kvm/kvm_main.c
+--- a/virt/kvm/kvm_main.c~flag-parameters-anon_inode_getfd-extension-fix
++++ a/virt/kvm/kvm_main.c
+@@ -860,7 +860,7 @@ static const struct file_operations kvm_
+  */
+ static int create_vcpu_fd(struct kvm_vcpu *vcpu)
  {
- 	int cpu;
+-	int fd = anon_inode_getfd("kvm-vcpu", &kvm_vcpu_fops, vcpu);
++	int fd = anon_inode_getfd("kvm-vcpu", &kvm_vcpu_fops, vcpu, 0);
+ 	if (fd < 0)
+ 		kvm_put_kvm(vcpu->kvm);
+ 	return fd;
+@@ -1193,7 +1193,7 @@ static int kvm_dev_ioctl_create_vm(void)
+ 	kvm = kvm_create_vm();
+ 	if (IS_ERR(kvm))
+ 		return PTR_ERR(kvm);
+-	fd = anon_inode_getfd("kvm-vm", &kvm_vm_fops, kvm);
++	fd = anon_inode_getfd("kvm-vm", &kvm_vm_fops, kvm, 0);
+ 	if (fd < 0)
+ 		kvm_put_kvm(kvm);
  
-+#if 0
- 	xen_send_IPI_mask(mask, XEN_CALL_FUNCTION_VECTOR);
--
-+#else
-+	BUG();
-+#endif
- 	/* Make sure other vcpus get a chance to run if they need to. */
- 	for_each_cpu_mask(cpu, mask) {
- 		if (xen_vcpu_stolen(cpu)) {
-@@ -367,7 +374,11 @@ void xen_smp_send_call_function_ipi(cpum
- 
- void xen_smp_send_call_function_single_ipi(int cpu)
- {
-+#if 0
- 	xen_send_IPI_mask(cpumask_of_cpu(cpu), XEN_CALL_FUNCTION_SINGLE_VECTOR);
-+#else
-+	BUG();
-+#endif
- }
- 
- static irqreturn_t xen_call_function_interrupt(int irq, void *dev_id)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,7 +103,6 @@ git-battery.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 arch-parisc-kernel-unalignedc-use-time_-macros.patch
 revert-git-block.patch
-git-block-hack-hack-hack.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
 git-logfs-fixup.patch
@@ -137,6 +122,7 @@ locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.
 remove-apparently-unused-fd1772h-header-file.patch
 lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
 flag-parameters-inotify_init-fix.patch
 hysdn-no-longer-broken-on-smp.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
