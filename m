@@ -1,78 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-cmosc-build-fix.patch removed from -mm tree
-Date: Thu, 08 May 2008 12:45:50 -0700
-Message-ID: <200805081945.m48JjpQq002479@imap1.linux-foundation.org>
+Subject: + mm-fix-infinite-loop-in-filemap_fault.patch added to -mm tree
+Date: Thu, 08 May 2008 12:47:49 -0700
+Message-ID: <200805081947.m48Jlnsx002550@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42469 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37951 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751675AbYEHTrP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 15:47:15 -0400
+	by vger.kernel.org with ESMTP id S1751547AbYEHTsZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 15:48:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: crmafra2@gmail.com, crmafra@ift.unesp.br, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: mszeredi@suse.cz, npiggin@suse.de
 
 
 The patch titled
-     rtc-cmos.c: build fix
-has been removed from the -mm tree.  Its filename was
-     rtc-cmosc-build-fix.patch
+     mm: fix infinite loop in filemap_fault
+has been added to the -mm tree.  Its filename is
+     mm-fix-infinite-loop-in-filemap_fault.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-cmos.c: build fix
-From: "Carlos R. Mafra" <crmafra2@gmail.com>
+Subject: mm: fix infinite loop in filemap_fault
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-The function hpet_rtc_interrupt(..) is to be used only if
-CONFIG_HPET_EMULATE_RTC is defined (see arch/x86/kernel/hpet.c), so we define
-it to return 0 when !CONFIG_HPET_EMULATE_RTC to avoid build failures.
+filemap_fault will go into an infinite loop if ->readpage() fails
+asynchronously.
 
-This function will never be used anyways when !CONFIG_HPET_EMULATE_RTC because
-it is inside a if(is_hpet_enabled()) which is never true when
-!CONFIG_HPET_EMULATE_RTC.
+AFAICS the bug was introduced by this commit, which removed the wait after the
+final readpage:
 
-Signed-off-by: Carlos R. Mafra <crmafra@ift.unesp.br>
-Cc: Ingo Molnar <mingo@elte.hu>
+   commit d00806b183152af6d24f46f0c33f14162ca1262a
+   Author: Nick Piggin <npiggin@suse.de>
+   Date:   Thu Jul 19 01:46:57 2007 -0700
+
+       mm: fix fault vs invalidate race for linear mappings
+
+Fix by reintroducing the wait_on_page_locked() after ->readpage() to make sure
+the page is up-to-date before jumping back to the beginning of the function.
+
+I've noticed this while testing nfs exporting on fuse.  The patch
+fixes it.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/rtc.c     |    2 --
- drivers/rtc/rtc-cmos.c |    5 ++++-
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ mm/filemap.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/char/rtc.c~rtc-cmosc-build-fix drivers/char/rtc.c
---- a/drivers/char/rtc.c~rtc-cmosc-build-fix
-+++ a/drivers/char/rtc.c
-@@ -119,8 +119,6 @@ static irqreturn_t hpet_rtc_interrupt(in
- 	return 0;
- }
- #endif
--#else
--extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
- #endif
+diff -puN mm/filemap.c~mm-fix-infinite-loop-in-filemap_fault mm/filemap.c
+--- a/mm/filemap.c~mm-fix-infinite-loop-in-filemap_fault
++++ a/mm/filemap.c
+@@ -1461,6 +1461,11 @@ page_not_uptodate:
+ 	 */
+ 	ClearPageError(page);
+ 	error = mapping->a_ops->readpage(file, page);
++	if (!error) {
++		wait_on_page_locked(page);
++		if (!PageUptodate(page))
++			error = -EIO;
++	}
+ 	page_cache_release(page);
  
- /*
-diff -puN drivers/rtc/rtc-cmos.c~rtc-cmosc-build-fix drivers/rtc/rtc-cmos.c
---- a/drivers/rtc/rtc-cmos.c~rtc-cmosc-build-fix
-+++ a/drivers/rtc/rtc-cmos.c
-@@ -52,7 +52,10 @@
- #define hpet_rtc_timer_init() 			do { } while (0)
- #define hpet_register_irq_handler(h) 		0
- #define hpet_unregister_irq_handler(h)		do { } while (0)
--extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
-+static irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id)
-+{
-+	return 0;
-+}
- #endif
- 
- struct cmos_rtc {
+ 	if (!error || error == AOP_TRUNCATED_PAGE)
 _
 
-Patches currently in -mm which might be from crmafra2@gmail.com are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
-rtc-cmosc-build-fix.patch
+ecryptfs-clean-up-unlock_parent.patch
+git-block.patch
+git-vfs-cleanups.patch
+mm-fix-infinite-loop-in-filemap_fault.patch
 
