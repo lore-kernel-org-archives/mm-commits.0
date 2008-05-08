@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + tridentfb-use-mmio-access-for-clock-setting.patch added to -mm tree
-Date: Thu, 08 May 2008 13:45:23 -0700
-Message-ID: <200805082045.m48KjN2H004987@imap1.linux-foundation.org>
+Subject: + intel-iommu-make-intel-iommu_wait_op-work-when-jiffies-arent-running-fix.patch added to -mm tree
+Date: Thu, 08 May 2008 14:05:13 -0700
+Message-ID: <200805082105.m48L5D5q005870@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42482 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56640 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759924AbYEHUp4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:45:56 -0400
+	by vger.kernel.org with ESMTP id S1751794AbYEHVFo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 17:05:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl, adaplas@pol.net
+Cc: mgross@linux.intel.com, greg@kroah.com, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     tridentfb: use mmio access for clock setting
+     intel-iommu-make-intel-iommu_wait_op-work-when-jiffies-arent-running fix
 has been added to the -mm tree.  Its filename is
-     tridentfb-use-mmio-access-for-clock-setting.patch
+     intel-iommu-make-intel-iommu_wait_op-work-when-jiffies-arent-running-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,51 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: use mmio access for clock setting
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: intel-iommu-make-intel-iommu_wait_op-work-when-jiffies-arent-running fix
+From: mark gross <mgross@linux.intel.com>
 
-Use the mmio outb function instead of direct one.  The mmio registers are
-already mapped (in the probe function).
+Think-oh in patch.  it works as implemented but the panic line does not
+need the KERN_ERR string included :(  Can you use the following?
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Signed-off-by: mark gross <mgross@linux.intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/pci/intel-iommu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-use-mmio-access-for-clock-setting drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-use-mmio-access-for-clock-setting
-+++ a/drivers/video/tridentfb.c
-@@ -680,8 +680,8 @@ static void set_vclk(struct tridentfb_pa
- 		vga_mm_wseq(par->io_virt, ClockHigh, hi);
- 		vga_mm_wseq(par->io_virt, ClockLow, lo);
- 	} else {
--		outb(lo, 0x43C8);
--		outb(hi, 0x43C9);
-+		t_outb(par, lo, 0x43C8);
-+		t_outb(par, hi, 0x43C9);
- 	}
- 	debug("VCLK = %X %X\n", hi, lo);
+diff -puN drivers/pci/intel-iommu.c~intel-iommu-make-intel-iommu_wait_op-work-when-jiffies-arent-running-fix drivers/pci/intel-iommu.c
+--- a/drivers/pci/intel-iommu.c~intel-iommu-make-intel-iommu_wait_op-work-when-jiffies-arent-running-fix
++++ a/drivers/pci/intel-iommu.c
+@@ -496,7 +496,7 @@ static int iommu_alloc_root_entry(struct
+ 		if (cond)\
+ 			break;\
+ 		if (DMAR_OPERATION_TIMEOUT < (get_cycles() - start_time))\
+-			panic(KERN_ERR "DMAR hardware is malfunctioning\n");\
++			panic("DMAR hardware is malfunctioning\n");\
+ 		cpu_relax();\
+ 	}\
  }
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from mgross@linux.intel.com are
 
-tridentfb-remove-misplaced-enable_mmio.patch
-tridentfb-improve-clock-setting-accuracy.patch
-drivers-video-pnx4008-eliminate-double-free.patch
-tridentfb-replace-macros-with-functions.patch
-tridentfb-convert-fb_info-into-allocated-one.patch
-tridentfb-move-global-pseudo-palette-into-structure.patch
-tridentfb-move-global-chip_id-into-structure.patch
-tridentfb-move-global-flat-panel-variable-into-structure.patch
-tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
-tridentfb-move-global-acceleration-hooks-into-structure.patch
-tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
-tridentfb-fix-timing-calculations.patch
-tridentfb-use-mmio-access-for-clock-setting.patch
-amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+intel-iommu-make-intel-iommu_wait_op-work-when-jiffies-arent-running.patch
+intel-iommu-make-intel-iommu_wait_op-work-when-jiffies-arent-running-fix.patch
 
