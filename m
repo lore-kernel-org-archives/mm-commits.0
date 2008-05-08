@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-usb-core-sysfsc-fix-types.patch added to -mm tree
-Date: Thu, 08 May 2008 15:31:58 -0700
-Message-ID: <200805082242.m48MgrJH009658@imap1.linux-foundation.org>
+Subject: + drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch added to -mm tree
+Date: Thu, 08 May 2008 15:34:49 -0700
+Message-ID: <200805082245.m48MjiVD009726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52287 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51855 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753859AbYEHWnX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:43:23 -0400
+	by vger.kernel.org with ESMTP id S1754254AbYEHWpq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:45:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     drivers/usb/core/sysfs.c: fix types
+     drivers/uwb/neh.c: processor flags have type `unsigned long'
 has been added to the -mm tree.  Its filename is
-     drivers-usb-core-sysfsc-fix-types.patch
+     drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,44 +33,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/usb/core/sysfs.c: fix types
+Subject: drivers/uwb/neh.c: processor flags have type `unsigned long'
 From: Andrew Morton <akpm@linux-foundation.org>
-
-Fixes something which is in linux-next.
-
-drivers/usb/core/sysfs.c:573: warning: initialization from incompatible pointer type
-drivers/usb/core/sysfs.c:783: warning: initialization from incompatible pointer type
-
-All I did was run i386 allmodconfig :(
 
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/core/sysfs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/uwb/neh.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/usb/core/sysfs.c~drivers-usb-core-sysfsc-fix-types drivers/usb/core/sysfs.c
---- a/drivers/usb/core/sysfs.c~drivers-usb-core-sysfsc-fix-types
-+++ a/drivers/usb/core/sysfs.c
-@@ -551,7 +551,7 @@ static struct attribute *dev_string_attr
- 	NULL
- };
- 
--static int dev_string_attrs_are_visible(struct kobject *kobj,
-+static mode_t dev_string_attrs_are_visible(struct kobject *kobj,
- 		struct attribute *a, int n)
+diff -puN drivers/uwb/neh.c~drivers-uwb-nehc-processor-flags-have-type-unsigned-long drivers/uwb/neh.c
+--- a/drivers/uwb/neh.c~drivers-uwb-nehc-processor-flags-have-type-unsigned-long
++++ a/drivers/uwb/neh.c
+@@ -329,7 +329,7 @@ struct uwb_rc_neh * uwb_rc_neh_lookup(st
+ 				      const struct uwb_rceb *rceb)
  {
- 	struct usb_device *udev = to_usb_device(
-@@ -769,7 +769,7 @@ static struct attribute *intf_assoc_attr
- 	NULL,
- };
+ 	struct uwb_rc_neh *neh = NULL, *h;
+-	unsigned flags;
++	unsigned long flags;
  
--static int intf_assoc_attrs_are_visible(struct kobject *kobj,
-+static mode_t intf_assoc_attrs_are_visible(struct kobject *kobj,
- 		struct attribute *a, int n)
+ 	spin_lock_irqsave(&rc->neh_lock, flags);
+ 
+@@ -580,7 +580,7 @@ static void uwb_rc_neh_timer(unsigned lo
  {
- 	struct usb_interface *intf = to_usb_interface(
+ 	struct uwb_rc_neh *neh = (struct uwb_rc_neh *)arg;
+ 	struct uwb_rc *rc = neh->rc;
+-	unsigned flags;
++	unsigned long flags;
+ 
+ 	spin_lock_irqsave(&rc->neh_lock, flags);
+ 	__uwb_rc_neh_rm(rc, neh);
+@@ -604,7 +604,7 @@ void uwb_rc_neh_create(struct uwb_rc *rc
+ /** Release's the @rc's neh subsystem */
+ void uwb_rc_neh_destroy(struct uwb_rc *rc)
+ {
+-	unsigned flags;
++	unsigned long flags;
+ 	struct uwb_rc_neh *neh, *next;
+ 
+ 	spin_lock_irqsave(&rc->neh_lock, flags);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,6 +115,8 @@ git-unionfs.patch
 git-unionfs-fixup.patch
 git-logfs-fixup.patch
 logfs-unbork.patch
+drivers-usb-core-sysfsc-fix-types.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
 git-v9fs.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
@@ -149,5 +153,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-usb-core-sysfsc-fix-types.patch
 
