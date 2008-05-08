@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + common-implementation-of-iterative-div-mod.patch added to -mm tree
-Date: Thu, 08 May 2008 13:26:44 -0700
-Message-ID: <200805082026.m48KQi5X004206@imap1.linux-foundation.org>
+Subject: + common-implementation-of-iterative-div-mod-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 08 May 2008 13:28:09 -0700
+Message-ID: <200805082028.m48KS9ag004257@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38957 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37977 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932460AbYEHU2o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:28:44 -0400
+	by vger.kernel.org with ESMTP id S1758388AbYEHU2l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:28:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jeremy@goop.org, hancockr@shaw.ca, jeremy.fitzhardinge@citrix.com, johnstul@us.ibm.com, lists@nerdbynature.de, mingo@elte.hu, segher@kernel.crashing.org, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, jeremy@goop.org
 
 
 The patch titled
-     common implementation of iterative div/mod
+     common-implementation-of-iterative-div-mod-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     common-implementation-of-iterative-div-mod.patch
+     common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,145 +33,109 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: common implementation of iterative div/mod
-From: Jeremy Fitzhardinge <jeremy@goop.org>
+Subject: common-implementation-of-iterative-div-mod-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-We have a few instances of the open-coded iterative div/mod loop, used when we
-don't expcet the dividend to be much bigger than the divisor.  Unfortunately
-modern gcc's have the tendency to strength "reduce" this into a full mod
-operation, which isn't necessarily any faster, and even if it were, doesn't
-exist if gcc implements it in libgcc.
+ERROR: space required before the open parenthesis '('
+#122: FILE: lib/div64.c:110:
++	while(dividend >= divisor) {
 
-The workaround is to put a dummy asm statement in the loop to prevent gcc from
-performing the transformation.
+total: 1 errors, 0 warnings, 86 lines checked
 
-This patch creates a single implementation of this loop, and uses it to
-replace the open-coded versions I know about.
+./patches/common-implementation-of-iterative-div-mod.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
-Cc: Segher Boessenkool <segher@kernel.crashing.org>
-Cc: Christian Kujau <lists@nerdbynature.de>
-Cc: Robert Hancock <hancockr@shaw.ca>
+Please run checkpatch prior to sending patches
+
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/time.c    |   13 +++----------
- include/linux/math64.h |    2 ++
- include/linux/time.h   |   11 ++---------
- lib/div64.c            |   23 +++++++++++++++++++++++
- 4 files changed, 30 insertions(+), 19 deletions(-)
+ lib/div64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/xen/time.c~common-implementation-of-iterative-div-mod arch/x86/xen/time.c
---- a/arch/x86/xen/time.c~common-implementation-of-iterative-div-mod
-+++ a/arch/x86/xen/time.c
-@@ -12,6 +12,7 @@
- #include <linux/clocksource.h>
- #include <linux/clockchips.h>
- #include <linux/kernel_stat.h>
-+#include <linux/math64.h>
- 
- #include <asm/xen/hypervisor.h>
- #include <asm/xen/hypercall.h>
-@@ -150,11 +151,7 @@ static void do_stolen_accounting(void)
- 	if (stolen < 0)
- 		stolen = 0;
- 
--	ticks = 0;
--	while (stolen >= NS_PER_TICK) {
--		ticks++;
--		stolen -= NS_PER_TICK;
--	}
-+	ticks = iter_div_u64_rem(stolen, NS_PER_TICK, &stolen);
- 	__get_cpu_var(residual_stolen) = stolen;
- 	account_steal_time(NULL, ticks);
- 
-@@ -166,11 +163,7 @@ static void do_stolen_accounting(void)
- 	if (blocked < 0)
- 		blocked = 0;
- 
--	ticks = 0;
--	while (blocked >= NS_PER_TICK) {
--		ticks++;
--		blocked -= NS_PER_TICK;
--	}
-+	ticks = iter_div_u64_rem(blocked, NS_PER_TICK, &blocked);
- 	__get_cpu_var(residual_blocked) = blocked;
- 	account_steal_time(idle_task(smp_processor_id()), ticks);
- }
-diff -puN include/linux/math64.h~common-implementation-of-iterative-div-mod include/linux/math64.h
---- a/include/linux/math64.h~common-implementation-of-iterative-div-mod
-+++ a/include/linux/math64.h
-@@ -81,4 +81,6 @@ static inline s64 div_s64(s64 dividend, 
- }
- #endif
- 
-+unsigned iter_div_u64_rem(u64 dividend, u32 divisor, u64 *remainder);
-+
- #endif /* _LINUX_MATH64_H */
-diff -puN include/linux/time.h~common-implementation-of-iterative-div-mod include/linux/time.h
---- a/include/linux/time.h~common-implementation-of-iterative-div-mod
-+++ a/include/linux/time.h
-@@ -2,6 +2,7 @@
- #define _LINUX_TIME_H
- 
- #include <linux/types.h>
-+#include <linux/math64.h>
- 
- #ifdef __KERNEL__
- # include <linux/cache.h>
-@@ -172,15 +173,7 @@ extern struct timeval ns_to_timeval(cons
-  */
- static inline void timespec_add_ns(struct timespec *a, u64 ns)
- {
--	ns += a->tv_nsec;
--	while(unlikely(ns >= NSEC_PER_SEC)) {
--		/* The following asm() prevents the compiler from
--		 * optimising this loop into a modulo operation.  */
--		asm("" : "+r"(ns));
--
--		ns -= NSEC_PER_SEC;
--		a->tv_sec++;
--	}
-+	a->tv_sec += iter_div_u64_rem(a->tv_nsec + ns, NSEC_PER_SEC, &ns);
- 	a->tv_nsec = ns;
- }
- #endif /* __KERNEL__ */
-diff -puN lib/div64.c~common-implementation-of-iterative-div-mod lib/div64.c
---- a/lib/div64.c~common-implementation-of-iterative-div-mod
+diff -puN lib/div64.c~common-implementation-of-iterative-div-mod-checkpatch-fixes lib/div64.c
+--- a/lib/div64.c~common-implementation-of-iterative-div-mod-checkpatch-fixes
 +++ a/lib/div64.c
-@@ -98,3 +98,26 @@ EXPORT_SYMBOL(div64_u64);
- #endif
+@@ -107,7 +107,7 @@ u32 iter_div_u64_rem(u64 dividend, u32 d
+ {
+ 	u32 ret = 0;
  
- #endif /* BITS_PER_LONG == 32 */
-+
-+/*
-+ * Iterative div/mod for use when dividend is not expected to be much
-+ * bigger than divisor.
-+ */
-+unsigned iter_div_u64_rem(u64 dividend, u32 divisor, u64 *remainder)
-+{
-+	unsigned ret = 0;
-+
-+	while(dividend >= divisor) {
-+		/* The following asm() prevents the compiler from
-+		   optimising this loop into a modulo operation.  */
-+		asm("" : "+rm"(dividend));
-+
-+		dividend -= divisor;
-+		ret++;
-+	}
-+
-+	*remainder = dividend;
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(iter_div_u64_rem);
+-	while(dividend >= divisor) {
++	while (dividend >= divisor) {
+ 		/* The following asm() prevents the compiler from
+ 		   optimising this loop into a modulo operation.  */
+ 		asm("" : "+rm"(dividend));
 _
 
-Patches currently in -mm which might be from jeremy@goop.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-common-implementation-of-iterative-div-mod.patch
+origin.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+drivers-scsi-dpt_i2oc-fix-build-on-alpha.patch
+quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
+rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
+atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
+memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
+linux-next.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+revert-vt-fix-background-color-on-line-feed.patch
+revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86.patch
+git-x86-fixup.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+dlm-convert-connections_lock-in-a-mutex-fix.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+revert-libata-improve-post-reset-device-ready-test.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+git-logfs-fixup.patch
+git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+common-implementation-of-iterative-div-mod-fix.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+hysdn-no-longer-broken-on-smp.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
