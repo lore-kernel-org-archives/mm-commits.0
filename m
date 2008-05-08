@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + flag-parameters-inotify_init-fix.patch added to -mm tree
-Date: Thu, 08 May 2008 14:41:55 -0700
-Message-ID: <200805082152.m48LqoWh007690__2288.71960794113$1210283687$gmane$org@imap1.linux-foundation.org>
+Subject: + git-block-hack-hack-hack.patch added to -mm tree
+Date: Thu, 08 May 2008 14:47:08 -0700
+Message-ID: <200805082158.m48Lw24j007892@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57508 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40308 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762369AbYEHVxh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 17:53:37 -0400
+	by vger.kernel.org with ESMTP id S1757551AbYEHV67 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 17:58:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, linux-arch@vger.kernel.org, mtk.manpages@googlemail.com
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     flag-parameters-inotify_init-fix
+     git-block-hack-hack-hack
 has been added to the -mm tree.  Its filename is
-     flag-parameters-inotify_init-fix.patch
+     git-block-hack-hack-hack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,35 +33,63 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag-parameters-inotify_init-fix
+Subject: git-block-hack-hack-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-CONFIG_INOTIFY=n:
+cat Documentation/SubmitChecklist
 
-arch/x86/kernel/built-in.o: In function `sys_call_table':
-: undefined reference to `sys_inotify_init1'
-
-Cc: <linux-arch@vger.kernel.org>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys_ni.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/xen/smp.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN kernel/sys_ni.c~flag-parameters-inotify_init-fix kernel/sys_ni.c
---- a/kernel/sys_ni.c~flag-parameters-inotify_init-fix
-+++ a/kernel/sys_ni.c
-@@ -94,6 +94,7 @@ cond_syscall(sys_keyctl);
- cond_syscall(compat_sys_keyctl);
- cond_syscall(compat_sys_socketcall);
- cond_syscall(sys_inotify_init);
-+cond_syscall(sys_inotify_init1);
- cond_syscall(sys_inotify_add_watch);
- cond_syscall(sys_inotify_rm_watch);
- cond_syscall(sys_migrate_pages);
+diff -puN arch/x86/xen/smp.c~git-block-hack-hack-hack arch/x86/xen/smp.c
+--- a/arch/x86/xen/smp.c~git-block-hack-hack-hack
++++ a/arch/x86/xen/smp.c
+@@ -111,12 +111,16 @@ static int xen_smp_intr_init(unsigned in
+ 	per_cpu(debug_irq, cpu) = rc;
+ 
+ 	callfunc_name = kasprintf(GFP_KERNEL, "callfuncsingle%d", cpu);
++#if 0
+ 	rc = bind_ipi_to_irqhandler(XEN_CALL_FUNCTION_SINGLE_VECTOR,
+ 				    cpu,
+ 				    xen_call_function_single_interrupt,
+ 				    IRQF_DISABLED|IRQF_PERCPU|IRQF_NOBALANCING,
+ 				    callfunc_name,
+ 				    NULL);
++#else
++	BUG();
++#endif
+ 	if (rc < 0)
+ 		goto fail;
+ 	per_cpu(callfuncsingle_irq, cpu) = rc;
+@@ -354,8 +358,11 @@ void xen_smp_send_call_function_ipi(cpum
+ {
+ 	int cpu;
+ 
++#if 0
+ 	xen_send_IPI_mask(mask, XEN_CALL_FUNCTION_VECTOR);
+-
++#else
++	BUG();
++#endif
+ 	/* Make sure other vcpus get a chance to run if they need to. */
+ 	for_each_cpu_mask(cpu, mask) {
+ 		if (xen_vcpu_stolen(cpu)) {
+@@ -367,7 +374,11 @@ void xen_smp_send_call_function_ipi(cpum
+ 
+ void xen_smp_send_call_function_single_ipi(int cpu)
+ {
++#if 0
+ 	xen_send_IPI_mask(cpumask_of_cpu(cpu), XEN_CALL_FUNCTION_SINGLE_VECTOR);
++#else
++	BUG();
++#endif
+ }
+ 
+ static irqreturn_t xen_call_function_interrupt(int irq, void *dev_id)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,6 +127,7 @@ git-battery.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 arch-parisc-kernel-unalignedc-use-time_-macros.patch
 git-block-fix-allnoconfig-build.patch
+git-block-hack-hack-hack.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
 git-logfs-fixup.patch
