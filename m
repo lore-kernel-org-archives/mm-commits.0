@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-infinite-loop-in-filemap_fault.patch added to -mm tree
-Date: Thu, 08 May 2008 12:47:49 -0700
-Message-ID: <200805081947.m48Jlnsx002550@imap1.linux-foundation.org>
+Subject: + rtc-remove-and-clarify-unneeded-externs.patch added to -mm tree
+Date: Thu, 08 May 2008 12:47:13 -0700
+Message-ID: <200805081947.m48JlDLI002523@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37951 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:39452 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751547AbYEHTsZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 15:48:25 -0400
+	by vger.kernel.org with ESMTP id S1752702AbYEHTs0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 15:48:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, npiggin@suse.de
+Cc: crmafra@ift.unesp.br, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     mm: fix infinite loop in filemap_fault
+     rtc: remove and clarify unneeded externs
 has been added to the -mm tree.  Its filename is
-     mm-fix-infinite-loop-in-filemap_fault.patch
+     rtc-remove-and-clarify-unneeded-externs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: fix infinite loop in filemap_fault
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: rtc: remove and clarify unneeded externs
+From: Carlos R. Mafra <crmafra@ift.unesp.br>
 
-filemap_fault will go into an infinite loop if ->readpage() fails
-asynchronously.
+When CONFIG_HPET_EMULATE_RTC is defined the external declaration of
+hpet_rtc_interrupt is redundant due to the inclusion of hpet.h.
 
-AFAICS the bug was introduced by this commit, which removed the wait after the
-final readpage:
+When !CONFIG_HPET_EMULATE_RTC we make it clear that hpet_rtc_interrupt is
+not used by defining it to return zero.
 
-   commit d00806b183152af6d24f46f0c33f14162ca1262a
-   Author: Nick Piggin <npiggin@suse.de>
-   Date:   Thu Jul 19 01:46:57 2007 -0700
-
-       mm: fix fault vs invalidate race for linear mappings
-
-Fix by reintroducing the wait_on_page_locked() after ->readpage() to make sure
-the page is up-to-date before jumping back to the beginning of the function.
-
-I've noticed this while testing nfs exporting on fuse.  The patch
-fixes it.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Carlos R. Mafra <crmafra@ift.unesp.br>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/char/rtc.c     |    2 --
+ drivers/rtc/rtc-cmos.c |    5 ++++-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/filemap.c~mm-fix-infinite-loop-in-filemap_fault mm/filemap.c
---- a/mm/filemap.c~mm-fix-infinite-loop-in-filemap_fault
-+++ a/mm/filemap.c
-@@ -1461,6 +1461,11 @@ page_not_uptodate:
- 	 */
- 	ClearPageError(page);
- 	error = mapping->a_ops->readpage(file, page);
-+	if (!error) {
-+		wait_on_page_locked(page);
-+		if (!PageUptodate(page))
-+			error = -EIO;
-+	}
- 	page_cache_release(page);
+diff -puN drivers/char/rtc.c~rtc-remove-and-clarify-unneeded-externs drivers/char/rtc.c
+--- a/drivers/char/rtc.c~rtc-remove-and-clarify-unneeded-externs
++++ a/drivers/char/rtc.c
+@@ -119,8 +119,6 @@ static irqreturn_t hpet_rtc_interrupt(in
+ 	return 0;
+ }
+ #endif
+-#else
+-extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
+ #endif
  
- 	if (!error || error == AOP_TRUNCATED_PAGE)
+ /*
+diff -puN drivers/rtc/rtc-cmos.c~rtc-remove-and-clarify-unneeded-externs drivers/rtc/rtc-cmos.c
+--- a/drivers/rtc/rtc-cmos.c~rtc-remove-and-clarify-unneeded-externs
++++ a/drivers/rtc/rtc-cmos.c
+@@ -52,7 +52,10 @@
+ #define hpet_rtc_timer_init() 			do { } while (0)
+ #define hpet_register_irq_handler(h) 		0
+ #define hpet_unregister_irq_handler(h)		do { } while (0)
+-extern irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id);
++static irqreturn_t hpet_rtc_interrupt(int irq, void *dev_id)
++{
++	return 0;
++}
+ #endif
+ 
+ struct cmos_rtc {
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from crmafra@ift.unesp.br are
 
-ecryptfs-clean-up-unlock_parent.patch
-git-block.patch
-git-vfs-cleanups.patch
-mm-fix-infinite-loop-in-filemap_fault.patch
+rtc-remove-and-clarify-unneeded-externs.patch
 
