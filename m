@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + common-implementation-of-iterative-div-mod-fix-2.patch added to -mm tree
-Date: Thu, 08 May 2008 16:36:59 -0700
-Message-ID: <200805082347.m48Nlseh012291@imap1.linux-foundation.org>
+Subject: + page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch added to -mm tree
+Date: Thu, 08 May 2008 16:45:43 -0700
+Message-ID: <200805082356.m48NuclQ012631@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58331 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45296 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750985AbYEHXtS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 19:49:18 -0400
+	by vger.kernel.org with ESMTP id S1750836AbYEHX52 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 19:57:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, hancockr@shaw.ca, jeremy.fitzhardinge@citrix.com, jeremy@goop.org, johnstul@us.ibm.com, lists@nerdbynature.de, mingo@elte.hu, segher@kernel.crashing.org, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, kosaki.motohiro@jp.fujitsu.com, lee.schermerhorn@hp.com, mel@csn.ul.ie
 
 
 The patch titled
-     common-implementation-of-iterative-div-mod-fix-2
+     page-allocator-inlnie-some-__alloc_pages-wrappers-fix
 has been added to the -mm tree.  Its filename is
-     common-implementation-of-iterative-div-mod-fix-2.patch
+     page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,45 +33,49 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: common-implementation-of-iterative-div-mod-fix-2
+Subject: page-allocator-inlnie-some-__alloc_pages-wrappers-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fix headers_check.
+ERROR: "__alloc_pages_internal" [net/sunrpc/xprtrdma/svcrdma.ko] undefined!
+ERROR: "__alloc_pages_internal" [net/sunrpc/sunrpc.ko] undefined!
+ERROR: "__alloc_pages_internal" [net/sunrpc/auth_gss/auth_rpcgss.ko] undefined!
+ERROR: "__alloc_pages_internal" [net/ipv6/ipv6.ko] undefined!
+ERROR: "__alloc_pages_internal" [net/core/pktgen.ko] undefined!
+ERROR: "__alloc_pages_internal" [fs/xfs/xfs.ko] undefined!
+ERROR: "__alloc_pages_internal" [fs/reiser4/reiser4.ko] undefined!
+ERROR: "__alloc_pages_internal" [fs/ocfs2/cluster/ocfs2_nodemanager.ko] undefined!
+ERROR: "__alloc_pages_internal" [fs/ntfs/ntfs.ko] undefined!
+ERROR: "__alloc_pages_internal" [fs/nfs/nfs.ko] undefined!
+ERROR: "__alloc_pages_internal" [fs/ncpfs/ncpfs.ko] undefined!
+ERROR: "__alloc_pages_internal" [fs/isofs/isofs.ko] undefined!
+ERROR: "__alloc_pages_internal" [fs/gfs2/gfs2.ko] undefined!
+ERROR: "__alloc_pages_internal" [fs/fuse/fuse.ko] undefined!
+ERROR: "__alloc_pages_internal" [fs/dlm/dlm.ko] undefined!
+ERROR: "__alloc_pages_internal" [drivers/virtio/virtio_balloon.ko] undefined!
+ERROR: "__alloc_pages_internal" [drivers/scsi/st.ko] undefined!
+ERROR: "__alloc_pages_internal" [drivers/scsi/sg.ko] undefined!
+...
 
-Cc: Christian Kujau <lists@nerdbynature.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
-Cc: Jeremy Fitzhardinge <jeremy@goop.org>
-Cc: Robert Hancock <hancockr@shaw.ca>
-Cc: Segher Boessenkool <segher@kernel.crashing.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: john stultz <johnstul@us.ibm.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- div64.c              |    0 
- include/linux/time.h |    2 +-
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/xen/time.c~common-implementation-of-iterative-div-mod-fix-2 arch/x86/xen/time.c
-diff -puN include/linux/math64.h~common-implementation-of-iterative-div-mod-fix-2 include/linux/math64.h
-diff -puN include/linux/time.h~common-implementation-of-iterative-div-mod-fix-2 include/linux/time.h
---- a/include/linux/time.h~common-implementation-of-iterative-div-mod-fix-2
-+++ a/include/linux/time.h
-@@ -2,11 +2,11 @@
- #define _LINUX_TIME_H
+diff -puN mm/page_alloc.c~page-allocator-inlnie-some-__alloc_pages-wrappers-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~page-allocator-inlnie-some-__alloc_pages-wrappers-fix
++++ a/mm/page_alloc.c
+@@ -1657,6 +1657,7 @@ nopage:
+ got_pg:
+ 	return page;
+ }
++EXPORT_SYMBOL(__alloc_pages_internal);
  
- #include <linux/types.h>
--#include <linux/math64.h>
- 
- #ifdef __KERNEL__
- # include <linux/cache.h>
- # include <linux/seqlock.h>
-+# include <linux/math64.h>
- #endif
- 
- #ifndef _STRUCT_TIMESPEC
-diff -puN lib/div64.c~common-implementation-of-iterative-div-mod-fix-2 lib/div64.c
+ /*
+  * Common helper functions.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -134,6 +138,7 @@ common-implementation-of-iterative-div-mod-fix.patch
 common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
 common-implementation-of-iterative-div-mod-fix-2.patch
 colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
