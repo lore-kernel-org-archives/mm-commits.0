@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fs-binfmt_scriptc-fix-resource-leaks.patch added to -mm tree
-Date: Thu, 08 May 2008 13:22:13 -0700
-Message-ID: <200805082022.m48KMDen004013@imap1.linux-foundation.org>
+Subject: + fs-binfmt_miscc-fix-resource-leaks.patch added to -mm tree
+Date: Thu, 08 May 2008 13:22:17 -0700
+Message-ID: <200805082022.m48KMHBn004019@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51324 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57027 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754811AbYEHUWq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:22:46 -0400
+	by vger.kernel.org with ESMTP id S1757348AbYEHUWs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:22:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: xiyou.wangcong@gmail.com, wangcong@zeuux.org
 
 
 The patch titled
-     fs/binfmt_script.c: fix resource leaks
+     fs/binfmt_misc.c: fix resource leaks
 has been added to the -mm tree.  Its filename is
-     fs-binfmt_scriptc-fix-resource-leaks.patch
+     fs-binfmt_miscc-fix-resource-leaks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,7 +33,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/binfmt_script.c: fix resource leaks
+Subject: fs/binfmt_misc.c: fix resource leaks
 From: WANG Cong <xiyou.wangcong@gmail.com>
 
 ->load_binary()'s caller only frees resources which ->load_binary() applied
@@ -44,59 +44,55 @@ Signed-off-by: WANG Cong <wangcong@zeuux.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_script.c |   26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+ fs/binfmt_misc.c |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN fs/binfmt_script.c~fs-binfmt_scriptc-fix-resource-leaks fs/binfmt_script.c
---- a/fs/binfmt_script.c~fs-binfmt_scriptc-fix-resource-leaks
-+++ a/fs/binfmt_script.c
-@@ -75,11 +75,13 @@ static int load_script(struct linux_binp
- 	bprm->argc++;
- 	if (i_arg) {
- 		retval = copy_strings_kernel(1, &i_arg, bprm);
--		if (retval < 0) return retval; 
-+		if (retval < 0)
-+			goto out;
- 		bprm->argc++;
- 	}
- 	retval = copy_strings_kernel(1, &i_name, bprm);
--	if (retval) return retval; 
-+	if (retval)
-+		goto out;
- 	bprm->argc++;
- 	bprm->interp = interp;
+diff -puN fs/binfmt_misc.c~fs-binfmt_miscc-fix-resource-leaks fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~fs-binfmt_miscc-fix-resource-leaks
++++ a/fs/binfmt_misc.c
+@@ -174,7 +174,7 @@ static int load_misc_binary(struct linux
+ 	/* add the interp as argv[0] */
+ 	retval = copy_strings_kernel (1, &iname_addr, bprm);
+ 	if (retval < 0)
+-		goto _error;
++		goto _error_free;
+ 	bprm->argc ++;
  
-@@ -87,14 +89,26 @@ static int load_script(struct linux_binp
- 	 * OK, now restart the process with the interpreter's dentry.
- 	 */
- 	file = open_exec(interp);
--	if (IS_ERR(file))
--		return PTR_ERR(file);
-+	if (IS_ERR(file)) {
-+		retval = PTR_ERR(file);
-+		goto out;
-+	}
+ 	bprm->interp = iname;	/* for binfmt_script */
+@@ -182,7 +182,7 @@ static int load_misc_binary(struct linux
+ 	interp_file = open_exec (iname);
+ 	retval = PTR_ERR (interp_file);
+ 	if (IS_ERR (interp_file))
+-		goto _error;
++		goto _error_free;
  
- 	bprm->file = file;
- 	retval = prepare_binprm(bprm);
--	if (retval < 0)
--		return retval;
-+	if (retval < 0) {
-+		if (bprm->file) {
-+			allow_write_access(bprm->file);
-+			fput(bprm->file);
-+		}
-+		goto out;
-+	}
+ 	bprm->file = interp_file;
+ 	if (fmt->flags & MISC_FMT_CREDENTIALS) {
+@@ -196,14 +196,22 @@ static int load_misc_binary(struct linux
+ 		retval = prepare_binprm (bprm);
+ 
+ 	if (retval < 0)
+-		goto _error;
++		goto _error_file;
+ 
+ 	retval = search_binary_handler (bprm, regs);
+ 	if (retval < 0)
+-		goto _error;
++		goto _error_file;
+ 
+ _ret:
+ 	return retval;
 +
- 	return search_binary_handler(bprm,regs);
++_error_file:
++	allow_write_access(bprm->file);
++	fput(bprm->file);
 +
-+out:
++_error_free:
 +	free_arg_pages(bprm);
-+	return retval;
- }
- 
- static struct linux_binfmt script_format = {
++
+ _error:
+ 	if (fd_binary > 0)
+ 		sys_close(fd_binary);
 _
 
 Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
