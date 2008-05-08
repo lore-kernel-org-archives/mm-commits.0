@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + reiser4-semaphore-fix.patch added to -mm tree
-Date: Thu, 08 May 2008 16:06:38 -0700
-Message-ID: <200805082317.m48NHXQU011094@imap1.linux-foundation.org>
+Subject: + unionfs-broke.patch added to -mm tree
+Date: Thu, 08 May 2008 16:07:36 -0700
+Message-ID: <200805082318.m48NIVdf011116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59483 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40696 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752867AbYEHXSH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 19:18:07 -0400
+	by vger.kernel.org with ESMTP id S1762132AbYEHXTJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 19:19:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, edward.shishkin@gmail.com
+Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu
 
 
 The patch titled
-     reiser4-semaphore-fix
+     unionfs-broke
 has been added to the -mm tree.  Its filename is
-     reiser4-semaphore-fix.patch
+     unionfs-broke.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,36 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiser4-semaphore-fix
+Subject: unionfs-broke
 From: Andrew Morton <akpm@linux-foundation.org>
 
-In file included from fs/reiser4/znode.h:23,
-                 from fs/reiser4/tree.h:14,
-                 from fs/reiser4/super.h:11,
-                 from fs/reiser4/debug.c:28:
-include/asm/semaphore.h:1:2: warning: #warning Use linux/semaphore.h, not asm/semaphore.h
+fs/unionfs/super.c: In function 'unionfs_umount_begin':
+fs/unionfs/super.c:989: warning: passing argument 1 of 'lower_sb->s_op->umount_begin' from incompatible pointer type
+fs/unionfs/super.c:989: error: too many arguments to function 'lower_sb->s_op->umount_begin'
+fs/unionfs/super.c: At top level:
+fs/unionfs/super.c:1052: warning: initialization from incompatible pointer type
 
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiser4/znode.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/reiser4/znode.h~reiser4-semaphore-fix fs/reiser4/znode.h
---- a/fs/reiser4/znode.h~reiser4-semaphore-fix
-+++ a/fs/reiser4/znode.h
-@@ -18,9 +18,9 @@
- 
- #include <linux/types.h>
- #include <linux/spinlock.h>
-+#include <linux/semaphore.h>
- #include <linux/pagemap.h>	/* for PAGE_CACHE_SIZE */
- #include <asm/atomic.h>
--#include <asm/semaphore.h>
- 
- /* znode tracks its position within parent (internal item in a parent node,
-  * that contains znode's block number). */
+diff -puN fs/Kconfig~unionfs-broke fs/Kconfig
+--- a/fs/Kconfig~unionfs-broke
++++ a/fs/Kconfig
+@@ -1051,6 +1051,7 @@ config ECRYPT_FS
+ config UNION_FS
+ 	tristate "Union file system (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
++	depends on BROKEN
+ 	help
+ 	  Unionfs is a stackable unification file system, which appears to
+ 	  merge the contents of several directories (branches), while keeping
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -136,6 +133,7 @@ drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-check
 reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
 documentation-build-source-files-in-documentation-sub-dir-disable.patch
 reiser4.patch
+reiser4-semaphore-fix.patch
 page-owner-tracking-leak-detector.patch
 nr_blockdev_pages-in_interrupt-warning.patch
 slab-leaks3-default-y.patch
@@ -148,5 +146,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-reiser4-semaphore-fix.patch
+unionfs-broke.patch
 
