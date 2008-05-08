@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fs-compatc-fix-resource-leaks-and-wrong-gotos.patch added to -mm tree
-Date: Thu, 08 May 2008 13:22:11 -0700
-Message-ID: <200805082022.m48KMB49004010@imap1.linux-foundation.org>
+Subject: + fs-binfmt_elfc-fix-wrong-return-values.patch added to -mm tree
+Date: Thu, 08 May 2008 13:22:21 -0700
+Message-ID: <200805082022.m48KML6A004047@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38639 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58567 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756944AbYEHUWn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:22:43 -0400
+	by vger.kernel.org with ESMTP id S1756883AbYEHUWv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:22:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: xiyou.wangcong@gmail.com, viro@zeniv.linux.org.uk, wangcong@zeuux.org
 
 
 The patch titled
-     fs/compat.c: fix resource leaks and wrong goto's
+     fs/binfmt_elf.c: fix wrong return values
 has been added to the -mm tree.  Its filename is
-     fs-compatc-fix-resource-leaks-and-wrong-gotos.patch
+     fs-binfmt_elfc-fix-wrong-return-values.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,60 +33,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/compat.c: fix resource leaks and wrong goto's
+Subject: fs/binfmt_elf.c: fix wrong return values
 From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Use free_arg_pages() to free the pages allocated by copy_strings_kernel() on
-failure.  And fix some related wrong goto pathes.
+create_elf_tables() returns 0 on success.  But when strnlen_user() "fails", it
+returns 0 directly.  So this is wrong.
 
 Signed-off-by: WANG Cong <wangcong@zeuux.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/compat.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ fs/binfmt_elf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/compat.c~fs-compatc-fix-resource-leaks-and-wrong-gotos fs/compat.c
---- a/fs/compat.c~fs-compatc-fix-resource-leaks-and-wrong-gotos
-+++ a/fs/compat.c
-@@ -1381,15 +1381,15 @@ int compat_do_execve(char * filename,
- 
- 	retval = security_bprm_alloc(bprm);
- 	if (retval)
--		goto out;
-+		goto out_mm;
- 
- 	retval = prepare_binprm(bprm);
- 	if (retval < 0)
--		goto out;
-+		goto out_sec;
- 
- 	retval = copy_strings_kernel(1, &bprm->filename, bprm);
- 	if (retval < 0)
--		goto out;
-+		goto out_sec;
- 
- 	bprm->exec = bprm->p;
- 	retval = compat_copy_strings(bprm->envc, envp, bprm);
-@@ -1403,6 +1403,7 @@ int compat_do_execve(char * filename,
- 	retval = search_binary_handler(bprm, regs);
- 	if (retval >= 0) {
- 		/* execve success */
-+		free_arg_pages(bprm);
- 		security_bprm_free(bprm);
- 		acct_update_integrals(current);
- 		kfree(bprm);
-@@ -1410,6 +1411,9 @@ int compat_do_execve(char * filename,
+diff -puN fs/binfmt_elf.c~fs-binfmt_elfc-fix-wrong-return-values fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~fs-binfmt_elfc-fix-wrong-return-values
++++ a/fs/binfmt_elf.c
+@@ -257,7 +257,7 @@ create_elf_tables(struct linux_binprm *b
+ 			return -EFAULT;
+ 		len = strnlen_user((void __user *)p, MAX_ARG_STRLEN);
+ 		if (!len || len > MAX_ARG_STRLEN)
+-			return 0;
++			return -EINVAL;
+ 		p += len;
  	}
- 
- out:
-+	free_arg_pages(bprm);
-+
-+out_sec:
- 	if (bprm->security)
- 		security_bprm_free(bprm);
- 
+ 	if (__put_user(0, argv))
+@@ -269,7 +269,7 @@ create_elf_tables(struct linux_binprm *b
+ 			return -EFAULT;
+ 		len = strnlen_user((void __user *)p, MAX_ARG_STRLEN);
+ 		if (!len || len > MAX_ARG_STRLEN)
+-			return 0;
++			return -EINVAL;
+ 		p += len;
+ 	}
+ 	if (__put_user(0, envp))
 _
 
 Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
