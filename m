@@ -1,62 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: + git-logfs-fixup.patch added to -mm tree
-Date: Thu, 08 May 2008 12:12:40 -0700
-Message-ID: <200805081912.m48JCepG001128@imap1.linux-foundation.org>
+Subject: - pci-export-resource_wc-in-pci-sysfs-fix.patch removed from -mm tree
+Date: Thu, 08 May 2008 12:16:26 -0700
+Message-ID: <200805081916.m48JGQV7001245@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45609 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54277 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758893AbYEHTN3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 15:13:29 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m48JCe1B010920
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Thu, 8 May 2008 12:12:41 -0700
+	by vger.kernel.org with ESMTP id S1758051AbYEHTQx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 15:16:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, jbarnes@virtuousgeek.org, mingo@elte.hu, suresh.b.siddha@intel.com, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-logfs-fixup
-has been added to the -mm tree.  Its filename is
-     git-logfs-fixup.patch
+     pci-export-resource_wc-in-pci-sysfs-fix
+has been removed from the -mm tree.  Its filename was
+     pci-export-resource_wc-in-pci-sysfs-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-logfs-fixup
+Subject: pci-export-resource_wc-in-pci-sysfs-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
+use GFP_KERNEL
+
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Suresh Siddha <suresh.b.siddha@intel.com>
+Cc: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Makefile |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/pci/pci-sysfs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/Makefile~git-logfs-fixup fs/Makefile
---- a/fs/Makefile~git-logfs-fixup
-+++ a/fs/Makefile
-@@ -106,6 +106,7 @@ obj-$(CONFIG_AFFS_FS)		+= affs/
- obj-$(CONFIG_ROMFS_FS)		+= romfs/
- obj-$(CONFIG_QNX4FS_FS)		+= qnx4/
- obj-$(CONFIG_AUTOFS_FS)		+= autofs/
-+obj-$(CONFIG_LOGFS)		+= logfs/
- obj-$(CONFIG_AUTOFS4_FS)	+= autofs4/
- obj-$(CONFIG_ADFS_FS)		+= adfs/
- obj-$(CONFIG_FUSE_FS)		+= fuse/
+diff -puN drivers/pci/pci-sysfs.c~pci-export-resource_wc-in-pci-sysfs-fix drivers/pci/pci-sysfs.c
+--- a/drivers/pci/pci-sysfs.c~pci-export-resource_wc-in-pci-sysfs-fix
++++ a/drivers/pci/pci-sysfs.c
+@@ -572,7 +572,7 @@ static int pci_create_attr(struct pci_de
+ 	struct bin_attribute *res_attr;
+ 	int retval;
+ 
+-	res_attr = kzalloc(sizeof(*res_attr) + name_len, GFP_ATOMIC);
++	res_attr = kzalloc(sizeof(*res_attr) + name_len, GFP_KERNEL);
+ 	if (res_attr) {
+ 		char *res_attr_name = (char *)(res_attr + 1);
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
