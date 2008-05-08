@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + logfs-unbork.patch added to -mm tree
-Date: Thu, 08 May 2008 15:29:36 -0700
-Message-ID: <200805082240.m48MeVCg009522@imap1.linux-foundation.org>
+Subject: + drivers-usb-core-sysfsc-fix-types.patch added to -mm tree
+Date: Thu, 08 May 2008 15:31:58 -0700
+Message-ID: <200805082242.m48MgrJH009658@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37657 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52287 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753325AbYEHWlO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:41:14 -0400
+	by vger.kernel.org with ESMTP id S1753859AbYEHWnX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:43:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, joern@logfs.org
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     logfs-unbork
+     drivers/usb/core/sysfs.c: fix types
 has been added to the -mm tree.  Its filename is
-     logfs-unbork.patch
+     drivers-usb-core-sysfsc-fix-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,27 +33,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: logfs-unbork
+Subject: drivers/usb/core/sysfs.c: fix types
 From: Andrew Morton <akpm@linux-foundation.org>
 
-eh?
+Fixes something which is in linux-next.
 
-Cc: Joern Engel <joern@logfs.org>
+drivers/usb/core/sysfs.c:573: warning: initialization from incompatible pointer type
+drivers/usb/core/sysfs.c:783: warning: initialization from incompatible pointer type
+
+All I did was run i386 allmodconfig :(
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/logfs/logfs.h |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/usb/core/sysfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/logfs/logfs.h~logfs-unbork fs/logfs/logfs.h
---- a/fs/logfs/logfs.h~logfs-unbork
-+++ a/fs/logfs/logfs.h
-@@ -552,3 +552,5 @@ static inline struct logfs_block *logfs_
+diff -puN drivers/usb/core/sysfs.c~drivers-usb-core-sysfsc-fix-types drivers/usb/core/sysfs.c
+--- a/drivers/usb/core/sysfs.c~drivers-usb-core-sysfsc-fix-types
++++ a/drivers/usb/core/sysfs.c
+@@ -551,7 +551,7 @@ static struct attribute *dev_string_attr
+ 	NULL
+ };
+ 
+-static int dev_string_attrs_are_visible(struct kobject *kobj,
++static mode_t dev_string_attrs_are_visible(struct kobject *kobj,
+ 		struct attribute *a, int n)
  {
- 	return (void *)page->private;
- }
-+
-+#endif	/* FS_LOGFS_LOGFS_H */
+ 	struct usb_device *udev = to_usb_device(
+@@ -769,7 +769,7 @@ static struct attribute *intf_assoc_attr
+ 	NULL,
+ };
+ 
+-static int intf_assoc_attrs_are_visible(struct kobject *kobj,
++static mode_t intf_assoc_attrs_are_visible(struct kobject *kobj,
+ 		struct attribute *a, int n)
+ {
+ 	struct usb_interface *intf = to_usb_interface(
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,6 +112,7 @@ revert-git-block.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
 git-logfs-fixup.patch
+logfs-unbork.patch
 git-v9fs.patch
 git-watchdog.patch
 git-watchdog-git-rejects.patch
@@ -131,5 +149,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-logfs-unbork.patch
+drivers-usb-core-sysfsc-fix-types.patch
 
