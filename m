@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + fs-execc-fix-resource-leaks-and-wrong-gotos.patch added to -mm tree
-Date: Thu, 08 May 2008 13:22:09 -0700
-Message-ID: <200805082022.m48KM9hD004007@imap1.linux-foundation.org>
+Subject: + fs-compatc-fix-resource-leaks-and-wrong-gotos.patch added to -mm tree
+Date: Thu, 08 May 2008 13:22:11 -0700
+Message-ID: <200805082022.m48KMB49004010@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37128 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38639 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756944AbYEHUWl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:22:41 -0400
+	by vger.kernel.org with ESMTP id S1756944AbYEHUWn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:22:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: xiyou.wangcong@gmail.com, viro@zeniv.linux.org.uk, wangcong@zeuux.org
 
 
 The patch titled
-     fs/exec.c: fix resource leaks and wrong goto's
+     fs/compat.c: fix resource leaks and wrong goto's
 has been added to the -mm tree.  Its filename is
-     fs-execc-fix-resource-leaks-and-wrong-gotos.patch
+     fs-compatc-fix-resource-leaks-and-wrong-gotos.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,24 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/exec.c: fix resource leaks and wrong goto's
+Subject: fs/compat.c: fix resource leaks and wrong goto's
 From: WANG Cong <xiyou.wangcong@gmail.com>
 
-When ->load_binary() successed, free_arg_pages() should be called to clean the
-pages allocated by copy_strings_kernel() within it.
-
-And also fixes some wrong goto pathes.
+Use free_arg_pages() to free the pages allocated by copy_strings_kernel() on
+failure.  And fix some related wrong goto pathes.
 
 Signed-off-by: WANG Cong <wangcong@zeuux.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/compat.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN fs/exec.c~fs-execc-fix-resource-leaks-and-wrong-gotos fs/exec.c
---- a/fs/exec.c~fs-execc-fix-resource-leaks-and-wrong-gotos
-+++ a/fs/exec.c
-@@ -1220,6 +1220,7 @@ int search_binary_handler(struct linux_b
- 				if (bprm->file)
- 					fput(bprm->file);
- 				bprm->file = NULL;
-+				free_arg_pages(bprm);
- 				current->did_exec = 1;
- 				proc_exec_connector(current);
- 				return retval;
-@@ -1300,15 +1301,15 @@ int do_execve(char * filename,
+diff -puN fs/compat.c~fs-compatc-fix-resource-leaks-and-wrong-gotos fs/compat.c
+--- a/fs/compat.c~fs-compatc-fix-resource-leaks-and-wrong-gotos
++++ a/fs/compat.c
+@@ -1381,15 +1381,15 @@ int compat_do_execve(char * filename,
  
  	retval = security_bprm_alloc(bprm);
  	if (retval)
@@ -78,11 +68,20 @@ diff -puN fs/exec.c~fs-execc-fix-resource-leaks-and-wrong-gotos fs/exec.c
 +		goto out_sec;
  
  	bprm->exec = bprm->p;
- 	retval = copy_strings(bprm->envc, envp, bprm);
-@@ -1333,6 +1334,8 @@ int do_execve(char * filename,
+ 	retval = compat_copy_strings(bprm->envc, envp, bprm);
+@@ -1403,6 +1403,7 @@ int compat_do_execve(char * filename,
+ 	retval = search_binary_handler(bprm, regs);
+ 	if (retval >= 0) {
+ 		/* execve success */
++		free_arg_pages(bprm);
+ 		security_bprm_free(bprm);
+ 		acct_update_integrals(current);
+ 		kfree(bprm);
+@@ -1410,6 +1411,9 @@ int compat_do_execve(char * filename,
+ 	}
  
  out:
- 	free_arg_pages(bprm);
++	free_arg_pages(bprm);
 +
 +out_sec:
  	if (bprm->security)
