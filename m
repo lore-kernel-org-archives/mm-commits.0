@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fix-allnoconfig-build.patch added to -mm tree
-Date: Thu, 08 May 2008 14:26:22 -0700
-Message-ID: <200805082137.m48LbGI0007047@imap1.linux-foundation.org>
+Subject: + flag-parameters-inotify_init-fix.patch added to -mm tree
+Date: Thu, 08 May 2008 14:41:55 -0700
+Message-ID: <200805082152.m48LqoWh007690__2288.71960794113$1210283687$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39697 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57508 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758866AbYEHVrP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 17:47:15 -0400
+	by vger.kernel.org with ESMTP id S1762369AbYEHVxh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 17:53:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, linux-arch@vger.kernel.org, mtk.manpages@googlemail.com
 
 
 The patch titled
-     git-block: fix allnoconfig build
+     flag-parameters-inotify_init-fix
 has been added to the -mm tree.  Its filename is
-     git-block-fix-allnoconfig-build.patch
+     flag-parameters-inotify_init-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,55 +33,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block: fix allnoconfig build
+Subject: flag-parameters-inotify_init-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-init/main.c: In function 'do_pre_smp_initcalls':
-init/main.c:776: error: implicit declaration of function 'init_call_single_data'
+CONFIG_INOTIFY=n:
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+arch/x86/kernel/built-in.o: In function `sys_call_table':
+: undefined reference to `sys_inotify_init1'
+
+Cc: <linux-arch@vger.kernel.org>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    7 +++----
- init/main.c         |    1 +
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/sys_ni.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN init/main.c~git-block-fix-allnoconfig-build init/main.c
---- a/init/main.c~git-block-fix-allnoconfig-build
-+++ a/init/main.c
-@@ -31,6 +31,7 @@
- #include <linux/kernel_stat.h>
- #include <linux/start_kernel.h>
- #include <linux/security.h>
-+#include <linux/smp.h>
- #include <linux/workqueue.h>
- #include <linux/profile.h>
- #include <linux/rcupdate.h>
-diff -puN include/linux/smp.h~git-block-fix-allnoconfig-build include/linux/smp.h
---- a/include/linux/smp.h~git-block-fix-allnoconfig-build
-+++ a/include/linux/smp.h
-@@ -79,10 +79,6 @@ void init_call_single_data(void);
- void arch_send_call_function_single_ipi(int cpu);
- void arch_send_call_function_ipi(cpumask_t mask);
- extern spinlock_t call_function_lock;
--#else
--static inline void init_call_single_data(void)
--{
--}
- #endif
- 
- /*
-@@ -140,6 +136,9 @@ static inline void smp_send_reschedule(i
- })
- #define smp_call_function_mask(mask, func, info, wait) \
- 			(up_smp_call_function(func, info))
-+static inline void init_call_single_data(void)
-+{
-+}
- #endif /* !SMP */
- 
- /*
+diff -puN kernel/sys_ni.c~flag-parameters-inotify_init-fix kernel/sys_ni.c
+--- a/kernel/sys_ni.c~flag-parameters-inotify_init-fix
++++ a/kernel/sys_ni.c
+@@ -94,6 +94,7 @@ cond_syscall(sys_keyctl);
+ cond_syscall(compat_sys_keyctl);
+ cond_syscall(compat_sys_socketcall);
+ cond_syscall(sys_inotify_init);
++cond_syscall(sys_inotify_init1);
+ cond_syscall(sys_inotify_add_watch);
+ cond_syscall(sys_inotify_rm_watch);
+ cond_syscall(sys_migrate_pages);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,6 +118,7 @@ locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.
 remove-apparently-unused-fd1772h-header-file.patch
 lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-inotify_init-fix.patch
 hysdn-no-longer-broken-on-smp.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
 reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
