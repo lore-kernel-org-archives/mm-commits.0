@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + flag-parameters-paccept-fix.patch added to -mm tree
-Date: Thu, 08 May 2008 15:43:21 -0700
-Message-ID: <200805082254.m48MsGcK010079@imap1.linux-foundation.org>
+Subject: + rename-warn-to-warning-to-clear-the-namespace-fix.patch added to -mm tree
+Date: Thu, 08 May 2008 15:53:38 -0700
+Message-ID: <200805082304.m48N4XeI010525@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54575 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59770 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762601AbYEHWyi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:54:38 -0400
+	by vger.kernel.org with ESMTP id S1758563AbYEHXEk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 19:04:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com, roland@redhat.com
+Cc: akpm@linux-foundation.org, arjan@linux.intel.com, greg@kroah.com, kkeil@suse.de
 
 
 The patch titled
-     flag-parameters-paccept-fix
+     rename-warn-to-warning-to-clear-the-namespace-fix
 has been added to the -mm tree.  Its filename is
-     flag-parameters-paccept-fix.patch
+     rename-warn-to-warning-to-clear-the-namespace-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,54 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag-parameters-paccept-fix
+Subject: rename-warn-to-warning-to-clear-the-namespace-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Make it compile...
-
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
-Cc: Roland McGrath <roland@redhat.com>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Karsten Keil <kkeil@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/compat.c |    2 +-
- net/socket.c |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/usb/gadget/printer.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/compat.c~flag-parameters-paccept-fix net/compat.c
---- a/net/compat.c~flag-parameters-paccept-fix
-+++ a/net/compat.c
-@@ -769,7 +769,7 @@ asmlinkage long compat_sys_paccept(int f
- 		if (sigmask) {
- 			memcpy(&current->saved_sigmask, &sigsaved,
- 			       sizeof(sigsaved));
--			set_thread_flag(TIF_RESTORE_SIGMASK);
-+			set_restore_sigmask();
- 		}
- 	} else if (sigmask)
- 		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
-diff -puN net/socket.c~flag-parameters-paccept-fix net/socket.c
---- a/net/socket.c~flag-parameters-paccept-fix
-+++ a/net/socket.c
-@@ -63,6 +63,7 @@
- #include <linux/file.h>
- #include <linux/net.h>
- #include <linux/interrupt.h>
-+#include <linux/thread_info.h>
- #include <linux/rcupdate.h>
- #include <linux/netdevice.h>
- #include <linux/proc_fs.h>
-@@ -1523,7 +1524,7 @@ asmlinkage long sys_paccept(int fd, stru
- 		if (sigmask) {
- 			memcpy(&current->saved_sigmask, &sigsaved,
- 			       sizeof(sigsaved));
--			set_thread_flag(TIF_RESTORE_SIGMASK);
-+			set_restore_sigmask();
- 		}
- 	} else if (sigmask)
- 		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
+diff -puN drivers/usb/gadget/printer.c~rename-warn-to-warning-to-clear-the-namespace-fix drivers/usb/gadget/printer.c
+--- a/drivers/usb/gadget/printer.c~rename-warn-to-warning-to-clear-the-namespace-fix
++++ a/drivers/usb/gadget/printer.c
+@@ -179,7 +179,7 @@ module_param(qlen, uint, S_IRUGO|S_IWUSR
+ 
+ #define ERROR(dev, fmt, args...) \
+ 	xprintk(dev, KERN_ERR, fmt, ## args)
+-#define WARN(dev, fmt, args...) \
++#define WARNING(dev, fmt, args...) \
+ 	xprintk(dev, KERN_WARNING, fmt, ## args)
+ #define INFO(dev, fmt, args...) \
+ 	xprintk(dev, KERN_INFO, fmt, ## args)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -143,6 +119,7 @@ vm-dont-run-touch_buffer-during-buffercache-lookups.patch
 locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
 remove-apparently-unused-fd1772h-header-file.patch
 lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
 flag-parameters-paccept-fix.patch
 flag-parameters-anon_inode_getfd-extension-fix.patch
@@ -164,4 +141,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+a.patch
 
