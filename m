@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-hack-hack-hack.patch added to -mm tree
-Date: Thu, 08 May 2008 14:47:08 -0700
-Message-ID: <200805082158.m48Lw24j007892@imap1.linux-foundation.org>
+Subject: + fix-kobject_rename-and-config_sysfs.patch added to -mm tree
+Date: Thu, 08 May 2008 15:00:24 -0700
+Message-ID: <200805082200.m48M0PnF007960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40308 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757551AbYEHV67 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 17:58:59 -0400
+	by vger.kernel.org with ESMTP id S933415AbYEHWBl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:01:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+Cc: ebiederm@xmission.com, benjamin.thery@bull.net, dlezcano@fr.ibm.com, gregkh@suse.de, htejun@gmail.com, kay.sievers@vrfy.org, serue@us.ibm.com, viro@ftp.linux.org.uk, xemul@openvz.org
 
 
 The patch titled
-     git-block-hack-hack-hack
+     Fix kobject_rename and !CONFIG_SYSFS
 has been added to the -mm tree.  Its filename is
-     git-block-hack-hack-hack.patch
+     fix-kobject_rename-and-config_sysfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,136 +33,125 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block-hack-hack-hack
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Fix kobject_rename and !CONFIG_SYSFS
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-cat Documentation/SubmitChecklist
+When looking at kobject_rename I found two bugs with that exist when sysfs
+support is disabled in the kernel.
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+kobject_rename does not change the name on the kobject when sysfs support is
+not compiled in.
+
+kobject_rename without locking attempts to check the validity of a rename
+operation, which the kobject layer simply does not have the infrastructure to
+do so.
+
+This patch documents the previously unstated requirement of kobject_rename
+that is the responsibility of the caller to provide mutual exclusion and to be
+certain that the new_name for the kobject is valid.
+
+This patch modifies sysfs_rename_dir in !CONFIG_SYSFS case to call
+kobject_set_name to actually change the kobject_name.
+
+This patch removes the bogus and misleading check in kobject_rename that
+attempts to see if a rename is valid.  The check is bogus because we do not
+have the proper locking.  The check is misleading because it looks like we can
+and do perform useful checking at the kobject level that we don't.
+
+The users in net/core/dev.c already have all of the necessary checks in place
+and don't care.  The other use in net/core/wireless.c as originally
+implemented is incorrect because it performs no locking and a simple patch has
+been sent that adds the necessary locking and sanity checks there.  Ensuring
+this patch will not have an effect on users of kobject_rename or
+device_rename.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Benjamin Thery <benjamin.thery@bull.net>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Al Viro <viro@ftp.linux.org.uk>
+Cc: Daniel Lezcano <dlezcano@fr.ibm.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/smp.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ Documentation/kobject.txt |    4 ++++
+ drivers/base/core.c       |    5 +++++
+ include/linux/sysfs.h     |    2 +-
+ lib/kobject.c             |   18 +++++-------------
+ 4 files changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN arch/x86/xen/smp.c~git-block-hack-hack-hack arch/x86/xen/smp.c
---- a/arch/x86/xen/smp.c~git-block-hack-hack-hack
-+++ a/arch/x86/xen/smp.c
-@@ -111,12 +111,16 @@ static int xen_smp_intr_init(unsigned in
- 	per_cpu(debug_irq, cpu) = rc;
+diff -puN Documentation/kobject.txt~fix-kobject_rename-and-config_sysfs Documentation/kobject.txt
+--- a/Documentation/kobject.txt~fix-kobject_rename-and-config_sysfs
++++ a/Documentation/kobject.txt
+@@ -118,6 +118,10 @@ the name of the kobject, call kobject_re
  
- 	callfunc_name = kasprintf(GFP_KERNEL, "callfuncsingle%d", cpu);
-+#if 0
- 	rc = bind_ipi_to_irqhandler(XEN_CALL_FUNCTION_SINGLE_VECTOR,
- 				    cpu,
- 				    xen_call_function_single_interrupt,
- 				    IRQF_DISABLED|IRQF_PERCPU|IRQF_NOBALANCING,
- 				    callfunc_name,
- 				    NULL);
-+#else
-+	BUG();
-+#endif
- 	if (rc < 0)
- 		goto fail;
- 	per_cpu(callfuncsingle_irq, cpu) = rc;
-@@ -354,8 +358,11 @@ void xen_smp_send_call_function_ipi(cpum
+     int kobject_rename(struct kobject *kobj, const char *new_name);
+ 
++Note kobject_rename does perform any locking or have a solid notion of
++what names are valid so the provide must provide their own sanity checking
++and serialization.
++
+ There is a function called kobject_set_name() but that is legacy cruft and
+ is being removed.  If your code needs to call this function, it is
+ incorrect and needs to be fixed.
+diff -puN drivers/base/core.c~fix-kobject_rename-and-config_sysfs drivers/base/core.c
+--- a/drivers/base/core.c~fix-kobject_rename-and-config_sysfs
++++ a/drivers/base/core.c
+@@ -1308,6 +1308,11 @@ EXPORT_SYMBOL_GPL(device_destroy);
+  * device_rename - renames a device
+  * @dev: the pointer to the struct device to be renamed
+  * @new_name: the new name of the device
++ *
++ * It is the responsibility of the caller to provide mutual
++ * exclusion between two different calls of device_rename
++ * on the same device to ensure that new_name is valid and
++ * won't conflict with other devices.
+  */
+ int device_rename(struct device *dev, char *new_name)
  {
- 	int cpu;
+diff -puN include/linux/sysfs.h~fix-kobject_rename-and-config_sysfs include/linux/sysfs.h
+--- a/include/linux/sysfs.h~fix-kobject_rename-and-config_sysfs
++++ a/include/linux/sysfs.h
+@@ -138,7 +138,7 @@ static inline void sysfs_remove_dir(stru
  
-+#if 0
- 	xen_send_IPI_mask(mask, XEN_CALL_FUNCTION_VECTOR);
--
-+#else
-+	BUG();
-+#endif
- 	/* Make sure other vcpus get a chance to run if they need to. */
- 	for_each_cpu_mask(cpu, mask) {
- 		if (xen_vcpu_stolen(cpu)) {
-@@ -367,7 +374,11 @@ void xen_smp_send_call_function_ipi(cpum
- 
- void xen_smp_send_call_function_single_ipi(int cpu)
+ static inline int sysfs_rename_dir(struct kobject *kobj, const char *new_name)
  {
-+#if 0
- 	xen_send_IPI_mask(cpumask_of_cpu(cpu), XEN_CALL_FUNCTION_SINGLE_VECTOR);
-+#else
-+	BUG();
-+#endif
+-	return 0;
++	return kobject_set_name(kobj, "%s", new_name);
  }
  
- static irqreturn_t xen_call_function_interrupt(int irq, void *dev_id)
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-origin.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-drivers-scsi-dpt_i2oc-fix-build-on-alpha.patch
-quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
-rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
-atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
-memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
-linux-next.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-revert-vt-fix-background-color-on-line-feed.patch
-revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
-revert-acpica-fixes-for-unload-and-ddbhandles.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86.patch
-git-x86-fixup.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-dlm-convert-connections_lock-in-a-mutex-fix.patch
-git-input.patch
-git-jg-misc-git-rejects.patch
-revert-git-kbuild.patch
-revert-libata-improve-post-reset-device-ready-test.patch
-git-mmc.patch
-sundance-set-carrier-status-on-link-change-events.patch
-dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-git-block-fix-allnoconfig-build.patch
-git-block-hack-hack-hack.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-git-logfs-fixup.patch
-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-common-implementation-of-iterative-div-mod-fix.patch
-common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
-colibri-fix-support-for-dm9000-ethernet-device-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-inotify_init-fix.patch
-hysdn-no-longer-broken-on-smp.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-
+ static inline int sysfs_move_dir(struct kobject *kobj,
+diff -puN lib/kobject.c~fix-kobject_rename-and-config_sysfs lib/kobject.c
+--- a/lib/kobject.c~fix-kobject_rename-and-config_sysfs
++++ a/lib/kobject.c
+@@ -435,6 +435,11 @@ EXPORT_SYMBOL_GPL(kobject_init_and_add);
+  * kobject_rename - change the name of an object
+  * @kobj: object in question.
+  * @new_name: object's new name
++ *
++ * It is the responsibility of the caller to provide mutual
++ * exclusion between two different calls of kobject_rename
++ * on the same kobject and to ensure that new_name is valid and
++ * won't conflict with other kobjects.
+  */
+ int kobject_rename(struct kobject *kobj, const char *new_name)
+ {
+@@ -449,19 +454,6 @@ int kobject_rename(struct kobject *kobj,
+ 	if (!kobj->parent)
+ 		return -EINVAL;
+ 
+-	/* see if this name is already in use */
+-	if (kobj->kset) {
+-		struct kobject *temp_kobj;
+-		temp_kobj = kset_find_obj(kobj->kset, new_name);
+-		if (temp_kobj) {
+-			printk(KERN_WARNING "kobject '%s' cannot be renamed "
+-			       "to '%s' as '%s' is already in existence.\n",
+-			       kobject_name(kobj), new_name, new_name);
+-			kobject_put(temp_kobj);
+-			return -EINVAL;
+-		}
+-	}
