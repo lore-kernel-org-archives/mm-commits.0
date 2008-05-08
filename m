@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fix-hfsplus-oops-on-image-without-extents-fix.patch added to -mm tree
-Date: Thu, 08 May 2008 15:03:44 -0700
-Message-ID: <200805082214.m48MEdUH008550@imap1.linux-foundation.org>
+Subject: + flag-parameters-paccept-fix.patch added to -mm tree
+Date: Thu, 08 May 2008 15:28:14 -0700
+Message-ID: <200805082239.m48Md9Zu009474@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46750 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60686 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1765771AbYEHWOx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:14:53 -0400
+	by vger.kernel.org with ESMTP id S1755365AbYEHWj6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:39:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, snakebyte@gmx.de, zippel@linux-m68k.org
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com
 
 
 The patch titled
-     fix-hfsplus-oops-on-image-without-extents-fix
+     flag-parameters-paccept-fix
 has been added to the -mm tree.  Its filename is
-     fix-hfsplus-oops-on-image-without-extents-fix.patch
+     flag-parameters-paccept-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,31 +33,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix-hfsplus-oops-on-image-without-extents-fix
+Subject: flag-parameters-paccept-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-hrm.
+Make it compile...
 
-Cc: Eric Sesterhenn <snakebyte@gmx.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/inode.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/compat.c |    2 +-
+ net/socket.c |    3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/hfsplus/inode.c~fix-hfsplus-oops-on-image-without-extents-fix fs/hfsplus/inode.c
---- a/fs/hfsplus/inode.c~fix-hfsplus-oops-on-image-without-extents-fix
-+++ a/fs/hfsplus/inode.c
-@@ -65,7 +65,7 @@ static int hfsplus_releasepage(struct pa
- 		BUG();
- 		return 0;
- 	}
--	it (!tree)
-+	if (!tree)
- 		return 0;
- 	if (tree->node_size >= PAGE_CACHE_SIZE) {
- 		nidx = page->index >> (tree->node_size_shift - PAGE_CACHE_SHIFT);
+diff -puN net/compat.c~flag-parameters-paccept-fix net/compat.c
+--- a/net/compat.c~flag-parameters-paccept-fix
++++ a/net/compat.c
+@@ -769,7 +769,7 @@ asmlinkage long compat_sys_paccept(int f
+ 		if (sigmask) {
+ 			memcpy(&current->saved_sigmask, &sigsaved,
+ 			       sizeof(sigsaved));
+-			set_thread_flag(TIF_RESTORE_SIGMASK);
++//			set_thread_flag(TIF_RESTORE_SIGMASK);
+ 		}
+ 	} else if (sigmask)
+ 		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
+diff -puN net/socket.c~flag-parameters-paccept-fix net/socket.c
+--- a/net/socket.c~flag-parameters-paccept-fix
++++ a/net/socket.c
+@@ -63,6 +63,7 @@
+ #include <linux/file.h>
+ #include <linux/net.h>
+ #include <linux/interrupt.h>
++#include <linux/thread_info.h>
+ #include <linux/rcupdate.h>
+ #include <linux/netdevice.h>
+ #include <linux/proc_fs.h>
+@@ -1523,7 +1524,7 @@ asmlinkage long sys_paccept(int fd, stru
+ 		if (sigmask) {
+ 			memcpy(&current->saved_sigmask, &sigsaved,
+ 			       sizeof(sigsaved));
+-			set_thread_flag(TIF_RESTORE_SIGMASK);
++//			set_thread_flag(TIF_RESTORE_SIGMASK);
+ 		}
+ 	} else if (sigmask)
+ 		sigprocmask(SIG_SETMASK, &sigsaved, NULL);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,6 +137,7 @@ locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.
 remove-apparently-unused-fd1772h-header-file.patch
 lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
 add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
 flag-parameters-anon_inode_getfd-extension-fix.patch
 flag-parameters-inotify_init-fix.patch
 hysdn-no-longer-broken-on-smp.patch
