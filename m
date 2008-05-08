@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch added to -mm tree
-Date: Thu, 08 May 2008 13:38:12 -0700
-Message-ID: <200805082038.m48KcCAA004687@imap1.linux-foundation.org>
+Subject: + tridentfb-use-mmio-access-for-clock-setting.patch added to -mm tree
+Date: Thu, 08 May 2008 13:45:23 -0700
+Message-ID: <200805082045.m48KjN2H004987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58370 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42482 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758328AbYEHUio (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:38:44 -0400
+	by vger.kernel.org with ESMTP id S1759924AbYEHUp4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:45:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com
+Cc: krzysztof.h1@wp.pl, adaplas@pol.net
 
 
 The patch titled
-     scsi: aic79xx aic79xx_pci.c fix shadowed variables
+     tridentfb: use mmio access for clock setting
 has been added to the -mm tree.  Its filename is
-     scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+     tridentfb-use-mmio-access-for-clock-setting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,90 +33,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: aic79xx aic79xx_pci.c fix shadowed variables
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: tridentfb: use mmio access for clock setting
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-OK to just reuse the outer declaration as it is never used again.
-drivers/scsi/aic7xxx/aic79xx_pci.c:340:12: warning: symbol 'devconfig' shadows an earlier one
-drivers/scsi/aic7xxx/aic79xx_pci.c:299:12: originally declared here
+Use the mmio outb function instead of direct one.  The mmio registers are
+already mapped (in the probe function).
 
-targpcistat is always assigned just before use, remove the inner declaration.
-drivers/scsi/aic7xxx/aic79xx_pci.c:486:9: warning: symbol 'targpcistat' shadows an earlier one
-drivers/scsi/aic7xxx/aic79xx_pci.c:429:9: originally declared here
-
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: "Antonino A. Daplas" <adaplas@pol.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aic7xxx/aic79xx_pci.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/video/tridentfb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/scsi/aic7xxx/aic79xx_pci.c~scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables drivers/scsi/aic7xxx/aic79xx_pci.c
---- a/drivers/scsi/aic7xxx/aic79xx_pci.c~scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables
-+++ a/drivers/scsi/aic7xxx/aic79xx_pci.c
-@@ -337,8 +337,6 @@ ahd_pci_config(struct ahd_softc *ahd, co
- 	 * 64bit bus (PCI64BIT set in devconfig).
- 	 */
- 	if ((ahd->flags & (AHD_39BIT_ADDRESSING|AHD_64BIT_ADDRESSING)) != 0) {
--		uint32_t devconfig;
--
- 		if (bootverbose)
- 			printf("%s: Enabling 39Bit Addressing\n",
- 			       ahd_name(ahd));
-@@ -483,8 +481,6 @@ ahd_pci_test_register_access(struct ahd_
- 		goto fail;
- 
- 	if ((ahd_inb(ahd, INTSTAT) & PCIINT) != 0) {
--		u_int targpcistat;
--
- 		ahd_set_modes(ahd, AHD_MODE_CFG, AHD_MODE_CFG);
- 		targpcistat = ahd_inb(ahd, TARGPCISTAT);
- 		if ((targpcistat & STA) != 0)
+diff -puN drivers/video/tridentfb.c~tridentfb-use-mmio-access-for-clock-setting drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-use-mmio-access-for-clock-setting
++++ a/drivers/video/tridentfb.c
+@@ -680,8 +680,8 @@ static void set_vclk(struct tridentfb_pa
+ 		vga_mm_wseq(par->io_virt, ClockHigh, hi);
+ 		vga_mm_wseq(par->io_virt, ClockLow, lo);
+ 	} else {
+-		outb(lo, 0x43C8);
+-		outb(hi, 0x43C9);
++		t_outb(par, lo, 0x43C8);
++		t_outb(par, hi, 0x43C9);
+ 	}
+ 	debug("VCLK = %X %X\n", hi, lo);
+ }
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-origin.patch
-misc-fix-integer-as-null-pointer-warnings.patch
-mmc-make-one-bit-signed-bitfields-unsigned.patch
-linux-next.patch
-kgdb-use-put_unaligned_be32-helper.patch
-git-alsa-tiwai.patch
-cifs-remove-global_extern-macro.patch
-media-use-get_unaligned_-helpers.patch
-hid-use-get-put_unaligned_-helpers.patch
-git-input.patch
-ata-remove-fit-macro.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-get_unaligned_-helpers.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-block-use-get_unaligned_-helpers.patch
-usb-fix-integer-as-null-pointer-sparse-warnings.patch
-usb-use-get_unaligned_-helpers.patch
-git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-tkipc-use-kernel-provided-infrastructure.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-wireless-use-get-put_unaligned_-helpers.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-lib-add-ascii-hex-helper-functions.patch
-lib-add-ascii-hex-helper-functions-update.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-video-fix-integer-as-null-pointer-warnings.patch
-aacraid-linitc-make-aac_show_serial_number-static.patch
+tridentfb-remove-misplaced-enable_mmio.patch
+tridentfb-improve-clock-setting-accuracy.patch
+drivers-video-pnx4008-eliminate-double-free.patch
+tridentfb-replace-macros-with-functions.patch
+tridentfb-convert-fb_info-into-allocated-one.patch
+tridentfb-move-global-pseudo-palette-into-structure.patch
+tridentfb-move-global-chip_id-into-structure.patch
+tridentfb-move-global-flat-panel-variable-into-structure.patch
+tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
+tridentfb-move-global-acceleration-hooks-into-structure.patch
+tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
+tridentfb-fix-timing-calculations.patch
+tridentfb-use-mmio-access-for-clock-setting.patch
+amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
 
