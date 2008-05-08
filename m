@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + rename-warn-to-warning-to-clear-the-namespace-fix.patch added to -mm tree
-Date: Thu, 08 May 2008 15:53:38 -0700
-Message-ID: <200805082304.m48N4XeI010525@imap1.linux-foundation.org>
+Subject: + logfs-is-busted.patch added to -mm tree
+Date: Thu, 08 May 2008 15:55:02 -0700
+Message-ID: <200805082305.m48N5v7s010575@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59770 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44311 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758563AbYEHXEk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 19:04:40 -0400
+	by vger.kernel.org with ESMTP id S1760605AbYEHXGH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 19:06:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arjan@linux.intel.com, greg@kroah.com, kkeil@suse.de
+Cc: akpm@linux-foundation.org, joern@logfs.org
 
 
 The patch titled
-     rename-warn-to-warning-to-clear-the-namespace-fix
+     logfs-is-busted
 has been added to the -mm tree.  Its filename is
-     rename-warn-to-warning-to-clear-the-namespace-fix.patch
+     logfs-is-busted.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,30 +33,27 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rename-warn-to-warning-to-clear-the-namespace-fix
+Subject: logfs-is-busted
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Cc: Joern Engel <joern@logfs.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/printer.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/usb/gadget/printer.c~rename-warn-to-warning-to-clear-the-namespace-fix drivers/usb/gadget/printer.c
---- a/drivers/usb/gadget/printer.c~rename-warn-to-warning-to-clear-the-namespace-fix
-+++ a/drivers/usb/gadget/printer.c
-@@ -179,7 +179,7 @@ module_param(qlen, uint, S_IRUGO|S_IWUSR
- 
- #define ERROR(dev, fmt, args...) \
- 	xprintk(dev, KERN_ERR, fmt, ## args)
--#define WARN(dev, fmt, args...) \
-+#define WARNING(dev, fmt, args...) \
- 	xprintk(dev, KERN_WARNING, fmt, ## args)
- #define INFO(dev, fmt, args...) \
- 	xprintk(dev, KERN_INFO, fmt, ## args)
+diff -puN fs/Kconfig~logfs-is-busted fs/Kconfig
+--- a/fs/Kconfig~logfs-is-busted
++++ a/fs/Kconfig
+@@ -1411,6 +1411,7 @@ source "fs/ubifs/Kconfig"
+ config LOGFS
+ 	bool "LogFS file system (EXPERIMENTAL)"
+ 	depends on (MTD || BLOCK) && EXPERIMENTAL
++	depends on BROKEN
+ 	select ZLIB_INFLATE
+ 	select ZLIB_DEFLATE
+ 	select CRC32
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -141,5 +138,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-a.patch
+logfs-is-busted.patch
 
