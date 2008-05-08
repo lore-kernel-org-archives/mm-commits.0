@@ -1,34 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mptsas-add-mptsas_shutdown-to-call-pci_disable_msi.patch added to -mm tree
-Date: Wed, 07 May 2008 16:32:01 -0700
-Message-ID: <200805072332.m47NW11j022586@imap1.linux-foundation.org>
+Subject: - mptsas-add-mptsas_shutdown-to-call-pci_disable_msi.patch removed from -mm tree
+Date: Wed, 07 May 2008 17:25:31 -0700
+Message-ID: <200805080025.m480PVxg024679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:32873 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34565 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754524AbYEGXcH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 19:32:07 -0400
+	by vger.kernel.org with ESMTP id S1752064AbYEHAZk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 20:25:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: yhlu.kernel.send@gmail.com, Eric.Moore@lsi.com, James.Bottomley@HansenPartnership.com, ebiederm@xmission.com, sathya.prakash@lsi.com, yhlu.kernel@gmail.com
+To: yhlu.kernel.send@gmail.com, Eric.Moore@lsi.com, James.Bottomley@HansenPartnership.com, ebiederm@xmission.com, sathya.prakash@lsi.com, yhlu.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      mptsas: add mptsas_shutdown to call pci_disable_msi
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mptsas-add-mptsas_shutdown-to-call-pci_disable_msi.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
