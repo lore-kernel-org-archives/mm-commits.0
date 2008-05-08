@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + unionfs-broke.patch added to -mm tree
-Date: Thu, 08 May 2008 16:07:36 -0700
-Message-ID: <200805082318.m48NIVdf011116@imap1.linux-foundation.org>
+Subject: + ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix.patch added to -mm tree
+Date: Thu, 08 May 2008 16:24:03 -0700
+Message-ID: <200805082334.m48NYwmK011756@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40696 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37387 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762132AbYEHXTJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 19:19:09 -0400
+	by vger.kernel.org with ESMTP id S1753086AbYEHXfJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 19:35:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, ezk@cs.sunysb.edu
+Cc: akpm@linux-foundation.org, djwong@us.ibm.com, mhoffman@lightlink.com, minyard@acm.org
 
 
 The patch titled
-     unionfs-broke
+     ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix
 has been added to the -mm tree.  Its filename is
-     unionfs-broke.patch
+     ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unionfs-broke
+Subject: ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/unionfs/super.c: In function 'unionfs_umount_begin':
-fs/unionfs/super.c:989: warning: passing argument 1 of 'lower_sb->s_op->umount_begin' from incompatible pointer type
-fs/unionfs/super.c:989: error: too many arguments to function 'lower_sb->s_op->umount_begin'
-fs/unionfs/super.c: At top level:
-fs/unionfs/super.c:1052: warning: initialization from incompatible pointer type
-
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: Darrick J. Wong <djwong@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    1 +
+ drivers/hwmon/Kconfig |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN fs/Kconfig~unionfs-broke fs/Kconfig
---- a/fs/Kconfig~unionfs-broke
-+++ a/fs/Kconfig
-@@ -1051,6 +1051,7 @@ config ECRYPT_FS
- config UNION_FS
- 	tristate "Union file system (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-+	depends on BROKEN
+diff -puN drivers/hwmon/Kconfig~ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix drivers/hwmon/Kconfig
+--- a/drivers/hwmon/Kconfig~ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix
++++ a/drivers/hwmon/Kconfig
+@@ -334,6 +334,7 @@ config SENSORS_IBMAEM
+ 	tristate "IBM Active Energy Manager temperature/power sensors and control"
+ 	select IPMI_SI
+ 	depends on IPMI_HANDLER
++	depends on CONFIG_64BIT
  	help
- 	  Unionfs is a stackable unification file system, which appears to
- 	  merge the contents of several directories (branches), while keeping
+ 	  If you say yes here you get support for the temperature and
+ 	  power sensors and capping hardware in various IBM System X
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -87,6 +84,7 @@ cifs-suppress-warning.patch
 sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
 fix-driver-core-prepare-for-removal-of-20-char-limit-from-struct-device.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix.patch
 dlm-convert-connections_lock-in-a-mutex-fix.patch
 git-input.patch
 git-jg-misc-git-rejects.patch
@@ -102,6 +100,7 @@ arch-parisc-kernel-unalignedc-use-time_-macros.patch
 revert-git-block.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
+unionfs-broke.patch
 git-logfs-fixup.patch
 logfs-unbork.patch
 logfs-is-busted.patch
@@ -146,5 +145,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-unionfs-broke.patch
 
