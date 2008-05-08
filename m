@@ -1,77 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - git-block-fix-allnoconfig-build.patch removed from -mm tree
-Date: Thu, 08 May 2008 14:53:20 -0700
-Message-ID: <200805082204.m48M4Ffg008144@imap1.linux-foundation.org>
+Subject: - git-block-hack-hack-hack.patch removed from -mm tree
+Date: Thu, 08 May 2008 14:53:24 -0700
+Message-ID: <200805082204.m48M4J5Y008147@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49254 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47239 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756213AbYEHWEz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:04:55 -0400
+	by vger.kernel.org with ESMTP id S1762985AbYEHWE7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 18:04:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, jens.axboe@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-block: fix allnoconfig build
+     git-block-hack-hack-hack
 has been removed from the -mm tree.  Its filename was
-     git-block-fix-allnoconfig-build.patch
+     git-block-hack-hack-hack.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block: fix allnoconfig build
+Subject: git-block-hack-hack-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-init/main.c: In function 'do_pre_smp_initcalls':
-init/main.c:776: error: implicit declaration of function 'init_call_single_data'
+cat Documentation/SubmitChecklist
 
 Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    7 +++----
- init/main.c         |    1 +
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ arch/x86/xen/smp.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN init/main.c~git-block-fix-allnoconfig-build init/main.c
---- a/init/main.c~git-block-fix-allnoconfig-build
-+++ a/init/main.c
-@@ -31,6 +31,7 @@
- #include <linux/kernel_stat.h>
- #include <linux/start_kernel.h>
- #include <linux/security.h>
-+#include <linux/smp.h>
- #include <linux/workqueue.h>
- #include <linux/profile.h>
- #include <linux/rcupdate.h>
-diff -puN include/linux/smp.h~git-block-fix-allnoconfig-build include/linux/smp.h
---- a/include/linux/smp.h~git-block-fix-allnoconfig-build
-+++ a/include/linux/smp.h
-@@ -79,10 +79,6 @@ void init_call_single_data(void);
- void arch_send_call_function_single_ipi(int cpu);
- void arch_send_call_function_ipi(cpumask_t mask);
- extern spinlock_t call_function_lock;
--#else
--static inline void init_call_single_data(void)
--{
--}
- #endif
+diff -puN arch/x86/xen/smp.c~git-block-hack-hack-hack arch/x86/xen/smp.c
+--- a/arch/x86/xen/smp.c~git-block-hack-hack-hack
++++ a/arch/x86/xen/smp.c
+@@ -111,12 +111,16 @@ static int xen_smp_intr_init(unsigned in
+ 	per_cpu(debug_irq, cpu) = rc;
  
- /*
-@@ -140,6 +136,9 @@ static inline void smp_send_reschedule(i
- })
- #define smp_call_function_mask(mask, func, info, wait) \
- 			(up_smp_call_function(func, info))
-+static inline void init_call_single_data(void)
-+{
-+}
- #endif /* !SMP */
+ 	callfunc_name = kasprintf(GFP_KERNEL, "callfuncsingle%d", cpu);
++#if 0
+ 	rc = bind_ipi_to_irqhandler(XEN_CALL_FUNCTION_SINGLE_VECTOR,
+ 				    cpu,
+ 				    xen_call_function_single_interrupt,
+ 				    IRQF_DISABLED|IRQF_PERCPU|IRQF_NOBALANCING,
+ 				    callfunc_name,
+ 				    NULL);
++#else
++	BUG();
++#endif
+ 	if (rc < 0)
+ 		goto fail;
+ 	per_cpu(callfuncsingle_irq, cpu) = rc;
+@@ -354,8 +358,11 @@ void xen_smp_send_call_function_ipi(cpum
+ {
+ 	int cpu;
  
- /*
++#if 0
+ 	xen_send_IPI_mask(mask, XEN_CALL_FUNCTION_VECTOR);
+-
++#else
++	BUG();
++#endif
+ 	/* Make sure other vcpus get a chance to run if they need to. */
+ 	for_each_cpu_mask(cpu, mask) {
+ 		if (xen_vcpu_stolen(cpu)) {
+@@ -367,7 +374,11 @@ void xen_smp_send_call_function_ipi(cpum
+ 
+ void xen_smp_send_call_function_single_ipi(int cpu)
+ {
++#if 0
+ 	xen_send_IPI_mask(cpumask_of_cpu(cpu), XEN_CALL_FUNCTION_SINGLE_VECTOR);
++#else
++	BUG();
++#endif
+ }
+ 
+ static irqreturn_t xen_call_function_interrupt(int irq, void *dev_id)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,7 +117,6 @@ git-battery.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 arch-parisc-kernel-unalignedc-use-time_-macros.patch
 revert-git-block.patch
-git-block-fix-allnoconfig-build.patch
 git-block-hack-hack-hack.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
