@@ -1,369 +1,1205 @@
 From: akpm@linux-foundation.org
-Subject: - git-gfs2-nmw.patch removed from -mm tree
-Date: Thu, 08 May 2008 13:30:14 -0700
-Message-ID: <200805082030.m48KUEZv004373@imap1.linux-foundation.org>
+Subject: + ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware.patch added to -mm tree
+Date: Thu, 08 May 2008 13:32:08 -0700
+Message-ID: <200805082032.m48KW8eu004453@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41346 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53062 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754957AbYEHUas (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:30:48 -0400
+	by vger.kernel.org with ESMTP id S1756003AbYEHUcw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:32:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alan@lxorguk.ukuu.org.uk, alan@redhat.com, andy@andrewprice.me.uk, rpeterso@redhat.com, swhiteho@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: djwong@us.ibm.com, mhoffman@lightlink.com, minyard@acm.org
 
 
 The patch titled
-     git-gfs2-nmw.patch
-has been removed from the -mm tree.  Its filename was
-     git-gfs2-nmw.patch
+     ibmaem: new driver for power/energy/temp meters in IBM System X hardware
+has been added to the -mm tree.  Its filename is
+     ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-gfs2-nmw.patch
+Subject: ibmaem: new driver for power/energy/temp meters in IBM System X hardware
+From: "Darrick J. Wong" <djwong@us.ibm.com>
 
-GIT 7766286a9fb4dd22c7fce867268180b9fe3eb199 git+ssh://master.kernel.org/pub/scm/linux/kernel/git/steve/gfs2-2.6-nmw.git
+This driver reads IBM Active Energy Manager energy/temperature/power
+sensors on IBM System X hardware.
 
-commit 7766286a9fb4dd22c7fce867268180b9fe3eb199
-Author: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Date:   Fri May 2 14:25:22 2008 +0100
+Signed-off-by: Darrick J. Wong <djwong@us.ibm.com>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Corey Minyard <minyard@acm.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-    [GFS2] Fix use of English
-    
-    According to the OED and also confirmed by the British Computer Society
-    folks the correct verb form is "to journali[sz]e". The US favours the "s"
-    form and the BCS likewise. Bring GFS2 into line with English.
-    
-    Documentation changes only
-    
-    Signed-off-by: Alan Cox <alan@redhat.com>
-    Signed-off-by: Steven Whitehouse <swhiteho@redhat.com>
+ drivers/hwmon/Kconfig  |   14 
+ drivers/hwmon/Makefile |    1 
+ drivers/hwmon/ibmaem.c | 1106 +++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 1121 insertions(+)
 
-commit 2d97a97da7d6511cd556c5f20ba05b3ff7acfe14
-Author: Andrew Price <andy@andrewprice.me.uk>
-Date:   Thu May 1 11:55:38 2008 +0100
-
-    [GFS2] Fix cast from unsigned int to s64
-    
-    This fixes bz 444829 where allocating a new block caused gfs2 file systems to
-    report 0 bytes used in df. It was caused by a broken cast from an unsigned int
-    in gfs2_block_alloc() to a negative s64 in gfs2_statfs_change(). This patch
-    casts the unsigned int to an s64 before the unary minus is applied.
-    
-    Signed-off-by: Andrew Price <andy@andrewprice.me.uk>
-    Signed-off-by: Steven Whitehouse <swhiteho@redhat.com>
-
-commit f8ff518eae51d5a4b0619ffa8f59b71551ccfabc
-Author: Bob Peterson <rpeterso@redhat.com>
-Date:   Tue Apr 29 12:35:48 2008 -0500
-
-    [GFS2] filesystem consistency error from do_strip
-    
-    This patch fixes a GFS2 filesystem consistency error reported from
-    function do_strip.  The problem was caused by a timing window
-    that allowed two vfs inodes to be created in memory that point
-    to the same file.  The problem is fixed by making the vfs's
-    iget_test, iget_set mechanism check and set a new bit in the
-    in-core gfs2_inode structure while the vfs inode spin_lock is held.
-    
-    Signed-off-by: Bob Peterson <rpeterso@redhat.com>
-    Signed-off-by: Steven Whitehouse <swhiteho@redhat.com>
- fs/gfs2/bmap.c      |    4 ++--
- fs/gfs2/glops.c     |    2 +-
- fs/gfs2/incore.h    |    5 +++--
- fs/gfs2/inode.c     |   10 +++++-----
- fs/gfs2/log.c       |    8 ++++----
- fs/gfs2/lops.c      |    2 +-
- fs/gfs2/meta_io.c   |    6 ++++--
- fs/gfs2/ops_file.c  |    2 +-
- fs/gfs2/ops_super.c |   16 +++++++++-------
- fs/gfs2/rgrp.c      |    2 +-
- 10 files changed, 31 insertions(+), 26 deletions(-)
-
-diff --git a/fs/gfs2/bmap.c b/fs/gfs2/bmap.c
-index c19184f..0bb71cd 100644
---- a/fs/gfs2/bmap.c
-+++ b/fs/gfs2/bmap.c
-@@ -1025,11 +1025,11 @@ static int trunc_start(struct gfs2_inode *ip, u64 size)
- {
- 	struct gfs2_sbd *sdp = GFS2_SB(&ip->i_inode);
- 	struct buffer_head *dibh;
--	int journaled = gfs2_is_jdata(ip);
-+	int journalised = gfs2_is_jdata(ip);
- 	int error;
+diff -puN drivers/hwmon/Kconfig~ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware drivers/hwmon/Kconfig
+--- a/drivers/hwmon/Kconfig~ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware
++++ a/drivers/hwmon/Kconfig
+@@ -330,6 +330,20 @@ config SENSORS_CORETEMP
+ 	  sensor inside your CPU. Supported all are all known variants
+ 	  of Intel Core family.
  
- 	error = gfs2_trans_begin(sdp,
--				 RES_DINODE + (journaled ? RES_JDATA : 0), 0);
-+			 RES_DINODE + (journalised ? RES_JDATA : 0), 0);
- 	if (error)
- 		return error;
- 
-diff --git a/fs/gfs2/glops.c b/fs/gfs2/glops.c
-index d31bada..07d84d1 100644
---- a/fs/gfs2/glops.c
-+++ b/fs/gfs2/glops.c
-@@ -249,7 +249,7 @@ static int inode_go_lock(struct gfs2_holder *gh)
- 	struct gfs2_inode *ip = gl->gl_object;
- 	int error = 0;
- 
--	if (!ip)
-+	if (!ip || (gh->gh_flags & GL_SKIP))
- 		return 0;
- 
- 	if (test_bit(GIF_INVALID, &ip->i_flags)) {
-diff --git a/fs/gfs2/incore.h b/fs/gfs2/incore.h
-index 9c2c0b9..eabb5c2 100644
---- a/fs/gfs2/incore.h
-+++ b/fs/gfs2/incore.h
-@@ -236,6 +236,7 @@ enum {
- 	GIF_INVALID		= 0,
- 	GIF_QD_LOCKED		= 1,
- 	GIF_SW_PAGED		= 3,
-+	GIF_USER                = 4, /* user inode, not metadata addr space */
- };
- 
- struct gfs2_dinode_host {
-@@ -478,7 +479,7 @@ struct gfs2_sbd {
- 	u32 sd_fsb2bb_shift;
- 	u32 sd_diptrs;	/* Number of pointers in a dinode */
- 	u32 sd_inptrs;	/* Number of pointers in a indirect block */
--	u32 sd_jbsize;	/* Size of a journaled data block */
-+	u32 sd_jbsize;	/* Size of a journalised data block */
- 	u32 sd_hash_bsize;	/* sizeof(exhash block) */
- 	u32 sd_hash_bsize_shift;
- 	u32 sd_hash_ptrs;	/* Number of pointers in a hash block */
-@@ -486,7 +487,7 @@ struct gfs2_sbd {
- 	u32 sd_max_dirres;	/* Max blocks needed to add a directory entry */
- 	u32 sd_max_height;	/* Max height of a file's metadata tree */
- 	u64 sd_heightsize[GFS2_MAX_META_HEIGHT + 1];
--	u32 sd_max_jheight; /* Max height of journaled file's meta tree */
-+	u32 sd_max_jheight; /* Max height of journalised file's meta tree */
- 	u64 sd_jheightsize[GFS2_MAX_META_HEIGHT + 1];
- 
- 	struct gfs2_args sd_args;	/* Mount arguments */
-diff --git a/fs/gfs2/inode.c b/fs/gfs2/inode.c
-index 3a9ef52..09453d0 100644
---- a/fs/gfs2/inode.c
-+++ b/fs/gfs2/inode.c
-@@ -47,8 +47,7 @@ static int iget_test(struct inode *inode, void *opaque)
- 	struct gfs2_inode *ip = GFS2_I(inode);
- 	u64 *no_addr = opaque;
- 
--	if (ip->i_no_addr == *no_addr &&
--	    inode->i_private != NULL)
-+	if (ip->i_no_addr == *no_addr && test_bit(GIF_USER, &ip->i_flags))
- 		return 1;
- 
- 	return 0;
-@@ -61,6 +60,7 @@ static int iget_set(struct inode *inode, void *opaque)
- 
- 	inode->i_ino = (unsigned long)*no_addr;
- 	ip->i_no_addr = *no_addr;
-+	set_bit(GIF_USER, &ip->i_flags);
- 	return 0;
- }
- 
-@@ -86,7 +86,7 @@ static int iget_skip_test(struct inode *inode, void *opaque)
- 	struct gfs2_inode *ip = GFS2_I(inode);
- 	struct gfs2_skip_data *data = opaque;
- 
--	if (ip->i_no_addr == data->no_addr && inode->i_private != NULL){
-+	if (ip->i_no_addr == data->no_addr && test_bit(GIF_USER, &ip->i_flags)){
- 		if (inode->i_state & (I_FREEING|I_CLEAR|I_WILL_FREE)){
- 			data->skipped = 1;
- 			return 0;
-@@ -105,6 +105,7 @@ static int iget_skip_set(struct inode *inode, void *opaque)
- 		return 1;
- 	inode->i_ino = (unsigned long)(data->no_addr);
- 	ip->i_no_addr = data->no_addr;
-+	set_bit(GIF_USER, &ip->i_flags);
- 	return 0;
- }
- 
-@@ -166,7 +167,7 @@ void gfs2_set_iop(struct inode *inode)
-  * Returns: A VFS inode, or an error
-  */
- 
--struct inode *gfs2_inode_lookup(struct super_block *sb, 
-+struct inode *gfs2_inode_lookup(struct super_block *sb,
- 				unsigned int type,
- 				u64 no_addr,
- 				u64 no_formal_ino, int skip_freeing)
-@@ -187,7 +188,6 @@ struct inode *gfs2_inode_lookup(struct super_block *sb,
- 
- 	if (inode->i_state & I_NEW) {
- 		struct gfs2_sbd *sdp = GFS2_SB(inode);
--		inode->i_private = ip;
- 		ip->i_no_formal_ino = no_formal_ino;
- 
- 		error = gfs2_glock_get(sdp, no_addr, &gfs2_inode_glops, CREATE, &ip->i_gl);
-diff --git a/fs/gfs2/log.c b/fs/gfs2/log.c
-index 548264b..443d2be 100644
---- a/fs/gfs2/log.c
-+++ b/fs/gfs2/log.c
-@@ -380,7 +380,7 @@ static inline unsigned int log_distance(struct gfs2_sbd *sdp, unsigned int newer
-  *
-  * This is complex.  We need to reserve room for all our currently used
-  * metadata buffers (e.g. normal file I/O rewriting file time stamps) and 
-- * all our journaled data buffers for journaled files (e.g. files in the 
-+ * all our journalised data buffers for journalised files (e.g. files in the 
-  * meta_fs like rindex, or files for which chattr +j was done.)
-  * If we don't reserve enough space, gfs2_log_refund and gfs2_log_flush
-  * will count it as free space (sd_log_blks_free) and corruption will follow.
-@@ -389,9 +389,9 @@ static inline unsigned int log_distance(struct gfs2_sbd *sdp, unsigned int newer
-  * type gets its own log header, for which we need to reserve a block.
-  * In fact, each type has the potential for needing more than one header 
-  * in cases where we have more buffers than will fit on a journal page.
-- * Metadata journal entries take up half the space of journaled buffer entries.
-- * Thus, metadata entries have buf_limit (502) and journaled buffers have
-- * databuf_limit (251) before they cause a wrap around.
-+ * Metadata journal entries take up half the space of journalised buffer
-+ * entries. Thus, metadata entries have buf_limit (502) and journalised
-+ * buffers have databuf_limit (251) before they cause a wrap around.
-  *
-  * Also, we need to reserve blocks for revoke journal entries and one for an
-  * overall header for the lot.
-diff --git a/fs/gfs2/lops.c b/fs/gfs2/lops.c
-index 4390f6f..76b9f75 100644
---- a/fs/gfs2/lops.c
-+++ b/fs/gfs2/lops.c
-@@ -484,7 +484,7 @@ static void rg_lo_after_commit(struct gfs2_sbd *sdp, struct gfs2_ail *ai)
-  * i) In ordered write mode
-  *    We put the data buffer on a list so that we can ensure that its
-  *    synced to disk at the right time
-- * ii) In journaled data mode
-+ * ii) In journalised data mode
-  *    We need to journal the data block in the same way as metadata in
-  *    the functions above. The difference is that here we have a tag
-  *    which is two __be64's being the block number (as per meta data)
-diff --git a/fs/gfs2/meta_io.c b/fs/gfs2/meta_io.c
-index 85aea27..78d75f8 100644
---- a/fs/gfs2/meta_io.c
-+++ b/fs/gfs2/meta_io.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) Sistina Software, Inc.  1997-2003 All rights reserved.
-- * Copyright (C) 2004-2006 Red Hat, Inc.  All rights reserved.
-+ * Copyright (C) 2004-2008 Red Hat, Inc.  All rights reserved.
-  *
-  * This copyrighted material is made available to anyone wishing to use,
-  * modify, copy, or redistribute it subject to the terms and conditions
-@@ -69,13 +69,15 @@ static const struct address_space_operations aspace_aops = {
- struct inode *gfs2_aspace_get(struct gfs2_sbd *sdp)
- {
- 	struct inode *aspace;
-+	struct gfs2_inode *ip;
- 
- 	aspace = new_inode(sdp->sd_vfs);
- 	if (aspace) {
- 		mapping_set_gfp_mask(aspace->i_mapping, GFP_NOFS);
- 		aspace->i_mapping->a_ops = &aspace_aops;
- 		aspace->i_size = ~0ULL;
--		aspace->i_private = NULL;
-+		ip = GFS2_I(aspace);
-+		clear_bit(GIF_USER, &ip->i_flags);
- 		insert_inode_hash(aspace);
- 	}
- 	return aspace;
-diff --git a/fs/gfs2/ops_file.c b/fs/gfs2/ops_file.c
-index e1b7d52..e092b28 100644
---- a/fs/gfs2/ops_file.c
-+++ b/fs/gfs2/ops_file.c
-@@ -535,7 +535,7 @@ static int gfs2_close(struct inode *inode, struct file *file)
-  * @dentry: the dentry that points to the inode to sync
-  *
-  * The VFS will flush "normal" data for us. We only need to worry
-- * about metadata here. For journaled data, we just do a log flush
-+ * about metadata here. For journalised data, we just do a log flush
-  * as we can't avoid it. Otherwise we can just bale out if datasync
-  * is set. For stuffed inodes we must flush the log in order to
-  * ensure that all data is on disk.
-diff --git a/fs/gfs2/ops_super.c b/fs/gfs2/ops_super.c
-index 2278c68..0b7cc92 100644
---- a/fs/gfs2/ops_super.c
-+++ b/fs/gfs2/ops_super.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (C) Sistina Software, Inc.  1997-2003 All rights reserved.
-- * Copyright (C) 2004-2006 Red Hat, Inc.  All rights reserved.
-+ * Copyright (C) 2004-2008 Red Hat, Inc.  All rights reserved.
-  *
-  * This copyrighted material is made available to anyone wishing to use,
-  * modify, copy, or redistribute it subject to the terms and conditions
-@@ -52,7 +52,7 @@ static int gfs2_write_inode(struct inode *inode, int sync)
- 	struct gfs2_inode *ip = GFS2_I(inode);
- 
- 	/* Check this is a "normal" inode */
--	if (inode->i_private) {
-+	if (test_bit(GIF_USER, &ip->i_flags)) {
- 		if (current->flags & PF_MEMALLOC)
- 			return 0;
- 		if (sync)
-@@ -297,8 +297,9 @@ static int gfs2_remount_fs(struct super_block *sb, int *flags, char *data)
-  */
- static void gfs2_drop_inode(struct inode *inode)
- {
--	if (inode->i_private && inode->i_nlink) {
--		struct gfs2_inode *ip = GFS2_I(inode);
-+	struct gfs2_inode *ip = GFS2_I(inode);
++config SENSORS_IBMAEM
++	tristate "IBM Active Energy Manager temperature/power sensors and control"
++	select IPMI_SI
++	depends on IPMI_HANDLER
++	help
++	  If you say yes here you get support for the temperature and
++	  power sensors and capping hardware in various IBM System X
++	  servers that support Active Energy Manager.  This includes
++	  the x3350, x3550, x3650, x3655, x3755, x3850 M2, x3950 M2,
++	  and certain HS2x/LS2x/QS2x blades.
 +
-+	if (test_bit(GIF_USER, &ip->i_flags) && inode->i_nlink) {
- 		struct gfs2_glock *gl = ip->i_iopen_gh.gh_gl;
- 		if (gl && test_bit(GLF_DEMOTE, &gl->gl_flags))
- 			clear_nlink(inode);
-@@ -314,12 +315,13 @@ static void gfs2_drop_inode(struct inode *inode)
- 
- static void gfs2_clear_inode(struct inode *inode)
- {
-+	struct gfs2_inode *ip = GFS2_I(inode);
++	  This driver can also be built as a module.  If so, the module
++	  will be called ibmaem.
 +
- 	/* This tells us its a "real" inode and not one which only
- 	 * serves to contain an address space (see rgrp.c, meta_io.c)
- 	 * which therefore doesn't have its own glocks.
- 	 */
--	if (inode->i_private) {
--		struct gfs2_inode *ip = GFS2_I(inode);
-+	if (test_bit(GIF_USER, &ip->i_flags)) {
- 		ip->i_gl->gl_object = NULL;
- 		gfs2_glock_schedule_for_reclaim(ip->i_gl);
- 		gfs2_glock_put(ip->i_gl);
-@@ -419,7 +421,7 @@ static void gfs2_delete_inode(struct inode *inode)
- 	struct gfs2_holder gh;
- 	int error;
- 
--	if (!inode->i_private)
-+	if (!test_bit(GIF_USER, &ip->i_flags))
- 		goto out;
- 
- 	error = gfs2_glock_nq_init(ip->i_gl, LM_ST_EXCLUSIVE, 0, &gh);
-diff --git a/fs/gfs2/rgrp.c b/fs/gfs2/rgrp.c
-index 7e8f0b1..6387523 100644
---- a/fs/gfs2/rgrp.c
-+++ b/fs/gfs2/rgrp.c
-@@ -1495,7 +1495,7 @@ u64 gfs2_alloc_block(struct gfs2_inode *ip, unsigned int *n)
- 
- 	al->al_alloced += *n;
- 
--	gfs2_statfs_change(sdp, 0, -*n, 0);
-+	gfs2_statfs_change(sdp, 0, -(s64)*n, 0);
- 	gfs2_quota_change(ip, *n, ip->i_inode.i_uid, ip->i_inode.i_gid);
- 
- 	spin_lock(&sdp->sd_rindex_spin);
+ config SENSORS_IBMPEX
+ 	tristate "IBM PowerExecutive temperature/power sensors"
+ 	select IPMI_SI
+diff -puN drivers/hwmon/Makefile~ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware drivers/hwmon/Makefile
+--- a/drivers/hwmon/Makefile~ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware
++++ a/drivers/hwmon/Makefile
+@@ -41,6 +41,7 @@ obj-$(CONFIG_SENSORS_GL518SM)	+= gl518sm
+ obj-$(CONFIG_SENSORS_GL520SM)	+= gl520sm.o
+ obj-$(CONFIG_SENSORS_HDAPS)	+= hdaps.o
+ obj-$(CONFIG_SENSORS_I5K_AMB)	+= i5k_amb.o
++obj-$(CONFIG_SENSORS_IBMAEM)	+= ibmaem.o
+ obj-$(CONFIG_SENSORS_IBMPEX)	+= ibmpex.o
+ obj-$(CONFIG_SENSORS_IT87)	+= it87.o
+ obj-$(CONFIG_SENSORS_K8TEMP)	+= k8temp.o
+diff -puN /dev/null drivers/hwmon/ibmaem.c
+--- /dev/null
++++ a/drivers/hwmon/ibmaem.c
+@@ -0,0 +1,1106 @@
++/*
++ * A hwmon driver for the IBM Active Energy Manager temperature/power sensors
++ * and capping functionality.
++ * Copyright (C) 2008 IBM
++ *
++ * Author: Darrick J. Wong <djwong@us.ibm.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++#include <linux/ipmi.h>
++#include <linux/module.h>
++#include <linux/hwmon.h>
++#include <linux/hwmon-sysfs.h>
++#include <linux/jiffies.h>
++#include <linux/mutex.h>
++#include <linux/kdev_t.h>
++#include <linux/spinlock.h>
++#include <linux/idr.h>
++#include <linux/sched.h>
++#include <linux/platform_device.h>
++
++#define REFRESH_INTERVAL	(HZ)
++#define IPMI_TIMEOUT		(30 * HZ)
++#define DRVNAME			"aem"
++
++#define AEM_NETFN		0x2E
++
++#define AEM_FIND_FW_CMD		0x80
++#define AEM_ELEMENT_CMD		0x81
++#define AEM_FW_INSTANCE_CMD	0x82
++
++#define AEM_READ_ELEMENT_CFG	0x80
++#define AEM_READ_BUFFER		0x81
++#define AEM_READ_REGISTER	0x82
++#define AEM_WRITE_REGISTER	0x83
++#define AEM_SET_REG_MASK	0x84
++#define AEM_CLEAR_REG_MASK	0x85
++#define AEM_READ_ELEMENT_CFG2	0x86
++
++#define AEM_CONTROL_ELEMENT	0
++#define AEM_ENERGY_ELEMENT	1
++#define AEM_CLOCK_ELEMENT	4
++#define AEM_POWER_CAP_ELEMENT	7
++#define AEM_EXHAUST_ELEMENT	9
++#define AEM_POWER_ELEMENT	10
++
++#define AEM_MODULE_TYPE_ID	0x0001
++
++#define AEM2_NUM_ENERGY_REGS	2
++#define AEM2_NUM_PCAP_REGS	6
++#define AEM2_NUM_TEMP_REGS	2
++#define AEM2_NUM_SENSORS	14
++
++#define AEM1_NUM_ENERGY_REGS	1
++#define AEM1_NUM_SENSORS	3
++
++/* AEM 2.x has more energy registers */
++#define AEM_NUM_ENERGY_REGS	AEM2_NUM_ENERGY_REGS
++/* AEM 2.x needs more sensor files */
++#define AEM_NUM_SENSORS		AEM2_NUM_SENSORS
++
++#define POWER_CAP		0
++#define POWER_CAP_MAX_HOTPLUG	1
++#define POWER_CAP_MAX		2
++#define	POWER_CAP_MIN_WARNING	3
++#define POWER_CAP_MIN		4
++#define	POWER_AUX		5
++
++#define AEM_DEFAULT_POWER_INTERVAL 1000
++#define AEM_MIN_POWER_INTERVAL	200
++
++static DEFINE_IDR(aem_idr);
++static DEFINE_SPINLOCK(aem_idr_lock);
++
++static struct device_driver aem_driver = {
++	.name = DRVNAME,
++	.bus = &platform_bus_type,
++};
++
++struct aem_ipmi_data {
++	struct completion	read_complete;
++	struct ipmi_addr	address;
++	ipmi_user_t		user;
++	int			interface;
++
++	struct kernel_ipmi_msg	tx_message;
++	long			tx_msgid;
++
++	void			*rx_msg_data;
++	unsigned short		rx_msg_len;
++	unsigned char		rx_result;
++	int			rx_recv_type;
++
++	struct device		*bmc_device;
++};
++
++struct aem_ro_sensor_template {
++	char *label;
++	ssize_t (*show)(struct device *dev,
++			struct device_attribute *devattr,
++			char *buf);
++	int index;
++};
++
++struct aem_rw_sensor_template {
++	char *label;
++	ssize_t (*show)(struct device *dev,
++			struct device_attribute *devattr,
++			char *buf);
++	ssize_t (*set)(struct device *dev,
++		       struct device_attribute *devattr,
++		       const char *buf, size_t count);
++	int index;
++};
++
++struct aem_data {
++	struct list_head	list;
++
++	struct device		*hwmon_dev;
++	struct platform_device	*pdev;
++	struct mutex		lock;
++	char			valid;
++	unsigned long		last_updated;	/* In jiffies */
++	u8			ver_major;
++	u8			ver_minor;
++	u8			module_handle;
++	int			id;
++	struct aem_ipmi_data	ipmi;
++
++	/* Function to update sensors */
++	void (*update)(struct aem_data *data);
++
++	/*
++	 * AEM 1.x sensors:
++	 * Available sensors:
++	 * Energy meter
++	 * Power meter
++	 *
++	 * AEM 2.x sensors:
++	 * Two energy meters
++	 * Two power meters
++	 * Two temperature sensors
++	 * Six power cap registers
++	 */
++
++	/* sysfs attrs */
++	struct sensor_device_attribute	sensors[AEM_NUM_SENSORS];
++
++	/* energy use in mJ */
++	u64			energy[AEM_NUM_ENERGY_REGS];
++
++	/* power sampling interval in ms */
++	unsigned long		power_period[AEM_NUM_ENERGY_REGS];
++
++	/* Everything past here is for AEM2 only */
++
++	/* power caps in dW */
++	u16			pcap[AEM2_NUM_PCAP_REGS];
++
++	/* exhaust temperature in C */
++	u8			temp[AEM2_NUM_TEMP_REGS];
++};
++
++/* Data structures returned by the AEM firmware */
++struct aem_iana_id {
++	u8			bytes[3];
++};
++static struct aem_iana_id system_x_id = {
++	.bytes = {0x4D, 0x4F, 0x00}
++};
++
++/* These are used to find AEM1 instances */
++struct aem_find_firmware_req {
++	struct aem_iana_id	id;
++	u8			rsvd;
++	u16			index;
++	u16			module_type_id;
++} __packed;
++
++struct aem_find_firmware_resp {
++	struct aem_iana_id	id;
++	u8			num_instances;
++} __packed;
++
++/* These are used to find AEM2 instances */
++struct aem_find_instance_req {
++	struct aem_iana_id	id;
++	u8			instance_number;
++	u16			module_type_id;
++} __packed;
++
++struct aem_find_instance_resp {
++	struct aem_iana_id	id;
++	u8			num_instances;
++	u8			major;
++	u8			minor;
++	u8			module_handle;
++	u16			record_id;
++} __packed;
++
++/* These are used to query sensors */
++struct aem_read_sensor_req {
++	struct aem_iana_id	id;
++	u8			module_handle;
++	u8			element;
++	u8			subcommand;
++	u8			reg;
++	u8			rx_buf_size;
++} __packed;
++
++struct aem_read_sensor_resp {
++	struct aem_iana_id	id;
++	u8			bytes[0];
++} __packed;
++
++/* Data structures to talk to the IPMI layer */
++struct aem_driver_data {
++	struct list_head	aem_devices;
++	struct ipmi_smi_watcher	bmc_events;
++	struct ipmi_user_hndl	ipmi_hndlrs;
++};
++
++static void aem_register_bmc(int iface, struct device *dev);
++static void aem_bmc_gone(int iface);
++static void aem_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data);
++
++static void aem_remove_sensors(struct aem_data *data);
++static int aem_init_aem1(struct aem_ipmi_data *probe);
++static int aem_init_aem2(struct aem_ipmi_data *probe);
++static int aem1_find_sensors(struct aem_data *data);
++static int aem2_find_sensors(struct aem_data *data);
++static void update_aem1_sensors(struct aem_data *data);
++static void update_aem2_sensors(struct aem_data *data);
++
++static struct aem_driver_data driver_data = {
++	.aem_devices = LIST_HEAD_INIT(driver_data.aem_devices),
++	.bmc_events = {
++		.owner = THIS_MODULE,
++		.new_smi = aem_register_bmc,
++		.smi_gone = aem_bmc_gone,
++	},
++	.ipmi_hndlrs = {
++		.ipmi_recv_hndl = aem_msg_handler,
++	},
++};
++
++/* Functions to talk to the IPMI layer */
++
++/* Initialize IPMI address, message buffers and user data */
++static int aem_init_ipmi_data(struct aem_ipmi_data *data, int iface,
++			      struct device *bmc)
++{
++	int err;
++
++	init_completion(&data->read_complete);
++	data->bmc_device = bmc;
++
++	/* Initialize IPMI address */
++	data->address.addr_type = IPMI_SYSTEM_INTERFACE_ADDR_TYPE;
++	data->address.channel = IPMI_BMC_CHANNEL;
++	data->address.data[0] = 0;
++	data->interface = iface;
++
++	/* Initialize message buffers */
++	data->tx_msgid = 0;
++	data->tx_message.netfn = AEM_NETFN;
++
++	/* Create IPMI messaging interface user */
++	err = ipmi_create_user(data->interface, &driver_data.ipmi_hndlrs,
++			       data, &data->user);
++	if (err < 0) {
++		dev_err(bmc, "Unable to register user with IPMI "
++			"interface %d\n", data->interface);
++		return -EACCES;
++	}
++
++	return 0;
++}
++
++/* Send an IPMI command */
++static int aem_send_message(struct aem_ipmi_data *data)
++{
++	int err;
++
++	err = ipmi_validate_addr(&data->address, sizeof(data->address));
++	if (err)
++		goto out;
++
++	data->tx_msgid++;
++	err = ipmi_request_settime(data->user, &data->address, data->tx_msgid,
++				   &data->tx_message, data, 0, 0, 0);
++	if (err)
++		goto out1;
++
++	return 0;
++out1:
++	dev_err(data->bmc_device, "request_settime=%x\n", err);
++	return err;
++out:
++	dev_err(data->bmc_device, "validate_addr=%x\n", err);
++	return err;
++}
++
++/* Dispatch IPMI messages to callers */
++static void aem_msg_handler(struct ipmi_recv_msg *msg, void *user_msg_data)
++{
++	unsigned short rx_len;
++	struct aem_ipmi_data *data = user_msg_data;
++
++	if (msg->msgid != data->tx_msgid) {
++		dev_err(data->bmc_device, "Mismatch between received msgid "
++			"(%02x) and transmitted msgid (%02x)!\n",
++			(int)msg->msgid,
++			(int)data->tx_msgid);
++		ipmi_free_recv_msg(msg);
++		return;
++	}
++
++	data->rx_recv_type = msg->recv_type;
++	if (msg->msg.data_len > 0)
++		data->rx_result = msg->msg.data[0];
++	else
++		data->rx_result = IPMI_UNKNOWN_ERR_COMPLETION_CODE;
++
++	if (msg->msg.data_len > 1) {
++		rx_len = msg->msg.data_len - 1;
++		if (data->rx_msg_len < rx_len)
++			rx_len = data->rx_msg_len;
++		data->rx_msg_len = rx_len;
++		memcpy(data->rx_msg_data, msg->msg.data + 1, data->rx_msg_len);
++	} else
++		data->rx_msg_len = 0;
++
++	ipmi_free_recv_msg(msg);
++	complete(&data->read_complete);
++}
++
++/* ID functions */
++
++/* Obtain an id */
++static int aem_idr_get(int *id)
++{
++	int i, err;
++
++again:
++	if (unlikely(!idr_pre_get(&aem_idr, GFP_KERNEL)))
++		return -ENOMEM;
++
++	spin_lock(&aem_idr_lock);
++	err = idr_get_new(&aem_idr, NULL, &i);
++	spin_unlock(&aem_idr_lock);
++
++	if (unlikely(err == -EAGAIN))
++		goto again;
++	else if (unlikely(err))
++		return err;
++
++	*id = i & MAX_ID_MASK;
++	return 0;
++}
++
++/* Release an object ID */
++static void aem_idr_put(int id)
++{
++	spin_lock(&aem_idr_lock);
++	idr_remove(&aem_idr, id);
++	spin_unlock(&aem_idr_lock);
++}
++
++/* Sensor support functions */
++
++/* Read a sensor value */
++static int aem_read_sensor(struct aem_data *data, u8 elt, u8 reg,
++			   void *buf, size_t size)
++{
++	int rs_size, res;
++	struct aem_read_sensor_req rs_req;
++	struct aem_read_sensor_resp *rs_resp;
++	struct aem_ipmi_data *ipmi = &data->ipmi;
++
++	/* AEM registers are 1, 2, 4 or 8 bytes */
++	switch (size) {
++	case 1:
++	case 2:
++	case 4:
++	case 8:
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	rs_req.id = system_x_id;
++	rs_req.module_handle = data->module_handle;
++	rs_req.element = elt;
++	rs_req.subcommand = AEM_READ_REGISTER;
++	rs_req.reg = reg;
++	rs_req.rx_buf_size = size;
++
++	ipmi->tx_message.cmd = AEM_ELEMENT_CMD;
++	ipmi->tx_message.data = (char *)&rs_req;
++	ipmi->tx_message.data_len = sizeof(rs_req);
++
++	rs_size = sizeof(*rs_resp) + size;
++	rs_resp = kzalloc(rs_size, GFP_KERNEL);
++	if (!rs_resp)
++		return -ENOMEM;
++
++	ipmi->rx_msg_data = rs_resp;
++	ipmi->rx_msg_len = rs_size;
++
++	aem_send_message(ipmi);
++
++	res = wait_for_completion_timeout(&ipmi->read_complete, IPMI_TIMEOUT);
++	if (!res)
++		return -ETIMEDOUT;
++
++	if (ipmi->rx_result || ipmi->rx_msg_len != rs_size ||
++	    memcmp(&rs_resp->id, &system_x_id, sizeof(system_x_id))) {
++		kfree(rs_resp);
++		return -ENOENT;
++	}
++
++	switch (size) {
++	case 1: {
++		u8 *x = buf;
++		*x = rs_resp->bytes[0];
++		break;
++	}
++	case 2: {
++		u16 *x = buf;
++		*x = be16_to_cpup((u16 *)rs_resp->bytes);
++		break;
++	}
++	case 4: {
++		u32 *x = buf;
++		*x = be32_to_cpup((u32 *)rs_resp->bytes);
++		break;
++	}
++	case 8: {
++		u64 *x = buf;
++		*x = be64_to_cpup((u64 *)rs_resp->bytes);
++		break;
++	}
++	}
++
++	return 0;
++}
++
++/* Update AEM energy registers */
++static void update_aem_energy(struct aem_data *data)
++{
++	aem_read_sensor(data, AEM_ENERGY_ELEMENT, 0, &data->energy[0], 8);
++	if (data->ver_major < 2)
++		return;
++	aem_read_sensor(data, AEM_ENERGY_ELEMENT, 1, &data->energy[1], 8);
++}
++
++/* Update all AEM1 sensors */
++static void update_aem1_sensors(struct aem_data *data)
++{
++	mutex_lock(&data->lock);
++	if (time_before(jiffies, data->last_updated + REFRESH_INTERVAL) &&
++	    data->valid)
++		goto out;
++
++	update_aem_energy(data);
++out:
++	mutex_unlock(&data->lock);
++}
++
++/* Update all AEM2 sensors */
++static void update_aem2_sensors(struct aem_data *data)
++{
++	int i;
++
++	mutex_lock(&data->lock);
++	if (time_before(jiffies, data->last_updated + REFRESH_INTERVAL) &&
++	    data->valid)
++		goto out;
++
++	update_aem_energy(data);
++	aem_read_sensor(data, AEM_EXHAUST_ELEMENT, 0, &data->temp[0], 1);
++	aem_read_sensor(data, AEM_EXHAUST_ELEMENT, 1, &data->temp[1], 1);
++
++	for (i = POWER_CAP; i <= POWER_AUX; i++)
++		aem_read_sensor(data, AEM_POWER_CAP_ELEMENT, i,
++				&data->pcap[i], 2);
++out:
++	mutex_unlock(&data->lock);
++}
++
++/* Delete an AEM instance */
++static void aem_delete(struct aem_data *data)
++{
++	list_del(&data->list);
++	aem_remove_sensors(data);
++	hwmon_device_unregister(data->hwmon_dev);
++	ipmi_destroy_user(data->ipmi.user);
++	dev_set_drvdata(&data->pdev->dev, NULL);
++	platform_device_unregister(data->pdev);
++	aem_idr_put(data->id);
++	kfree(data);
++}
++
++/* Probe functions for AEM1 devices */
++
++/* Retrieve version and module handle for an AEM1 instance */
++static int aem_find_aem1_count(struct aem_ipmi_data *data)
++{
++	int res;
++	struct aem_find_firmware_req	ff_req;
++	struct aem_find_firmware_resp	ff_resp;
++
++	ff_req.id = system_x_id;
++	ff_req.index = 0;
++	ff_req.module_type_id = cpu_to_be16(AEM_MODULE_TYPE_ID);
++
++	data->tx_message.cmd = AEM_FIND_FW_CMD;
++	data->tx_message.data = (char *)&ff_req;
++	data->tx_message.data_len = sizeof(ff_req);
++
++	data->rx_msg_data = &ff_resp;
++	data->rx_msg_len = sizeof(ff_resp);
++
++	aem_send_message(data);
++
++	res = wait_for_completion_timeout(&data->read_complete, IPMI_TIMEOUT);
++	if (!res)
++		return -ETIMEDOUT;
++
++	if (data->rx_result || data->rx_msg_len != sizeof(ff_resp) ||
++	    memcmp(&ff_resp.id, &system_x_id, sizeof(system_x_id)))
++		return -ENOENT;
++
++	return ff_resp.num_instances;
++}
++
++/* Find and initialize one AEM1 instance */
++static int aem_init_aem1_inst(struct aem_ipmi_data *probe, u8 module_handle)
++{
++	struct aem_data *data;
++	int i;
++	int res = -ENOMEM;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return res;
++	mutex_init(&data->lock);
++
++	/* Copy instance data */
++	data->ver_major = 1;
++	data->ver_minor = 0;
++	data->module_handle = module_handle;
++	for (i = 0; i < AEM1_NUM_ENERGY_REGS; i++)
++		data->power_period[i] = AEM_DEFAULT_POWER_INTERVAL;
++
++	/* Create sub-device for this fw instance */
++	if (aem_idr_get(&data->id))
++		goto id_err;
++
++	data->pdev = platform_device_alloc(DRVNAME, data->id);
++	if (!data->pdev)
++		goto dev_err;
++	data->pdev->dev.driver = &aem_driver;
++
++	res = platform_device_add(data->pdev);
++	if (res)
++		goto ipmi_err;
++
++	dev_set_drvdata(&data->pdev->dev, data);
++
++	/* Set up IPMI interface */
++	if (aem_init_ipmi_data(&data->ipmi, probe->interface,
++			       probe->bmc_device))
++		goto ipmi_err;
++
++	/* Register with hwmon */
++	data->hwmon_dev = hwmon_device_register(&data->pdev->dev);
++
++	if (IS_ERR(data->hwmon_dev)) {
++		dev_err(&data->pdev->dev, "Unable to register hwmon "
++			"device for IPMI interface %d\n",
++			probe->interface);
++		goto hwmon_reg_err;
++	}
++
++	data->update = update_aem1_sensors;
++
++	/* Find sensors */
++	if (aem1_find_sensors(data))
++		goto sensor_err;
++
++	/* Add to our list of AEM devices */
++	list_add_tail(&data->list, &driver_data.aem_devices);
++
++	dev_info(data->ipmi.bmc_device, "Found AEM v%d.%d at 0x%X\n",
++		 data->ver_major, data->ver_minor,
++		 data->module_handle);
++	return 0;
++
++sensor_err:
++	hwmon_device_unregister(data->hwmon_dev);
++hwmon_reg_err:
++	ipmi_destroy_user(data->ipmi.user);
++ipmi_err:
++	dev_set_drvdata(&data->pdev->dev, NULL);
++	platform_device_unregister(data->pdev);
++dev_err:
++	aem_idr_put(data->id);
++id_err:
++	kfree(data);
++
++	return res;
++}
++
++/* Find and initialize all AEM1 instances */
++static int aem_init_aem1(struct aem_ipmi_data *probe)
++{
++	int num, i, err;
++
++	num = aem_find_aem1_count(probe);
++	for (i = 0; i < num; i++) {
++		err = aem_init_aem1_inst(probe, i);
++		if (err) {
++			dev_err(probe->bmc_device,
++				"Error %d initializing AEM1 0x%X\n",
++				err, i);
++			return err;
++		}
++	}
++
++	return 0;
++}
++
++/* Probe functions for AEM2 devices */
++
++/* Retrieve version and module handle for an AEM2 instance */
++static int aem_find_aem2(struct aem_ipmi_data *data,
++			    struct aem_find_instance_resp *fi_resp,
++			    int instance_num)
++{
++	int res;
++	struct aem_find_instance_req fi_req;
++
++	fi_req.id = system_x_id;
++	fi_req.instance_number = instance_num;
++	fi_req.module_type_id = cpu_to_be16(AEM_MODULE_TYPE_ID);
++
++	data->tx_message.cmd = AEM_FW_INSTANCE_CMD;
++	data->tx_message.data = (char *)&fi_req;
++	data->tx_message.data_len = sizeof(fi_req);
++
++	data->rx_msg_data = fi_resp;
++	data->rx_msg_len = sizeof(*fi_resp);
++
++	aem_send_message(data);
++
++	res = wait_for_completion_timeout(&data->read_complete, IPMI_TIMEOUT);
++	if (!res)
++		return -ETIMEDOUT;
++
++	if (data->rx_result || data->rx_msg_len != sizeof(*fi_resp) ||
++	    memcmp(&fi_resp->id, &system_x_id, sizeof(system_x_id)))
++		return -ENOENT;
++
++	return 0;
++}
++
++/* Find and initialize one AEM2 instance */
++static int aem_init_aem2_inst(struct aem_ipmi_data *probe,
++			      struct aem_find_instance_resp *fi_resp)
++{
++	struct aem_data *data;
++	int i;
++	int res = -ENOMEM;
++
++	data = kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return res;
++	mutex_init(&data->lock);
++
++	/* Copy instance data */
++	data->ver_major = fi_resp->major;
++	data->ver_minor = fi_resp->minor;
++	data->module_handle = fi_resp->module_handle;
++	for (i = 0; i < AEM2_NUM_ENERGY_REGS; i++)
++		data->power_period[i] = AEM_DEFAULT_POWER_INTERVAL;
++
++	/* Create sub-device for this fw instance */
++	if (aem_idr_get(&data->id))
++		goto id_err;
++
++	data->pdev = platform_device_alloc(DRVNAME, data->id);
++	if (!data->pdev)
++		goto dev_err;
++	data->pdev->dev.driver = &aem_driver;
++
++	res = platform_device_add(data->pdev);
++	if (res)
++		goto ipmi_err;
++
++	dev_set_drvdata(&data->pdev->dev, data);
++
++	/* Set up IPMI interface */
++	if (aem_init_ipmi_data(&data->ipmi, probe->interface,
++			       probe->bmc_device))
++		goto ipmi_err;
++
++	/* Register with hwmon */
++	data->hwmon_dev = hwmon_device_register(&data->pdev->dev);
++
++	if (IS_ERR(data->hwmon_dev)) {
++		dev_err(&data->pdev->dev, "Unable to register hwmon "
++			"device for IPMI interface %d\n",
++			probe->interface);
++		goto hwmon_reg_err;
++	}
++
++	data->update = update_aem2_sensors;
++
++	/* Find sensors */
++	if (aem2_find_sensors(data))
++		goto sensor_err;
++
++	/* Add to our list of AEM devices */
++	list_add_tail(&data->list, &driver_data.aem_devices);
++
++	dev_info(data->ipmi.bmc_device, "Found AEM v%d.%d at 0x%X\n",
++		 data->ver_major, data->ver_minor,
++		 data->module_handle);
++	return 0;
++
++sensor_err:
++	hwmon_device_unregister(data->hwmon_dev);
++hwmon_reg_err:
++	ipmi_destroy_user(data->ipmi.user);
++ipmi_err:
++	dev_set_drvdata(&data->pdev->dev, NULL);
++	platform_device_unregister(data->pdev);
++dev_err:
++	aem_idr_put(data->id);
++id_err:
++	kfree(data);
++
++	return res;
++}
++
++/* Find and initialize all AEM2 instances */
++static int aem_init_aem2(struct aem_ipmi_data *probe)
++{
++	struct aem_find_instance_resp fi_resp;
++	int err;
++	int i = 0;
++
++	while (!aem_find_aem2(probe, &fi_resp, i)) {
++		if (fi_resp.major != 2) {
++			dev_err(probe->bmc_device, "Unknown AEM v%d; please "
++				"report this to the maintainer.\n",
++				fi_resp.major);
++			i++;
++			continue;
++		}
++		err = aem_init_aem2_inst(probe, &fi_resp);
++		if (err) {
++			dev_err(probe->bmc_device,
++				"Error %d initializing AEM2 0x%X\n",
++				err, fi_resp.module_handle);
++			return err;
++		}
++		i++;
++	}
++
++	return 0;
++}
++
++/* Probe a BMC for AEM firmware instances */
++static void aem_register_bmc(int iface, struct device *dev)
++{
++	struct aem_ipmi_data probe;
++
++	if (aem_init_ipmi_data(&probe, iface, dev))
++		return;
++
++	/* Ignore probe errors; they won't cause problems */
++	aem_init_aem1(&probe);
++	aem_init_aem2(&probe);
++
++	ipmi_destroy_user(probe.user);
++}
++
++/* Handle BMC deletion */
++static void aem_bmc_gone(int iface)
++{
++	struct aem_data *p1, *next1;
++
++	list_for_each_entry_safe(p1, next1, &driver_data.aem_devices, list)
++		if (p1->ipmi.interface == iface)
++			aem_delete(p1);
++}
++
++/* sysfs support functions */
++
++/* AEM device name */
++static ssize_t show_name(struct device *dev, struct device_attribute *devattr,
++			 char *buf)
++{
++	struct aem_data *data = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%s%d\n", DRVNAME, data->ver_major);
++}
++static SENSOR_DEVICE_ATTR(name, S_IRUGO, show_name, NULL, 0);
++
++/* AEM device version */
++static ssize_t show_version(struct device *dev,
++			    struct device_attribute *devattr,
++			    char *buf)
++{
++	struct aem_data *data = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%d.%d\n", data->ver_major, data->ver_minor);
++}
++static SENSOR_DEVICE_ATTR(version, S_IRUGO, show_version, NULL, 0);
++
++/* Display power use */
++static ssize_t aem_show_power(struct device *dev,
++			      struct device_attribute *devattr,
++			      char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct aem_data *data = dev_get_drvdata(dev);
++	u64 before, after, time;
++	signed long leftover;
++	struct timespec b, a;
++
++	mutex_lock(&data->lock);
++	update_aem_energy(data);
++	getnstimeofday(&b);
++	before = data->energy[attr->index];
++
++	leftover = schedule_timeout_interruptible(
++			msecs_to_jiffies(data->power_period[attr->index])
++		   );
++	if (leftover) {
++		mutex_unlock(&data->lock);
++		return 0;
++	}
++
++	update_aem_energy(data);
++	getnstimeofday(&a);
++	after = data->energy[attr->index];
++	mutex_unlock(&data->lock);
++
++	time = timespec_to_ns(&a) - timespec_to_ns(&b);
++	time /= 1000;
++
++	return sprintf(buf, "%llu\n", (after - before) * 1000000000 / time);
++}
++
++/* Display energy use */
++static ssize_t aem_show_energy(struct device *dev,
++			       struct device_attribute *devattr,
++			       char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct aem_data *a = dev_get_drvdata(dev);
++	a->update(a);
++
++	return sprintf(buf, "%llu\n", a->energy[attr->index] * 1000);
++}
++
++/* Display power interval registers */
++static ssize_t aem_show_power_period(struct device *dev,
++				     struct device_attribute *devattr,
++				     char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct aem_data *a = dev_get_drvdata(dev);
++	a->update(a);
++
++	return sprintf(buf, "%lu\n", a->power_period[attr->index]);
++}
++
++/* Set power interval registers */
++static ssize_t aem_set_power_period(struct device *dev,
++				    struct device_attribute *devattr,
++				    const char *buf, size_t count)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct aem_data *a = dev_get_drvdata(dev);
++	unsigned long temp;
++	int res;
++
++	res = strict_strtoul(buf, 10, &temp);
++	if (res)
++		return res;
++
++	if (temp < AEM_MIN_POWER_INTERVAL)
++		return -EINVAL;
++
++	mutex_lock(&a->lock);
++	a->power_period[attr->index] = temp;
++	mutex_unlock(&a->lock);
++
++	return count;
++}
++
++/* Discover sensors on an AEM device */
++static int aem_register_sensors(struct aem_data *data,
++				struct aem_ro_sensor_template *ro,
++				struct aem_rw_sensor_template *rw)
++{
++	struct device *dev = &data->pdev->dev;
++	struct sensor_device_attribute *sensors = data->sensors;
++	int err;
++
++	/* Set up read-only sensors */
++	while (ro->label) {
++		sensors->dev_attr.attr.name = ro->label;
++		sensors->dev_attr.attr.mode = S_IRUGO;
++		sensors->dev_attr.show = ro->show;
++		sensors->index = ro->index;
++
++		err = device_create_file(dev, &sensors->dev_attr);
++		if (err) {
++			sensors->dev_attr.attr.name = NULL;
++			goto error;
++		}
++		sensors++;
++		ro++;
++	}
++
++	/* Set up read-write sensors */
++	while (rw->label) {
++		sensors->dev_attr.attr.name = rw->label;
++		sensors->dev_attr.attr.mode = S_IRUGO | S_IWUSR;
++		sensors->dev_attr.show = rw->show;
++		sensors->dev_attr.store = rw->set;
++		sensors->index = rw->index;
++
++		err = device_create_file(dev, &sensors->dev_attr);
++		if (err) {
++			sensors->dev_attr.attr.name = NULL;
++			goto error;
++		}
++		sensors++;
++		rw++;
++	}
++
++	err = device_create_file(dev, &sensor_dev_attr_name.dev_attr);
++	if (err)
++		goto error;
++	err = device_create_file(dev, &sensor_dev_attr_version.dev_attr);
++	return err;
++
++error:
++	aem_remove_sensors(data);
++	return err;
++}
++
++/* sysfs support functions for AEM2 sensors */
++
++/* Display temperature use */
++static ssize_t aem2_show_temp(struct device *dev,
++			      struct device_attribute *devattr,
++			      char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct aem_data *a = dev_get_drvdata(dev);
++	a->update(a);
++
++	return sprintf(buf, "%u\n", a->temp[attr->index] * 1000);
++}
++
++/* Display power-capping registers */
++static ssize_t aem2_show_pcap_value(struct device *dev,
++				    struct device_attribute *devattr,
++				    char *buf)
++{
++	struct sensor_device_attribute *attr = to_sensor_dev_attr(devattr);
++	struct aem_data *a = dev_get_drvdata(dev);
++	a->update(a);
++
++	return sprintf(buf, "%u\n", a->pcap[attr->index] * 100000);
++}
++
++/* Remove sensors attached to an AEM device */
++static void aem_remove_sensors(struct aem_data *data)
++{
++	int i;
++
++	for (i = 0; i < AEM_NUM_SENSORS; i++) {
++		if (!data->sensors[i].dev_attr.attr.name)
++			continue;
++		device_remove_file(&data->pdev->dev,
++				   &data->sensors[i].dev_attr);
++	}
++
++	device_remove_file(&data->pdev->dev,
++			   &sensor_dev_attr_name.dev_attr);
++	device_remove_file(&data->pdev->dev,
++			   &sensor_dev_attr_version.dev_attr);
++}
++
++/* Sensor probe functions */
++
++/* Description of AEM1 sensors */
++static struct aem_ro_sensor_template aem1_ro_sensors[] = {
++{"energy1_input",  aem_show_energy, 0},
++{"power1_average", aem_show_power,  0},
++{NULL,		   NULL,	    0},
++};
++
++static struct aem_rw_sensor_template aem1_rw_sensors[] = {
++{"power1_average_interval", aem_show_power_period, aem_set_power_period, 0},
++{NULL,			    NULL,                  NULL,                 0},
++};
++
++/* Description of AEM2 sensors */
++static struct aem_ro_sensor_template aem2_ro_sensors[] = {
++{"energy1_input",	  aem_show_energy,	0},
++{"energy2_input",	  aem_show_energy,	1},
++{"power1_average",	  aem_show_power,	0},
++{"power2_average",	  aem_show_power,	1},
++{"temp1_input",		  aem2_show_temp,	0},
++{"temp2_input",		  aem2_show_temp,	1},
++
++{"power4_average",	  aem2_show_pcap_value,	POWER_CAP_MAX_HOTPLUG},
++{"power5_average",	  aem2_show_pcap_value,	POWER_CAP_MAX},
++{"power6_average",	  aem2_show_pcap_value,	POWER_CAP_MIN_WARNING},
++{"power7_average",	  aem2_show_pcap_value,	POWER_CAP_MIN},
++
++{"power3_average", 	  aem2_show_pcap_value,	POWER_AUX},
++{"power_cap",		  aem2_show_pcap_value,	POWER_CAP},
++{NULL,                    NULL,                 0},
++};
++
++static struct aem_rw_sensor_template aem2_rw_sensors[] = {
++{"power1_average_interval", aem_show_power_period, aem_set_power_period, 0},
++{"power2_average_interval", aem_show_power_period, aem_set_power_period, 1},
++{NULL,			    NULL,                  NULL,                 0},
++};
++
++/* Set up AEM1 sensor attrs */
++static int aem1_find_sensors(struct aem_data *data)
++{
++	return aem_register_sensors(data, aem1_ro_sensors, aem1_rw_sensors);
++}
++
++/* Set up AEM2 sensor attrs */
++static int aem2_find_sensors(struct aem_data *data)
++{
++	return aem_register_sensors(data, aem2_ro_sensors, aem2_rw_sensors);
++}
++
++/* Module init/exit routines */
++
++static int __init aem_init(void)
++{
++	int res;
++
++	res = driver_register(&aem_driver);
++	if (res) {
++		printk(KERN_ERR "Can't register aem driver\n");
++		return res;
++	}
++
++	res = ipmi_smi_watcher_register(&driver_data.bmc_events);
++	if (res)
++		goto ipmi_reg_err;
++	return 0;
++
++ipmi_reg_err:
++	driver_unregister(&aem_driver);
++	return res;
++
++}
++
++static void __exit aem_exit(void)
++{
++	struct aem_data *p1, *next1;
++
++	ipmi_smi_watcher_unregister(&driver_data.bmc_events);
++	driver_unregister(&aem_driver);
++	list_for_each_entry_safe(p1, next1, &driver_data.aem_devices, list)
++		aem_delete(p1);
++}
++
++MODULE_AUTHOR("Darrick J. Wong <djwong@us.ibm.com>");
++MODULE_DESCRIPTION("IBM Active Energy Manager power/temp sensor driver");
++MODULE_LICENSE("GPL");
++
++module_init(aem_init);
++module_exit(aem_exit);
+_
 
-Patches currently in -mm which might be from alan@lxorguk.ukuu.org.uk are
+Patches currently in -mm which might be from djwong@us.ibm.com are
 
-origin.patch
-sxc-fix-printk-warnings-on-sparc32.patch
-linux-next.patch
-revert-vt-fix-background-color-on-line-feed.patch
-git-gfs2-nmw.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-iphase-fix-64bit-warning.patch
-8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
-parisc-new-termios-definitions.patch
-vt-fix-vcs-sysfs-file-creation-race.patch
-put_pid-make-sure-we-dont-free-the-live-pid.patch
+adt7473-minor-documentation-update.patch
+i5k_amb-support-intel-5400-chipset.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware.patch
 
