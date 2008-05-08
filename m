@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch added to -mm tree
-Date: Wed, 07 May 2008 18:10:38 -0700
-Message-ID: <200805080110.m481Ac7N026311@imap1.linux-foundation.org>
+Subject: + revert-vt-fix-background-color-on-line-feed.patch added to -mm tree
+Date: Wed, 07 May 2008 22:59:48 -0700
+Message-ID: <200805080559.m485xmk2003779@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44881 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44009 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754287AbYEHBLH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 May 2008 21:11:07 -0400
+	by vger.kernel.org with ESMTP id S1753111AbYEHGAl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 02:00:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, JRottmann@LiPPERT-AT.de, adaplas@pol.net, dilinger@queued.net, jordan.crouse@amd.com
+Cc: akpm@linux-foundation.org, adaplas@pol.net, alan@lxorguk.ukuu.org.uk, davem@davemloft.net, hpa@zytor.com, jengelh@computergmbh.de
 
 
 The patch titled
-     revert "lxfb: extend PLL table to support dotclocks below 25 MHz"
+     revert "vt: fix background color on line feed"
 has been added to the -mm tree.  Its filename is
-     revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
+     revert-vt-fix-background-color-on-line-feed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,181 +33,209 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "lxfb: extend PLL table to support dotclocks below 25 MHz"
+Subject: revert "vt: fix background color on line feed"
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Revert
 
-commit 3888d4639e78802c4ec1086127124e890461b9e4
-Author: Jens Rottmann <JRottmann@LiPPERT-AT.de>
-Date:   Mon Apr 28 02:15:22 2008 -0700
+commit c9e587abfdec2c2aaa55fab83bcb4972e2f84f9b
+Author: Jan Engelhardt <jengelh@computergmbh.de>
+Date:   Tue Apr 29 00:59:46 2008 -0700
 
-    lxfb: extend PLL table to support dotclocks below 25 MHz
+    vt: fix background color on line feed
     
-    Extends the PLL frequency table of the AMD Geode-LX frame buffer driver to
-    make use of the DIV4 bit, thus adding support for dotclocks between 6 and 25
-    MHz.  These are needed for small LCDs (e.g.  320x240).  Also inserts some
-    intermediate steps between pre-existing frequencies.
+    A command that causes a line feed while a background color is active,
+    such as
+    
+    	perl -e 'print "x" x 60, "\e[44m", "x" x 40, "\e[0m\n"'
+    and
+    	perl -e 'print "x" x 40, "\e[44m\n", "x" x 40, "\e[0m\n"'
+    
+    causes the line that was started as a result of the line feed to be completely
+    filled with the currently active background color instead of the default
+    color.
+    
+    When scrolling, part of the current screen is memcpy'd/memmove'd to the new
+    region, and the new line(s) that will appear as a result are cleared using
+    memset.  However, the lines are cleared with vc->vc_video_erase_char, causing
+    them to be colored with the currently active background color.  This is
+    different from X11 terminal emulators which always paint the new lines with
+    the default background color (e.g.  `xterm -bg black`).
+    
+    The clear operation (\e[1J and \e[2J) also use vc_video_erase_char, so a new
+    vc->vc_scrl_erase_char is introduced with contains the erase character used
+    for scrolling, which is built from vc->vc_def_color instead of vc->vc_color.
 
-Andreas says:
+Because davem reports that it
 
-Without this patch, I get the following (correct) output from the lxfb
-and console code:
+Causes garbage characters to appear at the end of lines on my VCs when
+scrolling.
 
-[    0.939827] lxfb 0000:00:01.1: 16384 KB of video memory at 0xfd000000
-[    1.009194] Console: switching to colour frame buffer device 150x56     
+They look like lowercase 'c' characters with a '.' above them, and they are
+colored light blue.  The rest of the console text is fine.
 
-Without it, the cols/width is screwy (and I get a blank white screen):
+I think it might be because my VC gets put into a UTF8 mode or something like
+that via the init scripts?  It seems to start happening right when the init
+scripts print "Setting up console font and keymap", which seems to come from
+/etc/init.d/console-setup which runs /bin/setupcon
 
-[   20.706836] lxfb 0000:00:01.1: 16384 KB of video memory at 0xfd000000
-[   20.788538] Console: switching to colour frame buffer device 100x40          
-
-Cc: Andres Salomon <dilinger@queued.net>
-Cc: Jens Rottmann <JRottmann@LiPPERT-AT.de>
-Cc: Jordan Crouse <jordan.crouse@amd.com>
+This is with a stock Ubuntu 7.10 installation.
+    
+Cc: Jan Engelhardt <jengelh@computergmbh.de>
 Cc: "Antonino A. Daplas" <adaplas@pol.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/lxfb_ops.c |  112 ++++++++-----------------------
- 1 file changed, 31 insertions(+), 81 deletions(-)
+ drivers/char/vt.c              |    7 +++----
+ drivers/video/console/fbcon.c  |    8 ++++----
+ drivers/video/console/mdacon.c |    2 +-
+ drivers/video/console/sticon.c |    4 ++--
+ drivers/video/console/vgacon.c |    4 ++--
+ include/linux/console_struct.h |    1 -
+ 6 files changed, 12 insertions(+), 14 deletions(-)
 
-diff -puN drivers/video/geode/lxfb_ops.c~revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz drivers/video/geode/lxfb_ops.c
---- a/drivers/video/geode/lxfb_ops.c~revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz
-+++ a/drivers/video/geode/lxfb_ops.c
-@@ -35,85 +35,35 @@ static const struct {
-   unsigned int pllval;
-   unsigned int freq;
- } pll_table[] = {
--  { 0x000131AC,   6231 },
--  { 0x0001215D,   6294 },
--  { 0x00011087,   6750 },
--  { 0x0001216C,   7081 },
--  { 0x0001218D,   7140 },
--  { 0x000110C9,   7800 },
--  { 0x00013147,   7875 },
--  { 0x000110A7,   8258 },
--  { 0x00012159,   8778 },
--  { 0x00014249,   8875 },
--  { 0x00010057,   9000 },
--  { 0x0001219A,   9472 },
--  { 0x00012158,   9792 },
--  { 0x00010045,  10000 },
--  { 0x00010089,  10791 },
--  { 0x000110E7,  11225 },
--  { 0x00012136,  11430 },
--  { 0x00013207,  12375 },
--  { 0x00012187,  12500 },
--  { 0x00014286,  14063 },
--  { 0x000110E5,  15016 },
--  { 0x00014214,  16250 },
--  { 0x00011105,  17045 },
--  { 0x000131E4,  18563 },
--  { 0x00013183,  18750 },
--  { 0x00014284,  19688 },
--  { 0x00011104,  20400 },
--  { 0x00016363,  23625 },
--  { 0x00015303,  24380 },
--  { 0x000031AC,  24923 },
--  { 0x0000215D,  25175 },
--  { 0x00001087,  27000 },
--  { 0x0000216C,  28322 },
--  { 0x0000218D,  28560 },
--  { 0x00010041,  29913 },
--  { 0x000010C9,  31200 },
--  { 0x00003147,  31500 },
--  { 0x000141A1,  32400 },
--  { 0x000010A7,  33032 },
--  { 0x00012182,  33375 },
--  { 0x000141B1,  33750 },
--  { 0x00002159,  35112 },
--  { 0x00004249,  35500 },
--  { 0x00000057,  36000 },
--  { 0x000141E1,  37125 },
--  { 0x0000219A,  37889 },
--  { 0x00002158,  39168 },
--  { 0x00000045,  40000 },
--  { 0x000131A1,  40500 },
--  { 0x00010061,  42301 },
--  { 0x00000089,  43163 },
--  { 0x00012151,  43875 },
--  { 0x000010E7,  44900 },
--  { 0x00002136,  45720 },
--  { 0x000152E1,  47250 },
--  { 0x00010071,  48000 },
--  { 0x00003207,  49500 },
--  { 0x00002187,  50000 },
--  { 0x00014291,  50625 },
--  { 0x00011101,  51188 },
--  { 0x00017481,  54563 },
--  { 0x00004286,  56250 },
--  { 0x00014170,  57375 },
--  { 0x00016210,  58500 },
--  { 0x000010E5,  60065 },
--  { 0x00013140,  62796 },
--  { 0x00004214,  65000 },
--  { 0x00016250,  65250 },
--  { 0x00001105,  68179 },
--  { 0x000141C0,  69600 },
--  { 0x00015220,  70160 },
--  { 0x00010050,  72000 },
--  { 0x000031E4,  74250 },
--  { 0x00003183,  75000 },
--  { 0x00004284,  78750 },
--  { 0x00012130,  80052 },
--  { 0x00001104,  81600 },
--  { 0x00006363,  94500 },
--  { 0x00005303,  97520 },
-+  { 0x000031AC, 24923 },
-+  { 0x0000215D, 25175 },
-+  { 0x00001087, 27000 },
-+  { 0x0000216C, 28322 },
-+  { 0x0000218D, 28560 },
-+  { 0x000010C9, 31200 },
-+  { 0x00003147, 31500 },
-+  { 0x000010A7, 33032 },
-+  { 0x00002159, 35112 },
-+  { 0x00004249, 35500 },
-+  { 0x00000057, 36000 },
-+  { 0x0000219A, 37889 },
-+  { 0x00002158, 39168 },
-+  { 0x00000045, 40000 },
-+  { 0x00000089, 43163 },
-+  { 0x000010E7, 44900 },
-+  { 0x00002136, 45720 },
-+  { 0x00003207, 49500 },
-+  { 0x00002187, 50000 },
-+  { 0x00004286, 56250 },
-+  { 0x000010E5, 60065 },
-+  { 0x00004214, 65000 },
-+  { 0x00001105, 68179 },
-+  { 0x000031E4, 74250 },
-+  { 0x00003183, 75000 },
-+  { 0x00004284, 78750 },
-+  { 0x00001104, 81600 },
-+  { 0x00006363, 94500 },
-+  { 0x00005303, 97520 },
-   { 0x00002183, 100187 },
-   { 0x00002122, 101420 },
-   { 0x00001081, 108000 },
-@@ -188,7 +138,7 @@ static void lx_set_clock(struct fb_info 
- 	unsigned int diff, min, best = 0;
- 	unsigned int freq, i;
- 
--	freq = (unsigned int) (1000000000 / info->var.pixclock);
-+	freq = (unsigned int) (0x3b9aca00 / info->var.pixclock);
- 
- 	min = abs(pll_table[0].freq - freq);
- 
-@@ -200,7 +150,7 @@ static void lx_set_clock(struct fb_info 
- 		}
- 	}
- 
--	lx_set_dotpll(pll_table[best].pllval & 0x00017FFF);
-+	lx_set_dotpll(pll_table[best].pllval & 0x7FFF);
+diff -puN drivers/char/vt.c~revert-vt-fix-background-color-on-line-feed drivers/char/vt.c
+--- a/drivers/char/vt.c~revert-vt-fix-background-color-on-line-feed
++++ a/drivers/char/vt.c
+@@ -301,7 +301,7 @@ static void scrup(struct vc_data *vc, un
+ 	d = (unsigned short *)(vc->vc_origin + vc->vc_size_row * t);
+ 	s = (unsigned short *)(vc->vc_origin + vc->vc_size_row * (t + nr));
+ 	scr_memmovew(d, s, (b - t - nr) * vc->vc_size_row);
+-	scr_memsetw(d + (b - t - nr) * vc->vc_cols, vc->vc_scrl_erase_char,
++	scr_memsetw(d + (b - t - nr) * vc->vc_cols, vc->vc_video_erase_char,
+ 		    vc->vc_size_row * nr);
  }
  
- static void lx_graphics_disable(struct fb_info *info)
+@@ -319,7 +319,7 @@ static void scrdown(struct vc_data *vc, 
+ 	s = (unsigned short *)(vc->vc_origin + vc->vc_size_row * t);
+ 	step = vc->vc_cols * nr;
+ 	scr_memmovew(s + step, s, (b - t - nr) * vc->vc_size_row);
+-	scr_memsetw(s, vc->vc_scrl_erase_char, 2 * step);
++	scr_memsetw(s, vc->vc_video_erase_char, 2 * step);
+ }
+ 
+ static void do_update_region(struct vc_data *vc, unsigned long start, int count)
+@@ -400,7 +400,7 @@ static u8 build_attr(struct vc_data *vc,
+  *  Bit 7   : blink
+  */
+ 	{
+-	u8 a = _color;
++	u8 a = vc->vc_color;
+ 	if (!vc->vc_can_do_color)
+ 		return _intensity |
+ 		       (_italic ? 2 : 0) |
+@@ -434,7 +434,6 @@ static void update_attr(struct vc_data *
+ 	              vc->vc_blink, vc->vc_underline,
+ 	              vc->vc_reverse ^ vc->vc_decscnm, vc->vc_italic);
+ 	vc->vc_video_erase_char = (build_attr(vc, vc->vc_color, 1, vc->vc_blink, 0, vc->vc_decscnm, 0) << 8) | ' ';
+-	vc->vc_scrl_erase_char = (build_attr(vc, vc->vc_def_color, 1, false, false, false, false) << 8) | ' ';
+ }
+ 
+ /* Note: inverting the screen twice should revert to the original state */
+diff -puN drivers/video/console/fbcon.c~revert-vt-fix-background-color-on-line-feed drivers/video/console/fbcon.c
+--- a/drivers/video/console/fbcon.c~revert-vt-fix-background-color-on-line-feed
++++ a/drivers/video/console/fbcon.c
+@@ -1881,7 +1881,7 @@ static int fbcon_scroll(struct vc_data *
+ 			scr_memsetw((unsigned short *) (vc->vc_origin +
+ 							vc->vc_size_row *
+ 							(b - count)),
+-				    vc->vc_scrl_erase_char,
++				    vc->vc_video_erase_char,
+ 				    vc->vc_size_row * count);
+ 			return 1;
+ 			break;
+@@ -1953,7 +1953,7 @@ static int fbcon_scroll(struct vc_data *
+ 			scr_memsetw((unsigned short *) (vc->vc_origin +
+ 							vc->vc_size_row *
+ 							(b - count)),
+-				    vc->vc_scrl_erase_char,
++				    vc->vc_video_erase_char,
+ 				    vc->vc_size_row * count);
+ 			return 1;
+ 		}
+@@ -1972,7 +1972,7 @@ static int fbcon_scroll(struct vc_data *
+ 			scr_memsetw((unsigned short *) (vc->vc_origin +
+ 							vc->vc_size_row *
+ 							t),
+-				    vc->vc_scrl_erase_char,
++				    vc->vc_video_erase_char,
+ 				    vc->vc_size_row * count);
+ 			return 1;
+ 			break;
+@@ -2042,7 +2042,7 @@ static int fbcon_scroll(struct vc_data *
+ 			scr_memsetw((unsigned short *) (vc->vc_origin +
+ 							vc->vc_size_row *
+ 							t),
+-				    vc->vc_scrl_erase_char,
++				    vc->vc_video_erase_char,
+ 				    vc->vc_size_row * count);
+ 			return 1;
+ 		}
+diff -puN drivers/video/console/mdacon.c~revert-vt-fix-background-color-on-line-feed drivers/video/console/mdacon.c
+--- a/drivers/video/console/mdacon.c~revert-vt-fix-background-color-on-line-feed
++++ a/drivers/video/console/mdacon.c
+@@ -531,7 +531,7 @@ static void mdacon_cursor(struct vc_data
+ 
+ static int mdacon_scroll(struct vc_data *c, int t, int b, int dir, int lines)
+ {
+-	u16 eattr = mda_convert_attr(c->vc_scrl_erase_char);
++	u16 eattr = mda_convert_attr(c->vc_video_erase_char);
+ 
+ 	if (!lines)
+ 		return 0;
+diff -puN drivers/video/console/sticon.c~revert-vt-fix-background-color-on-line-feed drivers/video/console/sticon.c
+--- a/drivers/video/console/sticon.c~revert-vt-fix-background-color-on-line-feed
++++ a/drivers/video/console/sticon.c
+@@ -170,12 +170,12 @@ static int sticon_scroll(struct vc_data 
+     switch (dir) {
+     case SM_UP:
+ 	sti_bmove(sti, t + count, 0, t, 0, b - t - count, conp->vc_cols);
+-	sti_clear(sti, b - count, 0, count, conp->vc_cols, conp->vc_scrl_erase_char);
++	sti_clear(sti, b - count, 0, count, conp->vc_cols, conp->vc_video_erase_char);
+ 	break;
+ 
+     case SM_DOWN:
+ 	sti_bmove(sti, t, 0, t + count, 0, b - t - count, conp->vc_cols);
+-	sti_clear(sti, t, 0, count, conp->vc_cols, conp->vc_scrl_erase_char);
++	sti_clear(sti, t, 0, count, conp->vc_cols, conp->vc_video_erase_char);
+ 	break;
+     }
+ 
+diff -puN drivers/video/console/vgacon.c~revert-vt-fix-background-color-on-line-feed drivers/video/console/vgacon.c
+--- a/drivers/video/console/vgacon.c~revert-vt-fix-background-color-on-line-feed
++++ a/drivers/video/console/vgacon.c
+@@ -1350,7 +1350,7 @@ static int vgacon_scroll(struct vc_data 
+ 		} else
+ 			c->vc_origin += delta;
+ 		scr_memsetw((u16 *) (c->vc_origin + c->vc_screenbuf_size -
+-				     delta), c->vc_scrl_erase_char,
++				     delta), c->vc_video_erase_char,
+ 			    delta);
+ 	} else {
+ 		if (oldo - delta < vga_vram_base) {
+@@ -1363,7 +1363,7 @@ static int vgacon_scroll(struct vc_data 
+ 		} else
+ 			c->vc_origin -= delta;
+ 		c->vc_scr_end = c->vc_origin + c->vc_screenbuf_size;
+-		scr_memsetw((u16 *) (c->vc_origin), c->vc_scrl_erase_char,
++		scr_memsetw((u16 *) (c->vc_origin), c->vc_video_erase_char,
+ 			    delta);
+ 	}
+ 	c->vc_scr_end = c->vc_origin + c->vc_screenbuf_size;
+diff -puN include/linux/console_struct.h~revert-vt-fix-background-color-on-line-feed include/linux/console_struct.h
+--- a/include/linux/console_struct.h~revert-vt-fix-background-color-on-line-feed
++++ a/include/linux/console_struct.h
+@@ -53,7 +53,6 @@ struct vc_data {
+ 	unsigned short	vc_hi_font_mask;	/* [#] Attribute set for upper 256 chars of font or 0 if not supported */
+ 	struct console_font vc_font;		/* Current VC font set */
+ 	unsigned short	vc_video_erase_char;	/* Background erase character */
+-	unsigned short	vc_scrl_erase_char;	/* Erase character for scroll */
+ 	/* VT terminal data */
+ 	unsigned int	vc_state;		/* Escape sequence parser state */
+ 	unsigned int	vc_npar,vc_par[NPAR];	/* Parameters of current escape sequence */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -222,6 +250,7 @@ mmu-notifier-core-fix.patch
 linux-next.patch
 linux-next-fixup.patch
 revert-9p-convert-from-semaphore-to-spinlock.patch
+revert-vt-fix-background-color-on-line-feed.patch
 revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
 revert-acpica-fixes-for-unload-and-ddbhandles.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
