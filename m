@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fs-binfmt_elfc-fix-wrong-return-values.patch added to -mm tree
-Date: Thu, 08 May 2008 13:22:21 -0700
-Message-ID: <200805082022.m48KML6A004047@imap1.linux-foundation.org>
+Subject: + fs-binfmt_scriptc-fix-resource-leaks.patch added to -mm tree
+Date: Thu, 08 May 2008 13:22:13 -0700
+Message-ID: <200805082022.m48KMDen004013@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58567 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51324 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756883AbYEHUWv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:22:51 -0400
+	by vger.kernel.org with ESMTP id S1754811AbYEHUWq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 16:22:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: xiyou.wangcong@gmail.com, viro@zeniv.linux.org.uk, wangcong@zeuux.org
+Cc: xiyou.wangcong@gmail.com, wangcong@zeuux.org
 
 
 The patch titled
-     fs/binfmt_elf.c: fix wrong return values
+     fs/binfmt_script.c: fix resource leaks
 has been added to the -mm tree.  Its filename is
-     fs-binfmt_elfc-fix-wrong-return-values.patch
+     fs-binfmt_scriptc-fix-resource-leaks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,41 +33,70 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/binfmt_elf.c: fix wrong return values
+Subject: fs/binfmt_script.c: fix resource leaks
 From: WANG Cong <xiyou.wangcong@gmail.com>
 
-create_elf_tables() returns 0 on success.  But when strnlen_user() "fails", it
-returns 0 directly.  So this is wrong.
+->load_binary()'s caller only frees resources which ->load_binary() applied
+when it succeeded, so ->load_binary() itself should free the resources on
+failure.
 
 Signed-off-by: WANG Cong <wangcong@zeuux.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_script.c |   26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
 
-diff -puN fs/binfmt_elf.c~fs-binfmt_elfc-fix-wrong-return-values fs/binfmt_elf.c
---- a/fs/binfmt_elf.c~fs-binfmt_elfc-fix-wrong-return-values
-+++ a/fs/binfmt_elf.c
-@@ -257,7 +257,7 @@ create_elf_tables(struct linux_binprm *b
- 			return -EFAULT;
- 		len = strnlen_user((void __user *)p, MAX_ARG_STRLEN);
- 		if (!len || len > MAX_ARG_STRLEN)
--			return 0;
-+			return -EINVAL;
- 		p += len;
+diff -puN fs/binfmt_script.c~fs-binfmt_scriptc-fix-resource-leaks fs/binfmt_script.c
+--- a/fs/binfmt_script.c~fs-binfmt_scriptc-fix-resource-leaks
++++ a/fs/binfmt_script.c
+@@ -75,11 +75,13 @@ static int load_script(struct linux_binp
+ 	bprm->argc++;
+ 	if (i_arg) {
+ 		retval = copy_strings_kernel(1, &i_arg, bprm);
+-		if (retval < 0) return retval; 
++		if (retval < 0)
++			goto out;
+ 		bprm->argc++;
  	}
- 	if (__put_user(0, argv))
-@@ -269,7 +269,7 @@ create_elf_tables(struct linux_binprm *b
- 			return -EFAULT;
- 		len = strnlen_user((void __user *)p, MAX_ARG_STRLEN);
- 		if (!len || len > MAX_ARG_STRLEN)
--			return 0;
-+			return -EINVAL;
- 		p += len;
- 	}
- 	if (__put_user(0, envp))
+ 	retval = copy_strings_kernel(1, &i_name, bprm);
+-	if (retval) return retval; 
++	if (retval)
++		goto out;
+ 	bprm->argc++;
+ 	bprm->interp = interp;
+ 
+@@ -87,14 +89,26 @@ static int load_script(struct linux_binp
+ 	 * OK, now restart the process with the interpreter's dentry.
+ 	 */
+ 	file = open_exec(interp);
+-	if (IS_ERR(file))
+-		return PTR_ERR(file);
++	if (IS_ERR(file)) {
++		retval = PTR_ERR(file);
++		goto out;
++	}
+ 
+ 	bprm->file = file;
+ 	retval = prepare_binprm(bprm);
+-	if (retval < 0)
+-		return retval;
++	if (retval < 0) {
++		if (bprm->file) {
++			allow_write_access(bprm->file);
++			fput(bprm->file);
++		}
++		goto out;
++	}
++
+ 	return search_binary_handler(bprm,regs);
++
++out:
++	free_arg_pages(bprm);
++	return retval;
+ }
+ 
+ static struct linux_binfmt script_format = {
 _
 
 Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
