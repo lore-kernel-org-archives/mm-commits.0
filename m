@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + logfs-is-busted.patch added to -mm tree
-Date: Thu, 08 May 2008 15:55:02 -0700
-Message-ID: <200805082305.m48N5v7s010575@imap1.linux-foundation.org>
+Subject: + reiser4-semaphore-fix.patch added to -mm tree
+Date: Thu, 08 May 2008 16:06:38 -0700
+Message-ID: <200805082317.m48NHXQU011094@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44311 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59483 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760605AbYEHXGH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 19:06:07 -0400
+	by vger.kernel.org with ESMTP id S1752867AbYEHXSH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 19:18:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, joern@logfs.org
+Cc: akpm@linux-foundation.org, edward.shishkin@gmail.com
 
 
 The patch titled
-     logfs-is-busted
+     reiser4-semaphore-fix
 has been added to the -mm tree.  Its filename is
-     logfs-is-busted.patch
+     reiser4-semaphore-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,27 +33,36 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: logfs-is-busted
+Subject: reiser4-semaphore-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Joern Engel <joern@logfs.org>
+In file included from fs/reiser4/znode.h:23,
+                 from fs/reiser4/tree.h:14,
+                 from fs/reiser4/super.h:11,
+                 from fs/reiser4/debug.c:28:
+include/asm/semaphore.h:1:2: warning: #warning Use linux/semaphore.h, not asm/semaphore.h
+
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ fs/reiser4/znode.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/Kconfig~logfs-is-busted fs/Kconfig
---- a/fs/Kconfig~logfs-is-busted
-+++ a/fs/Kconfig
-@@ -1411,6 +1411,7 @@ source "fs/ubifs/Kconfig"
- config LOGFS
- 	bool "LogFS file system (EXPERIMENTAL)"
- 	depends on (MTD || BLOCK) && EXPERIMENTAL
-+	depends on BROKEN
- 	select ZLIB_INFLATE
- 	select ZLIB_DEFLATE
- 	select CRC32
+diff -puN fs/reiser4/znode.h~reiser4-semaphore-fix fs/reiser4/znode.h
+--- a/fs/reiser4/znode.h~reiser4-semaphore-fix
++++ a/fs/reiser4/znode.h
+@@ -18,9 +18,9 @@
+ 
+ #include <linux/types.h>
+ #include <linux/spinlock.h>
++#include <linux/semaphore.h>
+ #include <linux/pagemap.h>	/* for PAGE_CACHE_SIZE */
+ #include <asm/atomic.h>
+-#include <asm/semaphore.h>
+ 
+ /* znode tracks its position within parent (internal item in a parent node,
+  * that contains znode's block number). */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +107,7 @@ git-unionfs.patch
 git-unionfs-fixup.patch
 git-logfs-fixup.patch
 logfs-unbork.patch
+logfs-is-busted.patch
 drivers-usb-core-sysfsc-fix-types.patch
 drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
 drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
@@ -138,5 +148,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-logfs-is-busted.patch
+reiser4-semaphore-fix.patch
 
