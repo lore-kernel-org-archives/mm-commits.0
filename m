@@ -1,69 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: + x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch added to -mm tree
-Date: Thu, 08 May 2008 21:33:11 -0700
-Message-ID: <200805090444.m494i6x6022579@imap1.linux-foundation.org>
+Subject: - ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix.patch removed from -mm tree
+Date: Thu, 08 May 2008 22:05:17 -0700
+Message-ID: <200805090505.m4955Hr9023245@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50149 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41023 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751587AbYEIEod (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 00:44:33 -0400
+	by vger.kernel.org with ESMTP id S1756240AbYEIFFc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 01:05:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andrea@qumranet.com, mingo@elte.hu, tglx@linutronix.de
+To: akpm@linux-foundation.org, djwong@us.ibm.com, mhoffman@lightlink.com, minyard@acm.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     x86: setup_force_cpu_cap(): don't do clear_bit(non-unsigned-long)
-has been added to the -mm tree.  Its filename is
-     x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+     ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix
+has been removed from the -mm tree.  Its filename was
+     ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: setup_force_cpu_cap(): don't do clear_bit(non-unsigned-long)
+Subject: ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Another hack to make proper prototyping of x86 bitops viable.
-
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andrea Arcangeli <andrea@qumranet.com>
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: Darrick J. Wong <djwong@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/cpufeature.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/hwmon/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-x86/cpufeature.h~x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long include/asm-x86/cpufeature.h
---- a/include/asm-x86/cpufeature.h~x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long
-+++ a/include/asm-x86/cpufeature.h
-@@ -142,11 +142,11 @@ extern const char * const x86_power_flag
- #define clear_cpu_cap(c, bit)	clear_bit(bit, (unsigned long *)((c)->x86_capability))
- #define setup_clear_cpu_cap(bit) do { \
- 	clear_cpu_cap(&boot_cpu_data, bit);	\
--	set_bit(bit, cleared_cpu_caps); 	\
-+	set_bit(bit, (unsigned long *)cleared_cpu_caps); \
- } while (0)
- #define setup_force_cpu_cap(bit) do { \
- 	set_cpu_cap(&boot_cpu_data, bit);	\
--	clear_bit(bit, cleared_cpu_caps); 	\
-+	clear_bit(bit, (unsigned long *)cleared_cpu_caps); 	\
- } while (0)
- 
- #define cpu_has_fpu		boot_cpu_has(X86_FEATURE_FPU)
+diff -puN drivers/hwmon/Kconfig~ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix drivers/hwmon/Kconfig
+--- a/drivers/hwmon/Kconfig~ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix
++++ a/drivers/hwmon/Kconfig
+@@ -334,6 +334,7 @@ config SENSORS_IBMAEM
+ 	tristate "IBM Active Energy Manager temperature/power sensors and control"
+ 	select IPMI_SI
+ 	depends on IPMI_HANDLER
++	depends on CONFIG_64BIT
+ 	help
+ 	  If you say yes here you get support for the temperature and
+ 	  power sensors and capping hardware in various IBM System X
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -157,6 +140,4 @@ profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
 x86-bitops-take-an-unsigned-long.patch
-arch-x86-mm-patc-use-boot_cpu_has.patch
-x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
 
