@@ -1,163 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: - ide-eliminate-fit-macro.patch removed from -mm tree
-Date: Fri, 09 May 2008 14:47:03 -0700
-Message-ID: <200805092147.m49Ll3F0027181@imap1.linux-foundation.org>
+Subject: - ipv6-to-intel-etherexpress-16-fails-multicast-problems.patch removed from -mm tree
+Date: Fri, 09 May 2008 14:47:14 -0700
+Message-ID: <200805092147.m49LlElj027196@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54075 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50160 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750978AbYEIV4K (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:56:10 -0400
+	by vger.kernel.org with ESMTP id S1751224AbYEIV4O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:56:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, bzolnier@gmail.com, mm-commits@vger.kernel.org
+To: bns_robson@hotmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ide: eliminate FIT() macro
+     IPv6 to Intel EtherExpress 16 fails - multicast problems
 has been removed from the -mm tree.  Its filename was
-     ide-eliminate-fit-macro.patch
+     ipv6-to-intel-etherexpress-16-fails-multicast-problems.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ide: eliminate FIT() macro
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: IPv6 to Intel EtherExpress 16 fails - multicast problems
+From: Bruce Robson <bns_robson@hotmail.com>
 
-Replace the FIT() macro with the kernel-provided clamp_val() macro.
+Taken from http://bugzilla.kernel.org/show_bug.cgi?id=10577
 
-FIT was always being called with a member of a struct ide_timing,
-which are shorts, and constant constraints for the min and max.
+I was unable to access a computer containing an Intel EtherExpress 16 network
+card using IPv6.
 
-Thus we can use clamp_val, rather than clamp_t.
+I traced this to failure of neighbour discovery.  When I used an "ip -6 neigh
+add" command, on the computer attempting access, to insert a binding between
+the IPv6 address of the computer with the Intel EtherExpress 16 network card
+and the card's ethernet address, I was able to access that computer using
+IPv6.
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Neighbour discovery requires working multicast.  The driver sources file
+eexpress.c contains an approximately 30 line function eexp_setup_filter used
+when loading multicast addresses.
+
+I found 3 problems in this function
+
+1) It wrote the number of multicast addresses to the card instead of the
+    number of bytes in the multicast addresses.
+
+2) When loading multiple multicast addresses it loaded the first one
+    provided multiple times instead of loading each one once.
+
+3) The setting of pointer 'data' from 'dmi->dmi_addr' occured before the
+    test for the error situation of 'dmi' being NULL.
+
+Correcting these problems allows the computer with the Intel EtherExpress 16
+network card to found by IPv6 neighbour discovery.
+
+p.s. There is some information on the Intel EtherExpress 16 at
+http://www.intel.com/support/etherexpress/vintage/sb/cs-013500.htm
+Datasheet for the Intel 82586 ethernet controller used by the card
+http://www.datasheetcatalog.com/datasheets_pdf/8/2/5/8/82586.shtml
+
+Signed-off-by: Bruce Robson <bns_robson@hotmail.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-timing.h    |    1 -
- drivers/ide/pci/amd74xx.c   |   14 +++++++-------
- drivers/ide/pci/via82cxxx.c |   14 +++++++-------
- 3 files changed, 14 insertions(+), 15 deletions(-)
+ drivers/net/eexpress.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/ide/ide-timing.h~ide-eliminate-fit-macro drivers/ide/ide-timing.h
---- a/drivers/ide/ide-timing.h~ide-eliminate-fit-macro
-+++ a/drivers/ide/ide-timing.h
-@@ -95,7 +95,6 @@ static struct ide_timing ide_timing[] = 
- #define IDE_TIMING_UDMA		0x80
- #define IDE_TIMING_ALL		0xff
+diff -puN drivers/net/eexpress.c~ipv6-to-intel-etherexpress-16-fails-multicast-problems drivers/net/eexpress.c
+--- a/drivers/net/eexpress.c~ipv6-to-intel-etherexpress-16-fails-multicast-problems
++++ a/drivers/net/eexpress.c
+@@ -202,7 +202,7 @@ static unsigned short start_code[] = {
+ 	0x0000,Cmd_MCast,
+ 	0x0076,                 /* link to next command */
+ #define CONF_NR_MULTICAST 0x44
+-	0x0000,                 /* number of multicast addresses */
++	0x0000,                 /* number of bytes in multicast address(es) */
+ #define CONF_MULTICAST 0x46
+ 	0x0000, 0x0000, 0x0000, /* some addresses */
+ 	0x0000, 0x0000, 0x0000,
+@@ -1569,7 +1569,7 @@ static void eexp_hw_init586(struct net_d
  
--#define FIT(v,vmin,vmax)	max_t(short,min_t(short,v,vmax),vmin)
- #define ENOUGH(v,unit)		(((v)-1)/(unit)+1)
- #define EZ(v,unit)		((v)?ENOUGH(v,unit):0)
- 
-diff -puN drivers/ide/pci/amd74xx.c~ide-eliminate-fit-macro drivers/ide/pci/amd74xx.c
---- a/drivers/ide/pci/amd74xx.c~ide-eliminate-fit-macro
-+++ a/drivers/ide/pci/amd74xx.c
-@@ -53,20 +53,20 @@ static void amd_set_speed(struct pci_dev
- 	u8 t = 0, offset = amd_offset(dev);
- 
- 	pci_read_config_byte(dev, AMD_ADDRESS_SETUP + offset, &t);
--	t = (t & ~(3 << ((3 - dn) << 1))) | ((FIT(timing->setup, 1, 4) - 1) << ((3 - dn) << 1));
-+	t = (t & ~(3 << ((3 - dn) << 1))) | ((clamp_val(timing->setup, 1, 4) - 1) << ((3 - dn) << 1));
- 	pci_write_config_byte(dev, AMD_ADDRESS_SETUP + offset, t);
- 
- 	pci_write_config_byte(dev, AMD_8BIT_TIMING + offset + (1 - (dn >> 1)),
--		((FIT(timing->act8b, 1, 16) - 1) << 4) | (FIT(timing->rec8b, 1, 16) - 1));
-+		((clamp_val(timing->act8b, 1, 16) - 1) << 4) | (clamp_val(timing->rec8b, 1, 16) - 1));
- 
- 	pci_write_config_byte(dev, AMD_DRIVE_TIMING + offset + (3 - dn),
--		((FIT(timing->active, 1, 16) - 1) << 4) | (FIT(timing->recover, 1, 16) - 1));
-+		((clamp_val(timing->active, 1, 16) - 1) << 4) | (clamp_val(timing->recover, 1, 16) - 1));
- 
- 	switch (udma_mask) {
--	case ATA_UDMA2: t = timing->udma ? (0xc0 | (FIT(timing->udma, 2, 5) - 2)) : 0x03; break;
--	case ATA_UDMA4: t = timing->udma ? (0xc0 | amd_cyc2udma[FIT(timing->udma, 2, 10)]) : 0x03; break;
--	case ATA_UDMA5: t = timing->udma ? (0xc0 | amd_cyc2udma[FIT(timing->udma, 1, 10)]) : 0x03; break;
--	case ATA_UDMA6: t = timing->udma ? (0xc0 | amd_cyc2udma[FIT(timing->udma, 1, 15)]) : 0x03; break;
-+	case ATA_UDMA2: t = timing->udma ? (0xc0 | (clamp_val(timing->udma, 2, 5) - 2)) : 0x03; break;
-+	case ATA_UDMA4: t = timing->udma ? (0xc0 | amd_cyc2udma[clamp_val(timing->udma, 2, 10)]) : 0x03; break;
-+	case ATA_UDMA5: t = timing->udma ? (0xc0 | amd_cyc2udma[clamp_val(timing->udma, 1, 10)]) : 0x03; break;
-+	case ATA_UDMA6: t = timing->udma ? (0xc0 | amd_cyc2udma[clamp_val(timing->udma, 1, 15)]) : 0x03; break;
- 	default: return;
+ static void eexp_setup_filter(struct net_device *dev)
+ {
+-	struct dev_mc_list *dmi = dev->mc_list;
++	struct dev_mc_list *dmi;
+ 	unsigned short ioaddr = dev->base_addr;
+ 	int count = dev->mc_count;
+ 	int i;
+@@ -1580,9 +1580,9 @@ static void eexp_setup_filter(struct net
  	}
  
-diff -puN drivers/ide/pci/via82cxxx.c~ide-eliminate-fit-macro drivers/ide/pci/via82cxxx.c
---- a/drivers/ide/pci/via82cxxx.c~ide-eliminate-fit-macro
-+++ a/drivers/ide/pci/via82cxxx.c
-@@ -120,21 +120,21 @@ static void via_set_speed(ide_hwif_t *hw
- 
- 	if (~vdev->via_config->flags & VIA_BAD_AST) {
- 		pci_read_config_byte(dev, VIA_ADDRESS_SETUP, &t);
--		t = (t & ~(3 << ((3 - dn) << 1))) | ((FIT(timing->setup, 1, 4) - 1) << ((3 - dn) << 1));
-+		t = (t & ~(3 << ((3 - dn) << 1))) | ((clamp_val(timing->setup, 1, 4) - 1) << ((3 - dn) << 1));
- 		pci_write_config_byte(dev, VIA_ADDRESS_SETUP, t);
- 	}
- 
- 	pci_write_config_byte(dev, VIA_8BIT_TIMING + (1 - (dn >> 1)),
--		((FIT(timing->act8b, 1, 16) - 1) << 4) | (FIT(timing->rec8b, 1, 16) - 1));
-+		((clamp_val(timing->act8b, 1, 16) - 1) << 4) | (clamp_val(timing->rec8b, 1, 16) - 1));
- 
- 	pci_write_config_byte(dev, VIA_DRIVE_TIMING + (3 - dn),
--		((FIT(timing->active, 1, 16) - 1) << 4) | (FIT(timing->recover, 1, 16) - 1));
-+		((clamp_val(timing->active, 1, 16) - 1) << 4) | (clamp_val(timing->recover, 1, 16) - 1));
- 
- 	switch (vdev->via_config->udma_mask) {
--	case ATA_UDMA2: t = timing->udma ? (0xe0 | (FIT(timing->udma, 2, 5) - 2)) : 0x03; break;
--	case ATA_UDMA4: t = timing->udma ? (0xe8 | (FIT(timing->udma, 2, 9) - 2)) : 0x0f; break;
--	case ATA_UDMA5: t = timing->udma ? (0xe0 | (FIT(timing->udma, 2, 9) - 2)) : 0x07; break;
--	case ATA_UDMA6: t = timing->udma ? (0xe0 | (FIT(timing->udma, 2, 9) - 2)) : 0x07; break;
-+	case ATA_UDMA2: t = timing->udma ? (0xe0 | (clamp_val(timing->udma, 2, 5) - 2)) : 0x03; break;
-+	case ATA_UDMA4: t = timing->udma ? (0xe8 | (clamp_val(timing->udma, 2, 9) - 2)) : 0x0f; break;
-+	case ATA_UDMA5: t = timing->udma ? (0xe0 | (clamp_val(timing->udma, 2, 9) - 2)) : 0x07; break;
-+	case ATA_UDMA6: t = timing->udma ? (0xe0 | (clamp_val(timing->udma, 2, 9) - 2)) : 0x07; break;
- 	default: return;
- 	}
- 
+ 	outw(CONF_NR_MULTICAST & ~31, ioaddr+SM_PTR);
+-	outw(count, ioaddr+SHADOW(CONF_NR_MULTICAST));
+-	for (i = 0; i < count; i++) {
+-		unsigned short *data = (unsigned short *)dmi->dmi_addr;
++	outw(6*count, ioaddr+SHADOW(CONF_NR_MULTICAST));
++	for (i = 0, dmi = dev->mc_list; i < count; i++, dmi = dmi->next) {
++		unsigned short *data;
+ 		if (!dmi) {
+ 			printk(KERN_INFO "%s: too few multicast addresses\n", dev->name);
+ 			break;
+@@ -1591,6 +1591,7 @@ static void eexp_setup_filter(struct net
+ 			printk(KERN_INFO "%s: invalid multicast address length given.\n", dev->name);
+ 			continue;
+ 		}
++		data = (unsigned short *)dmi->dmi_addr;
+ 		outw((CONF_MULTICAST+(6*i)) & ~31, ioaddr+SM_PTR);
+ 		outw(data[0], ioaddr+SHADOW(CONF_MULTICAST+(6*i)));
+ 		outw((CONF_MULTICAST+(6*i)+2) & ~31, ioaddr+SM_PTR);
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from bns_robson@hotmail.com are
 
 origin.patch
-mmc-make-one-bit-signed-bitfields-unsigned.patch
-linux-next.patch
-kgdb-use-put_unaligned_be32-helper.patch
-cifs-remove-global_extern-macro.patch
-media-use-get_unaligned_-helpers.patch
-hid-use-get-put_unaligned_-helpers.patch
-git-input.patch
-ata-remove-fit-macro.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-get_unaligned_-helpers.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-block-use-get_unaligned_-helpers.patch
-git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-tkipc-use-kernel-provided-infrastructure.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-wireless-use-get-put_unaligned_-helpers.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-lib-add-ascii-hex-helper-functions.patch
-lib-add-ascii-hex-helper-functions-update.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-video-fix-integer-as-null-pointer-warnings.patch
-aacraid-linitc-make-aac_show_serial_number-static.patch
 
