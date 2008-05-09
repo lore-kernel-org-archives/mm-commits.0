@@ -1,161 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: - fix-cpuset-sched_relax_domain_level-control-file.patch removed from -mm tree
-Date: Fri, 09 May 2008 14:46:44 -0700
-Message-ID: <200805092146.m49LkiRZ027144@imap1.linux-foundation.org>
+Subject: - sys_pipe-fix-file-descriptor-leaks.patch removed from -mm tree
+Date: Fri, 09 May 2008 14:46:39 -0700
+Message-ID: <200805092146.m49Lkdkq027135@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45152 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51921 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751855AbYEIV4e (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:56:34 -0400
+	by vger.kernel.org with ESMTP id S1752607AbYEIV4l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:56:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: menage@google.com, lizf@cn.fujitsu.com, mingo@elte.hu, pj@sgi.com, seto.hidetoshi@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: drepper@redhat.com, dm.n9107@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Fix cpuset sched_relax_domain_level control file
+     sys_pipe(): fix file descriptor leaks
 has been removed from the -mm tree.  Its filename was
-     fix-cpuset-sched_relax_domain_level-control-file.patch
+     sys_pipe-fix-file-descriptor-leaks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Fix cpuset sched_relax_domain_level control file
-From: Paul Menage <menage@google.com>
+Subject: sys_pipe(): fix file descriptor leaks
+From: Ulrich Drepper <drepper@redhat.com>
 
-Due to a merge conflict, the sched_relax_domain_level control file was marked
-as being handled by cpuset_read/write_u64, but the code to handle it was
-actually in cpuset_common_file_read/write.
+Remember to close the files if copy_to_user() failed.
 
-Since the value being written/read is in fact a signed integer, it should be
-treated as such; this patch adds cpuset_read/write_s64 functions, and uses
-them to handle the sched_relax_domain_level file.
+Spotted by dm.n9107@gmail.com.
 
-With this patch, the sched_relax_domain_level can be read and written, and the
-correct contents seen/updated.
-
-Signed-off-by: Paul Menage <menage@google.com>
-Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
-Cc: Paul Jackson <pj@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Signed-off-by: Ulrich Drepper <drepper@redhat.com>
+Cc: DM <dm.n9107@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cpuset.c |   52 +++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 40 insertions(+), 12 deletions(-)
+ arch/cris/kernel/sys_cris.c |    5 ++++-
+ arch/m32r/kernel/sys_m32r.c |    5 ++++-
+ fs/pipe.c                   |    6 +++++-
+ 3 files changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cpuset.c~fix-cpuset-sched_relax_domain_level-control-file kernel/cpuset.c
---- a/kernel/cpuset.c~fix-cpuset-sched_relax_domain_level-control-file
-+++ a/kernel/cpuset.c
-@@ -1031,11 +1031,9 @@ int current_cpuset_is_being_rebound(void
- 	return task_cs(current) == cpuset_being_rebound;
+diff -puN arch/cris/kernel/sys_cris.c~sys_pipe-fix-file-descriptor-leaks arch/cris/kernel/sys_cris.c
+--- a/arch/cris/kernel/sys_cris.c~sys_pipe-fix-file-descriptor-leaks
++++ a/arch/cris/kernel/sys_cris.c
+@@ -40,8 +40,11 @@ asmlinkage int sys_pipe(unsigned long __
+         error = do_pipe(fd);
+         unlock_kernel();
+         if (!error) {
+-                if (copy_to_user(fildes, fd, 2*sizeof(int)))
++                if (copy_to_user(fildes, fd, 2*sizeof(int))) {
++			sys_close(fd[0]);
++			sys_close(fd[1]);
+                         error = -EFAULT;
++		}
+         }
+         return error;
  }
+diff -puN arch/m32r/kernel/sys_m32r.c~sys_pipe-fix-file-descriptor-leaks arch/m32r/kernel/sys_m32r.c
+--- a/arch/m32r/kernel/sys_m32r.c~sys_pipe-fix-file-descriptor-leaks
++++ a/arch/m32r/kernel/sys_m32r.c
+@@ -90,8 +90,11 @@ sys_pipe(unsigned long r0, unsigned long
  
--static int update_relax_domain_level(struct cpuset *cs, char *buf)
-+static int update_relax_domain_level(struct cpuset *cs, s64 val)
- {
--	int val = simple_strtol(buf, NULL, 10);
--
--	if (val < 0)
-+	if ((int)val < 0)
- 		val = -1;
- 
- 	if (val != cs->relax_domain_level) {
-@@ -1280,9 +1278,6 @@ static ssize_t cpuset_common_file_write(
- 	case FILE_MEMLIST:
- 		retval = update_nodemask(cs, buffer);
- 		break;
--	case FILE_SCHED_RELAX_DOMAIN_LEVEL:
--		retval = update_relax_domain_level(cs, buffer);
--		break;
- 	default:
- 		retval = -EINVAL;
- 		goto out2;
-@@ -1348,6 +1343,30 @@ static int cpuset_write_u64(struct cgrou
- 	return retval;
- }
- 
-+static int cpuset_write_s64(struct cgroup *cgrp, struct cftype *cft, s64 val)
-+{
-+	int retval = 0;
-+	struct cpuset *cs = cgroup_cs(cgrp);
-+	cpuset_filetype_t type = cft->private;
-+
-+	cgroup_lock();
-+
-+	if (cgroup_is_removed(cgrp)) {
-+		cgroup_unlock();
-+		return -ENODEV;
-+	}
-+	switch (type) {
-+	case FILE_SCHED_RELAX_DOMAIN_LEVEL:
-+		retval = update_relax_domain_level(cs, val);
-+		break;
-+	default:
-+		retval = -EINVAL;
-+		break;
-+	}
-+	cgroup_unlock();
-+	return retval;
-+}
-+
- /*
-  * These ascii lists should be read in a single call, by using a user
-  * buffer large enough to hold the entire map.  If read in smaller
-@@ -1406,9 +1425,6 @@ static ssize_t cpuset_common_file_read(s
- 	case FILE_MEMLIST:
- 		s += cpuset_sprintf_memlist(s, cs);
- 		break;
--	case FILE_SCHED_RELAX_DOMAIN_LEVEL:
--		s += sprintf(s, "%d", cs->relax_domain_level);
--		break;
- 	default:
- 		retval = -EINVAL;
- 		goto out;
-@@ -1449,6 +1465,18 @@ static u64 cpuset_read_u64(struct cgroup
+ 	error = do_pipe(fd);
+ 	if (!error) {
+-		if (copy_to_user((void __user *)r0, fd, 2*sizeof(int)))
++		if (copy_to_user((void __user *)r0, fd, 2*sizeof(int))) {
++			sys_close(fd[0]);
++			sys_close(fd[1]);
+ 			error = -EFAULT;
++		}
  	}
+ 	return error;
  }
+diff -puN fs/pipe.c~sys_pipe-fix-file-descriptor-leaks fs/pipe.c
+--- a/fs/pipe.c~sys_pipe-fix-file-descriptor-leaks
++++ a/fs/pipe.c
+@@ -17,6 +17,7 @@
+ #include <linux/highmem.h>
+ #include <linux/pagemap.h>
+ #include <linux/audit.h>
++#include <linux/syscalls.h>
  
-+static s64 cpuset_read_s64(struct cgroup *cont, struct cftype *cft)
-+{
-+	struct cpuset *cs = cgroup_cs(cont);
-+	cpuset_filetype_t type = cft->private;
-+	switch (type) {
-+	case FILE_SCHED_RELAX_DOMAIN_LEVEL:
-+		return cs->relax_domain_level;
-+	default:
-+		BUG();
-+	}
-+}
-+
+ #include <asm/uaccess.h>
+ #include <asm/ioctls.h>
+@@ -1086,8 +1087,11 @@ asmlinkage long __weak sys_pipe(int __us
  
- /*
-  * for the common functions, 'private' gives the type of file
-@@ -1499,8 +1527,8 @@ static struct cftype files[] = {
- 
- 	{
- 		.name = "sched_relax_domain_level",
--		.read_u64 = cpuset_read_u64,
--		.write_u64 = cpuset_write_u64,
-+		.read_s64 = cpuset_read_s64,
-+		.write_s64 = cpuset_write_s64,
- 		.private = FILE_SCHED_RELAX_DOMAIN_LEVEL,
- 	},
- 
+ 	error = do_pipe(fd);
+ 	if (!error) {
+-		if (copy_to_user(fildes, fd, sizeof(fd)))
++		if (copy_to_user(fildes, fd, sizeof(fd))) {
++			sys_close(fd[0]);
++			sys_close(fd[1]);
+ 			error = -EFAULT;
++		}
+ 	}
+ 	return error;
+ }
 _
 
-Patches currently in -mm which might be from menage@google.com are
+Patches currently in -mm which might be from drepper@redhat.com are
 
 origin.patch
-memcg-fix-possible-panic-when-config_mm_owner=y.patch
-memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
-cgroups-fix-documentation.patch
-cgroup-use-read-lock-to-guard-find_existing_css_set.patch
-mark-res_counter_charge_locked-with-__must_check.patch
-make-cgroup_seqfile_release-static.patch
-add-a-refcount-check-in-dput.patch
+execve-filename-document-and-export-via-auxiliary-vector.patch
+flag-parameters-socket-and-socketpair.patch
+flag-parameters-paccept.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-anon_inode_getfd-extension.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd.patch
+flag-parameters-eventfd.patch
+flag-parameters-timerfd_create.patch
+flag-parameters-epoll_create.patch
+flag-parameters-dup2.patch
+flag-parameters-pipe.patch
+flag-parameters-inotify_init.patch
+flag-parameters-inotify_init-fix.patch
+flag-parametersi-nonblock-in-anon_inode_getfd.patch
+flag-parameters-nonblock-in-socket-and-socketpair.patch
+flag-parameters-nonblock-in-signalfd.patch
+flag-parameters-nonblock-in-eventfd.patch
+flag-parameters-nonblock-in-timerfd_create.patch
+flag-parameters-nonblock-in-pipe.patch
+flag-parameters-nonblock-in-inotify_init.patch
+flag-parameters-check-magic-constants.patch
+flag-parameters-add-on-remove-epoll_create-size-param.patch
 
