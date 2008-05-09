@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch added to -mm tree
-Date: Thu, 08 May 2008 22:04:20 -0700
-Message-ID: <200805090515.m495FFnR023579@imap1.linux-foundation.org>
+Subject: + mm-verify-the-page-links-and-memory-model-fix.patch added to -mm tree
+Date: Thu, 08 May 2008 22:13:00 -0700
+Message-ID: <200805090523.m495Nt2e023908@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41733 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38893 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751867AbYEIFQE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 01:16:04 -0400
+	by vger.kernel.org with ESMTP id S1752058AbYEIFYa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 01:24:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andrea@qumranet.com, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, apw@shadowen.org, clameter@sgi.com, mel@csn.ul.ie, mingo@elte.hu
 
 
 The patch titled
-     x86: set_restore_sigmask(): avoid bitop on a u32*
+     mm-verify-the-page-links-and-memory-model-fix
 has been added to the -mm tree.  Its filename is
-     x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+     mm-verify-the-page-links-and-memory-model-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,33 +33,50 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: set_restore_sigmask(): avoid bitop on a u32*
+Subject: mm-verify-the-page-links-and-memory-model-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-include/asm/thread_info_64.h: In function 'set_restore_sigmask':
-include/asm/thread_info_64.h:189: warning: passing argument 2 of 'set_bit' from incompatible pointer type
+mm/mm_init.c: In function 'mminit_verify_pageflags_layout':
+mm/mm_init.c:81: warning: format '%d' expects type 'int', but argument 2 has type 'long unsigned int'
+mm/mm_init.c:81: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
+mm/mm_init.c:81: warning: format '%d' expects type 'int', but argument 4 has type 'long unsigned int'
+mm/mm_init.c:86: warning: format '%d' expects type 'int', but argument 2 has type 'long unsigned int'
+mm/mm_init.c:86: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
 
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Andrea Arcangeli <andrea@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/thread_info_64.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mm_init.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN include/asm-x86/thread_info_64.h~x86-set_restore_sigmask-avoid-bitop-on-a-u32 include/asm-x86/thread_info_64.h
---- a/include/asm-x86/thread_info_64.h~x86-set_restore_sigmask-avoid-bitop-on-a-u32
-+++ a/include/asm-x86/thread_info_64.h
-@@ -186,7 +186,7 @@ static inline void set_restore_sigmask(v
- {
- 	struct thread_info *ti = current_thread_info();
- 	ti->status |= TS_RESTORE_SIGMASK;
--	set_bit(TIF_SIGPENDING, &ti->flags);
-+	set_bit(TIF_SIGPENDING, (unsigned long *)&ti->flags);
- }
- #endif	/* !__ASSEMBLY__ */
- 
+diff -puN mm/mm_init.c~mm-verify-the-page-links-and-memory-model-fix mm/mm_init.c
+--- a/mm/mm_init.c~mm-verify-the-page-links-and-memory-model-fix
++++ a/mm/mm_init.c
+@@ -34,13 +34,14 @@ void __init mminit_verify_pageflags_layo
+ 		NODES_SHIFT,
+ 		ZONES_SHIFT);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_offsets",
+-		"Section %d Node %d Zone %d\n",
+-		SECTIONS_PGSHIFT,
+-		NODES_PGSHIFT,
+-		ZONES_PGSHIFT);
++		"Section %lu Node %lu Zone %lu\n",
++		(unsigned long)SECTIONS_PGSHIFT,
++		(unsigned long)NODES_PGSHIFT,
++		(unsigned long)ZONES_PGSHIFT);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_zoneid",
+-		"Zone ID: %d -> %d\n",
+-		ZONEID_PGOFF, ZONEID_PGOFF + ZONEID_SHIFT);
++		"Zone ID: %lu -> %lu\n",
++		(unsigned long)ZONEID_PGOFF,
++		(unsigned long)(ZONEID_PGOFF + ZONEID_SHIFT));
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_usage",
+ 		"location: %d -> %d unused %d -> %d flags %d -> %d\n",
+ 		shift, width, width, NR_PAGEFLAGS, NR_PAGEFLAGS, 0);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +139,7 @@ common-implementation-of-iterative-div-mod-fix.patch
 common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
 common-implementation-of-iterative-div-mod-fix-2.patch
 colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model-fix.patch
 page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
