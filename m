@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-mm-patc-use-boot_cpu_has.patch added to -mm tree
-Date: Thu, 08 May 2008 21:29:52 -0700
-Message-ID: <200805090440.m494emRS022437@imap1.linux-foundation.org>
+Subject: + x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch added to -mm tree
+Date: Thu, 08 May 2008 21:32:07 -0700
+Message-ID: <200805090443.m494h206022568@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33688 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57596 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751655AbYEIElQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 00:41:16 -0400
+	by vger.kernel.org with ESMTP id S1761556AbYEIEnZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 00:43:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, andrea@qumranet.com, mingo@elte.hu, tglx@linutron
 
 
 The patch titled
-     arch/x86/mm/pat.c: use boot_cpu_has()
+     x86: setup_force_cpu_cap(): don't do clear_bit(non-unsigned-long)
 has been added to the -mm tree.  Its filename is
-     arch-x86-mm-patc-use-boot_cpu_has.patch
+     x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,48 +33,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arch/x86/mm/pat.c: use boot_cpu_has()
+Subject: x86: setup_force_cpu_cap(): don't do clear_bit(non-unsigned-long)
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/mm/pat.c: In function 'phys_mem_access_prot_allowed':
-arch/x86/mm/pat.c:526: warning: passing argument 2 of 'constant_test_bit' from incompatible pointer type
-arch/x86/mm/pat.c:526: warning: passing argument 2 of 'variable_test_bit' from incompatible pointer type
-arch/x86/mm/pat.c:527: warning: passing argument 2 of 'constant_test_bit' from incompatible pointer type
-arch/x86/mm/pat.c:527: warning: passing argument 2 of 'variable_test_bit' from incompatible pointer type
-arch/x86/mm/pat.c:528: warning: passing argument 2 of 'constant_test_bit' from incompatible pointer type
-arch/x86/mm/pat.c:528: warning: passing argument 2 of 'variable_test_bit' from incompatible pointer type
-arch/x86/mm/pat.c:529: warning: passing argument 2 of 'constant_test_bit' from incompatible pointer type
-arch/x86/mm/pat.c:529: warning: passing argument 2 of 'variable_test_bit' from incompatible pointer type
+Another hack to make proper prototyping of x86 bitops viable.
 
-Don't open-code test_bit() on a __u32
-
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Andrea Arcangeli <andrea@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/pat.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/asm-x86/cpufeature.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/pat.c~arch-x86-mm-patc-use-boot_cpu_has arch/x86/mm/pat.c
---- a/arch/x86/mm/pat.c~arch-x86-mm-patc-use-boot_cpu_has
-+++ a/arch/x86/mm/pat.c
-@@ -523,10 +523,10 @@ int phys_mem_access_prot_allowed(struct 
- 	 * we maintain the tradition of paranoia in this code.
- 	 */
- 	if (!pat_wc_enabled &&
--	    ! ( test_bit(X86_FEATURE_MTRR, boot_cpu_data.x86_capability) ||
--		test_bit(X86_FEATURE_K6_MTRR, boot_cpu_data.x86_capability) ||
--		test_bit(X86_FEATURE_CYRIX_ARR, boot_cpu_data.x86_capability) ||
--		test_bit(X86_FEATURE_CENTAUR_MCR, boot_cpu_data.x86_capability)) &&
-+	    ! ( boot_cpu_has(X86_FEATURE_MTRR) ||
-+		boot_cpu_has(X86_FEATURE_K6_MTRR) ||
-+		boot_cpu_has(X86_FEATURE_CYRIX_ARR) ||
-+		boot_cpu_has(X86_FEATURE_CENTAUR_MCR)) &&
- 	   (pfn << PAGE_SHIFT) >= __pa(high_memory)) {
- 		flags = _PAGE_CACHE_UC;
- 	}
+diff -puN include/asm-x86/cpufeature.h~x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long include/asm-x86/cpufeature.h
+--- a/include/asm-x86/cpufeature.h~x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long
++++ a/include/asm-x86/cpufeature.h
+@@ -146,7 +146,7 @@ extern const char * const x86_power_flag
+ } while (0)
+ #define setup_force_cpu_cap(bit) do { \
+ 	set_cpu_cap(&boot_cpu_data, bit);	\
+-	clear_bit(bit, cleared_cpu_caps); 	\
++	clear_bit(bit, (unsigned long *)cleared_cpu_caps); 	\
+ } while (0)
+ 
+ #define cpu_has_fpu		boot_cpu_has(X86_FEATURE_FPU)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -169,4 +153,5 @@ drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
 x86-bitops-take-an-unsigned-long.patch
 arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
 
