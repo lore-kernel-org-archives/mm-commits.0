@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + git-vfs-cleanups-unbork.patch added to -mm tree
-Date: Thu, 08 May 2008 22:45:59 -0700
-Message-ID: <200805090556.m495utl2024961@imap1.linux-foundation.org>
+Subject: + mm-verify-the-page-links-and-memory-model-fix-fix.patch added to -mm tree
+Date: Thu, 08 May 2008 22:52:34 -0700
+Message-ID: <200805090603.m4963Tnj025278@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42418 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33128 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758038AbYEIF5I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 01:57:08 -0400
+	by vger.kernel.org with ESMTP id S1753482AbYEIGEF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 02:04:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, miklos@szeredi.hu
+Cc: akpm@linux-foundation.org, apw@shadowen.org, clameter@sgi.com, mel@csn.ul.ie, mingo@elte.hu
 
 
 The patch titled
-     git-vfs-cleanups: unbork
+     mm-verify-the-page-links-and-memory-model-fix-fix
 has been added to the -mm tree.  Its filename is
-     git-vfs-cleanups-unbork.patch
+     mm-verify-the-page-links-and-memory-model-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,43 +33,37 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-vfs-cleanups: unbork
+Subject: mm-verify-the-page-links-and-memory-model-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/namespace.c: In function 'clone_mnt':
-fs/namespace.c:614: warning: 'err' may be used uninitialized in this function
+mm/page_alloc.c: In function 'init_currently_empty_zone':
+mm/page_alloc.c:2866: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
 
-Cc: Miklos Szeredi <miklos@szeredi.hu>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namespace.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/namespace.c~git-vfs-cleanups-unbork fs/namespace.c
---- a/fs/namespace.c~git-vfs-cleanups-unbork
-+++ a/fs/namespace.c
-@@ -619,8 +619,10 @@ static struct vfsmount *clone_mnt(struct
- 			goto out_error;
- 	}
- 	mnt = alloc_vfsmnt(old->mnt_devname);
--	if (!mnt)
-+	if (!mnt) {
-+		err = -ENOMEM;
- 		goto alloc_failed;
-+	}
+diff -puN mm/page_alloc.c~mm-verify-the-page-links-and-memory-model-fix-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-verify-the-page-links-and-memory-model-fix-fix
++++ a/mm/page_alloc.c
+@@ -2864,8 +2864,9 @@ __meminit int init_currently_empty_zone(
+ 	zone->zone_start_pfn = zone_start_pfn;
  
- 	if (flag & (CL_SLAVE | CL_PRIVATE))
- 		mnt->mnt_group_id = 0; /* not a peer of original */
-@@ -628,7 +630,7 @@ static struct vfsmount *clone_mnt(struct
- 		mnt->mnt_group_id = old->mnt_group_id;
+ 	mminit_dprintk(MMINIT_TRACE, "memmap_init",
+-			"Initialising map node %d zone %d pfns %lu -> %lu\n",
+-			pgdat->node_id, zone_idx(zone),
++			"Initialising map node %d zone %lu pfns %lu -> %lu\n",
++			pgdat->node_id,
++			(unsigned long)zone_idx(zone),
+ 			zone_start_pfn, (zone_start_pfn + size));
+ 	memmap_init(size, pgdat->node_id, zone_idx(zone), zone_start_pfn);
  
- 	if ((flag & CL_MAKE_SHARED) && !mnt->mnt_group_id) {
--		int err = mnt_alloc_group_id(mnt);
-+		err = mnt_alloc_group_id(mnt);
- 		if (err)
- 			goto out_free;
- 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,6 +132,7 @@ common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
 common-implementation-of-iterative-div-mod-fix-2.patch
 colibri-fix-support-for-dm9000-ethernet-device-fix.patch
 mm-verify-the-page-links-and-memory-model-fix.patch
+mm-verify-the-page-links-and-memory-model-fix-fix.patch
 page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
