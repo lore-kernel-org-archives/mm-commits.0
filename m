@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch added to -mm tree
-Date: Fri, 09 May 2008 15:26:39 -0700
-Message-ID: <200805092237.m49MbZT9029154@imap1.linux-foundation.org>
+Subject: + drivers-net-tokenring-3c359c-squish-a-warning.patch added to -mm tree
+Date: Fri, 09 May 2008 15:29:46 -0700
+Message-ID: <200805092240.m49Meg9c029221@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37430 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36757 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751139AbYEIWiU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 18:38:20 -0400
+	by vger.kernel.org with ESMTP id S1752613AbYEIWlS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 18:41:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, paulkf@microgate.com
+Cc: akpm@linux-foundation.org, greg@kroah.com, jeff@garzik.org
 
 
 The patch titled
-     drivers/char/synclink_gt.c: don't return an uninitialised local
+     drivers/net/tokenring/3c359.c: squish a warning
 has been added to the -mm tree.  Its filename is
-     drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
+     drivers-net-tokenring-3c359c-squish-a-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/char/synclink_gt.c: don't return an uninitialised local
+Subject: drivers/net/tokenring/3c359.c: squish a warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/char/synclink_gt.c: In function 'put_char':
-drivers/char/synclink_gt.c:919: warning: 'ret' may be used uninitialized in this function
+When dev_name() is changed to return `const char *':
 
-The compiler speakest truth.
+drivers/net/tokenring/3c359.c: In function 'xl_probe':
+drivers/net/tokenring/3c359.c:318: warning: assignment discards qualifiers from pointer target type
 
-Cc: Paul Fulghum <paulkf@microgate.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/synclink_gt.c |    2 +-
+ drivers/net/tokenring/3c359.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/synclink_gt.c~drivers-char-synclink_gtc-dont-return-an-uninitialised-local drivers/char/synclink_gt.c
---- a/drivers/char/synclink_gt.c~drivers-char-synclink_gtc-dont-return-an-uninitialised-local
-+++ a/drivers/char/synclink_gt.c
-@@ -916,7 +916,7 @@ static int put_char(struct tty_struct *t
- {
- 	struct slgt_info *info = tty->driver_data;
- 	unsigned long flags;
--	int ret;
-+	int ret = 0;
+diff -puN drivers/net/tokenring/3c359.h~drivers-net-tokenring-3c359c-squish-a-warning drivers/net/tokenring/3c359.h
+--- a/drivers/net/tokenring/3c359.h~drivers-net-tokenring-3c359c-squish-a-warning
++++ a/drivers/net/tokenring/3c359.h
+@@ -264,7 +264,7 @@ struct xl_private {
+ 	u16 asb;
  
- 	if (sanity_check(info, tty->name, "put_char"))
- 		return 0;
+ 	u8 __iomem *xl_mmio;
+-	char *xl_card_name;
++	const char *xl_card_name;
+ 	struct pci_dev *pdev ; 
+ 	
+ 	spinlock_t xl_lock ; 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,6 +71,7 @@ fix-hfsplus-oops-on-image-without-extents-fix.patch
 rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
 atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
 memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
+drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
 linux-next.patch
 next-remove-localversion.patch
 revert-9p-convert-from-semaphore-to-spinlock.patch
@@ -156,5 +157,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
 
