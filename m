@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
 Subject: + x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch added to -mm tree
-Date: Thu, 08 May 2008 22:03:34 -0700
-Message-ID: <200805090514.m495ETYF023558@imap1.linux-foundation.org>
+Date: Thu, 08 May 2008 22:04:20 -0700
+Message-ID: <200805090515.m495FFnR023579@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55908 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41733 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751869AbYEIFPX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 01:15:23 -0400
+	by vger.kernel.org with ESMTP id S1751867AbYEIFQE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 01:16:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -45,12 +45,12 @@ Cc: Andrea Arcangeli <andrea@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm/thread_info_64.h |    2 +-
+ include/asm-x86/thread_info_64.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm/thread_info_64.h~x86-set_restore_sigmask-avoid-bitop-on-a-u32 include/asm/thread_info_64.h
---- a/include/asm/thread_info_64.h~x86-set_restore_sigmask-avoid-bitop-on-a-u32
-+++ a/include/asm/thread_info_64.h
+diff -puN include/asm-x86/thread_info_64.h~x86-set_restore_sigmask-avoid-bitop-on-a-u32 include/asm-x86/thread_info_64.h
+--- a/include/asm-x86/thread_info_64.h~x86-set_restore_sigmask-avoid-bitop-on-a-u32
++++ a/include/asm-x86/thread_info_64.h
 @@ -186,7 +186,7 @@ static inline void set_restore_sigmask(v
  {
  	struct thread_info *ti = current_thread_info();
