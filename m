@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ipmi-support-i-o-resources-in-of-driver.patch added to -mm tree
-Date: Thu, 08 May 2008 18:42:57 -0700
-Message-ID: <200805090142.m491gvOc016470@imap1.linux-foundation.org>
+Subject: + mm-define-default-cpu_to_node.patch added to -mm tree
+Date: Thu, 08 May 2008 21:07:18 -0700
+Message-ID: <200805090407.m4947Il9021289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55663 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45331 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934798AbYEIBoK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 May 2008 21:44:10 -0400
+	by vger.kernel.org with ESMTP id S1750774AbYEIEIG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 00:08:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: ncase@xes-inc.com, cminyard@mvista.com
+Cc: travis@sgi.com, anton@samba.org, bunk@kernel.org, davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, lethal@linux-sh.org, paulus@samba.org, rth@twiddle.net, tglx@linutronix.de, wli@holomorphy.com
 
 
 The patch titled
-     ipmi: support I/O resources in OF driver
+     mm: define default cpu_to_node()
 has been added to the -mm tree.  Its filename is
-     ipmi-support-i-o-resources-in-of-driver.patch
+     mm-define-default-cpu_to_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,46 +33,137 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ipmi: support I/O resources in OF driver
-From: Nate Case <ncase@xes-inc.com>
+Subject: mm: define default cpu_to_node()
+From: Mike Travis <travis@sgi.com>
 
-The current OF probing assumes that the resource is IORESOURCE_MEM.  This
-checks for the IORESOURCE_IO flag and behaves appropriately.  An I/O resource
-can exist with an ipmi device node on a legacy ISA bus.
+Some architectures have CONFIG_NUMA=y but do not define a default cpu_to_node
+macro.  This provides the default in asm-generic/topology.h but it relies on
+the fact that cpu_to_node is a defined macro (and not an inline function).
 
-Signed-off-by: Nate Case <ncase@xes-inc.com>
-Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Which means that those architecutures that define cpu_to_node as a function
+are changed to:
+
+    #define cpu_to_node(cpu)  _cpu_to_node(cpu)
+    < ... declare the _cpu_to_node(int cpu) function. ... >
+
+Based on:
+    //git.kernel.org/pub/scm/linux/kernel/git/sfr/linux-next.git
+
+Signed-off-by: Mike Travis <travis@sgi.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Anton Blanchard <anton@samba.org>
+Cc: Adrian Bunk <bunk@kernel.org>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: William L. Irwin <wli@holomorphy.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_si_intf.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ include/asm-alpha/topology.h   |    3 ++-
+ include/asm-generic/topology.h |   11 ++++++++---
+ include/asm-powerpc/topology.h |    3 ++-
+ include/asm-sparc64/topology.h |    3 ++-
+ include/asm-x86/topology.h     |    6 ++++--
+ 5 files changed, 18 insertions(+), 8 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_si_intf.c~ipmi-support-i-o-resources-in-of-driver drivers/char/ipmi/ipmi_si_intf.c
---- a/drivers/char/ipmi/ipmi_si_intf.c~ipmi-support-i-o-resources-in-of-driver
-+++ a/drivers/char/ipmi/ipmi_si_intf.c
-@@ -2352,10 +2352,16 @@ static int __devinit ipmi_of_probe(struc
+diff -puN include/asm-alpha/topology.h~mm-define-default-cpu_to_node include/asm-alpha/topology.h
+--- a/include/asm-alpha/topology.h~mm-define-default-cpu_to_node
++++ a/include/asm-alpha/topology.h
+@@ -6,7 +6,8 @@
+ #include <asm/machvec.h>
  
- 	info->si_type		= (enum si_type) match->data;
- 	info->addr_source	= "device-tree";
--	info->io_setup		= mem_setup;
- 	info->irq_setup		= std_irq_setup;
+ #ifdef CONFIG_NUMA
+-static inline int cpu_to_node(int cpu)
++#define cpu_to_node(cpu) _cpu_to_node(cpu)
++static inline int _cpu_to_node(int cpu)
+ {
+ 	int node;
+ 	
+diff -puN include/asm-generic/topology.h~mm-define-default-cpu_to_node include/asm-generic/topology.h
+--- a/include/asm-generic/topology.h~mm-define-default-cpu_to_node
++++ a/include/asm-generic/topology.h
+@@ -27,13 +27,18 @@
+ #ifndef _ASM_GENERIC_TOPOLOGY_H
+ #define _ASM_GENERIC_TOPOLOGY_H
  
--	info->io.addr_type	= IPMI_MEM_ADDR_SPACE;
-+	if (resource.flags & IORESOURCE_IO) {
-+		info->io_setup		= port_setup;
-+		info->io.addr_type	= IPMI_IO_ADDR_SPACE;
-+	} else {
-+		info->io_setup		= mem_setup;
-+		info->io.addr_type	= IPMI_MEM_ADDR_SPACE;
-+	}
++/*
++ * cpu_to_node is referenced but not defined in some arch's that
++ * have CONFIG_NUMA=y
++ */
++#ifndef cpu_to_node
++#define cpu_to_node(cpu)	((void)(cpu),0)
++#endif
 +
- 	info->io.addr_data	= resource.start;
+ #ifndef	CONFIG_NUMA
  
- 	info->io.regsize	= regsize ? *regsize : DEFAULT_REGSIZE;
+ /* Other architectures wishing to use this simple topology API should fill
+    in the below functions as appropriate in their own <asm/topology.h> file. */
+-#ifndef cpu_to_node
+-#define cpu_to_node(cpu)	((void)(cpu),0)
+-#endif
+ #ifndef parent_node
+ #define parent_node(node)	((void)(node),0)
+ #endif
+diff -puN include/asm-powerpc/topology.h~mm-define-default-cpu_to_node include/asm-powerpc/topology.h
+--- a/include/asm-powerpc/topology.h~mm-define-default-cpu_to_node
++++ a/include/asm-powerpc/topology.h
+@@ -10,7 +10,8 @@ struct device_node;
+ 
+ #include <asm/mmzone.h>
+ 
+-static inline int cpu_to_node(int cpu)
++#define cpu_to_node(cpu) _cpu_to_node(cpu)
++static inline int _cpu_to_node(int cpu)
+ {
+ 	return numa_cpu_lookup_table[cpu];
+ }
+diff -puN include/asm-sparc64/topology.h~mm-define-default-cpu_to_node include/asm-sparc64/topology.h
+--- a/include/asm-sparc64/topology.h~mm-define-default-cpu_to_node
++++ a/include/asm-sparc64/topology.h
+@@ -5,7 +5,8 @@
+ 
+ #include <asm/mmzone.h>
+ 
+-static inline int cpu_to_node(int cpu)
++#define cpu_to_node(cpu) _cpu_to_node(cpu)
++static inline int _cpu_to_node(int cpu)
+ {
+ 	return numa_cpu_lookup_table[cpu];
+ }
+diff -puN include/asm-x86/topology.h~mm-define-default-cpu_to_node include/asm-x86/topology.h
+--- a/include/asm-x86/topology.h~mm-define-default-cpu_to_node
++++ a/include/asm-x86/topology.h
+@@ -53,7 +53,8 @@ extern cpumask_t node_to_cpumask_map[];
+ /* Returns the number of the node containing CPU 'cpu' */
+ #ifdef CONFIG_X86_32
+ #define early_cpu_to_node(cpu)	cpu_to_node(cpu)
+-static inline int cpu_to_node(int cpu)
++#define cpu_to_node(cpu) _cpu_to_node(cpu)
++static inline int _cpu_to_node(int cpu)
+ {
+ 	return cpu_to_node_map[cpu];
+ }
+@@ -76,7 +77,8 @@ static inline int early_cpu_to_node(int 
+ #define	early_cpu_to_node(cpu)	cpu_to_node(cpu)
+ #endif
+ 
+-static inline int cpu_to_node(int cpu)
++#define cpu_to_node(cpu) _cpu_to_node(cpu)
++static inline int _cpu_to_node(int cpu)
+ {
+ #ifdef CONFIG_DEBUG_PER_CPU_MAPS
+ 	if (x86_cpu_to_node_map_early_ptr) {
 _
 
-Patches currently in -mm which might be from ncase@xes-inc.com are
+Patches currently in -mm which might be from travis@sgi.com are
 
-ipmi-support-i-o-resources-in-of-driver.patch
+cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
+mm-define-default-cpu_to_node.patch
+acpi-change-processors-from-array-to-per_cpu-variable.patch
+cpufreq-change-cpu-freq-arrays-to-per_cpu-variables.patch
+show_schedstat-fix-memleak.patch
 
