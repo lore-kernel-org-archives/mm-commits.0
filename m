@@ -1,95 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: - ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch removed from -mm tree
-Date: Fri, 09 May 2008 14:47:06 -0700
-Message-ID: <200805092147.m49Ll6NY027184@imap1.linux-foundation.org>
+Subject: - drivers-usb-core-sysfsc-fix-types.patch removed from -mm tree
+Date: Fri, 09 May 2008 14:47:28 -0700
+Message-ID: <200805092147.m49LlSHa027237@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35918 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59917 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751224AbYEIV4J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:56:09 -0400
+	by vger.kernel.org with ESMTP id S1750858AbYEIV4I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:56:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, bzolnier@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     ide-tape: use clamp_t() rather than nested min_t()/max_t()
+     drivers/usb/core/sysfs.c: fix types
 has been removed from the -mm tree.  Its filename was
-     ide-tape-use-clamp_t-rather-than-nested-min_t-max_t.patch
+     drivers-usb-core-sysfsc-fix-types.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ide-tape: use clamp_t() rather than nested min_t()/max_t()
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: drivers/usb/core/sysfs.c: fix types
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
+Fixes something which is in linux-next.
+
+drivers/usb/core/sysfs.c:573: warning: initialization from incompatible pointer type
+drivers/usb/core/sysfs.c:783: warning: initialization from incompatible pointer type
+
+All I did was run i386 allmodconfig :(
+
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/ide/ide-tape.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/usb/core/sysfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/ide/ide-tape.c~ide-tape-use-clamp_t-rather-than-nested-min_t-max_t drivers/ide/ide-tape.c
---- a/drivers/ide/ide-tape.c~ide-tape-use-clamp_t-rather-than-nested-min_t-max_t
-+++ a/drivers/ide/ide-tape.c
-@@ -2746,9 +2746,8 @@ static void idetape_setup(ide_drive_t *d
- 	 * Ensure that the number we got makes sense; limit it within
- 	 * IDETAPE_DSC_RW_MIN and IDETAPE_DSC_RW_MAX.
- 	 */
--	tape->best_dsc_rw_freq = max_t(unsigned long,
--				min_t(unsigned long, t, IDETAPE_DSC_RW_MAX),
--				IDETAPE_DSC_RW_MIN);
-+	tape->best_dsc_rw_freq = clamp_t(unsigned long, t, IDETAPE_DSC_RW_MIN,
-+					 IDETAPE_DSC_RW_MAX);
- 	printk(KERN_INFO "ide-tape: %s <-> %s: %dKBps, %d*%dkB buffer, "
- 		"%lums tDSC%s\n",
- 		drive->name, tape->name, *(u16 *)&tape->caps[14],
+diff -puN drivers/usb/core/sysfs.c~drivers-usb-core-sysfsc-fix-types drivers/usb/core/sysfs.c
+--- a/drivers/usb/core/sysfs.c~drivers-usb-core-sysfsc-fix-types
++++ a/drivers/usb/core/sysfs.c
+@@ -551,7 +551,7 @@ static struct attribute *dev_string_attr
+ 	NULL
+ };
+ 
+-static int dev_string_attrs_are_visible(struct kobject *kobj,
++static mode_t dev_string_attrs_are_visible(struct kobject *kobj,
+ 		struct attribute *a, int n)
+ {
+ 	struct usb_device *udev = to_usb_device(
+@@ -769,7 +769,7 @@ static struct attribute *intf_assoc_attr
+ 	NULL,
+ };
+ 
+-static int intf_assoc_attrs_are_visible(struct kobject *kobj,
++static mode_t intf_assoc_attrs_are_visible(struct kobject *kobj,
+ 		struct attribute *a, int n)
+ {
+ 	struct usb_interface *intf = to_usb_interface(
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mmc-make-one-bit-signed-bitfields-unsigned.patch
+quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
+fix-hfsplus-oops-on-image-without-extents-fix.patch
+rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
+atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
+memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
 linux-next.patch
-kgdb-use-put_unaligned_be32-helper.patch
-cifs-remove-global_extern-macro.patch
-media-use-get_unaligned_-helpers.patch
-hid-use-get-put_unaligned_-helpers.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+revert-vt-fix-background-color-on-line-feed.patch
+revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-kernel-setupc-printk-warning-fix.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+dlm-convert-connections_lock-in-a-mutex-fix.patch
 git-input.patch
-ata-remove-fit-macro.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-get_unaligned_-helpers.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-block-use-get_unaligned_-helpers.patch
+git-jg-misc-git-rejects.patch
+revert-git-kbuild.patch
+git-mmc.patch
+git-ubifs.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+unionfs-broke.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+git-v9fs.patch
+revert-git-v9fs.patch
 git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-tkipc-use-kernel-provided-infrastructure.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-wireless-use-get-put_unaligned_-helpers.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-lib-add-ascii-hex-helper-functions.patch
-lib-add-ascii-hex-helper-functions-update.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-video-fix-integer-as-null-pointer-warnings.patch
-aacraid-linitc-make-aac_show_serial_number-static.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+common-implementation-of-iterative-div-mod-fix.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+common-implementation-of-iterative-div-mod-fix-2.patch
+mm-define-default-cpu_to_node-checkpatch-fixes.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model-fix.patch
+mm-verify-the-page-links-and-memory-model-fix-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-inotify_init-fix.patch
+hysdn-no-longer-broken-on-smp.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
