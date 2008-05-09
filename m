@@ -1,51 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: - usb-use-get_unaligned_-helpers.patch removed from -mm tree
-Date: Fri, 09 May 2008 14:47:26 -0700
-Message-ID: <200805092147.m49LlQhD027234@imap1.linux-foundation.org>
+Subject: - ide-use-get_unaligned_-helpers.patch removed from -mm tree
+Date: Fri, 09 May 2008 14:47:08 -0700
+Message-ID: <200805092147.m49Ll8wi027187@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42022 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60688 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751135AbYEIV4J (ORCPT
+	by vger.kernel.org with ESMTP id S1751223AbYEIV4J (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:56:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, greg@kroah.com, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, bzolnier@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb: use get_unaligned_* helpers
+     ide: use get_unaligned_* helpers
 has been removed from the -mm tree.  Its filename was
-     usb-use-get_unaligned_-helpers.patch
+     ide-use-get_unaligned_-helpers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb: use get_unaligned_* helpers
+Subject: ide: use get_unaligned_* helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Greg KH <greg@kroah.com>
+Cc: Bartlomiej Zolnierkiewicz <bzolnier@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/kl5kusb105.c |    2 +-
+ drivers/ide/ide-tape.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/kl5kusb105.c~usb-use-get_unaligned_-helpers drivers/usb/serial/kl5kusb105.c
---- a/drivers/usb/serial/kl5kusb105.c~usb-use-get_unaligned_-helpers
-+++ a/drivers/usb/serial/kl5kusb105.c
-@@ -236,7 +236,7 @@ static int klsi_105_get_line_state(struc
- 	if (rc < 0)
- 		err("Reading line status failed (error = %d)", rc);
- 	else {
--		status = le16_to_cpu(get_unaligned((__le16 *)status_buf));
-+		status = get_unaligned_le16(status_buf);
+diff -puN drivers/ide/ide-tape.c~ide-use-get_unaligned_-helpers drivers/ide/ide-tape.c
+--- a/drivers/ide/ide-tape.c~ide-use-get_unaligned_-helpers
++++ a/drivers/ide/ide-tape.c
+@@ -538,7 +538,7 @@ static void idetape_analyze_error(ide_dr
+ 	if (pc->flags & PC_FLAG_DMA_ERROR) {
+ 		pc->xferred = pc->req_xfer -
+ 			tape->blk_size *
+-			be32_to_cpu(get_unaligned((u32 *)&sense[3]));
++			get_unaligned_be32(&sense[3]);
+ 		idetape_update_buffers(pc);
+ 	}
  
- 		info("%s - read status %x %x", __func__,
- 		     status_buf[0], status_buf[1]);
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
