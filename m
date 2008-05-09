@@ -1,83 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: - fix-irq-flags-for-iuu_phoenixc.patch removed from -mm tree
-Date: Fri, 09 May 2008 14:46:24 -0700
-Message-ID: <200805092146.m49LkOFR027106@imap1.linux-foundation.org>
+Subject: - kconfig-improved-help-for-config_accessibility.patch removed from -mm tree
+Date: Fri, 09 May 2008 14:46:11 -0700
+Message-ID: <200805092146.m49LkBO5027084@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57387 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48336 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755429AbYEIVrL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:47:11 -0400
+	by vger.kernel.org with ESMTP id S1755342AbYEIVrI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:47:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, greg@kroah.com, srostedt@redhat.com, mm-commits@vger.kernel.org
+To: samuel.thibault@ens-lyon.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix irq flags for iuu_phoenix.c
+     Kconfig: improved help for CONFIG_ACCESSIBILITY
 has been removed from the -mm tree.  Its filename was
-     fix-irq-flags-for-iuu_phoenixc.patch
+     kconfig-improved-help-for-config_accessibility.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix irq flags for iuu_phoenix.c
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: Kconfig: improved help for CONFIG_ACCESSIBILITY
+From: Samuel Thibault <samuel.thibault@ens-lyon.org>
 
-The file drivers/usb/serial/iuu_phoenix.c uses "int" for flags.  This can
-cause hard to find bugs on some architectures.  This patch converts the flags
-to use "long" instead.
+Add a small explanation of what accessibility is.
 
-This bug was discovered by doing an allyesconfig make on the -rt kernel where
-checks are done to ensure all flags are of size sizeof(long).
-
-Signed-off-by: Steven Rostedt <srostedt@redhat.com>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Samuel Thibault <samuel.thibault@ens-lyon.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/serial/iuu_phoenix.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/accessibility/Kconfig |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
 
-diff -puN drivers/usb/serial/iuu_phoenix.c~fix-irq-flags-for-iuu_phoenixc drivers/usb/serial/iuu_phoenix.c
---- a/drivers/usb/serial/iuu_phoenix.c~fix-irq-flags-for-iuu_phoenixc
-+++ a/drivers/usb/serial/iuu_phoenix.c
-@@ -643,7 +643,7 @@ static void read_buf_callback(struct urb
- static int iuu_bulk_write(struct usb_serial_port *port)
- {
- 	struct iuu_private *priv = usb_get_serial_port_data(port);
--	unsigned int flags;
-+	unsigned long flags;
- 	int result;
- 	int i;
- 	char *buf_ptr = port->write_urb->transfer_buffer;
-@@ -694,7 +694,7 @@ static void iuu_uart_read_callback(struc
- {
- 	struct usb_serial_port *port = urb->context;
- 	struct iuu_private *priv = usb_get_serial_port_data(port);
--	unsigned int flags;
-+	unsigned long flags;
- 	int status;
- 	int error = 0;
- 	int len = 0;
-@@ -759,7 +759,7 @@ static int iuu_uart_write(struct usb_ser
- 			  int count)
- {
- 	struct iuu_private *priv = usb_get_serial_port_data(port);
--	unsigned int flags;
-+	unsigned long flags;
- 	dbg("%s - enter", __func__);
+diff -puN drivers/accessibility/Kconfig~kconfig-improved-help-for-config_accessibility drivers/accessibility/Kconfig
+--- a/drivers/accessibility/Kconfig~kconfig-improved-help-for-config_accessibility
++++ a/drivers/accessibility/Kconfig
+@@ -1,7 +1,17 @@
+ menuconfig ACCESSIBILITY
+ 	bool "Accessibility support"
+ 	---help---
+-	  Enable a submenu where accessibility items may be enabled.
++	  Accessibility handles all special kinds of hardware devices or
++	  software adapters which help people with disabilities (e.g.
++	  blindness) to use computers.
++
++	  That includes braille devices, speech synthesis, keyboard
++	  remapping, etc.
++
++	  Say Y here to get to see options for accessibility.
++	  This option alone does not add any kernel code.
++
++	  If you say N, all options in this submenu will be skipped and disabled.
  
- 	if (count > 256)
+ 	  If unsure, say N.
+ 
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from samuel.thibault@ens-lyon.org are
 
 origin.patch
-linux-next.patch
-git-v9fs.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
 
