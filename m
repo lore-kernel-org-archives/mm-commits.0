@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-define-default-cpu_to_node.patch added to -mm tree
-Date: Thu, 08 May 2008 21:07:46 -0700
-Message-ID: <200805090407.m4947kfk021315@imap1.linux-foundation.org>
+Subject: + mm-define-default-cpu_to_node-checkpatch-fixes.patch added to -mm tree
+Date: Thu, 08 May 2008 21:08:29 -0700
+Message-ID: <200805090408.m4948Td9021327@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35147 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41782 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750768AbYEIEI1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 00:08:27 -0400
+	by vger.kernel.org with ESMTP id S1750896AbYEIEId (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 00:08:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, anton@samba.org, bunk@kernel.org, davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, lethal@linux-sh.org, mingo@elte.hu, paulus@samba.org, rth@twiddle.net, tglx@linutronix.de, wli@holomorphy.com
+Cc: akpm@linux-foundation.org, travis@sgi.com
 
 
 The patch titled
-     mm: define default cpu_to_node()
+     mm-define-default-cpu_to_node-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-define-default-cpu_to_node.patch
+     mm-define-default-cpu_to_node-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,139 +33,131 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: define default cpu_to_node()
-From: Mike Travis <travis@sgi.com>
+Subject: mm-define-default-cpu_to_node-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Some architectures have CONFIG_NUMA=y but do not define a default cpu_to_node
-macro.  This provides the default in asm-generic/topology.h but it relies on
-the fact that cpu_to_node is a defined macro (and not an inline function).
+ERROR: space required after that ',' (ctx:VxV)
+#62: FILE: include/asm-generic/topology.h:35:
++#define cpu_to_node(cpu)	((void)(cpu),0)
+                         	            ^
 
-Which means that those architecutures that define cpu_to_node as a function
-are changed to:
+total: 1 errors, 0 warnings, 66 lines checked
 
-    #define cpu_to_node(cpu)  _cpu_to_node(cpu)
-    < ... declare the _cpu_to_node(int cpu) function. ... >
+./patches/mm-define-default-cpu_to_node.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Based on:
-    //git.kernel.org/pub/scm/linux/kernel/git/sfr/linux-next.git
+Please run checkpatch prior to sending patches
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Adrian Bunk <bunk@kernel.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: William L. Irwin <wli@holomorphy.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/topology.h   |    3 ++-
- include/asm-generic/topology.h |   11 ++++++++---
- include/asm-powerpc/topology.h |    3 ++-
- include/asm-sparc64/topology.h |    3 ++-
- include/asm-x86/topology.h     |    6 ++++--
- 5 files changed, 18 insertions(+), 8 deletions(-)
+ include/asm-generic/topology.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-alpha/topology.h~mm-define-default-cpu_to_node include/asm-alpha/topology.h
---- a/include/asm-alpha/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-alpha/topology.h
-@@ -6,7 +6,8 @@
- #include <asm/machvec.h>
- 
- #ifdef CONFIG_NUMA
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- 	int node;
- 	
-diff -puN include/asm-generic/topology.h~mm-define-default-cpu_to_node include/asm-generic/topology.h
---- a/include/asm-generic/topology.h~mm-define-default-cpu_to_node
+diff -puN include/asm-generic/topology.h~mm-define-default-cpu_to_node-checkpatch-fixes include/asm-generic/topology.h
+--- a/include/asm-generic/topology.h~mm-define-default-cpu_to_node-checkpatch-fixes
 +++ a/include/asm-generic/topology.h
-@@ -27,13 +27,18 @@
- #ifndef _ASM_GENERIC_TOPOLOGY_H
- #define _ASM_GENERIC_TOPOLOGY_H
- 
-+/*
-+ * cpu_to_node is referenced but not defined in some arch's that
-+ * have CONFIG_NUMA=y
-+ */
-+#ifndef cpu_to_node
-+#define cpu_to_node(cpu)	((void)(cpu),0)
-+#endif
-+
- #ifndef	CONFIG_NUMA
- 
- /* Other architectures wishing to use this simple topology API should fill
-    in the below functions as appropriate in their own <asm/topology.h> file. */
--#ifndef cpu_to_node
+@@ -32,7 +32,7 @@
+  * have CONFIG_NUMA=y
+  */
+ #ifndef cpu_to_node
 -#define cpu_to_node(cpu)	((void)(cpu),0)
--#endif
- #ifndef parent_node
- #define parent_node(node)	((void)(node),0)
- #endif
-diff -puN include/asm-powerpc/topology.h~mm-define-default-cpu_to_node include/asm-powerpc/topology.h
---- a/include/asm-powerpc/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-powerpc/topology.h
-@@ -10,7 +10,8 @@ struct device_node;
- 
- #include <asm/mmzone.h>
- 
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- 	return numa_cpu_lookup_table[cpu];
- }
-diff -puN include/asm-sparc64/topology.h~mm-define-default-cpu_to_node include/asm-sparc64/topology.h
---- a/include/asm-sparc64/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-sparc64/topology.h
-@@ -5,7 +5,8 @@
- 
- #include <asm/mmzone.h>
- 
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- 	return numa_cpu_lookup_table[cpu];
- }
-diff -puN include/asm-x86/topology.h~mm-define-default-cpu_to_node include/asm-x86/topology.h
---- a/include/asm-x86/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-x86/topology.h
-@@ -53,7 +53,8 @@ extern cpumask_t node_to_cpumask_map[];
- /* Returns the number of the node containing CPU 'cpu' */
- #ifdef CONFIG_X86_32
- #define early_cpu_to_node(cpu)	cpu_to_node(cpu)
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- 	return cpu_to_node_map[cpu];
- }
-@@ -76,7 +77,8 @@ static inline int early_cpu_to_node(int 
- #define	early_cpu_to_node(cpu)	cpu_to_node(cpu)
++#define cpu_to_node(cpu)	((void)(cpu), 0)
  #endif
  
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- #ifdef CONFIG_DEBUG_PER_CPU_MAPS
- 	if (x86_cpu_to_node_map_early_ptr) {
+ #ifndef	CONFIG_NUMA
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
-mm-define-default-cpu_to_node.patch
-acpi-change-processors-from-array-to-per_cpu-variable.patch
-cpufreq-change-cpu-freq-arrays-to-per_cpu-variables.patch
-show_schedstat-fix-memleak.patch
+origin.patch
+sxc-fix-printk-warnings-on-sparc32.patch
+drivers-scsi-dpt_i2oc-fix-build-on-alpha.patch
+quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
+fix-hfsplus-oops-on-image-without-extents-fix.patch
+rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
+atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
+memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
+mm-define-default-cpu_to_node-checkpatch-fixes.patch
+linux-next.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+revert-vt-fix-background-color-on-line-feed.patch
+revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86.patch
+git-x86-fixup.patch
+arch-x86-kernel-setupc-printk-warning-fix.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+fix-driver-core-prepare-for-removal-of-20-char-limit-from-struct-device.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-fix.patch
+dlm-convert-connections_lock-in-a-mutex-fix.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+revert-git-kbuild.patch
+git-mmc.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+revert-git-block.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+unionfs-broke.patch
+git-logfs-fixup.patch
+logfs-unbork.patch
+logfs-is-busted.patch
+drivers-usb-core-sysfsc-fix-types.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+git-v9fs.patch
+revert-git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+common-implementation-of-iterative-div-mod-fix.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+common-implementation-of-iterative-div-mod-fix-2.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-inotify_init-fix.patch
+hysdn-no-longer-broken-on-smp.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
