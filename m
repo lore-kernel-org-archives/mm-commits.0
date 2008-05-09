@@ -1,171 +1,161 @@
 From: akpm@linux-foundation.org
-Subject: - sxc-fix-printk-warnings-on-sparc32.patch removed from -mm tree
-Date: Fri, 09 May 2008 14:46:31 -0700
-Message-ID: <200805092146.m49LkVJP027118@imap1.linux-foundation.org>
+Subject: - fix-cpuset-sched_relax_domain_level-control-file.patch removed from -mm tree
+Date: Fri, 09 May 2008 14:46:44 -0700
+Message-ID: <200805092146.m49LkiRZ027144@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47701 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45152 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751563AbYEIV4P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:56:15 -0400
+	by vger.kernel.org with ESMTP id S1751855AbYEIV4e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:56:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, mm-commits@vger.kernel.org
+To: menage@google.com, lizf@cn.fujitsu.com, mingo@elte.hu, pj@sgi.com, seto.hidetoshi@jp.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sx.c: fix printk warnings on sparc32
+     Fix cpuset sched_relax_domain_level control file
 has been removed from the -mm tree.  Its filename was
-     sxc-fix-printk-warnings-on-sparc32.patch
+     fix-cpuset-sched_relax_domain_level-control-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sx.c: fix printk warnings on sparc32
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Fix cpuset sched_relax_domain_level control file
+From: Paul Menage <menage@google.com>
 
-drivers/char/sx.c: In function 'sx_set_real_termios':
-drivers/char/sx.c:973: warning: format '%u' expects type 'unsigned int', but argument 2 has type 'long unsigned int'
-drivers/char/sx.c:999: warning: format '%x' expects type 'unsigned int', but argument 2 has type 'tcflag_t'
-drivers/char/sx.c:1012: warning: format '%x' expects type 'unsigned int', but argument 2 has type 'tcflag_t'
+Due to a merge conflict, the sched_relax_domain_level control file was marked
+as being handled by cpuset_read/write_u64, but the code to handle it was
+actually in cpuset_common_file_read/write.
 
-sparc32 seems to use weird types for its tty things.
+Since the value being written/read is in fact a signed integer, it should be
+treated as such; this patch adds cpuset_read/write_s64 functions, and uses
+them to handle the sched_relax_domain_level file.
 
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+With this patch, the sched_relax_domain_level can be read and written, and the
+correct contents seen/updated.
+
+Signed-off-by: Paul Menage <menage@google.com>
+Cc: Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+Cc: Paul Jackson <pj@sgi.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/sx.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ kernel/cpuset.c |   52 +++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 40 insertions(+), 12 deletions(-)
 
-diff -puN drivers/char/sx.c~sxc-fix-printk-warnings-on-sparc32 drivers/char/sx.c
---- a/drivers/char/sx.c~sxc-fix-printk-warnings-on-sparc32
-+++ a/drivers/char/sx.c
-@@ -970,7 +970,8 @@ static int sx_set_real_termios(void *ptr
- 		sx_write_channel_byte(port, hi_mask, 0x1f);
+diff -puN kernel/cpuset.c~fix-cpuset-sched_relax_domain_level-control-file kernel/cpuset.c
+--- a/kernel/cpuset.c~fix-cpuset-sched_relax_domain_level-control-file
++++ a/kernel/cpuset.c
+@@ -1031,11 +1031,9 @@ int current_cpuset_is_being_rebound(void
+ 	return task_cs(current) == cpuset_being_rebound;
+ }
+ 
+-static int update_relax_domain_level(struct cpuset *cs, char *buf)
++static int update_relax_domain_level(struct cpuset *cs, s64 val)
+ {
+-	int val = simple_strtol(buf, NULL, 10);
+-
+-	if (val < 0)
++	if ((int)val < 0)
+ 		val = -1;
+ 
+ 	if (val != cs->relax_domain_level) {
+@@ -1280,9 +1278,6 @@ static ssize_t cpuset_common_file_write(
+ 	case FILE_MEMLIST:
+ 		retval = update_nodemask(cs, buffer);
  		break;
+-	case FILE_SCHED_RELAX_DOMAIN_LEVEL:
+-		retval = update_relax_domain_level(cs, buffer);
+-		break;
  	default:
--		printk(KERN_INFO "sx: Invalid wordsize: %u\n", CFLAG & CSIZE);
-+		printk(KERN_INFO "sx: Invalid wordsize: %u\n",
-+			(unsigned int)CFLAG & CSIZE);
+ 		retval = -EINVAL;
+ 		goto out2;
+@@ -1348,6 +1343,30 @@ static int cpuset_write_u64(struct cgrou
+ 	return retval;
+ }
+ 
++static int cpuset_write_s64(struct cgroup *cgrp, struct cftype *cft, s64 val)
++{
++	int retval = 0;
++	struct cpuset *cs = cgroup_cs(cgrp);
++	cpuset_filetype_t type = cft->private;
++
++	cgroup_lock();
++
++	if (cgroup_is_removed(cgrp)) {
++		cgroup_unlock();
++		return -ENODEV;
++	}
++	switch (type) {
++	case FILE_SCHED_RELAX_DOMAIN_LEVEL:
++		retval = update_relax_domain_level(cs, val);
++		break;
++	default:
++		retval = -EINVAL;
++		break;
++	}
++	cgroup_unlock();
++	return retval;
++}
++
+ /*
+  * These ascii lists should be read in a single call, by using a user
+  * buffer large enough to hold the entire map.  If read in smaller
+@@ -1406,9 +1425,6 @@ static ssize_t cpuset_common_file_read(s
+ 	case FILE_MEMLIST:
+ 		s += cpuset_sprintf_memlist(s, cs);
  		break;
+-	case FILE_SCHED_RELAX_DOMAIN_LEVEL:
+-		s += sprintf(s, "%d", cs->relax_domain_level);
+-		break;
+ 	default:
+ 		retval = -EINVAL;
+ 		goto out;
+@@ -1449,6 +1465,18 @@ static u64 cpuset_read_u64(struct cgroup
  	}
+ }
  
-@@ -997,7 +998,8 @@ static int sx_set_real_termios(void *ptr
- 		set_bit(TTY_HW_COOK_IN, &port->gs.tty->flags);
- 	}
- 	sx_dprintk(SX_DEBUG_TERMIOS, "iflags: %x(%d) ",
--			port->gs.tty->termios->c_iflag, I_OTHER(port->gs.tty));
-+			(unsigned int)port->gs.tty->termios->c_iflag,
-+			I_OTHER(port->gs.tty));
++static s64 cpuset_read_s64(struct cgroup *cont, struct cftype *cft)
++{
++	struct cpuset *cs = cgroup_cs(cont);
++	cpuset_filetype_t type = cft->private;
++	switch (type) {
++	case FILE_SCHED_RELAX_DOMAIN_LEVEL:
++		return cs->relax_domain_level;
++	default:
++		BUG();
++	}
++}
++
  
- /* Tell line discipline whether we will do output cooking.
-  * If OPOST is set and no other output flags are set then we can do output
-@@ -1010,7 +1012,8 @@ static int sx_set_real_termios(void *ptr
- 		clear_bit(TTY_HW_COOK_OUT, &port->gs.tty->flags);
- 	}
- 	sx_dprintk(SX_DEBUG_TERMIOS, "oflags: %x(%d)\n",
--			port->gs.tty->termios->c_oflag, O_OTHER(port->gs.tty));
-+			(unsigned int)port->gs.tty->termios->c_oflag,
-+			O_OTHER(port->gs.tty));
- 	/* port->c_dcd = sx_get_CD (port); */
- 	func_exit();
- 	return 0;
+ /*
+  * for the common functions, 'private' gives the type of file
+@@ -1499,8 +1527,8 @@ static struct cftype files[] = {
+ 
+ 	{
+ 		.name = "sched_relax_domain_level",
+-		.read_u64 = cpuset_read_u64,
+-		.write_u64 = cpuset_write_u64,
++		.read_s64 = cpuset_read_s64,
++		.write_s64 = cpuset_write_s64,
+ 		.private = FILE_SCHED_RELAX_DOMAIN_LEVEL,
+ 	},
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from menage@google.com are
 
 origin.patch
-quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
-fix-hfsplus-oops-on-image-without-extents-fix.patch
-rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
-atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
+memcg-fix-possible-panic-when-config_mm_owner=y.patch
 memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
-linux-next.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-revert-vt-fix-background-color-on-line-feed.patch
-revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
-revert-acpica-fixes-for-unload-and-ddbhandles.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-arch-x86-kernel-setupc-printk-warning-fix.patch
-arch-x86-mm-patc-use-boot_cpu_has.patch
-x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
-lguest-use-cpu-capability-accessors.patch
-x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
-x86-bitops-take-an-unsigned-long.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-dlm-convert-connections_lock-in-a-mutex-fix.patch
-git-input.patch
-git-jg-misc-git-rejects.patch
-revert-git-kbuild.patch
-git-mmc.patch
-git-ubifs.patch
-sundance-set-carrier-status-on-link-change-events.patch
-dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
-pcnet32-fix-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-unionfs-broke.patch
-git-logfs-fixup.patch
-drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-uwb-fix-scscanf-warning.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-git-v9fs.patch
-revert-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-ext4-is-busted-on-m68k.patch
-common-implementation-of-iterative-div-mod-fix.patch
-common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
-common-implementation-of-iterative-div-mod-fix-2.patch
-mm-define-default-cpu_to_node-checkpatch-fixes.patch
-colibri-fix-support-for-dm9000-ethernet-device-fix.patch
-mm-verify-the-page-links-and-memory-model-fix.patch
-mm-verify-the-page-links-and-memory-model-fix-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-inotify_init-fix.patch
-hysdn-no-longer-broken-on-smp.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+cgroups-fix-documentation.patch
+cgroup-use-read-lock-to-guard-find_existing_css_set.patch
+mark-res_counter_charge_locked-with-__must_check.patch
+make-cgroup_seqfile_release-static.patch
+add-a-refcount-check-in-dput.patch
 
