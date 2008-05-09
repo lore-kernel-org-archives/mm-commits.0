@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-net-tokenring-3c359c-squish-a-warning.patch added to -mm tree
-Date: Fri, 09 May 2008 15:29:46 -0700
-Message-ID: <200805092240.m49Meg9c029221@imap1.linux-foundation.org>
+Subject: + drivers-net-tokenring-olympicc-fix-warning.patch added to -mm tree
+Date: Fri, 09 May 2008 15:31:40 -0700
+Message-ID: <200805092242.m49MgaMe029360@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36757 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58585 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752613AbYEIWlS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 18:41:18 -0400
+	by vger.kernel.org with ESMTP id S1752839AbYEIWnL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 18:43:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, greg@kroah.com, jeff@garzik.org
 
 
 The patch titled
-     drivers/net/tokenring/3c359.c: squish a warning
+     drivers/net/tokenring/olympic.c: fix warning
 has been added to the -mm tree.  Its filename is
-     drivers-net-tokenring-3c359c-squish-a-warning.patch
+     drivers-net-tokenring-olympicc-fix-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,34 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/net/tokenring/3c359.c: squish a warning
+Subject: drivers/net/tokenring/olympic.c: fix warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
 When dev_name() is changed to return `const char *':
 
-drivers/net/tokenring/3c359.c: In function 'xl_probe':
-drivers/net/tokenring/3c359.c:318: warning: assignment discards qualifiers from pointer target type
+drivers/net/tokenring/olympic.c: In function 'olympic_probe':
+drivers/net/tokenring/olympic.c:234: warning: assignment discards qualifiers from pointer target type
 
 Cc: Jeff Garzik <jeff@garzik.org>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/tokenring/3c359.h |    2 +-
+ drivers/net/tokenring/olympic.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/tokenring/3c359.h~drivers-net-tokenring-3c359c-squish-a-warning drivers/net/tokenring/3c359.h
---- a/drivers/net/tokenring/3c359.h~drivers-net-tokenring-3c359c-squish-a-warning
-+++ a/drivers/net/tokenring/3c359.h
-@@ -264,7 +264,7 @@ struct xl_private {
- 	u16 asb;
- 
- 	u8 __iomem *xl_mmio;
--	char *xl_card_name;
-+	const char *xl_card_name;
+diff -puN drivers/net/tokenring/olympic.h~drivers-net-tokenring-olympicc-fix-warning drivers/net/tokenring/olympic.h
+--- a/drivers/net/tokenring/olympic.h~drivers-net-tokenring-olympicc-fix-warning
++++ a/drivers/net/tokenring/olympic.h
+@@ -254,7 +254,7 @@ struct olympic_private {
+ 	u8 __iomem *olympic_mmio;
+ 	u8 __iomem *olympic_lap;
  	struct pci_dev *pdev ; 
- 	
- 	spinlock_t xl_lock ; 
+-	char *olympic_card_name ; 
++	const char *olympic_card_name;
+ 
+ 	spinlock_t olympic_lock ; 
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +100,7 @@ git-ubifs.patch
 sundance-set-carrier-status-on-link-change-events.patch
 dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
 pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
 update-smc91x-driver-with-arm-versatile-board-info.patch
 git-battery.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
@@ -157,5 +158,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
 
