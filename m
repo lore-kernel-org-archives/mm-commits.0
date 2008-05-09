@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-add-flag-to-turn-on-big-writes.patch added to -mm tree
-Date: Fri, 09 May 2008 14:05:44 -0700
-Message-ID: <200805092105.m49L5iYB025582@imap1.linux-foundation.org>
+Subject: + fix-misuses-of-bdevname.patch added to -mm tree
+Date: Fri, 09 May 2008 14:07:52 -0700
+Message-ID: <200805092107.m49L7qX2025726@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38243 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52334 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753472AbYEIVHB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:07:01 -0400
+	by vger.kernel.org with ESMTP id S1754644AbYEIVI2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:08:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, szaka@ntfs-3g.org
+Cc: khali@linux-fr.org, axboe@kernel.dk, sct@redhat.com
 
 
 The patch titled
-     fuse: add flag to turn on big writes
+     Fix misuses of bdevname()
 has been added to the -mm tree.  Its filename is
-     fuse-add-flag-to-turn-on-big-writes.patch
+     fix-misuses-of-bdevname.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,95 +33,102 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fuse: add flag to turn on big writes
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: Fix misuses of bdevname()
+From: Jean Delvare <khali@linux-fr.org>
 
-Prior to 2.6.26 fuse only supported single page write requests.  In theory all
-fuse filesystem should be able support bigger than 4k writes, as there's
-nothing in the API to prevent it.  Unfortunately there's a known case in
-NTFS-3G where big writes cause filesystem corruption.  There could also be
-other filesystems, where the lack of testing with big write requests would
-result in bugs.
+bdevname() fills the buffer that it is given as a parameter, so calling
+strcpy() or snprintf() on the returned value is redundant (and probably not
+guaranteed to work - I don't think strcpy and snprintf support overlapping
+buffers.)
 
-To prevent such problems on a kernel upgrade, disable big writes by default,
-but let filesystems set a flag to turn it on.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: Szabolcs Szakacsits <szaka@ntfs-3g.org>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Stephen Tweedie <sct@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c       |    2 ++
- fs/fuse/fuse_i.h     |    3 +++
- fs/fuse/inode.c      |    5 ++++-
- include/linux/fuse.h |    1 +
- 4 files changed, 10 insertions(+), 1 deletion(-)
+ block/blktrace.c     |    2 +-
+ block/compat_ioctl.c |    2 +-
+ fs/ext4/mballoc.c    |    6 ++----
+ fs/jbd2/journal.c    |    4 ++--
+ 4 files changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN fs/fuse/file.c~fuse-add-flag-to-turn-on-big-writes fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-add-flag-to-turn-on-big-writes
-+++ a/fs/fuse/file.c
-@@ -804,6 +804,8 @@ static ssize_t fuse_fill_write_pages(str
- 		if (offset == PAGE_CACHE_SIZE)
- 			offset = 0;
+diff -puN block/blktrace.c~fix-misuses-of-bdevname block/blktrace.c
+--- a/block/blktrace.c~fix-misuses-of-bdevname
++++ a/block/blktrace.c
+@@ -476,7 +476,7 @@ int blk_trace_ioctl(struct block_device 
  
-+		if (!fc->big_writes)
-+			break;
- 	} while (iov_iter_count(ii) && count < fc->max_write &&
- 		 req->num_pages < FUSE_MAX_PAGES_PER_REQ && offset == 0);
+ 	switch (cmd) {
+ 	case BLKTRACESETUP:
+-		strcpy(b, bdevname(bdev, b));
++		bdevname(bdev, b);
+ 		ret = blk_trace_setup(q, b, bdev->bd_dev, arg);
+ 		break;
+ 	case BLKTRACESTART:
+diff -puN block/compat_ioctl.c~fix-misuses-of-bdevname block/compat_ioctl.c
+--- a/block/compat_ioctl.c~fix-misuses-of-bdevname
++++ a/block/compat_ioctl.c
+@@ -555,7 +555,7 @@ static int compat_blk_trace_setup(struct
+ 	if (copy_from_user(&cbuts, arg, sizeof(cbuts)))
+ 		return -EFAULT;
  
-diff -puN fs/fuse/fuse_i.h~fuse-add-flag-to-turn-on-big-writes fs/fuse/fuse_i.h
---- a/fs/fuse/fuse_i.h~fuse-add-flag-to-turn-on-big-writes
-+++ a/fs/fuse/fuse_i.h
-@@ -404,6 +404,9 @@ struct fuse_conn {
- 	/** Is bmap not implemented by fs? */
- 	unsigned no_bmap : 1;
+-	strcpy(b, bdevname(bdev, b));
++	bdevname(bdev, b);
  
-+	/** Do multi-page cached writes */
-+	unsigned big_writes : 1;
-+
- 	/** The number of requests waiting for completion */
- 	atomic_t num_waiting;
+ 	buts = (struct blk_user_trace_setup) {
+ 		.act_mask = cbuts.act_mask,
+diff -puN fs/ext4/mballoc.c~fix-misuses-of-bdevname fs/ext4/mballoc.c
+--- a/fs/ext4/mballoc.c~fix-misuses-of-bdevname
++++ a/fs/ext4/mballoc.c
+@@ -2639,8 +2639,7 @@ static int ext4_mb_init_per_dev_proc(str
+ 	struct proc_dir_entry *proc;
+ 	char devname[64];
  
-diff -puN fs/fuse/inode.c~fuse-add-flag-to-turn-on-big-writes fs/fuse/inode.c
---- a/fs/fuse/inode.c~fuse-add-flag-to-turn-on-big-writes
-+++ a/fs/fuse/inode.c
-@@ -576,6 +576,8 @@ static void process_init_reply(struct fu
- 				fc->no_lock = 1;
- 			if (arg->flags & FUSE_ATOMIC_O_TRUNC)
- 				fc->atomic_o_trunc = 1;
-+			if (arg->flags & FUSE_BIG_WRITES)
-+				fc->big_writes = 1;
- 		} else {
- 			ra_pages = fc->max_read / PAGE_CACHE_SIZE;
- 			fc->no_lock = 1;
-@@ -599,7 +601,8 @@ static void fuse_send_init(struct fuse_c
- 	arg->major = FUSE_KERNEL_VERSION;
- 	arg->minor = FUSE_KERNEL_MINOR_VERSION;
- 	arg->max_readahead = fc->bdi.ra_pages * PAGE_CACHE_SIZE;
--	arg->flags |= FUSE_ASYNC_READ | FUSE_POSIX_LOCKS | FUSE_ATOMIC_O_TRUNC;
-+	arg->flags |= FUSE_ASYNC_READ | FUSE_POSIX_LOCKS | FUSE_ATOMIC_O_TRUNC |
-+		FUSE_BIG_WRITES;
- 	req->in.h.opcode = FUSE_INIT;
- 	req->in.numargs = 1;
- 	req->in.args[0].size = sizeof(*arg);
-diff -puN include/linux/fuse.h~fuse-add-flag-to-turn-on-big-writes include/linux/fuse.h
---- a/include/linux/fuse.h~fuse-add-flag-to-turn-on-big-writes
-+++ a/include/linux/fuse.h
-@@ -109,6 +109,7 @@ struct fuse_file_lock {
- #define FUSE_POSIX_LOCKS	(1 << 1)
- #define FUSE_FILE_OPS		(1 << 2)
- #define FUSE_ATOMIC_O_TRUNC	(1 << 3)
-+#define FUSE_BIG_WRITES		(1 << 5)
+-	snprintf(devname, sizeof(devname) - 1, "%s",
+-		bdevname(sb->s_bdev, devname));
++	bdevname(sb->s_bdev, devname);
+ 	sbi->s_mb_proc = proc_mkdir(devname, proc_root_ext4);
  
- /**
-  * Release flags
+ 	MB_PROC_HANDLER(EXT4_MB_STATS_NAME, stats);
+@@ -2674,8 +2673,7 @@ static int ext4_mb_destroy_per_dev_proc(
+ 	if (sbi->s_mb_proc == NULL)
+ 		return -EINVAL;
+ 
+-	snprintf(devname, sizeof(devname) - 1, "%s",
+-		bdevname(sb->s_bdev, devname));
++	bdevname(sb->s_bdev, devname);
+ 	remove_proc_entry(EXT4_MB_GROUP_PREALLOC, sbi->s_mb_proc);
+ 	remove_proc_entry(EXT4_MB_STREAM_REQ, sbi->s_mb_proc);
+ 	remove_proc_entry(EXT4_MB_ORDER2_REQ, sbi->s_mb_proc);
+diff -puN fs/jbd2/journal.c~fix-misuses-of-bdevname fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~fix-misuses-of-bdevname
++++ a/fs/jbd2/journal.c
+@@ -901,7 +901,7 @@ static void jbd2_stats_proc_init(journal
+ {
+ 	char name[BDEVNAME_SIZE];
+ 
+-	snprintf(name, sizeof(name) - 1, "%s", bdevname(journal->j_dev, name));
++	bdevname(journal->j_dev, name);
+ 	journal->j_proc_entry = proc_mkdir(name, proc_jbd2_stats);
+ 	if (journal->j_proc_entry) {
+ 		proc_create_data("history", S_IRUGO, journal->j_proc_entry,
+@@ -915,7 +915,7 @@ static void jbd2_stats_proc_exit(journal
+ {
+ 	char name[BDEVNAME_SIZE];
+ 
+-	snprintf(name, sizeof(name) - 1, "%s", bdevname(journal->j_dev, name));
++	bdevname(journal->j_dev, name);
+ 	remove_proc_entry("info", journal->j_proc_entry);
+ 	remove_proc_entry("history", journal->j_proc_entry);
+ 	remove_proc_entry(name, proc_jbd2_stats);
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-ecryptfs-clean-up-unlock_parent.patch
-fuse-add-flag-to-turn-on-big-writes.patch
-git-block.patch
-git-vfs-cleanups.patch
-mm-fix-infinite-loop-in-filemap_fault.patch
+origin.patch
+adt7473-minor-documentation-update.patch
+fix-misuses-of-bdevname.patch
+linux-next.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
 
