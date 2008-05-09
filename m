@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + mm-define-default-cpu_to_node.patch added to -mm tree
-Date: Thu, 08 May 2008 21:07:18 -0700
-Message-ID: <200805090407.m4947Il9021289@imap1.linux-foundation.org>
+Date: Thu, 08 May 2008 21:07:46 -0700
+Message-ID: <200805090407.m4947kfk021315@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45331 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35147 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750774AbYEIEIG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 00:08:06 -0400
+	by vger.kernel.org with ESMTP id S1750768AbYEIEI1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 00:08:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, anton@samba.org, bunk@kernel.org, davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, lethal@linux-sh.org, paulus@samba.org, rth@twiddle.net, tglx@linutronix.de, wli@holomorphy.com
+Cc: travis@sgi.com, anton@samba.org, bunk@kernel.org, davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, lethal@linux-sh.org, mingo@elte.hu, paulus@samba.org, rth@twiddle.net, tglx@linutronix.de, wli@holomorphy.com
 
 
 The patch titled
@@ -59,6 +59,8 @@ Cc: Paul Mundt <lethal@linux-sh.org>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: William L. Irwin <wli@holomorphy.com>
 Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
