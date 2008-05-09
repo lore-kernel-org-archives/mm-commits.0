@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + ubifs-fix-printk-warnings.patch added to -mm tree
-Date: Thu, 08 May 2008 22:55:30 -0700
-Message-ID: <200805090606.m4966PZm025329@imap1.linux-foundation.org>
+Subject: + uwb-fix-scscanf-warning.patch added to -mm tree
+Date: Thu, 08 May 2008 23:14:28 -0700
+Message-ID: <200805090625.m496PNKY026108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44250 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34271 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935035AbYEIGGh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 02:06:37 -0400
+	by vger.kernel.org with ESMTP id S1753472AbYEIGZ1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 02:25:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, Artem.Bityutskiy@nokia.com
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     ubifs: fix printk warnings
+     uwb: fix scscanf warning
 has been added to the -mm tree.  Its filename is
-     ubifs-fix-printk-warnings.patch
+     uwb-fix-scscanf-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,38 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ubifs: fix printk warnings
+Subject: uwb: fix scscanf warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/ubifs/xattr.c: In function 'ubifs_setxattr':
-fs/ubifs/xattr.c:298: warning: format '%d' expects type 'int', but argument 8 has type 'size_t'
-fs/ubifs/xattr.c: In function 'ubifs_getxattr':
-fs/ubifs/xattr.c:366: warning: format '%d' expects type 'int', but argument 8 has type 'size_t'
-fs/ubifs/xattr.c:404: warning: format '%d' expects type 'int', but argument 4 has type 'size_t'
+drivers/uwb/wlp/eda.c:426: warning: format '%u' expects type 'unsigned int *', but argument 12 has type 'enum wlp_wss_connect *'
 
-Cc: Artem Bityutskiy <Artem.Bityutskiy@nokia.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/xattr.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/uwb/wlp/eda.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/ubifs/xattr.c~ubifs-fix-printk-warnings fs/ubifs/xattr.c
---- a/fs/ubifs/xattr.c~ubifs-fix-printk-warnings
-+++ a/fs/ubifs/xattr.c
-@@ -295,7 +295,7 @@ int ubifs_setxattr(struct dentry *dentry
- 	union ubifs_key key;
- 	int err, type;
+diff -puN drivers/uwb/wlp/eda.c~uwb-fix-scscanf-warning drivers/uwb/wlp/eda.c
+--- a/drivers/uwb/wlp/eda.c~uwb-fix-scscanf-warning
++++ a/drivers/uwb/wlp/eda.c
+@@ -417,13 +417,15 @@ ssize_t wlp_eda_store(struct wlp *wlp, c
+ 	struct uwb_dev_addr dev_addr;
+ 	u8 tag;
+ 	enum wlp_wss_connect state;
++	unsigned int s;
  
--	dbg_gen("xattr '%s', host ino %lu ('%.*s'), size %d", name,
-+	dbg_gen("xattr '%s', host ino %lu ('%.*s'), size %zd", name,
- 		host->i_ino, dentry->d_name.len, dentry->d_name.name, size);
- 	ubifs_assert(ubifs_inode(host)->xattr_cnt >= 0);
- 	ubifs_assert(ubifs_inode(host)->xattr_size >= 0);
-@@ -363,7 +363,7 @@ ssize_t ubifs_getxattr(struct dentry *de
- 	union ubifs_key key;
- 	int err;
- 
--	dbg_gen("xattr '%s', ino %lu ('%.*s'), buf size %d", name,
-+	dbg_gen("xattr '%s', ino %lu ('%.*s'), buf size %zd", name,
- 		host->i_ino, dentry->d_name.len, dentry->d_name.name, size);
- 	ubifs_assert(ubifs_inode(host)->xattr_cnt >= 0);
- 	ubifs_assert(ubifs_inode(host)->xattr_size >= 0);
-@@ -401,7 +401,7 @@ ssize_t ubifs_getxattr(struct dentry *de
- 	if (buf) {
- 		/* If @buf is %NULL we are supposed to return the length */
- 		if (ui->data_len > size) {
--			dbg_err("buffer size %d, xattr len %d",
-+			dbg_err("buffer size %zd, xattr len %d",
- 				size, ui->data_len);
- 			err = -ERANGE;
- 			goto out_iput;
+ 	result = sscanf(buf, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx "
+ 			"%02hhx:%02hhx %02hhx %u\n",
+ 			 &eth_addr[0], &eth_addr[1],
+ 			 &eth_addr[2], &eth_addr[3],
+ 			 &eth_addr[4], &eth_addr[5],
+-			 &dev_addr.data[1], &dev_addr.data[0], &tag, &state);
++			 &dev_addr.data[1], &dev_addr.data[0], &tag, &s);
++	state = s;
+ 	switch (result) {
+ 	case 6: /* no dev addr specified -- remove entry NOT IMPLEMENTED */
+ 		/*result = wlp_eda_rm(eda, eth_addr, &dev_addr);*/
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -178,4 +164,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+uwb-fix-scscanf-warning.patch
 
