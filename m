@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + jbd2-need-to-hold-j_state_lock-during-updates-to-transaction-t_state.patch added to -mm tree
-Date: Fri, 09 May 2008 15:49:37 -0700
-Message-ID: <200805092249.m49MnboH029581@imap1.linux-foundation.org>
+Subject: + rtc-watchdog-m41t80-fix-a-potential-use-of-unitialized-data.patch added to -mm tree
+Date: Fri, 09 May 2008 15:51:08 -0700
+Message-ID: <200805092251.m49Mp8Rr029673@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54411 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42415 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752288AbYEIWuc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 18:50:32 -0400
+	by vger.kernel.org with ESMTP id S1755519AbYEIWvn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 18:51:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: cmm@us.ibm.com, jack@ucw.cz, tytso@mit.edu
+Cc: macro@linux-mips.org, a.zummo@towertech.it, ab@mycable.de, david-b@pacbell.net, wim@iguana.be
 
 
 The patch titled
-     jbd2: need to hold j_state_lock during updates to transaction t_state
+     RTC/watchdog: M41T80: fix a potential use of unitialized data
 has been added to the -mm tree.  Its filename is
-     jbd2-need-to-hold-j_state_lock-during-updates-to-transaction-t_state.patch
+     rtc-watchdog-m41t80-fix-a-potential-use-of-unitialized-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,39 +33,48 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: jbd2: need to hold j_state_lock during updates to transaction t_state
-From: Mingming Cao <cmm@us.ibm.com>
+Subject: RTC/watchdog: M41T80: fix a potential use of unitialized data
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-Updating the current transaction's t_state is protected by j_state_lock.  We
-need to do the same when updating t_state to T_COMMIT.
+Watchdog handlers within the driver make use of "save_client" -- make sure it
+has been initalized before the handlers are registered.
 
-Signed-off-by: Mingming Cao <cmm@us.ibm.com>
-Cc: Jan Kara <jack@ucw.cz>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: Alexander Bigga <ab@mycable.de>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jbd2/commit.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/rtc/rtc-m41t80.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/jbd2/commit.c~jbd2-need-to-hold-j_state_lock-during-updates-to-transaction-t_state fs/jbd2/commit.c
---- a/fs/jbd2/commit.c~jbd2-need-to-hold-j_state_lock-during-updates-to-transaction-t_state
-+++ a/fs/jbd2/commit.c
-@@ -563,7 +563,9 @@ void jbd2_journal_commit_transaction(jou
- 	 * transaction!  Now comes the tricky part: we need to write out
- 	 * metadata.  Loop over the transaction's entire buffer list:
- 	 */
-+	spin_lock(&journal->j_state_lock);
- 	commit_transaction->t_state = T_COMMIT;
-+	spin_unlock(&journal->j_state_lock);
+diff -puN drivers/rtc/rtc-m41t80.c~rtc-watchdog-m41t80-fix-a-potential-use-of-unitialized-data drivers/rtc/rtc-m41t80.c
+--- a/drivers/rtc/rtc-m41t80.c~rtc-watchdog-m41t80-fix-a-potential-use-of-unitialized-data
++++ a/drivers/rtc/rtc-m41t80.c
+@@ -803,6 +803,7 @@ static int m41t80_probe(struct i2c_clien
  
- 	stats.u.run.rs_logging = jiffies;
- 	stats.u.run.rs_flushing = jbd2_time_diff(stats.u.run.rs_flushing,
+ #ifdef CONFIG_RTC_DRV_M41T80_WDT
+ 	if (clientdata->features & M41T80_FEATURE_HT) {
++		save_client = client;
+ 		rc = misc_register(&wdt_dev);
+ 		if (rc)
+ 			goto exit;
+@@ -811,7 +812,6 @@ static int m41t80_probe(struct i2c_clien
+ 			misc_deregister(&wdt_dev);
+ 			goto exit;
+ 		}
+-		save_client = client;
+ 	}
+ #endif
+ 	return 0;
 _
 
-Patches currently in -mm which might be from cmm@us.ibm.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
-jbd-need-to-hold-j_state_lock-to-updates-to-transaction-t_state-to-t_commit.patch
-ext4-switch-to-seq_files.patch
-jbd2-need-to-hold-j_state_lock-during-updates-to-transaction-t_state.patch
+rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
+rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
+rtc-watchdog-m41t80-fix-a-potential-use-of-unitialized-data.patch
+linux-next.patch
 
