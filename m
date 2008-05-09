@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-track-and-make-up-lost-ticks.patch added to -mm tree
-Date: Fri, 09 May 2008 12:43:40 -0700
-Message-ID: <200805091943.m49Jhebt022607@imap1.linux-foundation.org>
+Subject: + uml-style-fixes-in-the-random-driver.patch added to -mm tree
+Date: Fri, 09 May 2008 12:43:38 -0700
+Message-ID: <200805091943.m49JhcFS022604@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36210 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44343 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754345AbYEITn5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 15:43:57 -0400
+	by vger.kernel.org with ESMTP id S1754717AbYEITnr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 15:43:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com, nix@esperi.org.uk
+Cc: jdike@addtoit.com, jdike@linux.intel.com
 
 
 The patch titled
-     uml: track and make up lost ticks
+     uml: style fixes in the random driver
 has been added to the -mm tree.  Its filename is
-     uml-track-and-make-up-lost-ticks.patch
+     uml-style-fixes-in-the-random-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,157 +33,149 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: track and make up lost ticks
+Subject: uml: style fixes in the random driver
 From: Jeff Dike <jdike@addtoit.com>
 
-Alarm delivery could be noticably late in the !CONFIG_NOHZ case because lost
-ticks weren't being taken into account.  This is now treated more carefully,
-with the time between ticks being calculated and the appropriate number of
-ticks delivered to the timekeeping system.
+Give random.c a style workover while I'm changing it.
 
-Cc: Nix <nix@esperi.org.uk>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/process.h |    4 +-
- arch/um/os-Linux/signal.c |    1 
- arch/um/os-Linux/time.c   |   54 +++++++++++++++++++++++++++++++++---
- 3 files changed, 53 insertions(+), 6 deletions(-)
+ arch/um/drivers/random.c |   77 +++++++++++++++++++------------------
+ 1 file changed, 40 insertions(+), 37 deletions(-)
 
-diff -puN arch/um/include/process.h~uml-track-and-make-up-lost-ticks arch/um/include/process.h
---- a/arch/um/include/process.h~uml-track-and-make-up-lost-ticks
-+++ a/arch/um/include/process.h
-@@ -11,7 +11,7 @@
- /* Copied from linux/compiler-gcc.h since we can't include it directly */
- #define barrier() __asm__ __volatile__("": : :"memory")
- 
--extern void sig_handler(int sig, struct sigcontext sc);
--extern void alarm_handler(int sig, struct sigcontext sc);
-+extern void sig_handler(int sig, struct sigcontext *sc);
-+extern void alarm_handler(int sig, struct sigcontext *sc);
- 
- #endif
-diff -puN arch/um/os-Linux/signal.c~uml-track-and-make-up-lost-ticks arch/um/os-Linux/signal.c
---- a/arch/um/os-Linux/signal.c~uml-track-and-make-up-lost-ticks
-+++ a/arch/um/os-Linux/signal.c
-@@ -12,6 +12,7 @@
- #include "as-layout.h"
- #include "kern_util.h"
- #include "os.h"
-+#include "process.h"
- #include "sysdep/barrier.h"
- #include "sysdep/sigcontext.h"
- #include "user.h"
-diff -puN arch/um/os-Linux/time.c~uml-track-and-make-up-lost-ticks arch/um/os-Linux/time.c
---- a/arch/um/os-Linux/time.c~uml-track-and-make-up-lost-ticks
-+++ a/arch/um/os-Linux/time.c
-@@ -9,7 +9,9 @@
- #include <time.h>
- #include <sys/time.h>
- #include "kern_constants.h"
-+#include "kern_util.h"
- #include "os.h"
-+#include "process.h"
- #include "user.h"
- 
- int set_interval(void)
-@@ -58,12 +60,17 @@ static inline long long timeval_to_ns(co
- long long disable_timer(void)
- {
- 	struct itimerval time = ((struct itimerval) { { 0, 0 }, { 0, 0 } });
-+	int remain, max = UM_NSEC_PER_SEC / UM_HZ;
- 
- 	if (setitimer(ITIMER_VIRTUAL, &time, &time) < 0)
- 		printk(UM_KERN_ERR "disable_timer - setitimer failed, "
- 		       "errno = %d\n", errno);
- 
--	return timeval_to_ns(&time.it_value);
-+	remain = timeval_to_ns(&time.it_value);
-+	if (remain > max)
-+		remain = max;
+diff -puN arch/um/drivers/random.c~uml-style-fixes-in-the-random-driver arch/um/drivers/random.c
+--- a/arch/um/drivers/random.c~uml-style-fixes-in-the-random-driver
++++ a/arch/um/drivers/random.c
+@@ -1,4 +1,5 @@
+-/* Copyright (C) 2005 Jeff Dike <jdike@addtoit.com> */
++/* Copyright (C) 2005 - 2008 Jeff Dike <jdike@{linux.intel,addtoit}.com> */
 +
-+	return remain;
- }
+ /* Much of this ripped from drivers/char/hw_random.c, see there for other
+  * copyright.
+  *
+@@ -35,7 +36,7 @@ static int rng_dev_open (struct inode *i
+ 	/* enforce read-only access to this chrdev */
+ 	if ((filp->f_mode & FMODE_READ) == 0)
+ 		return -EINVAL;
+-	if (filp->f_mode & FMODE_WRITE)
++	if ((filp->f_mode & FMODE_WRITE) != 0)
+ 		return -EINVAL;
  
- long long os_nsecs(void)
-@@ -79,7 +86,44 @@ static int after_sleep_interval(struct t
- {
  	return 0;
- }
-+
-+static void deliver_alarm(void)
-+{
-+	alarm_handler(SIGVTALRM, NULL);
-+}
-+
-+static unsigned long long sleep_time(unsigned long long nsecs)
-+{
-+	return nsecs;
-+}
-+
- #else
-+unsigned long long last_tick;
-+unsigned long long skew;
-+
-+static void deliver_alarm(void)
-+{
-+	unsigned long long this_tick = os_nsecs();
-+	int one_tick = UM_NSEC_PER_SEC / UM_HZ;
-+
-+	if (last_tick == 0)
-+		last_tick = this_tick - one_tick;
-+
-+	skew += this_tick - last_tick;
-+
-+	while (skew >= one_tick) {
-+		alarm_handler(SIGVTALRM, NULL);
-+		skew -= one_tick;
-+	}
-+
-+	last_tick = this_tick;
-+}
-+
-+static unsigned long long sleep_time(unsigned long long nsecs)
-+{
-+	return nsecs > skew ? nsecs - skew : 0;
-+}
-+
- static inline long long timespec_to_us(const struct timespec *ts)
- {
- 	return ((long long) ts->tv_sec * UM_USEC_PER_SEC) +
-@@ -102,6 +146,8 @@ static int after_sleep_interval(struct t
- 	 */
- 	if (start_usecs > usec)
- 		start_usecs = usec;
-+
-+	start_usecs -= skew / UM_NSEC_PER_USEC;
- 	tv = ((struct timeval) { .tv_sec  = start_usecs / UM_USEC_PER_SEC,
- 				 .tv_usec = start_usecs % UM_USEC_PER_SEC });
- 	interval = ((struct itimerval) { { 0, usec }, tv });
-@@ -113,8 +159,6 @@ static int after_sleep_interval(struct t
- }
- #endif
+@@ -44,31 +45,31 @@ static int rng_dev_open (struct inode *i
+ static atomic_t host_sleep_count = ATOMIC_INIT(0);
  
--extern void alarm_handler(int sig, struct sigcontext *sc);
+ static ssize_t rng_dev_read (struct file *filp, char __user *buf, size_t size,
+-                             loff_t * offp)
++			     loff_t *offp)
+ {
+-        u32 data;
+-        int n, ret = 0, have_data;
++	u32 data;
++	int n, ret = 0, have_data;
+ 
+-        while(size){
+-                n = os_read_file(random_fd, &data, sizeof(data));
+-                if(n > 0){
+-                        have_data = n;
+-                        while (have_data && size) {
+-                                if (put_user((u8)data, buf++)) {
+-                                        ret = ret ? : -EFAULT;
+-                                        break;
+-                                }
+-                                size--;
+-                                ret++;
+-                                have_data--;
+-                                data>>=8;
+-                        }
+-                }
+-                else if(n == -EAGAIN){
++	while (size) {
++		n = os_read_file(random_fd, &data, sizeof(data));
++		if (n > 0) {
++			have_data = n;
++			while (have_data && size) {
++				if (put_user((u8) data, buf++)) {
++					ret = ret ? : -EFAULT;
++					break;
++				}
++				size--;
++				ret++;
++				have_data--;
++				data >>= 8;
++			}
++		}
++		else if (n == -EAGAIN) {
+ 			DECLARE_WAITQUEUE(wait, current);
+ 
+-                        if (filp->f_flags & O_NONBLOCK)
+-                                return ret ? : -EAGAIN;
++			if (filp->f_flags & O_NONBLOCK)
++				return ret ? : -EAGAIN;
+ 
+ 			atomic_inc(&host_sleep_count);
+ 			reactivate_fd(random_fd, RANDOM_IRQ);
+@@ -85,8 +86,10 @@ static ssize_t rng_dev_read (struct file
+ 				ignore_sigio_fd(random_fd);
+ 				deactivate_fd(random_fd, RANDOM_IRQ);
+ 			}
+-                }
+-                else return n;
++		}
++		else
++			return n;
++
+ 		if (signal_pending (current))
+ 			return ret ? : -ERESTARTSYS;
+ 	}
+@@ -120,33 +123,33 @@ static int __init rng_init (void)
+ {
+ 	int err;
+ 
+-        err = os_open_file("/dev/random", of_read(OPENFLAGS()), 0);
+-        if(err < 0)
+-                goto out;
++	err = os_open_file("/dev/random", of_read(OPENFLAGS()), 0);
++	if (err < 0)
++		goto out;
+ 
+-        random_fd = err;
++	random_fd = err;
+ 
+ 	err = um_request_irq(RANDOM_IRQ, random_fd, IRQ_READ, random_interrupt,
+ 			     IRQF_DISABLED | IRQF_SAMPLE_RANDOM, "random",
+ 			     NULL);
+-        if(err)
++	if (err)
+ 		goto err_out_cleanup_hw;
+ 
+ 	sigio_broken(random_fd, 1);
+ 
+ 	err = misc_register (&rng_miscdev);
+ 	if (err) {
+-		printk (KERN_ERR RNG_MODULE_NAME ": misc device register failed\n");
++		printk (KERN_ERR RNG_MODULE_NAME ": misc device register "
++			"failed\n");
+ 		goto err_out_cleanup_hw;
+ 	}
++out:
++	return err;
+ 
+- out:
+-        return err;
 -
- void idle_sleep(unsigned long long nsecs)
- {
- 	struct timespec ts;
-@@ -126,10 +170,12 @@ void idle_sleep(unsigned long long nsecs
- 	 */
- 	if (nsecs == 0)
- 		nsecs = UM_NSEC_PER_SEC / UM_HZ;
-+
-+	nsecs = sleep_time(nsecs);
- 	ts = ((struct timespec) { .tv_sec	= nsecs / UM_NSEC_PER_SEC,
- 				  .tv_nsec	= nsecs % UM_NSEC_PER_SEC });
- 
- 	if (nanosleep(&ts, &ts) == 0)
--		alarm_handler(SIGVTALRM, NULL);
-+		deliver_alarm();
- 	after_sleep_interval(&ts);
+- err_out_cleanup_hw:
++err_out_cleanup_hw:
+ 	os_close_file(random_fd);
+-        random_fd = -1;
+-        goto out;
++	random_fd = -1;
++	goto out;
  }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
