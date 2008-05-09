@@ -1,13 +1,13 @@
 From: akpm@linux-foundation.org
-Subject: + uwb-fix-scscanf-warning.patch added to -mm tree
-Date: Thu, 08 May 2008 23:14:28 -0700
-Message-ID: <200805090625.m496PNKY026108@imap1.linux-foundation.org>
+Subject: + drivers-uwb-wlp-sysfsc-dead-code.patch added to -mm tree
+Date: Thu, 08 May 2008 23:15:51 -0700
+Message-ID: <200805090626.m496QkuK026149@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34271 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42248 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753472AbYEIGZ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 02:25:27 -0400
+	by vger.kernel.org with ESMTP id S1752715AbYEIG0t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 02:26:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -15,9 +15,9 @@ Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     uwb: fix scscanf warning
+     drivers/uwb/wlp/sysfs.c: dead code
 has been added to the -mm tree.  Its filename is
-     uwb-fix-scscanf-warning.patch
+     drivers-uwb-wlp-sysfsc-dead-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,38 +33,29 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uwb: fix scscanf warning
+Subject: drivers/uwb/wlp/sysfs.c: dead code
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/uwb/wlp/eda.c:426: warning: format '%u' expects type 'unsigned int *', but argument 12 has type 'enum wlp_wss_connect *'
+drivers/uwb/wlp/sysfs.c:142: warning: control may reach end of non-void function 'wlp_wss_neighborhood_print_remove' being inlined
 
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uwb/wlp/eda.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/uwb/wlp/sysfs.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/uwb/wlp/eda.c~uwb-fix-scscanf-warning drivers/uwb/wlp/eda.c
---- a/drivers/uwb/wlp/eda.c~uwb-fix-scscanf-warning
-+++ a/drivers/uwb/wlp/eda.c
-@@ -417,13 +417,15 @@ ssize_t wlp_eda_store(struct wlp *wlp, c
- 	struct uwb_dev_addr dev_addr;
- 	u8 tag;
- 	enum wlp_wss_connect state;
-+	unsigned int s;
+diff -puN drivers/uwb/wlp/sysfs.c~drivers-uwb-wlp-sysfsc-dead-code drivers/uwb/wlp/sysfs.c
+--- a/drivers/uwb/wlp/sysfs.c~drivers-uwb-wlp-sysfsc-dead-code
++++ a/drivers/uwb/wlp/sysfs.c
+@@ -126,7 +126,6 @@ ssize_t wlp_wss_neighborhood_print_remov
+ out:
+ 	mutex_unlock(&wlp->nbmutex);
+ 	return used;
+-	d_fnend(6, dev, "wlp %p\n", wlp);
+ }
  
- 	result = sscanf(buf, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx "
- 			"%02hhx:%02hhx %02hhx %u\n",
- 			 &eth_addr[0], &eth_addr[1],
- 			 &eth_addr[2], &eth_addr[3],
- 			 &eth_addr[4], &eth_addr[5],
--			 &dev_addr.data[1], &dev_addr.data[0], &tag, &state);
-+			 &dev_addr.data[1], &dev_addr.data[0], &tag, &s);
-+	state = s;
- 	switch (result) {
- 	case 6: /* no dev addr specified -- remove entry NOT IMPLEMENTED */
- 		/*result = wlp_eda_rm(eda, eth_addr, &dev_addr);*/
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -120,6 +111,7 @@ logfs-is-busted.patch
 drivers-usb-core-sysfsc-fix-types.patch
 drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
 drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
 git-v9fs.patch
 revert-git-v9fs.patch
 git-vfs-cleanups-unbork.patch
@@ -164,5 +156,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
 
