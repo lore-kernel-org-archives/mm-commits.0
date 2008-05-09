@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + lguest-use-cpu-capability-accessors.patch added to -mm tree
-Date: Thu, 08 May 2008 21:55:27 -0700
-Message-ID: <200805090506.m4956M1d023326@imap1.linux-foundation.org>
+Subject: + x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch added to -mm tree
+Date: Thu, 08 May 2008 22:03:34 -0700
+Message-ID: <200805090514.m495ETYF023558@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60820 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55908 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755964AbYEIFGx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 01:06:53 -0400
+	by vger.kernel.org with ESMTP id S1751869AbYEIFPX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 01:15:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andrea@qumranet.com, mingo@elte.hu, rusty@rustcorp.com.au, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, andrea@qumranet.com, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     lguest: use cpu capability accessors
+     x86: set_restore_sigmask(): avoid bitop on a u32*
 has been added to the -mm tree.  Its filename is
-     lguest-use-cpu-capability-accessors.patch
+     x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,42 +33,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lguest: use cpu capability accessors
+Subject: x86: set_restore_sigmask(): avoid bitop on a u32*
 From: Andrew Morton <akpm@linux-foundation.org>
 
-To support my little make-x86-bitops-use-proper-typechecking projectlet.
+include/asm/thread_info_64.h: In function 'set_restore_sigmask':
+include/asm/thread_info_64.h:189: warning: passing argument 2 of 'set_bit' from incompatible pointer type
 
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Andrea Arcangeli <andrea@qumranet.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/lguest/x86/core.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/asm/thread_info_64.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/lguest/x86/core.c~lguest-use-cpu-capability-accessors drivers/lguest/x86/core.c
---- a/drivers/lguest/x86/core.c~lguest-use-cpu-capability-accessors
-+++ a/drivers/lguest/x86/core.c
-@@ -477,7 +477,7 @@ void __init lguest_arch_host_init(void)
- 		 * bit on its CPU, depending on the argument (0 == unset). */
- 		on_each_cpu(adjust_pge, (void *)0, 0, 1);
- 		/* Turn off the feature in the global feature set. */
--		clear_bit(X86_FEATURE_PGE, boot_cpu_data.x86_capability);
-+		clear_cpu_cap(&boot_cpu_data, X86_FEATURE_PGE);
- 	}
- 	put_online_cpus();
- };
-@@ -488,7 +488,7 @@ void __exit lguest_arch_host_fini(void)
- 	/* If we had PGE before we started, turn it back on now. */
- 	get_online_cpus();
- 	if (cpu_had_pge) {
--		set_bit(X86_FEATURE_PGE, boot_cpu_data.x86_capability);
-+		set_cpu_cap(&boot_cpu_data, X86_FEATURE_PGE);
- 		/* adjust_pge's argument "1" means set PGE. */
- 		on_each_cpu(adjust_pge, (void *)1, 0, 1);
- 	}
+diff -puN include/asm/thread_info_64.h~x86-set_restore_sigmask-avoid-bitop-on-a-u32 include/asm/thread_info_64.h
+--- a/include/asm/thread_info_64.h~x86-set_restore_sigmask-avoid-bitop-on-a-u32
++++ a/include/asm/thread_info_64.h
+@@ -186,7 +186,7 @@ static inline void set_restore_sigmask(v
+ {
+ 	struct thread_info *ti = current_thread_info();
+ 	ti->status |= TS_RESTORE_SIGMASK;
+-	set_bit(TIF_SIGPENDING, &ti->flags);
++	set_bit(TIF_SIGPENDING, (unsigned long *)&ti->flags);
+ }
+ #endif	/* !__ASSEMBLY__ */
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -164,4 +155,5 @@ x86-bitops-take-an-unsigned-long.patch
 arch-x86-mm-patc-use-boot_cpu_has.patch
 x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
 lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
 
