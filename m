@@ -1,118 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: - ipv6-to-intel-etherexpress-16-fails-multicast-problems.patch removed from -mm tree
-Date: Fri, 09 May 2008 14:47:14 -0700
-Message-ID: <200805092147.m49LlElj027196@imap1.linux-foundation.org>
+Subject: - uml-fix-inconsistence-due-to-tty_operation-change.patch removed from -mm tree
+Date: Fri, 09 May 2008 14:46:28 -0700
+Message-ID: <200805092146.m49LkSXW027113@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50160 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41713 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751224AbYEIV4O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:56:14 -0400
+	by vger.kernel.org with ESMTP id S1751747AbYEIV4c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:56:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bns_robson@hotmail.com, jeff@garzik.org, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, alan@redhat.com, jdike@addtoit.com, wangcong@zeuux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     IPv6 to Intel EtherExpress 16 fails - multicast problems
+     uml: fix inconsistence due to tty_operation change
 has been removed from the -mm tree.  Its filename was
-     ipv6-to-intel-etherexpress-16-fails-multicast-problems.patch
+     uml-fix-inconsistence-due-to-tty_operation-change.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: IPv6 to Intel EtherExpress 16 fails - multicast problems
-From: Bruce Robson <bns_robson@hotmail.com>
+Subject: uml: fix inconsistence due to tty_operation change
+From: WANG Cong <xiyou.wangcong@gmail.com>
 
-Taken from http://bugzilla.kernel.org/show_bug.cgi?id=10577
+'put_char' of 'struct tty_operations' has changed from 'void' into 'int'. 
+This can also shut up comipler warnings.
 
-I was unable to access a computer containing an Intel EtherExpress 16 network
-card using IPv6.
-
-I traced this to failure of neighbour discovery.  When I used an "ip -6 neigh
-add" command, on the computer attempting access, to insert a binding between
-the IPv6 address of the computer with the Intel EtherExpress 16 network card
-and the card's ethernet address, I was able to access that computer using
-IPv6.
-
-Neighbour discovery requires working multicast.  The driver sources file
-eexpress.c contains an approximately 30 line function eexp_setup_filter used
-when loading multicast addresses.
-
-I found 3 problems in this function
-
-1) It wrote the number of multicast addresses to the card instead of the
-    number of bytes in the multicast addresses.
-
-2) When loading multiple multicast addresses it loaded the first one
-    provided multiple times instead of loading each one once.
-
-3) The setting of pointer 'data' from 'dmi->dmi_addr' occured before the
-    test for the error situation of 'dmi' being NULL.
-
-Correcting these problems allows the computer with the Intel EtherExpress 16
-network card to found by IPv6 neighbour discovery.
-
-p.s. There is some information on the Intel EtherExpress 16 at
-http://www.intel.com/support/etherexpress/vintage/sb/cs-013500.htm
-Datasheet for the Intel 82586 ethernet controller used by the card
-http://www.datasheetcatalog.com/datasheets_pdf/8/2/5/8/82586.shtml
-
-Signed-off-by: Bruce Robson <bns_robson@hotmail.com>
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Jeff Dike <jdike@addtoit.com>
+Signed-off-by: WANG Cong <wangcong@zeuux.org>
+Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/eexpress.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ arch/um/drivers/line.c |    4 ++--
+ arch/um/include/line.h |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/net/eexpress.c~ipv6-to-intel-etherexpress-16-fails-multicast-problems drivers/net/eexpress.c
---- a/drivers/net/eexpress.c~ipv6-to-intel-etherexpress-16-fails-multicast-problems
-+++ a/drivers/net/eexpress.c
-@@ -202,7 +202,7 @@ static unsigned short start_code[] = {
- 	0x0000,Cmd_MCast,
- 	0x0076,                 /* link to next command */
- #define CONF_NR_MULTICAST 0x44
--	0x0000,                 /* number of multicast addresses */
-+	0x0000,                 /* number of bytes in multicast address(es) */
- #define CONF_MULTICAST 0x46
- 	0x0000, 0x0000, 0x0000, /* some addresses */
- 	0x0000, 0x0000, 0x0000,
-@@ -1569,7 +1569,7 @@ static void eexp_hw_init586(struct net_d
+diff -puN arch/um/drivers/line.c~uml-fix-inconsistence-due-to-tty_operation-change arch/um/drivers/line.c
+--- a/arch/um/drivers/line.c~uml-fix-inconsistence-due-to-tty_operation-change
++++ a/arch/um/drivers/line.c
+@@ -191,9 +191,9 @@ void line_flush_chars(struct tty_struct 
+ 	line_flush_buffer(tty);
+ }
  
- static void eexp_setup_filter(struct net_device *dev)
+-void line_put_char(struct tty_struct *tty, unsigned char ch)
++int line_put_char(struct tty_struct *tty, unsigned char ch)
  {
--	struct dev_mc_list *dmi = dev->mc_list;
-+	struct dev_mc_list *dmi;
- 	unsigned short ioaddr = dev->base_addr;
- 	int count = dev->mc_count;
- 	int i;
-@@ -1580,9 +1580,9 @@ static void eexp_setup_filter(struct net
- 	}
+-	line_write(tty, &ch, sizeof(ch));
++	return line_write(tty, &ch, sizeof(ch));
+ }
  
- 	outw(CONF_NR_MULTICAST & ~31, ioaddr+SM_PTR);
--	outw(count, ioaddr+SHADOW(CONF_NR_MULTICAST));
--	for (i = 0; i < count; i++) {
--		unsigned short *data = (unsigned short *)dmi->dmi_addr;
-+	outw(6*count, ioaddr+SHADOW(CONF_NR_MULTICAST));
-+	for (i = 0, dmi = dev->mc_list; i < count; i++, dmi = dmi->next) {
-+		unsigned short *data;
- 		if (!dmi) {
- 			printk(KERN_INFO "%s: too few multicast addresses\n", dev->name);
- 			break;
-@@ -1591,6 +1591,7 @@ static void eexp_setup_filter(struct net
- 			printk(KERN_INFO "%s: invalid multicast address length given.\n", dev->name);
- 			continue;
- 		}
-+		data = (unsigned short *)dmi->dmi_addr;
- 		outw((CONF_MULTICAST+(6*i)) & ~31, ioaddr+SM_PTR);
- 		outw(data[0], ioaddr+SHADOW(CONF_MULTICAST+(6*i)));
- 		outw((CONF_MULTICAST+(6*i)+2) & ~31, ioaddr+SM_PTR);
+ int line_write(struct tty_struct *tty, const unsigned char *buf, int len)
+diff -puN arch/um/include/line.h~uml-fix-inconsistence-due-to-tty_operation-change arch/um/include/line.h
+--- a/arch/um/include/line.h~uml-fix-inconsistence-due-to-tty_operation-change
++++ a/arch/um/include/line.h
+@@ -71,7 +71,7 @@ extern int line_setup(struct line *lines
+ 		      char *init, char **error_out);
+ extern int line_write(struct tty_struct *tty, const unsigned char *buf,
+ 		      int len);
+-extern void line_put_char(struct tty_struct *tty, unsigned char ch);
++extern int line_put_char(struct tty_struct *tty, unsigned char ch);
+ extern void line_set_termios(struct tty_struct *tty, struct ktermios * old);
+ extern int line_chars_in_buffer(struct tty_struct *tty);
+ extern void line_flush_buffer(struct tty_struct *tty);
 _
 
-Patches currently in -mm which might be from bns_robson@hotmail.com are
+Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
 
 origin.patch
+uml-redo-host-capability-detection-and-disabling.patch
+uml-style-fixes.patch
+uml-hppfs-fixes.patch
+uml-move-hppfs_kernc-to-hppfsc.patch
+uml-tidy-ptrace-interface.patch
+uml-fix-errno-return.patch
+uml-fix-build-when-slob-is-enabled.patch
+uml-remove-unused-header.patch
+uml-fix-bad-ntp-interaction-with-clock.patch
+uml-use-__spin_lock_unlocked.patch
+uml-fix-config_raw-dependencies.patch
+uml-use-div_round_up.patch
+uml-use-page_size-in-linker-scripts.patch
+uml-physical-memory-shouldnt-include-initial-stack.patch
+fs-binfmt_elfc-fix-a-wrong-free.patch
+cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
+arch-um-kernel-irqc-clean-up-some-functions.patch
+arch-um-kernel-memc-remove-arch_validate.patch
+uml-make-several-more-things-static.patch
+fs-execc-export-free_arg_pages.patch
+fs-execc-fix-resource-leaks-and-wrong-gotos.patch
+fs-compatc-fix-resource-leaks-and-wrong-gotos.patch
+fs-binfmt_scriptc-fix-resource-leaks.patch
+fs-binfmt_em86c-fix-resource-leaks.patch
+fs-binfmt_miscc-fix-resource-leaks.patch
+fs-execc-fix-wrong-return-value-of-prepare_binprm.patch
+fs-binfmt_elfc-fix-wrong-return-values.patch
 
