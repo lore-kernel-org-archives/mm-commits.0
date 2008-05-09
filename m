@@ -1,74 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: - fix-irq-flags-in-mac80211-code.patch removed from -mm tree
-Date: Fri, 09 May 2008 14:46:17 -0700
-Message-ID: <200805092146.m49LkHSW027097@imap1.linux-foundation.org>
+Subject: - arm-lubbock-fix-compilation.patch removed from -mm tree
+Date: Fri, 09 May 2008 14:46:53 -0700
+Message-ID: <200805092146.m49LkrqZ027157@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37373 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50361 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755527AbYEIVr3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:47:29 -0400
+	by vger.kernel.org with ESMTP id S1755533AbYEIVra (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:47:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, linville@tuxdriver.com, srostedt@redhat.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix irq flags in mac80211 code
+     arm-lubbock: fix compilation
 has been removed from the -mm tree.  Its filename was
-     fix-irq-flags-in-mac80211-code.patch
+     arm-lubbock-fix-compilation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix irq flags in mac80211 code
-From: Steven Rostedt <rostedt@goodmis.org>
+Subject: arm-lubbock: fix compilation
+From: Alexey Dobriyan <adobriyan@gmail.com>
 
-A file in the net/mac80211 directory uses "int" for flags.  This can cause
-hard to find bugs on some architectures.  This patch converts the flags to use
-"long" instead.
+arch/arm/mach-pxa/lubbock.c:399: error: expected '}' before ';' token
 
-This bug was discovered by doing an allyesconfig make on the -rt kernel where
-checks are done to ensure all flags are of size sizeof(long).
-
-Signed-off-by: Steven Rostedt <srostedt@redhat.com>
-Cc: "John W. Linville" <linville@tuxdriver.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/mac80211/rc80211_pid_debugfs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/mach-pxa/lubbock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/mac80211/rc80211_pid_debugfs.c~fix-irq-flags-in-mac80211-code net/mac80211/rc80211_pid_debugfs.c
---- a/net/mac80211/rc80211_pid_debugfs.c~fix-irq-flags-in-mac80211-code
-+++ a/net/mac80211/rc80211_pid_debugfs.c
-@@ -85,7 +85,7 @@ static int rate_control_pid_events_open(
- 	struct rc_pid_sta_info *sinfo = inode->i_private;
- 	struct rc_pid_event_buffer *events = &sinfo->events;
- 	struct rc_pid_events_file_info *file_info;
--	unsigned int status;
-+	unsigned long status;
+diff -puN arch/arm/mach-pxa/lubbock.c~arm-lubbock-fix-compilation arch/arm/mach-pxa/lubbock.c
+--- a/arch/arm/mach-pxa/lubbock.c~arm-lubbock-fix-compilation
++++ a/arch/arm/mach-pxa/lubbock.c
+@@ -396,7 +396,7 @@ static struct pxafb_mach_info sharp_lm8v
+ 	.cmap_inverse	= 0,
+ 	.cmap_static	= 0,
+ 	.lcd_conn	= LCD_COLOR_DSTN_16BPP | LCD_PCLK_EDGE_FALL |
+-			  LCD_AC_BIAS_FREQ(255);
++			  LCD_AC_BIAS_FREQ(255),
+ };
  
- 	/* Allocate a state struct */
- 	file_info = kmalloc(sizeof(*file_info), GFP_KERNEL);
-@@ -135,7 +135,7 @@ static ssize_t rate_control_pid_events_r
- 	char pb[RC_PID_PRINT_BUF_SIZE];
- 	int ret;
- 	int p;
--	unsigned int status;
-+	unsigned long status;
- 
- 	/* Check if there is something to read. */
- 	if (events->next_entry == file_info->next_entry) {
+ #define	MMC_POLL_RATE		msecs_to_jiffies(1000)
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
 origin.patch
+cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
 linux-next.patch
-git-v9fs.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+cifs-switch-to-seq_files.patch
+jfs-switch-to-seq_files.patch
+mpt-remove-unused-struct-mpt_proc_entry_t.patch
+kbuild-escape-meta-characters-in-regular-expression-in-make-tags.patch
+ext4-switch-to-seq_files.patch
+move-proc_kmsg_operations-to-fs-proc-internalh.patch
+proc-use-non-racy-method-for-proc-page_owner-creation-page_owner.patch
+likely_prof-changed-to-use-proc_create.patch
+proc-remove-proc_root-from-drivers-likelyprof.patch
 
