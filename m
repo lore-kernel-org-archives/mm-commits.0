@@ -1,157 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: - mm-define-default-cpu_to_node.patch removed from -mm tree
-Date: Fri, 09 May 2008 14:48:36 -0700
-Message-ID: <200805092148.m49LmaRg027270@imap1.linux-foundation.org>
+Subject: - fix-kobject_rename-and-config_sysfs.patch removed from -mm tree
+Date: Fri, 09 May 2008 14:46:57 -0700
+Message-ID: <200805092146.m49LkvxI027165@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50589 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55075 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755111AbYEIVtX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:49:23 -0400
+	by vger.kernel.org with ESMTP id S1755754AbYEIVts (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:49:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: travis@sgi.com, anton@samba.org, bunk@kernel.org, davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, lethal@linux-sh.org, mingo@elte.hu, paulus@samba.org, rth@twiddle.net
+To: ebiederm@xmission.com, benjamin.thery@bull.net, dlezcano@fr.ibm.com, gregkh@suse.de, htejun@gmail.com, kay.sievers@vrfy.org, serue@us.ibm.com, viro@ftp.linux.org.uk, xemul@openvz.org
 
 
 The patch titled
-     mm: define default cpu_to_node
+     Fix kobject_rename and !CONFIG_SYSFS
 has been removed from the -mm tree.  Its filename was
-     mm-define-default-cpu_to_node.patch
+     fix-kobject_rename-and-config_sysfs.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: define default cpu_to_node
-From: Mike Travis <travis@sgi.com>
+Subject: Fix kobject_rename and !CONFIG_SYSFS
+From: Eric W. Biederman <ebiederm@xmission.com>
 
-Some architectures have CONFIG_NUMA=y but do not define a default cpu_to_node
-macro.  This provides the default in asm-generic/topology.h but it relies on
-the fact that cpu_to_node is a defined macro (and not an inline function).
+When looking at kobject_rename I found two bugs with that exist when sysfs
+support is disabled in the kernel.
 
-Which means that those architecutures that define cpu_to_node as a function
-are changed to:
+kobject_rename does not change the name on the kobject when sysfs support is
+not compiled in.
 
-    #define cpu_to_node(cpu)  _cpu_to_node(cpu)
-    < ... declare the _cpu_to_node(int cpu) function. ... >
+kobject_rename without locking attempts to check the validity of a rename
+operation, which the kobject layer simply does not have the infrastructure to
+do so.
 
-Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Adrian Bunk <bunk@kernel.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: William L. Irwin <wli@holomorphy.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+This patch documents the previously unstated requirement of kobject_rename
+that is the responsibility of the caller to provide mutual exclusion and to be
+certain that the new_name for the kobject is valid.
+
+This patch modifies sysfs_rename_dir in !CONFIG_SYSFS case to call
+kobject_set_name to actually change the kobject_name.
+
+This patch removes the bogus and misleading check in kobject_rename that
+attempts to see if a rename is valid.  The check is bogus because we do not
+have the proper locking.  The check is misleading because it looks like we can
+and do perform useful checking at the kobject level that we don't.
+
+The users in net/core/dev.c already have all of the necessary checks in place
+and don't care.  The other use in net/core/wireless.c as originally
+implemented is incorrect because it performs no locking and a simple patch has
+been sent that adds the necessary locking and sanity checks there.  Ensuring
+this patch will not have an effect on users of kobject_rename or
+device_rename.
+
+Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Greg KH <gregkh@suse.de>
+Cc: Benjamin Thery <benjamin.thery@bull.net>
+Cc: Tejun Heo <htejun@gmail.com>
+Cc: Al Viro <viro@ftp.linux.org.uk>
+Cc: Daniel Lezcano <dlezcano@fr.ibm.com>
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>
+Cc: Pavel Emelyanov <xemul@openvz.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/topology.h   |    3 ++-
- include/asm-generic/topology.h |   11 ++++++++---
- include/asm-powerpc/topology.h |    3 ++-
- include/asm-sparc64/topology.h |    3 ++-
- include/asm-x86/topology.h     |    6 ++++--
- 5 files changed, 18 insertions(+), 8 deletions(-)
+ Documentation/kobject.txt |    4 ++++
+ drivers/base/core.c       |    5 +++++
+ include/linux/sysfs.h     |    2 +-
+ lib/kobject.c             |   18 +++++-------------
+ 4 files changed, 15 insertions(+), 14 deletions(-)
 
-diff -puN include/asm-alpha/topology.h~mm-define-default-cpu_to_node include/asm-alpha/topology.h
---- a/include/asm-alpha/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-alpha/topology.h
-@@ -6,7 +6,8 @@
- #include <asm/machvec.h>
+diff -puN Documentation/kobject.txt~fix-kobject_rename-and-config_sysfs Documentation/kobject.txt
+--- a/Documentation/kobject.txt~fix-kobject_rename-and-config_sysfs
++++ a/Documentation/kobject.txt
+@@ -118,6 +118,10 @@ the name of the kobject, call kobject_re
  
- #ifdef CONFIG_NUMA
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- 	int node;
- 	
-diff -puN include/asm-generic/topology.h~mm-define-default-cpu_to_node include/asm-generic/topology.h
---- a/include/asm-generic/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-generic/topology.h
-@@ -27,13 +27,18 @@
- #ifndef _ASM_GENERIC_TOPOLOGY_H
- #define _ASM_GENERIC_TOPOLOGY_H
+     int kobject_rename(struct kobject *kobj, const char *new_name);
  
-+/*
-+ * cpu_to_node is referenced but not defined in some arch's that
-+ * have CONFIG_NUMA=y
-+ */
-+#ifndef cpu_to_node
-+#define cpu_to_node(cpu)	((void)(cpu),0)
-+#endif
++Note kobject_rename does perform any locking or have a solid notion of
++what names are valid so the provide must provide their own sanity checking
++and serialization.
 +
- #ifndef	CONFIG_NUMA
- 
- /* Other architectures wishing to use this simple topology API should fill
-    in the below functions as appropriate in their own <asm/topology.h> file. */
--#ifndef cpu_to_node
--#define cpu_to_node(cpu)	((void)(cpu),0)
--#endif
- #ifndef parent_node
- #define parent_node(node)	((void)(node),0)
- #endif
-diff -puN include/asm-powerpc/topology.h~mm-define-default-cpu_to_node include/asm-powerpc/topology.h
---- a/include/asm-powerpc/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-powerpc/topology.h
-@@ -10,7 +10,8 @@ struct device_node;
- 
- #include <asm/mmzone.h>
- 
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
+ There is a function called kobject_set_name() but that is legacy cruft and
+ is being removed.  If your code needs to call this function, it is
+ incorrect and needs to be fixed.
+diff -puN drivers/base/core.c~fix-kobject_rename-and-config_sysfs drivers/base/core.c
+--- a/drivers/base/core.c~fix-kobject_rename-and-config_sysfs
++++ a/drivers/base/core.c
+@@ -1308,6 +1308,11 @@ EXPORT_SYMBOL_GPL(device_destroy);
+  * device_rename - renames a device
+  * @dev: the pointer to the struct device to be renamed
+  * @new_name: the new name of the device
++ *
++ * It is the responsibility of the caller to provide mutual
++ * exclusion between two different calls of device_rename
++ * on the same device to ensure that new_name is valid and
++ * won't conflict with other devices.
+  */
+ int device_rename(struct device *dev, char *new_name)
  {
- 	return numa_cpu_lookup_table[cpu];
+diff -puN include/linux/sysfs.h~fix-kobject_rename-and-config_sysfs include/linux/sysfs.h
+--- a/include/linux/sysfs.h~fix-kobject_rename-and-config_sysfs
++++ a/include/linux/sysfs.h
+@@ -138,7 +138,7 @@ static inline void sysfs_remove_dir(stru
+ 
+ static inline int sysfs_rename_dir(struct kobject *kobj, const char *new_name)
+ {
+-	return 0;
++	return kobject_set_name(kobj, "%s", new_name);
  }
-diff -puN include/asm-sparc64/topology.h~mm-define-default-cpu_to_node include/asm-sparc64/topology.h
---- a/include/asm-sparc64/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-sparc64/topology.h
-@@ -5,7 +5,8 @@
  
- #include <asm/mmzone.h>
+ static inline int sysfs_move_dir(struct kobject *kobj,
+diff -puN lib/kobject.c~fix-kobject_rename-and-config_sysfs lib/kobject.c
+--- a/lib/kobject.c~fix-kobject_rename-and-config_sysfs
++++ a/lib/kobject.c
+@@ -435,6 +435,11 @@ EXPORT_SYMBOL_GPL(kobject_init_and_add);
+  * kobject_rename - change the name of an object
+  * @kobj: object in question.
+  * @new_name: object's new name
++ *
++ * It is the responsibility of the caller to provide mutual
++ * exclusion between two different calls of kobject_rename
++ * on the same kobject and to ensure that new_name is valid and
++ * won't conflict with other kobjects.
+  */
+ int kobject_rename(struct kobject *kobj, const char *new_name)
+ {
+@@ -449,19 +454,6 @@ int kobject_rename(struct kobject *kobj,
+ 	if (!kobj->parent)
+ 		return -EINVAL;
  
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- 	return numa_cpu_lookup_table[cpu];
- }
-diff -puN include/asm-x86/topology.h~mm-define-default-cpu_to_node include/asm-x86/topology.h
---- a/include/asm-x86/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-x86/topology.h
-@@ -53,7 +53,8 @@ extern cpumask_t node_to_cpumask_map[];
- /* Returns the number of the node containing CPU 'cpu' */
- #ifdef CONFIG_X86_32
- #define early_cpu_to_node(cpu)	cpu_to_node(cpu)
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- 	return cpu_to_node_map[cpu];
- }
-@@ -76,7 +77,8 @@ static inline int early_cpu_to_node(int 
- #define	early_cpu_to_node(cpu)	cpu_to_node(cpu)
- #endif
- 
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- #ifdef CONFIG_DEBUG_PER_CPU_MAPS
- 	if (x86_cpu_to_node_map_early_ptr) {
-_
-
-Patches currently in -mm which might be from travis@sgi.com are
-
-cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
-linux-next.patch
-acpi-change-processors-from-array-to-per_cpu-variable.patch
-show_schedstat-fix-memleak.patch
-mm-define-default-cpu_to_node.patch
-
+-	/* see if this name is already in use */
+-	if (kobj->kset) {
+-		struct kobject *temp_kobj;
+-		temp_kobj = kset_find_obj(kobj->kset, new_name);
+-		if (temp_kobj) {
+-			printk(KERN_WARNING "kobject '%s' cannot be renamed "
+-			       "to '%s' as '%s' is already in existence.\n",
+-			       kobject_name(kobj), new_name, new_name);
+-			kobject_put(temp_kobj);
+-			return -EINVAL;
+-		}
+-	}
