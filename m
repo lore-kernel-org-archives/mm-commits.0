@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + zoran-use-correct-type-for-cpu-flags.patch added to -mm tree
-Date: Fri, 09 May 2008 15:23:36 -0700
-Message-ID: <200805092234.m49MYWVN028973@imap1.linux-foundation.org>
+Subject: + drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch added to -mm tree
+Date: Fri, 09 May 2008 15:26:39 -0700
+Message-ID: <200805092237.m49MbZT9029154@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37430 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753041AbYEIWfO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 18:35:14 -0400
+	by vger.kernel.org with ESMTP id S1751139AbYEIWiU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 18:38:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mchehab@infradead.org
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, paulkf@microgate.com
 
 
 The patch titled
-     zoran: use correct type for CPU flags
+     drivers/char/synclink_gt.c: don't return an uninitialised local
 has been added to the -mm tree.  Its filename is
-     zoran-use-correct-type-for-cpu-flags.patch
+     drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,52 +33,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: zoran: use correct type for CPU flags
+Subject: drivers/char/synclink_gt.c: don't return an uninitialised local
 From: Andrew Morton <akpm@linux-foundation.org>
 
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch will cause
-this:
+drivers/char/synclink_gt.c: In function 'put_char':
+drivers/char/synclink_gt.c:919: warning: 'ret' may be used uninitialized in this function
 
-drivers/media/video/zoran_driver.c: In function 'zoran_close_end_session':
-drivers/media/video/zoran_driver.c:1172: warning: comparison of distinct pointer types lacks a cast
+The compiler speakest truth.
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Paul Fulghum <paulkf@microgate.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/video/zoran_driver.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/char/synclink_gt.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/media/video/zoran_driver.c~zoran-use-correct-type-for-cpu-flags drivers/media/video/zoran_driver.c
---- a/drivers/media/video/zoran_driver.c~zoran-use-correct-type-for-cpu-flags
-+++ a/drivers/media/video/zoran_driver.c
-@@ -1167,7 +1167,7 @@ zoran_close_end_session (struct file *fi
+diff -puN drivers/char/synclink_gt.c~drivers-char-synclink_gtc-dont-return-an-uninitialised-local drivers/char/synclink_gt.c
+--- a/drivers/char/synclink_gt.c~drivers-char-synclink_gtc-dont-return-an-uninitialised-local
++++ a/drivers/char/synclink_gt.c
+@@ -916,7 +916,7 @@ static int put_char(struct tty_struct *t
+ {
+ 	struct slgt_info *info = tty->driver_data;
+ 	unsigned long flags;
+-	int ret;
++	int ret = 0;
  
- 	/* v4l capture */
- 	if (fh->v4l_buffers.active != ZORAN_FREE) {
--		long flags;
-+		unsigned long flags;
- 
- 		spin_lock_irqsave(&zr->spinlock, flags);
- 		zr36057_set_memgrab(zr, 0);
-@@ -3436,7 +3436,7 @@ zoran_do_ioctl (struct inode *inode,
- 
- 			/* unload capture */
- 			if (zr->v4l_memgrab_active) {
--				long flags;
-+				unsigned long flags;
- 
- 				spin_lock_irqsave(&zr->spinlock, flags);
- 				zr36057_set_memgrab(zr, 0);
-@@ -4375,7 +4375,7 @@ zoran_vm_close (struct vm_area_struct *v
- 				mutex_lock(&zr->resource_lock);
- 
- 				if (fh->v4l_buffers.active != ZORAN_FREE) {
--					long flags;
-+					unsigned long flags;
- 
- 					spin_lock_irqsave(&zr->spinlock, flags);
- 					zr36057_set_memgrab(zr, 0);
+ 	if (sanity_check(info, tty->name, "put_char"))
+ 		return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +88,7 @@ x86-bitops-take-an-unsigned-long.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
 cifs-suppress-warning.patch
 sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+zoran-use-correct-type-for-cpu-flags.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 dlm-convert-connections_lock-in-a-mutex-fix.patch
 git-input.patch
@@ -173,5 +156,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-zoran-use-correct-type-for-cpu-flags.patch
+drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
 
