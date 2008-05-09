@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + mm-define-default-cpu_to_node.patch added to -mm tree
-Date: Fri, 09 May 2008 14:18:52 -0700
-Message-ID: <200805092118.m49LIqYU026082@imap1.linux-foundation.org>
+Subject: + memcg-avoid-unnecessary-initialization.patch added to -mm tree
+Date: Fri, 09 May 2008 14:16:22 -0700
+Message-ID: <200805092116.m49LGMog026021@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49095 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53099 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754867AbYEIVUS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:20:18 -0400
+	by vger.kernel.org with ESMTP id S1755271AbYEIVWN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:22:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: travis@sgi.com, anton@samba.org, bunk@kernel.org, davem@davemloft.net, hpa@zytor.com, ink@jurassic.park.msu.ru, lethal@linux-sh.org, mingo@elte.hu, paulus@samba.org, rth@twiddle.net, tglx@linutronix.de, wli@holomorphy.com
+Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@linux.vnet.ibm.com, lizf@cn.fujitsu.com
 
 
 The patch titled
-     mm: define default cpu_to_node
+     memcg: avoid unnecessary initialization
 has been added to the -mm tree.  Its filename is
-     mm-define-default-cpu_to_node.patch
+     memcg-avoid-unnecessary-initialization.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,135 +33,66 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: define default cpu_to_node
-From: Mike Travis <travis@sgi.com>
+Subject: memcg: avoid unnecessary initialization
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Some architectures have CONFIG_NUMA=y but do not define a default cpu_to_node
-macro.  This provides the default in asm-generic/topology.h but it relies on
-the fact that cpu_to_node is a defined macro (and not an inline function).
+* remove over-killing initialization (in fast path)
+* makeing the condition for PAGE_CGROUP_FLAG_ACTIVE be more obvious.
 
-Which means that those architecutures that define cpu_to_node as a function
-are changed to:
-
-    #define cpu_to_node(cpu)  _cpu_to_node(cpu)
-    < ... declare the _cpu_to_node(int cpu) function. ... >
-
-Signed-off-by: Mike Travis <travis@sgi.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Adrian Bunk <bunk@kernel.org>
-Cc: Paul Mundt <lethal@linux-sh.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: William L. Irwin <wli@holomorphy.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: KAMEAZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Reviewed-by: Li Zefan <lizf@cn.fujitsu.com>
+Acked-by: Balbir Singh <balbir@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-alpha/topology.h   |    3 ++-
- include/asm-generic/topology.h |   11 ++++++++---
- include/asm-powerpc/topology.h |    3 ++-
- include/asm-sparc64/topology.h |    3 ++-
- include/asm-x86/topology.h     |    6 ++++--
- 5 files changed, 18 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN include/asm-alpha/topology.h~mm-define-default-cpu_to_node include/asm-alpha/topology.h
---- a/include/asm-alpha/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-alpha/topology.h
-@@ -6,7 +6,8 @@
- #include <asm/machvec.h>
+diff -puN mm/memcontrol.c~memcg-avoid-unnecessary-initialization mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-avoid-unnecessary-initialization
++++ a/mm/memcontrol.c
+@@ -296,7 +296,7 @@ static void __mem_cgroup_remove_list(str
+ 		MEM_CGROUP_ZSTAT(mz, MEM_CGROUP_ZSTAT_INACTIVE) -= 1;
  
- #ifdef CONFIG_NUMA
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- 	int node;
- 	
-diff -puN include/asm-generic/topology.h~mm-define-default-cpu_to_node include/asm-generic/topology.h
---- a/include/asm-generic/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-generic/topology.h
-@@ -27,13 +27,18 @@
- #ifndef _ASM_GENERIC_TOPOLOGY_H
- #define _ASM_GENERIC_TOPOLOGY_H
- 
-+/*
-+ * cpu_to_node is referenced but not defined in some arch's that
-+ * have CONFIG_NUMA=y
-+ */
-+#ifndef cpu_to_node
-+#define cpu_to_node(cpu)	((void)(cpu),0)
-+#endif
-+
- #ifndef	CONFIG_NUMA
- 
- /* Other architectures wishing to use this simple topology API should fill
-    in the below functions as appropriate in their own <asm/topology.h> file. */
--#ifndef cpu_to_node
--#define cpu_to_node(cpu)	((void)(cpu),0)
--#endif
- #ifndef parent_node
- #define parent_node(node)	((void)(node),0)
- #endif
-diff -puN include/asm-powerpc/topology.h~mm-define-default-cpu_to_node include/asm-powerpc/topology.h
---- a/include/asm-powerpc/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-powerpc/topology.h
-@@ -10,7 +10,8 @@ struct device_node;
- 
- #include <asm/mmzone.h>
- 
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- 	return numa_cpu_lookup_table[cpu];
+ 	mem_cgroup_charge_statistics(pc->mem_cgroup, pc->flags, false);
+-	list_del_init(&pc->lru);
++	list_del(&pc->lru);
  }
-diff -puN include/asm-sparc64/topology.h~mm-define-default-cpu_to_node include/asm-sparc64/topology.h
---- a/include/asm-sparc64/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-sparc64/topology.h
-@@ -5,7 +5,8 @@
  
- #include <asm/mmzone.h>
+ static void __mem_cgroup_add_list(struct mem_cgroup_per_zone *mz,
+@@ -559,7 +559,7 @@ retry:
+ 	}
+ 	unlock_page_cgroup(page);
  
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- 	return numa_cpu_lookup_table[cpu];
- }
-diff -puN include/asm-x86/topology.h~mm-define-default-cpu_to_node include/asm-x86/topology.h
---- a/include/asm-x86/topology.h~mm-define-default-cpu_to_node
-+++ a/include/asm-x86/topology.h
-@@ -53,7 +53,8 @@ extern cpumask_t node_to_cpumask_map[];
- /* Returns the number of the node containing CPU 'cpu' */
- #ifdef CONFIG_X86_32
- #define early_cpu_to_node(cpu)	cpu_to_node(cpu)
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- 	return cpu_to_node_map[cpu];
- }
-@@ -76,7 +77,8 @@ static inline int early_cpu_to_node(int 
- #define	early_cpu_to_node(cpu)	cpu_to_node(cpu)
- #endif
+-	pc = kmem_cache_zalloc(page_cgroup_cache, gfp_mask);
++	pc = kmem_cache_alloc(page_cgroup_cache, gfp_mask);
+ 	if (pc == NULL)
+ 		goto err;
  
--static inline int cpu_to_node(int cpu)
-+#define cpu_to_node(cpu) _cpu_to_node(cpu)
-+static inline int _cpu_to_node(int cpu)
- {
- #ifdef CONFIG_DEBUG_PER_CPU_MAPS
- 	if (x86_cpu_to_node_map_early_ptr) {
+@@ -606,9 +606,14 @@ retry:
+ 	pc->ref_cnt = 1;
+ 	pc->mem_cgroup = mem;
+ 	pc->page = page;
+-	pc->flags = PAGE_CGROUP_FLAG_ACTIVE;
++	/*
++	 * If a page is accounted as a page cache, insert to inactive list.
++	 * If anon, insert to active list.
++	 */
+ 	if (ctype == MEM_CGROUP_CHARGE_TYPE_CACHE)
+ 		pc->flags = PAGE_CGROUP_FLAG_CACHE;
++	else
++		pc->flags = PAGE_CGROUP_FLAG_ACTIVE;
+ 
+ 	lock_page_cgroup(page);
+ 	if (page_get_page_cgroup(page)) {
 _
 
-Patches currently in -mm which might be from travis@sgi.com are
+Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
 
-cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
-acpi-change-processors-from-array-to-per_cpu-variable.patch
-cpufreq-change-cpu-freq-arrays-to-per_cpu-variables.patch
-show_schedstat-fix-memleak.patch
-mm-define-default-cpu_to_node.patch
+memcg-fix-possible-panic-when-config_mm_owner=y.patch
+memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
+cgroups-fix-documentation.patch
+memory-hotplug-memmap_init_zone-called-twice.patch
+mark-res_counter_charge_locked-with-__must_check.patch
+memcg-avoid-unnecessary-initialization.patch
 
