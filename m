@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + uml-random-driver-fixes.patch added to -mm tree
-Date: Fri, 09 May 2008 12:43:36 -0700
-Message-ID: <200805091943.m49Jha7J022601@imap1.linux-foundation.org>
+Subject: + uml-track-and-make-up-lost-ticks.patch added to -mm tree
+Date: Fri, 09 May 2008 12:43:40 -0700
+Message-ID: <200805091943.m49Jhebt022607@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51745 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36210 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753833AbYEITnq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 15:43:46 -0400
+	by vger.kernel.org with ESMTP id S1754345AbYEITn5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 15:43:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jdike@addtoit.com, jdike@linux.intel.com
+Cc: jdike@addtoit.com, jdike@linux.intel.com, nix@esperi.org.uk
 
 
 The patch titled
-     uml: random driver fixes
+     uml: track and make up lost ticks
 has been added to the -mm tree.  Its filename is
-     uml-random-driver-fixes.patch
+     uml-track-and-make-up-lost-ticks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,302 +33,157 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: random driver fixes
+Subject: uml: track and make up lost ticks
 From: Jeff Dike <jdike@addtoit.com>
 
-The random driver would essentially hang if the host's /dev/random returned
--EAGAIN.  There was a test of need_resched followed by a schedule inside the
-loop, but that didn't help and it's the wrong way to work anyway.
+Alarm delivery could be noticably late in the !CONFIG_NOHZ case because lost
+ticks weren't being taken into account.  This is now treated more carefully,
+with the time between ticks being calculated and the appropriate number of
+ticks delivered to the timekeeping system.
 
-The right way is to ask for an interrupt when there is input available from
-the host and handle it then rather than polling.
-
-Now, when the host's /dev/random returns -EAGAIN, the driver asks for a wakeup
-when there's randomness available again and sleeps.  The interrupt routine
-just wakes up whatever processes are sleeping on host_read_wait.
-
-There is an atomic_t, host_sleep_count, which counts the number of processes
-waiting for randomness.  When this reaches zero, the interrupt is disabled.
-
-An added complication is that async I/O notification was only recently added
-to /dev/random (by me), so essentially all hosts will lack it.  So, we use the
-sigio workaround here, which is to have a separate thread poll on the
-descriptor and send an interrupt when there is input on it.  This mechanism is
-activated when a process gets -EAGAIN (activating this multiple times is
-harmless, if a bit wasteful) and deactivated by the last process still
-waiting.
-
-The module name was changed from "random" to "hw_random" in order for udev to
-recognize it.
-
-The sigio workaround needed some changes.  sigio_broken was added for cases
-when we know that async notification doesn't work.  This is now called from
-maybe_sigio_broken, which deals with pts devices.
-
+Cc: Nix <nix@esperi.org.uk>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/drivers/random.c  |   41 ++++++++++++++++++++++++++++++++----
- arch/um/include/os.h      |    1 
- arch/um/include/process.h |   16 +++-----------
- arch/um/os-Linux/sigio.c  |   35 ++++++++++++++++++------------
- include/asm-um/irq.h      |    3 +-
- 5 files changed, 65 insertions(+), 31 deletions(-)
+ arch/um/include/process.h |    4 +-
+ arch/um/os-Linux/signal.c |    1 
+ arch/um/os-Linux/time.c   |   54 +++++++++++++++++++++++++++++++++---
+ 3 files changed, 53 insertions(+), 6 deletions(-)
 
-diff -puN arch/um/drivers/random.c~uml-random-driver-fixes arch/um/drivers/random.c
---- a/arch/um/drivers/random.c~uml-random-driver-fixes
-+++ a/arch/um/drivers/random.c
-@@ -8,16 +8,18 @@
- #include <linux/sched.h>
- #include <linux/module.h>
- #include <linux/fs.h>
-+#include <linux/interrupt.h>
- #include <linux/miscdevice.h>
- #include <linux/delay.h>
- #include <asm/uaccess.h>
-+#include "irq_kern.h"
- #include "os.h"
- 
- /*
-  * core module and version information
-  */
- #define RNG_VERSION "1.0.0"
--#define RNG_MODULE_NAME "random"
-+#define RNG_MODULE_NAME "hw_random"
- 
- #define RNG_MISCDEV_MINOR		183 /* official */
- 
-@@ -26,6 +28,7 @@
-  * protects against a module being loaded twice at the same time.
-  */
- static int random_fd = -1;
-+static DECLARE_WAIT_QUEUE_HEAD(host_read_wait);
- 
- static int rng_dev_open (struct inode *inode, struct file *filp)
- {
-@@ -38,6 +41,8 @@ static int rng_dev_open (struct inode *i
- 	return 0;
- }
- 
-+static atomic_t host_sleep_count = ATOMIC_INIT(0);
-+
- static ssize_t rng_dev_read (struct file *filp, char __user *buf, size_t size,
-                              loff_t * offp)
- {
-@@ -60,11 +65,26 @@ static ssize_t rng_dev_read (struct file
-                         }
-                 }
-                 else if(n == -EAGAIN){
-+			DECLARE_WAITQUEUE(wait, current);
-+
-                         if (filp->f_flags & O_NONBLOCK)
-                                 return ret ? : -EAGAIN;
- 
--                        if(need_resched())
--                                schedule_timeout_interruptible(1);
-+			atomic_inc(&host_sleep_count);
-+			reactivate_fd(random_fd, RANDOM_IRQ);
-+			add_sigio_fd(random_fd);
-+
-+			add_wait_queue(&host_read_wait, &wait);
-+			set_task_state(current, TASK_INTERRUPTIBLE);
-+
-+			schedule();
-+			set_task_state(current, TASK_RUNNING);
-+			remove_wait_queue(&host_read_wait, &wait);
-+
-+			if (atomic_dec_and_test(&host_sleep_count)) {
-+				ignore_sigio_fd(random_fd);
-+				deactivate_fd(random_fd, RANDOM_IRQ);
-+			}
-                 }
-                 else return n;
- 		if (signal_pending (current))
-@@ -86,6 +106,13 @@ static struct miscdevice rng_miscdev = {
- 	&rng_chrdev_ops,
- };
- 
-+static irqreturn_t random_interrupt(int irq, void *data)
-+{
-+	wake_up(&host_read_wait);
-+
-+	return IRQ_HANDLED;
-+}
-+
- /*
-  * rng_init - initialize RNG module
-  */
-@@ -99,10 +126,14 @@ static int __init rng_init (void)
- 
-         random_fd = err;
- 
--        err = os_set_fd_block(random_fd, 0);
-+	err = um_request_irq(RANDOM_IRQ, random_fd, IRQ_READ, random_interrupt,
-+			     IRQF_DISABLED | IRQF_SAMPLE_RANDOM, "random",
-+			     NULL);
-         if(err)
- 		goto err_out_cleanup_hw;
- 
-+	sigio_broken(random_fd, 1);
-+
- 	err = misc_register (&rng_miscdev);
- 	if (err) {
- 		printk (KERN_ERR RNG_MODULE_NAME ": misc device register failed\n");
-@@ -113,6 +144,7 @@ static int __init rng_init (void)
-         return err;
- 
-  err_out_cleanup_hw:
-+	os_close_file(random_fd);
-         random_fd = -1;
-         goto out;
- }
-@@ -122,6 +154,7 @@ static int __init rng_init (void)
-  */
- static void __exit rng_cleanup (void)
- {
-+	os_close_file(random_fd);
- 	misc_deregister (&rng_miscdev);
- }
- 
-diff -puN arch/um/include/os.h~uml-random-driver-fixes arch/um/include/os.h
---- a/arch/um/include/os.h~uml-random-driver-fixes
-+++ a/arch/um/include/os.h
-@@ -290,6 +290,7 @@ extern void os_set_ioignore(void);
- extern int add_sigio_fd(int fd);
- extern int ignore_sigio_fd(int fd);
- extern void maybe_sigio_broken(int fd, int read);
-+extern void sigio_broken(int fd, int read);
- 
- /* sys-x86_64/prctl.c */
- extern int os_arch_prctl(int pid, int code, unsigned long *addr);
-diff -puN arch/um/include/process.h~uml-random-driver-fixes arch/um/include/process.h
---- a/arch/um/include/process.h~uml-random-driver-fixes
+diff -puN arch/um/include/process.h~uml-track-and-make-up-lost-ticks arch/um/include/process.h
+--- a/arch/um/include/process.h~uml-track-and-make-up-lost-ticks
 +++ a/arch/um/include/process.h
-@@ -1,5 +1,5 @@
- /* 
-- * Copyright (C) 2000, 2001, 2002 Jeff Dike (jdike@karaya.com)
-+ * Copyright (C) 2000 - 2008 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
+@@ -11,7 +11,7 @@
+ /* Copied from linux/compiler-gcc.h since we can't include it directly */
+ #define barrier() __asm__ __volatile__("": : :"memory")
  
-@@ -8,18 +8,10 @@
- 
- #include <signal.h>
- 
-+/* Copied from linux/compiler-gcc.h since we can't include it directly */
-+#define barrier() __asm__ __volatile__("": : :"memory")
-+
- extern void sig_handler(int sig, struct sigcontext sc);
- extern void alarm_handler(int sig, struct sigcontext sc);
+-extern void sig_handler(int sig, struct sigcontext sc);
+-extern void alarm_handler(int sig, struct sigcontext sc);
++extern void sig_handler(int sig, struct sigcontext *sc);
++extern void alarm_handler(int sig, struct sigcontext *sc);
  
  #endif
--
--/*
-- * Overrides for Emacs so that we follow Linus's tabbing style.
-- * Emacs will notice this stuff at the end of the file and automatically
-- * adjust the settings for this buffer only.  This must remain at the end
-- * of the file.
-- * ---------------------------------------------------------------------------
-- * Local variables:
-- * c-file-style: "linux"
-- * End:
-- */
-diff -puN arch/um/os-Linux/sigio.c~uml-random-driver-fixes arch/um/os-Linux/sigio.c
---- a/arch/um/os-Linux/sigio.c~uml-random-driver-fixes
-+++ a/arch/um/os-Linux/sigio.c
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (C) 2002 - 2007 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-+ * Copyright (C) 2002 - 2008 Jeff Dike (jdike@{addtoit,linux.intel}.com)
-  * Licensed under the GPL
-  */
- 
-@@ -15,6 +15,7 @@
+diff -puN arch/um/os-Linux/signal.c~uml-track-and-make-up-lost-ticks arch/um/os-Linux/signal.c
+--- a/arch/um/os-Linux/signal.c~uml-track-and-make-up-lost-ticks
++++ a/arch/um/os-Linux/signal.c
+@@ -12,6 +12,7 @@
+ #include "as-layout.h"
  #include "kern_util.h"
- #include "init.h"
  #include "os.h"
 +#include "process.h"
- #include "sigio.h"
- #include "um_malloc.h"
+ #include "sysdep/barrier.h"
+ #include "sysdep/sigcontext.h"
  #include "user.h"
-@@ -338,20 +339,10 @@ out_close1:
- 	close(l_write_sigio_fds[1]);
- }
+diff -puN arch/um/os-Linux/time.c~uml-track-and-make-up-lost-ticks arch/um/os-Linux/time.c
+--- a/arch/um/os-Linux/time.c~uml-track-and-make-up-lost-ticks
++++ a/arch/um/os-Linux/time.c
+@@ -9,7 +9,9 @@
+ #include <time.h>
+ #include <sys/time.h>
+ #include "kern_constants.h"
++#include "kern_util.h"
+ #include "os.h"
++#include "process.h"
+ #include "user.h"
  
--/* Changed during early boot */
--static int pty_output_sigio = 0;
--static int pty_close_sigio = 0;
--
--void maybe_sigio_broken(int fd, int read)
-+void sigio_broken(int fd, int read)
+ int set_interval(void)
+@@ -58,12 +60,17 @@ static inline long long timeval_to_ns(co
+ long long disable_timer(void)
  {
- 	int err;
+ 	struct itimerval time = ((struct itimerval) { { 0, 0 }, { 0, 0 } });
++	int remain, max = UM_NSEC_PER_SEC / UM_HZ;
  
--	if (!isatty(fd))
--		return;
--
--	if ((read || pty_output_sigio) && (!read || pty_close_sigio))
--		return;
--
- 	write_sigio_workaround();
+ 	if (setitimer(ITIMER_VIRTUAL, &time, &time) < 0)
+ 		printk(UM_KERN_ERR "disable_timer - setitimer failed, "
+ 		       "errno = %d\n", errno);
  
- 	sigio_lock();
-@@ -370,6 +361,21 @@ out:
- 	sigio_unlock();
+-	return timeval_to_ns(&time.it_value);
++	remain = timeval_to_ns(&time.it_value);
++	if (remain > max)
++		remain = max;
++
++	return remain;
  }
  
-+/* Changed during early boot */
-+static int pty_output_sigio;
-+static int pty_close_sigio;
+ long long os_nsecs(void)
+@@ -79,7 +86,44 @@ static int after_sleep_interval(struct t
+ {
+ 	return 0;
+ }
 +
-+void maybe_sigio_broken(int fd, int read)
++static void deliver_alarm(void)
 +{
-+	if (!isatty(fd))
-+		return;
-+
-+	if ((read || pty_output_sigio) && (!read || pty_close_sigio))
-+		return;
-+
-+	sigio_broken(fd, read);
++	alarm_handler(SIGVTALRM, NULL);
 +}
 +
- static void sigio_cleanup(void)
++static unsigned long long sleep_time(unsigned long long nsecs)
++{
++	return nsecs;
++}
++
+ #else
++unsigned long long last_tick;
++unsigned long long skew;
++
++static void deliver_alarm(void)
++{
++	unsigned long long this_tick = os_nsecs();
++	int one_tick = UM_NSEC_PER_SEC / UM_HZ;
++
++	if (last_tick == 0)
++		last_tick = this_tick - one_tick;
++
++	skew += this_tick - last_tick;
++
++	while (skew >= one_tick) {
++		alarm_handler(SIGVTALRM, NULL);
++		skew -= one_tick;
++	}
++
++	last_tick = this_tick;
++}
++
++static unsigned long long sleep_time(unsigned long long nsecs)
++{
++	return nsecs > skew ? nsecs - skew : 0;
++}
++
+ static inline long long timespec_to_us(const struct timespec *ts)
  {
- 	if (write_sigio_pid == -1)
-@@ -383,7 +389,7 @@ static void sigio_cleanup(void)
- __uml_exitcall(sigio_cleanup);
- 
- /* Used as a flag during SIGIO testing early in boot */
--static volatile int got_sigio = 0;
-+static int got_sigio;
- 
- static void __init handler(int sig)
- {
-@@ -498,7 +504,8 @@ static void tty_output(int master, int s
- 	if (errno != EAGAIN)
- 		printk(UM_KERN_ERR "tty_output : write failed, errno = %d\n",
- 		       errno);
--	while (((n = read(slave, buf, sizeof(buf))) > 0) && !got_sigio)
-+	while (((n = read(slave, buf, sizeof(buf))) > 0) &&
-+	       !({ barrier(); got_sigio; }))
- 		;
- 
- 	if (got_sigio) {
-diff -puN include/asm-um/irq.h~uml-random-driver-fixes include/asm-um/irq.h
---- a/include/asm-um/irq.h~uml-random-driver-fixes
-+++ a/include/asm-um/irq.h
-@@ -15,8 +15,9 @@
- #define SIGIO_WRITE_IRQ 	11
- #define TELNETD_IRQ 		12
- #define XTERM_IRQ 		13
-+#define RANDOM_IRQ 		14
- 
--#define LAST_IRQ XTERM_IRQ
-+#define LAST_IRQ RANDOM_IRQ
- #define NR_IRQS (LAST_IRQ + 1)
- 
+ 	return ((long long) ts->tv_sec * UM_USEC_PER_SEC) +
+@@ -102,6 +146,8 @@ static int after_sleep_interval(struct t
+ 	 */
+ 	if (start_usecs > usec)
+ 		start_usecs = usec;
++
++	start_usecs -= skew / UM_NSEC_PER_USEC;
+ 	tv = ((struct timeval) { .tv_sec  = start_usecs / UM_USEC_PER_SEC,
+ 				 .tv_usec = start_usecs % UM_USEC_PER_SEC });
+ 	interval = ((struct itimerval) { { 0, usec }, tv });
+@@ -113,8 +159,6 @@ static int after_sleep_interval(struct t
+ }
  #endif
+ 
+-extern void alarm_handler(int sig, struct sigcontext *sc);
+-
+ void idle_sleep(unsigned long long nsecs)
+ {
+ 	struct timespec ts;
+@@ -126,10 +170,12 @@ void idle_sleep(unsigned long long nsecs
+ 	 */
+ 	if (nsecs == 0)
+ 		nsecs = UM_NSEC_PER_SEC / UM_HZ;
++
++	nsecs = sleep_time(nsecs);
+ 	ts = ((struct timespec) { .tv_sec	= nsecs / UM_NSEC_PER_SEC,
+ 				  .tv_nsec	= nsecs % UM_NSEC_PER_SEC });
+ 
+ 	if (nanosleep(&ts, &ts) == 0)
+-		alarm_handler(SIGVTALRM, NULL);
++		deliver_alarm();
+ 	after_sleep_interval(&ts);
+ }
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
