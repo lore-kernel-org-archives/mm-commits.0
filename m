@@ -1,23 +1,23 @@
 From: akpm@linux-foundation.org
-Subject: + cpufreq-fix-null-object-access-on-transmeta-cpu.patch added to -mm tree
-Date: Fri, 09 May 2008 14:10:40 -0700
-Message-ID: <200805092110.m49LAeLA025778@imap1.linux-foundation.org>
+Subject: + memory-hotplug-memmap_init_zone-called-twice.patch added to -mm tree
+Date: Fri, 09 May 2008 14:14:40 -0700
+Message-ID: <200805092114.m49LEepR025923@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52891 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35079 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752535AbYEIVLY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:11:24 -0400
+	by vger.kernel.org with ESMTP id S1754361AbYEIVP7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 17:15:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: masaki.chikama@gmail.com, cebbert@redhat.com, davej@codemonkey.org.uk, stable@kernel.org
+Cc: heiko.carstens@de.ibm.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     cpufreq: fix null object access on Transmeta CPU
+     memory hotplug: memmap_init_zone called twice
 has been added to the -mm tree.  Its filename is
-     cpufreq-fix-null-object-access-on-transmeta-cpu.patch
+     memory-hotplug-memmap_init_zone-called-twice.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,56 +33,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpufreq: fix null object access on Transmeta CPU
-From: CHIKAMA masaki <masaki.chikama@gmail.com>
+Subject: memory hotplug: memmap_init_zone called twice
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-If cpu specific cpufreq driver(i.e.  longrun) has "setpolicy" function,
-governor object isn't set into cpufreq_policy object at "__cpufreq_set_policy"
-function in driver/cpufreq/cpufreq.c .
+__add_zone calls memmap_init_zone twice if memory gets attached to an empty
+zone.  Once via init_currently_empty_zone and once explictly right after that
+call.
 
-This causes a null object access at "store_scaling_setspeed" and
-"show_scaling_setspeed" function in driver/cpufreq/cpufreq.c when reading or
-writing through /sys interface (ex.  cat
-/sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed)
+Looks like this is currently not a bug, however the call is superfluous and
+might lead to subtle bugs if memmap_init_zone gets changed.  So make sure it
+is called only once.
 
-Addresses:
-	http://bugzilla.kernel.org/show_bug.cgi?id=10654
-	https://bugzilla.redhat.com/show_bug.cgi?id=443354
-
-Signed-off-by: CHIKAMA Masaki <masaki.chikama@gmail.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Chuck Ebbert <cebbert@redhat.com>
-Cc: <stable@kernel.org>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Acked-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/cpufreq/cpufreq.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN drivers/cpufreq/cpufreq.c~cpufreq-fix-null-object-access-on-transmeta-cpu drivers/cpufreq/cpufreq.c
---- a/drivers/cpufreq/cpufreq.c~cpufreq-fix-null-object-access-on-transmeta-cpu
-+++ a/drivers/cpufreq/cpufreq.c
-@@ -625,7 +625,7 @@ static ssize_t store_scaling_setspeed(st
- 	unsigned int freq = 0;
- 	unsigned int ret;
+diff -puN mm/memory_hotplug.c~memory-hotplug-memmap_init_zone-called-twice mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-memmap_init_zone-called-twice
++++ a/mm/memory_hotplug.c
+@@ -167,13 +167,9 @@ static int __add_zone(struct zone *zone,
+ 	int zone_type;
  
--	if (!policy->governor->store_setspeed)
-+	if (!policy->governor || !policy->governor->store_setspeed)
- 		return -EINVAL;
- 
- 	ret = sscanf(buf, "%u", &freq);
-@@ -639,7 +639,7 @@ static ssize_t store_scaling_setspeed(st
- 
- static ssize_t show_scaling_setspeed(struct cpufreq_policy *policy, char *buf)
- {
--	if (!policy->governor->show_setspeed)
-+	if (!policy->governor || !policy->governor->show_setspeed)
- 		return sprintf(buf, "<unsupported>\n");
- 
- 	return policy->governor->show_setspeed(policy, buf);
+ 	zone_type = zone - pgdat->node_zones;
+-	if (!zone->wait_table) {
+-		int ret = 0;
+-		ret = init_currently_empty_zone(zone, phys_start_pfn,
+-						nr_pages, MEMMAP_HOTPLUG);
+-		if (ret < 0)
+-			return ret;
+-	}
++	if (!zone->wait_table)
++		return init_currently_empty_zone(zone, phys_start_pfn,
++						 nr_pages, MEMMAP_HOTPLUG);
+ 	memmap_init_zone(nr_pages, nid, zone_type,
+ 			 phys_start_pfn, MEMMAP_HOTPLUG);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from masaki.chikama@gmail.com are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-cpufreq-fix-null-object-access-on-transmeta-cpu.patch
+origin.patch
+linux-next.patch
+memory-hotplug-memmap_init_zone-called-twice.patch
 
