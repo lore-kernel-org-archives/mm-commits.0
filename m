@@ -1,82 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: + mm-verify-the-page-links-and-memory-model-fix.patch added to -mm tree
-Date: Thu, 08 May 2008 22:13:00 -0700
-Message-ID: <200805090523.m495Nt2e023908@imap1.linux-foundation.org>
+Subject: - mm-define-default-cpu_to_node-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 08 May 2008 22:19:41 -0700
+Message-ID: <200805090530.m495Ub2i024108@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38893 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50547 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752058AbYEIFYa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 01:24:30 -0400
+	by vger.kernel.org with ESMTP id S1752470AbYEIFaj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 9 May 2008 01:30:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, apw@shadowen.org, clameter@sgi.com, mel@csn.ul.ie, mingo@elte.hu
+To: akpm@linux-foundation.org, travis@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-verify-the-page-links-and-memory-model-fix
-has been added to the -mm tree.  Its filename is
-     mm-verify-the-page-links-and-memory-model-fix.patch
+     mm-define-default-cpu_to_node-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mm-define-default-cpu_to_node-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-verify-the-page-links-and-memory-model-fix
+Subject: mm-define-default-cpu_to_node-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/mm_init.c: In function 'mminit_verify_pageflags_layout':
-mm/mm_init.c:81: warning: format '%d' expects type 'int', but argument 2 has type 'long unsigned int'
-mm/mm_init.c:81: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
-mm/mm_init.c:81: warning: format '%d' expects type 'int', but argument 4 has type 'long unsigned int'
-mm/mm_init.c:86: warning: format '%d' expects type 'int', but argument 2 has type 'long unsigned int'
-mm/mm_init.c:86: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
+ERROR: space required after that ',' (ctx:VxV)
+#62: FILE: include/asm-generic/topology.h:35:
++#define cpu_to_node(cpu)	((void)(cpu),0)
+                         	            ^
 
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Ingo Molnar <mingo@elte.hu>
+total: 1 errors, 0 warnings, 66 lines checked
+
+./patches/mm-define-default-cpu_to_node.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ include/asm-generic/topology.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mm_init.c~mm-verify-the-page-links-and-memory-model-fix mm/mm_init.c
---- a/mm/mm_init.c~mm-verify-the-page-links-and-memory-model-fix
-+++ a/mm/mm_init.c
-@@ -34,13 +34,14 @@ void __init mminit_verify_pageflags_layo
- 		NODES_SHIFT,
- 		ZONES_SHIFT);
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_offsets",
--		"Section %d Node %d Zone %d\n",
--		SECTIONS_PGSHIFT,
--		NODES_PGSHIFT,
--		ZONES_PGSHIFT);
-+		"Section %lu Node %lu Zone %lu\n",
-+		(unsigned long)SECTIONS_PGSHIFT,
-+		(unsigned long)NODES_PGSHIFT,
-+		(unsigned long)ZONES_PGSHIFT);
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_zoneid",
--		"Zone ID: %d -> %d\n",
--		ZONEID_PGOFF, ZONEID_PGOFF + ZONEID_SHIFT);
-+		"Zone ID: %lu -> %lu\n",
-+		(unsigned long)ZONEID_PGOFF,
-+		(unsigned long)(ZONEID_PGOFF + ZONEID_SHIFT));
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_usage",
- 		"location: %d -> %d unused %d -> %d flags %d -> %d\n",
- 		shift, width, width, NR_PAGEFLAGS, NR_PAGEFLAGS, 0);
+diff -puN include/asm-generic/topology.h~mm-define-default-cpu_to_node-checkpatch-fixes include/asm-generic/topology.h
+--- a/include/asm-generic/topology.h~mm-define-default-cpu_to_node-checkpatch-fixes
++++ a/include/asm-generic/topology.h
+@@ -32,7 +32,7 @@
+  * have CONFIG_NUMA=y
+  */
+ #ifndef cpu_to_node
+-#define cpu_to_node(cpu)	((void)(cpu),0)
++#define cpu_to_node(cpu)	((void)(cpu), 0)
+ #endif
+ 
+ #ifndef	CONFIG_NUMA
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -100,6 +81,11 @@ acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 git-x86.patch
 git-x86-fixup.patch
 arch-x86-kernel-setupc-printk-warning-fix.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-bitops-take-an-unsigned-long.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
 cifs-suppress-warning.patch
 sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
@@ -169,9 +155,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-x86-bitops-take-an-unsigned-long.patch
-arch-x86-mm-patc-use-boot_cpu_has.patch
-x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
-lguest-use-cpu-capability-accessors.patch
-x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
 
