@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + vt-fbcon-fix-background-color-on-line-feed.patch added to -mm tree
-Date: Sat, 10 May 2008 01:37:22 -0700
-Message-ID: <200805100837.m4A8bMa3016461@imap1.linux-foundation.org>
+Subject: + ecryptfs-fix-imbalanced-mutex-locking.patch added to -mm tree
+Date: Sat, 10 May 2008 12:09:17 -0700
+Message-ID: <200805101909.m4AJ9HbC004949@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38745 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54310 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751874AbYEJIiD (ORCPT
+	by vger.kernel.org with ESMTP id S1752819AbYEJTJ3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 May 2008 04:38:03 -0400
+	Sat, 10 May 2008 15:09:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jengelh@medozas.de
+Cc: gorcunov@gmail.com, mhalcrow@us.ibm.com
 
 
 The patch titled
-     vt/fbcon: fix background color on line feed
+     eCryptFS: fix imbalanced mutex locking
 has been added to the -mm tree.  Its filename is
-     vt-fbcon-fix-background-color-on-line-feed.patch
+     ecryptfs-fix-imbalanced-mutex-locking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,97 +34,47 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt/fbcon: fix background color on line feed
-From: Jan Engelhardt <jengelh@medozas.de>
+Subject: eCryptFS: fix imbalanced mutex locking
+From: Cyrill Gorcunov <gorcunov@gmail.com>
 
-Addendum to commit c9e587ab.
+Fix imbalanced calls for mutex lock/unlock on ecryptfs_daemon_hash_mux
+Revealed by Ingo Molnar: http://lkml.org/lkml/2008/5/7/260
 
-fbcon still was not doing the right thing (read: continued to do old
-behavior).  fbcon_clear() seems to clear the new line (e.g.  where your new
-prompt appears after doing echo -en "\e[42mfoo\n"), while scr_memsetw clears
-the previous one only (where "foo" appears).  So just temporarily set the
-video_erase_char to the scrl_erase_char so that fbcon_clear does the right
-thing.
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/console/fbcon.c |   21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ fs/ecryptfs/miscdev.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN drivers/video/console/fbcon.c~vt-fbcon-fix-background-color-on-line-feed drivers/video/console/fbcon.c
---- a/drivers/video/console/fbcon.c~vt-fbcon-fix-background-color-on-line-feed
-+++ a/drivers/video/console/fbcon.c
-@@ -1853,6 +1853,8 @@ static int fbcon_scroll(struct vc_data *
- 	struct fb_info *info = registered_fb[con2fb_map[vc->vc_num]];
- 	struct display *p = &fb_display[vc->vc_num];
- 	int scroll_partial = info->flags & FBINFO_PARTIAL_PAN_OK;
-+	unsigned short saved_ec;
-+	int ret;
- 
- 	if (fbcon_is_inactive(vc, info))
- 		return -EINVAL;
-@@ -1865,6 +1867,11 @@ static int fbcon_scroll(struct vc_data *
- 	 *           whole screen (prevents flicker).
- 	 */
- 
-+	saved_ec = vc->vc_video_erase_char;
-+	vc->vc_video_erase_char = vc->vc_scrl_erase_char;
-+
-+	ret = 0;
-+
- 	switch (dir) {
- 	case SM_UP:
- 		if (count > vc->vc_rows)	/* Maximum realistic size */
-@@ -1883,7 +1890,7 @@ static int fbcon_scroll(struct vc_data *
- 							(b - count)),
- 				    vc->vc_scrl_erase_char,
- 				    vc->vc_size_row * count);
--			return 1;
-+			ret = 1;
- 			break;
- 
- 		case SCROLL_WRAP_MOVE:
-@@ -1955,7 +1962,8 @@ static int fbcon_scroll(struct vc_data *
- 							(b - count)),
- 				    vc->vc_scrl_erase_char,
- 				    vc->vc_size_row * count);
--			return 1;
-+			ret = 1;
-+			break;
- 		}
- 		break;
- 
-@@ -1974,7 +1982,7 @@ static int fbcon_scroll(struct vc_data *
- 							t),
- 				    vc->vc_scrl_erase_char,
- 				    vc->vc_size_row * count);
--			return 1;
-+			ret = 1;
- 			break;
- 
- 		case SCROLL_WRAP_MOVE:
-@@ -2044,10 +2052,13 @@ static int fbcon_scroll(struct vc_data *
- 							t),
- 				    vc->vc_scrl_erase_char,
- 				    vc->vc_size_row * count);
--			return 1;
-+			ret = 1;
-+			break;
- 		}
-+		break;
+diff -puN fs/ecryptfs/miscdev.c~ecryptfs-fix-imbalanced-mutex-locking fs/ecryptfs/miscdev.c
+--- a/fs/ecryptfs/miscdev.c~ecryptfs-fix-imbalanced-mutex-locking
++++ a/fs/ecryptfs/miscdev.c
+@@ -257,12 +257,14 @@ ecryptfs_miscdev_read(struct file *file,
+ 	mutex_lock(&daemon->mux);
+ 	if (daemon->flags & ECRYPTFS_DAEMON_ZOMBIE) {
+ 		rc = 0;
++		mutex_unlock(&ecryptfs_daemon_hash_mux);
+ 		printk(KERN_WARNING "%s: Attempt to read from zombified "
+ 		       "daemon\n", __func__);
+ 		goto out_unlock_daemon;
  	}
--	return 0;
-+	vc->vc_video_erase_char = saved_ec;
-+	return ret;
- }
- 
- 
+ 	if (daemon->flags & ECRYPTFS_DAEMON_IN_READ) {
+ 		rc = 0;
++		mutex_unlock(&ecryptfs_daemon_hash_mux);
+ 		goto out_unlock_daemon;
+ 	}
+ 	/* This daemon will not go away so long as this flag is set */
 _
 
-Patches currently in -mm which might be from jengelh@medozas.de are
+Patches currently in -mm which might be from gorcunov@gmail.com are
 
-vt-fix-console-scrolling-regression.patch
-vt-fbcon-fix-background-color-on-line-feed.patch
+origin.patch
+uml-use-page_size-in-linker-scripts.patch
+init-dont-loose-initcall-code-returned-v2.patch
+ecryptfs-fix-imbalanced-mutex-locking.patch
+git-cifs.patch
+mips-elf-handling-use-selfmag-instead-of-numeric-constant.patch
+module-loading-elf-handling-use-selfmag-instead-of-numeric-constant.patch
 
