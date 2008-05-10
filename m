@@ -1,94 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: - fs-binfmt_em86c-fix-resource-leaks.patch removed from -mm tree
-Date: Sat, 10 May 2008 12:42:32 -0700
-Message-ID: <200805101942.m4AJgWHI006055@imap1.linux-foundation.org>
+Subject: - fs-compatc-fix-resource-leaks-and-wrong-gotos.patch removed from -mm tree
+Date: Sat, 10 May 2008 12:42:28 -0700
+Message-ID: <200805101942.m4AJgSUn006049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41505 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48959 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754715AbYEJTmf (ORCPT
+	by vger.kernel.org with ESMTP id S1754511AbYEJTmc (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 May 2008 15:42:35 -0400
+	Sat, 10 May 2008 15:42:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, wangcong@zeuux.org, mm-commits@vger.kernel.org
+To: xiyou.wangcong@gmail.com, viro@zeniv.linux.org.uk, wangcong@zeuux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/binfmt_em86.c: fix resource leaks
+     fs/compat.c: fix resource leaks and wrong goto's
 has been removed from the -mm tree.  Its filename was
-     fs-binfmt_em86c-fix-resource-leaks.patch
+     fs-compatc-fix-resource-leaks-and-wrong-gotos.patch
 
 This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/binfmt_em86.c: fix resource leaks
+Subject: fs/compat.c: fix resource leaks and wrong goto's
 From: WANG Cong <xiyou.wangcong@gmail.com>
 
-->load_binary()'s caller only frees resources which ->load_binary() applied
-when it succeeded, so ->load_binary() itself should free the resources on
-failure.
+Use free_arg_pages() to free the pages allocated by copy_strings_kernel() on
+failure.  And fix some related wrong goto pathes.
 
 Signed-off-by: WANG Cong <wangcong@zeuux.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_em86.c |   25 +++++++++++++++++++------
- 1 file changed, 19 insertions(+), 6 deletions(-)
+ fs/compat.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN fs/binfmt_em86.c~fs-binfmt_em86c-fix-resource-leaks fs/binfmt_em86.c
---- a/fs/binfmt_em86.c~fs-binfmt_em86c-fix-resource-leaks
-+++ a/fs/binfmt_em86.c
-@@ -69,11 +69,13 @@ static int load_em86(struct linux_binprm
- 	bprm->argc++;
- 	if (i_arg) {
- 		retval = copy_strings_kernel(1, &i_arg, bprm);
--		if (retval < 0) return retval; 
-+		if (retval < 0)
-+			goto out;
- 		bprm->argc++;
- 	}
- 	retval = copy_strings_kernel(1, &i_name, bprm);
--	if (retval < 0)	return retval;
-+	if (retval < 0)
-+		goto out;
- 	bprm->argc++;
+diff -puN fs/compat.c~fs-compatc-fix-resource-leaks-and-wrong-gotos fs/compat.c
+--- a/fs/compat.c~fs-compatc-fix-resource-leaks-and-wrong-gotos
++++ a/fs/compat.c
+@@ -1381,15 +1381,15 @@ int compat_do_execve(char * filename,
  
- 	/*
-@@ -82,16 +84,27 @@ static int load_em86(struct linux_binprm
- 	 * space, and we don't need to copy it.
- 	 */
- 	file = open_exec(interp);
--	if (IS_ERR(file))
--		return PTR_ERR(file);
-+	if (IS_ERR(file)) {
-+		retval = PTR_ERR(file);
-+		goto out;
-+	}
- 
- 	bprm->file = file;
+ 	retval = security_bprm_alloc(bprm);
+ 	if (retval)
+-		goto out;
++		goto out_mm;
  
  	retval = prepare_binprm(bprm);
--	if (retval < 0)
--		return retval;
-+	if (retval < 0) {
-+		if (bprm->file) {
-+			allow_write_access(bprm->file);
-+			fput(bprm->file);
-+		}
-+		goto out;
-+	}
+ 	if (retval < 0)
+-		goto out;
++		goto out_sec;
  
- 	return search_binary_handler(bprm, regs);
-+
-+out:
+ 	retval = copy_strings_kernel(1, &bprm->filename, bprm);
+ 	if (retval < 0)
+-		goto out;
++		goto out_sec;
+ 
+ 	bprm->exec = bprm->p;
+ 	retval = compat_copy_strings(bprm->envc, envp, bprm);
+@@ -1403,6 +1403,7 @@ int compat_do_execve(char * filename,
+ 	retval = search_binary_handler(bprm, regs);
+ 	if (retval >= 0) {
+ 		/* execve success */
++		free_arg_pages(bprm);
+ 		security_bprm_free(bprm);
+ 		acct_update_integrals(current);
+ 		kfree(bprm);
+@@ -1410,6 +1411,9 @@ int compat_do_execve(char * filename,
+ 	}
+ 
+ out:
 +	free_arg_pages(bprm);
-+	return retval;
- }
++
++out_sec:
+ 	if (bprm->security)
+ 		security_bprm_free(bprm);
  
- static struct linux_binfmt em86_format = {
 _
 
 Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
@@ -113,6 +102,8 @@ cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
 arch-um-kernel-irqc-clean-up-some-functions.patch
 arch-um-kernel-memc-remove-arch_validate.patch
 uml-make-several-more-things-static.patch
+fs-compatc-fix-resource-leaks-and-wrong-gotos.patch
+fs-binfmt_scriptc-fix-resource-leaks.patch
 fs-binfmt_em86c-fix-resource-leaks.patch
 fs-binfmt_miscc-fix-resource-leaks.patch
 fs-execc-fix-wrong-return-value-of-prepare_binprm.patch
