@@ -1,84 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: - fs-execc-fix-resource-leaks-and-wrong-gotos.patch removed from -mm tree
-Date: Sat, 10 May 2008 12:42:26 -0700
-Message-ID: <200805101942.m4AJgQ6J006046@imap1.linux-foundation.org>
+Subject: - fs-execc-export-free_arg_pages.patch removed from -mm tree
+Date: Sat, 10 May 2008 12:42:23 -0700
+Message-ID: <200805101942.m4AJgNfk006023@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49416 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59153 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751125AbYEJTm2 (ORCPT
+	by vger.kernel.org with ESMTP id S1754009AbYEJTm1 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 May 2008 15:42:28 -0400
+	Sat, 10 May 2008 15:42:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xiyou.wangcong@gmail.com, viro@zeniv.linux.org.uk, wangcong@zeuux.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/exec.c: fix resource leaks and wrong goto's
+     fs/exec.c: export free_arg_pages
 has been removed from the -mm tree.  Its filename was
-     fs-execc-fix-resource-leaks-and-wrong-gotos.patch
+     fs-execc-export-free_arg_pages.patch
 
 This patch was dropped because it was nacked
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/exec.c: fix resource leaks and wrong goto's
+Subject: fs/exec.c: export free_arg_pages
 From: WANG Cong <xiyou.wangcong@gmail.com>
 
-When ->load_binary() successed, free_arg_pages() should be called to clean the
-pages allocated by copy_strings_kernel() within it.
-
-And also fixes some wrong goto pathes.
+free_arg_pages() is used to clean the pages allocated by copy_strings_kenrel().
+Since copy_strings_kernel() is exported, so should be free_arg_pages().
 
 Signed-off-by: WANG Cong <wangcong@zeuux.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ fs/exec.c               |    6 ++++--
+ include/linux/binfmts.h |    1 +
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN fs/exec.c~fs-execc-fix-resource-leaks-and-wrong-gotos fs/exec.c
---- a/fs/exec.c~fs-execc-fix-resource-leaks-and-wrong-gotos
+diff -puN fs/exec.c~fs-execc-export-free_arg_pages fs/exec.c
+--- a/fs/exec.c~fs-execc-export-free_arg_pages
 +++ a/fs/exec.c
-@@ -1220,6 +1220,7 @@ int search_binary_handler(struct linux_b
- 				if (bprm->file)
- 					fput(bprm->file);
- 				bprm->file = NULL;
-+				free_arg_pages(bprm);
- 				current->did_exec = 1;
- 				proc_exec_connector(current);
- 				return retval;
-@@ -1300,15 +1301,15 @@ int do_execve(char * filename,
+@@ -210,7 +210,7 @@ static void free_arg_page(struct linux_b
+ {
+ }
  
- 	retval = security_bprm_alloc(bprm);
- 	if (retval)
--		goto out;
-+		goto out_mm;
+-static void free_arg_pages(struct linux_binprm *bprm)
++void free_arg_pages(struct linux_binprm *bprm)
+ {
+ }
  
- 	retval = prepare_binprm(bprm);
- 	if (retval < 0)
--		goto out;
-+		goto out_sec;
+@@ -301,7 +301,7 @@ static void free_arg_page(struct linux_b
+ 	}
+ }
  
- 	retval = copy_strings_kernel(1, &bprm->filename, bprm);
- 	if (retval < 0)
--		goto out;
-+		goto out_sec;
+-static void free_arg_pages(struct linux_binprm *bprm)
++void free_arg_pages(struct linux_binprm *bprm)
+ {
+ 	int i;
  
- 	bprm->exec = bprm->p;
- 	retval = copy_strings(bprm->envc, envp, bprm);
-@@ -1333,6 +1334,8 @@ int do_execve(char * filename,
+@@ -327,6 +327,8 @@ static bool valid_arg_len(struct linux_b
  
- out:
- 	free_arg_pages(bprm);
+ #endif /* CONFIG_MMU */
+ 
++EXPORT_SYMBOL(free_arg_pages);
 +
-+out_sec:
- 	if (bprm->security)
- 		security_bprm_free(bprm);
- 
+ /*
+  * Create a new mm_struct and populate it with a temporary stack
+  * vm_area_struct.  We don't have enough context at this point to set the stack
+diff -puN include/linux/binfmts.h~fs-execc-export-free_arg_pages include/linux/binfmts.h
+--- a/include/linux/binfmts.h~fs-execc-export-free_arg_pages
++++ a/include/linux/binfmts.h
+@@ -96,6 +96,7 @@ extern int setup_arg_pages(struct linux_
+ 			   int executable_stack);
+ extern int bprm_mm_init(struct linux_binprm *bprm);
+ extern int copy_strings_kernel(int argc,char ** argv,struct linux_binprm *bprm);
++extern void free_arg_pages(struct linux_binprm *bprm);
+ extern void compute_creds(struct linux_binprm *binprm);
+ extern int do_coredump(long signr, int exit_code, struct pt_regs * regs);
+ extern int set_binfmt(struct linux_binfmt *new);
 _
 
 Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
@@ -103,6 +104,7 @@ cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
 arch-um-kernel-irqc-clean-up-some-functions.patch
 arch-um-kernel-memc-remove-arch_validate.patch
 uml-make-several-more-things-static.patch
+fs-execc-export-free_arg_pages.patch
 fs-execc-fix-resource-leaks-and-wrong-gotos.patch
 fs-compatc-fix-resource-leaks-and-wrong-gotos.patch
 fs-binfmt_scriptc-fix-resource-leaks.patch
