@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + driver-core-struct-class-remove-children-list.patch added to -mm tree
-Date: Mon, 12 May 2008 14:55:30 -0700
-Message-ID: <200805122155.m4CLtUh2011166@imap1.linux-foundation.org>
+Subject: + net-hso-driver-uses-rfkill-functions.patch added to -mm tree
+Date: Mon, 12 May 2008 15:02:13 -0700
+Message-ID: <200805122202.m4CM2DJ3011385@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46902 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46265 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753440AbYELVzd (ORCPT
+	by vger.kernel.org with ESMTP id S1751197AbYELWDI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 17:55:33 -0400
+	Mon, 12 May 2008 18:03:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com, greg@kroah.com, kay.sievers@vrfy.org
+Cc: randy.dunlap@oracle.com, davem@davemloft.net, greg@kroah.com, jeff@garzik.org, paulius.zaleckas@teltonika.lt
 
 
 The patch titled
-     driver core: struct class: remove children list
+     net: hso driver uses rfkill functions
 has been added to the -mm tree.  Its filename is
-     driver-core-struct-class-remove-children-list.patch
+     net-hso-driver-uses-rfkill-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,59 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: driver core: struct class: remove children list
-From: Dave Young <hidave.darkstar@gmail.com>
+Subject: net: hso driver uses rfkill functions
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Because the class_device was removed, now do the children list removal.
+hso driver uses rfkill functions so should either depend on RFKILL
+or select it.  This patch uses depends on RFKILL.
 
-Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+drivers/built-in.o: In function `hso_disconnect':
+hso.c:(.text+0x868c9): undefined reference to `rfkill_unregister'
+drivers/built-in.o: In function `hso_probe':
+hso.c:(.text+0x88226): undefined reference to `rfkill_allocate'
+hso.c:(.text+0x8829e): undefined reference to `rfkill_register'
+hso.c:(.text+0x8860f): undefined reference to `rfkill_free'
+make[1]: *** [.tmp_vmlinux1] Error 1
+
+On Mon, 12 May 2008 11:29:20 +0300
+Paulius Zaleckas <paulius.zaleckas@teltonika.lt> wrote:
+
+> AFAIK Greg has (or he is going to do it) patch for rfkill so no more 
+> depends or select RFKILL will be needed.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
 Cc: Greg KH <greg@kroah.com>
-Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/class.c   |    1 -
- include/linux/device.h |    1 -
- 2 files changed, 2 deletions(-)
+ drivers/net/usb/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/base/class.c~driver-core-struct-class-remove-children-list drivers/base/class.c
---- a/drivers/base/class.c~driver-core-struct-class-remove-children-list
-+++ a/drivers/base/class.c
-@@ -140,7 +140,6 @@ int class_register(struct class *cls)
+diff -puN drivers/net/usb/Kconfig~net-hso-driver-uses-rfkill-functions drivers/net/usb/Kconfig
+--- a/drivers/net/usb/Kconfig~net-hso-driver-uses-rfkill-functions
++++ a/drivers/net/usb/Kconfig
+@@ -156,7 +156,7 @@ config USB_NET_AX8817X
  
- 	pr_debug("device class '%s': registering\n", cls->name);
- 
--	INIT_LIST_HEAD(&cls->children);
- 	INIT_LIST_HEAD(&cls->devices);
- 	INIT_LIST_HEAD(&cls->interfaces);
- 	kset_init(&cls->class_dirs);
-diff -puN include/linux/device.h~driver-core-struct-class-remove-children-list include/linux/device.h
---- a/include/linux/device.h~driver-core-struct-class-remove-children-list
-+++ a/include/linux/device.h
-@@ -183,7 +183,6 @@ struct class {
- 	struct module		*owner;
- 
- 	struct kset		subsys;
--	struct list_head	children;
- 	struct list_head	devices;
- 	struct list_head	interfaces;
- 	struct kset		class_dirs;
+ config USB_HSO
+ 	tristate "Option USB High Speed Mobile Devices"
+-	depends on USB
++	depends on USB && RFKILL
+ 	default n
+ 	help
+ 	  Choose this option if you have an Option HSDPA/HSUPA card.
 _
 
-Patches currently in -mm which might be from hidave.darkstar@gmail.com are
+Patches currently in -mm which might be from randy.dunlap@oracle.com are
 
-struct-class-sem-to-mutex-converting.patch
-driver-core-struct-class-remove-children-list.patch
-i2c-use-class_for_each_device.patch
-add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
-printk-ratelimiting-rewrite.patch
-printk-ratelimiting-rewrite-fix.patch
+linux-next.patch
+net-hso-driver-uses-rfkill-functions.patch
+8390-split-8390-support-into-a-pausing-and-a-non-pausing-driver-core.patch
+e1000e-make-e1000e-default-to-the-same-kconfig-setting-as-e1000.patch
+git-unionfs.patch
+documentation-build-source-files-in-documentation-sub-dir.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+profile-likely-unlikely-macros.patch
 
