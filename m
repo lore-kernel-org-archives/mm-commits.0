@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + asic3-use-uppercase-only-for-macros-and-defines.patch added to -mm tree
-Date: Mon, 12 May 2008 16:51:47 -0700
-Message-ID: <200805122351.m4CNpl2A015368@imap1.linux-foundation.org>
+Subject: + i2c-add-support-for-i2c-bus-on-freescale-cpm1-cpm2-controllers.patch added to -mm tree
+Date: Mon, 12 May 2008 16:52:15 -0700
+Message-ID: <200805122352.m4CNqFiA015381@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36360 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54098 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755283AbYELXvv (ORCPT
+	by vger.kernel.org with ESMTP id S1755497AbYELXw0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 19:51:51 -0400
+	Mon, 12 May 2008 19:52:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sameo@openedhand.com
+Cc: jochen@scram.de, htoa@gmx.net, tmbinc@gmx.net, vitb@kernel.crashing.org
 
 
 The patch titled
-     asic3: Use uppercase only for macros and defines.
+     i2c: add support for i2c bus on Freescale CPM1/CPM2 controllers
 has been added to the -mm tree.  Its filename is
-     asic3-use-uppercase-only-for-macros-and-defines.patch
+     i2c-add-support-for-i2c-bus-on-freescale-cpm1-cpm2-controllers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,390 +34,793 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asic3: Use uppercase only for macros and defines.
-From: Samuel Ortiz <sameo@openedhand.com>
+Subject: i2c: add support for i2c bus on Freescale CPM1/CPM2 controllers
+From: Jochen Friedrich <jochen@scram.de>
 
-Let's be consistent and use uppercase only, for both macro and defines.
+This driver uses the port of 2.4 code from Vitaly Bordug and the actual
+algorithm used by the i2c driver of the DBox code on cvs.tuxboc.org from
+Felix Domke and Gillem converted to an of_platform_driver.  Tested on CPM1
+(MPC823 on dbox2 hardware) and CPM2 (MPC8272).
 
-Signed-off-by: Samuel Ortiz <sameo@openedhand.com>
+Signed-off-by: Jochen Friedrich <jochen@scram.de>
+Cc: Vitaly Bordug <vitb@kernel.crashing.org>
+Cc: Felix Domke <tmbinc@gmx.net>
+Cc: <htoa@gmx.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/asic3.c       |   88 ++++++++++++++++++------------------
- include/linux/mfd/asic3.h |   54 +++++++++++-----------
- 2 files changed, 71 insertions(+), 71 deletions(-)
+ drivers/i2c/busses/Kconfig   |   10 
+ drivers/i2c/busses/Makefile  |    1 
+ drivers/i2c/busses/i2c-cpm.c |  728 +++++++++++++++++++++++++++++++++
+ 3 files changed, 739 insertions(+)
 
-diff -puN drivers/mfd/asic3.c~asic3-use-uppercase-only-for-macros-and-defines drivers/mfd/asic3.c
---- a/drivers/mfd/asic3.c~asic3-use-uppercase-only-for-macros-and-defines
-+++ a/drivers/mfd/asic3.c
-@@ -55,8 +55,8 @@ static inline u32 asic3_read_register(st
+diff -puN drivers/i2c/busses/Kconfig~i2c-add-support-for-i2c-bus-on-freescale-cpm1-cpm2-controllers drivers/i2c/busses/Kconfig
+--- a/drivers/i2c/busses/Kconfig~i2c-add-support-for-i2c-bus-on-freescale-cpm1-cpm2-controllers
++++ a/drivers/i2c/busses/Kconfig
+@@ -117,6 +117,16 @@ config I2C_BLACKFIN_TWI_CLK_KHZ
+ 	help
+ 	  The unit of the TWI clock is kHz.
  
- /* IRQs */
- #define MAX_ASIC_ISR_LOOPS    20
--#define ASIC3_GPIO_Base_INCR \
--	(ASIC3_GPIO_B_Base - ASIC3_GPIO_A_Base)
-+#define ASIC3_GPIO_BASE_INCR \
-+	(ASIC3_GPIO_B_BASE - ASIC3_GPIO_A_BASE)
- 
- static void asic3_irq_flip_edge(struct asic3 *asic,
- 				u32 base, int bit)
-@@ -66,10 +66,10 @@ static void asic3_irq_flip_edge(struct a
- 
- 	spin_lock_irqsave(&asic->lock, flags);
- 	edge = asic3_read_register(asic,
--				   base + ASIC3_GPIO_EdgeTrigger);
-+				   base + ASIC3_GPIO_EDGE_TRIGGER);
- 	edge ^= bit;
- 	asic3_write_register(asic,
--			     base + ASIC3_GPIO_EdgeTrigger, edge);
-+			     base + ASIC3_GPIO_EDGE_TRIGGER, edge);
- 	spin_unlock_irqrestore(&asic->lock, flags);
- }
- 
-@@ -89,7 +89,7 @@ static void asic3_irq_demux(unsigned int
- 
- 		spin_lock_irqsave(&asic->lock, flags);
- 		status = asic3_read_register(asic,
--					     ASIC3_OFFSET(INTR, PIntStat));
-+					     ASIC3_OFFSET(INTR, P_INT_STAT));
- 		spin_unlock_irqrestore(&asic->lock, flags);
- 
- 		/* Check all ten register bits */
-@@ -101,17 +101,17 @@ static void asic3_irq_demux(unsigned int
- 			if (status & (1 << bank)) {
- 				unsigned long base, istat;
- 
--				base = ASIC3_GPIO_A_Base
--				       + bank * ASIC3_GPIO_Base_INCR;
-+				base = ASIC3_GPIO_A_BASE
-+				       + bank * ASIC3_GPIO_BASE_INCR;
- 
- 				spin_lock_irqsave(&asic->lock, flags);
- 				istat = asic3_read_register(asic,
- 							    base +
--							    ASIC3_GPIO_IntStatus);
-+							    ASIC3_GPIO_INT_STATUS);
- 				/* Clearing IntStatus */
- 				asic3_write_register(asic,
- 						     base +
--						     ASIC3_GPIO_IntStatus, 0);
-+						     ASIC3_GPIO_INT_STATUS, 0);
- 				spin_unlock_irqrestore(&asic->lock, flags);
- 
- 				for (i = 0; i < ASIC3_GPIOS_PER_BANK; i++) {
-@@ -154,7 +154,7 @@ static inline int asic3_irq_to_bank(stru
- 
- 	n = (irq - asic->irq_base) >> 4;
- 
--	return (n * (ASIC3_GPIO_B_Base - ASIC3_GPIO_A_Base));
-+	return (n * (ASIC3_GPIO_B_BASE - ASIC3_GPIO_A_BASE));
- }
- 
- static inline int asic3_irq_to_index(struct asic3 *asic, int irq)
-@@ -172,9 +172,9 @@ static void asic3_mask_gpio_irq(unsigned
- 	index = asic3_irq_to_index(asic, irq);
- 
- 	spin_lock_irqsave(&asic->lock, flags);
--	val = asic3_read_register(asic, bank + ASIC3_GPIO_Mask);
-+	val = asic3_read_register(asic, bank + ASIC3_GPIO_MASK);
- 	val |= 1 << index;
--	asic3_write_register(asic, bank + ASIC3_GPIO_Mask, val);
-+	asic3_write_register(asic, bank + ASIC3_GPIO_MASK, val);
- 	spin_unlock_irqrestore(&asic->lock, flags);
- }
- 
-@@ -186,15 +186,15 @@ static void asic3_mask_irq(unsigned int 
- 
- 	spin_lock_irqsave(&asic->lock, flags);
- 	regval = asic3_read_register(asic,
--				     ASIC3_INTR_Base +
--				     ASIC3_INTR_IntMask);
-+				     ASIC3_INTR_BASE +
-+				     ASIC3_INTR_INT_MASK);
- 
- 	regval &= ~(ASIC3_INTMASK_MASK0 <<
- 		    (irq - (asic->irq_base + ASIC3_NUM_GPIOS)));
- 
- 	asic3_write_register(asic,
--			     ASIC3_INTR_Base +
--			     ASIC3_INTR_IntMask,
-+			     ASIC3_INTR_BASE +
-+			     ASIC3_INTR_INT_MASK,
- 			     regval);
- 	spin_unlock_irqrestore(&asic->lock, flags);
- }
-@@ -209,9 +209,9 @@ static void asic3_unmask_gpio_irq(unsign
- 	index = asic3_irq_to_index(asic, irq);
- 
- 	spin_lock_irqsave(&asic->lock, flags);
--	val = asic3_read_register(asic, bank + ASIC3_GPIO_Mask);
-+	val = asic3_read_register(asic, bank + ASIC3_GPIO_MASK);
- 	val &= ~(1 << index);
--	asic3_write_register(asic, bank + ASIC3_GPIO_Mask, val);
-+	asic3_write_register(asic, bank + ASIC3_GPIO_MASK, val);
- 	spin_unlock_irqrestore(&asic->lock, flags);
- }
- 
-@@ -223,15 +223,15 @@ static void asic3_unmask_irq(unsigned in
- 
- 	spin_lock_irqsave(&asic->lock, flags);
- 	regval = asic3_read_register(asic,
--				     ASIC3_INTR_Base +
--				     ASIC3_INTR_IntMask);
-+				     ASIC3_INTR_BASE +
-+				     ASIC3_INTR_INT_MASK);
- 
- 	regval |= (ASIC3_INTMASK_MASK0 <<
- 		   (irq - (asic->irq_base + ASIC3_NUM_GPIOS)));
- 
- 	asic3_write_register(asic,
--			     ASIC3_INTR_Base +
--			     ASIC3_INTR_IntMask,
-+			     ASIC3_INTR_BASE +
-+			     ASIC3_INTR_INT_MASK,
- 			     regval);
- 	spin_unlock_irqrestore(&asic->lock, flags);
- }
-@@ -249,11 +249,11 @@ static int asic3_gpio_irq_type(unsigned 
- 
- 	spin_lock_irqsave(&asic->lock, flags);
- 	level = asic3_read_register(asic,
--				    bank + ASIC3_GPIO_LevelTrigger);
-+				    bank + ASIC3_GPIO_LEVEL_TRIGGER);
- 	edge = asic3_read_register(asic,
--				   bank + ASIC3_GPIO_EdgeTrigger);
-+				   bank + ASIC3_GPIO_EDGE_TRIGGER);
- 	trigger = asic3_read_register(asic,
--				      bank + ASIC3_GPIO_TriggerType);
-+				      bank + ASIC3_GPIO_TRIGGER_TYPE);
- 	asic->irq_bothedge[(irq - asic->irq_base) >> 4] &= ~bit;
- 
- 	if (type == IRQT_RISING) {
-@@ -283,11 +283,11 @@ static int asic3_gpio_irq_type(unsigned 
- 		 */
- 		dev_notice(asic->dev, "irq type not changed\n");
- 	}
--	asic3_write_register(asic, bank + ASIC3_GPIO_LevelTrigger,
-+	asic3_write_register(asic, bank + ASIC3_GPIO_LEVEL_TRIGGER,
- 			     level);
--	asic3_write_register(asic, bank + ASIC3_GPIO_EdgeTrigger,
-+	asic3_write_register(asic, bank + ASIC3_GPIO_EDGE_TRIGGER,
- 			     edge);
--	asic3_write_register(asic, bank + ASIC3_GPIO_TriggerType,
-+	asic3_write_register(asic, bank + ASIC3_GPIO_TRIGGER_TYPE,
- 			     trigger);
- 	spin_unlock_irqrestore(&asic->lock, flags);
- 	return 0;
-@@ -339,7 +339,7 @@ static int asic3_irq_probe(struct platfo
- 		set_irq_flags(irq, IRQF_VALID | IRQF_PROBE);
- 	}
- 
--	asic3_write_register(asic, ASIC3_OFFSET(INTR, IntMask),
-+	asic3_write_register(asic, ASIC3_OFFSET(INTR, INT_MASK),
- 			     ASIC3_INTMASK_GINTMASK);
- 
- 	set_irq_chained_handler(asic->irq_nr, asic3_irq_demux);
-@@ -377,7 +377,7 @@ static int asic3_gpio_direction(struct g
- 	asic = container_of(chip, struct asic3, gpio);
- 	gpio_base = ASIC3_GPIO_TO_BASE(offset);
- 
--	if (gpio_base > ASIC3_GPIO_D_Base) {
-+	if (gpio_base > ASIC3_GPIO_D_BASE) {
- 		dev_err(asic->dev, "Invalid base (0x%x) for gpio %d\n",
- 			gpio_base, offset);
- 		return -EINVAL;
-@@ -385,7 +385,7 @@ static int asic3_gpio_direction(struct g
- 
- 	spin_lock_irqsave(&asic->lock, flags);
- 
--	out_reg = asic3_read_register(asic, gpio_base + ASIC3_GPIO_Direction);
-+	out_reg = asic3_read_register(asic, gpio_base + ASIC3_GPIO_DIRECTION);
- 
- 	/* Input is 0, Output is 1 */
- 	if (out)
-@@ -393,7 +393,7 @@ static int asic3_gpio_direction(struct g
- 	else
- 		out_reg &= ~mask;
- 
--	asic3_write_register(asic, gpio_base + ASIC3_GPIO_Direction, out_reg);
-+	asic3_write_register(asic, gpio_base + ASIC3_GPIO_DIRECTION, out_reg);
- 
- 	spin_unlock_irqrestore(&asic->lock, flags);
- 
-@@ -423,13 +423,13 @@ static int asic3_gpio_get(struct gpio_ch
- 	asic = container_of(chip, struct asic3, gpio);
- 	gpio_base = ASIC3_GPIO_TO_BASE(offset);
- 
--	if (gpio_base > ASIC3_GPIO_D_Base) {
-+	if (gpio_base > ASIC3_GPIO_D_BASE) {
- 		dev_err(asic->dev, "Invalid base (0x%x) for gpio %d\n",
- 			gpio_base, offset);
- 		return -EINVAL;
- 	}
- 
--	return asic3_read_register(asic, gpio_base + ASIC3_GPIO_Status) & mask;
-+	return asic3_read_register(asic, gpio_base + ASIC3_GPIO_STATUS) & mask;
- }
- 
- static void asic3_gpio_set(struct gpio_chip *chip,
-@@ -443,7 +443,7 @@ static void asic3_gpio_set(struct gpio_c
- 	asic = container_of(chip, struct asic3, gpio);
- 	gpio_base = ASIC3_GPIO_TO_BASE(offset);
- 
--	if (gpio_base > ASIC3_GPIO_D_Base) {
-+	if (gpio_base > ASIC3_GPIO_D_BASE) {
- 		dev_err(asic->dev, "Invalid base (0x%x) for gpio %d\n",
- 			gpio_base, offset);
- 		return;
-@@ -453,14 +453,14 @@ static void asic3_gpio_set(struct gpio_c
- 
- 	spin_lock_irqsave(&asic->lock, flags);
- 
--	out_reg = asic3_read_register(asic, gpio_base + ASIC3_GPIO_Out);
-+	out_reg = asic3_read_register(asic, gpio_base + ASIC3_GPIO_OUT);
- 
- 	if (value)
- 		out_reg |= mask;
- 	else
- 		out_reg &= ~mask;
- 
--	asic3_write_register(asic, gpio_base + ASIC3_GPIO_Out, out_reg);
-+	asic3_write_register(asic, gpio_base + ASIC3_GPIO_OUT, out_reg);
- 
- 	spin_unlock_irqrestore(&asic->lock, flags);
- 
-@@ -481,10 +481,10 @@ static int asic3_gpio_probe(struct platf
- 	memset(dir_reg, 0, ASIC3_NUM_GPIO_BANKS);
- 
- 	/* Enable all GPIOs */
--	asic3_write_register(asic, ASIC3_GPIO_OFFSET(A, Mask), 0xffff);
--	asic3_write_register(asic, ASIC3_GPIO_OFFSET(B, Mask), 0xffff);
--	asic3_write_register(asic, ASIC3_GPIO_OFFSET(C, Mask), 0xffff);
--	asic3_write_register(asic, ASIC3_GPIO_OFFSET(D, Mask), 0xffff);
-+	asic3_write_register(asic, ASIC3_GPIO_OFFSET(A, MASK), 0xffff);
-+	asic3_write_register(asic, ASIC3_GPIO_OFFSET(B, MASK), 0xffff);
-+	asic3_write_register(asic, ASIC3_GPIO_OFFSET(C, MASK), 0xffff);
-+	asic3_write_register(asic, ASIC3_GPIO_OFFSET(D, MASK), 0xffff);
- 
- 	for (i = 0; i < num; i++) {
- 		u8 alt, pin, dir, init, bank_num, bit_num;
-@@ -506,14 +506,14 @@ static int asic3_gpio_probe(struct platf
- 	for (i = 0; i < ASIC3_NUM_GPIO_BANKS; i++) {
- 		asic3_write_register(asic,
- 				     ASIC3_BANK_TO_BASE(i) +
--				     ASIC3_GPIO_Direction,
-+				     ASIC3_GPIO_DIRECTION,
- 				     dir_reg[i]);
- 		asic3_write_register(asic,
--				     ASIC3_BANK_TO_BASE(i) + ASIC3_GPIO_Out,
-+				     ASIC3_BANK_TO_BASE(i) + ASIC3_GPIO_OUT,
- 				     out_reg[i]);
- 		asic3_write_register(asic,
- 				     ASIC3_BANK_TO_BASE(i) +
--				     ASIC3_GPIO_AltFunction,
-+				     ASIC3_GPIO_ALT_FUNCTION,
- 				     alt_reg[i]);
- 	}
- 
-diff -puN include/linux/mfd/asic3.h~asic3-use-uppercase-only-for-macros-and-defines include/linux/mfd/asic3.h
---- a/include/linux/mfd/asic3.h~asic3-use-uppercase-only-for-macros-and-defines
-+++ a/include/linux/mfd/asic3.h
-@@ -45,39 +45,39 @@ struct asic3_platform_data {
- /* All offsets below are specified with this address bus shift */
- #define ASIC3_DEFAULT_ADDR_SHIFT 2
- 
--#define ASIC3_OFFSET(base, reg) (ASIC3_##base##_Base + ASIC3_##base##_##reg)
-+#define ASIC3_OFFSET(base, reg) (ASIC3_##base##_BASE + ASIC3_##base##_##reg)
- #define ASIC3_GPIO_OFFSET(base, reg) \
--	(ASIC3_GPIO_##base##_Base + ASIC3_GPIO_##reg)
-+	(ASIC3_GPIO_##base##_BASE + ASIC3_GPIO_##reg)
- 
--#define ASIC3_GPIO_A_Base      0x0000
--#define ASIC3_GPIO_B_Base      0x0100
--#define ASIC3_GPIO_C_Base      0x0200
--#define ASIC3_GPIO_D_Base      0x0300
-+#define ASIC3_GPIO_A_BASE      0x0000
-+#define ASIC3_GPIO_B_BASE      0x0100
-+#define ASIC3_GPIO_C_BASE      0x0200
-+#define ASIC3_GPIO_D_BASE      0x0300
- 
- #define ASIC3_GPIO_TO_BANK(gpio) ((gpio) >> 4)
- #define ASIC3_GPIO_TO_BIT(gpio)  ((gpio) - \
- 				  (ASIC3_GPIOS_PER_BANK * ((gpio) >> 4)))
- #define ASIC3_GPIO_TO_MASK(gpio) (1 << ASIC3_GPIO_TO_BIT(gpio))
--#define ASIC3_GPIO_TO_BASE(gpio) (ASIC3_GPIO_A_Base + (((gpio) >> 4) * 0x0100))
--#define ASIC3_BANK_TO_BASE(bank) (ASIC3_GPIO_A_Base + ((bank) * 0x100))
-+#define ASIC3_GPIO_TO_BASE(gpio) (ASIC3_GPIO_A_BASE + (((gpio) >> 4) * 0x0100))
-+#define ASIC3_BANK_TO_BASE(bank) (ASIC3_GPIO_A_BASE + ((bank) * 0x100))
- 
--#define ASIC3_GPIO_Mask          0x00    /* R/W 0:don't mask */
--#define ASIC3_GPIO_Direction     0x04    /* R/W 0:input */
--#define ASIC3_GPIO_Out           0x08    /* R/W 0:output low */
--#define ASIC3_GPIO_TriggerType   0x0c    /* R/W 0:level */
--#define ASIC3_GPIO_EdgeTrigger   0x10    /* R/W 0:falling */
--#define ASIC3_GPIO_LevelTrigger  0x14    /* R/W 0:low level detect */
--#define ASIC3_GPIO_SleepMask     0x18    /* R/W 0:don't mask in sleep mode */
--#define ASIC3_GPIO_SleepOut      0x1c    /* R/W level 0:low in sleep mode */
--#define ASIC3_GPIO_BattFaultOut  0x20    /* R/W level 0:low in batt_fault */
--#define ASIC3_GPIO_IntStatus     0x24    /* R/W 0:none, 1:detect */
--#define ASIC3_GPIO_AltFunction   0x28	 /* R/W 1:LED register control */
--#define ASIC3_GPIO_SleepConf     0x2c    /*
-+#define ASIC3_GPIO_MASK          0x00    /* R/W 0:don't mask */
-+#define ASIC3_GPIO_DIRECTION     0x04    /* R/W 0:input */
-+#define ASIC3_GPIO_OUT           0x08    /* R/W 0:output low */
-+#define ASIC3_GPIO_TRIGGER_TYPE  0x0c    /* R/W 0:level */
-+#define ASIC3_GPIO_EDGE_TRIGGER  0x10    /* R/W 0:falling */
-+#define ASIC3_GPIO_LEVEL_TRIGGER 0x14    /* R/W 0:low level detect */
-+#define ASIC3_GPIO_SLEEP_MASK    0x18    /* R/W 0:don't mask in sleep mode */
-+#define ASIC3_GPIO_SLEEP_OUT     0x1c    /* R/W level 0:low in sleep mode */
-+#define ASIC3_GPIO_BAT_FAULT_OUT 0x20    /* R/W level 0:low in batt_fault */
-+#define ASIC3_GPIO_INT_STATUS    0x24    /* R/W 0:none, 1:detect */
-+#define ASIC3_GPIO_ALT_FUNCTION  0x28	 /* R/W 1:LED register control */
-+#define ASIC3_GPIO_SLEEP_CONF    0x2c    /*
- 					  * R/W bit 1: autosleep
- 					  * 0: disable gposlpout in normal mode,
- 					  * enable gposlpout in sleep mode.
- 					  */
--#define ASIC3_GPIO_Status        0x30    /* R   Pin status */
-+#define ASIC3_GPIO_STATUS        0x30    /* R   Pin status */
- 
- /*
-  * ASIC3 GPIO config
-@@ -137,7 +137,7 @@ struct asic3_platform_data {
- #define LED_AUTOSTOP	(1 << 5) /* LED ON/OFF auto stop 0:disable, 1:enable */
- #define LED_ALWAYS	(1 << 6) /* LED Interrupt Mask 0:No mask, 1:mask */
- 
--#define ASIC3_CLOCK_Base		0x0A00
-+#define ASIC3_CLOCK_BASE	   0x0A00
- #define ASIC3_CLOCK_CDEX           0x00
- #define ASIC3_CLOCK_SEL            0x04
- 
-@@ -168,12 +168,12 @@ struct asic3_platform_data {
- #define CLOCK_SEL_CX            (1 << 2)
- 
- 
--#define ASIC3_INTR_Base		0x0B00
-+#define ASIC3_INTR_BASE		0x0B00
- 
--#define ASIC3_INTR_IntMask       0x00  /* Interrupt mask control */
--#define ASIC3_INTR_PIntStat      0x04  /* Peripheral interrupt status */
--#define ASIC3_INTR_IntCPS        0x08  /* Interrupt timer clock pre-scale */
--#define ASIC3_INTR_IntTBS        0x0c  /* Interrupt timer set */
-+#define ASIC3_INTR_INT_MASK       0x00  /* Interrupt mask control */
-+#define ASIC3_INTR_P_INT_STAT     0x04  /* Peripheral interrupt status */
-+#define ASIC3_INTR_INT_CPS        0x08  /* Interrupt timer clock pre-scale */
-+#define ASIC3_INTR_INT_TBS        0x0c  /* Interrupt timer set */
- 
- #define ASIC3_INTMASK_GINTMASK    (1 << 0)  /* Global INTs mask 1:enable */
- #define ASIC3_INTMASK_GINTEL      (1 << 1)  /* 1: rising edge, 0: hi level */
++config I2C_CPM
++	tristate "Freescale CPM1 or CPM2 (MPC8xx/826x)"
++	depends on (CPM1 || CPM2) && OF_I2C
++	help
++	  This supports the use of the I2C interface on Freescale
++	  processors with CPM1 or CPM2.
++
++	  This driver can also be built as a module.  If so, the module
++	  will be called i2c-cpm.
++
+ config I2C_DAVINCI
+ 	tristate "DaVinci I2C driver"
+ 	depends on ARCH_DAVINCI
+diff -puN drivers/i2c/busses/Makefile~i2c-add-support-for-i2c-bus-on-freescale-cpm1-cpm2-controllers drivers/i2c/busses/Makefile
+--- a/drivers/i2c/busses/Makefile~i2c-add-support-for-i2c-bus-on-freescale-cpm1-cpm2-controllers
++++ a/drivers/i2c/busses/Makefile
+@@ -11,6 +11,7 @@ obj-$(CONFIG_I2C_AMD8111)	+= i2c-amd8111
+ obj-$(CONFIG_I2C_AT91)		+= i2c-at91.o
+ obj-$(CONFIG_I2C_AU1550)	+= i2c-au1550.o
+ obj-$(CONFIG_I2C_BLACKFIN_TWI)	+= i2c-bfin-twi.o
++obj-$(CONFIG_I2C_CPM)		+= i2c-cpm.o
+ obj-$(CONFIG_I2C_DAVINCI)	+= i2c-davinci.o
+ obj-$(CONFIG_I2C_ELEKTOR)	+= i2c-elektor.o
+ obj-$(CONFIG_I2C_GPIO)		+= i2c-gpio.o
+diff -puN /dev/null drivers/i2c/busses/i2c-cpm.c
+--- /dev/null
++++ a/drivers/i2c/busses/i2c-cpm.c
+@@ -0,0 +1,728 @@
++/*
++ * Freescale CPM1/CPM2 I2C interface.
++ * Copyright (c) 1999 Dan Malek (dmalek@jlc.net).
++ *
++ * moved into proper i2c interface;
++ * Brad Parker (brad@heeltoe.com)
++ *
++ * Parts from dbox2_i2c.c (cvs.tuxbox.org)
++ * (C) 2000-2001 Felix Domke (tmbinc@gmx.net), Gillem (htoa@gmx.net)
++ *
++ * (C) 2007 Montavista Software, Inc.
++ * Vitaly Bordug <vitb@kernel.crashing.org>
++ *
++ * Converted to of_platform_device. Renamed to i2c-cpm.c.
++ * (C) 2007,2008 Jochen Friedrich <jochen@scram.de>
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/delay.h>
++#include <linux/slab.h>
++#include <linux/init.h>
++#include <linux/interrupt.h>
++#include <linux/errno.h>
++#include <linux/stddef.h>
++#include <linux/i2c.h>
++#include <linux/io.h>
++#include <linux/dma-mapping.h>
++#include <linux/of_device.h>
++#include <linux/of_platform.h>
++#include <linux/of_i2c.h>
++#include <sysdev/fsl_soc.h>
++#include <asm/cpm.h>
++
++/* Try to define this if you have an older CPU (earlier than rev D4) */
++/* However, better use a GPIO based bitbang driver in this case :/   */
++#undef	I2C_CHIP_ERRATA
++
++#define CPM_MAX_READ    513
++#define CPM_MAXBD       4
++
++#define I2C_EB			(0x10) /* Big endian mode */
++#define I2C_EB_CPM2		(0x30) /* Big endian mode, memory snoop */
++
++#define DPRAM_BASE		((u8 __iomem __force *)cpm_muram_addr(0))
++
++/* I2C parameter RAM. */
++struct i2c_ram {
++	ushort  rbase;		/* Rx Buffer descriptor base address */
++	ushort  tbase;		/* Tx Buffer descriptor base address */
++	u_char  rfcr;		/* Rx function code */
++	u_char  tfcr;		/* Tx function code */
++	ushort  mrblr;		/* Max receive buffer length */
++	uint    rstate;		/* Internal */
++	uint    rdp;		/* Internal */
++	ushort  rbptr;		/* Rx Buffer descriptor pointer */
++	ushort  rbc;		/* Internal */
++	uint    rxtmp;		/* Internal */
++	uint    tstate;		/* Internal */
++	uint    tdp;		/* Internal */
++	ushort  tbptr;		/* Tx Buffer descriptor pointer */
++	ushort  tbc;		/* Internal */
++	uint    txtmp;		/* Internal */
++	char    res1[4];	/* Reserved */
++	ushort  rpbase;		/* Relocation pointer */
++	char    res2[2];	/* Reserved */
++};
++
++#define I2COM_START	0x80
++#define I2COM_MASTER	0x01
++#define I2CER_TXE	0x10
++#define I2CER_BUSY	0x04
++#define I2CER_TXB	0x02
++#define I2CER_RXB	0x01
++#define I2MOD_EN	0x01
++
++/* I2C Registers */
++struct i2c_reg {
++	u8	i2mod;
++	u8	res1[3];
++	u8	i2add;
++	u8	res2[3];
++	u8	i2brg;
++	u8	res3[3];
++	u8	i2com;
++	u8	res4[3];
++	u8	i2cer;
++	u8	res5[3];
++	u8	i2cmr;
++};
++
++struct cpm_i2c {
++	char *base;
++	struct of_device *ofdev;
++	struct i2c_adapter adap;
++	uint dp_addr;
++	int version; /* CPM1=1, CPM2=2 */
++	int irq;
++	int cp_command;
++	struct i2c_reg __iomem *i2c_reg;
++	struct i2c_ram __iomem *i2c_ram;
++	u16 i2c_addr;
++	wait_queue_head_t i2c_wait;
++	cbd_t __iomem *tbase;
++	cbd_t __iomem *rbase;
++	u_char *txbuf[CPM_MAXBD];
++	u_char *rxbuf[CPM_MAXBD];
++	u32 txdma[CPM_MAXBD];
++	u32 rxdma[CPM_MAXBD];
++};
++
++static irqreturn_t cpm_i2c_interrupt(int irq, void *dev_id)
++{
++	struct cpm_i2c *cpm;
++	struct i2c_reg __iomem *i2c_reg;
++	struct i2c_adapter *adap = dev_id;
++	int i;
++
++	cpm = i2c_get_adapdata(dev_id);
++	i2c_reg = cpm->i2c_reg;
++
++	/* Clear interrupt. */
++	i = in_8(&i2c_reg->i2cer);
++	out_8(&i2c_reg->i2cer, i);
++
++	dev_dbg(&adap->dev, "Interrupt: %x\n", i);
++
++	/* Get me going again. */
++	wake_up_interruptible(&cpm->i2c_wait);
++
++	return i ? IRQ_HANDLED : IRQ_NONE;
++}
++
++static void cpm_reset_i2c_params(struct cpm_i2c *cpm)
++{
++	struct i2c_ram __iomem *i2c_ram = cpm->i2c_ram;
++
++	/* Set up the IIC parameters in the parameter ram. */
++	out_be16(&i2c_ram->tbase, (u8 __iomem *)cpm->tbase - DPRAM_BASE);
++	out_be16(&i2c_ram->rbase, (u8 __iomem *)cpm->rbase - DPRAM_BASE);
++
++	if (cpm->version == 1) {
++		out_8(&i2c_ram->tfcr, I2C_EB);
++		out_8(&i2c_ram->rfcr, I2C_EB);
++	} else {
++		out_8(&i2c_ram->tfcr, I2C_EB_CPM2);
++		out_8(&i2c_ram->rfcr, I2C_EB_CPM2);
++	}
++
++	out_be16(&i2c_ram->mrblr, CPM_MAX_READ);
++
++	out_be32(&i2c_ram->rstate, 0);
++	out_be32(&i2c_ram->rdp, 0);
++	out_be16(&i2c_ram->rbptr, 0);
++	out_be16(&i2c_ram->rbc, 0);
++	out_be32(&i2c_ram->rxtmp, 0);
++	out_be32(&i2c_ram->tstate, 0);
++	out_be32(&i2c_ram->tdp, 0);
++	out_be16(&i2c_ram->tbptr, 0);
++	out_be16(&i2c_ram->tbc, 0);
++	out_be32(&i2c_ram->txtmp, 0);
++}
++
++static void cpm_i2c_force_close(struct i2c_adapter *adap)
++{
++	struct cpm_i2c *cpm = i2c_get_adapdata(adap);
++	struct i2c_reg __iomem *i2c_reg = cpm->i2c_reg;
++
++	dev_dbg(&adap->dev, "cpm_i2c_force_close()\n");
++
++	cpm_command(cpm->cp_command, CPM_CR_CLOSE_RX_BD);
++
++	out_8(&i2c_reg->i2cmr, 0x00);	/* Disable all interrupts */
++	out_8(&i2c_reg->i2cer, 0xff);
++}
++
++static void cpm_i2c_parse_message(struct i2c_adapter *adap,
++	struct i2c_msg *pmsg, int num, int tx, int rx)
++{
++	cbd_t __iomem *tbdf;
++	cbd_t __iomem *rbdf;
++	u_char addr;
++	u_char *tb;
++	u_char *rb;
++	struct cpm_i2c *cpm = i2c_get_adapdata(adap);
++
++	tbdf = cpm->tbase + tx;
++	rbdf = cpm->rbase + rx;
++
++	addr = pmsg->addr << 1;
++	if (pmsg->flags & I2C_M_RD)
++		addr |= 1;
++
++	tb = cpm->txbuf[tx];
++	rb = cpm->rxbuf[rx];
++
++	/* Align read buffer */
++	rb = (u_char *) (((ulong) rb + 1) & ~1);
++
++	tb[0] = addr;		/* Device address byte w/rw flag */
++
++	out_be16(&tbdf->cbd_datlen, pmsg->len + 1);
++	out_be16(&tbdf->cbd_sc, 0);
++
++	if (!(pmsg->flags & I2C_M_NOSTART))
++		setbits16(&tbdf->cbd_sc, BD_I2C_START);
++
++	if (tx + 1 == num)
++		setbits16(&tbdf->cbd_sc, BD_SC_LAST | BD_SC_WRAP);
++
++	if (pmsg->flags & I2C_M_RD) {
++		/*
++		 * To read, we need an empty buffer of the proper length.
++		 * All that is used is the first byte for address, the remainder
++		 * is just used for timing (and doesn't really have to exist).
++		 */
++
++		dev_dbg(&adap->dev, "cpm_i2c_read(abyte=0x%x)\n", addr);
++
++		out_be16(&rbdf->cbd_datlen, 0);
++		out_be16(&rbdf->cbd_sc, BD_SC_EMPTY | BD_SC_INTRPT);
++
++		if (rx + 1 == CPM_MAXBD)
++			setbits16(&rbdf->cbd_sc, BD_SC_WRAP);
++
++		eieio();
++		setbits16(&tbdf->cbd_sc, BD_SC_READY);
++	} else {
++		dev_dbg(&adap->dev, "cpm_iic_write(abyte=0x%x)\n", addr);
++
++		memcpy(tb+1, pmsg->buf, pmsg->len);
++
++		eieio();
++		setbits16(&tbdf->cbd_sc, BD_SC_READY | BD_SC_INTRPT);
++	}
++}
++
++static int cpm_i2c_check_message(struct i2c_adapter *adap,
++	struct i2c_msg *pmsg, int tx, int rx)
++{
++	cbd_t __iomem *tbdf;
++	cbd_t __iomem *rbdf;
++	u_char *tb;
++	u_char *rb;
++	struct cpm_i2c *cpm = i2c_get_adapdata(adap);
++
++	tbdf = cpm->tbase + tx;
++	rbdf = cpm->rbase + rx;
++
++	tb = cpm->txbuf[tx];
++	rb = cpm->rxbuf[rx];
++
++	/* Align read buffer */
++	rb = (u_char *) (((uint) rb + 1) & ~1);
++
++	eieio();
++	if (pmsg->flags & I2C_M_RD) {
++		dev_dbg(&adap->dev, "tx sc 0x%04x, rx sc 0x%04x\n",
++			in_be16(&tbdf->cbd_sc), in_be16(&rbdf->cbd_sc));
++
++		if (in_be16(&tbdf->cbd_sc) & BD_SC_NAK) {
++			dev_err(&adap->dev, "IIC read; No ack\n");
++			return -EIO;
++		}
++		if (in_be16(&rbdf->cbd_sc) & BD_SC_EMPTY) {
++			dev_err(&adap->dev,
++				"IIC read; complete but rbuf empty\n");
++			return -EREMOTEIO;
++		}
++		if (in_be16(&rbdf->cbd_sc) & BD_SC_OV) {
++			dev_err(&adap->dev, "IIC read; Overrun\n");
++			return -EREMOTEIO;
++		}
++		memcpy(pmsg->buf, rb, pmsg->len);
++	} else {
++		dev_dbg(&adap->dev, "tx sc %d 0x%04x\n", tx,
++			in_be16(&tbdf->cbd_sc));
++
++		if (in_be16(&tbdf->cbd_sc) & BD_SC_NAK) {
++			dev_err(&adap->dev, "IIC write; No ack\n");
++			return -EIO;
++		}
++		if (in_be16(&tbdf->cbd_sc) & BD_SC_UN) {
++			dev_err(&adap->dev, "IIC write; Underrun\n");
++			return -EIO;
++		}
++		if (in_be16(&tbdf->cbd_sc) & BD_SC_CL) {
++			dev_err(&adap->dev, "IIC write; Collision\n");
++			return -EIO;
++		}
++	}
++	return 0;
++}
++
++static int cpm_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
++{
++	struct cpm_i2c *cpm = i2c_get_adapdata(adap);
++	struct i2c_reg __iomem *i2c_reg = cpm->i2c_reg;
++	struct i2c_ram __iomem *i2c_ram = cpm->i2c_ram;
++	struct i2c_msg *pmsg;
++	int ret, i;
++	int tptr;
++	int rptr;
++	cbd_t __iomem *tbdf;
++	cbd_t __iomem *rbdf;
++
++	if (num > CPM_MAXBD)
++		return -EINVAL;
++
++	/* Check if we have any oversized READ requests */
++	for (i = 0; i < num; i++) {
++		pmsg = &msgs[i];
++		if (pmsg->len >= CPM_MAX_READ)
++			return -EINVAL;
++	}
++
++	/* Reset to use first buffer */
++	out_be16(&i2c_ram->rbptr, in_be16(&i2c_ram->rbase));
++	out_be16(&i2c_ram->tbptr, in_be16(&i2c_ram->tbase));
++
++	tbdf = cpm->tbase;
++	rbdf = cpm->rbase;
++
++	tptr = 0;
++	rptr = 0;
++
++	while (tptr < num) {
++		pmsg = &msgs[tptr];
++		dev_dbg(&adap->dev, "R: %d T: %d\n", rptr, tptr);
++
++		cpm_i2c_parse_message(adap, pmsg, num, tptr, rptr);
++		if (pmsg->flags & I2C_M_RD)
++			rptr++;
++		tptr++;
++	}
++	/* Start transfer now */
++	/* Enable RX/TX/Error interupts */
++	out_8(&i2c_reg->i2cmr, I2CER_BUSY | I2CER_TXB | I2CER_RXB);
++	out_8(&i2c_reg->i2cer, 0xff);	/* Clear interrupt status */
++	/* Chip bug, set enable here */
++	setbits8(&i2c_reg->i2mod, I2MOD_EN);	/* Enable */
++	/* Begin transmission */
++	setbits8(&i2c_reg->i2com, I2COM_MASTER);
++
++	tptr = 0;
++	rptr = 0;
++
++	while (tptr < num) {
++		/* Check for outstanding messages */
++		dev_dbg(&adap->dev, "test ready.\n");
++		pmsg = &msgs[tptr];
++		if (pmsg->flags & I2C_M_RD)
++			ret = wait_event_interruptible_timeout(cpm->i2c_wait,
++				!(in_be16(&rbdf[rptr].cbd_sc) & BD_SC_EMPTY),
++				1 * HZ);
++		else
++			ret = wait_event_interruptible_timeout(cpm->i2c_wait,
++				!(in_be16(&tbdf[tptr].cbd_sc) & BD_SC_READY),
++				1 * HZ);
++		if (ret == 0) {
++			ret = -EREMOTEIO;
++			dev_dbg(&adap->dev, "I2C read: timeout!\n");
++			goto out_err;
++		}
++		if (ret > 0) {
++			dev_dbg(&adap->dev, "ready.\n");
++			ret = cpm_i2c_check_message(adap, pmsg, tptr, rptr);
++			tptr++;
++			if (pmsg->flags & I2C_M_RD)
++				rptr++;
++			if (ret)
++				goto out_err;
++		}
++	}
++#ifdef I2C_CHIP_ERRATA
++	/*
++	 * Chip errata, clear enable. This is not needed on rev D4 CPUs.
++	 * Disabling I2C too early may cause too short stop condition
++	 */
++	udelay(4);
++	clrbits8(&i2c_reg->i2mod, I2MOD_EN);
++#endif
++	return (num);
++
++out_err:
++	cpm_i2c_force_close(adap);
++#ifdef I2C_CHIP_ERRATA
++	/*
++	 * Chip errata, clear enable. This is not needed on rev D4 CPUs.
++	 */
++	clrbits8(&i2c_reg->i2mod, I2MOD_EN);
++#endif
++	return ret;
++}
++
++static u32 cpm_i2c_func(struct i2c_adapter *adap)
++{
++	return I2C_FUNC_I2C | (I2C_FUNC_SMBUS_EMUL & ~I2C_FUNC_SMBUS_QUICK);
++}
++
++/* -----exported algorithm data: -------------------------------------	*/
++
++static const struct i2c_algorithm cpm_i2c_algo = {
++	.master_xfer = cpm_i2c_xfer,
++	.functionality = cpm_i2c_func,
++};
++
++static const struct i2c_adapter cpm_ops = {
++	.owner		= THIS_MODULE,
++	.name		= "i2c-cpm",
++	.algo		= &cpm_i2c_algo,
++	.class		= I2C_CLASS_HWMON,
++};
++
++static int __devinit cpm_i2c_setup(struct cpm_i2c *cpm)
++{
++	struct of_device *ofdev = cpm->ofdev;
++	const u32 *data;
++	int len, ret, i;
++	void __iomem *i2c_base;
++	cbd_t __iomem *tbdf;
++	cbd_t __iomem *rbdf;
++	unsigned char brg;
++
++	dev_dbg(&cpm->ofdev->dev, "cpm_i2c_setup()\n");
++
++	init_waitqueue_head(&cpm->i2c_wait);
++
++	cpm->irq = of_irq_to_resource(ofdev->node, 0, NULL);
++	if (cpm->irq == NO_IRQ)
++		return -EINVAL;
++
++	/* Install interrupt handler. */
++	ret = request_irq(cpm->irq, cpm_i2c_interrupt, 0, "cpm_i2c",
++			  &cpm->adap);
++	if (ret)
++		goto out_irq;
++
++	/* IIC parameter RAM */
++	i2c_base = of_iomap(ofdev->node, 1);
++	if (i2c_base == NULL) {
++		ret = -EINVAL;
++		goto out_irq;
++	}
++
++	if (of_device_is_compatible(ofdev->node, "fsl,cpm1-i2c")) {
++
++		/* Check for and use a microcode relocation patch. */
++		cpm->i2c_ram = i2c_base;
++		cpm->i2c_addr = in_be16(&cpm->i2c_ram->rpbase);
++
++		/*
++		 * Maybe should use cpm_muram_alloc instead of hardcoding
++		 * this in micropatch.c
++		 */
++		if (cpm->i2c_addr) {
++			cpm->i2c_ram = cpm_muram_addr(cpm->i2c_addr);
++			iounmap(i2c_base);
++		}
++
++		cpm->version = 1;
++
++	} else if (of_device_is_compatible(ofdev->node, "fsl,cpm2-i2c")) {
++		cpm->i2c_addr = cpm_muram_alloc(sizeof(struct i2c_ram), 64);
++		cpm->i2c_ram = cpm_muram_addr(cpm->i2c_addr);
++		out_be16(i2c_base, cpm->i2c_addr);
++		iounmap(i2c_base);
++
++		cpm->version = 2;
++
++	} else {
++		iounmap(i2c_base);
++		ret = -EINVAL;
++		goto out_irq;
++	}
++
++	/* I2C control/status registers */
++	cpm->i2c_reg = of_iomap(ofdev->node, 0);
++	if (cpm->i2c_reg == NULL) {
++		ret = -EINVAL;
++		goto out_ram;
++	}
++
++	data = of_get_property(ofdev->node, "fsl,cpm-command", &len);
++	if (!data || len != 4) {
++		ret = -EINVAL;
++		goto out_reg;
++	}
++	cpm->cp_command = *data;
++
++	data = of_get_property(ofdev->node, "linux,i2c-class", &len);
++	if (data && len == 4)
++		cpm->adap.class = *data;
++
++	/*
++	 * Allocate space for CPM_MAXBD transmit and receive buffer
++	 * descriptors in the DP ram.
++	 */
++	cpm->dp_addr = cpm_muram_alloc(sizeof(cbd_t) * 2 * CPM_MAXBD, 8);
++	if (!cpm->dp_addr) {
++		ret = -ENOMEM;
++		goto out_reg;
++	}
++
++	cpm->tbase = cpm_muram_addr(cpm->dp_addr);
++	cpm->rbase = cpm_muram_addr(cpm->dp_addr + sizeof(cbd_t) * CPM_MAXBD);
++
++	/* Allocate TX and RX buffers */
++
++	tbdf = cpm->tbase;
++	rbdf = cpm->rbase;
++
++	for (i = 0; i < CPM_MAXBD; i++) {
++		cpm->rxbuf[i] = dma_alloc_coherent(
++			NULL, CPM_MAX_READ + 1, &cpm->rxdma[i], GFP_KERNEL);
++		if (!cpm->rxbuf[i]) {
++			ret = -ENOMEM;
++			goto out_muram;
++		}
++		out_be32(&rbdf[i].cbd_bufaddr, ((cpm->rxdma[i] + 1) & ~1));
++
++		cpm->txbuf[i] = (unsigned char *)dma_alloc_coherent(
++			NULL, CPM_MAX_READ + 1, &cpm->txdma[i], GFP_KERNEL);
++		if (!cpm->txbuf[i]) {
++			ret = -ENOMEM;
++			goto out_muram;
++		}
++		out_be32(&tbdf[i].cbd_bufaddr, cpm->txdma[i]);
++	}
++
++	/* Initialize Tx/Rx parameters. */
++
++	cpm_reset_i2c_params(cpm);
++
++	dev_dbg(&cpm->ofdev->dev, "i2c_ram %p, i2c_addr 0x%04x\n",
++		cpm->i2c_ram, cpm->i2c_addr);
++	dev_dbg(&cpm->ofdev->dev, "tbase 0x%04x, rbase 0x%04x\n",
++		(u8 __iomem *)cpm->tbase - DPRAM_BASE,
++		(u8 __iomem *)cpm->rbase - DPRAM_BASE);
++
++	cpm_command(cpm->cp_command, CPM_CR_INIT_TRX);
++
++	/*
++	 * Select an invalid address. Just make sure we don't use loopback mode
++	 */
++	out_8(&cpm->i2c_reg->i2add, 0xfe);
++
++	/* Make clock run at 60 kHz. */
++
++	brg = get_brgfreq() / (32 * 2 * 60000) - 3;
++	out_8(&cpm->i2c_reg->i2brg, brg);
++
++	out_8(&cpm->i2c_reg->i2mod, 0x00);
++	out_8(&cpm->i2c_reg->i2com, I2COM_MASTER);	/* Master mode */
++
++	/* Disable interrupts. */
++	out_8(&cpm->i2c_reg->i2cmr, 0);
++	out_8(&cpm->i2c_reg->i2cer, 0xff);
++
++	return 0;
++
++out_muram:
++	for (i = 0; i < CPM_MAXBD; i++) {
++		if (cpm->rxbuf[i])
++			dma_free_coherent(NULL, CPM_MAX_READ + 1,
++				cpm->rxbuf[i], cpm->rxdma[i]);
++		if (cpm->txbuf[i])
++			dma_free_coherent(NULL, CPM_MAX_READ + 1,
++				cpm->txbuf[i], cpm->txdma[i]);
++	}
++	cpm_muram_free(cpm->dp_addr);
++out_reg:
++	iounmap(cpm->i2c_reg);
++out_ram:
++	if ((cpm->version == 1) && (!cpm->i2c_addr))
++		iounmap(cpm->i2c_ram);
++	if (cpm->version == 2)
++		cpm_muram_free(cpm->i2c_addr);
++out_irq:
++	free_irq(cpm->irq, &cpm->adap);
++	return ret;
++}
++
++static void cpm_i2c_shutdown(struct cpm_i2c *cpm)
++{
++	int i;
++
++	/* Shut down I2C. */
++	clrbits8(&cpm->i2c_reg->i2mod, I2MOD_EN);
++
++	/* Disable interrupts */
++	out_8(&cpm->i2c_reg->i2cmr, 0);
++	out_8(&cpm->i2c_reg->i2cer, 0xff);
++
++	free_irq(cpm->irq, &cpm->adap);
++
++	/* Free all memory */
++	for (i = 0; i < CPM_MAXBD; i++) {
++		dma_free_coherent(NULL, CPM_MAX_READ + 1,
++			cpm->rxbuf[i], cpm->rxdma[i]);
++		dma_free_coherent(NULL, CPM_MAX_READ + 1,
++			cpm->txbuf[i], cpm->txdma[i]);
++	}
++
++	cpm_muram_free(cpm->dp_addr);
++	iounmap(cpm->i2c_reg);
++
++	if ((cpm->version == 1) && (!cpm->i2c_addr))
++		iounmap(cpm->i2c_ram);
++	if (cpm->version == 2)
++		cpm_muram_free(cpm->i2c_addr);
++
++	return;
++}
++
++static int __devinit cpm_i2c_probe(struct of_device *ofdev,
++			 const struct of_device_id *match)
++{
++	int result;
++	struct cpm_i2c *cpm;
++
++	cpm = kzalloc(sizeof(struct cpm_i2c), GFP_KERNEL);
++	if (!cpm)
++		return -ENOMEM;
++
++	cpm->ofdev = ofdev;
++
++	dev_set_drvdata(&ofdev->dev, cpm);
++
++	cpm->adap = cpm_ops;
++	i2c_set_adapdata(&cpm->adap, cpm);
++	cpm->adap.dev.parent = &ofdev->dev;
++
++	result = cpm_i2c_setup(cpm);
++	if (result) {
++		dev_err(&ofdev->dev, "Unable to init hardware\n");
++		goto out_free;
++	}
++
++	/* register new adapter to i2c module... */
++
++	result = i2c_add_adapter(&cpm->adap);
++	if (result < 0) {
++		dev_err(&ofdev->dev, "Unable to register with I2C\n");
++		goto out_shut;
++	}
++
++	dev_dbg(&ofdev->dev, "hw routines for %s registered.\n",
++		cpm->adap.name);
++
++	/*
++	 * register OF I2C devices
++	 */
++	of_register_i2c_devices(&cpm->adap, ofdev->node);
++
++	return 0;
++out_shut:
++	cpm_i2c_shutdown(cpm);
++out_free:
++	dev_set_drvdata(&ofdev->dev, NULL);
++	kfree(cpm);
++
++	return result;
++}
++
++static int __devexit cpm_i2c_remove(struct of_device *ofdev)
++{
++	struct cpm_i2c *cpm = dev_get_drvdata(&ofdev->dev);
++
++	i2c_del_adapter(&cpm->adap);
++
++	cpm_i2c_shutdown(cpm);
++
++	dev_set_drvdata(&ofdev->dev, NULL);
++	kfree(cpm);
++
++	return 0;
++}
++
++static const struct of_device_id cpm_i2c_match[] = {
++	{
++		.compatible = "fsl,cpm-i2c",
++	},
++	{},
++};
++
++MODULE_DEVICE_TABLE(of, cpm_i2c_match);
++
++static struct of_platform_driver cpm_i2c_driver = {
++	.match_table	= cpm_i2c_match,
++	.probe		= cpm_i2c_probe,
++	.remove		= __devexit_p(cpm_i2c_remove),
++	.driver		= {
++		.name	= "fsl-i2c-cpm",
++		.owner	= THIS_MODULE,
++	}
++};
++
++static int __init cpm_i2c_init(void)
++{
++	return of_register_platform_driver(&cpm_i2c_driver);
++}
++
++static void __exit cpm_i2c_exit(void)
++{
++	of_unregister_platform_driver(&cpm_i2c_driver);
++}
++
++module_init(cpm_i2c_init);
++module_exit(cpm_i2c_exit);
++
++MODULE_AUTHOR("Jochen Friedrich <jochen@scram.de>");
++MODULE_DESCRIPTION("I2C-Bus adapter routines for CPM boards");
++MODULE_LICENSE("GPL");
 _
 
-Patches currently in -mm which might be from sameo@openedhand.com are
+Patches currently in -mm which might be from jochen@scram.de are
 
-asic3-platform_get_irq-may-return-signed-unnoticed.patch
-asic3-gpiolib-support.patch
-asic3-remove-children-platform-data.patch
-asic3-new-gpio-configuration-code.patch
-asic3-use-dev_-macros.patch
-asic3-use-uppercase-only-for-macros-and-defines.patch
+powerpc-add-i2c-pins-to-dts-and-board-setup.patch
+i2c-add-support-for-i2c-bus-on-freescale-cpm1-cpm2-controllers.patch
 
