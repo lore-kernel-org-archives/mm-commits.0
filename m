@@ -1,72 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 12 May 2008 13:58:45 -0700
-Message-ID: <200805122058.m4CKwjJU008880@imap1.linux-foundation.org>
+Subject: - memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 12 May 2008 13:59:15 -0700
+Message-ID: <200805122059.m4CKxFta008960@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50399 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44871 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751871AbYELU6s (ORCPT
+	by vger.kernel.org with ESMTP id S1756273AbYELU7m (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 16:58:48 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4CKwj6Y031249
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2008 13:58:47 -0700
+	Mon, 12 May 2008 16:59:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, balbir@linux.vnet.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, kosaki.motohiro@jp.fujitsu.com, menage@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes
+     memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
+     memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into atmel_lcdfb-fix-pixclok-divider-calculation.patch
+This patch was dropped because it was folded into memcg-fix-possible-panic-when-config_mm_owner=y.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes
+Subject: memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: line over 80 characters
-#36: FILE: drivers/video/atmel_lcdfb.c:449:
-+		dev_dbg(info->device, "  * programming CLKVAL = 0x%08lx\n", value);
+ERROR: code indent should use tabs where possible
+#43: FILE: include/linux/mm_types.h:229:
++        /*$
 
-total: 0 errors, 1 warnings, 16 lines checked
+ERROR: code indent should use tabs where possible
+#44: FILE: include/linux/mm_types.h:230:
++         * "owner" points to a task that is regarded as the canonical$
 
-./patches/atmel_lcdfb-fix-pixclok-divider-calculation.patch has style problems, please review.  If any of these errors
+ERROR: code indent should use tabs where possible
+#45: FILE: include/linux/mm_types.h:231:
++         * user/owner of this mm. All of the following must be true in$
+
+ERROR: code indent should use tabs where possible
+#46: FILE: include/linux/mm_types.h:232:
++         * order for it to be changed:$
+
+ERROR: code indent should use tabs where possible
+#47: FILE: include/linux/mm_types.h:233:
++         *$
+
+ERROR: code indent should use tabs where possible
+#48: FILE: include/linux/mm_types.h:234:
++         * current == mm->owner$
+
+ERROR: code indent should use tabs where possible
+#49: FILE: include/linux/mm_types.h:235:
++         * current->mm != mm$
+
+ERROR: code indent should use tabs where possible
+#50: FILE: include/linux/mm_types.h:236:
++         * new_owner->mm == mm$
+
+ERROR: code indent should use tabs where possible
+#51: FILE: include/linux/mm_types.h:237:
++         * new_owner->alloc_lock is held$
+
+ERROR: code indent should use tabs where possible
+#52: FILE: include/linux/mm_types.h:238:
++         */$
+
+total: 10 errors, 0 warnings, 27 lines checked
+
+./patches/memcg-fix-possible-panic-when-config_mm_owner=y.patch has style problems, please review.  If any of these errors
 are false positives report them to the maintainer, see
 CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-
-
+Cc: "KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: "Paul Menage" <menage@google.com>
+Cc: Balbir Singh <balbir@linux.vnet.ibm.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/atmel_lcdfb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/mm_types.h |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes drivers/video/atmel_lcdfb.c
---- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes
-+++ a/drivers/video/atmel_lcdfb.c
-@@ -446,8 +446,10 @@ static int atmel_lcdfb_set_par(struct fb
- 		lcdc_writel(sinfo, ATMEL_LCDC_LCDCON1, ATMEL_LCDC_BYPASS);
- 	} else {
- 		value = (value / 2) - 1;
--		dev_dbg(info->device, "  * programming CLKVAL = 0x%08lx\n", value);
--		lcdc_writel(sinfo, ATMEL_LCDC_LCDCON1, value << ATMEL_LCDC_CLKVAL_OFFSET);
-+		dev_dbg(info->device, "  * programming CLKVAL = 0x%08lx\n",
-+				value);
-+		lcdc_writel(sinfo, ATMEL_LCDC_LCDCON1,
-+				value << ATMEL_LCDC_CLKVAL_OFFSET);
- 		info->var.pixclock = KHZ2PICOS(clk_value_khz / (2 * (value + 1)));
- 		dev_dbg(info->device, "  updated pixclk:     %lu KHz\n",
- 					PICOS2KHZ(info->var.pixclock));
+diff -puN include/linux/mm_types.h~memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes include/linux/mm_types.h
+--- a/include/linux/mm_types.h~memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes
++++ a/include/linux/mm_types.h
+@@ -226,16 +226,16 @@ struct mm_struct {
+ 	rwlock_t		ioctx_list_lock;	/* aio lock */
+ 	struct kioctx		*ioctx_list;
+ #ifdef CONFIG_MM_OWNER
+-        /*
+-         * "owner" points to a task that is regarded as the canonical
+-         * user/owner of this mm. All of the following must be true in
+-         * order for it to be changed:
+-         *
+-         * current == mm->owner
+-         * current->mm != mm
+-         * new_owner->mm == mm
+-         * new_owner->alloc_lock is held
+-         */
++	/*
++	 * "owner" points to a task that is regarded as the canonical
++	 * user/owner of this mm. All of the following must be true in
++	 * order for it to be changed:
++	 *
++	 * current == mm->owner
++	 * current->mm != mm
++	 * new_owner->mm == mm
++	 * new_owner->alloc_lock is held
++	 */
+ 	struct task_struct *owner;
+ #endif
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,7 +123,7 @@ quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
 fix-hfsplus-oops-on-image-without-extents.patch
 rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
 atmel_lcdfb-fix-pixclok-divider-calculation.patch
-atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
+memcg-fix-possible-panic-when-config_mm_owner=y.patch
 memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
 drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
 linux-next.patch
