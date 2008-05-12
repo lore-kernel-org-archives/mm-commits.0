@@ -1,56 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch removed from -mm tree
-Date: Mon, 12 May 2008 13:57:53 -0700
-Message-ID: <200805122057.m4CKvso6008844@imap1.linux-foundation.org>
+Subject: - atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 12 May 2008 13:58:45 -0700
+Message-ID: <200805122058.m4CKwjJU008880@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54930 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50399 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755428AbYELU6g (ORCPT
+	by vger.kernel.org with ESMTP id S1751871AbYELU6s (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 16:58:36 -0400
+	Mon, 12 May 2008 16:58:48 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4CKwj6Y031249
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Mon, 12 May 2008 13:58:47 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, dmitri.vorobiev@gmail.com, macro@linux-mips.org, stable@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix
+     atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
+     atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
+This patch was dropped because it was folded into atmel_lcdfb-fix-pixclok-divider-calculation.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix
+Subject: atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
-Cc: <stable@kernel.org>
-Cc: Alessandro Zummo <a.zummo@towertech.it>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Dmitri Vorobiev <dmitri.vorobiev@gmail.com>
-Cc: Maciej W. Rozycki <macro@linux-mips.org>
+WARNING: line over 80 characters
+#36: FILE: drivers/video/atmel_lcdfb.c:449:
++		dev_dbg(info->device, "  * programming CLKVAL = 0x%08lx\n", value);
+
+total: 0 errors, 1 warnings, 16 lines checked
+
+./patches/atmel_lcdfb-fix-pixclok-divider-calculation.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-lib.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/video/atmel_lcdfb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rtc/rtc-lib.c~rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix drivers/rtc/rtc-lib.c
---- a/drivers/rtc/rtc-lib.c~rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix
-+++ a/drivers/rtc/rtc-lib.c
-@@ -51,7 +51,7 @@ EXPORT_SYMBOL(rtc_year_days);
-  */
- void rtc_time_to_tm(unsigned long time, struct rtc_time *tm)
- {
--	register unsigned int days, month, year;
-+	unsigned int days, month, year;
- 
- 	days = time / 86400;
- 	time -= days * 86400;
+diff -puN drivers/video/atmel_lcdfb.c~atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes drivers/video/atmel_lcdfb.c
+--- a/drivers/video/atmel_lcdfb.c~atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes
++++ a/drivers/video/atmel_lcdfb.c
+@@ -446,8 +446,10 @@ static int atmel_lcdfb_set_par(struct fb
+ 		lcdc_writel(sinfo, ATMEL_LCDC_LCDCON1, ATMEL_LCDC_BYPASS);
+ 	} else {
+ 		value = (value / 2) - 1;
+-		dev_dbg(info->device, "  * programming CLKVAL = 0x%08lx\n", value);
+-		lcdc_writel(sinfo, ATMEL_LCDC_LCDCON1, value << ATMEL_LCDC_CLKVAL_OFFSET);
++		dev_dbg(info->device, "  * programming CLKVAL = 0x%08lx\n",
++				value);
++		lcdc_writel(sinfo, ATMEL_LCDC_LCDCON1,
++				value << ATMEL_LCDC_CLKVAL_OFFSET);
+ 		info->var.pixclock = KHZ2PICOS(clk_value_khz / (2 * (value + 1)));
+ 		dev_dbg(info->device, "  updated pixclk:     %lu KHz\n",
+ 					PICOS2KHZ(info->var.pixclock));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -58,7 +74,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
 fix-hfsplus-oops-on-image-without-extents.patch
 rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
-rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
+atmel_lcdfb-fix-pixclok-divider-calculation.patch
 atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
 memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
 drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
