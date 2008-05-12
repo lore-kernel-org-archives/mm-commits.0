@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + asm-generic-bitops-fls64h-fix-something.patch added to -mm tree
-Date: Mon, 12 May 2008 14:45:59 -0700
-Message-ID: <200805122145.m4CLjxpC010799@imap1.linux-foundation.org>
+Subject: + rcu-remove-duplicated-include-in-kernel-rcupreempt_tracec.patch added to -mm tree
+Date: Mon, 12 May 2008 14:48:05 -0700
+Message-ID: <200805122148.m4CLm5cs010883@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45086 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34278 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751680AbYELVqf (ORCPT
+	by vger.kernel.org with ESMTP id S1754831AbYELVsg (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 17:46:35 -0400
+	Mon, 12 May 2008 17:48:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: nickolay@protei.ru
+Cc: weiyi.huang@gmail.com
 
 
 The patch titled
-     asm-generic/bitops/fls64.h: fix something
+     rcu: remove duplicated include in kernel/rcupreempt_trace.c
 has been added to the -mm tree.  Its filename is
-     asm-generic-bitops-fls64h-fix-something.patch
+     rcu-remove-duplicated-include-in-kernel-rcupreempt_tracec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asm-generic/bitops/fls64.h: fix something
-From: Nickolay Vinogradov <nickolay@protei.ru>
+Subject: rcu: remove duplicated include in kernel/rcupreempt_trace.c
+From: Huang Weiyi <weiyi.huang@gmail.com>
 
-bugfix in fls64 on a big endian systems(against 2.6.25).
+Removed duplicated include file <linux/rcupdate.h> in kernel/rcupreempt_trace.c
 
-(akpm: needs better changelog)
-
-Signed-off-by: Nickolay Vinogradov <nickolay@protei.ru>
+Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/fls64.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/rcupreempt_trace.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/asm-generic/bitops/fls64.h~asm-generic-bitops-fls64h-fix-something include/asm-generic/bitops/fls64.h
---- a/include/asm-generic/bitops/fls64.h~asm-generic-bitops-fls64h-fix-something
-+++ a/include/asm-generic/bitops/fls64.h
-@@ -20,7 +20,7 @@ static inline int fls64(__u64 x)
- 	__u32 h = x >> 32;
- 	if (h)
- 		return fls(h) + 32;
--	return fls(x);
-+	return fls((__u32)x);
- }
- #elif BITS_PER_LONG == 64
- static inline int fls64(__u64 x)
+diff -puN kernel/rcupreempt_trace.c~rcu-remove-duplicated-include-in-kernel-rcupreempt_tracec kernel/rcupreempt_trace.c
+--- a/kernel/rcupreempt_trace.c~rcu-remove-duplicated-include-in-kernel-rcupreempt_tracec
++++ a/kernel/rcupreempt_trace.c
+@@ -38,7 +38,6 @@
+ #include <linux/moduleparam.h>
+ #include <linux/percpu.h>
+ #include <linux/notifier.h>
+-#include <linux/rcupdate.h>
+ #include <linux/cpu.h>
+ #include <linux/mutex.h>
+ #include <linux/rcupreempt_trace.h>
 _
 
-Patches currently in -mm which might be from nickolay@protei.ru are
+Patches currently in -mm which might be from weiyi.huang@gmail.com are
 
-asm-generic-bitops-fls64h-fix-something.patch
+rcu-remove-duplicated-include-in-kernel-rcupreemptc.patch
+rcu-remove-duplicated-include-in-kernel-rcupreempt_tracec.patch
 
