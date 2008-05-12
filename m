@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + atl1-bump-version-number.patch added to -mm tree
-Date: Mon, 12 May 2008 15:23:36 -0700
-Message-ID: <200805122223.m4CMNaOB012129@imap1.linux-foundation.org>
+Subject: + audit_send_reply-fix-error-path-memory-leak.patch added to -mm tree
+Date: Mon, 12 May 2008 15:31:18 -0700
+Message-ID: <200805122231.m4CMVIxH012430@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43555 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49569 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754304AbYELWYI (ORCPT
+	by vger.kernel.org with ESMTP id S1754409AbYELWbe (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 18:24:08 -0400
+	Mon, 12 May 2008 18:31:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: jacliburn@bellsouth.net
+Cc: akpm@linux-foundation.org, danielm77@spray.se, viro@zeniv.linux.org.uk
 
 
 The patch titled
-     atl1: bump version number
+     audit_send_reply(): fix error-path memory leak
 has been added to the -mm tree.  Its filename is
-     atl1-bump-version-number.patch
+     audit_send_reply-fix-error-path-memory-leak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,84 +34,139 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atl1: bump version number
-From: Jay Cliburn <jacliburn@bellsouth.net>
+Subject: audit_send_reply(): fix error-path memory leak
+From: Andrew Morton <akpm@linux-foundation.org>
 
-atl1-2.1.3.
+Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10663
 
-Signed-off-by: Jay Cliburn <jacliburn@bellsouth.net>
+Reporter: Daniel Marjamki <danielm77@spray.se>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atlx/atl1.c |    2 +-
- drivers/net/atlx/atl1.h |    2 +-
- drivers/net/atlx/atlx.c |    2 +-
- drivers/net/atlx/atlx.h |    4 ++--
- 4 files changed, 5 insertions(+), 5 deletions(-)
+ kernel/audit.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN drivers/net/atlx/atl1.c~atl1-bump-version-number drivers/net/atlx/atl1.c
---- a/drivers/net/atlx/atl1.c~atl1-bump-version-number
-+++ a/drivers/net/atlx/atl1.c
-@@ -1,7 +1,7 @@
- /*
-  * Copyright(c) 2005 - 2006 Attansic Corporation. All rights reserved.
-  * Copyright(c) 2006 - 2007 Chris Snook <csnook@redhat.com>
-- * Copyright(c) 2006 Jay Cliburn <jcliburn@gmail.com>
-+ * Copyright(c) 2006 - 2008 Jay Cliburn <jcliburn@gmail.com>
-  *
-  * Derived from Intel e1000 driver
-  * Copyright(c) 1999 - 2005 Intel Corporation. All rights reserved.
-diff -puN drivers/net/atlx/atl1.h~atl1-bump-version-number drivers/net/atlx/atl1.h
---- a/drivers/net/atlx/atl1.h~atl1-bump-version-number
-+++ a/drivers/net/atlx/atl1.h
-@@ -1,7 +1,7 @@
- /*
-  * Copyright(c) 2005 - 2006 Attansic Corporation. All rights reserved.
-  * Copyright(c) 2006 - 2007 Chris Snook <csnook@redhat.com>
-- * Copyright(c) 2006 Jay Cliburn <jcliburn@gmail.com>
-+ * Copyright(c) 2006 - 2008 Jay Cliburn <jcliburn@gmail.com>
-  *
-  * Derived from Intel e1000 driver
-  * Copyright(c) 1999 - 2005 Intel Corporation. All rights reserved.
-diff -puN drivers/net/atlx/atlx.c~atl1-bump-version-number drivers/net/atlx/atlx.c
---- a/drivers/net/atlx/atlx.c~atl1-bump-version-number
-+++ a/drivers/net/atlx/atlx.c
-@@ -2,7 +2,7 @@
-  *
-  * Copyright(c) 2005 - 2006 Attansic Corporation. All rights reserved.
-  * Copyright(c) 2006 - 2007 Chris Snook <csnook@redhat.com>
-- * Copyright(c) 2006 Jay Cliburn <jcliburn@gmail.com>
-+ * Copyright(c) 2006 - 2008 Jay Cliburn <jcliburn@gmail.com>
-  * Copyright(c) 2007 Atheros Corporation. All rights reserved.
-  *
-  * Derived from Intel e1000 driver
-diff -puN drivers/net/atlx/atlx.h~atl1-bump-version-number drivers/net/atlx/atlx.h
---- a/drivers/net/atlx/atlx.h~atl1-bump-version-number
-+++ a/drivers/net/atlx/atlx.h
-@@ -2,7 +2,7 @@
-  *
-  * Copyright(c) 2005 - 2006 Attansic Corporation. All rights reserved.
-  * Copyright(c) 2006 - 2007 Chris Snook <csnook@redhat.com>
-- * Copyright(c) 2006 Jay Cliburn <jcliburn@gmail.com>
-+ * Copyright(c) 2006 - 2008 Jay Cliburn <jcliburn@gmail.com>
-  * Copyright(c) 2007 Atheros Corporation. All rights reserved.
-  *
-  * Derived from Intel e1000 driver
-@@ -29,7 +29,7 @@
- #include <linux/module.h>
- #include <linux/types.h>
+diff -puN kernel/audit.c~audit_send_reply-fix-error-path-memory-leak kernel/audit.c
+--- a/kernel/audit.c~audit_send_reply-fix-error-path-memory-leak
++++ a/kernel/audit.c
+@@ -572,16 +572,17 @@ void audit_send_reply(int pid, int seq, 
  
--#define ATLX_DRIVER_VERSION "2.1.1"
-+#define ATLX_DRIVER_VERSION "2.1.3"
- MODULE_AUTHOR("Xiong Huang <xiong.huang@atheros.com>, \
- 	Chris Snook <csnook@redhat.com>, Jay Cliburn <jcliburn@gmail.com>");
- MODULE_LICENSE("GPL");
+ 	skb = audit_make_reply(pid, seq, type, done, multi, payload, size);
+ 	if (!skb)
+-		return;
++		goto out;
+ 
+ 	reply->pid = pid;
+ 	reply->skb = skb;
+ 
+ 	tsk = kthread_run(audit_send_reply_thread, reply, "audit_send_reply");
+-	if (IS_ERR(tsk)) {
+-		kfree(reply);
+-		kfree_skb(skb);
+-	}
++	if (!IS_ERR(tsk))
++		return;
++	kfree_skb(skb);
++out:
++	kfree(reply);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from jacliburn@bellsouth.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-atl1-add-phy-power-save-mode.patch
-atl1-fix-broken-suspend-and-resume.patch
-atl1-add-shutdown-callback.patch
-atl1-bump-version-number.patch
+quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
+fix-hfsplus-oops-on-image-without-extents.patch
+rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
+atmel_lcdfb-fix-pixclok-divider-calculation.patch
+memcg-fix-possible-panic-when-config_mm_owner=y.patch
+drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
+linux-next.patch
+next-remove-localversion.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+dlm-convert-connections_lock-in-a-mutex-fix.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+git-mmc.patch
+git-ubifs.patch
+hysdn-no-longer-broken-on-smp.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+unionfs-broke.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+git-v9fs.patch
+revert-git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-orion-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+common-implementation-of-iterative-div-mod-fix.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+common-implementation-of-iterative-div-mod-fix-2.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model-fix.patch
+mm-verify-the-page-links-and-memory-model-fix-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-inotify_init-fix.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+audit_send_reply-fix-error-path-memory-leak.patch
 
