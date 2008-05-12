@@ -1,91 +1,154 @@
 From: akpm@linux-foundation.org
-Subject: - fs-execc-fix-wrong-return-value-of-prepare_binprm.patch removed from -mm tree
-Date: Sat, 10 May 2008 12:42:36 -0700
-Message-ID: <200805101942.m4AJgalh006061@imap1.linux-foundation.org>
+Subject: - git-dvb-someone-broke-the-gpio-includes.patch removed from -mm tree
+Date: Mon, 12 May 2008 13:16:05 -0700
+Message-ID: <200805122016.m4CKG5Sw007263@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33444 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60419 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755061AbYEJTmi (ORCPT
+	by vger.kernel.org with ESMTP id S1753172AbYELUQT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Sat, 10 May 2008 15:42:38 -0400
+	Mon, 12 May 2008 16:16:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xiyou.wangcong@gmail.com, viro@zeniv.linux.org.uk, wangcong@zeuux.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mchehab@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/exec.c: fix wrong return value of prepare_binprm()
+     git-dvb: someone broke the gpio includes
 has been removed from the -mm tree.  Its filename was
-     fs-execc-fix-wrong-return-value-of-prepare_binprm.patch
+     git-dvb-someone-broke-the-gpio-includes.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/exec.c: fix wrong return value of prepare_binprm()
-From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: git-dvb: someone broke the gpio includes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-All prepare_binprm()'s callers assume that prepare_binprm() fails when it
-returns negative.  However, prepare_binprm() most probably returns the return
-value of kernel_read(), which may return positive on failure!
-
-Thus this should be fixed.
-
-Signed-off-by: WANG Cong <wangcong@zeuux.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ drivers/media/video/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/exec.c~fs-execc-fix-wrong-return-value-of-prepare_binprm fs/exec.c
---- a/fs/exec.c~fs-execc-fix-wrong-return-value-of-prepare_binprm
-+++ a/fs/exec.c
-@@ -1064,10 +1064,14 @@ int prepare_binprm(struct linux_binprm *
- 	if (retval)
- 		return retval;
- 
--	memset(bprm->buf,0,BINPRM_BUF_SIZE);
--	return kernel_read(bprm->file,0,bprm->buf,BINPRM_BUF_SIZE);
-+	memset(bprm->buf, 0, BINPRM_BUF_SIZE);
-+	retval = kernel_read(bprm->file, 0, bprm->buf, BINPRM_BUF_SIZE);
-+	if (retval < 0)
-+		return retval;
-+	if (retval != BINPRM_BUF_SIZE && retval != inode->i_size)
-+		return -EIO;
-+	return 0;
- }
--
- EXPORT_SYMBOL(prepare_binprm);
- 
- static int unsafe_exec(struct task_struct *p)
+diff -puN drivers/media/video/Kconfig~git-dvb-someone-broke-the-gpio-includes drivers/media/video/Kconfig
+--- a/drivers/media/video/Kconfig~git-dvb-someone-broke-the-gpio-includes
++++ a/drivers/media/video/Kconfig
+@@ -848,6 +848,7 @@ config SOC_CAMERA
+ config SOC_CAMERA_MT9M001
+ 	tristate "mt9m001 support"
+ 	depends on SOC_CAMERA
++	depends on BROKEN
+ 	select GPIO_PCA953X if MT9M001_PCA9536_SWITCH
+ 	help
+ 	  This driver supports MT9M001 cameras from Micron, monochrome
+@@ -863,6 +864,7 @@ config MT9M001_PCA9536_SWITCH
+ config SOC_CAMERA_MT9V022
+ 	tristate "mt9v022 support"
+ 	depends on SOC_CAMERA
++	depends on BROKEN
+ 	select GPIO_PCA953X if MT9V022_PCA9536_SWITCH
+ 	help
+ 	  This driver supports MT9V022 cameras from Micron
 _
 
-Patches currently in -mm which might be from xiyou.wangcong@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
-uml-redo-host-capability-detection-and-disabling.patch
-uml-style-fixes.patch
-uml-hppfs-fixes.patch
-uml-move-hppfs_kernc-to-hppfsc.patch
-uml-tidy-ptrace-interface.patch
-uml-fix-errno-return.patch
-uml-fix-build-when-slob-is-enabled.patch
-uml-remove-unused-header.patch
-uml-fix-bad-ntp-interaction-with-clock.patch
-uml-use-__spin_lock_unlocked.patch
-uml-fix-config_raw-dependencies.patch
-uml-use-div_round_up.patch
-uml-use-page_size-in-linker-scripts.patch
-uml-physical-memory-shouldnt-include-initial-stack.patch
-fs-binfmt_elfc-fix-a-wrong-free.patch
-cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
-arch-um-kernel-irqc-clean-up-some-functions.patch
-arch-um-kernel-memc-remove-arch_validate.patch
-uml-make-several-more-things-static.patch
-fs-execc-fix-wrong-return-value-of-prepare_binprm.patch
-fs-binfmt_elfc-fix-wrong-return-values.patch
+quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
+fix-hfsplus-oops-on-image-without-extents-fix.patch
+rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
+atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
+memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
+drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
+linux-next.patch
+next-remove-localversion.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+zoran-use-correct-type-for-cpu-flags.patch
+git-dvb-someone-broke-the-gpio-includes.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+dlm-convert-connections_lock-in-a-mutex-fix.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+revert-git-kbuild.patch
+git-kvm.patch
+git-mmc.patch
+git-ubifs.patch
+hysdn-no-longer-broken-on-smp.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+unionfs-broke.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+git-v9fs.patch
+revert-git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+ext4-is-busted-on-m68k.patch
+common-implementation-of-iterative-div-mod-fix.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+common-implementation-of-iterative-div-mod-fix-2.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model-fix.patch
+mm-verify-the-page-links-and-memory-model-fix-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-inotify_init-fix.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
