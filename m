@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drm-radeon-radeon_enable_vblank-should-return-negative-error.patch added to -mm tree
-Date: Mon, 12 May 2008 16:39:56 -0700
-Message-ID: <200805122339.m4CNduTu014950@imap1.linux-foundation.org>
+Subject: + dlm-tcp_connect_to_sock-should-check-for-einval-not-einval.patch added to -mm tree
+Date: Mon, 12 May 2008 16:40:01 -0700
+Message-ID: <200805122340.m4CNe2uQ014981@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59797 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754663AbYELXlD (ORCPT
+	by vger.kernel.org with ESMTP id S1754660AbYELXlK (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 19:41:03 -0400
+	Mon, 12 May 2008 19:41:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marcin.slusarz@gmail.com, airlied@redhat.com, jbarnes@virtuousgeek.org
+Cc: marcin.slusarz@gmail.com, ccaulfie@redhat.com, teigland@redhat.com
 
 
 The patch titled
-     drm/radeon: radeon_enable_vblank should return negative error
+     [PATCH] dlm: tcp_connect_to_sock should check for -EINVAL, not EINVAL
 has been added to the -mm tree.  Its filename is
-     drm-radeon-radeon_enable_vblank-should-return-negative-error.patch
+     dlm-tcp_connect_to_sock-should-check-for-einval-not-einval.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,33 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drm/radeon: radeon_enable_vblank should return negative error
+Subject: [PATCH] dlm: tcp_connect_to_sock should check for -EINVAL, not EINVAL
 From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-radeon_enable_vblank <- drm_vblank_get <- drm_wait_vblank and
-drm_wait_vblank returns negative values on error.
-
 Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+Cc: Christine Caulfield <ccaulfie@redhat.com>
+Cc: David Teigland <teigland@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/drm/radeon_irq.c |    2 +-
+ fs/dlm/lowcomms.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/char/drm/radeon_irq.c~drm-radeon-radeon_enable_vblank-should-return-negative-error drivers/char/drm/radeon_irq.c
---- a/drivers/char/drm/radeon_irq.c~drm-radeon-radeon_enable_vblank-should-return-negative-error
-+++ a/drivers/char/drm/radeon_irq.c
-@@ -59,7 +59,7 @@ int radeon_enable_vblank(struct drm_devi
- 	default:
- 		DRM_ERROR("tried to enable vblank on non-existent crtc %d\n",
- 			  crtc);
--		return EINVAL;
-+		return -EINVAL;
- 	}
- 
- 	return 0;
+diff -puN fs/dlm/lowcomms.c~dlm-tcp_connect_to_sock-should-check-for-einval-not-einval fs/dlm/lowcomms.c
+--- a/fs/dlm/lowcomms.c~dlm-tcp_connect_to_sock-should-check-for-einval-not-einval
++++ a/fs/dlm/lowcomms.c
+@@ -931,7 +931,7 @@ out_err:
+ 	 * errors we try again until the max number of retries is reached.
+ 	 */
+ 	if (result != -EHOSTUNREACH && result != -ENETUNREACH &&
+-	    result != -ENETDOWN && result != EINVAL
++	    result != -ENETDOWN && result != -EINVAL
+ 	    && result != -EPROTONOSUPPORT) {
+ 		lowcomms_connect_sock(con);
+ 		result = 0;
 _
 
 Patches currently in -mm which might be from marcin.slusarz@gmail.com are
