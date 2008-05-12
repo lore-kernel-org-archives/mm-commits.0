@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hfs-convert-bitmap_lock-in-a-mutex.patch added to -mm tree
-Date: Mon, 12 May 2008 16:30:22 -0700
-Message-ID: <200805122330.m4CNUMNF014623@imap1.linux-foundation.org>
+Subject: + hfsplus-convert-the-extents_lock-in-a-mutex.patch added to -mm tree
+Date: Mon, 12 May 2008 16:31:32 -0700
+Message-ID: <200805122331.m4CNVWH5014642@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49347 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42664 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754311AbYELXam (ORCPT
+	by vger.kernel.org with ESMTP id S1754089AbYELXbq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 19:30:42 -0400
+	Mon, 12 May 2008 19:31:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: matthias@kaehlcke.net, zippel@linux-m68k.org
 
 
 The patch titled
-     hfs: convert bitmap_lock in a mutex
+     hfsplus: convert the extents_lock in a mutex
 has been added to the -mm tree.  Its filename is
-     hfs-convert-bitmap_lock-in-a-mutex.patch
+     hfsplus-convert-the-extents_lock-in-a-mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,93 +34,135 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hfs: convert bitmap_lock in a mutex
+Subject: hfsplus: convert the extents_lock in a mutex
 From: Matthias Kaehlcke <matthias@kaehlcke.net>
 
-Apple Macintosh file system: The semaphore bitmap_lock is used as a mutex.
-Convert it to the mutex API
+Apple Extended HFS file system: The semaphore extents lock is used as a
+mutex.  Convert it to the mutex API.
 
 Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
 Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/bitmap.c |    8 ++++----
- fs/hfs/hfs_fs.h |    3 ++-
- fs/hfs/super.c  |    2 +-
- 3 files changed, 7 insertions(+), 6 deletions(-)
+ fs/hfsplus/extents.c    |   14 +++++++-------
+ fs/hfsplus/hfsplus_fs.h |    3 ++-
+ fs/hfsplus/inode.c      |    4 ++--
+ fs/hfsplus/super.c      |    2 +-
+ 4 files changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN fs/hfs/bitmap.c~hfs-convert-bitmap_lock-in-a-mutex fs/hfs/bitmap.c
---- a/fs/hfs/bitmap.c~hfs-convert-bitmap_lock-in-a-mutex
-+++ a/fs/hfs/bitmap.c
-@@ -145,7 +145,7 @@ u32 hfs_vbm_search_free(struct super_blo
- 	if (!*num_bits)
- 		return 0;
+diff -puN fs/hfsplus/extents.c~hfsplus-convert-the-extents_lock-in-a-mutex fs/hfsplus/extents.c
+--- a/fs/hfsplus/extents.c~hfsplus-convert-the-extents_lock-in-a-mutex
++++ a/fs/hfsplus/extents.c
+@@ -199,16 +199,16 @@ int hfsplus_get_block(struct inode *inod
+ 		goto done;
+ 	}
  
--	down(&HFS_SB(sb)->bitmap_lock);
-+	mutex_lock(&HFS_SB(sb)->bitmap_lock);
- 	bitmap = HFS_SB(sb)->bitmap;
+-	down(&HFSPLUS_I(inode).extents_lock);
++	mutex_lock(&HFSPLUS_I(inode).extents_lock);
+ 	res = hfsplus_ext_read_extent(inode, ablock);
+ 	if (!res) {
+ 		dblock = hfsplus_ext_find_block(HFSPLUS_I(inode).cached_extents, ablock -
+ 					     HFSPLUS_I(inode).cached_start);
+ 	} else {
+-		up(&HFSPLUS_I(inode).extents_lock);
++		mutex_unlock(&HFSPLUS_I(inode).extents_lock);
+ 		return -EIO;
+ 	}
+-	up(&HFSPLUS_I(inode).extents_lock);
++	mutex_unlock(&HFSPLUS_I(inode).extents_lock);
  
- 	pos = hfs_find_set_zero_bits(bitmap, HFS_SB(sb)->fs_ablocks, goal, num_bits);
-@@ -162,7 +162,7 @@ u32 hfs_vbm_search_free(struct super_blo
- 	HFS_SB(sb)->free_ablocks -= *num_bits;
- 	hfs_bitmap_dirty(sb);
- out:
--	up(&HFS_SB(sb)->bitmap_lock);
-+	mutex_unlock(&HFS_SB(sb)->bitmap_lock);
- 	return pos;
- }
+ done:
+ 	dprint(DBG_EXTENT, "get_block(%lu): %llu - %u\n", inode->i_ino, (long long)iblock, dblock);
+@@ -355,7 +355,7 @@ int hfsplus_file_extend(struct inode *in
+ 		return -ENOSPC;
+ 	}
  
-@@ -205,7 +205,7 @@ int hfs_clear_vbm_bits(struct super_bloc
- 	if ((start + count) > HFS_SB(sb)->fs_ablocks)
- 		return -2;
- 
--	down(&HFS_SB(sb)->bitmap_lock);
-+	mutex_lock(&HFS_SB(sb)->bitmap_lock);
- 	/* bitmap is always on a 32-bit boundary */
- 	curr = HFS_SB(sb)->bitmap + (start / 32);
- 	len = count;
-@@ -236,7 +236,7 @@ int hfs_clear_vbm_bits(struct super_bloc
+-	down(&HFSPLUS_I(inode).extents_lock);
++	mutex_lock(&HFSPLUS_I(inode).extents_lock);
+ 	if (HFSPLUS_I(inode).alloc_blocks == HFSPLUS_I(inode).first_blocks)
+ 		goal = hfsplus_ext_lastblock(HFSPLUS_I(inode).first_extents);
+ 	else {
+@@ -408,7 +408,7 @@ int hfsplus_file_extend(struct inode *in
+ 			goto insert_extent;
  	}
  out:
- 	HFS_SB(sb)->free_ablocks += len;
--	up(&HFS_SB(sb)->bitmap_lock);
-+	mutex_unlock(&HFS_SB(sb)->bitmap_lock);
- 	hfs_bitmap_dirty(sb);
+-	up(&HFSPLUS_I(inode).extents_lock);
++	mutex_unlock(&HFSPLUS_I(inode).extents_lock);
+ 	if (!res) {
+ 		HFSPLUS_I(inode).alloc_blocks += len;
+ 		mark_inode_dirty(inode);
+@@ -465,7 +465,7 @@ void hfsplus_file_truncate(struct inode 
+ 	if (blk_cnt == alloc_cnt)
+ 		goto out;
  
- 	return 0;
-diff -puN fs/hfs/hfs_fs.h~hfs-convert-bitmap_lock-in-a-mutex fs/hfs/hfs_fs.h
---- a/fs/hfs/hfs_fs.h~hfs-convert-bitmap_lock-in-a-mutex
-+++ a/fs/hfs/hfs_fs.h
+-	down(&HFSPLUS_I(inode).extents_lock);
++	mutex_lock(&HFSPLUS_I(inode).extents_lock);
+ 	hfs_find_init(HFSPLUS_SB(sb).ext_tree, &fd);
+ 	while (1) {
+ 		if (alloc_cnt == HFSPLUS_I(inode).first_blocks) {
+@@ -492,7 +492,7 @@ void hfsplus_file_truncate(struct inode 
+ 		hfs_brec_remove(&fd);
+ 	}
+ 	hfs_find_exit(&fd);
+-	up(&HFSPLUS_I(inode).extents_lock);
++	mutex_unlock(&HFSPLUS_I(inode).extents_lock);
+ 
+ 	HFSPLUS_I(inode).alloc_blocks = blk_cnt;
+ out:
+diff -puN fs/hfsplus/hfsplus_fs.h~hfsplus-convert-the-extents_lock-in-a-mutex fs/hfsplus/hfsplus_fs.h
+--- a/fs/hfsplus/hfsplus_fs.h~hfsplus-convert-the-extents_lock-in-a-mutex
++++ a/fs/hfsplus/hfsplus_fs.h
 @@ -11,6 +11,7 @@
+ #define _LINUX_HFSPLUS_FS_H
  
- #include <linux/slab.h>
- #include <linux/types.h>
+ #include <linux/fs.h>
 +#include <linux/mutex.h>
  #include <linux/buffer_head.h>
- #include <linux/fs.h>
+ #include "hfsplus_raw.h"
  
-@@ -139,7 +140,7 @@ struct hfs_sb_info {
+@@ -154,7 +155,7 @@ struct hfsplus_sb_info {
  
- 	struct nls_table *nls_io, *nls_disk;
  
--	struct semaphore bitmap_lock;
-+	struct mutex bitmap_lock;
+ struct hfsplus_inode_info {
+-	struct semaphore extents_lock;
++	struct mutex extents_lock;
+ 	u32 clump_blocks, alloc_blocks;
+ 	sector_t fs_blocks;
+ 	/* Allocation extents from catalog record or volume header */
+diff -puN fs/hfsplus/inode.c~hfsplus-convert-the-extents_lock-in-a-mutex fs/hfsplus/inode.c
+--- a/fs/hfsplus/inode.c~hfsplus-convert-the-extents_lock-in-a-mutex
++++ a/fs/hfsplus/inode.c
+@@ -163,7 +163,7 @@ static struct dentry *hfsplus_file_looku
  
- 	unsigned long flags;
+ 	inode->i_ino = dir->i_ino;
+ 	INIT_LIST_HEAD(&HFSPLUS_I(inode).open_dir_list);
+-	init_MUTEX(&HFSPLUS_I(inode).extents_lock);
++	mutex_init(&HFSPLUS_I(inode).extents_lock);
+ 	HFSPLUS_I(inode).flags = HFSPLUS_FLG_RSRC;
  
-diff -puN fs/hfs/super.c~hfs-convert-bitmap_lock-in-a-mutex fs/hfs/super.c
---- a/fs/hfs/super.c~hfs-convert-bitmap_lock-in-a-mutex
-+++ a/fs/hfs/super.c
-@@ -372,7 +372,7 @@ static int hfs_fill_super(struct super_b
+ 	hfs_find_init(HFSPLUS_SB(sb).cat_tree, &fd);
+@@ -316,7 +316,7 @@ struct inode *hfsplus_new_inode(struct s
+ 	inode->i_nlink = 1;
+ 	inode->i_mtime = inode->i_atime = inode->i_ctime = CURRENT_TIME_SEC;
+ 	INIT_LIST_HEAD(&HFSPLUS_I(inode).open_dir_list);
+-	init_MUTEX(&HFSPLUS_I(inode).extents_lock);
++	mutex_init(&HFSPLUS_I(inode).extents_lock);
+ 	atomic_set(&HFSPLUS_I(inode).opencnt, 0);
+ 	HFSPLUS_I(inode).flags = 0;
+ 	memset(HFSPLUS_I(inode).first_extents, 0, sizeof(hfsplus_extent_rec));
+diff -puN fs/hfsplus/super.c~hfsplus-convert-the-extents_lock-in-a-mutex fs/hfsplus/super.c
+--- a/fs/hfsplus/super.c~hfsplus-convert-the-extents_lock-in-a-mutex
++++ a/fs/hfsplus/super.c
+@@ -34,7 +34,7 @@ struct inode *hfsplus_iget(struct super_
+ 		return inode;
  
- 	sb->s_op = &hfs_super_operations;
- 	sb->s_flags |= MS_NODIRATIME;
--	init_MUTEX(&sbi->bitmap_lock);
-+	mutex_init(&sbi->bitmap_lock);
- 
- 	res = hfs_mdb_get(sb);
- 	if (res) {
+ 	INIT_LIST_HEAD(&HFSPLUS_I(inode).open_dir_list);
+-	init_MUTEX(&HFSPLUS_I(inode).extents_lock);
++	mutex_init(&HFSPLUS_I(inode).extents_lock);
+ 	HFSPLUS_I(inode).flags = 0;
+ 	HFSPLUS_I(inode).rsrc_inode = NULL;
+ 	atomic_set(&HFSPLUS_I(inode).opencnt, 0);
 _
 
 Patches currently in -mm which might be from matthias@kaehlcke.net are
@@ -133,5 +175,6 @@ pxafb-convert-ctrlr_sem-in-a-mutex.patch
 sa1100fb-convert-ctrlr_sem-in-a-mutex.patch
 hfs-convert-bitmap_lock-in-a-mutex.patch
 hfs-convert-extents_lock-in-a-mutex.patch
+hfsplus-convert-the-extents_lock-in-a-mutex.patch
 affs-convert-s_bmlock-into-a-mutex.patch
 
