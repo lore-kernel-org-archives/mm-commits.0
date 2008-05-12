@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + asic3-use-dev_-macros.patch added to -mm tree
-Date: Mon, 12 May 2008 16:25:04 -0700
-Message-ID: <200805122325.m4CNP4uT014438@imap1.linux-foundation.org>
+Subject: + asic3-new-gpio-configuration-code.patch added to -mm tree
+Date: Mon, 12 May 2008 16:25:02 -0700
+Message-ID: <200805122325.m4CNP2g1014435@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:39301 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43144 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754665AbYELXZI (ORCPT
+	by vger.kernel.org with ESMTP id S1756611AbYELXZS (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 19:25:08 -0400
+	Mon, 12 May 2008 19:25:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sameo@openedhand.com
+Cc: sameo@openedhand.com, david-b@pacbell.net
 
 
 The patch titled
-     asic3: use dev_* macros
+     asic3: new gpio configuration code
 has been added to the -mm tree.  Its filename is
-     asic3-use-dev_-macros.patch
+     asic3-new-gpio-configuration-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,114 +34,204 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asic3: use dev_* macros
+Subject: asic3: new gpio configuration code
 From: Samuel Ortiz <sameo@openedhand.com>
 
-We replace the various printks, and use the dev_* macros instead.
+The ASIC3 GPIO configuration code is a bit obscure and hardly readable. 
+This patch changes it so that it is now more readable and understandable,
+by being more explicit.
 
 Signed-off-by: Samuel Ortiz <sameo@openedhand.com>
+Cc: David Brownell <david-b@pacbell.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/asic3.c |   27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+ drivers/mfd/asic3.c       |   99 +++++++++++++++---------------------
+ include/linux/mfd/asic3.h |   34 ++++++++----
+ 2 files changed, 67 insertions(+), 66 deletions(-)
 
-diff -puN drivers/mfd/asic3.c~asic3-use-dev_-macros drivers/mfd/asic3.c
---- a/drivers/mfd/asic3.c~asic3-use-dev_-macros
+diff -puN drivers/mfd/asic3.c~asic3-new-gpio-configuration-code drivers/mfd/asic3.c
+--- a/drivers/mfd/asic3.c~asic3-new-gpio-configuration-code
 +++ a/drivers/mfd/asic3.c
-@@ -145,8 +145,7 @@ static void asic3_irq_demux(unsigned int
- 	}
- 
- 	if (iter >= MAX_ASIC_ISR_LOOPS)
--		printk(KERN_ERR "%s: interrupt processing overrun\n",
--		       __func__);
-+		dev_err(asic->dev, "interrupt processing overrun\n");
+@@ -468,69 +468,54 @@ static void asic3_gpio_set(struct gpio_c
+ 	return;
  }
  
- static inline int asic3_irq_to_bank(struct asic3 *asic, int irq)
-@@ -282,7 +281,7 @@ static int asic3_gpio_irq_type(unsigned 
- 		 * be careful to not unmask them if mask was also called.
- 		 * Probably need internal state for mask.
- 		 */
--		printk(KERN_NOTICE "asic3: irq type not changed.\n");
-+		dev_notice(asic->dev, "irq type not changed\n");
+-static inline u32 asic3_get_gpio(struct asic3 *asic, unsigned int base,
+-				 unsigned int function)
++static int asic3_gpio_probe(struct platform_device *pdev,
++			    u16 *gpio_config, int num)
+ {
+-	return asic3_read_register(asic, base + function);
+-}
+-
+-static void asic3_set_gpio(struct asic3 *asic, unsigned int base,
+-			   unsigned int function, u32 bits, u32 val)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&asic->lock, flags);
+-	val |= (asic3_read_register(asic, base + function) & ~bits);
+-
+-	asic3_write_register(asic, base + function, val);
+-	spin_unlock_irqrestore(&asic->lock, flags);
+-}
+-
+-#define asic3_set_gpio_a(asic, fn, bits, val) \
+-	asic3_set_gpio(asic, ASIC3_GPIO_A_Base, ASIC3_GPIO_##fn, bits, val)
+-#define asic3_set_gpio_b(asic, fn, bits, val) \
+-	asic3_set_gpio(asic, ASIC3_GPIO_B_Base, ASIC3_GPIO_##fn, bits, val)
+-#define asic3_set_gpio_c(asic, fn, bits, val) \
+-	asic3_set_gpio(asic, ASIC3_GPIO_C_Base, ASIC3_GPIO_##fn, bits, val)
+-#define asic3_set_gpio_d(asic, fn, bits, val) \
+-	asic3_set_gpio(asic, ASIC3_GPIO_D_Base, ASIC3_GPIO_##fn, bits, val)
+-
+-#define asic3_set_gpio_banks(asic, fn, bits, pdata, field) 		  \
+-	do {								  \
+-	     asic3_set_gpio_a((asic), fn, (bits), (pdata)->gpio_a.field); \
+-	     asic3_set_gpio_b((asic), fn, (bits), (pdata)->gpio_b.field); \
+-	     asic3_set_gpio_c((asic), fn, (bits), (pdata)->gpio_c.field); \
+-	     asic3_set_gpio_d((asic), fn, (bits), (pdata)->gpio_d.field); \
+-	} while (0)
+-
+-
+-static int asic3_gpio_probe(struct platform_device *pdev)
+-{
+-	struct asic3_platform_data *pdata = pdev->dev.platform_data;
+ 	struct asic3 *asic = platform_get_drvdata(pdev);
++	u16 alt_reg[ASIC3_NUM_GPIO_BANKS];
++	u16 out_reg[ASIC3_NUM_GPIO_BANKS];
++	u16 dir_reg[ASIC3_NUM_GPIO_BANKS];
++	int i;
++
++	memset(alt_reg, 0, ASIC3_NUM_GPIO_BANKS);
++	memset(out_reg, 0, ASIC3_NUM_GPIO_BANKS);
++	memset(dir_reg, 0, ASIC3_NUM_GPIO_BANKS);
+ 
++	/* Enable all GPIOs */
+ 	asic3_write_register(asic, ASIC3_GPIO_OFFSET(A, Mask), 0xffff);
+ 	asic3_write_register(asic, ASIC3_GPIO_OFFSET(B, Mask), 0xffff);
+ 	asic3_write_register(asic, ASIC3_GPIO_OFFSET(C, Mask), 0xffff);
+ 	asic3_write_register(asic, ASIC3_GPIO_OFFSET(D, Mask), 0xffff);
+ 
+-	asic3_set_gpio_a(asic, SleepMask, 0xffff, 0xffff);
+-	asic3_set_gpio_b(asic, SleepMask, 0xffff, 0xffff);
+-	asic3_set_gpio_c(asic, SleepMask, 0xffff, 0xffff);
+-	asic3_set_gpio_d(asic, SleepMask, 0xffff, 0xffff);
+-
+-	if (pdata) {
+-		asic3_set_gpio_banks(asic, Out, 0xffff, pdata, init);
+-		asic3_set_gpio_banks(asic, Direction, 0xffff, pdata, dir);
+-		asic3_set_gpio_banks(asic, SleepMask, 0xffff, pdata,
+-				     sleep_mask);
+-		asic3_set_gpio_banks(asic, SleepOut, 0xffff, pdata, sleep_out);
+-		asic3_set_gpio_banks(asic, BattFaultOut, 0xffff, pdata,
+-				     batt_fault_out);
+-		asic3_set_gpio_banks(asic, SleepConf, 0xffff, pdata,
+-				     sleep_conf);
+-		asic3_set_gpio_banks(asic, AltFunction, 0xffff, pdata,
+-				     alt_function);
++	for (i = 0; i < num; i++) {
++		u8 alt, pin, dir, init, bank_num, bit_num;
++		u16 config = gpio_config[i];
++
++		pin = ASIC3_CONFIG_GPIO_PIN(config);
++		alt = ASIC3_CONFIG_GPIO_ALT(config);
++		dir = ASIC3_CONFIG_GPIO_DIR(config);
++		init = ASIC3_CONFIG_GPIO_INIT(config);
++
++		bank_num = ASIC3_GPIO_TO_BANK(pin);
++		bit_num = ASIC3_GPIO_TO_BIT(pin);
++
++		alt_reg[bank_num] |= (alt << bit_num);
++		out_reg[bank_num] |= (init << bit_num);
++		dir_reg[bank_num] |= (dir << bit_num);
++	}
++
++	for (i = 0; i < ASIC3_NUM_GPIO_BANKS; i++) {
++		asic3_write_register(asic,
++				     ASIC3_BANK_TO_BASE(i) +
++				     ASIC3_GPIO_Direction,
++				     dir_reg[i]);
++		asic3_write_register(asic,
++				     ASIC3_BANK_TO_BASE(i) + ASIC3_GPIO_Out,
++				     out_reg[i]);
++		asic3_write_register(asic,
++				     ASIC3_BANK_TO_BASE(i) +
++				     ASIC3_GPIO_AltFunction,
++				     alt_reg[i]);
  	}
- 	asic3_write_register(asic, bank + ASIC3_GPIO_LevelTrigger,
- 			     level);
-@@ -379,8 +378,8 @@ static int asic3_gpio_direction(struct g
- 	gpio_base = ASIC3_GPIO_TO_BASE(offset);
  
- 	if (gpio_base > ASIC3_GPIO_D_Base) {
--		printk(KERN_ERR "Invalid base (0x%x) for gpio %d\n",
--		       gpio_base, offset);
-+		dev_err(asic->dev, "Invalid base (0x%x) for gpio %d\n",
-+			gpio_base, offset);
- 		return -EINVAL;
- 	}
+ 	return gpiochip_add(&asic->gpio);
+@@ -601,7 +586,9 @@ static int asic3_probe(struct platform_d
+ 	asic->gpio.direction_input = asic3_gpio_direction_input;
+ 	asic->gpio.direction_output = asic3_gpio_direction_output;
  
-@@ -425,8 +424,8 @@ static int asic3_gpio_get(struct gpio_ch
- 	gpio_base = ASIC3_GPIO_TO_BASE(offset);
- 
- 	if (gpio_base > ASIC3_GPIO_D_Base) {
--		printk(KERN_ERR "Invalid base (0x%x) for gpio %d\n",
--		       gpio_base, offset);
-+		dev_err(asic->dev, "Invalid base (0x%x) for gpio %d\n",
-+			gpio_base, offset);
- 		return -EINVAL;
- 	}
- 
-@@ -445,8 +444,8 @@ static void asic3_gpio_set(struct gpio_c
- 	gpio_base = ASIC3_GPIO_TO_BASE(offset);
- 
- 	if (gpio_base > ASIC3_GPIO_D_Base) {
--		printk(KERN_ERR "Invalid base (0x%x) for gpio %d\n",
--		       gpio_base, offset);
-+		dev_err(asic->dev, "Invalid base (0x%x) for gpio %d\n",
-+			gpio_base, offset);
- 		return;
- 	}
- 
-@@ -551,7 +550,7 @@ static int asic3_probe(struct platform_d
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (!mem) {
- 		ret = -ENOMEM;
--		printk(KERN_ERR "asic3: no MEM resource\n");
-+		dev_err(asic->dev, "no MEM resource\n");
- 		goto out_free;
- 	}
- 
-@@ -559,7 +558,7 @@ static int asic3_probe(struct platform_d
- 	asic->mapping = ioremap(mem->start, PAGE_SIZE);
- 	if (!asic->mapping) {
- 		ret = -ENOMEM;
--		printk(KERN_ERR "asic3: couldn't ioremap\n");
-+		dev_err(asic->dev, "Couldn't ioremap\n");
- 		goto out_free;
- 	}
- 
-@@ -575,7 +574,7 @@ static int asic3_probe(struct platform_d
- 
- 	ret = asic3_irq_probe(pdev);
+-	ret = asic3_gpio_probe(pdev);
++	ret = asic3_gpio_probe(pdev,
++			       pdata->gpio_config,
++			       pdata->gpio_config_num);
  	if (ret < 0) {
--		printk(KERN_ERR "asic3: couldn't probe IRQs\n");
-+		dev_err(asic->dev, "Couldn't probe IRQs\n");
- 		goto out_unmap;
- 	}
- 
-@@ -590,11 +589,11 @@ static int asic3_probe(struct platform_d
- 			       pdata->gpio_config,
- 			       pdata->gpio_config_num);
- 	if (ret < 0) {
--		printk(KERN_ERR "GPIO probe failed\n");
-+		dev_err(asic->dev, "GPIO probe failed\n");
+ 		printk(KERN_ERR "GPIO probe failed\n");
  		goto out_irq;
- 	}
+diff -puN include/linux/mfd/asic3.h~asic3-new-gpio-configuration-code include/linux/mfd/asic3.h
+--- a/include/linux/mfd/asic3.h~asic3-new-gpio-configuration-code
++++ a/include/linux/mfd/asic3.h
+@@ -8,7 +8,7 @@
+  * published by the Free Software Foundation.
+  *
+  * Copyright 2001 Compaq Computer Corporation.
+- * Copyright 2007 OpendHand.
++ * Copyright 2007-2008 OpenedHand Ltd.
+  */
  
--	printk(KERN_INFO "ASIC3 Core driver\n");
-+	dev_info(asic->dev, "ASIC3 Core driver\n");
+ #ifndef __ASIC3_H__
+@@ -17,15 +17,8 @@
+ #include <linux/types.h>
  
- 	return 0;
+ struct asic3_platform_data {
+-	struct {
+-		u32 dir;
+-		u32 init;
+-		u32 sleep_mask;
+-		u32 sleep_out;
+-		u32 batt_fault_out;
+-		u32 sleep_conf;
+-		u32 alt_function;
+-	} gpio_a, gpio_b, gpio_c, gpio_d;
++	u16 *gpio_config;
++	unsigned int gpio_config_num;
  
+ 	unsigned int bus_shift;
+ 
+@@ -86,6 +79,27 @@ struct asic3_platform_data {
+ 					  */
+ #define ASIC3_GPIO_Status        0x30    /* R   Pin status */
+ 
++/*
++ * ASIC3 GPIO config
++ *
++ * Bits 0..6   gpio number
++ * Bits 7..13  Alternate function
++ * Bit  14     Direction
++ * Bit  15     Initial value
++ *
++ */
++#define ASIC3_CONFIG_GPIO_PIN(config) ((config) & 0x7f)
++#define ASIC3_CONFIG_GPIO_ALT(config)  (((config) & (0x7f << 7)) >> 7)
++#define ASIC3_CONFIG_GPIO_DIR(config)  ((config & (1 << 14)) >> 14)
++#define ASIC3_CONFIG_GPIO_INIT(config) ((config & (1 << 15)) >> 15)
++#define ASIC3_CONFIG_GPIO(gpio, alt, dir, init) (((gpio) & 0x7f) \
++	| (((alt) & 0x7f) << 7) | (((dir) & 0x1) << 14) \
++	| (((init) & 0x1) << 15))
++#define ASIC3_CONFIG_GPIO_DEFAULT(gpio, dir, init) \
++	ASIC3_CONFIG_GPIO((gpio), 0, (dir), (init))
++#define ASIC3_CONFIG_GPIO_DEFAULT_OUT(gpio, init) \
++	ASIC3_CONFIG_GPIO((gpio), 0, 1, (init))
++
+ #define ASIC3_SPI_Base		      0x0400
+ #define ASIC3_SPI_Control               0x0000
+ #define ASIC3_SPI_TxData                0x0004
 _
 
 Patches currently in -mm which might be from sameo@openedhand.com are
