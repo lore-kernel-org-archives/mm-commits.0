@@ -1,61 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: - fix-hfsplus-oops-on-image-without-extents-fix.patch removed from -mm tree
-Date: Mon, 12 May 2008 13:57:13 -0700
-Message-ID: <200805122057.m4CKvEIN008811@imap1.linux-foundation.org>
+Subject: - rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch removed from -mm tree
+Date: Mon, 12 May 2008 13:57:53 -0700
+Message-ID: <200805122057.m4CKvso6008844@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44999 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54930 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753646AbYELU52 (ORCPT
+	by vger.kernel.org with ESMTP id S1755428AbYELU6g (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 16:57:28 -0400
+	Mon, 12 May 2008 16:58:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, snakebyte@gmx.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.zummo@towertech.it, david-b@pacbell.net, dmitri.vorobiev@gmail.com, macro@linux-mips.org, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix-hfsplus-oops-on-image-without-extents-fix
+     rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix
 has been removed from the -mm tree.  Its filename was
-     fix-hfsplus-oops-on-image-without-extents-fix.patch
+     rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
 
-This patch was dropped because it was folded into fix-hfsplus-oops-on-image-without-extents.patch
+This patch was dropped because it was folded into rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix-hfsplus-oops-on-image-without-extents-fix
+Subject: rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-hrm.
-
-Cc: Eric Sesterhenn <snakebyte@gmx.de>
-Cc: Roman Zippel <zippel@linux-m68k.org>
+Cc: "Maciej W. Rozycki" <macro@linux-mips.org>
+Cc: <stable@kernel.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Dmitri Vorobiev <dmitri.vorobiev@gmail.com>
+Cc: Maciej W. Rozycki <macro@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/inode.c |    2 +-
+ drivers/rtc/rtc-lib.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hfsplus/inode.c~fix-hfsplus-oops-on-image-without-extents-fix fs/hfsplus/inode.c
---- a/fs/hfsplus/inode.c~fix-hfsplus-oops-on-image-without-extents-fix
-+++ a/fs/hfsplus/inode.c
-@@ -65,7 +65,7 @@ static int hfsplus_releasepage(struct pa
- 		BUG();
- 		return 0;
- 	}
--	it (!tree)
-+	if (!tree)
- 		return 0;
- 	if (tree->node_size >= PAGE_CACHE_SIZE) {
- 		nidx = page->index >> (tree->node_size_shift - PAGE_CACHE_SHIFT);
+diff -puN drivers/rtc/rtc-lib.c~rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix drivers/rtc/rtc-lib.c
+--- a/drivers/rtc/rtc-lib.c~rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix
++++ a/drivers/rtc/rtc-lib.c
+@@ -51,7 +51,7 @@ EXPORT_SYMBOL(rtc_year_days);
+  */
+ void rtc_time_to_tm(unsigned long time, struct rtc_time *tm)
+ {
+-	register unsigned int days, month, year;
++	unsigned int days, month, year;
+ 
+ 	days = time / 86400;
+ 	time -= days * 86400;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
 fix-hfsplus-oops-on-image-without-extents.patch
-fix-hfsplus-oops-on-image-without-extents-fix.patch
+rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
 rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
 atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
 memcg-fix-possible-panic-when-config_mm_owner=y-checkpatch-fixes.patch
