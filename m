@@ -1,59 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: - quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch removed from -mm tree
-Date: Mon, 12 May 2008 13:56:45 -0700
-Message-ID: <200805122056.m4CKuj8E008791@imap1.linux-foundation.org>
+Subject: - fix-hfsplus-oops-on-image-without-extents-fix.patch removed from -mm tree
+Date: Mon, 12 May 2008 13:57:13 -0700
+Message-ID: <200805122057.m4CKvEIN008811@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35146 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44999 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751588AbYELU4u (ORCPT
+	by vger.kernel.org with ESMTP id S1753646AbYELU52 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 16:56:50 -0400
+	Mon, 12 May 2008 16:57:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jack@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, snakebyte@gmx.de, zippel@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix
+     fix-hfsplus-oops-on-image-without-extents-fix
 has been removed from the -mm tree.  Its filename was
-     quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
+     fix-hfsplus-oops-on-image-without-extents-fix.patch
 
-This patch was dropped because it was folded into quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
+This patch was dropped because it was folded into fix-hfsplus-oops-on-image-without-extents.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix
+Subject: fix-hfsplus-oops-on-image-without-extents-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fxi tpyo
+hrm.
 
-Cc: Jan Kara <jack@suse.cz>
+Cc: Eric Sesterhenn <snakebyte@gmx.de>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c |    2 +-
+ fs/hfsplus/inode.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dquot.c~quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix fs/dquot.c
---- a/fs/dquot.c~quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix
-+++ a/fs/dquot.c
-@@ -1493,7 +1493,7 @@ int vfs_quota_off(struct super_block *sb
- 	mutex_lock(&dqopt->dqonoff_mutex);
- 
- 	/*
--	 * Skip everything if there's nothing to do. We have to do this becase
-+	 * Skip everything if there's nothing to do. We have to do this because
- 	 * sometimes we are called when fill_super() failed and calling
- 	 * sync_fs() in such cases does no good.
- 	 */
+diff -puN fs/hfsplus/inode.c~fix-hfsplus-oops-on-image-without-extents-fix fs/hfsplus/inode.c
+--- a/fs/hfsplus/inode.c~fix-hfsplus-oops-on-image-without-extents-fix
++++ a/fs/hfsplus/inode.c
+@@ -65,7 +65,7 @@ static int hfsplus_releasepage(struct pa
+ 		BUG();
+ 		return 0;
+ 	}
+-	it (!tree)
++	if (!tree)
+ 		return 0;
+ 	if (tree->node_size >= PAGE_CACHE_SIZE) {
+ 		nidx = page->index >> (tree->node_size_shift - PAGE_CACHE_SHIFT);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
-quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off-fix.patch
+fix-hfsplus-oops-on-image-without-extents.patch
 fix-hfsplus-oops-on-image-without-extents-fix.patch
 rtc-rtc_time_to_tm-use-unsigned-arithmetic-fix.patch
 atmel_lcdfb-fix-pixclok-divider-calculation-checkpatch-fixes.patch
