@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + hfs-convert-extents_lock-in-a-mutex.patch added to -mm tree
-Date: Mon, 12 May 2008 16:30:24 -0700
-Message-ID: <200805122330.m4CNUOEn014628@imap1.linux-foundation.org>
+Subject: + hfs-convert-bitmap_lock-in-a-mutex.patch added to -mm tree
+Date: Mon, 12 May 2008 16:30:22 -0700
+Message-ID: <200805122330.m4CNUMNF014623@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44302 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49347 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754161AbYELXal (ORCPT
+	by vger.kernel.org with ESMTP id S1754311AbYELXam (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 19:30:41 -0400
+	Mon, 12 May 2008 19:30:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: matthias@kaehlcke.net, zippel@linux-m68k.org
 
 
 The patch titled
-     hfs: convert extents_lock in a mutex
+     hfs: convert bitmap_lock in a mutex
 has been added to the -mm tree.  Its filename is
-     hfs-convert-extents_lock-in-a-mutex.patch
+     hfs-convert-bitmap_lock-in-a-mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,10 +34,10 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: hfs: convert extents_lock in a mutex
+Subject: hfs: convert bitmap_lock in a mutex
 From: Matthias Kaehlcke <matthias@kaehlcke.net>
 
-Apple Macintosh file system: The semaphore extens_lock is used as a mutex.
+Apple Macintosh file system: The semaphore bitmap_lock is used as a mutex.
 Convert it to the mutex API
 
 Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
@@ -45,116 +45,82 @@ Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/btree.c  |    2 +-
- fs/hfs/extent.c |   14 +++++++-------
- fs/hfs/hfs_fs.h |    2 +-
- fs/hfs/inode.c  |    4 ++--
- 4 files changed, 11 insertions(+), 11 deletions(-)
+ fs/hfs/bitmap.c |    8 ++++----
+ fs/hfs/hfs_fs.h |    3 ++-
+ fs/hfs/super.c  |    2 +-
+ 3 files changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN fs/hfs/btree.c~hfs-convert-extents_lock-in-a-mutex fs/hfs/btree.c
---- a/fs/hfs/btree.c~hfs-convert-extents_lock-in-a-mutex
-+++ a/fs/hfs/btree.c
-@@ -40,7 +40,7 @@ struct hfs_btree *hfs_btree_open(struct 
- 	{
- 	struct hfs_mdb *mdb = HFS_SB(sb)->mdb;
- 	HFS_I(tree->inode)->flags = 0;
--	init_MUTEX(&HFS_I(tree->inode)->extents_lock);
-+	mutex_init(&HFS_I(tree->inode)->extents_lock);
- 	switch (id) {
- 	case HFS_EXT_CNID:
- 		hfs_inode_read_fork(tree->inode, mdb->drXTExtRec, mdb->drXTFlSize,
-diff -puN fs/hfs/extent.c~hfs-convert-extents_lock-in-a-mutex fs/hfs/extent.c
---- a/fs/hfs/extent.c~hfs-convert-extents_lock-in-a-mutex
-+++ a/fs/hfs/extent.c
-@@ -343,16 +343,16 @@ int hfs_get_block(struct inode *inode, s
- 		goto done;
- 	}
+diff -puN fs/hfs/bitmap.c~hfs-convert-bitmap_lock-in-a-mutex fs/hfs/bitmap.c
+--- a/fs/hfs/bitmap.c~hfs-convert-bitmap_lock-in-a-mutex
++++ a/fs/hfs/bitmap.c
+@@ -145,7 +145,7 @@ u32 hfs_vbm_search_free(struct super_blo
+ 	if (!*num_bits)
+ 		return 0;
  
--	down(&HFS_I(inode)->extents_lock);
-+	mutex_lock(&HFS_I(inode)->extents_lock);
- 	res = hfs_ext_read_extent(inode, ablock);
- 	if (!res)
- 		dblock = hfs_ext_find_block(HFS_I(inode)->cached_extents,
- 					    ablock - HFS_I(inode)->cached_start);
- 	else {
--		up(&HFS_I(inode)->extents_lock);
-+		mutex_unlock(&HFS_I(inode)->extents_lock);
- 		return -EIO;
- 	}
--	up(&HFS_I(inode)->extents_lock);
-+	mutex_unlock(&HFS_I(inode)->extents_lock);
+-	down(&HFS_SB(sb)->bitmap_lock);
++	mutex_lock(&HFS_SB(sb)->bitmap_lock);
+ 	bitmap = HFS_SB(sb)->bitmap;
  
- done:
- 	map_bh(bh_result, sb, HFS_SB(sb)->fs_start +
-@@ -375,7 +375,7 @@ int hfs_extend_file(struct inode *inode)
- 	u32 start, len, goal;
- 	int res;
+ 	pos = hfs_find_set_zero_bits(bitmap, HFS_SB(sb)->fs_ablocks, goal, num_bits);
+@@ -162,7 +162,7 @@ u32 hfs_vbm_search_free(struct super_blo
+ 	HFS_SB(sb)->free_ablocks -= *num_bits;
+ 	hfs_bitmap_dirty(sb);
+ out:
+-	up(&HFS_SB(sb)->bitmap_lock);
++	mutex_unlock(&HFS_SB(sb)->bitmap_lock);
+ 	return pos;
+ }
  
--	down(&HFS_I(inode)->extents_lock);
-+	mutex_lock(&HFS_I(inode)->extents_lock);
- 	if (HFS_I(inode)->alloc_blocks == HFS_I(inode)->first_blocks)
- 		goal = hfs_ext_lastblock(HFS_I(inode)->first_extents);
- 	else {
-@@ -425,7 +425,7 @@ int hfs_extend_file(struct inode *inode)
- 			goto insert_extent;
+@@ -205,7 +205,7 @@ int hfs_clear_vbm_bits(struct super_bloc
+ 	if ((start + count) > HFS_SB(sb)->fs_ablocks)
+ 		return -2;
+ 
+-	down(&HFS_SB(sb)->bitmap_lock);
++	mutex_lock(&HFS_SB(sb)->bitmap_lock);
+ 	/* bitmap is always on a 32-bit boundary */
+ 	curr = HFS_SB(sb)->bitmap + (start / 32);
+ 	len = count;
+@@ -236,7 +236,7 @@ int hfs_clear_vbm_bits(struct super_bloc
  	}
  out:
--	up(&HFS_I(inode)->extents_lock);
-+	mutex_unlock(&HFS_I(inode)->extents_lock);
- 	if (!res) {
- 		HFS_I(inode)->alloc_blocks += len;
- 		mark_inode_dirty(inode);
-@@ -487,7 +487,7 @@ void hfs_file_truncate(struct inode *ino
- 	if (blk_cnt == alloc_cnt)
- 		goto out;
+ 	HFS_SB(sb)->free_ablocks += len;
+-	up(&HFS_SB(sb)->bitmap_lock);
++	mutex_unlock(&HFS_SB(sb)->bitmap_lock);
+ 	hfs_bitmap_dirty(sb);
  
--	down(&HFS_I(inode)->extents_lock);
-+	mutex_lock(&HFS_I(inode)->extents_lock);
- 	hfs_find_init(HFS_SB(sb)->ext_tree, &fd);
- 	while (1) {
- 		if (alloc_cnt == HFS_I(inode)->first_blocks) {
-@@ -514,7 +514,7 @@ void hfs_file_truncate(struct inode *ino
- 		hfs_brec_remove(&fd);
- 	}
- 	hfs_find_exit(&fd);
--	up(&HFS_I(inode)->extents_lock);
-+	mutex_unlock(&HFS_I(inode)->extents_lock);
- 
- 	HFS_I(inode)->alloc_blocks = blk_cnt;
- out:
-diff -puN fs/hfs/hfs_fs.h~hfs-convert-extents_lock-in-a-mutex fs/hfs/hfs_fs.h
---- a/fs/hfs/hfs_fs.h~hfs-convert-extents_lock-in-a-mutex
+ 	return 0;
+diff -puN fs/hfs/hfs_fs.h~hfs-convert-bitmap_lock-in-a-mutex fs/hfs/hfs_fs.h
+--- a/fs/hfs/hfs_fs.h~hfs-convert-bitmap_lock-in-a-mutex
 +++ a/fs/hfs/hfs_fs.h
-@@ -54,7 +54,7 @@ struct hfs_inode_info {
- 	struct list_head open_dir_list;
- 	struct inode *rsrc_inode;
+@@ -11,6 +11,7 @@
  
--	struct semaphore extents_lock;
-+	struct mutex extents_lock;
+ #include <linux/slab.h>
+ #include <linux/types.h>
++#include <linux/mutex.h>
+ #include <linux/buffer_head.h>
+ #include <linux/fs.h>
  
- 	u16 alloc_blocks, clump_blocks;
- 	sector_t fs_blocks;
-diff -puN fs/hfs/inode.c~hfs-convert-extents_lock-in-a-mutex fs/hfs/inode.c
---- a/fs/hfs/inode.c~hfs-convert-extents_lock-in-a-mutex
-+++ a/fs/hfs/inode.c
-@@ -150,7 +150,7 @@ struct inode *hfs_new_inode(struct inode
- 	if (!inode)
- 		return NULL;
+@@ -139,7 +140,7 @@ struct hfs_sb_info {
  
--	init_MUTEX(&HFS_I(inode)->extents_lock);
-+	mutex_init(&HFS_I(inode)->extents_lock);
- 	INIT_LIST_HEAD(&HFS_I(inode)->open_dir_list);
- 	hfs_cat_build_key(sb, (btree_key *)&HFS_I(inode)->cat_key, dir->i_ino, name);
- 	inode->i_ino = HFS_SB(sb)->next_id++;
-@@ -281,7 +281,7 @@ static int hfs_read_inode(struct inode *
+ 	struct nls_table *nls_io, *nls_disk;
  
- 	HFS_I(inode)->flags = 0;
- 	HFS_I(inode)->rsrc_inode = NULL;
--	init_MUTEX(&HFS_I(inode)->extents_lock);
-+	mutex_init(&HFS_I(inode)->extents_lock);
- 	INIT_LIST_HEAD(&HFS_I(inode)->open_dir_list);
+-	struct semaphore bitmap_lock;
++	struct mutex bitmap_lock;
  
- 	/* Initialize the inode */
+ 	unsigned long flags;
+ 
+diff -puN fs/hfs/super.c~hfs-convert-bitmap_lock-in-a-mutex fs/hfs/super.c
+--- a/fs/hfs/super.c~hfs-convert-bitmap_lock-in-a-mutex
++++ a/fs/hfs/super.c
+@@ -372,7 +372,7 @@ static int hfs_fill_super(struct super_b
+ 
+ 	sb->s_op = &hfs_super_operations;
+ 	sb->s_flags |= MS_NODIRATIME;
+-	init_MUTEX(&sbi->bitmap_lock);
++	mutex_init(&sbi->bitmap_lock);
+ 
+ 	res = hfs_mdb_get(sb);
+ 	if (res) {
 _
 
 Patches currently in -mm which might be from matthias@kaehlcke.net are
