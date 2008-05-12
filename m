@@ -1,88 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: + memory_hotplug-always-initialize-pageblock-bitmap.patch added to -mm tree
-Date: Mon, 12 May 2008 14:51:50 -0700
-Message-ID: <200805122151.m4CLpoAI011020@imap1.linux-foundation.org>
+Subject: - i2c-cs8427c-use-put_unaligned-helper.patch removed from -mm tree
+Date: Mon, 12 May 2008 14:53:24 -0700
+Message-ID: <200805122153.m4CLrOPT011067@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51158 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54877 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750889AbYELVxh (ORCPT
+	by vger.kernel.org with ESMTP id S1752365AbYELVyB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 17:53:37 -0400
+	Mon, 12 May 2008 17:54:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, apw@shadowen.org, gerald.schaefer@de.ibm.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, y-goto@jp.fujitsu.com
+To: harvey.harrison@gmail.com, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     memory_hotplug: always initialize pageblock bitmap.
-has been added to the -mm tree.  Its filename is
-     memory_hotplug-always-initialize-pageblock-bitmap.patch
+     i2c: cs8427.c use put_unaligned helper
+has been removed from the -mm tree.  Its filename was
+     i2c-cs8427c-use-put_unaligned-helper.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory_hotplug: always initialize pageblock bitmap.
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: i2c: cs8427.c use put_unaligned helper
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Trying to online a new memory section that was added via memory hotplug
-sometimes results in crashes when the new pages are added via __free_page. 
-Reason for that is that the pageblock bitmap isn't initialized and hence
-contains random stuff.  That means that get_pageblock_migratetype() returns
-also random stuff and therefore
-
-	list_add(&page->lru,
-		 &zone->free_area[order].free_list[migratetype]);
-
-in __free_one_page() tries to do a list_add to something that isn't even
-necessarily a list.
-
-This is only an issue for memory sections that get added after boot time since
-all previously present memory sections allocate their pageblock bitmaps via
-the bootmem allocator which in turn initializes just everything it returns.
-
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ sound/i2c/cs8427.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/sparse.c~memory_hotplug-always-initialize-pageblock-bitmap mm/sparse.c
---- a/mm/sparse.c~memory_hotplug-always-initialize-pageblock-bitmap
-+++ a/mm/sparse.c
-@@ -244,7 +244,7 @@ unsigned long usemap_size(void)
- #ifdef CONFIG_MEMORY_HOTPLUG
- static unsigned long *__kmalloc_section_usemap(void)
- {
--	return kmalloc(usemap_size(), GFP_KERNEL);
-+	return kzalloc(usemap_size(), GFP_KERNEL);
- }
- #endif /* CONFIG_MEMORY_HOTPLUG */
- 
+diff -puN sound/i2c/cs8427.c~i2c-cs8427c-use-put_unaligned-helper sound/i2c/cs8427.c
+--- a/sound/i2c/cs8427.c~i2c-cs8427c-use-put_unaligned-helper
++++ a/sound/i2c/cs8427.c
+@@ -23,6 +23,7 @@
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
++#include <asm/unaligned.h>
+ #include <sound/core.h>
+ #include <sound/control.h>
+ #include <sound/pcm.h>
+@@ -264,10 +265,7 @@ int snd_cs8427_create(struct snd_i2c_bus
+ 		goto __fail;
+ 	}
+ 	/* write default channel status bytes */
+-	buf[0] = ((unsigned char)(SNDRV_PCM_DEFAULT_CON_SPDIF >> 0));
+-	buf[1] = ((unsigned char)(SNDRV_PCM_DEFAULT_CON_SPDIF >> 8));
+-	buf[2] = ((unsigned char)(SNDRV_PCM_DEFAULT_CON_SPDIF >> 16));
+-	buf[3] = ((unsigned char)(SNDRV_PCM_DEFAULT_CON_SPDIF >> 24));
++	put_unaligned_le32(SNDRV_PCM_DEFAULT_CON_SPDIF, buf);
+ 	memset(buf + 4, 0, 24 - 4);
+ 	if (snd_cs8427_send_corudata(device, 0, buf, 24) < 0)
+ 		goto __fail;
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
-origin.patch
+mmc-make-one-bit-signed-bitfields-unsigned.patch
 linux-next.patch
-memory-hotplug-memmap_init_zone-called-twice.patch
-memory_hotplug-always-initialize-pageblock-bitmap.patch
+kgdb-use-put_unaligned_be32-helper.patch
+cifs-remove-global_extern-macro.patch
+media-use-get_unaligned_-helpers.patch
+i2c-cs8427c-use-put_unaligned-helper.patch
+hid-use-get-put_unaligned_-helpers.patch
+git-input.patch
+ata-remove-fit-macro.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-get_unaligned_-helpers.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+block-use-get_unaligned_-helpers.patch
+git-watchdog.patch
+mac80211-michaelc-use-kernel-provided-infrastructure.patch
+mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
+mac80211-tkipc-use-kernel-provided-infrastructure.patch
+mac80211-add-const-remove-unused-function-make-one-function-static.patch
+mac80211-add-a-struct-to-hold-tkip-context.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+wireless-use-get-put_unaligned_-helpers.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+lib-add-ascii-hex-helper-functions.patch
+lib-add-ascii-hex-helper-functions-update.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+video-fix-integer-as-null-pointer-warnings.patch
+aacraid-linitc-make-aac_show_serial_number-static.patch
 
