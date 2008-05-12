@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + i2c-use-class_for_each_device.patch added to -mm tree
-Date: Mon, 12 May 2008 14:53:49 -0700
-Message-ID: <200805122153.m4CLrnT6011070@imap1.linux-foundation.org>
+Subject: + struct-class-sem-to-mutex-converting.patch added to -mm tree
+Date: Mon, 12 May 2008 14:54:52 -0700
+Message-ID: <200805122154.m4CLsqNs011148@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37158 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36022 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753107AbYELVyV (ORCPT
+	by vger.kernel.org with ESMTP id S1753154AbYELVy4 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 17:54:21 -0400
+	Mon, 12 May 2008 17:54:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hidave.darkstar@gmail.com
+Cc: hidave.darkstar@gmail.com, greg@kroah.com, kay.sievers@vrfy.org
 
 
 The patch titled
-     i2c: use class_for_each_device
+     driver core: struct class sem to mutex conversion
 has been added to the -mm tree.  Its filename is
-     i2c-use-class_for_each_device.patch
+     struct-class-sem-to-mutex-converting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,165 +34,194 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: i2c: use class_for_each_device
+Subject: driver core: struct class sem to mutex conversion
 From: Dave Young <hidave.darkstar@gmail.com>
 
-Use class_for_each_device for iteration.
+The class_device is already removed, so do the class->sem to mutex conversion.
 
 Signed-off-by: Dave Young <hidave.darkstar@gmail.com>
+Cc: Greg KH <greg@kroah.com>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/i2c-core.c |   96 +++++++++++++++++++++------------------
- 1 file changed, 52 insertions(+), 44 deletions(-)
+ drivers/base/class.c   |   22 +++++++++++-----------
+ drivers/base/core.c    |    9 ++++-----
+ include/linux/device.h |    3 ++-
+ 3 files changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN drivers/i2c/i2c-core.c~i2c-use-class_for_each_device drivers/i2c/i2c-core.c
---- a/drivers/i2c/i2c-core.c~i2c-use-class_for_each_device
-+++ a/drivers/i2c/i2c-core.c
-@@ -35,7 +35,6 @@
- #include <linux/completion.h>
- #include <linux/hardirq.h>
- #include <linux/irqflags.h>
--#include <linux/semaphore.h>
- #include <asm/uaccess.h>
+diff -puN drivers/base/class.c~struct-class-sem-to-mutex-converting drivers/base/class.c
+--- a/drivers/base/class.c~struct-class-sem-to-mutex-converting
++++ a/drivers/base/class.c
+@@ -144,7 +144,7 @@ int class_register(struct class *cls)
+ 	INIT_LIST_HEAD(&cls->devices);
+ 	INIT_LIST_HEAD(&cls->interfaces);
+ 	kset_init(&cls->class_dirs);
+-	init_MUTEX(&cls->sem);
++	mutex_init(&cls->mutex);
+ 	error = kobject_set_name(&cls->subsys.kobj, "%s", cls->name);
+ 	if (error)
+ 		return error;
+@@ -266,7 +266,7 @@ char *make_class_name(const char *name, 
+  * We check the return of @fn each time. If it returns anything
+  * other than 0, we break out and return that value.
+  *
+- * Note, we hold class->sem in this function, so it can not be
++ * Note, we hold class->mutex in this function, so it can not be
+  * re-acquired in @fn, otherwise it will self-deadlocking. For
+  * example, calls to add or remove class members would be verboten.
+  */
+@@ -278,7 +278,7 @@ int class_for_each_device(struct class *
  
- #include "i2c-core.h"
-@@ -657,6 +656,16 @@ EXPORT_SYMBOL(i2c_del_adapter);
- 
- 
- /* ------------------------------------------------------------------------- */
-+static int __attach_adapter(struct device *dev, void *data)
-+{
-+	struct i2c_adapter *adapter;
-+	struct i2c_driver *driver = data;
-+
-+	adapter = container_of(dev, struct i2c_adapter, dev);
-+	driver->attach_adapter(adapter);
-+
-+	return 0;
-+}
- 
- /*
-  * An i2c_driver is used with one or more i2c_client (device) nodes to access
-@@ -698,21 +707,52 @@ int i2c_register_driver(struct module *o
- 	pr_debug("i2c-core: driver [%s] registered\n", driver->driver.name);
- 
- 	/* legacy drivers scan i2c busses directly */
--	if (driver->attach_adapter) {
--		struct i2c_adapter *adapter;
-+	if (driver->attach_adapter)
-+		class_for_each_device(&i2c_adapter_class, driver,
-+					__attach_adapter);
-+
-+	mutex_unlock(&core_lock);
-+	return 0;
-+}
-+EXPORT_SYMBOL(i2c_register_driver);
-+
-+static int __detach_adapter(struct device *dev, void *data)
-+{
-+	struct list_head   *item2, *_n;
-+	struct i2c_client  *client;
-+	struct i2c_adapter *adap;
-+	struct i2c_driver *driver = data;
- 
--		down(&i2c_adapter_class.sem);
--		list_for_each_entry(adapter, &i2c_adapter_class.devices,
--				    dev.node) {
--			driver->attach_adapter(adapter);
-+	/* Have a look at each adapter, if clients of this driver
-+	 * are still attached. If so, detach them to be able to
-+	 * kill the driver afterwards.
-+	 */
-+	adap = container_of(dev, struct i2c_adapter, dev);
-+	if (driver->detach_adapter) {
-+		if (driver->attach_adapter(adap))
-+			dev_err(&adap->dev, "detach_adapter failed "
-+					"for driver [%s]\n",
-+					driver->driver.name);
-+	} else {
-+		list_for_each_safe(item2, _n, &adap->clients) {
-+			client = list_entry(item2, struct i2c_client,
-+					list);
-+			if (client->driver != driver)
-+				continue;
-+			dev_dbg(&adap->dev, "detaching client [%s] "
-+				"at 0x%02x\n", client->name,
-+				client->addr);
-+			if (driver->detach_client(client)) {
-+				dev_err(&adap->dev, "detach_client "
-+					"failed for client [%s] at "
-+					"0x%02x\n", client->name,
-+					client->addr);
-+			}
- 		}
--		up(&i2c_adapter_class.sem);
+ 	if (!class)
+ 		return -EINVAL;
+-	down(&class->sem);
++	mutex_lock(&class->mutex);
+ 	list_for_each_entry(dev, &class->devices, node) {
+ 		dev = get_device(dev);
+ 		if (dev) {
+@@ -289,7 +289,7 @@ int class_for_each_device(struct class *
+ 		if (error)
+ 			break;
  	}
+-	up(&class->sem);
++	mutex_unlock(&class->mutex);
  
--	mutex_unlock(&core_lock);
+ 	return error;
+ }
+@@ -311,7 +311,7 @@ EXPORT_SYMBOL_GPL(class_for_each_device)
+  *
+  * Note, you will need to drop the reference with put_device() after use.
+  *
+- * We hold class->sem in this function, so it can not be
++ * We hold class->mutex in this function, so it can not be
+  * re-acquired in @match, otherwise it will self-deadlocking. For
+  * example, calls to add or remove class members would be verboten.
+  */
+@@ -324,7 +324,7 @@ struct device *class_find_device(struct 
+ 	if (!class)
+ 		return NULL;
+ 
+-	down(&class->sem);
++	mutex_lock(&class->mutex);
+ 	list_for_each_entry(dev, &class->devices, node) {
+ 		dev = get_device(dev);
+ 		if (dev) {
+@@ -336,7 +336,7 @@ struct device *class_find_device(struct 
+ 		} else
+ 			break;
+ 	}
+-	up(&class->sem);
++	mutex_unlock(&class->mutex);
+ 
+ 	return found ? dev : NULL;
+ }
+@@ -354,13 +354,13 @@ int class_interface_register(struct clas
+ 	if (!parent)
+ 		return -EINVAL;
+ 
+-	down(&parent->sem);
++	mutex_lock(&parent->mutex);
+ 	list_add_tail(&class_intf->node, &parent->interfaces);
+ 	if (class_intf->add_dev) {
+ 		list_for_each_entry(dev, &parent->devices, node)
+ 			class_intf->add_dev(dev, class_intf);
+ 	}
+-	up(&parent->sem);
++	mutex_unlock(&parent->mutex);
+ 
  	return 0;
  }
--EXPORT_SYMBOL(i2c_register_driver);
+@@ -373,13 +373,13 @@ void class_interface_unregister(struct c
+ 	if (!parent)
+ 		return;
  
- /**
-  * i2c_del_driver - unregister I2C driver
-@@ -721,46 +761,14 @@ EXPORT_SYMBOL(i2c_register_driver);
-  */
- void i2c_del_driver(struct i2c_driver *driver)
- {
--	struct list_head   *item2, *_n;
--	struct i2c_client  *client;
--	struct i2c_adapter *adap;
--
- 	mutex_lock(&core_lock);
+-	down(&parent->sem);
++	mutex_lock(&parent->mutex);
+ 	list_del_init(&class_intf->node);
+ 	if (class_intf->remove_dev) {
+ 		list_for_each_entry(dev, &parent->devices, node)
+ 			class_intf->remove_dev(dev, class_intf);
+ 	}
+-	up(&parent->sem);
++	mutex_unlock(&parent->mutex);
  
- 	/* new-style driver? */
- 	if (is_newstyle_driver(driver))
- 		goto unregister;
+ 	class_put(parent);
+ }
+diff -puN drivers/base/core.c~struct-class-sem-to-mutex-converting drivers/base/core.c
+--- a/drivers/base/core.c~struct-class-sem-to-mutex-converting
++++ a/drivers/base/core.c
+@@ -20,7 +20,6 @@
+ #include <linux/notifier.h>
+ #include <linux/genhd.h>
+ #include <linux/kallsyms.h>
+-#include <linux/semaphore.h>
  
--	/* Have a look at each adapter, if clients of this driver are still
--	 * attached. If so, detach them to be able to kill the driver
--	 * afterwards.
--	 */
--	down(&i2c_adapter_class.sem);
--	list_for_each_entry(adap, &i2c_adapter_class.devices, dev.node) {
--		if (driver->detach_adapter) {
--			if (driver->detach_adapter(adap)) {
--				dev_err(&adap->dev, "detach_adapter failed "
--					"for driver [%s]\n",
--					driver->driver.name);
--			}
--		} else {
--			list_for_each_safe(item2, _n, &adap->clients) {
--				client = list_entry(item2, struct i2c_client, list);
--				if (client->driver != driver)
--					continue;
--				dev_dbg(&adap->dev, "detaching client [%s] "
--					"at 0x%02x\n", client->name,
--					client->addr);
--				if (driver->detach_client(client)) {
--					dev_err(&adap->dev, "detach_client "
--						"failed for client [%s] at "
--						"0x%02x\n", client->name,
--						client->addr);
--				}
--			}
--		}
--	}
--	up(&i2c_adapter_class.sem);
-+	class_for_each_device(&i2c_adapter_class, driver,
-+				__detach_adapter);
+ #include "base.h"
+ #include "power/power.h"
+@@ -942,7 +941,7 @@ int device_add(struct device *dev)
+ 		klist_add_tail(&dev->knode_parent, &parent->klist_children);
  
-  unregister:
- 	driver_unregister(&driver->driver);
+ 	if (dev->class) {
+-		down(&dev->class->sem);
++		mutex_lock(&dev->class->mutex);
+ 		/* tie the class to the device */
+ 		list_add_tail(&dev->node, &dev->class->devices);
+ 
+@@ -950,7 +949,7 @@ int device_add(struct device *dev)
+ 		list_for_each_entry(class_intf, &dev->class->interfaces, node)
+ 			if (class_intf->add_dev)
+ 				class_intf->add_dev(dev, class_intf);
+-		up(&dev->class->sem);
++		mutex_unlock(&dev->class->mutex);
+ 	}
+  Done:
+ 	put_device(dev);
+@@ -1052,14 +1051,14 @@ void device_del(struct device *dev)
+ 	if (dev->class) {
+ 		device_remove_class_symlinks(dev);
+ 
+-		down(&dev->class->sem);
++		mutex_lock(&dev->class->mutex);
+ 		/* notify any interfaces that the device is now gone */
+ 		list_for_each_entry(class_intf, &dev->class->interfaces, node)
+ 			if (class_intf->remove_dev)
+ 				class_intf->remove_dev(dev, class_intf);
+ 		/* remove the device from the class list */
+ 		list_del_init(&dev->node);
+-		up(&dev->class->sem);
++		mutex_unlock(&dev->class->mutex);
+ 	}
+ 	device_remove_file(dev, &uevent_attr);
+ 	device_remove_attrs(dev);
+diff -puN include/linux/device.h~struct-class-sem-to-mutex-converting include/linux/device.h
+--- a/include/linux/device.h~struct-class-sem-to-mutex-converting
++++ a/include/linux/device.h
+@@ -20,6 +20,7 @@
+ #include <linux/types.h>
+ #include <linux/module.h>
+ #include <linux/pm.h>
++#include <linux/mutex.h>
+ #include <linux/semaphore.h>
+ #include <asm/atomic.h>
+ #include <asm/device.h>
+@@ -186,7 +187,7 @@ struct class {
+ 	struct list_head	devices;
+ 	struct list_head	interfaces;
+ 	struct kset		class_dirs;
+-	struct semaphore	sem; /* locks children, devices, interfaces */
++	struct mutex		mutex; /* locks devices, interfaces */
+ 	struct class_attribute		*class_attrs;
+ 	struct device_attribute		*dev_attrs;
+ 	struct kobject			*dev_kobj;
 _
 
 Patches currently in -mm which might be from hidave.darkstar@gmail.com are
 
+struct-class-sem-to-mutex-converting.patch
+struct-class-remove-children-list.patch
 i2c-use-class_for_each_device.patch
 add-time_is_after_jiffies-and-others-which-compare-with-jiffies.patch
 printk-ratelimiting-rewrite.patch
 printk-ratelimiting-rewrite-fix.patch
-struct-class-sem-to-mutex-converting.patch
-struct-class-remove-children-list.patch
 
