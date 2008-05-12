@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + asic3-new-gpio-configuration-code.patch added to -mm tree
-Date: Mon, 12 May 2008 16:25:02 -0700
-Message-ID: <200805122325.m4CNP2g1014435@imap1.linux-foundation.org>
+Subject: + hfs-convert-extents_lock-in-a-mutex.patch added to -mm tree
+Date: Mon, 12 May 2008 16:30:24 -0700
+Message-ID: <200805122330.m4CNUOEn014628@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43144 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44302 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756611AbYELXZS (ORCPT
+	by vger.kernel.org with ESMTP id S1754161AbYELXal (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 19:25:18 -0400
+	Mon, 12 May 2008 19:30:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: sameo@openedhand.com, david-b@pacbell.net
+Cc: matthias@kaehlcke.net, zippel@linux-m68k.org
 
 
 The patch titled
-     asic3: new gpio configuration code
+     hfs: convert extents_lock in a mutex
 has been added to the -mm tree.  Its filename is
-     asic3-new-gpio-configuration-code.patch
+     hfs-convert-extents_lock-in-a-mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,212 +34,138 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: asic3: new gpio configuration code
-From: Samuel Ortiz <sameo@openedhand.com>
+Subject: hfs: convert extents_lock in a mutex
+From: Matthias Kaehlcke <matthias@kaehlcke.net>
 
-The ASIC3 GPIO configuration code is a bit obscure and hardly readable. 
-This patch changes it so that it is now more readable and understandable,
-by being more explicit.
+Apple Macintosh file system: The semaphore extens_lock is used as a mutex.
+Convert it to the mutex API
 
-Signed-off-by: Samuel Ortiz <sameo@openedhand.com>
-Cc: David Brownell <david-b@pacbell.net>
+Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
+Cc: Roman Zippel <zippel@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mfd/asic3.c       |   99 +++++++++++++++---------------------
- include/linux/mfd/asic3.h |   34 ++++++++----
- 2 files changed, 67 insertions(+), 66 deletions(-)
+ fs/hfs/btree.c  |    2 +-
+ fs/hfs/extent.c |   14 +++++++-------
+ fs/hfs/hfs_fs.h |    2 +-
+ fs/hfs/inode.c  |    4 ++--
+ 4 files changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN drivers/mfd/asic3.c~asic3-new-gpio-configuration-code drivers/mfd/asic3.c
---- a/drivers/mfd/asic3.c~asic3-new-gpio-configuration-code
-+++ a/drivers/mfd/asic3.c
-@@ -468,69 +468,54 @@ static void asic3_gpio_set(struct gpio_c
- 	return;
- }
- 
--static inline u32 asic3_get_gpio(struct asic3 *asic, unsigned int base,
--				 unsigned int function)
-+static int asic3_gpio_probe(struct platform_device *pdev,
-+			    u16 *gpio_config, int num)
- {
--	return asic3_read_register(asic, base + function);
--}
--
--static void asic3_set_gpio(struct asic3 *asic, unsigned int base,
--			   unsigned int function, u32 bits, u32 val)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&asic->lock, flags);
--	val |= (asic3_read_register(asic, base + function) & ~bits);
--
--	asic3_write_register(asic, base + function, val);
--	spin_unlock_irqrestore(&asic->lock, flags);
--}
--
--#define asic3_set_gpio_a(asic, fn, bits, val) \
--	asic3_set_gpio(asic, ASIC3_GPIO_A_Base, ASIC3_GPIO_##fn, bits, val)
--#define asic3_set_gpio_b(asic, fn, bits, val) \
--	asic3_set_gpio(asic, ASIC3_GPIO_B_Base, ASIC3_GPIO_##fn, bits, val)
--#define asic3_set_gpio_c(asic, fn, bits, val) \
--	asic3_set_gpio(asic, ASIC3_GPIO_C_Base, ASIC3_GPIO_##fn, bits, val)
--#define asic3_set_gpio_d(asic, fn, bits, val) \
--	asic3_set_gpio(asic, ASIC3_GPIO_D_Base, ASIC3_GPIO_##fn, bits, val)
--
--#define asic3_set_gpio_banks(asic, fn, bits, pdata, field) 		  \
--	do {								  \
--	     asic3_set_gpio_a((asic), fn, (bits), (pdata)->gpio_a.field); \
--	     asic3_set_gpio_b((asic), fn, (bits), (pdata)->gpio_b.field); \
--	     asic3_set_gpio_c((asic), fn, (bits), (pdata)->gpio_c.field); \
--	     asic3_set_gpio_d((asic), fn, (bits), (pdata)->gpio_d.field); \
--	} while (0)
--
--
--static int asic3_gpio_probe(struct platform_device *pdev)
--{
--	struct asic3_platform_data *pdata = pdev->dev.platform_data;
- 	struct asic3 *asic = platform_get_drvdata(pdev);
-+	u16 alt_reg[ASIC3_NUM_GPIO_BANKS];
-+	u16 out_reg[ASIC3_NUM_GPIO_BANKS];
-+	u16 dir_reg[ASIC3_NUM_GPIO_BANKS];
-+	int i;
-+
-+	memset(alt_reg, 0, ASIC3_NUM_GPIO_BANKS);
-+	memset(out_reg, 0, ASIC3_NUM_GPIO_BANKS);
-+	memset(dir_reg, 0, ASIC3_NUM_GPIO_BANKS);
- 
-+	/* Enable all GPIOs */
- 	asic3_write_register(asic, ASIC3_GPIO_OFFSET(A, Mask), 0xffff);
- 	asic3_write_register(asic, ASIC3_GPIO_OFFSET(B, Mask), 0xffff);
- 	asic3_write_register(asic, ASIC3_GPIO_OFFSET(C, Mask), 0xffff);
- 	asic3_write_register(asic, ASIC3_GPIO_OFFSET(D, Mask), 0xffff);
- 
--	asic3_set_gpio_a(asic, SleepMask, 0xffff, 0xffff);
--	asic3_set_gpio_b(asic, SleepMask, 0xffff, 0xffff);
--	asic3_set_gpio_c(asic, SleepMask, 0xffff, 0xffff);
--	asic3_set_gpio_d(asic, SleepMask, 0xffff, 0xffff);
--
--	if (pdata) {
--		asic3_set_gpio_banks(asic, Out, 0xffff, pdata, init);
--		asic3_set_gpio_banks(asic, Direction, 0xffff, pdata, dir);
--		asic3_set_gpio_banks(asic, SleepMask, 0xffff, pdata,
--				     sleep_mask);
--		asic3_set_gpio_banks(asic, SleepOut, 0xffff, pdata, sleep_out);
--		asic3_set_gpio_banks(asic, BattFaultOut, 0xffff, pdata,
--				     batt_fault_out);
--		asic3_set_gpio_banks(asic, SleepConf, 0xffff, pdata,
--				     sleep_conf);
--		asic3_set_gpio_banks(asic, AltFunction, 0xffff, pdata,
--				     alt_function);
-+	for (i = 0; i < num; i++) {
-+		u8 alt, pin, dir, init, bank_num, bit_num;
-+		u16 config = gpio_config[i];
-+
-+		pin = ASIC3_CONFIG_GPIO_PIN(config);
-+		alt = ASIC3_CONFIG_GPIO_ALT(config);
-+		dir = ASIC3_CONFIG_GPIO_DIR(config);
-+		init = ASIC3_CONFIG_GPIO_INIT(config);
-+
-+		bank_num = ASIC3_GPIO_TO_BANK(pin);
-+		bit_num = ASIC3_GPIO_TO_BIT(pin);
-+
-+		alt_reg[bank_num] |= (alt << bit_num);
-+		out_reg[bank_num] |= (init << bit_num);
-+		dir_reg[bank_num] |= (dir << bit_num);
-+	}
-+
-+	for (i = 0; i < ASIC3_NUM_GPIO_BANKS; i++) {
-+		asic3_write_register(asic,
-+				     ASIC3_BANK_TO_BASE(i) +
-+				     ASIC3_GPIO_Direction,
-+				     dir_reg[i]);
-+		asic3_write_register(asic,
-+				     ASIC3_BANK_TO_BASE(i) + ASIC3_GPIO_Out,
-+				     out_reg[i]);
-+		asic3_write_register(asic,
-+				     ASIC3_BANK_TO_BASE(i) +
-+				     ASIC3_GPIO_AltFunction,
-+				     alt_reg[i]);
+diff -puN fs/hfs/btree.c~hfs-convert-extents_lock-in-a-mutex fs/hfs/btree.c
+--- a/fs/hfs/btree.c~hfs-convert-extents_lock-in-a-mutex
++++ a/fs/hfs/btree.c
+@@ -40,7 +40,7 @@ struct hfs_btree *hfs_btree_open(struct 
+ 	{
+ 	struct hfs_mdb *mdb = HFS_SB(sb)->mdb;
+ 	HFS_I(tree->inode)->flags = 0;
+-	init_MUTEX(&HFS_I(tree->inode)->extents_lock);
++	mutex_init(&HFS_I(tree->inode)->extents_lock);
+ 	switch (id) {
+ 	case HFS_EXT_CNID:
+ 		hfs_inode_read_fork(tree->inode, mdb->drXTExtRec, mdb->drXTFlSize,
+diff -puN fs/hfs/extent.c~hfs-convert-extents_lock-in-a-mutex fs/hfs/extent.c
+--- a/fs/hfs/extent.c~hfs-convert-extents_lock-in-a-mutex
++++ a/fs/hfs/extent.c
+@@ -343,16 +343,16 @@ int hfs_get_block(struct inode *inode, s
+ 		goto done;
  	}
  
- 	return gpiochip_add(&asic->gpio);
-@@ -601,7 +586,9 @@ static int asic3_probe(struct platform_d
- 	asic->gpio.direction_input = asic3_gpio_direction_input;
- 	asic->gpio.direction_output = asic3_gpio_direction_output;
+-	down(&HFS_I(inode)->extents_lock);
++	mutex_lock(&HFS_I(inode)->extents_lock);
+ 	res = hfs_ext_read_extent(inode, ablock);
+ 	if (!res)
+ 		dblock = hfs_ext_find_block(HFS_I(inode)->cached_extents,
+ 					    ablock - HFS_I(inode)->cached_start);
+ 	else {
+-		up(&HFS_I(inode)->extents_lock);
++		mutex_unlock(&HFS_I(inode)->extents_lock);
+ 		return -EIO;
+ 	}
+-	up(&HFS_I(inode)->extents_lock);
++	mutex_unlock(&HFS_I(inode)->extents_lock);
  
--	ret = asic3_gpio_probe(pdev);
-+	ret = asic3_gpio_probe(pdev,
-+			       pdata->gpio_config,
-+			       pdata->gpio_config_num);
- 	if (ret < 0) {
- 		printk(KERN_ERR "GPIO probe failed\n");
- 		goto out_irq;
-diff -puN include/linux/mfd/asic3.h~asic3-new-gpio-configuration-code include/linux/mfd/asic3.h
---- a/include/linux/mfd/asic3.h~asic3-new-gpio-configuration-code
-+++ a/include/linux/mfd/asic3.h
-@@ -8,7 +8,7 @@
-  * published by the Free Software Foundation.
-  *
-  * Copyright 2001 Compaq Computer Corporation.
-- * Copyright 2007 OpendHand.
-+ * Copyright 2007-2008 OpenedHand Ltd.
-  */
+ done:
+ 	map_bh(bh_result, sb, HFS_SB(sb)->fs_start +
+@@ -375,7 +375,7 @@ int hfs_extend_file(struct inode *inode)
+ 	u32 start, len, goal;
+ 	int res;
  
- #ifndef __ASIC3_H__
-@@ -17,15 +17,8 @@
- #include <linux/types.h>
+-	down(&HFS_I(inode)->extents_lock);
++	mutex_lock(&HFS_I(inode)->extents_lock);
+ 	if (HFS_I(inode)->alloc_blocks == HFS_I(inode)->first_blocks)
+ 		goal = hfs_ext_lastblock(HFS_I(inode)->first_extents);
+ 	else {
+@@ -425,7 +425,7 @@ int hfs_extend_file(struct inode *inode)
+ 			goto insert_extent;
+ 	}
+ out:
+-	up(&HFS_I(inode)->extents_lock);
++	mutex_unlock(&HFS_I(inode)->extents_lock);
+ 	if (!res) {
+ 		HFS_I(inode)->alloc_blocks += len;
+ 		mark_inode_dirty(inode);
+@@ -487,7 +487,7 @@ void hfs_file_truncate(struct inode *ino
+ 	if (blk_cnt == alloc_cnt)
+ 		goto out;
  
- struct asic3_platform_data {
--	struct {
--		u32 dir;
--		u32 init;
--		u32 sleep_mask;
--		u32 sleep_out;
--		u32 batt_fault_out;
--		u32 sleep_conf;
--		u32 alt_function;
--	} gpio_a, gpio_b, gpio_c, gpio_d;
-+	u16 *gpio_config;
-+	unsigned int gpio_config_num;
+-	down(&HFS_I(inode)->extents_lock);
++	mutex_lock(&HFS_I(inode)->extents_lock);
+ 	hfs_find_init(HFS_SB(sb)->ext_tree, &fd);
+ 	while (1) {
+ 		if (alloc_cnt == HFS_I(inode)->first_blocks) {
+@@ -514,7 +514,7 @@ void hfs_file_truncate(struct inode *ino
+ 		hfs_brec_remove(&fd);
+ 	}
+ 	hfs_find_exit(&fd);
+-	up(&HFS_I(inode)->extents_lock);
++	mutex_unlock(&HFS_I(inode)->extents_lock);
  
- 	unsigned int bus_shift;
+ 	HFS_I(inode)->alloc_blocks = blk_cnt;
+ out:
+diff -puN fs/hfs/hfs_fs.h~hfs-convert-extents_lock-in-a-mutex fs/hfs/hfs_fs.h
+--- a/fs/hfs/hfs_fs.h~hfs-convert-extents_lock-in-a-mutex
++++ a/fs/hfs/hfs_fs.h
+@@ -54,7 +54,7 @@ struct hfs_inode_info {
+ 	struct list_head open_dir_list;
+ 	struct inode *rsrc_inode;
  
-@@ -86,6 +79,27 @@ struct asic3_platform_data {
- 					  */
- #define ASIC3_GPIO_Status        0x30    /* R   Pin status */
+-	struct semaphore extents_lock;
++	struct mutex extents_lock;
  
-+/*
-+ * ASIC3 GPIO config
-+ *
-+ * Bits 0..6   gpio number
-+ * Bits 7..13  Alternate function
-+ * Bit  14     Direction
-+ * Bit  15     Initial value
-+ *
-+ */
-+#define ASIC3_CONFIG_GPIO_PIN(config) ((config) & 0x7f)
-+#define ASIC3_CONFIG_GPIO_ALT(config)  (((config) & (0x7f << 7)) >> 7)
-+#define ASIC3_CONFIG_GPIO_DIR(config)  ((config & (1 << 14)) >> 14)
-+#define ASIC3_CONFIG_GPIO_INIT(config) ((config & (1 << 15)) >> 15)
-+#define ASIC3_CONFIG_GPIO(gpio, alt, dir, init) (((gpio) & 0x7f) \
-+	| (((alt) & 0x7f) << 7) | (((dir) & 0x1) << 14) \
-+	| (((init) & 0x1) << 15))
-+#define ASIC3_CONFIG_GPIO_DEFAULT(gpio, dir, init) \
-+	ASIC3_CONFIG_GPIO((gpio), 0, (dir), (init))
-+#define ASIC3_CONFIG_GPIO_DEFAULT_OUT(gpio, init) \
-+	ASIC3_CONFIG_GPIO((gpio), 0, 1, (init))
-+
- #define ASIC3_SPI_Base		      0x0400
- #define ASIC3_SPI_Control               0x0000
- #define ASIC3_SPI_TxData                0x0004
+ 	u16 alloc_blocks, clump_blocks;
+ 	sector_t fs_blocks;
+diff -puN fs/hfs/inode.c~hfs-convert-extents_lock-in-a-mutex fs/hfs/inode.c
+--- a/fs/hfs/inode.c~hfs-convert-extents_lock-in-a-mutex
++++ a/fs/hfs/inode.c
+@@ -150,7 +150,7 @@ struct inode *hfs_new_inode(struct inode
+ 	if (!inode)
+ 		return NULL;
+ 
+-	init_MUTEX(&HFS_I(inode)->extents_lock);
++	mutex_init(&HFS_I(inode)->extents_lock);
+ 	INIT_LIST_HEAD(&HFS_I(inode)->open_dir_list);
+ 	hfs_cat_build_key(sb, (btree_key *)&HFS_I(inode)->cat_key, dir->i_ino, name);
+ 	inode->i_ino = HFS_SB(sb)->next_id++;
+@@ -281,7 +281,7 @@ static int hfs_read_inode(struct inode *
+ 
+ 	HFS_I(inode)->flags = 0;
+ 	HFS_I(inode)->rsrc_inode = NULL;
+-	init_MUTEX(&HFS_I(inode)->extents_lock);
++	mutex_init(&HFS_I(inode)->extents_lock);
+ 	INIT_LIST_HEAD(&HFS_I(inode)->open_dir_list);
+ 
+ 	/* Initialize the inode */
 _
 
-Patches currently in -mm which might be from sameo@openedhand.com are
+Patches currently in -mm which might be from matthias@kaehlcke.net are
 
-asic3-platform_get_irq-may-return-signed-unnoticed.patch
-asic3-gpiolib-support.patch
-asic3-remove-children-platform-data.patch
-asic3-new-gpio-configuration-code.patch
-asic3-use-dev_-macros.patch
-asic3-use-uppercase-only-for-macros-and-defines.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+dlm-convert-connections_lock-in-a-mutex.patch
+dlm-convert-connections_lock-in-a-mutex-fix.patch
+pxafb-convert-ctrlr_sem-in-a-mutex.patch
+sa1100fb-convert-ctrlr_sem-in-a-mutex.patch
+hfs-convert-bitmap_lock-in-a-mutex.patch
+hfs-convert-extents_lock-in-a-mutex.patch
+affs-convert-s_bmlock-into-a-mutex.patch
 
