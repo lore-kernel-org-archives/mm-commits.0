@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + audit_send_reply-fix-error-path-memory-leak.patch added to -mm tree
-Date: Mon, 12 May 2008 15:31:18 -0700
-Message-ID: <200805122231.m4CMVIxH012430@imap1.linux-foundation.org>
+Subject: + asm-alphah8300umv850xtensa-paramh-unbreak-hz-for-userspace.patch added to -mm tree
+Date: Mon, 12 May 2008 15:33:48 -0700
+Message-ID: <200805122233.m4CMXmSU012493@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49569 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57388 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754409AbYELWbe (ORCPT
+	by vger.kernel.org with ESMTP id S1751882AbYELWea (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 18:31:34 -0400
+	Mon, 12 May 2008 18:34:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, danielm77@spray.se, viro@zeniv.linux.org.uk
+Cc: vapier@gentoo.org, chris@zankel.net, ink@jurassic.park.msu.ru, jdike@addtoit.com, rth@twiddle.net, ysato@users.sourceforge.jp
 
 
 The patch titled
-     audit_send_reply(): fix error-path memory leak
+     asm-{alpha,h8300,um,v850,xtensa}/param.h: unbreak HZ for userspace
 has been added to the -mm tree.  Its filename is
-     audit_send_reply-fix-error-path-memory-leak.patch
+     asm-alphah8300umv850xtensa-paramh-unbreak-hz-for-userspace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,139 +34,115 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: audit_send_reply(): fix error-path memory leak
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: asm-{alpha,h8300,um,v850,xtensa}/param.h: unbreak HZ for userspace
+From: Mike Frysinger <vapier@gentoo.org>
 
-Addresses http://bugzilla.kernel.org/show_bug.cgi?id=10663
+I noticed this because alpha was broken due to the recent
+bdc807871d58285737.  Most arches do something like this in their
+asm/param.h:
 
-Reporter: Daniel Marjamki <danielm77@spray.se>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+#ifdef __KERNEL__
+# define HZ CONFIG_HZ
+#else
+# define HZ 100
+#endif
+
+A few arches though (namely alpha/h8300/um/v850/xtensa) either do no set
+HZ at all for !__KERNEL__, or they set it wrongly.  This should bring all
+arches in line by setting up HZ for userspace.
+
+Signed-off-by: Mike Frysinger <vapier@gentoo.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Chris Zankel <chris@zankel.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ include/asm-alpha/param.h  |    4 ++++
+ include/asm-h8300/param.h  |    8 +++-----
+ include/asm-um/param.h     |    2 ++
+ include/asm-v850/param.h   |    2 ++
+ include/asm-xtensa/param.h |    2 ++
+ 5 files changed, 13 insertions(+), 5 deletions(-)
 
-diff -puN kernel/audit.c~audit_send_reply-fix-error-path-memory-leak kernel/audit.c
---- a/kernel/audit.c~audit_send_reply-fix-error-path-memory-leak
-+++ a/kernel/audit.c
-@@ -572,16 +572,17 @@ void audit_send_reply(int pid, int seq, 
+diff -puN include/asm-alpha/param.h~asm-alphah8300umv850xtensa-paramh-unbreak-hz-for-userspace include/asm-alpha/param.h
+--- a/include/asm-alpha/param.h~asm-alphah8300umv850xtensa-paramh-unbreak-hz-for-userspace
++++ a/include/asm-alpha/param.h
+@@ -5,8 +5,12 @@
+    hardware ignores reprogramming.  We also need userland buy-in to the 
+    change in HZ, since this is visible in the wait4 resources etc.  */
  
- 	skb = audit_make_reply(pid, seq, type, done, multi, payload, size);
- 	if (!skb)
--		return;
-+		goto out;
++#ifdef __KERNEL__
+ #define HZ		CONFIG_HZ
+ #define USER_HZ		HZ
++#else
++#define HZ		100
++#endif
  
- 	reply->pid = pid;
- 	reply->skb = skb;
+ #define EXEC_PAGESIZE	8192
  
- 	tsk = kthread_run(audit_send_reply_thread, reply, "audit_send_reply");
--	if (IS_ERR(tsk)) {
--		kfree(reply);
--		kfree_skb(skb);
--	}
-+	if (!IS_ERR(tsk))
-+		return;
-+	kfree_skb(skb);
-+out:
-+	kfree(reply);
- }
+diff -puN include/asm-h8300/param.h~asm-alphah8300umv850xtensa-paramh-unbreak-hz-for-userspace include/asm-h8300/param.h
+--- a/include/asm-h8300/param.h~asm-alphah8300umv850xtensa-paramh-unbreak-hz-for-userspace
++++ a/include/asm-h8300/param.h
+@@ -1,14 +1,12 @@
+ #ifndef _H8300_PARAM_H
+ #define _H8300_PARAM_H
  
- /*
+-
+-#ifndef HZ
+-#define HZ CONFIG_HZ
+-#endif
+-
+ #ifdef __KERNEL__
++#define HZ		CONFIG_HZ
+ #define	USER_HZ		HZ
+ #define	CLOCKS_PER_SEC	(USER_HZ)
++#else
++#define HZ		100
+ #endif
+ 
+ #define EXEC_PAGESIZE	4096
+diff -puN include/asm-um/param.h~asm-alphah8300umv850xtensa-paramh-unbreak-hz-for-userspace include/asm-um/param.h
+--- a/include/asm-um/param.h~asm-alphah8300umv850xtensa-paramh-unbreak-hz-for-userspace
++++ a/include/asm-um/param.h
+@@ -13,6 +13,8 @@
+ #define HZ CONFIG_HZ
+ #define USER_HZ	100	   /* .. some user interfaces are in "ticks" */
+ #define CLOCKS_PER_SEC (USER_HZ)  /* frequency at which times() counts */
++#else
++#define HZ 100
+ #endif
+ 
+ #endif
+diff -puN include/asm-v850/param.h~asm-alphah8300umv850xtensa-paramh-unbreak-hz-for-userspace include/asm-v850/param.h
+--- a/include/asm-v850/param.h~asm-alphah8300umv850xtensa-paramh-unbreak-hz-for-userspace
++++ a/include/asm-v850/param.h
+@@ -26,6 +26,8 @@
+ # define HZ		CONFIG_HZ
+ # define USER_HZ	100
+ # define CLOCKS_PER_SEC	USER_HZ
++#else
++# define HZ		100
+ #endif
+ 
+ #endif /* __V850_PARAM_H__ */
+diff -puN include/asm-xtensa/param.h~asm-alphah8300umv850xtensa-paramh-unbreak-hz-for-userspace include/asm-xtensa/param.h
+--- a/include/asm-xtensa/param.h~asm-alphah8300umv850xtensa-paramh-unbreak-hz-for-userspace
++++ a/include/asm-xtensa/param.h
+@@ -15,6 +15,8 @@
+ # define HZ		CONFIG_HZ	/* internal timer frequency */
+ # define USER_HZ	100		/* for user interfaces in "ticks" */
+ # define CLOCKS_PER_SEC (USER_HZ)	/* frequnzy at which times() counts */
++#else
++# define HZ		100
+ #endif
+ 
+ #define EXEC_PAGESIZE	4096
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vapier@gentoo.org are
 
-quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
-fix-hfsplus-oops-on-image-without-extents.patch
-rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
-atmel_lcdfb-fix-pixclok-divider-calculation.patch
-memcg-fix-possible-panic-when-config_mm_owner=y.patch
-drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
-linux-next.patch
-next-remove-localversion.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
-revert-acpica-fixes-for-unload-and-ddbhandles.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-arch-x86-mm-patc-use-boot_cpu_has.patch
-x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
-lguest-use-cpu-capability-accessors.patch
-x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
-x86-bitops-take-an-unsigned-long.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-dlm-convert-connections_lock-in-a-mutex-fix.patch
-git-input.patch
-git-jg-misc-git-rejects.patch
-git-mmc.patch
-git-ubifs.patch
-hysdn-no-longer-broken-on-smp.patch
-sundance-set-carrier-status-on-link-change-events.patch
-dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
-pcnet32-fix-warning.patch
-drivers-net-tokenring-3c359c-squish-a-warning.patch
-drivers-net-tokenring-olympicc-fix-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-unionfs-broke.patch
-git-logfs-fixup.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-uwb-fix-scscanf-warning.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-git-v9fs.patch
-revert-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-git-orion-git-rejects.patch
-ext4-is-busted-on-m68k.patch
-common-implementation-of-iterative-div-mod-fix.patch
-common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
-common-implementation-of-iterative-div-mod-fix-2.patch
-colibri-fix-support-for-dm9000-ethernet-device-fix.patch
-mm-verify-the-page-links-and-memory-model-fix.patch
-mm-verify-the-page-links-and-memory-model-fix-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-inotify_init-fix.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
-audit_send_reply-fix-error-path-memory-leak.patch
+asm-alphah8300umv850xtensa-paramh-unbreak-hz-for-userspace.patch
 
