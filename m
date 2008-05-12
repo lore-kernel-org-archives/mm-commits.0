@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + zorro-replace-deprecated-__initcall-with-equivalent-device_initcall.patch added to -mm tree
-Date: Mon, 12 May 2008 16:49:39 -0700
-Message-ID: <200805122349.m4CNnd4l015302@imap1.linux-foundation.org>
+Subject: + macintosh-replace-deprecated-__initcall-with-device_initcall.patch added to -mm tree
+Date: Mon, 12 May 2008 16:51:00 -0700
+Message-ID: <200805122351.m4CNp0WS015345@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56876 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47933 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755800AbYELXuW (ORCPT
+	by vger.kernel.org with ESMTP id S1754929AbYELXvF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 19:50:22 -0400
+	Mon, 12 May 2008 19:51:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: rpjday@crashcourse.ca, geert@linux-m68k.org
+Cc: rpjday@crashcourse.ca, benh@kernel.crashing.org, paulus@samba.org
 
 
 The patch titled
-     zorro: replace deprecated __initcall with equivalent device_initcall
+     macintosh: replace deprecated __initcall with device_initcall
 has been added to the -mm tree.  Its filename is
-     zorro-replace-deprecated-__initcall-with-equivalent-device_initcall.patch
+     macintosh-replace-deprecated-__initcall-with-device_initcall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,26 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: zorro: replace deprecated __initcall with equivalent device_initcall
+Subject: macintosh: replace deprecated __initcall with device_initcall
 From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
 Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/zorro/proc.c |    2 +-
+ drivers/macintosh/adb.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/zorro/proc.c~zorro-replace-deprecated-__initcall-with-equivalent-device_initcall drivers/zorro/proc.c
---- a/drivers/zorro/proc.c~zorro-replace-deprecated-__initcall-with-equivalent-device_initcall
-+++ a/drivers/zorro/proc.c
-@@ -160,4 +160,4 @@ static int __init zorro_proc_init(void)
+diff -puN drivers/macintosh/adb.c~macintosh-replace-deprecated-__initcall-with-device_initcall drivers/macintosh/adb.c
+--- a/drivers/macintosh/adb.c~macintosh-replace-deprecated-__initcall-with-device_initcall
++++ a/drivers/macintosh/adb.c
+@@ -334,7 +334,7 @@ int __init adb_init(void)
  	return 0;
  }
  
--__initcall(zorro_proc_init);
-+device_initcall(zorro_proc_init);
+-__initcall(adb_init);
++device_initcall(adb_init);
+ 
+ static int
+ do_adb_reset_bus(void)
 _
 
 Patches currently in -mm which might be from rpjday@crashcourse.ca are
