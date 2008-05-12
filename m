@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-capi-return-proper-errnos-on-module-init.patch added to -mm tree
-Date: Mon, 12 May 2008 16:40:03 -0700
-Message-ID: <200805122340.m4CNe3wL014984@imap1.linux-foundation.org>
+Subject: + net-s2io-set_rxd_buffer_pointer-returns-enomem-not-enomem.patch added to -mm tree
+Date: Mon, 12 May 2008 16:40:05 -0700
+Message-ID: <200805122340.m4CNe5js014987@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41348 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35802 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754488AbYELXki (ORCPT
+	by vger.kernel.org with ESMTP id S1753887AbYELXks (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 19:40:38 -0400
+	Mon, 12 May 2008 19:40:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: marcin.slusarz@gmail.com, kkeil@suse.de
+Cc: marcin.slusarz@gmail.com, ram.vepa@neterion.com, santosh.rastapur@neterion.com, sivakumar.subramani@neterion.com, sreenivasa.honnur@neterion.com
 
 
 The patch titled
-     isdn/capi: return proper errnos on module init
+     net/s2io: set_rxd_buffer_pointer returns -ENOMEM, not ENOMEM
 has been added to the -mm tree.  Its filename is
-     isdn-capi-return-proper-errnos-on-module-init.patch
+     net-s2io-set_rxd_buffer_pointer-returns-enomem-not-enomem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn/capi: return proper errnos on module init
+Subject: net/s2io: set_rxd_buffer_pointer returns -ENOMEM, not ENOMEM
 From: Marcin Slusarz <marcin.slusarz@gmail.com>
 
-cdebug_init() is called from kcapi_init() which is module initialization
-function, so it must return negative values on errors.
-
 Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Cc: Ramkrishna Vepa <ram.vepa@neterion.com>
+Cc: Rastapur Santosh <santosh.rastapur@neterion.com>
+Cc: Sivakumar Subramani <sivakumar.subramani@neterion.com>
+Cc: Sreenivasa Honnur <sreenivasa.honnur@neterion.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/capi/capiutil.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/s2io.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/isdn/capi/capiutil.c~isdn-capi-return-proper-errnos-on-module-init drivers/isdn/capi/capiutil.c
---- a/drivers/isdn/capi/capiutil.c~isdn-capi-return-proper-errnos-on-module-init
-+++ a/drivers/isdn/capi/capiutil.c
-@@ -948,17 +948,17 @@ int __init cdebug_init(void)
- {
- 	g_cmsg= kmalloc(sizeof(_cmsg), GFP_KERNEL);
- 	if (!g_cmsg)
--		return ENOMEM;
-+		return -ENOMEM;
- 	g_debbuf = kmalloc(sizeof(_cdebbuf), GFP_KERNEL);
- 	if (!g_debbuf) {
- 		kfree(g_cmsg);
--		return ENOMEM;
-+		return -ENOMEM;
- 	}
- 	g_debbuf->buf = kmalloc(CDEBUG_GSIZE, GFP_KERNEL);
- 	if (!g_debbuf->buf) {
- 		kfree(g_cmsg);
- 		kfree(g_debbuf);
--		return ENOMEM;;
-+		return -ENOMEM;;
- 	}
- 	g_debbuf->size = CDEBUG_GSIZE;
- 	g_debbuf->buf[0] = 0;
+diff -puN drivers/net/s2io.c~net-s2io-set_rxd_buffer_pointer-returns-enomem-not-enomem drivers/net/s2io.c
+--- a/drivers/net/s2io.c~net-s2io-set_rxd_buffer_pointer-returns-enomem-not-enomem
++++ a/drivers/net/s2io.c
+@@ -6951,7 +6951,7 @@ static  int rxd_owner_bit_reset(struct s
+ 						       &skb,(u64 *)&temp0_64,
+ 						       (u64 *)&temp1_64,
+ 						       (u64 *)&temp2_64,
+-							size) == ENOMEM) {
++							size) == -ENOMEM) {
+ 					return 0;
+ 				}
+ 
 _
 
 Patches currently in -mm which might be from marcin.slusarz@gmail.com are
