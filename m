@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
 Subject: + pnp-add-isapnp-mpu-option-quirks.patch added to -mm tree
-Date: Mon, 12 May 2008 15:56:26 -0700
-Message-ID: <200805122256.m4CMuQui013354@imap1.linux-foundation.org>
+Date: Mon, 12 May 2008 15:56:47 -0700
+Message-ID: <200805122256.m4CMulBr013362@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53275 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34235 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756202AbYELW5M (ORCPT
+	by vger.kernel.org with ESMTP id S1755382AbYELW5e (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 18:57:12 -0400
+	Mon, 12 May 2008 18:57:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
