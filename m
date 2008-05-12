@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + kill-generic_file_direct_io.patch added to -mm tree
-Date: Mon, 12 May 2008 15:47:08 -0700
-Message-ID: <200805122247.m4CMl8w2013034@imap1.linux-foundation.org>
+Subject: + kill-generic_file_direct_io-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 12 May 2008 15:48:09 -0700
+Message-ID: <200805122248.m4CMm9xt013076@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48034 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49336 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754492AbYELWrT (ORCPT
+	by vger.kernel.org with ESMTP id S1754613AbYELWsT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 18:47:19 -0400
+	Mon, 12 May 2008 18:48:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: hch@lst.de
+Cc: akpm@linux-foundation.org, hch@lst.de
 
 
 The patch titled
-     kill generic_file_direct_IO()
+     kill-generic_file_direct_io-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     kill-generic_file_direct_io.patch
+     kill-generic_file_direct_io-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,172 +34,135 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: kill generic_file_direct_IO()
-From: Christoph Hellwig <hch@lst.de>
+Subject: kill-generic_file_direct_io-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-generic_file_direct_IO is a common helper around the invocation of
-->direct_IO.  But there's almost nothing shared between the read and write
-side, so we're better off without this helper.
+ERROR: code indent should use tabs where possible
+#60: FILE: mm/filemap.c:2020:
++       ^Iif (mapping_mapped(mapping))$
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+total: 1 errors, 0 warnings, 151 lines checked
+
+./patches/kill-generic_file_direct_io.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |  117 +++++++++++++++++++++----------------------------
- 1 file changed, 51 insertions(+), 66 deletions(-)
+ mm/filemap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~kill-generic_file_direct_io mm/filemap.c
---- a/mm/filemap.c~kill-generic_file_direct_io
+diff -puN mm/filemap.c~kill-generic_file_direct_io-checkpatch-fixes mm/filemap.c
+--- a/mm/filemap.c~kill-generic_file_direct_io-checkpatch-fixes
 +++ a/mm/filemap.c
-@@ -42,9 +42,6 @@
- 
- #include <asm/mman.h>
- 
--static ssize_t
--generic_file_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov,
--	loff_t offset, unsigned long nr_segs);
- 
- /*
-  * Shared mappings implemented 30.11.1994. It's not fully working yet,
-@@ -1204,8 +1201,11 @@ generic_file_aio_read(struct kiocb *iocb
- 			goto out; /* skip atime */
- 		size = i_size_read(inode);
- 		if (pos < size) {
--			retval = generic_file_direct_IO(READ, iocb,
--						iov, pos, nr_segs);
-+			retval = filemap_write_and_wait(mapping);
-+			if (!retval) {
-+				retval = mapping->a_ops->direct_IO(READ, iocb,
-+							iov, pos, nr_segs);
-+			}
- 			if (retval > 0)
- 				*ppos = pos + retval;
- 		}
-@@ -2003,11 +2003,55 @@ generic_file_direct_write(struct kiocb *
- 	struct address_space *mapping = file->f_mapping;
- 	struct inode	*inode = mapping->host;
- 	ssize_t		written;
-+	size_t		write_len;
-+	pgoff_t		end;
- 
- 	if (count != ocount)
- 		*nr_segs = iov_shorten((struct iovec *)iov, *nr_segs, count);
- 
--	written = generic_file_direct_IO(WRITE, iocb, iov, pos, *nr_segs);
-+	/*
-+	 * Unmap all mmappings of the file up-front.
-+	 *
-+	 * This will cause any pte dirty bits to be propagated into the
-+	 * pageframes for the subsequent filemap_write_and_wait().
-+	 */
-+	write_len = iov_length(iov, *nr_segs);
-+	end = (pos + write_len - 1) >> PAGE_CACHE_SHIFT;
-+       	if (mapping_mapped(mapping))
-+		unmap_mapping_range(mapping, pos, write_len, 0);
-+
-+	written = filemap_write_and_wait(mapping);
-+	if (written)
-+		goto out;
-+
-+	/*
-+	 * After a write we want buffered reads to be sure to go to disk to get
-+	 * the new data.  We invalidate clean cached page from the region we're
-+	 * about to write.  We do this *before* the write so that we can return
-+	 * -EIO without clobbering -EIOCBQUEUED from ->direct_IO().
-+	 */
-+	if (mapping->nrpages) {
-+		written = invalidate_inode_pages2_range(mapping,
-+					pos >> PAGE_CACHE_SHIFT, end);
-+		if (written)
-+			goto out;
-+	}
-+
-+	written = mapping->a_ops->direct_IO(WRITE, iocb, iov, pos, *nr_segs);
-+
-+	/*
-+	 * Finally, try again to invalidate clean pages which might have been
-+	 * cached by non-direct readahead, or faulted in by get_user_pages()
-+	 * if the source of the write was an mmap'ed region of the file
-+	 * we're writing.  Either one is a pretty crazy thing to do,
-+	 * so we don't support it 100%.  If this invalidation
-+	 * fails, tough, the write still worked...
-+	 */
-+	if (mapping->nrpages) {
-+		invalidate_inode_pages2_range(mapping,
-+					      pos >> PAGE_CACHE_SHIFT, end);
-+	}
-+
- 	if (written > 0) {
- 		loff_t end = pos + written;
- 		if (end > i_size_read(inode) && !S_ISBLK(inode->i_mode)) {
-@@ -2023,6 +2067,7 @@ generic_file_direct_write(struct kiocb *
- 	 * i_mutex is held, which protects generic_osync_inode() from
- 	 * livelocking.  AIO O_DIRECT ops attempt to sync metadata here.
+@@ -2017,7 +2017,7 @@ generic_file_direct_write(struct kiocb *
  	 */
-+out:
- 	if ((written >= 0 || written == -EIOCBQUEUED) &&
- 	    ((file->f_flags & O_SYNC) || IS_SYNC(inode))) {
- 		int err = generic_osync_inode(inode, mapping, OSYNC_METADATA);
-@@ -2510,66 +2555,6 @@ ssize_t generic_file_aio_write(struct ki
- }
- EXPORT_SYMBOL(generic_file_aio_write);
+ 	write_len = iov_length(iov, *nr_segs);
+ 	end = (pos + write_len - 1) >> PAGE_CACHE_SHIFT;
+-       	if (mapping_mapped(mapping))
++	if (mapping_mapped(mapping))
+ 		unmap_mapping_range(mapping, pos, write_len, 0);
  
--/*
-- * Called under i_mutex for writes to S_ISREG files.   Returns -EIO if something
-- * went wrong during pagecache shootdown.
-- */
--static ssize_t
--generic_file_direct_IO(int rw, struct kiocb *iocb, const struct iovec *iov,
--	loff_t offset, unsigned long nr_segs)
--{
--	struct file *file = iocb->ki_filp;
--	struct address_space *mapping = file->f_mapping;
--	ssize_t retval;
--	size_t write_len;
--	pgoff_t end = 0; /* silence gcc */
--
--	/*
--	 * If it's a write, unmap all mmappings of the file up-front.  This
--	 * will cause any pte dirty bits to be propagated into the pageframes
--	 * for the subsequent filemap_write_and_wait().
--	 */
--	if (rw == WRITE) {
--		write_len = iov_length(iov, nr_segs);
--		end = (offset + write_len - 1) >> PAGE_CACHE_SHIFT;
--	       	if (mapping_mapped(mapping))
--			unmap_mapping_range(mapping, offset, write_len, 0);
--	}
--
--	retval = filemap_write_and_wait(mapping);
--	if (retval)
--		goto out;
--
--	/*
--	 * After a write we want buffered reads to be sure to go to disk to get
--	 * the new data.  We invalidate clean cached page from the region we're
--	 * about to write.  We do this *before* the write so that we can return
--	 * -EIO without clobbering -EIOCBQUEUED from ->direct_IO().
--	 */
--	if (rw == WRITE && mapping->nrpages) {
--		retval = invalidate_inode_pages2_range(mapping,
--					offset >> PAGE_CACHE_SHIFT, end);
--		if (retval)
--			goto out;
--	}
--
--	retval = mapping->a_ops->direct_IO(rw, iocb, iov, offset, nr_segs);
--
--	/*
--	 * Finally, try again to invalidate clean pages which might have been
--	 * cached by non-direct readahead, or faulted in by get_user_pages()
--	 * if the source of the write was an mmap'ed region of the file
--	 * we're writing.  Either one is a pretty crazy thing to do,
--	 * so we don't support it 100%.  If this invalidation
--	 * fails, tough, the write still worked...
--	 */
--	if (rw == WRITE && mapping->nrpages) {
--		invalidate_inode_pages2_range(mapping, offset >> PAGE_CACHE_SHIFT, end);
--	}
--out:
--	return retval;
--}
+ 	written = filemap_write_and_wait(mapping);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
+fix-hfsplus-oops-on-image-without-extents.patch
+rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
+atmel_lcdfb-fix-pixclok-divider-calculation.patch
+memcg-fix-possible-panic-when-config_mm_owner=y.patch
+drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
+linux-next.patch
+next-remove-localversion.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+audit_send_reply-fix-error-path-memory-leak.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+dlm-convert-connections_lock-in-a-mutex-fix.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+git-mmc.patch
+git-ubifs.patch
+hysdn-no-longer-broken-on-smp.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+unionfs-broke.patch
+git-logfs-fixup.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+git-v9fs.patch
+revert-git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-orion-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+common-implementation-of-iterative-div-mod-fix.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+common-implementation-of-iterative-div-mod-fix-2.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model-fix.patch
+mm-verify-the-page-links-and-memory-model-fix-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-inotify_init-fix.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+
