@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-fix-s390-build.patch added to -mm tree
-Date: Mon, 12 May 2008 22:00:39 -0700
-Message-ID: <200805130511.m4D5Bd3D026181@imap1.linux-foundation.org>
+Subject: + ia64-kvm-dont-delete-files-which-we-need.patch added to -mm tree
+Date: Mon, 12 May 2008 22:06:56 -0700
+Message-ID: <200805130517.m4D5Hu6t026395@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59870 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52016 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754514AbYEMFLw (ORCPT
+	by vger.kernel.org with ESMTP id S1755537AbYEMFSb (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 01:11:52 -0400
+	Tue, 13 May 2008 01:18:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+Cc: akpm@linux-foundation.org, avi@qumranet.com, xiantao.zhang@intel.com
 
 
 The patch titled
-     git-block: fix s390 build
+     ia64 kvm: don't delete files which we need..
 has been added to the -mm tree.  Its filename is
-     git-block-fix-s390-build.patch
+     ia64-kvm-dont-delete-files-which-we-need.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,37 +34,28 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block: fix s390 build
+Subject: ia64 kvm: don't delete files which we need..
 From: Andrew Morton <akpm@linux-foundation.org>
 
-init/main.c: In function 'do_pre_smp_initcalls':
-init/main.c:777: error: implicit declaration of function 'init_call_single_data'
-
-Cc: Jens Axboe <jens.axboe@oracle.com>
+Cc: "Zhang, Xiantao" <xiantao.zhang@intel.com>
+Cc: "Avi Kivity" <avi@qumranet.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smp.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ arch/ia64/kvm/Makefile |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/smp.h~git-block-fix-s390-build include/linux/smp.h
---- a/include/linux/smp.h~git-block-fix-s390-build
-+++ a/include/linux/smp.h
-@@ -136,10 +136,13 @@ static inline void smp_send_reschedule(i
- })
- #define smp_call_function_mask(mask, func, info, wait) \
- 			(up_smp_call_function(func, info))
-+#endif /* !SMP */
-+
-+#if !defined(CONFIG_SMP) || !defined(CONFIG_USE_GENERIC_SMP_HELPERS)
- static inline void init_call_single_data(void)
- {
- }
--#endif /* !SMP */
-+#endif
+diff -puN arch/ia64/kvm/Makefile~ia64-kvm-dont-delete-files-which-we-need arch/ia64/kvm/Makefile
+--- a/arch/ia64/kvm/Makefile~ia64-kvm-dont-delete-files-which-we-need
++++ a/arch/ia64/kvm/Makefile
+@@ -7,7 +7,6 @@ offsets-file := asm-offsets.h
+ always  := $(offsets-file)
+ targets := $(offsets-file)
+ targets += arch/ia64/kvm/asm-offsets.s
+-clean-files := $(addprefix $(objtree)/,$(targets) $(obj)/memcpy.S $(obj)/memset.S)
  
- /*
-  * smp_processor_id(): get the current CPU ID.
+ # Default sed regexp - multiline due to syntax constraints
+ define sed-y
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +70,7 @@ linux-next.patch
 next-remove-localversion.patch
 linux-next-git-rejects.patch
 revert-9p-convert-from-semaphore-to-spinlock.patch
+ia64-kvm-dont-delete-files-which-we-need.patch
 revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
 revert-acpica-fixes-for-unload-and-ddbhandles.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
