@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fix-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch added to -mm tree
-Date: Mon, 12 May 2008 22:58:29 -0700
-Message-ID: <200805130609.m4D69Uhh028134@imap1.linux-foundation.org>
+Subject: + s390-uninline-spinlock-functions-which-use-smp_processor_id.patch added to -mm tree
+Date: Mon, 12 May 2008 23:17:22 -0700
+Message-ID: <200805130628.m4D6SNkh028771@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45725 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50290 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755418AbYEMGKv (ORCPT
+	by vger.kernel.org with ESMTP id S1756018AbYEMG34 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 02:10:51 -0400
+	Tue, 13 May 2008 02:29:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, heiko.carstens@de.ibm.com, kay.sievers@vrfy.org, schwidefsky@de.ibm.com, sfr@canb.auug.org.au
+Cc: akpm@linux-foundation.org, heiko.carstens@de.ibm.com, jens.axboe@oracle.com, schwidefsky@de.ibm.com
 
 
 The patch titled
-     fix gregkh-driver-core-read-dev_name-instead-of-bus_id
+     s390: uninline spinlock functions which use smp_processor_id()
 has been added to the -mm tree.  Its filename is
-     fix-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch
+     s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,121 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix gregkh-driver-core-read-dev_name-instead-of-bus_id
+Subject: s390: uninline spinlock functions which use smp_processor_id()
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/s390/cio/device_fsm.c: In function 'ccw_timeout_log':
-drivers/s390/cio/device_fsm.c:53: error: expected ')' before ';' token
+git-block.patch somehow triggers this:
 
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
+I don't see why and I don't have time/inclination to unpick the mess.  Just
+uninline them.
+
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/cio/device_fsm.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/s390/kernel/Makefile   |    2 -
+ arch/s390/kernel/spinlock.c |   37 ++++++++++++++++++++++++++++++++++
+ include/asm-s390/spinlock.h |   33 ++----------------------------
+ 3 files changed, 41 insertions(+), 31 deletions(-)
 
-diff -puN drivers/s390/cio/device_fsm.c~fix-gregkh-driver-core-read-dev_name-instead-of-bus_id drivers/s390/cio/device_fsm.c
---- a/drivers/s390/cio/device_fsm.c~fix-gregkh-driver-core-read-dev_name-instead-of-bus_id
-+++ a/drivers/s390/cio/device_fsm.c
-@@ -50,8 +50,10 @@ static void ccw_timeout_log(struct ccw_d
- 	printk(KERN_WARNING "cio: orb:\n");
- 	print_hex_dump(KERN_WARNING, "cio:  ", DUMP_PREFIX_NONE, 16, 1,
- 		       &private->orb, sizeof(private->orb), 0);
--	printk(KERN_WARNING "cio: ccw device bus id: %s\n", dev_name(&cdev->dev);
--	printk(KERN_WARNING "cio: subchannel bus id: %s\n", dev_name(&sch->dev);
-+	printk(KERN_WARNING "cio: ccw device bus id: %s\n",
-+				dev_name(&cdev->dev));
-+	printk(KERN_WARNING "cio: subchannel bus id: %s\n",
-+				dev_name(&sch->dev));
- 	printk(KERN_WARNING "cio: subchannel lpm: %02x, opm: %02x, "
- 	       "vpm: %02x\n", sch->lpm, sch->opm, sch->vpm);
+diff -puN arch/s390/kernel/Makefile~s390-uninline-spinlock-functions-which-use-smp_processor_id arch/s390/kernel/Makefile
+--- a/arch/s390/kernel/Makefile~s390-uninline-spinlock-functions-which-use-smp_processor_id
++++ a/arch/s390/kernel/Makefile
+@@ -22,7 +22,7 @@ obj-y	+= $(if $(CONFIG_64BIT),reipl64.o,
+ extra-y				+= head.o init_task.o vmlinux.lds
  
+ obj-$(CONFIG_MODULES)		+= s390_ksyms.o module.o
+-obj-$(CONFIG_SMP)		+= smp.o topology.o
++obj-$(CONFIG_SMP)		+= smp.o topology.o spinlock.o
+ 
+ obj-$(CONFIG_AUDIT)		+= audit.o
+ compat-obj-$(CONFIG_AUDIT)	+= compat_audit.o
+diff -puN /dev/null arch/s390/kernel/spinlock.c
+--- /dev/null
++++ a/arch/s390/kernel/spinlock.c
+@@ -0,0 +1,37 @@
++
++#include <linux/spinlock.h>
++#include <linux/module.h>
++
++void __raw_spin_lock(raw_spinlock_t *lp)
++{
++	int old;
++
++	old = _raw_compare_and_swap(&lp->owner_cpu, 0, ~smp_processor_id());
++	if (likely(old == 0))
++		return;
++	_raw_spin_lock_wait(lp);
++}
++EXPORT_SYMBOL(__raw_spin_lock);
++
++void __raw_spin_lock_flags(raw_spinlock_t *lp, unsigned long flags)
++{
++	int old;
++
++	old = _raw_compare_and_swap(&lp->owner_cpu, 0, ~smp_processor_id());
++	if (likely(old == 0))
++		return;
++	_raw_spin_lock_wait_flags(lp, flags);
++}
++EXPORT_SYMBOL(__raw_spin_lock_flags);
++
++int __raw_spin_trylock(raw_spinlock_t *lp)
++{
++	int old;
++
++	old = _raw_compare_and_swap(&lp->owner_cpu, 0, ~smp_processor_id());
++	if (likely(old == 0))
++		return 1;
++	return _raw_spin_trylock_retry(lp);
++}
++EXPORT_SYMBOL(__raw_spin_trylock);
++
+diff -puN include/asm-s390/spinlock.h~s390-uninline-spinlock-functions-which-use-smp_processor_id include/asm-s390/spinlock.h
+--- a/include/asm-s390/spinlock.h~s390-uninline-spinlock-functions-which-use-smp_processor_id
++++ a/include/asm-s390/spinlock.h
+@@ -62,36 +62,9 @@ extern void _raw_spin_lock_wait_flags(ra
+ extern int _raw_spin_trylock_retry(raw_spinlock_t *);
+ extern void _raw_spin_relax(raw_spinlock_t *lock);
+ 
+-static inline void __raw_spin_lock(raw_spinlock_t *lp)
+-{
+-	int old;
+-
+-	old = _raw_compare_and_swap(&lp->owner_cpu, 0, ~smp_processor_id());
+-	if (likely(old == 0))
+-		return;
+-	_raw_spin_lock_wait(lp);
+-}
+-
+-static inline void __raw_spin_lock_flags(raw_spinlock_t *lp,
+-					 unsigned long flags)
+-{
+-	int old;
+-
+-	old = _raw_compare_and_swap(&lp->owner_cpu, 0, ~smp_processor_id());
+-	if (likely(old == 0))
+-		return;
+-	_raw_spin_lock_wait_flags(lp, flags);
+-}
+-
+-static inline int __raw_spin_trylock(raw_spinlock_t *lp)
+-{
+-	int old;
+-
+-	old = _raw_compare_and_swap(&lp->owner_cpu, 0, ~smp_processor_id());
+-	if (likely(old == 0))
+-		return 1;
+-	return _raw_spin_trylock_retry(lp);
+-}
++void __raw_spin_lock(raw_spinlock_t *lp);
++void __raw_spin_lock_flags(raw_spinlock_t *lp, unsigned long flags);
++int __raw_spin_trylock(raw_spinlock_t *lp);
+ 
+ static inline void __raw_spin_unlock(raw_spinlock_t *lp)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -125,6 +207,7 @@ pci-hotplug-acpi-pci-slot-detection-driver.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 git-block-ia64-build-fix.patch
 git-block-fix-s390-build.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
 unionfs-broke.patch
