@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + ia64-kvm-dont-delete-files-which-we-need.patch added to -mm tree
-Date: Mon, 12 May 2008 22:06:56 -0700
-Message-ID: <200805130517.m4D5Hu6t026395@imap1.linux-foundation.org>
+Subject: + flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask.patch added to -mm tree
+Date: Mon, 12 May 2008 22:30:45 -0700
+Message-ID: <200805130530.m4D5UjNU026840@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52016 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49366 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755537AbYEMFSb (ORCPT
+	by vger.kernel.org with ESMTP id S1754596AbYEMFbw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 01:18:31 -0400
+	Tue, 13 May 2008 01:31:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, avi@qumranet.com, xiantao.zhang@intel.com
+Cc: drepper@redhat.com, davidel@xmailserver.org, mtk.manpages@googlemail.com
 
 
 The patch titled
-     ia64 kvm: don't delete files which we need..
+     flag parameters: paccept w/out set_restore_sigmask
 has been added to the -mm tree.  Its filename is
-     ia64-kvm-dont-delete-files-which-we-need.patch
+     flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,141 +34,116 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: ia64 kvm: don't delete files which we need..
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: flag parameters: paccept w/out set_restore_sigmask
+From: Ulrich Drepper <drepper@redhat.com>
 
-Cc: "Zhang, Xiantao" <xiantao.zhang@intel.com>
-Cc: "Avi Kivity" <avi@qumranet.com>
+Some platforms do not have support to restore the signal mask in the
+return path from a syscall.  For those platforms syscalls like pselect are
+not defined at all.  This is, I think, not a good choice for paccept()
+since paccept() adds more value on top of accept() than just the signal
+mask handling.
+
+Therefore this patch defines a scaled down version of the sys_paccept
+function for those platforms.  It returns -EINVAL in case the signal mask
+is non-NULL but behaves the same otherwise.
+
+Note that I explicitly included <linux/thread_info.h>.  I saw that it is
+currently included but indirectly two levels down.  There is too much risk
+in relying on this.  The header might change and then suddenly the
+function definition would change without anyone immediately noticing.
+
+Signed-off-by: Ulrich Drepper <drepper@redhat.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kvm/Makefile |    1 -
- 1 file changed, 1 deletion(-)
+ include/linux/net.h |    3 +++
+ net/socket.c        |   17 +++++++++++++++++
+ 2 files changed, 20 insertions(+)
 
-diff -puN arch/ia64/kvm/Makefile~ia64-kvm-dont-delete-files-which-we-need arch/ia64/kvm/Makefile
---- a/arch/ia64/kvm/Makefile~ia64-kvm-dont-delete-files-which-we-need
-+++ a/arch/ia64/kvm/Makefile
-@@ -7,7 +7,6 @@ offsets-file := asm-offsets.h
- always  := $(offsets-file)
- targets := $(offsets-file)
- targets += arch/ia64/kvm/asm-offsets.s
--clean-files := $(addprefix $(objtree)/,$(targets) $(obj)/memcpy.S $(obj)/memset.S)
+diff -puN net/socket.c~flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask net/socket.c
+--- a/net/socket.c~flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask
++++ a/net/socket.c
+@@ -69,6 +69,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include <linux/mutex.h>
++#include <linux/thread_info.h>
+ #include <linux/wanrouter.h>
+ #include <linux/if_bridge.h>
+ #include <linux/if_frad.h>
+@@ -1503,6 +1504,7 @@ out_fd:
+ 	goto out_put;
+ }
  
- # Default sed regexp - multiline due to syntax constraints
- define sed-y
++#ifdef HAVE_SET_RESTORE_SIGMASK
+ asmlinkage long sys_paccept(int fd, struct sockaddr __user *upeer_sockaddr,
+ 			    int __user *upeer_addrlen,
+ 			    const sigset_t __user *sigmask,
+@@ -1540,6 +1542,21 @@ asmlinkage long sys_paccept(int fd, stru
+ 
+ 	return ret;
+ }
++#else
++asmlinkage long sys_paccept(int fd, struct sockaddr __user *upeer_sockaddr,
++			    int __user *upeer_addrlen,
++			    const sigset_t __user *sigmask,
++			    size_t sigsetsize, int flags)
++{
++	/* The platform does not support restoring the signal mask in the
++	 * return path.  So we do not allow using paccept() with a signal
++	 * mask.  */
++	if (sigmask)
++		return -EINVAL;
++
++	return do_accept(fd, upeer_sockaddr, upeer_addrlen, flags);
++}
++#endif
+ 
+ asmlinkage long sys_accept(int fd, struct sockaddr __user *upeer_sockaddr,
+ 			   int __user *upeer_addrlen)
+diff -puN include/linux/net.h~flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask include/linux/net.h
+--- a/include/linux/net.h~flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask
++++ a/include/linux/net.h
+@@ -102,6 +102,9 @@ enum sock_type {
+ 
+ /* Flags for socket, socketpair, paccept */
+ #define SOCK_CLOEXEC	O_CLOEXEC
++#ifndef SOCK_NONBLOCK
++#define SOCK_NONBLOCK	O_NONBLOCK
++#endif
+ 
+ #endif /* ARCH_HAS_SOCKET_TYPES */
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from drepper@redhat.com are
 
-quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
-fix-hfsplus-oops-on-image-without-extents.patch
-rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
-atmel_lcdfb-fix-pixclok-divider-calculation.patch
-memcg-fix-possible-panic-when-config_mm_owner=y.patch
-drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
-linux-next.patch
-next-remove-localversion.patch
-linux-next-git-rejects.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-ia64-kvm-dont-delete-files-which-we-need.patch
-revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
-revert-acpica-fixes-for-unload-and-ddbhandles.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-arch-x86-mm-patc-use-boot_cpu_has.patch
-x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
-lguest-use-cpu-capability-accessors.patch
-x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
-x86-early_init_centaur-use-set_cpu_cap.patch
-x86-bitops-take-an-unsigned-long.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
-audit_send_reply-fix-error-path-memory-leak.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
-dlm-convert-connections_lock-in-a-mutex-fix.patch
-drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
-git-input.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-git-mmc.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
-git-ubifs.patch
-hysdn-no-longer-broken-on-smp.patch
-sundance-set-carrier-status-on-link-change-events.patch
-dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
-pcnet32-fix-warning.patch
-drivers-net-tokenring-3c359c-squish-a-warning.patch
-drivers-net-tokenring-olympicc-fix-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-git-block-ia64-build-fix.patch
-git-block-fix-s390-build.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-unionfs-broke.patch
-git-logfs-fixup.patch
-drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-uwb-fix-scscanf-warning.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
-drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
-git-v9fs.patch
-revert-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-git-orion-git-rejects.patch
-ext4-is-busted-on-m68k.patch
-common-implementation-of-iterative-div-mod-fix.patch
-common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
-common-implementation-of-iterative-div-mod-fix-2.patch
-colibri-fix-support-for-dm9000-ethernet-device-fix.patch
-mm-verify-the-page-links-and-memory-model-fix.patch
-mm-verify-the-page-links-and-memory-model-fix-fix.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
-remove-apparently-unused-fd1772h-header-file.patch
-lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+execve-filename-document-and-export-via-auxiliary-vector.patch
+flag-parameters-socket-and-socketpair.patch
+flag-parameters-paccept.patch
 flag-parameters-paccept-fix.patch
+flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
+flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask.patch
+flag-parameters-anon_inode_getfd-extension.patch
 flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-signalfd.patch
+flag-parameters-eventfd.patch
+flag-parameters-timerfd_create.patch
+flag-parameters-epoll_create.patch
+flag-parameters-dup2.patch
+flag-parameters-pipe.patch
+flag-parameters-inotify_init.patch
 flag-parameters-inotify_init-fix.patch
+flag-parametersi-nonblock-in-anon_inode_getfd.patch
+flag-parameters-nonblock-in-socket-and-socketpair.patch
+flag-parameters-nonblock-in-signalfd.patch
+flag-parameters-nonblock-in-eventfd.patch
+flag-parameters-nonblock-in-timerfd_create.patch
+flag-parameters-nonblock-in-pipe.patch
+flag-parameters-nonblock-in-inotify_init.patch
+flag-parameters-check-magic-constants.patch
 flag-parameters-check-magic-constants-alpha-hack.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+flag-parameters-add-on-remove-epoll_create-size-param.patch
 
