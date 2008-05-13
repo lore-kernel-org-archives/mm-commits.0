@@ -1,92 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: - spi-change-modalias-from-a-pointer-to-a-character-array.patch removed from -mm tree
-Date: Mon, 12 May 2008 19:14:31 -0700
-Message-ID: <200805130225.m4D2PVQ0020565@imap1.linux-foundation.org>
+Subject: + x86-early_init_centaur-use-set_cpu_cap.patch added to -mm tree
+Date: Mon, 12 May 2008 19:31:20 -0700
+Message-ID: <200805130242.m4D2gKWa021124@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33439 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54859 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756949AbYEMCZg (ORCPT
+	by vger.kernel.org with ESMTP id S1753127AbYEMCmv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 22:25:36 -0400
+	Mon, 12 May 2008 22:42:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: grant.likely@secretlab.ca, david-b@pacbell.net, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
 
 
 The patch titled
-     spi: change modalias from a pointer to a character array
-has been removed from the -mm tree.  Its filename was
-     spi-change-modalias-from-a-pointer-to-a-character-array.patch
+     x86: early_init_centaur(): use set_cpu_cap()
+has been added to the -mm tree.  Its filename is
+     x86-early_init_centaur-use-set_cpu_cap.patch
 
-This patch was dropped because it ran afoul of gregkh-driver-core-driver-core-remove-kobj_name_len-define.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: change modalias from a pointer to a character array
-From: Grant Likely <grant.likely@secretlab.ca>
+Subject: x86: early_init_centaur(): use set_cpu_cap()
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Currently, 'modalias' in the spi_device structure is a 'const char *'. 
-The spi_new_device() function fills in the modalias value from a passed in
-spi_board_info data block.  Since it is a pointer copy, the new spi_device
-remains dependent on the spi_board_info structure after the new spi_device
-is registered (no other fields in spi_device directly depend on the
-spi_board_info structure; all of the other data is copied).
+arch/x86/kernel/setup_64.c: In function 'early_init_centaur':
+arch/x86/kernel/setup_64.c:954: warning: passing argument 2 of 'set_bit' from incompatible pointer type
 
-This causes a problem when dynamically populating the list of attached SPI
-devices.  For example, in arch/powerpc, the list of SPI devices can be
-populated from data in the device tree.  With the current code, the device
-tree adapter must kmalloc() a new spi_board_info structure for each new
-SPI device it finds in the device tree, and there is no simple mechanism
-in place for keeping track of these allocations.
-
-This patch changes modalias from a 'const char *' to a fixed char array. 
-By copying the modalias string instead of referencing it, the dependency
-on the spi_board_info structure is eliminated and an outside caller does
-not need to maintain a separate spi_board_info allocation for each device.
-
-I searched through the code to the best of my ability for any references
-to modalias which may be affected by this change and haven't found
-anything.  It has been tested with the lite5200b platform in arch/powerpc.
-
-Signed-off-by: Grant Likely <grant.likely@secretlab.ca>
-Cc: David Brownell <david-b@pacbell.net>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/spi.c       |    2 +-
- include/linux/spi/spi.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ arch/x86/kernel/setup_64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/spi/spi.c~spi-change-modalias-from-a-pointer-to-a-character-array drivers/spi/spi.c
---- a/drivers/spi/spi.c~spi-change-modalias-from-a-pointer-to-a-character-array
-+++ a/drivers/spi/spi.c
-@@ -229,7 +229,7 @@ struct spi_device *spi_new_device(struct
- 	proxy->max_speed_hz = chip->max_speed_hz;
- 	proxy->mode = chip->mode;
- 	proxy->irq = chip->irq;
--	proxy->modalias = chip->modalias;
-+	strncpy(proxy->modalias, chip->modalias, KOBJ_NAME_LEN);
+diff -puN arch/x86/kernel/setup_64.c~x86-early_init_centaur-use-set_cpu_cap arch/x86/kernel/setup_64.c
+--- a/arch/x86/kernel/setup_64.c~x86-early_init_centaur-use-set_cpu_cap
++++ a/arch/x86/kernel/setup_64.c
+@@ -951,7 +951,7 @@ static void __cpuinit init_intel(struct 
+ static void __cpuinit early_init_centaur(struct cpuinfo_x86 *c)
+ {
+ 	if (c->x86 == 0x6 && c->x86_model >= 0xf)
+-		set_bit(X86_FEATURE_CONSTANT_TSC, &c->x86_capability);
++		set_cpu_cap(c, X86_FEATURE_CONSTANT_TSC);
+ }
  
- 	snprintf(proxy->dev.bus_id, sizeof proxy->dev.bus_id,
- 			"%s.%u", dev_name(&master->dev),
-diff -puN include/linux/spi/spi.h~spi-change-modalias-from-a-pointer-to-a-character-array include/linux/spi/spi.h
---- a/include/linux/spi/spi.h~spi-change-modalias-from-a-pointer-to-a-character-array
-+++ a/include/linux/spi/spi.h
-@@ -82,7 +82,7 @@ struct spi_device {
- 	int			irq;
- 	void			*controller_state;
- 	void			*controller_data;
--	const char		*modalias;
-+	char			modalias[KOBJ_NAME_LEN];
- 
- 	/*
- 	 * likely need more hooks for more protocol options affecting how
+ static void __cpuinit init_centaur(struct cpuinfo_x86 *c)
 _
 
-Patches currently in -mm which might be from grant.likely@secretlab.ca are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mpc5200_psc_spi-typo-fix-in-header-block.patch
-spi-change-modalias-from-a-pointer-to-a-character-array.patch
+quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
+fix-hfsplus-oops-on-image-without-extents.patch
+rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
+atmel_lcdfb-fix-pixclok-divider-calculation.patch
+memcg-fix-possible-panic-when-config_mm_owner=y.patch
+drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+audit_send_reply-fix-error-path-memory-leak.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+dlm-convert-connections_lock-in-a-mutex-fix.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+git-mmc.patch
+git-ubifs.patch
+hysdn-no-longer-broken-on-smp.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+unionfs-broke.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+git-v9fs.patch
+revert-git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-orion-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+common-implementation-of-iterative-div-mod-fix.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+common-implementation-of-iterative-div-mod-fix-2.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model-fix.patch
+mm-verify-the-page-links-and-memory-model-fix-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-inotify_init-fix.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+x86-early_init_centaur-use-set_cpu_cap.patch
 
