@@ -1,24 +1,28 @@
 From: akpm@linux-foundation.org
-Subject: + revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch added to -mm tree
-Date: Tue, 13 May 2008 01:40:28 -0700
-Message-ID: <200805130840.m4D8eT9x001011@imap1.linux-foundation.org>
+Subject: + revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch added to -mm tree
+Date: Tue, 13 May 2008 01:41:10 -0700
+Message-ID: <200805130841.m4D8fA8T001024@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44231 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43223 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757500AbYEMIk5 (ORCPT
+	by vger.kernel.org with ESMTP id S1757238AbYEMIlM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 04:40:57 -0400
+	Tue, 13 May 2008 04:41:12 -0400
+Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4D8fAQ2005700
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2008 01:41:12 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, arges@linux.vnet.ibm.com, gxt@cs.nott.ac.uk, maynardj@us.ibm.com, phil.el@wanadoo.fr, torvalds@linux-foundation.org, travis@sgi.com, vegard.nossum@gmail.com
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
-     revert "oprofile: change cpu_buffer from array to per_cpu variable"
+     revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
+     revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,209 +38,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert "oprofile: change cpu_buffer from array to per_cpu variable"
+Subject: revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Revert
+ERROR: "foo * bar" should be "foo *bar"
+#84: FILE: drivers/oprofile/buffer_sync.c:494:
++	struct oprofile_cpu_buffer * cpu_buf = &cpu_buffer[cpu];
 
-commit 608dfddd845da5ab6accef70154c8910529699f7
-Author: Mike Travis <travis@sgi.com>
-Date:   Mon Apr 28 02:14:15 2008 -0700
+total: 1 errors, 0 warnings, 102 lines checked
 
-    oprofile: change cpu_buffer from array to per_cpu variable
-    
-    Change cpu_buffer from array to per_cpu variable in oprofile functions.
-    
-    [akpm@linux-foundation.org: coding-style fixes]
-    Cc: Philippe Elie <phil.el@wanadoo.fr>
-    Signed-off-by: Mike Travis <travis@sgi.com>
-    Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-    Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+./patches/revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
 
-Due to this:
+Please run checkpatch prior to sending patches
 
-On Mon, 12 May 2008 13:02:36 +0100 Gianni Tedesco <gxt@cs.nott.ac.uk> wrote:
->
-> This is from Linus' git tree, pulled this morning. To reproduce simply
-> opcontrol --start
-> 
-> oprofile: using NMI interrupt.
-> BUG: unable to handle kernel paging request at eff86d58
-> IP: [<eeb9d508>] :oprofile:alloc_cpu_buffers+0x42/0xd6
-> *pde = 00000000 
-> Oops: 0002 [#1] SMP 
-> Modules linked in: oprofile af_packet i915 drm binfmt_misc kvm_intel kvm cpufreq_powersave cpufreq_stats cpufreq_userspace cpufreq_ondemand cpufreq_conservative sbs fan sbshc iptable_filter ip_tables x_tables ipcomp authenc esp4 aead ah4 xfrm4_mode_transport deflate zlib_deflate zlib_inflate ctr twofish twofish_common camellia serpent blowfish des_generic cbc aes_i586 aes_generic xcbc sha256_generic sha1_generic md5 hmac crypto_hash crypto_null af_key sierra usbserial snd_usb_audio snd_usb_lib snd_hwdep fuse arc4 ecb crypto_blkcipher cryptomgr crypto_algapi snd_pcm_oss snd_mixer_oss snd_pcm snd_seq_dummy snd_seq_oss snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq yenta_socket iwl3945 mac80211 rsrc_nonstatic ehci_hcd snd_timer snd_seq_device uhci_hcd cfg80211 snd pcmcia_core usbcore s
- oundcore snd_page_alloc battery ac thinkpad_acpi backlight button led_class thermal evdev nvram
-> 
-> Pid: 4589, comm: oprofiled Not tainted (2.6.26-rc2 #37)
-> EIP: 0060:[<eeb9d508>] EFLAGS: 00010286 CPU: 1
-> EIP is at alloc_cpu_buffers+0x42/0xd6 [oprofile]
-> EAX: eeba5000 EBX: eff86d40 ECX: eeb9d506 EDX: 00000000
-> ESI: 00000000 EDI: eeba2d40 EBP: 00002000 ESP: e6824e94
->  DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-> Process oprofiled (pid: 4589, ti=e6824000 task=ed109560 task.ti=e6824000)
-> Stack: 00010000 ffffffea d04eaec0 e6824f14 eeb9dcc5 eeb9d114 ffffffea d04eaec0 
->        eeb9dcfe d04eaec0 d0d7fcf4 b0158a50 ec9379c0 d0ddbc6c e6824f14 d04eaec0 
->        e6824f14 00000001 b0158b55 d04eaec0 00000000 00000000 e6824f14 b01628fd 
-> Call Trace:
->  [<eeb9dcc5>] event_buffer_open+0x0/0x55 [oprofile]
->  [<eeb9d114>] oprofile_setup+0x11/0x85 [oprofile]
->  [<eeb9dcfe>] event_buffer_open+0x39/0x55 [oprofile]
->  [<b0158a50>] __dentry_open+0xfd/0x1e6
->  [<b0158b55>] nameidata_to_filp+0x1c/0x2c
->  [<b01628fd>] do_filp_open+0x31c/0x676
->  [<b014a4cc>] handle_mm_fault+0x1c6/0x48d
->  [<b0158875>] do_sys_open+0x3d/0xb5
->  [<b0111723>] do_page_fault+0x206/0x523
->  [<b0158931>] sys_open+0x1e/0x23
->  [<b0102a79>] sysenter_past_esp+0x6a/0x91
->  [<b02e0000>] lock_kernel+0x2f/0x31
->  =======================
-> Code: e8 db 77 63 c1 89 c6 8d 04 ed 00 00 00 00 89 04 24 e9 8b 00 00 00 8b 04 24 31 d2 89 fb 03 1c b5 80 de 39 b0 e8 9d 28 5b c1 85 c0 <89> 43 18 74 7e 8d 43 34 c7 43 04 00 00 00 00 89 73 2c 89 43 34 
-> EIP: [<eeb9d508>] alloc_cpu_buffers+0x42/0xd6 [oprofile] SS:ESP
-> 0068:e6824e94
 
-Cc: Philippe Elie <phil.el@wanadoo.fr>
-Cc: Mike Travis <travis@sgi.com>
-Cc: "Vegard Nossum" <vegard.nossum@gmail.com>
-Cc: Gianni Tedesco <gxt@cs.nott.ac.uk>
-Cc: Maynard Johnson <maynardj@us.ibm.com>
-Cc: Chris J Arges <arges@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/oprofile/buffer_sync.c    |    2 +-
- drivers/oprofile/cpu_buffer.c     |   16 ++++++++--------
- drivers/oprofile/cpu_buffer.h     |    3 +--
- drivers/oprofile/oprofile_stats.c |    4 ++--
- 4 files changed, 12 insertions(+), 13 deletions(-)
+ drivers/oprofile/buffer_sync.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/oprofile/buffer_sync.c~revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable drivers/oprofile/buffer_sync.c
---- a/drivers/oprofile/buffer_sync.c~revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable
+diff -puN drivers/oprofile/buffer_sync.c~revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes drivers/oprofile/buffer_sync.c
+--- a/drivers/oprofile/buffer_sync.c~revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
 +++ a/drivers/oprofile/buffer_sync.c
 @@ -491,7 +491,7 @@ typedef enum {
   */
  void sync_buffer(int cpu)
  {
--	struct oprofile_cpu_buffer *cpu_buf = &per_cpu(cpu_buffer, cpu);
-+	struct oprofile_cpu_buffer * cpu_buf = &cpu_buffer[cpu];
+-	struct oprofile_cpu_buffer * cpu_buf = &cpu_buffer[cpu];
++	struct oprofile_cpu_buffer *cpu_buf = &cpu_buffer[cpu];
  	struct mm_struct *mm = NULL;
  	struct task_struct * new;
  	unsigned long cookie = 0;
-diff -puN drivers/oprofile/cpu_buffer.c~revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable drivers/oprofile/cpu_buffer.c
---- a/drivers/oprofile/cpu_buffer.c~revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable
-+++ a/drivers/oprofile/cpu_buffer.c
-@@ -27,7 +27,7 @@
- #include "buffer_sync.h"
- #include "oprof.h"
- 
--DEFINE_PER_CPU_SHARED_ALIGNED(struct oprofile_cpu_buffer, cpu_buffer);
-+struct oprofile_cpu_buffer cpu_buffer[NR_CPUS] __cacheline_aligned;
- 
- static void wq_sync_buffer(struct work_struct *work);
- 
-@@ -39,7 +39,7 @@ void free_cpu_buffers(void)
- 	int i;
-  
- 	for_each_online_cpu(i)
--		vfree(per_cpu(cpu_buffer, i).buffer);
-+		vfree(cpu_buffer[i].buffer);
- }
- 
- int alloc_cpu_buffers(void)
-@@ -49,7 +49,7 @@ int alloc_cpu_buffers(void)
- 	unsigned long buffer_size = fs_cpu_buffer_size;
-  
- 	for_each_online_cpu(i) {
--		struct oprofile_cpu_buffer *b = &per_cpu(cpu_buffer, i);
-+		struct oprofile_cpu_buffer * b = &cpu_buffer[i];
-  
- 		b->buffer = vmalloc_node(sizeof(struct op_sample) * buffer_size,
- 			cpu_to_node(i));
-@@ -83,7 +83,7 @@ void start_cpu_work(void)
- 	work_enabled = 1;
- 
- 	for_each_online_cpu(i) {
--		struct oprofile_cpu_buffer *b = &per_cpu(cpu_buffer, i);
-+		struct oprofile_cpu_buffer * b = &cpu_buffer[i];
- 
- 		/*
- 		 * Spread the work by 1 jiffy per cpu so they dont all
-@@ -100,7 +100,7 @@ void end_cpu_work(void)
- 	work_enabled = 0;
- 
- 	for_each_online_cpu(i) {
--		struct oprofile_cpu_buffer *b = &per_cpu(cpu_buffer, i);
-+		struct oprofile_cpu_buffer * b = &cpu_buffer[i];
- 
- 		cancel_delayed_work(&b->work);
- 	}
-@@ -227,7 +227,7 @@ static void oprofile_end_trace(struct op
- void oprofile_add_ext_sample(unsigned long pc, struct pt_regs * const regs,
- 				unsigned long event, int is_kernel)
- {
--	struct oprofile_cpu_buffer *cpu_buf = &__get_cpu_var(cpu_buffer);
-+	struct oprofile_cpu_buffer * cpu_buf = &cpu_buffer[smp_processor_id()];
- 
- 	if (!backtrace_depth) {
- 		log_sample(cpu_buf, pc, is_kernel, event);
-@@ -254,13 +254,13 @@ void oprofile_add_sample(struct pt_regs 
- 
- void oprofile_add_pc(unsigned long pc, int is_kernel, unsigned long event)
- {
--	struct oprofile_cpu_buffer *cpu_buf = &__get_cpu_var(cpu_buffer);
-+	struct oprofile_cpu_buffer * cpu_buf = &cpu_buffer[smp_processor_id()];
- 	log_sample(cpu_buf, pc, is_kernel, event);
- }
- 
- void oprofile_add_trace(unsigned long pc)
- {
--	struct oprofile_cpu_buffer *cpu_buf = &__get_cpu_var(cpu_buffer);
-+	struct oprofile_cpu_buffer * cpu_buf = &cpu_buffer[smp_processor_id()];
- 
- 	if (!cpu_buf->tracing)
- 		return;
-diff -puN drivers/oprofile/cpu_buffer.h~revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable drivers/oprofile/cpu_buffer.h
---- a/drivers/oprofile/cpu_buffer.h~revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable
-+++ a/drivers/oprofile/cpu_buffer.h
-@@ -14,7 +14,6 @@
- #include <linux/spinlock.h>
- #include <linux/workqueue.h>
- #include <linux/cache.h>
--#include <linux/sched.h>
-  
- struct task_struct;
-  
-@@ -48,7 +47,7 @@ struct oprofile_cpu_buffer {
- 	struct delayed_work work;
- } ____cacheline_aligned;
- 
--DECLARE_PER_CPU(struct oprofile_cpu_buffer, cpu_buffer);
-+extern struct oprofile_cpu_buffer cpu_buffer[];
- 
- void cpu_buffer_reset(struct oprofile_cpu_buffer * cpu_buf);
- 
-diff -puN drivers/oprofile/oprofile_stats.c~revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable drivers/oprofile/oprofile_stats.c
---- a/drivers/oprofile/oprofile_stats.c~revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable
-+++ a/drivers/oprofile/oprofile_stats.c
-@@ -23,7 +23,7 @@ void oprofile_reset_stats(void)
- 	int i;
-  
- 	for_each_possible_cpu(i) {
--		cpu_buf = &per_cpu(cpu_buffer, i);
-+		cpu_buf = &cpu_buffer[i];
- 		cpu_buf->sample_received = 0;
- 		cpu_buf->sample_lost_overflow = 0;
- 		cpu_buf->backtrace_aborted = 0;
-@@ -49,7 +49,7 @@ void oprofile_create_stats_files(struct 
- 		return;
- 
- 	for_each_possible_cpu(i) {
--		cpu_buf = &per_cpu(cpu_buffer, i);
-+		cpu_buf = &cpu_buffer[i];
- 		snprintf(buf, 10, "cpu%d", i);
- 		cpudir = oprofilefs_mkdir(sb, dir, buf);
-  
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -255,6 +90,7 @@ ia64-kvm-dont-delete-files-which-we-need.patch
 revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
 revert-acpica-fixes-for-unload-and-ddbhandles.patch
 revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch
+revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-video-balcklist-fujitsu-lifebook-s6410.patch
 git-x86-fixup.patch
