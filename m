@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch added to -mm tree
-Date: Mon, 12 May 2008 17:31:38 -0700
-Message-ID: <200805130031.m4D0VcB6016778@imap1.linux-foundation.org>
+Subject: + net-use-the-common-ascii-hex-helpers.patch added to -mm tree
+Date: Mon, 12 May 2008 17:31:43 -0700
+Message-ID: <200805130031.m4D0VhXa016786@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54029 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35082 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753008AbYEMAbl (ORCPT
+	by vger.kernel.org with ESMTP id S1753192AbYEMAbp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 20:31:41 -0400
+	Mon, 12 May 2008 20:31:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: harvey.harrison@gmail.com
 
 
 The patch titled
-     scsi: use the common hex_asc array rather than a private one
+     net: use the common ascii hex helpers
 has been added to the -mm tree.  Its filename is
-     scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+     net-use-the-common-ascii-hex-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,50 +34,71 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: scsi: use the common hex_asc array rather than a private one
+Subject: net: use the common ascii hex helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
-
-Also use the hi/lo helpers.
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/ibmmca.c    |    3 +--
- drivers/scsi/ultrastor.c |    4 ++--
- 2 files changed, 3 insertions(+), 4 deletions(-)
+ drivers/net/skfp/smt.c             |   13 ++++++-------
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |    5 ++---
+ 2 files changed, 8 insertions(+), 10 deletions(-)
 
-diff -puN drivers/scsi/ibmmca.c~scsi-use-the-common-hex_asc-array-rather-than-a-private-one drivers/scsi/ibmmca.c
---- a/drivers/scsi/ibmmca.c~scsi-use-the-common-hex_asc-array-rather-than-a-private-one
-+++ a/drivers/scsi/ibmmca.c
-@@ -1002,12 +1002,11 @@ static char *ti_p(int dev)
- /* interpreter for logical device numbers (ldn) */
- static char *ti_l(int val)
- {
--	const char hex[16] = "0123456789abcdef";
- 	static char answer[2];
+diff -puN drivers/net/skfp/smt.c~net-use-the-common-ascii-hex-helpers drivers/net/skfp/smt.c
+--- a/drivers/net/skfp/smt.c~net-use-the-common-ascii-hex-helpers
++++ a/drivers/net/skfp/smt.c
+@@ -19,6 +19,7 @@
+ #include "h/smc.h"
+ #include "h/smt_p.h"
+ #include <linux/bitrev.h>
++#include <linux/kernel.h>
  
- 	answer[1] = (char) (0x0);
- 	if (val <= MAX_LOG_DEV)
--		answer[0] = hex[val];
-+		answer[0] = hex_asc[val];
- 	else
- 		answer[0] = '-';
- 	return (char *) &answer;
-diff -puN drivers/scsi/ultrastor.c~scsi-use-the-common-hex_asc-array-rather-than-a-private-one drivers/scsi/ultrastor.c
---- a/drivers/scsi/ultrastor.c~scsi-use-the-common-hex_asc-array-rather-than-a-private-one
-+++ a/drivers/scsi/ultrastor.c
-@@ -876,8 +876,8 @@ static int ultrastor_abort(struct scsi_c
- 	for (i = 0; i < 16; i++)
- 	  {
- 	    unsigned char p = inb(port0 + i);
--	    out[28 + i * 3] = "0123456789abcdef"[p >> 4];
--	    out[29 + i * 3] = "0123456789abcdef"[p & 15];
-+	    out[28 + i * 3] = hex_asc_hi(p);
-+	    out[29 + i * 3] = hex_asc_lo(p);
- 	    out[30 + i * 3] = ' ';
- 	  }
- 	out[28 + i * 3] = '\n';
+ #define KERNEL
+ #include "h/smtstate.h"
+@@ -1730,20 +1731,18 @@ void fddi_send_antc(struct s_smc *smc, s
+ #endif
+ 
+ #ifdef	DEBUG
+-#define hextoasc(x)	"0123456789abcdef"[x]
+-
+ char *addr_to_string(struct fddi_addr *addr)
+ {
+ 	int	i ;
+ 	static char	string[6*3] = "****" ;
+ 
+ 	for (i = 0 ; i < 6 ; i++) {
+-		string[i*3] = hextoasc((addr->a[i]>>4)&0xf) ;
+-		string[i*3+1] = hextoasc((addr->a[i])&0xf) ;
+-		string[i*3+2] = ':' ;
++		string[i * 3] = hex_asc_hi(addr->a[i]);
++		string[i * 3 + 1] = hex_asc_lo(addr->a[i]);
++		string[i * 3 + 2] = ':';
+ 	}
+-	string[5*3+2] = 0 ;
+-	return(string) ;
++	string[5 * 3 + 2] = 0;
++	return(string);
+ }
+ #endif
+ 
+diff -puN net/ipv4/netfilter/ipt_CLUSTERIP.c~net-use-the-common-ascii-hex-helpers net/ipv4/netfilter/ipt_CLUSTERIP.c
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c~net-use-the-common-ascii-hex-helpers
++++ a/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -475,11 +475,10 @@ static void arp_print(struct arp_payload
+ #define HBUFFERLEN 30
+ 	char hbuffer[HBUFFERLEN];
+ 	int j,k;
+-	const char hexbuf[]= "0123456789abcdef";
+ 
+ 	for (k=0, j=0; k < HBUFFERLEN-3 && j < ETH_ALEN; j++) {
+-		hbuffer[k++]=hexbuf[(payload->src_hw[j]>>4)&15];
+-		hbuffer[k++]=hexbuf[payload->src_hw[j]&15];
++		hbuffer[k++] = hex_asc_hi(payload->src_hw[j]);
++		hbuffer[k++] = hex_asc_lo(payload->src_hw[j]);
+ 		hbuffer[k++]=':';
+ 	}
+ 	hbuffer[--k]='\0';
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
