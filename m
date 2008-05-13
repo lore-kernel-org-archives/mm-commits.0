@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch added to -mm tree
-Date: Mon, 12 May 2008 19:43:08 -0700
-Message-ID: <200805130254.m4D2s8gl021557@imap1.linux-foundation.org>
+Subject: + drivers-uwb-i1480-dfu-macc-fix-min-warning.patch added to -mm tree
+Date: Mon, 12 May 2008 19:47:06 -0700
+Message-ID: <200805130258.m4D2w6GM021645@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43920 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38163 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753690AbYEMCyL (ORCPT
+	by vger.kernel.org with ESMTP id S1752391AbYEMC6K (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 22:54:11 -0400
+	Mon, 12 May 2008 22:58:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, andrew.vasquez@qlogic.com
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     drivers/scsi/qla2xxx/qla_os.c: suppress uninitialized-var warning
+     drivers/uwb/i1480/dfu/mac.c: fix min() warning
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+     drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,31 +34,32 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/qla2xxx/qla_os.c: suppress uninitialized-var warning
+Subject: drivers/uwb/i1480/dfu/mac.c: fix min() warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/qla2xxx/qla_os.c: In function 'qla2x00_post_work':
-drivers/scsi/qla2xxx/qla_os.c:2158: warning: 'flags' may be used uninitialized in this function
+drivers/uwb/i1480/dfu/mac.c: In function 'i1480_mac_fw_upload':
+drivers/uwb/i1480/dfu/mac.c:507: warning: comparison of distinct pointer types lacks a cast
 
-Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/qla2xxx/qla_os.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/uwb/i1480/dfu/mac.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/scsi/qla2xxx/qla_os.c~drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning drivers/scsi/qla2xxx/qla_os.c
---- a/drivers/scsi/qla2xxx/qla_os.c~drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning
-+++ a/drivers/scsi/qla2xxx/qla_os.c
-@@ -2155,7 +2155,7 @@ qla2x00_alloc_work(struct scsi_qla_host 
- static int
- qla2x00_post_work(struct scsi_qla_host *ha, struct qla_work_evt *e, int locked)
- {
--	unsigned long flags;
-+	unsigned long uninitialized_var(flags);
- 
- 	if (!locked)
- 		spin_lock_irqsave(&ha->hardware_lock, flags);
+diff -puN drivers/uwb/i1480/dfu/mac.c~drivers-uwb-i1480-dfu-macc-fix-min-warning drivers/uwb/i1480/dfu/mac.c
+--- a/drivers/uwb/i1480/dfu/mac.c~drivers-uwb-i1480-dfu-macc-fix-min-warning
++++ a/drivers/uwb/i1480/dfu/mac.c
+@@ -504,7 +504,8 @@ int i1480_mac_fw_upload(struct i1480 *i1
+ 		dev_err(i1480->dev, "MAC fw '%s': initialization event returns "
+ 			"wrong size (%zu bytes vs %zu needed)\n",
+ 			i1480->mac_fw_name, i1480->evt_result, sizeof(*rcebe));
+-		dump_bytes(i1480->dev, rcebe, min(i1480->evt_result, 32));
++		dump_bytes(i1480->dev, rcebe,
++				min_t(ssize_t, i1480->evt_result, 32));
+ 		goto error_size;
+ 	}
+ 	result = -EIO;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,6 +109,7 @@ fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 arch-parisc-kernel-unalignedc-use-time_-macros.patch
 pci-hotplug-introduce-pci_slot.patch
 pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
 unionfs-broke.patch
@@ -160,5 +162,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
 
