@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + isdn-use-the-common-ascii-hex-helpers.patch added to -mm tree
-Date: Mon, 12 May 2008 17:31:40 -0700
-Message-ID: <200805130031.m4D0VeSe016781@imap1.linux-foundation.org>
+Subject: + sh-use-the-common-ascii-hex-helpers.patch added to -mm tree
+Date: Mon, 12 May 2008 17:31:55 -0700
+Message-ID: <200805130031.m4D0VtKl016804@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40865 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45660 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754125AbYEMAbp (ORCPT
+	by vger.kernel.org with ESMTP id S1754917AbYEMAb7 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 20:31:45 -0400
+	Mon, 12 May 2008 20:31:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, kkeil@suse.de
+Cc: harvey.harrison@gmail.com, lethal@linux-sh.org
 
 
 The patch titled
-     isdn: use the common ascii hex helpers
+     sh: use the common ascii hex helpers
 has been added to the -mm tree.  Its filename is
-     isdn-use-the-common-ascii-hex-helpers.patch
+     sh-use-the-common-ascii-hex-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,99 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: isdn: use the common ascii hex helpers
+Subject: sh: use the common ascii hex helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: Karsten Keil <kkeil@suse.de>
+Acked-by: Paul Mundt <lethal@linux-sh.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/isdn/gigaset/isocdata.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ arch/sh/kernel/kgdb_stub.c |   11 +++++------
+ drivers/serial/sh-sci.c    |    8 ++++----
+ include/asm-sh/kgdb.h      |   14 --------------
+ 3 files changed, 9 insertions(+), 24 deletions(-)
 
-diff -puN drivers/isdn/gigaset/isocdata.c~isdn-use-the-common-ascii-hex-helpers drivers/isdn/gigaset/isocdata.c
---- a/drivers/isdn/gigaset/isocdata.c~isdn-use-the-common-ascii-hex-helpers
-+++ a/drivers/isdn/gigaset/isocdata.c
-@@ -247,7 +247,6 @@ static inline void dump_bytes(enum debug
- #ifdef CONFIG_GIGASET_DEBUG
- 	unsigned char c;
- 	static char dbgline[3 * 32 + 1];
--	static const char hexdigit[] = "0123456789abcdef";
- 	int i = 0;
- 	while (count-- > 0) {
- 		if (i > sizeof(dbgline) - 4) {
-@@ -258,8 +257,8 @@ static inline void dump_bytes(enum debug
- 		c = *bytes++;
- 		dbgline[i] = (i && !(i % 12)) ? '-' : ' ';
- 		i++;
--		dbgline[i++] = hexdigit[(c >> 4) & 0x0f];
--		dbgline[i++] = hexdigit[c & 0x0f];
-+		dbgline[i++] = hex_asc_hi(c);
-+		dbgline[i++] = hex_asc_lo(c);
+diff -puN arch/sh/kernel/kgdb_stub.c~sh-use-the-common-ascii-hex-helpers arch/sh/kernel/kgdb_stub.c
+--- a/arch/sh/kernel/kgdb_stub.c~sh-use-the-common-ascii-hex-helpers
++++ a/arch/sh/kernel/kgdb_stub.c
+@@ -274,8 +274,7 @@ static char *mem_to_hex(const char *mem,
  	}
- 	dbgline[i] = '\0';
- 	gig_dbg(level, "%s:%s", tag, dbgline);
+ 	for (i = 0; i < count; i++) {
+ 		ch = *mem++;
+-		*buf++ = highhex(ch);
+-		*buf++ = lowhex(ch);
++		buf = pack_hex_byte(buf, ch);
+ 	}
+ 	*buf = 0;
+ 	return (buf);
+@@ -427,8 +426,8 @@ static void put_packet(char *buffer)
+ 
+ 		/* '#' Separator, put high and low components of checksum */
+ 		put_debug_char('#');
+-		put_debug_char(highhex(checksum));
+-		put_debug_char(lowhex(checksum));
++		put_debug_char(hex_asc_hi(checksum));
++		put_debug_char(hex_asc_lo(checksum));
+ 	}
+ 	while ((get_debug_char()) != '+');	/* While no ack */
+ }
+@@ -650,8 +649,8 @@ static void undo_single_step(void)
+ static void send_signal_msg(const int signum)
+ {
+ 	out_buffer[0] = 'S';
+-	out_buffer[1] = highhex(signum);
+-	out_buffer[2] = lowhex(signum);
++	out_buffer[1] = hex_asc_hi(signum);
++	out_buffer[2] = hex_asc_lo(signum);
+ 	out_buffer[3] = 0;
+ 	put_packet(out_buffer);
+ }
+diff -puN drivers/serial/sh-sci.c~sh-use-the-common-ascii-hex-helpers drivers/serial/sh-sci.c
+--- a/drivers/serial/sh-sci.c~sh-use-the-common-ascii-hex-helpers
++++ a/drivers/serial/sh-sci.c
+@@ -184,15 +184,15 @@ static void put_string(struct sci_port *
+ 			int h, l;
+ 
+ 			c = *p++;
+-			h = highhex(c);
+-			l = lowhex(c);
++			h = hex_asc_hi(c);
++			l = hex_asc_lo(c);
+ 			put_char(port, h);
+ 			put_char(port, l);
+ 			checksum += h + l;
+ 		}
+ 		put_char(port, '#');
+-		put_char(port, highhex(checksum));
+-		put_char(port, lowhex(checksum));
++		put_char(port, hex_asc_hi(checksum));
++		put_char(port, hex_asc_lo(checksum));
+ 	    } while  (get_char(port) != '+');
+ 	} else
+ #endif /* CONFIG_SH_STANDARD_BIOS || CONFIG_SH_KGDB */
+diff -puN include/asm-sh/kgdb.h~sh-use-the-common-ascii-hex-helpers include/asm-sh/kgdb.h
+--- a/include/asm-sh/kgdb.h~sh-use-the-common-ascii-hex-helpers
++++ a/include/asm-sh/kgdb.h
+@@ -66,18 +66,4 @@ extern int     setjmp(jmp_buf __jmpb);
+ /* Forced breakpoint */
+ #define breakpoint()	__asm__ __volatile__("trapa   #0x3c")
+ 
+-/* Taken from sh-stub.c of GDB 4.18 */
+-static const char hexchars[] = "0123456789abcdef";
+-
+-/* Get high hex bits */
+-static inline char highhex(const int x)
+-{
+-	return hexchars[(x >> 4) & 0xf];
+-}
+-
+-/* Get low hex bits */
+-static inline char lowhex(const int x)
+-{
+-	return hexchars[x & 0xf];
+-}
+ #endif
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
