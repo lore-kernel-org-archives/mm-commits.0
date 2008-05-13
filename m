@@ -1,92 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: - atl1-add-phy-power-save-mode.patch removed from -mm tree
-Date: Tue, 13 May 2008 14:34:47 -0700
-Message-ID: <200805132134.m4DLYlYV000956@imap1.linux-foundation.org>
+Subject: - fix-misuses-of-bdevname.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:34:14 -0700
+Message-ID: <200805132134.m4DLYEc0000902@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37357 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32988 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760114AbYEMVeu (ORCPT
+	by vger.kernel.org with ESMTP id S1760778AbYEMVex (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 17:34:50 -0400
+	Tue, 13 May 2008 17:34:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jacliburn@bellsouth.net, mm-commits@vger.kernel.org
+To: khali@linux-fr.org, axboe@kernel.dk, sct@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     atl1: add PHY power save mode
+     Fix misuses of bdevname()
 has been removed from the -mm tree.  Its filename was
-     atl1-add-phy-power-save-mode.patch
+     fix-misuses-of-bdevname.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: atl1: add PHY power save mode
-From: Jay Cliburn <jacliburn@bellsouth.net>
+Subject: Fix misuses of bdevname()
+From: Jean Delvare <khali@linux-fr.org>
 
-Using vendor-provided magic, add code to enter power save mode on the PHY.
- We'll need this for suspend and wake-on-lan.
+bdevname() fills the buffer that it is given as a parameter, so calling
+strcpy() or snprintf() on the returned value is redundant (and probably not
+guaranteed to work - I don't think strcpy and snprintf support overlapping
+buffers.)
 
-Signed-off-by: Jay Cliburn <jacliburn@bellsouth.net>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Stephen Tweedie <sct@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/atlx/atl1.c |   19 ++++++++-----------
- drivers/net/atlx/atlx.h |    3 +++
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ block/blktrace.c     |    2 +-
+ block/compat_ioctl.c |    2 +-
+ fs/ext4/mballoc.c    |    6 ++----
+ fs/jbd2/journal.c    |    4 ++--
+ 4 files changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN drivers/net/atlx/atl1.c~atl1-add-phy-power-save-mode drivers/net/atlx/atl1.c
---- a/drivers/net/atlx/atl1.c~atl1-add-phy-power-save-mode
-+++ a/drivers/net/atlx/atl1.c
-@@ -638,21 +638,18 @@ static s32 atl1_phy_leave_power_saving(s
- }
+diff -puN block/blktrace.c~fix-misuses-of-bdevname block/blktrace.c
+--- a/block/blktrace.c~fix-misuses-of-bdevname
++++ a/block/blktrace.c
+@@ -476,7 +476,7 @@ int blk_trace_ioctl(struct block_device 
  
- /*
-- *TODO: do something or get rid of this
-+ * Force the PHY into power saving mode using vendor magic.
-  */
- #ifdef CONFIG_PM
--static s32 atl1_phy_enter_power_saving(struct atl1_hw *hw)
-+static void atl1_phy_enter_power_saving(struct atl1_hw *hw)
+ 	switch (cmd) {
+ 	case BLKTRACESETUP:
+-		strcpy(b, bdevname(bdev, b));
++		bdevname(bdev, b);
+ 		ret = blk_trace_setup(q, b, bdev->bd_dev, arg);
+ 		break;
+ 	case BLKTRACESTART:
+diff -puN block/compat_ioctl.c~fix-misuses-of-bdevname block/compat_ioctl.c
+--- a/block/compat_ioctl.c~fix-misuses-of-bdevname
++++ a/block/compat_ioctl.c
+@@ -555,7 +555,7 @@ static int compat_blk_trace_setup(struct
+ 	if (copy_from_user(&cbuts, arg, sizeof(cbuts)))
+ 		return -EFAULT;
+ 
+-	strcpy(b, bdevname(bdev, b));
++	bdevname(bdev, b);
+ 
+ 	buts = (struct blk_user_trace_setup) {
+ 		.act_mask = cbuts.act_mask,
+diff -puN fs/ext4/mballoc.c~fix-misuses-of-bdevname fs/ext4/mballoc.c
+--- a/fs/ext4/mballoc.c~fix-misuses-of-bdevname
++++ a/fs/ext4/mballoc.c
+@@ -2639,8 +2639,7 @@ static int ext4_mb_init_per_dev_proc(str
+ 	struct proc_dir_entry *proc;
+ 	char devname[64];
+ 
+-	snprintf(devname, sizeof(devname) - 1, "%s",
+-		bdevname(sb->s_bdev, devname));
++	bdevname(sb->s_bdev, devname);
+ 	sbi->s_mb_proc = proc_mkdir(devname, proc_root_ext4);
+ 
+ 	MB_PROC_HANDLER(EXT4_MB_STATS_NAME, stats);
+@@ -2674,8 +2673,7 @@ static int ext4_mb_destroy_per_dev_proc(
+ 	if (sbi->s_mb_proc == NULL)
+ 		return -EINVAL;
+ 
+-	snprintf(devname, sizeof(devname) - 1, "%s",
+-		bdevname(sb->s_bdev, devname));
++	bdevname(sb->s_bdev, devname);
+ 	remove_proc_entry(EXT4_MB_GROUP_PREALLOC, sbi->s_mb_proc);
+ 	remove_proc_entry(EXT4_MB_STREAM_REQ, sbi->s_mb_proc);
+ 	remove_proc_entry(EXT4_MB_ORDER2_REQ, sbi->s_mb_proc);
+diff -puN fs/jbd2/journal.c~fix-misuses-of-bdevname fs/jbd2/journal.c
+--- a/fs/jbd2/journal.c~fix-misuses-of-bdevname
++++ a/fs/jbd2/journal.c
+@@ -901,7 +901,7 @@ static void jbd2_stats_proc_init(journal
  {
--/*    s32 ret_val;
-- *    u16 phy_data;
-- */
-+	atl1_write_phy_reg(hw, MII_DBG_ADDR, 0);
-+	atl1_write_phy_reg(hw, MII_DBG_DATA, 0x124E);
-+	atl1_write_phy_reg(hw, MII_DBG_ADDR, 2);
-+	atl1_write_phy_reg(hw, MII_DBG_DATA, 0x3000);
-+	atl1_write_phy_reg(hw, MII_DBG_ADDR, 3);
-+	atl1_write_phy_reg(hw, MII_DBG_DATA, 0);
+ 	char name[BDEVNAME_SIZE];
  
--/*
--    ret_val = atl1_write_phy_reg(hw, ...);
--    ret_val = atl1_write_phy_reg(hw, ...);
--    ....
--*/
--	return 0;
- }
- #endif
+-	snprintf(name, sizeof(name) - 1, "%s", bdevname(journal->j_dev, name));
++	bdevname(journal->j_dev, name);
+ 	journal->j_proc_entry = proc_mkdir(name, proc_jbd2_stats);
+ 	if (journal->j_proc_entry) {
+ 		proc_create_data("history", S_IRUGO, journal->j_proc_entry,
+@@ -915,7 +915,7 @@ static void jbd2_stats_proc_exit(journal
+ {
+ 	char name[BDEVNAME_SIZE];
  
-diff -puN drivers/net/atlx/atlx.h~atl1-add-phy-power-save-mode drivers/net/atlx/atlx.h
---- a/drivers/net/atlx/atlx.h~atl1-add-phy-power-save-mode
-+++ a/drivers/net/atlx/atlx.h
-@@ -460,6 +460,9 @@ MODULE_VERSION(ATLX_DRIVER_VERSION);
- #define MII_ATLX_PSSR_100MBS		0x4000	/* 01=100Mbs */
- #define MII_ATLX_PSSR_1000MBS		0x8000	/* 10=1000Mbs */
- 
-+#define MII_DBG_ADDR			0x1D
-+#define MII_DBG_DATA			0x1E
-+
- /* PCI Command Register Bit Definitions */
- #define PCI_REG_COMMAND			0x04	/* PCI Command Register */
- #define CMD_IO_SPACE			0x0001
+-	snprintf(name, sizeof(name) - 1, "%s", bdevname(journal->j_dev, name));
++	bdevname(journal->j_dev, name);
+ 	remove_proc_entry("info", journal->j_proc_entry);
+ 	remove_proc_entry("history", journal->j_proc_entry);
+ 	remove_proc_entry(name, proc_jbd2_stats);
 _
 
-Patches currently in -mm which might be from jacliburn@bellsouth.net are
+Patches currently in -mm which might be from khali@linux-fr.org are
 
-git-net.patch
+origin.patch
+linux-next.patch
+mm-only-enforce-acpi-resource-conflict-checks.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+git-gfs2-nmw.patch
 
