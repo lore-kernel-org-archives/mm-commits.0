@@ -1,115 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: - drivers-video-pnx4008-eliminate-double-free.patch removed from -mm tree
-Date: Tue, 13 May 2008 14:33:33 -0700
-Message-ID: <200805132133.m4DLXXA5000836@imap1.linux-foundation.org>
+Subject: - capabilities-add-bounding-set-to-proc-self-status.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:33:25 -0700
+Message-ID: <200805132133.m4DLXPPd000823@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41310 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52338 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761153AbYEMVdp (ORCPT
+	by vger.kernel.org with ESMTP id S1762074AbYEMVds (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 17:33:45 -0400
+	Tue, 13 May 2008 17:33:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, adaplas@gmail.com, gtolstolytkin@ru.mvista.com, krzysztof.h1@wp.pl, vitalywool@gmail.com, mm-commits@vger.kernel.org
+To: serue@us.ibm.com, morgan@kernel.org, mtk.manpages@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     drivers/video/pnx4008: eliminate double free
+     capabilities: add bounding set to /proc/self/status
 has been removed from the -mm tree.  Its filename was
-     drivers-video-pnx4008-eliminate-double-free.patch
+     capabilities-add-bounding-set-to-proc-self-status.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/video/pnx4008: eliminate double free
-From: Julia Lawall <julia@diku.dk>
+Subject: capabilities: add bounding set to /proc/self/status
+From: "Serge E. Hallyn" <serue@us.ibm.com>
 
-The function framebuffer_release just calls kfree, so calling kfree
-subsequently on the same argument represents a double free.  The comments with
-the definition of framebuffer_release in drivers/video/fbsysfs.c suggest that
-a more elaborate definition of this function is planned, such that the
-splitting up of framebuffer_release and kfree as done in the second instance
-might someday make sense, but it does not make sense now.
+There is currently no way to query the bounding set of another task.  As there
+appears to be no security reason not to, and as Michael Kerrisk points out the
+following valid reasons to do so exist:
 
-This was found using the following semantic match.
-(http://www.emn.fr/x-info/coccinelle/)
+* consistency (I can see all of the other per-thread/process sets in
+  /proc/.../status)
 
-// <smpl>
-@@
-expression E;
-@@
+* debugging -- I could imagine that it would make the job of debugging an
+  application that uses capabilities a little simpler.
 
-* kfree(E);
-...
-* framebuffer_release(E);
+this patch adds the bounding set to /proc/self/status right after the
+effective set.
 
-@@
-expression E;
-@@
-
-* framebuffer_release(E);
-...
-* kfree(E);
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-Cc: Vitaly Wool <vitalywool@gmail.com>
-Cc: Krzysztof Helt <krzysztof.h1@wp.pl>
-Cc: Grigory Tolstolytkin <gtolstolytkin@ru.mvista.com>
-Cc: Antonino Daplas <adaplas@gmail.com>
+Signed-off-by: Serge E. Hallyn <serue@us.ibm.com>
+Acked-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Acked-by: Andrew G. Morgan <morgan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/pnx4008/pnxrgbfb.c |   11 ++++-------
- 1 file changed, 4 insertions(+), 7 deletions(-)
+ fs/proc/array.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/video/pnx4008/pnxrgbfb.c~drivers-video-pnx4008-eliminate-double-free drivers/video/pnx4008/pnxrgbfb.c
---- a/drivers/video/pnx4008/pnxrgbfb.c~drivers-video-pnx4008-eliminate-double-free
-+++ a/drivers/video/pnx4008/pnxrgbfb.c
-@@ -100,7 +100,6 @@ static int rgbfb_remove(struct platform_
- 		fb_dealloc_cmap(&info->cmap);
- 		framebuffer_release(info);
- 		platform_set_drvdata(pdev, NULL);
--		kfree(info);
- 	}
- 
- 	pnx4008_free_dum_channel(channel_owned, pdev->id);
-@@ -168,23 +167,21 @@ static int __devinit rgbfb_probe(struct 
- 
- 	ret = fb_alloc_cmap(&info->cmap, 256, 0);
- 	if (ret < 0)
--		goto err2;
-+		goto err1;
- 
- 	ret = register_framebuffer(info);
- 	if (ret < 0)
--		goto err3;
-+		goto err2;
- 	platform_set_drvdata(pdev, info);
- 
- 	return 0;
- 
--err3:
--	fb_dealloc_cmap(&info->cmap);
- err2:
--	framebuffer_release(info);
-+	fb_dealloc_cmap(&info->cmap);
- err1:
- 	pnx4008_free_dum_channel(channel_owned, pdev->id);
- err0:
--	kfree(info);
-+	framebuffer_release(info);
- err:
- 	return ret;
+diff -puN fs/proc/array.c~capabilities-add-bounding-set-to-proc-self-status fs/proc/array.c
+--- a/fs/proc/array.c~capabilities-add-bounding-set-to-proc-self-status
++++ a/fs/proc/array.c
+@@ -298,6 +298,7 @@ static inline void task_cap(struct seq_f
+ 	render_cap_t(m, "CapInh:\t", &p->cap_inheritable);
+ 	render_cap_t(m, "CapPrm:\t", &p->cap_permitted);
+ 	render_cap_t(m, "CapEff:\t", &p->cap_effective);
++	render_cap_t(m, "CapBnd:\t", &p->cap_bset);
  }
+ 
+ static inline void task_context_switch_counts(struct seq_file *m,
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from serue@us.ibm.com are
 
 origin.patch
-git-net.patch
-fs-ext4-use-bug_on.patch
+git-unionfs.patch
+git-vfs-cleanups.patch
+reiser4.patch
 
