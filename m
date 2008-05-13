@@ -1,65 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: - locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch removed from -mm tree
-Date: Mon, 12 May 2008 20:44:34 -0700
-Message-ID: <200805130355.m4D3tZbF023640@imap1.linux-foundation.org>
+Subject: + split-the-typecheck-macros-out-of-include-linux-kernelh.patch added to -mm tree
+Date: Mon, 12 May 2008 20:49:07 -0700
+Message-ID: <200805130400.m4D407ZI023817@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33379 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48333 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755264AbYEMD4I (ORCPT
+	by vger.kernel.org with ESMTP id S1750779AbYEMEAd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 23:56:08 -0400
+	Tue, 13 May 2008 00:00:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org, srostedt@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org
 
 
 The patch titled
-     locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+     split the typecheck macros out of include/linux/kernel.h
+has been added to the -mm tree.  Its filename is
+     split-the-typecheck-macros-out-of-include-linux-kernelh.patch
 
-This patch was dropped because it was folded into locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes
+Subject: split the typecheck macros out of include/linux/kernel.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space required before the open parenthesis '('
-#86: FILE: include/linux/irqflags.h:110:
-+	} while(0)
+Needed to fix up a recursive include snafu in
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
 
-total: 1 errors, 0 warnings, 171 lines checked
-
-./patches/locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Steven Rostedt <srostedt@redhat.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/irqflags.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kernel.h    |   21 +--------------------
+ include/linux/typecheck.h |   24 ++++++++++++++++++++++++
+ 2 files changed, 25 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/irqflags.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes include/linux/irqflags.h
---- a/include/linux/irqflags.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes
-+++ a/include/linux/irqflags.h
-@@ -107,7 +107,7 @@
- 	do {						\
- 		typecheck(unsigned long, flags);	\
- 		raw_local_save_flags(flags);		\
--	} while(0)
-+	} while (0)
+diff -puN include/linux/kernel.h~split-the-typecheck-macros-out-of-include-linux-kernelh include/linux/kernel.h
+--- a/include/linux/kernel.h~split-the-typecheck-macros-out-of-include-linux-kernelh
++++ a/include/linux/kernel.h
+@@ -14,6 +14,7 @@
+ #include <linux/compiler.h>
+ #include <linux/bitops.h>
+ #include <linux/log2.h>
++#include <linux/typecheck.h>
+ #include <asm/byteorder.h>
+ #include <asm/bug.h>
  
- #define irqs_disabled()						\
- ({								\
+@@ -444,26 +445,6 @@ static inline char *pack_hex_byte(char *
+ 	const typeof( ((type *)0)->member ) *__mptr = (ptr);	\
+ 	(type *)( (char *)__mptr - offsetof(type,member) );})
+ 
+-/*
+- * Check at compile time that something is of a particular type.
+- * Always evaluates to 1 so you may use it easily in comparisons.
+- */
+-#define typecheck(type,x) \
+-({	type __dummy; \
+-	typeof(x) __dummy2; \
+-	(void)(&__dummy == &__dummy2); \
+-	1; \
+-})
+-
+-/*
+- * Check at compile time that 'function' is a certain type, or is a pointer
+- * to that type (needs to use typedef for the function type.)
+- */
+-#define typecheck_fn(type,function) \
+-({	typeof(type) __tmp = function; \
+-	(void)__tmp; \
+-})
+-
+ struct sysinfo;
+ extern int do_sysinfo(struct sysinfo *info);
+ 
+diff -puN /dev/null include/linux/typecheck.h
+--- /dev/null
++++ a/include/linux/typecheck.h
+@@ -0,0 +1,24 @@
++#ifndef TYPECHECK_H_INCLUDED
++#define TYPECHECK_H_INCLUDED
++
++/*
++ * Check at compile time that something is of a particular type.
++ * Always evaluates to 1 so you may use it easily in comparisons.
++ */
++#define typecheck(type,x) \
++({	type __dummy; \
++	typeof(x) __dummy2; \
++	(void)(&__dummy == &__dummy2); \
++	1; \
++})
++
++/*
++ * Check at compile time that 'function' is a certain type, or is a pointer
++ * to that type (needs to use typedef for the function type.)
++ */
++#define typecheck_fn(type,function) \
++({	typeof(type) __tmp = function; \
++	(void)__tmp; \
++})
++
++#endif		/* TYPECHECK_H_INCLUDED */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -142,8 +197,9 @@ page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
 kill-generic_file_direct_io-checkpatch-fixes.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
 vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
 locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-checkpatch-fixes.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
 remove-apparently-unused-fd1772h-header-file.patch
 lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
 rename-warn-to-warning-to-clear-the-namespace-fix.patch
