@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + pci-add-pci_match_id-stub-for-config_pci=n.patch added to -mm tree
-Date: Mon, 12 May 2008 23:40:11 -0700
-Message-ID: <200805130651.m4D6pCNX029540@imap1.linux-foundation.org>
+Subject: + drivers-uwb-whcic-needs-dma-mappingh.patch added to -mm tree
+Date: Tue, 13 May 2008 00:02:18 -0700
+Message-ID: <200805130713.m4D7DJqF030289@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:34649 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:50855 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751220AbYEMGvP (ORCPT
+	by vger.kernel.org with ESMTP id S1752152AbYEMHNW (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 02:51:15 -0400
+	Tue, 13 May 2008 03:13:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com, jbarnes@virtuousgeek.org
+Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     pci: add pci_match_id() stub for CONFIG_PCI=n
+     drivers/uwb/whci.c needs dma-mapping.h
 has been added to the -mm tree.  Its filename is
-     pci-add-pci_match_id-stub-for-config_pci=n.patch
+     drivers-uwb-whcic-needs-dma-mappingh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,133 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: add pci_match_id() stub for CONFIG_PCI=n
+Subject: drivers/uwb/whci.c needs dma-mapping.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/uwb/umc-bus.c: In function `umc_match_pci_id':
-drivers/uwb/umc-bus.c:33: error: implicit declaration of function `pci_match_id'
-drivers/uwb/umc-bus.c:33: warning: comparison between pointer and integer
+sparc32:
 
-also:
+drivers/uwb/whci.c: In function 'whci_probe':
+drivers/uwb/whci.c:178: error: 'DMA_64BIT_MASK' undeclared (first use in this function)
+drivers/uwb/whci.c:178: error: (Each undeclared identifier is reported only once
+drivers/uwb/whci.c:178: error: for each function it appears in.)
+drivers/uwb/whci.c:180: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
 
-drivers/uwb/whci.c: In function `whci_probe':
-drivers/uwb/whci.c:175: error: implicit declaration of function `pci_enable_msi'
-drivers/uwb/whci.c:179: error: implicit declaration of function `pci_set_consistent_dma_mask'
-drivers/uwb/whci.c: In function `whci_remove':
-drivers/uwb/whci.c:251: error: implicit declaration of function `pci_disable_msi'
+But it still goes splat over:
 
-for which we move the !CONFIG_PCI_MSI stubs outside CONFIG_PCI.
-
-and
-
-drivers/uwb/whci.c: In function `whci_probe':
-drivers/uwb/whci.c:179: error: implicit declaration of function `pci_set_consistent_dma_mask'
-
-All a bit hopeless, really.  Presumably that driver wants to depend on PCI.
+drivers/uwb/whc-rc.c:46:2: error: invalid preprocessing directive #Include
+drivers/uwb/whc-rc.c: In function 'whcrc_setup_rc_umc':
+drivers/uwb/whc-rc.c:293: error: implicit declaration of function 'dma_alloc_coherent'
+drivers/uwb/whc-rc.c:294: warning: assignment makes pointer from integer without a cast
+drivers/uwb/whc-rc.c:301: warning: assignment makes pointer from integer without a cast
+drivers/uwb/whc-rc.c:311: error: implicit declaration of function 'dma_free_coherent'
 
 Cc: Greg KH <greg@kroah.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pci.h |   66 ++++++++++++++++++++++++------------------
- 1 file changed, 38 insertions(+), 28 deletions(-)
+ drivers/uwb/whci.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/uwb/umc-bus.c~pci-add-pci_match_id-stub-for-config_pci=n drivers/uwb/umc-bus.c
-diff -puN include/linux/pci.h~pci-add-pci_match_id-stub-for-config_pci=n include/linux/pci.h
---- a/include/linux/pci.h~pci-add-pci_match_id-stub-for-config_pci=n
-+++ a/include/linux/pci.h
-@@ -19,6 +19,8 @@
- 
- #include <linux/pci_regs.h>	/* The pci register defines */
- 
-+struct msix_entry;
-+
- /*
-  * The PCI interface treats multi-function devices as independent
-  * devices.  The slot/function address of each device is encoded
-@@ -709,34 +711,7 @@ struct msix_entry {
- };
- 
- 
--#ifndef CONFIG_PCI_MSI
--static inline int pci_enable_msi(struct pci_dev *dev)
--{
--	return -1;
--}
--
--static inline void pci_msi_shutdown(struct pci_dev *dev)
--{ }
--static inline void pci_disable_msi(struct pci_dev *dev)
--{ }
--
--static inline int pci_enable_msix(struct pci_dev *dev,
--				  struct msix_entry *entries, int nvec)
--{
--	return -1;
--}
--
--static inline void pci_msix_shutdown(struct pci_dev *dev)
--{ }
--static inline void pci_disable_msix(struct pci_dev *dev)
--{ }
--
--static inline void msi_remove_pci_irq_vectors(struct pci_dev *dev)
--{ }
--
--static inline void pci_restore_msi_state(struct pci_dev *dev)
--{ }
--#else
-+#ifdef CONFIG_PCI_MSI
- extern int pci_enable_msi(struct pci_dev *dev);
- extern void pci_msi_shutdown(struct pci_dev *dev);
- extern void pci_disable_msi(struct pci_dev *dev);
-@@ -955,10 +930,45 @@ static inline struct pci_dev *pci_get_bu
- static inline const struct pci_device_id *
- pci_match_id(const struct pci_device_id *ids, struct pci_dev *dev)
- {
-+	return NULL;
-+}
-+
-+static inline int pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask)
-+{
-+	return -EIO;
- }
- 
- #endif /* CONFIG_PCI */
- 
-+#ifndef CONFIG_PCI_MSI
-+static inline int pci_enable_msi(struct pci_dev *dev)
-+{
-+	return -1;
-+}
-+
-+static inline void pci_msi_shutdown(struct pci_dev *dev)
-+{ }
-+static inline void pci_disable_msi(struct pci_dev *dev)
-+{ }
-+
-+static inline int pci_enable_msix(struct pci_dev *dev,
-+				  struct msix_entry *entries, int nvec)
-+{
-+	return -1;
-+}
-+
-+static inline void pci_msix_shutdown(struct pci_dev *dev)
-+{ }
-+static inline void pci_disable_msix(struct pci_dev *dev)
-+{ }
-+
-+static inline void msi_remove_pci_irq_vectors(struct pci_dev *dev)
-+{ }
-+
-+static inline void pci_restore_msi_state(struct pci_dev *dev)
-+{ }
-+#endif
-+
- /* Include architecture-dependent settings and functions */
- 
- #include <asm/pci.h>
+diff -puN drivers/uwb/whci.c~drivers-uwb-whcic-needs-dma-mappingh drivers/uwb/whci.c
+--- a/drivers/uwb/whci.c~drivers-uwb-whcic-needs-dma-mappingh
++++ a/drivers/uwb/whci.c
+@@ -8,6 +8,7 @@
+ #include <linux/delay.h>
+ #include <linux/kernel.h>
+ #include <linux/pci.h>
++#include <linux/dma-mapping.h>
+ #include <linux/uwb/whci.h>
+ #include <linux/uwb/umc.h>
+ #include <linux/uwb/bugs.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -280,4 +191,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
 
