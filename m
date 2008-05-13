@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch added to -mm tree
-Date: Mon, 12 May 2008 19:49:49 -0700
-Message-ID: <200805130300.m4D30nd9021763@imap1.linux-foundation.org>
+Subject: + drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch added to -mm tree
+Date: Mon, 12 May 2008 19:51:55 -0700
+Message-ID: <200805130302.m4D32tQc021821@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56127 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58339 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750969AbYEMDAw (ORCPT
+	by vger.kernel.org with ESMTP id S1751685AbYEMDDF (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 23:00:52 -0400
+	Mon, 12 May 2008 23:03:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, jeff@garzik.org
 
 
 The patch titled
-     drivers/uwb/i1480/dfu/usb.c: fix size_t confusion
+     drivers/scsi/broadsas.c: fix uninitialised var warning
 has been added to the -mm tree.  Its filename is
-     drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
+     drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,40 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/uwb/i1480/dfu/usb.c: fix size_t confusion
+Subject: drivers/scsi/broadsas.c: fix uninitialised var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/uwb/i1480/dfu/usb.c: In function 'i1480_usb_probe':
-drivers/uwb/i1480/dfu/usb.c:425: warning: assignment from incompatible pointer type
+drivers/scsi/broadsas.c: In function 'bs_phy_control':
+drivers/scsi/broadsas.c:891: warning: 'rc' may be used uninitialized in this function
 
-Cc: Greg KH <greg@kroah.com>
+Cc: Jeff Garzik <jeff@garzik.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uwb/i1480/dfu/i1480-dfu.h |    2 +-
- drivers/uwb/i1480/dfu/usb.c       |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/scsi/broadsas.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/uwb/i1480/dfu/usb.c~drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion drivers/uwb/i1480/dfu/usb.c
---- a/drivers/uwb/i1480/dfu/usb.c~drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion
-+++ a/drivers/uwb/i1480/dfu/usb.c
-@@ -161,7 +161,7 @@ int i1480_usb_write(struct i1480* i1480,
-  *       memory address and size passed back in the @neh structure.
-  */
- static
--ssize_t i1480_usb_read(struct i1480* i1480, u32 addr, size_t size)
-+size_t i1480_usb_read(struct i1480* i1480, u32 addr, size_t size)
+diff -puN drivers/scsi/broadsas.c~drivers-scsi-broadsasc-fix-uninitialised-var-warning drivers/scsi/broadsas.c
+--- a/drivers/scsi/broadsas.c~drivers-scsi-broadsasc-fix-uninitialised-var-warning
++++ a/drivers/scsi/broadsas.c
+@@ -888,7 +888,7 @@ static int bs_phy_control(struct asd_sas
  {
- 	ssize_t result = 0, bytes = 0;
- 	size_t itr, read_size = i1480->buf_size;
-diff -puN drivers/uwb/i1480/dfu/i1480-dfu.h~drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion drivers/uwb/i1480/dfu/i1480-dfu.h
---- a/drivers/uwb/i1480/dfu/i1480-dfu.h~drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion
-+++ a/drivers/uwb/i1480/dfu/i1480-dfu.h
-@@ -116,7 +116,7 @@ struct i1480 {
+ 	struct bs_phy *phy = sas_phy->lldd_phy;
+ 	void __iomem *regs = phy->regs;
+-	int rc;
++	int rc = -EOPNOTSUPP;
+ 	u32 tmp;
  
- 	int (*write)(struct i1480 *, u32 addr, const void *, size_t);
- 	// read from addr into i1480->cmd_buf
--	int (*read)(struct i1480 *, u32 addr, size_t);
-+	size_t (*read)(struct i1480 *, u32 addr, size_t);
- 	int (*rc_setup)(struct i1480 *);
- 	void (*rc_release)(struct i1480 *);
- 	int (*wait_init_done)(struct i1480 *);
+ 	switch (func) {
+@@ -922,7 +922,7 @@ static int bs_phy_control(struct asd_sas
+ 
+ 	case PHY_FUNC_SET_LINK_RATE:
+ 	default:
+-		rc = -EOPNOTSUPP;
++		break;
+ 	}
+ 
+ 	return rc;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -131,6 +127,7 @@ drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 uwb-fix-scscanf-warning.patch
 drivers-uwb-wlp-sysfsc-dead-code.patch
 drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
+drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
 git-v9fs.patch
 revert-git-v9fs.patch
 git-watchdog.patch
@@ -175,5 +172,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
 
