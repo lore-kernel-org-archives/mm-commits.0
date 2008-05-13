@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-uwb-i1480-dfu-macc-fix-min-warning.patch added to -mm tree
-Date: Mon, 12 May 2008 19:47:06 -0700
-Message-ID: <200805130258.m4D2w6GM021645@imap1.linux-foundation.org>
+Subject: + drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch added to -mm tree
+Date: Mon, 12 May 2008 19:49:49 -0700
+Message-ID: <200805130300.m4D30nd9021763@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38163 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56127 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752391AbYEMC6K (ORCPT
+	by vger.kernel.org with ESMTP id S1750969AbYEMDAw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 22:58:10 -0400
+	Mon, 12 May 2008 23:00:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, greg@kroah.com
 
 
 The patch titled
-     drivers/uwb/i1480/dfu/mac.c: fix min() warning
+     drivers/uwb/i1480/dfu/usb.c: fix size_t confusion
 has been added to the -mm tree.  Its filename is
-     drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
+     drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/uwb/i1480/dfu/mac.c: fix min() warning
+Subject: drivers/uwb/i1480/dfu/usb.c: fix size_t confusion
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/uwb/i1480/dfu/mac.c: In function 'i1480_mac_fw_upload':
-drivers/uwb/i1480/dfu/mac.c:507: warning: comparison of distinct pointer types lacks a cast
+drivers/uwb/i1480/dfu/usb.c: In function 'i1480_usb_probe':
+drivers/uwb/i1480/dfu/usb.c:425: warning: assignment from incompatible pointer type
 
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uwb/i1480/dfu/mac.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/uwb/i1480/dfu/i1480-dfu.h |    2 +-
+ drivers/uwb/i1480/dfu/usb.c       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/uwb/i1480/dfu/mac.c~drivers-uwb-i1480-dfu-macc-fix-min-warning drivers/uwb/i1480/dfu/mac.c
---- a/drivers/uwb/i1480/dfu/mac.c~drivers-uwb-i1480-dfu-macc-fix-min-warning
-+++ a/drivers/uwb/i1480/dfu/mac.c
-@@ -504,7 +504,8 @@ int i1480_mac_fw_upload(struct i1480 *i1
- 		dev_err(i1480->dev, "MAC fw '%s': initialization event returns "
- 			"wrong size (%zu bytes vs %zu needed)\n",
- 			i1480->mac_fw_name, i1480->evt_result, sizeof(*rcebe));
--		dump_bytes(i1480->dev, rcebe, min(i1480->evt_result, 32));
-+		dump_bytes(i1480->dev, rcebe,
-+				min_t(ssize_t, i1480->evt_result, 32));
- 		goto error_size;
- 	}
- 	result = -EIO;
+diff -puN drivers/uwb/i1480/dfu/usb.c~drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion drivers/uwb/i1480/dfu/usb.c
+--- a/drivers/uwb/i1480/dfu/usb.c~drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion
++++ a/drivers/uwb/i1480/dfu/usb.c
+@@ -161,7 +161,7 @@ int i1480_usb_write(struct i1480* i1480,
+  *       memory address and size passed back in the @neh structure.
+  */
+ static
+-ssize_t i1480_usb_read(struct i1480* i1480, u32 addr, size_t size)
++size_t i1480_usb_read(struct i1480* i1480, u32 addr, size_t size)
+ {
+ 	ssize_t result = 0, bytes = 0;
+ 	size_t itr, read_size = i1480->buf_size;
+diff -puN drivers/uwb/i1480/dfu/i1480-dfu.h~drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion drivers/uwb/i1480/dfu/i1480-dfu.h
+--- a/drivers/uwb/i1480/dfu/i1480-dfu.h~drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion
++++ a/drivers/uwb/i1480/dfu/i1480-dfu.h
+@@ -116,7 +116,7 @@ struct i1480 {
+ 
+ 	int (*write)(struct i1480 *, u32 addr, const void *, size_t);
+ 	// read from addr into i1480->cmd_buf
+-	int (*read)(struct i1480 *, u32 addr, size_t);
++	size_t (*read)(struct i1480 *, u32 addr, size_t);
+ 	int (*rc_setup)(struct i1480 *);
+ 	void (*rc_release)(struct i1480 *);
+ 	int (*wait_init_done)(struct i1480 *);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -118,6 +130,7 @@ drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
 drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
 uwb-fix-scscanf-warning.patch
 drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
 git-v9fs.patch
 revert-git-v9fs.patch
 git-watchdog.patch
@@ -162,5 +175,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
+drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
 
