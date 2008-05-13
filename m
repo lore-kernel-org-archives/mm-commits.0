@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch added to -mm tree
-Date: Mon, 12 May 2008 20:49:13 -0700
-Message-ID: <200805130400.m4D40Du0023821@imap1.linux-foundation.org>
+Subject: + git-block-ia64-build-fix.patch added to -mm tree
+Date: Mon, 12 May 2008 21:09:04 -0700
+Message-ID: <200805130420.m4D4K4Vj024530@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:42868 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58515 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750831AbYEMEAz (ORCPT
+	by vger.kernel.org with ESMTP id S1751167AbYEMEUR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 00:00:55 -0400
+	Tue, 13 May 2008 00:20:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, rostedt@goodmis.org, srostedt@redhat.com
+Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
 
 
 The patch titled
-     locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix
+     git-block: ia64 build fix
 has been added to the -mm tree.  Its filename is
-     locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+     git-block-ia64-build-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,42 +34,51 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix
+Subject: git-block: ia64 build fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Steven Rostedt <srostedt@redhat.com>
+Cc: Jens Axboe <jens.axboe@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/irqflags.h |    2 ++
- include/linux/spinlock.h |    1 +
- 2 files changed, 3 insertions(+)
+ arch/ia64/kernel/smp.c |   25 -------------------------
+ 1 file changed, 25 deletions(-)
 
-diff -puN include/linux/irqflags.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix include/linux/irqflags.h
---- a/include/linux/irqflags.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix
-+++ a/include/linux/irqflags.h
-@@ -11,6 +11,8 @@
- #ifndef _LINUX_TRACE_IRQFLAGS_H
- #define _LINUX_TRACE_IRQFLAGS_H
+diff -puN arch/ia64/kernel/smp.c~git-block-ia64-build-fix arch/ia64/kernel/smp.c
+--- a/arch/ia64/kernel/smp.c~git-block-ia64-build-fix
++++ a/arch/ia64/kernel/smp.c
+@@ -82,31 +82,6 @@ unlock_ipi_calllock(void)
+ 	spin_unlock_irq(&call_function_lock);
+ }
  
-+#include <linux/typecheck.h>
-+
- #ifdef CONFIG_TRACE_IRQFLAGS
-   extern void trace_softirqs_on(unsigned long ip);
-   extern void trace_softirqs_off(unsigned long ip);
-diff -puN include/linux/spinlock.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix include/linux/spinlock.h
---- a/include/linux/spinlock.h~locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix
-+++ a/include/linux/spinlock.h
-@@ -46,6 +46,7 @@
-  *  linux/spinlock.h:     builds the final spin_*() APIs.
-  */
- 
-+#include <linux/typecheck.h>
- #include <linux/preempt.h>
- #include <linux/linkage.h>
- #include <linux/compiler.h>
+-static inline void
+-handle_call_data(void)
+-{
+-	struct call_data_struct *data;
+-	void (*func)(void *info);
+-	void *info;
+-	int wait;
+-
+-	/* release the 'pointer lock' */
+-	data = (struct call_data_struct *)call_data;
+-	func = data->func;
+-	info = data->info;
+-	wait = data->wait;
+-
+-	mb();
+-	atomic_inc(&data->started);
+-	/* At this point the structure may be gone unless wait is true. */
+-	(*func)(info);
+-
+-	/* Notify the sending CPU that the task is done. */
+-	mb();
+-	if (wait)
+-		atomic_inc(&data->finished);
+-}
+-
+ static void
+ stop_this_cpu(void)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +132,7 @@ arch-parisc-kernel-unalignedc-use-time_-macros.patch
 pci-hotplug-introduce-pci_slot.patch
 pci-hotplug-acpi-pci-slot-detection-driver.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+git-block-ia64-build-fix.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
 unionfs-broke.patch
