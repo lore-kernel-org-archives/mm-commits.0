@@ -1,173 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: - mm-verify-the-page-links-and-memory-model-fix-fix.patch removed from -mm tree
-Date: Tue, 13 May 2008 14:27:05 -0700
-Message-ID: <200805132127.m4DLR5XR000490@imap1.linux-foundation.org>
+Subject: - uml-fix-config_raw-dependencies.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:32:42 -0700
+Message-ID: <200805132132.m4DLWgiQ000731@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43100 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45515 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757958AbYEMV1c (ORCPT
+	by vger.kernel.org with ESMTP id S1760123AbYEMVcr (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 17:27:32 -0400
+	Tue, 13 May 2008 17:32:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, apw@shadowen.org, clameter@sgi.com, mel@csn.ul.ie, mingo@elte.hu, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, jdike@linux.intel.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mm-verify-the-page-links-and-memory-model-fix-fix
+     uml: fix CONFIG_RAW dependencies
 has been removed from the -mm tree.  Its filename was
-     mm-verify-the-page-links-and-memory-model-fix-fix.patch
+     uml-fix-config_raw-dependencies.patch
 
-This patch was dropped because it was folded into mm-verify-the-page-links-and-memory-model.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-verify-the-page-links-and-memory-model-fix-fix
-From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uml: fix CONFIG_RAW dependencies
+From: Robert P. J. Day <rpjday@crashcourse.ca>
 
-mm/page_alloc.c: In function 'init_currently_empty_zone':
-mm/page_alloc.c:2866: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
+Add the BLOCK dependency for RAW_DRIVER, to match what's in
+drivers/char/Kconfig.  Also, while we're there, update the alleged
+obsolesence of RAW_DRIVER since it doesn't seem to be going away any
+time soon.
 
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Christoph Lameter <clameter@sgi.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mel Gorman <mel@csn.ul.ie>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Signed-off-by: Jeff Dike <jdike@linux.intel.com>
+Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ arch/um/Kconfig.char |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-verify-the-page-links-and-memory-model-fix-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-verify-the-page-links-and-memory-model-fix-fix
-+++ a/mm/page_alloc.c
-@@ -2864,8 +2864,9 @@ __meminit int init_currently_empty_zone(
- 	zone->zone_start_pfn = zone_start_pfn;
+diff -puN arch/um/Kconfig.char~uml-fix-config_raw-dependencies arch/um/Kconfig.char
+--- a/arch/um/Kconfig.char~uml-fix-config_raw-dependencies
++++ a/arch/um/Kconfig.char
+@@ -145,14 +145,14 @@ config LEGACY_PTYS
+ 	  systems, it is safe to say N.
  
- 	mminit_dprintk(MMINIT_TRACE, "memmap_init",
--			"Initialising map node %d zone %d pfns %lu -> %lu\n",
--			pgdat->node_id, zone_idx(zone),
-+			"Initialising map node %d zone %lu pfns %lu -> %lu\n",
-+			pgdat->node_id,
-+			(unsigned long)zone_idx(zone),
- 			zone_start_pfn, (zone_start_pfn + size));
+ config RAW_DRIVER
+-        tristate "RAW driver (/dev/raw/rawN) (OBSOLETE)"
++        tristate "RAW driver (/dev/raw/rawN)"
++	depends on BLOCK
+         help
+           The raw driver permits block devices to be bound to /dev/raw/rawN.
+           Once bound, I/O against /dev/raw/rawN uses efficient zero-copy I/O.
+           See the raw(8) manpage for more details.
  
- 	zone_init_free_lists(zone);
+-          The raw driver is deprecated and will be removed soon.
+-          Applications should simply open the device (eg /dev/hda1)
++          Applications should preferably open the device (eg /dev/hda1)
+           with the O_DIRECT flag.
+ 
+ config MAX_RAW_DEVS
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
 
 origin.patch
 linux-next.patch
-linux-next-git-rejects.patch
-next-remove-localversion.patch
-revert-9p-convert-from-semaphore-to-spinlock.patch
-ia64-kvm-dont-delete-files-which-we-need.patch
-revert-acpica-fixes-for-unload-and-ddbhandles.patch
-acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
-acpi-video-balcklist-fujitsu-lifebook-s6410.patch
-git-x86-fixup.patch
-arch-x86-mm-patc-use-boot_cpu_has.patch
-x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
-lguest-use-cpu-capability-accessors.patch
-x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
-x86-early_init_centaur-use-set_cpu_cap.patch
-x86-bitops-take-an-unsigned-long.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
-audit_send_reply-fix-error-path-memory-leak.patch
-cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
-ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
-drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
-git-input.patch
-git-jg-misc-git-rejects.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-git-mmc.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
-git-ubifs.patch
-git-net.patch
-git-net-git-rejects.patch
-hysdn-no-longer-broken-on-smp.patch
-sundance-set-carrier-status-on-link-change-events.patch
-dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
-pcnet32-fix-warning.patch
-drivers-net-tokenring-3c359c-squish-a-warning.patch
-drivers-net-tokenring-olympicc-fix-warning.patch
-update-smc91x-driver-with-arm-versatile-board-info.patch
-git-battery.patch
-fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
-arch-parisc-kernel-unalignedc-use-time_-macros.patch
-selinux-dopey-hack.patch
-pci-hotplug-introduce-pci_slot.patch
-pci-hotplug-acpi-pci-slot-detection-driver.patch
-drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
-revert-git-block.patch
-s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-git-unionfs.patch
-git-unionfs-fixup.patch
-unionfs-broke.patch
-git-logfs-fixup.patch
-drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
-drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
-uwb-fix-scscanf-warning.patch
-drivers-uwb-wlp-sysfsc-dead-code.patch
-drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
-drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
-drivers-uwb-whcic-needs-dma-mappingh.patch
-rndis-switch-to-seq_files-checkpatch-fixes.patch
-git-v9fs.patch
-revert-git-v9fs.patch
-git-watchdog.patch
-git-watchdog-git-rejects.patch
-watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
-xfs-suppress-uninitialized-var-warnings.patch
-git-xtensa.patch
-git-orion-git-rejects.patch
-ext4-is-busted-on-m68k.patch
-common-implementation-of-iterative-div-mod-fix.patch
-common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
-common-implementation-of-iterative-div-mod-fix-2.patch
-mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes.patch
-scsi-dpt_i2o-is-bust-on-ia64.patch
-colibri-fix-support-for-dm9000-ethernet-device-fix.patch
-mm-verify-the-page-links-and-memory-model.patch
-mm-verify-the-page-links-and-memory-model-fix-fix.patch
-mspec-convert-nopfn-to-fault-fix.patch
-page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
-kill-generic_file_direct_io-checkpatch-fixes.patch
-vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
-vm-dont-run-touch_buffer-during-buffercache-lookups.patch
-split-the-typecheck-macros-out-of-include-linux-kernelh.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
-locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+macintosh-replace-deprecated-__initcall-with-device_initcall.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
 remove-apparently-unused-fd1772h-header-file.patch
+init-delete-hard-coded-setting-and-testing-of-build_cramdisk.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
 lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
-rename-warn-to-warning-to-clear-the-namespace-fix.patch
-add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
-flag-parameters-paccept-fix.patch
-flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-inotify_init-fix.patch
-flag-parameters-check-magic-constants-alpha-hack.patch
-drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
-reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
-documentation-build-source-files-in-documentation-sub-dir-disable.patch
-reiser4.patch
-reiser4-semaphore-fix.patch
-page-owner-tracking-leak-detector.patch
-nr_blockdev_pages-in_interrupt-warning.patch
-slab-leaks3-default-y.patch
-put_bh-debug.patch
-shrink_slab-handle-bad-shrinkers.patch
-getblk-handle-2tb-devices.patch
-getblk-handle-2tb-devices-fix.patch
-undeprecate-pci_find_device.patch
-notify_change-callers-must-hold-i_mutex.patch
-profile-likely-unlikely-macros.patch
-drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
-w1-build-fix.patch
+lists-remove-a-redundant-conditional-definition-of-list_add.patch
+zorro-replace-deprecated-__initcall-with-equivalent-device_initcall.patch
+spi-kconfig-simplifications.patch
 
