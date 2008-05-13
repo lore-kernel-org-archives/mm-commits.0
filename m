@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-better-migration-handling.patch added to -mm tree
-Date: Tue, 13 May 2008 12:46:43 -0700
-Message-ID: <200805131946.m4DJkhJr028704@imap1.linux-foundation.org>
+Subject: + spufs-convert-nopfn-to-fault.patch added to -mm tree
+Date: Tue, 13 May 2008 13:16:22 -0700
+Message-ID: <200805132016.m4DKGMjb029957@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60652 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34615 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754978AbYEMTro (ORCPT
+	by vger.kernel.org with ESMTP id S932254AbYEMURE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 15:47:44 -0400
+	Tue, 13 May 2008 16:17:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kamezawa.hiroyu@jp.fujitsu.com, balbir@in.ibm.com, clameter@sgi.com, hugh@veritas.com, lizf@cn.fujitsu.com, xemul@openvz.org, yamamoto@valinux.co.jp
+Cc: npiggin@suse.de, benh@kernel.crashing.org, jk@ozlabs.org, paulus@samba.org
 
 
 The patch titled
-     memcg: better migration handling
+     spufs: convert nopfn to fault
 has been added to the -mm tree.  Its filename is
-     memcg-better-migration-handling.patch
+     spufs-convert-nopfn-to-fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,357 +34,301 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memcg: better migration handling
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: spufs: convert nopfn to fault
+From: Nick Piggin <npiggin@suse.de>
 
-This patch changes page migration under memory controller to use a
-different algorithm.  (thanks to Christoph for new idea.)
+spufs: convert nopfn to fault
 
-Before:
- - page_cgroup is migrated from an old page to a new page.
-After:
- - a new page is accounted , no reuse of page_cgroup.
-
-Pros:
-
- - We can avoid compliated lock depndencies and races in migration.
-
-Cons:
-
- - new param to mem_cgroup_charge_common().
-
- - mem_cgroup_getref() is added for handling ref_cnt ping-pong.
-
-This version simplifies complicated lock dependency in page migraiton
-under memory resource controller.
-
-  new refcnt sequence is following.
-
-a mapped page:
-  prepage_migration() ..... +1 to NEW page
-  try_to_unmap()      ..... all refs to OLD page is gone.
-  move_pages()        ..... +1 to NEW page if page cache.
-  remap...            ..... all refs from *map* is added to NEW one.
-  end_migration()     ..... -1 to New page.
-
-  page's mapcount + (page_is_cache) refs are added to NEW one.
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Balbir Singh <balbir@in.ibm.com>
-Cc: Pavel Emelyanov <xemul@openvz.org>
-Cc: Li Zefan <lizf@cn.fujitsu.com>
-Cc: YAMAMOTO Takashi <yamamoto@valinux.co.jp>
-Cc: Hugh Dickins <hugh@veritas.com>
-Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Nick Piggin <npiggin@suse.de>
+Acked-by: Jeremy Kerr <jk@ozlabs.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   11 +--
- mm/memcontrol.c            |  128 +++++++++++++++++------------------
- mm/migrate.c               |   22 ++++--
- 3 files changed, 86 insertions(+), 75 deletions(-)
+ arch/powerpc/platforms/cell/spufs/file.c     |   98 ++++++++---------
+ arch/powerpc/platforms/cell/spufs/sputrace.c |    8 -
+ 2 files changed, 54 insertions(+), 52 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-better-migration-handling include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-better-migration-handling
-+++ a/include/linux/memcontrol.h
-@@ -50,9 +50,10 @@ extern struct mem_cgroup *mem_cgroup_fro
- #define mm_match_cgroup(mm, cgroup)	\
- 	((cgroup) == mem_cgroup_from_task((mm)->owner))
- 
--extern int mem_cgroup_prepare_migration(struct page *page);
-+extern int
-+mem_cgroup_prepare_migration(struct page *page, struct page *newpage);
- extern void mem_cgroup_end_migration(struct page *page);
--extern void mem_cgroup_page_migration(struct page *page, struct page *newpage);
-+extern int mem_cgroup_getref(struct page *page);
- 
- /*
-  * For memory reclaim.
-@@ -112,7 +113,8 @@ static inline int task_in_mem_cgroup(str
- 	return 1;
+diff -puN arch/powerpc/platforms/cell/spufs/file.c~spufs-convert-nopfn-to-fault arch/powerpc/platforms/cell/spufs/file.c
+--- a/arch/powerpc/platforms/cell/spufs/file.c~spufs-convert-nopfn-to-fault
++++ a/arch/powerpc/platforms/cell/spufs/file.c
+@@ -237,11 +237,13 @@ spufs_mem_write(struct file *file, const
+ 	return size;
  }
  
--static inline int mem_cgroup_prepare_migration(struct page *page)
-+static inline int
-+mem_cgroup_prepare_migration(struct page *page, struct page *newpage)
+-static unsigned long spufs_mem_mmap_nopfn(struct vm_area_struct *vma,
+-					  unsigned long address)
++static int
++spufs_mem_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
- 	return 0;
- }
-@@ -121,8 +123,7 @@ static inline void mem_cgroup_end_migrat
- {
- }
- 
--static inline void
--mem_cgroup_page_migration(struct page *page, struct page *newpage)
-+static inline void mem_cgroup_getref(struct page *page)
- {
- }
- 
-diff -puN mm/memcontrol.c~memcg-better-migration-handling mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-better-migration-handling
-+++ a/mm/memcontrol.c
-@@ -524,7 +524,8 @@ unsigned long mem_cgroup_isolate_pages(u
-  * < 0 if the cgroup is over its limit
-  */
- static int mem_cgroup_charge_common(struct page *page, struct mm_struct *mm,
--				gfp_t gfp_mask, enum charge_type ctype)
-+				gfp_t gfp_mask, enum charge_type ctype,
-+				struct mem_cgroup *memcg)
- {
- 	struct mem_cgroup *mem;
- 	struct page_cgroup *pc;
-@@ -569,16 +570,21 @@ retry:
- 	 * thread group leader migrates. It's possible that mm is not
- 	 * set, if so charge the init_mm (happens for pagecache usage).
- 	 */
--	if (!mm)
--		mm = &init_mm;
-+	if (!memcg) {
-+		if (!mm)
-+			mm = &init_mm;
- 
--	rcu_read_lock();
--	mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
--	/*
--	 * For every charge from the cgroup, increment reference count
--	 */
--	css_get(&mem->css);
--	rcu_read_unlock();
-+		rcu_read_lock();
-+		mem = mem_cgroup_from_task(rcu_dereference(mm->owner));
-+		/*
-+		 * For every charge from the cgroup, increment reference count
-+		 */
-+		css_get(&mem->css);
-+		rcu_read_unlock();
-+	} else {
-+		mem = memcg;
-+		css_get(&memcg->css);
-+	}
- 
- 	while (res_counter_charge(&mem->res, PAGE_SIZE)) {
- 		if (!(gfp_mask & __GFP_WAIT))
-@@ -648,7 +654,7 @@ err:
- int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask)
- {
- 	return mem_cgroup_charge_common(page, mm, gfp_mask,
--				MEM_CGROUP_CHARGE_TYPE_MAPPED);
-+				MEM_CGROUP_CHARGE_TYPE_MAPPED, NULL);
- }
- 
- int mem_cgroup_cache_charge(struct page *page, struct mm_struct *mm,
-@@ -657,7 +663,22 @@ int mem_cgroup_cache_charge(struct page 
- 	if (!mm)
- 		mm = &init_mm;
- 	return mem_cgroup_charge_common(page, mm, gfp_mask,
--				MEM_CGROUP_CHARGE_TYPE_CACHE);
-+				MEM_CGROUP_CHARGE_TYPE_CACHE, NULL);
-+}
+ 	struct spu_context *ctx	= vma->vm_file->private_data;
+-	unsigned long pfn, offset, addr0 = address;
++	unsigned long address = (unsigned long)vmf->virtual_address;
++	unsigned long pfn, offset;
 +
-+int mem_cgroup_getref(struct page *page)
-+{
-+	struct page_cgroup *pc;
-+
-+	if (mem_cgroup_subsys.disabled)
-+		return 0;
-+
-+	lock_page_cgroup(page);
-+	pc = page_get_page_cgroup(page);
-+	VM_BUG_ON(!pc);
-+	pc->ref_cnt++;
-+	unlock_page_cgroup(page);
-+	return 0;
- }
- 
- /*
-@@ -707,65 +728,39 @@ unlock:
- }
- 
- /*
-- * Returns non-zero if a page (under migration) has valid page_cgroup member.
-- * Refcnt of page_cgroup is incremented.
-+ * Before starting migration, account against new page.
-  */
--int mem_cgroup_prepare_migration(struct page *page)
-+int mem_cgroup_prepare_migration(struct page *page, struct page *newpage)
- {
- 	struct page_cgroup *pc;
-+	struct mem_cgroup *mem = NULL;
-+	enum charge_type ctype = MEM_CGROUP_CHARGE_TYPE_MAPPED;
-+	int ret = 0;
- 
- 	if (mem_cgroup_subsys.disabled)
- 		return 0;
- 
- 	lock_page_cgroup(page);
- 	pc = page_get_page_cgroup(page);
--	if (pc)
--		pc->ref_cnt++;
-+	if (pc) {
-+		mem = pc->mem_cgroup;
-+		css_get(&mem->css);
-+		if (pc->flags & PAGE_CGROUP_FLAG_CACHE)
-+			ctype = MEM_CGROUP_CHARGE_TYPE_CACHE;
-+	}
- 	unlock_page_cgroup(page);
--	return pc != NULL;
--}
--
--void mem_cgroup_end_migration(struct page *page)
--{
--	mem_cgroup_uncharge_page(page);
-+	if (mem) {
-+		ret = mem_cgroup_charge_common(newpage, NULL, GFP_KERNEL,
-+			ctype, mem);
-+		css_put(&mem->css);
-+	}
-+	return ret;
- }
- 
--/*
-- * We know both *page* and *newpage* are now not-on-LRU and PG_locked.
-- * And no race with uncharge() routines because page_cgroup for *page*
-- * has extra one reference by mem_cgroup_prepare_migration.
-- */
--void mem_cgroup_page_migration(struct page *page, struct page *newpage)
-+/* remove redundant charge */
-+void mem_cgroup_end_migration(struct page *newpage)
- {
--	struct page_cgroup *pc;
--	struct mem_cgroup_per_zone *mz;
--	unsigned long flags;
--
--	lock_page_cgroup(page);
--	pc = page_get_page_cgroup(page);
--	if (!pc) {
--		unlock_page_cgroup(page);
--		return;
--	}
--
--	mz = page_cgroup_zoneinfo(pc);
--	spin_lock_irqsave(&mz->lru_lock, flags);
--	__mem_cgroup_remove_list(mz, pc);
--	spin_unlock_irqrestore(&mz->lru_lock, flags);
--
--	page_assign_page_cgroup(page, NULL);
--	unlock_page_cgroup(page);
--
--	pc->page = newpage;
--	lock_page_cgroup(newpage);
--	page_assign_page_cgroup(newpage, pc);
--
--	mz = page_cgroup_zoneinfo(pc);
--	spin_lock_irqsave(&mz->lru_lock, flags);
--	__mem_cgroup_add_list(mz, pc);
--	spin_unlock_irqrestore(&mz->lru_lock, flags);
--
--	unlock_page_cgroup(newpage);
-+	mem_cgroup_uncharge_page(newpage);
- }
- 
- /*
-@@ -795,12 +790,19 @@ static void mem_cgroup_force_empty_list(
- 		page = pc->page;
- 		get_page(page);
- 		spin_unlock_irqrestore(&mz->lru_lock, flags);
--		mem_cgroup_uncharge_page(page);
--		put_page(page);
--		if (--count <= 0) {
--			count = FORCE_UNCHARGE_BATCH;
-+		/*
-+		 * Check if this page is on LRU. !LRU page can be found
-+		 * if it's under page migration.
-+		 */
-+		if (PageLRU(page)) {
-+			mem_cgroup_uncharge_page(page);
-+			put_page(page);
-+			if (--count <= 0) {
-+				count = FORCE_UNCHARGE_BATCH;
-+				cond_resched();
-+			}
-+		} else
- 			cond_resched();
--		}
- 		spin_lock_irqsave(&mz->lru_lock, flags);
+ #ifdef CONFIG_SPU_FS_64K_LS
+ 	struct spu_state *csa = &ctx->csa;
+ 	int psize;
+@@ -259,15 +261,15 @@ static unsigned long spufs_mem_mmap_nopf
  	}
- 	spin_unlock_irqrestore(&mz->lru_lock, flags);
-diff -puN mm/migrate.c~memcg-better-migration-handling mm/migrate.c
---- a/mm/migrate.c~memcg-better-migration-handling
-+++ a/mm/migrate.c
-@@ -358,6 +358,10 @@ static int migrate_page_move_mapping(str
- 	__inc_zone_page_state(newpage, NR_FILE_PAGES);
+ #endif /* CONFIG_SPU_FS_64K_LS */
  
- 	write_unlock_irq(&mapping->tree_lock);
-+	if (!PageSwapCache(newpage)) {
-+		mem_cgroup_uncharge_page(page);
-+		mem_cgroup_getref(newpage);
-+	}
+-	offset = (address - vma->vm_start) + (vma->vm_pgoff << PAGE_SHIFT);
++	offset = vmf->pgoff << PAGE_SHIFT;
+ 	if (offset >= LS_SIZE)
+-		return NOPFN_SIGBUS;
++		return VM_FAULT_SIGBUS;
  
- 	return 0;
+-	pr_debug("spufs_mem_mmap_nopfn address=0x%lx -> 0x%lx, offset=0x%lx\n",
+-		 addr0, address, offset);
++	pr_debug("spufs_mem_mmap_fault address=0x%lx, offset=0x%lx\n",
++			address, offset);
+ 
+ 	if (spu_acquire(ctx))
+-		return NOPFN_REFAULT;
++		return VM_FAULT_NOPAGE;
+ 
+ 	if (ctx->state == SPU_STATE_SAVED) {
+ 		vma->vm_page_prot = __pgprot(pgprot_val(vma->vm_page_prot)
+@@ -282,12 +284,12 @@ static unsigned long spufs_mem_mmap_nopf
+ 
+ 	spu_release(ctx);
+ 
+-	return NOPFN_REFAULT;
++	return VM_FAULT_NOPAGE;
  }
-@@ -611,7 +615,6 @@ static int move_to_new_page(struct page 
- 		rc = fallback_migrate_page(mapping, newpage, page);
  
- 	if (!rc) {
--		mem_cgroup_page_migration(page, newpage);
- 		remove_migration_ptes(page, newpage);
- 	} else
- 		newpage->mapping = NULL;
-@@ -641,6 +644,14 @@ static int unmap_and_move(new_page_t get
- 		/* page was freed from under us. So we are done. */
- 		goto move_newpage;
  
-+	charge = mem_cgroup_prepare_migration(page, newpage);
-+	if (charge == -ENOMEM) {
-+		rc = -ENOMEM;
-+		goto move_newpage;
-+	}
-+	/* prepare cgroup just returns 0 or -ENOMEM */
-+	BUG_ON(charge);
-+
- 	rc = -EAGAIN;
- 	if (TestSetPageLocked(page)) {
- 		if (!force)
-@@ -692,19 +703,14 @@ static int unmap_and_move(new_page_t get
- 		goto rcu_unlock;
- 	}
+ static struct vm_operations_struct spufs_mem_mmap_vmops = {
+-	.nopfn = spufs_mem_mmap_nopfn,
++	.fault = spufs_mem_mmap_fault,
+ };
  
--	charge = mem_cgroup_prepare_migration(page);
- 	/* Establish migration ptes or remove ptes */
- 	try_to_unmap(page, 1);
+ static int spufs_mem_mmap(struct file *file, struct vm_area_struct *vma)
+@@ -350,20 +352,19 @@ static const struct file_operations spuf
+ #endif
+ };
  
- 	if (!page_mapped(page))
- 		rc = move_to_new_page(newpage, page);
+-static unsigned long spufs_ps_nopfn(struct vm_area_struct *vma,
+-				    unsigned long address,
++static int spufs_ps_fault(struct vm_area_struct *vma,
++				    struct vm_fault *vmf,
+ 				    unsigned long ps_offs,
+ 				    unsigned long ps_size)
+ {
+ 	struct spu_context *ctx = vma->vm_file->private_data;
+-	unsigned long area, offset = address - vma->vm_start;
++	unsigned long area, offset = vmf->pgoff << PAGE_SHIFT;
+ 	int ret = 0;
  
--	if (rc) {
-+	if (rc)
- 		remove_migration_ptes(page, page);
--		if (charge)
--			mem_cgroup_end_migration(page);
--	} else if (charge)
-- 		mem_cgroup_end_migration(newpage);
- rcu_unlock:
- 	if (rcu_locked)
- 		rcu_read_unlock();
-@@ -725,6 +731,8 @@ unlock:
- 	}
+-	spu_context_nospu_trace(spufs_ps_nopfn__enter, ctx);
++	spu_context_nospu_trace(spufs_ps_fault__enter, ctx);
  
- move_newpage:
-+	if (!charge)
-+		mem_cgroup_end_migration(newpage);
+-	offset += vma->vm_pgoff << PAGE_SHIFT;
+ 	if (offset >= ps_size)
+-		return NOPFN_SIGBUS;
++		return VM_FAULT_SIGBUS;
+ 
  	/*
- 	 * Move the new page to the LRU. If migration was not successful
- 	 * then this will free the page.
+ 	 * Because we release the mmap_sem, the context may be destroyed while
+@@ -377,7 +378,7 @@ static unsigned long spufs_ps_nopfn(stru
+ 	 * pages to hand out to the user, but we don't want to wait
+ 	 * with the mmap_sem held.
+ 	 * It is possible to drop the mmap_sem here, but then we need
+-	 * to return NOPFN_REFAULT because the mappings may have
++	 * to return VM_FAULT_NOPAGE because the mappings may have
+ 	 * hanged.
+ 	 */
+ 	if (spu_acquire(ctx))
+@@ -385,14 +386,15 @@ static unsigned long spufs_ps_nopfn(stru
+ 
+ 	if (ctx->state == SPU_STATE_SAVED) {
+ 		up_read(&current->mm->mmap_sem);
+-		spu_context_nospu_trace(spufs_ps_nopfn__sleep, ctx);
++		spu_context_nospu_trace(spufs_ps_fault__sleep, ctx);
+ 		ret = spufs_wait(ctx->run_wq, ctx->state == SPU_STATE_RUNNABLE);
+-		spu_context_trace(spufs_ps_nopfn__wake, ctx, ctx->spu);
++		spu_context_trace(spufs_ps_fault__wake, ctx, ctx->spu);
+ 		down_read(&current->mm->mmap_sem);
+ 	} else {
+ 		area = ctx->spu->problem_phys + ps_offs;
+-		vm_insert_pfn(vma, address, (area + offset) >> PAGE_SHIFT);
+-		spu_context_trace(spufs_ps_nopfn__insert, ctx, ctx->spu);
++		vm_insert_pfn(vma, (unsigned long)vmf->virtual_address,
++					(area + offset) >> PAGE_SHIFT);
++		spu_context_trace(spufs_ps_fault__insert, ctx, ctx->spu);
+ 	}
+ 
+ 	if (!ret)
+@@ -400,18 +402,18 @@ static unsigned long spufs_ps_nopfn(stru
+ 
+ refault:
+ 	put_spu_context(ctx);
+-	return NOPFN_REFAULT;
++	return VM_FAULT_NOPAGE;
+ }
+ 
+ #if SPUFS_MMAP_4K
+-static unsigned long spufs_cntl_mmap_nopfn(struct vm_area_struct *vma,
+-					   unsigned long address)
++static int spufs_cntl_mmap_fault(struct vm_area_struct *vma,
++					   struct vm_fault *vmf)
+ {
+-	return spufs_ps_nopfn(vma, address, 0x4000, 0x1000);
++	return spufs_ps_fault(vma, vmf, 0x4000, 0x1000);
+ }
+ 
+ static struct vm_operations_struct spufs_cntl_mmap_vmops = {
+-	.nopfn = spufs_cntl_mmap_nopfn,
++	.fault = spufs_cntl_mmap_fault,
+ };
+ 
+ /*
+@@ -1096,23 +1098,23 @@ static ssize_t spufs_signal1_write(struc
+ 	return 4;
+ }
+ 
+-static unsigned long spufs_signal1_mmap_nopfn(struct vm_area_struct *vma,
+-					      unsigned long address)
++static int
++spufs_signal1_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ #if PAGE_SIZE == 0x1000
+-	return spufs_ps_nopfn(vma, address, 0x14000, 0x1000);
++	return spufs_ps_fault(vma, vmf, 0x14000, 0x1000);
+ #elif PAGE_SIZE == 0x10000
+ 	/* For 64k pages, both signal1 and signal2 can be used to mmap the whole
+ 	 * signal 1 and 2 area
+ 	 */
+-	return spufs_ps_nopfn(vma, address, 0x10000, 0x10000);
++	return spufs_ps_fault(vma, vmf, 0x10000, 0x10000);
+ #else
+ #error unsupported page size
+ #endif
+ }
+ 
+ static struct vm_operations_struct spufs_signal1_mmap_vmops = {
+-	.nopfn = spufs_signal1_mmap_nopfn,
++	.fault = spufs_signal1_mmap_fault,
+ };
+ 
+ static int spufs_signal1_mmap(struct file *file, struct vm_area_struct *vma)
+@@ -1233,23 +1235,23 @@ static ssize_t spufs_signal2_write(struc
+ }
+ 
+ #if SPUFS_MMAP_4K
+-static unsigned long spufs_signal2_mmap_nopfn(struct vm_area_struct *vma,
+-					      unsigned long address)
++static int
++spufs_signal2_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ #if PAGE_SIZE == 0x1000
+-	return spufs_ps_nopfn(vma, address, 0x1c000, 0x1000);
++	return spufs_ps_fault(vma, vmf, 0x1c000, 0x1000);
+ #elif PAGE_SIZE == 0x10000
+ 	/* For 64k pages, both signal1 and signal2 can be used to mmap the whole
+ 	 * signal 1 and 2 area
+ 	 */
+-	return spufs_ps_nopfn(vma, address, 0x10000, 0x10000);
++	return spufs_ps_fault(vma, vmf, 0x10000, 0x10000);
+ #else
+ #error unsupported page size
+ #endif
+ }
+ 
+ static struct vm_operations_struct spufs_signal2_mmap_vmops = {
+-	.nopfn = spufs_signal2_mmap_nopfn,
++	.fault = spufs_signal2_mmap_fault,
+ };
+ 
+ static int spufs_signal2_mmap(struct file *file, struct vm_area_struct *vma)
+@@ -1361,14 +1363,14 @@ DEFINE_SPUFS_ATTRIBUTE(spufs_signal2_typ
+ 		       spufs_signal2_type_set, "%llu\n", SPU_ATTR_ACQUIRE);
+ 
+ #if SPUFS_MMAP_4K
+-static unsigned long spufs_mss_mmap_nopfn(struct vm_area_struct *vma,
+-					  unsigned long address)
++static int
++spufs_mss_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	return spufs_ps_nopfn(vma, address, 0x0000, 0x1000);
++	return spufs_ps_fault(vma, vmf, 0x0000, 0x1000);
+ }
+ 
+ static struct vm_operations_struct spufs_mss_mmap_vmops = {
+-	.nopfn = spufs_mss_mmap_nopfn,
++	.fault = spufs_mss_mmap_fault,
+ };
+ 
+ /*
+@@ -1423,14 +1425,14 @@ static const struct file_operations spuf
+ 	.mmap	 = spufs_mss_mmap,
+ };
+ 
+-static unsigned long spufs_psmap_mmap_nopfn(struct vm_area_struct *vma,
+-					    unsigned long address)
++static int
++spufs_psmap_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	return spufs_ps_nopfn(vma, address, 0x0000, 0x20000);
++	return spufs_ps_fault(vma, vmf, 0x0000, 0x20000);
+ }
+ 
+ static struct vm_operations_struct spufs_psmap_mmap_vmops = {
+-	.nopfn = spufs_psmap_mmap_nopfn,
++	.fault = spufs_psmap_mmap_fault,
+ };
+ 
+ /*
+@@ -1483,14 +1485,14 @@ static const struct file_operations spuf
+ 
+ 
+ #if SPUFS_MMAP_4K
+-static unsigned long spufs_mfc_mmap_nopfn(struct vm_area_struct *vma,
+-					  unsigned long address)
++static int
++spufs_mfc_mmap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	return spufs_ps_nopfn(vma, address, 0x3000, 0x1000);
++	return spufs_ps_fault(vma, vmf, 0x3000, 0x1000);
+ }
+ 
+ static struct vm_operations_struct spufs_mfc_mmap_vmops = {
+-	.nopfn = spufs_mfc_mmap_nopfn,
++	.fault = spufs_mfc_mmap_fault,
+ };
+ 
+ /*
+diff -puN arch/powerpc/platforms/cell/spufs/sputrace.c~spufs-convert-nopfn-to-fault arch/powerpc/platforms/cell/spufs/sputrace.c
+--- a/arch/powerpc/platforms/cell/spufs/sputrace.c~spufs-convert-nopfn-to-fault
++++ a/arch/powerpc/platforms/cell/spufs/sputrace.c
+@@ -182,10 +182,10 @@ struct spu_probe spu_probes[] = {
+ 	{ "spu_yield__enter", "ctx %p", spu_context_nospu_event },
+ 	{ "spu_deactivate__enter", "ctx %p", spu_context_nospu_event },
+ 	{ "__spu_deactivate__unload", "ctx %p spu %p", spu_context_event },
+-	{ "spufs_ps_nopfn__enter", "ctx %p", spu_context_nospu_event },
+-	{ "spufs_ps_nopfn__sleep", "ctx %p", spu_context_nospu_event },
+-	{ "spufs_ps_nopfn__wake", "ctx %p spu %p", spu_context_event },
+-	{ "spufs_ps_nopfn__insert", "ctx %p spu %p", spu_context_event },
++	{ "spufs_ps_fault__enter", "ctx %p", spu_context_nospu_event },
++	{ "spufs_ps_fault__sleep", "ctx %p", spu_context_nospu_event },
++	{ "spufs_ps_fault__wake", "ctx %p spu %p", spu_context_event },
++	{ "spufs_ps_fault__insert", "ctx %p spu %p", spu_context_event },
+ 	{ "spu_acquire_saved__enter", "ctx %p", spu_context_nospu_event },
+ 	{ "destroy_spu_context__enter", "ctx %p", spu_context_nospu_event },
+ 	{ "spufs_stop_callback__enter", "ctx %p spu %p", spu_context_event },
 _
 
-Patches currently in -mm which might be from kamezawa.hiroyu@jp.fujitsu.com are
+Patches currently in -mm which might be from npiggin@suse.de are
 
-memcg-fix-possible-panic-when-config_mm_owner=y.patch
-cgroups-fix-documentation.patch
-memory-hotplug-memmap_init_zone-called-twice.patch
-memory_hotplug-check-for-walk_memory_resource-failure-in-online_pages.patch
-mark-res_counter_charge_locked-with-__must_check.patch
-memcg-make-global-var-read_mostly.patch
-memcg-avoid-unnecessary-initialization.patch
-memcg-better-migration-handling.patch
+linux-next.patch
+spufs-convert-nopfn-to-fault.patch
+mm-fix-infinite-loop-in-filemap_fault.patch
+mm-allow-pfnmap-faults.patch
+mspec-convert-nopfn-to-fault.patch
+mspec-convert-nopfn-to-fault-fix.patch
+reiser4.patch
+likeliness-accounting-change-and-cleanup.patch
+mm-remove-nopfn.patch
 
