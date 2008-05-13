@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + cgroups-fix-compile-warning.patch added to -mm tree
-Date: Mon, 12 May 2008 16:58:45 -0700
-Message-ID: <200805122358.m4CNwjZ0015577@imap1.linux-foundation.org>
+Subject: + ext3-4-fix-uninitialized-bs-in-ext3-4_xattr_set_handle.patch added to -mm tree
+Date: Mon, 12 May 2008 17:03:00 -0700
+Message-ID: <200805130003.m4D0301w015742@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52401 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51272 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755950AbYELX73 (ORCPT
+	by vger.kernel.org with ESMTP id S1756007AbYEMADp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 19:59:29 -0400
+	Mon, 12 May 2008 20:03:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mt-ml@gmx.de, menage@google.com, mingo@elte.hu
+Cc: tiger.yang@oracle.com, agruen@suse.de, linux-ext4@vger.kernel.org
 
 
 The patch titled
-     cgroups: fix compile warning
+     ext3/4: fix uninitialized bs in ext3/4_xattr_set_handle()
 has been added to the -mm tree.  Its filename is
-     cgroups-fix-compile-warning.patch
+     ext3-4-fix-uninitialized-bs-in-ext3-4_xattr_set_handle.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cgroups: fix compile warning
-From: Mirco Tischler <mt-ml@gmx.de>
+Subject: ext3/4: fix uninitialized bs in ext3/4_xattr_set_handle()
+From: Tiger Yang <tiger.yang@oracle.com>
 
-Return type of cpu_rt_runtime_write() should be int instead of ssize_t.
+This fix the uninitialized bs when we try to replace a xattr entry in
+ibody with the new value which require more than free space.
 
-Signed-off-by: Mirco Tischler <mt-ml@gmx.de>
-Acked-by: Paul Menage <menage@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Tiger Yang <tiger.yang@oracle.com>
+Cc: <linux-ext4@vger.kernel.org>
+Cc: Andreas Gruenbacher <agruen@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sched.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ext3/xattr.c |    5 +++++
+ fs/ext4/xattr.c |    5 +++++
+ 2 files changed, 10 insertions(+)
 
-diff -puN kernel/sched.c~cgroups-fix-compile-warning kernel/sched.c
---- a/kernel/sched.c~cgroups-fix-compile-warning
-+++ a/kernel/sched.c
-@@ -9042,7 +9042,7 @@ static u64 cpu_shares_read_u64(struct cg
- #endif
- 
- #ifdef CONFIG_RT_GROUP_SCHED
--static ssize_t cpu_rt_runtime_write(struct cgroup *cgrp, struct cftype *cft,
-+static int cpu_rt_runtime_write(struct cgroup *cgrp, struct cftype *cft,
- 				s64 val)
- {
- 	return sched_group_set_rt_runtime(cgroup_tg(cgrp), val);
+diff -puN fs/ext3/xattr.c~ext3-4-fix-uninitialized-bs-in-ext3-4_xattr_set_handle fs/ext3/xattr.c
+--- a/fs/ext3/xattr.c~ext3-4-fix-uninitialized-bs-in-ext3-4_xattr_set_handle
++++ a/fs/ext3/xattr.c
+@@ -1000,6 +1000,11 @@ ext3_xattr_set_handle(handle_t *handle, 
+ 			i.value = NULL;
+ 			error = ext3_xattr_block_set(handle, inode, &i, &bs);
+ 		} else if (error == -ENOSPC) {
++			if (EXT3_I(inode)->i_file_acl && !bs.s.base) {
++				error = ext3_xattr_block_find(inode, &i, &bs);
++				if (error)
++					goto cleanup;
++			}
+ 			error = ext3_xattr_block_set(handle, inode, &i, &bs);
+ 			if (error)
+ 				goto cleanup;
+diff -puN fs/ext4/xattr.c~ext3-4-fix-uninitialized-bs-in-ext3-4_xattr_set_handle fs/ext4/xattr.c
+--- a/fs/ext4/xattr.c~ext3-4-fix-uninitialized-bs-in-ext3-4_xattr_set_handle
++++ a/fs/ext4/xattr.c
+@@ -1009,6 +1009,11 @@ ext4_xattr_set_handle(handle_t *handle, 
+ 			i.value = NULL;
+ 			error = ext4_xattr_block_set(handle, inode, &i, &bs);
+ 		} else if (error == -ENOSPC) {
++			if (EXT4_I(inode)->i_file_acl && !bs.s.base) {
++				error = ext4_xattr_block_find(inode, &i, &bs);
++				if (error)
++					goto cleanup;
++			}
+ 			error = ext4_xattr_block_set(handle, inode, &i, &bs);
+ 			if (error)
+ 				goto cleanup;
 _
 
-Patches currently in -mm which might be from mt-ml@gmx.de are
+Patches currently in -mm which might be from tiger.yang@oracle.com are
 
-cgroups-fix-compile-warning.patch
+ext3-4-fix-uninitialized-bs-in-ext3-4_xattr_set_handle.patch
 
