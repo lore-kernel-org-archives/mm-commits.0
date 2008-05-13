@@ -1,80 +1,283 @@
 From: akpm@linux-foundation.org
-Subject: - memory_hotplug-always-initialize-pageblock-bitmap.patch removed from -mm tree
-Date: Mon, 12 May 2008 23:24:17 -0700
-Message-ID: <200805130635.m4D6ZICg029037@imap1.linux-foundation.org>
+Subject: + pci-add-pci_match_id-stub-for-config_pci=n.patch added to -mm tree
+Date: Mon, 12 May 2008 23:40:11 -0700
+Message-ID: <200805130651.m4D6pCNX029540@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56415 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34649 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757676AbYEMGgl (ORCPT
+	by vger.kernel.org with ESMTP id S1751220AbYEMGvP (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 02:36:41 -0400
+	Tue, 13 May 2008 02:51:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, apw@shadowen.org, gerald.schaefer@de.ibm.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, y-goto@jp.fujitsu.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, greg@kroah.com, jbarnes@virtuousgeek.org
 
 
 The patch titled
-     memory_hotplug: always initialize pageblock bitmap.
-has been removed from the -mm tree.  Its filename was
-     memory_hotplug-always-initialize-pageblock-bitmap.patch
+     pci: add pci_match_id() stub for CONFIG_PCI=n
+has been added to the -mm tree.  Its filename is
+     pci-add-pci_match_id-stub-for-config_pci=n.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory_hotplug: always initialize pageblock bitmap.
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: pci: add pci_match_id() stub for CONFIG_PCI=n
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Trying to online a new memory section that was added via memory hotplug
-sometimes results in crashes when the new pages are added via __free_page. 
-Reason for that is that the pageblock bitmap isn't initialized and hence
-contains random stuff.  That means that get_pageblock_migratetype() returns
-also random stuff and therefore
+drivers/uwb/umc-bus.c: In function `umc_match_pci_id':
+drivers/uwb/umc-bus.c:33: error: implicit declaration of function `pci_match_id'
+drivers/uwb/umc-bus.c:33: warning: comparison between pointer and integer
 
-	list_add(&page->lru,
-		 &zone->free_area[order].free_list[migratetype]);
+also:
 
-in __free_one_page() tries to do a list_add to something that isn't even
-necessarily a list.
+drivers/uwb/whci.c: In function `whci_probe':
+drivers/uwb/whci.c:175: error: implicit declaration of function `pci_enable_msi'
+drivers/uwb/whci.c:179: error: implicit declaration of function `pci_set_consistent_dma_mask'
+drivers/uwb/whci.c: In function `whci_remove':
+drivers/uwb/whci.c:251: error: implicit declaration of function `pci_disable_msi'
 
-This is only an issue for memory sections that get added after boot time since
-all previously present memory sections allocate their pageblock bitmaps via
-the bootmem allocator which in turn initializes just everything it returns.
+for which we move the !CONFIG_PCI_MSI stubs outside CONFIG_PCI.
 
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+and
+
+drivers/uwb/whci.c: In function `whci_probe':
+drivers/uwb/whci.c:179: error: implicit declaration of function `pci_set_consistent_dma_mask'
+
+All a bit hopeless, really.  Presumably that driver wants to depend on PCI.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/pci.h |   66 ++++++++++++++++++++++++------------------
+ 1 file changed, 38 insertions(+), 28 deletions(-)
 
-diff -puN mm/sparse.c~memory_hotplug-always-initialize-pageblock-bitmap mm/sparse.c
---- a/mm/sparse.c~memory_hotplug-always-initialize-pageblock-bitmap
-+++ a/mm/sparse.c
-@@ -244,7 +244,7 @@ unsigned long usemap_size(void)
- #ifdef CONFIG_MEMORY_HOTPLUG
- static unsigned long *__kmalloc_section_usemap(void)
- {
--	return kmalloc(usemap_size(), GFP_KERNEL);
-+	return kzalloc(usemap_size(), GFP_KERNEL);
- }
- #endif /* CONFIG_MEMORY_HOTPLUG */
+diff -puN drivers/uwb/umc-bus.c~pci-add-pci_match_id-stub-for-config_pci=n drivers/uwb/umc-bus.c
+diff -puN include/linux/pci.h~pci-add-pci_match_id-stub-for-config_pci=n include/linux/pci.h
+--- a/include/linux/pci.h~pci-add-pci_match_id-stub-for-config_pci=n
++++ a/include/linux/pci.h
+@@ -19,6 +19,8 @@
  
+ #include <linux/pci_regs.h>	/* The pci register defines */
+ 
++struct msix_entry;
++
+ /*
+  * The PCI interface treats multi-function devices as independent
+  * devices.  The slot/function address of each device is encoded
+@@ -709,34 +711,7 @@ struct msix_entry {
+ };
+ 
+ 
+-#ifndef CONFIG_PCI_MSI
+-static inline int pci_enable_msi(struct pci_dev *dev)
+-{
+-	return -1;
+-}
+-
+-static inline void pci_msi_shutdown(struct pci_dev *dev)
+-{ }
+-static inline void pci_disable_msi(struct pci_dev *dev)
+-{ }
+-
+-static inline int pci_enable_msix(struct pci_dev *dev,
+-				  struct msix_entry *entries, int nvec)
+-{
+-	return -1;
+-}
+-
+-static inline void pci_msix_shutdown(struct pci_dev *dev)
+-{ }
+-static inline void pci_disable_msix(struct pci_dev *dev)
+-{ }
+-
+-static inline void msi_remove_pci_irq_vectors(struct pci_dev *dev)
+-{ }
+-
+-static inline void pci_restore_msi_state(struct pci_dev *dev)
+-{ }
+-#else
++#ifdef CONFIG_PCI_MSI
+ extern int pci_enable_msi(struct pci_dev *dev);
+ extern void pci_msi_shutdown(struct pci_dev *dev);
+ extern void pci_disable_msi(struct pci_dev *dev);
+@@ -955,10 +930,45 @@ static inline struct pci_dev *pci_get_bu
+ static inline const struct pci_device_id *
+ pci_match_id(const struct pci_device_id *ids, struct pci_dev *dev)
+ {
++	return NULL;
++}
++
++static inline int pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask)
++{
++	return -EIO;
+ }
+ 
+ #endif /* CONFIG_PCI */
+ 
++#ifndef CONFIG_PCI_MSI
++static inline int pci_enable_msi(struct pci_dev *dev)
++{
++	return -1;
++}
++
++static inline void pci_msi_shutdown(struct pci_dev *dev)
++{ }
++static inline void pci_disable_msi(struct pci_dev *dev)
++{ }
++
++static inline int pci_enable_msix(struct pci_dev *dev,
++				  struct msix_entry *entries, int nvec)
++{
++	return -1;
++}
++
++static inline void pci_msix_shutdown(struct pci_dev *dev)
++{ }
++static inline void pci_disable_msix(struct pci_dev *dev)
++{ }
++
++static inline void msi_remove_pci_irq_vectors(struct pci_dev *dev)
++{ }
++
++static inline void pci_restore_msi_state(struct pci_dev *dev)
++{ }
++#endif
++
+ /* Include architecture-dependent settings and functions */
+ 
+ #include <asm/pci.h>
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-origin.patch
+quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
+fix-hfsplus-oops-on-image-without-extents.patch
+rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
+atmel_lcdfb-fix-pixclok-divider-calculation.patch
+memcg-fix-possible-panic-when-config_mm_owner=y.patch
+drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
 linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+ia64-kvm-dont-delete-files-which-we-need.patch
+revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-early_init_centaur-use-set_cpu_cap.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+audit_send_reply-fix-error-path-memory-leak.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
 fix-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+dlm-convert-connections_lock-in-a-mutex-fix.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+git-mmc.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
+git-ubifs.patch
+hysdn-no-longer-broken-on-smp.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-add-pci_match_id-stub-for-config_pci=n.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+git-block-ia64-build-fix.patch
+git-block-fix-s390-build.patch
 s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
-memory-hotplug-memmap_init_zone-called-twice.patch
-memory_hotplug-always-initialize-pageblock-bitmap.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+unionfs-broke.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
+drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
+git-v9fs.patch
+revert-git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-orion-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+common-implementation-of-iterative-div-mod-fix.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+common-implementation-of-iterative-div-mod-fix-2.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model-fix.patch
+mm-verify-the-page-links-and-memory-model-fix-fix.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
