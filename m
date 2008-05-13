@@ -1,77 +1,156 @@
 From: akpm@linux-foundation.org
-Subject: + revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 13 May 2008 01:41:10 -0700
-Message-ID: <200805130841.m4D8fA8T001024@imap1.linux-foundation.org>
+Subject: - pci-add-pci_match_id-stub-for-config_pci=n.patch removed from -mm tree
+Date: Tue, 13 May 2008 01:44:21 -0700
+Message-ID: <200805130844.m4D8iLOT001116@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43223 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55668 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757238AbYEMIlM (ORCPT
+	by vger.kernel.org with ESMTP id S1758618AbYEMIoY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 04:41:12 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4D8fAQ2005700
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2008 01:41:12 -0700
+	Tue, 13 May 2008 04:44:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, greg@kroah.com, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes.patch
+     pci: add pci_match_id() stub for CONFIG_PCI=n
+has been removed from the -mm tree.  Its filename was
+     pci-add-pci_match_id-stub-for-config_pci=n.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because I got bored of it
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
+Subject: pci: add pci_match_id() stub for CONFIG_PCI=n
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: "foo * bar" should be "foo *bar"
-#84: FILE: drivers/oprofile/buffer_sync.c:494:
-+	struct oprofile_cpu_buffer * cpu_buf = &cpu_buffer[cpu];
+drivers/uwb/umc-bus.c: In function `umc_match_pci_id':
+drivers/uwb/umc-bus.c:33: error: implicit declaration of function `pci_match_id'
+drivers/uwb/umc-bus.c:33: warning: comparison between pointer and integer
 
-total: 1 errors, 0 warnings, 102 lines checked
+also:
 
-./patches/revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
+drivers/uwb/whci.c: In function `whci_probe':
+drivers/uwb/whci.c:175: error: implicit declaration of function `pci_enable_msi'
+drivers/uwb/whci.c:179: error: implicit declaration of function `pci_set_consistent_dma_mask'
+drivers/uwb/whci.c: In function `whci_remove':
+drivers/uwb/whci.c:251: error: implicit declaration of function `pci_disable_msi'
 
-Please run checkpatch prior to sending patches
+for which we move the !CONFIG_PCI_MSI stubs outside CONFIG_PCI.
 
+and
 
+drivers/uwb/whci.c: In function `whci_probe':
+drivers/uwb/whci.c:179: error: implicit declaration of function `pci_set_consistent_dma_mask'
+
+All a bit hopeless, really.  Presumably that driver wants to depend on PCI.
+
+Cc: Greg KH <greg@kroah.com>
+Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/oprofile/buffer_sync.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/pci.h |   66 ++++++++++++++++++++++++------------------
+ 1 file changed, 38 insertions(+), 28 deletions(-)
 
-diff -puN drivers/oprofile/buffer_sync.c~revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes drivers/oprofile/buffer_sync.c
---- a/drivers/oprofile/buffer_sync.c~revert-oprofile-change-cpu_buffer-from-array-to-per_cpu-variable-checkpatch-fixes
-+++ a/drivers/oprofile/buffer_sync.c
-@@ -491,7 +491,7 @@ typedef enum {
-  */
- void sync_buffer(int cpu)
+diff -puN drivers/uwb/umc-bus.c~pci-add-pci_match_id-stub-for-config_pci=n drivers/uwb/umc-bus.c
+diff -puN include/linux/pci.h~pci-add-pci_match_id-stub-for-config_pci=n include/linux/pci.h
+--- a/include/linux/pci.h~pci-add-pci_match_id-stub-for-config_pci=n
++++ a/include/linux/pci.h
+@@ -20,6 +20,8 @@
+ /* Include the pci register defines */
+ #include <linux/pci_regs.h>
+ 
++struct msix_entry;
++
+ /*
+  * The PCI interface treats multi-function devices as independent
+  * devices.  The slot/function address of each device is encoded
+@@ -697,34 +699,7 @@ struct msix_entry {
+ };
+ 
+ 
+-#ifndef CONFIG_PCI_MSI
+-static inline int pci_enable_msi(struct pci_dev *dev)
+-{
+-	return -1;
+-}
+-
+-static inline void pci_msi_shutdown(struct pci_dev *dev)
+-{ }
+-static inline void pci_disable_msi(struct pci_dev *dev)
+-{ }
+-
+-static inline int pci_enable_msix(struct pci_dev *dev,
+-				  struct msix_entry *entries, int nvec)
+-{
+-	return -1;
+-}
+-
+-static inline void pci_msix_shutdown(struct pci_dev *dev)
+-{ }
+-static inline void pci_disable_msix(struct pci_dev *dev)
+-{ }
+-
+-static inline void msi_remove_pci_irq_vectors(struct pci_dev *dev)
+-{ }
+-
+-static inline void pci_restore_msi_state(struct pci_dev *dev)
+-{ }
+-#else
++#ifdef CONFIG_PCI_MSI
+ extern int pci_enable_msi(struct pci_dev *dev);
+ extern void pci_msi_shutdown(struct pci_dev *dev);
+ extern void pci_disable_msi(struct pci_dev *dev);
+@@ -943,10 +918,45 @@ static inline struct pci_dev *pci_get_bu
+ static inline const struct pci_device_id *
+ pci_match_id(const struct pci_device_id *ids, struct pci_dev *dev)
  {
--	struct oprofile_cpu_buffer * cpu_buf = &cpu_buffer[cpu];
-+	struct oprofile_cpu_buffer *cpu_buf = &cpu_buffer[cpu];
- 	struct mm_struct *mm = NULL;
- 	struct task_struct * new;
- 	unsigned long cookie = 0;
++	return NULL;
++}
++
++static inline int pci_set_consistent_dma_mask(struct pci_dev *dev, u64 mask)
++{
++	return -EIO;
+ }
+ 
+ #endif /* CONFIG_PCI */
+ 
++#ifndef CONFIG_PCI_MSI
++static inline int pci_enable_msi(struct pci_dev *dev)
++{
++	return -1;
++}
++
++static inline void pci_msi_shutdown(struct pci_dev *dev)
++{ }
++static inline void pci_disable_msi(struct pci_dev *dev)
++{ }
++
++static inline int pci_enable_msix(struct pci_dev *dev,
++				  struct msix_entry *entries, int nvec)
++{
++	return -1;
++}
++
++static inline void pci_msix_shutdown(struct pci_dev *dev)
++{ }
++static inline void pci_disable_msix(struct pci_dev *dev)
++{ }
++
++static inline void msi_remove_pci_irq_vectors(struct pci_dev *dev)
++{ }
++
++static inline void pci_restore_msi_state(struct pci_dev *dev)
++{ }
++#endif
++
+ /* Include architecture-dependent settings and functions */
+ 
+ #include <asm/pci.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
