@@ -1,62 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - fix-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch removed from -mm tree
-Date: Tue, 13 May 2008 14:23:32 -0700
-Message-ID: <200805132123.m4DLNW5M000369@imap1.linux-foundation.org>
+Subject: - mm-verify-the-page-links-and-memory-model-fix.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:26:59 -0700
+Message-ID: <200805132126.m4DLQxLg000481@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49702 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56757 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755873AbYEMVZC (ORCPT
+	by vger.kernel.org with ESMTP id S1756397AbYEMV1c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 17:25:02 -0400
+	Tue, 13 May 2008 17:27:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, greg@kroah.com, heiko.carstens@de.ibm.com, kay.sievers@vrfy.org, schwidefsky@de.ibm.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, apw@shadowen.org, clameter@sgi.com, mel@csn.ul.ie, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fix gregkh-driver-core-read-dev_name-instead-of-bus_id
+     mm-verify-the-page-links-and-memory-model-fix
 has been removed from the -mm tree.  Its filename was
-     fix-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch
+     mm-verify-the-page-links-and-memory-model-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into mm-verify-the-page-links-and-memory-model.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fix gregkh-driver-core-read-dev_name-instead-of-bus_id
+Subject: mm-verify-the-page-links-and-memory-model-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/s390/cio/device_fsm.c: In function 'ccw_timeout_log':
-drivers/s390/cio/device_fsm.c:53: error: expected ')' before ';' token
+mm/mm_init.c: In function 'mminit_verify_pageflags_layout':
+mm/mm_init.c:81: warning: format '%d' expects type 'int', but argument 2 has type 'long unsigned int'
+mm/mm_init.c:81: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
+mm/mm_init.c:81: warning: format '%d' expects type 'int', but argument 4 has type 'long unsigned int'
+mm/mm_init.c:86: warning: format '%d' expects type 'int', but argument 2 has type 'long unsigned int'
+mm/mm_init.c:86: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
 
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/s390/cio/device_fsm.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/mm_init.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN drivers/s390/cio/device_fsm.c~fix-gregkh-driver-core-read-dev_name-instead-of-bus_id drivers/s390/cio/device_fsm.c
---- a/drivers/s390/cio/device_fsm.c~fix-gregkh-driver-core-read-dev_name-instead-of-bus_id
-+++ a/drivers/s390/cio/device_fsm.c
-@@ -50,8 +50,10 @@ static void ccw_timeout_log(struct ccw_d
- 	printk(KERN_WARNING "cio: orb:\n");
- 	print_hex_dump(KERN_WARNING, "cio:  ", DUMP_PREFIX_NONE, 16, 1,
- 		       &private->orb, sizeof(private->orb), 0);
--	printk(KERN_WARNING "cio: ccw device bus id: %s\n", dev_name(&cdev->dev);
--	printk(KERN_WARNING "cio: subchannel bus id: %s\n", dev_name(&sch->dev);
-+	printk(KERN_WARNING "cio: ccw device bus id: %s\n",
-+				dev_name(&cdev->dev));
-+	printk(KERN_WARNING "cio: subchannel bus id: %s\n",
-+				dev_name(&sch->dev));
- 	printk(KERN_WARNING "cio: subchannel lpm: %02x, opm: %02x, "
- 	       "vpm: %02x\n", sch->lpm, sch->opm, sch->vpm);
- 
+diff -puN mm/mm_init.c~mm-verify-the-page-links-and-memory-model-fix mm/mm_init.c
+--- a/mm/mm_init.c~mm-verify-the-page-links-and-memory-model-fix
++++ a/mm/mm_init.c
+@@ -34,13 +34,14 @@ void __init mminit_verify_pageflags_layo
+ 		NODES_SHIFT,
+ 		ZONES_SHIFT);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_offsets",
+-		"Section %d Node %d Zone %d\n",
+-		SECTIONS_PGSHIFT,
+-		NODES_PGSHIFT,
+-		ZONES_PGSHIFT);
++		"Section %lu Node %lu Zone %lu\n",
++		(unsigned long)SECTIONS_PGSHIFT,
++		(unsigned long)NODES_PGSHIFT,
++		(unsigned long)ZONES_PGSHIFT);
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_zoneid",
+-		"Zone ID: %d -> %d\n",
+-		ZONEID_PGOFF, ZONEID_PGOFF + ZONEID_SHIFT);
++		"Zone ID: %lu -> %lu\n",
++		(unsigned long)ZONEID_PGOFF,
++		(unsigned long)(ZONEID_PGOFF + ZONEID_SHIFT));
+ 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_usage",
+ 		"location: %d -> %d unused %d -> %d flags %d -> %d\n",
+ 		shift, width, width, NR_PAGEFLAGS, NR_PAGEFLAGS, 0);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,7 +92,6 @@ arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
 audit_send_reply-fix-error-path-memory-leak.patch
 cifs-suppress-warning.patch
 sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-fix-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch
 zoran-use-correct-type-for-cpu-flags.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
@@ -89,7 +99,6 @@ drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
 git-input.patch
 git-jg-misc-git-rejects.patch
 drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-git-mips-git-rejects.patch
 git-mmc.patch
 mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
 mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
@@ -139,6 +148,7 @@ common-implementation-of-iterative-div-mod-fix-2.patch
 mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
 mm-verify-the-page-links-and-memory-model-fix.patch
 mm-verify-the-page-links-and-memory-model-fix-fix.patch
 mspec-convert-nopfn-to-fault-fix.patch
