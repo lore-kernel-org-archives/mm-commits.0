@@ -1,63 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: - usb-hid-hidbp-drivers-add-imon-lcds-to-hid-blacklist.patch removed from -mm tree
-Date: Tue, 13 May 2008 08:11:21 -0700
-Message-ID: <200805131511.m4DFBLWM018326@imap1.linux-foundation.org>
+Subject: + oprofile-dont-request-cache-line-alignment-for-cpu_buffer.patch added to -mm tree
+Date: Tue, 13 May 2008 08:14:45 -0700
+Message-ID: <200805131514.m4DFEjbr018405@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35533 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51911 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752575AbYEMPLz (ORCPT
+	by vger.kernel.org with ESMTP id S1751891AbYEMPP2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 11:11:55 -0400
+	Tue, 13 May 2008 11:15:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dylan.semler@gmail.com, greg@kroah.com, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: dada1@cosmosbay.com, travis@sgi.com
 
 
 The patch titled
-     USB HID/HIDBP DRIVERS: Add iMON LCDs to HID blacklist
-has been removed from the -mm tree.  Its filename was
-     usb-hid-hidbp-drivers-add-imon-lcds-to-hid-blacklist.patch
+     oprofile: don't request cache line alignment for cpu_buffer
+has been added to the -mm tree.  Its filename is
+     oprofile-dont-request-cache-line-alignment-for-cpu_buffer.patch
 
-This patch was dropped because an updated version will be merged
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: USB HID/HIDBP DRIVERS: Add iMON LCDs to HID blacklist
-From: Dylan R Semler <dylan.semler@gmail.com>
+Subject: oprofile: don't request cache line alignment for cpu_buffer
+From: Eric Dumazet <dada1@cosmosbay.com>
 
-The new iMON LCDs from SoundGraph need to be blacklisted from HID in order
-to be used by lirc.
+Alignment was previously requested because cpu_buffer was an [NR_CPUS]
+array, to avoid cache line sharing between CPUS.
 
-This patch adds vendor and device IDs for iMON LCDs and adds them to the
-blacklist.
+After commit 608dfddd845da5ab6accef70154c8910529699f7 (oprofile: change
+cpu_buffer from array to per_cpu variable ), we dont need to force an
+alignement anymore since cpu_buffer sits in per_cpu zone.
 
-Signed-off-by: Dylan R Semler dylan.semler@gmail.com
-Cc: Greg KH <greg@kroah.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+Cc: Mike Travis <travis@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hid/usbhid/hid-quirks.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/oprofile/cpu_buffer.c |    2 +-
+ drivers/oprofile/cpu_buffer.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/hid/usbhid/hid-quirks.c~usb-hid-hidbp-drivers-add-imon-lcds-to-hid-blacklist drivers/hid/usbhid/hid-quirks.c
---- a/drivers/hid/usbhid/hid-quirks.c~usb-hid-hidbp-drivers-add-imon-lcds-to-hid-blacklist
-+++ a/drivers/hid/usbhid/hid-quirks.c
-@@ -371,6 +371,9 @@
- #define USB_VENDOR_ID_SONY			0x054c
- #define USB_DEVICE_ID_SONY_PS3_CONTROLLER	0x0268
+diff -puN drivers/oprofile/cpu_buffer.c~oprofile-dont-request-cache-line-alignment-for-cpu_buffer drivers/oprofile/cpu_buffer.c
+--- a/drivers/oprofile/cpu_buffer.c~oprofile-dont-request-cache-line-alignment-for-cpu_buffer
++++ a/drivers/oprofile/cpu_buffer.c
+@@ -27,7 +27,7 @@
+ #include "buffer_sync.h"
+ #include "oprof.h"
  
-+#define USB_VENDOR_ID_SOUNDGRAPH		0x15c2
-+#define USB_DEVICE_ID_SOUNDGRAPH_IMON_LCD	0x0038
-+
- #define USB_VENDOR_ID_SUN		0x0430
- #define USB_DEVICE_ID_RARITAN_KVM_DONGLE	0xcdab
+-DEFINE_PER_CPU_SHARED_ALIGNED(struct oprofile_cpu_buffer, cpu_buffer);
++DEFINE_PER_CPU(struct oprofile_cpu_buffer, cpu_buffer);
+ 
+ static void wq_sync_buffer(struct work_struct *work);
+ 
+diff -puN drivers/oprofile/cpu_buffer.h~oprofile-dont-request-cache-line-alignment-for-cpu_buffer drivers/oprofile/cpu_buffer.h
+--- a/drivers/oprofile/cpu_buffer.h~oprofile-dont-request-cache-line-alignment-for-cpu_buffer
++++ a/drivers/oprofile/cpu_buffer.h
+@@ -46,7 +46,7 @@ struct oprofile_cpu_buffer {
+ 	unsigned long sample_invalid_eip;
+ 	int cpu;
+ 	struct delayed_work work;
+-} ____cacheline_aligned;
++};
+ 
+ DECLARE_PER_CPU(struct oprofile_cpu_buffer, cpu_buffer);
  
 _
 
-Patches currently in -mm which might be from dylan.semler@gmail.com are
+Patches currently in -mm which might be from dada1@cosmosbay.com are
 
-usb-hid-hidbp-drivers-add-imon-lcds-to-hid-blacklist.patch
+oprofile-dont-request-cache-line-alignment-for-cpu_buffer.patch
+linux-next.patch
 
