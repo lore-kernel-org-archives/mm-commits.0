@@ -1,149 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: - dlm-convert-connections_lock-in-a-mutex.patch removed from -mm tree
-Date: Tue, 13 May 2008 14:34:34 -0700
-Message-ID: <200805132134.m4DLYYGs000933@imap1.linux-foundation.org>
+Subject: - atl1-fix-broken-suspend-and-resume.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:34:49 -0700
+Message-ID: <200805132134.m4DLYn8r000959@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58638 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57608 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761124AbYEMVey (ORCPT
+	by vger.kernel.org with ESMTP id S1760687AbYEMVev (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 17:34:54 -0400
+	Tue, 13 May 2008 17:34:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: matthias@kaehlcke.net, ccaulfie@redhat.com, swhiteho@redhat.com, teigland@redhat.com, mm-commits@vger.kernel.org
+To: jacliburn@bellsouth.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     dlm: convert connections_lock in a mutex
+     atl1: fix broken suspend and resume
 has been removed from the -mm tree.  Its filename was
-     dlm-convert-connections_lock-in-a-mutex.patch
+     atl1-fix-broken-suspend-and-resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: dlm: convert connections_lock in a mutex
-From: Matthias Kaehlcke <matthias@kaehlcke.net>
+Subject: atl1: fix broken suspend and resume
+From: Jay Cliburn <jacliburn@bellsouth.net>
 
-The semaphore connections_lock is used as a mutex.  Convert it to the mutex
-API.
+Fix atl1_suspend() and atl1_resume() so they actually work.  We'll use the
+suspend function for wake-on-lan in addition to just suspending.
 
-Signed-off-by: Matthias Kaehlcke <matthias@kaehlcke.net>
-Cc: Christine Caulfield <ccaulfie@redhat.com>
-Cc: David Teigland <teigland@redhat.com>
-Cc: Steven Whitehouse <swhiteho@redhat.com>
+Signed-off-by: Jay Cliburn <jacliburn@bellsouth.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dlm/lowcomms.c |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/net/atlx/atl1.c |  123 ++++++++++++++++++++++++--------------
+ 1 file changed, 79 insertions(+), 44 deletions(-)
 
-diff -puN fs/dlm/lowcomms.c~dlm-convert-connections_lock-in-a-mutex fs/dlm/lowcomms.c
---- a/fs/dlm/lowcomms.c~dlm-convert-connections_lock-in-a-mutex
-+++ a/fs/dlm/lowcomms.c
-@@ -138,7 +138,7 @@ static struct workqueue_struct *recv_wor
- static struct workqueue_struct *send_workqueue;
+diff -puN drivers/net/atlx/atl1.c~atl1-fix-broken-suspend-and-resume drivers/net/atlx/atl1.c
+--- a/drivers/net/atlx/atl1.c~atl1-fix-broken-suspend-and-resume
++++ a/drivers/net/atlx/atl1.c
+@@ -2781,64 +2781,93 @@ static int atl1_suspend(struct pci_dev *
+ 	struct atl1_hw *hw = &adapter->hw;
+ 	u32 ctrl = 0;
+ 	u32 wufc = adapter->wol;
++	u32 val;
++	int retval;
++	u16 speed;
++	u16 duplex;
  
- static DEFINE_IDR(connections_idr);
--static DECLARE_MUTEX(connections_lock);
-+static DEFINE_MUTEX(connections_lock);
- static int max_nodeid;
- static struct kmem_cache *con_cache;
+ 	netif_device_detach(netdev);
+ 	if (netif_running(netdev))
+ 		atl1_down(adapter);
  
-@@ -205,9 +205,9 @@ static struct connection *nodeid2con(int
- {
- 	struct connection *con;
++	retval = pci_save_state(pdev);
++	if (retval)
++		return retval;
++
+ 	atl1_read_phy_reg(hw, MII_BMSR, (u16 *) & ctrl);
+ 	atl1_read_phy_reg(hw, MII_BMSR, (u16 *) & ctrl);
+-	if (ctrl & BMSR_LSTATUS)
++	val = ctrl & BMSR_LSTATUS;
++	if (val)
+ 		wufc &= ~ATLX_WUFC_LNKC;
  
--	down(&connections_lock);
-+	mutex_lock(&connections_lock);
- 	con = __nodeid2con(nodeid, allocation);
--	up(&connections_lock);
-+	mutex_unlock(&connections_lock);
+-	/* reduce speed to 10/100M */
+-	if (wufc) {
+-		atl1_phy_enter_power_saving(hw);
+-		/* if resume, let driver to re- setup link */
+-		hw->phy_configured = false;
+-		atl1_set_mac_addr(hw);
+-		atlx_set_multi(netdev);
++	if (val && wufc) {
++		val = atl1_get_speed_and_duplex(hw, &speed, &duplex);
++		if (val) {
++			if (netif_msg_ifdown(adapter))
++				dev_printk(KERN_DEBUG, &pdev->dev,
++					"error getting speed/duplex\n");
++			goto disable_wol;
++		}
  
- 	return con;
- }
-@@ -218,15 +218,15 @@ static struct connection *assoc2con(int 
- 	int i;
- 	struct connection *con;
+ 		ctrl = 0;
+-		/* turn on magic packet wol */
+-		if (wufc & ATLX_WUFC_MAG)
+-			ctrl = WOL_MAGIC_EN | WOL_MAGIC_PME_EN;
  
--	down(&connections_lock);
-+	mutex_lock(&connections_lock);
- 	for (i=0; i<=max_nodeid; i++) {
- 		con = __nodeid2con(i, 0);
- 		if (con && con->sctp_assoc == assoc_id) {
--			up(&connections_lock);
-+			mutex_unlock(&connections_lock);
- 			return con;
- 		}
+-		/* turn on Link change WOL */
+-		if (wufc & ATLX_WUFC_LNKC)
+-			ctrl |= (WOL_LINK_CHG_EN | WOL_LINK_CHG_PME_EN);
++		/* enable magic packet WOL */
++		if (wufc & ATLX_WUFC_MAG)
++			ctrl |= (WOL_MAGIC_EN | WOL_MAGIC_PME_EN);
+ 		iowrite32(ctrl, hw->hw_addr + REG_WOL_CTRL);
++		ioread32(hw->hw_addr + REG_WOL_CTRL);
+ 
+-		/* turn on all-multi mode if wake on multicast is enabled */
+-		ctrl = ioread32(hw->hw_addr + REG_MAC_CTRL);
+-		ctrl &= ~MAC_CTRL_DBG;
+-		ctrl &= ~MAC_CTRL_PROMIS_EN;
+-		if (wufc & ATLX_WUFC_MC)
+-			ctrl |= MAC_CTRL_MC_ALL_EN;
+-		else
+-			ctrl &= ~MAC_CTRL_MC_ALL_EN;
+-
+-		/* turn on broadcast mode if wake on-BC is enabled */
+-		if (wufc & ATLX_WUFC_BC)
++		/* configure the mac */
++		ctrl = MAC_CTRL_RX_EN;
++		ctrl |= ((u32)((speed == SPEED_1000) ? MAC_CTRL_SPEED_1000 :
++			MAC_CTRL_SPEED_10_100) << MAC_CTRL_SPEED_SHIFT);
++		if (duplex == FULL_DUPLEX)
++			ctrl |= MAC_CTRL_DUPLX;
++		ctrl |= (((u32)adapter->hw.preamble_len &
++			MAC_CTRL_PRMLEN_MASK) << MAC_CTRL_PRMLEN_SHIFT);
++		if (adapter->vlgrp)
++			ctrl |= MAC_CTRL_RMV_VLAN;
++		if (wufc & ATLX_WUFC_MAG)
+ 			ctrl |= MAC_CTRL_BC_EN;
+-		else
+-			ctrl &= ~MAC_CTRL_BC_EN;
+-
+-		/* enable RX */
+-		ctrl |= MAC_CTRL_RX_EN;
+ 		iowrite32(ctrl, hw->hw_addr + REG_MAC_CTRL);
+-		pci_enable_wake(pdev, PCI_D3hot, 1);
+-		pci_enable_wake(pdev, PCI_D3cold, 1);
+-	} else {
+-		iowrite32(0, hw->hw_addr + REG_WOL_CTRL);
+-		pci_enable_wake(pdev, PCI_D3hot, 0);
+-		pci_enable_wake(pdev, PCI_D3cold, 0);
++		ioread32(hw->hw_addr + REG_MAC_CTRL);
++
++		/* poke the PHY */
++		ctrl = ioread32(hw->hw_addr + REG_PCIE_PHYMISC);
++		ctrl |= PCIE_PHYMISC_FORCE_RCV_DET;
++		iowrite32(ctrl, hw->hw_addr + REG_PCIE_PHYMISC);
++		ioread32(hw->hw_addr + REG_PCIE_PHYMISC);
++
++		pci_enable_wake(pdev, pci_choose_state(pdev, state), 1);
++		goto exit;
  	}
--	up(&connections_lock);
-+	mutex_unlock(&connections_lock);
- 	return NULL;
+ 
+-	pci_save_state(pdev);
+-	pci_disable_device(pdev);
++	if (!val && wufc) {
++		ctrl |= (WOL_LINK_CHG_EN | WOL_LINK_CHG_PME_EN);
++		iowrite32(ctrl, hw->hw_addr + REG_WOL_CTRL);
++		ioread32(hw->hw_addr + REG_WOL_CTRL);
++		iowrite32(0, hw->hw_addr + REG_MAC_CTRL);
++		ioread32(hw->hw_addr + REG_MAC_CTRL);
++		hw->phy_configured = false;
++		pci_enable_wake(pdev, pci_choose_state(pdev, state), 1);
++		goto exit;
++	}
+ 
+-	pci_set_power_state(pdev, PCI_D3hot);
++disable_wol:
++	iowrite32(0, hw->hw_addr + REG_WOL_CTRL);
++	ioread32(hw->hw_addr + REG_WOL_CTRL);
++	ctrl = ioread32(hw->hw_addr + REG_PCIE_PHYMISC);
++	ctrl |= PCIE_PHYMISC_FORCE_RCV_DET;
++	iowrite32(ctrl, hw->hw_addr + REG_PCIE_PHYMISC);
++	ioread32(hw->hw_addr + REG_PCIE_PHYMISC);
++	atl1_phy_enter_power_saving(hw);
++	hw->phy_configured = false;
++	pci_enable_wake(pdev, pci_choose_state(pdev, state), 0);
++exit:
++	if (netif_running(netdev))
++		pci_disable_msi(adapter->pdev);
++	pci_disable_device(pdev);
++	pci_set_power_state(pdev, pci_choose_state(pdev, state));
+ 
+ 	return 0;
  }
+@@ -2852,20 +2881,26 @@ static int atl1_resume(struct pci_dev *p
+ 	pci_set_power_state(pdev, PCI_D0);
+ 	pci_restore_state(pdev);
  
-@@ -381,7 +381,7 @@ static void sctp_init_failed(void)
- 	int i;
- 	struct connection *con;
+-	/* FIXME: check and handle */
+ 	err = pci_enable_device(pdev);
++	if (err) {
++		if (netif_msg_ifup(adapter))
++			dev_printk(KERN_DEBUG, &pdev->dev,
++				"error enabling pci device\n");
++		return err;
++	}
++
++	pci_set_master(pdev);
++	iowrite32(0, adapter->hw.hw_addr + REG_WOL_CTRL);
+ 	pci_enable_wake(pdev, PCI_D3hot, 0);
+ 	pci_enable_wake(pdev, PCI_D3cold, 0);
  
--	down(&connections_lock);
-+	mutex_lock(&connections_lock);
- 	for (i=1; i<=max_nodeid; i++) {
- 		con = __nodeid2con(i, 0);
- 		if (!con)
-@@ -393,7 +393,7 @@ static void sctp_init_failed(void)
- 			}
- 		}
- 	}
--	up(&connections_lock);
-+	mutex_unlock(&connections_lock);
- }
+-	iowrite32(0, adapter->hw.hw_addr + REG_WOL_CTRL);
+-	atl1_reset(adapter);
++	atl1_reset_hw(&adapter->hw);
++	adapter->cmb.cmb->int_stats = 0;
  
- /* Something happened to an association */
-@@ -1417,7 +1417,7 @@ void dlm_lowcomms_stop(void)
- 	/* Set all the flags to prevent any
- 	   socket activity.
- 	*/
--	down(&connections_lock);
-+	mutex_lock(&connections_lock);
- 	for (i = 0; i <= max_nodeid; i++) {
- 		con = __nodeid2con(i, 0);
- 		if (con) {
-@@ -1426,11 +1426,11 @@ void dlm_lowcomms_stop(void)
- 				con->sock->sk->sk_user_data = NULL;
- 		}
- 	}
--	up(&connections_lock);
-+	mutex_unlock(&connections_lock);
+ 	if (netif_running(netdev))
+ 		atl1_up(adapter);
+ 	netif_device_attach(netdev);
  
- 	work_stop();
- 
--	down(&connections_lock);
-+	mutex_lock(&connections_lock);
- 	clean_writequeues();
- 
- 	for (i = 0; i <= max_nodeid; i++) {
-@@ -1443,7 +1443,7 @@ void dlm_lowcomms_stop(void)
- 		}
- 	}
- 	max_nodeid = 0;
--	up(&connections_lock);
-+	mutex_unlock(&connections_lock);
- 	kmem_cache_destroy(con_cache);
- 	idr_init(&connections_idr);
- }
-_
-
-Patches currently in -mm which might be from matthias@kaehlcke.net are
-
-linux-next.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
-pxafb-convert-ctrlr_sem-in-a-mutex.patch
-sa1100fb-convert-ctrlr_sem-in-a-mutex.patch
-hfs-convert-bitmap_lock-in-a-mutex.patch
-hfs-convert-extents_lock-in-a-mutex.patch
-hfsplus-convert-the-extents_lock-in-a-mutex.patch
-affs-convert-s_bmlock-into-a-mutex.patch
-
+-	atl1_via_workaround(adapter);
