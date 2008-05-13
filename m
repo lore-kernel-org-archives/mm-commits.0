@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + power_supply-add-charge_counter-property-and-olpc_battery-support-for-it-fix.patch added to -mm tree
-Date: Tue, 13 May 2008 13:27:44 -0700
-Message-ID: <200805132027.m4DKRipI030517@imap1.linux-foundation.org>
+Subject: + memory_hotplug-always-initialize-pageblock-bitmap.patch added to -mm tree
+Date: Tue, 13 May 2008 13:22:53 -0700
+Message-ID: <200805132022.m4DKMrju030323@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41328 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59493 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758148AbYEMU26 (ORCPT
+	by vger.kernel.org with ESMTP id S1757327AbYEMUag (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 16:28:58 -0400
+	Tue, 13 May 2008 16:30:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dilinger@queued.net, cbouatmailru@gmail.com, dilinger@debian.org, richard@laptop.org
+Cc: heiko.carstens@de.ibm.com, apw@shadowen.org, gerald.schaefer@de.ibm.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org, y-goto@jp.fujitsu.com
 
 
 The patch titled
-     power_supply: fix up CHARGE_COUNTER output to be more precise
+     memory_hotplug: always initialize pageblock bitmap
 has been added to the -mm tree.  Its filename is
-     power_supply-add-charge_counter-property-and-olpc_battery-support-=
-for-it-fix.patch
+     memory_hotplug-always-initialize-pageblock-bitmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,68 +26,181 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: power_supply: fix up CHARGE_COUNTER output to be more precise
-=46rom: Andres Salomon <dilinger@queued.net>
+Subject: memory_hotplug: always initialize pageblock bitmap
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
 
-As Richard Smith pointed out, ACR * 6250 / 15 provides for less
-precision loss than ACR * 4167 / 10, _and_ it doesn't overflow.  Switch
-to using that equation for CHARGE_COUNTER.
+Trying to online a new memory section that was added via memory hotplug
+sometimes results in crashes when the new pages are added via __free_page.
+ Reason for that is that the pageblock bitmap isn't initialized and hence
+contains random stuff.  That means that get_pageblock_migratetype()
+returns also random stuff and therefore
 
-Signed-off-by: Andres Salomon <dilinger@debian.org>
-Cc: "Richard A. Smith" <richard@laptop.org>
-Cc: Anton Vorontsov <cbouatmailru@gmail.com>
+	list_add(&page->lru,
+		&zone->free_area[order].free_list[migratetype]);
+
+in __free_one_page() tries to do a list_add to something that isn't even
+necessarily a list.
+
+This happens since 86051ca5eaf5e560113ec7673462804c54284456 ("mm: fix
+usemap initialization") which makes sure that the pageblock bitmap gets
+only initialized for pages present in a zone.  Unfortunately for hot-added
+memory the zones "grow" after the memmap and the pageblock memmap have
+been initialized.  Which means that the new pages have an unitialized
+bitmap.  To solve this the calls to grow_zone_span() and grow_pgdat_span()
+are moved to __add_zone() just before the initialization happens.
+
+The patch also moves the two functions since __add_zone() is the only
+caller and I didn't want to add a forward declaration.
+
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Dave Hansen <haveblue@us.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/olpc_battery.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |   83 ++++++++++++++++++++++--------------------
+ mm/page_alloc.c     |    3 -
+ 2 files changed, 45 insertions(+), 41 deletions(-)
 
-diff -puN drivers/power/olpc_battery.c~power_supply-add-charge_counter-=
-property-and-olpc_battery-support-for-it-fix drivers/power/olpc_battery=
-=2Ec
---- a/drivers/power/olpc_battery.c~power_supply-add-charge_counter-prop=
-erty-and-olpc_battery-support-for-it-fix
-+++ a/drivers/power/olpc_battery.c
-@@ -19,7 +19,7 @@
-=20
- #define EC_BAT_VOLTAGE	0x10	/* uint16_t,	*9.76/32,    mV   */
- #define EC_BAT_CURRENT	0x11	/* int16_t,	*15.625/120, mA   */
--#define EC_BAT_ACR	0x12	/* int16_t,	*416.7,      =C2=B5Ah  */
-+#define EC_BAT_ACR	0x12	/* int16_t,	*6250/15,    =C2=B5Ah  */
- #define EC_BAT_TEMP	0x13	/* uint16_t,	*100/256,   =C2=B0C  */
- #define EC_AMB_TEMP	0x14	/* uint16_t,	*100/256,   =C2=B0C  */
- #define EC_BAT_STATUS	0x15	/* uint8_t,	bitmask */
-@@ -295,7 +295,7 @@ static int olpc_bat_get_property(struct=20
- 			return ret;
-=20
- 		ec_word =3D be16_to_cpu(ec_word);
--		val->intval =3D ec_word * 4167 / 10;
-+		val->intval =3D ec_word * 6250 / 15;
- 		break;
- 	case POWER_SUPPLY_PROP_SERIAL_NUMBER:
- 		ret =3D olpc_ec_cmd(EC_BAT_SERIAL, NULL, 0, (void *)&ser_buf, 8);
-_
-
-Patches currently in -mm which might be from dilinger@queued.net are
-
-git-input.patch
-git-battery.patch
-power_supply-add-charge_counter-property-and-olpc_battery-support-for-i=
-t-fix.patch
-
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff -puN mm/memory_hotplug.c~memory_hotplug-always-initialize-pageblock-bitmap mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory_hotplug-always-initialize-pageblock-bitmap
++++ a/mm/memory_hotplug.c
+@@ -159,17 +159,58 @@ void register_page_bootmem_info_node(str
+ }
+ #endif /* !CONFIG_SPARSEMEM_VMEMMAP */
+ 
++static void grow_zone_span(struct zone *zone, unsigned long start_pfn,
++			   unsigned long end_pfn)
++{
++	unsigned long old_zone_end_pfn;
++
++	zone_span_writelock(zone);
++
++	old_zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
++	if (start_pfn < zone->zone_start_pfn)
++		zone->zone_start_pfn = start_pfn;
++
++	zone->spanned_pages = max(old_zone_end_pfn, end_pfn) -
++				zone->zone_start_pfn;
++
++	zone_span_writeunlock(zone);
++}
++
++static void grow_pgdat_span(struct pglist_data *pgdat, unsigned long start_pfn,
++			    unsigned long end_pfn)
++{
++	unsigned long old_pgdat_end_pfn =
++		pgdat->node_start_pfn + pgdat->node_spanned_pages;
++
++	if (start_pfn < pgdat->node_start_pfn)
++		pgdat->node_start_pfn = start_pfn;
++
++	pgdat->node_spanned_pages = max(old_pgdat_end_pfn, end_pfn) -
++					pgdat->node_start_pfn;
++}
++
+ static int __add_zone(struct zone *zone, unsigned long phys_start_pfn)
+ {
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+ 	int nr_pages = PAGES_PER_SECTION;
+ 	int nid = pgdat->node_id;
+ 	int zone_type;
++	unsigned long flags;
+ 
+ 	zone_type = zone - pgdat->node_zones;
+-	if (!zone->wait_table)
+-		return init_currently_empty_zone(zone, phys_start_pfn,
+-						 nr_pages, MEMMAP_HOTPLUG);
++	if (!zone->wait_table) {
++		int ret;
++
++		ret = init_currently_empty_zone(zone, phys_start_pfn,
++						nr_pages, MEMMAP_HOTPLUG);
++		if (ret)
++			return ret;
++	}
++	pgdat_resize_lock(zone->zone_pgdat, &flags);
++	grow_zone_span(zone, phys_start_pfn, phys_start_pfn + nr_pages);
++	grow_pgdat_span(zone->zone_pgdat, phys_start_pfn,
++			phys_start_pfn + nr_pages);
++	pgdat_resize_unlock(zone->zone_pgdat, &flags);
+ 	memmap_init_zone(nr_pages, nid, zone_type,
+ 			 phys_start_pfn, MEMMAP_HOTPLUG);
+ 	return 0;
+@@ -295,36 +336,6 @@ int __remove_pages(struct zone *zone, un
+ }
+ EXPORT_SYMBOL_GPL(__remove_pages);
+ 
+-static void grow_zone_span(struct zone *zone,
+-		unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	unsigned long old_zone_end_pfn;
+-
+-	zone_span_writelock(zone);
+-
+-	old_zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
+-	if (start_pfn < zone->zone_start_pfn)
+-		zone->zone_start_pfn = start_pfn;
+-
+-	zone->spanned_pages = max(old_zone_end_pfn, end_pfn) -
+-				zone->zone_start_pfn;
+-
+-	zone_span_writeunlock(zone);
+-}
+-
+-static void grow_pgdat_span(struct pglist_data *pgdat,
+-		unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	unsigned long old_pgdat_end_pfn =
+-		pgdat->node_start_pfn + pgdat->node_spanned_pages;
+-
+-	if (start_pfn < pgdat->node_start_pfn)
+-		pgdat->node_start_pfn = start_pfn;
+-
+-	pgdat->node_spanned_pages = max(old_pgdat_end_pfn, end_pfn) -
+-					pgdat->node_start_pfn;
+-}
+-
+ void online_page(struct page *page)
+ {
+ 	totalram_pages++;
+@@ -363,7 +374,6 @@ static int online_pages_range(unsigned l
+ 
+ int online_pages(unsigned long pfn, unsigned long nr_pages)
+ {
+-	unsigned long flags;
+ 	unsigned long onlined_pages = 0;
+ 	struct zone *zone;
+ 	int need_zonelists_rebuild = 0;
+@@ -391,11 +401,6 @@ int online_pages(unsigned long pfn, unsi
+ 	 * memory_block->state_mutex.
+ 	 */
+ 	zone = page_zone(pfn_to_page(pfn));
+-	pgdat_resize_lock(zone->zone_pgdat, &flags);
+-	grow_zone_span(zone, pfn, pfn + nr_pages);
+-	grow_pgdat_span(zone->zone_pgdat, pfn, pfn + nr_pages);
+-	pgdat_resize_unlock(zone->zone_pgdat, &flags);
+-
+ 	/*
+ 	 * If this zone is not populated, then it is not in zonelist.
+ 	 * This means the page allocator ignores this zone.
+diff -puN mm/page_alloc.c~memory_hotplug-always-initialize-pageblock-bitmap mm/page_alloc.c
+--- a/mm/page_alloc.c~memory_hotplug-always-initialize-pageblock-bitmap
++++ a/mm/page_alloc.c
+@@ -2862,8 +2862,6 @@ __meminit int init_currently_empty_zone(
+ 
+ 	zone->zone_start_pfn = zone_start_pfn;
+ 
+-	memmap_init(size, pgdat->node_id, zone_idx(zone), zone_start_pfn);
