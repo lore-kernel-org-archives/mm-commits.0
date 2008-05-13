@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Mon, 12 May 2008 19:09:33 -0700
-Message-ID: <200805130220.m4D2KYi9020399@imap1.linux-foundation.org>
+Subject: + drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch added to -mm tree
+Date: Mon, 12 May 2008 19:11:49 -0700
+Message-ID: <200805130222.m4D2Mnd2020451@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33569 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51755 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755752AbYEMCUi (ORCPT
+	by vger.kernel.org with ESMTP id S1755794AbYEMCWy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 22:20:38 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4D2Ka8g015464
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Mon, 12 May 2008 19:20:37 -0700
+	Mon, 12 May 2008 22:22:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+Cc: akpm@linux-foundation.org, rolandd@cisco.com
 
 
 The patch titled
-     linux-next-git-rejects
+     drivers/infiniband/hw/mlx4/qp.c: fix uninitialised-var warning
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,30 +34,33 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: drivers/infiniband/hw/mlx4/qp.c: fix uninitialised-var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
+drivers/infiniband/hw/mlx4/qp.c: In function 'mlx4_ib_post_send':
+drivers/infiniband/hw/mlx4/qp.c:1460: warning: 'seglen' may be used uninitialized in this function
+
+This is the dopey gcc-doesn't-know-that-foo(&var)-writes-to-var problem.
+
+Cc: Roland Dreier <rolandd@cisco.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-piix4.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/infiniband/hw/mlx4/qp.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/i2c/busses/i2c-piix4.c~linux-next-git-rejects drivers/i2c/busses/i2c-piix4.c
---- a/drivers/i2c/busses/i2c-piix4.c~linux-next-git-rejects
-+++ a/drivers/i2c/busses/i2c-piix4.c
-@@ -105,11 +105,7 @@ MODULE_PARM_DESC(force_addr,
- static int piix4_transaction(void);
+diff -puN drivers/infiniband/hw/mlx4/qp.c~drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning drivers/infiniband/hw/mlx4/qp.c
+--- a/drivers/infiniband/hw/mlx4/qp.c~drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning
++++ a/drivers/infiniband/hw/mlx4/qp.c
+@@ -1457,7 +1457,7 @@ int mlx4_ib_post_send(struct ib_qp *ibqp
+ 	unsigned ind;
+ 	int uninitialized_var(stamp);
+ 	int uninitialized_var(size);
+-	unsigned seglen;
++	unsigned uninitialized_var(seglen);
+ 	int i;
  
- static unsigned short piix4_smba;
--<<<<<<< HEAD:drivers/i2c/busses/i2c-piix4.c
--static int srvrworks_csb5_delay;
--=======
- static unsigned short srvrworks_csb5_delay;
-->>>>>>> FETCH_HEAD:drivers/i2c/busses/i2c-piix4.c
- static struct pci_driver piix4_driver;
- static struct i2c_adapter piix4_adapter;
- 
+ 	spin_lock_irqsave(&qp->sq.lock, flags);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -74,6 +73,7 @@ memcg-fix-possible-panic-when-config_mm_owner=y.patch
 drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
 linux-next.patch
 next-remove-localversion.patch
+linux-next-git-rejects.patch
 revert-9p-convert-from-semaphore-to-spinlock.patch
 revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
 revert-acpica-fixes-for-unload-and-ddbhandles.patch
@@ -160,5 +160,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-linux-next-git-rejects.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
 
