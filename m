@@ -1,70 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - uml-fix-bad-ntp-interaction-with-clock.patch removed from -mm tree
-Date: Tue, 13 May 2008 14:32:37 -0700
-Message-ID: <200805132132.m4DLWb28000724@imap1.linux-foundation.org>
+Subject: - uml-use-__spin_lock_unlocked.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:32:39 -0700
+Message-ID: <200805132132.m4DLWdCu000727@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33455 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35161 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759710AbYEMVco (ORCPT
+	by vger.kernel.org with ESMTP id S1759980AbYEMVcq (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 17:32:44 -0400
+	Tue, 13 May 2008 17:32:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jdike@addtoit.com, jdike@linux.intel.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: jdike@addtoit.com, jdike@linux.intel.com, rpjday@crashcourse.ca, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     uml: fix bad NTP interaction with clock
+     uml: use __SPIN_LOCK_UNLOCKED
 has been removed from the -mm tree.  Its filename was
-     uml-fix-bad-ntp-interaction-with-clock.patch
+     uml-use-__spin_lock_unlocked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: uml: fix bad NTP interaction with clock
+Subject: uml: use __SPIN_LOCK_UNLOCKED
 From: Jeff Dike <jdike@addtoit.com>
 
-UML's supposed nanosecond clock interacts badly with NTP when NTP
-decides that the clock has drifted ahead and needs to be slowed down.
-Slowing down the clock is done by decrementing the cycle-to-nanosecond
-multiplier, which is 1.  Decrementing that gives you 0 and time is
-stopped.
 
-This is fixed by switching to a microsecond clock, with a multiplier
-of 1000.
+Use newer, non-deprecated __SPIN_LOCK_UNLOCKED macro.
 
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 Signed-off-by: Jeff Dike <jdike@linux.intel.com>
 Cc: WANG Cong <xiyou.wangcong@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/kernel/time.c |    4 ++--
+ arch/um/include/line.h |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/um/kernel/time.c~uml-fix-bad-ntp-interaction-with-clock arch/um/kernel/time.c
---- a/arch/um/kernel/time.c~uml-fix-bad-ntp-interaction-with-clock
-+++ a/arch/um/kernel/time.c
-@@ -75,7 +75,7 @@ static irqreturn_t um_timer(int irq, voi
- 
- static cycle_t itimer_read(void)
- {
--	return os_nsecs();
-+	return os_nsecs() / 1000;
- }
- 
- static struct clocksource itimer_clocksource = {
-@@ -83,7 +83,7 @@ static struct clocksource itimer_clockso
- 	.rating		= 300,
- 	.read		= itimer_read,
- 	.mask		= CLOCKSOURCE_MASK(64),
--	.mult		= 1,
-+	.mult		= 1000,
- 	.shift		= 0,
- 	.flags		= CLOCK_SOURCE_IS_CONTINUOUS,
+diff -puN arch/um/include/line.h~uml-use-__spin_lock_unlocked arch/um/include/line.h
+--- a/arch/um/include/line.h~uml-use-__spin_lock_unlocked
++++ a/arch/um/include/line.h
+@@ -58,11 +58,11 @@ struct line {
  };
+ 
+ #define LINE_INIT(str, d) \
+-	{ .count_lock =	SPIN_LOCK_UNLOCKED, \
++	{ .count_lock =	__SPIN_LOCK_UNLOCKED((str).count_lock), \
+ 	  .init_str =	str,	\
+ 	  .init_pri =	INIT_STATIC, \
+ 	  .valid =	1, \
+-	  .lock =	SPIN_LOCK_UNLOCKED, \
++	  .lock =	__SPIN_LOCK_UNLOCKED((str).lock), \
+ 	  .driver =	d }
+ 
+ extern void line_close(struct tty_struct *tty, struct file * filp);
 _
 
 Patches currently in -mm which might be from jdike@addtoit.com are
