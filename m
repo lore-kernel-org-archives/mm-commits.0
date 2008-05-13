@@ -1,29 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: - linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 13 May 2008 13:55:50 -0700
-Message-ID: <200805132055.m4DKtoZd031748@imap1.linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Tue, 13 May 2008 14:08:19 -0700
+Message-ID: <200805132108.m4DL8JqB032226@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55840 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757542AbYEMUzw (ORCPT
+	by vger.kernel.org with ESMTP id S1759313AbYEMVIw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 16:55:52 -0400
+	Tue, 13 May 2008 17:08:52 -0400
 Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4DKtoCR001538
+	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4DL8JIr002349
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2008 13:55:51 -0700
+	for <mm-commits@vger.kernel.org>; Tue, 13 May 2008 14:08:21 -0700
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org
 
 
 The patch titled
      linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      linux-next-git-rejects.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
@@ -34,32 +44,42 @@ From: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/i2c/busses/i2c-piix4.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/pci/pci-acpi.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff -puN drivers/i2c/busses/i2c-piix4.c~linux-next-git-rejects drivers/i2c/busses/i2c-piix4.c
---- a/drivers/i2c/busses/i2c-piix4.c~linux-next-git-rejects
-+++ a/drivers/i2c/busses/i2c-piix4.c
-@@ -105,11 +105,7 @@ MODULE_PARM_DESC(force_addr,
- static int piix4_transaction(void);
- 
- static unsigned short piix4_smba;
--<<<<<<< HEAD:drivers/i2c/busses/i2c-piix4.c
--static int srvrworks_csb5_delay;
+diff -puN drivers/pci/pci-acpi.c~linux-next-git-rejects drivers/pci/pci-acpi.c
+--- a/drivers/pci/pci-acpi.c~linux-next-git-rejects
++++ a/drivers/pci/pci-acpi.c
+@@ -60,21 +60,9 @@ acpi_query_osc (
+ 	union acpi_object 	*out_obj;
+ 	u32			osc_dw0;
+ 	acpi_status *ret_status = (acpi_status *)retval;
+-<<<<<<< HEAD:drivers/pci/pci-acpi.c
+-	struct acpi_osc_data *osc_data;
+-	u32 flags = (unsigned long)context, temp;
+-	acpi_handle tmp;
+-
+-	status = acpi_get_handle(handle, "_OSC", &tmp);
+-	if (ACPI_FAILURE(status))
+-		return status;
+-
+-	osc_data = acpi_get_osc_data(handle);
 -=======
- static unsigned short srvrworks_csb5_delay;
-->>>>>>> FETCH_HEAD:drivers/i2c/busses/i2c-piix4.c
- static struct pci_driver piix4_driver;
- static struct i2c_adapter piix4_adapter;
+ 	struct acpi_osc_data *osc_data = acpi_get_osc_data(handle);
+ 	u32 flags = (unsigned long)context, temp;
  
+->>>>>>> FETCH_HEAD:drivers/pci/pci-acpi.c
+ 	if (!osc_data) {
+ 		printk(KERN_ERR "acpi osc data array is full\n");
+ 		return AE_ERROR;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-next-remove-localversion.patch
 linux-next-git-rejects.patch
+next-remove-localversion.patch
 revert-9p-convert-from-semaphore-to-spinlock.patch
 ia64-kvm-dont-delete-files-which-we-need.patch
 revert-acpica-fixes-for-unload-and-ddbhandles.patch
@@ -75,21 +95,12 @@ x86-bitops-take-an-unsigned-long.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
 audit_send_reply-fix-error-path-memory-leak.patch
 cifs-suppress-warning.patch
-sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
-fix-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch
-git-dvb.patch
 zoran-use-correct-type-for-cpu-flags.patch
-i2c-renesas-highlander-fpga-smbus-support.patch
 ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
-dlm-convert-connections_lock-in-a-mutex-fix.patch
 drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
 git-input.patch
 git-jg-misc-git-rejects.patch
 drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
-git-kvm.patch
-git-mmc.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
 git-ubifs.patch
 git-net.patch
 hysdn-no-longer-broken-on-smp.patch
