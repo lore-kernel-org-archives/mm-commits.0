@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + riscom8-remove-redundant-null-pointer-test.patch added to -mm tree
-Date: Mon, 12 May 2008 17:33:27 -0700
-Message-ID: <200805130033.m4D0XRsw016850@imap1.linux-foundation.org>
+Subject: + m68knommu-add-info-about-removing-mcfserial.patch added to -mm tree
+Date: Mon, 12 May 2008 17:35:03 -0700
+Message-ID: <200805130035.m4D0Z3oi016943@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45897 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34354 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754568AbYEMAeL (ORCPT
+	by vger.kernel.org with ESMTP id S1755496AbYEMAfo (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 20:34:11 -0400
+	Mon, 12 May 2008 20:35:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mail@chrismalley.co.uk, alan@redhat.com
+Cc: bigeasy@linutronix.de, alan@redhat.com, gerg@uclinux.org
 
 
 The patch titled
-     riscom8: remove redundant null pointer test
+     m68knommu: add info about removing mcfserial
 has been added to the -mm tree.  Its filename is
-     riscom8-remove-redundant-null-pointer-test.patch
+     m68knommu-add-info-about-removing-mcfserial.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,76 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: riscom8: remove redundant null pointer test
-From: Chris Malley <mail@chrismalley.co.uk>
+Subject: m68knommu: add info about removing mcfserial
+From: Sebastian Siewior <bigeasy@linutronix.de>
 
-tty has already been dereferenced at least twice in these functions,
-so checking for null here seems a bit unnecessary.
+Schedule a removal for this driver. Alternative driver is available for
+a while now.
 
-Signed-off-by: Chris Malley <mail@chrismalley.co.uk>
+Signed-off-by: Sebastian Siewior <bigeasy@linutronix.de>
+Cc: Greg Ungerer <gerg@uclinux.org>
 Acked-by: Alan Cox <alan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/riscom8.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Documentation/feature-removal-schedule.txt |    8 ++++++++
+ drivers/serial/Kconfig                     |    6 +++++-
+ drivers/serial/mcfserial.c                 |    1 +
+ 3 files changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN drivers/char/riscom8.c~riscom8-remove-redundant-null-pointer-test drivers/char/riscom8.c
---- a/drivers/char/riscom8.c~riscom8-remove-redundant-null-pointer-test
-+++ a/drivers/char/riscom8.c
-@@ -1108,7 +1108,7 @@ static int rc_write(struct tty_struct *t
+diff -puN Documentation/feature-removal-schedule.txt~m68knommu-add-info-about-removing-mcfserial Documentation/feature-removal-schedule.txt
+--- a/Documentation/feature-removal-schedule.txt~m68knommu-add-info-about-removing-mcfserial
++++ a/Documentation/feature-removal-schedule.txt
+@@ -282,6 +282,14 @@ Who:	Glauber Costa <gcosta@redhat.com>
  
- 	bp = port_Board(port);
+ ---------------------------
  
--	if (!tty || !port->xmit_buf)
-+	if (!port->xmit_buf)
- 		return 0;
++What:	old style serial driver for ColdFire (CONFIG_SERIAL_COLDFIRE)
++When:	2.6.28
++Why:	This driver still uses the old interface and has been replaced
++	by CONFIG_SERIAL_MCF.
++Who:	Sebastian Siewior <sebastian@breakpoint.cc>
++
++---------------------------
++
+ What:	/sys/o2cb symlink
+ When:	January 2010
+ Why:	/sys/fs/o2cb is the proper location for this information - /sys/o2cb
+diff -puN drivers/serial/Kconfig~m68knommu-add-info-about-removing-mcfserial drivers/serial/Kconfig
+--- a/drivers/serial/Kconfig~m68knommu-add-info-about-removing-mcfserial
++++ a/drivers/serial/Kconfig
+@@ -976,11 +976,15 @@ config SERIAL_68328_RTS_CTS
+ 	depends on SERIAL_68328
  
- 	while (1) {
-@@ -1151,7 +1151,7 @@ static int rc_put_char(struct tty_struct
- 	if (rc_paranoia_check(port, tty->name, "rc_put_char"))
- 		return 0;
+ config SERIAL_COLDFIRE
+-	bool "ColdFire serial support"
++	bool "ColdFire serial support (DEPRECATED)"
+ 	depends on COLDFIRE
+ 	help
+ 	  This driver supports the built-in serial ports of the Motorola ColdFire
+ 	  family of CPUs.
++	  This driver is deprecated because it supports only the old interface
++	  for serial drivers and features like magic keys are not working.
++	  Please switch to the new style driver because this driver will be
++	  removed soon.
  
--	if (!tty || !port->xmit_buf)
-+	if (!port->xmit_buf)
- 		return 0;
- 
- 	spin_lock_irqsave(&riscom_lock, flags);
+ config SERIAL_MCF
+ 	bool "Coldfire serial support (new style driver)"
+diff -puN drivers/serial/mcfserial.c~m68knommu-add-info-about-removing-mcfserial drivers/serial/mcfserial.c
+--- a/drivers/serial/mcfserial.c~m68knommu-add-info-about-removing-mcfserial
++++ a/drivers/serial/mcfserial.c
+@@ -1,3 +1,4 @@
++#warning This driver is deprecated. Check Kconfig for details.
+ /*
+  * mcfserial.c -- serial driver for ColdFire internal UARTS.
+  *
 _
 
-Patches currently in -mm which might be from mail@chrismalley.co.uk are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
-riscom8-remove-redundant-null-pointer-test.patch
+m68knommu-coldfire-add-support-for-kernel-preemption-missing-chunk.patch
+linux-next.patch
+m68knommu-add-info-about-removing-mcfserial.patch
+add-the-carmine-fb-driver.patch
+add-the-carmine-fb-driver-update.patch
 
