@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + memory_hotplug-always-initialize-pageblock-bitmap.patch added to -mm tree
-Date: Tue, 13 May 2008 13:22:53 -0700
-Message-ID: <200805132022.m4DKMrju030323@imap1.linux-foundation.org>
+Subject: + b43-use-the-bitrev-helpers-rather-than-rolling-a-private-one.patch added to -mm tree
+Date: Tue, 13 May 2008 13:34:29 -0700
+Message-ID: <200805132034.m4DKYT4A030820@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59493 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:34937 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757327AbYEMUag (ORCPT
+	by vger.kernel.org with ESMTP id S1751882AbYEMUfT (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 16:30:36 -0400
+	Tue, 13 May 2008 16:35:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: heiko.carstens@de.ibm.com, apw@shadowen.org, gerald.schaefer@de.ibm.com, haveblue@us.ibm.com, kamezawa.hiroyu@jp.fujitsu.com, stable@kernel.org, y-goto@jp.fujitsu.com
+Cc: harvey.harrison@gmail.com, linville@tuxdriver.com, mb@bu3sch.de
 
 
 The patch titled
-     memory_hotplug: always initialize pageblock bitmap
+     b43: use the bitrev helpers rather than rolling a private one
 has been added to the -mm tree.  Its filename is
-     memory_hotplug-always-initialize-pageblock-bitmap.patch
+     b43-use-the-bitrev-helpers-rather-than-rolling-a-private-one.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,173 +34,135 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: memory_hotplug: always initialize pageblock bitmap
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: b43: use the bitrev helpers rather than rolling a private one
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Trying to online a new memory section that was added via memory hotplug
-sometimes results in crashes when the new pages are added via __free_page.
- Reason for that is that the pageblock bitmap isn't initialized and hence
-contains random stuff.  That means that get_pageblock_migratetype()
-returns also random stuff and therefore
+The 4-bit reversal flip_4bit is replaced with the bitrev helper bitrev8
+and a 4-bit shift.  The B43_WARN is moved to the location where a register
+is read from for checking there.  The other caller explicitly passes an
+array index which is guaranteed to be within range and so a B43_WARN is
+not added there.
 
-	list_add(&page->lru,
-		&zone->free_area[order].free_list[migratetype]);
-
-in __free_one_page() tries to do a list_add to something that isn't even
-necessarily a list.
-
-This happens since 86051ca5eaf5e560113ec7673462804c54284456 ("mm: fix
-usemap initialization") which makes sure that the pageblock bitmap gets
-only initialized for pages present in a zone.  Unfortunately for hot-added
-memory the zones "grow" after the memmap and the pageblock memmap have
-been initialized.  Which means that the new pages have an unitialized
-bitmap.  To solve this the calls to grow_zone_span() and grow_pgdat_span()
-are moved to __add_zone() just before the initialization happens.
-
-The patch also moves the two functions since __add_zone() is the only
-caller and I didn't want to add a forward declaration.
-
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Andy Whitcroft <apw@shadowen.org>
-Cc: Dave Hansen <haveblue@us.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Yasunori Goto <y-goto@jp.fujitsu.com>
-Cc: <stable@kernel.org>
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Cc: Michael Buesch <mb@bu3sch.de>
+Cc: "John W. Linville" <linville@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   83 ++++++++++++++++++++++--------------------
- mm/page_alloc.c     |    3 -
- 2 files changed, 45 insertions(+), 41 deletions(-)
+ drivers/net/wireless/b43/phy.c |   26 +++++---------------------
+ 1 file changed, 5 insertions(+), 21 deletions(-)
 
-diff -puN mm/memory_hotplug.c~memory_hotplug-always-initialize-pageblock-bitmap mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory_hotplug-always-initialize-pageblock-bitmap
-+++ a/mm/memory_hotplug.c
-@@ -159,17 +159,58 @@ void register_page_bootmem_info_node(str
- }
- #endif /* !CONFIG_SPARSEMEM_VMEMMAP */
+diff -puN drivers/net/wireless/b43/phy.c~b43-use-the-bitrev-helpers-rather-than-rolling-a-private-one drivers/net/wireless/b43/phy.c
+--- a/drivers/net/wireless/b43/phy.c~b43-use-the-bitrev-helpers-rather-than-rolling-a-private-one
++++ a/drivers/net/wireless/b43/phy.c
+@@ -28,6 +28,7 @@
+ #include <linux/delay.h>
+ #include <linux/io.h>
+ #include <linux/types.h>
++#include <linux/bitrev.h>
  
-+static void grow_zone_span(struct zone *zone, unsigned long start_pfn,
-+			   unsigned long end_pfn)
-+{
-+	unsigned long old_zone_end_pfn;
-+
-+	zone_span_writelock(zone);
-+
-+	old_zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
-+	if (start_pfn < zone->zone_start_pfn)
-+		zone->zone_start_pfn = start_pfn;
-+
-+	zone->spanned_pages = max(old_zone_end_pfn, end_pfn) -
-+				zone->zone_start_pfn;
-+
-+	zone_span_writeunlock(zone);
-+}
-+
-+static void grow_pgdat_span(struct pglist_data *pgdat, unsigned long start_pfn,
-+			    unsigned long end_pfn)
-+{
-+	unsigned long old_pgdat_end_pfn =
-+		pgdat->node_start_pfn + pgdat->node_spanned_pages;
-+
-+	if (start_pfn < pgdat->node_start_pfn)
-+		pgdat->node_start_pfn = start_pfn;
-+
-+	pgdat->node_spanned_pages = max(old_pgdat_end_pfn, end_pfn) -
-+					pgdat->node_start_pfn;
-+}
-+
- static int __add_zone(struct zone *zone, unsigned long phys_start_pfn)
- {
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 	int nr_pages = PAGES_PER_SECTION;
- 	int nid = pgdat->node_id;
- 	int zone_type;
-+	unsigned long flags;
+ #include "b43.h"
+ #include "phy.h"
+@@ -85,23 +86,6 @@ const u8 b43_radio_channel_codes_bg[] = 
  
- 	zone_type = zone - pgdat->node_zones;
--	if (!zone->wait_table)
--		return init_currently_empty_zone(zone, phys_start_pfn,
--						 nr_pages, MEMMAP_HOTPLUG);
-+	if (!zone->wait_table) {
-+		int ret;
-+
-+		ret = init_currently_empty_zone(zone, phys_start_pfn,
-+						nr_pages, MEMMAP_HOTPLUG);
-+		if (ret)
-+			return ret;
-+	}
-+	pgdat_resize_lock(zone->zone_pgdat, &flags);
-+	grow_zone_span(zone, phys_start_pfn, phys_start_pfn + nr_pages);
-+	grow_pgdat_span(zone->zone_pgdat, phys_start_pfn,
-+			phys_start_pfn + nr_pages);
-+	pgdat_resize_unlock(zone->zone_pgdat, &flags);
- 	memmap_init_zone(nr_pages, nid, zone_type,
- 			 phys_start_pfn, MEMMAP_HOTPLUG);
- 	return 0;
-@@ -295,36 +336,6 @@ int __remove_pages(struct zone *zone, un
- }
- EXPORT_SYMBOL_GPL(__remove_pages);
+ static void b43_phy_initg(struct b43_wldev *dev);
  
--static void grow_zone_span(struct zone *zone,
--		unsigned long start_pfn, unsigned long end_pfn)
+-/* Reverse the bits of a 4bit value.
+- * Example:  1101 is flipped 1011
+- */
+-static u16 flip_4bit(u16 value)
 -{
--	unsigned long old_zone_end_pfn;
+-	u16 flipped = 0x0000;
 -
--	zone_span_writelock(zone);
+-	B43_WARN_ON(value & ~0x000F);
 -
--	old_zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
--	if (start_pfn < zone->zone_start_pfn)
--		zone->zone_start_pfn = start_pfn;
+-	flipped |= (value & 0x0001) << 3;
+-	flipped |= (value & 0x0002) << 1;
+-	flipped |= (value & 0x0004) >> 1;
+-	flipped |= (value & 0x0008) >> 3;
 -
--	zone->spanned_pages = max(old_zone_end_pfn, end_pfn) -
--				zone->zone_start_pfn;
--
--	zone_span_writeunlock(zone);
+-	return flipped;
 -}
 -
--static void grow_pgdat_span(struct pglist_data *pgdat,
--		unsigned long start_pfn, unsigned long end_pfn)
--{
--	unsigned long old_pgdat_end_pfn =
--		pgdat->node_start_pfn + pgdat->node_spanned_pages;
--
--	if (start_pfn < pgdat->node_start_pfn)
--		pgdat->node_start_pfn = start_pfn;
--
--	pgdat->node_spanned_pages = max(old_pgdat_end_pfn, end_pfn) -
--					pgdat->node_start_pfn;
--}
--
- void online_page(struct page *page)
+ static void generate_rfatt_list(struct b43_wldev *dev,
+ 				struct b43_rfatt_list *list)
  {
- 	totalram_pages++;
-@@ -363,7 +374,6 @@ static int online_pages_range(unsigned l
+@@ -2891,13 +2875,13 @@ b43_radio_interference_mitigation_enable
+ 		}
+ 		radio_stacksave(0x0078);
+ 		tmp = (b43_radio_read16(dev, 0x0078) & 0x001E);
+-		flipped = flip_4bit(tmp);
++		B43_WARN_ON(tmp > 15);
++		flipped = bitrev8(tmp) >> 4;
+ 		if (flipped < 10 && flipped >= 8)
+ 			flipped = 7;
+ 		else if (flipped >= 10)
+ 			flipped -= 3;
+-		flipped = flip_4bit(flipped);
+-		flipped = (flipped << 1) | 0x0020;
++		flipped = (bitrev8(flipped) >> 3) | 0x0020;
+ 		b43_radio_write16(dev, 0x0078, flipped);
  
- int online_pages(unsigned long pfn, unsigned long nr_pages)
- {
--	unsigned long flags;
- 	unsigned long onlined_pages = 0;
- 	struct zone *zone;
- 	int need_zonelists_rebuild = 0;
-@@ -391,11 +401,6 @@ int online_pages(unsigned long pfn, unsi
- 	 * memory_block->state_mutex.
- 	 */
- 	zone = page_zone(pfn_to_page(pfn));
--	pgdat_resize_lock(zone->zone_pgdat, &flags);
--	grow_zone_span(zone, pfn, pfn + nr_pages);
--	grow_pgdat_span(zone->zone_pgdat, pfn, pfn + nr_pages);
--	pgdat_resize_unlock(zone->zone_pgdat, &flags);
--
- 	/*
- 	 * If this zone is not populated, then it is not in zonelist.
- 	 * This means the page allocator ignores this zone.
-diff -puN mm/page_alloc.c~memory_hotplug-always-initialize-pageblock-bitmap mm/page_alloc.c
---- a/mm/page_alloc.c~memory_hotplug-always-initialize-pageblock-bitmap
-+++ a/mm/page_alloc.c
-@@ -2862,8 +2862,6 @@ __meminit int init_currently_empty_zone(
+ 		b43_calc_nrssi_threshold(dev);
+@@ -3530,7 +3514,7 @@ u16 b43_radio_init2050(struct b43_wldev 
+ 	tmp1 >>= 9;
  
- 	zone->zone_start_pfn = zone_start_pfn;
- 
--	memmap_init(size, pgdat->node_id, zone_idx(zone), zone_start_pfn);
+ 	for (i = 0; i < 16; i++) {
+-		radio78 = ((flip_4bit(i) << 1) | 0x20);
++		radio78 = (bitrev8(i) >> 3) | 0x0020;
+ 		b43_radio_write16(dev, 0x78, radio78);
+ 		udelay(10);
+ 		for (j = 0; j < 16; j++) {
+_
+
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
+
+mmc-make-one-bit-signed-bitfields-unsigned.patch
+linux-next.patch
+kgdb-use-put_unaligned_be32-helper.patch
+cifs-remove-global_extern-macro.patch
+media-use-get_unaligned_-helpers.patch
+hid-use-get-put_unaligned_-helpers.patch
+git-input.patch
+ata-remove-fit-macro.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-get_unaligned_-helpers.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+block-use-get_unaligned_-helpers.patch
+git-watchdog.patch
+mac80211-michaelc-use-kernel-provided-infrastructure.patch
+mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
+mac80211-tkipc-use-kernel-provided-infrastructure.patch
+mac80211-add-const-remove-unused-function-make-one-function-static.patch
+mac80211-add-a-struct-to-hold-tkip-context.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+wireless-use-get-put_unaligned_-helpers.patch
+b43-use-the-bitrev-helpers-rather-than-rolling-a-private-one.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+lib-create-common-ascii-hex-array.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+video-fix-integer-as-null-pointer-warnings.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+kgdb-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+mips-use-the-common-ascii-hex-helpers.patch
+sh-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+aacraid-linitc-make-aac_show_serial_number-static.patch
+
