@@ -1,146 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: - git-mips-git-rejects.patch removed from -mm tree
-Date: Tue, 13 May 2008 14:23:55 -0700
-Message-ID: <200805132123.m4DLNtcI000377@imap1.linux-foundation.org>
+Subject: - fix-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:23:32 -0700
+Message-ID: <200805132123.m4DLNW5M000369@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:44632 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49702 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751747AbYEMVYI (ORCPT
+	by vger.kernel.org with ESMTP id S1755873AbYEMVZC (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 17:24:08 -0400
+	Tue, 13 May 2008 17:25:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, greg@kroah.com, heiko.carstens@de.ibm.com, kay.sievers@vrfy.org, schwidefsky@de.ibm.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     git-mips-git-rejects
+     fix gregkh-driver-core-read-dev_name-instead-of-bus_id
 has been removed from the -mm tree.  Its filename was
-     git-mips-git-rejects.patch
+     fix-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-mips-git-rejects
+Subject: fix gregkh-driver-core-read-dev_name-instead-of-bus_id
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Probably wrong...
+drivers/s390/cio/device_fsm.c: In function 'ccw_timeout_log':
+drivers/s390/cio/device_fsm.c:53: error: expected ')' before ';' token
 
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/au1000/common/dbg_io.c |    3 ---
- arch/mips/kernel/Makefile        |    6 ------
- arch/mips/kernel/traps.c         |   13 -------------
- arch/mips/mm/c-r4k.c             |    6 ------
- 4 files changed, 28 deletions(-)
+ drivers/s390/cio/device_fsm.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/mips/kernel/Makefile~git-mips-git-rejects arch/mips/kernel/Makefile
---- a/arch/mips/kernel/Makefile~git-mips-git-rejects
-+++ a/arch/mips/kernel/Makefile
-@@ -4,15 +4,9 @@
+diff -puN drivers/s390/cio/device_fsm.c~fix-gregkh-driver-core-read-dev_name-instead-of-bus_id drivers/s390/cio/device_fsm.c
+--- a/drivers/s390/cio/device_fsm.c~fix-gregkh-driver-core-read-dev_name-instead-of-bus_id
++++ a/drivers/s390/cio/device_fsm.c
+@@ -50,8 +50,10 @@ static void ccw_timeout_log(struct ccw_d
+ 	printk(KERN_WARNING "cio: orb:\n");
+ 	print_hex_dump(KERN_WARNING, "cio:  ", DUMP_PREFIX_NONE, 16, 1,
+ 		       &private->orb, sizeof(private->orb), 0);
+-	printk(KERN_WARNING "cio: ccw device bus id: %s\n", dev_name(&cdev->dev);
+-	printk(KERN_WARNING "cio: subchannel bus id: %s\n", dev_name(&sch->dev);
++	printk(KERN_WARNING "cio: ccw device bus id: %s\n",
++				dev_name(&cdev->dev));
++	printk(KERN_WARNING "cio: subchannel bus id: %s\n",
++				dev_name(&sch->dev));
+ 	printk(KERN_WARNING "cio: subchannel lpm: %02x, opm: %02x, "
+ 	       "vpm: %02x\n", sch->lpm, sch->opm, sch->vpm);
  
- extra-y		:= head.o init_task.o vmlinux.lds
- 
--<<<<<<< HEAD:arch/mips/kernel/Makefile
--obj-y		+= cpu-probe.o branch.o entry.o genex.o irq.o process.o \
--		   ptrace.o reset.o setup.o signal.o syscall.o \
--		   time.o topology.o traps.o unaligned.o
--=======
- obj-y		+= cpu-probe.o branch.o entry.o genex.o irq.o irq-gic.o \
- 		   process.o ptrace.o reset.o semaphore.o setup.o signal.o \
- 		   syscall.o time.o topology.o traps.o unaligned.o
-->>>>>>> FETCH_HEAD:arch/mips/kernel/Makefile
- 
- obj-$(CONFIG_CEVT_BCM1480)	+= cevt-bcm1480.o
- obj-$(CONFIG_CEVT_R4K)		+= cevt-r4k.o
-diff -puN arch/mips/au1000/common/dbg_io.c~git-mips-git-rejects arch/mips/au1000/common/dbg_io.c
---- a/arch/mips/au1000/common/dbg_io.c~git-mips-git-rejects
-+++ a/arch/mips/au1000/common/dbg_io.c
-@@ -54,10 +54,7 @@ typedef         unsigned int  uint32;
- #define UART16550_READ(y)    (au_readl(DEBUG_BASE + y) & 0xff)
- #define UART16550_WRITE(y, z) (au_writel(z&0xff, DEBUG_BASE + y))
- 
--<<<<<<< HEAD:arch/mips/au1000/common/dbg_io.c
--=======
- extern unsigned long get_au1x00_uart_baud_base(void);
-->>>>>>> FETCH_HEAD:arch/mips/au1000/common/dbg_io.c
- extern unsigned long calc_clock(void);
- 
- void debugInit(uint32 baud, uint8 data, uint8 parity, uint8 stop)
-diff -puN arch/mips/kernel/traps.c~git-mips-git-rejects arch/mips/kernel/traps.c
---- a/arch/mips/kernel/traps.c~git-mips-git-rejects
-+++ a/arch/mips/kernel/traps.c
-@@ -196,21 +196,12 @@ EXPORT_SYMBOL(dump_stack);
- static void show_code(unsigned int __user *pc)
- {
- 	long i;
--<<<<<<< HEAD:arch/mips/kernel/traps.c
--	unsigned short __user *pc16 = NULL;
--
--	printk("\nCode:");
--
--	if ((unsigned long)pc & 1)
--		pc16 = (unsigned short __user *)((unsigned long)pc & ~1);
--=======
- 	unsigned short *pc16 = NULL;
- 
- 	printk("\nCode:");
- 
- 	if ((unsigned int)pc & 1)
- 		pc16 = (unsigned short *)((unsigned int)pc & ~1);
-->>>>>>> FETCH_HEAD:arch/mips/kernel/traps.c
- 	for(i = -3 ; i < 6 ; i++) {
- 		unsigned int insn;
- 		if (pc16 ? __get_user(insn, pc16 + i) : __get_user(insn, pc + i)) {
-@@ -1389,11 +1380,7 @@ int cp0_compare_irq;
- int cp0_perfcount_irq;
- EXPORT_SYMBOL_GPL(cp0_perfcount_irq);
- 
--<<<<<<< HEAD:arch/mips/kernel/traps.c
--static int __cpuinitdata noulri;
--=======
- static int __initdata noulri;
-->>>>>>> FETCH_HEAD:arch/mips/kernel/traps.c
- 
- static int __init ulri_disable(char *s)
- {
-diff -puN arch/mips/mm/c-r4k.c~git-mips-git-rejects arch/mips/mm/c-r4k.c
---- a/arch/mips/mm/c-r4k.c~git-mips-git-rejects
-+++ a/arch/mips/mm/c-r4k.c
-@@ -1227,11 +1227,8 @@ void au1x00_fixup_config_od(void)
- }
- 
- static int __cpuinitdata cca = -1;
--<<<<<<< HEAD:arch/mips/mm/c-r4k.c
--=======
- unsigned long _page_cachable_default;
- EXPORT_SYMBOL_GPL(_page_cachable_default);
-->>>>>>> FETCH_HEAD:arch/mips/mm/c-r4k.c
- 
- static int __init cca_setup(char *str)
- {
-@@ -1249,8 +1246,6 @@ static void __cpuinit coherency_setup(vo
- 	_page_cachable_default = cca << _CACHE_SHIFT;
- 
- 	pr_debug("Using cache attribute %d\n", cca);
--<<<<<<< HEAD:arch/mips/mm/c-r4k.c
--=======
- 
- 	protection_map[0] = PAGE_NONE;
- 	protection_map[1] = PAGE_READONLY;
-@@ -1269,7 +1264,6 @@ static void __cpuinit coherency_setup(vo
- 	protection_map[14] = PAGE_SHARED;
- 	protection_map[15] = PAGE_SHARED;
- 
-->>>>>>> FETCH_HEAD:arch/mips/mm/c-r4k.c
- 	change_c0_config(CONF_CM_CMASK, cca);
- 
- 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -165,6 +81,7 @@ arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
 audit_send_reply-fix-error-path-memory-leak.patch
 cifs-suppress-warning.patch
 sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+fix-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch
 zoran-use-correct-type-for-cpu-flags.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
 ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
