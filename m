@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + tridentfb-preserve-memory-type-settings.patch added to -mm tree
-Date: Mon, 12 May 2008 23:02:43 -0700
-Message-ID: <200805130602.m4D62hml027935@imap1.linux-foundation.org>
+Subject: + fix-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch added to -mm tree
+Date: Mon, 12 May 2008 22:58:29 -0700
+Message-ID: <200805130609.m4D69Uhh028134@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46212 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45725 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755418AbYEMGCq (ORCPT
+	by vger.kernel.org with ESMTP id S1755418AbYEMGKv (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 02:02:46 -0400
+	Tue, 13 May 2008 02:10:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: krzysztof.h1@wp.pl
+Cc: akpm@linux-foundation.org, greg@kroah.com, heiko.carstens@de.ibm.com, kay.sievers@vrfy.org, schwidefsky@de.ibm.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     tridentfb: preserve memory type settings
+     fix gregkh-driver-core-read-dev_name-instead-of-bus_id
 has been added to the -mm tree.  Its filename is
-     tridentfb-preserve-memory-type-settings.patch
+     fix-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,58 +34,154 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: tridentfb: preserve memory type settings
-From: Krzysztof Helt <krzysztof.h1@wp.pl>
+Subject: fix gregkh-driver-core-read-dev_name-instead-of-bus_id
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Do not overwrite bits which contain memory type settings.  It removes
-noise pixels ("snow") on Blade3D and 3DImage chips.
+drivers/s390/cio/device_fsm.c: In function 'ccw_timeout_log':
+drivers/s390/cio/device_fsm.c:53: error: expected ')' before ';' token
 
-Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/tridentfb.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/s390/cio/device_fsm.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN drivers/video/tridentfb.c~tridentfb-preserve-memory-type-settings drivers/video/tridentfb.c
---- a/drivers/video/tridentfb.c~tridentfb-preserve-memory-type-settings
-+++ a/drivers/video/tridentfb.c
-@@ -1095,7 +1095,10 @@ static int tridentfb_set_par(struct fb_i
- 	vga_mm_wseq(par->io_virt, 4, 0x0E); /* memory mode enable bitmaps ?? */
+diff -puN drivers/s390/cio/device_fsm.c~fix-gregkh-driver-core-read-dev_name-instead-of-bus_id drivers/s390/cio/device_fsm.c
+--- a/drivers/s390/cio/device_fsm.c~fix-gregkh-driver-core-read-dev_name-instead-of-bus_id
++++ a/drivers/s390/cio/device_fsm.c
+@@ -50,8 +50,10 @@ static void ccw_timeout_log(struct ccw_d
+ 	printk(KERN_WARNING "cio: orb:\n");
+ 	print_hex_dump(KERN_WARNING, "cio:  ", DUMP_PREFIX_NONE, 16, 1,
+ 		       &private->orb, sizeof(private->orb), 0);
+-	printk(KERN_WARNING "cio: ccw device bus id: %s\n", dev_name(&cdev->dev);
+-	printk(KERN_WARNING "cio: subchannel bus id: %s\n", dev_name(&sch->dev);
++	printk(KERN_WARNING "cio: ccw device bus id: %s\n",
++				dev_name(&cdev->dev));
++	printk(KERN_WARNING "cio: subchannel bus id: %s\n",
++				dev_name(&sch->dev));
+ 	printk(KERN_WARNING "cio: subchannel lpm: %02x, opm: %02x, "
+ 	       "vpm: %02x\n", sch->lpm, sch->opm, sch->vpm);
  
- 	/* divide clock by 2 if 32bpp chain4 mode display and CPU path */
--	write3CE(par, MiscExtFunc, (bpp == 32) ? 0x1A : 0x12);
-+	tmp = read3CE(par, MiscExtFunc) & 0xF0;
-+	if (bpp == 32)
-+		tmp |= 8;
-+	write3CE(par, MiscExtFunc, tmp | 0x12);
- 	write3CE(par, 0x5, 0x40);	/* no CGA compat, allow 256 col */
- 	write3CE(par, 0x6, 0x05);	/* graphics mode */
- 	write3CE(par, 0x7, 0x0F);	/* planes? */
 _
 
-Patches currently in -mm which might be from krzysztof.h1@wp.pl are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-tridentfb-remove-misplaced-enable_mmio.patch
-tridentfb-improve-clock-setting-accuracy.patch
-drivers-video-pnx4008-eliminate-double-free.patch
-tridentfb-replace-macros-with-functions.patch
-tridentfb-convert-fb_info-into-allocated-one.patch
-tridentfb-move-global-pseudo-palette-into-structure.patch
-tridentfb-move-global-chip_id-into-structure.patch
-tridentfb-move-global-flat-panel-variable-into-structure.patch
-tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
-tridentfb-move-global-acceleration-hooks-into-structure.patch
-tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
-tridentfb-fix-timing-calculations.patch
-tridentfb-use-mmio-access-for-clock-setting.patch
-tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
-tridentfb-improve-probe-function.patch
-tridentfb-improved-register-values-on-tgui-9680.patch
-tridentfb-add-tgui-9440-support.patch
-tridentfb-fix-unitialized-pseudo_palette.patch
-tridentfb-improve-check_var-function.patch
-tridentfb-preserve-memory-type-settings.patch
-amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
-atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
+fix-hfsplus-oops-on-image-without-extents.patch
+rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
+atmel_lcdfb-fix-pixclok-divider-calculation.patch
+memcg-fix-possible-panic-when-config_mm_owner=y.patch
+drivers-char-synclink_gtc-dont-return-an-uninitialised-local.patch
+linux-next.patch
+next-remove-localversion.patch
+linux-next-git-rejects.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+ia64-kvm-dont-delete-files-which-we-need.patch
+revert-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-early_init_centaur-use-set_cpu_cap.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+audit_send_reply-fix-error-path-memory-leak.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+fix-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+dlm-convert-connections_lock-in-a-mutex-fix.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+git-mmc.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
+git-ubifs.patch
+hysdn-no-longer-broken-on-smp.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+git-block-ia64-build-fix.patch
+git-block-fix-s390-build.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+unionfs-broke.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
+drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
+git-v9fs.patch
+revert-git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-orion-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+common-implementation-of-iterative-div-mod-fix.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+common-implementation-of-iterative-div-mod-fix-2.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model-fix.patch
+mm-verify-the-page-links-and-memory-model-fix-fix.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
