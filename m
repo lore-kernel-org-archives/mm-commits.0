@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + git-block-ia64-build-fix.patch added to -mm tree
-Date: Mon, 12 May 2008 21:09:04 -0700
-Message-ID: <200805130420.m4D4K4Vj024530@imap1.linux-foundation.org>
+Subject: + mspec-convert-nopfn-to-fault-fix.patch added to -mm tree
+Date: Mon, 12 May 2008 21:27:22 -0700
+Message-ID: <200805130438.m4D4cNRn025079@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58515 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41834 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751167AbYEMEUR (ORCPT
+	by vger.kernel.org with ESMTP id S1758345AbYEMEi5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 00:20:17 -0400
+	Tue, 13 May 2008 00:38:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jens.axboe@oracle.com
+Cc: akpm@linux-foundation.org, jes@sgi.com, npiggin@suse.de
 
 
 The patch titled
-     git-block: ia64 build fix
+     mspec-convert-nopfn-to-fault-fix
 has been added to the -mm tree.  Its filename is
-     git-block-ia64-build-fix.patch
+     mspec-convert-nopfn-to-fault-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,51 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: git-block: ia64 build fix
+Subject: mspec-convert-nopfn-to-fault-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Jens Axboe <jens.axboe@oracle.com>
+I question the testedness.
+
+Cc: Jes Sorensen <jes@sgi.com>
+Cc: Nick Piggin <npiggin@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/smp.c |   25 -------------------------
- 1 file changed, 25 deletions(-)
+ drivers/char/mspec.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/ia64/kernel/smp.c~git-block-ia64-build-fix arch/ia64/kernel/smp.c
---- a/arch/ia64/kernel/smp.c~git-block-ia64-build-fix
-+++ a/arch/ia64/kernel/smp.c
-@@ -82,31 +82,6 @@ unlock_ipi_calllock(void)
- 	spin_unlock_irq(&call_function_lock);
- }
+diff -puN drivers/char/mspec.c~mspec-convert-nopfn-to-fault-fix drivers/char/mspec.c
+--- a/drivers/char/mspec.c~mspec-convert-nopfn-to-fault-fix
++++ a/drivers/char/mspec.c
+@@ -203,7 +203,6 @@ mspec_fault(struct vm_area_struct *vma, 
+ 	unsigned long paddr, maddr;
+ 	unsigned long pfn;
+ 	pgoff_t index = vmf->pgoff;
+-	int index;
+ 	struct vma_data *vdata = vma->vm_private_data;
  
--static inline void
--handle_call_data(void)
--{
--	struct call_data_struct *data;
--	void (*func)(void *info);
--	void *info;
--	int wait;
--
--	/* release the 'pointer lock' */
--	data = (struct call_data_struct *)call_data;
--	func = data->func;
--	info = data->info;
--	wait = data->wait;
--
--	mb();
--	atomic_inc(&data->started);
--	/* At this point the structure may be gone unless wait is true. */
--	(*func)(info);
--
--	/* Notify the sending CPU that the task is done. */
--	mb();
--	if (wait)
--		atomic_inc(&data->finished);
--}
--
- static void
- stop_this_cpu(void)
- {
+ 	maddr = (volatile unsigned long) vdata->maddr[index];
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -158,6 +137,7 @@ common-implementation-of-iterative-div-mod-fix-2.patch
 colibri-fix-support-for-dm9000-ethernet-device-fix.patch
 mm-verify-the-page-links-and-memory-model-fix.patch
 mm-verify-the-page-links-and-memory-model-fix-fix.patch
+mspec-convert-nopfn-to-fault-fix.patch
 page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
 kill-generic_file_direct_io-checkpatch-fixes.patch
 vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
