@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + flag-parameters-check-magic-constants-alpha-hack.patch added to -mm tree
-Date: Mon, 12 May 2008 20:03:46 -0700
-Message-ID: <200805130314.m4D3EkLg022245@imap1.linux-foundation.org>
+Subject: + mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch added to -mm tree
+Date: Mon, 12 May 2008 20:15:44 -0700
+Message-ID: <200805130326.m4D3QiOX022616@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43112 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48560 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753085AbYEMDPI (ORCPT
+	by vger.kernel.org with ESMTP id S1754270AbYEMD04 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 23:15:08 -0400
+	Mon, 12 May 2008 23:26:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com
+Cc: akpm@linux-foundation.org, drzeus-list@drzeus.cx, saschasommer@freenet.de
 
 
 The patch titled
-     flag-parameters-check-magic-constants-alpha-hack
+     mmc-sd-host-driver-for-ricoh-bay1controllers fix
 has been added to the -mm tree.  Its filename is
-     flag-parameters-check-magic-constants-alpha-hack.patch
+     mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,34 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag-parameters-check-magic-constants-alpha-hack
+Subject: mmc-sd-host-driver-for-ricoh-bay1controllers fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: Ulrich Drepper <drepper@redhat.com>
+alpha:
+
+drivers/mmc/host/sdricoh_cs.c: In function 'sdricoh_request':
+drivers/mmc/host/sdricoh_cs.c:378: error: implicit declaration of function 'sg_page'
+drivers/mmc/host/sdricoh_cs.c:378: warning: assignment makes pointer from integer without a cast
+
+Cc: Sascha Sommer <saschasommer@freenet.de>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/socket.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/mmc/host/sdricoh_cs.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/socket.c~flag-parameters-check-magic-constants-alpha-hack net/socket.c
---- a/net/socket.c~flag-parameters-check-magic-constants-alpha-hack
-+++ a/net/socket.c
-@@ -1225,7 +1225,7 @@ asmlinkage long sys_socket(int family, i
- 	BUILD_BUG_ON(SOCK_NONBLOCK != O_NONBLOCK);
- 	BUILD_BUG_ON((SOCK_MAX | SOCK_TYPE_MASK) != SOCK_TYPE_MASK);
- 	BUILD_BUG_ON(SOCK_CLOEXEC & SOCK_TYPE_MASK);
--	BUILD_BUG_ON(SOCK_NONBLOCK & SOCK_TYPE_MASK);
-+//	BUILD_BUG_ON(SOCK_NONBLOCK & SOCK_TYPE_MASK);
+diff -puN drivers/mmc/host/sdricoh_cs.c~mmc-sd-host-driver-for-ricoh-bay1controllers-fix drivers/mmc/host/sdricoh_cs.c
+--- a/drivers/mmc/host/sdricoh_cs.c~mmc-sd-host-driver-for-ricoh-bay1controllers-fix
++++ a/drivers/mmc/host/sdricoh_cs.c
+@@ -28,6 +28,7 @@
+ #include <linux/highmem.h>
+ #include <linux/pci.h>
+ #include <linux/ioport.h>
++#include <linux/scatterlist.h>
+ #include <linux/version.h>
  
- 	flags = type & ~SOCK_TYPE_MASK;
- 	if (flags & ~(SOCK_CLOEXEC | SOCK_NONBLOCK))
+ #include <pcmcia/cs_types.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -164,4 +168,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
 
