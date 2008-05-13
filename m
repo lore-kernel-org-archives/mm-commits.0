@@ -1,79 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch removed from -mm tree
-Date: Tue, 13 May 2008 14:33:14 -0700
-Message-ID: <200805132133.m4DLXEG3000798@imap1.linux-foundation.org>
+Subject: - mmc-make-one-bit-signed-bitfields-unsigned.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:33:16 -0700
+Message-ID: <200805132133.m4DLXGEL000803@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60825 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33435 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761195AbYEMVdS (ORCPT
+	by vger.kernel.org with ESMTP id S1761635AbYEMVdX (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 17:33:18 -0400
+	Tue, 13 May 2008 17:33:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org
+To: harvey.harrison@gmail.com, drzeus-list@drzeus.cx, mm-commits@vger.kernel.org
 
 
 The patch titled
-     quota: don't call sync_fs() from vfs_quota_off() when there's no quota turn off
+     mmc: make one-bit signed bitfields unsigned
 has been removed from the -mm tree.  Its filename was
-     quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off.patch
+     mmc-make-one-bit-signed-bitfields-unsigned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: quota: don't call sync_fs() from vfs_quota_off() when there's no quota turn off
-From: Jan Kara <jack@suse.cz>
+Subject: mmc: make one-bit signed bitfields unsigned
+From: Harvey Harrison <harvey.harrison@gmail.com>
 
-Sometimes, vfs_quota_off() is called on a partially set up super block (for
-example when fill_super() fails for some reason).  In such cases we cannot
-call ->sync_fs() because it can Oops because of not properly filled in super
-block.  So in case we find there's not quota to turn off, we just skip
-everything and return which fixes the above problem.
+Otherwise it can only take the values 0/-1 which doesn't seem to
+have been intended.
 
-[akpm@linux-foundation.org: fxi tpyo]
-Signed-off-by: Jan Kara <jack@suse.cz>
+drivers/mmc/host/sdhci.h:190:20: error: dubious one-bit signed bitfield
+
+Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
+Acked-by: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dquot.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/mmc/host/sdhci.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dquot.c~quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off fs/dquot.c
---- a/fs/dquot.c~quota-dont-call-sync_fs-from-vfs_quota_off-when-theres-no-quota-turn-off
-+++ a/fs/dquot.c
-@@ -1491,6 +1491,16 @@ int vfs_quota_off(struct super_block *sb
+diff -puN drivers/mmc/host/sdhci.h~mmc-make-one-bit-signed-bitfields-unsigned drivers/mmc/host/sdhci.h
+--- a/drivers/mmc/host/sdhci.h~mmc-make-one-bit-signed-bitfields-unsigned
++++ a/drivers/mmc/host/sdhci.h
+@@ -187,7 +187,7 @@ struct sdhci_host {
+ 	struct mmc_request	*mrq;		/* Current request */
+ 	struct mmc_command	*cmd;		/* Current command */
+ 	struct mmc_data		*data;		/* Current data request */
+-	int			data_early:1;	/* Data finished before cmd */
++	unsigned int		data_early:1;	/* Data finished before cmd */
  
- 	/* We need to serialize quota_off() for device */
- 	mutex_lock(&dqopt->dqonoff_mutex);
-+
-+	/*
-+	 * Skip everything if there's nothing to do. We have to do this because
-+	 * sometimes we are called when fill_super() failed and calling
-+	 * sync_fs() in such cases does no good.
-+	 */
-+	if (!sb_any_quota_enabled(sb) && !sb_any_quota_suspended(sb)) {
-+		mutex_unlock(&dqopt->dqonoff_mutex);
-+		return 0;
-+	}
- 	for (cnt = 0; cnt < MAXQUOTAS; cnt++) {
- 		toputinode[cnt] = NULL;
- 		if (type != -1 && cnt != type)
+ 	struct scatterlist	*cur_sg;	/* We're working on this */
+ 	int			num_sg;		/* Entries left */
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from harvey.harrison@gmail.com are
 
 origin.patch
-ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
-ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
-ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
-reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
-reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
-reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
-ext4-fix-mount-messages-when-quota-disabled.patch
-ext4-fix-synchronization-of-quota-files-in-journal=data-mode.patch
-ext4-fix-typos-in-messages-and-comments-journalled-journaled.patch
-ext4-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+linux-next.patch
+kgdb-use-put_unaligned_be32-helper.patch
+cifs-remove-global_extern-macro.patch
+media-use-get_unaligned_-helpers.patch
+hid-use-get-put_unaligned_-helpers.patch
+git-input.patch
+ata-remove-fit-macro.patch
+nfs-replace-remaining-__function__-occurrences.patch
+parisc-replace-remaining-__function__-occurences.patch
+drivers-parisc-replace-remaining-__function__-occurrences.patch
+scsi-replace-remaining-__function__-occurrences.patch
+fusion-replace-remaining-__function__-occurrences.patch
+scsi-replace-__inline-with-inline.patch
+scsi-use-get_unaligned_-helpers.patch
+scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
+scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
+block-use-get_unaligned_-helpers.patch
+git-watchdog.patch
+mac80211-michaelc-use-kernel-provided-infrastructure.patch
+mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
+mac80211-tkipc-use-kernel-provided-infrastructure.patch
+mac80211-add-const-remove-unused-function-make-one-function-static.patch
+mac80211-add-a-struct-to-hold-tkip-context.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
+mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
+b43-replace-limit_value-macro-with-clamp_val.patch
+b43legacy-replace-limit_value-macro-with-clamp_val.patch
+wireless-use-get-put_unaligned_-helpers.patch
+b43-use-the-bitrev-helpers-rather-than-rolling-a-private-one.patch
+xfs-use-get_unaligned_-helpers.patch
+xtensa-replace-remaining-__function__-occurences.patch
+lib-create-common-ascii-hex-array.patch
+fs-ldm-use-get_unaligned_-helpers.patch
+include-use-get-put_unaligned_-helpers.patch
+lzo-use-get-put_unaligned_-helpers.patch
+video-fix-integer-as-null-pointer-warnings.patch
+scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
+isdn-use-the-common-ascii-hex-helpers.patch
+net-use-the-common-ascii-hex-helpers.patch
+kgdb-use-the-common-ascii-hex-helpers.patch
+cris-use-the-common-ascii-hex-helpers.patch
+frv-use-the-common-ascii-hex-helpers.patch
+mn10300-use-the-common-ascii-hex-helpers.patch
+mips-use-the-common-ascii-hex-helpers.patch
+sh-use-the-common-ascii-hex-helpers.patch
+ppc-use-the-common-ascii-hex-helpers.patch
+aacraid-linitc-make-aac_show_serial_number-static.patch
 
