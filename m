@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mm-remove-nopfn.patch added to -mm tree
-Date: Tue, 13 May 2008 13:17:46 -0700
-Message-ID: <200805132017.m4DKHkjb030070@imap1.linux-foundation.org>
+Subject: + mprotect-prevent-alteration-of-the-pat-bits.patch added to -mm tree
+Date: Tue, 13 May 2008 13:20:46 -0700
+Message-ID: <200805132020.m4DKKkAg030251@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37134 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54594 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762573AbYEMUSR (ORCPT
+	by vger.kernel.org with ESMTP id S1763294AbYEMUVp (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 16:18:17 -0400
+	Tue, 13 May 2008 16:21:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: npiggin@suse.de
+Cc: venkatesh.pallipadi@intel.com, hugh@veritas.com, mingo@elte.hu, suresh.b.siddha@intel.com
 
 
 The patch titled
-     mm: remove nopfn
+     mprotect: prevent alteration of the PAT bits
 has been added to the -mm tree.  Its filename is
-     mm-remove-nopfn.patch
+     mprotect-prevent-alteration-of-the-pat-bits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,141 +34,92 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm: remove nopfn
-From: Nick Piggin <npiggin@suse.de>
+Subject: mprotect: prevent alteration of the PAT bits
+From: Venki Pallipadi <venkatesh.pallipadi@intel.com>
 
-There are no users of nopfn in the tree. Remove it.
+There is a defect in mprotect, which lets the user to change the page
+cache type bits by-passing the kernel reserve_memtype and free_memtype
+wrappers.  Fix the problem by not letting mprotect change the PAT bits.
 
-Signed-off-by: Nick Piggin <npiggin@suse.de>
+Signed-off-by: Venkatesh Pallipadi <venkatesh.pallipadi@intel.com>
+Signed-off-by: Suresh Siddha <suresh.b.siddha@intel.com>
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Hugh Dickins <hugh@veritas.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    9 ------
- mm/memory.c        |   61 +++----------------------------------------
- 2 files changed, 5 insertions(+), 65 deletions(-)
+ include/asm-x86/pgtable.h |   16 +++++++++++++---
+ mm/mprotect.c             |   11 ++++++++++-
+ 2 files changed, 23 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/mm.h~mm-remove-nopfn include/linux/mm.h
---- a/include/linux/mm.h~mm-remove-nopfn
-+++ a/include/linux/mm.h
-@@ -165,8 +165,6 @@ struct vm_operations_struct {
- 	void (*open)(struct vm_area_struct * area);
- 	void (*close)(struct vm_area_struct * area);
- 	int (*fault)(struct vm_area_struct *vma, struct vm_fault *vmf);
--	unsigned long (*nopfn)(struct vm_area_struct *area,
--			unsigned long address);
+diff -puN include/asm-x86/pgtable.h~mprotect-prevent-alteration-of-the-pat-bits include/asm-x86/pgtable.h
+--- a/include/asm-x86/pgtable.h~mprotect-prevent-alteration-of-the-pat-bits
++++ a/include/asm-x86/pgtable.h
+@@ -57,7 +57,8 @@
+ #define _KERNPG_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED |	\
+ 			 _PAGE_DIRTY)
  
- 	/* notification that a previously read-only page is about to become
- 	 * writable, if an error is returned it will cause a SIGBUS */
-@@ -674,13 +672,6 @@ static inline int page_mapped(struct pag
+-#define _PAGE_CHG_MASK	(PTE_MASK | _PAGE_ACCESSED | _PAGE_DIRTY)
++#define _PAGE_CHG_MASK	(PTE_MASK |_PAGE_PCD | _PAGE_PWT |		\
++			 _PAGE_ACCESSED | _PAGE_DIRTY)
+ 
+ #define _PAGE_CACHE_MASK	(_PAGE_PCD | _PAGE_PWT)
+ #define _PAGE_CACHE_WB		(0)
+@@ -288,12 +289,21 @@ static inline pte_t pte_modify(pte_t pte
+ 	 * Chop off the NX bit (if present), and add the NX portion of
+ 	 * the newprot (if present):
+ 	 */
+-	val &= _PAGE_CHG_MASK & ~_PAGE_NX;
+-	val |= pgprot_val(newprot) & __supported_pte_mask;
++	val &= _PAGE_CHG_MASK;
++	val |= pgprot_val(newprot) & (~_PAGE_CHG_MASK) & __supported_pte_mask;
+ 
+ 	return __pte(val);
  }
  
- /*
-- * Error return values for the *_nopfn functions
-- */
--#define NOPFN_SIGBUS	((unsigned long) -1)
--#define NOPFN_OOM	((unsigned long) -2)
--#define NOPFN_REFAULT	((unsigned long) -3)
--
--/*
-  * Different kinds of faults, as returned by handle_mm_fault().
-  * Used to decide whether a process gets delivered SIGBUS or
-  * just gets major/minor fault counters bumped up.
-diff -puN mm/memory.c~mm-remove-nopfn mm/memory.c
---- a/mm/memory.c~mm-remove-nopfn
-+++ a/mm/memory.c
-@@ -1293,6 +1293,11 @@ out:
-  *
-  * This function should only be called from a vm_ops->fault handler, and
-  * in that case the handler should return NULL.
-+ *
-+ * vma cannot be a COW mapping.
-+ *
-+ * As this is called only for pages that do not currently exist, we
-+ * do not need to flush old virtual caches or the TLB.
-  */
- int vm_insert_pfn(struct vm_area_struct *vma, unsigned long addr,
- 			unsigned long pfn)
-@@ -2419,59 +2424,6 @@ static int do_linear_fault(struct mm_str
- 	return __do_fault(mm, vma, address, pmd, pgoff, flags, orig_pte);
- }
++/* mprotect needs to preserve PAT bits when updating vm_page_prot */
++#define pgprot_modify pgprot_modify
++static inline pgprot_t pgprot_modify(pgprot_t oldprot, pgprot_t newprot)
++{
++	pgprotval_t preservebits = pgprot_val(oldprot) & _PAGE_CHG_MASK;
++	pgprotval_t addbits = pgprot_val(newprot);
++	return __pgprot(preservebits | addbits);
++}
++
+ #define pte_pgprot(x) __pgprot(pte_val(x) & (0xfff | _PAGE_NX))
  
--
--/*
-- * do_no_pfn() tries to create a new page mapping for a page without
-- * a struct_page backing it
-- *
-- * As this is called only for pages that do not currently exist, we
-- * do not need to flush old virtual caches or the TLB.
-- *
-- * We enter with non-exclusive mmap_sem (to exclude vma changes,
-- * but allow concurrent faults), and pte mapped but not yet locked.
-- * We return with mmap_sem still held, but pte unmapped and unlocked.
-- *
-- * It is expected that the ->nopfn handler always returns the same pfn
-- * for a given virtual mapping.
-- *
-- * Mark this `noinline' to prevent it from bloating the main pagefault code.
-- */
--static noinline int do_no_pfn(struct mm_struct *mm, struct vm_area_struct *vma,
--		     unsigned long address, pte_t *page_table, pmd_t *pmd,
--		     int write_access)
--{
--	spinlock_t *ptl;
--	pte_t entry;
--	unsigned long pfn;
--
--	pte_unmap(page_table);
--	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
--	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
--
--	pfn = vma->vm_ops->nopfn(vma, address & PAGE_MASK);
--
--	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
--
--	if (unlikely(pfn == NOPFN_OOM))
--		return VM_FAULT_OOM;
--	else if (unlikely(pfn == NOPFN_SIGBUS))
--		return VM_FAULT_SIGBUS;
--	else if (unlikely(pfn == NOPFN_REFAULT))
--		return 0;
--
--	page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
--
--	/* Only go through if we didn't race with anybody else... */
--	if (pte_none(*page_table)) {
--		entry = pfn_pte(pfn, vma->vm_page_prot);
--		if (write_access)
--			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
--		set_pte_at(mm, address, page_table, entry);
--	}
--	pte_unmap_unlock(page_table, ptl);
--	return 0;
--}
--
- /*
-  * Fault of a previously existing named mapping. Repopulate the pte
-  * from the encoded file_pte if possible. This enables swappable
-@@ -2532,9 +2484,6 @@ static inline int handle_pte_fault(struc
- 				if (likely(vma->vm_ops->fault))
- 					return do_linear_fault(mm, vma, address,
- 						pte, pmd, write_access, entry);
--				if (unlikely(vma->vm_ops->nopfn))
--					return do_no_pfn(mm, vma, address, pte,
--							 pmd, write_access);
- 			}
- 			return do_anonymous_page(mm, vma, address,
- 						 pte, pmd, write_access);
+ #define canon_pgprot(p) __pgprot(pgprot_val(p) & __supported_pte_mask)
+diff -puN mm/mprotect.c~mprotect-prevent-alteration-of-the-pat-bits mm/mprotect.c
+--- a/mm/mprotect.c~mprotect-prevent-alteration-of-the-pat-bits
++++ a/mm/mprotect.c
+@@ -26,6 +26,13 @@
+ #include <asm/cacheflush.h>
+ #include <asm/tlbflush.h>
+ 
++#ifndef pgprot_modify
++static inline pgprot_t pgprot_modify(pgprot_t oldprot, pgprot_t newprot)
++{
++	return newprot;
++}
++#endif
++
+ static void change_pte_range(struct mm_struct *mm, pmd_t *pmd,
+ 		unsigned long addr, unsigned long end, pgprot_t newprot,
+ 		int dirty_accountable)
+@@ -192,7 +199,9 @@ success:
+ 	 * held in write mode.
+ 	 */
+ 	vma->vm_flags = newflags;
+-	vma->vm_page_prot = vm_get_page_prot(newflags);
++	vma->vm_page_prot = pgprot_modify(vma->vm_page_prot,
++					  vm_get_page_prot(newflags));
++
+ 	if (vma_wants_writenotify(vma)) {
+ 		vma->vm_page_prot = vm_get_page_prot(newflags & ~VM_SHARED);
+ 		dirty_accountable = 1;
 _
 
-Patches currently in -mm which might be from npiggin@suse.de are
+Patches currently in -mm which might be from venkatesh.pallipadi@intel.com are
 
-linux-next.patch
-spufs-convert-nopfn-to-fault.patch
-mm-fix-infinite-loop-in-filemap_fault.patch
-mm-allow-pfnmap-faults.patch
-mspec-convert-nopfn-to-fault.patch
-mspec-convert-nopfn-to-fault-fix.patch
-mm-remove-nopfn.patch
-reiser4.patch
-likeliness-accounting-change-and-cleanup.patch
+mprotect-prevent-alteration-of-the-pat-bits.patch
 
