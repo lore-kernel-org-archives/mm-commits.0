@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + x86-early_init_centaur-use-set_cpu_cap.patch added to -mm tree
-Date: Mon, 12 May 2008 19:31:20 -0700
-Message-ID: <200805130242.m4D2gKWa021124@imap1.linux-foundation.org>
+Subject: + drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch added to -mm tree
+Date: Mon, 12 May 2008 19:43:08 -0700
+Message-ID: <200805130254.m4D2s8gl021557@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54859 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43920 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753127AbYEMCmv (ORCPT
+	by vger.kernel.org with ESMTP id S1753690AbYEMCyL (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 22:42:51 -0400
+	Mon, 12 May 2008 22:54:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, mingo@elte.hu, tglx@linutronix.de
+Cc: akpm@linux-foundation.org, andrew.vasquez@qlogic.com
 
 
 The patch titled
-     x86: early_init_centaur(): use set_cpu_cap()
+     drivers/scsi/qla2xxx/qla_os.c: suppress uninitialized-var warning
 has been added to the -mm tree.  Its filename is
-     x86-early_init_centaur-use-set_cpu_cap.patch
+     drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,31 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: x86: early_init_centaur(): use set_cpu_cap()
+Subject: drivers/scsi/qla2xxx/qla_os.c: suppress uninitialized-var warning
 From: Andrew Morton <akpm@linux-foundation.org>
 
-arch/x86/kernel/setup_64.c: In function 'early_init_centaur':
-arch/x86/kernel/setup_64.c:954: warning: passing argument 2 of 'set_bit' from incompatible pointer type
+drivers/scsi/qla2xxx/qla_os.c: In function 'qla2x00_post_work':
+drivers/scsi/qla2xxx/qla_os.c:2158: warning: 'flags' may be used uninitialized in this function
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Andrew Vasquez <andrew.vasquez@qlogic.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup_64.c |    2 +-
+ drivers/scsi/qla2xxx/qla_os.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/kernel/setup_64.c~x86-early_init_centaur-use-set_cpu_cap arch/x86/kernel/setup_64.c
---- a/arch/x86/kernel/setup_64.c~x86-early_init_centaur-use-set_cpu_cap
-+++ a/arch/x86/kernel/setup_64.c
-@@ -951,7 +951,7 @@ static void __cpuinit init_intel(struct 
- static void __cpuinit early_init_centaur(struct cpuinfo_x86 *c)
+diff -puN drivers/scsi/qla2xxx/qla_os.c~drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning drivers/scsi/qla2xxx/qla_os.c
+--- a/drivers/scsi/qla2xxx/qla_os.c~drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning
++++ a/drivers/scsi/qla2xxx/qla_os.c
+@@ -2155,7 +2155,7 @@ qla2x00_alloc_work(struct scsi_qla_host 
+ static int
+ qla2x00_post_work(struct scsi_qla_host *ha, struct qla_work_evt *e, int locked)
  {
- 	if (c->x86 == 0x6 && c->x86_model >= 0xf)
--		set_bit(X86_FEATURE_CONSTANT_TSC, &c->x86_capability);
-+		set_cpu_cap(c, X86_FEATURE_CONSTANT_TSC);
- }
+-	unsigned long flags;
++	unsigned long uninitialized_var(flags);
  
- static void __cpuinit init_centaur(struct cpuinfo_x86 *c)
+ 	if (!locked)
+ 		spin_lock_irqsave(&ha->hardware_lock, flags);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -83,6 +82,7 @@ arch-x86-mm-patc-use-boot_cpu_has.patch
 x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
 lguest-use-cpu-capability-accessors.patch
 x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-early_init_centaur-use-set_cpu_cap.patch
 x86-bitops-take-an-unsigned-long.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
 audit_send_reply-fix-error-path-memory-leak.patch
@@ -160,5 +160,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-x86-early_init_centaur-use-set_cpu_cap.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 
