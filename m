@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch added to -mm tree
-Date: Mon, 12 May 2008 20:15:44 -0700
-Message-ID: <200805130326.m4D3QiOX022616@imap1.linux-foundation.org>
+Subject: + mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch added to -mm tree
+Date: Mon, 12 May 2008 20:25:28 -0700
+Message-ID: <200805130336.m4D3aSCp022995@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48560 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58180 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754270AbYEMD04 (ORCPT
+	by vger.kernel.org with ESMTP id S1752080AbYEMDg5 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 23:26:56 -0400
+	Mon, 12 May 2008 23:36:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, drzeus-list@drzeus.cx, saschasommer@freenet.de
 
 
 The patch titled
-     mmc-sd-host-driver-for-ricoh-bay1controllers fix
+     mmc-sd-host-driver-for-ricoh-bay1controllers-fix 2
 has been added to the -mm tree.  Its filename is
-     mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
+     mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,34 +34,44 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc-sd-host-driver-for-ricoh-bay1controllers fix
+Subject: mmc-sd-host-driver-for-ricoh-bay1controllers-fix 2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-alpha:
+CONFIG_PM=n:
 
-drivers/mmc/host/sdricoh_cs.c: In function 'sdricoh_request':
-drivers/mmc/host/sdricoh_cs.c:378: error: implicit declaration of function 'sg_page'
-drivers/mmc/host/sdricoh_cs.c:378: warning: assignment makes pointer from integer without a cast
+ERROR: "mmc_resume_host" [drivers/mmc/host/sdricoh_cs.ko] undefined!
+ERROR: "mmc_suspend_host" [drivers/mmc/host/sdricoh_cs.ko] undefined!
 
 Cc: Sascha Sommer <saschasommer@freenet.de>
 Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdricoh_cs.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mmc/host/sdricoh_cs.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN drivers/mmc/host/sdricoh_cs.c~mmc-sd-host-driver-for-ricoh-bay1controllers-fix drivers/mmc/host/sdricoh_cs.c
---- a/drivers/mmc/host/sdricoh_cs.c~mmc-sd-host-driver-for-ricoh-bay1controllers-fix
+diff -puN drivers/mmc/host/sdricoh_cs.c~mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2 drivers/mmc/host/sdricoh_cs.c
+--- a/drivers/mmc/host/sdricoh_cs.c~mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2
 +++ a/drivers/mmc/host/sdricoh_cs.c
-@@ -28,6 +28,7 @@
- #include <linux/highmem.h>
- #include <linux/pci.h>
- #include <linux/ioport.h>
-+#include <linux/scatterlist.h>
- #include <linux/version.h>
+@@ -572,6 +572,7 @@ static void sdricoh_pcmcia_detach(struct
  
- #include <pcmcia/cs_types.h>
+ }
+ 
++#ifdef CONFIG_PM
+ static int sdricoh_pcmcia_suspend(struct pcmcia_device *link)
+ {
+ 	struct mmc_host *mmc = link->priv;
+@@ -588,6 +589,10 @@ static int sdricoh_pcmcia_resume(struct 
+ 	mmc_resume_host(mmc);
+ 	return 0;
+ }
++#else
++#define sdricoh_pcmcia_suspend NULL
++#define sdricoh_pcmcia_resume NULL
++#endif
+ 
+ static struct pcmcia_driver sdricoh_driver = {
+ 	.drv = {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,6 +109,7 @@ git-input.patch
 git-jg-misc-git-rejects.patch
 drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
 git-mmc.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
 git-ubifs.patch
 hysdn-no-longer-broken-on-smp.patch
 sundance-set-carrier-status-on-link-change-events.patch
@@ -168,5 +179,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
 
