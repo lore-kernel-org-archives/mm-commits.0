@@ -1,77 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Tue, 13 May 2008 14:08:19 -0700
-Message-ID: <200805132108.m4DL8JqB032226@imap1.linux-foundation.org>
+Subject: - git-mips-git-rejects.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:23:55 -0700
+Message-ID: <200805132123.m4DLNtcI000377@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:55840 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:44632 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759313AbYEMVIw (ORCPT
+	by vger.kernel.org with ESMTP id S1751747AbYEMVYI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 17:08:52 -0400
-Received: from imap1.linux-foundation.org (imap1.linux-foundation.org [140.211.169.55])
-	by smtp1.linux-foundation.org (8.14.2/8.13.5/Debian-3ubuntu1.1) with ESMTP id m4DL8JIr002349
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <mm-commits@vger.kernel.org>; Tue, 13 May 2008 14:08:21 -0700
+	Tue, 13 May 2008 17:24:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org
+To: akpm@linux-foundation.org, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     git-mips-git-rejects
+has been removed from the -mm tree.  Its filename was
+     git-mips-git-rejects.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: linux-next-git-rejects
+Subject: git-mips-git-rejects
 From: Andrew Morton <akpm@linux-foundation.org>
 
+Probably wrong...
+
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/pci-acpi.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ arch/mips/au1000/common/dbg_io.c |    3 ---
+ arch/mips/kernel/Makefile        |    6 ------
+ arch/mips/kernel/traps.c         |   13 -------------
+ arch/mips/mm/c-r4k.c             |    6 ------
+ 4 files changed, 28 deletions(-)
 
-diff -puN drivers/pci/pci-acpi.c~linux-next-git-rejects drivers/pci/pci-acpi.c
---- a/drivers/pci/pci-acpi.c~linux-next-git-rejects
-+++ a/drivers/pci/pci-acpi.c
-@@ -60,21 +60,9 @@ acpi_query_osc (
- 	union acpi_object 	*out_obj;
- 	u32			osc_dw0;
- 	acpi_status *ret_status = (acpi_status *)retval;
--<<<<<<< HEAD:drivers/pci/pci-acpi.c
--	struct acpi_osc_data *osc_data;
--	u32 flags = (unsigned long)context, temp;
--	acpi_handle tmp;
--
--	status = acpi_get_handle(handle, "_OSC", &tmp);
--	if (ACPI_FAILURE(status))
--		return status;
--
--	osc_data = acpi_get_osc_data(handle);
--=======
- 	struct acpi_osc_data *osc_data = acpi_get_osc_data(handle);
- 	u32 flags = (unsigned long)context, temp;
+diff -puN arch/mips/kernel/Makefile~git-mips-git-rejects arch/mips/kernel/Makefile
+--- a/arch/mips/kernel/Makefile~git-mips-git-rejects
++++ a/arch/mips/kernel/Makefile
+@@ -4,15 +4,9 @@
  
-->>>>>>> FETCH_HEAD:drivers/pci/pci-acpi.c
- 	if (!osc_data) {
- 		printk(KERN_ERR "acpi osc data array is full\n");
- 		return AE_ERROR;
+ extra-y		:= head.o init_task.o vmlinux.lds
+ 
+-<<<<<<< HEAD:arch/mips/kernel/Makefile
+-obj-y		+= cpu-probe.o branch.o entry.o genex.o irq.o process.o \
+-		   ptrace.o reset.o setup.o signal.o syscall.o \
+-		   time.o topology.o traps.o unaligned.o
+-=======
+ obj-y		+= cpu-probe.o branch.o entry.o genex.o irq.o irq-gic.o \
+ 		   process.o ptrace.o reset.o semaphore.o setup.o signal.o \
+ 		   syscall.o time.o topology.o traps.o unaligned.o
+->>>>>>> FETCH_HEAD:arch/mips/kernel/Makefile
+ 
+ obj-$(CONFIG_CEVT_BCM1480)	+= cevt-bcm1480.o
+ obj-$(CONFIG_CEVT_R4K)		+= cevt-r4k.o
+diff -puN arch/mips/au1000/common/dbg_io.c~git-mips-git-rejects arch/mips/au1000/common/dbg_io.c
+--- a/arch/mips/au1000/common/dbg_io.c~git-mips-git-rejects
++++ a/arch/mips/au1000/common/dbg_io.c
+@@ -54,10 +54,7 @@ typedef         unsigned int  uint32;
+ #define UART16550_READ(y)    (au_readl(DEBUG_BASE + y) & 0xff)
+ #define UART16550_WRITE(y, z) (au_writel(z&0xff, DEBUG_BASE + y))
+ 
+-<<<<<<< HEAD:arch/mips/au1000/common/dbg_io.c
+-=======
+ extern unsigned long get_au1x00_uart_baud_base(void);
+->>>>>>> FETCH_HEAD:arch/mips/au1000/common/dbg_io.c
+ extern unsigned long calc_clock(void);
+ 
+ void debugInit(uint32 baud, uint8 data, uint8 parity, uint8 stop)
+diff -puN arch/mips/kernel/traps.c~git-mips-git-rejects arch/mips/kernel/traps.c
+--- a/arch/mips/kernel/traps.c~git-mips-git-rejects
++++ a/arch/mips/kernel/traps.c
+@@ -196,21 +196,12 @@ EXPORT_SYMBOL(dump_stack);
+ static void show_code(unsigned int __user *pc)
+ {
+ 	long i;
+-<<<<<<< HEAD:arch/mips/kernel/traps.c
+-	unsigned short __user *pc16 = NULL;
+-
+-	printk("\nCode:");
+-
+-	if ((unsigned long)pc & 1)
+-		pc16 = (unsigned short __user *)((unsigned long)pc & ~1);
+-=======
+ 	unsigned short *pc16 = NULL;
+ 
+ 	printk("\nCode:");
+ 
+ 	if ((unsigned int)pc & 1)
+ 		pc16 = (unsigned short *)((unsigned int)pc & ~1);
+->>>>>>> FETCH_HEAD:arch/mips/kernel/traps.c
+ 	for(i = -3 ; i < 6 ; i++) {
+ 		unsigned int insn;
+ 		if (pc16 ? __get_user(insn, pc16 + i) : __get_user(insn, pc + i)) {
+@@ -1389,11 +1380,7 @@ int cp0_compare_irq;
+ int cp0_perfcount_irq;
+ EXPORT_SYMBOL_GPL(cp0_perfcount_irq);
+ 
+-<<<<<<< HEAD:arch/mips/kernel/traps.c
+-static int __cpuinitdata noulri;
+-=======
+ static int __initdata noulri;
+->>>>>>> FETCH_HEAD:arch/mips/kernel/traps.c
+ 
+ static int __init ulri_disable(char *s)
+ {
+diff -puN arch/mips/mm/c-r4k.c~git-mips-git-rejects arch/mips/mm/c-r4k.c
+--- a/arch/mips/mm/c-r4k.c~git-mips-git-rejects
++++ a/arch/mips/mm/c-r4k.c
+@@ -1227,11 +1227,8 @@ void au1x00_fixup_config_od(void)
+ }
+ 
+ static int __cpuinitdata cca = -1;
+-<<<<<<< HEAD:arch/mips/mm/c-r4k.c
+-=======
+ unsigned long _page_cachable_default;
+ EXPORT_SYMBOL_GPL(_page_cachable_default);
+->>>>>>> FETCH_HEAD:arch/mips/mm/c-r4k.c
+ 
+ static int __init cca_setup(char *str)
+ {
+@@ -1249,8 +1246,6 @@ static void __cpuinit coherency_setup(vo
+ 	_page_cachable_default = cca << _CACHE_SHIFT;
+ 
+ 	pr_debug("Using cache attribute %d\n", cca);
+-<<<<<<< HEAD:arch/mips/mm/c-r4k.c
+-=======
+ 
+ 	protection_map[0] = PAGE_NONE;
+ 	protection_map[1] = PAGE_READONLY;
+@@ -1269,7 +1264,6 @@ static void __cpuinit coherency_setup(vo
+ 	protection_map[14] = PAGE_SHARED;
+ 	protection_map[15] = PAGE_SHARED;
+ 
+->>>>>>> FETCH_HEAD:arch/mips/mm/c-r4k.c
+ 	change_c0_config(CONF_CM_CMASK, cca);
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,14 +164,21 @@ x86-bitops-take-an-unsigned-long.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
 audit_send_reply-fix-error-path-memory-leak.patch
 cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
 zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
 ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
 drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
 git-input.patch
 git-jg-misc-git-rejects.patch
 drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+git-mips-git-rejects.patch
+git-mmc.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
 git-ubifs.patch
 git-net.patch
+git-net-git-rejects.patch
 hysdn-no-longer-broken-on-smp.patch
 sundance-set-carrier-status-on-link-change-events.patch
 dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
