@@ -1,96 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: - cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch removed from -mm tree
-Date: Tue, 13 May 2008 14:34:03 -0700
-Message-ID: <200805132134.m4DLY3Vu000883@imap1.linux-foundation.org>
+Subject: - mn10300-replace-deprecated-topdir-with-newer-srctree.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:33:36 -0700
+Message-ID: <200805132133.m4DLXaKi000839@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36985 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48144 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759164AbYEMVeI (ORCPT
+	by vger.kernel.org with ESMTP id S1759617AbYEMVe2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 17:34:08 -0400
+	Tue, 13 May 2008 17:34:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pj@sgi.com, adobriyan@gmail.com, bert.wesarg@googlemail.com, travis@sgi.com, xiyou.wangcong@gmail.com, mm-commits@vger.kernel.org
+To: rpjday@crashcourse.ca, dhowells@redhat.com, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     cpumask: remove bitmap_scnprintf_len and cpumask_scnprintf_len
+     mn10300: replace deprecated "TOPDIR" with newer "srctree"
 has been removed from the -mm tree.  Its filename was
-     cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len.patch
+     mn10300-replace-deprecated-topdir-with-newer-srctree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: cpumask: remove bitmap_scnprintf_len and cpumask_scnprintf_len
-From: Paul Jackson <pj@sgi.com>
+Subject: mn10300: replace deprecated "TOPDIR" with newer "srctree"
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-They aren't used.  They were briefly used as part of some other patches to
-provide an alternative format for displaying some /proc and /sys cpumasks. 
-They probably should have been removed when those other patches were dropped,
-in favor of a different solution.
+This would appear to be the last reference to TOPDIR in the entire tree, after
+which i'm guessing that variable can be dropped.
 
-Signed-off-by: Paul Jackson <pj@sgi.com>
-Cc: "Mike Travis" <travis@sgi.com>
-Cc: "Bert Wesarg" <bert.wesarg@googlemail.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: WANG Cong <xiyou.wangcong@gmail.com>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Acked-by: David Howells <dhowells@redhat.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h  |    1 -
- include/linux/cpumask.h |    7 -------
- lib/bitmap.c            |   16 ----------------
- 3 files changed, 24 deletions(-)
+ arch/mn10300/boot/install.sh |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/bitmap.h~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len include/linux/bitmap.h
---- a/include/linux/bitmap.h~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
-+++ a/include/linux/bitmap.h
-@@ -110,7 +110,6 @@ extern int __bitmap_weight(const unsigne
- 
- extern int bitmap_scnprintf(char *buf, unsigned int len,
- 			const unsigned long *src, int nbits);
--extern int bitmap_scnprintf_len(unsigned int len);
- extern int __bitmap_parse(const char *buf, unsigned int buflen, int is_user,
- 			unsigned long *dst, int nbits);
- extern int bitmap_parse_user(const char __user *ubuf, unsigned int ulen,
-diff -puN include/linux/cpumask.h~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len include/linux/cpumask.h
---- a/include/linux/cpumask.h~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
-+++ a/include/linux/cpumask.h
-@@ -289,13 +289,6 @@ static inline int __cpumask_scnprintf(ch
- 	return bitmap_scnprintf(buf, len, srcp->bits, nbits);
- }
- 
--#define cpumask_scnprintf_len(len) \
--			__cpumask_scnprintf_len((len))
--static inline int __cpumask_scnprintf_len(int len)
--{
--	return bitmap_scnprintf_len(len);
--}
--
- #define cpumask_parse_user(ubuf, ulen, dst) \
- 			__cpumask_parse_user((ubuf), (ulen), &(dst), NR_CPUS)
- static inline int __cpumask_parse_user(const char __user *buf, int len,
-diff -puN lib/bitmap.c~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len lib/bitmap.c
---- a/lib/bitmap.c~cpumask-remove-bitmap_scnprintf_len-and-cpumask_scnprintf_len
-+++ a/lib/bitmap.c
-@@ -316,22 +316,6 @@ int bitmap_scnprintf(char *buf, unsigned
- EXPORT_SYMBOL(bitmap_scnprintf);
- 
- /**
-- * bitmap_scnprintf_len - return buffer length needed to convert
-- * bitmap to an ASCII hex string.
-- * @len: number of bits to be converted
-- */
--int bitmap_scnprintf_len(unsigned int len)
--{
--	/* we need 9 chars per word for 32 bit words (8 hexdigits + sep/null) */
--	int bitslen = ALIGN(len, CHUNKSZ);
--	int wordlen = CHUNKSZ / 4;
--	int buflen = (bitslen / wordlen) * (wordlen + 1) * sizeof(char);
--
--	return buflen;
--}
--EXPORT_SYMBOL(bitmap_scnprintf_len);
+diff -puN arch/mn10300/boot/install.sh~mn10300-replace-deprecated-topdir-with-newer-srctree arch/mn10300/boot/install.sh
+--- a/arch/mn10300/boot/install.sh~mn10300-replace-deprecated-topdir-with-newer-srctree
++++ a/arch/mn10300/boot/install.sh
+@@ -26,42 +26,42 @@ rm -fr $4/../usr/include/linux $4/../usr
+ install -c -m 0755 $2 $4/vmlinuz
+ install -c -m 0755 $5 $4/boot.rom
+ install -c -m 0755 -d $4/../usr/include/linux
+-cd $TOPDIR/include/linux
++cd ${srctree}/include/linux
+ for i in `find . -maxdepth 1 -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux
+ done
+ install -c -m 0755 -d $4/../usr/include/linux/byteorder
+-cd $TOPDIR/include/linux/byteorder
++cd ${srctree}/include/linux/byteorder
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux/byteorder
+ done
+ install -c -m 0755 -d $4/../usr/include/linux/lockd
+-cd $TOPDIR/include/linux/lockd
++cd ${srctree}/include/linux/lockd
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux/lockd
+ done
+ install -c -m 0755 -d $4/../usr/include/linux/netfilter_ipv4
+-cd $TOPDIR/include/linux/netfilter_ipv4
++cd ${srctree}/include/linux/netfilter_ipv4
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux/netfilter_ipv4
+ done
+ install -c -m 0755 -d $4/../usr/include/linux/nfsd
+-cd $TOPDIR/include/linux/nfsd
++cd ${srctree}/include/linux/nfsd
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux/nfsd/$i
+ done
+ install -c -m 0755 -d $4/../usr/include/linux/raid
+-cd $TOPDIR/include/linux/raid
++cd ${srctree}/include/linux/raid
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux/raid
+ done
+ install -c -m 0755 -d $4/../usr/include/linux/sunrpc
+-cd $TOPDIR/include/linux/sunrpc
++cd ${srctree}/include/linux/sunrpc
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/linux/sunrpc
+ done
+ install -c -m 0755 -d $4/../usr/include/asm
+-cd $TOPDIR/include/asm
++cd ${srctree}/include/asm
+ for i in `find . -name '*.h' -print`; do
+   install -c -m 0644 $i $4/../usr/include/asm
+ done
+_
+
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
+
+origin.patch
+linux-next.patch
+macintosh-replace-deprecated-__initcall-with-device_initcall.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
+remove-apparently-unused-fd1772h-header-file.patch
+init-delete-hard-coded-setting-and-testing-of-build_cramdisk.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+lists-remove-a-redundant-conditional-definition-of-list_add.patch
+zorro-replace-deprecated-__initcall-with-equivalent-device_initcall.patch
+spi-kconfig-simplifications.patch
+
