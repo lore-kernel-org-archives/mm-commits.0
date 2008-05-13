@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch added to -mm tree
-Date: Mon, 12 May 2008 19:51:55 -0700
-Message-ID: <200805130302.m4D32tQc021821@imap1.linux-foundation.org>
+Subject: + flag-parameters-check-magic-constants-alpha-hack.patch added to -mm tree
+Date: Mon, 12 May 2008 20:03:46 -0700
+Message-ID: <200805130314.m4D3EkLg022245@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58339 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43112 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751685AbYEMDDF (ORCPT
+	by vger.kernel.org with ESMTP id S1753085AbYEMDPI (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 23:03:05 -0400
+	Mon, 12 May 2008 23:15:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jeff@garzik.org
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.manpages@googlemail.com
 
 
 The patch titled
-     drivers/scsi/broadsas.c: fix uninitialised var warning
+     flag-parameters-check-magic-constants-alpha-hack
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+     flag-parameters-check-magic-constants-alpha-hack.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,40 +34,30 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/scsi/broadsas.c: fix uninitialised var warning
+Subject: flag-parameters-check-magic-constants-alpha-hack
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/scsi/broadsas.c: In function 'bs_phy_control':
-drivers/scsi/broadsas.c:891: warning: 'rc' may be used uninitialized in this function
-
-Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/broadsas.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ net/socket.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/scsi/broadsas.c~drivers-scsi-broadsasc-fix-uninitialised-var-warning drivers/scsi/broadsas.c
---- a/drivers/scsi/broadsas.c~drivers-scsi-broadsasc-fix-uninitialised-var-warning
-+++ a/drivers/scsi/broadsas.c
-@@ -888,7 +888,7 @@ static int bs_phy_control(struct asd_sas
- {
- 	struct bs_phy *phy = sas_phy->lldd_phy;
- 	void __iomem *regs = phy->regs;
--	int rc;
-+	int rc = -EOPNOTSUPP;
- 	u32 tmp;
+diff -puN net/socket.c~flag-parameters-check-magic-constants-alpha-hack net/socket.c
+--- a/net/socket.c~flag-parameters-check-magic-constants-alpha-hack
++++ a/net/socket.c
+@@ -1225,7 +1225,7 @@ asmlinkage long sys_socket(int family, i
+ 	BUILD_BUG_ON(SOCK_NONBLOCK != O_NONBLOCK);
+ 	BUILD_BUG_ON((SOCK_MAX | SOCK_TYPE_MASK) != SOCK_TYPE_MASK);
+ 	BUILD_BUG_ON(SOCK_CLOEXEC & SOCK_TYPE_MASK);
+-	BUILD_BUG_ON(SOCK_NONBLOCK & SOCK_TYPE_MASK);
++//	BUILD_BUG_ON(SOCK_NONBLOCK & SOCK_TYPE_MASK);
  
- 	switch (func) {
-@@ -922,7 +922,7 @@ static int bs_phy_control(struct asd_sas
- 
- 	case PHY_FUNC_SET_LINK_RATE:
- 	default:
--		rc = -EOPNOTSUPP;
-+		break;
- 	}
- 
- 	return rc;
+ 	flags = type & ~SOCK_TYPE_MASK;
+ 	if (flags & ~(SOCK_CLOEXEC | SOCK_NONBLOCK))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +93,7 @@ dlm-convert-connections_lock-in-a-mutex-fix.patch
 drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
 git-input.patch
 git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
 git-mmc.patch
 git-ubifs.patch
 hysdn-no-longer-broken-on-smp.patch
@@ -155,6 +146,7 @@ add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
 flag-parameters-paccept-fix.patch
 flag-parameters-anon_inode_getfd-extension-fix.patch
 flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
 reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
 documentation-build-source-files-in-documentation-sub-dir-disable.patch
@@ -172,5 +164,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
 
