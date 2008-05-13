@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-uwb-whcic-needs-dma-mappingh.patch added to -mm tree
-Date: Tue, 13 May 2008 00:02:18 -0700
-Message-ID: <200805130713.m4D7DJqF030289@imap1.linux-foundation.org>
+Subject: + fix-sparc64-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch added to -mm tree
+Date: Tue, 13 May 2008 00:06:25 -0700
+Message-ID: <200805130717.m4D7HQcH030471@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:50855 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43342 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752152AbYEMHNW (ORCPT
+	by vger.kernel.org with ESMTP id S1753928AbYEMHRf (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 03:13:22 -0400
+	Tue, 13 May 2008 03:17:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, greg@kroah.com
+Cc: akpm@linux-foundation.org, davem@davemloft.net, greg@kroah.com, sfr@canb.auug.org.au
 
 
 The patch titled
-     drivers/uwb/whci.c needs dma-mapping.h
+     fix-sparc64-gregkh-driver-core-read-dev_name-instead-of-bus_id
 has been added to the -mm tree.  Its filename is
-     drivers-uwb-whcic-needs-dma-mappingh.patch
+     fix-sparc64-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,44 +34,35 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: drivers/uwb/whci.c needs dma-mapping.h
+Subject: fix-sparc64-gregkh-driver-core-read-dev_name-instead-of-bus_id
 From: Andrew Morton <akpm@linux-foundation.org>
 
-sparc32:
+arch/sparc64/kernel/pci.c: In function `of_create_pci_dev':
+arch/sparc64/kernel/pci.c:412: warning: passing arg 1 of `sprintf' discards qualifiers from pointer target type
 
-drivers/uwb/whci.c: In function 'whci_probe':
-drivers/uwb/whci.c:178: error: 'DMA_64BIT_MASK' undeclared (first use in this function)
-drivers/uwb/whci.c:178: error: (Each undeclared identifier is reported only once
-drivers/uwb/whci.c:178: error: for each function it appears in.)
-drivers/uwb/whci.c:180: error: 'DMA_32BIT_MASK' undeclared (first use in this function)
-
-But it still goes splat over:
-
-drivers/uwb/whc-rc.c:46:2: error: invalid preprocessing directive #Include
-drivers/uwb/whc-rc.c: In function 'whcrc_setup_rc_umc':
-drivers/uwb/whc-rc.c:293: error: implicit declaration of function 'dma_alloc_coherent'
-drivers/uwb/whc-rc.c:294: warning: assignment makes pointer from integer without a cast
-drivers/uwb/whc-rc.c:301: warning: assignment makes pointer from integer without a cast
-drivers/uwb/whc-rc.c:311: error: implicit declaration of function 'dma_free_coherent'
+(ugh)
 
 Cc: Greg KH <greg@kroah.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/uwb/whci.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/sparc64/kernel/pci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/uwb/whci.c~drivers-uwb-whcic-needs-dma-mappingh drivers/uwb/whci.c
---- a/drivers/uwb/whci.c~drivers-uwb-whcic-needs-dma-mappingh
-+++ a/drivers/uwb/whci.c
-@@ -8,6 +8,7 @@
- #include <linux/delay.h>
- #include <linux/kernel.h>
- #include <linux/pci.h>
-+#include <linux/dma-mapping.h>
- #include <linux/uwb/whci.h>
- #include <linux/uwb/umc.h>
- #include <linux/uwb/bugs.h>
+diff -puN arch/sparc64/kernel/pci.c~fix-sparc64-gregkh-driver-core-read-dev_name-instead-of-bus_id arch/sparc64/kernel/pci.c
+--- a/arch/sparc64/kernel/pci.c~fix-sparc64-gregkh-driver-core-read-dev_name-instead-of-bus_id
++++ a/arch/sparc64/kernel/pci.c
+@@ -408,7 +408,7 @@ struct pci_dev *of_create_pci_dev(struct
+ 	dev->class = class >> 8;
+ 	dev->revision = class & 0xff;
+ 
+-	sprintf(pci_name(dev), "%04x:%02x:%02x.%d", pci_domain_nr(bus),
++	sprintf((char *)pci_name(dev), "%04x:%02x:%02x.%d", pci_domain_nr(bus),
+ 		dev->bus->number, PCI_SLOT(devfn), PCI_FUNC(devfn));
+ 
+ 	if (ofpci_verbose)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -142,6 +133,7 @@ uwb-fix-scscanf-warning.patch
 drivers-uwb-wlp-sysfsc-dead-code.patch
 drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
 drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
 git-v9fs.patch
 revert-git-v9fs.patch
 git-watchdog.patch
@@ -191,5 +183,5 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-drivers-uwb-whcic-needs-dma-mappingh.patch
+fix-sparc64-gregkh-driver-core-read-dev_name-instead-of-bus_id.patch
 
