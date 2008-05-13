@@ -1,164 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: - lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch removed from -mm tree
-Date: Tue, 13 May 2008 09:33:12 -0700
-Message-ID: <200805131633.m4DGXCS6021351@imap1.linux-foundation.org>
+Subject: + tridentfb-fix-hi-color-modes-for-tgui-9440.patch added to -mm tree
+Date: Tue, 13 May 2008 09:39:47 -0700
+Message-ID: <200805131639.m4DGdlsE021573@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46842 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51066 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756292AbYEMQdx (ORCPT
+	by vger.kernel.org with ESMTP id S1757321AbYEMQkQ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 12:33:53 -0400
+	Tue, 13 May 2008 12:40:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: JRottmann@LiPPERT-AT.de, dilinger@debian.org, jordan.crouse@amd.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: krzysztof.h1@wp.pl
 
 
 The patch titled
-     lxfb: extend PLL table to support dotclocks below 25 MHz
-has been removed from the -mm tree.  Its filename was
-     lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
+     tridentfb: fix hi-color modes for TGUI 9440
+has been added to the -mm tree.  Its filename is
+     tridentfb-fix-hi-color-modes-for-tgui-9440.patch
 
-This patch was dropped because it was folded into fix-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: lxfb: extend PLL table to support dotclocks below 25 MHz
-From: Jens Rottmann <JRottmann@LiPPERT-AT.de>
+Subject: tridentfb: fix hi-color modes for TGUI 9440
+From: Krzysztof Helt <krzysztof.h1@wp.pl>
 
-Extends the PLL frequency table of the AMD Geode-LX frame buffer driver
-to make use of the DIV4 bit, thus adding support for dotclocks between
-6 and 24 MHz.  These are needed for small LCDs (e.g.  320x240).
+The TGUI 9440 requires doubling clock for 16bpp (hi-color) modes.
 
-Signed-off-by: Jens Rottmann <JRottmann@LiPPERT-AT.de>
-Acked-by: Andres Salomon <dilinger@debian.org>
-Tested-by: Andres Salomon <dilinger@debian.org>
-Acked-by: Jordan Crouse <jordan.crouse@amd.com>
+The patch also moves back enable_mmio() call to the right position.
+
+Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/video/geode/lxfb_ops.c |   90 ++++++++++++++++++++-----------
- 1 file changed, 59 insertions(+), 31 deletions(-)
+ drivers/video/tridentfb.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN drivers/video/geode/lxfb_ops.c~lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz drivers/video/geode/lxfb_ops.c
---- a/drivers/video/geode/lxfb_ops.c~lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz
-+++ a/drivers/video/geode/lxfb_ops.c
-@@ -35,35 +35,63 @@ static const struct {
-   unsigned int pllval;
-   unsigned int freq;
- } pll_table[] = {
--  { 0x000031AC, 24923 },
--  { 0x0000215D, 25175 },
--  { 0x00001087, 27000 },
--  { 0x0000216C, 28322 },
--  { 0x0000218D, 28560 },
--  { 0x000010C9, 31200 },
--  { 0x00003147, 31500 },
--  { 0x000010A7, 33032 },
--  { 0x00002159, 35112 },
--  { 0x00004249, 35500 },
--  { 0x00000057, 36000 },
--  { 0x0000219A, 37889 },
--  { 0x00002158, 39168 },
--  { 0x00000045, 40000 },
--  { 0x00000089, 43163 },
--  { 0x000010E7, 44900 },
--  { 0x00002136, 45720 },
--  { 0x00003207, 49500 },
--  { 0x00002187, 50000 },
--  { 0x00004286, 56250 },
--  { 0x000010E5, 60065 },
--  { 0x00004214, 65000 },
--  { 0x00001105, 68179 },
--  { 0x000031E4, 74250 },
--  { 0x00003183, 75000 },
--  { 0x00004284, 78750 },
--  { 0x00001104, 81600 },
--  { 0x00006363, 94500 },
--  { 0x00005303, 97520 },
-+  { 0x000131AC,   6231 },
-+  { 0x0001215D,   6294 },
-+  { 0x00011087,   6750 },
-+  { 0x0001216C,   7081 },
-+  { 0x0001218D,   7140 },
-+  { 0x000110C9,   7800 },
-+  { 0x00013147,   7875 },
-+  { 0x000110A7,   8258 },
-+  { 0x00012159,   8778 },
-+  { 0x00014249,   8875 },
-+  { 0x00010057,   9000 },
-+  { 0x0001219A,   9472 },
-+  { 0x00012158,   9792 },
-+  { 0x00010045,  10000 },
-+  { 0x00010089,  10791 },
-+  { 0x000110E7,  11225 },
-+  { 0x00012136,  11430 },
-+  { 0x00013207,  12375 },
-+  { 0x00012187,  12500 },
-+  { 0x00014286,  14063 },
-+  { 0x000110E5,  15016 },
-+  { 0x00014214,  16250 },
-+  { 0x00011105,  17045 },
-+  { 0x000131E4,  18563 },
-+  { 0x00013183,  18750 },
-+  { 0x00014284,  19688 },
-+  { 0x00011104,  20400 },
-+  { 0x00016363,  23625 },
-+  { 0x000031AC,  24923 },
-+  { 0x0000215D,  25175 },
-+  { 0x00001087,  27000 },
-+  { 0x0000216C,  28322 },
-+  { 0x0000218D,  28560 },
-+  { 0x000010C9,  31200 },
-+  { 0x00003147,  31500 },
-+  { 0x000010A7,  33032 },
-+  { 0x00002159,  35112 },
-+  { 0x00004249,  35500 },
-+  { 0x00000057,  36000 },
-+  { 0x0000219A,  37889 },
-+  { 0x00002158,  39168 },
-+  { 0x00000045,  40000 },
-+  { 0x00000089,  43163 },
-+  { 0x000010E7,  44900 },
-+  { 0x00002136,  45720 },
-+  { 0x00003207,  49500 },
-+  { 0x00002187,  50000 },
-+  { 0x00004286,  56250 },
-+  { 0x000010E5,  60065 },
-+  { 0x00004214,  65000 },
-+  { 0x00001105,  68179 },
-+  { 0x000031E4,  74250 },
-+  { 0x00003183,  75000 },
-+  { 0x00004284,  78750 },
-+  { 0x00001104,  81600 },
-+  { 0x00006363,  94500 },
-+  { 0x00005303,  97520 },
-   { 0x00002183, 100187 },
-   { 0x00002122, 101420 },
-   { 0x00001081, 108000 },
-@@ -138,7 +166,7 @@ static void lx_set_clock(struct fb_info 
- 	unsigned int diff, min, best = 0;
- 	unsigned int freq, i;
+diff -puN drivers/video/tridentfb.c~tridentfb-fix-hi-color-modes-for-tgui-9440 drivers/video/tridentfb.c
+--- a/drivers/video/tridentfb.c~tridentfb-fix-hi-color-modes-for-tgui-9440
++++ a/drivers/video/tridentfb.c
+@@ -835,6 +835,8 @@ static int tridentfb_check_var(struct fb
+ 	/* check color depth */
+ 	if (bpp == 24)
+ 		bpp = var->bits_per_pixel = 32;
++	if (par->chip_id == TGUI9440 && bpp == 32)
++		return -EINVAL;
+ 	/* check whether resolution fits on panel and in memory */
+ 	if (par->flatpanel && nativex && var->xres > nativex)
+ 		return -EINVAL;
+@@ -881,7 +883,7 @@ static int tridentfb_check_var(struct fb
  
--	freq = (unsigned int) (0x3b9aca00 / info->var.pixclock);
-+	freq = (unsigned int) (1000000000 / info->var.pixclock);
+ 	switch (par->chip_id) {
+ 	case TGUI9440:
+-		ramdac = 90000;
++		ramdac = (bpp >= 16) ? 45000 : 90000;
+ 		break;
+ 	case CYBER9320:
+ 	case TGUI9660:
+@@ -1081,12 +1083,6 @@ static int tridentfb_set_par(struct fb_i
+ 	if (par->chip_id != TGUI9440)
+ 		write3X4(par, PCIReg, read3X4(par, PCIReg) | 0x06);
  
- 	min = abs(pll_table[0].freq - freq);
+-	/* convert from picoseconds to kHz */
+-	vclk = PICOS2KHZ(info->var.pixclock);
+-	if (bpp == 32)
+-		vclk *= 2;
+-	set_vclk(par, vclk);
+-
+ 	vga_mm_wseq(par->io_virt, 0, 3);
+ 	vga_mm_wseq(par->io_virt, 1, 1); /* set char clock 8 dots wide */
+ 	/* enable 4 maps because needed in chain4 mode */
+@@ -1094,10 +1090,16 @@ static int tridentfb_set_par(struct fb_i
+ 	vga_mm_wseq(par->io_virt, 3, 0);
+ 	vga_mm_wseq(par->io_virt, 4, 0x0E); /* memory mode enable bitmaps ?? */
  
-@@ -150,7 +178,7 @@ static void lx_set_clock(struct fb_info 
- 		}
++	/* convert from picoseconds to kHz */
++	vclk = PICOS2KHZ(info->var.pixclock);
++
+ 	/* divide clock by 2 if 32bpp chain4 mode display and CPU path */
+ 	tmp = read3CE(par, MiscExtFunc) & 0xF0;
+-	if (bpp == 32)
++	if (bpp == 32 || (par->chip_id == TGUI9440 && bpp == 16)) {
+ 		tmp |= 8;
++		vclk *= 2;
++	}
++	set_vclk(par, vclk);
+ 	write3CE(par, MiscExtFunc, tmp | 0x12);
+ 	write3CE(par, 0x5, 0x40);	/* no CGA compat, allow 256 col */
+ 	write3CE(par, 0x6, 0x05);	/* graphics mode */
+@@ -1361,6 +1363,8 @@ static int __devinit trident_pci_probe(s
+ 	tridentfb_fix.smem_start = pci_resource_start(dev, 0);
+ 	tridentfb_fix.smem_len = get_memsize(default_par);
+ 
++	enable_mmio();
++
+ 	if (!request_mem_region(tridentfb_fix.smem_start, tridentfb_fix.smem_len, "tridentfb")) {
+ 		debug("request_mem_region failed!\n");
+ 		disable_mmio(info->par);
+@@ -1368,8 +1372,6 @@ static int __devinit trident_pci_probe(s
+ 		goto out_unmap1;
  	}
  
--	lx_set_dotpll(pll_table[best].pllval & 0x7FFF);
-+	lx_set_dotpll(pll_table[best].pllval & 0x00017FFF);
- }
+-	enable_mmio();
+-
+ 	info->screen_base = ioremap_nocache(tridentfb_fix.smem_start,
+ 					    tridentfb_fix.smem_len);
  
- static void lx_graphics_disable(struct fb_info *info)
 _
 
-Patches currently in -mm which might be from JRottmann@LiPPERT-AT.de are
+Patches currently in -mm which might be from krzysztof.h1@wp.pl are
 
-fix-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
-lxfb-extend-pll-table-to-support-dotclocks-below-25-mhz.patch
+tridentfb-remove-misplaced-enable_mmio.patch
+tridentfb-improve-clock-setting-accuracy.patch
+drivers-video-pnx4008-eliminate-double-free.patch
+tridentfb-replace-macros-with-functions.patch
+tridentfb-convert-fb_info-into-allocated-one.patch
+tridentfb-move-global-pseudo-palette-into-structure.patch
+tridentfb-move-global-chip_id-into-structure.patch
+tridentfb-move-global-flat-panel-variable-into-structure.patch
+tridentfb-convert-is_blade-and-is_xp-macros-into-functions.patch
+tridentfb-move-global-acceleration-hooks-into-structure.patch
+tridentfb-make-use-of-functions-and-constants-from-the-vgah.patch
+tridentfb-fix-timing-calculations.patch
+tridentfb-use-mmio-access-for-clock-setting.patch
+tridentfb-fix-clock-settings-for-older-trident-96xx-chips.patch
+tridentfb-improve-probe-function.patch
+tridentfb-improved-register-values-on-tgui-9680.patch
+tridentfb-add-tgui-9440-support.patch
+tridentfb-fix-unitialized-pseudo_palette.patch
+tridentfb-improve-check_var-function.patch
+tridentfb-preserve-memory-type-settings.patch
+tridentfb-fix-hi-color-modes-for-tgui-9440.patch
+amifb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
+atafb-test-virtual-screen-range-before-subtraction-on-unsigned.patch
 
