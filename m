@@ -1,59 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: - spi-pxa2xx_spi-clock-resume-bugfix.patch removed from -mm tree
-Date: Tue, 13 May 2008 14:32:57 -0700
-Message-ID: <200805132132.m4DLWvkc000765@imap1.linux-foundation.org>
+Subject: - ecryptfs-clean-up-unlock_parent.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:33:05 -0700
+Message-ID: <200805132133.m4DLX5LO000782@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54332 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:37485 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761638AbYEMVdY (ORCPT
+	by vger.kernel.org with ESMTP id S1762118AbYEMVdw (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 17:33:24 -0400
+	Tue, 13 May 2008 17:33:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebenard@free.fr, dbrownell@users.sourceforge.net, nforrester@whoi.edu, stephen@streetfiresound.com, mm-commits@vger.kernel.org
+To: mszeredi@suse.cz, hch@infradead.org, mhalcrow@us.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     spi: pxa2xx_spi clock resume bugfix
+     ecryptfs: clean up (un)lock_parent
 has been removed from the -mm tree.  Its filename was
-     spi-pxa2xx_spi-clock-resume-bugfix.patch
+     ecryptfs-clean-up-unlock_parent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: spi: pxa2xx_spi clock resume bugfix
-From: Eric BENARD <ebenard@free.fr>
+Subject: ecryptfs: clean up (un)lock_parent
+From: Miklos Szeredi <mszeredi@suse.cz>
 
-There is a typo in pxa2xx_spi.c, comment says "Enable the SSP clock", code
-says: clk_disable ...  so after resume, the SSP is dead.
+dget(dentry->d_parent) --> dget_parent(dentry)
 
-Signed-off-by: David Brownell <dbrownell@users.sourceforge.net>
-Cc: Ned Forrester <nforrester@whoi.edu>
-Cc: Stephen Street <stephen@streetfiresound.com>
+unlock_parent() is racy and unnecessary.  Replace single caller with
+unlock_dir().
+
+There are several other suspect uses of ->d_parent in ecryptfs...
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Cc: Michael Halcrow <mhalcrow@us.ibm.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/spi/pxa2xx_spi.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ecryptfs/inode.c |   13 ++++---------
+ 1 file changed, 4 insertions(+), 9 deletions(-)
 
-diff -puN drivers/spi/pxa2xx_spi.c~spi-pxa2xx_spi-clock-resume-bugfix drivers/spi/pxa2xx_spi.c
---- a/drivers/spi/pxa2xx_spi.c~spi-pxa2xx_spi-clock-resume-bugfix
-+++ a/drivers/spi/pxa2xx_spi.c
-@@ -1567,7 +1567,7 @@ static int pxa2xx_spi_resume(struct plat
- 	int status = 0;
+diff -puN fs/ecryptfs/inode.c~ecryptfs-clean-up-unlock_parent fs/ecryptfs/inode.c
+--- a/fs/ecryptfs/inode.c~ecryptfs-clean-up-unlock_parent
++++ a/fs/ecryptfs/inode.c
+@@ -37,17 +37,11 @@ static struct dentry *lock_parent(struct
+ {
+ 	struct dentry *dir;
  
- 	/* Enable the SSP clock */
--	clk_disable(ssp->clk);
-+	clk_enable(ssp->clk);
+-	dir = dget(dentry->d_parent);
++	dir = dget_parent(dentry);
+ 	mutex_lock_nested(&(dir->d_inode->i_mutex), I_MUTEX_PARENT);
+ 	return dir;
+ }
  
- 	/* Start the queue running */
- 	status = start_queue(drv_data);
+-static void unlock_parent(struct dentry *dentry)
+-{
+-	mutex_unlock(&(dentry->d_parent->d_inode->i_mutex));
+-	dput(dentry->d_parent);
+-}
+-
+ static void unlock_dir(struct dentry *dir)
+ {
+ 	mutex_unlock(&dir->d_inode->i_mutex);
+@@ -426,8 +420,9 @@ static int ecryptfs_unlink(struct inode 
+ 	int rc = 0;
+ 	struct dentry *lower_dentry = ecryptfs_dentry_to_lower(dentry);
+ 	struct inode *lower_dir_inode = ecryptfs_inode_to_lower(dir);
++	struct dentry *lower_dir_dentry;
+ 
+-	lock_parent(lower_dentry);
++	lower_dir_dentry = lock_parent(lower_dentry);
+ 	rc = vfs_unlink(lower_dir_inode, lower_dentry);
+ 	if (rc) {
+ 		printk(KERN_ERR "Error in vfs_unlink; rc = [%d]\n", rc);
+@@ -439,7 +434,7 @@ static int ecryptfs_unlink(struct inode 
+ 	dentry->d_inode->i_ctime = dir->i_ctime;
+ 	d_drop(dentry);
+ out_unlock:
+-	unlock_parent(lower_dentry);
++	unlock_dir(lower_dir_dentry);
+ 	return rc;
+ }
+ 
 _
 
-Patches currently in -mm which might be from ebenard@free.fr are
+Patches currently in -mm which might be from mszeredi@suse.cz are
 
 origin.patch
+git-vfs-cleanups.patch
+mm-fix-infinite-loop-in-filemap_fault.patch
 
