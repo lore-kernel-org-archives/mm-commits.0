@@ -1,12 +1,12 @@
 From: akpm@linux-foundation.org
-Subject: - mm-verify-the-page-links-and-memory-model-fix.patch removed from -mm tree
-Date: Tue, 13 May 2008 14:26:59 -0700
-Message-ID: <200805132126.m4DLQxLg000481@imap1.linux-foundation.org>
+Subject: - mm-verify-the-page-links-and-memory-model-fix-fix.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:27:05 -0700
+Message-ID: <200805132127.m4DLR5XR000490@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56757 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43100 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756397AbYEMV1c (ORCPT
+	by vger.kernel.org with ESMTP id S1757958AbYEMV1c (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
 	Tue, 13 May 2008 17:27:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
@@ -15,59 +15,46 @@ To: akpm@linux-foundation.org, apw@shadowen.org, clameter@sgi.com, mel@csn.ul.ie
 
 
 The patch titled
-     mm-verify-the-page-links-and-memory-model-fix
+     mm-verify-the-page-links-and-memory-model-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-verify-the-page-links-and-memory-model-fix.patch
+     mm-verify-the-page-links-and-memory-model-fix-fix.patch
 
 This patch was dropped because it was folded into mm-verify-the-page-links-and-memory-model.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mm-verify-the-page-links-and-memory-model-fix
+Subject: mm-verify-the-page-links-and-memory-model-fix-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-mm/mm_init.c: In function 'mminit_verify_pageflags_layout':
-mm/mm_init.c:81: warning: format '%d' expects type 'int', but argument 2 has type 'long unsigned int'
-mm/mm_init.c:81: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
-mm/mm_init.c:81: warning: format '%d' expects type 'int', but argument 4 has type 'long unsigned int'
-mm/mm_init.c:86: warning: format '%d' expects type 'int', but argument 2 has type 'long unsigned int'
-mm/mm_init.c:86: warning: format '%d' expects type 'int', but argument 3 has type 'long unsigned int'
+mm/page_alloc.c: In function 'init_currently_empty_zone':
+mm/page_alloc.c:2866: warning: format '%d' expects type 'int', but argument 3 has type 'long int'
 
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Andy Whitcroft <apw@shadowen.org>
+Cc: Christoph Lameter <clameter@sgi.com>
 Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Mel Gorman <mel@csn.ul.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mm_init.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/mm_init.c~mm-verify-the-page-links-and-memory-model-fix mm/mm_init.c
---- a/mm/mm_init.c~mm-verify-the-page-links-and-memory-model-fix
-+++ a/mm/mm_init.c
-@@ -34,13 +34,14 @@ void __init mminit_verify_pageflags_layo
- 		NODES_SHIFT,
- 		ZONES_SHIFT);
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_offsets",
--		"Section %d Node %d Zone %d\n",
--		SECTIONS_PGSHIFT,
--		NODES_PGSHIFT,
--		ZONES_PGSHIFT);
-+		"Section %lu Node %lu Zone %lu\n",
-+		(unsigned long)SECTIONS_PGSHIFT,
-+		(unsigned long)NODES_PGSHIFT,
-+		(unsigned long)ZONES_PGSHIFT);
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_zoneid",
--		"Zone ID: %d -> %d\n",
--		ZONEID_PGOFF, ZONEID_PGOFF + ZONEID_SHIFT);
-+		"Zone ID: %lu -> %lu\n",
-+		(unsigned long)ZONEID_PGOFF,
-+		(unsigned long)(ZONEID_PGOFF + ZONEID_SHIFT));
- 	mminit_dprintk(MMINIT_TRACE, "pageflags_layout_usage",
- 		"location: %d -> %d unused %d -> %d flags %d -> %d\n",
- 		shift, width, width, NR_PAGEFLAGS, NR_PAGEFLAGS, 0);
+diff -puN mm/page_alloc.c~mm-verify-the-page-links-and-memory-model-fix-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-verify-the-page-links-and-memory-model-fix-fix
++++ a/mm/page_alloc.c
+@@ -2864,8 +2864,9 @@ __meminit int init_currently_empty_zone(
+ 	zone->zone_start_pfn = zone_start_pfn;
+ 
+ 	mminit_dprintk(MMINIT_TRACE, "memmap_init",
+-			"Initialising map node %d zone %d pfns %lu -> %lu\n",
+-			pgdat->node_id, zone_idx(zone),
++			"Initialising map node %d zone %lu pfns %lu -> %lu\n",
++			pgdat->node_id,
++			(unsigned long)zone_idx(zone),
+ 			zone_start_pfn, (zone_start_pfn + size));
+ 
+ 	zone_init_free_lists(zone);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -149,7 +136,6 @@ mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 colibri-fix-support-for-dm9000-ethernet-device-fix.patch
 mm-verify-the-page-links-and-memory-model.patch
-mm-verify-the-page-links-and-memory-model-fix.patch
 mm-verify-the-page-links-and-memory-model-fix-fix.patch
 mspec-convert-nopfn-to-fault-fix.patch
 page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
