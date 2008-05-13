@@ -1,67 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: - pci-enable-nv_msi_ht_cap_quirk-for-ali-bridges.patch removed from -mm tree
-Date: Tue, 13 May 2008 14:35:02 -0700
-Message-ID: <200805132135.m4DLZ2ig001055@imap1.linux-foundation.org>
+Subject: - rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:33:54 -0700
+Message-ID: <200805132133.m4DLXsY0000863@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60336 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:32882 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760778AbYEMVfE (ORCPT
+	by vger.kernel.org with ESMTP id S1759777AbYEMVea (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 17:35:04 -0400
+	Tue, 13 May 2008 17:34:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fox.box@gmail.com, jbarnes@virtuousgeek.org, mm-commits@vger.kernel.org
+To: macro@linux-mips.org, a.zummo@towertech.it, david-b@pacbell.net, dmitri.vorobiev@gmail.com, stable@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     pci: enable nv_msi_ht_cap_quirk for ALi bridges
+     rtc: rtc_time_to_tm: use unsigned arithmetic
 has been removed from the -mm tree.  Its filename was
-     pci-enable-nv_msi_ht_cap_quirk-for-ali-bridges.patch
+     rtc-rtc_time_to_tm-use-unsigned-arithmetic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pci: enable nv_msi_ht_cap_quirk for ALi bridges
-From: Bjorn Krombholz <fox.box@gmail.com>
+Subject: rtc: rtc_time_to_tm: use unsigned arithmetic
+From: "Maciej W. Rozycki" <macro@linux-mips.org>
 
-This applies the NVidia MSI enabled flag for HT capable devices quirk
-to ALi bridges as well.
+The input argument to rtc_time_to_tm() is unsigned as well as are members of
+the output structure.  However signed arithmetic is used within for
+calculations leading to incorrect results for input values outside the signed
+positive range.  If this happens the time of day returned is out of range.
 
-As described in more detail in
-http://bugzilla.kernel.org/show_bug.cgi?id=10667 this is required for
-my board which is using an nForce 3 250Gb chipset with an ALi M1695
-northbridge.
+Found the problem when fiddling with the RTC and the driver where year was set
+to an unexpectedly large value like 2070, e.g.:
 
-It fixes a regression introduced in 2.6.24 that made the internal NIC
-of the board unusable (MSI initialisation of the NIC but disabled MSI
-on the northbridge devices.
+rtc0: setting system clock to 2070-01-01 1193046:71582832:26 UTC (3155760954)
 
-Signed-off-by: Bjorn Krombholz <fox.box@gmail.com>
-Cc: Jesse Barnes <jbarnes@virtuousgeek.org>
+while it should be:
+
+rtc0: setting system clock to 2070-01-01 00:15:54 UTC (3155760954)
+
+Changing types to unsigned fixes the problem.
+
+[akpm@linux-foundation.org: remove old-fashioned `register' keyword]
+Signed-off-by: Maciej W. Rozycki <macro@linux-mips.org>
+Cc: Alessandro Zummo <a.zummo@towertech.it>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Dmitri Vorobiev <dmitri.vorobiev@gmail.com>
+Cc: <stable@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pci/quirks.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rtc/rtc-lib.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/pci/quirks.c~pci-enable-nv_msi_ht_cap_quirk-for-ali-bridges drivers/pci/quirks.c
---- a/drivers/pci/quirks.c~pci-enable-nv_msi_ht_cap_quirk-for-ali-bridges
-+++ a/drivers/pci/quirks.c
-@@ -1826,6 +1826,7 @@ static void __devinit nv_msi_ht_cap_quir
- 	}
- }
- DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID, nv_msi_ht_cap_quirk);
-+DECLARE_PCI_FIXUP_FINAL(PCI_VENDOR_ID_AL, PCI_ANY_ID, nv_msi_ht_cap_quirk);
- 
- static void __devinit quirk_msi_intx_disable_bug(struct pci_dev *dev)
+diff -puN drivers/rtc/rtc-lib.c~rtc-rtc_time_to_tm-use-unsigned-arithmetic drivers/rtc/rtc-lib.c
+--- a/drivers/rtc/rtc-lib.c~rtc-rtc_time_to_tm-use-unsigned-arithmetic
++++ a/drivers/rtc/rtc-lib.c
+@@ -51,7 +51,7 @@ EXPORT_SYMBOL(rtc_year_days);
+  */
+ void rtc_time_to_tm(unsigned long time, struct rtc_time *tm)
  {
+-	register int days, month, year;
++	unsigned int days, month, year;
+ 
+ 	days = time / 86400;
+ 	time -= days * 86400;
 _
 
-Patches currently in -mm which might be from fox.box@gmail.com are
+Patches currently in -mm which might be from macro@linux-mips.org are
 
 origin.patch
 linux-next.patch
+ntp-make-the-rtc-sync-mode-11-minute-again.patch
+ntp-fix-calculation-of-the-next-jiffie-to-trigger-rtc-sync.patch
+rtc-m41t80-sort-header-inclusions-for-readability.patch
+rtc-m41t80-use-pr_info-as-appropriate.patch
 
