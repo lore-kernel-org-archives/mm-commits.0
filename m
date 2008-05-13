@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + mspec-convert-nopfn-to-fault-fix.patch added to -mm tree
-Date: Mon, 12 May 2008 21:27:22 -0700
-Message-ID: <200805130438.m4D4cNRn025079@imap1.linux-foundation.org>
+Subject: + ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch added to -mm tree
+Date: Mon, 12 May 2008 21:32:03 -0700
+Message-ID: <200805130443.m4D4h4K9025264@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41834 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:36962 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758345AbYEMEi5 (ORCPT
+	by vger.kernel.org with ESMTP id S1752505AbYEMEnt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 00:38:57 -0400
+	Tue, 13 May 2008 00:43:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, jes@sgi.com, npiggin@suse.de
+Cc: akpm@linux-foundation.org, djwong@us.ibm.com, mhoffman@lightlink.com, minyard@acm.org
 
 
 The patch titled
-     mspec-convert-nopfn-to-fault-fix
+     ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings
 has been added to the -mm tree.  Its filename is
-     mspec-convert-nopfn-to-fault-fix.patch
+     ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,30 +34,52 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mspec-convert-nopfn-to-fault-fix
+Subject: ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-I question the testedness.
+drivers/hwmon/ibmaem.c: In function `aem_show_power':
+drivers/hwmon/ibmaem.c:871: warning: long long unsigned int format, u64 arg (arg 3)
+drivers/hwmon/ibmaem.c:871: warning: long long unsigned int format, u64 arg (arg 3)
+drivers/hwmon/ibmaem.c: In function `aem_show_energy':
+drivers/hwmon/ibmaem.c:883: warning: long long unsigned int format, long unsigned int arg (arg 3)
+drivers/hwmon/ibmaem.c:883: warning: long long unsigned int format, long unsigned int arg (arg 3)
 
-Cc: Jes Sorensen <jes@sgi.com>
-Cc: Nick Piggin <npiggin@suse.de>
+We don't know what type the architecture uses to implement u64.
+
+Cc: "Darrick J. Wong" <djwong@us.ibm.com>
+Cc: "Mark M. Hoffman" <mhoffman@lightlink.com>
+Cc: Corey Minyard <minyard@acm.org>
+Cc: Darrick J. Wong <djwong@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/mspec.c |    1 -
- 1 file changed, 1 deletion(-)
+ drivers/hwmon/ibmaem.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/char/mspec.c~mspec-convert-nopfn-to-fault-fix drivers/char/mspec.c
---- a/drivers/char/mspec.c~mspec-convert-nopfn-to-fault-fix
-+++ a/drivers/char/mspec.c
-@@ -203,7 +203,6 @@ mspec_fault(struct vm_area_struct *vma, 
- 	unsigned long paddr, maddr;
- 	unsigned long pfn;
- 	pgoff_t index = vmf->pgoff;
--	int index;
- 	struct vma_data *vdata = vma->vm_private_data;
+diff -puN drivers/hwmon/ibmaem.c~ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings drivers/hwmon/ibmaem.c
+--- a/drivers/hwmon/ibmaem.c~ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings
++++ a/drivers/hwmon/ibmaem.c
+@@ -867,8 +867,8 @@ static ssize_t aem_show_power(struct dev
+ 	time = timespec_to_ns(&a) - timespec_to_ns(&b);
+ 	time = div_u64(time, 1000);
  
- 	maddr = (volatile unsigned long) vdata->maddr[index];
+-	return sprintf(buf, "%llu\n",
+-		       div64_u64((after - before) * 1000000000, time));
++	return sprintf(buf, "%llu\n", (unsigned long long)
++			div64_u64((after - before) * 1000000000, time));
+ }
+ 
+ /* Display energy use */
+@@ -880,7 +880,8 @@ static ssize_t aem_show_energy(struct de
+ 	struct aem_data *a = dev_get_drvdata(dev);
+ 	a->update(a);
+ 
+-	return sprintf(buf, "%llu\n", a->energy[attr->index] * 1000);
++	return sprintf(buf, "%llu\n",
++			(unsigned long long)a->energy[attr->index] * 1000);
+ }
+ 
+ /* Display power interval registers */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -89,6 +111,7 @@ cifs-suppress-warning.patch
 sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
 zoran-use-correct-type-for-cpu-flags.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
 dlm-convert-connections_lock-in-a-mutex-fix.patch
 drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
 git-input.patch
