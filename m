@@ -1,89 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: - init-dont-loose-initcall-code-returned-v2.patch removed from -mm tree
-Date: Tue, 13 May 2008 14:33:50 -0700
-Message-ID: <200805132133.m4DLXo2H000855@imap1.linux-foundation.org>
+Subject: - parisc-fix-discontigmem-compile-breakage.patch removed from -mm tree
+Date: Tue, 13 May 2008 14:33:41 -0700
+Message-ID: <200805132133.m4DLXfYH000845@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59717 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42808 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762113AbYEMVdw (ORCPT
+	by vger.kernel.org with ESMTP id S1760360AbYEMVej (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 17:33:52 -0400
+	Tue, 13 May 2008 17:34:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gorcunov@gmail.com, mm-commits@vger.kernel.org
+To: mel@csn.ul.ie, James.Bottomley@HansenPartnership.com, bunk@kernel.org, clameter@sgi.com, grundler@parisc-linux.org, kyle@mcmartin.ca, lee.schermerhorn@hp.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     init: don't lose initcall return values
+     parisc: fix DISCONTIGMEM compile breakage
 has been removed from the -mm tree.  Its filename was
-     init-dont-loose-initcall-code-returned-v2.patch
+     parisc-fix-discontigmem-compile-breakage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init: don't lose initcall return values
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: parisc: fix DISCONTIGMEM compile breakage
+From: Mel Gorman <mel@csn.ul.ie>
 
-There is an ability to lose an initcall return value if it happened with irq
-disabled or imbalanced preemption (and if we debug initcall).
+PA-RISC to aid debugging prints out the zonelists setup by the system.  A
+bad call to node_zonelist() breaks at compile-time.  This patch fixes it.
 
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
+Signed-off-by: Mel Gorman <mel@csn.ul.ie>
+Cc: Christoph Lameter <clameter@sgi.com>
+Cc: Lee Schermerhorn <lee.schermerhorn@hp.com>
+Cc: Kyle McMartin <kyle@mcmartin.ca>
+Cc: Grant Grundler <grundler@parisc-linux.org>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Adrian Bunk <bunk@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ arch/parisc/mm/init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/main.c~init-dont-loose-initcall-code-returned-v2 init/main.c
---- a/init/main.c~init-dont-loose-initcall-code-returned-v2
-+++ a/init/main.c
-@@ -702,7 +702,6 @@ static void __init do_initcalls(void)
+diff -puN arch/parisc/mm/init.c~parisc-fix-discontigmem-compile-breakage arch/parisc/mm/init.c
+--- a/arch/parisc/mm/init.c~parisc-fix-discontigmem-compile-breakage
++++ a/arch/parisc/mm/init.c
+@@ -606,7 +606,7 @@ void show_mem(void)
+ 		int i, j;
  
- 	for (call = __initcall_start; call < __initcall_end; call++) {
- 		ktime_t t0, t1, delta;
--		char *msg = NULL;
- 		char msgbuf[40];
- 		int result;
- 
-@@ -724,22 +723,23 @@ static void __init do_initcalls(void)
- 				(unsigned long long) delta.tv64 >> 20);
- 		}
- 
--		if (result && result != -ENODEV && initcall_debug) {
--			sprintf(msgbuf, "error code %d", result);
--			msg = msgbuf;
--		}
-+		msgbuf[0] = 0;
-+
-+		if (result && result != -ENODEV && initcall_debug)
-+			sprintf(msgbuf, "error code %d ", result);
-+
- 		if (preempt_count() != count) {
--			msg = "preemption imbalance";
-+			strncat(msgbuf, "preemption imbalance ", sizeof(msgbuf));
- 			preempt_count() = count;
- 		}
- 		if (irqs_disabled()) {
--			msg = "disabled interrupts";
-+			strncat(msgbuf, "disabled interrupts ", sizeof(msgbuf));
- 			local_irq_enable();
- 		}
--		if (msg) {
-+		if (msgbuf[0]) {
- 			print_fn_descriptor_symbol(KERN_WARNING "initcall %s()",
- 					(unsigned long) *call);
--			printk(" returned with %s\n", msg);
-+			printk(" returned with %s\n", msgbuf);
- 		}
- 	}
- 
+ 		for (i = 0; i < npmem_ranges; i++) {
+-			zl = node_zonelist(i);
++			zl = node_zonelist(i, 0);
+ 			for (j = 0; j < MAX_NR_ZONES; j++) {
+ 				struct zoneref *z;
+ 				struct zone *zone;
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from mel@csn.ul.ie are
 
 origin.patch
-module-loading-elf-handling-use-selfmag-instead-of-numeric-constant.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation.patch
+mm-add-a-basic-debugging-framework-for-memory-initialisation-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mm-make-defensive-checks-around-pfn-values-registered-for-memory-usage.patch
+mm-print-out-the-zonelists-on-request-for-manual-verification.patch
+mm-move-bootmem-descriptors-definition-to-a-single-place.patch
+mm-fix-free_all_bootmem_core-alignment-check.patch
+mm-normalize-internal-argument-passing-of-bootmem-data.patch
+mm-unexport-__alloc_bootmem_core.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+page-owner-tracking-leak-detector.patch
+add-debugging-aid-for-memory-initialisation-problems.patch
 
