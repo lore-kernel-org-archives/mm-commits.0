@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + frv-use-the-common-ascii-hex-helpers.patch added to -mm tree
-Date: Mon, 12 May 2008 17:31:49 -0700
-Message-ID: <200805130031.m4D0VnRH016795@imap1.linux-foundation.org>
+Subject: + kgdb-use-the-common-ascii-hex-helpers.patch added to -mm tree
+Date: Mon, 12 May 2008 17:31:45 -0700
+Message-ID: <200805130031.m4D0VjbR016789@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33808 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56299 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755239AbYEMAcK (ORCPT
+	by vger.kernel.org with ESMTP id S1755133AbYEMAcH (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Mon, 12 May 2008 20:32:10 -0400
+	Mon, 12 May 2008 20:32:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: harvey.harrison@gmail.com, dhowells@redhat.com
+Cc: harvey.harrison@gmail.com, jason.wessel@windriver.com, mingo@elte.hu
 
 
 The patch titled
-     frv: use the common ascii hex helpers
+     kgdb: use the common ascii hex helpers
 has been added to the -mm tree.  Its filename is
-     frv-use-the-common-ascii-hex-helpers.patch
+     kgdb-use-the-common-ascii-hex-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,201 +34,75 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: frv: use the common ascii hex helpers
+Subject: kgdb: use the common ascii hex helpers
 From: Harvey Harrison <harvey.harrison@gmail.com>
 
 Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/kernel/gdb-stub.c |   88 ++++++++++++++---------------------
- 1 file changed, 36 insertions(+), 52 deletions(-)
+ drivers/misc/kgdbts.c |    5 ++---
+ kernel/kgdb.c         |   10 ++++------
+ 2 files changed, 6 insertions(+), 9 deletions(-)
 
-diff -puN arch/frv/kernel/gdb-stub.c~frv-use-the-common-ascii-hex-helpers arch/frv/kernel/gdb-stub.c
---- a/arch/frv/kernel/gdb-stub.c~frv-use-the-common-ascii-hex-helpers
-+++ a/arch/frv/kernel/gdb-stub.c
-@@ -182,8 +182,6 @@ extern volatile u32 __attribute__((secti
- static char	input_buffer[BUFMAX];
- static char	output_buffer[BUFMAX];
+diff -puN drivers/misc/kgdbts.c~kgdb-use-the-common-ascii-hex-helpers drivers/misc/kgdbts.c
+--- a/drivers/misc/kgdbts.c~kgdb-use-the-common-ascii-hex-helpers
++++ a/drivers/misc/kgdbts.c
+@@ -119,7 +119,6 @@
+ 	} while (0)
+ #define MAX_CONFIG_LEN		40
  
 -static const char hexchars[] = "0123456789abcdef";
+ static struct kgdb_io kgdbts_io_ops;
+ static char get_buf[BUFMAX];
+ static int get_buf_cnt;
+@@ -619,8 +618,8 @@ static void fill_get_buf(char *buf)
+ 		count++;
+ 	}
+ 	strcat(get_buf, "#");
+-	get_buf[count + 2] = hexchars[checksum >> 4];
+-	get_buf[count + 3] = hexchars[checksum & 0xf];
++	get_buf[count + 2] = hex_asc_hi(checksum);
++	get_buf[count + 3] = hex_asc_lo(checksum);
+ 	get_buf[count + 4] = '\0';
+ 	v2printk("get%i: %s\n", ts.idx, get_buf);
+ }
+diff -puN kernel/kgdb.c~kgdb-use-the-common-ascii-hex-helpers kernel/kgdb.c
+--- a/kernel/kgdb.c~kgdb-use-the-common-ascii-hex-helpers
++++ a/kernel/kgdb.c
+@@ -228,8 +228,6 @@ void __weak kgdb_disable_hw_debug(struct
+  * GDB remote protocol parser:
+  */
+ 
+-static const char	hexchars[] = "0123456789abcdef";
 -
- static const char *regnames[] = {
- 	"PSR ", "ISR ", "CCR ", "CCCR",
- 	"LR  ", "LCR ", "PC  ", "_stt",
-@@ -383,8 +381,8 @@ static int gdbstub_send_packet(char *buf
+ static int hex(char ch)
+ {
+ 	if ((ch >= 'a') && (ch <= 'f'))
+@@ -317,8 +315,8 @@ static void put_packet(char *buffer)
  		}
  
- 		gdbstub_tx_char('#');
--		gdbstub_tx_char(hexchars[checksum >> 4]);
--		gdbstub_tx_char(hexchars[checksum & 0xf]);
-+		gdbstub_tx_char(hex_asc_hi(checksum));
-+		gdbstub_tx_char(hex_asc_lo(checksum));
+ 		kgdb_io_ops->write_char('#');
+-		kgdb_io_ops->write_char(hexchars[checksum >> 4]);
+-		kgdb_io_ops->write_char(hexchars[checksum & 0xf]);
++		kgdb_io_ops->write_char(hex_asc_hi(checksum));
++		kgdb_io_ops->write_char(hex_asc_lo(checksum));
+ 		if (kgdb_io_ops->flush)
+ 			kgdb_io_ops->flush();
  
- 	} while (gdbstub_rx_char(&ch,0),
- #ifdef GDBSTUB_DEBUG_PROTOCOL
-@@ -674,8 +672,7 @@ static unsigned char *mem2hex(const void
- 	if ((uint32_t)mem&1 && count>=1) {
- 		if (!gdbstub_read_byte(mem,ch))
- 			return NULL;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
- 		mem++;
- 		count--;
- 	}
-@@ -683,10 +680,8 @@ static unsigned char *mem2hex(const void
- 	if ((uint32_t)mem&3 && count>=2) {
- 		if (!gdbstub_read_word(mem,(uint16_t *)ch))
- 			return NULL;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
--		*buf++ = hexchars[ch[1] >> 4];
--		*buf++ = hexchars[ch[1] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
-+		buf = pack_hex_byte(buf, ch[1]);
- 		mem += 2;
- 		count -= 2;
- 	}
-@@ -694,14 +689,10 @@ static unsigned char *mem2hex(const void
- 	while (count>=4) {
- 		if (!gdbstub_read_dword(mem,(uint32_t *)ch))
- 			return NULL;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
--		*buf++ = hexchars[ch[1] >> 4];
--		*buf++ = hexchars[ch[1] & 0xf];
--		*buf++ = hexchars[ch[2] >> 4];
--		*buf++ = hexchars[ch[2] & 0xf];
--		*buf++ = hexchars[ch[3] >> 4];
--		*buf++ = hexchars[ch[3] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
-+		buf = pack_hex_byte(buf, ch[1]);
-+		buf = pack_hex_byte(buf, ch[2]);
-+		buf = pack_hex_byte(buf, ch[3]);
- 		mem += 4;
- 		count -= 4;
- 	}
-@@ -709,10 +700,8 @@ static unsigned char *mem2hex(const void
- 	if (count>=2) {
- 		if (!gdbstub_read_word(mem,(uint16_t *)ch))
- 			return NULL;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
--		*buf++ = hexchars[ch[1] >> 4];
--		*buf++ = hexchars[ch[1] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
-+		buf = pack_hex_byte(buf, ch[1]);
- 		mem += 2;
- 		count -= 2;
- 	}
-@@ -720,8 +709,7 @@ static unsigned char *mem2hex(const void
- 	if (count>=1) {
- 		if (!gdbstub_read_byte(mem,ch))
- 			return NULL;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
- 	}
+@@ -479,8 +477,8 @@ static void error_packet(char *pkt, int 
+ {
+ 	error = -error;
+ 	pkt[0] = 'E';
+-	pkt[1] = hexchars[(error / 10)];
+-	pkt[2] = hexchars[(error % 10)];
++	pkt[1] = hex_asc[(error / 10)];
++	pkt[2] = hex_asc[(error % 10)];
+ 	pkt[3] = '\0';
+ }
  
- 	*buf = 0;
-@@ -1471,22 +1459,22 @@ void gdbstub(int sigval)
- 		*ptr++ = 'O';
- 		ptr = mem2hex(title, ptr, sizeof(title) - 1,0);
- 
--		hx = hexchars[(brr & 0xf0000000) >> 28];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(brr & 0x0f000000) >> 24];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(brr & 0x00f00000) >> 20];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(brr & 0x000f0000) >> 16];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(brr & 0x0000f000) >> 12];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(brr & 0x00000f00) >> 8];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(brr & 0x000000f0) >> 4];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(brr & 0x0000000f)];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
-+		hx = hex_asc_hi(brr >> 24);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(brr >> 24);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_hi(brr >> 16);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(brr >> 16);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_hi(brr >> 8);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(brr >> 8);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_hi(brr);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(brr);
-+		ptr = pack_hex_byte(ptr, hx);
- 
- 		ptr = mem2hex(crlf, ptr, sizeof(crlf) - 1, 0);
- 		*ptr = 0;
-@@ -1500,12 +1488,10 @@ void gdbstub(int sigval)
- 
- 	/* Send trap type (converted to signal) */
- 	*ptr++ = 'T';
--	*ptr++ = hexchars[sigval >> 4];
--	*ptr++ = hexchars[sigval & 0xf];
-+	ptr = pack_hex_byte(ptr, sigval);
- 
- 	/* Send Error PC */
--	*ptr++ = hexchars[GDB_REG_PC >> 4];
--	*ptr++ = hexchars[GDB_REG_PC & 0xf];
-+	ptr = pack_hex_byte(ptr, GDB_REG_PC);
- 	*ptr++ = ':';
- 	ptr = mem2hex(&__debug_frame->pc, ptr, 4, 0);
- 	*ptr++ = ';';
-@@ -1513,8 +1499,7 @@ void gdbstub(int sigval)
- 	/*
- 	 * Send frame pointer
- 	 */
--	*ptr++ = hexchars[GDB_REG_FP >> 4];
--	*ptr++ = hexchars[GDB_REG_FP & 0xf];
-+	ptr = pack_hex_byte(ptr, GDB_REG_FP);
- 	*ptr++ = ':';
- 	ptr = mem2hex(&__debug_frame->fp, ptr, 4, 0);
- 	*ptr++ = ';';
-@@ -1522,8 +1507,7 @@ void gdbstub(int sigval)
- 	/*
- 	 * Send stack pointer
- 	 */
--	*ptr++ = hexchars[GDB_REG_SP >> 4];
--	*ptr++ = hexchars[GDB_REG_SP & 0xf];
-+	ptr = pack_hex_byte(ptr, GDB_REG_SP);
- 	*ptr++ = ':';
- 	ptr = mem2hex(&__debug_frame->sp, ptr, 4, 0);
- 	*ptr++ = ';';
-@@ -1548,8 +1532,8 @@ void gdbstub(int sigval)
- 			/* request repeat of last signal number */
- 		case '?':
- 			output_buffer[0] = 'S';
--			output_buffer[1] = hexchars[sigval >> 4];
--			output_buffer[2] = hexchars[sigval & 0xf];
-+			output_buffer[1] = hex_asc_hi(sigval);
-+			output_buffer[2] = hex_asc_lo(sigval);
- 			output_buffer[3] = 0;
- 			break;
- 
-@@ -2059,8 +2043,8 @@ void gdbstub_exit(int status)
- 	}
- 
- 	gdbstub_tx_char('#');
--	gdbstub_tx_char(hexchars[checksum >> 4]);
--	gdbstub_tx_char(hexchars[checksum & 0xf]);
-+	gdbstub_tx_char(hex_asc_hi(checksum));
-+	gdbstub_tx_char(hex_asc_lo(checksum));
- 
- 	/* make sure the output is flushed, or else RedBoot might clobber it */
- 	gdbstub_tx_char('-');
 _
 
 Patches currently in -mm which might be from harvey.harrison@gmail.com are
