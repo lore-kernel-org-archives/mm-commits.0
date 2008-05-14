@@ -1,311 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: - mn10300-use-the-common-ascii-hex-helpers.patch removed from -mm tree
-Date: Wed, 14 May 2008 10:42:04 -0700
-Message-ID: <200805141742.m4EHg4xP012749@imap1.linux-foundation.org>
+Subject: + reiserfs-convert-j_flush_sem-to-mutex-fix.patch added to -mm tree
+Date: Wed, 14 May 2008 11:01:29 -0700
+Message-ID: <200805141801.m4EI1TFu013572@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48561 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:52859 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755386AbYENRml (ORCPT
+	by vger.kernel.org with ESMTP id S1755189AbYENSEE (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 13:42:41 -0400
+	Wed, 14 May 2008 14:04:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: harvey.harrison@gmail.com, dhowells@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, chris.mason@oracle.com, edward.shishkin@gmail.com, jeffm@suse.com, kamalesh@linux.vnet.ibm.com, matthew@wil.cx
 
 
 The patch titled
-     mn10300: use the common ascii hex helpers
-has been removed from the -mm tree.  Its filename was
-     mn10300-use-the-common-ascii-hex-helpers.patch
+     reiserfs-convert-j_flush_sem-to-mutex-fix
+has been added to the -mm tree.  Its filename is
+     reiserfs-convert-j_flush_sem-to-mutex-fix.patch
 
-This patch was dropped because it was nacked
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mn10300: use the common ascii hex helpers
-From: Harvey Harrison <harvey.harrison@gmail.com>
+Subject: reiserfs-convert-j_flush_sem-to-mutex-fix
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Signed-off-by: Harvey Harrison <harvey.harrison@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Chris Mason <chris.mason@oracle.com>
+Cc: Edward Shishkin <edward.shishkin@gmail.com>
+Cc: Jeff Mahoney <jeffm@suse.com>
+Cc: Matthew Wilcox <matthew@wil.cx>
+Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/kernel/gdb-stub.c |  108 +++++++++++++------------------
- 1 file changed, 46 insertions(+), 62 deletions(-)
+ fs/reiserfs/journal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/mn10300/kernel/gdb-stub.c~mn10300-use-the-common-ascii-hex-helpers arch/mn10300/kernel/gdb-stub.c
---- a/arch/mn10300/kernel/gdb-stub.c~mn10300-use-the-common-ascii-hex-helpers
-+++ a/arch/mn10300/kernel/gdb-stub.c
-@@ -163,8 +163,6 @@ static char	input_buffer[BUFMAX];
- static char	output_buffer[BUFMAX];
- static char	trans_buffer[BUFMAX];
- 
--static const char hexchars[] = "0123456789abcdef";
--
- struct gdbstub_bkpt {
- 	u8	*addr;		/* address of breakpoint */
- 	u8	len;		/* size of breakpoint */
-@@ -363,8 +361,8 @@ static int putpacket(char *buffer)
- 		}
- 
- 		gdbstub_io_tx_char('#');
--		gdbstub_io_tx_char(hexchars[checksum >> 4]);
--		gdbstub_io_tx_char(hexchars[checksum & 0xf]);
-+		gdbstub_io_tx_char(hex_asc_hi(checksum));
-+		gdbstub_io_tx_char(hex_asc_lo(checksum));
- 
- 	} while (gdbstub_io_rx_char(&ch, 0),
- 		 ch == '-' && (gdbstub_io("### GDB Rx NAK\n"), 0),
-@@ -822,8 +820,7 @@ unsigned char *mem2hex(const void *_mem,
- 	if ((u32) mem & 1 && count >= 1) {
- 		if (gdbstub_read_byte(mem, ch) != 0)
- 			return 0;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
- 		mem++;
- 		count--;
- 	}
-@@ -831,10 +828,8 @@ unsigned char *mem2hex(const void *_mem,
- 	if ((u32) mem & 3 && count >= 2) {
- 		if (gdbstub_read_word(mem, ch) != 0)
- 			return 0;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
--		*buf++ = hexchars[ch[1] >> 4];
--		*buf++ = hexchars[ch[1] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
-+		buf = pack_hex_byte(buf, ch[1]);
- 		mem += 2;
- 		count -= 2;
- 	}
-@@ -842,14 +837,10 @@ unsigned char *mem2hex(const void *_mem,
- 	while (count >= 4) {
- 		if (gdbstub_read_dword(mem, ch) != 0)
- 			return 0;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
--		*buf++ = hexchars[ch[1] >> 4];
--		*buf++ = hexchars[ch[1] & 0xf];
--		*buf++ = hexchars[ch[2] >> 4];
--		*buf++ = hexchars[ch[2] & 0xf];
--		*buf++ = hexchars[ch[3] >> 4];
--		*buf++ = hexchars[ch[3] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
-+		buf = pack_hex_byte(buf, ch[1]);
-+		buf = pack_hex_byte(buf, ch[2]);
-+		buf = pack_hex_byte(buf, ch[3]);
- 		mem += 4;
- 		count -= 4;
- 	}
-@@ -857,10 +848,8 @@ unsigned char *mem2hex(const void *_mem,
- 	if (count >= 2) {
- 		if (gdbstub_read_word(mem, ch) != 0)
- 			return 0;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
--		*buf++ = hexchars[ch[1] >> 4];
--		*buf++ = hexchars[ch[1] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
-+		buf = pack_hex_byte(buf, ch[1]);
- 		mem += 2;
- 		count -= 2;
- 	}
-@@ -868,8 +857,7 @@ unsigned char *mem2hex(const void *_mem,
- 	if (count >= 1) {
- 		if (gdbstub_read_byte(mem, ch) != 0)
- 			return 0;
--		*buf++ = hexchars[ch[0] >> 4];
--		*buf++ = hexchars[ch[0] & 0xf];
-+		buf = pack_hex_byte(buf, ch[0]);
+diff -puN fs/reiserfs/journal.c~reiserfs-convert-j_flush_sem-to-mutex-fix fs/reiserfs/journal.c
+--- a/fs/reiserfs/journal.c~reiserfs-convert-j_flush_sem-to-mutex-fix
++++ a/fs/reiserfs/journal.c
+@@ -1412,7 +1412,7 @@ static int flush_journal_list(struct sup
+ 	/* if flushall == 0, the lock is already held */
+ 	if (flushall) {
+ 		mutex_lock(&journal->j_flush_mutex);
+-	} else if (!mutex_trylock(&journal->j_flush_mutex)) {
++	} else if (mutex_trylock(&journal->j_flush_mutex)) {
+ 		BUG();
  	}
  
- 	*buf = 0;
-@@ -1304,14 +1292,14 @@ static int gdbstub(struct pt_regs *regs,
- 		*ptr++ = 'O';
- 		ptr = mem2hex(title, ptr, sizeof(title) - 1, 0);
- 
--		hx = hexchars[(excep & 0xf000) >> 12];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(excep & 0x0f00) >> 8];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(excep & 0x00f0) >> 4];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(excep & 0x000f)];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
-+		hx = hex_asc_hi(excep >> 8);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(excep >> 8);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_hi(excep);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(excep);
-+		ptr = pack_hex_byte(ptr, hx);
- 
- 		ptr = mem2hex(crlf, ptr, sizeof(crlf) - 1, 0);
- 		*ptr = 0;
-@@ -1322,22 +1310,22 @@ static int gdbstub(struct pt_regs *regs,
- 		*ptr++ = 'O';
- 		ptr = mem2hex(tbcberr, ptr, sizeof(tbcberr) - 1, 0);
- 
--		hx = hexchars[(bcberr & 0xf0000000) >> 28];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x0f000000) >> 24];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x00f00000) >> 20];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x000f0000) >> 16];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x0000f000) >> 12];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x00000f00) >> 8];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x000000f0) >> 4];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
--		hx = hexchars[(bcberr & 0x0000000f)];
--		*ptr++ = hexchars[hx >> 4];	*ptr++ = hexchars[hx & 0xf];
-+		hx = hex_asc_hi(excep >> 24);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(excep >> 24);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_hi(excep >> 16);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(excep >> 16);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_hi(excep >> 8);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(excep >> 8);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_hi(excep);
-+		ptr = pack_hex_byte(ptr, hx);
-+		hx = hex_asc_lo(excep);
-+		ptr = pack_hex_byte(ptr, hx);
- 
- 		ptr = mem2hex(crlf, ptr, sizeof(crlf) - 1, 0);
- 		*ptr = 0;
-@@ -1353,14 +1341,12 @@ static int gdbstub(struct pt_regs *regs,
- 	 * Send trap type (converted to signal)
- 	 */
- 	*ptr++ = 'T';
--	*ptr++ = hexchars[sigval >> 4];
--	*ptr++ = hexchars[sigval & 0xf];
-+	ptr = pack_hex_byte(ptr, sigval);
- 
- 	/*
- 	 * Send Error PC
- 	 */
--	*ptr++ = hexchars[GDB_REGID_PC >> 4];
--	*ptr++ = hexchars[GDB_REGID_PC & 0xf];
-+	ptr = pack_hex_byte(ptr, GDB_REGID_PC);
- 	*ptr++ = ':';
- 	ptr = mem2hex(&regs->pc, ptr, 4, 0);
- 	*ptr++ = ';';
-@@ -1368,8 +1354,7 @@ static int gdbstub(struct pt_regs *regs,
- 	/*
- 	 * Send frame pointer
- 	 */
--	*ptr++ = hexchars[GDB_REGID_FP >> 4];
--	*ptr++ = hexchars[GDB_REGID_FP & 0xf];
-+	ptr = pack_hex_byte(ptr, GDB_REGID_FP);
- 	*ptr++ = ':';
- 	ptr = mem2hex(&regs->a3, ptr, 4, 0);
- 	*ptr++ = ';';
-@@ -1378,8 +1363,7 @@ static int gdbstub(struct pt_regs *regs,
- 	 * Send stack pointer
- 	 */
- 	ssp = (unsigned long) (regs + 1);
--	*ptr++ = hexchars[GDB_REGID_SP >> 4];
--	*ptr++ = hexchars[GDB_REGID_SP & 0xf];
-+	ptr = pack_hex_byte(ptr, GDB_REGID_SP);
- 	*ptr++ = ':';
- 	ptr = mem2hex(&ssp, ptr, 4, 0);
- 	*ptr++ = ';';
-@@ -1399,8 +1383,8 @@ packet_waiting:
- 			/* request repeat of last signal number */
- 		case '?':
- 			output_buffer[0] = 'S';
--			output_buffer[1] = hexchars[sigval >> 4];
--			output_buffer[2] = hexchars[sigval & 0xf];
-+			output_buffer[1] = hex_asc_hi(sigval);
-+			output_buffer[2] = hex_asc_lo(sigval);
- 			output_buffer[3] = 0;
- 			break;
- 
-@@ -1838,8 +1822,8 @@ void gdbstub_exit(int status)
- 
- 	gdbstub_busy = 1;
- 	output_buffer[0] = 'W';
--	output_buffer[1] = hexchars[(status >> 4) & 0x0F];
--	output_buffer[2] = hexchars[status & 0x0F];
-+	output_buffer[1] = hex_asc_hi(status);
-+	output_buffer[2] = hex_asc_lo(status);
- 	output_buffer[3] = 0;
- 
- 	gdbstub_io_tx_char('$');
-@@ -1853,8 +1837,8 @@ void gdbstub_exit(int status)
- 	}
- 
- 	gdbstub_io_tx_char('#');
--	gdbstub_io_tx_char(hexchars[checksum >> 4]);
--	gdbstub_io_tx_char(hexchars[checksum & 0xf]);
-+	gdbstub_io_tx_char(hex_asc_hi(checksum));
-+	gdbstub_io_tx_char(hex_asc_lo(checksum));
- 
- 	/* make sure the output is flushed, or else RedBoot might clobber it */
- 	gdbstub_io_tx_flush();
 _
 
-Patches currently in -mm which might be from harvey.harrison@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-kgdb-use-put_unaligned_be32-helper.patch
-cifs-remove-global_extern-macro.patch
-media-use-get_unaligned_-helpers.patch
-hid-use-get-put_unaligned_-helpers.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+ia64-kvm-dont-delete-files-which-we-need.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-early_init_centaur-use-set_cpu_cap.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+audit_send_reply-fix-error-path-memory-leak.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
 git-input.patch
-ata-remove-fit-macro.patch
-nfs-replace-remaining-__function__-occurrences.patch
-parisc-replace-remaining-__function__-occurences.patch
-drivers-parisc-replace-remaining-__function__-occurrences.patch
-scsi-replace-remaining-__function__-occurrences.patch
-fusion-replace-remaining-__function__-occurrences.patch
-scsi-replace-__inline-with-inline.patch
-scsi-use-get_unaligned_-helpers.patch
-scsi-aic79xx_core-fix-shadowed-variables-add-statics.patch
-scsi-aic79xx-aic79xx_pcic-fix-shadowed-variables.patch
-block-use-get_unaligned_-helpers.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+git-mmc.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
+git-ubifs.patch
+git-net.patch
+git-net-git-rejects.patch
+hysdn-no-longer-broken-on-smp.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+selinux-dopey-hack.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+revert-git-block.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+unionfs-broke.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
+drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+rndis-switch-to-seq_files-checkpatch-fixes.patch
+git-v9fs.patch
+revert-git-v9fs.patch
 git-watchdog.patch
-mac80211-michaelc-use-kernel-provided-infrastructure.patch
-mac80211-introduce-struct-michael_mic_ctx-and-static-helpers.patch
-mac80211-tkipc-use-kernel-provided-infrastructure.patch
-mac80211-add-const-remove-unused-function-make-one-function-static.patch
-mac80211-add-a-struct-to-hold-tkip-context.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-1-key-mixing.patch
-mac80211-tkipc-use-struct-tkip_ctx-in-phase-2-key-mixing.patch
-b43-replace-limit_value-macro-with-clamp_val.patch
-b43legacy-replace-limit_value-macro-with-clamp_val.patch
-wireless-use-get-put_unaligned_-helpers.patch
-b43-use-the-bitrev-helpers-rather-than-rolling-a-private-one.patch
-xfs-use-get_unaligned_-helpers.patch
-xtensa-replace-remaining-__function__-occurences.patch
-lib-create-common-ascii-hex-array.patch
-fs-ldm-use-get_unaligned_-helpers.patch
-include-use-get-put_unaligned_-helpers.patch
-lzo-use-get-put_unaligned_-helpers.patch
-video-fix-integer-as-null-pointer-warnings.patch
-scsi-use-the-common-hex_asc-array-rather-than-a-private-one.patch
-isdn-use-the-common-ascii-hex-helpers.patch
-net-use-the-common-ascii-hex-helpers.patch
-kgdb-use-the-common-ascii-hex-helpers.patch
-cris-use-the-common-ascii-hex-helpers.patch
-frv-use-the-common-ascii-hex-helpers.patch
-mn10300-use-the-common-ascii-hex-helpers.patch
-mips-use-the-common-ascii-hex-helpers.patch
-sh-use-the-common-ascii-hex-helpers.patch
-ppc-use-the-common-ascii-hex-helpers.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+wireless-fix-iwlwifi-unify-init-driver-flow.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-orion-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes.patch
+tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_flush_sem-to-mutex-fix.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
 ppc-use-the-common-ascii-hex-helpers-fix.patch
-aacraid-linitc-make-aac_show_serial_number-static.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
