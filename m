@@ -1,33 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: - common-implementation-of-iterative-div-mod-fix-2.patch removed from -mm tree
-Date: Tue, 13 May 2008 23:46:42 -0700
-Message-ID: <200805140646.m4E6kgcg020805@imap1.linux-foundation.org>
+Subject: - common-implementation-of-iterative-div-mod-fix.patch removed from -mm tree
+Date: Tue, 13 May 2008 23:46:34 -0700
+Message-ID: <200805140646.m4E6kYti020798@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35067 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51432 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751664AbYENGrd (ORCPT
+	by vger.kernel.org with ESMTP id S1751256AbYENGrY (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 02:47:33 -0400
+	Wed, 14 May 2008 02:47:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, hancockr@shaw.ca, jeremy.fitzhardinge@citrix.com, jeremy@goop.org, johnstul@us.ibm.com, lists@nerdbynature.de, mingo@elte.hu, segher@kernel.crashing.org, tg
 
 
 The patch titled
-     common-implementation-of-iterative-div-mod-fix-2
+     common-implementation-of-iterative-div-mod-fix
 has been removed from the -mm tree.  Its filename was
-     common-implementation-of-iterative-div-mod-fix-2.patch
+     common-implementation-of-iterative-div-mod-fix.patch
 
 This patch was dropped because it was folded into common-implementation-of-iterative-div-mod.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: common-implementation-of-iterative-div-mod-fix-2
+Subject: common-implementation-of-iterative-div-mod-fix
 From: Andrew Morton <akpm@linux-foundation.org>
-
-fix headers_check.
 
 Cc: Christian Kujau <lists@nerdbynature.de>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -40,29 +38,36 @@ Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- div64.c              |    0 
- include/linux/time.h |    2 +-
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/math64.h |    2 +-
+ lib/div64.c            |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/xen/time.c~common-implementation-of-iterative-div-mod-fix-2 arch/x86/xen/time.c
-diff -puN include/linux/math64.h~common-implementation-of-iterative-div-mod-fix-2 include/linux/math64.h
-diff -puN include/linux/time.h~common-implementation-of-iterative-div-mod-fix-2 include/linux/time.h
---- a/include/linux/time.h~common-implementation-of-iterative-div-mod-fix-2
-+++ a/include/linux/time.h
-@@ -2,11 +2,11 @@
- #define _LINUX_TIME_H
- 
- #include <linux/types.h>
--#include <linux/math64.h>
- 
- #ifdef __KERNEL__
- # include <linux/cache.h>
- # include <linux/seqlock.h>
-+# include <linux/math64.h>
+diff -puN include/linux/math64.h~common-implementation-of-iterative-div-mod-fix include/linux/math64.h
+--- a/include/linux/math64.h~common-implementation-of-iterative-div-mod-fix
++++ a/include/linux/math64.h
+@@ -81,6 +81,6 @@ static inline s64 div_s64(s64 dividend, 
+ }
  #endif
  
- #ifndef _STRUCT_TIMESPEC
-diff -puN lib/div64.c~common-implementation-of-iterative-div-mod-fix-2 lib/div64.c
+-unsigned iter_div_u64_rem(u64 dividend, u32 divisor, u64 *remainder);
++u32 iter_div_u64_rem(u64 dividend, u32 divisor, u64 *remainder);
+ 
+ #endif /* _LINUX_MATH64_H */
+diff -puN lib/div64.c~common-implementation-of-iterative-div-mod-fix lib/div64.c
+--- a/lib/div64.c~common-implementation-of-iterative-div-mod-fix
++++ a/lib/div64.c
+@@ -103,9 +103,9 @@ EXPORT_SYMBOL(div64_u64);
+  * Iterative div/mod for use when dividend is not expected to be much
+  * bigger than divisor.
+  */
+-unsigned iter_div_u64_rem(u64 dividend, u32 divisor, u64 *remainder)
++u32 iter_div_u64_rem(u64 dividend, u32 divisor, u64 *remainder)
+ {
+-	unsigned ret = 0;
++	u32 ret = 0;
+ 
+ 	while(dividend >= divisor) {
+ 		/* The following asm() prevents the compiler from
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -140,6 +145,8 @@ git-xtensa.patch
 git-orion-git-rejects.patch
 ext4-is-busted-on-m68k.patch
 common-implementation-of-iterative-div-mod.patch
+common-implementation-of-iterative-div-mod-fix.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
 common-implementation-of-iterative-div-mod-fix-2.patch
 mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
