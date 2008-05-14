@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + wireless-fix-iwlwifi-unify-init-driver-flow.patch added to -mm tree
-Date: Tue, 13 May 2008 21:05:50 -0700
-Message-ID: <200805140405.m4E45oBc015343@imap1.linux-foundation.org>
+Subject: + fix-kobject-fix-kobject_rename-and-config_sysfs.patch added to -mm tree
+Date: Tue, 13 May 2008 21:25:18 -0700
+Message-ID: <200805140436.m4E4aK4D016336@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40353 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41408 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751129AbYENEGO (ORCPT
+	by vger.kernel.org with ESMTP id S1757129AbYENEhB (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 00:06:14 -0400
+	Wed, 14 May 2008 00:37:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, linville@tuxdriver.com, ron.rindjunsky@intel.com, sfr@canb.auug.org.au, tomas.winkler@intel.com
+Cc: akpm@linux-foundation.org, ebiederm@xmission.com, gregkh@suse.de, sfr@canb.auug.org.au
 
 
 The patch titled
-     wireless: fix "iwlwifi: unify init driver flow"
+     fix "kobject: Fix kobject_rename and !CONFIG_SYSFS"
 has been added to the -mm tree.  Its filename is
-     wireless-fix-iwlwifi-unify-init-driver-flow.patch
+     fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,41 +34,94 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: wireless: fix "iwlwifi: unify init driver flow"
+Subject: fix "kobject: Fix kobject_rename and !CONFIG_SYSFS"
 From: Andrew Morton <akpm@linux-foundation.org>
 
-drivers/net/wireless/iwlwifi/iwl-core.c: In function 'iwlcore_init_geos':
-drivers/net/wireless/iwlwifi/iwl-core.c:323: error: implicit declaration of function 'iwlcore_init_ht_hw_capab'
+mips allnoconfig:
 
-This (or something like it) should be folded into the base patch to avoid
-breaking bisection, please.
+In file included from include/linux/kobject.h:21,
+                 from include/linux/slub_def.h:12,
+                 from include/linux/slab.h:123,
+                 from include/linux/percpu.h:5,
+                 from include/linux/rcupdate.h:39,
+                 from include/linux/pid.h:4,
+                 from include/linux/sched.h:74,
+                 from arch/mips/kernel/asm-offsets.c:13:
+include/linux/sysfs.h: In function `sysfs_rename_dir':
+include/linux/sysfs.h:141: error: implicit declaration of function `kobject_set_name'
+In file included from include/linux/slub_def.h:12,
+                 from include/linux/slab.h:123,
+                 from include/linux/percpu.h:5,
+                 from include/linux/rcupdate.h:39,
+                 from include/linux/pid.h:4,
+                 from include/linux/sched.h:74,
+                 from arch/mips/kernel/asm-offsets.c:13:
+include/linux/kobject.h: At top level:
+include/linux/kobject.h:74: error: conflicting types for 'kobject_set_name'
+include/linux/kobject.h:74: note: a parameter list with an ellipsis can't match an empty parameter name list declaration
+include/linux/sysfs.h:141: error: previous implicit declaration of 'kobject_set_name' was here
+make[1]: *** [arch/mips/kernel/asm-offsets.s] Error 1
+make: *** [prepare0] Error 2
 
-Cc: Ron Rindjunsky <ron.rindjunsky@intel.com>
-Cc: Tomas Winkler <tomas.winkler@intel.com>
-Cc: John W. Linville <linville@tuxdriver.com>
+We cannot include kobject.h from sysfs.h because kobject.h includes sysfs.h.
+
+Just uninline it (fixes everything, doesn't it?)
+
+lib/kobject.c doesn't seem an appropriate file :(
+
+Please fold this (or similar) into the base patch to avoid breaking bisection.
+
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/iwlwifi/iwl-core.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/sysfs.h |    6 ++----
+ lib/kobject.c         |    8 ++++++++
+ 2 files changed, 10 insertions(+), 4 deletions(-)
 
-diff -puN drivers/net/wireless/iwlwifi/iwl-core.c~wireless-fix-iwlwifi-unify-init-driver-flow drivers/net/wireless/iwlwifi/iwl-core.c
---- a/drivers/net/wireless/iwlwifi/iwl-core.c~wireless-fix-iwlwifi-unify-init-driver-flow
-+++ a/drivers/net/wireless/iwlwifi/iwl-core.c
-@@ -259,6 +259,12 @@ static void iwlcore_init_ht_hw_capab(con
- 	if (priv->hw_params.tx_chains_num >= 3)
- 		ht_info->supp_mcs_set[2] = 0xFF;
+diff -puN include/linux/sysfs.h~fix-kobject-fix-kobject_rename-and-config_sysfs include/linux/sysfs.h
+--- a/include/linux/sysfs.h~fix-kobject-fix-kobject_rename-and-config_sysfs
++++ a/include/linux/sysfs.h
+@@ -136,10 +136,6 @@ static inline void sysfs_remove_dir(stru
+ {
  }
-+#else
-+static inline void iwlcore_init_ht_hw_capab(const struct iwl_priv *priv,
-+			      struct ieee80211_ht_info *ht_info,
-+			      enum ieee80211_band band)
-+{
-+}
- #endif /* CONFIG_IWL4965_HT */
  
- static void iwlcore_init_hw_rates(struct iwl_priv *priv,
+-static inline int sysfs_rename_dir(struct kobject *kobj, const char *new_name)
+-{
+-	return kobject_set_name(kobj, "%s", new_name);
+-}
+ 
+ static inline int sysfs_move_dir(struct kobject *kobj,
+ 				 struct kobject *new_parent_kobj)
+@@ -226,6 +222,8 @@ static inline void sysfs_printk_last_fil
+ {
+ }
+ 
++int sysfs_rename_dir(struct kobject *kobj, const char *new_name);
++
+ #endif /* CONFIG_SYSFS */
+ 
+ #endif /* _SYSFS_H_ */
+diff -puN lib/kobject.c~fix-kobject-fix-kobject_rename-and-config_sysfs lib/kobject.c
+--- a/lib/kobject.c~fix-kobject-fix-kobject_rename-and-config_sysfs
++++ a/lib/kobject.c
+@@ -882,6 +882,14 @@ struct kset *kset_create_and_add(const c
+ 	}
+ 	return kset;
+ }
++
++#ifndef CONFIG_SYSFS
++int sysfs_rename_dir(struct kobject *kobj, const char *new_name)
++{
++	return kobject_set_name(kobj, "%s", new_name);
++}
++#endif
++
+ EXPORT_SYMBOL_GPL(kset_create_and_add);
+ 
+ EXPORT_SYMBOL(kobject_get);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +132,7 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 revert-9p-convert-from-semaphore-to-spinlock.patch
 ia64-kvm-dont-delete-files-which-we-need.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
 revert-acpica-fixes-for-unload-and-ddbhandles.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-video-balcklist-fujitsu-lifebook-s6410.patch
@@ -186,5 +240,4 @@ notify_change-callers-must-hold-i_mutex.patch
 profile-likely-unlikely-macros.patch
 drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
 w1-build-fix.patch
-wireless-fix-iwlwifi-unify-init-driver-flow.patch
 
