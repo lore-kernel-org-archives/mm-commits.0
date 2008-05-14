@@ -1,63 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: - common-implementation-of-iterative-div-mod-checkpatch-fixes.patch removed from -mm tree
-Date: Tue, 13 May 2008 23:46:38 -0700
-Message-ID: <200805140646.m4E6kc4l020801@imap1.linux-foundation.org>
+Subject: - common-implementation-of-iterative-div-mod-fix-2.patch removed from -mm tree
+Date: Tue, 13 May 2008 23:46:42 -0700
+Message-ID: <200805140646.m4E6kgcg020805@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49966 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35067 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750939AbYENGql (ORCPT
+	by vger.kernel.org with ESMTP id S1751664AbYENGrd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 02:46:41 -0400
+	Wed, 14 May 2008 02:47:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jeremy@goop.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hancockr@shaw.ca, jeremy.fitzhardinge@citrix.com, jeremy@goop.org, johnstul@us.ibm.com, lists@nerdbynature.de, mingo@elte.hu, segher@kernel.crashing.org, tg
 
 
 The patch titled
-     common-implementation-of-iterative-div-mod-checkpatch-fixes
+     common-implementation-of-iterative-div-mod-fix-2
 has been removed from the -mm tree.  Its filename was
-     common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+     common-implementation-of-iterative-div-mod-fix-2.patch
 
 This patch was dropped because it was folded into common-implementation-of-iterative-div-mod.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: common-implementation-of-iterative-div-mod-checkpatch-fixes
+Subject: common-implementation-of-iterative-div-mod-fix-2
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: space required before the open parenthesis '('
-#122: FILE: lib/div64.c:110:
-+	while(dividend >= divisor) {
+fix headers_check.
 
-total: 1 errors, 0 warnings, 86 lines checked
-
-./patches/common-implementation-of-iterative-div-mod.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
+Cc: Christian Kujau <lists@nerdbynature.de>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Cc: Jeremy Fitzhardinge <jeremy@goop.org>
+Cc: Robert Hancock <hancockr@shaw.ca>
+Cc: Segher Boessenkool <segher@kernel.crashing.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: john stultz <johnstul@us.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/div64.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ div64.c              |    0 
+ include/linux/time.h |    2 +-
+ 2 files changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/div64.c~common-implementation-of-iterative-div-mod-checkpatch-fixes lib/div64.c
---- a/lib/div64.c~common-implementation-of-iterative-div-mod-checkpatch-fixes
-+++ a/lib/div64.c
-@@ -107,7 +107,7 @@ u32 iter_div_u64_rem(u64 dividend, u32 d
- {
- 	u32 ret = 0;
+diff -puN arch/x86/xen/time.c~common-implementation-of-iterative-div-mod-fix-2 arch/x86/xen/time.c
+diff -puN include/linux/math64.h~common-implementation-of-iterative-div-mod-fix-2 include/linux/math64.h
+diff -puN include/linux/time.h~common-implementation-of-iterative-div-mod-fix-2 include/linux/time.h
+--- a/include/linux/time.h~common-implementation-of-iterative-div-mod-fix-2
++++ a/include/linux/time.h
+@@ -2,11 +2,11 @@
+ #define _LINUX_TIME_H
  
--	while(dividend >= divisor) {
-+	while (dividend >= divisor) {
- 		/* The following asm() prevents the compiler from
- 		   optimising this loop into a modulo operation.  */
- 		asm("" : "+rm"(dividend));
+ #include <linux/types.h>
+-#include <linux/math64.h>
+ 
+ #ifdef __KERNEL__
+ # include <linux/cache.h>
+ # include <linux/seqlock.h>
++# include <linux/math64.h>
+ #endif
+ 
+ #ifndef _STRUCT_TIMESPEC
+diff -puN lib/div64.c~common-implementation-of-iterative-div-mod-fix-2 lib/div64.c
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -135,7 +140,6 @@ git-xtensa.patch
 git-orion-git-rejects.patch
 ext4-is-busted-on-m68k.patch
 common-implementation-of-iterative-div-mod.patch
-common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
 common-implementation-of-iterative-div-mod-fix-2.patch
 mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
