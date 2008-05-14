@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + flag-parameters-eventfd-fix.patch added to -mm tree
-Date: Wed, 14 May 2008 13:58:16 -0700
-Message-ID: <200805142058.m4EKwGHJ020534@imap1.linux-foundation.org>
+Subject: + flag-parameters-signalfd-fix.patch added to -mm tree
+Date: Wed, 14 May 2008 13:57:00 -0700
+Message-ID: <200805142057.m4EKv04J020475@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:43403 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53235 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753004AbYENU7j (ORCPT
+	by vger.kernel.org with ESMTP id S1753158AbYENU73 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 16:59:39 -0400
+	Wed, 14 May 2008 16:59:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, mtk.
 
 
 The patch titled
-     flag-parameters-eventfd-fix
+     flag-parameters-signalfd-fix
 has been added to the -mm tree.  Its filename is
-     flag-parameters-eventfd-fix.patch
+     flag-parameters-signalfd-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,7 +34,7 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag-parameters-eventfd-fix
+Subject: flag-parameters-signalfd-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
 Cc: Davide Libenzi <davidel@xmailserver.org>
@@ -47,14 +47,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  kernel/sys_ni.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN kernel/sys_ni.c~flag-parameters-eventfd-fix kernel/sys_ni.c
---- a/kernel/sys_ni.c~flag-parameters-eventfd-fix
+diff -puN kernel/sys_ni.c~flag-parameters-signalfd-fix kernel/sys_ni.c
+--- a/kernel/sys_ni.c~flag-parameters-signalfd-fix
 +++ a/kernel/sys_ni.c
-@@ -163,3 +163,4 @@ cond_syscall(sys_timerfd_gettime);
- cond_syscall(compat_sys_timerfd_settime);
- cond_syscall(compat_sys_timerfd_gettime);
- cond_syscall(sys_eventfd);
-+cond_syscall(sys_eventfd2);
+@@ -155,6 +155,7 @@ cond_syscall(sys_ioprio_get);
+ 
+ /* New file descriptors */
+ cond_syscall(sys_signalfd);
++cond_syscall(sys_signalfd4);
+ cond_syscall(compat_sys_signalfd);
+ cond_syscall(sys_timerfd_create);
+ cond_syscall(sys_timerfd_settime);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -151,7 +154,6 @@ flag-parameters-paccept-fix.patch
 flag-parameters-paccept-sys_ni.patch
 flag-parameters-anon_inode_getfd-extension-fix.patch
 flag-parameters-signalfd-fix.patch
-flag-parameters-eventfd-fix.patch
 flag-parameters-inotify_init-fix.patch
 flag-parameters-check-magic-constants-alpha-hack.patch
 drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
