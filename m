@@ -1,62 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: - sctp-fix-use-of-uninitialized-pointer.patch removed from -mm tree
-Date: Wed, 14 May 2008 14:22:08 -0700
-Message-ID: <200805142122.m4ELM8sm021571@imap1.linux-foundation.org>
+Subject: - ext4-fix-typos-in-messages-and-comments-journalled-journaled.patch removed from -mm tree
+Date: Wed, 14 May 2008 14:22:22 -0700
+Message-ID: <200805142122.m4ELMMVc021591@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40706 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57088 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753288AbYENVWO (ORCPT
+	by vger.kernel.org with ESMTP id S1752605AbYENVW0 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 17:22:14 -0400
+	Wed, 14 May 2008 17:22:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kaber@trash.net, mm-commits@vger.kernel.org
+To: jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     sctp: fix use of uninitialized pointer
+     ext4: fix typos in messages and comments (journalled -> journaled)
 has been removed from the -mm tree.  Its filename was
-     sctp-fix-use-of-uninitialized-pointer.patch
+     ext4-fix-typos-in-messages-and-comments-journalled-journaled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sctp: fix use of uninitialized pointer
-From: Patrick McHardy <kaber@trash.net>
+Subject: ext4: fix typos in messages and comments (journalled -> journaled)
+From: Jan Kara <jack@suse.cz>
 
-Introduced by c4492586 (sctp: Add address type check while process
-paramaters of ASCONF chunk):
-
-net/sctp/sm_make_chunk.c: In function 'sctp_process_asconf':
-net/sctp/sm_make_chunk.c:2828: warning: 'addr_param' may be used uninitialized in this function
-net/sctp/sm_make_chunk.c:2828: note: 'addr_param' was declared here
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/sm_make_chunk.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ fs/ext4/super.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN net/sctp/sm_make_chunk.c~sctp-fix-use-of-uninitialized-pointer net/sctp/sm_make_chunk.c
---- a/net/sctp/sm_make_chunk.c~sctp-fix-use-of-uninitialized-pointer
-+++ a/net/sctp/sm_make_chunk.c
-@@ -2827,6 +2827,9 @@ static __be16 sctp_process_asconf_param(
- 	union sctp_addr	addr;
- 	union sctp_addr_param *addr_param;
+diff -puN fs/ext4/super.c~ext4-fix-typos-in-messages-and-comments-journalled-journaled fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-fix-typos-in-messages-and-comments-journalled-journaled
++++ a/fs/ext4/super.c
+@@ -1167,7 +1167,7 @@ static int parse_options (char *options,
+ set_qf_name:
+ 			if (sb_any_quota_enabled(sb)) {
+ 				printk(KERN_ERR
+-					"EXT4-fs: Cannot change journalled "
++					"EXT4-fs: Cannot change journaled "
+ 					"quota options when quota turned on.\n");
+ 				return 0;
+ 			}
+@@ -1205,7 +1205,7 @@ set_qf_name:
+ clear_qf_name:
+ 			if (sb_any_quota_enabled(sb)) {
+ 				printk(KERN_ERR "EXT4-fs: Cannot change "
+-					"journalled quota options when "
++					"journaled quota options when "
+ 					"quota turned on.\n");
+ 				return 0;
+ 			}
+@@ -1339,14 +1339,14 @@ clear_qf_name:
+ 		}
  
-+	addr_param = (union sctp_addr_param *)
-+			((void *)asconf_param + sizeof(sctp_addip_param_t));
-+
- 	switch (addr_param->v4.param_hdr.type) {
- 	case SCTP_PARAM_IPV6_ADDRESS:
- 		if (!asoc->peer.ipv6_address)
-@@ -2840,9 +2843,6 @@ static __be16 sctp_process_asconf_param(
- 		return SCTP_ERROR_INV_PARAM;
+ 		if (!sbi->s_jquota_fmt) {
+-			printk(KERN_ERR "EXT4-fs: journalled quota format "
++			printk(KERN_ERR "EXT4-fs: journaled quota format "
+ 					"not specified.\n");
+ 			return 0;
+ 		}
+ 	} else {
+ 		if (sbi->s_jquota_fmt) {
+-			printk(KERN_ERR "EXT4-fs: journalled quota format "
+-					"specified with no journalling "
++			printk(KERN_ERR "EXT4-fs: journaled quota format "
++					"specified with no journaling "
+ 					"enabled.\n");
+ 			return 0;
+ 		}
+@@ -1587,7 +1587,7 @@ static void ext4_orphan_cleanup (struct 
+ 			int ret = ext4_quota_on_mount(sb, i);
+ 			if (ret < 0)
+ 				printk(KERN_ERR
+-					"EXT4-fs: Cannot turn on journalled "
++					"EXT4-fs: Cannot turn on journaled "
+ 					"quota: error %d\n", ret);
+ 		}
  	}
+@@ -3112,7 +3112,7 @@ static int ext4_release_dquot(struct dqu
  
--	addr_param = (union sctp_addr_param *)
--			((void *)asconf_param + sizeof(sctp_addip_param_t));
+ static int ext4_mark_dquot_dirty(struct dquot *dquot)
+ {
+-	/* Are we journalling quotas? */
++	/* Are we journaling quotas? */
+ 	if (EXT4_SB(dquot->dq_sb)->s_qf_names[USRQUOTA] ||
+ 	    EXT4_SB(dquot->dq_sb)->s_qf_names[GRPQUOTA]) {
+ 		dquot_mark_dquot_dirty(dquot);
+_
+
+Patches currently in -mm which might be from jack@suse.cz are
+
+origin.patch
+ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
+ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
+reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+
