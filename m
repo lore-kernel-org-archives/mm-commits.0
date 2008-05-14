@@ -1,63 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: + net-irda-irnet-irnet_irdac-needs-unalignedh.patch added to -mm tree
-Date: Wed, 14 May 2008 15:38:40 -0700
-Message-ID: <200805142249.m4EMnkjl025142@imap1.linux-foundation.org>
+Subject: - arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch removed from -mm tree
+Date: Wed, 14 May 2008 16:11:02 -0700
+Message-ID: <200805142311.m4ENB2np026134@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41246 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54592 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751072AbYENWuU (ORCPT
+	by vger.kernel.org with ESMTP id S1753775AbYENXRu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 18:50:20 -0400
+	Wed, 14 May 2008 19:17:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, davem@davemloft.net
+To: akpm@linux-foundation.org, matthias@kaehlcke.net, rmk@arm.linux.org.uk, tony@atomide.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     net/irda/irnet/irnet_irda.c needs unaligned.h
-has been added to the -mm tree.  Its filename is
-     net-irda-irnet-irnet_irdac-needs-unalignedh.patch
+     arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix
+has been removed from the -mm tree.  Its filename was
+     arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: net/irda/irnet/irnet_irda.c needs unaligned.h
+Subject: arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-net/irda/irnet/irnet_irda.c: In function 'irnet_discovery_indication':
-net/irda/irnet/irnet_irda.c:1676: error: implicit declaration of function 'get_unaligned'
-
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Matthias Kaehlcke <matthias@kaehlcke.net>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Tony Lindgren <tony@atomide.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/irda/irnet/irnet_irda.c |    1 +
+ arch/arm/mach-omap1/board-nokia770.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN net/irda/irnet/irnet_irda.c~net-irda-irnet-irnet_irdac-needs-unalignedh net/irda/irnet/irnet_irda.c
---- a/net/irda/irnet/irnet_irda.c~net-irda-irnet-irnet_irdac-needs-unalignedh
-+++ a/net/irda/irnet/irnet_irda.c
+diff -puN arch/arm/mach-omap1/board-nokia770.c~arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix arch/arm/mach-omap1/board-nokia770.c
+--- a/arch/arm/mach-omap1/board-nokia770.c~arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix
++++ a/arch/arm/mach-omap1/board-nokia770.c
 @@ -10,6 +10,7 @@
  
- #include "irnet_irda.h"		/* Private header */
- #include <linux/seq_file.h>
-+#include <asm/unaligned.h>
- 
- /*
-  * PPP disconnect work: we need to make sure we're in
+ #include <linux/kernel.h>
+ #include <linux/init.h>
++#include <linux/mutex.h>
+ #include <linux/platform_device.h>
+ #include <linux/input.h>
+ #include <linux/clk.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,15 +59,16 @@ linux-next-git-rejects.patch
 next-remove-localversion.patch
 revert-9p-convert-from-semaphore-to-spinlock.patch
 fix-kobject-fix-kobject_rename-and-config_sysfs.patch
-revert-acpica-fixes-for-unload-and-ddbhandles.patch
 acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
 acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
 git-x86-fixup.patch
 arch-x86-mm-patc-use-boot_cpu_has.patch
 x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
 lguest-use-cpu-capability-accessors.patch
 x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
 x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
 audit_send_reply-fix-error-path-memory-leak.patch
 cifs-suppress-warning.patch
@@ -110,7 +100,6 @@ drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
 s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
 git-unionfs.patch
 git-unionfs-fixup.patch
-unionfs-broke.patch
 git-logfs-fixup.patch
 drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
 drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
