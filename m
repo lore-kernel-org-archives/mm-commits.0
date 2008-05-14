@@ -1,223 +1,190 @@
 From: akpm@linux-foundation.org
-Subject: - vt-fix-vcs-sysfs-file-creation-race.patch removed from -mm tree
-Date: Tue, 13 May 2008 20:42:48 -0700
-Message-ID: <200805140342.m4E3gnce014670@imap1.linux-foundation.org>
+Subject: + wireless-fix-iwlwifi-unify-init-driver-flow.patch added to -mm tree
+Date: Tue, 13 May 2008 21:05:50 -0700
+Message-ID: <200805140405.m4E45oBc015343@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38251 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40353 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758969AbYENDnV (ORCPT
+	by vger.kernel.org with ESMTP id S1751129AbYENEGO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 23:43:21 -0400
+	Wed, 14 May 2008 00:06:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aris@ruivo.org, alan@lxorguk.ukuu.org.uk, arozansk@redhat.com, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, linville@tuxdriver.com, ron.rindjunsky@intel.com, sfr@canb.auug.org.au, tomas.winkler@intel.com
 
 
 The patch titled
-     vt: fix vcs* sysfs file creation race
-has been removed from the -mm tree.  Its filename was
-     vt-fix-vcs-sysfs-file-creation-race.patch
+     wireless: fix "iwlwifi: unify init driver flow"
+has been added to the -mm tree.  Its filename is
+     wireless-fix-iwlwifi-unify-init-driver-flow.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: vt: fix vcs* sysfs file creation race
-From: Aristeu Sergio Rozanski Filho <aris@ruivo.org>
+Subject: wireless: fix "iwlwifi: unify init driver flow"
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Currently there's a race on VT open/close path that can trigger messages like:
+drivers/net/wireless/iwlwifi/iwl-core.c: In function 'iwlcore_init_geos':
+drivers/net/wireless/iwlwifi/iwl-core.c:323: error: implicit declaration of function 'iwlcore_init_ht_hw_capab'
 
-kobject_add_internal failed for vcs7 with -EEXIST, don't try to register
-things with the same name in the same direc.
-Pid: 2967, comm: vcs_stress Not tainted 2.6.25 #10
- [<c04e852e>] kobject_add_internal+0x137/0x149
- [<c04e85d4>] kobject_add_varg+0x35/0x41
- [<c04e8645>] kobject_add+0x43/0x49
- [<c055e54f>] device_add+0x91/0x4b4
- [<c055e984>] device_register+0x12/0x15
- [<c055e9f6>] device_create+0x6f/0x95
- [<c053e69b>] vcs_make_sysfs+0x23/0x4f
- [<c0543aff>] con_open+0x74/0x82
- [<c0538b64>] tty_open+0x188/0x287
- [<c047b1c8>] chrdev_open+0x119/0x135
- [<c04775d4>] __dentry_open+0xcf/0x185
- [<c0477711>] nameidata_to_filp+0x1f/0x33
- [<c047b0af>] ? chrdev_open+0x0/0x135
- [<c0477753>] do_filp_open+0x2e/0x35
- [<c0627da6>] ? _spin_unlock+0x1d/0x20
- [<c04774ef>] ? get_unused_fd_flags+0xc9/0xd3
- [<c047779a>] do_sys_open+0x40/0xb5
- [<c0477851>] sys_open+0x1e/0x26
- [<c0404962>] syscall_call+0x7/0xb
- =======================
+This (or something like it) should be folded into the base patch to avoid
+breaking bisection, please.
 
-this happens because con_release() releases acquire_console_sem(), con_open()
-acquires it, finds vc_cons[currcons] unused and calls vcs_make_sysfs() before
-con_release() is able to call vcs_remove_sysfs().  vcs_remove_sysfs() can
-sleep so calling it with console semaphore taken isn't a good idea.
-
-But this isn't the only problem.  Currently release_dev() checks for
-tty->count without holding any locks but BKL that is acquired on tty_release()
-and several tty drivers also check tty->count and some of them without even
-holding any locks.  This leads to the case where two calls to
-release_dev()/tty->driver->close() can race and both find tty->count == 2 and
-don't release anything.  I see two possibilities here:
-
-1) We get rid of tty->count usage on drivers by implementing internal
-   counters.  This solution would allow us to fix each driver before
-   converting tty->count into a kref and only be used by tty layer.  This
-   proposed patch does eliminate tty->count usage on vt.
-
-2) We kill the current one open/close for each tty_open, only calling
-   driver's open and close on the first open and last close.  By looking on
-   the tty drivers, none of them do anything important with multiple opens
-   anyway (but I might be wrong on this).
-
-So, before doing anything more intrusive, I'd to hear which option you
-find better.
-
-To reproduce this problem, I use a simple stress program available at
-	jake.ruivo.org / ~aris / vcs_stress.c
-
-with a simple script like
-
-	while [ 1 ]; do sleep $((RANDOM % 15)); killall Xorg; done
-
-running multiple vcs_stress sessions also helps
-
-This patch removes the use of tty->count and tty_mutex and replaces it by an
-internal kref and changes the code to only set vc_tty to NULL after the
-vcs_remove_sysfs() is done.
-
-Signed-off-by: Aristeu Rozanski <arozansk@redhat.com>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Ron Rindjunsky <ron.rindjunsky@intel.com>
+Cc: Tomas Winkler <tomas.winkler@intel.com>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/vt.c              |   62 ++++++++++++++++++-------------
- include/linux/console_struct.h |    2 +
- 2 files changed, 39 insertions(+), 25 deletions(-)
+ drivers/net/wireless/iwlwifi/iwl-core.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN drivers/char/vt.c~vt-fix-vcs-sysfs-file-creation-race drivers/char/vt.c
---- a/drivers/char/vt.c~vt-fix-vcs-sysfs-file-creation-race
-+++ a/drivers/char/vt.c
-@@ -2729,15 +2729,24 @@ static int con_open(struct tty_struct *t
- {
- 	unsigned int currcons = tty->index;
- 	int ret = 0;
-+	struct vc_data *vc;
- 
- 	acquire_console_sem();
- 	if (tty->driver_data == NULL) {
- 		ret = vc_allocate(currcons);
- 		if (ret == 0) {
--			struct vc_data *vc = vc_cons[currcons].d;
-+			vc = vc_cons[currcons].d;
-+
-+			if (vc->vc_tty != NULL) {
-+				/* we're still releasing this console entry */
-+				release_console_sem();
-+				return -EBUSY;
-+			}
-+
- 			tty->driver_data = vc;
- 			vc->vc_tty = tty;
- 
-+			kref_init(&vc->kref);
- 			if (!tty->winsize.ws_row && !tty->winsize.ws_col) {
- 				tty->winsize.ws_row = vc_cons[currcons].d->vc_rows;
- 				tty->winsize.ws_col = vc_cons[currcons].d->vc_cols;
-@@ -2746,39 +2755,42 @@ static int con_open(struct tty_struct *t
- 			vcs_make_sysfs(tty);
- 			return ret;
- 		}
-+	} else {
-+		vc = tty->driver_data;
-+		kref_get(&vc->kref);
- 	}
- 	release_console_sem();
- 	return ret;
+diff -puN drivers/net/wireless/iwlwifi/iwl-core.c~wireless-fix-iwlwifi-unify-init-driver-flow drivers/net/wireless/iwlwifi/iwl-core.c
+--- a/drivers/net/wireless/iwlwifi/iwl-core.c~wireless-fix-iwlwifi-unify-init-driver-flow
++++ a/drivers/net/wireless/iwlwifi/iwl-core.c
+@@ -259,6 +259,12 @@ static void iwlcore_init_ht_hw_capab(con
+ 	if (priv->hw_params.tx_chains_num >= 3)
+ 		ht_info->supp_mcs_set[2] = 0xFF;
  }
- 
--/*
-- * We take tty_mutex in here to prevent another thread from coming in via init_dev
-- * and taking a ref against the tty while we're in the process of forgetting
-- * about it and cleaning things up.
-- *
-- * This is because vcs_remove_sysfs() can sleep and will drop the BKL.
-- */
--static void con_close(struct tty_struct *tty, struct file *filp)
-+static void con_release(struct kref *kref)
- {
--	mutex_lock(&tty_mutex);
-+	struct vc_data *vc = container_of(kref, struct vc_data, kref);
-+	struct tty_struct *tty = vc->vc_tty;
-+
-+	tty->driver_data = NULL;
-+
-+	/* we must release the semaphore here: vcs_remove_sysfs() may sleep */
-+	release_console_sem();
-+	vcs_remove_sysfs(tty);
- 	acquire_console_sem();
--	if (tty && tty->count == 1) {
--		struct vc_data *vc = tty->driver_data;
- 
--		if (vc)
--			vc->vc_tty = NULL;
--		tty->driver_data = NULL;
--		release_console_sem();
--		vcs_remove_sysfs(tty);
--		mutex_unlock(&tty_mutex);
--		/*
--		 * tty_mutex is released, but we still hold BKL, so there is
--		 * still exclusion against init_dev()
--		 */
--		return;
--	}
-+	/* now this slot is officially free */
-+	vc->vc_tty = NULL;
-+}
-+
-+static void con_close(struct tty_struct *tty, struct file *filp)
++#else
++static inline void iwlcore_init_ht_hw_capab(const struct iwl_priv *priv,
++			      struct ieee80211_ht_info *ht_info,
++			      enum ieee80211_band band)
 +{
-+	struct vc_data *vc = tty->driver_data;
-+
-+	acquire_console_sem();
-+	/*
-+	 * tty->driver_data can be NULL if con_open() fails because tty layer
-+	 * will call us even if the first open wasn't successful.
-+	 */
-+	if (vc != NULL)
-+		kref_put(&vc->kref, con_release);
- 	release_console_sem();
--	mutex_unlock(&tty_mutex);
- }
++}
+ #endif /* CONFIG_IWL4965_HT */
  
- static int default_italic_color    = 2; // green (ASCII)
-diff -puN include/linux/console_struct.h~vt-fix-vcs-sysfs-file-creation-race include/linux/console_struct.h
---- a/include/linux/console_struct.h~vt-fix-vcs-sysfs-file-creation-race
-+++ a/include/linux/console_struct.h
-@@ -15,6 +15,7 @@
- #include <linux/wait.h>
- #include <linux/vt.h>
- #include <linux/workqueue.h>
-+#include <linux/kref.h>
- 
- struct vt_struct;
- 
-@@ -108,6 +109,7 @@ struct vc_data {
- 	unsigned long	vc_uni_pagedir;
- 	unsigned long	*vc_uni_pagedir_loc;  /* [!] Location of uni_pagedir variable for this console */
- 	/* additional information is in vt_kern.h */
-+	struct kref	kref;
- };
- 
- struct vc {
+ static void iwlcore_init_hw_rates(struct iwl_priv *priv,
 _
 
-Patches currently in -mm which might be from aris@ruivo.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-vt-fix-vcs-sysfs-file-creation-race.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+ia64-kvm-dont-delete-files-which-we-need.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-early_init_centaur-use-set_cpu_cap.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+audit_send_reply-fix-error-path-memory-leak.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+git-mmc.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
+git-ubifs.patch
+git-net.patch
+git-net-git-rejects.patch
+hysdn-no-longer-broken-on-smp.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+selinux-dopey-hack.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+revert-git-block.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+unionfs-broke.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
+drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+rndis-switch-to-seq_files-checkpatch-fixes.patch
+git-v9fs.patch
+revert-git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-orion-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+common-implementation-of-iterative-div-mod-fix.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+common-implementation-of-iterative-div-mod-fix-2.patch
+mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+wireless-fix-iwlwifi-unify-init-driver-flow.patch
 
