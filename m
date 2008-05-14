@@ -1,71 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: - mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 14 May 2008 15:22:13 -0700
-Message-ID: <200805142222.m4EMMDdi024064@imap1.linux-foundation.org>
+Subject: - unionfs-broke.patch removed from -mm tree
+Date: Wed, 14 May 2008 15:41:07 -0700
+Message-ID: <200805142241.m4EMf7t6024833@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56759 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33320 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752011AbYENWWr (ORCPT
+	by vger.kernel.org with ESMTP id S1754257AbYENWlR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 18:22:47 -0400
+	Wed, 14 May 2008 18:41:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, venkatesh.pallipadi@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes
+     unionfs-broke
 has been removed from the -mm tree.  Its filename was
-     mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes.patch
+     unionfs-broke.patch
 
-This patch was dropped because it was folded into mprotect-prevent-alteration-of-the-pat-bits.patch
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes
+Subject: unionfs-broke
 From: Andrew Morton <akpm@linux-foundation.org>
 
-ERROR: need consistent spacing around '|' (ctx:WxV)
-#26: FILE: include/asm-x86/pgtable.h:60:
-+#define _PAGE_CHG_MASK	(PTE_MASK |_PAGE_PCD | _PAGE_PWT |		\
-                       	          ^
+fs/unionfs/super.c: In function 'unionfs_umount_begin':
+fs/unionfs/super.c:989: warning: passing argument 1 of 'lower_sb->s_op->umount_begin' from incompatible pointer type
+fs/unionfs/super.c:989: error: too many arguments to function 'lower_sb->s_op->umount_begin'
+fs/unionfs/super.c: At top level:
+fs/unionfs/super.c:1052: warning: initialization from incompatible pointer type
 
-total: 1 errors, 0 warnings, 55 lines checked
-
-./patches/mprotect-prevent-alteration-of-the-pat-bits.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Venki Pallipadi <venkatesh.pallipadi@intel.com>
+Cc: Erez Zadok <ezk@cs.sunysb.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-x86/pgtable.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-x86/pgtable.h~mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes include/asm-x86/pgtable.h
---- a/include/asm-x86/pgtable.h~mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes
-+++ a/include/asm-x86/pgtable.h
-@@ -57,7 +57,7 @@
- #define _KERNPG_TABLE	(_PAGE_PRESENT | _PAGE_RW | _PAGE_ACCESSED |	\
- 			 _PAGE_DIRTY)
- 
--#define _PAGE_CHG_MASK	(PTE_MASK |_PAGE_PCD | _PAGE_PWT |		\
-+#define _PAGE_CHG_MASK	(PTE_MASK | _PAGE_PCD | _PAGE_PWT |		\
- 			 _PAGE_ACCESSED | _PAGE_DIRTY)
- 
- #define _PAGE_CACHE_MASK	(_PAGE_PCD | _PAGE_PWT)
+diff -puN fs/Kconfig~unionfs-broke fs/Kconfig
+--- a/fs/Kconfig~unionfs-broke
++++ a/fs/Kconfig
+@@ -1051,6 +1051,7 @@ config ECRYPT_FS
+ config UNION_FS
+ 	tristate "Union file system (EXPERIMENTAL)"
+ 	depends on EXPERIMENTAL
++	depends on BROKEN
+ 	help
+ 	  Unionfs is a stackable unification file system, which appears to
+ 	  merge the contents of several directories (branches), while keeping
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
-mprotect-prevent-alteration-of-the-pat-bits.patch
-mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes.patch
 tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch
 linux-next.patch
 linux-next-git-rejects.patch
