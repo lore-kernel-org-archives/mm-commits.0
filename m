@@ -1,68 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: - usb-usbtest-comment-on-why-this-code-expects-negative-and-positive-errnos.patch removed from -mm tree
-Date: Wed, 14 May 2008 14:22:13 -0700
-Message-ID: <200805142122.m4ELMD0h021579@imap1.linux-foundation.org>
+Subject: - ext4-fix-synchronization-of-quota-files-in-journal=data-mode.patch removed from -mm tree
+Date: Wed, 14 May 2008 14:22:20 -0700
+Message-ID: <200805142122.m4ELMK4U021588__15359.7171920866$1210800215$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52325 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:43756 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752407AbYENVWT (ORCPT
+	by vger.kernel.org with ESMTP id S1754068AbYENVWZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 17:22:19 -0400
+	Wed, 14 May 2008 17:22:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: marcin.slusarz@gmail.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: jack@suse.cz, linux-ext4@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     usb/usbtest: comment on why this code "expects" negative and positive errnos
+     ext4: fix synchronization of quota files in journal=data mode
 has been removed from the -mm tree.  Its filename was
-     usb-usbtest-comment-on-why-this-code-expects-negative-and-positive-errnos.patch
+     ext4-fix-synchronization-of-quota-files-in-journal=data-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: usb/usbtest: comment on why this code "expects" negative and positive errnos
-From: Marcin Slusarz <marcin.slusarz@gmail.com>
+Subject: ext4: fix synchronization of quota files in journal=data mode
+From: Jan Kara <jack@suse.cz>
 
-Based on comment from David Brownell <david-b@pacbell.net>.
+In journal=data mode, it is not enough to do write_inode_now as done in
+vfs_quota_on() to write all data to their final location (which is needed for
+quota_read to work correctly).  Calling journal_flush() does its job.
 
-Signed-off-by: Marcin Slusarz <marcin.slusarz@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>
+Cc: <linux-ext4@vger.kernel.org>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/misc/usbtest.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ fs/ext4/super.c |   35 +++++++++++++++++++++++++++--------
+ 1 file changed, 27 insertions(+), 8 deletions(-)
 
-diff -puN drivers/usb/misc/usbtest.c~usb-usbtest-comment-on-why-this-code-expects-negative-and-positive-errnos drivers/usb/misc/usbtest.c
---- a/drivers/usb/misc/usbtest.c~usb-usbtest-comment-on-why-this-code-expects-negative-and-positive-errnos
-+++ a/drivers/usb/misc/usbtest.c
-@@ -856,6 +856,11 @@ test_ctrl_queue (struct usbtest_dev *dev
- 		struct urb		*u;
- 		struct usb_ctrlrequest	req;
- 		struct subcase		*reqp;
-+
-+		/* sign of this variable means:
-+		 *  -: tested code must return this (negative) error code
-+		 *  +: tested code may return this (negative too) error code
-+		 */
- 		int			expected = 0;
+diff -puN fs/ext4/super.c~ext4-fix-synchronization-of-quota-files-in-journal=data-mode fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-fix-synchronization-of-quota-files-in-journal=data-mode
++++ a/fs/ext4/super.c
+@@ -3159,23 +3159,42 @@ static int ext4_quota_on(struct super_bl
  
- 		/* requests here are mostly expected to succeed on any
+ 	if (!test_opt(sb, QUOTA))
+ 		return -EINVAL;
+-	/* Not journalling quota? */
+-	if ((!EXT4_SB(sb)->s_qf_names[USRQUOTA] &&
+-	    !EXT4_SB(sb)->s_qf_names[GRPQUOTA]) || remount)
++	/* When remounting, no checks are needed and in fact, path is NULL */
++	if (remount)
+ 		return vfs_quota_on(sb, type, format_id, path, remount);
++
+ 	err = path_lookup(path, LOOKUP_FOLLOW, &nd);
+ 	if (err)
+ 		return err;
++
+ 	/* Quotafile not on the same filesystem? */
+ 	if (nd.path.mnt->mnt_sb != sb) {
+ 		path_put(&nd.path);
+ 		return -EXDEV;
+ 	}
+-	/* Quotafile not of fs root? */
+-	if (nd.path.dentry->d_parent->d_inode != sb->s_root->d_inode)
+-		printk(KERN_WARNING
+-			"EXT4-fs: Quota file not on filesystem root. "
+-			"Journalled quota will not work.\n");
++	/* Journaling quota? */
++	if (EXT4_SB(sb)->s_qf_names[type]) {
++		/* Quotafile not of fs root? */
++		if (nd.path.dentry->d_parent->d_inode != sb->s_root->d_inode)
++			printk(KERN_WARNING
++				"EXT4-fs: Quota file not on filesystem root. "
++				"Journaled quota will not work.\n");
++ 	}
++
++	/*
++	 * When we journal data on quota file, we have to flush journal to see
++	 * all updates to the file when we bypass pagecache...
++	 */
++	if (ext4_should_journal_data(nd.path.dentry->d_inode)) {
++		/*
++		 * We don't need to lock updates but journal_flush() could
++		 * otherwise be livelocked...
++		 */
++		jbd2_journal_lock_updates(EXT4_SB(sb)->s_journal);
++		jbd2_journal_flush(EXT4_SB(sb)->s_journal);
++		jbd2_journal_unlock_updates(EXT4_SB(sb)->s_journal);
++	}
++
+ 	path_put(&nd.path);
+ 	return vfs_quota_on(sb, type, format_id, path, remount);
+ }
 _
 
-Patches currently in -mm which might be from marcin.slusarz@gmail.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
-linux-next.patch
-drm-radeon-radeon_enable_vblank-should-return-negative-error.patch
-git-jfs.patch
-isdn-capi-return-proper-errnos-on-module-init.patch
-net-s2io-set_rxd_buffer_pointer-returns-enomem-not-enomem.patch
-ntfs-le_add_cpu-conversion.patch
-tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch
+ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
+ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
+reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
 
