@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + remove-blkdev-warning-triggered-by-using-md.patch added to -mm tree
-Date: Tue, 13 May 2008 18:33:26 -0700
-Message-ID: <200805140133.m4E1XQGE010363@imap1.linux-foundation.org>
+Subject: + tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch added to -mm tree
+Date: Tue, 13 May 2008 18:49:27 -0700
+Message-ID: <200805140149.m4E1nRdI010916@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49711 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55611 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752220AbYENBes (ORCPT
+	by vger.kernel.org with ESMTP id S1754062AbYENBtj (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 21:34:48 -0400
+	Tue, 13 May 2008 21:49:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: neilb@suse.de, alistair@devzero.co.uk, dan.j.williams@intel.com, difrost.kernel@gmail.com, jens.axboe@oracle.com, npiggin@suse.de, prakash@punnoor.de, rjw@sisk.pl
+Cc: akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk, marcin.slusarz@gmail.com
 
 
 The patch titled
-     Remove blkdev warning triggered by using md
+     tty_check_change(): avoid taking tasklist_lock while holding tty->ctrl_lock
 has been added to the -mm tree.  Its filename is
-     remove-blkdev-warning-triggered-by-using-md.patch
+     tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,177 +34,243 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: Remove blkdev warning triggered by using md
-From: Neil Brown <neilb@suse.de>
+Subject: tty_check_change(): avoid taking tasklist_lock while holding tty->ctrl_lock
+From: Andrew Morton <akpm@linux-foundation.org>
 
-As setting and clearing queue flags now requires that we hold a spinlock
-on the queue, and as blk_queue_stack_limits is called without that lock,
-get the lock inside blk_queue_stack_limits.
+May 11 09:42:27 [kernel] [ 1104.496819] rarian-sk-get-c[5630]: segfault at 0 ip 7f478556caf0 sp 7fff8e3fe338 error 4 in libc-2.6.1.so[7f47854f9000+136000]
+May 11 10:59:48 [kernel] [ 2494.165792] 
+May 11 10:59:48 [kernel] [ 2494.165794] =======================================================
+May 11 10:59:48 [kernel] [ 2494.165801] [ INFO: possible circular locking dependency detected ]
+May 11 10:59:48 [kernel] [ 2494.165805] 2.6.26-rc1-00007-g91b3a7a #217
+May 11 10:59:48 [kernel] [ 2494.165807] -------------------------------------------------------
+May 11 10:59:48 [kernel] [ 2494.165809] less/7053 is trying to acquire lock:
+May 11 10:59:48 [kernel] [ 2494.165812]  (tasklist_lock){..??}, at: [<ffffffff80232e95>] is_current_pgrp_orphaned+0x15/0x50
+May 11 10:59:48 [kernel] [ 2494.165821] 
+May 11 10:59:48 [kernel] [ 2494.165822] but task is already holding lock:
+May 11 10:59:48 [kernel] [ 2494.165824]  (&tty->ctrl_lock){....}, at: [<ffffffff803d5f31>] tty_check_change+0x61/0x110
+May 11 10:59:48 [kernel] [ 2494.165831] 
+May 11 10:59:48 [kernel] [ 2494.165832] which lock already depends on the new lock.
+May 11 10:59:48 [kernel] [ 2494.165833] 
+May 11 10:59:48 [kernel] [ 2494.165835] 
+May 11 10:59:48 [kernel] [ 2494.165836] the existing dependency chain (in reverse order) is:
+May 11 10:59:48 [kernel] [ 2494.165838] 
+May 11 10:59:48 [kernel] [ 2494.165839] -> #2 (&tty->ctrl_lock){....}:
+May 11 10:59:48 [kernel] [ 2494.165843]        [<ffffffff80253796>] __lock_acquire+0xf86/0x1080
+May 11 10:59:48 [kernel] [ 2494.165851]        [<ffffffff80253922>] lock_acquire+0x92/0xc0
+May 11 10:59:48 [kernel] [ 2494.165858]        [<ffffffff804deee0>] _spin_lock_irqsave+0x40/0x60
+May 11 10:59:48 [kernel] [ 2494.165866]        [<ffffffff803d31b5>] __proc_set_tty+0x35/0xe0
+May 11 10:59:48 [kernel] [ 2494.165873]        [<ffffffff803d76d4>] tty_ioctl+0xbf4/0xfe0
+May 11 10:59:48 [kernel] [ 2494.165880]        [<ffffffff802a05e1>] vfs_ioctl+0x31/0x90
+May 11 10:59:48 [kernel] [ 2494.165888]        [<ffffffff802a06b3>] do_vfs_ioctl+0x73/0x2d0
+May 11 10:59:48 [kernel] [ 2494.165895]        [<ffffffff802a095a>] sys_ioctl+0x4a/0x80
+May 11 10:59:48 [kernel] [ 2494.165902]        [<ffffffff8020b5ab>] system_call_after_swapgs+0x7b/0x80
+May 11 10:59:48 [kernel] [ 2494.165910]        [<ffffffffffffffff>] 0xffffffffffffffff
+May 11 10:59:48 [kernel] [ 2494.165924] 
+May 11 10:59:48 [kernel] [ 2494.165925] -> #1 (&sighand->siglock){++..}:
+May 11 10:59:48 [kernel] [ 2494.165929]        [<ffffffff80253796>] __lock_acquire+0xf86/0x1080
+May 11 10:59:48 [kernel] [ 2494.165936]        [<ffffffff80253922>] lock_acquire+0x92/0xc0
+May 11 10:59:48 [kernel] [ 2494.165943]        [<ffffffff804dec1f>] _spin_lock+0x2f/0x40
+May 11 10:59:48 [kernel] [ 2494.165951]        [<ffffffff8022d5a3>] copy_process+0x973/0x1210
+May 11 10:59:48 [kernel] [ 2494.165959]        [<ffffffff8022df12>] do_fork+0x82/0x2f0
+May 11 10:59:48 [kernel] [ 2494.165967]        [<ffffffff8020bfe1>] kernel_thread+0x81/0xde
+May 11 10:59:48 [kernel] [ 2494.165974]        [<ffffffff8020c048>] child_rip+0xa/0x12
+May 11 10:59:48 [kernel] [ 2494.165981]        [<ffffffffffffffff>] 0xffffffffffffffff
+May 11 10:59:48 [kernel] [ 2494.166038] 
+May 11 10:59:48 [kernel] [ 2494.166039] -> #0 (tasklist_lock){..??}:
+May 11 10:59:48 [kernel] [ 2494.166043]        [<ffffffff802535ab>] __lock_acquire+0xd9b/0x1080
+May 11 10:59:48 [kernel] [ 2494.166050]        [<ffffffff80253922>] lock_acquire+0x92/0xc0
+May 11 10:59:48 [kernel] [ 2494.166057]        [<ffffffff804dede2>] _read_lock+0x32/0x50
+May 11 10:59:48 [kernel] [ 2494.166063]        [<ffffffff80232e95>] is_current_pgrp_orphaned+0x15/0x50
+May 11 10:59:48 [kernel] [ 2494.166071]        [<ffffffff803d5f80>] tty_check_change+0xb0/0x110
+May 11 10:59:48 [kernel] [ 2494.166078]        [<ffffffff803dac5f>] set_termios+0x1f/0x4c0
+May 11 10:59:48 [kernel] [ 2494.166085]        [<ffffffff803db379>] tty_mode_ioctl+0x279/0x3e0
+May 11 10:59:48 [kernel] [ 2494.166092]        [<ffffffff803db51d>] n_tty_ioctl+0x3d/0x260
+May 11 10:59:48 [kernel] [ 2494.166100]        [<ffffffff803d6c34>] tty_ioctl+0x154/0xfe0
+May 11 10:59:48 [kernel] [ 2494.166107]        [<ffffffff802a05e1>] vfs_ioctl+0x31/0x90
+May 11 10:59:48 [kernel] [ 2494.166114]        [<ffffffff802a06b3>] do_vfs_ioctl+0x73/0x2d0
+May 11 10:59:48 [kernel] [ 2494.166121]        [<ffffffff802a095a>] sys_ioctl+0x4a/0x80
+May 11 10:59:48 [kernel] [ 2494.166128]        [<ffffffff8020b5ab>] system_call_after_swapgs+0x7b/0x80
+May 11 10:59:48 [kernel] [ 2494.166135]        [<ffffffffffffffff>] 0xffffffffffffffff
+May 11 10:59:48 [kernel] [ 2494.166142] 
+May 11 10:59:48 [kernel] [ 2494.166143] other info that might help us debug this:
+May 11 10:59:48 [kernel] [ 2494.166144] 
+May 11 10:59:48 [kernel] [ 2494.166146] 1 lock held by less/7053:
+May 11 10:59:48 [kernel] [ 2494.166148]  #0:  (&tty->ctrl_lock){....}, at: [<ffffffff803d5f31>] tty_check_change+0x61/0x110
+May 11 10:59:48 [kernel] [ 2494.166155] 
+May 11 10:59:48 [kernel] [ 2494.166156] stack backtrace:
+May 11 10:59:48 [kernel] [ 2494.166159] Pid: 7053, comm: less Not tainted 2.6.26-rc1-00007-g91b3a7a #217
+May 11 10:59:48 [kernel] [ 2494.166161] 
+May 11 10:59:48 [kernel] [ 2494.166162] Call Trace:
+May 11 10:59:48 [kernel] [ 2494.166168]  [<ffffffff80251223>] print_circular_bug_tail+0x83/0x90
+May 11 10:59:48 [kernel] [ 2494.166172]  [<ffffffff80250889>] ? print_circular_bug_entry+0x49/0x60
+May 11 10:59:48 [kernel] [ 2494.166178]  [<ffffffff802535ab>] __lock_acquire+0xd9b/0x1080
+May 11 10:59:48 [kernel] [ 2494.166184]  [<ffffffff80232e95>] ? is_current_pgrp_orphaned+0x15/0x50
+May 11 10:59:48 [kernel] [ 2494.166189]  [<ffffffff80253922>] lock_acquire+0x92/0xc0
+May 11 10:59:48 [kernel] [ 2494.166206]  [<ffffffff803d5f80>] tty_check_change+0xb0/0x110
+May 11 10:59:48 [kernel] [ 2494.166211]  [<ffffffff803dac5f>] set_termios+0x1f/0x4c0
+May 11 10:59:48 [kernel] [ 2494.166216]  [<ffffffff803d3423>] ? tty_ldisc_try+0x23/0x60
+May 11 10:59:48 [kernel] [ 2494.166220]  [<ffffffff803d3444>] ? tty_ldisc_try+0x44/0x60
+May 11 10:59:48 [kernel] [ 2494.166224]  [<ffffffff804df2c5>] ? _spin_unlock_irqrestore+0x65/0x80
+May 11 10:59:48 [kernel] [ 2494.166230]  [<ffffffff803db379>] tty_mode_ioctl+0x279/0x3e0
+May 11 10:59:48 [kernel] [ 2494.166234]  [<ffffffff803d3444>] ? tty_ldisc_try+0x44/0x60
+May 11 10:59:48 [kernel] [ 2494.166239]  [<ffffffff803db51d>] n_tty_ioctl+0x3d/0x260
+May 11 10:59:48 [kernel] [ 2494.166244]  [<ffffffff803d6c34>] tty_ioctl+0x154/0xfe0
+May 11 10:59:48 [kernel] [ 2494.166249]  [<ffffffff80252baa>] ? __lock_acquire+0x39a/0x1080
+May 11 10:59:48 [kernel] [ 2494.166256]  [<ffffffff80252baa>] ? __lock_acquire+0x39a/0x1080
+May 11 10:59:48 [kernel] [ 2494.166263]  [<ffffffff80252baa>] ? __lock_acquire+0x39a/0x1080
+May 11 10:59:48 [kernel] [ 2494.166269]  [<ffffffff802a05e1>] vfs_ioctl+0x31/0x90
+May 11 10:59:48 [kernel] [ 2494.166274]  [<ffffffff802a06b3>] do_vfs_ioctl+0x73/0x2d0
+May 11 10:59:48 [kernel] [ 2494.166280]  [<ffffffff802a095a>] sys_ioctl+0x4a/0x80
+May 11 10:59:48 [kernel] [ 2494.166286]  [<ffffffff8020b5ab>] system_call_after_swapgs+0x7b/0x80
+May 11 10:59:48 [kernel] [ 2494.166292] 
 
-For blk_queue_stack_limits to be able to find the right lock, each md
-personality needs to set q->queue_lock to point to the appropriate lock. 
-Those personalities which didn't previously use a spin_lock, us
-q->__queue_lock.  So always initialise that lock when allocated.
-
-With this in place, setting/clearing of the QUEUE_FLAG_PLUGGED bit will no
-longer cause warnings as it will be clear that the proper lock is held.
-
-Thanks to Dan Williams for review and fixing the silly bugs.
-
-Signed-off-by: NeilBrown <neilb@suse.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Jens Axboe <jens.axboe@oracle.com>
-Cc: Alistair John Strachan <alistair@devzero.co.uk>
-Cc: Nick Piggin <npiggin@suse.de>
-Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: Jacek Luczak <difrost.kernel@gmail.com>
-Cc: Prakash Punnoor <prakash@punnoor.de>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Reported-by: Marcin Slusarz <marcin.slusarz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-core.c       |    5 ++---
- block/blk-settings.c   |    8 +++++++-
- drivers/md/linear.c    |    1 +
- drivers/md/multipath.c |    1 +
- drivers/md/raid0.c     |    1 +
- drivers/md/raid1.c     |    4 +++-
- drivers/md/raid10.c    |    4 +++-
- drivers/md/raid5.c     |    1 +
- 8 files changed, 19 insertions(+), 6 deletions(-)
+ drivers/char/tty_io.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN block/blk-core.c~remove-blkdev-warning-triggered-by-using-md block/blk-core.c
---- a/block/blk-core.c~remove-blkdev-warning-triggered-by-using-md
-+++ a/block/blk-core.c
-@@ -482,6 +482,7 @@ struct request_queue *blk_alloc_queue_no
- 	kobject_init(&q->kobj, &blk_queue_ktype);
+diff -puN drivers/char/tty_io.c~tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock drivers/char/tty_io.c
+--- a/drivers/char/tty_io.c~tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock
++++ a/drivers/char/tty_io.c
+@@ -1215,10 +1215,11 @@ int tty_check_change(struct tty_struct *
  
- 	mutex_init(&q->sysfs_lock);
-+	spin_lock_init(&q->__queue_lock);
- 
- 	return q;
+ 	if (!tty->pgrp) {
+ 		printk(KERN_WARNING "tty_check_change: tty->pgrp == NULL!\n");
+-		goto out;
++		goto out_unlock;
+ 	}
+ 	if (task_pgrp(current) == tty->pgrp)
+-		goto out;
++		goto out_unlock;
++	spin_unlock_irqrestore(&tty->ctrl_lock, flags);
+ 	if (is_ignored(SIGTTOU))
+ 		goto out;
+ 	if (is_current_pgrp_orphaned()) {
+@@ -1229,6 +1230,8 @@ int tty_check_change(struct tty_struct *
+ 	set_thread_flag(TIF_SIGPENDING);
+ 	ret = -ERESTARTSYS;
+ out:
++	return ret;
++out_unlock:
+ 	spin_unlock_irqrestore(&tty->ctrl_lock, flags);
+ 	return ret;
  }
-@@ -544,10 +545,8 @@ blk_init_queue_node(request_fn_proc *rfn
- 	 * if caller didn't supply a lock, they get per-queue locking with
- 	 * our embedded lock
- 	 */
--	if (!lock) {
--		spin_lock_init(&q->__queue_lock);
-+	if (!lock)
- 		lock = &q->__queue_lock;
--	}
- 
- 	q->request_fn		= rfn;
- 	q->prep_rq_fn		= NULL;
-diff -puN block/blk-settings.c~remove-blkdev-warning-triggered-by-using-md block/blk-settings.c
---- a/block/blk-settings.c~remove-blkdev-warning-triggered-by-using-md
-+++ a/block/blk-settings.c
-@@ -286,8 +286,14 @@ void blk_queue_stack_limits(struct reque
- 	t->max_hw_segments = min(t->max_hw_segments, b->max_hw_segments);
- 	t->max_segment_size = min(t->max_segment_size, b->max_segment_size);
- 	t->hardsect_size = max(t->hardsect_size, b->hardsect_size);
--	if (!test_bit(QUEUE_FLAG_CLUSTER, &b->queue_flags))
-+	if (!t->queue_lock)
-+		WARN_ON_ONCE(1);
-+	else if (!test_bit(QUEUE_FLAG_CLUSTER, &b->queue_flags)) {
-+		unsigned long flags;
-+		spin_lock_irqsave(t->queue_lock, flags);
- 		queue_flag_clear(QUEUE_FLAG_CLUSTER, t);
-+		spin_unlock_irqrestore(t->queue_lock, flags);
-+	}
- }
- EXPORT_SYMBOL(blk_queue_stack_limits);
- 
-diff -puN drivers/md/linear.c~remove-blkdev-warning-triggered-by-using-md drivers/md/linear.c
---- a/drivers/md/linear.c~remove-blkdev-warning-triggered-by-using-md
-+++ a/drivers/md/linear.c
-@@ -250,6 +250,7 @@ static int linear_run (mddev_t *mddev)
- {
- 	linear_conf_t *conf;
- 
-+	mddev->queue->queue_lock = &mddev->queue->__queue_lock;
- 	conf = linear_conf(mddev, mddev->raid_disks);
- 
- 	if (!conf)
-diff -puN drivers/md/multipath.c~remove-blkdev-warning-triggered-by-using-md drivers/md/multipath.c
---- a/drivers/md/multipath.c~remove-blkdev-warning-triggered-by-using-md
-+++ a/drivers/md/multipath.c
-@@ -417,6 +417,7 @@ static int multipath_run (mddev_t *mddev
- 	 * bookkeeping area. [whatever we allocate in multipath_run(),
- 	 * should be freed in multipath_stop()]
- 	 */
-+	mddev->queue->queue_lock = &mddev->queue->__queue_lock;
- 
- 	conf = kzalloc(sizeof(multipath_conf_t), GFP_KERNEL);
- 	mddev->private = conf;
-diff -puN drivers/md/raid0.c~remove-blkdev-warning-triggered-by-using-md drivers/md/raid0.c
---- a/drivers/md/raid0.c~remove-blkdev-warning-triggered-by-using-md
-+++ a/drivers/md/raid0.c
-@@ -280,6 +280,7 @@ static int raid0_run (mddev_t *mddev)
- 	       (mddev->chunk_size>>1)-1);
- 	blk_queue_max_sectors(mddev->queue, mddev->chunk_size >> 9);
- 	blk_queue_segment_boundary(mddev->queue, (mddev->chunk_size>>1) - 1);
-+	mddev->queue->queue_lock = &mddev->queue->__queue_lock;
- 
- 	conf = kmalloc(sizeof (raid0_conf_t), GFP_KERNEL);
- 	if (!conf)
-diff -puN drivers/md/raid1.c~remove-blkdev-warning-triggered-by-using-md drivers/md/raid1.c
---- a/drivers/md/raid1.c~remove-blkdev-warning-triggered-by-using-md
-+++ a/drivers/md/raid1.c
-@@ -1935,6 +1935,9 @@ static int run(mddev_t *mddev)
- 	if (!conf->r1bio_pool)
- 		goto out_no_mem;
- 
-+	spin_lock_init(&conf->device_lock);
-+	mddev->queue->queue_lock = &conf->device_lock;
-+
- 	rdev_for_each(rdev, tmp, mddev) {
- 		disk_idx = rdev->raid_disk;
- 		if (disk_idx >= mddev->raid_disks
-@@ -1958,7 +1961,6 @@ static int run(mddev_t *mddev)
- 	}
- 	conf->raid_disks = mddev->raid_disks;
- 	conf->mddev = mddev;
--	spin_lock_init(&conf->device_lock);
- 	INIT_LIST_HEAD(&conf->retry_list);
- 
- 	spin_lock_init(&conf->resync_lock);
-diff -puN drivers/md/raid10.c~remove-blkdev-warning-triggered-by-using-md drivers/md/raid10.c
---- a/drivers/md/raid10.c~remove-blkdev-warning-triggered-by-using-md
-+++ a/drivers/md/raid10.c
-@@ -2082,6 +2082,9 @@ static int run(mddev_t *mddev)
- 		goto out_free_conf;
- 	}
- 
-+	spin_lock_init(&conf->device_lock);
-+	mddev->queue->queue_lock = &conf->device_lock;
-+
- 	rdev_for_each(rdev, tmp, mddev) {
- 		disk_idx = rdev->raid_disk;
- 		if (disk_idx >= mddev->raid_disks
-@@ -2103,7 +2106,6 @@ static int run(mddev_t *mddev)
- 
- 		disk->head_position = 0;
- 	}
--	spin_lock_init(&conf->device_lock);
- 	INIT_LIST_HEAD(&conf->retry_list);
- 
- 	spin_lock_init(&conf->resync_lock);
-diff -puN drivers/md/raid5.c~remove-blkdev-warning-triggered-by-using-md drivers/md/raid5.c
---- a/drivers/md/raid5.c~remove-blkdev-warning-triggered-by-using-md
-+++ a/drivers/md/raid5.c
-@@ -4257,6 +4257,7 @@ static int run(mddev_t *mddev)
- 			goto abort;
- 	}
- 	spin_lock_init(&conf->device_lock);
-+	mddev->queue->queue_lock = &conf->device_lock;
- 	init_waitqueue_head(&conf->wait_for_stripe);
- 	init_waitqueue_head(&conf->wait_for_overlap);
- 	INIT_LIST_HEAD(&conf->handle_list);
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 linux-next.patch
-remove-blkdev-warning-triggered-by-using-md.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+ia64-kvm-dont-delete-files-which-we-need.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-early_init_centaur-use-set_cpu_cap.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+audit_send_reply-fix-error-path-memory-leak.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+git-mmc.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
+git-ubifs.patch
+git-net.patch
+git-net-git-rejects.patch
+hysdn-no-longer-broken-on-smp.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+selinux-dopey-hack.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+revert-git-block.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+unionfs-broke.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
+drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+rndis-switch-to-seq_files-checkpatch-fixes.patch
+git-v9fs.patch
+revert-git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-orion-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+common-implementation-of-iterative-div-mod-fix.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+common-implementation-of-iterative-div-mod-fix-2.patch
+mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
