@@ -1,67 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: - mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch removed from -mm tree
-Date: Wed, 14 May 2008 16:17:36 -0700
-Message-ID: <200805142317.m4ENHax2026477@imap1.linux-foundation.org>
+Subject: - rndis-switch-to-seq_files-checkpatch-fixes.patch removed from -mm tree
+Date: Wed, 14 May 2008 16:24:13 -0700
+Message-ID: <200805142324.m4ENODlT026890@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36792 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41497 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751614AbYENXSR (ORCPT
+	by vger.kernel.org with ESMTP id S1754884AbYENXYz (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 19:18:17 -0400
+	Wed, 14 May 2008 19:24:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, drzeus-list@drzeus.cx, saschasommer@freenet.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, adobriyan@gmail.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     mmc-sd-host-driver-for-ricoh-bay1controllers-fix 2
+     rndis-switch-to-seq_files-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
+     rndis-switch-to-seq_files-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into mmc-sd-host-driver-for-ricoh-bay1controllers.patch
+This patch was dropped because it was folded into rndis-switch-to-seq_files.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: mmc-sd-host-driver-for-ricoh-bay1controllers-fix 2
+Subject: rndis-switch-to-seq_files-checkpatch-fixes
 From: Andrew Morton <akpm@linux-foundation.org>
 
-CONFIG_PM=n:
+WARNING: space prohibited between function name and open parenthesis '('
+#29: FILE: drivers/usb/gadget/rndis.c:1300:
++static int rndis_proc_show (struct seq_file *m, void *v)
 
-ERROR: "mmc_resume_host" [drivers/mmc/host/sdricoh_cs.ko] undefined!
-ERROR: "mmc_suspend_host" [drivers/mmc/host/sdricoh_cs.ko] undefined!
+WARNING: space prohibited between function name and open parenthesis '('
+#37: FILE: drivers/usb/gadget/rndis.c:1304:
++	seq_printf (m,
 
-Cc: Sascha Sommer <saschasommer@freenet.de>
-Cc: Pierre Ossman <drzeus-list@drzeus.cx>
+WARNING: space prohibited between function name and open parenthesis '('
+#63: FILE: drivers/usb/gadget/rndis.c:1330:
++static ssize_t rndis_proc_write (struct file *file, const char __user *buffer,
+
+WARNING: space prohibited between function name and open parenthesis '('
+#97: FILE: drivers/usb/gadget/rndis.c:1406:
++				= proc_create_data (name, 0660, NULL,
+
+total: 0 errors, 4 warnings, 94 lines checked
+
+./patches/rndis-switch-to-seq_files.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: David Brownell <david-b@pacbell.net>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/sdricoh_cs.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/usb/gadget/rndis.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN drivers/mmc/host/sdricoh_cs.c~mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2 drivers/mmc/host/sdricoh_cs.c
---- a/drivers/mmc/host/sdricoh_cs.c~mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2
-+++ a/drivers/mmc/host/sdricoh_cs.c
-@@ -572,6 +572,7 @@ static void sdricoh_pcmcia_detach(struct
+diff -puN drivers/usb/gadget/rndis.c~rndis-switch-to-seq_files-checkpatch-fixes drivers/usb/gadget/rndis.c
+--- a/drivers/usb/gadget/rndis.c~rndis-switch-to-seq_files-checkpatch-fixes
++++ a/drivers/usb/gadget/rndis.c
+@@ -1297,11 +1297,11 @@ int rndis_rm_hdr(struct sk_buff *skb)
  
- }
+ #ifdef	CONFIG_USB_GADGET_DEBUG_FILES
  
-+#ifdef CONFIG_PM
- static int sdricoh_pcmcia_suspend(struct pcmcia_device *link)
+-static int rndis_proc_show (struct seq_file *m, void *v)
++static int rndis_proc_show(struct seq_file *m, void *v)
  {
- 	struct mmc_host *mmc = link->priv;
-@@ -588,6 +589,10 @@ static int sdricoh_pcmcia_resume(struct 
- 	mmc_resume_host(mmc);
+ 	rndis_params *param = m->private;
+ 
+-	seq_printf (m,
++	seq_printf(m,
+ 			 "Config Nr. %d\n"
+ 			 "used      : %s\n"
+ 			 "state     : %s\n"
+@@ -1327,7 +1327,7 @@ static int rndis_proc_show (struct seq_f
  	return 0;
  }
-+#else
-+#define sdricoh_pcmcia_suspend NULL
-+#define sdricoh_pcmcia_resume NULL
-+#endif
  
- static struct pcmcia_driver sdricoh_driver = {
- 	.drv = {
+-static ssize_t rndis_proc_write (struct file *file, const char __user *buffer,
++static ssize_t rndis_proc_write(struct file *file, const char __user *buffer,
+ 		size_t count, loff_t *ppos)
+ {
+ 	rndis_params *p = PDE(file->f_path.dentry->d_inode)->data;
+@@ -1403,7 +1403,7 @@ int __init rndis_init (void)
+ 
+ 		sprintf (name, NAME_TEMPLATE, i);
+ 		if (!(rndis_connect_state [i]
+-				= proc_create_data (name, 0660, NULL,
++				= proc_create_data(name, 0660, NULL,
+ 					&rndis_proc_fops,
+ 					(void *)(rndis_per_dev_params + i))))
+ 		{
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -94,7 +127,6 @@ git-input.patch
 git-jg-misc-git-rejects.patch
 drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
 mmc-sd-host-driver-for-ricoh-bay1controllers.patch
-mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
 git-ubifs.patch
 hysdn-no-longer-broken-on-smp.patch
 sundance-set-carrier-status-on-link-change-events.patch
@@ -121,6 +153,7 @@ drivers-uwb-wlp-sysfsc-dead-code.patch
 drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
 drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
 drivers-uwb-whcic-needs-dma-mappingh.patch
+rndis-switch-to-seq_files.patch
 rndis-switch-to-seq_files-checkpatch-fixes.patch
 git-v9fs.patch
 revert-git-v9fs.patch
