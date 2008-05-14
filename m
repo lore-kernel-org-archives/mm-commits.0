@@ -1,62 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: - unionfs-broke.patch removed from -mm tree
-Date: Wed, 14 May 2008 15:41:07 -0700
-Message-ID: <200805142241.m4EMf7t6024833@imap1.linux-foundation.org>
+Subject: + net-irda-irnet-irnet_irdac-needs-unalignedh.patch added to -mm tree
+Date: Wed, 14 May 2008 15:38:40 -0700
+Message-ID: <200805142249.m4EMnkjl025142@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33320 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41246 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754257AbYENWlR (ORCPT
+	by vger.kernel.org with ESMTP id S1751072AbYENWuU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 18:41:17 -0400
+	Wed, 14 May 2008 18:50:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ezk@cs.sunysb.edu, mm-commits@vger.kernel.org
+To: mm-commits@vger.kernel.org
+Cc: akpm@linux-foundation.org, davem@davemloft.net
 
 
 The patch titled
-     unionfs-broke
-has been removed from the -mm tree.  Its filename was
-     unionfs-broke.patch
+     net/irda/irnet/irnet_irda.c needs unaligned.h
+has been added to the -mm tree.  Its filename is
+     net-irda-irnet-irnet_irdac-needs-unalignedh.patch
 
-This patch was dropped because it is obsolete
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: unionfs-broke
+Subject: net/irda/irnet/irnet_irda.c needs unaligned.h
 From: Andrew Morton <akpm@linux-foundation.org>
 
-fs/unionfs/super.c: In function 'unionfs_umount_begin':
-fs/unionfs/super.c:989: warning: passing argument 1 of 'lower_sb->s_op->umount_begin' from incompatible pointer type
-fs/unionfs/super.c:989: error: too many arguments to function 'lower_sb->s_op->umount_begin'
-fs/unionfs/super.c: At top level:
-fs/unionfs/super.c:1052: warning: initialization from incompatible pointer type
+net/irda/irnet/irnet_irda.c: In function 'irnet_discovery_indication':
+net/irda/irnet/irnet_irda.c:1676: error: implicit declaration of function 'get_unaligned'
 
-Cc: Erez Zadok <ezk@cs.sunysb.edu>
+Cc: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Kconfig |    1 +
+ net/irda/irnet/irnet_irda.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN fs/Kconfig~unionfs-broke fs/Kconfig
---- a/fs/Kconfig~unionfs-broke
-+++ a/fs/Kconfig
-@@ -1051,6 +1051,7 @@ config ECRYPT_FS
- config UNION_FS
- 	tristate "Union file system (EXPERIMENTAL)"
- 	depends on EXPERIMENTAL
-+	depends on BROKEN
- 	help
- 	  Unionfs is a stackable unification file system, which appears to
- 	  merge the contents of several directories (branches), while keeping
+diff -puN net/irda/irnet/irnet_irda.c~net-irda-irnet-irnet_irdac-needs-unalignedh net/irda/irnet/irnet_irda.c
+--- a/net/irda/irnet/irnet_irda.c~net-irda-irnet-irnet_irdac-needs-unalignedh
++++ a/net/irda/irnet/irnet_irda.c
+@@ -10,6 +10,7 @@
+ 
+ #include "irnet_irda.h"		/* Private header */
+ #include <linux/seq_file.h>
++#include <asm/unaligned.h>
+ 
+ /*
+  * PPP disconnect work: we need to make sure we're in
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 origin.patch
 tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch
+net-irda-irnet-irnet_irdac-needs-unalignedh.patch
 linux-next.patch
 linux-next-git-rejects.patch
 next-remove-localversion.patch
