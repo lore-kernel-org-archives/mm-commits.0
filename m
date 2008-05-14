@@ -1,103 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: + flag-parameters-socket-and-socketpair-mips-fix.patch added to -mm tree
-Date: Tue, 13 May 2008 22:47:32 -0700
-Message-ID: <200805140547.m4E5lWgn018851@imap1.linux-foundation.org>
+Subject: - common-implementation-of-iterative-div-mod-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 13 May 2008 23:46:38 -0700
+Message-ID: <200805140646.m4E6kc4l020801@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:58276 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49966 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752558AbYENFsG (ORCPT
+	by vger.kernel.org with ESMTP id S1750939AbYENGql (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 01:48:06 -0400
+	Wed, 14 May 2008 02:46:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: drepper@redhat.com, davem@davemloft.net, davidel@xmailserver.org, mtk.manpages@googlemail.com, ralf@linux-mips.org
+To: akpm@linux-foundation.org, jeremy@goop.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     flag parameters: MIPS socket flags
-has been added to the -mm tree.  Its filename is
-     flag-parameters-socket-and-socketpair-mips-fix.patch
+     common-implementation-of-iterative-div-mod-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it was folded into common-implementation-of-iterative-div-mod.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: flag parameters: MIPS socket flags
-From: Ulrich Drepper <drepper@redhat.com>
+Subject: common-implementation-of-iterative-div-mod-checkpatch-fixes
+From: Andrew Morton <akpm@linux-foundation.org>
 
-MIPS defines its own socket types.  So we have to define the new socket
-flags and the type mask for MIPS as well.
+ERROR: space required before the open parenthesis '('
+#122: FILE: lib/div64.c:110:
++	while(dividend >= divisor) {
 
-Signed-off-by: Ulrich Drepper <drepper@redhat.com>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+total: 1 errors, 0 warnings, 86 lines checked
+
+./patches/common-implementation-of-iterative-div-mod.patch has style problems, please review.  If any of these errors
+are false positives report them to the maintainer, see
+CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jeremy Fitzhardinge <jeremy@goop.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-mips/socket.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ lib/div64.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/asm-mips/socket.h~flag-parameters-socket-and-socketpair-mips-fix include/asm-mips/socket.h
---- a/include/asm-mips/socket.h~flag-parameters-socket-and-socketpair-mips-fix
-+++ a/include/asm-mips/socket.h
-@@ -102,6 +102,13 @@ enum sock_type {
- };
+diff -puN lib/div64.c~common-implementation-of-iterative-div-mod-checkpatch-fixes lib/div64.c
+--- a/lib/div64.c~common-implementation-of-iterative-div-mod-checkpatch-fixes
++++ a/lib/div64.c
+@@ -107,7 +107,7 @@ u32 iter_div_u64_rem(u64 dividend, u32 d
+ {
+ 	u32 ret = 0;
  
- #define SOCK_MAX (SOCK_PACKET + 1)
-+/* Mask which covers at least up to SOCK_MASK-1.  The
-+ *  * remaining bits are used as flags. */
-+#define SOCK_TYPE_MASK 0xf
-+
-+/* Flags for socket, socketpair, paccept */
-+#define SOCK_CLOEXEC	O_CLOEXEC
-+#define SOCK_NONBLOCK	O_NONBLOCK
- 
- #define ARCH_HAS_SOCKET_TYPES 1
- 
+-	while(dividend >= divisor) {
++	while (dividend >= divisor) {
+ 		/* The following asm() prevents the compiler from
+ 		   optimising this loop into a modulo operation.  */
+ 		asm("" : "+rm"(dividend));
 _
 
-Patches currently in -mm which might be from drepper@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-execve-filename-document-and-export-via-auxiliary-vector.patch
-flag-parameters-socket-and-socketpair.patch
-flag-parameters-socket-and-socketpair-mips-fix.patch
-flag-parameters-paccept.patch
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+ia64-kvm-dont-delete-files-which-we-need.patch
+fix-kobject-fix-kobject_rename-and-config_sysfs.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-early_init_centaur-use-set_cpu_cap.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+audit_send_reply-fix-error-path-memory-leak.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+git-mmc.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
+git-ubifs.patch
+git-net.patch
+git-net-git-rejects.patch
+hysdn-no-longer-broken-on-smp.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+selinux-dopey-hack.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+revert-git-block.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+unionfs-broke.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
+drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+rndis-switch-to-seq_files-checkpatch-fixes.patch
+git-v9fs.patch
+revert-git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+wireless-fix-iwlwifi-unify-init-driver-flow.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-orion-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+common-implementation-of-iterative-div-mod.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+common-implementation-of-iterative-div-mod-fix-2.patch
+mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
 flag-parameters-paccept-fix.patch
-flag-parameters-paccept-fix-flag-parameters-arch-specific-sock_nonblock.patch
-flag-parameters-paccept-flag-parameters-paccept-w-out-set_restore_sigmask.patch
 flag-parameters-paccept-sys_ni.patch
-flag-parameters-anon_inode_getfd-extension.patch
 flag-parameters-anon_inode_getfd-extension-fix.patch
-flag-parameters-signalfd.patch
-flag-parameters-eventfd.patch
-flag-parameters-timerfd_create.patch
-flag-parameters-epoll_create.patch
-flag-parameters-dup2.patch
-flag-parameters-pipe.patch
-flag-parameters-inotify_init.patch
 flag-parameters-inotify_init-fix.patch
-flag-parametersi-nonblock-in-anon_inode_getfd.patch
-flag-parameters-nonblock-in-socket-and-socketpair.patch
-flag-parameters-nonblock-in-signalfd.patch
-flag-parameters-nonblock-in-eventfd.patch
-flag-parameters-nonblock-in-timerfd_create.patch
-flag-parameters-nonblock-in-pipe.patch
-flag-parameters-nonblock-in-inotify_init.patch
-flag-parameters-check-magic-constants.patch
 flag-parameters-check-magic-constants-alpha-hack.patch
-flag-parameters-add-on-remove-epoll_create-size-param.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+ppc-use-the-common-ascii-hex-helpers-fix.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
 
