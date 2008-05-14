@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + sctp-fix-use-of-uninitialized-pointer.patch added to -mm tree
-Date: Tue, 13 May 2008 19:55:53 -0700
-Message-ID: <200805140255.m4E2truq013046@imap1.linux-foundation.org>
+Subject: + flag-parameters-paccept-sys_ni.patch added to -mm tree
+Date: Tue, 13 May 2008 19:48:12 -0700
+Message-ID: <200805140259.m4E2xEY7013189__29157.9525372528$1210734038$gmane$org@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46540 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57981 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757817AbYENCz6 (ORCPT
+	by vger.kernel.org with ESMTP id S1757524AbYENC7i (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 22:55:58 -0400
+	Tue, 13 May 2008 22:59:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: kaber@trash.net
+Cc: akpm@linux-foundation.org, davidel@xmailserver.org, drepper@redhat.com, linux-arch@vger.kernel.org, mtk.manpages@googlemail.com
 
 
 The patch titled
-     sctp: fix use of uninitialized pointer
+     flag-parameters-paccept-sys_ni
 has been added to the -mm tree.  Its filename is
-     sctp-fix-use-of-uninitialized-pointer.patch
+     flag-parameters-paccept-sys_ni.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,39 +34,144 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: sctp: fix use of uninitialized pointer
-From: Patrick McHardy <kaber@trash.net>
+Subject: flag-parameters-paccept-sys_ni
+From: Andrew Morton <akpm@linux-foundation.org>
 
-Introduced by c4492586 (sctp: Add address type check while process
-paramaters of ASCONF chunk):
-
-net/sctp/sm_make_chunk.c: In function 'sctp_process_asconf':
-net/sctp/sm_make_chunk.c:2828: warning: 'addr_param' may be used uninitialized in this function
-net/sctp/sm_make_chunk.c:2828: note: 'addr_param' was declared here
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Cc: <linux-arch@vger.kernel.org>
+Cc: Davide Libenzi <davidel@xmailserver.org>
+Cc: Michael Kerrisk <mtk.manpages@googlemail.com>
+Cc: Ulrich Drepper <drepper@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/sm_make_chunk.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/sys_ni.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/sctp/sm_make_chunk.c~sctp-fix-use-of-uninitialized-pointer net/sctp/sm_make_chunk.c
---- a/net/sctp/sm_make_chunk.c~sctp-fix-use-of-uninitialized-pointer
-+++ a/net/sctp/sm_make_chunk.c
-@@ -2827,6 +2827,9 @@ static __be16 sctp_process_asconf_param(
- 	union sctp_addr	addr;
- 	union sctp_addr_param *addr_param;
- 
-+	addr_param = (union sctp_addr_param *)
-+			((void *)asconf_param + sizeof(sctp_addip_param_t));
-+
- 	switch (addr_param->v4.param_hdr.type) {
- 	case SCTP_PARAM_IPV6_ADDRESS:
- 		if (!asoc->peer.ipv6_address)
-@@ -2840,9 +2843,6 @@ static __be16 sctp_process_asconf_param(
- 		return SCTP_ERROR_INV_PARAM;
- 	}
- 
--	addr_param = (union sctp_addr_param *)
--			((void *)asconf_param + sizeof(sctp_addip_param_t));
+diff -puN kernel/sys_ni.c~flag-parameters-paccept-sys_ni kernel/sys_ni.c
+--- a/kernel/sys_ni.c~flag-parameters-paccept-sys_ni
++++ a/kernel/sys_ni.c
+@@ -31,6 +31,7 @@ cond_syscall(sys_socketpair);
+ cond_syscall(sys_bind);
+ cond_syscall(sys_listen);
+ cond_syscall(sys_accept);
++cond_syscall(sys_paccept);
+ cond_syscall(sys_connect);
+ cond_syscall(sys_getsockname);
+ cond_syscall(sys_getpeername);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+origin.patch
+linux-next.patch
+linux-next-git-rejects.patch
+next-remove-localversion.patch
+revert-9p-convert-from-semaphore-to-spinlock.patch
+ia64-kvm-dont-delete-files-which-we-need.patch
+revert-acpica-fixes-for-unload-and-ddbhandles.patch
+acpi-enable-c3-power-state-on-dell-inspiron-8200.patch
+acpi-video-balcklist-fujitsu-lifebook-s6410.patch
+git-x86-fixup.patch
+arch-x86-mm-patc-use-boot_cpu_has.patch
+x86-setup_force_cpu_cap-dont-do-clear_bitnon-unsigned-long.patch
+lguest-use-cpu-capability-accessors.patch
+x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
+x86-early_init_centaur-use-set_cpu_cap.patch
+x86-bitops-take-an-unsigned-long.patch
+arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+audit_send_reply-fix-error-path-memory-leak.patch
+cifs-suppress-warning.patch
+sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
+zoran-use-correct-type-for-cpu-flags.patch
+i2c-renesas-highlander-fpga-smbus-support.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
+drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
+git-input.patch
+git-jg-misc-git-rejects.patch
+drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+git-mmc.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
+git-ubifs.patch
+git-net.patch
+git-net-git-rejects.patch
+hysdn-no-longer-broken-on-smp.patch
+sundance-set-carrier-status-on-link-change-events.patch
+dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
+pcnet32-fix-warning.patch
+drivers-net-tokenring-3c359c-squish-a-warning.patch
+drivers-net-tokenring-olympicc-fix-warning.patch
+update-smc91x-driver-with-arm-versatile-board-info.patch
+git-battery.patch
+fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
+arch-parisc-kernel-unalignedc-use-time_-macros.patch
+selinux-dopey-hack.patch
+pci-hotplug-introduce-pci_slot.patch
+pci-hotplug-acpi-pci-slot-detection-driver.patch
+drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
+revert-git-block.patch
+s390-uninline-spinlock-functions-which-use-smp_processor_id.patch
+git-unionfs.patch
+git-unionfs-fixup.patch
+unionfs-broke.patch
+git-logfs-fixup.patch
+drivers-uwb-nehc-processor-flags-have-type-unsigned-long.patch
+drivers-usb-host-isp1760-hcdc-procesxor-flags-have-type-unsigned-long.patch
+uwb-fix-scscanf-warning.patch
+drivers-uwb-wlp-sysfsc-dead-code.patch
+drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
+drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
+drivers-uwb-whcic-needs-dma-mappingh.patch
+rndis-switch-to-seq_files-checkpatch-fixes.patch
+git-v9fs.patch
+revert-git-v9fs.patch
+git-watchdog.patch
+git-watchdog-git-rejects.patch
+watchdog-fix-booke_wdtc-on-mpc85xx-smp-system.patch
+xfs-suppress-uninitialized-var-warnings.patch
+git-xtensa.patch
+git-orion-git-rejects.patch
+ext4-is-busted-on-m68k.patch
+common-implementation-of-iterative-div-mod-fix.patch
+common-implementation-of-iterative-div-mod-checkpatch-fixes.patch
+common-implementation-of-iterative-div-mod-fix-2.patch
+mprotect-prevent-alteration-of-the-pat-bits-checkpatch-fixes.patch
+scsi-dpt_i2o-is-bust-on-ia64.patch
+tty_check_change-avoid-taking-tasklist_lock-while-holding-tty-ctrl_lock.patch
+colibri-fix-support-for-dm9000-ethernet-device-fix.patch
+mm-verify-the-page-links-and-memory-model.patch
+mspec-convert-nopfn-to-fault-fix.patch
+page-allocator-inlnie-some-__alloc_pages-wrappers-fix.patch
+kill-generic_file_direct_io-checkpatch-fixes.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+vm-dont-run-touch_buffer-during-buffercache-lookups.patch
+split-the-typecheck-macros-out-of-include-linux-kernelh.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags.patch
+locking-add-typecheck-on-irqsave-and-friends-for-correct-flags-fix.patch
+remove-apparently-unused-fd1772h-header-file.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+rename-warn-to-warning-to-clear-the-namespace-fix.patch
+add-a-warn-macro-this-is-warn_on-printk-arguments-fix.patch
+flag-parameters-paccept-fix.patch
+flag-parameters-paccept-sys_ni.patch
+flag-parameters-anon_inode_getfd-extension-fix.patch
+flag-parameters-inotify_init-fix.patch
+flag-parameters-check-magic-constants-alpha-hack.patch
+drivers-video-aty-radeon_basec-notify-user-if-sysfs_create_bin_file-failed-checkpatch-fixes.patch
+reiserfs-convert-j_commit_lock-to-mutex-checkpatch-fixes.patch
+documentation-build-source-files-in-documentation-sub-dir-disable.patch
+reiser4.patch
+reiser4-semaphore-fix.patch
+page-owner-tracking-leak-detector.patch
+nr_blockdev_pages-in_interrupt-warning.patch
+slab-leaks3-default-y.patch
+put_bh-debug.patch
+shrink_slab-handle-bad-shrinkers.patch
+getblk-handle-2tb-devices.patch
+getblk-handle-2tb-devices-fix.patch
+undeprecate-pci_find_device.patch
+notify_change-callers-must-hold-i_mutex.patch
+profile-likely-unlikely-macros.patch
+drivers-net-bonding-bond_sysfsc-suppress-uninitialized-var-warning.patch
+w1-build-fix.patch
+
