@@ -1,81 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: - fs-ext4-use-bug_on.patch removed from -mm tree
-Date: Wed, 14 May 2008 14:22:16 -0700
-Message-ID: <200805142122.m4ELMGqY021582@imap1.linux-foundation.org>
+Subject: - ext4-fix-mount-messages-when-quota-disabled.patch removed from -mm tree
+Date: Wed, 14 May 2008 14:22:18 -0700
+Message-ID: <200805142122.m4ELMIf2021585@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:35322 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46164 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753771AbYENVWU (ORCPT
+	by vger.kernel.org with ESMTP id S1752545AbYENVWZ (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 17:22:20 -0400
+	Wed, 14 May 2008 17:22:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: julia@diku.dk, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     fs/ext4: use BUG_ON
+     ext4: fix mount messages when quota disabled
 has been removed from the -mm tree.  Its filename was
-     fs-ext4-use-bug_on.patch
+     ext4-fix-mount-messages-when-quota-disabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fs/ext4: use BUG_ON
-From: Julia Lawall <julia@diku.dk>
+Subject: ext4: fix mount messages when quota disabled
+From: Jan Kara <jack@suse.cz>
 
-if (...) BUG(); should be replaced with BUG_ON(...) when the test has no
-side-effects to allow a definition of BUG_ON that drops the code completely.
+When quota is disabled, we should not print 'journaled quota not supported'
+when user tried to mount non-journaled quota.  Also fix typo in the message.
 
-The semantic patch that makes this change is as follows:
-(http://www.emn.fr/x-info/coccinelle/)
-
-// <smpl>
-@ disable unlikely @ expression E,f; @@
-
-(
-  if (<... f(...) ...>) { BUG(); }
-|
-- if (unlikely(E)) { BUG(); }
-+ BUG_ON(E);
-)
-
-@@ expression E,f; @@
-
-(
-  if (<... f(...) ...>) { BUG(); }
-|
-- if (E) { BUG(); }
-+ BUG_ON(E);
-)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
+Signed-off-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/balloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/ext4/super.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/ext4/balloc.c~fs-ext4-use-bug_on fs/ext4/balloc.c
---- a/fs/ext4/balloc.c~fs-ext4-use-bug_on
-+++ a/fs/ext4/balloc.c
-@@ -358,8 +358,7 @@ restart:
- 		prev = rsv;
- 	}
- 	printk("Window map complete.\n");
--	if (bad)
--		BUG();
-+	BUG_ON(bad);
- }
- #define rsv_window_dump(root, verbose) \
- 	__rsv_window_dump((root), (verbose), __FUNCTION__)
+diff -puN fs/ext4/super.c~ext4-fix-mount-messages-when-quota-disabled fs/ext4/super.c
+--- a/fs/ext4/super.c~ext4-fix-mount-messages-when-quota-disabled
++++ a/fs/ext4/super.c
+@@ -1241,6 +1241,9 @@ clear_qf_name:
+ 		case Opt_quota:
+ 		case Opt_usrquota:
+ 		case Opt_grpquota:
++			printk(KERN_ERR
++				"EXT4-fs: quota options not supported.\n");
++			break;
+ 		case Opt_usrjquota:
+ 		case Opt_grpjquota:
+ 		case Opt_offusrjquota:
+@@ -1248,7 +1251,7 @@ clear_qf_name:
+ 		case Opt_jqfmt_vfsold:
+ 		case Opt_jqfmt_vfsv0:
+ 			printk(KERN_ERR
+-				"EXT4-fs: journalled quota options not "
++				"EXT4-fs: journaled quota options not "
+ 				"supported.\n");
+ 			break;
+ 		case Opt_noquota:
 _
 
-Patches currently in -mm which might be from julia@diku.dk are
+Patches currently in -mm which might be from jack@suse.cz are
 
 origin.patch
+ext3-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+ext3-fix-typos-in-messages-and-comments-journalled-journaled.patch
+ext3-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
+reiserfs-fix-synchronization-of-quota-files-in-journal=data-mode.patch
+reiserfs-fix-typos-in-messages-and-comments-journalled-journaled.patch
+reiserfs-correct-mount-option-parsing-to-detect-when-quota-options-can-be-changed.patch
 
