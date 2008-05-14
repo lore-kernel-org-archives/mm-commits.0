@@ -1,52 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch removed from -mm tree
-Date: Wed, 14 May 2008 16:11:02 -0700
-Message-ID: <200805142311.m4ENB2np026134@imap1.linux-foundation.org>
+Subject: - mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch removed from -mm tree
+Date: Wed, 14 May 2008 16:17:33 -0700
+Message-ID: <200805142317.m4ENHX9U026470@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:54592 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57887 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753775AbYENXRu (ORCPT
+	by vger.kernel.org with ESMTP id S1752226AbYENXSR (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 19:17:50 -0400
+	Wed, 14 May 2008 19:18:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, matthias@kaehlcke.net, rmk@arm.linux.org.uk, tony@atomide.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, drzeus-list@drzeus.cx, saschasommer@freenet.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix
+     mmc-sd-host-driver-for-ricoh-bay1controllers fix
 has been removed from the -mm tree.  Its filename was
-     arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
+     mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
 
-This patch was dropped because it was folded into arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
+This patch was dropped because it was folded into mmc-sd-host-driver-for-ricoh-bay1controllers.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix
+Subject: mmc-sd-host-driver-for-ricoh-bay1controllers fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Matthias Kaehlcke <matthias@kaehlcke.net>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Tony Lindgren <tony@atomide.com>
+alpha:
+
+drivers/mmc/host/sdricoh_cs.c: In function 'sdricoh_request':
+drivers/mmc/host/sdricoh_cs.c:378: error: implicit declaration of function 'sg_page'
+drivers/mmc/host/sdricoh_cs.c:378: warning: assignment makes pointer from integer without a cast
+
+Cc: Sascha Sommer <saschasommer@freenet.de>
+Cc: Pierre Ossman <drzeus-list@drzeus.cx>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-omap1/board-nokia770.c |    1 +
+ drivers/mmc/host/sdricoh_cs.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/arm/mach-omap1/board-nokia770.c~arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix arch/arm/mach-omap1/board-nokia770.c
---- a/arch/arm/mach-omap1/board-nokia770.c~arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix
-+++ a/arch/arm/mach-omap1/board-nokia770.c
-@@ -10,6 +10,7 @@
+diff -puN drivers/mmc/host/sdricoh_cs.c~mmc-sd-host-driver-for-ricoh-bay1controllers-fix drivers/mmc/host/sdricoh_cs.c
+--- a/drivers/mmc/host/sdricoh_cs.c~mmc-sd-host-driver-for-ricoh-bay1controllers-fix
++++ a/drivers/mmc/host/sdricoh_cs.c
+@@ -28,6 +28,7 @@
+ #include <linux/highmem.h>
+ #include <linux/pci.h>
+ #include <linux/ioport.h>
++#include <linux/scatterlist.h>
+ #include <linux/version.h>
  
- #include <linux/kernel.h>
- #include <linux/init.h>
-+#include <linux/mutex.h>
- #include <linux/platform_device.h>
- #include <linux/input.h>
- #include <linux/clk.h>
+ #include <pcmcia/cs_types.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -69,17 +74,16 @@ lguest-use-cpu-capability-accessors.patch
 x86-set_restore_sigmask-avoid-bitop-on-a-u32.patch
 x86-bitops-take-an-unsigned-long.patch
 arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex.patch
-arm-omap1-n770-convert-audio_pwr_sem-in-a-mutex-fix.patch
 audit_send_reply-fix-error-path-memory-leak.patch
 cifs-suppress-warning.patch
 sysfs-provide-a-clue-about-the-effects-of-config_usb_device_class=y.patch
 zoran-use-correct-type-for-cpu-flags.patch
 i2c-renesas-highlander-fpga-smbus-support.patch
-ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
 drivers-infiniband-hw-mlx4-qpc-fix-uninitialised-var-warning.patch
 git-input.patch
 git-jg-misc-git-rejects.patch
 drivers-scsi-broadsasc-fix-uninitialised-var-warning.patch
+mmc-sd-host-driver-for-ricoh-bay1controllers.patch
 mmc-sd-host-driver-for-ricoh-bay1controllers-fix.patch
 mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
 git-ubifs.patch
@@ -118,6 +122,7 @@ wireless-fix-iwlwifi-unify-init-driver-flow.patch
 xfs-suppress-uninitialized-var-warnings.patch
 git-xtensa.patch
 git-orion-git-rejects.patch
+ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
 colibri-fix-support-for-dm9000-ethernet-device-fix.patch
 mm-verify-the-page-links-and-memory-model.patch
