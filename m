@@ -1,148 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: - pnp-remove-ratelimit-on-add-resource-failures.patch removed from -mm tree
-Date: Tue, 13 May 2008 19:43:05 -0700
-Message-ID: <200805140243.m4E2h5dK012710@imap1.linux-foundation.org>
+Subject: + sctp-fix-use-of-uninitialized-pointer.patch added to -mm tree
+Date: Tue, 13 May 2008 19:55:53 -0700
+Message-ID: <200805140255.m4E2truq013046@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:49095 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46540 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759526AbYENCnx (ORCPT
+	by vger.kernel.org with ESMTP id S1757817AbYENCz6 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Tue, 13 May 2008 22:43:53 -0400
+	Tue, 13 May 2008 22:55:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bjorn.helgaas@hp.com, abelay@mit.edu, castet.matthieu@free.fr, lenb@kernel.org, perex@perex.cz, rene.herman@keyaccess.nl, shaohua.li@intel.com, tiwai@suse.de, trenn@suse.de, mm-commit
+To: mm-commits@vger.kernel.org
+Cc: kaber@trash.net
 
 
 The patch titled
-     pnp: remove ratelimit on add resource failures
-has been removed from the -mm tree.  Its filename was
-     pnp-remove-ratelimit-on-add-resource-failures.patch
+     sctp: fix use of uninitialized pointer
+has been added to the -mm tree.  Its filename is
+     sctp-fix-use-of-uninitialized-pointer.patch
 
-This patch was dropped because it had testing failures
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
+out what to do about this
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: pnp: remove ratelimit on add resource failures
-From: Bjorn Helgaas <bjorn.helgaas@hp.com>
+Subject: sctp: fix use of uninitialized pointer
+From: Patrick McHardy <kaber@trash.net>
 
-We used to have a fixed-size resource table.  If a device had twenty resources
-when the table only had space for ten, we didn't need ten warnings, so we
-added the ratelimit.
+Introduced by c4492586 (sctp: Add address type check while process
+paramaters of ASCONF chunk):
 
-Now that we can dynamically allocate new resources, we should only get
-failures if the allocation fails.  That should be rare enough that we don't
-need to ratelimit the messages.
+net/sctp/sm_make_chunk.c: In function 'sctp_process_asconf':
+net/sctp/sm_make_chunk.c:2828: warning: 'addr_param' may be used uninitialized in this function
+net/sctp/sm_make_chunk.c:2828: note: 'addr_param' was declared here
 
-Signed-off-by: Bjorn Helgaas <bjorn.helgaas@hp.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Adam M Belay <abelay@mit.edu>
-Cc: Li Shaohua <shaohua.li@intel.com>
-Cc: Matthieu Castet <castet.matthieu@free.fr>
-Cc: Thomas Renninger <trenn@suse.de>
-Cc: Rene Herman <rene.herman@keyaccess.nl>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.de>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pnp/resource.c |   34 ++++++++--------------------------
- 1 file changed, 8 insertions(+), 26 deletions(-)
+ net/sctp/sm_make_chunk.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/pnp/resource.c~pnp-remove-ratelimit-on-add-resource-failures drivers/pnp/resource.c
---- a/drivers/pnp/resource.c~pnp-remove-ratelimit-on-add-resource-failures
-+++ a/drivers/pnp/resource.c
-@@ -537,15 +537,10 @@ struct pnp_resource *pnp_add_irq_resourc
- {
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	static unsigned char warned;
+diff -puN net/sctp/sm_make_chunk.c~sctp-fix-use-of-uninitialized-pointer net/sctp/sm_make_chunk.c
+--- a/net/sctp/sm_make_chunk.c~sctp-fix-use-of-uninitialized-pointer
++++ a/net/sctp/sm_make_chunk.c
+@@ -2827,6 +2827,9 @@ static __be16 sctp_process_asconf_param(
+ 	union sctp_addr	addr;
+ 	union sctp_addr_param *addr_param;
  
- 	pnp_res = pnp_new_resource(dev);
- 	if (!pnp_res) {
--		if (!warned) {
--			dev_err(&dev->dev, "can't add resource for IRQ %d\n",
--				irq);
--			warned = 1;
--		}
-+		dev_err(&dev->dev, "can't add resource for IRQ %d\n", irq);
- 		return NULL;
++	addr_param = (union sctp_addr_param *)
++			((void *)asconf_param + sizeof(sctp_addip_param_t));
++
+ 	switch (addr_param->v4.param_hdr.type) {
+ 	case SCTP_PARAM_IPV6_ADDRESS:
+ 		if (!asoc->peer.ipv6_address)
+@@ -2840,9 +2843,6 @@ static __be16 sctp_process_asconf_param(
+ 		return SCTP_ERROR_INV_PARAM;
  	}
  
-@@ -563,15 +558,10 @@ struct pnp_resource *pnp_add_dma_resourc
- {
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	static unsigned char warned;
- 
- 	pnp_res = pnp_new_resource(dev);
- 	if (!pnp_res) {
--		if (!warned) {
--			dev_err(&dev->dev, "can't add resource for DMA %d\n",
--				dma);
--			warned = 1;
--		}
-+		dev_err(&dev->dev, "can't add resource for DMA %d\n", dma);
- 		return NULL;
- 	}
- 
-@@ -590,16 +580,12 @@ struct pnp_resource *pnp_add_io_resource
- {
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	static unsigned char warned;
- 
- 	pnp_res = pnp_new_resource(dev);
- 	if (!pnp_res) {
--		if (!warned) {
--			dev_err(&dev->dev, "can't add resource for IO "
--				"%#llx-%#llx\n",(unsigned long long) start,
--				(unsigned long long) end);
--			warned = 1;
--		}
-+		dev_err(&dev->dev, "can't add resource for IO %#llx-%#llx\n",
-+			(unsigned long long) start,
-+			(unsigned long long) end);
- 		return NULL;
- 	}
- 
-@@ -619,16 +605,12 @@ struct pnp_resource *pnp_add_mem_resourc
- {
- 	struct pnp_resource *pnp_res;
- 	struct resource *res;
--	static unsigned char warned;
- 
- 	pnp_res = pnp_new_resource(dev);
- 	if (!pnp_res) {
--		if (!warned) {
--			dev_err(&dev->dev, "can't add resource for MEM "
--				"%#llx-%#llx\n",(unsigned long long) start,
--				(unsigned long long) end);
--			warned = 1;
--		}
-+		dev_err(&dev->dev, "can't add resource for MEM %#llx-%#llx\n",
-+			(unsigned long long) start,
-+			(unsigned long long) end);
- 		return NULL;
- 	}
- 
-_
-
-Patches currently in -mm which might be from bjorn.helgaas@hp.com are
-
-origin.patch
-acpi_pm_device_sleep_state-cleanup.patch
-acpi-fix-drivers-acpi-gluec-build-error.patch
-mm-only-enforce-acpi-resource-conflict-checks.patch
-pnp-cleanup-pnp_fixup_device.patch
-pnp-add-pnp_build_option-to-the-api.patch
-pnp-add-isapnp-mpu-option-quirks.patch
-pnp-add-detail-to-debug-resource-dump.patch
-pnp-remove-pnp_resourceindex.patch
-pnp-add-pnp_resource_type-internal-interface.patch
-pnp-add-pnp_resource_type_name-helper-function.patch
-pnp-remove-ratelimit-on-add-resource-failures.patch
-pnp-dont-sort-by-type-in-sys-resources.patch
-make-pnp_add_card_id-static.patch
-
+-	addr_param = (union sctp_addr_param *)
+-			((void *)asconf_param + sizeof(sctp_addip_param_t));
