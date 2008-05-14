@@ -1,100 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: - rndis-switch-to-seq_files-checkpatch-fixes.patch removed from -mm tree
-Date: Wed, 14 May 2008 16:24:13 -0700
-Message-ID: <200805142324.m4ENODlT026890@imap1.linux-foundation.org>
+Subject: - colibri-fix-support-for-dm9000-ethernet-device-fix.patch removed from -mm tree
+Date: Wed, 14 May 2008 16:28:00 -0700
+Message-ID: <200805142328.m4ENS0Wv027218@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:41497 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:49545 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754884AbYENXYz (ORCPT
+	by vger.kernel.org with ESMTP id S1754010AbYENX3H (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 19:24:55 -0400
+	Wed, 14 May 2008 19:29:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, adobriyan@gmail.com, david-b@pacbell.net, greg@kroah.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ben-linux@fluff.org, daniel@caiaq.org, jeff@garzik.org, michael.abbott@diamond.ac.uk, rmk@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     rndis-switch-to-seq_files-checkpatch-fixes
+     colibri-fix-support-for-dm9000-ethernet-device-fix
 has been removed from the -mm tree.  Its filename was
-     rndis-switch-to-seq_files-checkpatch-fixes.patch
+     colibri-fix-support-for-dm9000-ethernet-device-fix.patch
 
-This patch was dropped because it was folded into rndis-switch-to-seq_files.patch
+This patch was dropped because it was folded into colibri-fix-support-for-dm9000-ethernet-device.patch
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: rndis-switch-to-seq_files-checkpatch-fixes
+Subject: colibri-fix-support-for-dm9000-ethernet-device-fix
 From: Andrew Morton <akpm@linux-foundation.org>
 
-WARNING: space prohibited between function name and open parenthesis '('
-#29: FILE: drivers/usb/gadget/rndis.c:1300:
-+static int rndis_proc_show (struct seq_file *m, void *v)
+Ben Dooks <ben-linux@fluff.org> wrote:
+> The set_irq_type() call here should be removed.
 
-WARNING: space prohibited between function name and open parenthesis '('
-#37: FILE: drivers/usb/gadget/rndis.c:1304:
-+	seq_printf (m,
-
-WARNING: space prohibited between function name and open parenthesis '('
-#63: FILE: drivers/usb/gadget/rndis.c:1330:
-+static ssize_t rndis_proc_write (struct file *file, const char __user *buffer,
-
-WARNING: space prohibited between function name and open parenthesis '('
-#97: FILE: drivers/usb/gadget/rndis.c:1406:
-+				= proc_create_data (name, 0660, NULL,
-
-total: 0 errors, 4 warnings, 94 lines checked
-
-./patches/rndis-switch-to-seq_files.patch has style problems, please review.  If any of these errors
-are false positives report them to the maintainer, see
-CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: David Brownell <david-b@pacbell.net>
-Cc: Greg KH <greg@kroah.com>
+Cc: Ben Dooks <ben-linux@fluff.org>
+Cc: Daniel Mack <daniel@caiaq.org>
+Cc: Jeff Garzik <jeff@garzik.org>
+Cc: Michael Abbott <michael.abbott@diamond.ac.uk>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/usb/gadget/rndis.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/mach-pxa/colibri.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/usb/gadget/rndis.c~rndis-switch-to-seq_files-checkpatch-fixes drivers/usb/gadget/rndis.c
---- a/drivers/usb/gadget/rndis.c~rndis-switch-to-seq_files-checkpatch-fixes
-+++ a/drivers/usb/gadget/rndis.c
-@@ -1297,11 +1297,11 @@ int rndis_rm_hdr(struct sk_buff *skb)
+diff -puN arch/arm/mach-pxa/colibri.c~colibri-fix-support-for-dm9000-ethernet-device-fix arch/arm/mach-pxa/colibri.c
+--- a/arch/arm/mach-pxa/colibri.c~colibri-fix-support-for-dm9000-ethernet-device-fix
++++ a/arch/arm/mach-pxa/colibri.c
+@@ -119,7 +119,6 @@ static void __init colibri_init(void)
+ 	/* DM9000 LAN */
+ 	pxa_gpio_mode(GPIO78_nCS_2_MD);
+ 	pxa_gpio_mode(GPIO_DM9000 | GPIO_IN);
+-	set_irq_type(COLIBRI_ETH_IRQ, IRQT_RISING);
  
- #ifdef	CONFIG_USB_GADGET_DEBUG_FILES
- 
--static int rndis_proc_show (struct seq_file *m, void *v)
-+static int rndis_proc_show(struct seq_file *m, void *v)
- {
- 	rndis_params *param = m->private;
- 
--	seq_printf (m,
-+	seq_printf(m,
- 			 "Config Nr. %d\n"
- 			 "used      : %s\n"
- 			 "state     : %s\n"
-@@ -1327,7 +1327,7 @@ static int rndis_proc_show (struct seq_f
- 	return 0;
+ 	platform_add_devices(colibri_devices, ARRAY_SIZE(colibri_devices));
  }
- 
--static ssize_t rndis_proc_write (struct file *file, const char __user *buffer,
-+static ssize_t rndis_proc_write(struct file *file, const char __user *buffer,
- 		size_t count, loff_t *ppos)
- {
- 	rndis_params *p = PDE(file->f_path.dentry->d_inode)->data;
-@@ -1403,7 +1403,7 @@ int __init rndis_init (void)
- 
- 		sprintf (name, NAME_TEMPLATE, i);
- 		if (!(rndis_connect_state [i]
--				= proc_create_data (name, 0660, NULL,
-+				= proc_create_data(name, 0660, NULL,
- 					&rndis_proc_fops,
- 					(void *)(rndis_per_dev_params + i))))
- 		{
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -153,8 +110,6 @@ drivers-uwb-wlp-sysfsc-dead-code.patch
 drivers-uwb-i1480-dfu-macc-fix-min-warning.patch
 drivers-uwb-i1480-dfu-usbc-fix-size_t-confusion.patch
 drivers-uwb-whcic-needs-dma-mappingh.patch
-rndis-switch-to-seq_files.patch
-rndis-switch-to-seq_files-checkpatch-fixes.patch
 git-v9fs.patch
 revert-git-v9fs.patch
 git-watchdog.patch
@@ -166,6 +121,7 @@ git-xtensa.patch
 git-orion-git-rejects.patch
 ibmaem-new-driver-for-power-energy-temp-meters-in-ibm-system-x-hardware-ia64-warnings.patch
 scsi-dpt_i2o-is-bust-on-ia64.patch
+colibri-fix-support-for-dm9000-ethernet-device.patch
 colibri-fix-support-for-dm9000-ethernet-device-fix.patch
 mm-verify-the-page-links-and-memory-model.patch
 mspec-convert-nopfn-to-fault-fix.patch
