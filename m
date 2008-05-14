@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-convert-j_flush_sem-to-mutex-fix.patch added to -mm tree
-Date: Wed, 14 May 2008 11:01:29 -0700
-Message-ID: <200805141801.m4EI1TFu013572@imap1.linux-foundation.org>
+Subject: + revert-list_for_each_rcu-must-die-networking.patch added to -mm tree
+Date: Wed, 14 May 2008 12:12:01 -0700
+Message-ID: <200805141923.m4EJN6uj016819@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52859 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:56504 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755189AbYENSEE (ORCPT
+	by vger.kernel.org with ESMTP id S1758936AbYENTdt (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 14:04:04 -0400
+	Wed, 14 May 2008 15:33:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: akpm@linux-foundation.org, chris.mason@oracle.com, edward.shishkin@gmail.com, jeffm@suse.com, kamalesh@linux.vnet.ibm.com, matthew@wil.cx
+Cc: akpm@linux-foundation.org, davem@davemloft.net, paulmck@linux.vnet.ibm.com
 
 
 The patch titled
-     reiserfs-convert-j_flush_sem-to-mutex-fix
+     revert list_for_each_rcu-must-die-networking
 has been added to the -mm tree.  Its filename is
-     reiserfs-convert-j_flush_sem-to-mutex-fix.patch
+     revert-list_for_each_rcu-must-die-networking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,32 +34,77 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: reiserfs-convert-j_flush_sem-to-mutex-fix
+Subject: revert list_for_each_rcu-must-die-networking
 From: Andrew Morton <akpm@linux-foundation.org>
 
-Cc: Chris Mason <chris.mason@oracle.com>
-Cc: Edward Shishkin <edward.shishkin@gmail.com>
-Cc: Jeff Mahoney <jeffm@suse.com>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/journal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/802/psnap.c     |    4 +++-
+ net/ipv4/af_inet.c  |    4 +++-
+ net/ipv6/af_inet6.c |    4 +++-
+ 3 files changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN fs/reiserfs/journal.c~reiserfs-convert-j_flush_sem-to-mutex-fix fs/reiserfs/journal.c
---- a/fs/reiserfs/journal.c~reiserfs-convert-j_flush_sem-to-mutex-fix
-+++ a/fs/reiserfs/journal.c
-@@ -1412,7 +1412,7 @@ static int flush_journal_list(struct sup
- 	/* if flushall == 0, the lock is already held */
- 	if (flushall) {
- 		mutex_lock(&journal->j_flush_mutex);
--	} else if (!mutex_trylock(&journal->j_flush_mutex)) {
-+	} else if (mutex_trylock(&journal->j_flush_mutex)) {
- 		BUG();
- 	}
+diff -puN net/802/psnap.c~revert-list_for_each_rcu-must-die-networking net/802/psnap.c
+--- a/net/802/psnap.c~revert-list_for_each_rcu-must-die-networking
++++ a/net/802/psnap.c
+@@ -30,9 +30,11 @@ static struct llc_sap *snap_sap;
+  */
+ static struct datalink_proto *find_snap_client(unsigned char *desc)
+ {
++	struct list_head *entry;
+ 	struct datalink_proto *proto = NULL, *p;
  
+-	list_for_each_entry_rcu(p, &snap_list, node) {
++	list_for_each_rcu(entry, &snap_list) {
++		p = list_entry(entry, struct datalink_proto, node);
+ 		if (!memcmp(p->type, desc, 5)) {
+ 			proto = p;
+ 			break;
+diff -puN net/ipv4/af_inet.c~revert-list_for_each_rcu-must-die-networking net/ipv4/af_inet.c
+--- a/net/ipv4/af_inet.c~revert-list_for_each_rcu-must-die-networking
++++ a/net/ipv4/af_inet.c
+@@ -267,6 +267,7 @@ static inline int inet_netns_ok(struct n
+ static int inet_create(struct net *net, struct socket *sock, int protocol)
+ {
+ 	struct sock *sk;
++	struct list_head *p;
+ 	struct inet_protosw *answer;
+ 	struct inet_sock *inet;
+ 	struct proto *answer_prot;
+@@ -287,7 +288,8 @@ static int inet_create(struct net *net, 
+ lookup_protocol:
+ 	err = -ESOCKTNOSUPPORT;
+ 	rcu_read_lock();
+-	list_for_each_entry_rcu(answer, &inetsw[sock->type], list) {
++	list_for_each_rcu(p, &inetsw[sock->type]) {
++		answer = list_entry(p, struct inet_protosw, list);
+ 
+ 		/* Check the non-wild match. */
+ 		if (protocol == answer->protocol) {
+diff -puN net/ipv6/af_inet6.c~revert-list_for_each_rcu-must-die-networking net/ipv6/af_inet6.c
+--- a/net/ipv6/af_inet6.c~revert-list_for_each_rcu-must-die-networking
++++ a/net/ipv6/af_inet6.c
+@@ -87,6 +87,7 @@ static int inet6_create(struct net *net,
+ 	struct inet_sock *inet;
+ 	struct ipv6_pinfo *np;
+ 	struct sock *sk;
++	struct list_head *p;
+ 	struct inet_protosw *answer;
+ 	struct proto *answer_prot;
+ 	unsigned char answer_flags;
+@@ -104,7 +105,8 @@ static int inet6_create(struct net *net,
+ lookup_protocol:
+ 	err = -ESOCKTNOSUPPORT;
+ 	rcu_read_lock();
+-	list_for_each_entry_rcu(answer, &inetsw6[sock->type], list) {
++	list_for_each_rcu(p, &inetsw6[sock->type]) {
++		answer = list_entry(p, struct inet_protosw, list);
+ 
+ 		/* Check the non-wild match. */
+ 		if (protocol == answer->protocol) {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +143,7 @@ mmc-sd-host-driver-for-ricoh-bay1controllers-fix-2.patch
 git-ubifs.patch
 git-net.patch
 git-net-git-rejects.patch
+revert-list_for_each_rcu-must-die-networking.patch
 hysdn-no-longer-broken-on-smp.patch
 sundance-set-carrier-status-on-link-change-events.patch
 dm9000-use-delayed-work-to-update-mii-phy-state-fix.patch
