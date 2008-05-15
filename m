@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + list_for_each_rcu-must-die-audit.patch added to -mm tree
-Date: Thu, 15 May 2008 16:34:52 -0700
-Message-ID: <200805152334.m4FNYqTn016133@imap1.linux-foundation.org>
+Subject: + list_for_each_rcu-must-die-networking.patch added to -mm tree
+Date: Thu, 15 May 2008 16:35:37 -0700
+Message-ID: <200805152335.m4FNZbhp016159@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47600 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53621 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750830AbYEOXgI (ORCPT
+	by vger.kernel.org with ESMTP id S1754539AbYEOXga (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 19:36:08 -0400
+	Thu, 15 May 2008 19:36:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulmck@linux.vnet.ibm.com, viro@zeniv.linux.org.uk
+Cc: paulmck@linux.vnet.ibm.com, davem@davemloft.net
 
 
 The patch titled
-     list_for_each_rcu must die: audit
+     list_for_each_rcu must die: networking
 has been added to the -mm tree.  Its filename is
-     list_for_each_rcu-must-die-audit.patch
+     list_for_each_rcu-must-die-networking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,38 +34,118 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: list_for_each_rcu must die: audit
+Subject: list_for_each_rcu must die: networking
 From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 
 All uses of list_for_each_rcu() can be profitably replaced by the
 easier-to-use list_for_each_entry_rcu().  This patch makes this change for
-the Audit system, in preparation for removing the list_for_each_rcu() API
+networking, in preparation for removing the list_for_each_rcu() API
 entirely.
 
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/audit_tree.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ net/802/psnap.c     |    4 +---
+ net/ipv4/af_inet.c  |    9 +++------
+ net/ipv6/af_inet6.c |    9 +++------
+ 3 files changed, 7 insertions(+), 15 deletions(-)
 
-diff -puN kernel/audit_tree.c~list_for_each_rcu-must-die-audit kernel/audit_tree.c
---- a/kernel/audit_tree.c~list_for_each_rcu-must-die-audit
-+++ a/kernel/audit_tree.c
-@@ -172,10 +172,9 @@ static void insert_hash(struct audit_chu
- struct audit_chunk *audit_tree_lookup(const struct inode *inode)
+diff -puN net/802/psnap.c~list_for_each_rcu-must-die-networking net/802/psnap.c
+--- a/net/802/psnap.c~list_for_each_rcu-must-die-networking
++++ a/net/802/psnap.c
+@@ -30,11 +30,9 @@ static struct llc_sap *snap_sap;
+  */
+ static struct datalink_proto *find_snap_client(unsigned char *desc)
  {
- 	struct list_head *list = chunk_hash(inode);
--	struct list_head *pos;
-+	struct audit_chunk *p;
+-	struct list_head *entry;
+ 	struct datalink_proto *proto = NULL, *p;
  
--	list_for_each_rcu(pos, list) {
--		struct audit_chunk *p = container_of(pos, struct audit_chunk, hash);
-+	list_for_each_entry_rcu(p, list, hash) {
- 		if (p->watch.inode == inode) {
- 			get_inotify_watch(&p->watch);
- 			return p;
+-	list_for_each_rcu(entry, &snap_list) {
+-		p = list_entry(entry, struct datalink_proto, node);
++	list_for_each_entry_rcu(p, &snap_list, node) {
+ 		if (!memcmp(p->type, desc, 5)) {
+ 			proto = p;
+ 			break;
+diff -puN net/ipv4/af_inet.c~list_for_each_rcu-must-die-networking net/ipv4/af_inet.c
+--- a/net/ipv4/af_inet.c~list_for_each_rcu-must-die-networking
++++ a/net/ipv4/af_inet.c
+@@ -267,7 +267,6 @@ static inline int inet_netns_ok(struct n
+ static int inet_create(struct net *net, struct socket *sock, int protocol)
+ {
+ 	struct sock *sk;
+-	struct list_head *p;
+ 	struct inet_protosw *answer;
+ 	struct inet_sock *inet;
+ 	struct proto *answer_prot;
+@@ -284,13 +283,12 @@ static int inet_create(struct net *net, 
+ 	sock->state = SS_UNCONNECTED;
+ 
+ 	/* Look for the requested type/protocol pair. */
+-	answer = NULL;
+ lookup_protocol:
+ 	err = -ESOCKTNOSUPPORT;
+ 	rcu_read_lock();
+-	list_for_each_rcu(p, &inetsw[sock->type]) {
+-		answer = list_entry(p, struct inet_protosw, list);
++	list_for_each_entry_rcu(answer, &inetsw[sock->type], list) {
+ 
++		err = 0;
+ 		/* Check the non-wild match. */
+ 		if (protocol == answer->protocol) {
+ 			if (protocol != IPPROTO_IP)
+@@ -305,10 +303,9 @@ lookup_protocol:
+ 				break;
+ 		}
+ 		err = -EPROTONOSUPPORT;
+-		answer = NULL;
+ 	}
+ 
+-	if (unlikely(answer == NULL)) {
++	if (unlikely(err)) {
+ 		if (try_loading_module < 2) {
+ 			rcu_read_unlock();
+ 			/*
+diff -puN net/ipv6/af_inet6.c~list_for_each_rcu-must-die-networking net/ipv6/af_inet6.c
+--- a/net/ipv6/af_inet6.c~list_for_each_rcu-must-die-networking
++++ a/net/ipv6/af_inet6.c
+@@ -87,7 +87,6 @@ static int inet6_create(struct net *net,
+ 	struct inet_sock *inet;
+ 	struct ipv6_pinfo *np;
+ 	struct sock *sk;
+-	struct list_head *p;
+ 	struct inet_protosw *answer;
+ 	struct proto *answer_prot;
+ 	unsigned char answer_flags;
+@@ -101,13 +100,12 @@ static int inet6_create(struct net *net,
+ 		build_ehash_secret();
+ 
+ 	/* Look for the requested type/protocol pair. */
+-	answer = NULL;
+ lookup_protocol:
+ 	err = -ESOCKTNOSUPPORT;
+ 	rcu_read_lock();
+-	list_for_each_rcu(p, &inetsw6[sock->type]) {
+-		answer = list_entry(p, struct inet_protosw, list);
++	list_for_each_entry_rcu(answer, &inetsw6[sock->type], list) {
+ 
++		err = 0;
+ 		/* Check the non-wild match. */
+ 		if (protocol == answer->protocol) {
+ 			if (protocol != IPPROTO_IP)
+@@ -122,10 +120,9 @@ lookup_protocol:
+ 				break;
+ 		}
+ 		err = -EPROTONOSUPPORT;
+-		answer = NULL;
+ 	}
+ 
+-	if (!answer) {
++	if (err) {
+ 		if (try_loading_module < 2) {
+ 			rcu_read_unlock();
+ 			/*
 _
 
 Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
