@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + macintosh-therm_windtunnel-semaphore-to-mutex.patch added to -mm tree
-Date: Thu, 15 May 2008 14:08:33 -0700
-Message-ID: <200805152108.m4FL8Xve010673@imap1.linux-foundation.org>
+Subject: + leds-fix-unsigned-value-overflow-in-for-loop.patch added to -mm tree
+Date: Thu, 15 May 2008 14:15:05 -0700
+Message-ID: <200805152115.m4FLF7cb010921@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:36713 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:58664 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752466AbYEOVNQ (ORCPT
+	by vger.kernel.org with ESMTP id S1752688AbYEOVPO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 17:13:16 -0400
+	Thu, 15 May 2008 17:15:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: dwalker@mvista.com
+Cc: lizf@cn.fujitsu.com
 
 
 The patch titled
-     macintosh: therm_windtunnel: semaphore to mutex
+     leds: fix unsigned value overflow in for loop
 has been added to the -mm tree.  Its filename is
-     macintosh-therm_windtunnel-semaphore-to-mutex.patch
+     leds-fix-unsigned-value-overflow-in-for-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,74 +34,41 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: macintosh: therm_windtunnel: semaphore to mutex
-From: Daniel Walker <dwalker@mvista.com>
+Subject: leds: fix unsigned value overflow in for loop
+From: Li Zefan <lizf@cn.fujitsu.com>
 
-Signed-off-by: Daniel Walker <dwalker@mvista.com>
+Fix the following unsigned variable overflow:
+	unsigned i;
+	for (i = n; i >= 0; i--)
+	...
+
+It won't break anything to use type 'int'.
+
+Signed-off-by: Li Zefan <lizf@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/macintosh/therm_windtunnel.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
+ drivers/leds/leds-atmel-pwm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/macintosh/therm_windtunnel.c~macintosh-therm_windtunnel-semaphore-to-mutex drivers/macintosh/therm_windtunnel.c
---- a/drivers/macintosh/therm_windtunnel.c~macintosh-therm_windtunnel-semaphore-to-mutex
-+++ a/drivers/macintosh/therm_windtunnel.c
-@@ -62,7 +62,7 @@ static struct {
- 	volatile int		running;
- 	struct task_struct	*poll_task;
- 	
--	struct semaphore 	lock;
-+	struct mutex	 	lock;
- 	struct of_device	*of_dev;
- 	
- 	struct i2c_client	*thermostat;
-@@ -286,23 +286,23 @@ restore_regs( void )
- 
- static int control_loop(void *dummy)
+diff -puN drivers/leds/leds-atmel-pwm.c~leds-fix-unsigned-value-overflow-in-for-loop drivers/leds/leds-atmel-pwm.c
+--- a/drivers/leds/leds-atmel-pwm.c~leds-fix-unsigned-value-overflow-in-for-loop
++++ a/drivers/leds/leds-atmel-pwm.c
+@@ -37,7 +37,7 @@ static int __init pwmled_probe(struct pl
  {
--	down(&x.lock);
-+	mutex_lock(&x.lock);
- 	setup_hardware();
--	up(&x.lock);
-+	mutex_unlock(&x.lock);
+ 	const struct gpio_led_platform_data	*pdata;
+ 	struct pwmled				*leds;
+-	unsigned				i;
++	int					i;
+ 	int					status;
  
- 	for (;;) {
- 		msleep_interruptible(8000);
- 		if (kthread_should_stop())
- 			break;
- 
--		down(&x.lock);
-+		mutex_lock(&x.lock);
- 		poll_temp();
--		up(&x.lock);
-+		mutex_unlock(&x.lock);
- 	}
- 
--	down(&x.lock);
-+	mutex_lock(&x.lock);
- 	restore_regs();
--	up(&x.lock);
-+	mutex_unlock(&x.lock);
- 
- 	return 0;
- }
-@@ -489,7 +489,7 @@ g4fan_init( void )
- 	const struct apple_thermal_info *info;
- 	struct device_node *np;
- 
--	init_MUTEX( &x.lock );
-+	mutex_init(&x.lock);
- 
- 	if( !(np=of_find_node_by_name(NULL, "power-mgt")) )
- 		return -ENODEV;
+ 	pdata = pdev->dev.platform_data;
 _
 
-Patches currently in -mm which might be from dwalker@mvista.com are
+Patches currently in -mm which might be from lizf@cn.fujitsu.com are
 
-macintosh-therm_windtunnel-semaphore-to-mutex.patch
-macintosh-media-bay-semaphore-to-mutex.patch
-profile-likely-unlikely-macros.patch
-likely_prof-changed-to-use-proc_create.patch
-likeliness-accounting-change-and-cleanup.patch
+leds-fix-unsigned-value-overflow-in-for-loop.patch
+cgroup-use-read-lock-to-guard-find_existing_css_set.patch
+memcg-avoid-unnecessary-initialization.patch
+memcg-better-migration-handling.patch
 
