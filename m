@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + typesh-dont-expose-struct-ustat-to-userspace.patch added to -mm tree
-Date: Thu, 15 May 2008 16:04:18 -0700
-Message-ID: <200805152304.m4FN4IjU015066@imap1.linux-foundation.org>
+Subject: + kbuild-remove-final-references-to-deprecated-unreferenced-topdir.patch added to -mm tree
+Date: Thu, 15 May 2008 16:06:31 -0700
+Message-ID: <200805152306.m4FN6VLB015111@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:40112 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42148 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754740AbYEOXGR (ORCPT
+	by vger.kernel.org with ESMTP id S1753603AbYEOXHM (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 19:06:17 -0400
+	Thu, 15 May 2008 19:07:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: max@stro.at, stable@kernel.org
+Cc: rpjday@crashcourse.ca, sam@ravnborg.org
 
 
 The patch titled
-     types.h: don't expose struct ustat to userspace
+     kbuild: remove final references to deprecated, unreferenced TOPDIR
 has been added to the -mm tree.  Its filename is
-     typesh-dont-expose-struct-ustat-to-userspace.patch
+     kbuild-remove-final-references-to-deprecated-unreferenced-topdir.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,35 +34,55 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: types.h: don't expose struct ustat to userspace
-From: maximilian attems <max@stro.at>
+Subject: kbuild: remove final references to deprecated, unreferenced TOPDIR
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
 
-<linux/types.h> can't be used together with <sys/ustat.h> because they
-both define struct ustat:
+Now that the final references to the deprecated TOPDIR are gone, it seems
+safe to remove its definition.
 
-    $ cat test.c
-    #include <sys/ustat.h>
-    #include <linux/types.h>
-    $ gcc -c test.c
-    In file included from test.c:2:
-    /usr/include/linux/types.h:165: error: redefinition of 'struct ustat'
-
-has been reported a while ago to debian, but seems to have been
-lost in cat fighting: http://bugs.debian.org/429064
-
-Signed-off-by: maximilian attems <max@stro.at>
-Cc: <stable@kernel.org>
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/types.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ Makefile |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN include/linux/types.h~typesh-dont-expose-struct-ustat-to-userspace include/linux/types.h
---- a/include/linux/types.h~typesh-dont-expose-struct-ustat-to-userspace
-+++ a/include/linux/types.h
-@@ -197,8 +197,6 @@ typedef u64 resource_size_t;
- typedef u32 resource_size_t;
- #endif
+diff -puN Makefile~kbuild-remove-final-references-to-deprecated-unreferenced-topdir Makefile
+--- a/Makefile~kbuild-remove-final-references-to-deprecated-unreferenced-topdir
++++ a/Makefile
+@@ -148,15 +148,13 @@ _all: modules
+ endif
  
--#endif	/* __KERNEL__ */
+ srctree		:= $(if $(KBUILD_SRC),$(KBUILD_SRC),$(CURDIR))
+-TOPDIR		:= $(srctree)
+-# FIXME - TOPDIR is obsolete, use srctree/objtree
+ objtree		:= $(CURDIR)
+ src		:= $(srctree)
+ obj		:= $(objtree)
+ 
+ VPATH		:= $(srctree)$(if $(KBUILD_EXTMOD),:$(KBUILD_EXTMOD))
+ 
+-export srctree objtree VPATH TOPDIR
++export srctree objtree VPATH
+ 
+ 
+ # SUBARCH tells the usermode build what the underlying arch is.  That is set
+_
+
+Patches currently in -mm which might be from rpjday@crashcourse.ca are
+
+origin.patch
+linux-next.patch
+macintosh-replace-deprecated-__initcall-with-device_initcall.patch
+kbuild-remove-final-references-to-deprecated-unreferenced-topdir.patch
+xtensa-warn-about-including-asm-rwsemh-directly.patch
+xtensa-use-newer-__spin_lock_unlocked-macro.patch
+remove-apparently-unused-fd1772h-header-file.patch
+init-delete-hard-coded-setting-and-testing-of-build_cramdisk.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm.patch
+lib-allow-memparse-to-accept-a-null-and-ignorable-second-parm-checkpatch-fixes.patch
+lists-remove-a-redundant-conditional-definition-of-list_add.patch
+zorro-replace-deprecated-__initcall-with-equivalent-device_initcall.patch
+spi-kconfig-simplifications.patch
+
