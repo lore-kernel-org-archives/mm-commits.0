@@ -1,28 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + serial-support-for-instashield-is-400-four-port-rs-232-pci-card.patch added to -mm tree
-Date: Thu, 15 May 2008 14:07:44 -0700
-Message-ID: <200805152107.m4FL7iAM010657@imap1.linux-foundation.org>
+Subject: + macintosh-media-bay-semaphore-to-mutex.patch added to -mm tree
+Date: Thu, 15 May 2008 14:08:35 -0700
+Message-ID: <200805152108.m4FL8ZvP010679@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:59230 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57535 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762371AbYEOVIQ (ORCPT
+	by vger.kernel.org with ESMTP id S1754642AbYEOVKd (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 17:08:16 -0400
+	Thu, 15 May 2008 17:10:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: iggarpe@t2i.com
+Cc: dwalker@mvista.com
 
 
 The patch titled
-     serial: support for InstaShield IS-400 four port RS-232 PCI card
+     macintosh: media bay: semaphore to mutex
 has been added to the -mm tree.  Its filename is
-     serial-support-for-instashield-is-400-four-port-rs-232-pci-card.pa=
-tch
+     macintosh-media-bay-semaphore-to-mutex.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -30,71 +26,142 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to =
-find
+See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
 out what to do about this
 
-The current -mm tree may be found at http://userweb.kernel.org/~akpm/mm=
-otm/
+The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: serial: support for InstaShield IS-400 four port RS-232 PCI ca=
-rd
-=46rom: Ignacio Garc=EDa P=E9rez <iggarpe@t2i.com>
+Subject: macintosh: media bay: semaphore to mutex
+From: Daniel Walker <dwalker@mvista.com>
 
-Add support for the InstaShield IS-400 four port RS-232 PCI card.
-
-Signed-off-by: Ignacio Garc=EDa P=E9rez <iggarpe@t2i.com>
+Signed-off-by: Daniel Walker <dwalker@mvista.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/serial/8250_pci.c |    7 ++++++-
- include/linux/pci_ids.h   |    1 +
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ drivers/macintosh/mediabay.c |   27 ++++++++++++++-------------
+ 1 file changed, 14 insertions(+), 13 deletions(-)
 
-diff -puN drivers/serial/8250_pci.c~serial-support-for-instashield-is-4=
-00-four-port-rs-232-pci-card drivers/serial/8250_pci.c
---- a/drivers/serial/8250_pci.c~serial-support-for-instashield-is-400-f=
-our-port-rs-232-pci-card
-+++ a/drivers/serial/8250_pci.c
-@@ -2602,7 +2602,12 @@ static struct pci_device_id serial_pci_t
- 	{	PCI_VENDOR_ID_INTASHIELD, PCI_DEVICE_ID_INTASHIELD_IS200,
- 		PCI_ANY_ID, PCI_ANY_ID, 0, 0,	/* 135a.0811 */
- 		pbn_b2_2_115200 },
--
-+	/*
-+	 * IntaShield IS-400
-+	 */
-+	{	PCI_VENDOR_ID_INTASHIELD, PCI_DEVICE_ID_INTASHIELD_IS400,
-+		PCI_ANY_ID, PCI_ANY_ID, 0, 0,    /* 135a.0dc0 */
-+		pbn_b2_4_115200 },
- 	/*
- 	 * Perle PCI-RAS cards
- 	 */
-diff -puN include/linux/pci_ids.h~serial-support-for-instashield-is-400=
--four-port-rs-232-pci-card include/linux/pci_ids.h
---- a/include/linux/pci_ids.h~serial-support-for-instashield-is-400-fou=
-r-port-rs-232-pci-card
-+++ a/include/linux/pci_ids.h
-@@ -1761,6 +1761,7 @@
-=20
- #define PCI_VENDOR_ID_INTASHIELD	0x135a
- #define PCI_DEVICE_ID_INTASHIELD_IS200	0x0d80
-+#define PCI_DEVICE_ID_INTASHIELD_IS400	0x0dc0
-=20
- #define PCI_VENDOR_ID_QUATECH		0x135C
- #define PCI_DEVICE_ID_QUATECH_QSC100	0x0010
+diff -puN drivers/macintosh/mediabay.c~macintosh-media-bay-semaphore-to-mutex drivers/macintosh/mediabay.c
+--- a/drivers/macintosh/mediabay.c~macintosh-media-bay-semaphore-to-mutex
++++ a/drivers/macintosh/mediabay.c
+@@ -21,6 +21,7 @@
+ #include <linux/init.h>
+ #include <linux/ide.h>
+ #include <linux/kthread.h>
++#include <linux/mutex.h>
+ #include <asm/prom.h>
+ #include <asm/pgtable.h>
+ #include <asm/io.h>
+@@ -77,7 +78,7 @@ struct media_bay_info {
+ 	int				index;
+ 	int				cached_gpio;
+ 	int				sleeping;
+-	struct semaphore		lock;
++	struct mutex			lock;
+ #ifdef CONFIG_BLK_DEV_IDE_PMAC
+ 	ide_hwif_t			*cd_port;
+ 	void __iomem			*cd_base;
+@@ -459,27 +460,27 @@ int media_bay_set_ide_infos(struct devic
+ 		if (bay->mdev && which_bay == bay->mdev->ofdev.node) {
+ 			int timeout = 5000, index = hwif->index;
+ 			
+-			down(&bay->lock);
++			mutex_lock(&bay->lock);
+ 
+ 			bay->cd_port	= hwif;
+  			bay->cd_base	= (void __iomem *) base;
+ 			bay->cd_irq	= irq;
+ 
+ 			if ((MB_CD != bay->content_id) || bay->state != mb_up) {
+-				up(&bay->lock);
++				mutex_unlock(&bay->lock);
+ 				return 0;
+ 			}
+ 			printk(KERN_DEBUG "Registered ide%d for media bay %d\n", index, i);
+ 			do {
+ 				if (MB_IDE_READY(i)) {
+ 					bay->cd_index	= index;
+-					up(&bay->lock);
++					mutex_unlock(&bay->lock);
+ 					return 0;
+ 				}
+ 				mdelay(1);
+ 			} while(--timeout);
+ 			printk(KERN_DEBUG "Timeount waiting IDE in bay %d\n", i);
+-			up(&bay->lock);
++			mutex_unlock(&bay->lock);
+ 			return -ENODEV;
+ 		}
+ 	}
+@@ -616,10 +617,10 @@ static int media_bay_task(void *x)
+ 
+ 	while (!kthread_should_stop()) {
+ 		for (i = 0; i < media_bay_count; ++i) {
+-			down(&media_bays[i].lock);
++			mutex_lock(&media_bays[i].lock);
+ 			if (!media_bays[i].sleeping)
+ 				media_bay_step(i);
+-			up(&media_bays[i].lock);
++			mutex_unlock(&media_bays[i].lock);
+ 		}
+ 
+ 		msleep_interruptible(MB_POLL_DELAY);
+@@ -659,7 +660,7 @@ static int __devinit media_bay_attach(st
+ 	bay->index = i;
+ 	bay->ops = match->data;
+ 	bay->sleeping = 0;
+-	init_MUTEX(&bay->lock);
++	mutex_init(&bay->lock);
+ 
+ 	/* Init HW probing */
+ 	if (bay->ops->init)
+@@ -697,10 +698,10 @@ static int media_bay_suspend(struct maci
+ 
+ 	if (state.event != mdev->ofdev.dev.power.power_state.event
+ 	    && (state.event & PM_EVENT_SLEEP)) {
+-		down(&bay->lock);
++		mutex_lock(&bay->lock);
+ 		bay->sleeping = 1;
+ 		set_mb_power(bay, 0);
+-		up(&bay->lock);
++		mutex_unlock(&bay->lock);
+ 		msleep(MB_POLL_DELAY);
+ 		mdev->ofdev.dev.power.power_state = state;
+ 	}
+@@ -719,12 +720,12 @@ static int media_bay_resume(struct macio
+ 	       	   they seem to help the 3400 get it right.
+ 	       	 */
+ 	       	/* Force MB power to 0 */
+-		down(&bay->lock);
++		mutex_lock(&bay->lock);
+ 	       	set_mb_power(bay, 0);
+ 		msleep(MB_POWER_DELAY);
+ 	       	if (bay->ops->content(bay) != bay->content_id) {
+ 			printk("mediabay%d: content changed during sleep...\n", bay->index);
+-			up(&bay->lock);
++			mutex_unlock(&bay->lock);
+ 	       		return 0;
+ 		}
+ 	       	set_mb_power(bay, 1);
+@@ -740,7 +741,7 @@ static int media_bay_resume(struct macio
+ 	       	} while((bay->state != mb_empty) &&
+ 	       		(bay->state != mb_up));
+ 		bay->sleeping = 0;
+-		up(&bay->lock);
++		mutex_unlock(&bay->lock);
+ 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from iggarpe@t2i.com are
+Patches currently in -mm which might be from dwalker@mvista.com are
 
-serial-support-for-instashield-is-400-four-port-rs-232-pci-card.patch
+macintosh-therm_windtunnel-semaphore-to-mutex.patch
+macintosh-media-bay-semaphore-to-mutex.patch
+profile-likely-unlikely-macros.patch
+likely_prof-changed-to-use-proc_create.patch
+likeliness-accounting-change-and-cleanup.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
