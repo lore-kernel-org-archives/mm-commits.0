@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + common-implementation-of-iterative-div-mod.patch added to -mm tree
-Date: Thu, 15 May 2008 16:03:27 -0700
-Message-ID: <200805152303.m4FN3Se9015040@imap1.linux-foundation.org>
+Subject: + always_inline-timespec_add_ns.patch added to -mm tree
+Date: Thu, 15 May 2008 16:03:32 -0700
+Message-ID: <200805152303.m4FN3Ww6015049@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:35642 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753878AbYEOXFF (ORCPT
+	by vger.kernel.org with ESMTP id S1754938AbYEOXF2 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 19:05:05 -0400
+	Thu, 15 May 2008 19:05:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: jeremy@goop.org, andi@firstfloor.org, hancockr@shaw.ca, jeremy.fitzhardinge@
 
 
 The patch titled
-     common implementation of iterative div/mod
+     always_inline timespec_add_ns
 has been added to the -mm tree.  Its filename is
-     common-implementation-of-iterative-div-mod.patch
+     always_inline-timespec_add_ns.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,20 +34,13 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: common implementation of iterative div/mod
+Subject: always_inline timespec_add_ns
 From: Jeremy Fitzhardinge <jeremy@goop.org>
 
-We have a few instances of the open-coded iterative div/mod loop, used
-when we don't expcet the dividend to be much bigger than the divisor. 
-Unfortunately modern gcc's have the tendency to strength "reduce" this
-into a full mod operation, which isn't necessarily any faster, and even if
-it were, doesn't exist if gcc implements it in libgcc.
-
-The workaround is to put a dummy asm statement in the loop to prevent gcc
-from performing the transformation.
-
-This patch creates a single implementation of this loop, and uses it to
-replace the open-coded versions I know about.
+timespec_add_ns is used from the x86-64 vdso, which cannot call out to
+other kernel code.  Make sure that timespec_add_ns is always inlined (and
+only uses always_inlined functions) to make sure there are no unexpected
+calls.
 
 Signed-off-by: Jeremy Fitzhardinge <jeremy.fitzhardinge@citrix.com>
 Cc: Ingo Molnar <mingo@elte.hu>
@@ -60,117 +53,28 @@ Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/time.c    |   13 +++----------
- include/linux/math64.h |    2 ++
- include/linux/time.h   |   11 ++---------
- lib/div64.c            |   23 +++++++++++++++++++++++
- 4 files changed, 30 insertions(+), 19 deletions(-)
+ include/linux/time.h |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/xen/time.c~common-implementation-of-iterative-div-mod arch/x86/xen/time.c
---- a/arch/x86/xen/time.c~common-implementation-of-iterative-div-mod
-+++ a/arch/x86/xen/time.c
-@@ -12,6 +12,7 @@
- #include <linux/clocksource.h>
- #include <linux/clockchips.h>
- #include <linux/kernel_stat.h>
-+#include <linux/math64.h>
- 
- #include <asm/xen/hypervisor.h>
- #include <asm/xen/hypercall.h>
-@@ -150,11 +151,7 @@ static void do_stolen_accounting(void)
- 	if (stolen < 0)
- 		stolen = 0;
- 
--	ticks = 0;
--	while (stolen >= NS_PER_TICK) {
--		ticks++;
--		stolen -= NS_PER_TICK;
--	}
-+	ticks = iter_div_u64_rem(stolen, NS_PER_TICK, &stolen);
- 	__get_cpu_var(residual_stolen) = stolen;
- 	account_steal_time(NULL, ticks);
- 
-@@ -166,11 +163,7 @@ static void do_stolen_accounting(void)
- 	if (blocked < 0)
- 		blocked = 0;
- 
--	ticks = 0;
--	while (blocked >= NS_PER_TICK) {
--		ticks++;
--		blocked -= NS_PER_TICK;
--	}
-+	ticks = iter_div_u64_rem(blocked, NS_PER_TICK, &blocked);
- 	__get_cpu_var(residual_blocked) = blocked;
- 	account_steal_time(idle_task(smp_processor_id()), ticks);
- }
-diff -puN include/linux/math64.h~common-implementation-of-iterative-div-mod include/linux/math64.h
---- a/include/linux/math64.h~common-implementation-of-iterative-div-mod
-+++ a/include/linux/math64.h
-@@ -81,4 +81,6 @@ static inline s64 div_s64(s64 dividend, 
- }
- #endif
- 
-+u32 iter_div_u64_rem(u64 dividend, u32 divisor, u64 *remainder);
-+
- #endif /* _LINUX_MATH64_H */
-diff -puN include/linux/time.h~common-implementation-of-iterative-div-mod include/linux/time.h
---- a/include/linux/time.h~common-implementation-of-iterative-div-mod
+diff -puN include/linux/time.h~always_inline-timespec_add_ns include/linux/time.h
+--- a/include/linux/time.h~always_inline-timespec_add_ns
 +++ a/include/linux/time.h
-@@ -6,6 +6,7 @@
- #ifdef __KERNEL__
- # include <linux/cache.h>
- # include <linux/seqlock.h>
-+# include <linux/math64.h>
- #endif
- 
- #ifndef _STRUCT_TIMESPEC
-@@ -172,15 +173,7 @@ extern struct timeval ns_to_timeval(cons
+@@ -170,10 +170,13 @@ extern struct timeval ns_to_timeval(cons
+  * timespec_add_ns - Adds nanoseconds to a timespec
+  * @a:		pointer to timespec to be incremented
+  * @ns:		unsigned nanoseconds value to be added
++ *
++ * This must always be inlined because its used from the x86-64 vdso,
++ * which cannot call other kernel functions.
   */
- static inline void timespec_add_ns(struct timespec *a, u64 ns)
+-static inline void timespec_add_ns(struct timespec *a, u64 ns)
++static __always_inline void timespec_add_ns(struct timespec *a, u64 ns)
  {
--	ns += a->tv_nsec;
--	while(unlikely(ns >= NSEC_PER_SEC)) {
--		/* The following asm() prevents the compiler from
--		 * optimising this loop into a modulo operation.  */
--		asm("" : "+r"(ns));
--
--		ns -= NSEC_PER_SEC;
--		a->tv_sec++;
--	}
-+	a->tv_sec += iter_div_u64_rem(a->tv_nsec + ns, NSEC_PER_SEC, &ns);
+-	a->tv_sec += iter_div_u64_rem(a->tv_nsec + ns, NSEC_PER_SEC, &ns);
++	a->tv_sec += __iter_div_u64_rem(a->tv_nsec + ns, NSEC_PER_SEC, &ns);
  	a->tv_nsec = ns;
  }
  #endif /* __KERNEL__ */
-diff -puN lib/div64.c~common-implementation-of-iterative-div-mod lib/div64.c
---- a/lib/div64.c~common-implementation-of-iterative-div-mod
-+++ a/lib/div64.c
-@@ -98,3 +98,26 @@ EXPORT_SYMBOL(div64_u64);
- #endif
- 
- #endif /* BITS_PER_LONG == 32 */
-+
-+/*
-+ * Iterative div/mod for use when dividend is not expected to be much
-+ * bigger than divisor.
-+ */
-+u32 iter_div_u64_rem(u64 dividend, u32 divisor, u64 *remainder)
-+{
-+	u32 ret = 0;
-+
-+	while (dividend >= divisor) {
-+		/* The following asm() prevents the compiler from
-+		   optimising this loop into a modulo operation.  */
-+		asm("" : "+rm"(dividend));
-+
-+		dividend -= divisor;
-+		ret++;
-+	}
-+
-+	*remainder = dividend;
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(iter_div_u64_rem);
 _
 
 Patches currently in -mm which might be from jeremy@goop.org are
