@@ -1,91 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: - selinux-dopey-hack.patch removed from -mm tree
-Date: Wed, 14 May 2008 17:01:21 -0700
-Message-ID: <200805150001.m4F01LP6028510@imap1.linux-foundation.org>
+Subject: - xfs-suppress-uninitialized-var-warnings.patch removed from -mm tree
+Date: Wed, 14 May 2008 18:33:37 -0700
+Message-ID: <200805150133.m4F1Xcc5031641@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:45875 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:33925 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753440AbYEOACC (ORCPT
+	by vger.kernel.org with ESMTP id S1751348AbYEOBdl (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Wed, 14 May 2008 20:02:02 -0400
+	Wed, 14 May 2008 21:33:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jmorris@namei.org, sds@tycho.nsa.gov, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dgc@sgi.com, lachlan@sgi.com, tes@sgi.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     selinux: dopey hack
+     xfs: suppress uninitialized var warnings
 has been removed from the -mm tree.  Its filename was
-     selinux-dopey-hack.patch
+     xfs-suppress-uninitialized-var-warnings.patch
 
 This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: selinux: dopey hack
+Subject: xfs: suppress uninitialized var warnings
 From: Andrew Morton <akpm@linux-foundation.org>
 
-BUG: sleeping function called from invalid context at mm/slab.c:3052
-in_atomic():1, irqs_disabled():0
-3 locks held by S99local/2391:
- #0:  (&type->i_mutex_dir_key#4){--..}, at: [<c017973c>] do_lookup+0x72/0x146
- #1:  (&isec->lock){--..}, at: [<c01cc3e5>] inode_doinit_with_dentry+0x35/0x52f
- #2:  (policy_rwlock){..-?}, at: [<c01d7f89>] security_context_to_sid_core+0x5e/0x157
-Pid: 2391, comm: S99local Not tainted 2.6.26-rc2 #1
- [<c011863c>] __might_sleep+0xde/0xe5
- [<c01706e5>] __kmalloc+0x52/0xd5
- [<c01d7d9f>] string_to_context_struct+0x2e/0x1ba
- [<c01d7fa3>] security_context_to_sid_core+0x78/0x157
- [<c01d80a5>] security_context_to_sid_default+0x10/0x12
- [<c01cc609>] inode_doinit_with_dentry+0x259/0x52f
- [<c01cc8f1>] selinux_d_instantiate+0x12/0x14
- [<c01c7f11>] security_d_instantiate+0x1c/0x1e
- [<c01828c4>] d_instantiate+0x55/0x5a
- [<c018376d>] d_splice_alias+0xc5/0xd5
- [<f8b8a063>] ext3_lookup+0x7b/0xa2 [ext3]
- [<c0179773>] do_lookup+0xa9/0x146
- [<c017b361>] __link_path_walk+0x75b/0xb54
- [<c013685b>] ? trace_hardirqs_off+0xb/0xd
- [<c01081a1>] ? native_sched_clock+0x8b/0x9f
- [<c017b7a3>] path_walk+0x49/0x96
- [<c017ba8e>] do_path_lookup+0x133/0x195
- [<c017aa60>] ? getname+0x60/0xb6
- [<c017c325>] __user_walk_fd+0x2f/0x43
- [<c01760ec>] vfs_stat_fd+0x19/0x40
- [<c01761c2>] vfs_stat+0x11/0x13
- [<c01761d8>] sys_stat64+0x14/0x28
- [<c014c088>] ? audit_syscall_entry+0x100/0x12a
- [<c014c35c>] ? audit_syscall_exit+0x2aa/0x2c5
- [<c01095aa>] ? do_syscall_trace+0x129/0x16f
- [<c0103992>] syscall_call+0x7/0xb
+fs/xfs/xfs_rtalloc.cfs/xfs/xfs_rtalloc.c: In function `xfs_growfs_rt':
+fs/xfs/xfs_rtalloc.c:1859: warning: 'cancelflags' might be used uninitialized in this function
+fs/xfs/xfs_rtalloc.c:1875: warning: 'tp' might be used uninitialized in this function
 
-please don't merge this.
-
-Cc: James Morris <jmorris@namei.org>
-Cc: Stephen Smalley <sds@tycho.nsa.gov>
+Cc: Timothy Shimmin <tes@sgi.com>
+Cc: David Chinner <dgc@sgi.com>
+Cc: Lachlan McIlroy <lachlan@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/selinux/ss/services.c |    4 ++--
+ fs/xfs/xfs_rtalloc.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN security/selinux/ss/services.c~selinux-dopey-hack security/selinux/ss/services.c
---- a/security/selinux/ss/services.c~selinux-dopey-hack
-+++ a/security/selinux/ss/services.c
-@@ -850,9 +850,9 @@ static int security_context_to_sid_core(
- 	POLICY_RDLOCK;
- 	rc = string_to_context_struct(&policydb, &sidtab,
- 				      scontext, scontext_len,
--				      &context, def_sid, gfp_flags);
-+				      &context, def_sid, GFP_ATOMIC);
- 	if (rc == -EINVAL && force) {
--		context.str = kmalloc(scontext_len+1, gfp_flags);
-+		context.str = kmalloc(scontext_len+1, GFP_ATOMIC);
- 		if (!context.str) {
- 			rc = -ENOMEM;
- 			goto out;
+diff -puN fs/xfs/xfs_rtalloc.c~xfs-suppress-uninitialized-var-warnings fs/xfs/xfs_rtalloc.c
+--- a/fs/xfs/xfs_rtalloc.c~xfs-suppress-uninitialized-var-warnings
++++ a/fs/xfs/xfs_rtalloc.c
+@@ -1862,7 +1862,7 @@ xfs_growfs_rt(
+ {
+ 	xfs_rtblock_t	bmbno;		/* bitmap block number */
+ 	xfs_buf_t	*bp;		/* temporary buffer */
+-	int		cancelflags;	/* flags for xfs_trans_cancel */
++	int		uninitialized_var(cancelflags);	/* flags for xfs_trans_cancel */
+ 	int		error;		/* error return value */
+ 	xfs_inode_t	*ip;		/* bitmap inode, used as lock */
+ 	xfs_mount_t	*nmp;		/* new (fake) mount structure */
+@@ -1878,7 +1878,7 @@ xfs_growfs_rt(
+ 	xfs_extlen_t	rsumblocks;	/* current number of rt summary blks */
+ 	xfs_sb_t	*sbp;		/* old superblock */
+ 	xfs_fsblock_t	sumbno;		/* summary block number */
+-	xfs_trans_t	*tp;		/* transaction pointer */
++	xfs_trans_t	*uninitialized_var(tp);	 /* transaction pointer */
+ 
+ 	sbp = &mp->m_sb;
+ 	cancelflags = 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -130,7 +105,6 @@ update-smc91x-driver-with-arm-versatile-board-info.patch
 git-battery.patch
 fs-nfs-callback_xdrc-suppress-uninitialiized-variable-warnings.patch
 arch-parisc-kernel-unalignedc-use-time_-macros.patch
-selinux-dopey-hack.patch
 pci-hotplug-introduce-pci_slot.patch
 pci-hotplug-acpi-pci-slot-detection-driver.patch
 drivers-scsi-qla2xxx-qla_osc-suppress-uninitialized-var-warning.patch
