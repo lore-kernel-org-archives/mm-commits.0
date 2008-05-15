@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + list_for_each_rcu-must-die-networking.patch added to -mm tree
-Date: Thu, 15 May 2008 16:35:37 -0700
-Message-ID: <200805152335.m4FNZbhp016159@imap1.linux-foundation.org>
+Subject: + ext4-fix-error-ext-number-comments.patch added to -mm tree
+Date: Thu, 15 May 2008 16:38:39 -0700
+Message-ID: <200805152338.m4FNcdsf016333@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53621 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40330 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754539AbYEOXga (ORCPT
+	by vger.kernel.org with ESMTP id S1751298AbYEOXin (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 19:36:30 -0400
+	Thu, 15 May 2008 19:38:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: paulmck@linux.vnet.ibm.com, davem@davemloft.net
+Cc: shen@cn.fujitsu.com
 
 
 The patch titled
-     list_for_each_rcu must die: networking
+     ext4: fix error ext number comments
 has been added to the -mm tree.  Its filename is
-     list_for_each_rcu-must-die-networking.patch
+     ext4-fix-error-ext-number-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,124 +34,46 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: list_for_each_rcu must die: networking
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: ext4: fix error ext number comments
+From: Shen Feng <shen@cn.fujitsu.com>
 
-All uses of list_for_each_rcu() can be profitably replaced by the
-easier-to-use list_for_each_entry_rcu().  This patch makes this change for
-networking, in preparation for removing the list_for_each_rcu() API
-entirely.
+Change second/third to fourth.
 
-Acked-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Signed-off-by: Shen Feng <shen@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/802/psnap.c     |    4 +---
- net/ipv4/af_inet.c  |    9 +++------
- net/ipv6/af_inet6.c |    9 +++------
- 3 files changed, 7 insertions(+), 15 deletions(-)
+ fs/ext4/ext4.h   |    2 +-
+ fs/ext4/ext4_i.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/802/psnap.c~list_for_each_rcu-must-die-networking net/802/psnap.c
---- a/net/802/psnap.c~list_for_each_rcu-must-die-networking
-+++ a/net/802/psnap.c
-@@ -30,11 +30,9 @@ static struct llc_sap *snap_sap;
+diff -puN fs/ext4/ext4.h~ext4-fix-error-ext-number-comments fs/ext4/ext4.h
+--- a/fs/ext4/ext4.h~ext4-fix-error-ext-number-comments
++++ a/fs/ext4/ext4.h
+@@ -22,7 +22,7 @@
+ #include "ext4_i.h"
+ 
+ /*
+- * The second extended filesystem constants/structures
++ * The fourth extended filesystem constants/structures
   */
- static struct datalink_proto *find_snap_client(unsigned char *desc)
- {
--	struct list_head *entry;
- 	struct datalink_proto *proto = NULL, *p;
  
--	list_for_each_rcu(entry, &snap_list) {
--		p = list_entry(entry, struct datalink_proto, node);
-+	list_for_each_entry_rcu(p, &snap_list, node) {
- 		if (!memcmp(p->type, desc, 5)) {
- 			proto = p;
- 			break;
-diff -puN net/ipv4/af_inet.c~list_for_each_rcu-must-die-networking net/ipv4/af_inet.c
---- a/net/ipv4/af_inet.c~list_for_each_rcu-must-die-networking
-+++ a/net/ipv4/af_inet.c
-@@ -267,7 +267,6 @@ static inline int inet_netns_ok(struct n
- static int inet_create(struct net *net, struct socket *sock, int protocol)
- {
- 	struct sock *sk;
--	struct list_head *p;
- 	struct inet_protosw *answer;
- 	struct inet_sock *inet;
- 	struct proto *answer_prot;
-@@ -284,13 +283,12 @@ static int inet_create(struct net *net, 
- 	sock->state = SS_UNCONNECTED;
+ /*
+diff -puN fs/ext4/ext4_i.h~ext4-fix-error-ext-number-comments fs/ext4/ext4_i.h
+--- a/fs/ext4/ext4_i.h~ext4-fix-error-ext-number-comments
++++ a/fs/ext4/ext4_i.h
+@@ -79,7 +79,7 @@ struct ext4_ext_cache {
+ };
  
- 	/* Look for the requested type/protocol pair. */
--	answer = NULL;
- lookup_protocol:
- 	err = -ESOCKTNOSUPPORT;
- 	rcu_read_lock();
--	list_for_each_rcu(p, &inetsw[sock->type]) {
--		answer = list_entry(p, struct inet_protosw, list);
-+	list_for_each_entry_rcu(answer, &inetsw[sock->type], list) {
- 
-+		err = 0;
- 		/* Check the non-wild match. */
- 		if (protocol == answer->protocol) {
- 			if (protocol != IPPROTO_IP)
-@@ -305,10 +303,9 @@ lookup_protocol:
- 				break;
- 		}
- 		err = -EPROTONOSUPPORT;
--		answer = NULL;
- 	}
- 
--	if (unlikely(answer == NULL)) {
-+	if (unlikely(err)) {
- 		if (try_loading_module < 2) {
- 			rcu_read_unlock();
- 			/*
-diff -puN net/ipv6/af_inet6.c~list_for_each_rcu-must-die-networking net/ipv6/af_inet6.c
---- a/net/ipv6/af_inet6.c~list_for_each_rcu-must-die-networking
-+++ a/net/ipv6/af_inet6.c
-@@ -87,7 +87,6 @@ static int inet6_create(struct net *net,
- 	struct inet_sock *inet;
- 	struct ipv6_pinfo *np;
- 	struct sock *sk;
--	struct list_head *p;
- 	struct inet_protosw *answer;
- 	struct proto *answer_prot;
- 	unsigned char answer_flags;
-@@ -101,13 +100,12 @@ static int inet6_create(struct net *net,
- 		build_ehash_secret();
- 
- 	/* Look for the requested type/protocol pair. */
--	answer = NULL;
- lookup_protocol:
- 	err = -ESOCKTNOSUPPORT;
- 	rcu_read_lock();
--	list_for_each_rcu(p, &inetsw6[sock->type]) {
--		answer = list_entry(p, struct inet_protosw, list);
-+	list_for_each_entry_rcu(answer, &inetsw6[sock->type], list) {
- 
-+		err = 0;
- 		/* Check the non-wild match. */
- 		if (protocol == answer->protocol) {
- 			if (protocol != IPPROTO_IP)
-@@ -122,10 +120,9 @@ lookup_protocol:
- 				break;
- 		}
- 		err = -EPROTONOSUPPORT;
--		answer = NULL;
- 	}
- 
--	if (!answer) {
-+	if (err) {
- 		if (try_loading_module < 2) {
- 			rcu_read_unlock();
- 			/*
+ /*
+- * third extended file system inode data in memory
++ * fourth extended file system inode data in memory
+  */
+ struct ext4_inode_info {
+ 	__le32	i_data[15];	/* unconverted */
 _
 
-Patches currently in -mm which might be from paulmck@linux.vnet.ibm.com are
+Patches currently in -mm which might be from shen@cn.fujitsu.com are
 
-origin.patch
-linux-next.patch
-list_for_each_rcu-must-die-audit.patch
-list_for_each_rcu-must-die-networking.patch
+ext4-fix-error-ext-number-comments.patch
 
