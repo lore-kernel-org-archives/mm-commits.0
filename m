@@ -1,98 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + init-fix-building-bug-and-potential-buffer-overflow.patch added to -mm tree
-Date: Thu, 15 May 2008 10:58:22 -0700
-Message-ID: <200805151758.m4FHwM74002839@imap1.linux-foundation.org>
+Subject: - fix-gregkh-usb-usb-ohci-host-controller-resumes-leave-root-hub-suspended.patch removed from -mm tree
+Date: Thu, 15 May 2008 11:34:23 -0700
+Message-ID: <200805151834.m4FIYNWC004350@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48537 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:57762 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1764316AbYEOR64 (ORCPT
+	by vger.kernel.org with ESMTP id S1752102AbYEOSfG (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 13:58:56 -0400
+	Thu, 15 May 2008 14:35:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org
-Cc: gorcunov@gmail.com, geert@linux-m68k.org
+To: tremyfr@yahoo.fr, greg@kroah.com, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     init: fix build and potential buffer overflow
-has been added to the -mm tree.  Its filename is
-     init-fix-building-bug-and-potential-buffer-overflow.patch
+     ohci-sm501.c: fix undeclared variable `hcd'
+has been removed from the -mm tree.  Its filename was
+     fix-gregkh-usb-usb-ohci-host-controller-resumes-leave-root-hub-suspended.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-See http://www.zip.com.au/~akpm/linux/patches/stuff/added-to-mm.txt to find
-out what to do about this
+This patch was dropped because it is obsolete
 
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: init: fix build and potential buffer overflow
-From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: ohci-sm501.c: fix undeclared variable `hcd'
+From: Reynes Philippe <tremyfr@yahoo.fr>
 
-This patch fixes a build bug on m68k which does not have strncat in a
-straight way.
+The function ohci_sm501_resume in drivers/usb/host/ohci-hcd.c use the variable
+hcd, but this variable is undeclared in this function, so the compilation
+fails with this error :
 
-What is more important - my previous patch
+  CC      drivers/usb/host/ohci-hcd.o
+In file included from drivers/usb/host/ohci-hcd.c:1056:
+drivers/usb/host/ohci-sm501.c: In function `ohci_sm501_resume':
+drivers/usb/host/ohci-sm501.c:241: erreur: `hcd' undeclared (first use in this function)
+drivers/usb/host/ohci-sm501.c:241: erreur: (Each undeclared identifier is reported only once
+drivers/usb/host/ohci-sm501.c:241: erreur: for each function it appears in.)
 
-commit e662e1cfd434aa234b72fbc781f1d70211cb785b
-Author: Cyrill Gorcunov <gorcunov@gmail.com>
-Date:   Mon May 12 14:02:22 2008 -0700
-
-    init: don't lose initcall return values
-
-Has introduced potential buffer overflow by wrong calculation of string
-accumulator size.
-
-Many thanks Andreas Schwab and Geert Uytterhoeven for helping
-to catch and fix the bug.
-
-Signed-off-by: Cyrill Gorcunov <gorcunov@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/usb/host/ohci-sm501.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN init/main.c~init-fix-building-bug-and-potential-buffer-overflow init/main.c
---- a/init/main.c~init-fix-building-bug-and-potential-buffer-overflow
-+++ a/init/main.c
-@@ -702,7 +702,7 @@ static void __init do_initcalls(void)
+diff -puN drivers/usb/host/ohci-sm501.c~fix-gregkh-usb-usb-ohci-host-controller-resumes-leave-root-hub-suspended drivers/usb/host/ohci-sm501.c
+--- a/drivers/usb/host/ohci-sm501.c~fix-gregkh-usb-usb-ohci-host-controller-resumes-leave-root-hub-suspended
++++ a/drivers/usb/host/ohci-sm501.c
+@@ -238,7 +238,7 @@ static int ohci_sm501_resume(struct plat
+ 	ohci->next_statechange = jiffies;
  
- 	for (call = __initcall_start; call < __initcall_end; call++) {
- 		ktime_t t0, t1, delta;
--		char msgbuf[40];
-+		char msgbuf[64];
- 		int result;
- 
- 		if (initcall_debug) {
-@@ -729,11 +729,11 @@ static void __init do_initcalls(void)
- 			sprintf(msgbuf, "error code %d ", result);
- 
- 		if (preempt_count() != count) {
--			strncat(msgbuf, "preemption imbalance ", sizeof(msgbuf));
-+			strcat(msgbuf, "preemption imbalance ");
- 			preempt_count() = count;
- 		}
- 		if (irqs_disabled()) {
--			strncat(msgbuf, "disabled interrupts ", sizeof(msgbuf));
-+			strcat(msgbuf, "disabled interrupts ");
- 			local_irq_enable();
- 		}
- 		if (msgbuf[0]) {
+ 	sm501_unit_power(dev->parent, SM501_GATE_USB_HOST, 1);
+-	ohci_finish_controller_resume(hcd);
++	ohci_finish_controller_resume(ohci_to_hcd(ohci));
+ 	return 0;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from gorcunov@gmail.com are
+Patches currently in -mm which might be from tremyfr@yahoo.fr are
 
-origin.patch
-init-fix-building-bug-and-potential-buffer-overflow.patch
-module-loading-elf-handling-use-selfmag-instead-of-numeric-constant.patch
+fix-gregkh-usb-usb-ohci-host-controller-resumes-leave-root-hub-suspended.patch
 
