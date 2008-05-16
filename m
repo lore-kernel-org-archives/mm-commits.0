@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + bsdacct-turn-acct-off-for-all-pidns-s-on-umount-time.patch added to -mm tree
-Date: Thu, 15 May 2008 19:45:11 -0700
-Message-ID: <200805160245.m4G2jB3X022913@imap1.linux-foundation.org>
+Subject: + bsdacct-account-dying-tasks-in-all-relevant-namespaces.patch added to -mm tree
+Date: Thu, 15 May 2008 19:45:13 -0700
+Message-ID: <200805160245.m4G2jDYx022925@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52938 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:45084 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753842AbYEPCpv (ORCPT
+	by vger.kernel.org with ESMTP id S1753382AbYEPCpy (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 22:45:51 -0400
+	Thu, 15 May 2008 22:45:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: xemul@openvz.org, balbir@in.ibm.com, ebiederm@xmission.com
 
 
 The patch titled
-     bsdacct: turn acct off for all pidns-s on umount time
+     bsdacct: account dying tasks in all relevant namespaces
 has been added to the -mm tree.  Its filename is
-     bsdacct-turn-acct-off-for-all-pidns-s-on-umount-time.patch
+     bsdacct-account-dying-tasks-in-all-relevant-namespaces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,12 +34,14 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: bsdacct: turn acct off for all pidns-s on umount time
+Subject: bsdacct: account dying tasks in all relevant namespaces
 From: Pavel Emelyanov <xemul@openvz.org>
 
-All the bsd_acct_strcts with opened accounting are linked into a global
-list.  So, the acct_auto_close(_mnt) walks one and drops the accounting
-for each.
+This just makes the acct_proces walk the pid namespaces from current up to
+the top and account a task in each with the accounting turned on.
+
+ns->parent access if safe lockless, since current it still alive and holds
+its namespace, which in turn holds its parent.
 
 Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
 Cc: Balbir Singh <balbir@in.ibm.com>
@@ -47,79 +49,46 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/acct.c |   28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+ kernel/acct.c |   21 ++++++++++++++-------
+ 1 file changed, 14 insertions(+), 7 deletions(-)
 
-diff -puN kernel/acct.c~bsdacct-turn-acct-off-for-all-pidns-s-on-umount-time kernel/acct.c
---- a/kernel/acct.c~bsdacct-turn-acct-off-for-all-pidns-s-on-umount-time
+diff -puN kernel/acct.c~bsdacct-account-dying-tasks-in-all-relevant-namespaces kernel/acct.c
+--- a/kernel/acct.c~bsdacct-account-dying-tasks-in-all-relevant-namespaces
 +++ a/kernel/acct.c
-@@ -89,9 +89,11 @@ struct bsd_acct_struct {
- 	struct file		*file;
- 	struct pid_namespace	*ns;
- 	struct timer_list	timer;
-+	struct list_head	list;
- };
- 
- static DEFINE_SPINLOCK(acct_lock);
-+static LIST_HEAD(acct_list);
- 
- /*
-  * Called whenever the timer says to check the free space.
-@@ -188,12 +190,14 @@ static void acct_file_reopen(struct bsd_
- 		acct->needcheck = 0;
- 		acct->file = NULL;
- 		acct->ns = NULL;
-+		list_del(&acct->list);
- 	}
- 	if (file) {
- 		acct->file = file;
- 		acct->ns = ns;
- 		acct->needcheck = 0;
- 		acct->active = 1;
-+		list_add(&acct->list, &acct_list);
- 		/* It's been deleted if it was used before so this is safe */
- 		setup_timer(&acct->timer, acct_timeout, (unsigned long)acct);
- 		acct->timer.expires = jiffies + ACCT_TIMEOUT*HZ;
-@@ -314,13 +318,13 @@ void acct_auto_close_mnt(struct vfsmount
- {
- 	struct bsd_acct_struct *acct;
- 
--	acct = init_pid_ns.bacct;
--	if (acct == NULL)
--		return;
--
- 	spin_lock(&acct_lock);
--	if (acct->file && acct->file->f_path.mnt == m)
--		acct_file_reopen(acct, NULL, NULL);
-+restart:
-+	list_for_each_entry(acct, &acct_list, list)
-+		if (acct->file && acct->file->f_path.mnt == m) {
-+			acct_file_reopen(acct, NULL, NULL);
-+			goto restart;
-+		}
- 	spin_unlock(&acct_lock);
+@@ -631,15 +631,9 @@ void acct_collect(long exitcode, int gro
+ 	spin_unlock_irq(&current->sighand->siglock);
  }
  
-@@ -335,13 +339,13 @@ void acct_auto_close(struct super_block 
+-/**
+- * acct_process - now just a wrapper around do_acct_process
+- *
+- * handles process accounting for an exiting task
+- */
+-void acct_process(void)
++static void acct_process_in_ns(struct pid_namespace *ns)
  {
+ 	struct file *file = NULL;
+-	struct pid_namespace *ns = task_active_pid_ns(current);
  	struct bsd_acct_struct *acct;
  
--	acct = init_pid_ns.bacct;
--	if (acct == NULL)
--		return;
--
- 	spin_lock(&acct_lock);
--	if (acct->file && acct->file->f_path.mnt->mnt_sb == sb)
--		acct_file_reopen(acct, NULL, NULL);
-+restart:
-+	list_for_each_entry(acct, &acct_list, list)
-+		if (acct->file && acct->file->f_path.mnt->mnt_sb == sb) {
-+			acct_file_reopen(acct, NULL, NULL);
-+			goto restart;
-+		}
- 	spin_unlock(&acct_lock);
+ 	acct = ns->bacct;
+@@ -661,3 +655,16 @@ void acct_process(void)
+ 	do_acct_process(acct, ns, file);
+ 	fput(file);
  }
- 
++
++/**
++ * acct_process - now just a wrapper around do_acct_process
++ *
++ * handles process accounting for an exiting task
++ */
++void acct_process(void)
++{
++	struct pid_namespace *ns;
++
++	for (ns = task_active_pid_ns(current); ns != NULL; ns = ns->parent)
++		acct_process_in_ns(ns);
++}
 _
 
 Patches currently in -mm which might be from xemul@openvz.org are
