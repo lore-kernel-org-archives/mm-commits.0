@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
-Subject: + fuse-lockd-support.patch added to -mm tree
-Date: Thu, 15 May 2008 17:16:20 -0700
-Message-ID: <200805160016.m4G0GKN6017783@imap1.linux-foundation.org>
+Subject: + use-generic_access_phys-for-pci-mmap-on-x86.patch added to -mm tree
+Date: Thu, 15 May 2008 17:22:15 -0700
+Message-ID: <200805160022.m4G0MGQI018065@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:52440 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48129 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753337AbYEPARA (ORCPT
+	by vger.kernel.org with ESMTP id S1751546AbYEPAWs (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 20:17:00 -0400
+	Thu, 15 May 2008 20:22:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
-Cc: mszeredi@suse.cz, bfields@fieldses.org, hch@lst.de, matthew@wil.cx, teigland@redhat.com, trond.myklebust@fys.uio.no
+Cc: riel@redhat.com, airlied@linux.ie, arnd@arndb.de, benh@kernel.crashing.org, hugh@veritas.com, paulus@samba.org
 
 
 The patch titled
-     fuse: lockd support
+     use generic_access_phys for pci mmap on x86
 has been added to the -mm tree.  Its filename is
-     fuse-lockd-support.patch
+     use-generic_access_phys-for-pci-mmap-on-x86.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,76 +34,53 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: fuse: lockd support
-From: Miklos Szeredi <mszeredi@suse.cz>
+Subject: use generic_access_phys for pci mmap on x86
+From: Rik van Riel <riel@redhat.com>
 
-If fuse filesystem doesn't define it's own lock operations, then allow the
-lock manager to work with fuse.
+Use generic_access_phys for ptrace and /proc/pid/mem access to PCI device
+memory on x86.  This makes it possible to debug the X server.
 
-Adding lockd support for remote locking is also possible, but more rarely
-used, so leave it till later.
-
-Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Trond Myklebust <trond.myklebust@fys.uio.no>
-Cc: Matthew Wilcox <matthew@wil.cx>
-Cc: David Teigland <teigland@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Cc: Benjamin Herrensmidt <benh@kernel.crashing.org>
+Cc: Dave Airlie <airlied@linux.ie>
+Cc: Hugh Dickins <hugh@veritas.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/file.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ arch/x86/pci/i386.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/fuse/file.c~fuse-lockd-support fs/fuse/file.c
---- a/fs/fuse/file.c~fuse-lockd-support
-+++ a/fs/fuse/file.c
-@@ -1341,6 +1341,11 @@ static int fuse_setlk(struct file *file,
- 	pid_t pid = fl->fl_type != F_UNLCK ? current->tgid : 0;
- 	int err;
+diff -puN arch/x86/pci/i386.c~use-generic_access_phys-for-pci-mmap-on-x86 arch/x86/pci/i386.c
+--- a/arch/x86/pci/i386.c~use-generic_access_phys-for-pci-mmap-on-x86
++++ a/arch/x86/pci/i386.c
+@@ -280,6 +280,7 @@ static void pci_track_mmap_page_range(st
+ static struct vm_operations_struct pci_mmap_ops = {
+ 	.open  = pci_track_mmap_page_range,
+ 	.close = pci_unmap_page_range,
++	.access = generic_access_phys,
+ };
  
-+	if (fl->fl_lmops && fl->fl_lmops->fl_grant) {
-+		/* NLM needs asynchronous locks, which we don't support yet */
-+		return -ENOLCK;
-+	}
-+
- 	/* Unlock on close is handled by the flush method */
- 	if (fl->fl_flags & FL_CLOSE)
- 		return 0;
-@@ -1365,7 +1370,9 @@ static int fuse_file_lock(struct file *f
- 	struct fuse_conn *fc = get_fuse_conn(inode);
- 	int err;
- 
--	if (cmd == F_GETLK) {
-+	if (cmd == F_CANCELLK) {
-+		err = 0;
-+	} else if (cmd == F_GETLK) {
- 		if (fc->no_lock) {
- 			posix_test_lock(file, fl);
- 			err = 0;
-@@ -1373,7 +1380,7 @@ static int fuse_file_lock(struct file *f
- 			err = fuse_getlk(file, fl);
- 	} else {
- 		if (fc->no_lock)
--			err = posix_lock_file_wait(file, fl);
-+			err = posix_lock_file(file, fl, NULL);
- 		else
- 			err = fuse_setlk(file, fl, 0);
- 	}
+ int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
 _
 
-Patches currently in -mm which might be from mszeredi@suse.cz are
+Patches currently in -mm which might be from riel@redhat.com are
 
-origin.patch
-mm-fix-infinite-loop-in-filemap_fault.patch
-git-vfs-cleanups.patch
-lockd-dont-return-eagain-for-a-permanent-error.patch
-locks-add-special-return-value-for-asynchronous-locks.patch
-locks-cleanup-code-duplication.patch
-locks-allow-lock-to-return-file_lock_deferred.patch
-fuse-prepare-lookup-for-nfs-export.patch
-fuse-add-export-operations.patch
-fuse-add-fuse_lookup_name-helper.patch
-fuse-nfs-export-special-lookups.patch
-fuse-lockd-support.patch
+access_process_vm-device-memory-infrastructure.patch
+use-generic_access_phys-for-dev-mem-mappings.patch
+use-generic_access_phys-for-pci-mmap-on-x86.patch
+powerpc-ioremap_prot.patch
+spufs-use-the-new-vm_ops-access.patch
+vmscan-give-referenced-active-and-unmapped-pages-a-second-trip-around-the-lru.patch
+idr-change-the-idr-structure.patch
+idr-rename-some-of-the-idr-apis-internal-routines.patch
+idr-fix-a-printk-call.patch
+idr-error-checking-factorization.patch
+idr-make-idr_get_new-rcu-safe.patch
+idr-make-idr_find-rcu-safe.patch
+idr-make-idr_remove-rcu-safe.patch
+ipc-call-idr_find-without-locking-in-ipc_lock.patch
+ipc-get-rid-of-ipc_lock_down.patch
+make-mm-rmapc-anon_vma_cachep-static.patch
 
