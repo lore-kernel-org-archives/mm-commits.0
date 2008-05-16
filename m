@@ -1,14 +1,14 @@
 From: akpm@linux-foundation.org
-Subject: + use-generic_access_phys-for-pci-mmap-on-x86.patch added to -mm tree
-Date: Thu, 15 May 2008 17:22:15 -0700
-Message-ID: <200805160022.m4G0MGQI018065@imap1.linux-foundation.org>
+Subject: + spufs-use-the-new-vm_ops-access.patch added to -mm tree
+Date: Thu, 15 May 2008 17:22:20 -0700
+Message-ID: <200805160022.m4G0MKDH018074@imap1.linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:48129 "EHLO
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47557 "EHLO
 	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751546AbYEPAWs (ORCPT
+	by vger.kernel.org with ESMTP id S1753922AbYEPAWu (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>);
-	Thu, 15 May 2008 20:22:48 -0400
+	Thu, 15 May 2008 20:22:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mm-commits@vger.kernel.org
@@ -16,9 +16,9 @@ Cc: riel@redhat.com, airlied@linux.ie, arnd@arndb.de, benh@kernel.crashing.org, 
 
 
 The patch titled
-     use generic_access_phys for pci mmap on x86
+     spufs: use new vm_ops->access to allow local state access from gdb
 has been added to the -mm tree.  Its filename is
-     use-generic_access_phys-for-pci-mmap-on-x86.patch
+     spufs-use-the-new-vm_ops-access.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,14 +34,15 @@ out what to do about this
 The current -mm tree may be found at http://userweb.kernel.org/~akpm/mmotm/
 
 ------------------------------------------------------
-Subject: use generic_access_phys for pci mmap on x86
+Subject: spufs: use new vm_ops->access to allow local state access from gdb
 From: Rik van Riel <riel@redhat.com>
 
-Use generic_access_phys for ptrace and /proc/pid/mem access to PCI device
-memory on x86.  This makes it possible to debug the X server.
+This uses the new vm_ops->access to allow gdb to access the SPU local
+store.  We currently prevent access to problem state registers, this can
+be done later if really needed but it's safer not to.
 
+Signed-off-by: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Rik van Riel <riel@redhat.com>
-Cc: Benjamin Herrensmidt <benh@kernel.crashing.org>
 Cc: Dave Airlie <airlied@linux.ie>
 Cc: Hugh Dickins <hugh@veritas.com>
 Cc: Paul Mackerras <paulus@samba.org>
@@ -49,20 +50,45 @@ Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/pci/i386.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/powerpc/platforms/cell/spufs/file.c |   23 +++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff -puN arch/x86/pci/i386.c~use-generic_access_phys-for-pci-mmap-on-x86 arch/x86/pci/i386.c
---- a/arch/x86/pci/i386.c~use-generic_access_phys-for-pci-mmap-on-x86
-+++ a/arch/x86/pci/i386.c
-@@ -280,6 +280,7 @@ static void pci_track_mmap_page_range(st
- static struct vm_operations_struct pci_mmap_ops = {
- 	.open  = pci_track_mmap_page_range,
- 	.close = pci_unmap_page_range,
-+	.access = generic_access_phys,
+diff -puN arch/powerpc/platforms/cell/spufs/file.c~spufs-use-the-new-vm_ops-access arch/powerpc/platforms/cell/spufs/file.c
+--- a/arch/powerpc/platforms/cell/spufs/file.c~spufs-use-the-new-vm_ops-access
++++ a/arch/powerpc/platforms/cell/spufs/file.c
+@@ -287,9 +287,32 @@ spufs_mem_mmap_fault(struct vm_area_stru
+ 	return VM_FAULT_NOPAGE;
+ }
+ 
++static int spufs_mem_mmep_access(struct vm_area_struct *vma,
++				unsigned long address,
++				void *buf, int len, int write)
++{
++	struct spu_context *ctx = vma->vm_file->private_data;
++	unsigned long offset = address - vma->vm_start;
++	char *local_store;
++
++	if (write && !(vma->vm_flags & VM_WRITE))
++		return -EACCES;
++	if (spu_acquire(ctx))
++		return -EINTR;
++	if ((offset + len) > vma->vm_end)
++		len = vma->vm_end - offset;
++	local_store = ctx->ops->get_ls(ctx);
++	if (write)
++		memcpy_toio(local_store + offset, buf, len);
++	else
++		memcpy_fromio(buf, local_store + offset, len);
++	spu_release(ctx);
++	return len;
++}
+ 
+ static struct vm_operations_struct spufs_mem_mmap_vmops = {
+ 	.fault = spufs_mem_mmap_fault,
++	.access = spufs_mem_mmep_access,
  };
  
- int pci_mmap_page_range(struct pci_dev *dev, struct vm_area_struct *vma,
+ static int spufs_mem_mmap(struct file *file, struct vm_area_struct *vma)
 _
 
 Patches currently in -mm which might be from riel@redhat.com are
